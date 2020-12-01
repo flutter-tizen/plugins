@@ -42,7 +42,7 @@ Storage get storage => _storageInstance ??= Storage();
 /// A wrapper class for Tizen Storage APIs.
 /// Not all functions or values are supported.
 class Storage {
-  Storage() : storageId = _completer.future {
+  Storage() {
     final DynamicLibrary libStorage = DynamicLibrary.open('libstorage.so.0.1');
     _storageGetDirectory = libStorage
         .lookup<NativeFunction<storage_get_directory>>('storage_get_directory')
@@ -71,7 +71,7 @@ class Storage {
       _storageForeachDeviceSupported;
 
   /// The unique storage device id.
-  final Future<int> storageId;
+  final Future<int> storageId = _completer.future;
 
   /// A completer for [storageId].
   static final Completer<int> _completer = Completer<int>();
@@ -94,13 +94,10 @@ class Storage {
   Future<String> getDirectory({
     StorageDirectoryType type,
   }) async {
-    return _getDirectory(await storageId, type.index);
-  }
-
-  String _getDirectory(int storageId, int dirType) {
     final Pointer<Pointer<Utf8>> path = allocate();
     try {
-      final int result = _storageGetDirectory(storageId, dirType, path);
+      final int result =
+          _storageGetDirectory(await storageId, type.index, path);
       if (result != 0) {
         throw StorageException(
             result, 'Failed to execute storage_get_directory.');
