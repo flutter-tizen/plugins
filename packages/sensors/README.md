@@ -1,0 +1,27 @@
+# sensors_tizen
+
+The Tizen implementation of [`sensors`](https://github.com/flutter/plugins/tree/master/packages/sensors).
+
+## Usage
+
+This package is not an _endorsed_ implementation of `sensors`. Therefore, you have to include `sensors_tizen` alongside `sensors` as dependencies in your `pubspec.yaml` file.
+
+```yaml
+dependencies:
+  sensors: ^0.4.0
+  sensors_tizen: ^1.0.0
+```
+
+Then you can import `sensors` in your Dart code:
+
+```dart
+import 'package:sensors/sensors.dart';
+```
+
+For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/sensors#usage.
+
+## Supported devices
+
+This plugin is available for use only on these types of devices:
+
+- Galaxy Watch (running Tizen 5.5 or later)
