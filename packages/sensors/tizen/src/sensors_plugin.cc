@@ -109,6 +109,7 @@ class Listener {
   sensor_listener_h listener_{nullptr};
   bool is_listening_{false};
 };
+
 class SensorsPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {

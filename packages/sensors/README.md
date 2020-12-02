@@ -22,6 +22,6 @@ For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/
 
 ## Supported devices
 
-This plugin is available for use only on these types of devices:
+This plugin is supported on these types of devices:
 
 - Galaxy Watch (running Tizen 5.5 or later)
