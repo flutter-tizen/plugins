@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -63,7 +64,6 @@ void main() {
     null,
     StorageDirectory.music,
     StorageDirectory.podcasts,
-    StorageDirectory.ringtones,
     StorageDirectory.alarms,
     StorageDirectory.notifications,
     StorageDirectory.pictures,
@@ -76,7 +76,11 @@ void main() {
         final Future<List<Directory>> result =
             getExternalStorageDirectories(type: null);
         expect(result, throwsA(isInstanceOf<UnsupportedError>()));
-      } else if (Platform.isAndroid) {
+      } else {
+        // Remove when testing on TV.
+        if (!await Permission.accessMediaLocation.isGranted) {
+          await Permission.accessMediaLocation.request();
+        }
         final List<Directory> directories =
             await getExternalStorageDirectories(type: type);
         for (Directory result in directories) {

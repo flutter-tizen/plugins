@@ -22,26 +22,30 @@ For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/
 
 ## Required privileges
 
-To access paths returned by
+- To access paths returned by
 
-- `getExternalDataPath`
-- `getExternalCachePath`
+  - `getExternalStoragePaths`
+  - `getDownloadsPath`
 
-add below lines under the `<manifest>` section in your `tizen-manifest.xml` file.
+  add below lines under the `<manifest>` section in your `tizen-manifest.xml` file,
 
-```xml
-<privilege>http://tizen.org/privilege/externalstorage.appdata</privilege>
-```
+  ```xml
+  <privileges>
+    <privilege>http://tizen.org/privilege/mediastorage</privilege>
+  </privileges>
+  ```
 
-To access paths returned by
+  and also acquire `Permission.accessMediaLocation` using the [`permission_handler`](https://pub.dev/packages/permission_handler_tizen) plugin (to be available soon). The permission is already granted on TV devices by default.
 
-- `getExternalStoragePaths`
-- `getDownloadsPath`
+- To access paths returned by
 
-add below lines under the `<manifest>` section in your `tizen-manifest.xml` file,
+  - `getExternalDataPath`
+  - `getExternalCachePath`
 
-```xml
-<privilege>http://tizen.org/privilege/mediastorage</privilege>
-```
+  add below lines under the `<manifest>` section in your `tizen-manifest.xml` file.
 
-and also acquire the **Storage** [permission](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges) using the [`permission_handler`](https://pub.dev/packages/permission_handler_tizen) plugin (to be available soon).
+  ```xml
+  <privileges>
+    <privilege>http://tizen.org/privilege/externalstorage.appdata</privilege>
+  </privileges>
+  ```

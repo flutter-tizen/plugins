@@ -7,4 +7,9 @@
         <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true"/>
     </ui-application>
     <feature name="http://tizen.org/feature/screen.size.all"/>
+    <privileges>
+        <!-- privileges required by the integration test -->
+        <privilege>http://tizen.org/privilege/mediastorage</privilege>
+        <privilege>http://tizen.org/privilege/externalstorage.appdata</privilege>
+    </privileges>
 </manifest>
