@@ -54,6 +54,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
                  FlutterTextureRegistrar* textureRegistrar, double width,
                  double height, const std::string initialUrl)
     : PlatformView(registrar, viewId),
+      tbmSurface_(nullptr),
       textureRegistrar_(textureRegistrar),
       webViewInstance_(nullptr),
       currentUrl_(initialUrl),
@@ -81,6 +82,8 @@ std::string WebView::GetChannelName() {
 void WebView::Dispose() {
   FlutterUnregisterExternalTexture(textureRegistrar_, GetTextureId());
 
+  // Should move to starfish
+  // glDeleteFramebuffers(1, &fbo_id_);
   webViewInstance_->Destroy();
   webViewInstance_ = nullptr;
 }
@@ -436,27 +439,49 @@ void WebView::InitWebView() {
     webViewInstance_ = nullptr;
   }
   float scaleFactor = 1;
-  webViewInstance_ = LWE::WebContainer::Create(
-      width_, height_, scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul");
+
+  webViewInstance_ = (LWE::WebContainer*)LWE::WebView::Create(nullptr,0,0,width_, height_,scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul");
   webViewInstance_->RegisterPreRenderingHandler(
       [this]() -> LWE::WebContainer::RenderInfo {
         LWE::WebContainer::RenderInfo result;
         {
-          tbmSurface_ =
-              tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
+          // Should move to starfish
+          // glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
+
+          tbmSurface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
           tbm_surface_info_s tbmSurfaceInfo;
           if (tbm_surface_map(tbmSurface_, TBM_SURF_OPTION_WRITE,
                               &tbmSurfaceInfo) == TBM_SURFACE_ERROR_NONE) {
             result.updatedBufferAddress = tbmSurfaceInfo.planes[0].ptr;
             result.bufferStride = tbmSurfaceInfo.planes[0].stride;
+
+            // Should move to starfish
+
+            // EGLint attribs[] = {EGL_IMAGE_PRESERVED_KHR, EGL_TRUE, EGL_NONE};
+            // eglImage_ = g_eglCreateImageKHRProc(
+            //     egl_display_, EGL_NO_CONTEXT, EGL_NATIVE_SURFACE_TIZEN,
+            //     (void*)(intptr_t)tbmSurface_, attribs);
+            // glGenTextures(1, &textureID_);
+            // glBindTexture(GL_TEXTURE_2D, textureID_);
+            // g_glEGLImageTargetTexture2DOESProc(GL_TEXTURE_2D, eglImage_);
+            // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            //                        GL_TEXTURE_2D, textureID_, 0);
           }
         }
         return result;
       });
+
   webViewInstance_->RegisterOnRenderedHandler(
       [this](LWE::WebContainer* c, LWE::WebContainer::RenderResult r) {
+        // Should move to starfish
+        // glFlush();
+
         FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
                                                  GetTextureId(), tbmSurface_);
+        // Should move to starfish
+        // g_eglDestroyImageKHRProc(egl_display_, eglImage_);
+        // eglImage_ = nullptr;
+        // glDeleteTextures(1, &textureID_);
         tbm_surface_destroy(tbmSurface_);
         tbmSurface_ = nullptr;
       });
