@@ -10,7 +10,7 @@ import 'package:url_launcher_platform_interface/url_launcher_platform_interface.
 import 'app_control.dart';
 
 class UrlLauncherPlugin extends UrlLauncherPlatform {
-  static final _supportedSchemes = {
+  static final Set<String> _supportedSchemes = <String>{
     'file',
     'http',
     'https',
