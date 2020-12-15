@@ -1,0 +1,32 @@
+name: Dart
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    container:
+      image: google/dart:2.10.0-110.3.beta
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install missing dependencies for flutter-action
+        run: |
+          apt update
+          apt install xz-utils
+      - uses: subosito/flutter-action@v1
+        with:
+          flutter-version: "1.22.0"
+      - name: Install pub dependencies
+        run: |
+          for d in `pwd`/packages/*/; do
+            cd $d
+            flutter pub get || true
+          done
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed packages
+      - name: Analyze project source
+        run: dart analyze --fatal-infos packages

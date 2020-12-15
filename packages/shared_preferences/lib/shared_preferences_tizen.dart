@@ -79,11 +79,12 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
     }
     _cachedPreferences = <String, Object>{};
 
-    if (bindings.foreachItem(
-            Pointer.fromFunction(_preferenceItemCallback, 0), nullptr) != 0) {
-      return <String, Object>{};
+    final int ret = bindings.foreachItem(
+        Pointer.fromFunction(_preferenceItemCallback, 0), nullptr);
+    if (ret == 0) {
+      return _cachedPreferences;
     }
-    return _cachedPreferences;
+    return <String, Object>{};
   }
 
   @override
@@ -119,7 +120,7 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
       ret = bindings.setString(pKey, Utf8.toUtf8(value as String));
     } else if (valueType == 'StringList') {
       // Tizen Preference API doesn't support arrays.
-      final List<String> list = value;
+      final List<String> list = value as List<String>;
       String joined;
       if (list.isEmpty) {
         joined = _separator;
