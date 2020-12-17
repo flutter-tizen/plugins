@@ -1,0 +1,26 @@
+name: battery_tizen
+description: Flutter plugin for accessing information about the battery state
+  (full, charging, discharging) on Tizen.
+homepage: https://github.com/flutter-tizen/plugins
+version: 0.0.1
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: BatteryTizenPlugin
+        fileName: battery_tizen_plugin.h
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+  flutter: ">=1.12.13+hotfix.5 <2.0.0"
