@@ -275,7 +275,11 @@ class PlatformViewsServiceTizen {
       case 'viewFocused':
         final int id = call.arguments as int;
         if (_focusCallbacks.containsKey(id)) {
-          _focusCallbacks[id]();
+          if (_focusCallbacks[id] != null) {
+            _focusCallbacks[id]();
+          } else {
+            throw FlutterError('FocusCallbacks[$id] must not be null.');
+          }
         }
         break;
       default:

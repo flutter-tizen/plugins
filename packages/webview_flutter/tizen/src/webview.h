@@ -24,6 +24,10 @@ class WebView : public PlatformView {
   virtual void setDirection(int direction) override;
   virtual void clearFocus() override;
 
+  // Key input event
+  virtual void dispatchKeyDownEvent(Ecore_Event_Key* key) override;
+  virtual void dispatchKeyUpEvent(Ecore_Event_Key* key) override;
+
  private:
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
