@@ -17,24 +17,24 @@ class WebView : public PlatformView {
           FlutterTextureRegistrar* textureRegistrar, double width,
           double height, const std::string initialUrl);
   ~WebView();
-  virtual void dispose() override;
-  virtual void resize(double width, double height) override;
-  virtual void touch(int type, int button, double x, double y, double dx,
+  virtual void Dispose() override;
+  virtual void Resize(double width, double height) override;
+  virtual void Touch(int type, int button, double x, double y, double dx,
                      double dy) override;
-  virtual void setDirection(int direction) override;
-  virtual void clearFocus() override;
+  virtual void SetDirection(int direction) override;
+  virtual void ClearFocus() override;
 
   // Key input event
-  virtual void dispatchKeyDownEvent(Ecore_Event_Key* key) override;
-  virtual void dispatchKeyUpEvent(Ecore_Event_Key* key) override;
+  virtual void DispatchKeyDownEvent(Ecore_Event_Key* key) override;
+  virtual void DispatchKeyUpEvent(Ecore_Event_Key* key) override;
 
  private:
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  std::string getChannelName();
-  const std::string& getCurrentUrl() { return currentUrl_; }
-  void initWebView();
+  std::string GetChannelName();
+  const std::string& GetCurrentUrl() { return currentUrl_; }
+  void InitWebView();
   FlutterTextureRegistrar* textureRegistrar_;
   LWE::WebContainer* webViewInstance_;
   std::string currentUrl_;

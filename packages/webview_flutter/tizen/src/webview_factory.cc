@@ -28,10 +28,10 @@ WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
                        cachePath.c_str());
 }
 
-PlatformView* WebViewFactory::create(int viewId, double width, double height,
+PlatformView* WebViewFactory::Create(int viewId, double width, double height,
                                      const std::vector<uint8_t>& createParams) {
   std::string initialUrl = "about:blank";
-  auto decoded_value = *getCodec().DecodeMessage(createParams);
+  auto decoded_value = *GetCodec().DecodeMessage(createParams);
   if (std::holds_alternative<flutter::EncodableMap>(decoded_value)) {
     flutter::EncodableMap createParams =
         std::get<flutter::EncodableMap>(decoded_value);
@@ -41,10 +41,8 @@ PlatformView* WebViewFactory::create(int viewId, double width, double height,
       initialUrl = std::get<std::string>(initialUrlValue);
     }
   }
-  return new WebView(getPluginRegistrar(), viewId, textureRegistrar_, width,
+  return new WebView(GetPluginRegistrar(), viewId, textureRegistrar_, width,
                      height, initialUrl);
 }
 
-void WebViewFactory::dispose() {
-  LWE::LWE::Finalize();
-}
+void WebViewFactory::Dispose() { LWE::LWE::Finalize(); }
