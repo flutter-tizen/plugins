@@ -21,7 +21,7 @@
 #include <Ecore_Input_Evas.h>
 #include <Ecore_IMF_Evas.h>
 
-std::string extractStringFromMap(const flutter::EncodableValue& arguments,
+std::string ExtractStringFromMap(const flutter::EncodableValue& arguments,
                                  const char* key) {
   if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
     flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
@@ -31,7 +31,7 @@ std::string extractStringFromMap(const flutter::EncodableValue& arguments,
   }
   return std::string();
 }
-int extractIntFromMap(const flutter::EncodableValue& arguments,
+int ExtractIntFromMap(const flutter::EncodableValue& arguments,
                       const char* key) {
   if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
     flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
@@ -40,7 +40,7 @@ int extractIntFromMap(const flutter::EncodableValue& arguments,
   }
   return -1;
 }
-double extractDoubleFromMap(const flutter::EncodableValue& arguments,
+double ExtractDoubleFromMap(const flutter::EncodableValue& arguments,
                             const char* key) {
   if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
     flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
@@ -59,11 +59,11 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       currentUrl_(initialUrl),
       width_(width),
       height_(height) {
-  setTextureId(FlutterRegisterExternalTexture(textureRegistrar_));
-  initWebView();
+  SetTextureId(FlutterRegisterExternalTexture(textureRegistrar_));
+  InitWebView();
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          getPluginRegistrar()->messenger(), getChannelName(),
+          GetPluginRegistrar()->messenger(), GetChannelName(),
           &flutter::StandardMethodCodec::GetInstance());
   channel->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
@@ -72,24 +72,24 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
   webViewInstance_->LoadURL(currentUrl_);
 }
 
-WebView::~WebView() { dispose(); }
+WebView::~WebView() { Dispose(); }
 
-std::string WebView::getChannelName() {
-  return "plugins.flutter.io/webview_" + std::to_string(getViewId());
+std::string WebView::GetChannelName() {
+  return "plugins.flutter.io/webview_" + std::to_string(GetViewId());
 }
 
-void WebView::dispose() {
-  FlutterUnregisterExternalTexture(textureRegistrar_, getTextureId());
+void WebView::Dispose() {
+  FlutterUnregisterExternalTexture(textureRegistrar_, GetTextureId());
 
   webViewInstance_->Destroy();
   webViewInstance_ = nullptr;
 }
 
-void WebView::resize(double width, double height) {
-  LOG_DEBUG("WebView::resize width: %f height: %f \n", width, height);
+void WebView::Resize(double width, double height) {
+  LOG_DEBUG("WebView::Resize width: %f height: %f \n", width, height);
 }
 
-void WebView::touch(int type, int button, double x, double y, double dx,
+void WebView::Touch(int type, int button, double x, double y, double dx,
                     double dy) {
   // LOG_DEBUG(
   //   "Widget::Native::Touch type[%s],btn[%d],x[%f],y[%f],dx[%f],dy[%f]",
@@ -117,7 +117,7 @@ void WebView::touch(int type, int button, double x, double y, double dx,
   }
 }
 
-static LWE::KeyValue ecoreEventKeyToKeyValue(const char* ecoreKeyString,
+static LWE::KeyValue EcoreEventKeyToKeyValue(const char* ecoreKeyString,
                                              bool isShiftPressed) {
   if (strcmp("Left", ecoreKeyString) == 0) {
     return LWE::KeyValue::ArrowLeftKey;
@@ -302,7 +302,7 @@ static LWE::KeyValue ecoreEventKeyToKeyValue(const char* ecoreKeyString,
   return LWE::KeyValue::UnidentifiedKey;
 }
 
-void WebView::dispatchKeyDownEvent(Ecore_Event_Key* keyEvent) {
+void WebView::DispatchKeyDownEvent(Ecore_Event_Key* keyEvent) {
   std::string keyName = keyEvent->keyname;
   LOG_DEBUG("ECORE_EVENT_KEY_DOWN [%s, %d]\n", keyName.data(),
             (keyEvent->modifiers & 1) || (keyEvent->modifiers & 2));
@@ -313,7 +313,7 @@ void WebView::dispatchKeyDownEvent(Ecore_Event_Key* keyEvent) {
   //   webViewInstance_->m_lastInputTime = Starfish::longTickCount();
   // }
 
-  if (!isFocused()) {
+  if (!IsFocused()) {
     LOG_DEBUG("ignore keydown because we dont have focus");
     return;
   }
@@ -348,7 +348,7 @@ void WebView::dispatchKeyDownEvent(Ecore_Event_Key* keyEvent) {
     }
   }
 
-  auto keyValue = ecoreEventKeyToKeyValue(keyName.data(), false);
+  auto keyValue = EcoreEventKeyToKeyValue(keyName.data(), false);
 
   // if (keyValue >= LWE::KeyValue::ArrowDownKey &&
   //     keyValue <= LWE::KeyValue::ArrowRightKey) {
@@ -385,12 +385,12 @@ void WebView::dispatchKeyDownEvent(Ecore_Event_Key* keyEvent) {
   }
 }
 
-void WebView::dispatchKeyUpEvent(Ecore_Event_Key* keyEvent) {
+void WebView::DispatchKeyUpEvent(Ecore_Event_Key* keyEvent) {
   std::string keyName = keyEvent->keyname;
   LOG_DEBUG("ECORE_EVENT_KEY_UP [%s, %d]\n", keyName.data(),
             (keyEvent->modifiers & 1) || (keyEvent->modifiers & 2));
 
-  if (!isFocused()) {
+  if (!IsFocused()) {
     LOG_DEBUG("ignore keyup because we dont have focus");
     return;
   }
@@ -400,7 +400,7 @@ void WebView::dispatchKeyUpEvent(Ecore_Event_Key* keyEvent) {
     keyName = "Escape";
   }
 #endif
-  auto keyValue = ecoreEventKeyToKeyValue(keyName.data(), false);
+  auto keyValue = EcoreEventKeyToKeyValue(keyName.data(), false);
 
   // if (keyValue >= LWE::KeyValue::ArrowDownKey &&
   //     keyValue <= LWE::KeyValue::ArrowRightKey) {
@@ -424,13 +424,13 @@ void WebView::dispatchKeyUpEvent(Ecore_Event_Key* keyEvent) {
       p);
 }
 
-void WebView::clearFocus() { LOG_DEBUG("WebView::clearFocus \n"); }
+void WebView::ClearFocus() { LOG_DEBUG("WebView::clearFocus \n"); }
 
-void WebView::setDirection(int direction) {
-  LOG_DEBUG("WebView::setDirection direction: %d\n", direction);
+void WebView::SetDirection(int direction) {
+  LOG_DEBUG("WebView::SetDirection direction: %d\n", direction);
 }
 
-void WebView::initWebView() {
+void WebView::InitWebView() {
   if (webViewInstance_ != nullptr) {
     webViewInstance_->Destroy();
     webViewInstance_ = nullptr;
@@ -456,7 +456,7 @@ void WebView::initWebView() {
   webViewInstance_->RegisterOnRenderedHandler(
       [this](LWE::WebContainer* c, LWE::WebContainer::RenderResult r) {
         FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
-                                                 getTextureId(), tbmSurface_);
+                                                 GetTextureId(), tbmSurface_);
         tbm_surface_destroy(tbmSurface_);
         tbmSurface_ = nullptr;
       });
@@ -479,8 +479,8 @@ void WebView::HandleMethodCall(
   LOG_DEBUG("HandleMethodCall : %s \n ", methodName.c_str());
 
   if (methodName.compare("loadUrl") == 0) {
-    currentUrl_ = extractStringFromMap(arguments, "url");
-    webViewInstance_->LoadURL(getCurrentUrl());
+    currentUrl_ = ExtractStringFromMap(arguments, "url");
+    webViewInstance_->LoadURL(GetCurrentUrl());
     result->Success();
   } else if (methodName.compare("updateSettings") == 0) {
     result->NotImplemented();
@@ -498,7 +498,7 @@ void WebView::HandleMethodCall(
     webViewInstance_->Reload();
     result->Success();
   } else if (methodName.compare("currentUrl") == 0) {
-    result->Success(flutter::EncodableValue(getCurrentUrl().c_str()));
+    result->Success(flutter::EncodableValue(GetCurrentUrl().c_str()));
   } else if (methodName.compare("evaluateJavascript") == 0) {
     result->NotImplemented();
   } else if (methodName.compare("addJavascriptChannels") == 0) {
