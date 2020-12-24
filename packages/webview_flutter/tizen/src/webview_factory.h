@@ -6,8 +6,8 @@ class WebViewFactory : public PlatformViewFactory {
  public:
   WebViewFactory(flutter::PluginRegistrar* registrar,
                  FlutterTextureRegistrar* textureRegistrar);
-  virtual void dispose() override ;
-  virtual PlatformView* create(
+  virtual void Dispose() override;
+  virtual PlatformView* Create(
       int viewId, double width, double height,
       const std::vector<uint8_t>& createParams) override;
 
