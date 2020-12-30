@@ -69,6 +69,7 @@ public:
     void GetBaseForegroundColor(unsigned char& r, unsigned char& g,
                                 unsigned char& b, unsigned char& a) const;
     bool NeedsDownloadWebFontsEarly() const;
+    uint32_t NeedsDownScaleImageResourceLargerThan() const;
     void SetUserAgentString(const std::string& ua);
     void SetCacheMode(int mode);
     void SetProxyURL(const std::string& proxyURL);
@@ -82,6 +83,8 @@ public:
     void SetIdleModeJob(IdleModeJob j);
     void SetIdleModeCheckIntervalInMS(uint32_t intervalInMS);
     void SetNeedsDownloadWebFontsEarly(bool b);
+    void SetNeedsDownScaleImageResourceLargerThan(
+        uint32_t demention); // Experimental
 
 private:
     std::string m_defaultUserAgent;
@@ -96,6 +99,7 @@ private:
     IdleModeJob m_idleModeJob; // default value is IdleModeJob::IdleModeFull
     uint32_t m_idleModeCheckIntervalInMS; // default value is 3000(ms)
     bool m_needsDownloadWebFontsEarly;
+    uint32_t m_needsDownScaleImageResourceLargerThan;
 };
 
 class LWE_EXPORT ResourceError {
@@ -353,14 +357,12 @@ public:
     virtual void Focus();
     virtual void Blur();
 
+    virtual WebContainer* FetchWebContainer() = 0;
 protected:
     WebView(void* impl)
         : m_impl(impl)
     {
     }
-
-    virtual WebContainer* FetchWebContainer() = 0;
-
     void* m_impl;
 };
 

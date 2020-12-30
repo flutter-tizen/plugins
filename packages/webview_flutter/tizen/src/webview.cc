@@ -54,6 +54,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
                  FlutterTextureRegistrar* textureRegistrar, double width,
                  double height, const std::string initialUrl)
     : PlatformView(registrar, viewId),
+      tbmSurface_(nullptr),
       textureRegistrar_(textureRegistrar),
       webViewInstance_(nullptr),
       currentUrl_(initialUrl),
@@ -341,7 +342,7 @@ void WebView::DispatchKeyDownEvent(Ecore_Event_Key* keyEvent) {
     } else {
       webViewInstance_->AddIdleCallback(
           [](void* data) {
-            LWE::WebContainer* self = (LWE::WebContainer*)data;
+            // LWE::WebContainer* self = (LWE::WebContainer*)data;
             // self->HideSoftwareKeyboardIfPossible();
           },
           webViewInstance_);
@@ -436,23 +437,22 @@ void WebView::InitWebView() {
     webViewInstance_ = nullptr;
   }
   float scaleFactor = 1;
-  webViewInstance_ = LWE::WebContainer::Create(
-      width_, height_, scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul");
+
+  LWE::WebView* webview = LWE::WebView::Create(nullptr,0,0,width_, height_,scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul");
+  webViewInstance_ = webview->FetchWebContainer();
   webViewInstance_->RegisterPreRenderingHandler(
       [this]() -> LWE::WebContainer::RenderInfo {
         LWE::WebContainer::RenderInfo result;
-        {
-          tbmSurface_ =
-              tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
-          tbm_surface_info_s tbmSurfaceInfo;
-          if (tbm_surface_map(tbmSurface_, TBM_SURF_OPTION_WRITE,
-                              &tbmSurfaceInfo) == TBM_SURFACE_ERROR_NONE) {
-            result.updatedBufferAddress = tbmSurfaceInfo.planes[0].ptr;
-            result.bufferStride = tbmSurfaceInfo.planes[0].stride;
-          }
+        tbmSurface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
+        tbm_surface_info_s tbmSurfaceInfo;
+        if (tbm_surface_map(tbmSurface_, TBM_SURF_OPTION_WRITE,
+                            &tbmSurfaceInfo) == TBM_SURFACE_ERROR_NONE) {
+          result.updatedBufferAddress = (void*)tbmSurface_;
+          result.bufferStride = 0;
         }
         return result;
       });
+
   webViewInstance_->RegisterOnRenderedHandler(
       [this](LWE::WebContainer* c, LWE::WebContainer::RenderResult r) {
         FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
