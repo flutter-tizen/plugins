@@ -158,6 +158,20 @@ public:
             onGLSwapBuffers,
         float devicePixelRatio, const char* defaultFontName, const char* locale,
         const char* timezoneID);
+
+    struct ExternalImageInfo {
+        void* imageAddress;
+    };
+
+    static WebContainer* CreateGLWithPlatformImage(
+        unsigned width, unsigned height,
+        const std::function<void(WebContainer*)>& onGLMakeCurrent,
+        const std::function<void(WebContainer*, bool mayNeedsSync)>&
+            onGLSwapBuffers,
+        const std::function<ExternalImageInfo(void)>& prepareImageCb,
+        const std::function<void(WebContainer*)>& renderedCb,
+        float devicePixelRatio, const char* defaultFontName, const char* locale,
+        const char* timezoneID);
     // <--- end of function set for render with OpenGL
 
     // Function set for headless
