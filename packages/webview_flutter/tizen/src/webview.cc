@@ -21,6 +21,16 @@
 #include <Ecore_Input_Evas.h>
 #include <Ecore_IMF_Evas.h>
 
+
+#define LWE_EXPORT
+extern "C" size_t LWE_EXPORT createWebViewInstance(
+    unsigned x, unsigned y, unsigned width, unsigned height,
+    float devicePixelRatio, const char* defaultFontName, const char* locale,
+    const char* timezoneID,
+    const std::function<::LWE::WebContainer::ExternalImageInfo(void)>&
+        prepareImageCb,
+    const std::function<void(::LWE::WebContainer*)>& renderedCb);
+
 std::string ExtractStringFromMap(const flutter::EncodableValue& arguments,
                                  const char* key) {
   if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
@@ -438,23 +448,16 @@ void WebView::InitWebView() {
   }
   float scaleFactor = 1;
 
-  LWE::WebView* webview = LWE::WebView::Create(nullptr,0,0,width_, height_,scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul");
-  webViewInstance_ = webview->FetchWebContainer();
-  webViewInstance_->RegisterPreRenderingHandler(
-      [this]() -> LWE::WebContainer::RenderInfo {
-        LWE::WebContainer::RenderInfo result;
+  webViewInstance_ = (LWE::WebContainer*)createWebViewInstance(0,0,width_, height_,scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul",[this]() -> LWE::WebContainer::ExternalImageInfo {
+        LWE::WebContainer::ExternalImageInfo result;
         tbmSurface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
         tbm_surface_info_s tbmSurfaceInfo;
         if (tbm_surface_map(tbmSurface_, TBM_SURF_OPTION_WRITE,
                             &tbmSurfaceInfo) == TBM_SURFACE_ERROR_NONE) {
-          result.updatedBufferAddress = (void*)tbmSurface_;
-          result.bufferStride = 0;
+          result.imageAddress = (void*)tbmSurface_;
         }
         return result;
-      });
-
-  webViewInstance_->RegisterOnRenderedHandler(
-      [this](LWE::WebContainer* c, LWE::WebContainer::RenderResult r) {
+      }, [this](LWE::WebContainer* c) {
         FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
                                                  GetTextureId(), tbmSurface_);
         tbm_surface_destroy(tbmSurface_);
