@@ -16,12 +16,12 @@ USER_CPP_UNDEFS =
 
 # Compiler/linker flags
 USER_CFLAGS_MISC =
-USER_CPPFLAGS_MISC = -c -fmessage-length=0
-USER_LFLAGS = -llightweight-web-engine
+USER_CPPFLAGS_MISC = -c -fmessage-length=0 
+USER_LFLAGS = -llightweight-web-engine.mobile -Wl,-rpath=/opt/usr/globalapps/org.tizen.webview_flutter_tizen_example/lib/arm
 
 # Libraries and objects
 USER_LIB_DIRS = lib
-USER_LIBS = lightweight-web-engine
+USER_LIBS = lightweight-web-engine.mobile
 USER_OBJS =
 
 # User includes
