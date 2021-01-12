@@ -31,7 +31,7 @@ static std::string DeviceErrorToString(int error) {
     case DEVICE_ERROR_ALREADY_IN_PROGRESS:
       return "Device - Operation already in progress";
     case DEVICE_ERROR_NOT_SUPPORTED:
-      return "Device - Not supported in this device";
+      return "Device - Not supported on this device";
     case DEVICE_ERROR_RESOURCE_BUSY:
       return "Device - Device or resource busy";
     case DEVICE_ERROR_NOT_INITIALIZED:

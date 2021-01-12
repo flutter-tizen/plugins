@@ -1,9 +1,7 @@
 # battery_example
 
-Demonstrates how to use the battery plugin.
+Demonstrates how to use the battery_tizen plugin.
 
 ## Getting Started
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.dev/).
-
+To run this app on your Tizen device, use [flutter-tizen](https://github.com/flutter-tizen/flutter-tizen).

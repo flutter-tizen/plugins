@@ -1,5 +1,5 @@
 name: battery_example
-description: Demonstrates how to use the battery plugin.
+description: Demonstrates how to use the battery_tizen plugin.
 
 dependencies:
   flutter:
@@ -18,3 +18,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+environment:
+  sdk: ">=2.2.2 <3.0.0"
+  flutter: ">=1.20.0 <2.0.0"

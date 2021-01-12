@@ -2,33 +2,26 @@
 
 The Tizen implementation of [`battery`](https://github.com/flutter/plugins/tree/master/packages/battery).
 
+## Usage
+
+This package is not an _endorsed_ implementation of `battery`. Therefore, you have to include `battery_tizen` alongside `battery` as dependencies in your `pubspec.yaml` file.
+
+```yaml
+dependencies:
+  battery: ^1.0.7
+  battery_tizen: ^1.0.0
+```
+
+Then you can import `battery` in your Dart code:
+
+```dart
+import 'package:battery/battery.dart';
+```
+
+For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/battery/battery#usage.
+
 ## Supported devices
 
 This plugin is available on these types of devices:
 
 - Galaxy Watch (running Tizen 5.5 or later)
-
-# Usage
-
-You can use the Battery to access various information about the battery of the device the app is running on.
-This works on Tizen platform.
-
-You can run an example like below.
-$ cd example
-$ flutter-tizen run -d tizen
-
-```dart
-// Import package
-import 'package:battery/battery.dart';
-
-// Instantiate it
-var _battery = Battery();
-
-// Access current battery level
-print(await _battery.batteryLevel);
-
-// Be informed when the state (full, charging, discharging) changes
-_battery.onBatteryStateChanged.listen((BatteryState state) {
-  // Do something with new state
-});
-```
