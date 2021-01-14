@@ -78,12 +78,10 @@ class TizenViewController extends PlatformViewController {
 
   int _textureId;
 
-  @override
   int get textureId => _textureId;
 
   Size _size;
 
-  @override
   Future<void> setSize(Size size) async {
     assert(_state != _TizenViewState.disposed,
         'trying to size a disposed Tizen View. View id: $viewId');
@@ -103,7 +101,6 @@ class TizenViewController extends PlatformViewController {
     });
   }
 
-  @override
   Future<void> _sendCreateMessage() async {
     assert(!_size.isEmpty,
         'trying to create $TizenViewController without setting a valid size.');
@@ -128,7 +125,6 @@ class TizenViewController extends PlatformViewController {
         await SystemChannels.platform_views.invokeMethod<int>('create', args);
   }
 
-  @override
   Future<void> _sendDisposeMessage() {
     return SystemChannels.platform_views
         .invokeMethod<void>('dispose', <String, dynamic>{
@@ -205,8 +201,8 @@ class TizenViewController extends PlatformViewController {
     }
     await SystemChannels.platform_views
         .invokeMethod<dynamic>('touch', <String, dynamic>{
-      "id": viewId,
-      "event": [
+      'id': viewId,
+      'event': <dynamic>[
         eventType, // int, pointer event type
         event.buttons, // int, mouse button type (left, right, middle)
         event.localPosition.dx, // double, global position x
@@ -222,6 +218,7 @@ class TizenViewController extends PlatformViewController {
     if (_state != _TizenViewState.created) {
       return Future<void>.value();
     }
+    // print('clearFocus : $viewId');
     return SystemChannels.platform_views
         .invokeMethod<void>('clearFocus', viewId);
   }
@@ -628,6 +625,7 @@ class _TizenWebViewState extends State<TizenWebView_> {
 
   @override
   void didUpdateWidget(TizenWebView_ oldWidget) {
+    // print('webview: didUpdateWidget()');
     super.didUpdateWidget(oldWidget);
 
     final TextDirection newLayoutDirection = _findLayoutDirection();
@@ -688,6 +686,7 @@ class _TizenWebViewState extends State<TizenWebView_> {
       });
       return;
     }
+    // print('_onFocusChange - viewId : $_id');
     SystemChannels.textInput
         .invokeMethod<void>(
       'TextInput.setPlatformViewClient',
