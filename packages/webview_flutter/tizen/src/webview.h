@@ -11,6 +11,8 @@ namespace LWE {
 class WebContainer;
 }
 
+class TextInputChannel;
+
 class WebView : public PlatformView {
  public:
   WebView(flutter::PluginRegistrar* registrar, int viewId,
@@ -27,6 +29,8 @@ class WebView : public PlatformView {
   // Key input event
   virtual void DispatchKeyDownEvent(Ecore_Event_Key* key) override;
   virtual void DispatchKeyUpEvent(Ecore_Event_Key* key) override;
+
+  virtual void SetSoftwareKeyboardContext(Ecore_IMF_Context* context) override;
 
  private:
   void HandleMethodCall(

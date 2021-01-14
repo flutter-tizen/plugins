@@ -435,6 +435,31 @@ void WebView::DispatchKeyUpEvent(Ecore_Event_Key* keyEvent) {
       p);
 }
 
+void WebView::SetSoftwareKeyboardContext(Ecore_IMF_Context* context) {
+  webViewInstance_->RegisterOnShowSoftwareKeyboardIfPossibleHandler(
+      [context](LWE::WebContainer* v) {
+        LOG_DEBUG("WebView - Show Keyboard()\n");
+        if (!context) {
+          LOG_ERROR("Ecore_IMF_Context NULL\n");
+          return;
+        }
+        ecore_imf_context_input_panel_show(context);
+        ecore_imf_context_focus_in(context);
+      });
+
+  webViewInstance_->RegisterOnHideSoftwareKeyboardIfPossibleHandler(
+      [context](LWE::WebContainer*) {
+        LOG_INFO("WebView - Hide Keyboard()\n");
+        if (!context) {
+          LOG_INFO("Ecore_IMF_Context NULL\n");
+          return;
+        }
+        ecore_imf_context_reset(context);
+        ecore_imf_context_focus_out(context);
+        ecore_imf_context_input_panel_hide(context);
+      });
+}
+
 void WebView::ClearFocus() { LOG_DEBUG("WebView::clearFocus \n"); }
 
 void WebView::SetDirection(int direction) {
