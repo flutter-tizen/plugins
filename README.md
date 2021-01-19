@@ -12,6 +12,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 
 | Package name | Original package | Pub | Endorsed |
 |-|-|:-:|:-:|
+| [**battery_tizen**](packages/battery) | [battery](https://github.com/flutter/plugins/tree/master/packages/battery) (1st-party) | [![pub package](https://img.shields.io/pub/v/battery_tizen.svg)](https://pub.dev/packages/battery_tizen) | No |
 | [**integration_test_tizen**](packages/integration_test) | [integration_test](https://github.com/flutter/plugins/tree/master/packages/integration_test) (1st-party) | [![pub package](https://img.shields.io/pub/v/integration_test_tizen.svg)](https://pub.dev/packages/integration_test_tizen) | No |
 | [**path_provider_tizen**](packages/path_provider) | [path_provider](https://github.com/flutter/plugins/tree/master/packages/path_provider) (1st-party) | [![pub package](https://img.shields.io/pub/v/path_provider_tizen.svg)](https://pub.dev/packages/path_provider_tizen) | No |
 | [**sensors_tizen**](packages/sensors) | [sensors](https://github.com/flutter/plugins/tree/master/packages/sensors) (1st-party) | [![pub package](https://img.shields.io/pub/v/sensors_tizen.svg)](https://pub.dev/packages/sensors_tizen) | No |
@@ -22,6 +23,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 
 | Package name | Watch | Watch emulator | TV | TV emulator | Remarks |
 |-|:-:|:-:|:-:|:-:|-|
+| [**battery**](packages/battery) | ✔️ | ✔️ | ❌ | ❌ |
 | [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**path_provider_tizen**](packages/path_provider) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | No external storage |
 | [**sensors_tizen**](packages/sensors) | ✔️ | ✔️ | ❌ | ❌ | No hardware |
