@@ -5,7 +5,7 @@ publish_to: 'none'
 dependencies:
   flutter:
     sdk: flutter
-  path_provider: ^1.6.10
+  path_provider: ^1.6.27
   path_provider_tizen:
     path: ../
 
@@ -14,9 +14,6 @@ dev_dependencies:
   integration_test_tizen:
     path: ../../integration_test/
   permission_handler: ^5.0.1+1
-  # Remove when testing on TV.
-  permission_handler_tizen:
-    path: ../../permission_handler/
   flutter_driver:
     sdk: flutter
   pedantic: ^1.8.0
