@@ -4,4 +4,7 @@
 
 ## 1.0.1
 
-* Update package dependencies
+* Update path_provider to the latest (1.6.27)
+* Update platform interface to the latest (1.0.4)
+* Remove permission_handler_tizen dependency temporarily
+* Migrate to Tizen 4.0

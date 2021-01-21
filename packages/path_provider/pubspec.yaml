@@ -19,7 +19,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pedantic: ^1.8.0
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
