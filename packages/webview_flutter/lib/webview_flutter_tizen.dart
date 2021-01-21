@@ -6,16 +6,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 
 import 'package:webview_flutter/platform_interface.dart';
 import 'package:webview_flutter/src/webview_method_channel.dart';
-
-import 'package:flutter/src/rendering/binding.dart';
-import 'package:flutter/src/rendering/box.dart';
-import 'package:flutter/src/rendering/layer.dart';
-import 'package:flutter/src/rendering/mouse_cursor.dart';
-import 'package:flutter/src/rendering/mouse_tracking.dart';
-import 'package:flutter/src/rendering/object.dart';
 
 enum _TizenViewState {
   waitingForSize,
@@ -110,7 +104,7 @@ class TizenViewController extends PlatformViewController {
       'viewType': _viewType,
       'width': _size.width,
       'height': _size.height,
-      // 'direction': _layoutDirection,
+      'direction': _layoutDirection == TextDirection.ltr ? 0 : 1,
     };
     if (_creationParams != null) {
       final ByteData paramsByteData =
@@ -151,6 +145,7 @@ class TizenViewController extends PlatformViewController {
 
   set pointTransformer(PointTransformer transformer) {
     assert(transformer != null);
+    // _motionEventConverter._pointTransformer = transformer;
   }
 
   bool get isCreated => _state == _TizenViewState.created;
@@ -182,7 +177,7 @@ class TizenViewController extends PlatformViewController {
     await SystemChannels.platform_views
         .invokeMethod<void>('setDirection', <String, dynamic>{
       'id': viewId,
-      // 'direction': layoutDirection,
+      'direction': layoutDirection == TextDirection.ltr ? 0 : 1,
     });
   }
 
@@ -218,13 +213,14 @@ class TizenViewController extends PlatformViewController {
     if (_state != _TizenViewState.created) {
       return Future<void>.value();
     }
-    // print('clearFocus : $viewId');
+    print('TizenViewController::clearFocus() : $viewId');
     return SystemChannels.platform_views
         .invokeMethod<void>('clearFocus', viewId);
   }
 
   @override
   Future<void> dispose() async {
+    print('TizenViewController::dispose()');
     if (_state == _TizenViewState.creating || _state == _TizenViewState.created)
       await _sendDisposeMessage();
     _platformViewCreatedCallbacks.clear();
@@ -233,8 +229,8 @@ class TizenViewController extends PlatformViewController {
   }
 }
 
-class TizenWebView_ extends StatefulWidget {
-  const TizenWebView_({
+class TizenView extends StatefulWidget {
+  const TizenView({
     Key key,
     @required this.viewType,
     this.onPlatformViewCreated,
@@ -257,7 +253,7 @@ class TizenWebView_ extends StatefulWidget {
   final MessageCodec<dynamic> creationParamsCodec;
 
   @override
-  State<TizenWebView_> createState() => _TizenWebViewState();
+  State<TizenView> createState() => _TizenWebViewState();
 }
 
 class PlatformViewsServiceTizen {
@@ -268,9 +264,11 @@ class PlatformViewsServiceTizen {
       PlatformViewsServiceTizen._();
 
   Future<void> _onMethodCall(MethodCall call) {
+    print('TizenView::_onMethodCall() - ${call.method}');
     switch (call.method) {
       case 'viewFocused':
         final int id = call.arguments as int;
+        print('viewFocused: id - $id');
         if (_focusCallbacks.containsKey(id)) {
           if (_focusCallbacks[id] != null) {
             _focusCallbacks[id]();
@@ -300,6 +298,9 @@ class PlatformViewsServiceTizen {
     assert(viewType != null);
     assert(layoutDirection != null);
     assert(creationParams == null || creationParamsCodec != null);
+
+    print(
+        'PlatformViewsServiceTizen::initTizenView [id:$id] [onFocus:$onFocus]');
 
     final TizenViewController controller = TizenViewController._(
       viewId: id,
@@ -444,12 +445,12 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
     _viewController.pointTransformer = (Offset offset) => globalToLocal(offset);
     updateGestureRecognizers(gestureRecognizers);
     _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
-    // this.hitTestBehavior = hitTestBehavior;
+    this.hitTestBehavior = hitTestBehavior;
   }
 
   _PlatformViewState _state = _PlatformViewState.uninitialized;
 
-  get viewcontroller => _viewController;
+  TizenViewController get viewcontroller => _viewController;
   TizenViewController _viewController;
 
   set viewController(TizenViewController viewController) {
@@ -570,12 +571,12 @@ class _TizenPlatformTextureView extends LeafRenderObjectWidget {
   @override
   void updateRenderObject(BuildContext context, RenderTizenView renderObject) {
     renderObject.viewController = controller;
-    // renderObject.hitTestBehavior = hitTestBehavior;
+    renderObject.hitTestBehavior = hitTestBehavior;
     renderObject.updateGestureRecognizers(gestureRecognizers);
   }
 }
 
-class _TizenWebViewState extends State<TizenWebView_> {
+class _TizenWebViewState extends State<TizenView> {
   int _id;
   TizenViewController _controller;
   TextDirection _layoutDirection;
@@ -611,6 +612,7 @@ class _TizenWebViewState extends State<TizenWebView_> {
 
   @override
   void didChangeDependencies() {
+    print('_TizenWebViewState::didChangeDependencies()');
     super.didChangeDependencies();
     final TextDirection newLayoutDirection = _findLayoutDirection();
     final bool didChangeLayoutDirection =
@@ -624,8 +626,8 @@ class _TizenWebViewState extends State<TizenWebView_> {
   }
 
   @override
-  void didUpdateWidget(TizenWebView_ oldWidget) {
-    // print('webview: didUpdateWidget()');
+  void didUpdateWidget(TizenView oldWidget) {
+    print('_TizenWebViewState::didUpdateWidget()');
     super.didUpdateWidget(oldWidget);
 
     final TextDirection newLayoutDirection = _findLayoutDirection();
@@ -652,6 +654,7 @@ class _TizenWebViewState extends State<TizenWebView_> {
 
   @override
   void dispose() {
+    print('_TizenWebViewState::dispose()');
     _controller.dispose();
     super.dispose();
   }
@@ -665,6 +668,7 @@ class _TizenWebViewState extends State<TizenWebView_> {
       creationParams: widget.creationParams,
       creationParamsCodec: widget.creationParamsCodec,
       onFocus: () {
+        print('_TizenWebViewState::_createNewTizenWebView() - onFocus()');
         _focusNode.requestFocus();
       },
     );
@@ -675,9 +679,11 @@ class _TizenWebViewState extends State<TizenWebView_> {
   }
 
   void _onFocusChange(bool isFocused) {
+    print('_TizenWebViewState::_onFocusChange(isFocused:$isFocused)');
     if (!_controller.isCreated) {
       return;
     }
+
     if (!isFocused) {
       _controller.clearFocus().catchError((dynamic e) {
         if (e is MissingPluginException) {
@@ -686,7 +692,6 @@ class _TizenWebViewState extends State<TizenWebView_> {
       });
       return;
     }
-    // print('_onFocusChange - viewId : $_id');
     SystemChannels.textInput
         .invokeMethod<void>(
       'TextInput.setPlatformViewClient',
@@ -725,7 +730,7 @@ class TizenWebView implements WebViewPlatform {
     return GestureDetector(
       onLongPress: () {},
       excludeFromSemantics: true,
-      child: TizenWebView_(
+      child: TizenView(
         viewType: 'plugins.flutter.io/webview',
         onPlatformViewCreated: (int id) {
           if (onWebViewPlatformCreated == null) {
@@ -769,7 +774,7 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
     if (value != _hitTestBehavior) {
       _hitTestBehavior = value;
       if (owner != null) {
-        //RendererBinding.instance.mouseTracker.schedulePostFrameCheck();
+        markNeedsPaint();
       }
     }
   }
