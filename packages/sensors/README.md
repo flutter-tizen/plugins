@@ -8,8 +8,8 @@ This package is not an _endorsed_ implementation of `sensors`. Therefore, you ha
 
 ```yaml
 dependencies:
-  sensors: ^0.4.0
-  sensors_tizen: ^1.0.0
+  sensors: ^0.4.2+6
+  sensors_tizen: ^1.0.1
 ```
 
 Then you can import `sensors` in your Dart code:
@@ -24,4 +24,4 @@ For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/
 
 This plugin is supported on these types of devices:
 
-- Galaxy Watch (running Tizen 5.5 or later)
+- Galaxy Watch (running Tizen 4.0 or later)
