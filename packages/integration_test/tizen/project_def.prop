@@ -3,7 +3,7 @@
 
 APPNAME = integration_test_plugin
 type = sharedLib
-profile = common-5.5
+profile = common-4.0
 
 # Source files
 USER_SRCS += src/integration_test_plugin.cc
