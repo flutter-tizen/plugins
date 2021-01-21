@@ -8,8 +8,8 @@ This package is not an _endorsed_ implementation of `battery`. Therefore, you ha
 
 ```yaml
 dependencies:
-  battery: ^1.0.7
-  battery_tizen: ^1.0.0
+  battery: ^1.0.11
+  battery_tizen: ^1.0.1
 ```
 
 Then you can import `battery` in your Dart code:
@@ -22,6 +22,6 @@ For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/
 
 ## Supported devices
 
-This plugin is available on these types of devices:
+This plugin is supported on these types of devices:
 
-- Galaxy Watch (running Tizen 5.5 or later)
+- Galaxy Watch (running Tizen 4.0 or later)
