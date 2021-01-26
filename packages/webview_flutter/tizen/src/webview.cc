@@ -1,12 +1,11 @@
 
+#include "webview.h"
+
+#include <Ecore_IMF_Evas.h>
+#include <Ecore_Input_Evas.h>
 #include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
-#include <flutter/standard_method_codec.h>
-#include <flutter/standard_message_codec.h>
 #include <flutter_platform_view.h>
 #include <flutter_texture_registrar.h>
-#include "webview_flutter_tizen_plugin.h"
-#include "webview.h"
 
 #include <map>
 #include <memory>
@@ -17,10 +16,6 @@
 #include "lwe/LWEWebView.h"
 #include "lwe/PlatformIntegrationData.h"
 #include "webview_factory.h"
-
-#include <Ecore_Input_Evas.h>
-#include <Ecore_IMF_Evas.h>
-
 
 #define LWE_EXPORT
 extern "C" size_t LWE_EXPORT createWebViewInstance(
@@ -64,12 +59,12 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
                  FlutterTextureRegistrar* textureRegistrar, double width,
                  double height, const std::string initialUrl)
     : PlatformView(registrar, viewId),
-      tbmSurface_(nullptr),
       textureRegistrar_(textureRegistrar),
       webViewInstance_(nullptr),
       currentUrl_(initialUrl),
       width_(width),
-      height_(height) {
+      height_(height),
+      tbmSurface_(nullptr) {
   SetTextureId(FlutterRegisterExternalTexture(textureRegistrar_));
   InitWebView();
   auto channel =
@@ -473,7 +468,9 @@ void WebView::InitWebView() {
   }
   float scaleFactor = 1;
 
-  webViewInstance_ = (LWE::WebContainer*)createWebViewInstance(0,0,width_, height_,scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul",[this]() -> LWE::WebContainer::ExternalImageInfo {
+  webViewInstance_ = (LWE::WebContainer*)createWebViewInstance(
+      0, 0, width_, height_, scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul",
+      [this]() -> LWE::WebContainer::ExternalImageInfo {
         LWE::WebContainer::ExternalImageInfo result;
         tbmSurface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
         tbm_surface_info_s tbmSurfaceInfo;
@@ -482,7 +479,8 @@ void WebView::InitWebView() {
           result.imageAddress = (void*)tbmSurface_;
         }
         return result;
-      }, [this](LWE::WebContainer* c) {
+      },
+      [this](LWE::WebContainer* c) {
         FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
                                                  GetTextureId(), tbmSurface_);
         tbm_surface_destroy(tbmSurface_);
@@ -528,7 +526,19 @@ void WebView::HandleMethodCall(
   } else if (methodName.compare("currentUrl") == 0) {
     result->Success(flutter::EncodableValue(GetCurrentUrl().c_str()));
   } else if (methodName.compare("evaluateJavascript") == 0) {
-    result->NotImplemented();
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string jsString = std::get<std::string>(arguments);
+      webViewInstance_->EvaluateJavaScript(
+          jsString, [res = result.release()](std::string value) {
+            LOG_DEBUG("value: %s\n", value.c_str());
+            if (res) {
+              res->Success(flutter::EncodableValue(value));
+              delete res;
+            }
+          });
+    } else {
+      result->Error("Invalid Arguments", "Invalid Arguments");
+    }
   } else if (methodName.compare("addJavascriptChannels") == 0) {
     result->NotImplemented();
   } else if (methodName.compare("removeJavascriptChannels") == 0) {
