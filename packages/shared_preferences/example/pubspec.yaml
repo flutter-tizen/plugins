@@ -1,21 +1,20 @@
 name: shared_preferences_tizen_example
 description: Demonstrates how to use the shared_preferences_tizen plugin.
-publish_to: "none"
+publish_to: 'none'
 
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^0.5.12
+  shared_preferences: ^0.5.12+4
   shared_preferences_tizen:
     path: ../
 
 dev_dependencies:
   flutter_driver:
     sdk: flutter
-  integration_test: ^0.9.2
+  integration_test: ^1.0.1
   integration_test_tizen:
     path: ../../integration_test/
-  pedantic: ^1.8.0
 
 flutter:
   uses-material-design: true
