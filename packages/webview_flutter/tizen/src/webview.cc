@@ -24,7 +24,8 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
     const char* timezoneID,
     const std::function<::LWE::WebContainer::ExternalImageInfo(void)>&
         prepareImageCb,
-    const std::function<void(::LWE::WebContainer*)>& renderedCb);
+    const std::function<void(::LWE::WebContainer*, bool isRendered)>&
+        renderedCb);
 
 std::string ExtractStringFromMap(const flutter::EncodableValue& arguments,
                                  const char* key) {
@@ -480,9 +481,11 @@ void WebView::InitWebView() {
         }
         return result;
       },
-      [this](LWE::WebContainer* c) {
-        FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
-                                                 GetTextureId(), tbmSurface_);
+      [this](LWE::WebContainer* c, bool isRendered) {
+        if (isRendered) {
+          FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
+                                                   GetTextureId(), tbmSurface_);
+        }
         tbm_surface_destroy(tbmSurface_);
         tbmSurface_ = nullptr;
       });
