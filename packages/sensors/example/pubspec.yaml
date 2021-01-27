@@ -1,20 +1,20 @@
 name: sensors_example
 description: Demonstrates how to use the sensors plugin.
+publish_to: 'none'
 
 dependencies:
   flutter:
     sdk: flutter
-  sensors: ^0.4.0
+  sensors: ^0.4.2+6
   sensors_tizen:
     path: ../
 
 dev_dependencies:
   flutter_driver:
     sdk: flutter
-  integration_test: ^0.9.2
+  integration_test: ^1.0.1
   integration_test_tizen:
     path: ../../integration_test/
-  pedantic: ^1.8.0
 
 flutter:
   uses-material-design: true
