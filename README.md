@@ -23,7 +23,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 
 | Package name | Watch | Watch emulator | TV | TV emulator | Remarks |
 |-|:-:|:-:|:-:|:-:|-|
-| [**battery**](packages/battery) | ✔️ | ✔️ | ❌ | ❌ |
+| [**battery_tizen**](packages/battery) | ✔️ | ✔️ | ❌ | ❌ | No battery |
 | [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**path_provider_tizen**](packages/path_provider) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | No external storage |
 | [**sensors_tizen**](packages/sensors) | ✔️ | ✔️ | ❌ | ❌ | No hardware |
