@@ -169,7 +169,7 @@ public:
         const std::function<void(WebContainer*, bool mayNeedsSync)>&
             onGLSwapBuffers,
         const std::function<ExternalImageInfo(void)>& prepareImageCb,
-        const std::function<void(WebContainer*)>& renderedCb,
+        const std::function<void(WebContainer*, bool isRendered)>& renderedCb,
         float devicePixelRatio, const char* defaultFontName, const char* locale,
         const char* timezoneID);
     // <--- end of function set for render with OpenGL
@@ -371,12 +371,14 @@ public:
     virtual void Focus();
     virtual void Blur();
 
-    virtual WebContainer* FetchWebContainer() = 0;
 protected:
     WebView(void* impl)
         : m_impl(impl)
     {
     }
+
+    virtual WebContainer* FetchWebContainer() = 0;
+
     void* m_impl;
 };
 

@@ -270,6 +270,6 @@ enum class IdleModeJob {
 };
 
 constexpr int IdleModeCheckDefaultIntervalInMS{ 3000 };
-}
+} // namespace LWE
 
 #endif
