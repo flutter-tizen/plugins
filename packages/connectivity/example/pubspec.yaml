@@ -1,0 +1,22 @@
+name: connectivity_example
+description: Demonstrates how to use the connectivity plugin.
+publish_to: 'none'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  connectivity: ^2.0.2
+  connectivity_tizen:
+    path: ../
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  test: any
+  pedantic: ^1.8.0
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
+
+flutter:
+  uses-material-design: true
