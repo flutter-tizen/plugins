@@ -3,7 +3,6 @@
 
 #include <Ecore_IMF_Evas.h>
 #include <Ecore_Input_Evas.h>
-#include <flutter/method_channel.h>
 #include <flutter_platform_view.h>
 #include <flutter_texture_registrar.h>
 
@@ -58,25 +57,70 @@ double ExtractDoubleFromMap(const flutter::EncodableValue& arguments,
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
                  FlutterTextureRegistrar* textureRegistrar, double width,
-                 double height, const std::string initialUrl)
+                 double height, flutter::EncodableMap& params)
     : PlatformView(registrar, viewId),
       textureRegistrar_(textureRegistrar),
       webViewInstance_(nullptr),
-      currentUrl_(initialUrl),
       width_(width),
       height_(height),
       tbmSurface_(nullptr) {
   SetTextureId(FlutterRegisterExternalTexture(textureRegistrar_));
   InitWebView();
-  auto channel =
-      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          GetPluginRegistrar()->messenger(), GetChannelName(),
-          &flutter::StandardMethodCodec::GetInstance());
-  channel->SetMethodCallHandler(
+
+  channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+      GetPluginRegistrar()->messenger(), GetChannelName(),
+      &flutter::StandardMethodCodec::GetInstance());
+  channel_->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
         webview->HandleMethodCall(call, std::move(result));
       });
+
+  auto initialUrl = params[flutter::EncodableValue("initialUrl")];
+  if (std::holds_alternative<std::string>(initialUrl)) {
+    currentUrl_ = std::get<std::string>(initialUrl);
+  } else {
+    currentUrl_ = "about:blank";
+  }
+
+  auto names = params[flutter::EncodableValue("javascriptChannelNames")];
+  if (std::holds_alternative<flutter::EncodableList>(names)) {
+    auto nameList = std::get<flutter::EncodableList>(names);
+    for (size_t i = 0; i < nameList.size(); i++) {
+      if (std::holds_alternative<std::string>(nameList[i])) {
+        RegisterJavaScriptChannelName(std::get<std::string>(nameList[i]));
+      }
+    }
+  }
+
   webViewInstance_->LoadURL(currentUrl_);
+}
+
+/**
+ * Added as a JavaScript interface to the WebView for any JavaScript channel
+ * that the Dart code sets up.
+ *
+ * Exposes a single method named `postMessage` to JavaScript, which sends a
+ * message over a method channel to the Dart code.
+ */
+void WebView::RegisterJavaScriptChannelName(const std::string& name) {
+  LOG_DEBUG("RegisterJavaScriptChannelName(channelName: %s)\n", name.c_str());
+
+  std::function<std::string(const std::string&)> cb =
+      [this, name](const std::string& message) -> std::string {
+    LOG_DEBUG("Invoke JavaScriptChannel(message: %s)\n", message.c_str());
+    flutter::EncodableMap map;
+    map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+        flutter::EncodableValue("channel"), flutter::EncodableValue(name)));
+    map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+        flutter::EncodableValue("message"), flutter::EncodableValue(message)));
+
+    std::unique_ptr<flutter::EncodableValue> args =
+        std::make_unique<flutter::EncodableValue>(map);
+    channel_->InvokeMethod("javascriptChannelMessage", std::move(args));
+    return "success";
+  };
+
+  webViewInstance_->AddJavaScriptInterface(name, "postMessage", cb);
 }
 
 WebView::~WebView() { Dispose(); }
@@ -543,7 +587,15 @@ void WebView::HandleMethodCall(
       result->Error("Invalid Arguments", "Invalid Arguments");
     }
   } else if (methodName.compare("addJavascriptChannels") == 0) {
-    result->NotImplemented();
+    if (std::holds_alternative<flutter::EncodableList>(arguments)) {
+      auto nameList = std::get<flutter::EncodableList>(arguments);
+      for (size_t i = 0; i < nameList.size(); i++) {
+        if (std::holds_alternative<std::string>(nameList[i])) {
+          RegisterJavaScriptChannelName(std::get<std::string>(nameList[i]));
+        }
+      }
+    }
+    result->Success();
   } else if (methodName.compare("removeJavascriptChannels") == 0) {
     result->NotImplemented();
   } else if (methodName.compare("clearCache") == 0) {

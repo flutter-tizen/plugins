@@ -1,6 +1,7 @@
 #ifndef FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
 #define FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
 
+#include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
@@ -21,7 +22,7 @@ class WebView : public PlatformView {
  public:
   WebView(flutter::PluginRegistrar* registrar, int viewId,
           FlutterTextureRegistrar* textureRegistrar, double width,
-          double height, const std::string initialUrl);
+          double height, flutter::EncodableMap& params);
   ~WebView();
   virtual void Dispose() override;
   virtual void Resize(double width, double height) override;
@@ -43,6 +44,9 @@ class WebView : public PlatformView {
   std::string GetChannelName();
   const std::string& GetCurrentUrl() { return currentUrl_; }
   void InitWebView();
+
+  void RegisterJavaScriptChannelName(const std::string& name);
+
   FlutterTextureRegistrar* textureRegistrar_;
   LWE::WebContainer* webViewInstance_;
   std::string currentUrl_;
@@ -50,6 +54,7 @@ class WebView : public PlatformView {
   double height_;
   tbm_surface_h tbmSurface_;
   bool isMouseLButtonDown_;
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_

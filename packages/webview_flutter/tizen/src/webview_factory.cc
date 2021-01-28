@@ -1,7 +1,9 @@
+#include "webview_factory.h"
+
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter/standard_method_codec.h>
 #include <flutter/standard_message_codec.h>
+#include <flutter/standard_method_codec.h>
 #include <flutter_platform_view.h>
 #include <flutter_texture_registrar.h>
 
@@ -11,9 +13,8 @@
 #include <string>
 
 #include "log.h"
-#include "webview_flutter_tizen_plugin.h"
-#include "webview_factory.h"
 #include "lwe/LWEWebView.h"
+#include "webview_flutter_tizen_plugin.h"
 
 WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
                                FlutterTextureRegistrar* textureRegistrar)
@@ -30,19 +31,13 @@ WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
 
 PlatformView* WebViewFactory::Create(int viewId, double width, double height,
                                      const std::vector<uint8_t>& createParams) {
-  std::string initialUrl = "about:blank";
-  auto decoded_value = *GetCodec().DecodeMessage(createParams);
-  if (std::holds_alternative<flutter::EncodableMap>(decoded_value)) {
-    flutter::EncodableMap createParams =
-        std::get<flutter::EncodableMap>(decoded_value);
-    flutter::EncodableValue initialUrlValue =
-        createParams[flutter::EncodableValue("initialUrl")];
-    if (std::holds_alternative<std::string>(initialUrlValue)) {
-      initialUrl = std::get<std::string>(initialUrlValue);
-    }
+  flutter::EncodableMap params;
+  auto decodedValue = *GetCodec().DecodeMessage(createParams);
+  if (std::holds_alternative<flutter::EncodableMap>(decodedValue)) {
+    params = std::get<flutter::EncodableMap>(decodedValue);
   }
   return new WebView(GetPluginRegistrar(), viewId, textureRegistrar_, width,
-                     height, initialUrl);
+                     height, params);
 }
 
 void WebViewFactory::Dispose() { LWE::LWE::Finalize(); }
