@@ -92,6 +92,29 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
     }
   }
 
+  webViewInstance_->RegisterOnPageStartedHandler(
+      [this](LWE::WebContainer* container, const std::string& url) {
+        LOG_DEBUG("RegisterOnPageStartedHandler(url: %s)\n", url.c_str());
+        flutter::EncodableMap map;
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("url"), flutter::EncodableValue(url)));
+        std::unique_ptr<flutter::EncodableValue> args =
+            std::make_unique<flutter::EncodableValue>(map);
+        channel_->InvokeMethod("onPageStarted", std::move(args));
+      });
+  webViewInstance_->RegisterOnPageLoadedHandler(
+      [this](LWE::WebContainer* container, const std::string& url) {
+        LOG_DEBUG("RegisterOnPageLoadedHandler(url: %s)\n", url.c_str());
+        flutter::EncodableMap map;
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("url"), flutter::EncodableValue(url)));
+        std::unique_ptr<flutter::EncodableValue> args =
+            std::make_unique<flutter::EncodableValue>(map);
+        channel_->InvokeMethod("onPageFinished", std::move(args));
+      });
+
   webViewInstance_->LoadURL(currentUrl_);
 }
 
@@ -593,7 +616,17 @@ void WebView::HandleMethodCall(
     }
     result->Success();
   } else if (methodName.compare("removeJavascriptChannels") == 0) {
-    result->NotImplemented();
+    if (std::holds_alternative<flutter::EncodableList>(arguments)) {
+      auto nameList = std::get<flutter::EncodableList>(arguments);
+      for (size_t i = 0; i < nameList.size(); i++) {
+        if (std::holds_alternative<std::string>(nameList[i])) {
+          webViewInstance_->RemoveJavascriptInterface(
+              std::get<std::string>(nameList[i]), "postMessage");
+        }
+      }
+    }
+    result->Success();
+
   } else if (methodName.compare("clearCache") == 0) {
     webViewInstance_->ClearCache();
     result->Success();
