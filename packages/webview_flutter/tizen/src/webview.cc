@@ -518,11 +518,7 @@ void WebView::InitWebView() {
       [this]() -> LWE::WebContainer::ExternalImageInfo {
         LWE::WebContainer::ExternalImageInfo result;
         tbmSurface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
-        tbm_surface_info_s tbmSurfaceInfo;
-        if (tbm_surface_map(tbmSurface_, TBM_SURF_OPTION_WRITE,
-                            &tbmSurfaceInfo) == TBM_SURFACE_ERROR_NONE) {
-          result.imageAddress = (void*)tbmSurface_;
-        }
+        result.imageAddress = (void*)tbmSurface_;
         return result;
       },
       [this](LWE::WebContainer* c, bool isRendered) {

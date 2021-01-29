@@ -169,7 +169,7 @@ public:
         const std::function<void(WebContainer*, bool mayNeedsSync)>&
             onGLSwapBuffers,
         const std::function<ExternalImageInfo(void)>& prepareImageCb,
-        const std::function<void(WebContainer*, bool isRendered)>& renderedCb,
+        const std::function<void(WebContainer*, bool needsFlush)>& flushCb,
         float devicePixelRatio, const char* defaultFontName, const char* locale,
         const char* timezoneID);
     // <--- end of function set for render with OpenGL
