@@ -1,0 +1,21 @@
+name: share_example
+description: Demonstrates how to use the share plugin.
+
+dependencies:
+  flutter:
+    sdk: flutter
+  share: ^0.6.5+3    
+  share_tizen:
+    path: ../
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
+  image_picker: ^0.6.7+4
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  pedantic: ^1.8.0
+
+flutter:
+  uses-material-design: true
