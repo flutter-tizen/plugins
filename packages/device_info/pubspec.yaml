@@ -1,0 +1,28 @@
+name: device_info_tizen
+description: Flutter plugin providing detailed information about tizen device
+  (make, model, etc.).
+version: 1.0.0
+homepage: https://github.com/flutter-tizen/plugins
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: DeviceInfoTizenPlugin
+        fileName: device_info_tizen_plugin.h
+
+dependencies:
+  flutter:
+    sdk: flutter
+  device_info_platform_interface: ^1.0.0
+
+dev_dependencies:
+  test: ^1.3.0
+  flutter_test:
+    sdk: flutter
+  pedantic: ^1.8.0
+
+environment:
+  sdk: ">=2.1.0<3.0.0"
+  flutter: ">=1.12.13+hotfix.5 <2.0.0"
+  
