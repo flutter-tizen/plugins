@@ -1,0 +1,27 @@
+name: wifi_info_flutter_tizen_example
+description: Demonstrates how to use the wifi_info_flutter_tizen_example plugin.
+publish_to: 'none'
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  connectivity: 0.4.9+3
+  connectivity_tizen:
+    path: ../../connectivity/
+  flutter:
+    sdk: flutter
+  wifi_info_flutter: ^1.0.1
+  wifi_info_flutter_tizen:
+    path: ../
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
+  cupertino_icons: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
