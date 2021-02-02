@@ -36,8 +36,14 @@ PlatformView* WebViewFactory::Create(int viewId, double width, double height,
   if (std::holds_alternative<flutter::EncodableMap>(decodedValue)) {
     params = std::get<flutter::EncodableMap>(decodedValue);
   }
-  return new WebView(GetPluginRegistrar(), viewId, textureRegistrar_, width,
-                     height, params);
+
+  try {
+    return new WebView(GetPluginRegistrar(), viewId, textureRegistrar_, width,
+                       height, params);
+  } catch (const std::invalid_argument& ex) {
+    LOG_ERROR("[Exception] %s\n", ex.what());
+    return nullptr;
+  }
 }
 
 void WebViewFactory::Dispose() { LWE::LWE::Finalize(); }

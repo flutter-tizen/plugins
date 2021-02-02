@@ -37,6 +37,8 @@ class WebView : public PlatformView {
 
   virtual void SetSoftwareKeyboardContext(Ecore_IMF_Context* context) override;
 
+  LWE::WebContainer* GetWebViewInstance() { return webViewInstance_; }
+
  private:
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
@@ -46,6 +48,7 @@ class WebView : public PlatformView {
   void InitWebView();
 
   void RegisterJavaScriptChannelName(const std::string& name);
+  void ApplySettings(flutter::EncodableMap);
 
   FlutterTextureRegistrar* textureRegistrar_;
   LWE::WebContainer* webViewInstance_;
@@ -54,6 +57,7 @@ class WebView : public PlatformView {
   double height_;
   tbm_surface_h tbmSurface_;
   bool isMouseLButtonDown_;
+  bool hasNavigationDelegate_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
 };
 
