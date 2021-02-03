@@ -26,6 +26,99 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
     const std::function<void(::LWE::WebContainer*, bool isRendered)>&
         renderedCb);
 
+template <typename T = flutter::EncodableValue>
+class NavigationRequestResult : public flutter::MethodResult<T> {
+ public:
+  NavigationRequestResult(std::string url, WebView* webView)
+      : url_(url), webView_(webView) {}
+
+  void SuccessInternal(const T* shouldLoad) override {
+    if (std::holds_alternative<bool>(*shouldLoad)) {
+      if (std::get<bool>(*shouldLoad)) {
+        LoadUrl();
+      }
+    }
+  }
+
+  void ErrorInternal(const std::string& error_code,
+                     const std::string& error_message,
+                     const T* error_details) override {
+    throw std::invalid_argument("navigationRequest calls must succeed [code:" +
+                                error_code + "][msg:" + error_message + "]");
+  }
+
+  void NotImplementedInternal() override {
+    throw std::invalid_argument(
+        "navigationRequest must be implemented by the webview method channel");
+  }
+
+ private:
+  void LoadUrl() {
+    if (webView_ && webView_->GetWebViewInstance()) {
+      webView_->GetWebViewInstance()->LoadURL(url_);
+    }
+  }
+
+  std::string url_;
+  WebView* webView_;
+};
+
+enum RequestErrorType {
+  NoError,
+  UnknownError,
+  HostLookupError,
+  UnsupportedAuthSchemeError,
+  AuthenticationError,
+  ProxyAuthenticationError,
+  ConnectError,
+  IOError,
+  TimeoutError,
+  RedirectLoopError,
+  UnsupportedSchemeError,
+  FailedSSLHandshakeError,
+  BadURLError,
+  FileError,
+  FileNotFoundError,
+  TooManyRequestError,
+};
+
+static std::string ErrorCodeToString(int errorCode) {
+  switch (errorCode) {
+    case RequestErrorType::AuthenticationError:
+      return "authentication";
+    case RequestErrorType::BadURLError:
+      return "badUrl";
+    case RequestErrorType::ConnectError:
+      return "connect";
+    case RequestErrorType::FailedSSLHandshakeError:
+      return "failedSslHandshake";
+    case RequestErrorType::FileError:
+      return "file";
+    case RequestErrorType::FileNotFoundError:
+      return "fileNotFound";
+    case RequestErrorType::HostLookupError:
+      return "hostLookup";
+    case RequestErrorType::IOError:
+      return "io";
+    case RequestErrorType::ProxyAuthenticationError:
+      return "proxyAuthentication";
+    case RequestErrorType::RedirectLoopError:
+      return "redirectLoop";
+    case RequestErrorType::TimeoutError:
+      return "timeout";
+    case RequestErrorType::TooManyRequestError:
+      return "tooManyRequests";
+    case RequestErrorType::UnknownError:
+      return "unknown";
+    case RequestErrorType::UnsupportedAuthSchemeError:
+      return "unsupportedAuthScheme";
+    case RequestErrorType::UnsupportedSchemeError:
+      return "unsupportedScheme";
+  }
+  std::string message = "Could not find a string for errorCode: " + errorCode;
+  throw std::invalid_argument(message);
+}
+
 std::string ExtractStringFromMap(const flutter::EncodableValue& arguments,
                                  const char* key) {
   if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
@@ -63,7 +156,9 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       webViewInstance_(nullptr),
       width_(width),
       height_(height),
-      tbmSurface_(nullptr) {
+      tbmSurface_(nullptr),
+      isMouseLButtonDown_(false),
+      hasNavigationDelegate_(false) {
   SetTextureId(FlutterRegisterExternalTexture(textureRegistrar_));
   InitWebView();
 
@@ -80,6 +175,14 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
     currentUrl_ = std::get<std::string>(initialUrl);
   } else {
     currentUrl_ = "about:blank";
+  }
+
+  auto settings = params[flutter::EncodableValue("settings")];
+  if (std::holds_alternative<flutter::EncodableMap>(settings)) {
+    auto settingList = std::get<flutter::EncodableMap>(settings);
+    if (settingList.size() > 0) {
+      ApplySettings(settingList);
+    }
   }
 
   auto names = params[flutter::EncodableValue("javascriptChannelNames")];
@@ -99,8 +202,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         map.insert(
             std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
                 flutter::EncodableValue("url"), flutter::EncodableValue(url)));
-        std::unique_ptr<flutter::EncodableValue> args =
-            std::make_unique<flutter::EncodableValue>(map);
+        auto args = std::make_unique<flutter::EncodableValue>(map);
         channel_->InvokeMethod("onPageStarted", std::move(args));
       });
   webViewInstance_->RegisterOnPageLoadedHandler(
@@ -110,12 +212,79 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         map.insert(
             std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
                 flutter::EncodableValue("url"), flutter::EncodableValue(url)));
-        std::unique_ptr<flutter::EncodableValue> args =
-            std::make_unique<flutter::EncodableValue>(map);
+        auto args = std::make_unique<flutter::EncodableValue>(map);
+        channel_->InvokeMethod("onPageFinished", std::move(args));
+      });
+  webViewInstance_->RegisterOnReceivedErrorHandler(
+      [this](LWE::WebContainer* container, LWE::ResourceError e) {
+        flutter::EncodableMap map;
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("errorCode"),
+                flutter::EncodableValue(e.GetErrorCode())));
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("description"),
+                flutter::EncodableValue(e.GetDescription())));
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("errorType"),
+                flutter::EncodableValue(ErrorCodeToString(e.GetErrorCode()))));
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("failingUrl"),
+                flutter::EncodableValue(e.GetUrl())));
+        auto args = std::make_unique<flutter::EncodableValue>(map);
         channel_->InvokeMethod("onPageFinished", std::move(args));
       });
 
+  webViewInstance_->RegisterShouldOverrideUrlLoadingHandler(
+      [this](LWE::WebContainer* view, const std::string& url) -> bool {
+        if (!hasNavigationDelegate_) {
+          return false;
+        }
+        flutter::EncodableMap map;
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("url"), flutter::EncodableValue(url)));
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("isForMainFrame"),
+                flutter::EncodableValue(true)));
+        auto args = std::make_unique<flutter::EncodableValue>(map);
+        auto onResult =
+            std::make_unique<NavigationRequestResult<flutter::EncodableValue>>(
+                url, this);
+        channel_->InvokeMethod("navigationRequest", std::move(args),
+                               std::move(onResult));
+
+        return true;
+      });
+
   webViewInstance_->LoadURL(currentUrl_);
+}
+
+void WebView::ApplySettings(flutter::EncodableMap settings) {
+  for (auto const& [key, val] : settings) {
+    if (std::holds_alternative<std::string>(key)) {
+      std::string k = std::get<std::string>(key);
+      if ("jsMode" == k) {
+        // TODO: Not implemented
+      } else if ("hasNavigationDelegate" == k) {
+        if (std::holds_alternative<bool>(val)) {
+          hasNavigationDelegate_ = std::get<bool>(val);
+        }
+      } else if ("debuggingEnabled" == k) {
+        // TODO: Not implemented
+      } else if ("gestureNavigationEnabled" == k) {
+        // TODO: Not implemented
+      } else if ("userAgent" == k) {
+        // TODO: Not implemented
+      } else {
+        throw std::invalid_argument("Unknown WebView setting: " + k);
+      }
+    }
+  }
 }
 
 /**
@@ -155,8 +324,10 @@ std::string WebView::GetChannelName() {
 void WebView::Dispose() {
   FlutterUnregisterExternalTexture(textureRegistrar_, GetTextureId());
 
-  webViewInstance_->Destroy();
-  webViewInstance_ = nullptr;
+  if (webViewInstance_) {
+    webViewInstance_->Destroy();
+    webViewInstance_ = nullptr;
+  }
 }
 
 void WebView::Resize(double width, double height) {
