@@ -1,49 +1,29 @@
-// Copyright 2019 The Flutter Authors. All rights reserved.
+// Copyright 2019, the Chromium project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:package_info/package_info.dart';
+import 'package:package_info_example/main.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel channel =
-      MethodChannel('plugins.flutter.io/package_info');
-  List<MethodCall> log;
-
-  channel.setMockMethodCallHandler((MethodCall methodCall) async {
-    log.add(methodCall);
-    switch (methodCall.method) {
-      case 'getAll':
-        return <String, dynamic>{
-          'appName': 'package_info_example',
-          'buildNumber': '1',
-          'packageName': 'io.flutter.plugins.packageinfoexample',
-          'version': '1.0',
-        };
-      default:
-        assert(false);
-        return null;
-    }
-  });
-
-  setUp(() {
-    log = <MethodCall>[];
-  });
-
-  test('fromPlatform', () async {
+  testWidgets('fromPlatform', (WidgetTester tester) async {
     final PackageInfo info = await PackageInfo.fromPlatform();
-    expect(info.appName, 'package_info_example');
-    expect(info.buildNumber, '1');
-    expect(info.packageName, 'io.flutter.plugins.packageinfoexample');
-    expect(info.version, '1.0');
-    expect(
-      log,
-      <Matcher>[
-        isMethodCall('getAll', arguments: null),
-      ],
-    );
+    // These tests are based on the example app. The tests should be updated if any related info changes.
+    expect(info.appName, 'package_info_tizen_example');
+    expect(info.packageName, 'org.tizen.package_info_tizen_example');
+    expect(info.version, '1.0.0');
+  });
+
+  testWidgets('example', (WidgetTester tester) async {
+    await tester.pumpWidget(MyApp());
+    await tester.pumpAndSettle();
+    expect(find.text('package_info_tizen_example'), findsOneWidget);
+    expect(find.text('org.tizen.package_info_tizen_example'), findsOneWidget);
+    expect(find.text('1.0.0'), findsOneWidget);
   });
 }
