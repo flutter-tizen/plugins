@@ -115,7 +115,9 @@ static std::string ErrorCodeToString(int errorCode) {
     case RequestErrorType::UnsupportedSchemeError:
       return "unsupportedScheme";
   }
-  std::string message = "Could not find a string for errorCode: " + errorCode;
+
+  std::string message =
+      "Could not find a string for errorCode: " + std::to_string(errorCode);
   throw std::invalid_argument(message);
 }
 
@@ -170,11 +172,12 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         webview->HandleMethodCall(call, std::move(result));
       });
 
+  std::string url;
   auto initialUrl = params[flutter::EncodableValue("initialUrl")];
   if (std::holds_alternative<std::string>(initialUrl)) {
-    currentUrl_ = std::get<std::string>(initialUrl);
+    url = std::get<std::string>(initialUrl);
   } else {
-    currentUrl_ = "about:blank";
+    url = "about:blank";
   }
 
   auto settings = params[flutter::EncodableValue("settings")];
@@ -207,7 +210,8 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       });
   webViewInstance_->RegisterOnPageLoadedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
-        LOG_DEBUG("RegisterOnPageLoadedHandler(url: %s)\n", url.c_str());
+        LOG_DEBUG("RegisterOnPageLoadedHandler(url: %s)(title:%s)\n",
+                  url.c_str(), container->GetTitle().c_str());
         flutter::EncodableMap map;
         map.insert(
             std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
@@ -261,7 +265,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         return true;
       });
 
-  webViewInstance_->LoadURL(currentUrl_);
+  webViewInstance_->LoadURL(url);
 }
 
 void WebView::ApplySettings(flutter::EncodableMap settings) {
@@ -269,17 +273,21 @@ void WebView::ApplySettings(flutter::EncodableMap settings) {
     if (std::holds_alternative<std::string>(key)) {
       std::string k = std::get<std::string>(key);
       if ("jsMode" == k) {
-        // TODO: Not implemented
+        // NOTE: Not supported by LWE on Tizen.
       } else if ("hasNavigationDelegate" == k) {
         if (std::holds_alternative<bool>(val)) {
           hasNavigationDelegate_ = std::get<bool>(val);
         }
       } else if ("debuggingEnabled" == k) {
-        // TODO: Not implemented
+        // NOTE: Not supported by LWE on Tizen.
       } else if ("gestureNavigationEnabled" == k) {
-        // TODO: Not implemented
+        // NOTE: Not supported by LWE on Tizen.
       } else if ("userAgent" == k) {
-        // TODO: Not implemented
+        if (std::holds_alternative<std::string>(val)) {
+          auto settings = webViewInstance_->GetSettings();
+          settings.SetUserAgentString(std::get<std::string>(val));
+          webViewInstance_->SetSettings(settings);
+        }
       } else {
         throw std::invalid_argument("Unknown WebView setting: " + k);
       }
@@ -739,14 +747,26 @@ void WebView::HandleMethodCall(
   const auto methodName = method_call.method_name();
   const auto& arguments = *method_call.arguments();
 
-  LOG_DEBUG("HandleMethodCall : %s \n ", methodName.c_str());
+  LOG_DEBUG("WebView::HandleMethodCall : %s \n ", methodName.c_str());
 
   if (methodName.compare("loadUrl") == 0) {
-    currentUrl_ = ExtractStringFromMap(arguments, "url");
-    webViewInstance_->LoadURL(GetCurrentUrl());
+    std::string url = ExtractStringFromMap(arguments, "url");
+    webViewInstance_->LoadURL(url);
     result->Success();
   } else if (methodName.compare("updateSettings") == 0) {
-    result->NotImplemented();
+    if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
+      auto settings = std::get<flutter::EncodableMap>(arguments);
+      if (settings.size() > 0) {
+        try {
+          ApplySettings(settings);
+        } catch (const std::invalid_argument& ex) {
+          LOG_ERROR("[Exception] %s\n", ex.what());
+          result->Error(ex.what());
+          return;
+        }
+      }
+    }
+    result->Success();
   } else if (methodName.compare("canGoBack") == 0) {
     result->Success(flutter::EncodableValue(webViewInstance_->CanGoBack()));
   } else if (methodName.compare("canGoForward") == 0) {
@@ -761,7 +781,7 @@ void WebView::HandleMethodCall(
     webViewInstance_->Reload();
     result->Success();
   } else if (methodName.compare("currentUrl") == 0) {
-    result->Success(flutter::EncodableValue(GetCurrentUrl().c_str()));
+    result->Success(flutter::EncodableValue(webViewInstance_->GetURL()));
   } else if (methodName.compare("evaluateJavascript") == 0) {
     if (std::holds_alternative<std::string>(arguments)) {
       std::string jsString = std::get<std::string>(arguments);
@@ -802,11 +822,17 @@ void WebView::HandleMethodCall(
     webViewInstance_->ClearCache();
     result->Success();
   } else if (methodName.compare("getTitle") == 0) {
-    result->NotImplemented();
+    result->Success(flutter::EncodableValue(webViewInstance_->GetTitle()));
   } else if (methodName.compare("scrollTo") == 0) {
-    result->NotImplemented();
+    int x = ExtractIntFromMap(arguments, "x");
+    int y = ExtractIntFromMap(arguments, "y");
+    webViewInstance_->ScrollTo(x, y);
+    result->Success();
   } else if (methodName.compare("scrollBy") == 0) {
-    result->NotImplemented();
+    int x = ExtractIntFromMap(arguments, "x");
+    int y = ExtractIntFromMap(arguments, "y");
+    webViewInstance_->ScrollBy(x, y);
+    result->Success();
   } else if (methodName.compare("getScrollX") == 0) {
     result->NotImplemented();
   } else if (methodName.compare("getScrollY") == 0) {
