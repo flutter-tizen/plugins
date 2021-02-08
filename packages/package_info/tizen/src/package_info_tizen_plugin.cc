@@ -1,3 +1,7 @@
+// Copyright 2020 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "package_info_tizen_plugin.h"
 
 #include <app_common.h>
@@ -103,9 +107,8 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
 
     int ret = app_get_id(&app_id);
     if (ret != APP_ERROR_NONE || app_id == NULL) {
-      result->Error(
-          std::to_string(ret), "Failed to get app_id",
-          flutter::EncodableValue(appErrorToString(ret)));
+      result->Error(std::to_string(ret), "Failed to get app_id",
+                    flutter::EncodableValue(appErrorToString(ret)));
       goto cleanup;
     }
     LOG_INFO("app id : %s\n", app_id);
@@ -113,16 +116,14 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     ret = package_info_create(app_id, &package_info);
     if (ret != PACKAGE_MANAGER_ERROR_NONE || package_info == NULL) {
       result->Error(std::to_string(ret), "Failed to create package_info",
-                    flutter::EncodableValue(
-                        packageErrorToString(ret)));
+                    flutter::EncodableValue(packageErrorToString(ret)));
       goto cleanup;
     }
 
     ret = package_info_get_label(package_info, &label);
     if (ret != PACKAGE_MANAGER_ERROR_NONE || label == NULL) {
       result->Error(std::to_string(ret), "Failed to get app name",
-                    flutter::EncodableValue(
-                        packageErrorToString(ret)));
+                    flutter::EncodableValue(packageErrorToString(ret)));
       goto cleanup;
     }
     LOG_INFO("package label : %s\n", label);
@@ -130,8 +131,7 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     ret = package_info_get_package(package_info, &pkg_name);
     if (ret != PACKAGE_MANAGER_ERROR_NONE || pkg_name == NULL) {
       result->Error(std::to_string(ret), "Failed to get package name",
-                    flutter::EncodableValue(
-                        packageErrorToString(ret)));
+                    flutter::EncodableValue(packageErrorToString(ret)));
       goto cleanup;
     }
     LOG_INFO("package name : %s\n", pkg_name);
@@ -139,8 +139,7 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     ret = package_info_get_version(package_info, &version);
     if (ret != PACKAGE_MANAGER_ERROR_NONE || version == NULL) {
       result->Error(std::to_string(ret), "Failed to get version",
-                    flutter::EncodableValue(
-                        packageErrorToString(ret)));
+                    flutter::EncodableValue(packageErrorToString(ret)));
       goto cleanup;
     }
     LOG_INFO("package version : %s\n", version);
