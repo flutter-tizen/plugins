@@ -44,7 +44,6 @@ class WebView : public PlatformView {
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   std::string GetChannelName();
-  const std::string& GetCurrentUrl() { return currentUrl_; }
   void InitWebView();
 
   void RegisterJavaScriptChannelName(const std::string& name);
@@ -52,7 +51,6 @@ class WebView : public PlatformView {
 
   FlutterTextureRegistrar* textureRegistrar_;
   LWE::WebContainer* webViewInstance_;
-  std::string currentUrl_;
   double width_;
   double height_;
   tbm_surface_h tbmSurface_;
