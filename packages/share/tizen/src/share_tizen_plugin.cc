@@ -97,8 +97,12 @@ class ShareTizenPlugin : public flutter::Plugin {
     try {
       if (method_call.arguments()) {
         arguments = std::get<flutter::EncodableMap>(*method_call.arguments());
-        subject = std::get<std::string>(
-            arguments[flutter::EncodableValue("subject")]);
+        auto subject_value = arguments[flutter::EncodableValue("subject")];
+        if (!subject_value.IsNull()) {
+          subject = std::get<std::string>(subject_value);
+        } else {
+          subject = std::string();
+        }
         text =
             std::get<std::string>(arguments[flutter::EncodableValue("text")]);
         LOG_INFO("subject[%s], text[%s]", subject.c_str(), text.c_str());
@@ -106,7 +110,7 @@ class ShareTizenPlugin : public flutter::Plugin {
     } catch (std::bad_variant_access const &ex) {
       result->Error("Invalid Arguments",
                     "An argument has to contain map<string, string>",
-                    flutter::EncodableValue(ex.what()));  // LCOV_EXCL_LINE
+                    flutter::EncodableValue(ex.what()));
       return;
     }
 
@@ -133,7 +137,7 @@ class ShareTizenPlugin : public flutter::Plugin {
       } catch (std::bad_variant_access const &ex) {
         result->Error("Invalid Arguments",
                       "An argument has to contain list<string>",
-                      flutter::EncodableValue(ex.what()));  // LCOV_EXCL_LINE
+                      flutter::EncodableValue(ex.what()));
         return;
       }
     }

@@ -12,6 +12,6 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Can launch share', (WidgetTester tester) async {
-    expect(Share.share('message', subject: 'title'), completes);
+    expect(Share.share('message'), completes);
   });
 }

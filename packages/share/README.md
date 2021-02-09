@@ -1,4 +1,4 @@
-# Share Tizen plugin
+# share_tizen
 
 The Tizen implementation of [`share`](https://github.com/flutter/plugins/tree/master/packages/share).
 
@@ -20,24 +20,18 @@ Then invoke the static `share` method anywhere in your Dart code.
 Share.share('check out my website https://example.com');
 ```
 
-The `share` method also takes an optional `subject` that will be used when
-sharing to email.
+## Limitations
 
-``` dart
-Share.share('check out my website https://example.com', subject: 'Look what I made!');
-```
+- This plugin is only supported on **Galaxy Watch** devices running Tizen 4.0 or later.
+- Passing in an optional argument `subject` to `Share.share()` or invoking `Share.shareFiles()` leads to a **PlatformException** because no e-mail app is available on watche devices.
+- You cannot choose which application to use for sharing. Only the **Message** app can handle sharing requests.
 
-To share one or multiple files invoke the static `shareFiles` method anywhere in your Dart code. Optionally you can also pass in `text` and `subject`.
-``` dart
-Share.shareFiles(['${directory.path}/image.jpg'], text: 'Great picture');
-Share.shareFiles(['${directory.path}/image1.jpg', '${directory.path}/image2.jpg']);
-```
+## Required privileges
 
-## Notice
 To use this plugin, you need to declare privileges in tizen-manifest.xml of your application.
+
 ``` xml
 <privileges>
   <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
 </privileges>
 ```
-This plugin only works with ``sms`` on ``Watch(emulator)``. Except in previous case, the required app does not exist and cannot be used.
