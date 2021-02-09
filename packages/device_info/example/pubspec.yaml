@@ -1,0 +1,19 @@
+name: device_info_example
+description: Demonstrates how to use the device_info_tizen plugin.
+
+dependencies:
+  flutter:
+    sdk: flutter
+  device_info_tizen:
+    path: ../
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  pedantic: ^1.8.0
+
+flutter:
+  uses-material-design: true
