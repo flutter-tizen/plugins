@@ -1,0 +1,21 @@
+name: package_info_example
+description: Demonstrates how to use the package_info plugin.
+
+dependencies:
+  flutter:
+    sdk: flutter
+  package_info: ^0.4.3
+  package_info_tizen:
+    path: ../
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  test: any
+  pedantic: ^1.8.0
+
+flutter:
+  uses-material-design: true
