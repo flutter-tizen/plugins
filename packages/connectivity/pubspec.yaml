@@ -1,0 +1,28 @@
+name: connectivity_tizen
+description: Flutter plugin for discovering the state of the network (WiFi) connectivity on Tizen.
+version: 1.0.0
+homepage: https://github.com/flutter-tizen/plugins
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: ConnectivityTizenPlugin
+        fileName: connectivity_tizen_plugin.h
+dependencies:
+  connectivity: ^2.0.2
+  connectivity_platform_interface: ^1.0.6
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  test: any
+  flutter_driver:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  mockito: ^4.1.1
+
+environment:
+  sdk: ">=2.6.0 <3.0.0"
+  flutter: ">=1.12.13+hotfix.4"
