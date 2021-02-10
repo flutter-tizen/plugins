@@ -13,7 +13,11 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | Package name | Original package | Pub | Endorsed |
 |-|-|:-:|:-:|
 | [**battery_tizen**](packages/battery) | [battery](https://github.com/flutter/plugins/tree/master/packages/battery) (1st-party) | [![pub package](https://img.shields.io/pub/v/battery_tizen.svg)](https://pub.dev/packages/battery_tizen) | No |
+| [**connectivity_tizen**](packages/connectivity) | [connectivity](https://github.com/flutter/plugins/tree/master/packages/connectivity) (1st-party) | [![pub package](https://img.shields.io/pub/v/connectivity_tizen.svg)](https://pub.dev/packages/connectivity_tizen) | No |
+| [**device_info_tizen**](packages/device_info) | [device_info](https://github.com/flutter/plugins/tree/master/packages/device_info) (1st-party) | [![pub package](https://img.shields.io/pub/v/device_info_tizen.svg)](https://pub.dev/packages/device_info_tizen) | No |
+| [**image_picker_tizen**](packages/image_picker) | [image_picker](https://github.com/flutter/plugins/tree/master/packages/image_picker) (1st-party) | [![pub package](https://img.shields.io/pub/v/image_picker_tizen.svg)](https://pub.dev/packages/image_picker_tizen) | No |
 | [**integration_test_tizen**](packages/integration_test) | [integration_test](https://github.com/flutter/plugins/tree/master/packages/integration_test) (1st-party) | [![pub package](https://img.shields.io/pub/v/integration_test_tizen.svg)](https://pub.dev/packages/integration_test_tizen) | No |
+| [**package_info_tizen**](packages/package_info) | [package_info](https://github.com/flutter/plugins/tree/master/packages/package_info) (1st-party) | [![pub package](https://img.shields.io/pub/v/package_info_tizen.svg)](https://pub.dev/packages/package_info_tizen) | No |
 | [**path_provider_tizen**](packages/path_provider) | [path_provider](https://github.com/flutter/plugins/tree/master/packages/path_provider) (1st-party) | [![pub package](https://img.shields.io/pub/v/path_provider_tizen.svg)](https://pub.dev/packages/path_provider_tizen) | No |
 | [**sensors_tizen**](packages/sensors) | [sensors](https://github.com/flutter/plugins/tree/master/packages/sensors) (1st-party) | [![pub package](https://img.shields.io/pub/v/sensors_tizen.svg)](https://pub.dev/packages/sensors_tizen) | No |
 | [**share_tizen**](packages/share) | [share](https://github.com/flutter/plugins/tree/master/packages/share) (1st-party) | [![pub package](https://img.shields.io/pub/v/share_tizen.svg)](https://pub.dev/packages/share_tizen) | No |
@@ -25,9 +29,13 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | Package name | Watch | Watch emulator | TV | TV emulator | Remarks |
 |-|:-:|:-:|:-:|:-:|-|
 | [**battery_tizen**](packages/battery) | ✔️ | ✔️ | ❌ | ❌ | No battery |
+| [**connectivity_tizen**](packages/connectivity) | ✔️ | ⚠️ | ✔️ | ✔️ | The return value is incorrect |
+| [**device_info_tizen**](packages/device_info) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**image_picker_tizen**](packages/image_picker) | ⚠️ | ❌ | ❌ | ❌ | No camera<br>No file manager app |
 | [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**package_info_tizen**](packages/package_info) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**path_provider_tizen**](packages/path_provider) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | No external storage |
 | [**sensors_tizen**](packages/sensors) | ✔️ | ✔️ | ❌ | ❌ | No hardware |
-| [**share_tizen**](packages/share) | ⚠️ | ⚠️ | ❌ | ❌ | E-mail app is not available |
+| [**share_tizen**](packages/share) | ⚠️ | ⚠️ | ❌ | ❌ | No SMS or e-mail app |
 | [**shared_preferences_tizen**](packages/path_provider) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ⚠️ | ✔️ | ⚠️ | Browser apps are not available |
+| [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
