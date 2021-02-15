@@ -172,6 +172,16 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         webview->HandleMethodCall(call, std::move(result));
       });
 
+  auto cookieChannel =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          GetPluginRegistrar()->messenger(),
+          "plugins.flutter.io/cookie_manager",
+          &flutter::StandardMethodCodec::GetInstance());
+  cookieChannel->SetMethodCallHandler(
+      [webview = this](const auto& call, auto result) {
+        webview->HandleCookieMethodCall(call, std::move(result));
+      });
+
   std::string url;
   auto initialUrl = params[flutter::EncodableValue("initialUrl")];
   if (std::holds_alternative<std::string>(initialUrl)) {
@@ -196,6 +206,16 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         RegisterJavaScriptChannelName(std::get<std::string>(nameList[i]));
       }
     }
+  }
+
+  // TODO: Not implemented
+  // auto media = params[flutter::EncodableValue("autoMediaPlaybackPolicy")];
+
+  auto userAgent = params[flutter::EncodableValue("userAgent")];
+  if (std::holds_alternative<std::string>(userAgent)) {
+    auto settings = webViewInstance_->GetSettings();
+    settings.SetUserAgentString(std::get<std::string>(userAgent));
+    webViewInstance_->SetSettings(settings);
   }
 
   webViewInstance_->RegisterOnPageStartedHandler(
@@ -834,9 +854,31 @@ void WebView::HandleMethodCall(
     webViewInstance_->ScrollBy(x, y);
     result->Success();
   } else if (methodName.compare("getScrollX") == 0) {
-    result->NotImplemented();
+    result->Success(flutter::EncodableValue(webViewInstance_->GetScrollX()));
   } else if (methodName.compare("getScrollY") == 0) {
+    result->Success(flutter::EncodableValue(webViewInstance_->GetScrollY()));
+  } else {
     result->NotImplemented();
+  }
+}
+
+void WebView::HandleCookieMethodCall(
+    const flutter::MethodCall<flutter::EncodableValue>& method_call,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  if (webViewInstance_ == nullptr) {
+    result->Error("Not Webview created");
+    return;
+  }
+
+  const auto methodName = method_call.method_name();
+  const auto& arguments = *method_call.arguments();
+
+  LOG_DEBUG("WebView::HandleMethodCall : %s \n ", methodName.c_str());
+
+  if (methodName.compare("clearCookies") == 0) {
+    LWE::CookieManager* cookie = LWE::CookieManager::GetInstance();
+    cookie->ClearCookies();
+    result->Success(flutter::EncodableValue(true));
   } else {
     result->NotImplemented();
   }
