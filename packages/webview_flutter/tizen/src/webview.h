@@ -43,6 +43,9 @@ class WebView : public PlatformView {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void HandleCookieMethodCall(
+      const flutter::MethodCall<flutter::EncodableValue>& method_call,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   std::string GetChannelName();
   void InitWebView();
 

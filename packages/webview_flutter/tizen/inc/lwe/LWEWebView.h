@@ -53,6 +53,20 @@ public:
 
 enum class WebSecurityMode;
 
+class LWE_EXPORT CookieManager {
+public:
+    std::string GetCookie(std::string url);
+    bool HasCookies();
+    void ClearCookies();
+
+    static CookieManager* GetInstance();
+    static void Destroy();
+
+private:
+    CookieManager();
+    ~CookieManager();
+};
+
 class LWE_EXPORT Settings {
 public:
     Settings(const std::string& defaultUA, const std::string& ua);
@@ -290,6 +304,8 @@ public:
     std::string GetTitle();
     void ScrollTo(int x, int y);
     void ScrollBy(int x, int y);
+    int GetScrollX();
+    int GetScrollY();
 
     size_t Width();
     size_t Height();
@@ -370,6 +386,8 @@ public:
     std::string GetTitle();
     void ScrollTo(int x, int y);
     void ScrollBy(int x, int y);
+    int GetScrollX();
+    int GetScrollY();
 
     virtual void* Unwrap()
     {
