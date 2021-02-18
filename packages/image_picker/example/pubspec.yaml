@@ -1,0 +1,25 @@
+name: image_picker_tizen_example
+description: Demonstrates how to use the image_picker_tizen plugin.
+
+dependencies:
+  video_player: ^0.10.3
+  flutter:
+    sdk: flutter
+  image_picker: ^0.6.7
+  image_picker_tizen:
+    path: ../
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  pedantic: ^1.8.0
+  integration_test: ^0.9.2
+  integration_test_tizen:
+    path: ../../integration_test
+
+flutter:
+  uses-material-design: true
+
+environment:
+  sdk: ">=2.0.0-dev.28.0 <3.0.0"
+  flutter: ">=1.10.0 <2.0.0"
