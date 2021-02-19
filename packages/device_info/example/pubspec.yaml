@@ -7,13 +7,13 @@ dependencies:
     sdk: flutter
   device_info_tizen:
     path: ../
-  integration_test: ^1.0.1
-  integration_test_tizen:
-    path: ../../integration_test/
 
 dev_dependencies:
   flutter_driver:
     sdk: flutter
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
 
 flutter:
   uses-material-design: true

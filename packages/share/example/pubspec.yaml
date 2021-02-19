@@ -8,9 +8,6 @@ dependencies:
   share: ^0.6.5+3    
   share_tizen:
     path: ../
-  integration_test: ^1.0.1
-  integration_test_tizen:
-    path: ../../integration_test/
   image_picker: ^0.6.7
   image_picker_tizen:
     path: ../../image_picker/
@@ -18,6 +15,9 @@ dependencies:
 dev_dependencies:
   flutter_driver:
     sdk: flutter
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
 
 flutter:
   uses-material-design: true
