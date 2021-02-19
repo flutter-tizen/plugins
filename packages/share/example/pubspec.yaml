@@ -11,7 +11,9 @@ dependencies:
   integration_test: ^1.0.1
   integration_test_tizen:
     path: ../../integration_test/
-  image_picker: ^0.6.7+4
+  image_picker: ^0.6.7
+  image_picker_tizen:
+    path: ../../image_picker/
 
 dev_dependencies:
   flutter_driver:

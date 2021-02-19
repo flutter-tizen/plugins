@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="org.tizen.share_tizen_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
+<manifest package="org.tizen.share_tizen_example" version="1.0.0" api-version="5.5" xmlns="http://tizen.org/ns/packages">
     <profile name="common"/>
     <ui-application appid="org.tizen.share_tizen_example" exec="Runner.dll" type="dotnet" multiple="false" taskmanage="true" nodisplay="false" api-version="4" launch_mode="single">
         <label>share_tizen_example</label>
@@ -9,6 +9,7 @@
     </ui-application>
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <privileges>
+        <privilege>http://tizen.org/privilege/mediastorage</privilege>
         <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
     </privileges>
 </manifest>
