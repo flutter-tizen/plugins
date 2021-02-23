@@ -719,7 +719,10 @@ void WebView::InitWebView() {
       0, 0, width_, height_, scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul",
       [this]() -> LWE::WebContainer::ExternalImageInfo {
         LWE::WebContainer::ExternalImageInfo result;
-        tbmSurface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
+        if (!tbmSurface_) {
+          tbmSurface_ =
+              tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
+        }
         result.imageAddress = (void*)tbmSurface_;
         return result;
       },
@@ -727,9 +730,9 @@ void WebView::InitWebView() {
         if (isRendered) {
           FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
                                                    GetTextureId(), tbmSurface_);
+          tbm_surface_destroy(tbmSurface_);
+          tbmSurface_ = nullptr;
         }
-        tbm_surface_destroy(tbmSurface_);
-        tbmSurface_ = nullptr;
       });
 #ifndef TV_PROFILE
   auto settings = webViewInstance_->GetSettings();
