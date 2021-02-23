@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
+import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import 'app_control.dart';
@@ -20,6 +21,9 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
   static void register() {
     UrlLauncherPlatform.instance = UrlLauncherPlugin();
   }
+
+  @override
+  final LinkDelegate linkDelegate = null;
 
   String _getUrlScheme(String url) => Uri.tryParse(url)?.scheme;
 
