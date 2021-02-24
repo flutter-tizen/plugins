@@ -5,7 +5,7 @@ publish_to: 'none'
 dependencies:
   flutter:
     sdk: flutter
-  url_launcher: ^5.7.5
+  url_launcher: ^5.7.10
   url_launcher_tizen:
     path: ../
 
@@ -21,4 +21,4 @@ flutter:
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
-  flutter: ">=1.20.0 <2.0.0"
+  flutter: ">=1.22.0 <2.0.0"
