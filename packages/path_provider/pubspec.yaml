@@ -1,6 +1,6 @@
 name: path_provider_tizen
 description: Tizen implementation of the path_provider plugin
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/flutter-tizen/plugins
 
 flutter:

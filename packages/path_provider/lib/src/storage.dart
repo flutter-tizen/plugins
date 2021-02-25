@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
 
 // Native function signatures
 typedef storage_get_directory = Int32 Function(
@@ -24,16 +25,6 @@ enum StorageDirectoryType {
   documents,
   others,
   system_ringtones,
-}
-
-class StorageException {
-  StorageException(this.returnCode, this.message);
-
-  final int returnCode;
-  final String message;
-
-  @override
-  String toString() => '$message ($returnCode)';
 }
 
 Storage _storageInstance;
@@ -60,8 +51,10 @@ class Storage {
     final int ret = _storageForeachDeviceSupported(
         Pointer.fromFunction(_deviceSupportedCallback, 0), nullptr);
     if (ret != 0) {
-      throw StorageException(
-          ret, 'Failed to execute storage_foreach_device_supported.');
+      throw PlatformException(
+        code: '$ret',
+        message: 'Failed to execute storage_foreach_device_supported.',
+      );
     }
   }
 
@@ -96,11 +89,12 @@ class Storage {
   }) async {
     final Pointer<Pointer<Utf8>> path = allocate();
     try {
-      final int result =
-          _storageGetDirectory(await storageId, type.index, path);
-      if (result != 0) {
-        throw StorageException(
-            result, 'Failed to execute storage_get_directory.');
+      final int ret = _storageGetDirectory(await storageId, type.index, path);
+      if (ret != 0) {
+        throw PlatformException(
+          code: '$ret',
+          message: 'Failed to execute storage_get_directory.',
+        );
       }
       return Utf8.fromUtf8(path.value);
     } finally {

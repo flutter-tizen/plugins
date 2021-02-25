@@ -9,7 +9,7 @@ This package is not an _endorsed_ implementation of `path_provider`. Therefore, 
 ```yaml
 dependencies:
   path_provider: ^1.6.27
-  path_provider_tizen: ^1.0.1
+  path_provider_tizen: ^1.0.2
 ```
 
 Then you can import `path_provider` in your Dart code:

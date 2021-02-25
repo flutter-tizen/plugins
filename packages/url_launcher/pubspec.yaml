@@ -1,7 +1,7 @@
 name: url_launcher_tizen
 description: Tizen implementation of the url_launcher plugin
 homepage: https://github.com/flutter-tizen/plugins
-version: 1.0.2
+version: 1.0.3
 
 flutter:
   plugin:
