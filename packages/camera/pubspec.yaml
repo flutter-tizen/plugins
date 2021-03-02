@@ -1,8 +1,7 @@
 name: camera_tizen
-description: A new flutter plugin project.
-version: 0.0.1
-author:
+description: Tizen implementation of the camera plugin
 homepage: https://github.com/flutter-tizen/plugins
+version: 0.0.1
 
 dependencies:
   flutter:
@@ -17,7 +16,7 @@ flutter:
     platforms:
       tizen:
         pluginClass: CameraPlugin
-        filename: camera_plugin.h
+        fileName: camera_plugin.h
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
