@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
-import 'app_control.dart';
+import 'src/app_control.dart';
 
 class UrlLauncherPlugin extends UrlLauncherPlatform {
   static final Set<String> _supportedSchemes = <String>{
@@ -35,7 +35,6 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
   @override
   Future<bool> launch(
     String url, {
-    // None of these options are used in Tizen.
     @required bool useSafariVC,
     @required bool useWebView,
     @required bool enableJavaScript,

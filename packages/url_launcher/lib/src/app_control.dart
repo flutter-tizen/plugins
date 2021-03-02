@@ -4,6 +4,7 @@
 
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
 
 // Native function signatures
 typedef app_control_create = Int32 Function(Pointer<Pointer<_AppControl>>);
@@ -38,32 +39,24 @@ const int TIZEN_ERROR_IO_ERROR = -5;
 
 class _AppControl extends Struct {}
 
-/// A class representing non-zero errors from the platform.
-class AppControlException {
-  const AppControlException(this.returnCode, this.message);
+// Constants from [app_control_error_e] in `app_control.h`
+const Map<int, String> errorCodes = <int, String>{
+  TIZEN_ERROR_NONE: 'APP_CONTROL_ERROR_NONE',
+  TIZEN_ERROR_INVALID_PARAMETER: 'APP_CONTROL_ERROR_INVALID_PARAMETER',
+  TIZEN_ERROR_OUT_OF_MEMORY: 'APP_CONTROL_ERROR_OUT_OF_MEMORY',
+  TIZEN_ERROR_APPLICATION | 0x21: 'APP_CONTROL_ERROR_APP_NOT_FOUND',
+  TIZEN_ERROR_KEY_NOT_AVAILABLE: 'APP_CONTROL_ERROR_KEY_NOT_FOUND',
+  TIZEN_ERROR_KEY_REJECTED: 'APP_CONTROL_ERROR_KEY_REJECTED',
+  TIZEN_ERROR_APPLICATION | 0x22: 'APP_CONTROL_ERROR_INVALID_DATA_TYPE',
+  TIZEN_ERROR_APPLICATION | 0x23: 'APP_CONTROL_ERROR_LAUNCH_REJECTED',
+  TIZEN_ERROR_PERMISSION_DENIED: 'APP_CONTROL_ERROR_PERMISSION_DENIED',
+  TIZEN_ERROR_APPLICATION | 0x24: 'APP_CONTROL_ERROR_LAUNCH_FAILED',
+  TIZEN_ERROR_TIMED_OUT: 'APP_CONTROL_ERROR_TIMED_OUT',
+  TIZEN_ERROR_IO_ERROR: 'APP_CONTROL_ERROR_IO_ERROR',
+};
 
-  final int returnCode;
-  final String message;
-
-  // Constants from [app_control_error_e] in `app_control.h`
-  static const Map<int, String> errorCodes = <int, String>{
-    TIZEN_ERROR_NONE: 'APP_CONTROL_ERROR_NONE',
-    TIZEN_ERROR_INVALID_PARAMETER: 'APP_CONTROL_ERROR_INVALID_PARAMETER',
-    TIZEN_ERROR_OUT_OF_MEMORY: 'APP_CONTROL_ERROR_OUT_OF_MEMORY',
-    TIZEN_ERROR_APPLICATION | 0x21: 'APP_CONTROL_ERROR_APP_NOT_FOUND',
-    TIZEN_ERROR_KEY_NOT_AVAILABLE: 'APP_CONTROL_ERROR_KEY_NOT_FOUND',
-    TIZEN_ERROR_KEY_REJECTED: 'APP_CONTROL_ERROR_KEY_REJECTED',
-    TIZEN_ERROR_APPLICATION | 0x22: 'APP_CONTROL_ERROR_INVALID_DATA_TYPE',
-    TIZEN_ERROR_APPLICATION | 0x23: 'APP_CONTROL_ERROR_LAUNCH_REJECTED',
-    TIZEN_ERROR_PERMISSION_DENIED: 'APP_CONTROL_ERROR_PERMISSION_DENIED',
-    TIZEN_ERROR_APPLICATION | 0x24: 'APP_CONTROL_ERROR_LAUNCH_FAILED',
-    TIZEN_ERROR_TIMED_OUT: 'APP_CONTROL_ERROR_TIMED_OUT',
-    TIZEN_ERROR_IO_ERROR: 'APP_CONTROL_ERROR_IO_ERROR',
-  };
-
-  @override
-  String toString() => '$message (${errorCodes[returnCode] ?? returnCode})';
-}
+String getErrorCode(int returnCode) =>
+    errorCodes.containsKey(returnCode) ? errorCodes[returnCode] : '$returnCode';
 
 /// A wrapper class of the native App Control API.
 /// Not all functions or values are supported.
@@ -109,7 +102,10 @@ class AppControl {
     free(pHandle);
 
     if (ret != 0) {
-      throw AppControlException(ret, 'Failed to execute app_control_create.');
+      throw PlatformException(
+        code: getErrorCode(ret),
+        message: 'Failed to execute app_control_create.',
+      );
     }
   }
 
@@ -118,8 +114,10 @@ class AppControl {
 
     final int ret = _setOperation(_handle, Utf8.toUtf8(operation));
     if (ret != 0) {
-      throw AppControlException(
-          ret, 'Failed to execute app_control_set_operation.');
+      throw PlatformException(
+        code: getErrorCode(ret),
+        message: 'Failed to execute app_control_set_operation.',
+      );
     }
   }
 
@@ -128,7 +126,10 @@ class AppControl {
 
     final int ret = _setUri(_handle, Utf8.toUtf8(uri));
     if (ret != 0) {
-      throw AppControlException(ret, 'Failed to execute app_control_set_uri.');
+      throw PlatformException(
+        code: getErrorCode(ret),
+        message: 'Failed to execute app_control_set_uri.',
+      );
     }
   }
 
@@ -137,8 +138,10 @@ class AppControl {
 
     final int ret = _sendLaunchRequest(_handle, nullptr, nullptr);
     if (ret != 0) {
-      throw AppControlException(
-          ret, 'Failed to execute app_control_send_launch_request.');
+      throw PlatformException(
+        code: getErrorCode(ret),
+        message: 'Failed to execute app_control_send_launch_request.',
+      );
     }
   }
 

@@ -9,7 +9,7 @@ This package is not an _endorsed_ implementation of `url_launcher`. Therefore, y
 ```yaml
 dependencies:
   url_launcher: ^5.7.10
-  url_launcher_tizen: ^1.0.2
+  url_launcher_tizen: ^1.0.3
 ```
 
 Then you can import `url_launcher` in your Dart code:
@@ -19,8 +19,6 @@ import 'package:url_launcher/url_launcher.dart';
 ```
 
 For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/url_launcher/url_launcher#usage.
-
-An `AppControlException` is raised if no application on the device can launch the requested URL.
 
 ## Required privileges
 
@@ -33,3 +31,8 @@ To use this plugin in a Tizen application, the application manager privilege is 
 ```
 
 For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
+
+## Notes
+
+- A `PlatformException` is raised if no application on the device can open the provided URL.
+- The `launch` method's optional parameters (e.g. `useWebView`) are not currently supported on Tizen.
