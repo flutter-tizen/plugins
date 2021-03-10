@@ -160,7 +160,8 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       height_(height),
       tbmSurface_(nullptr),
       isMouseLButtonDown_(false),
-      hasNavigationDelegate_(false) {
+      hasNavigationDelegate_(false),
+      context_(nullptr) {
   SetTextureId(FlutterRegisterExternalTexture(textureRegistrar_));
   InitWebView();
 
@@ -697,32 +698,51 @@ void WebView::DispatchKeyUpEvent(Ecore_Event_Key* keyEvent) {
       p);
 }
 
-void WebView::SetSoftwareKeyboardContext(Ecore_IMF_Context* context) {
-  webViewInstance_->RegisterOnShowSoftwareKeyboardIfPossibleHandler(
-      [context](LWE::WebContainer* v) {
-        LOG_DEBUG("WebView - Show Keyboard()\n");
-        if (!context) {
-          LOG_ERROR("Ecore_IMF_Context NULL\n");
-          return;
-        }
-        ecore_imf_context_input_panel_show(context);
-        ecore_imf_context_focus_in(context);
-      });
-
-  webViewInstance_->RegisterOnHideSoftwareKeyboardIfPossibleHandler(
-      [context](LWE::WebContainer*) {
-        LOG_INFO("WebView - Hide Keyboard()\n");
-        if (!context) {
-          LOG_INFO("Ecore_IMF_Context NULL\n");
-          return;
-        }
-        ecore_imf_context_reset(context);
-        ecore_imf_context_focus_out(context);
-        ecore_imf_context_input_panel_hide(context);
-      });
+void WebView::DispatchCompositionUpdateEvent(const char* str, int size) {
+  LOG_DEBUG("WebView::DispatchCompositionUpdateEvent [%s]", str);
+  webViewInstance_->DispatchCompositionUpdateEvent(std::string(str, size));
 }
 
-void WebView::ClearFocus() { LOG_DEBUG("WebView::clearFocus \n"); }
+void WebView::DispatchCompositionEndEvent(const char* str, int size) {
+  LOG_DEBUG("WebView::DispatchCompositionEndEvent [%s]", str);
+  webViewInstance_->DispatchCompositionEndEvent(std::string(str, size));
+}
+
+void WebView::ShowPanel() {
+  LOG_DEBUG("WebView - Show Keyboard()\n");
+  if (!context_) {
+    LOG_ERROR("Ecore_IMF_Context NULL\n");
+    return;
+  }
+  ecore_imf_context_input_panel_show(context_);
+  ecore_imf_context_focus_in(context_);
+}
+
+void WebView::HidePanel() {
+  LOG_DEBUG("WebView - Hide Keyboard()\n");
+  if (!context_) {
+    LOG_ERROR("Ecore_IMF_Context NULL\n");
+    return;
+  }
+  ecore_imf_context_reset(context_);
+  ecore_imf_context_focus_out(context_);
+  ecore_imf_context_input_panel_hide(context_);
+}
+
+void WebView::SetSoftwareKeyboardContext(Ecore_IMF_Context* context) {
+  context_ = context;
+
+  webViewInstance_->RegisterOnShowSoftwareKeyboardIfPossibleHandler(
+      [this](LWE::WebContainer* v) { ShowPanel(); });
+
+  webViewInstance_->RegisterOnHideSoftwareKeyboardIfPossibleHandler(
+      [this](LWE::WebContainer*) { HidePanel(); });
+}
+
+void WebView::ClearFocus() {
+  LOG_DEBUG("WebView::clearFocus \n");
+  HidePanel();
+}
 
 void WebView::SetDirection(int direction) {
   LOG_DEBUG("WebView::SetDirection direction: %d\n", direction);
