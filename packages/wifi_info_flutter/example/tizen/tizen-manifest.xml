@@ -10,7 +10,5 @@
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <privileges>
         <privilege>http://tizen.org/privilege/network.get</privilege>
-        <privilege>http://tizen.org/privilege/network.set</privilege>
-        <privilege>http://tizen.org/privilege/network.profile</privilege>
     </privileges>
 </manifest>
