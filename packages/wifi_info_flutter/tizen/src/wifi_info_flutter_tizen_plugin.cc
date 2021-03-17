@@ -33,8 +33,9 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  WifiInfoFlutterTizenPlugin() : m_connection(nullptr), m_wifiManager(nullptr) {
-    ensureConnectionHandle();
+  WifiInfoFlutterTizenPlugin()
+      : m_connection(nullptr), m_wifi_manager(nullptr) {
+    EnsureConnectionHandle();
   }
 
   virtual ~WifiInfoFlutterTizenPlugin() {
@@ -42,52 +43,53 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
       connection_destroy(m_connection);
       m_connection = nullptr;
     }
-    if (m_wifiManager != nullptr) {
-      wifi_manager_deinitialize(m_wifiManager);
-      m_wifiManager = nullptr;
+    if (m_wifi_manager != nullptr) {
+      wifi_manager_deinitialize(m_wifi_manager);
+      m_wifi_manager = nullptr;
     }
   }
 
  private:
-  std::string getWifiInfo(WifiInfoType type) {
+  std::string GetWifiInfo(WifiInfoType type) {
     std::string result;
-    wifi_manager_ap_h currentAP = nullptr;
+    wifi_manager_ap_h current_ap = nullptr;
     char *name = NULL;
     int errorcode;
 
-    errorcode = wifi_manager_get_connected_ap(m_wifiManager, &currentAP);
-    if (errorcode == WIFI_MANAGER_ERROR_NONE && currentAP != nullptr) {
+    errorcode = wifi_manager_get_connected_ap(m_wifi_manager, &current_ap);
+    if (errorcode == WIFI_MANAGER_ERROR_NONE && current_ap != nullptr) {
       if (type == WifiInfoType::ESSID) {
-        errorcode = wifi_manager_ap_get_essid(currentAP, &name);
+        errorcode = wifi_manager_ap_get_essid(current_ap, &name);
       } else {
-        errorcode = wifi_manager_ap_get_bssid(currentAP, &name);
+        errorcode = wifi_manager_ap_get_bssid(current_ap, &name);
       }
       if (errorcode == WIFI_MANAGER_ERROR_NONE) {
         result = name;
         free(name);
       }
-      wifi_manager_ap_destroy(currentAP);
+      wifi_manager_ap_destroy(current_ap);
     }
     return result;
   }
+
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    if (!ensureConnectionHandle()) {
-      result->Error("-1", "Connection has problem");
+    if (!EnsureConnectionHandle()) {
+      result->Error("-1", "Initialization failed");
       return;
     }
     std::string replay = "";
     if (method_call.method_name().compare("wifiName") == 0) {
-      replay = getWifiInfo(WifiInfoType::ESSID);
+      replay = GetWifiInfo(WifiInfoType::ESSID);
     } else if (method_call.method_name().compare("wifiBSSID") == 0) {
-      replay = getWifiInfo(WifiInfoType::BSSID);
+      replay = GetWifiInfo(WifiInfoType::BSSID);
     } else if (method_call.method_name().compare("wifiIPAddress") == 0) {
       char *ip_addr = NULL;
       if (connection_get_ip_address(m_connection,
                                     CONNECTION_ADDRESS_FAMILY_IPV4,
                                     &ip_addr) != CONNECTION_ERROR_NONE) {
-        result->Error("-1", "Couldn't know current ip address");
+        result->Error("-1", "Couldn't obtain current ip address");
         return;
       }
       replay = ip_addr;
@@ -101,26 +103,27 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
       return;
     }
     flutter::EncodableValue msg(replay);
-    result->Success(&msg);
+    result->Success(msg);
   }
 
-  bool ensureConnectionHandle() {
+  bool EnsureConnectionHandle() {
     if (m_connection == nullptr) {
       if (connection_create(&m_connection) != CONNECTION_ERROR_NONE) {
         m_connection = nullptr;
         return false;
       }
     }
-    if (m_wifiManager == nullptr) {
-      if (wifi_manager_initialize(&m_wifiManager) != WIFI_MANAGER_ERROR_NONE) {
-        m_wifiManager = nullptr;
+    if (m_wifi_manager == nullptr) {
+      if (wifi_manager_initialize(&m_wifi_manager) != WIFI_MANAGER_ERROR_NONE) {
+        m_wifi_manager = nullptr;
         return false;
       }
     }
     return true;
   }
+
   connection_h m_connection;
-  wifi_manager_h m_wifiManager;
+  wifi_manager_h m_wifi_manager;
 };
 
 void WifiInfoFlutterTizenPluginRegisterWithRegistrar(
