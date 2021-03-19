@@ -5,7 +5,7 @@
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_platform_view.h>
-#include <flutter_texture_registrar.h>
+#include <flutter_tizen_texture_registrar.h>
 
 #include <map>
 #include <memory>

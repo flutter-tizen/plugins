@@ -4,7 +4,7 @@
 #include <Ecore_IMF_Evas.h>
 #include <Ecore_Input_Evas.h>
 #include <flutter_platform_view.h>
-#include <flutter_texture_registrar.h>
+#include <flutter_tizen_texture_registrar.h>
 
 #include <map>
 #include <memory>
@@ -29,12 +29,12 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
 template <typename T = flutter::EncodableValue>
 class NavigationRequestResult : public flutter::MethodResult<T> {
  public:
-  NavigationRequestResult(std::string url, WebView* webView)
-      : url_(url), webView_(webView) {}
+  NavigationRequestResult(std::string url, WebView* webview)
+      : url_(url), webview_(webview) {}
 
-  void SuccessInternal(const T* shouldLoad) override {
-    if (std::holds_alternative<bool>(*shouldLoad)) {
-      if (std::get<bool>(*shouldLoad)) {
+  void SuccessInternal(const T* should_load) override {
+    if (std::holds_alternative<bool>(*should_load)) {
+      if (std::get<bool>(*should_load)) {
         LoadUrl();
       }
     }
@@ -54,13 +54,13 @@ class NavigationRequestResult : public flutter::MethodResult<T> {
 
  private:
   void LoadUrl() {
-    if (webView_ && webView_->GetWebViewInstance()) {
-      webView_->GetWebViewInstance()->LoadURL(url_);
+    if (webview_ && webview_->GetWebViewInstance()) {
+      webview_->GetWebViewInstance()->LoadURL(url_);
     }
   }
 
   std::string url_;
-  WebView* webView_;
+  WebView* webview_;
 };
 
 enum RequestErrorType {
@@ -82,8 +82,8 @@ enum RequestErrorType {
   TooManyRequestError,
 };
 
-static std::string ErrorCodeToString(int errorCode) {
-  switch (errorCode) {
+static std::string ErrorCodeToString(int error_code) {
+  switch (error_code) {
     case RequestErrorType::AuthenticationError:
       return "authentication";
     case RequestErrorType::BadURLError:
@@ -117,7 +117,7 @@ static std::string ErrorCodeToString(int errorCode) {
   }
 
   std::string message =
-      "Could not find a string for errorCode: " + std::to_string(errorCode);
+      "Could not find a string for errorCode: " + std::to_string(error_code);
   throw std::invalid_argument(message);
 }
 
@@ -151,18 +151,18 @@ double ExtractDoubleFromMap(const flutter::EncodableValue& arguments,
 }
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
-                 FlutterTextureRegistrar* textureRegistrar, double width,
+                 FlutterTextureRegistrar* texture_registrar, double width,
                  double height, flutter::EncodableMap& params)
     : PlatformView(registrar, viewId),
-      textureRegistrar_(textureRegistrar),
-      webViewInstance_(nullptr),
+      texture_registrar_(texture_registrar),
+      webview_instance_(nullptr),
       width_(width),
       height_(height),
-      tbmSurface_(nullptr),
-      isMouseLButtonDown_(false),
-      hasNavigationDelegate_(false),
+      tbm_surface_(nullptr),
+      is_mouse_lbutton_down_(false),
+      has_navigation_delegate_(false),
       context_(nullptr) {
-  SetTextureId(FlutterRegisterExternalTexture(textureRegistrar_));
+  SetTextureId(FlutterRegisterExternalTexture(texture_registrar_));
   InitWebView();
 
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
@@ -173,20 +173,20 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         webview->HandleMethodCall(call, std::move(result));
       });
 
-  auto cookieChannel =
+  auto cookie_channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           GetPluginRegistrar()->messenger(),
           "plugins.flutter.io/cookie_manager",
           &flutter::StandardMethodCodec::GetInstance());
-  cookieChannel->SetMethodCallHandler(
+  cookie_channel->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
         webview->HandleCookieMethodCall(call, std::move(result));
       });
 
   std::string url;
-  auto initialUrl = params[flutter::EncodableValue("initialUrl")];
-  if (std::holds_alternative<std::string>(initialUrl)) {
-    url = std::get<std::string>(initialUrl);
+  auto initial_url = params[flutter::EncodableValue("initialUrl")];
+  if (std::holds_alternative<std::string>(initial_url)) {
+    url = std::get<std::string>(initial_url);
   } else {
     url = "about:blank";
   }
@@ -201,10 +201,10 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
 
   auto names = params[flutter::EncodableValue("javascriptChannelNames")];
   if (std::holds_alternative<flutter::EncodableList>(names)) {
-    auto nameList = std::get<flutter::EncodableList>(names);
-    for (size_t i = 0; i < nameList.size(); i++) {
-      if (std::holds_alternative<std::string>(nameList[i])) {
-        RegisterJavaScriptChannelName(std::get<std::string>(nameList[i]));
+    auto name_list = std::get<flutter::EncodableList>(names);
+    for (size_t i = 0; i < name_list.size(); i++) {
+      if (std::holds_alternative<std::string>(name_list[i])) {
+        RegisterJavaScriptChannelName(std::get<std::string>(name_list[i]));
       }
     }
   }
@@ -212,14 +212,14 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
   // TODO: Not implemented
   // auto media = params[flutter::EncodableValue("autoMediaPlaybackPolicy")];
 
-  auto userAgent = params[flutter::EncodableValue("userAgent")];
-  if (std::holds_alternative<std::string>(userAgent)) {
-    auto settings = webViewInstance_->GetSettings();
-    settings.SetUserAgentString(std::get<std::string>(userAgent));
-    webViewInstance_->SetSettings(settings);
+  auto user_agent = params[flutter::EncodableValue("userAgent")];
+  if (std::holds_alternative<std::string>(user_agent)) {
+    auto settings = webview_instance_->GetSettings();
+    settings.SetUserAgentString(std::get<std::string>(user_agent));
+    webview_instance_->SetSettings(settings);
   }
 
-  webViewInstance_->RegisterOnPageStartedHandler(
+  webview_instance_->RegisterOnPageStartedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
         LOG_DEBUG("RegisterOnPageStartedHandler(url: %s)\n", url.c_str());
         flutter::EncodableMap map;
@@ -229,7 +229,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         auto args = std::make_unique<flutter::EncodableValue>(map);
         channel_->InvokeMethod("onPageStarted", std::move(args));
       });
-  webViewInstance_->RegisterOnPageLoadedHandler(
+  webview_instance_->RegisterOnPageLoadedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
         LOG_DEBUG("RegisterOnPageLoadedHandler(url: %s)(title:%s)\n",
                   url.c_str(), container->GetTitle().c_str());
@@ -240,7 +240,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         auto args = std::make_unique<flutter::EncodableValue>(map);
         channel_->InvokeMethod("onPageFinished", std::move(args));
       });
-  webViewInstance_->RegisterOnReceivedErrorHandler(
+  webview_instance_->RegisterOnReceivedErrorHandler(
       [this](LWE::WebContainer* container, LWE::ResourceError e) {
         flutter::EncodableMap map;
         map.insert(
@@ -263,9 +263,9 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         channel_->InvokeMethod("onPageFinished", std::move(args));
       });
 
-  webViewInstance_->RegisterShouldOverrideUrlLoadingHandler(
+  webview_instance_->RegisterShouldOverrideUrlLoadingHandler(
       [this](LWE::WebContainer* view, const std::string& url) -> bool {
-        if (!hasNavigationDelegate_) {
+        if (!has_navigation_delegate_) {
           return false;
         }
         flutter::EncodableMap map;
@@ -277,16 +277,16 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
                 flutter::EncodableValue("isForMainFrame"),
                 flutter::EncodableValue(true)));
         auto args = std::make_unique<flutter::EncodableValue>(map);
-        auto onResult =
+        auto on_result =
             std::make_unique<NavigationRequestResult<flutter::EncodableValue>>(
                 url, this);
         channel_->InvokeMethod("navigationRequest", std::move(args),
-                               std::move(onResult));
+                               std::move(on_result));
 
         return true;
       });
 
-  webViewInstance_->LoadURL(url);
+  webview_instance_->LoadURL(url);
 }
 
 void WebView::ApplySettings(flutter::EncodableMap settings) {
@@ -294,10 +294,10 @@ void WebView::ApplySettings(flutter::EncodableMap settings) {
     if (std::holds_alternative<std::string>(key)) {
       std::string k = std::get<std::string>(key);
       if ("jsMode" == k) {
-        // NOTE: Not supported by LWE on Tizen.
+        // NOTE: Not supported by Lightweight Web Engine (LWE) on Tizen.
       } else if ("hasNavigationDelegate" == k) {
         if (std::holds_alternative<bool>(val)) {
-          hasNavigationDelegate_ = std::get<bool>(val);
+          has_navigation_delegate_ = std::get<bool>(val);
         }
       } else if ("debuggingEnabled" == k) {
         // NOTE: Not supported by LWE on Tizen.
@@ -305,9 +305,9 @@ void WebView::ApplySettings(flutter::EncodableMap settings) {
         // NOTE: Not supported by LWE on Tizen.
       } else if ("userAgent" == k) {
         if (std::holds_alternative<std::string>(val)) {
-          auto settings = webViewInstance_->GetSettings();
+          auto settings = webview_instance_->GetSettings();
           settings.SetUserAgentString(std::get<std::string>(val));
-          webViewInstance_->SetSettings(settings);
+          webview_instance_->SetSettings(settings);
         }
       } else {
         throw std::invalid_argument("Unknown WebView setting: " + k);
@@ -341,7 +341,7 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
     return "success";
   };
 
-  webViewInstance_->AddJavaScriptInterface(name, "postMessage", cb);
+  webview_instance_->AddJavaScriptInterface(name, "postMessage", cb);
 }
 
 WebView::~WebView() { Dispose(); }
@@ -351,128 +351,125 @@ std::string WebView::GetChannelName() {
 }
 
 void WebView::Dispose() {
-  FlutterUnregisterExternalTexture(textureRegistrar_, GetTextureId());
+  FlutterUnregisterExternalTexture(texture_registrar_, GetTextureId());
 
-  if (webViewInstance_) {
-    webViewInstance_->Destroy();
-    webViewInstance_ = nullptr;
+  if (webview_instance_) {
+    webview_instance_->Destroy();
+    webview_instance_ = nullptr;
   }
 }
 
 void WebView::Resize(double width, double height) {
   LOG_DEBUG("WebView::Resize width: %f height: %f \n", width, height);
+  // NOTE: Not supported by LWE on Tizen.
 }
 
 void WebView::Touch(int type, int button, double x, double y, double dx,
                     double dy) {
-  // LOG_DEBUG(
-  //   "Widget::Native::Touch type[%s],btn[%d],x[%f],y[%f],dx[%f],dy[%f]",
-  //           type == 0 ? "DownEvent" : type == 1 ? "MoveEvent" : "UpEvent",
-  //           button, x, y, dx, dy);
   if (type == 0) {  // down event
-    webViewInstance_->DispatchMouseDownEvent(
+    webview_instance_->DispatchMouseDownEvent(
         LWE::MouseButtonValue::LeftButton,
         LWE::MouseButtonsValue::LeftButtonDown, x, y);
-    isMouseLButtonDown_ = true;
+    is_mouse_lbutton_down_ = true;
   } else if (type == 1) {  // move event
-    webViewInstance_->DispatchMouseMoveEvent(
-        isMouseLButtonDown_ ? LWE::MouseButtonValue::LeftButton
-                            : LWE::MouseButtonValue::NoButton,
-        isMouseLButtonDown_ ? LWE::MouseButtonsValue::LeftButtonDown
-                            : LWE::MouseButtonsValue::NoButtonDown,
+    webview_instance_->DispatchMouseMoveEvent(
+        is_mouse_lbutton_down_ ? LWE::MouseButtonValue::LeftButton
+                               : LWE::MouseButtonValue::NoButton,
+        is_mouse_lbutton_down_ ? LWE::MouseButtonsValue::LeftButtonDown
+                               : LWE::MouseButtonsValue::NoButtonDown,
         x, y);
   } else if (type == 2) {  // up event
-    webViewInstance_->DispatchMouseUpEvent(LWE::MouseButtonValue::NoButton,
-                                           LWE::MouseButtonsValue::NoButtonDown,
-                                           x, y);
-    isMouseLButtonDown_ = false;
+    webview_instance_->DispatchMouseUpEvent(
+        LWE::MouseButtonValue::NoButton, LWE::MouseButtonsValue::NoButtonDown,
+        x, y);
+    is_mouse_lbutton_down_ = false;
   } else {
     // TODO: Not implemented
   }
 }
 
-static LWE::KeyValue EcoreEventKeyToKeyValue(const char* ecoreKeyString,
-                                             bool isShiftPressed) {
-  if (strcmp("Left", ecoreKeyString) == 0) {
+static LWE::KeyValue EcoreEventKeyToKeyValue(const char* ecore_key_string,
+                                             bool is_shift_pressed) {
+  if (strcmp("Left", ecore_key_string) == 0) {
     return LWE::KeyValue::ArrowLeftKey;
-  } else if (strcmp("Right", ecoreKeyString) == 0) {
+  } else if (strcmp("Right", ecore_key_string) == 0) {
     return LWE::KeyValue::ArrowRightKey;
-  } else if (strcmp("Up", ecoreKeyString) == 0) {
+  } else if (strcmp("Up", ecore_key_string) == 0) {
     return LWE::KeyValue::ArrowUpKey;
-  } else if (strcmp("Down", ecoreKeyString) == 0) {
+  } else if (strcmp("Down", ecore_key_string) == 0) {
     return LWE::KeyValue::ArrowDownKey;
-  } else if (strcmp("space", ecoreKeyString) == 0) {
+  } else if (strcmp("space", ecore_key_string) == 0) {
     return LWE::KeyValue::SpaceKey;
-  } else if (strcmp("Return", ecoreKeyString) == 0) {
+  } else if (strcmp("Return", ecore_key_string) == 0) {
     return LWE::KeyValue::EnterKey;
-  } else if (strcmp("Tab", ecoreKeyString) == 0) {
+  } else if (strcmp("Tab", ecore_key_string) == 0) {
     return LWE::KeyValue::TabKey;
-  } else if (strcmp("BackSpace", ecoreKeyString) == 0) {
+  } else if (strcmp("BackSpace", ecore_key_string) == 0) {
     return LWE::KeyValue::BackspaceKey;
-  } else if (strcmp("Escape", ecoreKeyString) == 0) {
+  } else if (strcmp("Escape", ecore_key_string) == 0) {
     return LWE::KeyValue::EscapeKey;
-  } else if (strcmp("Delete", ecoreKeyString) == 0) {
+  } else if (strcmp("Delete", ecore_key_string) == 0) {
     return LWE::KeyValue::DeleteKey;
-  } else if (strcmp("at", ecoreKeyString) == 0) {
+  } else if (strcmp("at", ecore_key_string) == 0) {
     return LWE::KeyValue::AtMarkKey;
-  } else if (strcmp("minus", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("minus", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::UnderScoreMarkKey;
     } else {
       return LWE::KeyValue::MinusMarkKey;
     }
-  } else if (strcmp("equal", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("equal", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::PlusMarkKey;
     } else {
       return LWE::KeyValue::EqualitySignKey;
     }
-  } else if (strcmp("bracketleft", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("bracketleft", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::LeftCurlyBracketMarkKey;
     } else {
       return LWE::KeyValue::LeftSquareBracketKey;
     }
-  } else if (strcmp("bracketright", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("bracketright", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::RightCurlyBracketMarkKey;
     } else {
       return LWE::KeyValue::RightSquareBracketKey;
     }
-  } else if (strcmp("semicolon", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("semicolon", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::ColonMarkKey;
     } else {
       return LWE::KeyValue::SemiColonMarkKey;
     }
-  } else if (strcmp("apostrophe", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("apostrophe", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::DoubleQuoteMarkKey;
     } else {
       return LWE::KeyValue::SingleQuoteMarkKey;
     }
-  } else if (strcmp("comma", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("comma", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::LessThanMarkKey;
     } else {
       return LWE::KeyValue::CommaMarkKey;
     }
-  } else if (strcmp("period", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("period", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::GreaterThanSignKey;
     } else {
       return LWE::KeyValue::PeriodKey;
     }
-  } else if (strcmp("slash", ecoreKeyString) == 0) {
-    if (isShiftPressed) {
+  } else if (strcmp("slash", ecore_key_string) == 0) {
+    if (is_shift_pressed) {
       return LWE::KeyValue::QuestionMarkKey;
     } else {
       return LWE::KeyValue::SlashKey;
     }
-  } else if (strlen(ecoreKeyString) == 1) {
-    char ch = ecoreKeyString[0];
+  } else if (strlen(ecore_key_string) == 1) {
+    char ch = ecore_key_string[0];
     if (ch >= '0' && ch <= '9') {
-      if (isShiftPressed) {
+      if (is_shift_pressed) {
         switch (ch) {
           case '1':
             return LWE::KeyValue::ExclamationMarkKey;
@@ -502,90 +499,84 @@ static LWE::KeyValue EcoreEventKeyToKeyValue(const char* ecoreKeyString,
     } else if (ch >= 'A' && ch <= 'Z') {
       return (LWE::KeyValue)(LWE::KeyValue::AKey + ch - 'A');
     }
-  } else if (strcmp("XF86AudioRaiseVolume", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioRaiseVolume", ecore_key_string) == 0) {
     return LWE::KeyValue::TVVolumeUpKey;
-  } else if (strcmp("XF86AudioLowerVolume", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioLowerVolume", ecore_key_string) == 0) {
     return LWE::KeyValue::TVVolumeDownKey;
-  } else if (strcmp("XF86AudioMute", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioMute", ecore_key_string) == 0) {
     return LWE::KeyValue::TVMuteKey;
-  } else if (strcmp("XF86RaiseChannel", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86RaiseChannel", ecore_key_string) == 0) {
     return LWE::KeyValue::TVChannelUpKey;
-  } else if (strcmp("XF86LowerChannel", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86LowerChannel", ecore_key_string) == 0) {
     return LWE::KeyValue::TVChannelDownKey;
-  } else if (strcmp("XF86AudioRewind", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioRewind", ecore_key_string) == 0) {
     return LWE::KeyValue::MediaTrackPreviousKey;
-  } else if (strcmp("XF86AudioNext", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioNext", ecore_key_string) == 0) {
     return LWE::KeyValue::MediaTrackNextKey;
-  } else if (strcmp("XF86AudioPause", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioPause", ecore_key_string) == 0) {
     return LWE::KeyValue::MediaPauseKey;
-  } else if (strcmp("XF86AudioRecord", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioRecord", ecore_key_string) == 0) {
     return LWE::KeyValue::MediaRecordKey;
-  } else if (strcmp("XF86AudioPlay", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioPlay", ecore_key_string) == 0) {
     return LWE::KeyValue::MediaPlayKey;
-  } else if (strcmp("XF86AudioStop", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86AudioStop", ecore_key_string) == 0) {
     return LWE::KeyValue::MediaStopKey;
-  } else if (strcmp("XF86Info", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Info", ecore_key_string) == 0) {
     return LWE::KeyValue::TVInfoKey;
-  } else if (strcmp("XF86Back", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Back", ecore_key_string) == 0) {
     return LWE::KeyValue::TVReturnKey;
-  } else if (strcmp("XF86Red", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Red", ecore_key_string) == 0) {
     return LWE::KeyValue::TVRedKey;
-  } else if (strcmp("XF86Green", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Green", ecore_key_string) == 0) {
     return LWE::KeyValue::TVGreenKey;
-  } else if (strcmp("XF86Yellow", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Yellow", ecore_key_string) == 0) {
     return LWE::KeyValue::TVYellowKey;
-  } else if (strcmp("XF86Blue", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Blue", ecore_key_string) == 0) {
     return LWE::KeyValue::TVBlueKey;
-  } else if (strcmp("XF86SysMenu", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86SysMenu", ecore_key_string) == 0) {
     return LWE::KeyValue::TVMenuKey;
-  } else if (strcmp("XF86Home", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Home", ecore_key_string) == 0) {
     return LWE::KeyValue::TVHomeKey;
-  } else if (strcmp("XF86Exit", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Exit", ecore_key_string) == 0) {
     return LWE::KeyValue::TVExitKey;
-  } else if (strcmp("XF86PreviousChannel", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86PreviousChannel", ecore_key_string) == 0) {
     return LWE::KeyValue::TVPreviousChannel;
-  } else if (strcmp("XF86ChannelList", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86ChannelList", ecore_key_string) == 0) {
     return LWE::KeyValue::TVChannelList;
-  } else if (strcmp("XF86ChannelGuide", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86ChannelGuide", ecore_key_string) == 0) {
     return LWE::KeyValue::TVChannelGuide;
-  } else if (strcmp("XF86SimpleMenu", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86SimpleMenu", ecore_key_string) == 0) {
     return LWE::KeyValue::TVSimpleMenu;
-  } else if (strcmp("XF86EManual", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86EManual", ecore_key_string) == 0) {
     return LWE::KeyValue::TVEManual;
-  } else if (strcmp("XF86ExtraApp", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86ExtraApp", ecore_key_string) == 0) {
     return LWE::KeyValue::TVExtraApp;
-  } else if (strcmp("XF86Search", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Search", ecore_key_string) == 0) {
     return LWE::KeyValue::TVSearch;
-  } else if (strcmp("XF86PictureSize", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86PictureSize", ecore_key_string) == 0) {
     return LWE::KeyValue::TVPictureSize;
-  } else if (strcmp("XF86Sleep", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Sleep", ecore_key_string) == 0) {
     return LWE::KeyValue::TVSleep;
-  } else if (strcmp("XF86Caption", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Caption", ecore_key_string) == 0) {
     return LWE::KeyValue::TVCaption;
-  } else if (strcmp("XF86More", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86More", ecore_key_string) == 0) {
     return LWE::KeyValue::TVMore;
-  } else if (strcmp("XF86BTVoice", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86BTVoice", ecore_key_string) == 0) {
     return LWE::KeyValue::TVBTVoice;
-  } else if (strcmp("XF86Color", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86Color", ecore_key_string) == 0) {
     return LWE::KeyValue::TVColor;
-  } else if (strcmp("XF86PlayBack", ecoreKeyString) == 0) {
+  } else if (strcmp("XF86PlayBack", ecore_key_string) == 0) {
     return LWE::KeyValue::TVPlayBack;
   }
 
-  LOG_DEBUG("WebViewEFL - unimplemented key %s\n", ecoreKeyString);
+  LOG_DEBUG("WebViewEFL - unimplemented key %s\n", ecore_key_string);
   return LWE::KeyValue::UnidentifiedKey;
 }
 
-void WebView::DispatchKeyDownEvent(Ecore_Event_Key* keyEvent) {
-  std::string keyName = keyEvent->keyname;
-  LOG_DEBUG("ECORE_EVENT_KEY_DOWN [%s, %d]\n", keyName.data(),
-            (keyEvent->modifiers & 1) || (keyEvent->modifiers & 2));
-
-  bool lastInputTimeWasZeroBefore = false;
-  // if (webViewInstance_->m_lastInputTime == 0) {
-  //   lastInputTimeWasZeroBefore = true;
-  //   webViewInstance_->m_lastInputTime = Starfish::longTickCount();
-  // }
+void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
+  std::string key_name = key_event->keyname;
+  LOG_DEBUG("ECORE_EVENT_KEY_DOWN [%s, %d]\n", key_name.data(),
+            (key_event->modifiers & 1) || (key_event->modifiers & 2));
 
   if (!IsFocused()) {
     LOG_DEBUG("ignore keydown because we dont have focus");
@@ -593,76 +584,58 @@ void WebView::DispatchKeyDownEvent(Ecore_Event_Key* keyEvent) {
   }
 
 #ifdef TV_PROFILE
-  if ((strncmp(keyName.data(), "XF86Back", 8) == 0)) {
-    keyName = "Escape";
+  if ((strncmp(key_name.data(), "XF86Back", 8) == 0)) {
+    key_name = "Escape";
   }
 #endif
 
-  if ((strcmp(keyName.data(), "XF86Exit") == 0) ||
-      (strcmp(keyName.data(), "Select") == 0) ||
-      (strcmp(keyName.data(), "Cancel") == 0)) {
-    if (strcmp(keyName.data(), "Select") == 0) {
-      webViewInstance_->AddIdleCallback(
+  if ((strcmp(key_name.data(), "XF86Exit") == 0) ||
+      (strcmp(key_name.data(), "Select") == 0) ||
+      (strcmp(key_name.data(), "Cancel") == 0)) {
+    if (strcmp(key_name.data(), "Select") == 0) {
+      webview_instance_->AddIdleCallback(
           [](void* data) {
-            LWE::WebContainer* self = (LWE::WebContainer*)data;
+            WebView* view = (WebView*)data;
+            LWE::WebContainer* self = view->GetWebViewInstance();
             LWE::KeyValue kv = LWE::KeyValue::EnterKey;
             self->DispatchKeyDownEvent(kv);
             self->DispatchKeyPressEvent(kv);
             self->DispatchKeyUpEvent(kv);
-            // self->HideSoftwareKeyboardIfPossible();
+            view->HidePanel();
           },
-          webViewInstance_);
+          this);
     } else {
-      webViewInstance_->AddIdleCallback(
+      webview_instance_->AddIdleCallback(
           [](void* data) {
-            // LWE::WebContainer* self = (LWE::WebContainer*)data;
-            // self->HideSoftwareKeyboardIfPossible();
+            WebView* view = (WebView*)data;
+            view->HidePanel();
           },
-          webViewInstance_);
+          this);
     }
   }
 
-  auto keyValue = EcoreEventKeyToKeyValue(keyName.data(), false);
+  struct Param {
+    LWE::WebContainer* webview_instance;
+    LWE::KeyValue key_value;
+  };
+  Param* p = new Param();
+  p->webview_instance = webview_instance_;
+  p->key_value = EcoreEventKeyToKeyValue(key_name.data(), false);
 
-  // if (keyValue >= LWE::KeyValue::ArrowDownKey &&
-  //     keyValue <= LWE::KeyValue::ArrowRightKey) {
-  //   int currentTimestamp = keyEvent->timestamp;
-  //   if (currentTimestamp -
-  //           g_arrowKeyDownTimestamp[keyValue - LWE::KeyValue::ArrowDownKey] <
-  //       g_arrowKeyDownMinimumDelayInMS) {
-  //     return;
-  //   }
-  //   g_arrowKeyDownTimestamp[keyValue - LWE::KeyValue::ArrowDownKey] =
-  //       currentTimestamp;
-  // }
-
-  if (lastInputTimeWasZeroBefore) {
-    webViewInstance_->DispatchKeyDownEvent(keyValue);
-    webViewInstance_->DispatchKeyPressEvent(keyValue);
-  } else {
-    struct Param {
-      LWE::WebContainer* webViewInstance;
-      LWE::KeyValue keyValue;
-    };
-    Param* p = new Param();
-    p->webViewInstance = webViewInstance_;
-    p->keyValue = keyValue;
-
-    webViewInstance_->AddIdleCallback(
-        [](void* data) {
-          Param* p = (Param*)data;
-          p->webViewInstance->DispatchKeyDownEvent(p->keyValue);
-          p->webViewInstance->DispatchKeyPressEvent(p->keyValue);
-          delete p;
-        },
-        p);
-  }
+  webview_instance_->AddIdleCallback(
+      [](void* data) {
+        Param* p = (Param*)data;
+        p->webview_instance->DispatchKeyDownEvent(p->key_value);
+        p->webview_instance->DispatchKeyPressEvent(p->key_value);
+        delete p;
+      },
+      p);
 }
 
-void WebView::DispatchKeyUpEvent(Ecore_Event_Key* keyEvent) {
-  std::string keyName = keyEvent->keyname;
-  LOG_DEBUG("ECORE_EVENT_KEY_UP [%s, %d]\n", keyName.data(),
-            (keyEvent->modifiers & 1) || (keyEvent->modifiers & 2));
+void WebView::DispatchKeyUpEvent(Ecore_Event_Key* key_event) {
+  std::string key_name = key_event->keyname;
+  LOG_DEBUG("ECORE_EVENT_KEY_UP [%s, %d]\n", key_name.data(),
+            (key_event->modifiers & 1) || (key_event->modifiers & 2));
 
   if (!IsFocused()) {
     LOG_DEBUG("ignore keyup because we dont have focus");
@@ -670,48 +643,45 @@ void WebView::DispatchKeyUpEvent(Ecore_Event_Key* keyEvent) {
   }
 
 #ifdef TV_PROFILE
-  if ((strncmp(keyName.data(), "XF86Back", 8) == 0)) {
-    keyName = "Escape";
+  if ((strncmp(key_name.data(), "XF86Back", 8) == 0)) {
+    key_name = "Escape";
   }
 #endif
-  auto keyValue = EcoreEventKeyToKeyValue(keyName.data(), false);
-
-  // if (keyValue >= LWE::KeyValue::ArrowDownKey &&
-  //     keyValue <= LWE::KeyValue::ArrowRightKey) {
-  //   g_arrowKeyDownTimestamp[keyValue - LWE::KeyValue::ArrowDownKey] = 0;
-  // }
-
   struct Param {
-    LWE::WebContainer* webView;
-    LWE::KeyValue keyValue;
+    LWE::WebContainer* webview_instance;
+    LWE::KeyValue key_value;
   };
   Param* p = new Param();
-  p->webView = webViewInstance_;
-  p->keyValue = keyValue;
+  p->webview_instance = webview_instance_;
+  p->key_value = EcoreEventKeyToKeyValue(key_name.data(), false);
 
-  webViewInstance_->AddIdleCallback(
+  webview_instance_->AddIdleCallback(
       [](void* data) {
         Param* p = (Param*)data;
-        p->webView->DispatchKeyUpEvent(p->keyValue);
+        p->webview_instance->DispatchKeyUpEvent(p->key_value);
         delete p;
       },
       p);
 }
 
 void WebView::DispatchCompositionUpdateEvent(const char* str, int size) {
-  LOG_DEBUG("WebView::DispatchCompositionUpdateEvent [%s]", str);
-  webViewInstance_->DispatchCompositionUpdateEvent(std::string(str, size));
+  if (str) {
+    LOG_DEBUG("WebView::DispatchCompositionUpdateEvent [%s]", str);
+    webview_instance_->DispatchCompositionUpdateEvent(std::string(str, size));
+  }
 }
 
 void WebView::DispatchCompositionEndEvent(const char* str, int size) {
-  LOG_DEBUG("WebView::DispatchCompositionEndEvent [%s]", str);
-  webViewInstance_->DispatchCompositionEndEvent(std::string(str, size));
+  if (str) {
+    LOG_DEBUG("WebView::DispatchCompositionEndEvent [%s]", str);
+    webview_instance_->DispatchCompositionEndEvent(std::string(str, size));
+  }
 }
 
 void WebView::ShowPanel() {
-  LOG_DEBUG("WebView - Show Keyboard()\n");
+  LOG_DEBUG("WebView::ShowPanel()");
   if (!context_) {
-    LOG_ERROR("Ecore_IMF_Context NULL\n");
+    LOG_ERROR("Ecore_IMF_Context NULL");
     return;
   }
   ecore_imf_context_input_panel_show(context_);
@@ -719,9 +689,9 @@ void WebView::ShowPanel() {
 }
 
 void WebView::HidePanel() {
-  LOG_DEBUG("WebView - Hide Keyboard()\n");
+  LOG_DEBUG("WebView::HidePanel()");
   if (!context_) {
-    LOG_ERROR("Ecore_IMF_Context NULL\n");
+    LOG_ERROR("Ecore_IMF_Context NULL");
     return;
   }
   ecore_imf_context_reset(context_);
@@ -732,71 +702,74 @@ void WebView::HidePanel() {
 void WebView::SetSoftwareKeyboardContext(Ecore_IMF_Context* context) {
   context_ = context;
 
-  webViewInstance_->RegisterOnShowSoftwareKeyboardIfPossibleHandler(
+  webview_instance_->RegisterOnShowSoftwareKeyboardIfPossibleHandler(
       [this](LWE::WebContainer* v) { ShowPanel(); });
 
-  webViewInstance_->RegisterOnHideSoftwareKeyboardIfPossibleHandler(
+  webview_instance_->RegisterOnHideSoftwareKeyboardIfPossibleHandler(
       [this](LWE::WebContainer*) { HidePanel(); });
 }
 
 void WebView::ClearFocus() {
-  LOG_DEBUG("WebView::clearFocus \n");
+  LOG_DEBUG("WebView::ClearFocus()");
   HidePanel();
 }
 
 void WebView::SetDirection(int direction) {
   LOG_DEBUG("WebView::SetDirection direction: %d\n", direction);
+  // TODO: implement this if necessary
 }
 
 void WebView::InitWebView() {
-  if (webViewInstance_ != nullptr) {
-    webViewInstance_->Destroy();
-    webViewInstance_ = nullptr;
+  if (webview_instance_ != nullptr) {
+    webview_instance_->Destroy();
+    webview_instance_ = nullptr;
   }
-  float scaleFactor = 1;
+  float scale_factor = 1;
 
-  webViewInstance_ = (LWE::WebContainer*)createWebViewInstance(
-      0, 0, width_, height_, scaleFactor, "SamsungOneUI", "ko-KR", "Asia/Seoul",
+  webview_instance_ = (LWE::WebContainer*)createWebViewInstance(
+      0, 0, width_, height_, scale_factor, "SamsungOneUI", "ko-KR",
+      "Asia/Seoul",
       [this]() -> LWE::WebContainer::ExternalImageInfo {
         LWE::WebContainer::ExternalImageInfo result;
-        if (!tbmSurface_) {
-          tbmSurface_ =
+        if (!tbm_surface_) {
+          tbm_surface_ =
               tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
         }
-        result.imageAddress = (void*)tbmSurface_;
+        result.imageAddress = (void*)tbm_surface_;
         return result;
       },
       [this](LWE::WebContainer* c, bool isRendered) {
         if (isRendered) {
-          FlutterMarkExternalTextureFrameAvailable(textureRegistrar_,
-                                                   GetTextureId(), tbmSurface_);
-          tbm_surface_destroy(tbmSurface_);
-          tbmSurface_ = nullptr;
+          FlutterMarkExternalTextureFrameAvailable(
+              texture_registrar_, GetTextureId(), tbm_surface_);
+          tbm_surface_destroy(tbm_surface_);
+          tbm_surface_ = nullptr;
         }
       });
 #ifndef TV_PROFILE
-  auto settings = webViewInstance_->GetSettings();
+  auto settings = webview_instance_->GetSettings();
   settings.SetUserAgentString(
       "Mozilla/5.0 (like Gecko/54.0 Firefox/54.0) Mobile");
-  webViewInstance_->SetSettings(settings);
+  webview_instance_->SetSettings(settings);
 #endif
 }
 
 void WebView::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (webViewInstance_ == nullptr) return;
-
-  const auto methodName = method_call.method_name();
+  if (!webview_instance_) {
+    return;
+  }
+  const auto method_name = method_call.method_name();
   const auto& arguments = *method_call.arguments();
 
-  LOG_DEBUG("WebView::HandleMethodCall : %s \n ", methodName.c_str());
+  LOG_DEBUG("WebView::HandleMethodCall : %s \n ", method_name.c_str());
 
-  if (methodName.compare("loadUrl") == 0) {
+  if (method_name.compare("loadUrl") == 0) {
     std::string url = ExtractStringFromMap(arguments, "url");
-    webViewInstance_->LoadURL(url);
+    webview_instance_->LoadURL(url);
     result->Success();
-  } else if (methodName.compare("updateSettings") == 0) {
+  } else if (method_name.compare("updateSettings") == 0) {
     if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
       auto settings = std::get<flutter::EncodableMap>(arguments);
       if (settings.size() > 0) {
@@ -810,26 +783,26 @@ void WebView::HandleMethodCall(
       }
     }
     result->Success();
-  } else if (methodName.compare("canGoBack") == 0) {
-    result->Success(flutter::EncodableValue(webViewInstance_->CanGoBack()));
-  } else if (methodName.compare("canGoForward") == 0) {
-    result->Success(flutter::EncodableValue(webViewInstance_->CanGoForward()));
-  } else if (methodName.compare("goBack") == 0) {
-    webViewInstance_->GoBack();
+  } else if (method_name.compare("canGoBack") == 0) {
+    result->Success(flutter::EncodableValue(webview_instance_->CanGoBack()));
+  } else if (method_name.compare("canGoForward") == 0) {
+    result->Success(flutter::EncodableValue(webview_instance_->CanGoForward()));
+  } else if (method_name.compare("goBack") == 0) {
+    webview_instance_->GoBack();
     result->Success();
-  } else if (methodName.compare("goForward") == 0) {
-    webViewInstance_->GoForward();
+  } else if (method_name.compare("goForward") == 0) {
+    webview_instance_->GoForward();
     result->Success();
-  } else if (methodName.compare("reload") == 0) {
-    webViewInstance_->Reload();
+  } else if (method_name.compare("reload") == 0) {
+    webview_instance_->Reload();
     result->Success();
-  } else if (methodName.compare("currentUrl") == 0) {
-    result->Success(flutter::EncodableValue(webViewInstance_->GetURL()));
-  } else if (methodName.compare("evaluateJavascript") == 0) {
+  } else if (method_name.compare("currentUrl") == 0) {
+    result->Success(flutter::EncodableValue(webview_instance_->GetURL()));
+  } else if (method_name.compare("evaluateJavascript") == 0) {
     if (std::holds_alternative<std::string>(arguments)) {
-      std::string jsString = std::get<std::string>(arguments);
-      webViewInstance_->EvaluateJavaScript(
-          jsString, [res = result.release()](std::string value) {
+      std::string js_string = std::get<std::string>(arguments);
+      webview_instance_->EvaluateJavaScript(
+          js_string, [res = result.release()](std::string value) {
             LOG_DEBUG("value: %s\n", value.c_str());
             if (res) {
               res->Success(flutter::EncodableValue(value));
@@ -839,47 +812,46 @@ void WebView::HandleMethodCall(
     } else {
       result->Error("Invalid Arguments", "Invalid Arguments");
     }
-  } else if (methodName.compare("addJavascriptChannels") == 0) {
+  } else if (method_name.compare("addJavascriptChannels") == 0) {
     if (std::holds_alternative<flutter::EncodableList>(arguments)) {
-      auto nameList = std::get<flutter::EncodableList>(arguments);
-      for (size_t i = 0; i < nameList.size(); i++) {
-        if (std::holds_alternative<std::string>(nameList[i])) {
-          RegisterJavaScriptChannelName(std::get<std::string>(nameList[i]));
+      auto name_list = std::get<flutter::EncodableList>(arguments);
+      for (size_t i = 0; i < name_list.size(); i++) {
+        if (std::holds_alternative<std::string>(name_list[i])) {
+          RegisterJavaScriptChannelName(std::get<std::string>(name_list[i]));
         }
       }
     }
     result->Success();
-  } else if (methodName.compare("removeJavascriptChannels") == 0) {
+  } else if (method_name.compare("removeJavascriptChannels") == 0) {
     if (std::holds_alternative<flutter::EncodableList>(arguments)) {
-      auto nameList = std::get<flutter::EncodableList>(arguments);
-      for (size_t i = 0; i < nameList.size(); i++) {
-        if (std::holds_alternative<std::string>(nameList[i])) {
-          webViewInstance_->RemoveJavascriptInterface(
-              std::get<std::string>(nameList[i]), "postMessage");
+      auto name_list = std::get<flutter::EncodableList>(arguments);
+      for (size_t i = 0; i < name_list.size(); i++) {
+        if (std::holds_alternative<std::string>(name_list[i])) {
+          webview_instance_->RemoveJavascriptInterface(
+              std::get<std::string>(name_list[i]), "postMessage");
         }
       }
     }
     result->Success();
-
-  } else if (methodName.compare("clearCache") == 0) {
-    webViewInstance_->ClearCache();
+  } else if (method_name.compare("clearCache") == 0) {
+    webview_instance_->ClearCache();
     result->Success();
-  } else if (methodName.compare("getTitle") == 0) {
-    result->Success(flutter::EncodableValue(webViewInstance_->GetTitle()));
-  } else if (methodName.compare("scrollTo") == 0) {
+  } else if (method_name.compare("getTitle") == 0) {
+    result->Success(flutter::EncodableValue(webview_instance_->GetTitle()));
+  } else if (method_name.compare("scrollTo") == 0) {
     int x = ExtractIntFromMap(arguments, "x");
     int y = ExtractIntFromMap(arguments, "y");
-    webViewInstance_->ScrollTo(x, y);
+    webview_instance_->ScrollTo(x, y);
     result->Success();
-  } else if (methodName.compare("scrollBy") == 0) {
+  } else if (method_name.compare("scrollBy") == 0) {
     int x = ExtractIntFromMap(arguments, "x");
     int y = ExtractIntFromMap(arguments, "y");
-    webViewInstance_->ScrollBy(x, y);
+    webview_instance_->ScrollBy(x, y);
     result->Success();
-  } else if (methodName.compare("getScrollX") == 0) {
-    result->Success(flutter::EncodableValue(webViewInstance_->GetScrollX()));
-  } else if (methodName.compare("getScrollY") == 0) {
-    result->Success(flutter::EncodableValue(webViewInstance_->GetScrollY()));
+  } else if (method_name.compare("getScrollX") == 0) {
+    result->Success(flutter::EncodableValue(webview_instance_->GetScrollX()));
+  } else if (method_name.compare("getScrollY") == 0) {
+    result->Success(flutter::EncodableValue(webview_instance_->GetScrollY()));
   } else {
     result->NotImplemented();
   }
@@ -888,17 +860,17 @@ void WebView::HandleMethodCall(
 void WebView::HandleCookieMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (webViewInstance_ == nullptr) {
+  if (webview_instance_ == nullptr) {
     result->Error("Not Webview created");
     return;
   }
 
-  const auto methodName = method_call.method_name();
+  const auto method_name = method_call.method_name();
   const auto& arguments = *method_call.arguments();
 
-  LOG_DEBUG("WebView::HandleMethodCall : %s \n ", methodName.c_str());
+  LOG_DEBUG("WebView::HandleMethodCall : %s \n ", method_name.c_str());
 
-  if (methodName.compare("clearCookies") == 0) {
+  if (method_name.compare("clearCookies") == 0) {
     LWE::CookieManager* cookie = LWE::CookieManager::GetInstance();
     cookie->ClearCookies();
     result->Success(flutter::EncodableValue(true));

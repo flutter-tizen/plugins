@@ -145,7 +145,6 @@ class TizenViewController extends PlatformViewController {
 
   set pointTransformer(PointTransformer transformer) {
     assert(transformer != null);
-    // _motionEventConverter._pointTransformer = transformer;
   }
 
   bool get isCreated => _state == _TizenViewState.created;
@@ -167,12 +166,16 @@ class TizenViewController extends PlatformViewController {
     assert(_state != _TizenViewState.disposed,
         'trying to set a layout direction for a disposed UIView. View id: $viewId');
 
-    if (layoutDirection == _layoutDirection) return;
+    if (layoutDirection == _layoutDirection) {
+      return;
+    }
 
     assert(layoutDirection != null);
     _layoutDirection = layoutDirection;
 
-    if (_state == _TizenViewState.waitingForSize) return;
+    if (_state == _TizenViewState.waitingForSize) {
+      return;
+    }
 
     await SystemChannels.platform_views
         .invokeMethod<void>('setDirection', <String, dynamic>{
@@ -183,6 +186,10 @@ class TizenViewController extends PlatformViewController {
 
   @override
   Future<void> dispatchPointerEvent(PointerEvent event) async {
+    if (event is PointerHoverEvent) {
+      return;
+    }
+
     int eventType = 0;
     if (event is PointerDownEvent) {
       eventType = 0;
@@ -191,8 +198,7 @@ class TizenViewController extends PlatformViewController {
     } else if (event is PointerUpEvent) {
       eventType = 2;
     } else {
-      // TODO: Not implemented.
-      return;
+      throw UnimplementedError('Not Implemented');
     }
     await SystemChannels.platform_views
         .invokeMethod<dynamic>('touch', <String, dynamic>{
@@ -456,7 +462,9 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
   set viewController(TizenViewController viewController) {
     assert(_viewController != null);
     assert(viewController != null);
-    if (_viewController == viewController) return;
+    if (_viewController == viewController) {
+      return;
+    }
     _viewController.removeOnPlatformViewCreatedListener(_onPlatformViewCreated);
     _viewController = viewController;
     _sizePlatformView();
@@ -513,8 +521,9 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    if (_viewController.textureId == null) return;
-
+    if (_viewController.textureId == null) {
+      return;
+    }
     if (size.width < _currentTizenViewSize.width ||
         size.height < _currentTizenViewSize.height) {
       context.pushClipRect(true, offset, offset & size, _paintTexture);
@@ -705,18 +714,6 @@ class _TizenWebViewState extends State<TizenView> {
   }
 }
 
-// class TizenMethodChannelWebViewPlatform extends MethodChannelWebViewPlatform {
-//   TizenMethodChannelWebViewPlatform(
-//       int id, WebViewPlatformCallbacksHandler handler)
-//       : super(id, handler) {
-//     print("[MONG] TizenMethodChannelWebViewPlatform : " + id.toString());
-//   }
-//   static Map<String, dynamic> creationParamsToMap(
-//       CreationParams creationParams) {
-//     return MethodChannelWebViewPlatform.creationParamsToMap(creationParams);
-//   }
-// }
-
 class TizenWebView implements WebViewPlatform {
   @override
   Widget build({
@@ -826,21 +823,21 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
   PointerEnterEventListener get onEnter => null;
 
   @override
-  PointerHoverEventListener get onHover => _handleHover;
-  void _handleHover(PointerHoverEvent event) {
-    if (_handlePointerEvent != null) _handlePointerEvent(event);
-  }
-
-  @override
   PointerExitEventListener get onExit => null;
 
   @override
   MouseCursor get cursor => MouseCursor.uncontrolled;
 
   @override
+  bool get validForMouseTracker => true;
+
+  @override
   void handleEvent(PointerEvent event, HitTestEntry entry) {
     if (event is PointerDownEvent) {
       _gestureRecognizer.addPointer(event);
+    }
+    if (event is PointerHoverEvent) {
+      _handlePointerEvent?.call(event);
     }
   }
 

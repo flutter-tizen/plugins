@@ -6,12 +6,9 @@
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_platform_view.h>
-#include <flutter_plugin_registrar.h>
-#include <flutter_texture_registrar.h>
+#include <flutter_tizen_texture_registrar.h>
 #include <tbm_surface.h>
 
-// #include "lwe/LWEWebView.h"
-// #include "lwe/PlatformIntegrationData.h"
 namespace LWE {
 class WebContainer;
 }
@@ -40,7 +37,7 @@ class WebView : public PlatformView {
 
   virtual void SetSoftwareKeyboardContext(Ecore_IMF_Context* context) override;
 
-  LWE::WebContainer* GetWebViewInstance() { return webViewInstance_; }
+  LWE::WebContainer* GetWebViewInstance() { return webview_instance_; }
 
   void HidePanel();
   void ShowPanel();
@@ -58,13 +55,13 @@ class WebView : public PlatformView {
   void RegisterJavaScriptChannelName(const std::string& name);
   void ApplySettings(flutter::EncodableMap);
 
-  FlutterTextureRegistrar* textureRegistrar_;
-  LWE::WebContainer* webViewInstance_;
+  FlutterTextureRegistrar* texture_registrar_;
+  LWE::WebContainer* webview_instance_;
   double width_;
   double height_;
-  tbm_surface_h tbmSurface_;
-  bool isMouseLButtonDown_;
-  bool hasNavigationDelegate_;
+  tbm_surface_h tbm_surface_;
+  bool is_mouse_lbutton_down_;
+  bool has_navigation_delegate_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   Ecore_IMF_Context* context_;
 };
