@@ -34,10 +34,16 @@ class WebView : public PlatformView {
   // Key input event
   virtual void DispatchKeyDownEvent(Ecore_Event_Key* key) override;
   virtual void DispatchKeyUpEvent(Ecore_Event_Key* key) override;
+  virtual void DispatchCompositionUpdateEvent(const char* str,
+                                              int size) override;
+  virtual void DispatchCompositionEndEvent(const char* str, int size) override;
 
   virtual void SetSoftwareKeyboardContext(Ecore_IMF_Context* context) override;
 
   LWE::WebContainer* GetWebViewInstance() { return webViewInstance_; }
+
+  void HidePanel();
+  void ShowPanel();
 
  private:
   void HandleMethodCall(
@@ -60,6 +66,7 @@ class WebView : public PlatformView {
   bool isMouseLButtonDown_;
   bool hasNavigationDelegate_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
+  Ecore_IMF_Context* context_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
