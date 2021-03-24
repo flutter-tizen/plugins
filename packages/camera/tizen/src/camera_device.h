@@ -9,7 +9,7 @@
 #include <flutter/encodable_value.h>
 #include <flutter/method_result.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter_texture_registrar.h>
+#include <flutter_tizen_texture_registrar.h>
 
 #include "camera_event_channel.h"
 

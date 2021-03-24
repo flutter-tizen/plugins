@@ -51,7 +51,7 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar* registrar,
       std::make_unique<CameraEventChannel>(registrar_, texture_id_);
 }
 
-CameraDevice::~CameraDevice() { Dispose() }
+CameraDevice::~CameraDevice() { Dispose(); }
 
 void CameraDevice::CreateCameraHandle() {
   int error = camera_create((camera_device_e)type_, &handle_);
@@ -81,9 +81,9 @@ void CameraDevice::ChangeCameraDeviceType(CameraDeviceType type) {
 void CameraDevice::Dispose() {
   DestroyCameraHandle();
 
-  if (textureRegistrar_) {
-    FlutterUnregisterExternalTexture(textureRegistrar_, textureId_);
-    textureRegistrar_ = nullptr;
+  if (texture_registrar_) {
+    FlutterUnregisterExternalTexture(texture_registrar_, texture_id_);
+    texture_registrar_ = nullptr;
   }
 }
 

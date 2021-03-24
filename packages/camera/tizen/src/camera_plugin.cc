@@ -110,7 +110,7 @@ class CameraPlugin : public flutter::Plugin {
     } else if (method_name == "dispose") {
       if (camera_) {
         camera_->Dispose();
-        result->Success(nullptr);
+        result->Success();
       }
     } else {
       result->NotImplemented();
