@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:meta/meta.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import 'src/app_control.dart';
 
+/// The Tizen implementation of [UrlLauncherPlatform].
 class UrlLauncherPlugin extends UrlLauncherPlatform {
   static final Set<String> _supportedSchemes = <String>{
     'file',
@@ -23,9 +23,9 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
   }
 
   @override
-  final LinkDelegate linkDelegate = null;
+  final LinkDelegate? linkDelegate = null;
 
-  String _getUrlScheme(String url) => Uri.tryParse(url)?.scheme;
+  String? _getUrlScheme(String url) => Uri.tryParse(url)?.scheme;
 
   @override
   Future<bool> canLaunch(String url) async {
@@ -35,24 +35,20 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
   @override
   Future<bool> launch(
     String url, {
-    @required bool useSafariVC,
-    @required bool useWebView,
-    @required bool enableJavaScript,
-    @required bool enableDomStorage,
-    @required bool universalLinksOnly,
-    @required Map<String, String> headers,
-    String webOnlyWindowName,
+    required bool useSafariVC,
+    required bool useWebView,
+    required bool enableJavaScript,
+    required bool enableDomStorage,
+    required bool universalLinksOnly,
+    required Map<String, String> headers,
+    String? webOnlyWindowName,
   }) async {
-    AppControl appControl;
-    try {
-      appControl = AppControl()
-        ..create()
-        ..setOperation(APP_CONTROL_OPERATION_VIEW)
-        ..setUri(url)
-        ..sendLaunchRequest();
-      return true;
-    } finally {
-      appControl?.destroy();
-    }
+    AppControl()
+      ..create()
+      ..setOperation(APP_CONTROL_OPERATION_VIEW)
+      ..setUri(url)
+      ..sendLaunchRequest()
+      ..destroy();
+    return true;
   }
 }
