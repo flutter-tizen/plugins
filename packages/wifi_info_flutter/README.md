@@ -8,8 +8,8 @@ This package is not an _endorsed_ implementation of `wifi_info_flutter`. Therefo
 
 ```yaml
 dependencies:
-  wifi_info_flutter: ^1.0.1
-  wifi_info_flutter_tizen: ^1.0.0
+  wifi_info_flutter: ^2.0.0
+  wifi_info_flutter_tizen: ^2.0.0
 ```
 
 Then you can import `wifi_info_flutter` in your Dart code:
