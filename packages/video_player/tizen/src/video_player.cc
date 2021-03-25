@@ -437,7 +437,7 @@ void VideoPlayer::sendInitialized() {
         {flutter::EncodableValue("height"), flutter::EncodableValue(height)}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.sendInitialized] send initialized event");
-    eventSink_->Success(&eventValue);
+    eventSink_->Success(eventValue);
   }
 }
 
@@ -448,7 +448,7 @@ void VideoPlayer::sendBufferingStart() {
          flutter::EncodableValue("bufferingStart")}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onBuffering] send bufferingStart event");
-    eventSink_->Success(&eventValue);
+    eventSink_->Success(eventValue);
   }
 }
 
@@ -464,7 +464,7 @@ void VideoPlayer::sendBufferingUpdate(int position) {
          flutter::EncodableValue(rangeList)}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onBuffering] send bufferingUpdate event");
-    eventSink_->Success(&eventValue);
+    eventSink_->Success(eventValue);
   }
 }
 
@@ -475,7 +475,7 @@ void VideoPlayer::sendBufferingEnd() {
          flutter::EncodableValue("bufferingEnd")}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onBuffering] send bufferingEnd event");
-    eventSink_->Success(&eventValue);
+    eventSink_->Success(eventValue);
   }
 }
 
@@ -502,7 +502,7 @@ void VideoPlayer::onPlayCompleted(void *data) {
                                          flutter::EncodableValue("completed")}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onPlayCompleted] send completed event");
-    player->eventSink_->Success(&eventValue);
+    player->eventSink_->Success(eventValue);
   }
 }
 

@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "flutter_texture_registrar.h"
+#include "flutter_tizen_texture_registrar.h"
 #include "video_player_options.h"
 
 class VideoPlayer {
