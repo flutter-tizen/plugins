@@ -1,0 +1,30 @@
+name: camera_example
+description: Demonstrates how to use the camera plugin.
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: ^0.5.8
+  camera_tizen:
+    path: ../
+  path_provider: ^1.6.27
+  path_provider_tizen:
+    path: ../../path_provider
+  video_player: ^0.10.0
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
+  pedantic: ^1.8.0
+
+flutter:
+  uses-material-design: true
+
+environment:
+  sdk: ">=2.2.2 <3.0.0"
+  flutter: ">=1.20.0 <2.0.0"
