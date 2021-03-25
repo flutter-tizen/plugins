@@ -3,55 +3,42 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
 import 'src/app_common.dart';
 import 'src/storage.dart';
 
-/// The Tizen implementation of [PathProviderPlatform]
+/// The Tizen implementation of [PathProviderPlatform].
 ///
-/// This class implements the `package:path_provider` functionality for Tizen
+/// This class implements the `package:path_provider` functionality for Tizen.
 class PathProviderPlugin extends PathProviderPlatform {
-  /// Registers this class as the default instance of [PathProviderPlatform]
+  /// Registers this class as the default instance of [PathProviderPlatform].
   static void register() {
     PathProviderPlatform.instance = PathProviderPlugin();
   }
 
   @override
-  Future<String> getTemporaryPath() async {
-    assert(appCommon != null);
-    return appCommon.getCachePath();
-  }
+  Future<String> getTemporaryPath() async => appCommon.getCachePath();
 
   @override
-  Future<String> getApplicationDocumentsPath() async {
-    assert(appCommon != null);
-    return appCommon.getDataPath();
-  }
+  Future<String> getApplicationDocumentsPath() async => appCommon.getDataPath();
 
   @override
-  Future<String> getApplicationSupportPath() async {
-    assert(appCommon != null);
-    return appCommon.getDataPath();
-  }
+  Future<String> getApplicationSupportPath() async => appCommon.getDataPath();
 
   @override
-  Future<String> getExternalStoragePath() async {
-    assert(appCommon != null);
-    return appCommon.getExternalDataPath();
-  }
+  Future<String> getExternalStoragePath() async =>
+      appCommon.getExternalDataPath();
 
   @override
-  Future<List<String>> getExternalCachePaths() async {
-    assert(appCommon != null);
-    return <String>[appCommon.getExternalCachePath()];
-  }
+  Future<List<String>> getExternalCachePaths() async =>
+      <String>[appCommon.getExternalCachePath()];
 
   @override
   Future<List<String>> getExternalStoragePaths({
-    StorageDirectory type,
+    StorageDirectory? type,
   }) async {
-    assert(storage != null);
     StorageDirectoryType dirType;
     switch (type) {
       case StorageDirectory.music:
@@ -86,8 +73,6 @@ class PathProviderPlugin extends PathProviderPlatform {
   }
 
   @override
-  Future<String> getDownloadsPath() async {
-    assert(storage != null);
-    return await storage.getDirectory(type: StorageDirectoryType.downloads);
-  }
+  Future<String> getDownloadsPath() async =>
+      await storage.getDirectory(type: StorageDirectoryType.downloads);
 }
