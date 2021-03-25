@@ -79,9 +79,6 @@ static std::string ErrorToString(int code) {
     case PLAYER_ERROR_NO_SUCH_FILE:
       ret = "PLAYER_ERROR_NO_SUCH_FILE";
       break;
-    case PLAYER_ERROR_NOT_SUPPORTED_FORMAT:
-      ret = "PLAYER_ERROR_NOT_SUPPORTED_FORMAT";
-      break;
     case PLAYER_ERROR_NOT_SUPPORTED_FILE:
       ret = "PLAYER_ERROR_NOT_SUPPORTED_FILE";
       break;
