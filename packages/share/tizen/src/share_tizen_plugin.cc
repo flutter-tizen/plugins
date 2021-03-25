@@ -192,7 +192,7 @@ class ShareTizenPlugin : public flutter::Plugin {
       app_control_destroy(handle);
     }
 
-    result->Success(nullptr);
+    result->Success();
   }
 
   std::string ReduceMimeTypes(flutter::EncodableList mimeTypes) {
