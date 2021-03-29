@@ -55,30 +55,31 @@ CameraDevice::~CameraDevice() { Dispose(); }
 
 void CameraDevice::CreateCameraHandle() {
   int error = camera_create((camera_device_e)type_, &handle_);
-  if (error != CAMERA_ERROR_NONE) {
-    LOG_ERROR("Failed to camera_create");
-  }
+  LOG_ERROR_IF(error != CAMERA_ERROR_NONE, "camera_create fail - error : %s",
+               get_error_message(error));
 }
 
 void CameraDevice::DestroyCameraHandle() {
   if (handle_) {
     int error = camera_destroy(handle_);
-    if (error != CAMERA_ERROR_NONE) {
-      LOG_ERROR("Failed to camera_destroy");
-    }
+    LOG_ERROR_IF(error != CAMERA_ERROR_NONE, "camera_destroy fail - error : %s",
+                 get_error_message(error));
     handle_ = nullptr;
   }
 }
 
 void CameraDevice::ChangeCameraDeviceType(CameraDeviceType type) {
   int error = camera_change_device(handle_, (camera_device_e)type);
-  if (error != CAMERA_ERROR_NONE) {
-    LOG_ERROR("Failed to camera_change_device");
-  }
+  LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
+               "camera_change_device fail - error : %s",
+               get_error_message(error));
   type_ = type;
 }
 
 void CameraDevice::Dispose() {
+  LOG_DEBUG("enter");
+  StopPreview();
+  UnsetMediaPacketPreviewCb();
   DestroyCameraHandle();
 
   if (texture_registrar_) {
@@ -92,9 +93,10 @@ int CameraDevice::GetDeviceCount() {
   // If the device supports primary and secondary camera, this returns 2. If 1
   // is returned, the device only supports primary camera.
   int error = camera_get_device_count(handle_, &count);
-  if (error != CAMERA_ERROR_NONE) {
-    LOG_ERROR("Failed to camera_get_device_count");
-  }
+  LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
+               "camera_get_device_count fail - error : %s",
+               get_error_message(error));
+
   LOG_DEBUG("count[%d]", count);
   return count;
 }
@@ -102,9 +104,10 @@ int CameraDevice::GetDeviceCount() {
 int CameraDevice::GetLensOrientation() {
   int angle = 0;
   int error = camera_attr_get_lens_orientation(handle_, &angle);
-  if (error != CAMERA_ERROR_NONE) {
-    LOG_ERROR("Failed to camera_attr_get_lens_orientation");
-  }
+  LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
+               "camera_attr_get_lens_orientation fail - error : %s",
+               get_error_message(error));
+
   LOG_DEBUG("angle[%d]", angle);
   return angle;
 }
@@ -113,10 +116,43 @@ Size CameraDevice::GetRecommendedPreviewResolution() {
   Size preview_size;
   int error = camera_get_recommended_preview_resolution(
       handle_, &(preview_size.width), &(preview_size.height));
-  if (error != CAMERA_ERROR_NONE) {
-    LOG_ERROR("Failed to camera_get_recommended_preview_resolution");
-  }
+  LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
+               "camera_get_recommended_preview_resolution fail - error : %s",
+               get_error_message(error));
 
   LOG_DEBUG("width[%d] height[%d]", preview_size.width, preview_size.height);
   return preview_size;
+}
+
+bool CameraDevice::SetMediaPacketPreviewCb(MediaPacketPreviewCb callback) {
+  int error = camera_set_media_packet_preview_cb(handle_, callback, nullptr);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_set_media_packet_preview_cb fail - error : %s",
+                    get_error_message(error));
+
+  return true;
+}
+bool CameraDevice::UnsetMediaPacketPreviewCb() {
+  int error = camera_unset_media_packet_preview_cb(handle_);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_unset_media_packet_preview_cb fail - error : %s",
+                    get_error_message(error));
+
+  return true;
+}
+
+bool CameraDevice::StartPreview() {
+  int error = camera_start_preview(handle_);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_start_preview fail - error : %s",
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::StopPreview() {
+  int error = camera_stop_preview(handle_);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_start_preview fail - error : %s",
+                    get_error_message(error));
+  return true;
 }
