@@ -16,6 +16,7 @@
 
 #include "camera_device.h"
 #include "log.h"
+#include "permission_manager.h"
 
 #define CAMERA_CHANNEL_NAME "plugins.flutter.io/camera"
 #define IMAGE_STREAM_CHANNEL_NAME "plugins.flutter.io/camera/imageStream"
@@ -59,7 +60,6 @@ class CameraPlugin : public flutter::Plugin {
           CameraDevice::GetAvailableCameras();
       result->Success(availableCameras);
     } else if (method_name == "initialize") {
-      // TODO : Request permissions
       if (method_call.arguments()) {
         flutter::EncodableMap arguments =
             std::get<flutter::EncodableMap>(*method_call.arguments());
@@ -84,12 +84,27 @@ class CameraPlugin : public flutter::Plugin {
         if (!resolution_preset_value.IsNull()) {
           enable_audio = std::get<bool>(enable_audio_value);
         }
-
         LOG_DEBUG("camera_name[%s], resolution_preset[%s], enableAudio[%d]",
                   camera_name.data(), resolution_preset.data(), enable_audio);
-        flutter::EncodableValue reply = InitializeCameraDevice(
-            camera_name, resolution_preset, enable_audio);
-        result->Success(reply);
+        PermissionManager pmm;
+        auto p_result = result.release();
+
+        // Request a camera permssion
+        pmm.RequestPermssion(
+            Permission::kCamera,
+            [this, p_result, &camera_name, &resolution_preset,
+             &enable_audio]() {
+              flutter::EncodableValue reply = InitializeCameraDevice(
+                  camera_name, resolution_preset, enable_audio);
+
+              p_result->Success(reply);
+              delete p_result;
+            },
+            [p_result](const std::string &code, const std::string &message) {
+              p_result->Error(code, message);
+              LOG_DEBUG("failure");
+              delete p_result;
+            });
       }
     } else if (method_name == "takePicture") {
       result->NotImplemented();
@@ -130,7 +145,20 @@ class CameraPlugin : public flutter::Plugin {
     camera_ =
         std::make_unique<CameraDevice>(registrar_, texture_registrar_, type);
 
-    // TODO : open
+    // TODO : comment for a while
+    // camera_->SetMediaPacketPreviewCb([](media_packet_h pkt, void *user_data)
+    // {
+    //   // TODO
+
+    //   // destroy packet
+    //   if (pkt) {
+    //     int error = media_packet_destroy(pkt);
+    //     LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
+    //                  "media_packet_destroy fail - error : %s",
+    //                  get_error_message(error));
+    //   }
+    // });
+    // camera_->StartPreview();
 
     flutter::EncodableMap ret;
     ret[flutter::EncodableValue("textureId")] =
