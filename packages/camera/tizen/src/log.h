@@ -17,4 +17,19 @@
 #define LOG_WARN(fmt, args...) LOG(DLOG_WARN, fmt, ##args)
 #define LOG_ERROR(fmt, args...) LOG(DLOG_ERROR, fmt, ##args)
 
+#define LOG_ERROR_IF(expr, fmt, arg...) \
+  do {                                  \
+    if (expr) {                         \
+      LOG_ERROR(fmt, ##arg);            \
+    }                                   \
+  } while (0)
+
+#define RETV_LOG_ERROR_IF(expr, val, fmt, arg...) \
+  do {                                            \
+    if (expr) {                                   \
+      LOG_ERROR(fmt, ##arg);                      \
+      return (val);                               \
+    }                                             \
+  } while (0)
+
 #endif  // __LOG_H__
