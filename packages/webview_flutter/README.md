@@ -1,4 +1,3 @@
-
 # webview_flutter_tizen
 
 The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/master/packages/webview_flutter).
@@ -7,14 +6,14 @@ The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugi
 
 This plugin is available on these types of devices:
 
-- Galaxy Watch (running Tizen 5.5 or later)
+- Galaxy Watch or TV (running Tizen 5.5 or later)
 
 ## Usage
 
 ```yaml
 dependencies:
   webview_flutter: ^1.0.6
-  webview_flutter_tizen: ^0.0.1
+  webview_flutter_tizen: ^1.0.0
 ```
 
 To enable tizen implementation, set `WebView.platform = TizenWebView();` in `initState()`.
@@ -46,3 +45,8 @@ class WebViewExampleState extends State<WebViewExample> {
   }
 }
 ```
+
+## Limitations
+- This plugin is only supported on **Galaxy Watch and TV** devices running Tizen 5.5 or later.
+- This is an initial webview plugin for Tizen and is implemented based on Tizen Lightweight Web Engine (LWE). If you would like to know detailed specifications that the LWE supports, please refer to the following link :
+https://review.tizen.org/gerrit/gitweb?p=platform/upstream/lightweight-web-engine.git;a=blob;f=docs/Spec.md;h=ecb8f437c5a1facc77d3435e1a8aad6a267f12f3;hb=refs/heads/tizen
