@@ -14,12 +14,14 @@ dependencies:
   webview_flutter:
   webview_flutter_tizen:
     path: ../
-
   cupertino_icons: ^1.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
 
 flutter:
   uses-material-design: true
