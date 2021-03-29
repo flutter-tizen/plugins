@@ -13,6 +13,8 @@
 
 #include "camera_event_channel.h"
 
+typedef camera_media_packet_preview_cb MediaPacketPreviewCb;
+
 enum class CameraDeviceType {
   Rear = CAMERA_DEVICE_CAMERA0,  // The back(rear) camera is usually the primary
   Front = CAMERA_DEVICE_CAMERA1  // the front camera is usually the secondary
@@ -37,6 +39,10 @@ class CameraDevice {
   void Dispose();
   Size GetRecommendedPreviewResolution();
   long GetTextureId() { return texture_id_; }
+  bool SetMediaPacketPreviewCb(MediaPacketPreviewCb callback);
+  bool UnsetMediaPacketPreviewCb();
+  bool StartPreview();
+  bool StopPreview();
 
  private:
   void CreateCameraHandle();

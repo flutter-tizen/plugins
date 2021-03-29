@@ -8,4 +8,7 @@
         <metadata key="http://tizen.org/metadata/direct-launch" value="yes"/>
     </ui-application>
     <feature name="http://tizen.org/feature/screen.size.all"/>
+    <privileges>
+        <privilege>http://tizen.org/privilege/camera</privilege>
+    </privileges>
 </manifest>
