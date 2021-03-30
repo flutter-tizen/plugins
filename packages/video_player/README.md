@@ -26,8 +26,8 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 
 ```yaml
 dependencies:
-  video_player: ^1.0.1
-  video_player_tizen: ^1.0.0
+  video_player: ^2.1.0
+  video_player_tizen: ^2.0.0
 ```
 
 Then you can import `video_player` in your Dart code:
@@ -38,14 +38,9 @@ import 'package:video_player/video_player.dart';
 
 For how to use the plugin, see https://github.com/flutter/plugins/tree/master/packages/video_player/video_player#usage.
 
-## Supported devices
+## Limitations
 
-This plugin is supported on these types of devices:
-
-- Galaxy Watch (running Tizen 4.0 or later)
-- TV (running Tizen 5.5 or later)
-
-## Limitations on TV
+The 'httpheaders' option for 'VideoPlayerController.network' and 'mixWithOthers' option of 'VideoPlayerOptions' will be silently ignored in Tizen platform.
 
 This plugin has some limitations on TV:
 
