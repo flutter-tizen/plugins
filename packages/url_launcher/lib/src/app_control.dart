@@ -2,31 +2,32 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: public_member_api_docs
+
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
-// Native function signatures
-typedef app_control_create = Int32 Function(Pointer<Pointer<_AppControl>>);
-typedef app_control_set_operation = Int32 Function(
+typedef _app_control_create = Int32 Function(Pointer<Pointer<_AppControl>>);
+typedef _app_control_set_operation = Int32 Function(
     Pointer<_AppControl>, Pointer<Utf8>);
-typedef app_control_set_uri = Int32 Function(
+typedef _app_control_set_uri = Int32 Function(
     Pointer<_AppControl>, Pointer<Utf8>);
-typedef app_control_send_launch_request = Int32 Function(
+typedef _app_control_send_launch_request = Int32 Function(
     Pointer<_AppControl>, Pointer<Void>, Pointer<Void>);
-typedef app_control_destroy = Int32 Function(Pointer<_AppControl>);
+typedef _app_control_destroy = Int32 Function(Pointer<_AppControl>);
 
-// Constants from [app_control_result_e] in `app_control.h`
+// Corresponds to `app_control_result_e` in `app_control.h`
 const int APP_CONTROL_RESULT_APP_STARTED = 1;
 const int APP_CONTROL_RESULT_SUCCEEDED = 0;
 const int APP_CONTROL_RESULT_FAILED = -1;
 const int APP_CONTROL_RESULT_CANCELED = -2;
 
-// Constant from `app_control.h`
+// Corresponds to constants defined in `app_control.h`
 const String APP_CONTROL_OPERATION_VIEW =
     'http://tizen.org/appcontrol/operation/view';
 
-// Constants from `tizen_error.h`
+// Corresponds to constants defined in `tizen_error.h`
 const int TIZEN_ERROR_NONE = 0;
 const int TIZEN_ERROR_INVALID_PARAMETER = -22;
 const int TIZEN_ERROR_OUT_OF_MEMORY = -12;
@@ -37,10 +38,10 @@ const int TIZEN_ERROR_PERMISSION_DENIED = -13;
 const int TIZEN_ERROR_TIMED_OUT = -1073741824 + 1;
 const int TIZEN_ERROR_IO_ERROR = -5;
 
-class _AppControl extends Struct {}
+class _AppControl extends Opaque {}
 
-// Constants from [app_control_error_e] in `app_control.h`
-const Map<int, String> errorCodes = <int, String>{
+/// Corresponds to `app_control_error_e` in `app_control.h`
+const Map<int, String> _errorCodes = <int, String>{
   TIZEN_ERROR_NONE: 'APP_CONTROL_ERROR_NONE',
   TIZEN_ERROR_INVALID_PARAMETER: 'APP_CONTROL_ERROR_INVALID_PARAMETER',
   TIZEN_ERROR_OUT_OF_MEMORY: 'APP_CONTROL_ERROR_OUT_OF_MEMORY',
@@ -55,102 +56,104 @@ const Map<int, String> errorCodes = <int, String>{
   TIZEN_ERROR_IO_ERROR: 'APP_CONTROL_ERROR_IO_ERROR',
 };
 
-String getErrorCode(int returnCode) =>
-    errorCodes.containsKey(returnCode) ? errorCodes[returnCode] : '$returnCode';
+String _getErrorCode(int returnCode) => _errorCodes.containsKey(returnCode)
+    ? _errorCodes[returnCode]!
+    : '$returnCode';
 
-/// A wrapper class of the native App Control API.
-/// Not all functions or values are supported.
+/// Dart wrapper of Tizen's `app_control`.
+///
+/// See: https://docs.tizen.org/application/native/api/wearable/latest/group__CAPI__APP__CONTROL__MODULE.html
 class AppControl {
   AppControl() {
     final DynamicLibrary lib =
         DynamicLibrary.open('libcapi-appfw-app-control.so.0');
     _create = lib
-        .lookup<NativeFunction<app_control_create>>('app_control_create')
+        .lookup<NativeFunction<_app_control_create>>('app_control_create')
         .asFunction();
     _setOperation = lib
-        .lookup<NativeFunction<app_control_set_operation>>(
+        .lookup<NativeFunction<_app_control_set_operation>>(
             'app_control_set_operation')
         .asFunction();
     _setUri = lib
-        .lookup<NativeFunction<app_control_set_uri>>('app_control_set_uri')
+        .lookup<NativeFunction<_app_control_set_uri>>('app_control_set_uri')
         .asFunction();
     _sendLaunchRequest = lib
-        .lookup<NativeFunction<app_control_send_launch_request>>(
+        .lookup<NativeFunction<_app_control_send_launch_request>>(
             'app_control_send_launch_request')
         .asFunction();
     _destroy = lib
-        .lookup<NativeFunction<app_control_destroy>>('app_control_destroy')
+        .lookup<NativeFunction<_app_control_destroy>>('app_control_destroy')
         .asFunction();
   }
 
-  // Bindings
-  int Function(Pointer<Pointer<_AppControl>>) _create;
-  int Function(Pointer<_AppControl>, Pointer<Utf8>) _setOperation;
-  int Function(Pointer<_AppControl>, Pointer<Utf8>) _setUri;
-  int Function(Pointer<_AppControl>, Pointer<Void>, Pointer<Void>)
+  late int Function(Pointer<Pointer<_AppControl>>) _create;
+  late int Function(Pointer<_AppControl>, Pointer<Utf8>) _setOperation;
+  late int Function(Pointer<_AppControl>, Pointer<Utf8>) _setUri;
+  late int Function(Pointer<_AppControl>, Pointer<Void>, Pointer<Void>)
       _sendLaunchRequest;
-  int Function(Pointer<_AppControl>) _destroy;
+  late int Function(Pointer<_AppControl>) _destroy;
 
-  Pointer<_AppControl> _handle;
+  Pointer<_AppControl> _handle = nullptr;
 
-  bool get isValid => _handle != null;
-
+  /// Corresponds to `app_control_create()`.
   void create() {
-    final Pointer<Pointer<_AppControl>> pHandle = allocate();
+    final Pointer<Pointer<_AppControl>> pHandle = malloc();
     final int ret = _create(pHandle);
     _handle = pHandle.value;
-    free(pHandle);
+    malloc.free(pHandle);
 
     if (ret != 0) {
       throw PlatformException(
-        code: getErrorCode(ret),
+        code: _getErrorCode(ret),
         message: 'Failed to execute app_control_create.',
       );
     }
   }
 
+  /// Corresponds to `app_control_set_operation()`.
   void setOperation(String operation) {
-    assert(isValid);
+    assert(_handle != nullptr);
 
-    final int ret = _setOperation(_handle, Utf8.toUtf8(operation));
+    final int ret = _setOperation(_handle, operation.toNativeUtf8());
     if (ret != 0) {
       throw PlatformException(
-        code: getErrorCode(ret),
+        code: _getErrorCode(ret),
         message: 'Failed to execute app_control_set_operation.',
       );
     }
   }
 
+  /// Corresponds to `app_control_set_uri()`.
   void setUri(String uri) {
-    assert(isValid);
+    assert(_handle != nullptr);
 
-    final int ret = _setUri(_handle, Utf8.toUtf8(uri));
+    final int ret = _setUri(_handle, uri.toNativeUtf8());
     if (ret != 0) {
       throw PlatformException(
-        code: getErrorCode(ret),
+        code: _getErrorCode(ret),
         message: 'Failed to execute app_control_set_uri.',
       );
     }
   }
 
+  /// Corresponds to `app_control_send_launch_request()`.
   void sendLaunchRequest() {
-    assert(isValid);
+    assert(_handle != nullptr);
 
     final int ret = _sendLaunchRequest(_handle, nullptr, nullptr);
     if (ret != 0) {
       throw PlatformException(
-        code: getErrorCode(ret),
+        code: _getErrorCode(ret),
         message: 'Failed to execute app_control_send_launch_request.',
       );
     }
   }
 
-  /// This method must be called after use to release the underlying handle.
-  /// `dart:ffi` doesn't support finalizers (the disposal pattern) as of now.
+  /// Corresponds to `app_control_destroy()`.
   void destroy() {
-    if (isValid) {
+    if (_handle != nullptr) {
       _destroy(_handle);
-      _handle = null;
+      _handle = nullptr;
     }
   }
 }

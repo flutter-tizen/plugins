@@ -91,7 +91,7 @@ class ConnectivityTizenPlugin : public flutter::Plugin {
     if (m_events == nullptr) return;
     std::string replay = convertConnectionTypeToString(state);
     flutter::EncodableValue msg(replay);
-    m_events->Success(&msg);
+    m_events->Success(msg);
   }
 
  private:
@@ -150,7 +150,7 @@ class ConnectivityTizenPlugin : public flutter::Plugin {
     }
 
     flutter::EncodableValue msg(replay);
-    result->Success(&msg);
+    result->Success(msg);
   }
   connection_h m_connection;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_events;

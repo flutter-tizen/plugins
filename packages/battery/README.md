@@ -8,8 +8,8 @@ This package is not an _endorsed_ implementation of `battery`. Therefore, you ha
 
 ```yaml
 dependencies:
-  battery: ^1.0.11
-  battery_tizen: ^1.0.1
+  battery: ^2.0.1
+  battery_tizen: ^2.0.0
 ```
 
 Then you can import `battery` in your Dart code:

@@ -6,6 +6,12 @@ The Tizen implementation of [`image_picker`](https://github.com/flutter/plugins/
 
 To use this plugin, add `image_picker` and `image_picker_tizen` as [dependencies in your pubspec.yaml file](https://flutter.io/platform-plugins/).
 
+```yaml
+dependencies:
+  image_picker: ^0.7.3
+  image_picker_tizen: ^2.0.0
+```
+
 ## Example
 
 Import the library.
@@ -28,7 +34,7 @@ final pickedFile = await picker.getImage(source: ImageSource.gallery);
 
 ## Required privileges
 
-To use this plugin, you need to declare privileges in tizen-manifest.xml of your application.
+To use this plugin, you need to declare privileges in `tizen-manifest.xml` of your application.
 
 ``` xml
 <privileges>

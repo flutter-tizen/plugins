@@ -8,8 +8,8 @@ This package is not an _endorsed_ implementation of `sensors`. Therefore, you ha
 
 ```yaml
 dependencies:
-  sensors: ^0.4.2+6
-  sensors_tizen: ^1.0.1
+  sensors: ^2.0.0
+  sensors_tizen: ^2.0.0
 ```
 
 Then you can import `sensors` in your Dart code:

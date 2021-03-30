@@ -1,4 +1,4 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -19,13 +19,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'PackageInfo Demo',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: MyHomePage(title: 'PackageInfo example app'),
+      home: const MyHomePage(title: 'PackageInfo example app'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -38,6 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
     appName: 'Unknown',
     packageName: 'Unknown',
     version: 'Unknown',
+    buildNumber: 'Unknown',
   );
 
   @override
@@ -56,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _infoTile(String title, String subtitle) {
     return ListTile(
       title: Text(title),
-      subtitle: Text(subtitle ?? 'Not set'),
+      subtitle: Text(subtitle.isNotEmpty ? subtitle : 'Not set'),
     );
   }
 

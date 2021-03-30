@@ -1,4 +1,4 @@
-# wifi_info_flutter_example
+# wifi_info_flutter_tizen_example
 
 Demonstrates how to use the wifi_info_flutter_tizen plugin.
 

@@ -6,6 +6,12 @@ The Tizen implementation of [`share`](https://github.com/flutter/plugins/tree/ma
 
 To use this plugin, add `share` and `share_tizen` as [dependencies in your pubspec.yaml file](https://flutter.io/platform-plugins/).
 
+```yaml
+dependencies:
+  share: ^2.0.1
+  share_tizen: ^2.0.0
+```
+
 ## Example
 
 Import the library.
@@ -28,7 +34,7 @@ Share.share('check out my website https://example.com');
 
 ## Required privileges
 
-To use this plugin, you need to declare privileges in tizen-manifest.xml of your application.
+To use this plugin, you need to declare privileges in `tizen-manifest.xml` of your application.
 
 ``` xml
 <privileges>

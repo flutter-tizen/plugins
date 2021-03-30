@@ -1,6 +1,8 @@
-// Copyright 2019, the Chromium project authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
+// @dart=2.9
 
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,7 +39,7 @@ void main() {
       preferences.clear();
     });
 
-    test('reading', () async {
+    testWidgets('reading', (WidgetTester _) async {
       expect(preferences.get('String'), isNull);
       expect(preferences.get('bool'), isNull);
       expect(preferences.get('int'), isNull);
@@ -50,13 +52,16 @@ void main() {
       expect(preferences.getStringList('List'), isNull);
     });
 
-    test('writing', () async {
+    testWidgets('writing', (WidgetTester _) async {
       await Future.wait(<Future<bool>>[
-        preferences.setString('String', kTestValues2['flutter.String']),
-        preferences.setBool('bool', kTestValues2['flutter.bool']),
-        preferences.setInt('int', kTestValues2['flutter.int']),
-        preferences.setDouble('double', kTestValues2['flutter.double']),
-        preferences.setStringList('List', kTestValues2['flutter.List'])
+        preferences.setString(
+            'String', kTestValues2['flutter.String'] as String),
+        preferences.setBool('bool', kTestValues2['flutter.bool'] as bool),
+        preferences.setInt('int', kTestValues2['flutter.int'] as int),
+        preferences.setDouble(
+            'double', kTestValues2['flutter.double'] as double),
+        preferences.setStringList(
+            'List', kTestValues2['flutter.List'] as List<String>)
       ]);
       expect(preferences.getString('String'), kTestValues2['flutter.String']);
       expect(preferences.getBool('bool'), kTestValues2['flutter.bool']);
@@ -65,29 +70,46 @@ void main() {
       expect(preferences.getStringList('List'), kTestValues2['flutter.List']);
     });
 
-    test('removing', () async {
+    testWidgets('removing', (WidgetTester _) async {
       const String key = 'testKey';
-      await preferences.setString(key, kTestValues['flutter.String']);
-      await preferences.setBool(key, kTestValues['flutter.bool']);
-      await preferences.setInt(key, kTestValues['flutter.int']);
-      await preferences.setDouble(key, kTestValues['flutter.double']);
-      await preferences.setStringList(key, kTestValues['flutter.List']);
+      await preferences.setString(key, kTestValues['flutter.String'] as String);
+      await preferences.setBool(key, kTestValues['flutter.bool'] as bool);
+      await preferences.setInt(key, kTestValues['flutter.int'] as int);
+      await preferences.setDouble(key, kTestValues['flutter.double'] as double);
+      await preferences.setStringList(
+          key, kTestValues['flutter.List'] as List<String>);
       await preferences.remove(key);
       expect(preferences.get('testKey'), isNull);
     });
 
-    test('clearing', () async {
-      await preferences.setString('String', kTestValues['flutter.String']);
-      await preferences.setBool('bool', kTestValues['flutter.bool']);
-      await preferences.setInt('int', kTestValues['flutter.int']);
-      await preferences.setDouble('double', kTestValues['flutter.double']);
-      await preferences.setStringList('List', kTestValues['flutter.List']);
+    testWidgets('clearing', (WidgetTester _) async {
+      await preferences.setString(
+          'String', kTestValues['flutter.String'] as String);
+      await preferences.setBool('bool', kTestValues['flutter.bool'] as bool);
+      await preferences.setInt('int', kTestValues['flutter.int'] as int);
+      await preferences.setDouble(
+          'double', kTestValues['flutter.double'] as double);
+      await preferences.setStringList(
+          'List', kTestValues['flutter.List'] as List<String>);
       await preferences.clear();
       expect(preferences.getString('String'), null);
       expect(preferences.getBool('bool'), null);
       expect(preferences.getInt('int'), null);
       expect(preferences.getDouble('double'), null);
       expect(preferences.getStringList('List'), null);
+    });
+
+    testWidgets('simultaneous writes', (WidgetTester _) async {
+      final List<Future<bool>> writes = <Future<bool>>[];
+      final int writeCount = 100;
+      for (int i = 1; i <= writeCount; i++) {
+        writes.add(preferences.setInt('int', i));
+      }
+      List<bool> result = await Future.wait(writes, eagerError: true);
+      // All writes should succeed.
+      expect(result.where((element) => !element), isEmpty);
+      // The last write should win.
+      expect(preferences.getInt('int'), writeCount);
     });
   });
 }

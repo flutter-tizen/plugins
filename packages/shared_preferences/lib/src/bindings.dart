@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: public_member_api_docs
+
 import 'dart:ffi';
 
 import 'types.dart';
@@ -33,9 +35,6 @@ class _PreferenceBindings {
     remove = _lib.lookupFunction<preference_remove_native_t, PreferenceRemove>(
         'preference_remove');
 
-    isExisting = _lib.lookupFunction<preference_is_existing_native_t,
-        PreferenceIsExisiting>('preference_is_existing');
-
     removeAll = _lib.lookupFunction<preference_remove_all_native_t,
         PreferenceRemoveAll>('preference_remove_all');
 
@@ -43,20 +42,19 @@ class _PreferenceBindings {
         PreferenceForeachItem>('preference_foreach_item');
   }
 
-  DynamicLibrary _lib;
-  PreferenceSetInt setInt;
-  PreferenceGetInt getInt;
-  PreferenceSetDouble setDouble;
-  PreferenceGetDouble getDouble;
-  PreferenceSetString setString;
-  PreferenceGetString getString;
-  PreferenceSetBoolean setBoolean;
-  PreferenceGetBoolean getBoolean;
-  PreferenceRemove remove;
-  PreferenceIsExisiting isExisting;
-  PreferenceRemoveAll removeAll;
-  PreferenceForeachItem foreachItem;
+  late DynamicLibrary _lib;
+  late PreferenceSetInt setInt;
+  late PreferenceGetInt getInt;
+  late PreferenceSetDouble setDouble;
+  late PreferenceGetDouble getDouble;
+  late PreferenceSetString setString;
+  late PreferenceGetString getString;
+  late PreferenceSetBoolean setBoolean;
+  late PreferenceGetBoolean getBoolean;
+  late PreferenceRemove remove;
+  late PreferenceRemoveAll removeAll;
+  late PreferenceForeachItem foreachItem;
 }
 
-_PreferenceBindings _cachedBindings;
+_PreferenceBindings? _cachedBindings;
 _PreferenceBindings get bindings => _cachedBindings ??= _PreferenceBindings();

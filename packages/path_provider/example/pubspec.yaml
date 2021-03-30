@@ -5,21 +5,24 @@ publish_to: 'none'
 dependencies:
   flutter:
     sdk: flutter
-  path_provider: ^1.6.27
+  path_provider: ^2.0.1
   path_provider_tizen:
     path: ../
 
 dev_dependencies:
-  integration_test: ^1.0.1
-  integration_test_tizen:
-    path: ../../integration_test/
-  permission_handler: ^5.0.1+1
   flutter_driver:
     sdk: flutter
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
+  permission_handler: ^6.1.1
 
 flutter:
   uses-material-design: true
 
 environment:
-  sdk: ">=2.2.2 <3.0.0"
-  flutter: ">=1.20.0 <2.0.0"
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"

@@ -2,19 +2,22 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: public_member_api_docs
+
 import 'dart:async';
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
-// Native function signatures
-typedef storage_get_directory = Int32 Function(
+typedef _storage_get_directory = Int32 Function(
     Int32, Int32, Pointer<Pointer<Utf8>>);
 typedef _storage_callback = Int32 Function(
     Int32, Int32, Int32, Pointer<Utf8>, Pointer<Void>);
-typedef storage_foreach_device_supported = Int32 Function(
+typedef _storage_foreach_device_supported = Int32 Function(
     Pointer<NativeFunction<_storage_callback>>, Pointer<Void>);
 
+/// Corresponds to `storage_directory_e`.
 enum StorageDirectoryType {
   images,
   sounds,
@@ -27,20 +30,21 @@ enum StorageDirectoryType {
   system_ringtones,
 }
 
-Storage _storageInstance;
+Storage? _storageInstance;
 Storage get storage => _storageInstance ??= Storage();
 
-/// A wrapper class for Tizen Storage APIs.
-/// Not all functions or values are supported.
+/// Dart wrapper of Tizen's `storage`.
+///
+/// See: https://docs.tizen.org/application/native/api/wearable/latest/group__CAPI__SYSTEM__STORAGE__MODULE.html
 class Storage {
   Storage() {
     final DynamicLibrary libStorage = DynamicLibrary.open('libstorage.so.0.1');
     _storageGetDirectory = libStorage
-        .lookup<NativeFunction<storage_get_directory>>('storage_get_directory')
+        .lookup<NativeFunction<_storage_get_directory>>('storage_get_directory')
         .asFunction();
 
     _storageForeachDeviceSupported = libStorage
-        .lookup<NativeFunction<storage_foreach_device_supported>>(
+        .lookup<NativeFunction<_storage_foreach_device_supported>>(
             'storage_foreach_device_supported')
         .asFunction();
 
@@ -58,9 +62,8 @@ class Storage {
     }
   }
 
-  // Bindings
-  int Function(int, int, Pointer<Pointer<Utf8>>) _storageGetDirectory;
-  int Function(Pointer<NativeFunction<_storage_callback>>, Pointer<Void>)
+  late int Function(int, int, Pointer<Pointer<Utf8>>) _storageGetDirectory;
+  late int Function(Pointer<NativeFunction<_storage_callback>>, Pointer<Void>)
       _storageForeachDeviceSupported;
 
   /// The unique storage device id.
@@ -84,10 +87,11 @@ class Storage {
     return 1;
   }
 
+  /// Corresponds to `storage_get_directory()`.
   Future<String> getDirectory({
-    StorageDirectoryType type,
+    required StorageDirectoryType type,
   }) async {
-    final Pointer<Pointer<Utf8>> path = allocate();
+    final Pointer<Pointer<Utf8>> path = malloc();
     try {
       final int ret = _storageGetDirectory(await storageId, type.index, path);
       if (ret != 0) {
@@ -96,9 +100,9 @@ class Storage {
           message: 'Failed to execute storage_get_directory.',
         );
       }
-      return Utf8.fromUtf8(path.value);
+      return path.value.toDartString();
     } finally {
-      free(path);
+      malloc.free(path);
     }
   }
 }
