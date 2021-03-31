@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: public_member_api_docs
+
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart';
 
 // int preference_set_int (const char *key, int value)
@@ -53,12 +56,6 @@ typedef PreferenceGetBoolean = int Function(
 // int preference_remove (const char *key)
 typedef preference_remove_native_t = Int32 Function(Pointer<Utf8> key);
 typedef PreferenceRemove = int Function(Pointer<Utf8> key);
-
-// int preference_is_existing (const char *key, bool *existing)
-typedef preference_is_existing_native_t = Int32 Function(
-    Pointer<Utf8> key, Pointer<Int8> existing);
-typedef PreferenceIsExisiting = int Function(
-    Pointer<Utf8> key, Pointer<Int8> existing);
 
 // int preference_remove_all (void)
 typedef preference_remove_all_native_t = Int32 Function();

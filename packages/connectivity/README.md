@@ -8,9 +8,10 @@ This package is not an _endorsed_ implementation of `connectivity`. Therefore, y
 
 ```yaml
 dependencies:
-  connectivity: ^2.0.2
-  connectivity_tizen: ^1.0.0
+  connectivity: ^3.0.3
+  connectivity_tizen: ^2.0.0
 ```
+
 Then you can import `connectivity` in your Dart code:
 
 ```dart

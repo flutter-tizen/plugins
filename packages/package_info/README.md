@@ -8,8 +8,8 @@ This package is not an _endorsed_ implementation of `package_info`. Therefore, y
 
 ```yaml
 dependencies:
-  package_info: ^0.4.3
-  package_info_tizen: ^1.0.0
+  package_info: ^2.0.0
+  package_info_tizen: ^2.0.0
 ```
 
 Then you can import `package_info` in your Dart code:

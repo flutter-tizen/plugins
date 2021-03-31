@@ -1,4 +1,4 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -34,13 +34,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -51,7 +51,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String _connectionStatus = 'Unknown';
   final Connectivity _connectivity = Connectivity();
-  StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initConnectivity() async {
-    ConnectivityResult result;
+    ConnectivityResult result = ConnectivityResult.none;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       result = await _connectivity.checkConnectivity();
@@ -81,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) {
-      return Future.value(null);
+      return;
     }
 
     return _updateConnectionStatus(result);

@@ -1,5 +1,5 @@
 // Copyright 2020 Samsung Electronics Co., Ltd. All rights reserved.
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,15 +7,14 @@
 
 import 'dart:async';
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:device_info_tizen/device_info_tizen.dart';
 
 void main() {
-  runZoned(() {
+  runZonedGuarded(() {
     runApp(MyApp());
-  }, onError: (dynamic error, dynamic stack) {
+  }, (dynamic error, dynamic stack) {
     print(error);
     print(stack);
   });
@@ -37,7 +36,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initPlatformState() async {
-    Map<String, dynamic> deviceData;
+    Map<String, dynamic> deviceData = <String, dynamic>{};
 
     try {
       deviceData = _readTizenDeviceInfo(await deviceInfoPlugin.tizenInfo);
@@ -47,7 +46,9 @@ class _MyAppState extends State<MyApp> {
       };
     }
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _deviceData = deviceData;
@@ -77,7 +78,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: Text('Tizen Device Info')),
+        appBar: AppBar(title: const Text('Tizen Device Info')),
         body: ListView(
           children: _deviceData.keys.map((String property) {
             return Row(
