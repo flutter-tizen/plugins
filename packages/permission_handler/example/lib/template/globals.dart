@@ -8,6 +8,16 @@ import 'info_page.dart';
 /// The name of the plugin, which will be displayed throughout the example App.
 const String pluginName = 'Permission Handler';
 
+/// Returns Github URL, which is shown in the [InfoPage].
+const String githubURL =
+    'https://github.com/Baseflow/flutter-permission-handler';
+
+/// Returns Baseflow URL, which is shown in the [InfoPage].
+const String baseflowURL = 'https://baseflow.com';
+
+/// Returns pub.dev URL, which is shown in the [InfoPage].
+const String pubDevURL = 'https://pub.dev/packages/permission_handler';
+
 /// [EdgeInsets] to define horizontal padding throughout the application.
 const EdgeInsets defaultHorizontalPadding =
     EdgeInsets.symmetric(horizontal: 24);

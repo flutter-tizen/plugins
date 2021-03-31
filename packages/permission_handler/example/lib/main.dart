@@ -4,11 +4,11 @@ import 'package:flutter/widgets.dart';
 import 'template/globals.dart';
 
 void main() {
-  runApp(PermissionHandlerPluginExample());
+  runApp(BaseflowPluginExample());
 }
 
 /// A Flutter application demonstrating the functionality of this plugin
-class PermissionHandlerPluginExample extends StatelessWidget {
+class BaseflowPluginExample extends StatelessWidget {
   /// [MaterialColor] to be used in the app [ThemeData]
   final MaterialColor themeMaterialColor =
       createMaterialColor(const Color.fromRGBO(48, 49, 60, 1));
@@ -16,7 +16,7 @@ class PermissionHandlerPluginExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '$pluginName',
+      title: 'Baseflow $pluginName',
       theme: ThemeData(
         accentColor: Colors.white60,
         backgroundColor: const Color.fromRGBO(48, 49, 60, 0.8),
@@ -52,7 +52,7 @@ class PermissionHandlerPluginExample extends StatelessWidget {
           filled: true,
         ),
       ),
-      home: AppHome(title: '$pluginName example app'),
+      home: AppHome(title: 'Baseflow $pluginName example app'),
     );
   }
 
@@ -74,18 +74,18 @@ class PermissionHandlerPluginExample extends StatelessWidget {
         1,
       );
     }
-    return MaterialColor(color.value, swatch);
+    return MaterialColor(color.value, swatch as Map<int, Color>);
   }
 }
 
 /// A Flutter example demonstrating how the [pluginName] plugin could be used
 class AppHome extends StatefulWidget {
   /// Constructs the [AppHome] class
-  AppHome({Key key, this.title}) : super(key: key);
+  AppHome({Key? key, this.title}) : super(key: key);
 
   /// The [title] of the application, which is shown in the application's
   /// title bar.
-  final String title;
+  final String? title;
 
   @override
   _AppHomeState createState() => _AppHomeState();
@@ -100,7 +100,12 @@ class _AppHomeState extends State<AppHome> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).bottomAppBarColor,
-        title: Text('$pluginName Example'),
+        title: Center(
+          child: Image.asset(
+            'res/images/baseflow_logo_def_light-02.png',
+            width: 140,
+          ),
+        ),
       ),
       backgroundColor: Theme.of(context).backgroundColor,
       body: PageView(
