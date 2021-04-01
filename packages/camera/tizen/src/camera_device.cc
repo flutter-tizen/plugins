@@ -57,6 +57,8 @@ void CameraDevice::CreateCameraHandle() {
   int error = camera_create((camera_device_e)type_, &handle_);
   LOG_ERROR_IF(error != CAMERA_ERROR_NONE, "camera_create fail - error : %s",
                get_error_message(error));
+  printState();
+  printPreviewRotation();
 }
 
 void CameraDevice::DestroyCameraHandle() {
@@ -112,6 +114,52 @@ int CameraDevice::GetLensOrientation() {
   return angle;
 }
 
+void CameraDevice::printState() {
+  camera_state_e state;
+  camera_get_state(handle_, &state);
+  switch (state) {
+    case CAMERA_STATE_NONE:
+      LOG_DEBUG("CAMERA_STATE_NONE");
+      break;
+    case CAMERA_STATE_CREATED:
+      LOG_DEBUG("CAMERA_STATE_CREATED");
+      break;
+    case CAMERA_STATE_PREVIEW:
+      LOG_DEBUG("CAMERA_STATE_PREVIEW");
+      break;
+    case CAMERA_STATE_CAPTURING:
+      LOG_DEBUG("CAMERA_STATE_CAPTURING");
+      break;
+    case CAMERA_STATE_CAPTURED:
+      LOG_DEBUG("CAMERA_STATE_CAPTURED");
+      break;
+    default:
+      LOG_DEBUG("Unknown State");
+      break;
+  }
+}
+
+void CameraDevice::printPreviewRotation() {
+  camera_rotation_e val;
+  int error = camera_attr_get_stream_rotation(handle_, &val);
+  switch (val) {
+    case CAMERA_ROTATION_NONE:
+      LOG_DEBUG("CAMERA_ROTATION_NONE");
+      break;
+    case CAMERA_ROTATION_90:
+      LOG_DEBUG("CAMERA_ROTATION_90");
+      break;
+    case CAMERA_ROTATION_180:
+      LOG_DEBUG("CAMERA_ROTATION_180");
+      break;
+    case CAMERA_ROTATION_270:
+      LOG_DEBUG("CAMERA_ROTATION_270");
+      break;
+    default:
+      break;
+  }
+}
+
 Size CameraDevice::GetRecommendedPreviewResolution() {
   Size preview_size;
   int error = camera_get_recommended_preview_resolution(
@@ -125,7 +173,7 @@ Size CameraDevice::GetRecommendedPreviewResolution() {
 }
 
 bool CameraDevice::SetMediaPacketPreviewCb(MediaPacketPreviewCb callback) {
-  int error = camera_set_media_packet_preview_cb(handle_, callback, nullptr);
+  int error = camera_set_media_packet_preview_cb(handle_, callback, this);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_set_media_packet_preview_cb fail - error : %s",
                     get_error_message(error));
@@ -152,7 +200,7 @@ bool CameraDevice::StartPreview() {
 bool CameraDevice::StopPreview() {
   int error = camera_stop_preview(handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_start_preview fail - error : %s",
+                    "camera_stop_preview fail - error : %s",
                     get_error_message(error));
   return true;
 }

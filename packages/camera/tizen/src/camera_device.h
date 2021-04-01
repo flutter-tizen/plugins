@@ -43,6 +43,7 @@ class CameraDevice {
   bool UnsetMediaPacketPreviewCb();
   bool StartPreview();
   bool StopPreview();
+  FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
 
  private:
   void CreateCameraHandle();
@@ -50,6 +51,8 @@ class CameraDevice {
 
   int GetDeviceCount();
   int GetLensOrientation();
+  void printState();
+  void printPreviewRotation();
 
   flutter::PluginRegistrar *registrar_{nullptr};
   FlutterTextureRegistrar *texture_registrar_{nullptr};

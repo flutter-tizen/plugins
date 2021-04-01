@@ -17,6 +17,8 @@ std::string EventTypeToString(EventType type) {
   } else if (type == EventType::CameraClosing) {
     return "cameraClosing";
   }
+  LOG_WARN("Unknown event type!");
+  return "unknown";
 }
 
 CameraEventChannel::CameraEventChannel(flutter::PluginRegistrar *registrar,

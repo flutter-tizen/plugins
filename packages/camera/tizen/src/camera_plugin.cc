@@ -7,7 +7,7 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
-#include <flutter_texture_registrar.h>
+#include <flutter_tizen_texture_registrar.h>
 
 #include <map>
 #include <memory>
@@ -80,12 +80,13 @@ class CameraPlugin : public flutter::Plugin {
 
         auto enable_audio_value =
             arguments[flutter::EncodableValue("enableAudio")];
-        bool enable_audio;
-        if (!resolution_preset_value.IsNull()) {
+        bool enable_audio = false;
+        if (!enable_audio_value.IsNull()) {
           enable_audio = std::get<bool>(enable_audio_value);
         }
-        LOG_DEBUG("camera_name[%s], resolution_preset[%s], enableAudio[%d]",
-                  camera_name.data(), resolution_preset.data(), enable_audio);
+        LOG_DEBUG("camera_name[%s], resolution_preset[%s], enableAudio[%s]",
+                  camera_name.data(), resolution_preset.data(),
+                  enable_audio ? "true" : "false");
         PermissionManager pmm;
         auto p_result = result.release();
 
@@ -145,20 +146,29 @@ class CameraPlugin : public flutter::Plugin {
     camera_ =
         std::make_unique<CameraDevice>(registrar_, texture_registrar_, type);
 
-    // TODO : comment for a while
-    // camera_->SetMediaPacketPreviewCb([](media_packet_h pkt, void *user_data)
-    // {
-    //   // TODO
+    camera_->SetMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
+      tbm_surface_h surface = nullptr;
+      int error = media_packet_get_tbm_surface(pkt, &surface);
+      LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
+                   "media_packet_get_tbm_surface fail - error : %s",
+                   get_error_message(error));
 
-    //   // destroy packet
-    //   if (pkt) {
-    //     int error = media_packet_destroy(pkt);
-    //     LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-    //                  "media_packet_destroy fail - error : %s",
-    //                  get_error_message(error));
-    //   }
-    // });
-    // camera_->StartPreview();
+      if (error == 0) {
+        CameraDevice *camera_device = (CameraDevice *)data;
+        FlutterMarkExternalTextureFrameAvailable(
+            camera_device->GetTextureRegistrar(), camera_device->GetTextureId(),
+            surface);
+      }
+
+      // destroy packet
+      if (pkt) {
+        error = media_packet_destroy(pkt);
+        LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
+                     "media_packet_destroy fail - error : %s",
+                     get_error_message(error));
+      }
+    });
+    camera_->StartPreview();
 
     flutter::EncodableMap ret;
     ret[flutter::EncodableValue("textureId")] =
