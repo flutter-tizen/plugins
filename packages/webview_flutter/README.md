@@ -16,6 +16,7 @@ To use this plugin, add below lines under the `<manifest>` section in your `tize
 <privileges>
   <privilege>http://tizen.org/privilege/internet</privilege>
 </privileges>
+```
 
 ## Usage
 

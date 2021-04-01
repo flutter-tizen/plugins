@@ -6,8 +6,8 @@
         <icon>ic_launcher.png</icon>
         <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true"/>
     </ui-application>
-	<privileges>
-		<privilege>http://tizen.org/privilege/internet</privilege>
-	</privileges>
+    <privileges>
+        <privilege>http://tizen.org/privilege/internet</privilege>
+    </privileges>
     <feature name="http://tizen.org/feature/screen.size.all"/>
 </manifest>

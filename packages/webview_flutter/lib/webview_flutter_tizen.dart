@@ -559,7 +559,6 @@ class _TizenPlatformTextureView extends LeafRenderObjectWidget {
     @required this.controller,
     @required this.hitTestBehavior,
     @required this.gestureRecognizers,
-    @required this.textureId,
   })  : assert(controller != null),
         assert(hitTestBehavior != null),
         assert(gestureRecognizers != null),
@@ -568,7 +567,6 @@ class _TizenPlatformTextureView extends LeafRenderObjectWidget {
   final TizenViewController controller;
   final PlatformViewHitTestBehavior hitTestBehavior;
   final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
-  final int textureId;
 
   @override
   RenderObject createRenderObject(BuildContext context) => RenderTizenView(
@@ -591,8 +589,6 @@ class _TizenWebViewState extends State<TizenView> {
   TextDirection _layoutDirection;
   bool _initialized = false;
   FocusNode _focusNode;
-  int _textureId;
-  int get textureId => _textureId;
 
   static final Set<Factory<OneSequenceGestureRecognizer>> _emptyRecognizersSet =
       <Factory<OneSequenceGestureRecognizer>>{};
@@ -605,8 +601,8 @@ class _TizenWebViewState extends State<TizenView> {
       child: _TizenPlatformTextureView(
           controller: _controller,
           hitTestBehavior: widget.hitTestBehavior,
-          gestureRecognizers: widget.gestureRecognizers ?? _emptyRecognizersSet,
-          textureId: textureId),
+          gestureRecognizers:
+              widget.gestureRecognizers ?? _emptyRecognizersSet),
     );
   }
 
