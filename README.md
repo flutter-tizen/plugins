@@ -19,6 +19,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**integration_test_tizen**](packages/integration_test) | [integration_test](https://github.com/flutter/flutter/tree/master/packages/integration_test) (1st-party) | [![pub package](https://img.shields.io/pub/v/integration_test_tizen.svg)](https://pub.dev/packages/integration_test_tizen) | No |
 | [**package_info_tizen**](packages/package_info) | [package_info](https://github.com/flutter/plugins/tree/master/packages/package_info) (1st-party) | [![pub package](https://img.shields.io/pub/v/package_info_tizen.svg)](https://pub.dev/packages/package_info_tizen) | No |
 | [**path_provider_tizen**](packages/path_provider) | [path_provider](https://github.com/flutter/plugins/tree/master/packages/path_provider) (1st-party) | [![pub package](https://img.shields.io/pub/v/path_provider_tizen.svg)](https://pub.dev/packages/path_provider_tizen) | No |
+| [**permission_handler_tizen**](packages/permission_handler) | [permission_handler](https://github.com/Baseflow/flutter-permission-handler) (3rd-party) | [![pub package](https://img.shields.io/pub/v/permission_handler_tizen.svg)](https://pub.dev/packages/permission_handler_tizen) | No |
 | [**sensors_tizen**](packages/sensors) | [sensors](https://github.com/flutter/plugins/tree/master/packages/sensors) (1st-party) | [![pub package](https://img.shields.io/pub/v/sensors_tizen.svg)](https://pub.dev/packages/sensors_tizen) | No |
 | [**share_tizen**](packages/share) | [share](https://github.com/flutter/plugins/tree/master/packages/share) (1st-party) | [![pub package](https://img.shields.io/pub/v/share_tizen.svg)](https://pub.dev/packages/share_tizen) | No |
 | [**shared_preferences_tizen**](packages/path_provider) | [shared_preferences](https://github.com/flutter/plugins/tree/master/packages/shared_preferences) (1st-party) | [![pub package](https://img.shields.io/pub/v/shared_preferences_tizen.svg)](https://pub.dev/packages/shared_preferences_tizen) | No |
@@ -37,6 +38,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**package_info_tizen**](packages/package_info) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**path_provider_tizen**](packages/path_provider) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | No external storage |
+| [**permission_handler_tizen**](packages/permission_handler) | ✔️ | ✔️ | ❌ | ❌ |
 | [**sensors_tizen**](packages/sensors) | ✔️ | ✔️ | ❌ | ❌ | No hardware |
 | [**share_tizen**](packages/share) | ⚠️ | ⚠️ | ❌ | ❌ | No SMS or e-mail app |
 | [**shared_preferences_tizen**](packages/path_provider) | ✔️ | ✔️ | ✔️ | ✔️ |
