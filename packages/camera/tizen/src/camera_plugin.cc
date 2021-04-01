@@ -21,6 +21,17 @@
 #define CAMERA_CHANNEL_NAME "plugins.flutter.io/camera"
 #define IMAGE_STREAM_CHANNEL_NAME "plugins.flutter.io/camera/imageStream"
 
+template <typename T>
+bool GetValueFromEncodableMap(flutter::EncodableMap &map, std::string key,
+                              T &out) {
+  flutter::EncodableValue value = map[flutter::EncodableValue(key)];
+  if (!value.IsNull()) {
+    out = std::get<T>(value);
+    return true;
+  }
+  return false;
+}
+
 class CameraPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(
@@ -59,37 +70,25 @@ class CameraPlugin : public flutter::Plugin {
       flutter::EncodableValue availableCameras =
           CameraDevice::GetAvailableCameras();
       result->Success(availableCameras);
-    } else if (method_name == "initialize") {
+    } else if (method_name == "create") {
       if (method_call.arguments()) {
         flutter::EncodableMap arguments =
             std::get<flutter::EncodableMap>(*method_call.arguments());
-
-        auto camera_name_value =
-            arguments[flutter::EncodableValue("cameraName")];
         std::string camera_name;
-        if (!camera_name_value.IsNull()) {
-          camera_name = std::get<std::string>(camera_name_value);
-        }
-
-        auto resolution_preset_value =
-            arguments[flutter::EncodableValue("resolutionPreset")];
         std::string resolution_preset;
-        if (!resolution_preset_value.IsNull()) {
-          resolution_preset = std::get<std::string>(resolution_preset_value);
+        bool enable_audio = false;
+        if (!GetValueFromEncodableMap(arguments, "cameraName", camera_name) ||
+            !GetValueFromEncodableMap(arguments, "resolutionPreset",
+                                      resolution_preset) ||
+            !GetValueFromEncodableMap(arguments, "enableAudio", enable_audio)) {
+          result->Error(
+              "InvalidArguments",
+              "Please check cameraName, resolutionPreset, enableAudio.");
+          return;
         }
 
-        auto enable_audio_value =
-            arguments[flutter::EncodableValue("enableAudio")];
-        bool enable_audio = false;
-        if (!enable_audio_value.IsNull()) {
-          enable_audio = std::get<bool>(enable_audio_value);
-        }
-        LOG_DEBUG("camera_name[%s], resolution_preset[%s], enableAudio[%s]",
-                  camera_name.data(), resolution_preset.data(),
-                  enable_audio ? "true" : "false");
         PermissionManager pmm;
         auto p_result = result.release();
-
         // Request a camera permssion
         pmm.RequestPermssion(
             Permission::kCamera,
@@ -97,7 +96,6 @@ class CameraPlugin : public flutter::Plugin {
              &enable_audio]() {
               flutter::EncodableValue reply = InitializeCameraDevice(
                   camera_name, resolution_preset, enable_audio);
-
               p_result->Success(reply);
               delete p_result;
             },
@@ -106,6 +104,16 @@ class CameraPlugin : public flutter::Plugin {
               LOG_DEBUG("failure");
               delete p_result;
             });
+      }
+    } else if (method_name == "initialize") {
+      if (method_call.arguments()) {
+        flutter::EncodableMap arguments =
+            std::get<flutter::EncodableMap>(*method_call.arguments());
+        std::string image_format_group;
+        GetValueFromEncodableMap(arguments, "imageFormatGroup",
+                                 image_format_group);
+        camera_->Open(image_format_group);
+        result->Success();
       }
     } else if (method_name == "takePicture") {
       result->NotImplemented();
@@ -145,41 +153,9 @@ class CameraPlugin : public flutter::Plugin {
     }
     camera_ =
         std::make_unique<CameraDevice>(registrar_, texture_registrar_, type);
-
-    camera_->SetMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
-      tbm_surface_h surface = nullptr;
-      int error = media_packet_get_tbm_surface(pkt, &surface);
-      LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                   "media_packet_get_tbm_surface fail - error : %s",
-                   get_error_message(error));
-
-      if (error == 0) {
-        CameraDevice *camera_device = (CameraDevice *)data;
-        FlutterMarkExternalTextureFrameAvailable(
-            camera_device->GetTextureRegistrar(), camera_device->GetTextureId(),
-            surface);
-      }
-
-      // destroy packet
-      if (pkt) {
-        error = media_packet_destroy(pkt);
-        LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                     "media_packet_destroy fail - error : %s",
-                     get_error_message(error));
-      }
-    });
-    camera_->StartPreview();
-
     flutter::EncodableMap ret;
-    ret[flutter::EncodableValue("textureId")] =
+    ret[flutter::EncodableValue("cameraId")] =
         flutter::EncodableValue((int64_t)camera_->GetTextureId());
-
-    Size size = camera_->GetRecommendedPreviewResolution();
-    ret[flutter::EncodableValue("previewWidth")] =
-        flutter::EncodableValue(size.width);
-    ret[flutter::EncodableValue("previewHeight")] =
-        flutter::EncodableValue(size.height);
-
     return flutter::EncodableValue(ret);
   }
 

@@ -38,8 +38,8 @@ flutter::EncodableValue CameraDevice::GetAvailableCameras() {
 
 CameraDevice::CameraDevice() { CreateCameraHandle(); }
 
-CameraDevice::CameraDevice(flutter::PluginRegistrar* registrar,
-                           FlutterTextureRegistrar* texture_registrar,
+CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
+                           FlutterTextureRegistrar *texture_registrar,
                            CameraDeviceType type)
     : registrar_(registrar),
       texture_registrar_(texture_registrar),
@@ -47,8 +47,8 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar* registrar,
   CreateCameraHandle();
   texture_id_ = FlutterRegisterExternalTexture(texture_registrar_);
   LOG_DEBUG("texture_id_[%ld]", texture_id_);
-  camera_event_channel_ =
-      std::make_unique<CameraEventChannel>(registrar_, texture_id_);
+  camera_method_channel_ =
+      std::make_unique<CameraMethodChannel>(registrar_, texture_id_);
 }
 
 CameraDevice::~CameraDevice() { Dispose(); }
@@ -57,8 +57,8 @@ void CameraDevice::CreateCameraHandle() {
   int error = camera_create((camera_device_e)type_, &handle_);
   LOG_ERROR_IF(error != CAMERA_ERROR_NONE, "camera_create fail - error : %s",
                get_error_message(error));
-  printState();
-  printPreviewRotation();
+  PrintState();
+  PrintPreviewRotation();
 }
 
 void CameraDevice::DestroyCameraHandle() {
@@ -114,7 +114,7 @@ int CameraDevice::GetLensOrientation() {
   return angle;
 }
 
-void CameraDevice::printState() {
+void CameraDevice::PrintState() {
   camera_state_e state;
   camera_get_state(handle_, &state);
   switch (state) {
@@ -139,7 +139,7 @@ void CameraDevice::printState() {
   }
 }
 
-void CameraDevice::printPreviewRotation() {
+void CameraDevice::PrintPreviewRotation() {
   camera_rotation_e val;
   int error = camera_attr_get_stream_rotation(handle_, &val);
   switch (val) {
@@ -162,14 +162,63 @@ void CameraDevice::printPreviewRotation() {
 
 Size CameraDevice::GetRecommendedPreviewResolution() {
   Size preview_size;
-  int error = camera_get_recommended_preview_resolution(
-      handle_, &(preview_size.width), &(preview_size.height));
+  int w, h;
+  int error = camera_get_recommended_preview_resolution(handle_, &w, &h);
   LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
                "camera_get_recommended_preview_resolution fail - error : %s",
                get_error_message(error));
-
+  preview_size.width = w;
+  preview_size.height = h;
   LOG_DEBUG("width[%d] height[%d]", preview_size.width, preview_size.height);
   return preview_size;
+}
+
+bool CameraDevice::Open(std::string /* TODO : image_format_group*/) {
+  LOG_DEBUG("enter");
+  SetMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
+    tbm_surface_h surface = nullptr;
+    int error = media_packet_get_tbm_surface(pkt, &surface);
+    LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
+                 "media_packet_get_tbm_surface fail - error : %s",
+                 get_error_message(error));
+
+    if (error == 0) {
+      CameraDevice *camera_device = (CameraDevice *)data;
+      FlutterMarkExternalTextureFrameAvailable(
+          camera_device->GetTextureRegistrar(), camera_device->GetTextureId(),
+          surface);
+    }
+
+    // destroy packet
+    if (pkt) {
+      error = media_packet_destroy(pkt);
+      LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
+                   "media_packet_destroy fail - error : %s",
+                   get_error_message(error));
+    }
+  });
+
+  StartPreview();
+
+  flutter::EncodableMap ret;
+  Size size = GetRecommendedPreviewResolution();
+  ret[flutter::EncodableValue("previewWidth")] =
+      flutter::EncodableValue(size.width);
+  ret[flutter::EncodableValue("previewHeight")] =
+      flutter::EncodableValue(size.height);
+
+  // TODO
+  ret[flutter::EncodableValue("exposureMode")] =
+      flutter::EncodableValue("auto");
+  ret[flutter::EncodableValue("focusMode")] = flutter::EncodableValue("auto");
+  ret[flutter::EncodableValue("exposurePointSupported")] =
+      flutter::EncodableValue(false);
+  ret[flutter::EncodableValue("focusPointSupported")] =
+      flutter::EncodableValue(false);
+
+  auto value = std::make_unique<flutter::EncodableValue>(ret);
+  camera_method_channel_->Send(CameraEventType::Initialized, std::move(value));
+  return true;
 }
 
 bool CameraDevice::SetMediaPacketPreviewCb(MediaPacketPreviewCb callback) {

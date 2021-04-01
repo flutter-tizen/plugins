@@ -11,7 +11,7 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen_texture_registrar.h>
 
-#include "camera_event_channel.h"
+#include "camera_method_channel.h"
 
 typedef camera_media_packet_preview_cb MediaPacketPreviewCb;
 
@@ -21,8 +21,8 @@ enum class CameraDeviceType {
 };
 
 struct Size {
-  int width;
-  int height;
+  double width;
+  double height;
 };
 
 class CameraDevice {
@@ -38,12 +38,13 @@ class CameraDevice {
   void ChangeCameraDeviceType(CameraDeviceType type);
   void Dispose();
   Size GetRecommendedPreviewResolution();
+  FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
+  bool Open(std::string image_format_group);
   bool SetMediaPacketPreviewCb(MediaPacketPreviewCb callback);
-  bool UnsetMediaPacketPreviewCb();
   bool StartPreview();
   bool StopPreview();
-  FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
+  bool UnsetMediaPacketPreviewCb();
 
  private:
   void CreateCameraHandle();
@@ -51,15 +52,15 @@ class CameraDevice {
 
   int GetDeviceCount();
   int GetLensOrientation();
-  void printState();
-  void printPreviewRotation();
+  void PrintState();
+  void PrintPreviewRotation();
 
   flutter::PluginRegistrar *registrar_{nullptr};
   FlutterTextureRegistrar *texture_registrar_{nullptr};
 
   long texture_id_{0};
   CameraDeviceType type_{CameraDeviceType::Rear};
-  std::unique_ptr<CameraEventChannel> camera_event_channel_;
+  std::unique_ptr<CameraMethodChannel> camera_method_channel_;
   camera_h handle_{nullptr};
 };
 
