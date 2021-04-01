@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_tizen/webview_flutter_tizen.dart';
 
 void main() => runApp(MaterialApp(home: WebViewExample()));
 
@@ -40,7 +39,6 @@ class _WebViewExampleState extends State<WebViewExample> {
   @override
   void initState() {
     super.initState();
-    WebView.platform = TizenWebView();
   }
 
   @override

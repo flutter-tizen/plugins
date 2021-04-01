@@ -22,3 +22,4 @@ flutter:
       tizen:
         pluginClass: WebviewFlutterTizenPlugin
         fileName: webview_flutter_tizen_plugin.h
+        dartPluginClass: TizenWebView

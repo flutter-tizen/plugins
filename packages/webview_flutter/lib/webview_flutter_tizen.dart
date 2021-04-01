@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/rendering.dart';
 
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter/platform_interface.dart';
 import 'package:webview_flutter/src/webview_method_channel.dart';
 
@@ -711,6 +712,10 @@ class _TizenWebViewState extends State<TizenView> {
 }
 
 class TizenWebView implements WebViewPlatform {
+  static void register() {
+    WebView.platform = TizenWebView();
+  }
+
   @override
   Widget build({
     BuildContext context,

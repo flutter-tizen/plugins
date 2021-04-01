@@ -28,14 +28,11 @@ dependencies:
   webview_flutter_tizen: ^1.0.0
 ```
 
-To enable tizen implementation, set `WebView.platform = TizenWebView();` in `initState()`.
-For example:
+To enable tizen implementation, you can refer to the following:
 
 ```dart
 import 'dart:io';
-
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_tizen/webview_flutter_tizen.dart';
 
 class WebViewExample extends StatefulWidget {
   @override
@@ -46,7 +43,6 @@ class WebViewExampleState extends State<WebViewExample> {
   @override
   void initState() {
     super.initState();
-    WebView.platform = TizenWebView();
   }
 
   @override
