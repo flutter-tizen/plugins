@@ -1,11 +1,12 @@
 #ifndef PERMISSION_MANAGER_H_
 #define PERMISSION_MANAGER_H_
 
+#include <privacy_privilege_manager.h>
+
 #include <functional>
 #include <map>
 #include <memory>
 #include <vector>
-#include <privacy_privilege_manager.h>
 
 using OnPermissionChecked = std::function<void(int status)>;
 using OnPermissionRequested =
@@ -26,9 +27,9 @@ class PermissionManager {
                           OnPermissionError errorCallback);
 
  private:
-  int ParsePermissionName(const std::string &permission);
-  void GetPermissionName(int permission,
-                         std::vector<const char *> &permissionNames);
+  int ConvertToPermission(const std::string &privilege);
+  void ConvertToPrivileges(int permission,
+                           std::vector<const char *> &privileges);
   int DeterminePermissionStatus(int permission, int *status);
 
   static void OnRequestPermissionsResponse(ppm_call_cause_e cause,

@@ -3,28 +3,26 @@
 #include "log.h"
 #include "type.h"
 
-// permission name on tizen platform
-const char* PERMISSION_CALENDAR_READ =
+const char* PRIVILEGE_CALENDAR_READ =
     "http://tizen.org/privilege/calendar.read";
-const char* PERMISSION_CALENDAR_WRITE =
+const char* PRIVILEGE_CALENDAR_WRITE =
     "http://tizen.org/privilege/calendar.write";
-const char* PERMISSION_CAMERA = "http://tizen.org/privilege/camera";
-const char* PERMISSION_CONTACT_READ = "http://tizen.org/privilege/contact.read";
-const char* PERMISSION_CONTACT_WRITE =
+const char* PRIVILEGE_CAMERA = "http://tizen.org/privilege/camera";
+const char* PRIVILEGE_CONTACT_READ = "http://tizen.org/privilege/contact.read";
+const char* PRIVILEGE_CONTACT_WRITE =
     "http://tizen.org/privilege/contact.write";
-const char* PERMISSION_LOCATION = "http://tizen.org/privilege/location";
-const char* PERMISSION_LOCATION_COARSE =
+const char* PRIVILEGE_LOCATION = "http://tizen.org/privilege/location";
+const char* PRIVILEGE_LOCATION_COARSE =
     "http://tizen.org/privilege/location.coarse";
-const char* PERMISSION_RECORDER = "http://tizen.org/privilege/recorder";
-const char* PERMISSION_CALL = "http://tizen.org/privilege/call";
-const char* PERMISSION_SENSORS = "http://tizen.org/privilege/healthinfo";
-const char* PERMISSION_MESSAGE_READ = "http://tizen.org/privilege/message.read";
-const char* PERMISSION_MESSAGE_WRITE =
+const char* PRIVILEGE_RECORDER = "http://tizen.org/privilege/recorder";
+const char* PRIVILEGE_CALL = "http://tizen.org/privilege/call";
+const char* PRIVILEGE_SENSORS = "http://tizen.org/privilege/healthinfo";
+const char* PRIVILEGE_MESSAGE_READ = "http://tizen.org/privilege/message.read";
+const char* PRIVILEGE_MESSAGE_WRITE =
     "http://tizen.org/privilege/message.write";
-const char* PERMISSION_EXTERNAL_STORAGE =
+const char* PRIVILEGE_EXTERNAL_STORAGE =
     "http://tizen.org/privilege/externalstorage";
-const char* PERMISSION_MEDIA_STORAGE =
-    "http://tizen.org/privilege/mediastorage";
+const char* PRIVILEGE_MEDIA_STORAGE = "http://tizen.org/privilege/mediastorage";
 
 static std::string PPMErrorToString(int error) {
   switch (error) {
@@ -100,7 +98,6 @@ void PermissionManager::RequestPermissions(
   }
 
   int status, result;
-  int permissionsCount = 0;
   _requestResults.clear();
   std::vector<const char*> permissionsToRequest;
   for (auto permission : permissions) {
@@ -120,17 +117,11 @@ void PermissionManager::RequestPermissions(
       continue;
     }
 
-    GetPermissionName(permission, permissionsToRequest);
-    // if tizen doesn't support this permission, set not determined
-    if (permissionsCount == permissionsToRequest.size() &&
-        _requestResults.count(permission) == 0) {
-      _requestResults[permission] = PERMISSION_STATUS_NOT_DETERMINED;
-    }
-    permissionsCount = permissionsToRequest.size();
+    ConvertToPrivileges(permission, permissionsToRequest);
   }
 
   // no permission is needed to requested
-  if (permissionsCount == 0) {
+  if (permissionsToRequest.size() == 0) {
     successCallback(_requestResults);
     return;
   }
@@ -138,9 +129,9 @@ void PermissionManager::RequestPermissions(
   _ongoing = true;
   _requestSuccessCallback = successCallback;
   _requestErrorCallback = errorCallback;
-  result =
-      ppm_request_permissions(permissionsToRequest.data(), permissionsCount,
-                              OnRequestPermissionsResponse, this);
+  result = ppm_request_permissions(permissionsToRequest.data(),
+                                   permissionsToRequest.size(),
+                                   OnRequestPermissionsResponse, this);
   if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
     errorCallback(PPMErrorToString(result),
                   "An error occurred when call ppm_request_permissions()");
@@ -148,75 +139,75 @@ void PermissionManager::RequestPermissions(
   }
 }
 
-int PermissionManager::ParsePermissionName(const std::string& permission) {
-  if (permission == PERMISSION_CALENDAR_READ ||
-      permission == PERMISSION_CALENDAR_WRITE) {
+int PermissionManager::ConvertToPermission(const std::string& privilege) {
+  if (privilege == PRIVILEGE_CALENDAR_READ ||
+      privilege == PRIVILEGE_CALENDAR_WRITE) {
     return PERMISSION_GROUP_CALENDAR;
-  } else if (permission == PERMISSION_CAMERA) {
+  } else if (privilege == PRIVILEGE_CAMERA) {
     return PERMISSION_GROUP_CAMERA;
-  } else if (permission == PERMISSION_CONTACT_READ ||
-             permission == PERMISSION_CONTACT_WRITE) {
+  } else if (privilege == PRIVILEGE_CONTACT_READ ||
+             privilege == PRIVILEGE_CONTACT_WRITE) {
     return PERMISSION_GROUP_CONTACTS;
-  } else if (permission == PERMISSION_LOCATION ||
-             permission == PERMISSION_LOCATION_COARSE) {
+  } else if (privilege == PRIVILEGE_LOCATION ||
+             privilege == PRIVILEGE_LOCATION_COARSE) {
     return PERMISSION_GROUP_LOCATION;
-  } else if (permission == PERMISSION_RECORDER) {
+  } else if (privilege == PRIVILEGE_RECORDER) {
     return PERMISSION_GROUP_MICROPHONE;
-  } else if (permission == PERMISSION_CALL) {
+  } else if (privilege == PRIVILEGE_CALL) {
     return PERMISSION_GROUP_PHONE;
-  } else if (permission == PERMISSION_SENSORS) {
+  } else if (privilege == PRIVILEGE_SENSORS) {
     return PERMISSION_GROUP_SENSORS;
-  } else if (permission == PERMISSION_MESSAGE_READ ||
-             permission == PERMISSION_MESSAGE_WRITE) {
+  } else if (privilege == PRIVILEGE_MESSAGE_READ ||
+             privilege == PRIVILEGE_MESSAGE_WRITE) {
     return PERMISSION_GROUP_SMS;
-  } else if (permission == PERMISSION_EXTERNAL_STORAGE) {
+  } else if (privilege == PRIVILEGE_EXTERNAL_STORAGE) {
     return PERMISSION_GROUP_STORAGE;
-  } else if (permission == PERMISSION_MEDIA_STORAGE) {
+  } else if (privilege == PRIVILEGE_MEDIA_STORAGE) {
     return PERMISSION_GROUP_ACCESS_MEDIA_LOCATION;
   } else {
     return PERMISSION_GROUP_UNKNOWN;
   }
 }
 
-void PermissionManager::GetPermissionName(
-    int permission, std::vector<const char*>& permissionNames) {
+void PermissionManager::ConvertToPrivileges(
+    int permission, std::vector<const char*>& privileges) {
   switch (permission) {
     case PERMISSION_GROUP_CALENDAR:
-      permissionNames.push_back(PERMISSION_CALENDAR_READ);
-      permissionNames.push_back(PERMISSION_CALENDAR_WRITE);
+      privileges.push_back(PRIVILEGE_CALENDAR_READ);
+      privileges.push_back(PRIVILEGE_CALENDAR_WRITE);
       break;
     case PERMISSION_GROUP_CAMERA:
-      permissionNames.push_back(PERMISSION_CAMERA);
+      privileges.push_back(PRIVILEGE_CAMERA);
       break;
     case PERMISSION_GROUP_CONTACTS:
-      permissionNames.push_back(PERMISSION_CONTACT_READ);
-      permissionNames.push_back(PERMISSION_CONTACT_WRITE);
+      privileges.push_back(PRIVILEGE_CONTACT_READ);
+      privileges.push_back(PRIVILEGE_CONTACT_WRITE);
       break;
     case PERMISSION_GROUP_LOCATION:
     case PERMISSION_GROUP_LOCATION_ALWAYS:
     case PERMISSION_GROUP_LOCATION_WHEN_IN_USE:
-      permissionNames.push_back(PERMISSION_LOCATION);
-      permissionNames.push_back(PERMISSION_LOCATION_COARSE);
+      privileges.push_back(PRIVILEGE_LOCATION);
+      privileges.push_back(PRIVILEGE_LOCATION_COARSE);
       break;
     case PERMISSION_GROUP_SPEECH:
     case PERMISSION_GROUP_MICROPHONE:
-      permissionNames.push_back(PERMISSION_RECORDER);
+      privileges.push_back(PRIVILEGE_RECORDER);
       break;
     case PERMISSION_GROUP_PHONE:
-      permissionNames.push_back(PERMISSION_CALL);
+      privileges.push_back(PRIVILEGE_CALL);
       break;
     case PERMISSION_GROUP_SENSORS:
-      permissionNames.push_back(PERMISSION_SENSORS);
+      privileges.push_back(PRIVILEGE_SENSORS);
       break;
     case PERMISSION_GROUP_SMS:
-      permissionNames.push_back(PERMISSION_MESSAGE_READ);
-      permissionNames.push_back(PERMISSION_MESSAGE_WRITE);
+      privileges.push_back(PRIVILEGE_MESSAGE_READ);
+      privileges.push_back(PRIVILEGE_MESSAGE_WRITE);
       break;
     case PERMISSION_GROUP_STORAGE:
-      permissionNames.push_back(PERMISSION_EXTERNAL_STORAGE);
+      privileges.push_back(PRIVILEGE_EXTERNAL_STORAGE);
       break;
     case PERMISSION_GROUP_ACCESS_MEDIA_LOCATION:
-      permissionNames.push_back(PERMISSION_MEDIA_STORAGE);
+      privileges.push_back(PRIVILEGE_MEDIA_STORAGE);
       break;
     default:
       break;
@@ -224,19 +215,19 @@ void PermissionManager::GetPermissionName(
 }
 
 int PermissionManager::DeterminePermissionStatus(int permission, int* status) {
-  std::vector<const char*> permissionNames;
-  GetPermissionName(permission, permissionNames);
+  std::vector<const char*> privileges;
+  ConvertToPrivileges(permission, privileges);
 
-  if (permissionNames.size() == 0) {
+  if (privileges.size() == 0) {
     LOG_DEBUG("No tizen specific privileges needed for permission %d",
               permission);
-    *status = PERMISSION_STATUS_NOT_DETERMINED;
+    *status = PERMISSION_STATUS_GRANTED;
     return PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE;
   }
 
   int result;
   ppm_check_result_e checkResult;
-  for (auto iter : permissionNames) {
+  for (auto iter : privileges) {
     result = ppm_check_permission(iter, &checkResult);
     if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
       LOG_ERROR("ppm_check_permission (%s) error: %s", iter,
@@ -247,12 +238,11 @@ int PermissionManager::DeterminePermissionStatus(int permission, int* status) {
                 CheckResultToString(checkResult).c_str());
       switch (checkResult) {
         case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
+        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
           *status = PERMISSION_STATUS_DENIED;
           return result;
-        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
-          *status = PERMISSION_STATUS_NOT_DETERMINED;
-          return result;
         case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
+        default:
           *status = PERMISSION_STATUS_GRANTED;
           break;
       }
@@ -282,7 +272,7 @@ void PermissionManager::OnRequestPermissionsResponse(
     LOG_DEBUG("ppm_request_permissions (%s) result: %s", privileges[i],
               RequestResultToString(results[i]).c_str());
 
-    int permission = permissionManager->ParsePermissionName(privileges[i]);
+    int permission = permissionManager->ConvertToPermission(privileges[i]);
     if (permission == PERMISSION_GROUP_UNKNOWN) {
       continue;
     }
