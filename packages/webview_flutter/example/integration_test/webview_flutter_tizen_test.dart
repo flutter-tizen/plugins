@@ -13,11 +13,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:webview_flutter/platform_interface.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_tizen/webview_flutter_tizen.dart';
+import 'package:integration_test/integration_test.dart';
 
 typedef void VoidCallback();
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   final _FakePlatformViewsController fakePlatformViewsController =
       _FakePlatformViewsController();
