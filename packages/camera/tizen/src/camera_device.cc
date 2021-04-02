@@ -49,6 +49,10 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
   LOG_DEBUG("texture_id_[%ld]", texture_id_);
   camera_method_channel_ =
       std::make_unique<CameraMethodChannel>(registrar_, texture_id_);
+  device_method_channel_ = std::make_unique<DeviceMethodChannel>(registrar_);
+  orientation_event_listner_ =
+      std::make_unique<OrientationEventListner>(device_method_channel_.get());
+  orientation_event_listner_->Start();
 }
 
 CameraDevice::~CameraDevice() { Dispose(); }
@@ -83,6 +87,10 @@ void CameraDevice::Dispose() {
   StopPreview();
   UnsetMediaPacketPreviewCb();
   DestroyCameraHandle();
+
+  if (orientation_event_listner_) {
+    orientation_event_listner_->Stop();
+  }
 
   if (texture_registrar_) {
     FlutterUnregisterExternalTexture(texture_registrar_, texture_id_);
@@ -200,23 +208,23 @@ bool CameraDevice::Open(std::string /* TODO : image_format_group*/) {
 
   StartPreview();
 
-  flutter::EncodableMap ret;
+  flutter::EncodableMap map;
   Size size = GetRecommendedPreviewResolution();
-  ret[flutter::EncodableValue("previewWidth")] =
+  map[flutter::EncodableValue("previewWidth")] =
       flutter::EncodableValue(size.width);
-  ret[flutter::EncodableValue("previewHeight")] =
+  map[flutter::EncodableValue("previewHeight")] =
       flutter::EncodableValue(size.height);
 
   // TODO
-  ret[flutter::EncodableValue("exposureMode")] =
+  map[flutter::EncodableValue("exposureMode")] =
       flutter::EncodableValue("auto");
-  ret[flutter::EncodableValue("focusMode")] = flutter::EncodableValue("auto");
-  ret[flutter::EncodableValue("exposurePointSupported")] =
+  map[flutter::EncodableValue("focusMode")] = flutter::EncodableValue("auto");
+  map[flutter::EncodableValue("exposurePointSupported")] =
       flutter::EncodableValue(false);
-  ret[flutter::EncodableValue("focusPointSupported")] =
+  map[flutter::EncodableValue("focusPointSupported")] =
       flutter::EncodableValue(false);
 
-  auto value = std::make_unique<flutter::EncodableValue>(ret);
+  auto value = std::make_unique<flutter::EncodableValue>(map);
   camera_method_channel_->Send(CameraEventType::Initialized, std::move(value));
   return true;
 }

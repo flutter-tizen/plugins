@@ -2,24 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_CAMERA_METHOD_CHANNEL_H_
-#define FLUTTER_PLUGIN_CAMERA_METHOD_CHANNEL_H_
+#ifndef FLUTTER_PLUGIN_DEVICE_METHOD_CHANNEL_H_
+#define FLUTTER_PLUGIN_DEVICE_METHOD_CHANNEL_H_
 
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 
-enum class CameraEventType {
-  Error,
-  CameraClosing,
-  Initialized,
+enum class DeviceEventType {
+  OrientationChanged,
 };
 
-class CameraMethodChannel {
+class DeviceMethodChannel {
  public:
-  CameraMethodChannel(flutter::PluginRegistrar* registrar,
-                      long event_channel_Id);
-  void Send(CameraEventType eventType,
+  DeviceMethodChannel(flutter::PluginRegistrar* registrar);
+  void Send(DeviceEventType eventType,
             std::unique_ptr<flutter::EncodableValue>&& args);
 
  private:
