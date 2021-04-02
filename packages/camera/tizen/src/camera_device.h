@@ -12,6 +12,8 @@
 #include <flutter_tizen_texture_registrar.h>
 
 #include "camera_method_channel.h"
+#include "device_method_channel.h"
+#include "orientation_event_listener.h"
 
 typedef camera_media_packet_preview_cb MediaPacketPreviewCb;
 
@@ -61,6 +63,8 @@ class CameraDevice {
   long texture_id_{0};
   CameraDeviceType type_{CameraDeviceType::Rear};
   std::unique_ptr<CameraMethodChannel> camera_method_channel_;
+  std::unique_ptr<DeviceMethodChannel> device_method_channel_;
+  std::unique_ptr<OrientationEventListner> orientation_event_listner_;
   camera_h handle_{nullptr};
 };
 
