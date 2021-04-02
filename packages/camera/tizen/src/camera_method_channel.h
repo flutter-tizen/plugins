@@ -6,25 +6,25 @@
 #define FLUTTER_PLUGIN_CAMERA_EVENT_CHANNEL_H_
 
 #include <flutter/encodable_value.h>
-#include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
+#include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 
-enum class EventType {
+enum class CameraEventType {
   Error,
   CameraClosing,
+  Initialized,
 };
 
-class CameraEventChannel {
+class CameraMethodChannel {
  public:
-  CameraEventChannel(flutter::PluginRegistrar *registrar,
-                     long event_channel_Id);
-  void Send(EventType eventType, std::string message);
+  CameraMethodChannel(flutter::PluginRegistrar* registrar,
+                      long event_channel_Id);
+  void Send(CameraEventType eventType,
+            std::unique_ptr<flutter::EncodableValue>&& args);
 
  private:
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      event_channel_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
 };
 
 #endif
