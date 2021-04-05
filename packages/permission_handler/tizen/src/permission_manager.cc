@@ -161,7 +161,7 @@ int PermissionManager::ConvertToPermission(const std::string& privilege) {
   } else if (privilege == PRIVILEGE_EXTERNAL_STORAGE) {
     return PERMISSION_GROUP_STORAGE;
   } else if (privilege == PRIVILEGE_MEDIA_STORAGE) {
-    return PERMISSION_GROUP_ACCESS_MEDIA_LOCATION;
+    return PERMISSION_GROUP_MEDIA_LIBRARY;
   } else {
     return PERMISSION_GROUP_UNKNOWN;
   }
@@ -203,7 +203,7 @@ void PermissionManager::ConvertToPrivileges(
     case PERMISSION_GROUP_STORAGE:
       privileges.push_back(PRIVILEGE_EXTERNAL_STORAGE);
       break;
-    case PERMISSION_GROUP_ACCESS_MEDIA_LOCATION:
+    case PERMISSION_GROUP_MEDIA_LIBRARY:
       privileges.push_back(PRIVILEGE_MEDIA_STORAGE);
       break;
     default:
