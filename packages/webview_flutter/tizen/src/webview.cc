@@ -495,9 +495,17 @@ static LWE::KeyValue EcoreEventKeyToKeyValue(const char* ecore_key_string,
       }
       return (LWE::KeyValue)(LWE::KeyValue::Digit0Key + ch - '0');
     } else if (ch >= 'a' && ch <= 'z') {
-      return (LWE::KeyValue)(LWE::KeyValue::LowerAKey + ch - 'a');
+      if (is_shift_pressed) {
+        return (LWE::KeyValue)(LWE::KeyValue::LowerAKey + ch - 'a' - 32);
+      } else {
+        return (LWE::KeyValue)(LWE::KeyValue::LowerAKey + ch - 'a');
+      }
     } else if (ch >= 'A' && ch <= 'Z') {
-      return (LWE::KeyValue)(LWE::KeyValue::AKey + ch - 'A');
+      if (is_shift_pressed) {
+        return (LWE::KeyValue)(LWE::KeyValue::AKey + ch - 'A' + 32);
+      } else {
+        return (LWE::KeyValue)(LWE::KeyValue::AKey + ch - 'A');
+      }
     }
   } else if (strcmp("XF86AudioRaiseVolume", ecore_key_string) == 0) {
     return LWE::KeyValue::TVVolumeUpKey;
@@ -583,12 +591,6 @@ void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
     return;
   }
 
-#ifdef TV_PROFILE
-  if ((strncmp(key_name.data(), "XF86Back", 8) == 0)) {
-    key_name = "Escape";
-  }
-#endif
-
   if ((strcmp(key_name.data(), "XF86Exit") == 0) ||
       (strcmp(key_name.data(), "Select") == 0) ||
       (strcmp(key_name.data(), "Cancel") == 0)) {
@@ -620,7 +622,8 @@ void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
   };
   Param* p = new Param();
   p->webview_instance = webview_instance_;
-  p->key_value = EcoreEventKeyToKeyValue(key_name.data(), false);
+  p->key_value =
+      EcoreEventKeyToKeyValue(key_name.data(), (key_event->modifiers & 1));
 
   webview_instance_->AddIdleCallback(
       [](void* data) {
@@ -642,18 +645,14 @@ void WebView::DispatchKeyUpEvent(Ecore_Event_Key* key_event) {
     return;
   }
 
-#ifdef TV_PROFILE
-  if ((strncmp(key_name.data(), "XF86Back", 8) == 0)) {
-    key_name = "Escape";
-  }
-#endif
   struct Param {
     LWE::WebContainer* webview_instance;
     LWE::KeyValue key_value;
   };
   Param* p = new Param();
   p->webview_instance = webview_instance_;
-  p->key_value = EcoreEventKeyToKeyValue(key_name.data(), false);
+  p->key_value =
+      EcoreEventKeyToKeyValue(key_name.data(), (key_event->modifiers & 1));
 
   webview_instance_->AddIdleCallback(
       [](void* data) {

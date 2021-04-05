@@ -25,10 +25,10 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 ```yaml
 dependencies:
   webview_flutter: ^1.0.6
-  webview_flutter_tizen: ^1.0.0
+  webview_flutter_tizen: ^0.1.0
 ```
 
-To enable tizen implementation, you can refer to the following:
+## Example
 
 ```dart
 import 'dart:io';

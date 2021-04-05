@@ -1,5 +1,6 @@
 #include "webview_factory.h"
 
+#include <app_common.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_message_codec.h>
@@ -19,14 +20,21 @@
 WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
                                FlutterTextureRegistrar* textureRegistrar)
     : PlatformViewFactory(registrar), textureRegistrar_(textureRegistrar) {
-  // temporlal soluation
-  std::string localstoragePath =
-      "/tmp/" + std::string("StarFish_localStorage.db");
-  std::string cookiePath = "/tmp/" + std::string("StarFish_cookies.db");
-  std::string cachePath = "/tmp/" + std::string("Starfish_cache.db");
+  char* path = app_get_data_path();
+  if (!path || strlen(path) == 0) {
+    path = "/tmp/";
+  }
+  std::string localstoragePath = path + std::string("StarFish_localStorage.db");
+  std::string cookiePath = path + std::string("StarFish_cookies.db");
+  std::string cachePath = path + std::string("Starfish_cache.db");
 
   LWE::LWE::Initialize(localstoragePath.c_str(), cookiePath.c_str(),
                        cachePath.c_str());
+
+  if (path) {
+    free(path);
+    path = nullptr;
+  }
 }
 
 PlatformView* WebViewFactory::Create(int viewId, double width, double height,
