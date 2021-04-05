@@ -2,9 +2,11 @@
 
 The Tizen implementation of [`permisson_handler`](https://github.com/Baseflow/flutter-permission-handler).
 
+You can use this plugin to ask the user for runtime permissions if your app performs security-sensitive operations or access restricted data.
+
 ## Usage
 
-1. Add required privileges in your `tizen-manifest.xml` file. For example,
+1. Declare privileges in your `tizen-manifest.xml` file. For example, if you want to access the device's media library in your Flutter app:
 
    ```xml
    <manifest>
@@ -15,18 +17,24 @@ The Tizen implementation of [`permisson_handler`](https://github.com/Baseflow/fl
    </manifest>
    ```
 
-   | Permissions | Tizen privileges |
-   |-|-|
-   | accessMediaLocation | `http://tizen.org/privilege/mediastorage` |
-   | calendar | `http://tizen.org/privilege/calendar.read`<br>`http://tizen.org/privilege/calendar.write` |
-   | camera | `http://tizen.org/privilege/camera` |
-   | contact | `http://tizen.org/privilege/contact.read`<br>`http://tizen.org/privilege/contact.write` |
-   | location<br>locationAlways<br>locationWhenInUse | `http://tizen.org/privilege/location`<br>`http://tizen.org/privilege/location.coarse` |
-   | microphone<br>speech | `http://tizen.org/privilege/recorder` |
-   | phone | `http://tizen.org/privilege/call` |
-   | sensors | `http://tizen.org/privilege/healthinfo` |
-   | sms | `http://tizen.org/privilege/message.read`<br>`http://tizen.org/privilege/message.write` |
-   | storage | `http://tizen.org/privilege/externalstorage` |
+   | Permission | Tizen permission | Privileges |
+   |-|-|-|
+   | Permission.accessMediaLocation | _Android-only_ |
+   | Permission.activityRecognition | _Android-only_ |
+   | Permission.bluetooth | _iOS-only_ |
+   | Permission.calendar | Calendar | `http://tizen.org/privilege/calendar.read`<br>`http://tizen.org/privilege/calendar.write` |
+   | Permission.camera | Camera | `http://tizen.org/privilege/camera` |
+   | Permission.contact | Contacts | `http://tizen.org/privilege/contact.read`<br>`http://tizen.org/privilege/contact.write` |
+   | Permission.location<br>Permission.locationAlways<br>Permission.locationWhenInUse | Location | `http://tizen.org/privilege/location`<br>`http://tizen.org/privilege/location.coarse` |
+   | Permission.mediaLibrary | Storage | `http://tizen.org/privilege/mediastorage` |
+   | Permission.microphone | Microphone | `http://tizen.org/privilege/recorder` |
+   | Permission.phone | Call | `http://tizen.org/privilege/call` |
+   | Permission.photos<br>Permission.photosAddOnly | _iOS-only_ |
+   | Permission.reminders | _iOS-only_ |
+   | Permission.sensors | Sensor | `http://tizen.org/privilege/healthinfo` |
+   | Permission.sms | Message | `http://tizen.org/privilege/message.read`<br>`http://tizen.org/privilege/message.write` |
+   | Permission.speech | _iOS-only_ |
+   | Permission.storage | Storage | `http://tizen.org/privilege/externalstorage` |
 
    For more information on Tizen privileges, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
 
@@ -48,5 +56,5 @@ The Tizen implementation of [`permisson_handler`](https://github.com/Baseflow/fl
 
 ## Limitations
 
-- This plugin is only supported on **Galaxy Watch** devices running **Tizen 5.5** or later. On **TV**, you don't need to request permissions since they are already granted to apps by default.
+- This plugin is only supported on **Galaxy Watch** devices running **Tizen 5.5** or later. On **TV**s, you don't need to request permissions since they are already granted to apps by default.
 - `openAppSettings()` will open the system settings instead of the app settings on Tizen. To use it, add the app manager privilege (`http://tizen.org/privilege/appmanager.launch`) in your `tizen-manifest.xml` file.
