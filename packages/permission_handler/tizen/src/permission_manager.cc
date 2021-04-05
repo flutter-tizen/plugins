@@ -36,8 +36,6 @@ static std::string PPMErrorToString(int error) {
       return "PrivacyPrivilegeManager - Operation already in progress";
     case PRIVACY_PRIVILEGE_MANAGER_ERROR_OUT_OF_MEMORY:
       return "PrivacyPrivilegeManager - Out of memory";
-    case PRIVACY_PRIVILEGE_MANAGER_ERROR_PERMISSION_DENIED:
-      return "PrivacyPrivilegeManager - Permission denied";
     default:
       return "PrivacyPrivilegeManager - Unknown error";
   }
@@ -189,7 +187,6 @@ void PermissionManager::ConvertToPrivileges(
       privileges.push_back(PRIVILEGE_LOCATION);
       privileges.push_back(PRIVILEGE_LOCATION_COARSE);
       break;
-    case PERMISSION_GROUP_SPEECH:
     case PERMISSION_GROUP_MICROPHONE:
       privileges.push_back(PRIVILEGE_RECORDER);
       break;
@@ -304,13 +301,6 @@ void PermissionManager::OnRequestPermissionsResponse(
         location->second;
     permissionManager->_requestResults[PERMISSION_GROUP_LOCATION_WHEN_IN_USE] =
         location->second;
-  }
-
-  auto microphone =
-      permissionManager->_requestResults.find(PERMISSION_GROUP_MICROPHONE);
-  if (microphone != permissionManager->_requestResults.end()) {
-    permissionManager->_requestResults[PERMISSION_GROUP_SPEECH] =
-        microphone->second;
   }
 
   permissionManager->_requestSuccessCallback(
