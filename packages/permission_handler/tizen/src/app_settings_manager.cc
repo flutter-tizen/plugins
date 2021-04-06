@@ -21,13 +21,14 @@ AppSettingsManager::AppSettingsManager() {}
 
 AppSettingsManager::~AppSettingsManager() {}
 
-void AppSettingsManager::OpenAppSettings(OnAppSettingsOpened successCallback,
-                                         OnAppSettingsError errorCallback) {
+void AppSettingsManager::OpenAppSettings(OnAppSettingsOpened success_callback,
+                                         OnAppSettingsError error_callback)
+{
   app_control_h service = nullptr;
   int result = app_control_create(&service);
   if (result != APP_CONTROL_ERROR_NONE) {
-    errorCallback(ErrorToString(result),
-                  "An error occurred when call app_control_create()");
+    error_callback(ErrorToString(result),
+                   "An error occurred when call app_control_create()");
   }
 
   app_control_set_operation(service, APP_CONTROL_OPERATION_SETTING);
@@ -35,9 +36,9 @@ void AppSettingsManager::OpenAppSettings(OnAppSettingsOpened successCallback,
   app_control_destroy(service);
   if (result == APP_CONTROL_ERROR_NONE) {
     LOG_DEBUG("successed to open app settings");
-    successCallback(true);
+    success_callback(true);
   } else {
     LOG_DEBUG("failed to open app settings");
-    successCallback(false);
+    success_callback(false);
   }
 }

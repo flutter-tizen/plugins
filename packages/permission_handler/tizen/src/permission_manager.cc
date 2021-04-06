@@ -67,73 +67,73 @@ static std::string RequestResultToString(int result) {
   }
 }
 
-PermissionManager::PermissionManager() : _ongoing(false) {}
+PermissionManager::PermissionManager() : on_going_(false) {}
 
 PermissionManager::~PermissionManager() {}
 
 void PermissionManager::CheckPermissionStatus(
-    int permission, OnPermissionChecked successCallback,
-    OnPermissionError errorCallback) {
+    int permission, OnPermissionChecked success_callback,
+    OnPermissionError error_callback) {
   LOG_DEBUG("Check permission %d status", permission);
 
   int status;
   int result = DeterminePermissionStatus(permission, &status);
   if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    errorCallback(PPMErrorToString(result),
-                  "An error occurred when call ppm_check_permission()");
+    error_callback(PPMErrorToString(result),
+                   "An error occurred when call ppm_check_permission()");
   } else {
-    successCallback(status);
+    success_callback(status);
   }
 }
 
 void PermissionManager::RequestPermissions(
-    std::vector<int> permissions, OnPermissionRequested successCallback,
-    OnPermissionError errorCallback) {
-  if (_ongoing) {
-    errorCallback("RequestPermissions - error",
-                  "A request for permissions is already running");
+    std::vector<int> permissions, OnPermissionRequested success_callback,
+    OnPermissionError error_callback) {
+  if (on_going_) {
+    error_callback("RequestPermissions - error",
+                   "A request for permissions is already running");
     return;
   }
 
   int status, result;
-  _requestResults.clear();
-  std::vector<const char*> permissionsToRequest;
+  request_results_.clear();
+  std::vector<const char*> permissions_to_request;
   for (auto permission : permissions) {
     result = DeterminePermissionStatus(permission, &status);
     if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-      errorCallback(PPMErrorToString(result),
-                    "An error occurred when call ppm_check_permission()");
+      error_callback(PPMErrorToString(result),
+                     "An error occurred when call ppm_check_permission()");
       return;
     }
 
     if (status == PERMISSION_STATUS_GRANTED) {
-      if (_requestResults.find(permission) == _requestResults.end()) {
+      if (request_results_.find(permission) == request_results_.end()) {
         LOG_DEBUG("Request permission %d result: PERMISSION_STATUS_GRANTED",
                   permission);
-        _requestResults[permission] = PERMISSION_STATUS_GRANTED;
+        request_results_[permission] = PERMISSION_STATUS_GRANTED;
       }
       continue;
     }
 
-    ConvertToPrivileges(permission, permissionsToRequest);
+    ConvertToPrivileges(permission, permissions_to_request);
   }
 
   // no permission is needed to requested
-  if (permissionsToRequest.size() == 0) {
-    successCallback(_requestResults);
+  if (permissions_to_request.size() == 0) {
+    success_callback(request_results_);
     return;
   }
 
-  _ongoing = true;
-  _requestSuccessCallback = successCallback;
-  _requestErrorCallback = errorCallback;
-  result = ppm_request_permissions(permissionsToRequest.data(),
-                                   permissionsToRequest.size(),
+  on_going_ = true;
+  request_success_callback_ = success_callback;
+  request_error_callback_ = error_callback;
+  result = ppm_request_permissions(permissions_to_request.data(),
+                                   permissions_to_request.size(),
                                    OnRequestPermissionsResponse, this);
   if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    errorCallback(PPMErrorToString(result),
-                  "An error occurred when call ppm_request_permissions()");
-    _ongoing = false;
+    error_callback(PPMErrorToString(result),
+                   "An error occurred when call ppm_request_permissions()");
+    on_going_ = false;
   }
 }
 
@@ -223,17 +223,17 @@ int PermissionManager::DeterminePermissionStatus(int permission, int* status) {
   }
 
   int result;
-  ppm_check_result_e checkResult;
+  ppm_check_result_e check_result;
   for (auto iter : privileges) {
-    result = ppm_check_permission(iter, &checkResult);
+    result = ppm_check_permission(iter, &check_result);
     if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
       LOG_ERROR("ppm_check_permission (%s) error: %s", iter,
                 PPMErrorToString(result).c_str());
       return result;
     } else {
       LOG_DEBUG("ppm_check_permission (%s) result: %s", iter,
-                CheckResultToString(checkResult).c_str());
-      switch (checkResult) {
+                CheckResultToString(check_result).c_str());
+      switch (check_result) {
         case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
         case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
           *status = PERMISSION_STATUS_DENIED;
@@ -256,12 +256,12 @@ void PermissionManager::OnRequestPermissionsResponse(
     return;
   }
 
-  PermissionManager* permissionManager = (PermissionManager*)user_data;
+  PermissionManager* permission_manager = (PermissionManager*)user_data;
   if (cause != PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ANSWER) {
-    permissionManager->_requestErrorCallback(
+    permission_manager->request_error_callback_(
         "PrivacyPrivilegeManager - Request callback error",
         "ppm_request_permissions callback was called because of an error");
-    permissionManager->_ongoing = false;
+    permission_manager->on_going_ = false;
     return;
   }
 
@@ -269,41 +269,42 @@ void PermissionManager::OnRequestPermissionsResponse(
     LOG_DEBUG("ppm_request_permissions (%s) result: %s", privileges[i],
               RequestResultToString(results[i]).c_str());
 
-    int permission = permissionManager->ConvertToPermission(privileges[i]);
+    int permission = permission_manager->ConvertToPermission(privileges[i]);
     if (permission == PERMISSION_GROUP_UNKNOWN) {
       continue;
     }
 
-    if (permissionManager->_requestResults.count(permission) == 0) {
+    if (permission_manager->request_results_.count(permission) == 0) {
       switch (results[i]) {
         case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
-          permissionManager->_requestResults[permission] =
+          permission_manager->request_results_[permission] =
               PERMISSION_STATUS_GRANTED;
           break;
         case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
-          permissionManager->_requestResults[permission] =
+          permission_manager->request_results_[permission] =
               PERMISSION_STATUS_DENIED;
           break;
         case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
-          permissionManager->_requestResults[permission] =
+          permission_manager->request_results_[permission] =
               PERMISSION_STATUS_NEVER_ASK_AGAIN;
           break;
       }
     }
     LOG_DEBUG("permission %d status: %d", permission,
-              permissionManager->_requestResults[permission]);
+              permission_manager->request_results_[permission]);
   }
 
   auto location =
-      permissionManager->_requestResults.find(PERMISSION_GROUP_LOCATION);
-  if (location != permissionManager->_requestResults.end()) {
-    permissionManager->_requestResults[PERMISSION_GROUP_LOCATION_ALWAYS] =
+      permission_manager->request_results_.find(PERMISSION_GROUP_LOCATION);
+  if (location != permission_manager->request_results_.end()) {
+    permission_manager->request_results_[PERMISSION_GROUP_LOCATION_ALWAYS] =
         location->second;
-    permissionManager->_requestResults[PERMISSION_GROUP_LOCATION_WHEN_IN_USE] =
+    permission_manager
+        ->request_results_[PERMISSION_GROUP_LOCATION_WHEN_IN_USE] =
         location->second;
   }
 
-  permissionManager->_requestSuccessCallback(
-      permissionManager->_requestResults);
-  permissionManager->_ongoing = false;
+  permission_manager->request_success_callback_(
+      permission_manager->request_results_);
+  permission_manager->on_going_ = false;
 }

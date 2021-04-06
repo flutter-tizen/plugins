@@ -9,7 +9,8 @@
 #include "permission_manager.h"
 #include "service_manager.h"
 
-#define PERMISSION_HANDLER_CHANNEL_NAME "flutter.baseflow.com/permissions/methods"
+#define PERMISSION_HANDLER_CHANNEL_NAME \
+  "flutter.baseflow.com/permissions/methods"
 
 class PermissionHandlerTizenPlugin : public flutter::Plugin {
  public:
@@ -35,59 +36,60 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
 
  private:
   void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &methodCall,
+      const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_INFO("method : %s", methodCall.method_name().data());
+    auto method_name = method_call.method_name();
+    LOG_INFO("method : %s", method_name.data());
 
-    if (methodCall.method_name().compare("checkServiceStatus") == 0) {
-      const flutter::EncodableValue *arguments = methodCall.arguments();
+    if (method_name.compare("checkServiceStatus") == 0) {
+      const flutter::EncodableValue *arguments = method_call.arguments();
       if (std::holds_alternative<int32_t>(*arguments)) {
         int permission = std::get<int32_t>(*arguments);
         auto reply = result.release();
-        auto onSuccess = [reply](int status) {
+        auto on_success = [reply](int status) {
           reply->Success(flutter::EncodableValue(status));
           delete reply;
         };
-        auto onError = [reply](const std::string &code,
-                               const std::string &message) {
+        auto on_error = [reply](const std::string &code,
+                                const std::string &message) {
           reply->Error(code, message);
           delete reply;
         };
-        _serviceManager.CheckServiceStatus(permission, onSuccess, onError);
+        service_manager_.CheckServiceStatus(permission, on_success, on_error);
       } else {
         result->Error("MethodCall - Invalid arguments",
                       "arguments type of method checkServiceStatus isn't int");
       }
-    } else if (methodCall.method_name().compare("checkPermissionStatus") == 0) {
-      const flutter::EncodableValue *arguments = methodCall.arguments();
+    } else if (method_name.compare("checkPermissionStatus") == 0) {
+      const flutter::EncodableValue *arguments = method_call.arguments();
       if (std::holds_alternative<int32_t>(*arguments)) {
         int permission = std::get<int32_t>(*arguments);
         auto reply = result.release();
-        auto onSuccess = [reply](int status) {
+        auto on_success = [reply](int status) {
           reply->Success(flutter::EncodableValue(status));
           delete reply;
         };
-        auto onError = [reply](const std::string &code,
-                               const std::string &message) {
+        auto on_error = [reply](const std::string &code,
+                                const std::string &message) {
           reply->Error(code, message);
           delete reply;
         };
-        _permissionManager.CheckPermissionStatus(permission, onSuccess,
-                                                 onError);
+        permission_manager_.CheckPermissionStatus(permission, on_success,
+                                                  on_error);
       } else {
         result->Error(
             "MethodCall - Invalid arguments",
             "arguments type of method checkPermissionStatus isn't int");
       }
-    } else if (methodCall.method_name().compare("requestPermissions") == 0) {
-      const flutter::EncodableValue *arguments = methodCall.arguments();
+    } else if (method_name.compare("requestPermissions") == 0) {
+      const flutter::EncodableValue *arguments = method_call.arguments();
       if (std::holds_alternative<flutter::EncodableList>(*arguments)) {
         std::vector<int> permissions;
         for (auto iter : std::get<flutter::EncodableList>(*arguments)) {
           permissions.push_back(std::get<int32_t>(iter));
         }
         auto reply = result.release();
-        auto onSuccess = [reply](const std::map<int, int> &results) {
+        auto on_success = [reply](const std::map<int, int> &results) {
           flutter::EncodableMap encodables;
           for (auto [key, value] : results) {
             encodables.emplace(flutter::EncodableValue(key),
@@ -96,38 +98,39 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
           reply->Success(flutter::EncodableValue(encodables));
           delete reply;
         };
-        auto onError = [reply](const std::string &code,
-                               const std::string &message) {
+        auto on_error = [reply](const std::string &code,
+                                const std::string &message) {
           reply->Error(code, message);
           delete reply;
         };
-        _permissionManager.RequestPermissions(permissions, onSuccess, onError);
+        permission_manager_.RequestPermissions(permissions, on_success,
+                                               on_error);
       } else {
         result->Error("MethodCall - Invalid arguments",
                       "arguments type of method requestPermissions isn't "
                       "vector<int32_t>");
       }
-    } else if (methodCall.method_name().compare("openAppSettings") == 0) {
+    } else if (method_name.compare("openAppSettings") == 0) {
       auto reply = result.release();
-      auto onSuccess = [reply](bool result) {
+      auto on_success = [reply](bool result) {
         reply->Success(flutter::EncodableValue(result));
         delete reply;
       };
-      auto onError = [reply](const std::string &code,
-                             const std::string &message) {
+      auto on_error = [reply](const std::string &code,
+                              const std::string &message) {
         reply->Error(code, message);
         delete reply;
       };
-      _appSettingsManager.OpenAppSettings(onSuccess, onError);
+      app_settings_manager_.OpenAppSettings(on_success, on_error);
     } else {
       result->NotImplemented();
       return;
     }
   }
 
-  PermissionManager _permissionManager;
-  AppSettingsManager _appSettingsManager;
-  ServiceManager _serviceManager;
+  PermissionManager permission_manager_;
+  AppSettingsManager app_settings_manager_;
+  ServiceManager service_manager_;
 };
 
 void PermissionHandlerTizenPluginRegisterWithRegistrar(

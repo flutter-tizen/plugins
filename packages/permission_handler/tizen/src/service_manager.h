@@ -13,8 +13,8 @@ class ServiceManager {
   ServiceManager();
   ~ServiceManager();
 
-  void CheckServiceStatus(int permission, OnServiceChecked successCallback,
-                          OnServiceError errorCallback);
+  void CheckServiceStatus(int permission, OnServiceChecked success_callback,
+                          OnServiceError error_callback);
 };
 
 #endif  // SERVICE_MANAGER_H_

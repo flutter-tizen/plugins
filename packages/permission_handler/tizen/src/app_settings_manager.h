@@ -13,8 +13,8 @@ class AppSettingsManager {
   AppSettingsManager();
   ~AppSettingsManager();
 
-  void OpenAppSettings(OnAppSettingsOpened successCallback,
-                       OnAppSettingsError errorCallback);
+  void OpenAppSettings(OnAppSettingsOpened success_callback,
+                       OnAppSettingsError error_callback);
 };
 
 #endif  // APP_SETTINGS_MANAGER_H_

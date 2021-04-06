@@ -10,31 +10,28 @@ ServiceManager::ServiceManager() {}
 ServiceManager::~ServiceManager() {}
 
 void ServiceManager::CheckServiceStatus(int permission,
-                                        OnServiceChecked successCallback,
-                                        OnServiceError errorCallback) {
+                                        OnServiceChecked success_callback,
+                                        OnServiceError error_callback) {
   if (permission == PERMISSION_GROUP_LOCATION ||
       permission == PERMISSION_GROUP_LOCATION_ALWAYS ||
       permission == PERMISSION_GROUP_LOCATION_WHEN_IN_USE) {
-    bool isGPSEnabled, isWPSEnabled;
-    int ret =
-        location_manager_is_enabled_method(LOCATIONS_METHOD_GPS, &isGPSEnabled);
-    if (ret != LOCATIONS_ERROR_NONE) {
-      isGPSEnabled = false;
+    bool gps_enabled, wps_enabled;
+    if (location_manager_is_enabled_method(
+            LOCATIONS_METHOD_GPS, &gps_enabled) != LOCATIONS_ERROR_NONE) {
+      gps_enabled = false;
+    }
+    if (location_manager_is_enabled_method(
+            LOCATIONS_METHOD_WPS, &wps_enabled) != LOCATIONS_ERROR_NONE) {
+      wps_enabled = false;
     }
 
-    ret =
-        location_manager_is_enabled_method(LOCATIONS_METHOD_WPS, &isWPSEnabled);
-    if (ret != LOCATIONS_ERROR_NONE) {
-      isWPSEnabled = false;
-    }
-
-    if (isGPSEnabled || isWPSEnabled) {
-      successCallback(SERVICE_STATUS_ENABLED);
+    if (gps_enabled || wps_enabled) {
+      success_callback(SERVICE_STATUS_ENABLED);
     } else {
-      successCallback(SERVICE_STATUS_DISABLED);
+      success_callback(SERVICE_STATUS_DISABLED);
     }
     return;
   }
 
-  successCallback(SERVICE_STATUS_NOT_APPLICABLE);
+  success_callback(SERVICE_STATUS_NOT_APPLICABLE);
 }

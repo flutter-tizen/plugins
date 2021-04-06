@@ -20,11 +20,11 @@ class PermissionManager {
   ~PermissionManager();
 
   void CheckPermissionStatus(int permission,
-                             OnPermissionChecked successCallback,
-                             OnPermissionError errorCallback);
+                             OnPermissionChecked success_callback,
+                             OnPermissionError error_callback);
   void RequestPermissions(std::vector<int> permissions,
-                          OnPermissionRequested successCallback,
-                          OnPermissionError errorCallback);
+                          OnPermissionRequested success_callback,
+                          OnPermissionError error_callback);
 
  private:
   int ConvertToPermission(const std::string &privilege);
@@ -38,10 +38,10 @@ class PermissionManager {
                                            size_t privileges_count,
                                            void *user_data);
 
-  bool _ongoing;
-  OnPermissionRequested _requestSuccessCallback;
-  OnPermissionError _requestErrorCallback;
-  std::map<int, int> _requestResults;
+  bool on_going_;
+  OnPermissionRequested request_success_callback_;
+  OnPermissionError request_error_callback_;
+  std::map<int, int> request_results_;
 };
 
 #endif  // PERMISSION_MANAGER_H_
