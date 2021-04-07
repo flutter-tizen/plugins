@@ -1,0 +1,31 @@
+name: permission_handler_example
+description: Demonstrates how to use the permission_handler_tizen plugin.
+
+dependencies:
+  flutter:
+    sdk: flutter
+  permission_handler: ^6.1.1
+  permission_handler_tizen:
+    path: ../
+  url_launcher: ^6.0.2
+  url_launcher_tizen: ^2.0.0
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
+
+flutter:
+  uses-material-design: true
+  assets:
+    - res/images/baseflow_logo_def_light-02.png
+    - res/images/poweredByBaseflowLogoLight@3x.png
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"

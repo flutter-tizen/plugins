@@ -1,0 +1,20 @@
+name: permission_handler_tizen
+description: Tizen implementation of the permission_handler plugin
+homepage: https://github.com/flutter-tizen/plugins
+version: 1.0.0
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: PermissionHandlerTizenPlugin
+        fileName: permission_handler_tizen_plugin.h
+
+dependencies:
+  flutter:
+    sdk: flutter
+  permission_handler_platform_interface: ^3.1.1
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
