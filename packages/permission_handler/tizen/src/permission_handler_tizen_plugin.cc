@@ -39,7 +39,7 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     auto method_name = method_call.method_name();
-    LOG_INFO("method : %s", method_name.data());
+    LOG_INFO("method : %s", method_name.c_str());
 
     if (method_name.compare("checkServiceStatus") == 0) {
       const flutter::EncodableValue *arguments = method_call.arguments();
