@@ -20,7 +20,7 @@ USER_CPPFLAGS_MISC = -c -fmessage-length=0
 USER_LFLAGS = -llightweight-web-engine.flutter -Wl,-rpath='$$ORIGIN'
 
 # Libraries and objects
-USER_LIB_DIRS = lib
+USER_LIB_DIRS = lib/${BUILD_ARCH}
 USER_LIBS = lightweight-web-engine.flutter
 USER_OBJS =
 
