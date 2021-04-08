@@ -147,9 +147,9 @@ class CameraPlugin : public flutter::Plugin {
       bool /*TODO : enable_audio_value*/) {
     CameraDeviceType type;
     if (camera_name == "camera1") {
-      type = CameraDeviceType::Rear;
+      type = CameraDeviceType::kRear;
     } else {
-      type = CameraDeviceType::Front;
+      type = CameraDeviceType::kFront;
     }
     camera_ =
         std::make_unique<CameraDevice>(registrar_, texture_registrar_, type);
