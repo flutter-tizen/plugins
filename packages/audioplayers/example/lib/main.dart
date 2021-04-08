@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'dart:async';
 import 'dart:io';
 
@@ -49,7 +50,7 @@ class _ExampleAppState extends State<ExampleApp> {
   }
 
   Future _loadFile() async {
-    final bytes = await readBytes(kUrl4);
+    final bytes = await readBytes(Uri.parse(kUrl4));
     final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/audio.mp3');
 
@@ -165,7 +166,7 @@ class _ExampleAppState extends State<ExampleApp> {
     return duration;
   }
 
-  getLocalFileDuration() {
+  FutureBuilder<int> getLocalFileDuration() {
     return FutureBuilder<int>(
       future: _getDuration(),
       builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
@@ -241,7 +242,8 @@ class Advanced extends StatefulWidget {
   final AudioPlayer advancedPlayer;
   final AudioCache audioCache;
 
-  const Advanced({Key key, this.audioCache, this.advancedPlayer}) : super(key: key);
+  const Advanced({Key key, this.audioCache, this.advancedPlayer})
+      : super(key: key);
 
   @override
   _AdvancedState createState() => _AdvancedState();
@@ -252,8 +254,8 @@ class _AdvancedState extends State<Advanced> {
 
   @override
   void initState() {
-    widget.advancedPlayer.seekCompleteHandler =
-        (finished) => setState(() => seekDone = finished);
+    widget.advancedPlayer.onSeekComplete
+        .listen((event) => setState(() => seekDone = true));
     super.initState();
   }
 
@@ -268,19 +270,19 @@ class _AdvancedState extends State<Advanced> {
               Text('Source Url'),
               Row(children: [
                 _Btn(
-                  txt: 'Audio 1',
-                  onPressed: () async {
-                      String url = await widget.audioCache.getAbsoluteUrl('audio.mp3');
+                    txt: 'Audio 1',
+                    onPressed: () async {
+                      String url =
+                          await widget.audioCache.getAbsoluteUrl('audio.mp3');
                       widget.advancedPlayer.setUrl(url);
-                  }
-                ),
+                    }),
                 _Btn(
-                  txt: 'Audio 2',
-                  onPressed: () async {
-                      String url = await widget.audioCache.getAbsoluteUrl('audio2.mp3');
+                    txt: 'Audio 2',
+                    onPressed: () async {
+                      String url =
+                          await widget.audioCache.getAbsoluteUrl('audio2.mp3');
                       widget.advancedPlayer.setUrl(url);
-                  }
-                ),
+                    }),
                 _Btn(
                   txt: 'Stream',
                   onPressed: () => widget.advancedPlayer.setUrl(kUrl3),

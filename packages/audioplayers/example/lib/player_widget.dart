@@ -1,3 +1,4 @@
+// @dart = 2.9
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -39,12 +40,12 @@ class _PlayerWidgetState extends State<PlayerWidget> {
   StreamSubscription _playerStateSubscription;
   StreamSubscription<PlayerControlCommand> _playerControlCommandSubscription;
 
-  get _isPlaying => _playerState == PlayerState.playing;
-  get _isPaused => _playerState == PlayerState.paused;
-  get _durationText => _duration?.toString()?.split('.')?.first ?? '';
-  get _positionText => _position?.toString()?.split('.')?.first ?? '';
+  bool get _isPlaying => _playerState == PlayerState.playing;
+  bool get _isPaused => _playerState == PlayerState.paused;
+  String get _durationText => _duration?.toString()?.split('.')?.first ?? '';
+  String get _positionText => _position?.toString()?.split('.')?.first ?? '';
 
-  get _isPlayingThroughEarpiece =>
+  bool get _isPlayingThroughEarpiece =>
       _playingRouteState == PlayingRouteState.earpiece;
 
   _PlayerWidgetState(this.url, this.mode);

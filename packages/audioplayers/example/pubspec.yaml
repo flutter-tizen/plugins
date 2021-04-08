@@ -1,22 +1,17 @@
 name: audioplayers_tizen_example
 description: Demonstrates how to use the audioplayers plugin.
+publish_to: 'none'
 
 dependencies:
-  flutter:
-    sdk: flutter
-  audioplayers: ^0.17.0
+  audioplayers: ^0.18.3
   audioplayers_tizen:
     path: ../
-  path_provider: ^1.6.10
-  path_provider_tizen:
-    path: ../../path_provider/
-  http: ^0.12.2
-  provider: ^3.0.0+1
-
-dev_dependencies:
-  flutter_driver:
+  flutter:
     sdk: flutter
-  test: any
+  http: ^0.13.1
+  path_provider: ^2.0.1
+  path_provider_tizen: ^2.0.0
+  provider: ^5.0.0
 
 flutter:
   uses-material-design: true
@@ -27,5 +22,5 @@ flutter:
     - assets/messenger.mp3
 
 environment:
-  sdk: ">=2.2.2 <3.0.0"
-  flutter: ">=1.12.13+hotfix.5 <2.0.0"
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"

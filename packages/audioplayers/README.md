@@ -2,9 +2,28 @@
 
 The Tizen implementation of [`audioplayers`](https://github.com/luanpotter/audioplayers).
 
+## Usage
+
+This package is not an _endorsed_ implementation of `audioplayers`. Therefore, you have to include `audioplayers_tizen` alongside `audioplayers` as dependencies in your `pubspec.yaml` file.
+
+```yaml
+dependencies:
+  audioplayers: ^0.18.3
+  audioplayers_tizen: ^2.0.0
+```
+
+Then you can import `audioplayers` in your Dart code:
+
+```dart
+import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
+```
+
+For detailed usage, see https://github.com/luanpotter/audioplayers#usage.
+
 ## Required privileges
 
-To use this plugin in a Tizen application, the mediastorage, externalstorage and internet privileges are required. Add below lines under the `<manifest>` section in your `tizen-manifest.xml` file.
+To use this plugin in a Tizen application, the mediastorage, externalstorage and internet privileges may be required. Add below lines under the `<manifest>` section in your `tizen-manifest.xml` file.
 
 ```xml
 <privileges>
@@ -18,28 +37,13 @@ To use this plugin in a Tizen application, the mediastorage, externalstorage and
 - The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) must be added if any audio files are used to play located in the external storage.
 - The internet privilege (`http://tizen.org/privilege/internet`) must be added if any URLs are used to play from network.
 
-For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
+For details about Tizen privileges, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
 
-## Usage
-
-To use this plugin in a Tizen application, you have to include `audioplayers_tizen` alongside `audioplayers` as dependencies in your `pubspec.yaml` file.
-
-```yaml
-dependencies:
-  audioplayers: ^0.17.0
-  audioplayers_tizen: ^1.0.0
-```
-
-Then you can import `audioplayers` in your Dart code:
-
-```dart
-import 'package:audioplayers/audio_cache.dart';
-import 'package:audioplayers/audioplayers.dart';
-```
+## Some notes
 
 `earpieceOrSpeakersToggle` isn't supported on Tizen. `AudioPlay` will change stream routing automatically on Tizen, you can't choose speakers or earpiece.
 
-`AudioPlay` support `playBytes` on Tizen, to use this api, you have to modify the `audioplayers.dart`.
+`AudioPlay` supports `playBytes` on Tizen, to use this api, you have to modify the `audioplayers.dart`.
 
 ```dart
   Future<int> playBytes(
@@ -81,5 +85,3 @@ import 'package:audioplayers/audioplayers.dart';
     return result;
   }
 ```
-
-For how to use the plugin, see https://github.com/luanpotter/audioplayers#usage.
