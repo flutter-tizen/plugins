@@ -10,9 +10,9 @@
 #include <flutter/plugin_registrar.h>
 
 enum class CameraEventType {
-  Error,
-  CameraClosing,
-  Initialized,
+  kError,
+  kCameraClosing,
+  kInitialized,
 };
 
 class CameraMethodChannel {
