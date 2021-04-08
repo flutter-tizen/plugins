@@ -1,0 +1,23 @@
+name: webview_flutter_tizen_example
+description: Demonstrates how to use the webview_flutter_tizen plugin.
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.20.0 <2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_flutter: ^1.0.6
+  webview_flutter_tizen:
+    path: ../
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  integration_test: ^1.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
+
+flutter:
+  uses-material-design: true
