@@ -14,7 +14,7 @@
 #define DEVICE_CHANNEL_NAME "flutter.io/cameraPlugin/device"
 
 std::string EventTypeToString(DeviceEventType type) {
-  if (type == DeviceEventType::OrientationChanged) {
+  if (type == DeviceEventType::kOrientationChanged) {
     return "orientation_changed";
   }
   LOG_WARN("Unknown event type!");

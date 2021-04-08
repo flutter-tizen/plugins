@@ -31,12 +31,15 @@ flutter::EncodableValue CameraDevice::GetAvailableCameras() {
         flutter::EncodableValue(lensFacing);
 
     cameras.push_back(flutter::EncodableValue(camera));
-    default_camera.ChangeCameraDeviceType(CameraDeviceType::Front);
+    default_camera.ChangeCameraDeviceType(CameraDeviceType::kFront);
   }
   return flutter::EncodableValue(cameras);
 }
 
-CameraDevice::CameraDevice() { CreateCameraHandle(); }
+CameraDevice::CameraDevice() {
+  CreateCameraHandle();
+  state_ = GetState();
+}
 
 CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
                            FlutterTextureRegistrar *texture_registrar,
@@ -50,9 +53,22 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
   camera_method_channel_ =
       std::make_unique<CameraMethodChannel>(registrar_, texture_id_);
   device_method_channel_ = std::make_unique<DeviceMethodChannel>(registrar_);
-  orientation_event_listner_ =
-      std::make_unique<OrientationEventListner>(device_method_channel_.get());
-  orientation_event_listner_->Start();
+  orientation_manager_ = std::make_unique<OrientationManager>(
+      device_method_channel_.get(), (OrientationType)GetLensOrientation(),
+      type == CameraDeviceType::kFront);
+
+  // Send initial orientation
+  auto target_orientation = orientation_manager_->ConvertTargetOrientation(
+      OrientationType::kPortraitUp);
+  orientation_manager_->SendOrientation(target_orientation);
+  orientation_manager_->Start();
+
+  state_ = GetState();
+  // Print camera info for convenience of development, These will be removed
+  // after release
+  PrintState();
+  PrintPreviewRotation();
+  PrintSupportedPreviewResolution();
 }
 
 CameraDevice::~CameraDevice() { Dispose(); }
@@ -61,8 +77,6 @@ void CameraDevice::CreateCameraHandle() {
   int error = camera_create((camera_device_e)type_, &handle_);
   LOG_ERROR_IF(error != CAMERA_ERROR_NONE, "camera_create fail - error : %s",
                get_error_message(error));
-  PrintState();
-  PrintPreviewRotation();
 }
 
 void CameraDevice::DestroyCameraHandle() {
@@ -84,12 +98,15 @@ void CameraDevice::ChangeCameraDeviceType(CameraDeviceType type) {
 
 void CameraDevice::Dispose() {
   LOG_DEBUG("enter");
-  StopPreview();
-  UnsetMediaPacketPreviewCb();
+  if (state_ == CameraDeviceState::kPreview) {
+    StopPreview();
+    UnsetMediaPacketPreviewCb();
+  }
+
   DestroyCameraHandle();
 
-  if (orientation_event_listner_) {
-    orientation_event_listner_->Stop();
+  if (orientation_manager_) {
+    orientation_manager_->Stop();
   }
 
   if (texture_registrar_) {
@@ -122,27 +139,48 @@ int CameraDevice::GetLensOrientation() {
   return angle;
 }
 
-void CameraDevice::PrintState() {
+CameraDeviceState CameraDevice::GetState() {
   camera_state_e state;
-  camera_get_state(handle_, &state);
-  switch (state) {
-    case CAMERA_STATE_NONE:
-      LOG_DEBUG("CAMERA_STATE_NONE");
+  int error = camera_get_state(handle_, &state);
+  LOG_ERROR_IF(error != CAMERA_ERROR_NONE, "camera_get_state fail - error : %s",
+               get_error_message(error));
+  return (CameraDeviceState)state;
+}
+
+void CameraDevice::PrintSupportedPreviewResolution() {
+  LOG_DEBUG("enter");
+  int error = camera_foreach_supported_preview_resolution(
+      handle_,
+      [](int width, int height, void *user_data) -> bool {
+        LOG_DEBUG("supported preview w[%d] h[%d]", width, height);
+        return true;
+      },
+      nullptr);
+
+  LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
+               "camera_foreach_supported_preview_resolution fail - error : %s",
+               get_error_message(error));
+}
+
+void CameraDevice::PrintState() {
+  switch (state_) {
+    case CameraDeviceState::kNone:
+      LOG_DEBUG("CameraDeviceState[None]");
       break;
-    case CAMERA_STATE_CREATED:
-      LOG_DEBUG("CAMERA_STATE_CREATED");
+    case CameraDeviceState::kCreated:
+      LOG_DEBUG("CameraDeviceState[Created]");
       break;
-    case CAMERA_STATE_PREVIEW:
-      LOG_DEBUG("CAMERA_STATE_PREVIEW");
+    case CameraDeviceState::kPreview:
+      LOG_DEBUG("CameraDeviceState[Preview]");
       break;
-    case CAMERA_STATE_CAPTURING:
-      LOG_DEBUG("CAMERA_STATE_CAPTURING");
+    case CameraDeviceState::kCapturing:
+      LOG_DEBUG("CameraDeviceState[Capturing]");
       break;
-    case CAMERA_STATE_CAPTURED:
-      LOG_DEBUG("CAMERA_STATE_CAPTURED");
+    case CameraDeviceState::kCaputred:
+      LOG_DEBUG("CameraDeviceState[Caputred]");
       break;
     default:
-      LOG_DEBUG("Unknown State");
+      LOG_DEBUG("CameraDeviceState[Unknown]");
       break;
   }
 }
@@ -175,13 +213,23 @@ Size CameraDevice::GetRecommendedPreviewResolution() {
   LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
                "camera_get_recommended_preview_resolution fail - error : %s",
                get_error_message(error));
-  preview_size.width = w;
-  preview_size.height = h;
-  LOG_DEBUG("width[%d] height[%d]", preview_size.width, preview_size.height);
+
+  auto target_orientation = orientation_manager_->ConvertTargetOrientation(
+      OrientationType::kPortraitUp);
+  if (target_orientation == OrientationType::kLandscapeLeft ||
+      target_orientation == OrientationType::kLandscapeRight) {
+    preview_size.width = h;
+    preview_size.height = w;
+  } else {
+    preview_size.width = w;
+    preview_size.height = h;
+  }
+
+  LOG_DEBUG("width[%f] height[%f]", preview_size.width, preview_size.height);
   return preview_size;
 }
 
-bool CameraDevice::Open(std::string /* TODO : image_format_group*/) {
+bool CameraDevice::Open(std::string /* TODO : image_format_group */) {
   LOG_DEBUG("enter");
   SetMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
     tbm_surface_h surface = nullptr;
@@ -225,7 +273,7 @@ bool CameraDevice::Open(std::string /* TODO : image_format_group*/) {
       flutter::EncodableValue(false);
 
   auto value = std::make_unique<flutter::EncodableValue>(map);
-  camera_method_channel_->Send(CameraEventType::Initialized, std::move(value));
+  camera_method_channel_->Send(CameraEventType::kInitialized, std::move(value));
   return true;
 }
 
@@ -237,6 +285,21 @@ bool CameraDevice::SetMediaPacketPreviewCb(MediaPacketPreviewCb callback) {
 
   return true;
 }
+
+bool CameraDevice::SetPreviewSize(Size size) {
+  int w, h;
+  w = (int)size.width;
+  h = (int)size.height;
+
+  LOG_DEBUG("camera_set_preview_resolution w[%d] h[%d]", w, h);
+
+  int error = camera_set_preview_resolution(handle_, w, h);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_set_preview_resolution fail - error : %s",
+                    get_error_message(error));
+  return true;
+}
+
 bool CameraDevice::UnsetMediaPacketPreviewCb() {
   int error = camera_unset_media_packet_preview_cb(handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
@@ -251,6 +314,8 @@ bool CameraDevice::StartPreview() {
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_start_preview fail - error : %s",
                     get_error_message(error));
+
+  state_ = GetState();
   return true;
 }
 
@@ -259,5 +324,7 @@ bool CameraDevice::StopPreview() {
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_stop_preview fail - error : %s",
                     get_error_message(error));
+
+  state_ = GetState();
   return true;
 }
