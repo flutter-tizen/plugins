@@ -15,7 +15,13 @@
 #include "device_method_channel.h"
 #include "orientation_manager.h"
 
-typedef camera_media_packet_preview_cb MediaPacketPreviewCb;
+using MediaPacketPreviewCb = camera_media_packet_preview_cb;
+using CameraCapturingCb = camera_capturing_cb;
+using CameraCaptureCompletedCb = camera_capture_completed_cb;
+using OnCaptureSuccessCb =
+    std::function<void(const std::string &captured_file_path)>;
+using OnCaptureFailureCb =
+    std::function<void(const std::string &code, const std::string &message)>;
 
 enum class CameraDeviceType {
   kRear =
@@ -29,6 +35,24 @@ enum class CameraDeviceState {
   kPreview = CAMERA_STATE_PREVIEW,
   kCapturing = CAMERA_STATE_CAPTURING,
   kCaputred = CAMERA_STATE_CAPTURED,
+};
+
+enum class ExifTagOrientation {
+  kTopLeft = CAMERA_ATTR_TAG_ORIENTATION_TOP_LEFT,
+  kTopRight = CAMERA_ATTR_TAG_ORIENTATION_TOP_RIGHT,
+  kBottomRight = CAMERA_ATTR_TAG_ORIENTATION_BOTTOM_RIGHT,
+  kBottomLeft = CAMERA_ATTR_TAG_ORIENTATION_BOTTOM_LEFT,
+  kLeftTop = CAMERA_ATTR_TAG_ORIENTATION_LEFT_TOP,
+  kRightTop = CAMERA_ATTR_TAG_ORIENTATION_RIGHT_TOP,
+  kRightBottom = CAMERA_ATTR_TAG_ORIENTATION_RIGHT_BOTTOM,
+  kLeftBottom = CAMERA_ATTR_TAG_ORIENTATION_LEFT_BOTTOM,
+};
+
+enum class CameraFlip {
+  kNone = CAMERA_FLIP_NONE,
+  kHorizontal = CAMERA_FLIP_HORIZONTAL,
+  kVertical = CAMERA_FLIP_VERTICAL,
+  kBoth = CAMERA_FLIP_BOTH,
 };
 
 struct Size {
@@ -53,22 +77,29 @@ class CameraDevice {
   FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
   bool Open(std::string image_format_group);
+  void TakePicture(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
 
  private:
   void CreateCameraHandle();
   int GetDeviceCount();
   int GetLensOrientation();
   CameraDeviceState GetState();
+  bool SetExifTagEnable(bool enable);
+  bool SetExifTagOrientatoin(ExifTagOrientation orientation);
+  bool SetCameraFlip(CameraFlip flip);
   bool SetMediaPacketPreviewCb(MediaPacketPreviewCb callback);
   bool SetPreviewSize(Size size);
+  bool StartCapture(OnCaptureSuccessCb on_success,
+                    OnCaptureFailureCb on_failure);
   bool StartPreview();
   bool StopPreview();
   bool UnsetMediaPacketPreviewCb();
   void DestroyCameraHandle();
 
-  void PrintSupportedPreviewResolution();
+  bool PrintSupportedPreviewResolution();
   void PrintState();
-  void PrintPreviewRotation();
+  bool PrintPreviewRotation();
 
   flutter::PluginRegistrar *registrar_{nullptr};
   FlutterTextureRegistrar *texture_registrar_{nullptr};

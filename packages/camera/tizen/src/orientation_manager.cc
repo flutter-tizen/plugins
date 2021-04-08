@@ -41,16 +41,21 @@ OrientationType OrientationManager::ConvertTargetOrientation(
     OrientationType orientation_event_type) {
   int degree = (int)orientation_event_type;
   if (is_front_lens_facing_) {
-    degree = 180 - degree;
+    degree = 180 + degree;
   }
-  int target = (degree + (int)lens_orientation_ + 360) % 360;
+  int target = (degree + (int)lens_orientation_) % 360;
   return (OrientationType)target;
+}
+
+OrientationType OrientationManager::GetDeviceOrientationType() {
+  app_device_orientation_e orientation = app_get_device_orientation();
+  return (OrientationType)orientation;
 }
 
 void OrientationManager::SendOrientation(OrientationType orientation) {
   std::string orientation_str = EventTypeToString((OrientationType)orientation);
 
-  LOG_DEBUG("Send Orientation [%d] : %s", orientation, orientation_str.data());
+  LOG_DEBUG("Send Orientation [%d] : %s", orientation, orientation_str.c_str());
 
   flutter::EncodableMap map;
   map[flutter::EncodableValue("orientation")] =
