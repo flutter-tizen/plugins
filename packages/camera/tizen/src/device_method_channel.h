@@ -10,7 +10,7 @@
 #include <flutter/plugin_registrar.h>
 
 enum class DeviceEventType {
-  OrientationChanged,
+  kOrientationChanged,
 };
 
 class DeviceMethodChannel {

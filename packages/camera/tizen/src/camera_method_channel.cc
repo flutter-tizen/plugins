@@ -14,11 +14,11 @@
 #define CAMERA_CHANNEL_NAME_BASE "flutter.io/cameraPlugin/camera"
 
 std::string EventTypeToString(CameraEventType type) {
-  if (type == CameraEventType::Error) {
+  if (type == CameraEventType::kError) {
     return "error";
-  } else if (type == CameraEventType::CameraClosing) {
+  } else if (type == CameraEventType::kCameraClosing) {
     return "cameraClosing";
-  } else if (type == CameraEventType::Initialized) {
+  } else if (type == CameraEventType::kInitialized) {
     return "initialized";
   }
   LOG_WARN("Unknown event type!");
