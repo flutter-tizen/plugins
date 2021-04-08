@@ -3,7 +3,7 @@
 
 APPNAME = audioplayers_tizen_plugin
 type = sharedLib
-profile = common-5.5
+profile = common-4.0
 
 # Source files
 USER_SRCS += src/audioplayers_tizen_plugin.cc src/audio_player.cc

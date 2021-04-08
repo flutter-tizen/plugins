@@ -103,12 +103,6 @@ static std::string PlayerErrorToString(int code) {
     case PLAYER_ERROR_NOT_SUPPORTED_SUBTITLE:
       result = "player - Not supported subtitle format";
       break;
-    case PLAYER_ERROR_NOT_SUPPORTED_FORMAT:
-      result = "player - Not supported format";
-      break;
-    case PLAYER_ERROR_NOT_AVAILABLE:
-      result = "player - Not available operation";
-      break;
     default:
       result = "player - Unkonwn error";
       break;
@@ -196,7 +190,7 @@ void AudioPlayer::Pause() {
 }
 
 void AudioPlayer::Stop() {
-  LOG_INFO("AudioPlayer %s is stoping...", playerId_.c_str());
+  LOG_INFO("AudioPlayer %s is stopping...", playerId_.c_str());
   if (releaseMode_ == RELEASE) {
     Release();
   } else {
