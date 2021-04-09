@@ -30,7 +30,7 @@ CameraMethodChannel::CameraMethodChannel(flutter::PluginRegistrar* registrar,
   std::string channel_name = CAMERA_CHANNEL_NAME_BASE;
   channel_name += std::to_string(event_channel_Id);
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-      registrar->messenger(), channel_name.data(),
+      registrar->messenger(), channel_name.c_str(),
       &flutter::StandardMethodCodec::GetInstance());
 }
 

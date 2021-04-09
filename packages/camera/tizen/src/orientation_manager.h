@@ -25,6 +25,7 @@ class OrientationManager {
 
   OrientationType ConvertTargetOrientation(
       OrientationType orientation_event_type);
+  OrientationType GetDeviceOrientationType();
   void SendOrientation(OrientationType orientation);
   void Start();
   void Stop();
