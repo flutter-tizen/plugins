@@ -4,9 +4,74 @@
 
 #include "camera_device.h"
 
+#include <app_common.h>
 #include <flutter/encodable_value.h>
+#include <sys/time.h>
 
 #include "log.h"
+
+static uint64_t Timestamp() {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (uint64_t)tv.tv_sec * 1000UL + tv.tv_usec / 1000UL;
+}
+
+static std::string CreateTempFileName(const std::string &prefix,
+                                      const std::string &extension) {
+  std::string file_name;
+  char *cache_dir_path = app_get_cache_path();
+  if (!cache_dir_path) {
+    return file_name;
+  }
+  file_name.append(cache_dir_path);
+  file_name.append(prefix);
+  file_name.append(std::to_string(Timestamp()));
+  file_name.append(".");
+  file_name.append(extension);
+  free(cache_dir_path);
+  return file_name;
+}
+
+static ExifTagOrientation ChooseExifTagOrientatoin(
+    OrientationType device_orientation, bool is_front_lens_facing) {
+  ExifTagOrientation orientation = ExifTagOrientation::kTopLeft;
+
+  switch (device_orientation) {
+    case OrientationType::kPortraitUp:
+      if (is_front_lens_facing) {
+        orientation = ExifTagOrientation::kLeftBottom;
+      } else {
+        orientation = ExifTagOrientation::kRightTop;
+      }
+      break;
+    case OrientationType::kLandscapeLeft:
+      if (is_front_lens_facing) {
+        orientation = ExifTagOrientation::kTopLeft;
+      } else {
+        orientation = ExifTagOrientation::kBottomLeft;
+      }
+      break;
+    case OrientationType::kPortraitDown:
+      if (is_front_lens_facing) {
+        orientation = ExifTagOrientation::kRightTop;
+      } else {
+        orientation = ExifTagOrientation::kLeftBottom;
+      }
+      break;
+    case OrientationType::kLandscapeRight:
+      if (is_front_lens_facing) {
+        orientation = ExifTagOrientation::kBottomRight;
+      } else {
+        orientation = ExifTagOrientation::kTopRight;
+      }
+      break;
+    default:
+      LOG_ERROR("Unknown OrientationType!");
+      break;
+  }
+
+  return orientation;
+}
 
 flutter::EncodableValue CameraDevice::GetAvailableCameras() {
   CameraDevice default_camera;
@@ -48,6 +113,12 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
       texture_registrar_(texture_registrar),
       type_(type) {
   CreateCameraHandle();
+  SetExifTagEnable(true);
+
+  if (type == CameraDeviceType::kFront) {
+    SetCameraFlip(CameraFlip::kVertical);
+  }
+
   texture_id_ = FlutterRegisterExternalTexture(texture_registrar_);
   LOG_DEBUG("texture_id_[%ld]", texture_id_);
   camera_method_channel_ =
@@ -57,9 +128,11 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
       device_method_channel_.get(), (OrientationType)GetLensOrientation(),
       type == CameraDeviceType::kFront);
 
+  OrientationType device_orientation =
+      orientation_manager_->GetDeviceOrientationType();
   // Send initial orientation
-  auto target_orientation = orientation_manager_->ConvertTargetOrientation(
-      OrientationType::kPortraitUp);
+  OrientationType target_orientation =
+      orientation_manager_->ConvertTargetOrientation(device_orientation);
   orientation_manager_->SendOrientation(target_orientation);
   orientation_manager_->Start();
 
@@ -147,7 +220,34 @@ CameraDeviceState CameraDevice::GetState() {
   return (CameraDeviceState)state;
 }
 
-void CameraDevice::PrintSupportedPreviewResolution() {
+bool CameraDevice::SetExifTagEnable(bool enable) {
+  int error = camera_attr_enable_tag(handle_, enable);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_enable_tag fail - error : %s",
+                    get_error_message(error));
+
+  return true;
+}
+
+bool CameraDevice::SetExifTagOrientatoin(ExifTagOrientation orientation) {
+  int error = camera_attr_set_tag_orientation(
+      handle_, (camera_attr_tag_orientation_e)orientation);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_set_tag_orientation fail - error : %s",
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetCameraFlip(CameraFlip flip) {
+  int error = camera_attr_set_stream_flip(handle_, (camera_flip_e)flip);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_set_stream_flip fail - error : %s",
+                    get_error_message(error));
+
+  return true;
+}
+
+bool CameraDevice::PrintSupportedPreviewResolution() {
   LOG_DEBUG("enter");
   int error = camera_foreach_supported_preview_resolution(
       handle_,
@@ -156,10 +256,12 @@ void CameraDevice::PrintSupportedPreviewResolution() {
         return true;
       },
       nullptr);
+  RETV_LOG_ERROR_IF(
+      error != CAMERA_ERROR_NONE, false,
+      "camera_foreach_supported_preview_resolution fail - error : %s",
+      get_error_message(error));
 
-  LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
-               "camera_foreach_supported_preview_resolution fail - error : %s",
-               get_error_message(error));
+  return true;
 }
 
 void CameraDevice::PrintState() {
@@ -185,9 +287,12 @@ void CameraDevice::PrintState() {
   }
 }
 
-void CameraDevice::PrintPreviewRotation() {
-  camera_rotation_e val;
+bool CameraDevice::PrintPreviewRotation() {
+  camera_rotation_e val = CAMERA_ROTATION_NONE;
   int error = camera_attr_get_stream_rotation(handle_, &val);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_get_stream_rotation fail - error : %s",
+                    get_error_message(error));
   switch (val) {
     case CAMERA_ROTATION_NONE:
       LOG_DEBUG("CAMERA_ROTATION_NONE");
@@ -204,6 +309,7 @@ void CameraDevice::PrintPreviewRotation() {
     default:
       break;
   }
+  return true;
 }
 
 Size CameraDevice::GetRecommendedPreviewResolution() {
@@ -277,6 +383,27 @@ bool CameraDevice::Open(std::string /* TODO : image_format_group */) {
   return true;
 }
 
+void CameraDevice::TakePicture(
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+  SetExifTagOrientatoin(
+      ChooseExifTagOrientatoin(orientation_manager_->GetDeviceOrientationType(),
+                               type_ == CameraDeviceType::kFront));
+  auto p_result = result.release();
+  StartCapture(
+      [p_result, this](const std::string &captured_file_path) {
+        LOG_DEBUG("OnSuccess!!!");
+        flutter::EncodableValue value(captured_file_path);
+        p_result->Success(value);
+        StartPreview();
+        delete p_result;
+      },
+      [p_result](const std::string &code, const std::string &message) {
+        LOG_DEBUG("OnFailure!!!");
+        p_result->Error(code, message);
+        delete p_result;
+      });
+}
+
 bool CameraDevice::SetMediaPacketPreviewCb(MediaPacketPreviewCb callback) {
   int error = camera_set_media_packet_preview_cb(handle_, callback, this);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
@@ -297,6 +424,73 @@ bool CameraDevice::SetPreviewSize(Size size) {
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_set_preview_resolution fail - error : %s",
                     get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::StartCapture(OnCaptureSuccessCb on_success,
+                                OnCaptureFailureCb on_failure) {
+  struct Param {
+    OnCaptureSuccessCb on_success;
+    OnCaptureFailureCb on_failure;
+    std::string captured_file_path;
+    std::string error;
+    std::string error_message;
+  };
+
+  Param *p = new Param;  // Must delete on capture_completed_callback
+  p->on_success = std::move(on_success);
+  p->on_failure = std::move(on_failure);
+
+  int error = camera_start_capture(
+      handle_,
+      [](camera_image_data_s *image, camera_image_data_s *postview,
+         camera_image_data_s *thumbnail, void *user_data) {
+        Param *p = (Param *)user_data;
+        if (!image || !image->data) {
+          p->error = "Capturing error";
+          p->error_message = "camera_start_capture fail";
+          return;
+        }
+
+        p->captured_file_path = CreateTempFileName("CAP", "jpg");
+        if (!p->captured_file_path.size()) {
+          p->error = "Insufficient memory";
+          p->error_message = "app_get_cache_path fail";
+          return;
+        }
+
+        FILE *file = fopen(p->captured_file_path.c_str(), "w+");
+        if (!file) {
+          p->error = "Insufficient memory";
+          p->error_message = "fopen fail";
+          return;
+        }
+
+        if (fwrite(image->data, 1, image->size, file) != image->size) {
+          p->error = "Insufficient memory";
+          p->error_message = "fwrite fail";
+        }
+        fclose(file);
+      },
+      [](void *user_data) {
+        Param *p = (Param *)user_data;
+        if (p->error.size()) {
+          p->on_failure(p->error, p->error_message);
+        } else {
+          p->on_success(p->captured_file_path);
+        }
+        delete p;
+      },
+      p);
+  LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
+               "camera_start_capture fail - error : %s",
+               get_error_message(error));
+
+  if (error != CAMERA_ERROR_NONE) {
+    delete p;
+    on_failure(get_error_message(error), "camera_start_capture fail");
+    return false;
+  }
   return true;
 }
 
