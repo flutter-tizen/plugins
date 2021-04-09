@@ -9,7 +9,7 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 ```yaml
 dependencies:
   audioplayers: ^0.18.3
-  audioplayers_tizen: ^2.0.0
+  audioplayers_tizen: ^1.0.0
 ```
 
 Then you can import `audioplayers` in your Dart code:
