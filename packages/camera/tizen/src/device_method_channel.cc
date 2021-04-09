@@ -24,7 +24,7 @@ std::string EventTypeToString(DeviceEventType type) {
 DeviceMethodChannel::DeviceMethodChannel(flutter::PluginRegistrar* registrar) {
   std::string channel_name = DEVICE_CHANNEL_NAME;
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-      registrar->messenger(), channel_name.data(),
+      registrar->messenger(), channel_name.c_str(),
       &flutter::StandardMethodCodec::GetInstance());
 }
 

@@ -65,7 +65,7 @@ class CameraPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     std::string method_name = method_call.method_name();
 
-    LOG_DEBUG("method_name[%s]", method_name.data());
+    LOG_DEBUG("method_name[%s]", method_name.c_str());
     if (method_name == "availableCameras") {
       flutter::EncodableValue availableCameras =
           CameraDevice::GetAvailableCameras();
@@ -116,7 +116,7 @@ class CameraPlugin : public flutter::Plugin {
         result->Success();
       }
     } else if (method_name == "takePicture") {
-      result->NotImplemented();
+      camera_->TakePicture(std::move(result));
     } else if (method_name == "prepareForVideoRecording") {
       result->NotImplemented();
     } else if (method_name == "startVideoRecording") {
