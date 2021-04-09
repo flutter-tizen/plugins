@@ -19,8 +19,8 @@ class AudioPlayerError {
     return *this;
   }
 
-  std::string getCode() const { return code_; }
-  std::string getMessage() const { return message_; }
+  std::string GetCode() const { return code_; }
+  std::string GetMessage() const { return message_; }
 
  private:
   std::string code_;

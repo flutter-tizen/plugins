@@ -10,21 +10,21 @@
 #include "audio_player_options.h"
 
 using PreparedListener =
-    std::function<void(const std::string &playerId, int duration)>;
-using StartPlayingListener = std::function<void(const std::string &playerId)>;
-using SeekCompletedListener = std::function<void(const std::string &playerId)>;
-using PlayCompletedListener = std::function<void(const std::string &playerId)>;
-using ErrorListener = std::function<void(const std::string &playerId,
+    std::function<void(const std::string &player_id, int duration)>;
+using StartPlayingListener = std::function<void(const std::string &player_id)>;
+using SeekCompletedListener = std::function<void(const std::string &player_id)>;
+using PlayCompletedListener = std::function<void(const std::string &player_id)>;
+using ErrorListener = std::function<void(const std::string &player_id,
                                          const std::string &message)>;
 
 class AudioPlayer {
  public:
-  AudioPlayer(const std::string &playerId, bool isLowLatency,
-              PreparedListener preparedListener,
-              StartPlayingListener startPlayingListener,
-              SeekCompletedListener seekCompletedListener,
-              PlayCompletedListener playCompletedListener,
-              ErrorListener errorListener);
+  AudioPlayer(const std::string &player_id, bool low_latency,
+              PreparedListener prepared_listener,
+              StartPlayingListener start_playing_listener,
+              SeekCompletedListener seek_completed_listener,
+              PlayCompletedListener play_completed_listener,
+              ErrorListener error_listener);
   ~AudioPlayer();
 
   void Play();
@@ -52,7 +52,7 @@ class AudioPlayer {
   void PreparePlayer();
   void ResetPlayer();
   player_state_e GetPlayerState();
-  void HandleResult(const std::string &funcName, int result);
+  void HandleResult(const std::string &func_name, int result);
 
   static void OnPrepared(void *data);
   static void OnSeekCompleted(void *data);
@@ -61,22 +61,22 @@ class AudioPlayer {
   static void OnErrorOccurred(int code, void *data);
 
   player_h player_;
-  std::string playerId_;
-  bool isLowLatency_;
+  std::string player_id_;
+  bool low_latency_;
   std::string url_;
-  std::vector<uint8_t> audioData_;
+  std::vector<uint8_t> audio_data_;
   double volume_;
-  double playbackRate_;
-  ReleaseMode releaseMode_;
-  int shouldSeekTo_;
-  bool isPreparing_;
-  bool isSeeking_;
-  bool shouldPlay_;
-  PreparedListener preparedListener_;
-  StartPlayingListener startPlayingListener_;
-  SeekCompletedListener seekCompletedListener_;
-  PlayCompletedListener playCompletedListener_;
-  ErrorListener errorListener_;
+  double playback_rate_;
+  ReleaseMode release_mode_;
+  int should_seek_to_;
+  bool preparing_;
+  bool seeking_;
+  bool should_play_;
+  PreparedListener prepared_listener_;
+  StartPlayingListener start_playing_listener_;
+  SeekCompletedListener seek_completed_listener_;
+  PlayCompletedListener play_completed_listener_;
+  ErrorListener error_listener_;
 };
 
 #endif  // AUDIO_PLAYER_H_

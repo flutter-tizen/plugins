@@ -51,27 +51,27 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     const flutter::EncodableValue *args = method_call.arguments();
     if (std::holds_alternative<flutter::EncodableMap>(*args)) {
       flutter::EncodableMap encodables = std::get<flutter::EncodableMap>(*args);
-      flutter::EncodableValue &playerIdValue =
+      flutter::EncodableValue &player_id_value =
           encodables[flutter::EncodableValue("playerId")];
-      std::string playerId;
-      if (std::holds_alternative<std::string>(playerIdValue)) {
-        playerId = std::get<std::string>(playerIdValue);
-        LOG_DEBUG("Audio player ID: %s", playerId.c_str());
+      std::string player_id;
+      if (std::holds_alternative<std::string>(player_id_value)) {
+        player_id = std::get<std::string>(player_id_value);
+        LOG_DEBUG("Audio player ID: %s", player_id.c_str());
       } else {
         result->Error("Invalid Player ID", "Invalid Player ID for method " +
                                                method_call.method_name());
         return;
       }
 
-      flutter::EncodableValue &modeValue =
+      flutter::EncodableValue &mode_value =
           encodables[flutter::EncodableValue("mode")];
       std::string mode;
-      if (std::holds_alternative<std::string>(modeValue)) {
-        mode = std::get<std::string>(modeValue);
+      if (std::holds_alternative<std::string>(mode_value)) {
+        mode = std::get<std::string>(mode_value);
         LOG_DEBUG("Audio player Mode: %s", mode.c_str());
       }
 
-      AudioPlayer *player = GetAudioPlayer(playerId, mode);
+      AudioPlayer *player = GetAudioPlayer(player_id, mode);
       try {
         if (method_call.method_name().compare("play") == 0) {
           flutter::EncodableValue &volume =
@@ -152,15 +152,15 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
                           "setPlaybackRate failed because of invalid rate");
           }
         } else if (method_call.method_name().compare("setReleaseMode") == 0) {
-          flutter::EncodableValue &releaseModeValue =
+          flutter::EncodableValue &release_mode_value =
               encodables[flutter::EncodableValue("releaseMode")];
-          if (std::holds_alternative<std::string>(releaseModeValue)) {
-            std::string releaseMode = std::get<std::string>(releaseModeValue);
-            if (releaseMode.compare("ReleaseMode.RELEASE") == 0) {
+          if (std::holds_alternative<std::string>(release_mode_value)) {
+            std::string release_mode = std::get<std::string>(release_mode_value);
+            if (release_mode.compare("ReleaseMode.RELEASE") == 0) {
               player->SetReleaseMode(RELEASE);
-            } else if (releaseMode.compare("ReleaseMode.LOOP") == 0) {
+            } else if (release_mode.compare("ReleaseMode.LOOP") == 0) {
               player->SetReleaseMode(LOOP);
-            } else if (releaseMode.compare("ReleaseMode.STOP") == 0) {
+            } else if (release_mode.compare("ReleaseMode.STOP") == 0) {
               player->SetReleaseMode(STOP);
             }
           } else {
@@ -183,7 +183,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         }
         result->Success(flutter::EncodableValue(1));
       } catch (const AudioPlayerError &e) {
-        result->Error(e.getCode(), e.getMessage());
+        result->Error(e.GetCode(), e.GetMessage());
       }
     } else {
       result->Error("Invalid arguments", "Invalid arguments for method " +
@@ -191,70 +191,70 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     }
   }
 
-  AudioPlayer *GetAudioPlayer(const std::string &playerId,
+  AudioPlayer *GetAudioPlayer(const std::string &player_id,
                               const std::string &mode) {
-    auto iter = audioPlayers_.find(playerId);
-    if (iter != audioPlayers_.end()) {
+    auto iter = audio_players_.find(player_id);
+    if (iter != audio_players_.end()) {
       return iter->second.get();
     }
 
-    bool isLowLatency = false;
+    bool low_latency = false;
     LOG_DEBUG("mode is %s", mode.c_str());
     if (mode.compare("PlayerMode.LOW_LATENCY") == 0) {
-      isLowLatency = true;
+      low_latency = true;
     }
 
-    PreparedListener preparedListener =
-        [channel = channel_.get()](const std::string &playerId, int duration) {
+    PreparedListener prepared_listener =
+        [channel = channel_.get()](const std::string &player_id, int duration) {
           flutter::EncodableMap wrapped = {{flutter::EncodableValue("playerId"),
-                                            flutter::EncodableValue(playerId)},
+                                            flutter::EncodableValue(player_id)},
                                            {flutter::EncodableValue("value"),
                                             flutter::EncodableValue(duration)}};
           auto arguments = std::make_unique<flutter::EncodableValue>(wrapped);
           channel->InvokeMethod("audio.onDuration", std::move(arguments));
         };
 
-    SeekCompletedListener seekCompletedListener =
-        [channel = channel_.get()](const std::string &playerId) {
+    SeekCompletedListener seek_completed_listener =
+        [channel = channel_.get()](const std::string &player_id) {
           flutter::EncodableMap wrapped = {{flutter::EncodableValue("playerId"),
-                                            flutter::EncodableValue(playerId)},
+                                            flutter::EncodableValue(player_id)},
                                            {flutter::EncodableValue("value"),
                                             flutter::EncodableValue(true)}};
           auto arguments = std::make_unique<flutter::EncodableValue>(wrapped);
           channel->InvokeMethod("audio.onSeekComplete", std::move(arguments));
         };
 
-    StartPlayingListener startPlayingListener =
-        [plugin = this](const std::string &playerId) {
+    StartPlayingListener start_playing_listener =
+        [plugin = this](const std::string &player_id) {
           plugin->StartPositionUpdates();
         };
 
-    PlayCompletedListener playCompletedListener =
-        [channel = channel_.get()](const std::string &playerId) {
+    PlayCompletedListener play_completed_listener =
+        [channel = channel_.get()](const std::string &player_id) {
           flutter::EncodableMap wrapped = {{flutter::EncodableValue("playerId"),
-                                            flutter::EncodableValue(playerId)},
+                                            flutter::EncodableValue(player_id)},
                                            {flutter::EncodableValue("value"),
                                             flutter::EncodableValue(true)}};
           auto arguments = std::make_unique<flutter::EncodableValue>(wrapped);
           channel->InvokeMethod("audio.onComplete", std::move(arguments));
         };
 
-    ErrorListener errorListener = [channel = channel_.get()](
-                                      const std::string &playerId,
+    ErrorListener error_listener = [channel = channel_.get()](
+                                      const std::string &player_id,
                                       const std::string &message) {
       flutter::EncodableMap wrapped = {
           {flutter::EncodableValue("playerId"),
-           flutter::EncodableValue(playerId)},
+           flutter::EncodableValue(player_id)},
           {flutter::EncodableValue("value"), flutter::EncodableValue(message)}};
       auto arguments = std::make_unique<flutter::EncodableValue>(wrapped);
       channel->InvokeMethod("audio.onError", std::move(arguments));
     };
 
     auto player = std::make_unique<AudioPlayer>(
-        playerId, isLowLatency, preparedListener, startPlayingListener,
-        seekCompletedListener, playCompletedListener, errorListener);
-    audioPlayers_[playerId] = std::move(player);
-    return audioPlayers_[playerId].get();
+        player_id, low_latency, prepared_listener, start_playing_listener,
+        seek_completed_listener, play_completed_listener, error_listener);
+    audio_players_[player_id] = std::move(player);
+    return audio_players_[player_id].get();
   }
 
   void StartPositionUpdates() {
@@ -269,17 +269,17 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
   static Eina_Bool UpdatePosition(void *data) {
     AudioplayersTizenPlugin *plugin = (AudioplayersTizenPlugin *)data;
-    bool nonePlaying = true;
-    auto iter = plugin->audioPlayers_.begin();
-    while (iter != plugin->audioPlayers_.end()) {
+    bool none_playing = true;
+    auto iter = plugin->audio_players_.begin();
+    while (iter != plugin->audio_players_.end()) {
       try {
-        std::string playerId = iter->second->GetPlayerId();
+        std::string player_id = iter->second->GetPlayerId();
         if (iter->second->IsPlaying()) {
-          LOG_DEBUG("Audio player %s is playing", playerId.c_str());
-          nonePlaying = false;
+          LOG_DEBUG("Audio player %s is playing", player_id.c_str());
+          none_playing = false;
           flutter::EncodableMap duration = {
               {flutter::EncodableValue("playerId"),
-               flutter::EncodableValue(playerId)},
+               flutter::EncodableValue(player_id)},
               {flutter::EncodableValue("value"),
                flutter::EncodableValue(iter->second->GetDuration())}};
           plugin->channel_->InvokeMethod(
@@ -288,7 +288,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
           flutter::EncodableMap position = {
               {flutter::EncodableValue("playerId"),
-               flutter::EncodableValue(playerId)},
+               flutter::EncodableValue(player_id)},
               {flutter::EncodableValue("value"),
                flutter::EncodableValue(iter->second->GetCurrentPosition())}};
           plugin->channel_->InvokeMethod(
@@ -302,7 +302,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       }
     }
 
-    if (nonePlaying) {
+    if (none_playing) {
       plugin->timer_ = nullptr;
       return ECORE_CALLBACK_CANCEL;
     } else {
@@ -312,7 +312,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
   Ecore_Timer *timer_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
-  std::map<std::string, std::unique_ptr<AudioPlayer>> audioPlayers_;
+  std::map<std::string, std::unique_ptr<AudioPlayer>> audio_players_;
 };
 
 void AudioplayersTizenPluginRegisterWithRegistrar(

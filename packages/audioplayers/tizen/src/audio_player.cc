@@ -110,39 +110,39 @@ static std::string PlayerErrorToString(int code) {
   return result;
 }
 
-AudioPlayer::AudioPlayer(const std::string &playerId, bool isLowLatency,
-                         PreparedListener preparedListener,
-                         StartPlayingListener startPlayingListener,
-                         SeekCompletedListener seekCompletedListener,
-                         PlayCompletedListener playCompletedListener,
-                         ErrorListener errorListener) {
-  LOG_INFO("AudioPlayer %s is constructing...", playerId.c_str());
-  playerId_ = playerId;
-  isLowLatency_ = isLowLatency;
-  preparedListener_ = preparedListener;
-  startPlayingListener_ = startPlayingListener;
-  seekCompletedListener_ = seekCompletedListener;
-  playCompletedListener_ = playCompletedListener;
-  errorListener_ = errorListener;
+AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
+                         PreparedListener prepared_listener,
+                         StartPlayingListener start_playing_listener,
+                         SeekCompletedListener seek_completed_listener,
+                         PlayCompletedListener play_completed_listener,
+                         ErrorListener error_listener) {
+  LOG_INFO("AudioPlayer %s is constructing...", player_id.c_str());
+  player_id_ = player_id;
+  low_latency_ = low_latency;
+  prepared_listener_ = prepared_listener;
+  start_playing_listener_ = start_playing_listener;
+  seek_completed_listener_ = seek_completed_listener;
+  play_completed_listener_ = play_completed_listener;
+  error_listener_ = error_listener;
 
   player_ = nullptr;
   volume_ = 1.0;
-  playbackRate_ = 1.0;
-  releaseMode_ = RELEASE;
-  shouldSeekTo_ = -1;
+  playback_rate_ = 1.0;
+  release_mode_ = RELEASE;
+  should_seek_to_ = -1;
 }
 
 AudioPlayer::~AudioPlayer() {
-  LOG_INFO("AudioPlayer %s is destructing...", playerId_.c_str());
+  LOG_INFO("AudioPlayer %s is destructing...", player_id_.c_str());
   Release();
 }
 
 void AudioPlayer::Play() {
-  LOG_INFO("AudioPlayer %s will play audio...", playerId_.c_str());
+  LOG_INFO("AudioPlayer %s will play audio...", player_id_.c_str());
   player_state_e state = GetPlayerState();
-  if (state == PLAYER_STATE_IDLE && isPreparing_) {
+  if (state == PLAYER_STATE_IDLE && preparing_) {
     LOG_DEBUG("player is preparing, play will be called in prepared callback");
-    shouldPlay_ = true;
+    should_play_ = true;
     return;
   }
 
@@ -154,25 +154,25 @@ void AudioPlayer::Play() {
   switch (state) {
     case PLAYER_STATE_NONE:
     case PLAYER_STATE_IDLE:
-      if (audioData_.size() > 0) {
-        LOG_DEBUG("set audio buffer, buffer size : %d", audioData_.size());
-        result = player_set_memory_buffer(player_, (void *)audioData_.data(),
-                                          audioData_.size());
+      if (audio_data_.size() > 0) {
+        LOG_DEBUG("set audio buffer, buffer size : %d", audio_data_.size());
+        result = player_set_memory_buffer(player_, (void *)audio_data_.data(),
+                                          audio_data_.size());
         HandleResult("player_set_memory_buffer", result);
       } else {
         LOG_DEBUG("set uri (%s)", url_.c_str());
         result = player_set_uri(player_, url_.c_str());
         HandleResult("player_set_uri", result);
       }
-      shouldPlay_ = true;
+      should_play_ = true;
       PreparePlayer();
       break;
     case PLAYER_STATE_READY:
     case PLAYER_STATE_PAUSED:
       result = player_start(player_);
       HandleResult("player_start", result);
-      shouldPlay_ = false;
-      startPlayingListener_(playerId_);
+      should_play_ = false;
+      start_playing_listener_(player_id_);
       break;
     default:
       LOG_DEBUG("player is already playing audio");
@@ -181,17 +181,17 @@ void AudioPlayer::Play() {
 }
 
 void AudioPlayer::Pause() {
-  LOG_INFO("AudioPlayer %s is pausing...", playerId_.c_str());
+  LOG_INFO("AudioPlayer %s is pausing...", player_id_.c_str());
   if (GetPlayerState() == PLAYER_STATE_PLAYING) {
     int result = player_pause(player_);
     HandleResult("player_pause", result);
   }
-  shouldPlay_ = false;
+  should_play_ = false;
 }
 
 void AudioPlayer::Stop() {
-  LOG_INFO("AudioPlayer %s is stopping...", playerId_.c_str());
-  if (releaseMode_ == RELEASE) {
+  LOG_INFO("AudioPlayer %s is stopping...", player_id_.c_str());
+  if (release_mode_ == RELEASE) {
     Release();
   } else {
     player_state_e state = GetPlayerState();
@@ -200,12 +200,12 @@ void AudioPlayer::Stop() {
       HandleResult("player_stop", result);
     }
   }
-  shouldPlay_ = false;
-  isSeeking_ = false;
+  should_play_ = false;
+  seeking_ = false;
 }
 
 void AudioPlayer::Release() {
-  LOG_INFO("AudioPlayer %s is releasing...", playerId_.c_str());
+  LOG_INFO("AudioPlayer %s is releasing...", player_id_.c_str());
   if (player_ != nullptr) {
     player_unset_completed_cb(player_);
     player_unset_interrupted_cb(player_);
@@ -216,8 +216,8 @@ void AudioPlayer::Release() {
 }
 
 void AudioPlayer::Seek(int position) {
-  LOG_INFO("AudioPlayer %s is seeking...", playerId_.c_str());
-  if (isSeeking_) {
+  LOG_INFO("AudioPlayer %s is seeking...", player_id_.c_str());
+  if (seeking_) {
     LOG_DEBUG("player is already seeking, can't seek again");
     return;
   }
@@ -226,23 +226,23 @@ void AudioPlayer::Seek(int position) {
   if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
       state == PLAYER_STATE_PAUSED) {
     LOG_DEBUG("set play position %d", position);
-    isSeeking_ = true;
+    seeking_ = true;
     int result = player_set_play_position(player_, position, true,
                                           OnSeekCompleted, (void *)this);
     if (result != PLAYER_ERROR_NONE) {
-      isSeeking_ = false;
+      seeking_ = false;
       std::string error = PlayerErrorToString(result);
       LOG_ERROR("player_set_play_position failed : %s", error.c_str());
       throw AudioPlayerError(error, "player_set_play_position failed");
     }
   } else {
     LOG_DEBUG("player is unprepared, do seek in prepared callback");
-    shouldSeekTo_ = position;
+    should_seek_to_ = position;
   }
 }
 
 void AudioPlayer::SetUrl(const std::string &url) {
-  LOG_INFO("AudioPlayer %s is setting url...", playerId_.c_str());
+  LOG_INFO("AudioPlayer %s is setting url...", player_id_.c_str());
   if (url != url_) {
     url_ = url;
     ResetPlayer();
@@ -253,18 +253,18 @@ void AudioPlayer::SetUrl(const std::string &url) {
 
     PreparePlayer();
   }
-  audioData_.clear();
+  audio_data_.clear();
 }
 
 void AudioPlayer::SetDataSource(std::vector<uint8_t> &data) {
-  LOG_INFO("AudioPlayer %s is setting buffer...", playerId_.c_str());
-  if (data != audioData_) {
-    audioData_.swap(data);
+  LOG_INFO("AudioPlayer %s is setting buffer...", player_id_.c_str());
+  if (data != audio_data_) {
+    audio_data_.swap(data);
     ResetPlayer();
 
-    LOG_DEBUG("set audio buffer, buffer size : %d", audioData_.size());
-    int result = player_set_memory_buffer(player_, (void *)audioData_.data(),
-                                          audioData_.size());
+    LOG_DEBUG("set audio buffer, buffer size : %d", audio_data_.size());
+    int result = player_set_memory_buffer(player_, (void *)audio_data_.data(),
+                                          audio_data_.size());
     HandleResult("player_set_memory_buffer", result);
 
     PreparePlayer();
@@ -272,7 +272,7 @@ void AudioPlayer::SetDataSource(std::vector<uint8_t> &data) {
 }
 
 void AudioPlayer::SetVolume(double volume) {
-  LOG_INFO("AudioPlayer %s is setting volume %f...", playerId_.c_str(), volume);
+  LOG_INFO("AudioPlayer %s is setting volume %f...", player_id_.c_str(), volume);
   if (volume_ != volume) {
     volume_ = volume;
     if (GetPlayerState() != PLAYER_STATE_NONE) {
@@ -284,28 +284,28 @@ void AudioPlayer::SetVolume(double volume) {
 }
 
 void AudioPlayer::SetPlaybackRate(double rate) {
-  LOG_INFO("AudioPlayer %s is setting plackback rate %f...", playerId_.c_str(),
+  LOG_INFO("AudioPlayer %s is setting plackback rate %f...", player_id_.c_str(),
            rate);
-  if (playbackRate_ != rate) {
-    playbackRate_ = rate;
+  if (playback_rate_ != rate) {
+    playback_rate_ = rate;
     player_state_e state = GetPlayerState();
     if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
         state == PLAYER_STATE_PAUSED) {
       LOG_DEBUG("set plackback rate : %f", rate);
       int result = player_set_playback_rate(player_, rate);
-      HandleResult("player_set_volume", result);
+      HandleResult("player_set_playback_rate", result);
     }
   }
 }
 
 void AudioPlayer::SetReleaseMode(ReleaseMode mode) {
-  LOG_INFO("AudioPlayer %s is setting ReleaseMode %d...", playerId_.c_str(),
+  LOG_INFO("AudioPlayer %s is setting ReleaseMode %d...", player_id_.c_str(),
            mode);
-  if (releaseMode_ != mode) {
-    releaseMode_ = mode;
+  if (release_mode_ != mode) {
+    release_mode_ = mode;
     if (GetPlayerState() != PLAYER_STATE_NONE) {
-      LOG_DEBUG("set looping : %d", releaseMode_ == LOOP);
-      int result = player_set_looping(player_, (releaseMode_ == LOOP));
+      LOG_DEBUG("set looping : %d", release_mode_ == LOOP);
+      int result = player_set_looping(player_, (release_mode_ == LOOP));
       HandleResult("player_set_looping", result);
     }
   }
@@ -327,7 +327,7 @@ int AudioPlayer::GetCurrentPosition() {
   return position;
 }
 
-std::string AudioPlayer::GetPlayerId() const { return playerId_; }
+std::string AudioPlayer::GetPlayerId() const { return player_id_; }
 
 bool AudioPlayer::IsPlaying() {
   return (GetPlayerState() == PLAYER_STATE_PLAYING);
@@ -335,13 +335,13 @@ bool AudioPlayer::IsPlaying() {
 
 void AudioPlayer::CreatePlayer() {
   LOG_INFO("create audio player...");
-  shouldPlay_ = false;
-  isPreparing_ = false;
+  should_play_ = false;
+  preparing_ = false;
 
   int result = player_create(&player_);
   HandleResult("player_create", result);
 
-  if (isLowLatency_) {
+  if (low_latency_) {
     result = player_set_audio_latency_mode(player_, AUDIO_LATENCY_MODE_LOW);
     HandleResult("player_set_audio_latency_mode", result);
   }
@@ -361,15 +361,15 @@ void AudioPlayer::PreparePlayer() {
   int result = player_set_volume(player_, volume_, volume_);
   HandleResult("player_set_volume", result);
 
-  LOG_DEBUG("set looping %d", (releaseMode_ == LOOP));
-  result = player_set_looping(player_, (releaseMode_ == LOOP));
+  LOG_DEBUG("set looping %d", (release_mode_ == LOOP));
+  result = player_set_looping(player_, (release_mode_ == LOOP));
   HandleResult("player_set_looping", result);
 
   LOG_DEBUG("prepare audio player asynchronously");
   result = player_prepare_async(player_, OnPrepared, (void *)this);
   HandleResult("player_prepare_async", result);
-  isPreparing_ = true;
-  isSeeking_ = false;
+  preparing_ = true;
+  seeking_ = false;
 }
 
 void AudioPlayer::ResetPlayer() {
@@ -381,11 +381,11 @@ void AudioPlayer::ResetPlayer() {
       CreatePlayer();
       break;
     case PLAYER_STATE_IDLE:
-      if (isPreparing_) {
+      if (preparing_) {
         LOG_DEBUG("player is preparing, unprepare the player");
         result = player_unprepare(player_);
         HandleResult("player_unprepare", result);
-        isPreparing_ = false;
+        preparing_ = false;
       }
       break;
     case PLAYER_STATE_READY:
@@ -411,74 +411,74 @@ player_state_e AudioPlayer::GetPlayerState() {
   return state;
 }
 
-void AudioPlayer::HandleResult(const std::string &funcName, int result) {
+void AudioPlayer::HandleResult(const std::string &func_name, int result) {
   if (result != PLAYER_ERROR_NONE) {
     std::string error = PlayerErrorToString(result);
-    LOG_ERROR("%s failed : %s", funcName.c_str(), error.c_str());
-    throw AudioPlayerError(error, funcName + " failed");
+    LOG_ERROR("%s failed : %s", func_name.c_str(), error.c_str());
+    throw AudioPlayerError(error, func_name + " failed");
   }
 }
 
 void AudioPlayer::OnPrepared(void *data) {
   LOG_INFO("Audio player is prepared");
   AudioPlayer *player = (AudioPlayer *)data;
-  player->isPreparing_ = false;
+  player->preparing_ = false;
 
   int duration = 0;
   int result = player_get_duration(player->player_, &duration);
   if (result == PLAYER_ERROR_NONE) {
-    player->preparedListener_(player->playerId_, duration);
+    player->prepared_listener_(player->player_id_, duration);
   }
 
-  player_set_playback_rate(player->player_, player->playbackRate_);
+  player_set_playback_rate(player->player_, player->playback_rate_);
 
-  if (player->shouldPlay_) {
+  if (player->should_play_) {
     LOG_DEBUG("start to play audio");
     result = player_start(player->player_);
     if (result == PLAYER_ERROR_NONE) {
-      player->startPlayingListener_(player->playerId_);
+      player->start_playing_listener_(player->player_id_);
     }
-    player->shouldPlay_ = false;
+    player->should_play_ = false;
   }
 
-  if (player->shouldSeekTo_ > 0) {
-    LOG_DEBUG("set play position %d", player->shouldSeekTo_);
-    player->isSeeking_ = true;
-    result = player_set_play_position(player->player_, player->shouldSeekTo_,
+  if (player->should_seek_to_ > 0) {
+    LOG_DEBUG("set play position %d", player->should_seek_to_);
+    player->seeking_ = true;
+    result = player_set_play_position(player->player_, player->should_seek_to_,
                                       true, OnSeekCompleted, data);
     if (result != PLAYER_ERROR_NONE) {
       LOG_ERROR("failed to set play position");
-      player->isSeeking_ = false;
+      player->seeking_ = false;
     }
-    player->shouldSeekTo_ = -1;
+    player->should_seek_to_ = -1;
   }
 }
 
 void AudioPlayer::OnSeekCompleted(void *data) {
   LOG_DEBUG("completed to set position");
   AudioPlayer *player = (AudioPlayer *)data;
-  player->seekCompletedListener_(player->playerId_);
-  player->isSeeking_ = false;
+  player->seek_completed_listener_(player->player_id_);
+  player->seeking_ = false;
 }
 
 void AudioPlayer::OnPlayCompleted(void *data) {
   LOG_DEBUG("completed to play audio");
   AudioPlayer *player = (AudioPlayer *)data;
-  if (player->releaseMode_ != LOOP) {
+  if (player->release_mode_ != LOOP) {
     player->Stop();
   }
-  player->playCompletedListener_(player->playerId_);
+  player->play_completed_listener_(player->player_id_);
 }
 
 void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
   LOG_ERROR("interruption occurred: %d", code);
   AudioPlayer *player = (AudioPlayer *)data;
-  player->errorListener_(player->playerId_, "player - Interrupted");
+  player->error_listener_(player->player_id_, "player - Interrupted");
 }
 
 void AudioPlayer::OnErrorOccurred(int code, void *data) {
   std::string error = PlayerErrorToString(code);
   LOG_ERROR("error occurred: %s", error.c_str());
   AudioPlayer *player = (AudioPlayer *)data;
-  player->errorListener_(player->playerId_, "error occurred: " + error);
+  player->error_listener_(player->player_id_, "error occurred: " + error);
 }
