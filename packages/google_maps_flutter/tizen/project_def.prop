@@ -6,7 +6,7 @@ type = sharedLib
 profile = common-5.5
 
 # Source files
-USER_SRCS += src/google_maps_flutter_tizen_plugin.cc src/google_map_controller.cc src/google_map_factory.cc
+USER_SRCS += src/google_maps_flutter_tizen_plugin.cc src/google_map_controller.cc src/google_map_factory.cc src/latlng.cc src/convert.cc
 
 # User defines
 USER_DEFS =

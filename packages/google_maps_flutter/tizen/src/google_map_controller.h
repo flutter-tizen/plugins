@@ -45,13 +45,17 @@ class GoogleMapController : public PlatformView {
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
+  std::string GetVisibleRegion();
+
   FlutterTextureRegistrar* texture_registrar_;
-  LWE::WebContainer* webview_instance_;
+  LWE::WebContainer* mapview_;
   double width_;
   double height_;
   tbm_surface_h tbm_surface_;
   bool is_mouse_lbutton_down_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
+  std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+      mapReadyResult_;
 };
 
 #endif  // FLUTTER_PLUGIN_GOOGLE_MAPS_FLUTTER_TIZEN_GOOGLE_MAP_CONTROLLER_H_
