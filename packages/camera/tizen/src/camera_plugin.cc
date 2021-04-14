@@ -127,9 +127,50 @@ class CameraPlugin : public flutter::Plugin {
       result->NotImplemented();
     } else if (method_name == "resumeVideoRecording") {
       result->NotImplemented();
+    } else if (method_name == "setFlashMode") {
+      result->NotImplemented();
+    } else if (method_name == "setExposureMode") {
+      result->NotImplemented();
+    } else if (method_name == "setExposurePoint") {
+      result->NotImplemented();
+    } else if (method_name == "getMinExposureOffset") {
+      result->NotImplemented();
+    } else if (method_name == "getMaxExposureOffset") {
+      result->NotImplemented();
+    } else if (method_name == "getExposureOffsetStepSize") {
+      result->NotImplemented();
+    } else if (method_name == "setExposureOffset") {
+      result->NotImplemented();
+    } else if (method_name == "setFocusMode") {
+      if (method_call.arguments()) {
+        flutter::EncodableMap arguments =
+            std::get<flutter::EncodableMap>(*method_call.arguments());
+        std::string mode;
+        FocusMode focus_mode;
+        GetValueFromEncodableMap(arguments, "mode", mode);
+        if (StringToFocusMode(mode, focus_mode)) {
+          camera_->SetFocusMode(focus_mode);
+          result->Success();
+        } else {
+          result->Error("InvalidArguments", "Please check 'mode'");
+        }
+      }
+      result->NotImplemented();
+    } else if (method_name == "setFocusPoint") {
+      result->NotImplemented();
     } else if (method_name == "startImageStream") {
       result->NotImplemented();
     } else if (method_name == "stopImageStream") {
+      result->NotImplemented();
+    } else if (method_name == "getMaxZoomLevel") {
+      result->NotImplemented();
+    } else if (method_name == "getMinZoomLevel") {
+      result->NotImplemented();
+    } else if (method_name == "setZoomLevel") {
+      result->NotImplemented();
+    } else if (method_name == "lockCaptureOrientation") {
+      result->NotImplemented();
+    } else if (method_name == "unlockCaptureOrientation") {
       result->NotImplemented();
     } else if (method_name == "dispose") {
       if (camera_) {

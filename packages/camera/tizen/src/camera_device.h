@@ -11,13 +11,17 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen_texture_registrar.h>
 
+#include <atomic>
+
 #include "camera_method_channel.h"
 #include "device_method_channel.h"
 #include "orientation_manager.h"
 
-using MediaPacketPreviewCb = camera_media_packet_preview_cb;
 using CameraCapturingCb = camera_capturing_cb;
 using CameraCaptureCompletedCb = camera_capture_completed_cb;
+using CameraFocusChangedCb = camera_focus_changed_cb;
+using CameraPrivewCb = camera_preview_cb;
+using MediaPacketPreviewCb = camera_media_packet_preview_cb;
 using OnCaptureSuccessCb =
     std::function<void(const std::string &captured_file_path)>;
 using OnCaptureFailureCb =
@@ -48,12 +52,32 @@ enum class ExifTagOrientation {
   kLeftBottom = CAMERA_ATTR_TAG_ORIENTATION_LEFT_BOTTOM,
 };
 
+enum class CameraPixelFormat {
+  kInvalid = CAMERA_PIXEL_FORMAT_INVALID,
+  kJPEG = CAMERA_PIXEL_FORMAT_JPEG,
+};
+
 enum class CameraFlip {
   kNone = CAMERA_FLIP_NONE,
   kHorizontal = CAMERA_FLIP_HORIZONTAL,
   kVertical = CAMERA_FLIP_VERTICAL,
   kBoth = CAMERA_FLIP_BOTH,
 };
+
+enum class CameraAutoFocusMode {
+  kNone = CAMERA_ATTR_AF_NONE,
+  kNormal = CAMERA_ATTR_AF_NORMAL,
+  kMacro = CAMERA_ATTR_AF_MACRO,
+  kFull = CAMERA_ATTR_AF_FULL,
+};
+
+enum class FocusMode {
+  kAuto,
+  kLocked,
+};
+
+bool StringToFocusMode(std::string mode, FocusMode &focus_mode);
+bool FocusModeToString(FocusMode focus_mode, std::string &mode);
 
 struct Size {
   // Dart implementation use double as a unit of preview size
@@ -77,24 +101,33 @@ class CameraDevice {
   FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
   bool Open(std::string image_format_group);
+  void SetFocusMode(FocusMode focus_mode);
   void TakePicture(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
 
  private:
   void CreateCameraHandle();
-  int GetDeviceCount();
-  int GetLensOrientation();
-  CameraDeviceState GetState();
+  bool GetDeviceCount(int &count);
+  bool GetAutoFocusMode(CameraAutoFocusMode &mode);
+  bool GetLensOrientation(int &angle);
+  bool GetState(CameraDeviceState &state);
+  bool SetCameraFlip(CameraFlip flip);
+  bool SetCaptureFormat(CameraPixelFormat format);
   bool SetExifTagEnable(bool enable);
   bool SetExifTagOrientatoin(ExifTagOrientation orientation);
-  bool SetCameraFlip(CameraFlip flip);
+  bool SetAutoFocusMode(CameraAutoFocusMode mode);
+  bool SetAutoFocusChangedCb(CameraFocusChangedCb callback);
   bool SetMediaPacketPreviewCb(MediaPacketPreviewCb callback);
+  bool SetPreviewCb(CameraPrivewCb callback);
   bool SetPreviewSize(Size size);
   bool StartCapture(OnCaptureSuccessCb on_success,
                     OnCaptureFailureCb on_failure);
+  bool StartAutoFocusing(bool continuous);
   bool StartPreview();
+  bool StopAutoFocusing();
   bool StopPreview();
   bool UnsetMediaPacketPreviewCb();
+  bool UnsetAutoFocusChangedCb();
   void DestroyCameraHandle();
 
   bool PrintSupportedPreviewResolution();
@@ -111,6 +144,7 @@ class CameraDevice {
   std::unique_ptr<DeviceMethodChannel> device_method_channel_;
   std::unique_ptr<OrientationManager> orientation_manager_;
   camera_h handle_{nullptr};
+  FocusMode focus_mode_{FocusMode::kAuto};
 };
 
 #endif
