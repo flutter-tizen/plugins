@@ -3,111 +3,10 @@
 #include "audio_player_error.h"
 #include "log.h"
 
-static std::string StateToString(player_state_e state) {
-  std::string result;
-  switch (state) {
-    case PLAYER_STATE_NONE:
-      result = "PLAYER_STATE_NONE";
-      break;
-    case PLAYER_STATE_IDLE:
-      result = "PLAYER_STATE_IDLE";
-      break;
-    case PLAYER_STATE_READY:
-      result = "PLAYER_STATE_READY";
-      break;
-    case PLAYER_STATE_PLAYING:
-      result = "PLAYER_STATE_PLAYING";
-      break;
-    case PLAYER_STATE_PAUSED:
-      result = "PLAYER_STATE_PAUSED";
-      break;
-  }
-  return result;
-}
-
-static std::string PlayerErrorToString(int code) {
-  std::string result;
-  switch (code) {
-    case PLAYER_ERROR_NONE:
-      result = "player - Successful";
-      break;
-    case PLAYER_ERROR_OUT_OF_MEMORY:
-      result = "player - Out of memory";
-      break;
-    case PLAYER_ERROR_INVALID_PARAMETER:
-      result = "player - Invalid parameter";
-      break;
-    case PLAYER_ERROR_NO_SUCH_FILE:
-      result = "player - No such file or directory";
-      break;
-    case PLAYER_ERROR_INVALID_OPERATION:
-      result = "player - Invalid operation";
-      break;
-    case PLAYER_ERROR_FILE_NO_SPACE_ON_DEVICE:
-      result = "player - No space left on the device";
-      break;
-    case PLAYER_ERROR_FEATURE_NOT_SUPPORTED_ON_DEVICE:
-      result = "player - Not supported Feature";
-      break;
-    case PLAYER_ERROR_SEEK_FAILED:
-      result = "player - Seek operation failure";
-      break;
-    case PLAYER_ERROR_INVALID_STATE:
-      result = "player - Invalid state";
-      break;
-    case PLAYER_ERROR_NOT_SUPPORTED_FILE:
-      result = "player - File format not supported";
-      break;
-    case PLAYER_ERROR_INVALID_URI:
-      result = "player - Invalid URI";
-      break;
-    case PLAYER_ERROR_SOUND_POLICY:
-      result = "player - Sound policy error";
-      break;
-    case PLAYER_ERROR_CONNECTION_FAILED:
-      result = "player - Streaming connection failed";
-      break;
-    case PLAYER_ERROR_VIDEO_CAPTURE_FAILED:
-      result = "player - Video capture failed";
-      break;
-    case PLAYER_ERROR_DRM_EXPIRED:
-      result = "player - Expired license";
-      break;
-    case PLAYER_ERROR_DRM_NO_LICENSE:
-      result = "player - No license";
-      break;
-    case PLAYER_ERROR_DRM_FUTURE_USE:
-      result = "player - License for future use";
-      break;
-    case PLAYER_ERROR_DRM_NOT_PERMITTED:
-      result = "player - Format not permitted";
-      break;
-    case PLAYER_ERROR_RESOURCE_LIMIT:
-      result = "player - Resource limit";
-      break;
-    case PLAYER_ERROR_PERMISSION_DENIED:
-      result = "player - Permission denied";
-      break;
-    case PLAYER_ERROR_SERVICE_DISCONNECTED:
-      result = "player - Socket connection lost";
-      break;
-    case PLAYER_ERROR_BUFFER_SPACE:
-      result = "player - No buffer space available";
-      break;
-    case PLAYER_ERROR_NOT_SUPPORTED_AUDIO_CODEC:
-      result = "player - Not supported audio codec but video can be played";
-      break;
-    case PLAYER_ERROR_NOT_SUPPORTED_VIDEO_CODEC:
-      result = "player - Not supported video codec but audio can be played";
-      break;
-    case PLAYER_ERROR_NOT_SUPPORTED_SUBTITLE:
-      result = "player - Not supported subtitle format";
-      break;
-    default:
-      result = "player - Unkonwn error";
-      break;
-  }
-  return result;
+static std::string ErrorToString(int code) {
+  const char *ptr = get_error_message(code);
+  std::string result = ptr ? std::string(ptr) : "";
+  return "player - " + (result.empty() ? "Unknown error" : result);
 }
 
 AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
@@ -231,7 +130,7 @@ void AudioPlayer::Seek(int position) {
                                           OnSeekCompleted, (void *)this);
     if (result != PLAYER_ERROR_NONE) {
       seeking_ = false;
-      std::string error = PlayerErrorToString(result);
+      std::string error = ErrorToString(result);
       LOG_ERROR("player_set_play_position failed : %s", error.c_str());
       throw AudioPlayerError(error, "player_set_play_position failed");
     }
@@ -413,7 +312,7 @@ player_state_e AudioPlayer::GetPlayerState() {
 
 void AudioPlayer::HandleResult(const std::string &func_name, int result) {
   if (result != PLAYER_ERROR_NONE) {
-    std::string error = PlayerErrorToString(result);
+    std::string error = ErrorToString(result);
     LOG_ERROR("%s failed : %s", func_name.c_str(), error.c_str());
     throw AudioPlayerError(error, func_name + " failed");
   }
@@ -477,7 +376,7 @@ void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
 }
 
 void AudioPlayer::OnErrorOccurred(int code, void *data) {
-  std::string error = PlayerErrorToString(code);
+  std::string error = ErrorToString(code);
   LOG_ERROR("error occurred: %s", error.c_str());
   AudioPlayer *player = (AudioPlayer *)data;
   player->error_listener_(player->player_id_, "error occurred: " + error);

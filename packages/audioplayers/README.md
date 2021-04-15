@@ -33,9 +33,9 @@ To use this plugin in a Tizen application, the mediastorage, externalstorage and
 </privileges>
 ```
 
-- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) must be added if any audio files are used to play located in the internal storage.
-- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) must be added if any audio files are used to play located in the external storage.
-- The internet privilege (`http://tizen.org/privilege/internet`) must be added if any URLs are used to play from network.
+- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) must be added to play audio files located in the internal storage.
+- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) must be added to play audio files located in the external storage.
+- The internet privilege (`http://tizen.org/privilege/internet`) must be added to play any URLs from network.
 
 For details about Tizen privileges, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
 
