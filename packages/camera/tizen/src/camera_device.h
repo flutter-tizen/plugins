@@ -54,6 +54,7 @@ enum class ExifTagOrientation {
 
 enum class CameraPixelFormat {
   kInvalid = CAMERA_PIXEL_FORMAT_INVALID,
+  kYUV420 = CAMERA_PIXEL_FORMAT_I420,
   kJPEG = CAMERA_PIXEL_FORMAT_JPEG,
 };
 
@@ -71,13 +72,27 @@ enum class CameraAutoFocusMode {
   kFull = CAMERA_ATTR_AF_FULL,
 };
 
+enum class CameraExposureMode {
+  kOff = CAMERA_ATTR_EXPOSURE_MODE_OFF,  // Not supported on TM1
+  kAll = CAMERA_ATTR_EXPOSURE_MODE_ALL,
+  kCenter = CAMERA_ATTR_EXPOSURE_MODE_CENTER,
+  kSpot = CAMERA_ATTR_EXPOSURE_MODE_SPOT,
+  kCustom = CAMERA_ATTR_EXPOSURE_MODE_CUSTOM,
+};
+
+enum class ExposureMode {
+  kAuto,
+  kLocked,
+};
+bool ExposureModeToString(ExposureMode exposure_mode, std::string &mode);
+bool StringToExposureMode(std::string mode, ExposureMode &exposure_mode);
+
 enum class FocusMode {
   kAuto,
   kLocked,
 };
-
-bool StringToFocusMode(std::string mode, FocusMode &focus_mode);
 bool FocusModeToString(FocusMode focus_mode, std::string &mode);
+bool StringToFocusMode(std::string mode, FocusMode &focus_mode);
 
 struct Size {
   // Dart implementation use double as a unit of preview size
@@ -101,24 +116,28 @@ class CameraDevice {
   FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
   bool Open(std::string image_format_group);
+  void SetExposureMode(ExposureMode exposure_mode);
   void SetFocusMode(FocusMode focus_mode);
   void TakePicture(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
 
  private:
-  void CreateCameraHandle();
+  bool CameraCreate();
+  bool CameraDestroy();
   bool GetDeviceCount(int &count);
   bool GetAutoFocusMode(CameraAutoFocusMode &mode);
   bool GetLensOrientation(int &angle);
   bool GetState(CameraDeviceState &state);
   bool SetCameraFlip(CameraFlip flip);
+  bool SetCameraExposureMode(CameraExposureMode mode);
   bool SetCaptureFormat(CameraPixelFormat format);
   bool SetExifTagEnable(bool enable);
   bool SetExifTagOrientatoin(ExifTagOrientation orientation);
-  bool SetAutoFocusMode(CameraAutoFocusMode mode);
+  bool SetCameraAutoFocusMode(CameraAutoFocusMode mode);
   bool SetAutoFocusChangedCb(CameraFocusChangedCb callback);
   bool SetMediaPacketPreviewCb(MediaPacketPreviewCb callback);
   bool SetPreviewCb(CameraPrivewCb callback);
+  bool SetPreviewFormat(CameraPixelFormat format);
   bool SetPreviewSize(Size size);
   bool StartCapture(OnCaptureSuccessCb on_success,
                     OnCaptureFailureCb on_failure);
@@ -128,22 +147,25 @@ class CameraDevice {
   bool StopPreview();
   bool UnsetMediaPacketPreviewCb();
   bool UnsetAutoFocusChangedCb();
-  void DestroyCameraHandle();
 
   bool PrintSupportedPreviewResolution();
   void PrintState();
   bool PrintPreviewRotation();
 
+  long texture_id_{0};
   flutter::PluginRegistrar *registrar_{nullptr};
   FlutterTextureRegistrar *texture_registrar_{nullptr};
 
-  long texture_id_{0};
-  CameraDeviceState state_{CameraDeviceState::kNone};
-  CameraDeviceType type_{CameraDeviceType::kRear};
   std::unique_ptr<CameraMethodChannel> camera_method_channel_;
   std::unique_ptr<DeviceMethodChannel> device_method_channel_;
   std::unique_ptr<OrientationManager> orientation_manager_;
+
   camera_h handle_{nullptr};
+
+  CameraDeviceState state_{CameraDeviceState::kNone};
+  CameraDeviceType type_{CameraDeviceType::kRear};
+
+  ExposureMode exposure_mode_{ExposureMode::kAuto};
   FocusMode focus_mode_{FocusMode::kAuto};
 };
 
