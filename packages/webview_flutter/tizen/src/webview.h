@@ -1,3 +1,7 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
 #define FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
 
@@ -62,6 +66,7 @@ class WebView : public PlatformView {
   tbm_surface_h tbm_surface_;
   bool is_mouse_lbutton_down_;
   bool has_navigation_delegate_;
+  bool has_progress_tracking_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   Ecore_IMF_Context* context_;
 };

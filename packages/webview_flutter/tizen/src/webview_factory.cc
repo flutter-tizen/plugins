@@ -1,3 +1,7 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "webview_factory.h"
 
 #include <app_common.h>
@@ -24,6 +28,7 @@ WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
   if (!path || strlen(path) == 0) {
     path = "/tmp/";
   }
+  LOG_DEBUG("application data path : %s\n", path);
   std::string localstoragePath = path + std::string("StarFish_localStorage.db");
   std::string cookiePath = path + std::string("StarFish_cookies.db");
   std::string cachePath = path + std::string("Starfish_cache.db");

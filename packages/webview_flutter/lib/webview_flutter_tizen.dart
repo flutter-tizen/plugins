@@ -1,3 +1,8 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2013 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -33,11 +38,11 @@ enum _PlatformViewState {
 
 class TizenViewController extends PlatformViewController {
   TizenViewController._({
-    @required this.viewId,
-    @required String viewType,
-    @required TextDirection layoutDirection,
+    required this.viewId,
+    required String viewType,
+    required TextDirection layoutDirection,
     dynamic creationParams,
-    MessageCodec<dynamic> creationParamsCodec,
+    MessageCodec<dynamic>? creationParamsCodec,
     bool waitingForSize = true,
   })  : assert(viewId != null),
         assert(viewType != null),
@@ -62,7 +67,7 @@ class TizenViewController extends PlatformViewController {
 
   final dynamic _creationParams;
 
-  final MessageCodec<dynamic> _creationParamsCodec;
+  final MessageCodec<dynamic>? _creationParamsCodec;
 
   final List<PlatformViewCreatedCallback> _platformViewCreatedCallbacks =
       <PlatformViewCreatedCallback>[];
@@ -71,11 +76,11 @@ class TizenViewController extends PlatformViewController {
     return ((pointerId << 8) & 0xff00) | (action & 0xff);
   }
 
-  int _textureId;
+  int? _textureId;
 
-  int get textureId => _textureId;
+  int? get textureId => _textureId;
 
-  Size _size;
+  late Size _size;
 
   Future<void> setSize(Size size) async {
     assert(_state != _TizenViewState.disposed,
@@ -109,7 +114,7 @@ class TizenViewController extends PlatformViewController {
     };
     if (_creationParams != null) {
       final ByteData paramsByteData =
-          _creationParamsCodec.encodeMessage(_creationParams);
+          _creationParamsCodec!.encodeMessage(_creationParams)!;
       args['params'] = Uint8List.view(
         paramsByteData.buffer,
         0,
@@ -238,8 +243,8 @@ class TizenViewController extends PlatformViewController {
 
 class TizenView extends StatefulWidget {
   const TizenView({
-    Key key,
-    @required this.viewType,
+    Key? key,
+    required this.viewType,
     this.onPlatformViewCreated,
     this.hitTestBehavior = PlatformViewHitTestBehavior.opaque,
     this.layoutDirection,
@@ -252,12 +257,12 @@ class TizenView extends StatefulWidget {
         super(key: key);
 
   final String viewType;
-  final PlatformViewCreatedCallback onPlatformViewCreated;
+  final PlatformViewCreatedCallback? onPlatformViewCreated;
   final PlatformViewHitTestBehavior hitTestBehavior;
-  final TextDirection layoutDirection;
-  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
+  final TextDirection? layoutDirection;
+  final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
   final dynamic creationParams;
-  final MessageCodec<dynamic> creationParamsCodec;
+  final MessageCodec<dynamic>? creationParamsCodec;
 
   @override
   State<TizenView> createState() => _TizenWebViewState();
@@ -277,11 +282,7 @@ class PlatformViewsServiceTizen {
         final int id = call.arguments as int;
         print('viewFocused: id - $id');
         if (_focusCallbacks.containsKey(id)) {
-          if (_focusCallbacks[id] != null) {
-            _focusCallbacks[id]();
-          } else {
-            throw FlutterError('FocusCallbacks[$id] must not be null.');
-          }
+          _focusCallbacks[id]!();
         }
         break;
       default:
@@ -294,12 +295,12 @@ class PlatformViewsServiceTizen {
   final Map<int, VoidCallback> _focusCallbacks = <int, VoidCallback>{};
 
   static TizenViewController initTizenView({
-    @required int id,
-    @required String viewType,
-    @required TextDirection layoutDirection,
+    required int id,
+    required String viewType,
+    required TextDirection layoutDirection,
     dynamic creationParams,
-    MessageCodec<dynamic> creationParamsCodec,
-    VoidCallback onFocus,
+    MessageCodec<dynamic>? creationParamsCodec,
+    VoidCallback? onFocus,
   }) {
     assert(id != null);
     assert(viewType != null);
@@ -334,10 +335,9 @@ class _PlatformViewGestureRecognizer extends OneSequenceGestureRecognizer {
   _PlatformViewGestureRecognizer(
     _HandlePointerEvent handlePointerEvent,
     this.gestureRecognizerFactories, {
-    PointerDeviceKind kind,
+    PointerDeviceKind? kind,
   }) : super(kind: kind) {
-    team = GestureArenaTeam();
-    team.captain = this;
+    team = GestureArenaTeam()..captain = this;
     _gestureRecognizers = gestureRecognizerFactories.map(
       (Factory<OneSequenceGestureRecognizer> recognizerFactory) {
         final OneSequenceGestureRecognizer gestureRecognizer =
@@ -359,7 +359,7 @@ class _PlatformViewGestureRecognizer extends OneSequenceGestureRecognizer {
     _handlePointerEvent = handlePointerEvent;
   }
 
-  _HandlePointerEvent _handlePointerEvent;
+  late _HandlePointerEvent _handlePointerEvent;
 
   // Maps a pointer to a list of its cached pointer events.
   // Before the arena for a pointer is resolved all events are cached here, if we win the arena
@@ -375,7 +375,7 @@ class _PlatformViewGestureRecognizer extends OneSequenceGestureRecognizer {
   // TODO(amirh): get a list of GestureRecognizers here.
   // https://github.com/flutter/flutter/issues/20953
   final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizerFactories;
-  Set<OneSequenceGestureRecognizer> _gestureRecognizers;
+  late Set<OneSequenceGestureRecognizer> _gestureRecognizers;
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
@@ -417,7 +417,7 @@ class _PlatformViewGestureRecognizer extends OneSequenceGestureRecognizer {
     if (!cachedEvents.containsKey(event.pointer)) {
       cachedEvents[event.pointer] = <PointerEvent>[];
     }
-    cachedEvents[event.pointer].add(event);
+    cachedEvents[event.pointer]!.add(event);
   }
 
   void _flushPointerCache(int pointer) {
@@ -442,13 +442,15 @@ class _PlatformViewGestureRecognizer extends OneSequenceGestureRecognizer {
 class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
   /// Creates a render object for an Tizen view.
   RenderTizenView({
-    @required TizenViewController viewController,
-    @required PlatformViewHitTestBehavior hitTestBehavior,
-    @required Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers,
+    required TizenViewController viewController,
+    required PlatformViewHitTestBehavior hitTestBehavior,
+    required Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers,
+    Clip clipBehavior = Clip.hardEdge,
   })  : assert(viewController != null),
         assert(hitTestBehavior != null),
         assert(gestureRecognizers != null),
-        _viewController = viewController {
+        _viewController = viewController,
+        _clipBehavior = clipBehavior {
     _viewController.pointTransformer = (Offset offset) => globalToLocal(offset);
     updateGestureRecognizers(gestureRecognizers);
     _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
@@ -473,6 +475,17 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
       markNeedsSemanticsUpdate();
     }
     _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
+  }
+
+  Clip get clipBehavior => _clipBehavior;
+  Clip _clipBehavior = Clip.hardEdge;
+  set clipBehavior(Clip value) {
+    assert(value != null);
+    if (value != _clipBehavior) {
+      _clipBehavior = value;
+      markNeedsPaint();
+      markNeedsSemanticsUpdate();
+    }
   }
 
   void _onPlatformViewCreated(int id) {
@@ -500,7 +513,7 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
     _sizePlatformView();
   }
 
-  Size _currentTizenViewSize;
+  late Size _currentTizenViewSize;
 
   Future<void> _sizePlatformView() async {
     if (_state == _PlatformViewState.resizing || size.isEmpty) {
@@ -525,19 +538,24 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
     if (_viewController.textureId == null) {
       return;
     }
-    if (size.width < _currentTizenViewSize.width ||
-        size.height < _currentTizenViewSize.height) {
-      context.pushClipRect(true, offset, offset & size, _paintTexture);
+    if ((size.width < _currentTizenViewSize.width ||
+            size.height < _currentTizenViewSize.height) &&
+        clipBehavior != Clip.none) {
+      _clipRectLayer = context.pushClipRect(
+          true, offset, offset & size, _paintTexture,
+          clipBehavior: clipBehavior, oldLayer: _clipRectLayer);
       return;
     }
-
+    _clipRectLayer = null;
     _paintTexture(context, offset);
   }
+
+  ClipRectLayer? _clipRectLayer;
 
   void _paintTexture(PaintingContext context, Offset offset) {
     context.addLayer(TextureLayer(
       rect: offset & _currentTizenViewSize,
-      textureId: _viewController.textureId,
+      textureId: _viewController.textureId!,
       freeze: _state == _PlatformViewState.resizing,
     ));
   }
@@ -556,10 +574,11 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
 
 class _TizenPlatformTextureView extends LeafRenderObjectWidget {
   const _TizenPlatformTextureView({
-    Key key,
-    @required this.controller,
-    @required this.hitTestBehavior,
-    @required this.gestureRecognizers,
+    Key? key,
+    required this.controller,
+    required this.hitTestBehavior,
+    required this.gestureRecognizers,
+    this.clipBehavior = Clip.hardEdge,
   })  : assert(controller != null),
         assert(hitTestBehavior != null),
         assert(gestureRecognizers != null),
@@ -568,12 +587,14 @@ class _TizenPlatformTextureView extends LeafRenderObjectWidget {
   final TizenViewController controller;
   final PlatformViewHitTestBehavior hitTestBehavior;
   final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
+  final Clip clipBehavior;
 
   @override
   RenderObject createRenderObject(BuildContext context) => RenderTizenView(
         viewController: controller,
         hitTestBehavior: hitTestBehavior,
         gestureRecognizers: gestureRecognizers,
+        clipBehavior: clipBehavior,
       );
 
   @override
@@ -585,11 +606,11 @@ class _TizenPlatformTextureView extends LeafRenderObjectWidget {
 }
 
 class _TizenWebViewState extends State<TizenView> {
-  int _id;
-  TizenViewController _controller;
-  TextDirection _layoutDirection;
+  int? _id;
+  late TizenViewController _controller;
+  TextDirection? _layoutDirection;
   bool _initialized = false;
-  FocusNode _focusNode;
+  FocusNode? _focusNode;
 
   static final Set<Factory<OneSequenceGestureRecognizer>> _emptyRecognizersSet =
       <Factory<OneSequenceGestureRecognizer>>{};
@@ -627,7 +648,7 @@ class _TizenWebViewState extends State<TizenView> {
 
     _initializeOnce();
     if (didChangeLayoutDirection) {
-      _controller.setLayoutDirection(_layoutDirection);
+      _controller.setLayoutDirection(_layoutDirection!);
     }
   }
 
@@ -648,7 +669,7 @@ class _TizenWebViewState extends State<TizenView> {
     }
 
     if (didChangeLayoutDirection) {
-      _controller.setLayoutDirection(_layoutDirection);
+      _controller.setLayoutDirection(_layoutDirection!);
     }
   }
 
@@ -668,19 +689,19 @@ class _TizenWebViewState extends State<TizenView> {
   void _createNewTizenWebView() {
     _id = platformViewsRegistry.getNextPlatformViewId();
     _controller = PlatformViewsServiceTizen.initTizenView(
-      id: _id,
+      id: _id!,
       viewType: widget.viewType,
-      layoutDirection: _layoutDirection,
+      layoutDirection: _layoutDirection!,
       creationParams: widget.creationParams,
       creationParamsCodec: widget.creationParamsCodec,
       onFocus: () {
         print('_TizenWebViewState::_createNewTizenWebView() - onFocus()');
-        _focusNode.requestFocus();
+        _focusNode!.requestFocus();
       },
     );
     if (widget.onPlatformViewCreated != null) {
       _controller
-          .addOnPlatformViewCreatedListener(widget.onPlatformViewCreated);
+          .addOnPlatformViewCreatedListener(widget.onPlatformViewCreated!);
     }
   }
 
@@ -718,11 +739,11 @@ class TizenWebView implements WebViewPlatform {
 
   @override
   Widget build({
-    BuildContext context,
-    CreationParams creationParams,
-    @required WebViewPlatformCallbacksHandler webViewPlatformCallbacksHandler,
-    WebViewPlatformCreatedCallback onWebViewPlatformCreated,
-    Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers,
+    required BuildContext context,
+    required CreationParams creationParams,
+    WebViewPlatformCreatedCallback? onWebViewPlatformCreated,
+    Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers,
+    required WebViewPlatformCallbacksHandler webViewPlatformCallbacksHandler,
   }) {
     assert(webViewPlatformCallbacksHandler != null);
     return GestureDetector(
@@ -750,7 +771,7 @@ class TizenWebView implements WebViewPlatform {
   Future<bool> clearCookies() => MethodChannelWebViewPlatform.clearCookies();
 }
 
-bool _factoryTypesSetEquals<T>(Set<Factory<T>> a, Set<Factory<T>> b) {
+bool _factoryTypesSetEquals<T>(Set<Factory<T>>? a, Set<Factory<T>>? b) {
   if (a == b) {
     return true;
   }
@@ -777,9 +798,9 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
     }
   }
 
-  PlatformViewHitTestBehavior _hitTestBehavior;
+  PlatformViewHitTestBehavior? _hitTestBehavior;
 
-  _HandlePointerEvent _handlePointerEvent;
+  _HandlePointerEvent? _handlePointerEvent;
 
   /// {@macro  flutter.rendering.platformView.updateGestureRecognizers}
   ///
@@ -804,10 +825,10 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
     _handlePointerEvent = handlePointerEvent;
   }
 
-  _PlatformViewGestureRecognizer _gestureRecognizer;
+  _PlatformViewGestureRecognizer? _gestureRecognizer;
 
   @override
-  bool hitTest(BoxHitTestResult result, {Offset position}) {
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
     if (_hitTestBehavior == PlatformViewHitTestBehavior.transparent ||
         !size.contains(position)) {
       return false;
@@ -821,10 +842,10 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
       _hitTestBehavior != PlatformViewHitTestBehavior.transparent;
 
   @override
-  PointerEnterEventListener get onEnter => null;
+  PointerEnterEventListener? get onEnter => null;
 
   @override
-  PointerExitEventListener get onExit => null;
+  PointerExitEventListener? get onExit => null;
 
   @override
   MouseCursor get cursor => MouseCursor.uncontrolled;
@@ -835,7 +856,7 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
   @override
   void handleEvent(PointerEvent event, HitTestEntry entry) {
     if (event is PointerDownEvent) {
-      _gestureRecognizer.addPointer(event);
+      _gestureRecognizer!.addPointer(event);
     }
     if (event is PointerHoverEvent) {
       _handlePointerEvent?.call(event);
@@ -844,7 +865,7 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
 
   @override
   void detach() {
-    _gestureRecognizer.reset();
+    _gestureRecognizer!.reset();
     super.detach();
   }
 }
