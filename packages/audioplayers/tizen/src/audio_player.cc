@@ -3,12 +3,6 @@
 #include "audio_player_error.h"
 #include "log.h"
 
-static std::string ErrorToString(int code) {
-  const char *ptr = get_error_message(code);
-  std::string result = ptr ? std::string(ptr) : "";
-  return "player - " + (result.empty() ? "Unknown error" : result);
-}
-
 AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
                          PreparedListener prepared_listener,
                          StartPlayingListener start_playing_listener,
@@ -130,7 +124,7 @@ void AudioPlayer::Seek(int position) {
                                           OnSeekCompleted, (void *)this);
     if (result != PLAYER_ERROR_NONE) {
       seeking_ = false;
-      std::string error = ErrorToString(result);
+      std::string error(get_error_message(result));
       LOG_ERROR("player_set_play_position failed : %s", error.c_str());
       throw AudioPlayerError(error, "player_set_play_position failed");
     }
@@ -312,7 +306,7 @@ player_state_e AudioPlayer::GetPlayerState() {
 
 void AudioPlayer::HandleResult(const std::string &func_name, int result) {
   if (result != PLAYER_ERROR_NONE) {
-    std::string error = ErrorToString(result);
+    std::string error(get_error_message(result));
     LOG_ERROR("%s failed : %s", func_name.c_str(), error.c_str());
     throw AudioPlayerError(error, func_name + " failed");
   }
@@ -376,7 +370,7 @@ void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
 }
 
 void AudioPlayer::OnErrorOccurred(int code, void *data) {
-  std::string error = ErrorToString(code);
+  std::string error(get_error_message(code));
   LOG_ERROR("error occurred: %s", error.c_str());
   AudioPlayer *player = (AudioPlayer *)data;
   player->error_listener_(player->player_id_, "error occurred: " + error);
