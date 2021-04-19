@@ -15,6 +15,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**battery_tizen**](packages/battery) | [battery](https://github.com/flutter/plugins/tree/master/packages/battery) (1st-party) | [![pub package](https://img.shields.io/pub/v/battery_tizen.svg)](https://pub.dev/packages/battery_tizen) | No |
 | [**connectivity_tizen**](packages/connectivity) | [connectivity](https://github.com/flutter/plugins/tree/master/packages/connectivity) (1st-party) | [![pub package](https://img.shields.io/pub/v/connectivity_tizen.svg)](https://pub.dev/packages/connectivity_tizen) | No |
 | [**device_info_tizen**](packages/device_info) | [device_info](https://github.com/flutter/plugins/tree/master/packages/device_info) (1st-party) | [![pub package](https://img.shields.io/pub/v/device_info_tizen.svg)](https://pub.dev/packages/device_info_tizen) | No |
+| [**flutter_tts_tizen**](packages/flutter_tts) | [flutter_tts](https://github.com/dlutton/flutter_tts) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen) | No |
 | [**image_picker_tizen**](packages/image_picker) | [image_picker](https://github.com/flutter/plugins/tree/master/packages/image_picker) (1st-party) | [![pub package](https://img.shields.io/pub/v/image_picker_tizen.svg)](https://pub.dev/packages/image_picker_tizen) | No |
 | [**integration_test_tizen**](packages/integration_test) | [integration_test](https://github.com/flutter/flutter/tree/master/packages/integration_test) (1st-party) | [![pub package](https://img.shields.io/pub/v/integration_test_tizen.svg)](https://pub.dev/packages/integration_test_tizen) | No |
 | [**package_info_tizen**](packages/package_info) | [package_info](https://github.com/flutter/plugins/tree/master/packages/package_info) (1st-party) | [![pub package](https://img.shields.io/pub/v/package_info_tizen.svg)](https://pub.dev/packages/package_info_tizen) | No |
@@ -25,23 +26,26 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**shared_preferences_tizen**](packages/path_provider) | [shared_preferences](https://github.com/flutter/plugins/tree/master/packages/shared_preferences) (1st-party) | [![pub package](https://img.shields.io/pub/v/shared_preferences_tizen.svg)](https://pub.dev/packages/shared_preferences_tizen) | No |
 | [**url_launcher_tizen**](packages/url_launcher) | [url_launcher](https://github.com/flutter/plugins/tree/master/packages/url_launcher) (1st-party) | [![pub package](https://img.shields.io/pub/v/url_launcher_tizen.svg)](https://pub.dev/packages/url_launcher_tizen) | No |
 | [**video_player_tizen**](packages/video_player) | [video_player](https://github.com/flutter/plugins/tree/master/packages/video_player) (1st-party) | [![pub package](https://img.shields.io/pub/v/video_player_tizen.svg)](https://pub.dev/packages/video_player_tizen) | No |
+| [**webview_flutter_tizen**](packages/webview_flutter) | [webview_flutter](https://github.com/flutter/plugins/tree/master/packages/webview_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen) | No |
 | [**wifi_info_flutter_tizen**](packages/wifi_info_flutter) | [wifi_info_flutter](https://github.com/flutter/plugins/tree/master/packages/wifi_info_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/wifi_info_flutter_tizen.svg)](https://pub.dev/packages/wifi_info_flutter_tizen) | No |
 
 ## Device limitations
 
-| Package name | Watch | Watch emulator | TV | TV emulator | Remarks |
+| Package name | Watch | Watch<br>emulator | TV | TV<br>emulator | Remarks |
 |-|:-:|:-:|:-:|:-:|-|
 | [**battery_tizen**](packages/battery) | ✔️ | ✔️ | ❌ | ❌ | No battery |
 | [**connectivity_tizen**](packages/connectivity) | ✔️ | ⚠️ | ✔️ | ✔️ | The return value is incorrect |
 | [**device_info_tizen**](packages/device_info) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**flutter_tts_tizen**](packages/flutter_tts) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**image_picker_tizen**](packages/image_picker) | ⚠️ | ❌ | ❌ | ❌ | No camera<br>No file manager app |
 | [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**package_info_tizen**](packages/package_info) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**path_provider_tizen**](packages/path_provider) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | No external storage |
-| [**permission_handler_tizen**](packages/permission_handler) | ✔️ | ✔️ | ❌ | ❌ |
+| [**permission_handler_tizen**](packages/permission_handler) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**sensors_tizen**](packages/sensors) | ✔️ | ✔️ | ❌ | ❌ | No hardware |
 | [**share_tizen**](packages/share) | ⚠️ | ⚠️ | ❌ | ❌ | No SMS or e-mail app |
 | [**shared_preferences_tizen**](packages/path_provider) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
-| [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ✔️ | ❌ | API limitation |
-| [**wifi_info_flutter_tizen**](packages/wifi_info_flutter) | ✔️ | ❌ | ✔️ | ❌ |
+| [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
+| [**webview_flutter_tizen**](packages/webview_flutter) | ✔️ | ❌ | ✔️ | ❌ | Dependent library unavailable |
+| [**wifi_info_flutter_tizen**](packages/wifi_info_flutter) | ✔️ | ❌ | ✔️ | ❌ | API unsupported by emulators |
