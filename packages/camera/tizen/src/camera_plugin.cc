@@ -173,7 +173,24 @@ class CameraPlugin : public flutter::Plugin {
       }
       result->Error("InvalidArguments", "Please check 'mode'");
     } else if (method_name == "setFocusPoint") {
-      result->NotImplemented();
+      if (method_call.arguments()) {
+        flutter::EncodableMap arguments =
+            std::get<flutter::EncodableMap>(*method_call.arguments());
+        bool reset;
+        if (GetValueFromEncodableMap(arguments, "reset", reset)) {
+          if (reset) {
+            camera_->RestFocusPoint();
+          }
+        }
+        double x, y;
+        if (GetValueFromEncodableMap(arguments, "x", x) &&
+            GetValueFromEncodableMap(arguments, "y", y)) {
+          camera_->SetFocusPoint(x, y);
+          result->Success();
+          return;
+        }
+      }
+      result->Error("InvalidArguments", "Please check arguments(reset or x,y");
     } else if (method_name == "startImageStream") {
       result->NotImplemented();
     } else if (method_name == "stopImageStream") {
