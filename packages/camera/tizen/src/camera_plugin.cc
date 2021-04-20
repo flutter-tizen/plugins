@@ -110,11 +110,14 @@ class CameraPlugin : public flutter::Plugin {
         flutter::EncodableMap arguments =
             std::get<flutter::EncodableMap>(*method_call.arguments());
         std::string image_format_group;
-        GetValueFromEncodableMap(arguments, "imageFormatGroup",
-                                 image_format_group);
-        camera_->Open(image_format_group);
-        result->Success();
+        if (GetValueFromEncodableMap(arguments, "imageFormatGroup",
+                                     image_format_group)) {
+          camera_->Open(image_format_group);
+          result->Success();
+          return;
+        }
       }
+      result->Error("InvalidArguments", "Please check 'imageFormatGroup'");
     } else if (method_name == "takePicture") {
       camera_->TakePicture(std::move(result));
     } else if (method_name == "prepareForVideoRecording") {
@@ -130,7 +133,20 @@ class CameraPlugin : public flutter::Plugin {
     } else if (method_name == "setFlashMode") {
       result->NotImplemented();
     } else if (method_name == "setExposureMode") {
-      result->NotImplemented();
+      if (method_call.arguments()) {
+        flutter::EncodableMap arguments =
+            std::get<flutter::EncodableMap>(*method_call.arguments());
+        std::string mode;
+        ExposureMode exposure_mode;
+        if (GetValueFromEncodableMap(arguments, "mode", mode)) {
+          if (StringToExposureMode(mode, exposure_mode)) {
+            camera_->SetExposureMode(exposure_mode);
+            result->Success();
+            return;
+          }
+        }
+      }
+      result->Error("InvalidArguments", "Please check 'mode'");
     } else if (method_name == "setExposurePoint") {
       result->NotImplemented();
     } else if (method_name == "getMinExposureOffset") {
@@ -147,15 +163,15 @@ class CameraPlugin : public flutter::Plugin {
             std::get<flutter::EncodableMap>(*method_call.arguments());
         std::string mode;
         FocusMode focus_mode;
-        GetValueFromEncodableMap(arguments, "mode", mode);
-        if (StringToFocusMode(mode, focus_mode)) {
-          camera_->SetFocusMode(focus_mode);
-          result->Success();
-        } else {
-          result->Error("InvalidArguments", "Please check 'mode'");
+        if (GetValueFromEncodableMap(arguments, "mode", mode)) {
+          if (StringToFocusMode(mode, focus_mode)) {
+            camera_->SetFocusMode(focus_mode);
+            result->Success();
+            return;
+          }
         }
       }
-      result->NotImplemented();
+      result->Error("InvalidArguments", "Please check 'mode'");
     } else if (method_name == "setFocusPoint") {
       result->NotImplemented();
     } else if (method_name == "startImageStream") {
