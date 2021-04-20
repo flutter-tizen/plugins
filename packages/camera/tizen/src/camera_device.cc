@@ -190,6 +190,9 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
     SetCameraFlip(CameraFlip::kVertical);
   }
 
+  GetState(state_);
+  GetPreviewResolution(preview_width_, preview_height_);
+
   texture_id_ = FlutterRegisterExternalTexture(texture_registrar_);
   LOG_DEBUG("texture_id_[%ld]", texture_id_);
   camera_method_channel_ =
@@ -202,15 +205,8 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
       device_method_channel_.get(), (OrientationType)angle,
       type == CameraDeviceType::kFront);
 
-  OrientationType device_orientation =
-      orientation_manager_->GetDeviceOrientationType();
-  // Send initial orientation
-  OrientationType target_orientation =
-      orientation_manager_->ConvertTargetOrientation(device_orientation);
-  orientation_manager_->SendOrientation(target_orientation);
   orientation_manager_->Start();
 
-  GetState(state_);
   // Print camera info for convenience of development, These will be removed
   // after release
   PrintState();
@@ -223,7 +219,7 @@ CameraDevice::~CameraDevice() { Dispose(); }
 bool CameraDevice::CameraCreate() {
   int error = camera_create((camera_device_e)type_, &handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_create fail - error : %s",
+                    "camera_create fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -232,17 +228,25 @@ bool CameraDevice::CameraDestroy() {
   LOG_DEBUG("enter");
   int error = camera_destroy(handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_destroy fail - error : %s",
+                    "camera_destroy fail - error[%d]: %s", error,
                     get_error_message(error));
   handle_ = nullptr;
   LOG_DEBUG("done");
   return true;
 }
 
+bool CameraDevice::ClearAutoFocusArea() {
+  int error = camera_attr_clear_af_area(handle_);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_clear_af_area fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
 void CameraDevice::ChangeCameraDeviceType(CameraDeviceType type) {
   int error = camera_change_device(handle_, (camera_device_e)type);
   LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
-               "camera_change_device fail - error : %s",
+               "camera_change_device fail - error[%d]: %s", error,
                get_error_message(error));
   type_ = type;
 }
@@ -272,7 +276,7 @@ bool CameraDevice::GetDeviceCount(int &count) {
   // is returned, the device only supports primary camera.
   int error = camera_get_device_count(handle_, &count);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_get_device_count fail - error : %s",
+                    "camera_get_device_count fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -280,7 +284,7 @@ bool CameraDevice::GetDeviceCount(int &count) {
 bool CameraDevice::GetAutoFocusMode(CameraAutoFocusMode &mode) {
   int error = camera_attr_get_af_mode(handle_, (camera_attr_af_mode_e *)&mode);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_get_af_mode fail - error : %s",
+                    "camera_attr_get_af_mode fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -288,16 +292,27 @@ bool CameraDevice::GetAutoFocusMode(CameraAutoFocusMode &mode) {
 bool CameraDevice::GetLensOrientation(int &angle) {
   int error = camera_attr_get_lens_orientation(handle_, &angle);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_get_lens_orientation fail - error : %s",
-                    get_error_message(error));
+                    "camera_attr_get_lens_orientation fail - error[%d]: %s",
+                    error, get_error_message(error));
 
+  return true;
+}
+
+bool CameraDevice::GetPreviewResolution(int &width, int &height) {
+  int w, h;
+  int error = camera_get_preview_resolution(handle_, &w, &h);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_get_preview_resolution fail - error[%d]: %s", error,
+                    get_error_message(error));
+  width = w;
+  height = h;
   return true;
 }
 
 bool CameraDevice::GetState(CameraDeviceState &state) {
   int error = camera_get_state(handle_, (camera_state_e *)&state);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_get_state fail - error : %s",
+                    "camera_get_state fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -305,7 +320,7 @@ bool CameraDevice::GetState(CameraDeviceState &state) {
 bool CameraDevice::SetExifTagEnable(bool enable) {
   int error = camera_attr_enable_tag(handle_, enable);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_enable_tag fail - error : %s",
+                    "camera_attr_enable_tag fail - error[%d]: %s", error,
                     get_error_message(error));
 
   return true;
@@ -315,7 +330,16 @@ bool CameraDevice::SetExifTagOrientatoin(ExifTagOrientation orientation) {
   int error = camera_attr_set_tag_orientation(
       handle_, (camera_attr_tag_orientation_e)orientation);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_set_tag_orientation fail - error : %s",
+                    "camera_attr_set_tag_orientation fail - error[%d]: %s",
+                    error, get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetAutoFocusArea(int x, int y) {
+  LOG_DEBUG("camera_attr_set_af_area x[%d], y[%d]", x, y);
+  int error = camera_attr_set_af_area(handle_, x, y);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_set_af_area fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -323,7 +347,7 @@ bool CameraDevice::SetExifTagOrientatoin(ExifTagOrientation orientation) {
 bool CameraDevice::SetAutoFocusChangedCb(CameraFocusChangedCb callback) {
   int error = camera_set_focus_changed_cb(handle_, callback, this);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_set_focus_changed_cb fail - error : %s",
+                    "camera_set_focus_changed_cb fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -331,7 +355,7 @@ bool CameraDevice::SetAutoFocusChangedCb(CameraFocusChangedCb callback) {
 bool CameraDevice::SetCameraAutoFocusMode(CameraAutoFocusMode mode) {
   int error = camera_attr_set_af_mode(handle_, (camera_attr_af_mode_e)mode);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_set_af_mode fail - error : %s",
+                    "camera_attr_set_af_mode fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -340,7 +364,7 @@ bool CameraDevice::SetCameraExposureMode(CameraExposureMode mode) {
   int error =
       camera_attr_set_exposure_mode(handle_, (camera_attr_exposure_mode_e)mode);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_set_exposure_mode fail - error : %s",
+                    "camera_attr_set_exposure_mode fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -348,7 +372,7 @@ bool CameraDevice::SetCameraExposureMode(CameraExposureMode mode) {
 bool CameraDevice::SetCameraFlip(CameraFlip flip) {
   int error = camera_attr_set_stream_flip(handle_, (camera_flip_e)flip);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_set_stream_flip fail - error : %s",
+                    "camera_attr_set_stream_flip fail - error[%d]: %s", error,
                     get_error_message(error));
 
   return true;
@@ -357,7 +381,7 @@ bool CameraDevice::SetCameraFlip(CameraFlip flip) {
 bool CameraDevice::SetCaptureFormat(CameraPixelFormat format) {
   int error = camera_set_capture_format(handle_, (camera_pixel_format_e)format);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_set_capture_format ( fail - error : %s",
+                    "camera_set_capture_format ( fail - error[%d]: %s", error,
                     get_error_message(error));
 
   return true;
@@ -374,7 +398,7 @@ bool CameraDevice::PrintSupportedPreviewResolution() {
       nullptr);
   RETV_LOG_ERROR_IF(
       error != CAMERA_ERROR_NONE, false,
-      "camera_foreach_supported_preview_resolution fail - error : %s",
+      "camera_foreach_supported_preview_resolution fail - error[%d]: %s", error,
       get_error_message(error));
 
   return true;
@@ -407,8 +431,8 @@ bool CameraDevice::PrintPreviewRotation() {
   camera_rotation_e val = CAMERA_ROTATION_NONE;
   int error = camera_attr_get_stream_rotation(handle_, &val);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_get_stream_rotation fail - error : %s",
-                    get_error_message(error));
+                    "camera_attr_get_stream_rotation fail - error[%d]: %s",
+                    error, get_error_message(error));
   switch (val) {
     case CAMERA_ROTATION_NONE:
       LOG_DEBUG("CAMERA_ROTATION_NONE");
@@ -433,8 +457,8 @@ Size CameraDevice::GetRecommendedPreviewResolution() {
   int w, h;
   int error = camera_get_recommended_preview_resolution(handle_, &w, &h);
   LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
-               "camera_get_recommended_preview_resolution fail - error : %s",
-               get_error_message(error));
+               "camera_get_recommended_preview_resolution fail - error[%d]: %s",
+               error, get_error_message(error));
 
   auto target_orientation = orientation_manager_->ConvertTargetOrientation(
       OrientationType::kPortraitUp);
@@ -456,7 +480,7 @@ bool CameraDevice::Open(std::string image_format_group) {
   LOG_DEBUG("Recieved image_format_group[%s]", image_format_group.c_str());
   CameraPixelFormat pixel_format;
   if (StringToCameraPixelFormat(image_format_group, pixel_format)) {
-    LOG_DEBUG("Try to set pixel_format[%d]", (int)pixel_format);
+    LOG_DEBUG("Try to set pixel_format[%d]", static_cast<int>(pixel_format));
     SetCaptureFormat(pixel_format);
     SetPreviewFormat(pixel_format);
   }
@@ -465,7 +489,7 @@ bool CameraDevice::Open(std::string image_format_group) {
     tbm_surface_h surface = nullptr;
     int error = media_packet_get_tbm_surface(pkt, &surface);
     LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                 "media_packet_get_tbm_surface fail - error : %s",
+                 "media_packet_get_tbm_surface fail - error[%d]: %s", error,
                  get_error_message(error));
 
     if (error == 0) {
@@ -479,7 +503,7 @@ bool CameraDevice::Open(std::string image_format_group) {
     if (pkt) {
       error = media_packet_destroy(pkt);
       LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                   "media_packet_destroy fail - error : %s",
+                   "media_packet_destroy fail - error[%d]: %s", error,
                    get_error_message(error));
     }
   });
@@ -487,7 +511,7 @@ bool CameraDevice::Open(std::string image_format_group) {
   StartPreview();
 
   SetAutoFocusChangedCb([](camera_focus_state_e state, void *user_data) {
-    LOG_DEBUG("Change auto focus state[%d]", (int)state);
+    LOG_DEBUG("Change auto focus state[%d]", static_cast<int>(state));
   });
 
   // Start or stop focusing according to FocusMode
@@ -533,6 +557,11 @@ bool CameraDevice::Open(std::string image_format_group) {
   return true;
 }
 
+void CameraDevice::RestFocusPoint() {
+  LOG_DEBUG("enter");
+  ClearAutoFocusArea();
+}
+
 void CameraDevice::SetExposureMode(ExposureMode exposure_mode) {
   switch (exposure_mode) {
     case ExposureMode::kAuto:
@@ -572,6 +601,35 @@ void CameraDevice::SetFocusMode(FocusMode focus_mode) {
   focus_mode_ = focus_mode;
 }
 
+void CameraDevice::SetFocusPoint(double x, double y) {
+  LOG_DEBUG("x[%f], y[%f]", x, y);
+  auto target_orientation = orientation_manager_->GetTargetOrientationType();
+  int computed_x, computed_y;
+  switch (target_orientation) {
+    case OrientationType::kPortraitUp:
+      computed_x = preview_width_ - (preview_width_ * x);
+      computed_y = preview_height_ - (preview_height_ * y);
+      break;
+    case OrientationType::kLandscapeLeft:
+      computed_x = preview_width_ - (preview_width_ * y);
+      computed_y = preview_height_ * x;
+      break;
+    case OrientationType::kPortraitDown:
+      computed_x = preview_width_ * x;
+      computed_y = preview_height_ * y;
+      break;
+    case OrientationType::kLandscapeRight:
+      computed_x = preview_width_ * y;
+      computed_y = preview_height_ - (preview_height_ * x);
+      break;
+    default:
+      LOG_ERROR("Unknown OrientationType!");
+      break;
+  }
+  SetAutoFocusArea(computed_x, computed_y);
+  return;
+}
+
 void CameraDevice::TakePicture(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
   SetExifTagOrientatoin(
@@ -596,8 +654,8 @@ void CameraDevice::TakePicture(
 bool CameraDevice::SetMediaPacketPreviewCb(MediaPacketPreviewCb callback) {
   int error = camera_set_media_packet_preview_cb(handle_, callback, this);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_set_media_packet_preview_cb fail - error : %s",
-                    get_error_message(error));
+                    "camera_set_media_packet_preview_cb fail - error[%d]: %s",
+                    error, get_error_message(error));
 
   return true;
 }
@@ -605,7 +663,7 @@ bool CameraDevice::SetMediaPacketPreviewCb(MediaPacketPreviewCb callback) {
 bool CameraDevice::SetPreviewCb(CameraPrivewCb callback) {
   int error = camera_set_preview_cb(handle_, callback, this);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_set_preview_cb fail - error : %s",
+                    "camera_set_preview_cb fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -613,21 +671,21 @@ bool CameraDevice::SetPreviewCb(CameraPrivewCb callback) {
 bool CameraDevice::SetPreviewFormat(CameraPixelFormat format) {
   int error = camera_set_preview_format(handle_, (camera_pixel_format_e)format);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_set_preview_format fail - error : %s",
+                    "camera_set_preview_format fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
 
 bool CameraDevice::SetPreviewSize(Size size) {
   int w, h;
-  w = (int)size.width;
-  h = (int)size.height;
+  w = static_cast<int>(size.width);
+  h = static_cast<int>(size.height);
 
   LOG_DEBUG("camera_set_preview_resolution w[%d] h[%d]", w, h);
 
   int error = camera_set_preview_resolution(handle_, w, h);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_set_preview_resolution fail - error : %s",
+                    "camera_set_preview_resolution fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -688,7 +746,7 @@ bool CameraDevice::StartCapture(OnCaptureSuccessCb on_success,
       },
       p);
   LOG_ERROR_IF(error != CAMERA_ERROR_NONE,
-               "camera_start_capture fail - error : %s",
+               "camera_start_capture fail - error[%d]: %s", error,
                get_error_message(error));
 
   if (error != CAMERA_ERROR_NONE) {
@@ -702,7 +760,7 @@ bool CameraDevice::StartCapture(OnCaptureSuccessCb on_success,
 bool CameraDevice::StartAutoFocusing(bool continuous) {
   int error = camera_start_focusing(handle_, continuous);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_start_focusing fail - error : %s",
+                    "camera_start_focusing fail - error[%d]: %s", error,
                     get_error_message(error));
 
   return true;
@@ -711,8 +769,8 @@ bool CameraDevice::StartAutoFocusing(bool continuous) {
 bool CameraDevice::UnsetMediaPacketPreviewCb() {
   int error = camera_unset_media_packet_preview_cb(handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_unset_media_packet_preview_cb fail - error : %s",
-                    get_error_message(error));
+                    "camera_unset_media_packet_preview_cb fail - error[%d]: %s",
+                    error, get_error_message(error));
 
   return true;
 }
@@ -720,7 +778,7 @@ bool CameraDevice::UnsetMediaPacketPreviewCb() {
 bool CameraDevice::UnsetAutoFocusChangedCb() {
   int error = camera_unset_focus_changed_cb(handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_unset_focus_changed_cb fail - error : %s",
+                    "camera_unset_focus_changed_cb fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
@@ -728,7 +786,7 @@ bool CameraDevice::UnsetAutoFocusChangedCb() {
 bool CameraDevice::StartPreview() {
   int error = camera_start_preview(handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_start_preview fail - error : %s",
+                    "camera_start_preview fail - error[%d]: %s", error,
                     get_error_message(error));
 
   GetState(state_);
@@ -738,7 +796,7 @@ bool CameraDevice::StartPreview() {
 bool CameraDevice::StopAutoFocusing() {
   int error = camera_cancel_focusing(handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_cancel_focusing fail - error : %s",
+                    "camera_cancel_focusing fail - error[%d]: %s", error,
                     get_error_message(error));
 
   return true;
@@ -747,7 +805,7 @@ bool CameraDevice::StopAutoFocusing() {
 bool CameraDevice::StopPreview() {
   int error = camera_stop_preview(handle_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_stop_preview fail - error : %s",
+                    "camera_stop_preview fail - error[%d]: %s", error,
                     get_error_message(error));
 
   GetState(state_);

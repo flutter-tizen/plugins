@@ -33,17 +33,22 @@ OrientationManager::OrientationManager(
       is_front_lens_facing_(is_front_lens_facing) {
   LOG_DEBUG("is_front_lens_facing_[%s]",
             is_front_lens_facing_ ? "true" : "false");
+
+  // Send initial orientation
+  last_device_orientation_ = GetDeviceOrientationType();
+  target_orientation_ = ConvertTargetOrientation(last_device_orientation_);
+  SendOrientation(target_orientation_);
 }
 
 OrientationManager::~OrientationManager() {}
 
 OrientationType OrientationManager::ConvertTargetOrientation(
     OrientationType orientation_event_type) {
-  int degree = (int)orientation_event_type;
+  int degree = static_cast<int>(orientation_event_type);
   if (is_front_lens_facing_) {
     degree = 180 + degree;
   }
-  int target = (degree + (int)lens_orientation_) % 360;
+  int target = (degree + static_cast<int>(lens_orientation_)) % 360;
   return (OrientationType)target;
 }
 
@@ -77,25 +82,27 @@ void OrientationManager::Start() {
           int error =
               app_event_get_device_orientation(event_info, &device_orientation);
           if (error != APP_ERROR_NONE) {
-            LOG_ERROR("app_event_get_device_orientation fail - error : %s",
-                      get_error_message(error));
+            LOG_ERROR("app_event_get_device_orientation fail - error[%d]: %s",
+                      error, get_error_message(error));
             return;
           }
 
           OrientationManager* self = (OrientationManager*)data;
-          if (self->last_device_orientation_ == device_orientation) {
+          OrientationType orientation =
+              static_cast<OrientationType>(device_orientation);
+          if (self->last_device_orientation_ == orientation) {
             // ignore
             return;
           }
-          self->last_device_orientation_ = device_orientation;
-          auto target_orientation = self->ConvertTargetOrientation(
-              (OrientationType)device_orientation);
-          self->SendOrientation((OrientationType)target_orientation);
+          self->last_device_orientation_ = orientation;
+          self->target_orientation_ =
+              self->ConvertTargetOrientation(orientation);
+          self->SendOrientation(self->target_orientation_);
         },
         this);
 
     LOG_ERROR_IF(error != APP_ERROR_NONE,
-                 "ui_app_add_event_handler fail - error : %s",
+                 "ui_app_add_event_handler fail - error[%d]: %s", error,
                  get_error_message(error));
   } else {
     LOG_WARN("OrientationManager already started!");
@@ -107,7 +114,7 @@ void OrientationManager::Stop() {
   if (event_handler_) {
     int error = ui_app_remove_event_handler(event_handler_);
     LOG_ERROR_IF(error != APP_ERROR_NONE,
-                 "ui_app_remove_event_handler fail - error : %s",
+                 "ui_app_remove_event_handler fail - error[%d]: %s", error,
                  get_error_message(error));
     event_handler_ = nullptr;
   } else {
