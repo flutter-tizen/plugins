@@ -8,7 +8,7 @@
 
 #include "log.h"
 
-char* PermissionToString(Permission permission) {
+const char* PermissionToString(Permission permission) {
   switch (permission) {
     case Permission::kCamera:
       return "http://tizen.org/privilege/camera";
@@ -32,7 +32,7 @@ void PermissionManager::RequestPermssion(Permission permission,
   LOG_DEBUG("enter");
 
   ppm_check_result_e result;
-  char* permission_string = PermissionToString(permission);
+  const char* permission_string = PermissionToString(permission);
   int error = ppm_check_permission(permission_string, &result);
 
   if (error != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {

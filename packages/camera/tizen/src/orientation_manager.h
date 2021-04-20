@@ -26,6 +26,7 @@ class OrientationManager {
   OrientationType ConvertTargetOrientation(
       OrientationType orientation_event_type);
   OrientationType GetDeviceOrientationType();
+  OrientationType GetTargetOrientationType() { return target_orientation_; }
   void SendOrientation(OrientationType orientation);
   void Start();
   void Stop();
@@ -35,6 +36,7 @@ class OrientationManager {
   DeviceMethodChannel* device_method_channel_{nullptr};
   OrientationType lens_orientation_{OrientationType::kPortraitUp};
   bool is_front_lens_facing_{false};
-  app_device_orientation_e last_device_orientation_{APP_DEVICE_ORIENTATION_0};
+  OrientationType last_device_orientation_{OrientationType::kPortraitUp};
+  OrientationType target_orientation_{OrientationType::kPortraitUp};
 };
 #endif

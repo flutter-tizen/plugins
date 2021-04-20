@@ -116,17 +116,21 @@ class CameraDevice {
   FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
   bool Open(std::string image_format_group);
+  void RestFocusPoint();
   void SetExposureMode(ExposureMode exposure_mode);
   void SetFocusMode(FocusMode focus_mode);
+  void SetFocusPoint(double x, double y);
   void TakePicture(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
 
  private:
   bool CameraCreate();
   bool CameraDestroy();
+  bool ClearAutoFocusArea();
   bool GetDeviceCount(int &count);
   bool GetAutoFocusMode(CameraAutoFocusMode &mode);
   bool GetLensOrientation(int &angle);
+  bool GetPreviewResolution(int &width, int &height);
   bool GetState(CameraDeviceState &state);
   bool SetCameraFlip(CameraFlip flip);
   bool SetCameraExposureMode(CameraExposureMode mode);
@@ -134,6 +138,7 @@ class CameraDevice {
   bool SetExifTagEnable(bool enable);
   bool SetExifTagOrientatoin(ExifTagOrientation orientation);
   bool SetCameraAutoFocusMode(CameraAutoFocusMode mode);
+  bool SetAutoFocusArea(int x, int y);
   bool SetAutoFocusChangedCb(CameraFocusChangedCb callback);
   bool SetMediaPacketPreviewCb(MediaPacketPreviewCb callback);
   bool SetPreviewCb(CameraPrivewCb callback);
@@ -167,6 +172,9 @@ class CameraDevice {
 
   ExposureMode exposure_mode_{ExposureMode::kAuto};
   FocusMode focus_mode_{FocusMode::kAuto};
+
+  int preview_width_{0};
+  int preview_height_{0};
 };
 
 #endif
