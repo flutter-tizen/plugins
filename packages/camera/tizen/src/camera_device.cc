@@ -98,7 +98,26 @@ bool StringToExposureMode(std::string mode, ExposureMode &exposure_mode) {
     exposure_mode = ExposureMode::kLocked;
     return true;
   }
-  LOG_WARN("Unknown focus mode!");
+  LOG_WARN("Unknown exposure mode!");
+  return false;
+}
+
+bool StringToFlashMode(std::string mode, FlashMode &flash_mode) {
+  LOG_DEBUG("mode[%s]", mode.c_str());
+  if (mode == "off") {
+    flash_mode = FlashMode::kOff;
+    return true;
+  } else if (mode == "auto") {
+    flash_mode = FlashMode::kAuto;
+    return true;
+  } else if (mode == "always") {
+    flash_mode = FlashMode::kAlways;
+    return true;
+  } else if (mode == "torch") {
+    flash_mode = FlashMode::kTorch;
+    return true;
+  }
+  LOG_WARN("Unknown flash mode!");
   return false;
 }
 
@@ -124,22 +143,24 @@ bool ExposureModeToString(ExposureMode exposure_mode, std::string &mode) {
       mode = "locked";
       return true;
     default:
-      LOG_WARN("Unknown focus mode!");
+      LOG_WARN("Unknown exposure mode!");
       return false;
       break;
   }
 }
 
 bool FocusModeToString(FocusMode focus_mode, std::string &mode) {
-  if (focus_mode == FocusMode::kAuto) {
-    mode = "auto";
-    return true;
-  } else if (focus_mode == FocusMode::kLocked) {
-    mode = "locked";
-    return true;
+  switch (focus_mode) {
+    case FocusMode::kAuto:
+      mode = "auto";
+      return true;
+    case FocusMode::kLocked:
+      mode = "locked";
+      return true;
+    default:
+      LOG_WARN("Unknown focus mode!");
+      return false;
   }
-  LOG_WARN("Unknown focus mode!");
-  return false;
 }
 
 flutter::EncodableValue CameraDevice::GetAvailableCameras() {
@@ -369,6 +390,16 @@ bool CameraDevice::SetCameraExposureMode(CameraExposureMode mode) {
   return true;
 }
 
+bool CameraDevice::SetCameraFlashMode(CameraFlashMode mode) {
+  int error =
+      camera_attr_set_flash_mode(handle_, (camera_attr_flash_mode_e)mode);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_set_flash_mode fail - error[%d]: %s", error,
+                    get_error_message(error));
+
+  return true;
+}
+
 bool CameraDevice::SetCameraFlip(CameraFlip flip) {
   int error = camera_attr_set_stream_flip(handle_, (camera_flip_e)flip);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
@@ -577,6 +608,26 @@ void CameraDevice::SetExposureMode(ExposureMode exposure_mode) {
       return;
   }
   exposure_mode_ = exposure_mode;
+}
+
+void CameraDevice::SetFlashMode(FlashMode flash_mode) {
+  switch (flash_mode) {
+    case FlashMode::kOff:
+      SetCameraFlashMode(CameraFlashMode::kOff);
+      break;
+    case FlashMode::kAuto:
+      SetCameraFlashMode(CameraFlashMode::kAuto);
+      break;
+    case FlashMode::kAlways:
+      SetCameraFlashMode(CameraFlashMode::kOn);
+      break;
+    case FlashMode::kTorch:
+      SetCameraFlashMode(CameraFlashMode::kPermanent);
+      break;
+    default:
+      LOG_WARN("Unknown flash mode!");
+      break;
+  }
 }
 
 void CameraDevice::SetFocusMode(FocusMode focus_mode) {

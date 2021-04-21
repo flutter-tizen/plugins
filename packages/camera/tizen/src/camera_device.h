@@ -72,6 +72,13 @@ enum class CameraAutoFocusMode {
   kFull = CAMERA_ATTR_AF_FULL,
 };
 
+enum class CameraFlashMode {
+  kOff = CAMERA_ATTR_FLASH_MODE_OFF,
+  kOn = CAMERA_ATTR_FLASH_MODE_ON,
+  kAuto = CAMERA_ATTR_FLASH_MODE_AUTO,
+  kPermanent = CAMERA_ATTR_FLASH_MODE_PERMANENT,
+};
+
 enum class CameraExposureMode {
   kOff = CAMERA_ATTR_EXPOSURE_MODE_OFF,  // Not supported on TM1
   kAll = CAMERA_ATTR_EXPOSURE_MODE_ALL,
@@ -86,6 +93,14 @@ enum class ExposureMode {
 };
 bool ExposureModeToString(ExposureMode exposure_mode, std::string &mode);
 bool StringToExposureMode(std::string mode, ExposureMode &exposure_mode);
+
+enum class FlashMode {
+  kOff,
+  kAuto,
+  kAlways,
+  kTorch,
+};
+bool StringToFlashMode(std::string mode, FlashMode &flash_mode);
 
 enum class FocusMode {
   kAuto,
@@ -118,6 +133,7 @@ class CameraDevice {
   bool Open(std::string image_format_group);
   void RestFocusPoint();
   void SetExposureMode(ExposureMode exposure_mode);
+  void SetFlashMode(FlashMode flash_mode);
   void SetFocusMode(FocusMode focus_mode);
   void SetFocusPoint(double x, double y);
   void TakePicture(
@@ -132,6 +148,7 @@ class CameraDevice {
   bool GetLensOrientation(int &angle);
   bool GetPreviewResolution(int &width, int &height);
   bool GetState(CameraDeviceState &state);
+  bool SetCameraFlashMode(CameraFlashMode mode);
   bool SetCameraFlip(CameraFlip flip);
   bool SetCameraExposureMode(CameraExposureMode mode);
   bool SetCaptureFormat(CameraPixelFormat format);
