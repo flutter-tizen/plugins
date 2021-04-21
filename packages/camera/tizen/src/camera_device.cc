@@ -544,9 +544,8 @@ bool CameraDevice::Open(std::string image_format_group) {
   map[flutter::EncodableValue("exposureMode")] =
       flutter::EncodableValue(exposure_mode);
 
-  // TODO
   map[flutter::EncodableValue("focusPointSupported")] =
-      flutter::EncodableValue(false);
+      flutter::EncodableValue(true);
 
   // exposurePoint is unsupported on Tizen
   map[flutter::EncodableValue("exposurePointSupported")] =
