@@ -131,7 +131,21 @@ class CameraPlugin : public flutter::Plugin {
     } else if (method_name == "resumeVideoRecording") {
       result->NotImplemented();
     } else if (method_name == "setFlashMode") {
-      result->NotImplemented();
+      if (method_call.arguments()) {
+        flutter::EncodableMap arguments =
+            std::get<flutter::EncodableMap>(*method_call.arguments());
+        std::string mode;
+        FlashMode flash_mode;
+        if (GetValueFromEncodableMap(arguments, "mode", mode)) {
+          if (StringToFlashMode(mode, flash_mode)) {
+            camera_->SetFlashMode(flash_mode);
+            result->Success();
+            return;
+          }
+        }
+      }
+      result->Error("InvalidArguments", "Please check 'mode'");
+
     } else if (method_name == "setExposureMode") {
       if (method_call.arguments()) {
         flutter::EncodableMap arguments =
