@@ -1,3 +1,6 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
 #include "webview.h"
 
@@ -161,6 +164,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       tbm_surface_(nullptr),
       is_mouse_lbutton_down_(false),
       has_navigation_delegate_(false),
+      has_progress_tracking_(false),
       context_(nullptr) {
   SetTextureId(FlutterRegisterExternalTexture(texture_registrar_));
   InitWebView();
@@ -240,6 +244,20 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
         auto args = std::make_unique<flutter::EncodableValue>(map);
         channel_->InvokeMethod("onPageFinished", std::move(args));
       });
+  webview_instance_->RegisterOnProgressChangedHandler(
+      [this](LWE::WebContainer* container, int progress) {
+        LOG_DEBUG("RegisterOnProgressChangedHandler(progress:%d)\n", progress);
+        if (!has_progress_tracking_) {
+          return;
+        }
+        flutter::EncodableMap map;
+        map.insert(
+            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+                flutter::EncodableValue("progress"),
+                flutter::EncodableValue(progress)));
+        auto args = std::make_unique<flutter::EncodableValue>(map);
+        channel_->InvokeMethod("onProgress", std::move(args));
+      });
   webview_instance_->RegisterOnReceivedErrorHandler(
       [this](LWE::WebContainer* container, LWE::ResourceError e) {
         flutter::EncodableMap map;
@@ -299,10 +317,16 @@ void WebView::ApplySettings(flutter::EncodableMap settings) {
         if (std::holds_alternative<bool>(val)) {
           has_navigation_delegate_ = std::get<bool>(val);
         }
+      } else if ("hasProgressTracking" == k) {
+        if (std::holds_alternative<bool>(val)) {
+          has_progress_tracking_ = std::get<bool>(val);
+        }
       } else if ("debuggingEnabled" == k) {
         // NOTE: Not supported by LWE on Tizen.
       } else if ("gestureNavigationEnabled" == k) {
         // NOTE: Not supported by LWE on Tizen.
+      } else if ("allowsInlineMediaPlayback") {
+        // no-op inline media playback is always allowed on Tizen.
       } else if ("userAgent" == k) {
         if (std::holds_alternative<std::string>(val)) {
           auto settings = webview_instance_->GetSettings();
