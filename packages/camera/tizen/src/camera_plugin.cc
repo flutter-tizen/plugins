@@ -210,11 +210,23 @@ class CameraPlugin : public flutter::Plugin {
     } else if (method_name == "stopImageStream") {
       result->NotImplemented();
     } else if (method_name == "getMaxZoomLevel") {
-      result->NotImplemented();
+      float max = camera_->GetMaxZoomLevel();
+      result->Success(flutter::EncodableValue(max));
     } else if (method_name == "getMinZoomLevel") {
-      result->NotImplemented();
+      float min = camera_->GetMinZoomLevel();
+      result->Success(flutter::EncodableValue(min));
     } else if (method_name == "setZoomLevel") {
-      result->NotImplemented();
+      if (method_call.arguments()) {
+        flutter::EncodableMap arguments =
+            std::get<flutter::EncodableMap>(*method_call.arguments());
+        double zoom;
+        if (GetValueFromEncodableMap(arguments, "zoom", zoom)) {
+          camera_->SetZoomLevel(zoom);
+          result->Success();
+          return;
+        }
+      }
+      result->Error("InvalidArguments", "Please check 'zoom'");
     } else if (method_name == "lockCaptureOrientation") {
       result->NotImplemented();
     } else if (method_name == "unlockCaptureOrientation") {
