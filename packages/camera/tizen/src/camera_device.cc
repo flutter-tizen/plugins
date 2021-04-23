@@ -8,6 +8,8 @@
 #include <flutter/encodable_value.h>
 #include <sys/time.h>
 
+#include <cmath>
+
 #include "log.h"
 
 static uint64_t Timestamp() {
@@ -338,6 +340,20 @@ bool CameraDevice::GetState(CameraDeviceState &state) {
   return true;
 }
 
+bool CameraDevice::GetZoomRange(int &min, int &max) {
+  int error = camera_attr_get_zoom_range(handle_, &min, &max);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_get_zoom_range fail - error[%d]: %s", error,
+                    get_error_message(error));
+  if (min > max) {
+    // According to the API doc, this means that it is not supported on device
+    LOG_WARN("Not supported");
+    return false;
+  }
+  LOG_DEBUG("zoom range : min[%d] max[%d]", min, max);
+  return true;
+}
+
 bool CameraDevice::SetExifTagEnable(bool enable) {
   int error = camera_attr_enable_tag(handle_, enable);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
@@ -504,6 +520,18 @@ Size CameraDevice::GetRecommendedPreviewResolution() {
 
   LOG_DEBUG("width[%f] height[%f]", preview_size.width, preview_size.height);
   return preview_size;
+}
+
+double CameraDevice::GetMaxZoomLevel() {
+  int min = 0, max = 0;
+  GetZoomRange(min, max);
+  return static_cast<double>(max);
+}
+
+double CameraDevice::GetMinZoomLevel() {
+  int min = 0, max = 0;
+  GetZoomRange(min, max);
+  return static_cast<double>(min);
 }
 
 bool CameraDevice::Open(std::string image_format_group) {
@@ -680,6 +708,11 @@ void CameraDevice::SetFocusPoint(double x, double y) {
   return;
 }
 
+void CameraDevice::SetZoomLevel(double zoom) {
+  LOG_DEBUG("zoom[%f]", zoom);
+  SetZoom(static_cast<int>(round(zoom)));
+};
+
 void CameraDevice::TakePicture(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
   SetExifTagOrientatoin(
@@ -728,14 +761,23 @@ bool CameraDevice::SetPreviewFormat(CameraPixelFormat format) {
 
 bool CameraDevice::SetPreviewSize(Size size) {
   int w, h;
-  w = static_cast<int>(size.width);
-  h = static_cast<int>(size.height);
+  w = static_cast<int>(round(size.width));
+  h = static_cast<int>(round(size.height));
 
   LOG_DEBUG("camera_set_preview_resolution w[%d] h[%d]", w, h);
 
   int error = camera_set_preview_resolution(handle_, w, h);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_set_preview_resolution fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetZoom(int zoom) {
+  LOG_DEBUG("zoom[%d]", zoom);
+  int error = camera_attr_set_zoom(handle_, zoom);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_set_zoom fail - error[%d]: %s", error,
                     get_error_message(error));
   return true;
 }
