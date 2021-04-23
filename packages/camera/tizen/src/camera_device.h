@@ -130,12 +130,15 @@ class CameraDevice {
   Size GetRecommendedPreviewResolution();
   FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
+  double GetMaxZoomLevel();
+  double GetMinZoomLevel();
   bool Open(std::string image_format_group);
   void RestFocusPoint();
   void SetExposureMode(ExposureMode exposure_mode);
   void SetFlashMode(FlashMode flash_mode);
   void SetFocusMode(FocusMode focus_mode);
   void SetFocusPoint(double x, double y);
+  void SetZoomLevel(double zoom);
   void TakePicture(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
 
@@ -148,6 +151,7 @@ class CameraDevice {
   bool GetLensOrientation(int &angle);
   bool GetPreviewResolution(int &width, int &height);
   bool GetState(CameraDeviceState &state);
+  bool GetZoomRange(int &min, int &max);
   bool SetCameraFlashMode(CameraFlashMode mode);
   bool SetCameraFlip(CameraFlip flip);
   bool SetCameraExposureMode(CameraExposureMode mode);
@@ -161,6 +165,7 @@ class CameraDevice {
   bool SetPreviewCb(CameraPrivewCb callback);
   bool SetPreviewFormat(CameraPixelFormat format);
   bool SetPreviewSize(Size size);
+  bool SetZoom(int zoom);
   bool StartCapture(OnCaptureSuccessCb on_success,
                     OnCaptureFailureCb on_failure);
   bool StartAutoFocusing(bool continuous);
