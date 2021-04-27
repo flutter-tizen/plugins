@@ -206,6 +206,7 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
     : registrar_(registrar),
       texture_registrar_(texture_registrar),
       type_(type) {
+  // Init camera
   CreateCamera();
   SetCameraExifTagEnable(true);
   SetCameraAutoFocusMode(CameraAutoFocusMode::kNormal);
@@ -216,6 +217,7 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
   GetCameraState(state_);
   GetCameraPreviewResolution(preview_width_, preview_height_);
 
+  // Init channels
   texture_id_ = FlutterRegisterExternalTexture(texture_registrar_);
   LOG_DEBUG("texture_id_[%ld]", texture_id_);
   camera_method_channel_ =
@@ -428,7 +430,7 @@ bool CameraDevice::SetCameraFlip(CameraFlip flip) {
 bool CameraDevice::SetCameraCaptureFormat(CameraPixelFormat format) {
   int error = camera_set_capture_format(camera_, (camera_pixel_format_e)format);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_set_capture_format ( fail - error[%d]: %s", error,
+                    "camera_set_capture_format fail - error[%d]: %s", error,
                     get_error_message(error));
 
   return true;

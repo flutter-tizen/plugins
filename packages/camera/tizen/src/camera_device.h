@@ -11,8 +11,6 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen_texture_registrar.h>
 
-#include <atomic>
-
 #include "camera_method_channel.h"
 #include "device_method_channel.h"
 #include "orientation_manager.h"
