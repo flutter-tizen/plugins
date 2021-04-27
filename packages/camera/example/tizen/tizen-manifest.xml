@@ -10,5 +10,6 @@
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <privileges>
         <privilege>http://tizen.org/privilege/camera</privilege>
+        <privilege>http://tizen.org/privilege/recorder</privilege>
     </privileges>
 </manifest>

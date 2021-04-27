@@ -18,6 +18,8 @@ const char* PermissionToString(Permission permission) {
       return "http://tizen.org/privilege/externalstorage";
     case Permission::kContentRead:
       return "http://tizen.org/privilege/content.read";
+    case Permission::kRecorder:
+      return "http://tizen.org/privilege/recorder";
     case Permission::kContentWrite:
       return "http://tizen.org/privilege/content.write";
     default:
@@ -27,8 +29,8 @@ const char* PermissionToString(Permission permission) {
 }
 
 void PermissionManager::RequestPermssion(Permission permission,
-                                         OnSuccess on_success,
-                                         OnFailure on_failure) {
+                                         const OnSuccess& on_success,
+                                         const OnFailure& on_failure) {
   LOG_DEBUG("enter");
 
   ppm_check_result_e result;
@@ -48,8 +50,8 @@ void PermissionManager::RequestPermssion(Permission permission,
           OnFailure on_failure;
         };
         Param* p = new Param;
-        p->on_success = std::move(on_success);
-        p->on_failure = std::move(on_failure);
+        p->on_success = on_success;
+        p->on_failure = on_failure;
 
         error = ppm_request_permission(
             permission_string,

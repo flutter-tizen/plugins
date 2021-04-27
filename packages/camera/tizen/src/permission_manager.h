@@ -7,22 +7,23 @@
 
 #include <functional>
 
-using OnSuccess = std::function<void()>;
-using OnFailure =
-    std::function<void(const std::string &code, const std::string &message)>;
-
 enum class Permission {
   kCamera,
   kContentRead,
   kContentWrite,
   kExternalstorage,
+  kRecorder,
   kMediastorage,
 };
 
 class PermissionManager {
  public:
-  void RequestPermssion(Permission permission, OnSuccess on_success,
-                        OnFailure on_failure);
+  using OnSuccess = std::function<void()>;
+  using OnFailure =
+      std::function<void(const std::string &code, const std::string &message)>;
+
+  void RequestPermssion(Permission permission, const OnSuccess &on_success,
+                        const OnFailure &on_failure);
 };
 
 #endif
