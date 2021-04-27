@@ -11,8 +11,6 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen_texture_registrar.h>
 
-#include <atomic>
-
 #include "camera_method_channel.h"
 #include "device_method_channel.h"
 #include "orientation_manager.h"
@@ -143,37 +141,37 @@ class CameraDevice {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
 
  private:
-  bool CameraCreate();
-  bool CameraDestroy();
-  bool ClearAutoFocusArea();
-  bool GetDeviceCount(int &count);
-  bool GetAutoFocusMode(CameraAutoFocusMode &mode);
-  bool GetLensOrientation(int &angle);
-  bool GetPreviewResolution(int &width, int &height);
-  bool GetState(CameraDeviceState &state);
-  bool GetZoomRange(int &min, int &max);
+  bool CreateCamera();
+  bool DestroyCamera();
+  bool ClearCameraAutoFocusArea();
+  bool GetCameraDeviceCount(int &count);
+  bool GetCameraFocusMode(CameraAutoFocusMode &mode);
+  bool GetCameraLensOrientation(int &angle);
+  bool GetCameraPreviewResolution(int &width, int &height);
+  bool GetCameraState(CameraDeviceState &state);
+  bool GetCameraZoomRange(int &min, int &max);
   bool SetCameraFlashMode(CameraFlashMode mode);
   bool SetCameraFlip(CameraFlip flip);
   bool SetCameraExposureMode(CameraExposureMode mode);
-  bool SetCaptureFormat(CameraPixelFormat format);
-  bool SetExifTagEnable(bool enable);
-  bool SetExifTagOrientatoin(ExifTagOrientation orientation);
+  bool SetCameraCaptureFormat(CameraPixelFormat format);
+  bool SetCameraExifTagEnable(bool enable);
+  bool SetCameraExifTagOrientatoin(ExifTagOrientation orientation);
   bool SetCameraAutoFocusMode(CameraAutoFocusMode mode);
-  bool SetAutoFocusArea(int x, int y);
-  bool SetAutoFocusChangedCb(CameraFocusChangedCb callback);
-  bool SetMediaPacketPreviewCb(MediaPacketPreviewCb callback);
-  bool SetPreviewCb(CameraPrivewCb callback);
-  bool SetPreviewFormat(CameraPixelFormat format);
-  bool SetPreviewSize(Size size);
-  bool SetZoom(int zoom);
-  bool StartCapture(OnCaptureSuccessCb on_success,
-                    OnCaptureFailureCb on_failure);
-  bool StartAutoFocusing(bool continuous);
-  bool StartPreview();
-  bool StopAutoFocusing();
-  bool StopPreview();
-  bool UnsetMediaPacketPreviewCb();
-  bool UnsetAutoFocusChangedCb();
+  bool SetCameraAutoFocusArea(int x, int y);
+  bool SetCameraAutoFocusChangedCb(CameraFocusChangedCb callback);
+  bool SetCameraMediaPacketPreviewCb(MediaPacketPreviewCb callback);
+  bool SetCameraPreviewCb(CameraPrivewCb callback);
+  bool SetCameraPreviewFormat(CameraPixelFormat format);
+  bool SetCameraPreviewSize(Size size);
+  bool SetCameraZoom(int zoom);
+  bool StartCameraCapture(OnCaptureSuccessCb on_success,
+                          OnCaptureFailureCb on_failure);
+  bool StartCameraAutoFocusing(bool continuous);
+  bool StartCameraPreview();
+  bool StopCameraAutoFocusing();
+  bool StopCameraPreview();
+  bool UnsetCameraMediaPacketPreviewCb();
+  bool UnsetCameraAutoFocusChangedCb();
 
   bool PrintSupportedPreviewResolution();
   void PrintState();
@@ -187,7 +185,7 @@ class CameraDevice {
   std::unique_ptr<DeviceMethodChannel> device_method_channel_;
   std::unique_ptr<OrientationManager> orientation_manager_;
 
-  camera_h handle_{nullptr};
+  camera_h camera_{nullptr};
 
   CameraDeviceState state_{CameraDeviceState::kNone};
   CameraDeviceType type_{CameraDeviceType::kRear};

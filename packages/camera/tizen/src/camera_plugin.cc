@@ -87,23 +87,36 @@ class CameraPlugin : public flutter::Plugin {
           return;
         }
 
-        PermissionManager pmm;
         auto p_result = result.release();
-        // Request a camera permssion
-        pmm.RequestPermssion(
-            Permission::kCamera,
-            [this, p_result, &camera_name, &resolution_preset,
-             &enable_audio]() {
-              flutter::EncodableValue reply = InitializeCameraDevice(
-                  camera_name, resolution_preset, enable_audio);
-              p_result->Success(reply);
-              delete p_result;
-            },
+        PermissionManager::OnFailure on_failure =
             [p_result](const std::string &code, const std::string &message) {
-              p_result->Error(code, message);
               LOG_DEBUG("failure");
+              p_result->Error(code, message);
               delete p_result;
-            });
+            };
+
+        auto plugin = this;
+        // Request a camera permssion
+        pmm_.RequestPermssion(
+            Permission::kCamera,
+            [plugin, p_result, camera_name, resolution_preset, enable_audio,
+             on_failure]() {
+              // Request a recorder permssion as asynchronous callchain
+              plugin->pmm_.RequestPermssion(
+                  Permission::kRecorder,
+                  [plugin, p_result, camera_name, resolution_preset,
+                   enable_audio]() {
+                    LOG_DEBUG("All RequestPermssion success!");
+                    flutter::EncodableValue reply =
+                        plugin->InitializeCameraDevice(
+                            camera_name, resolution_preset, enable_audio);
+                    p_result->Success(reply);
+                    delete p_result;
+                  },
+                  on_failure);
+              LOG_DEBUG("Request a recorder permssion");
+            },
+            on_failure);
       }
     } else if (method_name == "initialize") {
       if (method_call.arguments()) {
@@ -262,6 +275,7 @@ class CameraPlugin : public flutter::Plugin {
   flutter::PluginRegistrar *registrar_{nullptr};
   FlutterTextureRegistrar *texture_registrar_{nullptr};
   std::unique_ptr<CameraDevice> camera_;
+  PermissionManager pmm_;
 };
 
 void CameraPluginRegisterWithRegistrar(
