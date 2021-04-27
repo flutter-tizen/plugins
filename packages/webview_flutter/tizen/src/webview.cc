@@ -607,7 +607,7 @@ static LWE::KeyValue EcoreEventKeyToKeyValue(const char* ecore_key_string,
 
 void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
   std::string key_name = key_event->keyname;
-  LOG_DEBUG("ECORE_EVENT_KEY_DOWN [%s, %d]\n", key_name.data(),
+  LOG_DEBUG("ECORE_EVENT_KEY_DOWN [%s, %d]\n", key_name.c_str(),
             (key_event->modifiers & 1) || (key_event->modifiers & 2));
 
   if (!IsFocused()) {
@@ -615,10 +615,10 @@ void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
     return;
   }
 
-  if ((strcmp(key_name.data(), "XF86Exit") == 0) ||
-      (strcmp(key_name.data(), "Select") == 0) ||
-      (strcmp(key_name.data(), "Cancel") == 0)) {
-    if (strcmp(key_name.data(), "Select") == 0) {
+  if ((strcmp(key_name.c_str(), "XF86Exit") == 0) ||
+      (strcmp(key_name.c_str(), "Select") == 0) ||
+      (strcmp(key_name.c_str(), "Cancel") == 0)) {
+    if (strcmp(key_name.c_str(), "Select") == 0) {
       webview_instance_->AddIdleCallback(
           [](void* data) {
             WebView* view = (WebView*)data;
@@ -647,7 +647,7 @@ void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
   Param* p = new Param();
   p->webview_instance = webview_instance_;
   p->key_value =
-      EcoreEventKeyToKeyValue(key_name.data(), (key_event->modifiers & 1));
+      EcoreEventKeyToKeyValue(key_name.c_str(), (key_event->modifiers & 1));
 
   webview_instance_->AddIdleCallback(
       [](void* data) {
@@ -661,7 +661,7 @@ void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
 
 void WebView::DispatchKeyUpEvent(Ecore_Event_Key* key_event) {
   std::string key_name = key_event->keyname;
-  LOG_DEBUG("ECORE_EVENT_KEY_UP [%s, %d]\n", key_name.data(),
+  LOG_DEBUG("ECORE_EVENT_KEY_UP [%s, %d]\n", key_name.c_str(),
             (key_event->modifiers & 1) || (key_event->modifiers & 2));
 
   if (!IsFocused()) {
@@ -676,7 +676,7 @@ void WebView::DispatchKeyUpEvent(Ecore_Event_Key* key_event) {
   Param* p = new Param();
   p->webview_instance = webview_instance_;
   p->key_value =
-      EcoreEventKeyToKeyValue(key_name.data(), (key_event->modifiers & 1));
+      EcoreEventKeyToKeyValue(key_name.c_str(), (key_event->modifiers & 1));
 
   webview_instance_->AddIdleCallback(
       [](void* data) {
@@ -889,7 +889,6 @@ void WebView::HandleCookieMethodCall(
   }
 
   const auto method_name = method_call.method_name();
-  const auto& arguments = *method_call.arguments();
 
   LOG_DEBUG("WebView::HandleMethodCall : %s \n ", method_name.c_str());
 
