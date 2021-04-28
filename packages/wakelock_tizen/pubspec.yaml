@@ -1,0 +1,22 @@
+name: wakelock_tizen
+description: Tizen implementation of the wakelock plugin
+homepage: https://github.com/flutter-tizen/plugins
+version: 1.0.0
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: WakelockTizenPlugin
+        fileName: wakelock_tizen_plugin.h
+
+dependencies:
+  flutter:
+    sdk: flutter
+  wakelock_platform_interface: ^0.2.0
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+
+
