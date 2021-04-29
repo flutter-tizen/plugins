@@ -12,6 +12,10 @@
 
 #include "log.h"
 
+// These macros came from tizen camera_app
+#define VIDEO_ENCODE_BITRATE 40000000 /* bps */
+#define AUDIO_SOURCE_SAMPLERATE_AAC 44100
+
 static uint64_t Timestamp() {
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -73,6 +77,28 @@ static ExifTagOrientation ChooseExifTagOrientatoin(
   }
 
   return orientation;
+}
+
+static RecorderOrientationTag ChooseRecorderOrientationTag(
+    OrientationType device_orientation) {
+  RecorderOrientationTag tag = RecorderOrientationTag::kNone;
+  switch (device_orientation) {
+    case OrientationType::kPortraitUp:
+      tag = RecorderOrientationTag::k90;
+      break;
+    case OrientationType::kLandscapeLeft:
+      tag = RecorderOrientationTag::k180;
+      break;
+    case OrientationType::kPortraitDown:
+      tag = RecorderOrientationTag::k270;
+      break;
+    case OrientationType::kLandscapeRight:
+      tag = RecorderOrientationTag::kNone;
+    default:
+      LOG_ERROR("Unknown RecorderOrientationTag!");
+      break;
+  }
+  return tag;
 }
 
 bool StringToCameraPixelFormat(std::string Image_format,
@@ -197,7 +223,7 @@ flutter::EncodableValue CameraDevice::GetAvailableCameras() {
 
 CameraDevice::CameraDevice() {
   CreateCamera();
-  GetCameraState(state_);
+  GetCameraState(camera_state_);
 }
 
 CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
@@ -214,8 +240,34 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
     SetCameraFlip(CameraFlip::kVertical);
   }
 
-  GetCameraState(state_);
   GetCameraPreviewResolution(preview_width_, preview_height_);
+
+  // Init recoder
+  CreateRecorder();
+
+  SetRecorderFileFormat(RecorderFileFormat::kMP4);
+  SetRecorderAudioChannel(RecorderAudioChannel::kStreo);
+  SetRecorderAudioDevice(RecorderAudioDevice::kMic);
+  SetRecorderAudioEncorder(RecorderAudioCodec::kAAC);
+  SetRecorderAudioSamplerate(AUDIO_SOURCE_SAMPLERATE_AAC);
+
+  SetRecorderVideoEncorder(RecorderVideoCodec::kH264);
+  SetRecorderVideoEncorderBitrate(VIDEO_ENCODE_BITRATE);
+
+  SetRecorderRecordingLimitReachedCb(
+      [](recorder_recording_limit_type_e type, void *data) {
+        LOG_WARN("Recording limit reached: %d\n", type);
+      });
+  SetRecorderStateChangedCb([](recorder_state_e previous,
+                               recorder_state_e current, bool by_asm,
+                               void *data) {
+    LOG_DEBUG("Recorder state is changed : prev[%d], curr[%d]", previous,
+              current);
+    auto self = (CameraDevice *)data;
+    if (previous != current) {
+      self->UpdateStates();
+    }
+  });
 
   // Init channels
   texture_id_ = FlutterRegisterExternalTexture(texture_registrar_);
@@ -232,11 +284,7 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
 
   orientation_manager_->Start();
 
-  // Print camera info for convenience of development, These will be removed
-  // after release
-  PrintState();
-  PrintPreviewRotation();
-  PrintSupportedPreviewResolution();
+  UpdateStates();
 }
 
 CameraDevice::~CameraDevice() { Dispose(); }
@@ -250,13 +298,11 @@ bool CameraDevice::CreateCamera() {
 }
 
 bool CameraDevice::DestroyCamera() {
-  LOG_DEBUG("enter");
   int error = camera_destroy(camera_);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_destroy fail - error[%d]: %s", error,
                     get_error_message(error));
   camera_ = nullptr;
-  LOG_DEBUG("done");
   return true;
 }
 
@@ -278,13 +324,18 @@ void CameraDevice::ChangeCameraDeviceType(CameraDeviceType type) {
 
 void CameraDevice::Dispose() {
   LOG_DEBUG("enter");
-  if (state_ == CameraDeviceState::kPreview) {
-    StopCameraPreview();
-    UnsetCameraMediaPacketPreviewCb();
-    UnsetCameraAutoFocusChangedCb();
+  if (recorder_) {
+    DestroyRecorder();
   }
 
-  DestroyCamera();
+  if (camera_) {
+    if (camera_state_ == CameraDeviceState::kPreview) {
+      StopCameraPreview();
+      UnsetCameraMediaPacketPreviewCb();
+      UnsetCameraAutoFocusChangedCb();
+    }
+    DestroyCamera();
+  }
 
   if (orientation_manager_) {
     orientation_manager_->Stop();
@@ -436,69 +487,199 @@ bool CameraDevice::SetCameraCaptureFormat(CameraPixelFormat format) {
   return true;
 }
 
-bool CameraDevice::PrintSupportedPreviewResolution() {
-  LOG_DEBUG("enter");
-  int error = camera_foreach_supported_preview_resolution(
-      camera_,
-      [](int width, int height, void *user_data) -> bool {
-        LOG_DEBUG("supported preview w[%d] h[%d]", width, height);
-        return true;
-      },
-      nullptr);
-  RETV_LOG_ERROR_IF(
-      error != CAMERA_ERROR_NONE, false,
-      "camera_foreach_supported_preview_resolution fail - error[%d]: %s", error,
-      get_error_message(error));
-
+bool CameraDevice::CancleRecorder() {
+  int error = recorder_cancel(recorder_);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_cancel fail - error[%d]: %s", error,
+                    get_error_message(error));
   return true;
 }
 
-void CameraDevice::PrintState() {
-  switch (state_) {
-    case CameraDeviceState::kNone:
-      LOG_DEBUG("CameraDeviceState[None]");
-      break;
-    case CameraDeviceState::kCreated:
-      LOG_DEBUG("CameraDeviceState[Created]");
-      break;
-    case CameraDeviceState::kPreview:
-      LOG_DEBUG("CameraDeviceState[Preview]");
-      break;
-    case CameraDeviceState::kCapturing:
-      LOG_DEBUG("CameraDeviceState[Capturing]");
-      break;
-    case CameraDeviceState::kCaputred:
-      LOG_DEBUG("CameraDeviceState[Caputred]");
-      break;
-    default:
-      LOG_DEBUG("CameraDeviceState[Unknown]");
-      break;
-  }
+bool CameraDevice::CreateRecorder() {
+  int error = recorder_create_videorecorder(camera_, &recorder_);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_create_videorecorder fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
 }
 
-bool CameraDevice::PrintPreviewRotation() {
-  camera_rotation_e val = CAMERA_ROTATION_NONE;
-  int error = camera_attr_get_stream_rotation(camera_, &val);
-  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
-                    "camera_attr_get_stream_rotation fail - error[%d]: %s",
+bool CameraDevice::CommitRecorder() {
+  int error = recorder_commit(recorder_);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_commit fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::DestroyRecorder() {
+  int error = recorder_destroy(recorder_);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_destroy fail - error[%d]: %s", error,
+                    get_error_message(error));
+  recorder_ = nullptr;
+  return true;
+}
+
+bool CameraDevice::GetRecorderState(RecorderState &state) {
+  int error = recorder_get_state(recorder_, (recorder_state_e *)&state);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_get_state fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::GetRecorderFileName(std::string &name) {
+  char *file_name;
+  int error = recorder_get_filename(recorder_, &file_name);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_get_filename fail - error[%d]: %s", error,
+                    get_error_message(error));
+  name = file_name;
+  free(file_name);
+  return true;
+}
+
+bool CameraDevice::SetRecorderAudioChannel(RecorderAudioChannel chennel) {
+  int error = recorder_attr_set_audio_channel(recorder_, (int)chennel);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_attr_set_audio_channel fail - error[%d]: %s",
                     error, get_error_message(error));
-  switch (val) {
-    case CAMERA_ROTATION_NONE:
-      LOG_DEBUG("CAMERA_ROTATION_NONE");
-      break;
-    case CAMERA_ROTATION_90:
-      LOG_DEBUG("CAMERA_ROTATION_90");
-      break;
-    case CAMERA_ROTATION_180:
-      LOG_DEBUG("CAMERA_ROTATION_180");
-      break;
-    case CAMERA_ROTATION_270:
-      LOG_DEBUG("CAMERA_ROTATION_270");
-      break;
-    default:
-      break;
-  }
   return true;
+}
+
+bool CameraDevice::SetRecorderAudioDevice(RecorderAudioDevice device) {
+  int error = recorder_attr_set_audio_device(recorder_,
+                                             (recorder_audio_device_e)device);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_attr_set_audio_device fail - error[%d]: %s",
+                    error, get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderAudioEncorder(RecorderAudioCodec codec) {
+  int error =
+      recorder_set_audio_encoder(recorder_, (recorder_audio_codec_e)codec);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_set_audio_encoder fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderAudioSamplerate(int samplerate) {
+  int error = recorder_attr_set_audio_samplerate(recorder_, samplerate);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    " recorder_attr_set_audio_samplerate fail - error[%d]: %s",
+                    error, get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderFileFormat(RecorderFileFormat format) {
+  int error =
+      recorder_set_file_format(recorder_, (recorder_file_format_e)format);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_set_file_format fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderFileName(std::string &name) {
+  int error = recorder_set_filename(recorder_, name.c_str());
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_set_filename fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderOrientationTag(RecorderOrientationTag tag) {
+  int error =
+      recorder_attr_set_orientation_tag(recorder_, (recorder_rotation_e)tag);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_attr_set_orientation_tag fail - error[%d]: %s",
+                    error, get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderRecordingLimitReachedCb(
+    RecorderRecordingLimitReachedCb callback) {
+  int error =
+      recorder_set_recording_limit_reached_cb(recorder_, callback, this);
+  RETV_LOG_ERROR_IF(
+      error != RECORDER_ERROR_NONE, false,
+      "recorder_set_recording_limit_reached_cb fail - error[%d]: %s", error,
+      get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderStateChangedCb(RecorderStateChangedCb callback) {
+  int error = recorder_set_state_changed_cb(recorder_, callback, this);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    " recorder_set_state_changed_cb	 fail - error[%d]: %s",
+                    error, get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderVideoEncorder(RecorderVideoCodec codec) {
+  int error =
+      recorder_set_video_encoder(recorder_, (recorder_video_codec_e)codec);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_set_video_encoder fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderVideoEncorderBitrate(int bitrate) {
+  int error = recorder_attr_set_video_encoder_bitrate(recorder_, bitrate);
+  RETV_LOG_ERROR_IF(
+      error != RECORDER_ERROR_NONE, false,
+      " recorder_attr_set_video_encoder_bitrate fail - error[%d]: %s", error,
+      get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::PauseRecorder() {
+  int error = recorder_pause(recorder_);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_pause fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::PrepareRecorder() {
+  int error = recorder_prepare(recorder_);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_prepare fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::StartRecorder() {
+  int error = recorder_start(recorder_);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_start fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::UnprepareRecorder() {
+  int error = recorder_unprepare(recorder_);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_unprepare fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::UnsetRecorderRecordingLimitReachedCb() {
+  int error = recorder_unset_recording_limit_reached_cb(recorder_);
+  RETV_LOG_ERROR_IF(
+      error != RECORDER_ERROR_NONE, false,
+      "recorder_unset_recording_limit_reached_cb fail - error[%d]: %s", error,
+      get_error_message(error));
+  return true;
+}
+
+void CameraDevice::UpdateStates() {
+  GetCameraState(camera_state_);
+  GetRecorderState(recorder_state_);
 }
 
 Size CameraDevice::GetRecommendedPreviewResolution() {
@@ -614,12 +795,29 @@ bool CameraDevice::Open(std::string image_format_group) {
 
   auto value = std::make_unique<flutter::EncodableValue>(map);
   camera_method_channel_->Send(CameraEventType::kInitialized, std::move(value));
+
   return true;
+}
+
+void CameraDevice::PauseVideoRecording(
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+  LOG_DEBUG("enter");
+  PauseRecorder();
+  UpdateStates();
+  result->Success();
 }
 
 void CameraDevice::RestFocusPoint() {
   LOG_DEBUG("enter");
   ClearCameraAutoFocusArea();
+}
+
+void CameraDevice::ResumeVideoRecording(
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+  LOG_DEBUG("enter");
+  StartRecorder();
+  UpdateStates();
+  result->Success();
 }
 
 void CameraDevice::SetExposureMode(ExposureMode exposure_mode) {
@@ -715,6 +913,37 @@ void CameraDevice::SetZoomLevel(double zoom) {
   SetCameraZoom(static_cast<int>(round(zoom)));
 }
 
+void CameraDevice::StartVideoRecording(
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+  LOG_DEBUG("enter");
+  StopCameraPreview();
+
+  std::string file_name = CreateTempFileName("REC", "mp4");
+  SetRecorderFileName(file_name);
+  SetRecorderOrientationTag(ChooseRecorderOrientationTag(
+      orientation_manager_->GetDeviceOrientationType()));
+  PrepareRecorder();
+  StartRecorder();
+
+  UpdateStates();
+
+  result->Success();
+}
+
+void CameraDevice::StopVideoRecording(
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+  LOG_DEBUG("enter");
+  CommitRecorder();
+  UnprepareRecorder();
+
+  StartCameraPreview();
+  UpdateStates();
+
+  std::string file_name;
+  GetRecorderFileName(file_name);
+  result->Success(flutter::EncodableValue(file_name));
+}
+
 void CameraDevice::TakePicture(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
   SetCameraExifTagOrientatoin(
@@ -727,6 +956,7 @@ void CameraDevice::TakePicture(
         flutter::EncodableValue value(captured_file_path);
         p_result->Success(value);
         StartCameraPreview();
+        UpdateStates();
         delete p_result;
       },
       [p_result](const std::string &code, const std::string &message) {
@@ -734,10 +964,11 @@ void CameraDevice::TakePicture(
         p_result->Error(code, message);
         delete p_result;
       });
+  UpdateStates();
 }
 
 bool CameraDevice::SetCameraMediaPacketPreviewCb(
-    MediaPacketPreviewCb callback) {
+    CameraMediaPacketPreviewCb callback) {
   int error = camera_set_media_packet_preview_cb(camera_, callback, this);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_set_media_packet_preview_cb fail - error[%d]: %s",
@@ -785,8 +1016,8 @@ bool CameraDevice::SetCameraZoom(int zoom) {
   return true;
 }
 
-bool CameraDevice::StartCameraCapture(OnCaptureSuccessCb on_success,
-                                      OnCaptureFailureCb on_failure) {
+bool CameraDevice::StartCameraCapture(const OnCaptureSuccessCb &on_success,
+                                      const OnCaptureFailureCb &on_failure) {
   struct Param {
     OnCaptureSuccessCb on_success;
     OnCaptureFailureCb on_failure;
@@ -796,8 +1027,8 @@ bool CameraDevice::StartCameraCapture(OnCaptureSuccessCb on_success,
   };
 
   Param *p = new Param;  // Must delete on capture_completed_callback
-  p->on_success = std::move(on_success);
-  p->on_failure = std::move(on_failure);
+  p->on_success = on_success;
+  p->on_failure = on_failure;
 
   int error = camera_start_capture(
       camera_,
@@ -883,8 +1114,6 @@ bool CameraDevice::StartCameraPreview() {
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_start_preview fail - error[%d]: %s", error,
                     get_error_message(error));
-
-  GetCameraState(state_);
   return true;
 }
 
@@ -903,6 +1132,5 @@ bool CameraDevice::StopCameraPreview() {
                     "camera_stop_preview fail - error[%d]: %s", error,
                     get_error_message(error));
 
-  GetCameraState(state_);
   return true;
 }

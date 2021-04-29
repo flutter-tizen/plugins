@@ -136,13 +136,13 @@ class CameraPlugin : public flutter::Plugin {
     } else if (method_name == "prepareForVideoRecording") {
       result->NotImplemented();
     } else if (method_name == "startVideoRecording") {
-      result->NotImplemented();
+      camera_->StartVideoRecording(std::move(result));
     } else if (method_name == "stopVideoRecording") {
-      result->NotImplemented();
+      camera_->StopVideoRecording(std::move(result));
     } else if (method_name == "pauseVideoRecording") {
-      result->NotImplemented();
+      camera_->PauseVideoRecording(std::move(result));
     } else if (method_name == "resumeVideoRecording") {
-      result->NotImplemented();
+      camera_->StartVideoRecording(std::move(result));
     } else if (method_name == "setFlashMode") {
       if (method_call.arguments()) {
         flutter::EncodableMap arguments =
@@ -258,6 +258,10 @@ class CameraPlugin : public flutter::Plugin {
       const std::string &camera_name,
       const std::string & /*TODO :resolution_preset*/,
       bool /*TODO : enable_audio_value*/) {
+    if (camera_) {
+      camera_ = nullptr;
+    }
+
     CameraDeviceType type;
     if (camera_name == "camera1") {
       type = CameraDeviceType::kRear;
