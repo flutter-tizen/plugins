@@ -10,6 +10,7 @@
 #include <flutter/method_result.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen_texture_registrar.h>
+#include <recorder.h>
 
 #include "camera_method_channel.h"
 #include "device_method_channel.h"
@@ -19,7 +20,12 @@ using CameraCapturingCb = camera_capturing_cb;
 using CameraCaptureCompletedCb = camera_capture_completed_cb;
 using CameraFocusChangedCb = camera_focus_changed_cb;
 using CameraPrivewCb = camera_preview_cb;
-using MediaPacketPreviewCb = camera_media_packet_preview_cb;
+using CameraMediaPacketPreviewCb = camera_media_packet_preview_cb;
+
+using RecorderRecordingLimitReachedCb = recorder_recording_limit_reached_cb;
+using RecorderStateChangedCb = recorder_state_changed_cb;
+using RecorderStateChangedCb = recorder_state_changed_cb;
+
 using OnCaptureSuccessCb =
     std::function<void(const std::string &captured_file_path)>;
 using OnCaptureFailureCb =
@@ -85,6 +91,57 @@ enum class CameraExposureMode {
   kCustom = CAMERA_ATTR_EXPOSURE_MODE_CUSTOM,
 };
 
+enum class RecorderAudioChannel {
+  kMono = 1,
+  kStreo = 2,
+};
+
+enum class RecorderAudioCodec {
+  kDisable = RECORDER_AUDIO_CODEC_DISABLE,
+  kAMR = RECORDER_AUDIO_CODEC_AMR,
+  kAAC = RECORDER_AUDIO_CODEC_AAC,
+  kVorbis = RECORDER_AUDIO_CODEC_VORBIS,
+  kPCM = RECORDER_AUDIO_CODEC_PCM,
+  kMP3 = RECORDER_AUDIO_CODEC_MP3,
+};
+
+enum class RecorderAudioDevice {
+  kMic = RECORDER_AUDIO_DEVICE_MIC,
+  kModem = RECORDER_AUDIO_DEVICE_MODEM,
+};
+
+enum class RecorderState {
+  kNone = RECORDER_STATE_NONE,
+  kCreated = RECORDER_STATE_CREATED,
+  kReady = RECORDER_STATE_READY,
+  kRecording = RECORDER_STATE_RECORDING,
+  kPaused = RECORDER_STATE_PAUSED,
+};
+
+enum class RecorderFileFormat {
+  k3GP = RECORDER_FILE_FORMAT_3GP,
+  kMP4 = RECORDER_FILE_FORMAT_MP4,
+  kAMR = RECORDER_FILE_FORMAT_AMR,
+  kADTS = RECORDER_FILE_FORMAT_ADTS,
+  kWAV = RECORDER_FILE_FORMAT_WAV,
+  kOGG = RECORDER_FILE_FORMAT_OGG,
+  kM2TS = RECORDER_FILE_FORMAT_M2TS,
+};
+
+enum class RecorderVideoCodec {
+  kH263 = RECORDER_VIDEO_CODEC_H263,
+  kH264 = RECORDER_VIDEO_CODEC_H264,
+  kMPEG4 = RECORDER_VIDEO_CODEC_MPEG4,
+  kTHEORA = RECORDER_VIDEO_CODEC_THEORA,
+};
+
+enum class RecorderOrientationTag {
+  kNone = RECORDER_ROTATION_NONE,
+  k90 = RECORDER_ROTATION_90,
+  k180 = RECORDER_ROTATION_180,
+  k270 = RECORDER_ROTATION_270,
+};
+
 enum class ExposureMode {
   kAuto,
   kLocked,
@@ -131,19 +188,27 @@ class CameraDevice {
   double GetMaxZoomLevel();
   double GetMinZoomLevel();
   bool Open(std::string image_format_group);
+  void PauseVideoRecording(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
   void RestFocusPoint();
+  void ResumeVideoRecording(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
   void SetExposureMode(ExposureMode exposure_mode);
   void SetFlashMode(FlashMode flash_mode);
   void SetFocusMode(FocusMode focus_mode);
   void SetFocusPoint(double x, double y);
   void SetZoomLevel(double zoom);
+  void StartVideoRecording(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
+  void StopVideoRecording(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
   void TakePicture(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
 
  private:
   bool CreateCamera();
-  bool DestroyCamera();
   bool ClearCameraAutoFocusArea();
+  bool DestroyCamera();
   bool GetCameraDeviceCount(int &count);
   bool GetCameraFocusMode(CameraAutoFocusMode &mode);
   bool GetCameraLensOrientation(int &angle);
@@ -159,13 +224,13 @@ class CameraDevice {
   bool SetCameraAutoFocusMode(CameraAutoFocusMode mode);
   bool SetCameraAutoFocusArea(int x, int y);
   bool SetCameraAutoFocusChangedCb(CameraFocusChangedCb callback);
-  bool SetCameraMediaPacketPreviewCb(MediaPacketPreviewCb callback);
+  bool SetCameraMediaPacketPreviewCb(CameraMediaPacketPreviewCb callback);
   bool SetCameraPreviewCb(CameraPrivewCb callback);
   bool SetCameraPreviewFormat(CameraPixelFormat format);
   bool SetCameraPreviewSize(Size size);
   bool SetCameraZoom(int zoom);
-  bool StartCameraCapture(OnCaptureSuccessCb on_success,
-                          OnCaptureFailureCb on_failure);
+  bool StartCameraCapture(const OnCaptureSuccessCb &on_success,
+                          const OnCaptureFailureCb &on_failure);
   bool StartCameraAutoFocusing(bool continuous);
   bool StartCameraPreview();
   bool StopCameraAutoFocusing();
@@ -173,9 +238,31 @@ class CameraDevice {
   bool UnsetCameraMediaPacketPreviewCb();
   bool UnsetCameraAutoFocusChangedCb();
 
-  bool PrintSupportedPreviewResolution();
-  void PrintState();
-  bool PrintPreviewRotation();
+  bool CancleRecorder();
+  bool CreateRecorder();
+  bool CommitRecorder();
+  bool DestroyRecorder();
+  bool GetRecorderState(RecorderState &state);
+  bool GetRecorderFileName(std::string &name);
+  bool SetRecorderAudioChannel(RecorderAudioChannel chennel);
+  bool SetRecorderAudioDevice(RecorderAudioDevice device);
+  bool SetRecorderAudioEncorder(RecorderAudioCodec codec);
+  bool SetRecorderAudioSamplerate(int samplerate);
+  bool SetRecorderFileFormat(RecorderFileFormat format);
+  bool SetRecorderFileName(std::string &name);
+  bool SetRecorderOrientationTag(RecorderOrientationTag tag);
+  bool SetRecorderRecordingLimitReachedCb(
+      RecorderRecordingLimitReachedCb callback);
+  bool SetRecorderStateChangedCb(RecorderStateChangedCb callback);
+  bool SetRecorderVideoEncorder(RecorderVideoCodec codec);
+  bool SetRecorderVideoEncorderBitrate(int bitrate);
+
+  bool PauseRecorder();
+  bool PrepareRecorder();
+  bool StartRecorder();
+  bool UnprepareRecorder();
+  bool UnsetRecorderRecordingLimitReachedCb();
+  void UpdateStates();
 
   long texture_id_{0};
   flutter::PluginRegistrar *registrar_{nullptr};
@@ -187,7 +274,7 @@ class CameraDevice {
 
   camera_h camera_{nullptr};
 
-  CameraDeviceState state_{CameraDeviceState::kNone};
+  CameraDeviceState camera_state_{CameraDeviceState::kNone};
   CameraDeviceType type_{CameraDeviceType::kRear};
 
   ExposureMode exposure_mode_{ExposureMode::kAuto};
@@ -195,6 +282,9 @@ class CameraDevice {
 
   int preview_width_{0};
   int preview_height_{0};
+
+  recorder_h recorder_{nullptr};
+  RecorderState recorder_state_{RecorderState::kNone};
 };
 
 #endif
