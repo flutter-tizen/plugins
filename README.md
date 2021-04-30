@@ -50,6 +50,6 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
 | [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
-| [**wakelock_tizen**](packages/wakelock) | ✔️ | ✔️ | ⚠️ | ✔️ | Doesn't prevent running screensaver|
+| [**wakelock_tizen**](packages/wakelock) | ✔️ | ✔️ | ❌ | ❌ | Cannot override system display setting|
 | [**webview_flutter_tizen**](packages/webview_flutter) | ✔️ | ❌ | ✔️ | ❌ | Dependent library unavailable |
 | [**wifi_info_flutter_tizen**](packages/wifi_info_flutter) | ✔️ | ❌ | ✔️ | ❌ | API unsupported by emulators |
