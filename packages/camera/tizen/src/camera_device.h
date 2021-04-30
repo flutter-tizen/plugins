@@ -93,7 +93,7 @@ enum class CameraExposureMode {
 
 enum class RecorderAudioChannel {
   kMono = 1,
-  kStreo = 2,
+  kStereo = 2,
 };
 
 enum class RecorderAudioCodec {
@@ -205,6 +205,9 @@ class CameraDevice {
   void TakePicture(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
 
+  void LockCaptureOrientation(OrientationType orientation);
+  void UnlockCaptureOrientation();
+
  private:
   bool CreateCamera();
   bool ClearCameraAutoFocusArea();
@@ -285,6 +288,9 @@ class CameraDevice {
 
   recorder_h recorder_{nullptr};
   RecorderState recorder_state_{RecorderState::kNone};
+
+  OrientationType locked_orientation_{OrientationType::kPortraitUp};
+  bool is_orientation_locked_{false};
 };
 
 #endif
