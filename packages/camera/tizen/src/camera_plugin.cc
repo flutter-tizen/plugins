@@ -175,14 +175,19 @@ class CameraPlugin : public flutter::Plugin {
       }
       result->Error("InvalidArguments", "Please check 'mode'");
     } else if (method_name == "setExposurePoint") {
+      LOG_WARN("setExposurePoint is not supported!");
       result->NotImplemented();
     } else if (method_name == "getMinExposureOffset") {
+      LOG_WARN("getMinExposureOffset is not supported!");
       result->NotImplemented();
     } else if (method_name == "getMaxExposureOffset") {
+      LOG_WARN("getMaxExposureOffset is not supported!");
       result->NotImplemented();
     } else if (method_name == "getExposureOffsetStepSize") {
+      LOG_WARN("getExposureOffsetStepSize is not supported!");
       result->NotImplemented();
     } else if (method_name == "setExposureOffset") {
+      LOG_WARN("setExposureOffset is not supported!");
       result->NotImplemented();
     } else if (method_name == "setFocusMode") {
       if (method_call.arguments()) {
@@ -241,9 +246,22 @@ class CameraPlugin : public flutter::Plugin {
       }
       result->Error("InvalidArguments", "Please check 'zoom'");
     } else if (method_name == "lockCaptureOrientation") {
-      result->NotImplemented();
+      if (method_call.arguments()) {
+        flutter::EncodableMap arguments =
+            std::get<flutter::EncodableMap>(*method_call.arguments());
+        std::string orientation;
+        OrientationType orientation_type;
+        if (GetValueFromEncodableMap(arguments, "orientation", orientation) &&
+            StringToOrientationType(orientation, orientation_type)) {
+          camera_->LockCaptureOrientation(orientation_type);
+          result->Success();
+          return;
+        }
+        result->Error("InvalidArguments", "Please check 'orientation'");
+      }
     } else if (method_name == "unlockCaptureOrientation") {
-      result->NotImplemented();
+      camera_->UnlockCaptureOrientation();
+      result->Success();
     } else if (method_name == "dispose") {
       if (camera_) {
         camera_->Dispose();

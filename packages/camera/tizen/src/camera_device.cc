@@ -246,7 +246,7 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
   CreateRecorder();
 
   SetRecorderFileFormat(RecorderFileFormat::kMP4);
-  SetRecorderAudioChannel(RecorderAudioChannel::kStreo);
+  SetRecorderAudioChannel(RecorderAudioChannel::kStereo);
   SetRecorderAudioDevice(RecorderAudioDevice::kMic);
   SetRecorderAudioEncorder(RecorderAudioCodec::kAAC);
   SetRecorderAudioSamplerate(AUDIO_SOURCE_SAMPLERATE_AAC);
@@ -690,8 +690,8 @@ Size CameraDevice::GetRecommendedPreviewResolution() {
                "camera_get_recommended_preview_resolution fail - error[%d]: %s",
                error, get_error_message(error));
 
-  auto target_orientation = orientation_manager_->ConvertTargetOrientation(
-      OrientationType::kPortraitUp);
+  auto target_orientation =
+      orientation_manager_->ConvertOrientation(OrientationType::kPortraitUp);
   if (target_orientation == OrientationType::kLandscapeLeft ||
       target_orientation == OrientationType::kLandscapeRight) {
     preview_size.width = h;
@@ -921,7 +921,9 @@ void CameraDevice::StartVideoRecording(
   std::string file_name = CreateTempFileName("REC", "mp4");
   SetRecorderFileName(file_name);
   SetRecorderOrientationTag(ChooseRecorderOrientationTag(
-      orientation_manager_->GetDeviceOrientationType()));
+      is_orientation_locked_
+          ? locked_orientation_
+          : orientation_manager_->GetDeviceOrientationType()));
   PrepareRecorder();
   StartRecorder();
 
@@ -946,9 +948,10 @@ void CameraDevice::StopVideoRecording(
 
 void CameraDevice::TakePicture(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
-  SetCameraExifTagOrientatoin(
-      ChooseExifTagOrientatoin(orientation_manager_->GetDeviceOrientationType(),
-                               type_ == CameraDeviceType::kFront));
+  SetCameraExifTagOrientatoin(ChooseExifTagOrientatoin(
+      is_orientation_locked_ ? locked_orientation_
+                             : orientation_manager_->GetDeviceOrientationType(),
+      type_ == CameraDeviceType::kFront));
   auto p_result = result.release();
   StartCameraCapture(
       [p_result, this](const std::string &captured_file_path) {
@@ -965,6 +968,19 @@ void CameraDevice::TakePicture(
         delete p_result;
       });
   UpdateStates();
+}
+
+void CameraDevice::LockCaptureOrientation(OrientationType orientation) {
+  locked_orientation_ =
+      orientation_manager_->ConvertOrientation(orientation, false);
+  is_orientation_locked_ = true;
+
+  LOG_DEBUG("Recived lock orientatoin[%d] -> Device orientation [%d]",
+            (int)orientation, (int)locked_orientation_);
+}
+
+void CameraDevice::UnlockCaptureOrientation() {
+  is_orientation_locked_ = false;
 }
 
 bool CameraDevice::SetCameraMediaPacketPreviewCb(
