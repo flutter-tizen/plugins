@@ -7,6 +7,8 @@
 
 #include <app.h>
 
+#include <string>
+
 class DeviceMethodChannel;
 
 enum class OrientationType {
@@ -16,6 +18,10 @@ enum class OrientationType {
   kLandscapeRight = APP_DEVICE_ORIENTATION_270,
 };
 
+bool StringToOrientationType(std::string orientation,
+                             OrientationType& orientation_type);
+bool OrientationTypeToString(OrientationType orientation_type,
+                             std::string& orientation);
 class OrientationManager {
  public:
   OrientationManager(DeviceMethodChannel* device_method_channel,
@@ -23,8 +29,8 @@ class OrientationManager {
                      bool is_front_lens_facing);
   ~OrientationManager();
 
-  OrientationType ConvertTargetOrientation(
-      OrientationType orientation_event_type);
+  OrientationType ConvertOrientation(OrientationType orientation_event_type,
+                                     bool to_target = true);
   OrientationType GetDeviceOrientationType();
   OrientationType GetTargetOrientationType() { return target_orientation_; }
   void SendOrientation(OrientationType orientation);
