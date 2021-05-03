@@ -11,18 +11,44 @@
 #include "device_method_channel.h"
 #include "log.h"
 
-std::string EventTypeToString(OrientationType type) {
-  if (type == OrientationType::kPortraitUp) {
-    return "portraitUp";
-  } else if (type == OrientationType::kLandscapeLeft) {
-    return "landscapeLeft";
-  } else if (type == OrientationType::kPortraitDown) {
-    return "portraitDown";
-  } else if (type == OrientationType::kLandscapeRight) {
-    return "landscapeRight";
+bool OrientationTypeToString(OrientationType orientation_type,
+                             std::string& orientation) {
+  switch (orientation_type) {
+    case OrientationType::kPortraitUp:
+      orientation = "portraitUp";
+      return true;
+    case OrientationType::kLandscapeLeft:
+      orientation = "landscapeLeft";
+      return true;
+    case OrientationType::kPortraitDown:
+      orientation = "portraitDown";
+      return true;
+    case OrientationType::kLandscapeRight:
+      orientation = "landscapeRight";
+      return true;
+    default:
+      LOG_WARN("Unknown OrientationType!");
+      return false;
   }
-  LOG_WARN("Unknown event type!");
-  return "unknown";
+}
+
+bool StringToOrientationType(std::string orientation,
+                             OrientationType& orientation_type) {
+  if (orientation == "portraitUp") {
+    orientation_type = OrientationType::kPortraitUp;
+    return true;
+  } else if (orientation == "landscapeLeft") {
+    orientation_type = OrientationType::kLandscapeLeft;
+    return true;
+  } else if (orientation == "portraitDown") {
+    orientation_type = OrientationType::kPortraitDown;
+    return true;
+  } else if (orientation == "landscapeRight") {
+    orientation_type = OrientationType::kLandscapeRight;
+    return true;
+  }
+  LOG_WARN("Unknown OrientationType!");
+  return false;
 }
 
 OrientationManager::OrientationManager(
@@ -36,19 +62,21 @@ OrientationManager::OrientationManager(
 
   // Send initial orientation
   last_device_orientation_ = GetDeviceOrientationType();
-  target_orientation_ = ConvertTargetOrientation(last_device_orientation_);
+  target_orientation_ = ConvertOrientation(last_device_orientation_);
   SendOrientation(target_orientation_);
 }
 
 OrientationManager::~OrientationManager() {}
 
-OrientationType OrientationManager::ConvertTargetOrientation(
-    OrientationType orientation_event_type) {
+OrientationType OrientationManager::ConvertOrientation(
+    OrientationType orientation_event_type, bool to_target /* = true */) {
   int degree = static_cast<int>(orientation_event_type);
   if (is_front_lens_facing_) {
     degree = 180 + degree;
   }
-  int target = (degree + static_cast<int>(lens_orientation_)) % 360;
+  int target =
+      (degree + (static_cast<int>(lens_orientation_) * (to_target ? 1 : -1))) %
+      360;
   return (OrientationType)target;
 }
 
@@ -58,7 +86,11 @@ OrientationType OrientationManager::GetDeviceOrientationType() {
 }
 
 void OrientationManager::SendOrientation(OrientationType orientation) {
-  std::string orientation_str = EventTypeToString((OrientationType)orientation);
+  std::string orientation_str;
+  if (!OrientationTypeToString(orientation, orientation_str)) {
+    LOG_WARN("Unknown orientation type, failed to send orientation!");
+    return;
+  }
 
   LOG_DEBUG("Send Orientation [%d] : %s", orientation, orientation_str.c_str());
 
@@ -95,8 +127,7 @@ void OrientationManager::Start() {
             return;
           }
           self->last_device_orientation_ = orientation;
-          self->target_orientation_ =
-              self->ConvertTargetOrientation(orientation);
+          self->target_orientation_ = self->ConvertOrientation(orientation);
           self->SendOrientation(self->target_orientation_);
         },
         this);
