@@ -65,7 +65,6 @@ class CameraPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     std::string method_name = method_call.method_name();
 
-    LOG_DEBUG("method_name[%s]", method_name.c_str());
     if (method_name == "availableCameras") {
       flutter::EncodableValue availableCameras =
           CameraDevice::GetAvailableCameras();
