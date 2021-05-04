@@ -1,18 +1,53 @@
-# camera
+# camera_tizen
 
-A new flutter plugin project.
+The Tizen implementation of [`camera`](https://github.com/flutter/plugins/tree/master/packages/camera).
 
-## Getting Started
+## Supported devices
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+This plugin is an experimental plug-in for the future
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Nothing
 
-The plugin project was generated without specifying the `--platforms` flag, no platforms are currently supported.
-To add platforms, run `flutter create -t plugin --platforms <platforms> .` under the same
-directory. You can also find a detailed instruction on how to add platforms in the `pubspec.yaml` at https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms.
+## Required privileges
+
+To use this plugin, add below lines under the `<manifest>` section in your `tizen-manifest.xml` file,
+
+```xml
+<privileges>
+    <privilege>http://tizen.org/privilege/camera</privilege>
+    <privilege>http://tizen.org/privilege/recorder</privilege>
+</privileges>
+```
+
+## Usage
+
+This package is not an _endorsed_ implementation of `camera`. Therefore, you have to include `camera_tizen` alongside `camera` as dependencies in your `pubspec.yaml` file.
+
+```yaml
+dependencies:
+  camera: ^0.8.1
+  camera_tizen: ^0.0.1
+```
+
+Then you can import `camera` in your Dart code:
+
+```dart
+import 'package:camera/camera.dart';
+```
+For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/camera/camera#example.
+
+## Notes
+CameraPreview currently does not support other platforms except Android and iOS. Therefor the camera preview to orient properly, you have to modify the `camera_preview.dart`.
+
+```dart
+  Widget _wrapInRotatedBox({required Widget child}) {
+    // if (defaultTargetPlatform != TargetPlatform.android) {
+    //   return child;
+    // }
+
+    return RotatedBox(
+      quarterTurns: _getQuarterTurns(),
+      child: child,
+    );
+  }
+```
