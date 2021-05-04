@@ -197,7 +197,7 @@ class CameraDevice {
   void SetFlashMode(FlashMode flash_mode);
   void SetFocusMode(FocusMode focus_mode);
   void SetFocusPoint(double x, double y);
-  void SetZoomLevel(double zoom);
+  void SetZoomLevel(double zoom_level);
   void StartVideoRecording(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
   void StopVideoRecording(
@@ -291,6 +291,7 @@ class CameraDevice {
 
   OrientationType locked_orientation_{OrientationType::kPortraitUp};
   bool is_orientation_locked_{false};
+  int zoom_level_{0};
 };
 
 #endif
