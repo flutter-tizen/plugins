@@ -908,9 +908,13 @@ void CameraDevice::SetFocusPoint(double x, double y) {
   return;
 }
 
-void CameraDevice::SetZoomLevel(double zoom) {
-  LOG_DEBUG("zoom[%f]", zoom);
-  SetCameraZoom(static_cast<int>(round(zoom)));
+void CameraDevice::SetZoomLevel(double zoom_level) {
+  auto z = static_cast<int>(round(zoom_level));
+  if (zoom_level_ != z) {
+    zoom_level_ = z;
+    LOG_DEBUG("zoom_level_[%d]", zoom_level_);
+    SetCameraZoom(zoom_level_);
+  }
 }
 
 void CameraDevice::StartVideoRecording(
@@ -1024,7 +1028,6 @@ bool CameraDevice::SetCameraPreviewSize(Size size) {
 }
 
 bool CameraDevice::SetCameraZoom(int zoom) {
-  LOG_DEBUG("zoom[%d]", zoom);
   int error = camera_attr_set_zoom(camera_, zoom);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_attr_set_zoom fail - error[%d]: %s", error,
