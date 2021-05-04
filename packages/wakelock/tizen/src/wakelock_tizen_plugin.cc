@@ -41,7 +41,6 @@ class WakelockTizenPlugin : public flutter::Plugin {
       LOG_DEBUG("[WakelockTizenPlugin] Toggling wakelock status.");
 
       bool enable;
-      flutter::EncodableMap wrapped;
       if (std::holds_alternative<flutter::EncodableMap>(message)) {
         flutter::EncodableMap emap = std::get<flutter::EncodableMap>(message);
         flutter::EncodableValue &enable_encoded =
@@ -50,19 +49,16 @@ class WakelockTizenPlugin : public flutter::Plugin {
           enable = std::get<bool>(enable_encoded);
         } else {
           LOG_ERROR("[WakelockTizenPlugin] Invalid arguments for toggle.");
-          wrapped.emplace(flutter::EncodableValue("error"),
-                          "Invalid arguments for toggle.");
-          reply(flutter::EncodableValue(wrapped));
+          reply(WrapError("Invalid arguments for toggle.", ""));
           return;
         }
       } else {
         LOG_ERROR("[WakelockTizenPlugin] Invalid arguments for toggle.");
-        wrapped.emplace(flutter::EncodableValue("error"),
-                        "Invalid arguments for toggle.");
-        reply(flutter::EncodableValue(wrapped));
+        reply(WrapError("Invalid arguments for toggle.", ""));
         return;
       }
 
+      flutter::EncodableValue wrapped;
       LOG_DEBUG("[WakelockTizenPlugin] toggle to enable: %s",
                 enable ? "true" : "false");
       if (enable != plugin_pointer->wakelocked_) {
@@ -75,11 +71,13 @@ class WakelockTizenPlugin : public flutter::Plugin {
         } else {
           LOG_ERROR("[WakelockTizenPlugin] toggling wakelock failed: %s",
                     get_error_message(ret));
-          wrapped.emplace(flutter::EncodableValue("error"),
-                          flutter::EncodableValue(get_error_message(ret)));
+          wrapped = WrapError(
+              get_error_message(ret),
+              "You need to declare \"http://tizen.org/privilege/display\" "
+              "privilege in your tizen manifest to toggle wakelock.");
         }
       }
-      reply(flutter::EncodableValue(wrapped));
+      reply(wrapped);
     });
 
     registrar->AddPlugin(std::move(plugin));
@@ -90,6 +88,19 @@ class WakelockTizenPlugin : public flutter::Plugin {
 
  private:
   bool wakelocked_;
+
+  static flutter::EncodableValue WrapError(const std::string &message,
+                                           const std::string &details) {
+    flutter::EncodableMap error_map = {
+        {flutter::EncodableValue("code"), flutter::EncodableValue("1")},
+        {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
+        {flutter::EncodableValue("details"), flutter::EncodableValue(details)},
+    };
+    flutter::EncodableMap wrapped = {
+        {flutter::EncodableValue("error"), flutter::EncodableValue(error_map)},
+    };
+    return flutter::EncodableValue(wrapped);
+  }
 };
 
 void WakelockTizenPluginRegisterWithRegistrar(
