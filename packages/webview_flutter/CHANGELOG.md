@@ -8,3 +8,6 @@
 * Update webview_flutter_tizen to use platform view interface
 * Update example and integration_test
 * Update webivew_flutter to 2.0.4
+
+## 0.2.1
+* Add lightweight web engine binary for arm64
