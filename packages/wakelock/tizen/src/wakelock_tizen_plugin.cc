@@ -11,7 +11,7 @@ class WakelockTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     LOG_DEBUG(
-        "[WakelockTizenPlugin.RegisterWithRegistrar] Setting up channels.");
+        "[WakelockTizenPlugin.RegisterWithRegistrar] setting up channels...");
 
     auto enabled_channel =
         std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
@@ -25,9 +25,9 @@ class WakelockTizenPlugin : public flutter::Plugin {
     auto plugin = std::make_unique<WakelockTizenPlugin>();
     enabled_channel->SetMessageHandler([plugin_pointer = plugin.get()](
                                            const auto &message, auto &reply) {
-      LOG_DEBUG("[WakelockTizenPlugin] Fetching wakelock status.");
+      LOG_DEBUG("[WakelockTizenPlugin] fetching wakelock status");
       LOG_DEBUG("[WakelockTizenPlugin] wakelock status: %s",
-                plugin_pointer->wakelocked_ ? "true" : "false");
+                plugin_pointer->wakelocked_ ? "enabled" : "disabled");
 
       flutter::EncodableMap resultMap = {
           {flutter::EncodableValue("enabled"),
@@ -58,9 +58,11 @@ class WakelockTizenPlugin : public flutter::Plugin {
         return;
       }
 
-      flutter::EncodableValue wrapped;
-      LOG_DEBUG("[WakelockTizenPlugin] toggle to enable: %s",
-                enable ? "true" : "false");
+      flutter::EncodableMap resultMap = {
+          {flutter::EncodableValue("result"), flutter::EncodableValue()}};
+      flutter::EncodableValue wrapped = flutter::EncodableValue(resultMap);
+      LOG_DEBUG("[WakelockTizenPlugin] toggle to %s",
+                enable ? "enable" : "disable");
       if (enable != plugin_pointer->wakelocked_) {
         const int WAKELOCK_PERMANENT = 0;
         int ret = enable ? device_power_request_lock(POWER_LOCK_DISPLAY,
@@ -71,10 +73,13 @@ class WakelockTizenPlugin : public flutter::Plugin {
         } else {
           LOG_ERROR("[WakelockTizenPlugin] toggling wakelock failed: %s",
                     get_error_message(ret));
-          wrapped = WrapError(
-              get_error_message(ret),
-              "You need to declare \"http://tizen.org/privilege/display\" "
-              "privilege in your tizen manifest to toggle wakelock.");
+          std::string details =
+              ret == DEVICE_ERROR_PERMISSION_DENIED
+                  ? "You need to declare "
+                    "\"http://tizen.org/privilege/display\" "
+                    "privilege in your tizen manifest to toggle wakelock."
+                  : "";
+          wrapped = WrapError(get_error_message(ret), details);
         }
       }
       reply(wrapped);
