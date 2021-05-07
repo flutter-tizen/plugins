@@ -270,7 +270,8 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
   });
 
   // Init channels
-  texture_id_ = FlutterRegisterExternalTexture(texture_registrar_);
+  texture_id_ = FlutterRegisterExternalTexture(texture_registrar_,
+                                               TizenTextureType::MediaPacket);
   LOG_DEBUG("texture_id_[%ld]", texture_id_);
   camera_method_channel_ =
       std::make_unique<CameraMethodChannel>(registrar_, texture_id_);
@@ -728,26 +729,10 @@ bool CameraDevice::Open(std::string image_format_group) {
   }
 
   SetCameraMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
-    tbm_surface_h surface = nullptr;
-    int error = media_packet_get_tbm_surface(pkt, &surface);
-    LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                 "media_packet_get_tbm_surface fail - error[%d]: %s", error,
-                 get_error_message(error));
-
-    if (error == 0) {
-      CameraDevice *camera_device = (CameraDevice *)data;
-      FlutterMarkExternalTextureFrameAvailable(
-          camera_device->GetTextureRegistrar(), camera_device->GetTextureId(),
-          surface);
-    }
-
-    // destroy packet
-    if (pkt) {
-      error = media_packet_destroy(pkt);
-      LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                   "media_packet_destroy fail - error[%d]: %s", error,
-                   get_error_message(error));
-    }
+    CameraDevice *camera_device = (CameraDevice *)data;
+    FlutterMarkExternalTextureFrameAvailable(
+        camera_device->GetTextureRegistrar(), camera_device->GetTextureId(),
+        pkt);
   });
 
   StartCameraPreview();
