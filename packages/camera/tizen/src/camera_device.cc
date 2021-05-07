@@ -228,10 +228,11 @@ CameraDevice::CameraDevice() {
 
 CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
                            FlutterTextureRegistrar *texture_registrar,
-                           CameraDeviceType type)
+                           CameraDeviceType type, bool enable_audio)
     : registrar_(registrar),
       texture_registrar_(texture_registrar),
-      type_(type) {
+      type_(type),
+      enable_audio_(enable_audio) {
   // Init camera
   CreateCamera();
   SetCameraExifTagEnable(true);
@@ -246,10 +247,15 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
   CreateRecorder();
 
   SetRecorderFileFormat(RecorderFileFormat::kMP4);
-  SetRecorderAudioChannel(RecorderAudioChannel::kStereo);
-  SetRecorderAudioDevice(RecorderAudioDevice::kMic);
-  SetRecorderAudioEncorder(RecorderAudioCodec::kAAC);
-  SetRecorderAudioSamplerate(AUDIO_SOURCE_SAMPLERATE_AAC);
+  if (!enable_audio_) {
+    LOG_DEBUG("Disable audio");
+    SetRecorderAudioEncorder(RecorderAudioCodec::kDisable);
+  } else {
+    SetRecorderAudioEncorder(RecorderAudioCodec::kAAC);
+    SetRecorderAudioChannel(RecorderAudioChannel::kStereo);
+    SetRecorderAudioDevice(RecorderAudioDevice::kMic);
+    SetRecorderAudioSamplerate(AUDIO_SOURCE_SAMPLERATE_AAC);
+  }
 
   SetRecorderVideoEncorder(RecorderVideoCodec::kH264);
   SetRecorderVideoEncorderBitrate(VIDEO_ENCODE_BITRATE);

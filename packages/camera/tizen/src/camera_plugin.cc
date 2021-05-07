@@ -273,8 +273,7 @@ class CameraPlugin : public flutter::Plugin {
 
   flutter::EncodableValue InitializeCameraDevice(
       const std::string &camera_name,
-      const std::string & /*TODO :resolution_preset*/,
-      bool /*TODO : enable_audio_value*/) {
+      const std::string & /*TODO :resolution_preset*/, bool enable_audio) {
     if (camera_) {
       camera_ = nullptr;
     }
@@ -285,8 +284,8 @@ class CameraPlugin : public flutter::Plugin {
     } else {
       type = CameraDeviceType::kFront;
     }
-    camera_ =
-        std::make_unique<CameraDevice>(registrar_, texture_registrar_, type);
+    camera_ = std::make_unique<CameraDevice>(registrar_, texture_registrar_,
+                                             type, enable_audio);
     flutter::EncodableMap ret;
     ret[flutter::EncodableValue("cameraId")] =
         flutter::EncodableValue((int64_t)camera_->GetTextureId());
