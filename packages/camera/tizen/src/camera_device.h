@@ -177,7 +177,7 @@ class CameraDevice {
   CameraDevice();
   CameraDevice(flutter::PluginRegistrar *registrar,
                FlutterTextureRegistrar *texture_registrar,
-               CameraDeviceType type);
+               CameraDeviceType typem, bool enable_audio);
   ~CameraDevice();
 
   void ChangeCameraDeviceType(CameraDeviceType type);
@@ -292,6 +292,7 @@ class CameraDevice {
   OrientationType locked_orientation_{OrientationType::kPortraitUp};
   bool is_orientation_locked_{false};
   int zoom_level_{0};
+  bool enable_audio_{true};
 };
 
 #endif
