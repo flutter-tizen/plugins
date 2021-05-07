@@ -765,7 +765,6 @@ void WebView::InitWebView() {
         if (isRendered) {
           FlutterMarkExternalTextureFrameAvailable(
               texture_registrar_, GetTextureId(), tbm_surface_);
-          tbm_surface_destroy(tbm_surface_);
           tbm_surface_ = nullptr;
         }
       });
