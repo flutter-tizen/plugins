@@ -4,17 +4,6 @@
 
 part of google_maps_flutter_tizen;
 
-// TODO : implement for google_map_tizen if necessary
-// /// Type used when passing an override to the _createMap function.
-// @visibleForTesting
-// typedef DebugCreateMapFunction = gmaps.GMap Function(
-//     HtmlElement div, gmaps.MapOptions options);
-
-final _nullLatLng = LatLng(0, 0);
-final _nullLatLngBounds =
-    LatLngBounds(southwest: _nullLatLng, northeast: _nullLatLng);
-
-/// Encapsulates a [gmaps.GMap], its events, and where in the DOM it's rendered.
 class GoogleMapController {
   // The internal ID of the map. Used to broadcast events, DOM IDs and everything where a unique ID is needed.
   final int _mapId;
@@ -38,45 +27,54 @@ class GoogleMapController {
   WebView? _widget;
   Completer<WebViewController> _controller = Completer<WebViewController>();
 
-  // TODO : implement for google_map_tizen if necessary
   /// The Flutter widget that will contain the rendered Map. Used for caching.
   Widget? get widget {
     if (_widget == null && !_streamController.isClosed) {
-      // TODO : implement for google_map_tizen if necessary
-      // _widget = HtmlElementView(
-      //   viewType: _getViewType(_mapId),
-      // );
-
       _widget = WebView(
-        initialUrl: 'https://seungsoo47.github.io/map.html',
         javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (WebViewController webViewController) {
+        onWebViewCreated: (WebViewController webViewController) async {
           _controller.complete(webViewController);
+
+          final WebViewController controller = await _controller.future;
+          final String options = _createOptions();
+          final String initMap = '''
+          function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), $options);
+          }
+          ''';
+
+          String html = await rootBundle.loadString('assets/map.html');
+          final int pos = html.indexOf('let map;');
+          html = html.substring(0, pos + 8) +
+              initMap +
+              html.substring(pos + 8, html.length);
+
+          controller.loadUrl(Uri.dataFromString(html,
+                  mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
+              .toString());
         },
         onProgress: (int progress) {
-          print("WebView is loading (progress : $progress%)");
+          print('Google map is loading (progress : $progress%)');
         },
         javascriptChannels: <JavascriptChannel>{
           _toasterJavascriptChannel(),
         },
-        navigationDelegate: (NavigationRequest request) {
-          if (request.url.startsWith('https://www.youtube.com/')) {
-            print('blocking navigation to $request}');
-            return NavigationDecision.prevent;
-          }
-          print('allowing navigation to $request');
-          return NavigationDecision.navigate;
-        },
         onPageStarted: (String url) {
-          print('Page started loading: $url');
+          print('Google map started loading.');
         },
-        onPageFinished: (String url) {
-          print('Page finished loading: $url');
+        onPageFinished: (String url) async {
+          print('Google map finished loading.');
         },
         gestureNavigationEnabled: true,
       );
     }
     return _widget;
+  }
+
+  String _createOptions() {
+    String options = _rawOptionsToString(_rawMapOptions);
+    options = _applyInitialPosition(_initialCameraPosition, options);
+    return '{$options}';
   }
 
   JavascriptChannel _toasterJavascriptChannel() {
@@ -119,7 +117,7 @@ class GoogleMapController {
   // // Keeps track if the map is moving or not.
   // bool _mapIsMoving = false;
 
-  /// Initializes the GMap, and the sub-controllers related to it. Wires events.
+  /// Initializes the GoogleMapController.
   GoogleMapController({
     required int mapId,
     required StreamController<MapEvent> streamController,
@@ -145,16 +143,6 @@ class GoogleMapController {
     // _polygonsController = PolygonsController(stream: this._streamController);
     // _polylinesController = PolylinesController(stream: this._streamController);
     // _markersController = MarkersController(stream: this._streamController);
-
-    // TODO : implement for google_map_tizen if necessary
-    // // Register the view factory that will hold the `_div` that holds the map in the DOM.
-    // // The `_div` needs to be created outside of the ViewFactory (and cached!) so we can
-    // // use it to create the [gmaps.GMap] in the `init()` method of this class.
-    // _div = DivElement()..id = _getViewType(mapId);
-    // ui.platformViewRegistry.registerViewFactory(
-    //   _getViewType(mapId),
-    //   (int viewId) => _div,
-    // );
   }
 
   // TODO : implement for google_map_tizen if necessary
