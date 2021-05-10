@@ -29,4 +29,4 @@ part 'src/google_maps_controller.dart';
 // part 'src/polylines.dart';
 // part 'src/marker.dart';
 // part 'src/markers.dart';
-// part 'src/convert.dart';
+part 'src/convert.dart';
