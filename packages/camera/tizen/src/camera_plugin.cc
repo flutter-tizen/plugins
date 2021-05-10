@@ -124,8 +124,7 @@ class CameraPlugin : public flutter::Plugin {
         std::string image_format_group;
         if (GetValueFromEncodableMap(arguments, "imageFormatGroup",
                                      image_format_group)) {
-          camera_->Open(image_format_group);
-          result->Success();
+          camera_->Open(image_format_group, std::move(result));
           return;
         }
       }
@@ -148,28 +147,33 @@ class CameraPlugin : public flutter::Plugin {
             std::get<flutter::EncodableMap>(*method_call.arguments());
         std::string mode;
         FlashMode flash_mode;
-        if (GetValueFromEncodableMap(arguments, "mode", mode)) {
-          if (StringToFlashMode(mode, flash_mode)) {
+        if (GetValueFromEncodableMap(arguments, "mode", mode) &&
+            StringToFlashMode(mode, flash_mode)) {
+          try {
             camera_->SetFlashMode(flash_mode);
             result->Success();
-            return;
+          } catch (const CameraDeviceError &error) {
+            result->Error(error.GetErrorCode(), error.GetErrorMessage());
           }
+          return;
         }
       }
       result->Error("InvalidArguments", "Please check 'mode'");
-
     } else if (method_name == "setExposureMode") {
       if (method_call.arguments()) {
         flutter::EncodableMap arguments =
             std::get<flutter::EncodableMap>(*method_call.arguments());
         std::string mode;
         ExposureMode exposure_mode;
-        if (GetValueFromEncodableMap(arguments, "mode", mode)) {
-          if (StringToExposureMode(mode, exposure_mode)) {
+        if (GetValueFromEncodableMap(arguments, "mode", mode) &&
+            StringToExposureMode(mode, exposure_mode)) {
+          try {
             camera_->SetExposureMode(exposure_mode);
             result->Success();
-            return;
+          } catch (const CameraDeviceError &error) {
+            result->Error(error.GetErrorCode(), error.GetErrorMessage());
           }
+          return;
         }
       }
       result->Error("InvalidArguments", "Please check 'mode'");
@@ -177,11 +181,19 @@ class CameraPlugin : public flutter::Plugin {
       LOG_WARN("setExposurePoint is not supported!");
       result->NotImplemented();
     } else if (method_name == "getMinExposureOffset") {
-      float min = camera_->GetMinExposureOffset();
-      result->Success(flutter::EncodableValue(min));
+      try {
+        float min = camera_->GetMinExposureOffset();
+        result->Success(flutter::EncodableValue(min));
+      } catch (const CameraDeviceError &error) {
+        result->Error(error.GetErrorCode(), error.GetErrorMessage());
+      }
     } else if (method_name == "getMaxExposureOffset") {
-      float max = camera_->GetMaxExposureOffset();
-      result->Success(flutter::EncodableValue(max));
+      try {
+        float max = camera_->GetMaxExposureOffset();
+        result->Success(flutter::EncodableValue(max));
+      } catch (const CameraDeviceError &error) {
+        result->Error(error.GetErrorCode(), error.GetErrorMessage());
+      }
     } else if (method_name == "getExposureOffsetStepSize") {
       LOG_WARN("getExposureOffsetStepSize is not supported!");
       result->NotImplemented();
@@ -191,8 +203,12 @@ class CameraPlugin : public flutter::Plugin {
             std::get<flutter::EncodableMap>(*method_call.arguments());
         double offset;
         if (GetValueFromEncodableMap(arguments, "offset", offset)) {
-          camera_->SetExposureOffset(offset);
-          result->Success();
+          try {
+            camera_->SetExposureOffset(offset);
+            result->Success();
+          } catch (const CameraDeviceError &error) {
+            result->Error(error.GetErrorCode(), error.GetErrorMessage());
+          }
           return;
         }
       }
@@ -203,12 +219,15 @@ class CameraPlugin : public flutter::Plugin {
             std::get<flutter::EncodableMap>(*method_call.arguments());
         std::string mode;
         FocusMode focus_mode;
-        if (GetValueFromEncodableMap(arguments, "mode", mode)) {
-          if (StringToFocusMode(mode, focus_mode)) {
+        if (GetValueFromEncodableMap(arguments, "mode", mode) &&
+            StringToFocusMode(mode, focus_mode)) {
+          try {
             camera_->SetFocusMode(focus_mode);
             result->Success();
-            return;
+          } catch (const CameraDeviceError &error) {
+            result->Error(error.GetErrorCode(), error.GetErrorMessage());
           }
+          return;
         }
       }
       result->Error("InvalidArguments", "Please check 'mode'");
@@ -225,8 +244,12 @@ class CameraPlugin : public flutter::Plugin {
         double x, y;
         if (GetValueFromEncodableMap(arguments, "x", x) &&
             GetValueFromEncodableMap(arguments, "y", y)) {
-          camera_->SetFocusPoint(x, y);
-          result->Success();
+          try {
+            camera_->SetFocusPoint(x, y);
+            result->Success();
+          } catch (const CameraDeviceError &error) {
+            result->Error(error.GetErrorCode(), error.GetErrorMessage());
+          }
           return;
         }
       }
@@ -236,19 +259,31 @@ class CameraPlugin : public flutter::Plugin {
     } else if (method_name == "stopImageStream") {
       result->NotImplemented();
     } else if (method_name == "getMaxZoomLevel") {
-      float max = camera_->GetMaxZoomLevel();
-      result->Success(flutter::EncodableValue(max));
+      try {
+        float max = camera_->GetMaxZoomLevel();
+        result->Success(flutter::EncodableValue(max));
+      } catch (const CameraDeviceError &error) {
+        result->Error(error.GetErrorCode(), error.GetErrorMessage());
+      }
     } else if (method_name == "getMinZoomLevel") {
-      float min = camera_->GetMinZoomLevel();
-      result->Success(flutter::EncodableValue(min));
+      try {
+        float min = camera_->GetMinZoomLevel();
+        result->Success(flutter::EncodableValue(min));
+      } catch (const CameraDeviceError &error) {
+        result->Error(error.GetErrorCode(), error.GetErrorMessage());
+      }
     } else if (method_name == "setZoomLevel") {
       if (method_call.arguments()) {
         flutter::EncodableMap arguments =
             std::get<flutter::EncodableMap>(*method_call.arguments());
         double zoom;
         if (GetValueFromEncodableMap(arguments, "zoom", zoom)) {
-          camera_->SetZoomLevel(zoom);
-          result->Success();
+          try {
+            camera_->SetZoomLevel(zoom);
+            result->Success();
+          } catch (const CameraDeviceError &error) {
+            result->Error(error.GetErrorCode(), error.GetErrorMessage());
+          }
           return;
         }
       }
@@ -273,8 +308,8 @@ class CameraPlugin : public flutter::Plugin {
     } else if (method_name == "dispose") {
       if (camera_) {
         camera_->Dispose();
-        result->Success();
       }
+      result->Success();
     } else {
       result->NotImplemented();
     }

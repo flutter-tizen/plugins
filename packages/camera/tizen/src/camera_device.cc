@@ -404,7 +404,7 @@ bool CameraDevice::GetCameraZoomRange(int &min, int &max) {
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_attr_get_zoom_range fail - error[%d]: %s", error,
                     get_error_message(error));
-  if (min > max) {
+  if (min >= max) {
     // According to the API doc, this means that it is not supported on device
     LOG_WARN("Not supported");
     return false;
@@ -734,29 +734,40 @@ Size CameraDevice::GetRecommendedPreviewResolution() {
 
 double CameraDevice::GetMaxExposureOffset() {
   int min = 0, max = 0;
-  GetCameraExposureRange(min, max);
+  if (!GetCameraExposureRange(min, max)) {
+    throw CameraDeviceError("Failed to get max exposure offset");
+  }
   return static_cast<double>(max);
 }
 
 double CameraDevice::GetMinExposureOffset() {
   int min = 0, max = 0;
-  GetCameraExposureRange(min, max);
+  if (!GetCameraExposureRange(min, max)) {
+    throw CameraDeviceError("Failed to get min exposure offset");
+  }
   return static_cast<double>(min);
 }
 
 double CameraDevice::GetMaxZoomLevel() {
   int min = 0, max = 0;
-  GetCameraZoomRange(min, max);
+  if (!GetCameraZoomRange(min, max)) {
+    throw CameraDeviceError("Failed to get max zoom level");
+  }
   return static_cast<double>(max);
 }
 
 double CameraDevice::GetMinZoomLevel() {
   int min = 0, max = 0;
-  GetCameraZoomRange(min, max);
+  if (!GetCameraZoomRange(min, max)) {
+    throw CameraDeviceError("Failed to get min zoom level");
+  }
   return static_cast<double>(min);
 }
 
-bool CameraDevice::Open(std::string image_format_group) {
+void CameraDevice::Open(
+    std::string image_format_group,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+        &&result) noexcept {
   LOG_DEBUG("enter");
   LOG_DEBUG("Recieved image_format_group[%s]", image_format_group.c_str());
   CameraPixelFormat pixel_format;
@@ -766,39 +777,50 @@ bool CameraDevice::Open(std::string image_format_group) {
     SetCameraPreviewFormat(pixel_format);
   }
 
-  SetCameraMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
-    tbm_surface_h surface = nullptr;
-    int error = media_packet_get_tbm_surface(pkt, &surface);
-    LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                 "media_packet_get_tbm_surface fail - error[%d]: %s", error,
-                 get_error_message(error));
+  if (!SetCameraMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
+        tbm_surface_h surface = nullptr;
+        int error = media_packet_get_tbm_surface(pkt, &surface);
+        LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
+                     "media_packet_get_tbm_surface fail - error[%d]: %s", error,
+                     get_error_message(error));
 
-    if (error == 0) {
-      CameraDevice *camera_device = (CameraDevice *)data;
-      FlutterMarkExternalTextureFrameAvailable(
-          camera_device->GetTextureRegistrar(), camera_device->GetTextureId(),
-          surface);
-    }
+        if (error == 0) {
+          CameraDevice *camera_device = (CameraDevice *)data;
+          FlutterMarkExternalTextureFrameAvailable(
+              camera_device->GetTextureRegistrar(),
+              camera_device->GetTextureId(), surface);
+        }
 
-    // destroy packet
-    if (pkt) {
-      error = media_packet_destroy(pkt);
-      LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                   "media_packet_destroy fail - error[%d]: %s", error,
-                   get_error_message(error));
-    }
-  });
+        // destroy packet
+        if (pkt) {
+          error = media_packet_destroy(pkt);
+          LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
+                       "media_packet_destroy fail - error[%d]: %s", error,
+                       get_error_message(error));
+        }
+      })) {
+    result->Error(kCameraDeviceError, "Failed to set media callback");
+    return;
+  }
 
-  StartCameraPreview();
+  if (!StartCameraPreview()) {
+    result->Error(kCameraDeviceError, "Failed to start preview");
+    return;
+  }
 
   SetCameraAutoFocusChangedCb([](camera_focus_state_e state, void *user_data) {
     LOG_DEBUG("Change auto focus state[%d]", static_cast<int>(state));
   });
 
-  // Start or stop focusing according to FocusMode
-  SetFocusMode(focus_mode_);
-  // Start or stop exposure accroding to ExpoureMode
-  SetExposureMode(exposure_mode_);
+  try {
+    // Start or stop focusing according to FocusMode
+    SetFocusMode(focus_mode_);
+    // Start or stop exposure accroding to ExpoureMode
+    SetExposureMode(exposure_mode_);
+  } catch (const CameraDeviceError &error) {
+    LOG_ERROR("[%s] %s", error.GetErrorCode().c_str(),
+              error.GetErrorMessage().c_str());
+  }
 
   flutter::EncodableMap map;
   Size size = GetRecommendedPreviewResolution();
@@ -834,16 +856,19 @@ bool CameraDevice::Open(std::string image_format_group) {
 
   auto value = std::make_unique<flutter::EncodableValue>(map);
   camera_method_channel_->Send(CameraEventType::kInitialized, std::move(value));
-
-  return true;
+  result->Success();
 }
 
 void CameraDevice::PauseVideoRecording(
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+        &&result) noexcept {
   LOG_DEBUG("enter");
-  PauseRecorder();
+  if (PauseRecorder()) {
+    result->Success();
+  } else {
+    result->Error(kCameraDeviceError, "Failed to pause recorder");
+  }
   UpdateStates();
-  result->Success();
 }
 
 void CameraDevice::RestFocusPoint() {
@@ -852,27 +877,35 @@ void CameraDevice::RestFocusPoint() {
 }
 
 void CameraDevice::ResumeVideoRecording(
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+        &&result) noexcept {
   LOG_DEBUG("enter");
-  StartRecorder();
+  if (StartRecorder()) {
+    result->Success();
+  } else {
+    result->Error(kCameraDeviceError, "Failed to resume recorder");
+  }
   UpdateStates();
-  result->Success();
 }
 
 void CameraDevice::SetExposureMode(ExposureMode exposure_mode) {
+  bool ret = false;
   switch (exposure_mode) {
     case ExposureMode::kAuto:
       // Use CAMERA_ATTR_EXPOSURE_MODE_CENTER as default
       LOG_DEBUG("Start exposure");
-      SetCameraExposureMode(CameraExposureMode::kCenter);
+      ret = SetCameraExposureMode(CameraExposureMode::kCenter);
       break;
     case ExposureMode::kLocked:
       LOG_DEBUG("Stop exposure");
-      SetCameraExposureMode(CameraExposureMode::kOff);
+      ret = SetCameraExposureMode(CameraExposureMode::kOff);
       break;
     default:
       LOG_WARN("Unknown ExposureMode!");
-      return;
+      break;
+  }
+  if (!ret) {
+    throw CameraDeviceError("Failed to set exposure mode");
   }
   exposure_mode_ = exposure_mode;
 }
@@ -880,46 +913,56 @@ void CameraDevice::SetExposureMode(ExposureMode exposure_mode) {
 void CameraDevice::SetExposureOffset(double exposure_offset) {
   int offset = static_cast<int>(round(exposure_offset));
   LOG_DEBUG("SetExposure [%d]", offset);
-  SetCameraExposure(offset);
+  if (!SetCameraExposure(offset)) {
+    throw CameraDeviceError("Failed to set exposure offset");
+  }
 }
 
 void CameraDevice::SetFlashMode(FlashMode flash_mode) {
+  bool ret = false;
   switch (flash_mode) {
     case FlashMode::kOff:
-      SetCameraFlashMode(CameraFlashMode::kOff);
+      ret = SetCameraFlashMode(CameraFlashMode::kOff);
       break;
     case FlashMode::kAuto:
-      SetCameraFlashMode(CameraFlashMode::kAuto);
+      ret = SetCameraFlashMode(CameraFlashMode::kAuto);
       break;
     case FlashMode::kAlways:
-      SetCameraFlashMode(CameraFlashMode::kOn);
+      ret = SetCameraFlashMode(CameraFlashMode::kOn);
       break;
     case FlashMode::kTorch:
-      SetCameraFlashMode(CameraFlashMode::kPermanent);
+      ret = SetCameraFlashMode(CameraFlashMode::kPermanent);
       break;
     default:
       LOG_WARN("Unknown flash mode!");
       break;
   }
+  if (!ret) {
+    throw CameraDeviceError("Failed to set flash mode");
+  }
 }
 
 void CameraDevice::SetFocusMode(FocusMode focus_mode) {
+  bool ret = false;
   switch (focus_mode) {
     case FocusMode::kAuto: {
       LOG_DEBUG("Start auto focusing");
-      if (!StartCameraAutoFocusing(true)) {
+      if (!(ret = StartCameraAutoFocusing(true))) {
         // Fallback, try to Auto focusing with non-continuous
         LOG_DEBUG("try to start auto focusing with non-continuous");
-        StartCameraAutoFocusing(false);
+        ret = StartCameraAutoFocusing(false);
       }
     } break;
     case FocusMode::kLocked:
       LOG_DEBUG("Stop auto focusing");
-      StopCameraAutoFocusing();
+      ret = StopCameraAutoFocusing();
       break;
     default:
       LOG_WARN("Unknown FocusMode!");
-      return;
+      break;
+  }
+  if (!ret) {
+    throw CameraDeviceError("Failed to set focus mode");
   }
   focus_mode_ = focus_mode;
 }
@@ -949,7 +992,9 @@ void CameraDevice::SetFocusPoint(double x, double y) {
       LOG_ERROR("Unknown OrientationType!");
       break;
   }
-  SetCameraAutoFocusArea(computed_x, computed_y);
+  if (!SetCameraAutoFocusArea(computed_x, computed_y)) {
+    throw CameraDeviceError("Failed to set auto focus area");
+  }
   return;
 }
 
@@ -958,12 +1003,15 @@ void CameraDevice::SetZoomLevel(double zoom_level) {
   if (zoom_level_ != z) {
     zoom_level_ = z;
     LOG_DEBUG("zoom_level_[%d]", zoom_level_);
-    SetCameraZoom(zoom_level_);
+    if (!SetCameraZoom(zoom_level_)) {
+      throw CameraDeviceError("Failed to set zoom level");
+    }
   }
 }
 
 void CameraDevice::StartVideoRecording(
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+        &&result) noexcept {
   LOG_DEBUG("enter");
   StopCameraPreview();
 
@@ -974,48 +1022,55 @@ void CameraDevice::StartVideoRecording(
           ? locked_orientation_
           : orientation_manager_->GetDeviceOrientationType()));
   PrepareRecorder();
-  StartRecorder();
 
+  if (StartRecorder()) {
+    result->Success();
+  } else {
+    result->Error(kCameraDeviceError, "Failed to start recorder");
+  }
   UpdateStates();
-
-  result->Success();
 }
 
 void CameraDevice::StopVideoRecording(
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+        &&result) noexcept {
   LOG_DEBUG("enter");
   CommitRecorder();
   UnprepareRecorder();
 
-  StartCameraPreview();
+  if (StartCameraPreview()) {
+    std::string file_name;
+    GetRecorderFileName(file_name);
+    result->Success(flutter::EncodableValue(file_name));
+  } else {
+    result->Error(kCameraDeviceError, "Failed to stop recorder");
+  }
   UpdateStates();
-
-  std::string file_name;
-  GetRecorderFileName(file_name);
-  result->Success(flutter::EncodableValue(file_name));
 }
 
 void CameraDevice::TakePicture(
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result) {
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+        &&result) noexcept {
   SetCameraExifTagOrientatoin(ChooseExifTagOrientatoin(
       is_orientation_locked_ ? locked_orientation_
                              : orientation_manager_->GetDeviceOrientationType(),
       type_ == CameraDeviceType::kFront));
   auto p_result = result.release();
-  StartCameraCapture(
-      [p_result, this](const std::string &captured_file_path) {
-        LOG_DEBUG("OnSuccess!!!");
-        flutter::EncodableValue value(captured_file_path);
-        p_result->Success(value);
-        StartCameraPreview();
-        UpdateStates();
-        delete p_result;
-      },
-      [p_result](const std::string &code, const std::string &message) {
-        LOG_DEBUG("OnFailure!!!");
-        p_result->Error(code, message);
-        delete p_result;
-      });
+  if (!StartCameraCapture(
+          [p_result, this](const std::string &captured_file_path) {
+            flutter::EncodableValue value(captured_file_path);
+            p_result->Success(value);
+            StartCameraPreview();
+            UpdateStates();
+            delete p_result;
+          },
+          [p_result](const std::string &code, const std::string &message) {
+            p_result->Error(code, message);
+            delete p_result;
+          })) {
+    p_result->Error(kCameraDeviceError, "Failed to take picture");
+    delete p_result;
+  }
   UpdateStates();
 }
 
@@ -1141,7 +1196,6 @@ bool CameraDevice::StartCameraCapture(const OnCaptureSuccessCb &on_success,
 
   if (error != CAMERA_ERROR_NONE) {
     delete p;
-    on_failure(get_error_message(error), "camera_start_capture fail");
     return false;
   }
   return true;
