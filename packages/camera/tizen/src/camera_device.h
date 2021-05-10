@@ -185,6 +185,8 @@ class CameraDevice {
   Size GetRecommendedPreviewResolution();
   FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
+  double GetMaxExposureOffset();
+  double GetMinExposureOffset();
   double GetMaxZoomLevel();
   double GetMinZoomLevel();
   bool Open(std::string image_format_group);
@@ -194,6 +196,7 @@ class CameraDevice {
   void ResumeVideoRecording(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
   void SetExposureMode(ExposureMode exposure_mode);
+  void SetExposureOffset(double exposure_offset);
   void SetFlashMode(FlashMode flash_mode);
   void SetFocusMode(FocusMode focus_mode);
   void SetFocusPoint(double x, double y);
@@ -220,7 +223,9 @@ class CameraDevice {
   bool GetCameraZoomRange(int &min, int &max);
   bool SetCameraFlashMode(CameraFlashMode mode);
   bool SetCameraFlip(CameraFlip flip);
+  bool SetCameraExposure(int offset);
   bool SetCameraExposureMode(CameraExposureMode mode);
+  bool GetCameraExposureRange(int &min, int &max);
   bool SetCameraCaptureFormat(CameraPixelFormat format);
   bool SetCameraExifTagEnable(bool enable);
   bool SetCameraExifTagOrientatoin(ExifTagOrientation orientation);

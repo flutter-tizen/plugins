@@ -409,7 +409,6 @@ bool CameraDevice::GetCameraZoomRange(int &min, int &max) {
     LOG_WARN("Not supported");
     return false;
   }
-  LOG_DEBUG("zoom range : min[%d] max[%d]", min, max);
   return true;
 }
 
@@ -456,12 +455,34 @@ bool CameraDevice::SetCameraAutoFocusMode(CameraAutoFocusMode mode) {
   return true;
 }
 
+bool CameraDevice::SetCameraExposure(int offset) {
+  int error = camera_attr_set_exposure(camera_, offset);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_attr_set_exposure fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
 bool CameraDevice::SetCameraExposureMode(CameraExposureMode mode) {
   int error =
       camera_attr_set_exposure_mode(camera_, (camera_attr_exposure_mode_e)mode);
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_attr_set_exposure_mode fail - error[%d]: %s", error,
                     get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::GetCameraExposureRange(int &min, int &max) {
+  int error = camera_attr_get_exposure_range(camera_, &min, &max);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    " camera_attr_get_exposure_range fail - error[%d]: %s",
+                    error, get_error_message(error));
+  // According to the API doc, this means that it is not supported on device
+  if (min > max) {
+    // Not supported on TM1
+    LOG_WARN("Not supported");
+    return false;
+  }
   return true;
 }
 
@@ -711,6 +732,18 @@ Size CameraDevice::GetRecommendedPreviewResolution() {
   return preview_size;
 }
 
+double CameraDevice::GetMaxExposureOffset() {
+  int min = 0, max = 0;
+  GetCameraExposureRange(min, max);
+  return static_cast<double>(max);
+}
+
+double CameraDevice::GetMinExposureOffset() {
+  int min = 0, max = 0;
+  GetCameraExposureRange(min, max);
+  return static_cast<double>(min);
+}
+
 double CameraDevice::GetMaxZoomLevel() {
   int min = 0, max = 0;
   GetCameraZoomRange(min, max);
@@ -842,6 +875,12 @@ void CameraDevice::SetExposureMode(ExposureMode exposure_mode) {
       return;
   }
   exposure_mode_ = exposure_mode;
+}
+
+void CameraDevice::SetExposureOffset(double exposure_offset) {
+  int offset = static_cast<int>(round(exposure_offset));
+  LOG_DEBUG("SetExposure [%d]", offset);
+  SetCameraExposure(offset);
 }
 
 void CameraDevice::SetFlashMode(FlashMode flash_mode) {

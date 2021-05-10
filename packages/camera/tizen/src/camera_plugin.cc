@@ -177,17 +177,26 @@ class CameraPlugin : public flutter::Plugin {
       LOG_WARN("setExposurePoint is not supported!");
       result->NotImplemented();
     } else if (method_name == "getMinExposureOffset") {
-      LOG_WARN("getMinExposureOffset is not supported!");
-      result->NotImplemented();
+      float min = camera_->GetMinExposureOffset();
+      result->Success(flutter::EncodableValue(min));
     } else if (method_name == "getMaxExposureOffset") {
-      LOG_WARN("getMaxExposureOffset is not supported!");
-      result->NotImplemented();
+      float max = camera_->GetMaxExposureOffset();
+      result->Success(flutter::EncodableValue(max));
     } else if (method_name == "getExposureOffsetStepSize") {
       LOG_WARN("getExposureOffsetStepSize is not supported!");
       result->NotImplemented();
     } else if (method_name == "setExposureOffset") {
-      LOG_WARN("setExposureOffset is not supported!");
-      result->NotImplemented();
+      if (method_call.arguments()) {
+        flutter::EncodableMap arguments =
+            std::get<flutter::EncodableMap>(*method_call.arguments());
+        double offset;
+        if (GetValueFromEncodableMap(arguments, "offset", offset)) {
+          camera_->SetExposureOffset(offset);
+          result->Success();
+          return;
+        }
+      }
+      result->Error("InvalidArguments", "Please check 'offset'");
     } else if (method_name == "setFocusMode") {
       if (method_call.arguments()) {
         flutter::EncodableMap arguments =
