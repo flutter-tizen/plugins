@@ -404,7 +404,15 @@ bool CameraDevice::GetCameraZoomRange(int &min, int &max) {
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_attr_get_zoom_range fail - error[%d]: %s", error,
                     get_error_message(error));
-  if (min >= max) {
+
+  if (min == max) {
+    // FIXME : The maximum and minimum values must not be the same,
+    // if they are the same, zoom behavior will malfunction.
+    LOG_WARN("maximum zoom level and minimum level are same!");
+    return false;
+  }
+
+  if (min > max) {
     // According to the API doc, this means that it is not supported on device
     LOG_WARN("Not supported");
     return false;
