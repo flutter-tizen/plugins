@@ -785,7 +785,7 @@ void CameraDevice::Open(
                      get_error_message(error));
 
         if (error == 0) {
-          CameraDevice *camera_device = (CameraDevice *)data;
+          auto camera_device = static_cast<CameraDevice *>(data);
           FlutterMarkExternalTextureFrameAvailable(
               camera_device->GetTextureRegistrar(),
               camera_device->GetTextureId(), surface);
@@ -1035,16 +1035,21 @@ void CameraDevice::StopVideoRecording(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
         &&result) noexcept {
   LOG_DEBUG("enter");
-  CommitRecorder();
-  UnprepareRecorder();
+  std::string file_name;
+  int success = false;
+  if (CommitRecorder() && GetRecorderFileName(file_name)) {
+    success = true;
+  }
 
-  if (StartCameraPreview()) {
-    std::string file_name;
-    GetRecorderFileName(file_name);
+  UnprepareRecorder();
+  StartCameraPreview();
+
+  if (success) {
     result->Success(flutter::EncodableValue(file_name));
   } else {
     result->Error(kCameraDeviceError, "Failed to stop recorder");
   }
+
   UpdateStates();
 }
 
