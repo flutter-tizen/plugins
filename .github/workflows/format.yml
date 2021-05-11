@@ -1,13 +1,9 @@
-name: Dart
+name: Format
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push, pull_request]
 
 jobs:
-  analysis:
+  dart:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -22,3 +18,16 @@ jobs:
           done
       - name: Verify formatting
         run: flutter format --set-exit-if-changed packages
+  clang:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "2.7"
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install clang-format-11
+      - name: Check tidy
+        run: tools/check_tidy.py
