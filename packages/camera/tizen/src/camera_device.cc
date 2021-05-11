@@ -823,10 +823,10 @@ void CameraDevice::Open(
   try {
     // Start or stop focusing according to FocusMode
     SetFocusMode(focus_mode_);
-    // Start or stop exposure accroding to ExpoureMode
+    // Start or stop exposure according to ExpoureMode
     SetExposureMode(exposure_mode_);
   } catch (const CameraDeviceError &error) {
-    LOG_ERROR("[%s] %s", error.GetErrorCode().c_str(),
+    LOG_WARN("[%s] %s", error.GetErrorCode().c_str(),
               error.GetErrorMessage().c_str());
   }
 
