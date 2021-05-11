@@ -165,7 +165,8 @@ void AudioPlayer::SetDataSource(std::vector<uint8_t> &data) {
 }
 
 void AudioPlayer::SetVolume(double volume) {
-  LOG_INFO("AudioPlayer %s is setting volume %f...", player_id_.c_str(), volume);
+  LOG_INFO("AudioPlayer %s is setting volume %f...", player_id_.c_str(),
+           volume);
   if (volume_ != volume) {
     volume_ = volume;
     if (GetPlayerState() != PLAYER_STATE_NONE) {
