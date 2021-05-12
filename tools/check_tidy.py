@@ -65,7 +65,7 @@ def check_tidy(src_dir, update, clang_format, stats):
 
             with open(file, 'r') as f:
                 original = f.readlines()
-            formatted = subprocess.check_output([clang_format, '-style=Google', file])
+            formatted = subprocess.check_output([clang_format, '-style=file', file])
 
             if update:
                 with open(file, 'w') as f:
