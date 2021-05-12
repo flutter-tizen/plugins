@@ -22,7 +22,6 @@ import sys
 
 from argparse import ArgumentParser
 from difflib import unified_diff
-#from check_license import CheckLicenser
 from os.path import abspath, dirname, join, relpath, splitext
 
 DEFAULT_DIR = dirname(dirname(abspath(__file__)))
@@ -94,9 +93,6 @@ def check_tidy(src_dir, update, clang_format, stats):
                 report_error('format error')
                 for diffline in diff:
                     print(diffline, end='')
-
-            # if not CheckLicenser.check(file):
-            #     report_error('incorrect license')
 
 
 def main():
