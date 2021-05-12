@@ -10,12 +10,28 @@ final LatLngBounds _nullLatLngBounds =
 
 // Indices in the plugin side don't match with the ones
 Map<int, String> _mapTypeToMapTypeId = {
-  0: 'ROADMAP',
-  1: 'ROADMAP',
-  2: 'SATELLITE',
-  3: 'TERRAIN',
-  4: 'HYBRID',
+  0: 'roadmap', // None
+  1: 'roadmap',
+  2: 'satellite',
+  3: 'terrain',
+  4: 'hybrid',
 };
+
+String? _getCameraBounds(dynamic option) {
+  if (option.runtimeType != List || option.first == null) {
+    return null;
+  }
+
+  // ex: [[[-34.022631, 150.62068499999998], [-33.571835, 151.32595200000003]]]
+  final List<Object> bound = (option as List<Object?>)[0] as List<Object>;
+  final LatLng? southwest = LatLng.fromJson(bound[0]);
+  final LatLng? northeast = LatLng.fromJson(bound[1]);
+
+  final String restrictedBound =
+      '{south:${southwest?.latitude}, west:${southwest?.longitude}, north:${northeast?.latitude}, east:${northeast?.longitude}}';
+
+  return restrictedBound;
+}
 
 // Converts options into String that can be used by a webview.
 // The following options are not handled here, for various reasons:
@@ -38,8 +54,7 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
       'mapTypeControl: false, fullscreenControl: false, streetViewControl: false';
 
   if (_mapTypeToMapTypeId.containsKey(rawOptions['mapType'])) {
-    options +=
-        ', mapTypeId: \'${_mapTypeToMapTypeId[rawOptions['mapType']]!.toLowerCase()}\'';
+    options += ', mapTypeId: \'${_mapTypeToMapTypeId[rawOptions['mapType']]}\'';
   }
 
   if (rawOptions['minMaxZoomPreference'] != null) {
@@ -48,8 +63,10 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
   }
 
   if (rawOptions['cameraTargetBounds'] != null) {
-    // Needs MapOptions.restriction and MapRestriction
-    // see: https://developers.google.com/maps/documentation/javascript/reference/map#MapOptions.restriction
+    final String? bound = _getCameraBounds(rawOptions['cameraTargetBounds']);
+    if (bound != null) {
+      options += ', restriction: { latLngBounds: $bound, strictBounds: false }';
+    }
   }
 
   if (rawOptions['zoomControlsEnabled'] != null) {

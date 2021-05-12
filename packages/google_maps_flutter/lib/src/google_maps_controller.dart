@@ -20,12 +20,12 @@ class GoogleMapController {
   // Creates the 'viewType' for the _widget
   String _getViewType(int mapId) => 'plugins.flutter.io/google_maps_$mapId';
 
-  // TODO : implement for google_map_tizen if necessary
-  // // The Flutter widget that contains the rendered Map.
-  // HtmlElementView? _widget;
-  // late HtmlElement _div;
   WebView? _widget;
-  Completer<WebViewController> _controller = Completer<WebViewController>();
+  final Completer<WebViewController> _controller =
+      Completer<WebViewController>();
+  Future<WebViewController> get controller {
+    return _controller.future;
+  }
 
   /// The Flutter widget that will contain the rendered Map. Used for caching.
   Widget? get widget {
@@ -35,11 +35,11 @@ class GoogleMapController {
         onWebViewCreated: (WebViewController webViewController) async {
           _controller.complete(webViewController);
 
-          final WebViewController controller = await _controller.future;
           final String options = _createOptions();
           final String initMap = '''
           function initMap() {
             map = new google.maps.Map(document.getElementById('map'), $options);
+            map.addListener('bounds_changed', BoundChanged.postMessage);
           }
           ''';
 
@@ -49,7 +49,8 @@ class GoogleMapController {
               initMap +
               html.substring(pos + 8, html.length);
 
-          controller.loadUrl(Uri.dataFromString(html,
+          final WebViewController mapView = await controller;
+          mapView.loadUrl(Uri.dataFromString(html,
                   mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
               .toString());
         },
@@ -57,7 +58,7 @@ class GoogleMapController {
           print('Google map is loading (progress : $progress%)');
         },
         javascriptChannels: <JavascriptChannel>{
-          _toasterJavascriptChannel(),
+          _javascriptEventChannel(),
         },
         onPageStarted: (String url) {
           print('Google map started loading.');
@@ -77,15 +78,12 @@ class GoogleMapController {
     return '{$options}';
   }
 
-  JavascriptChannel _toasterJavascriptChannel() {
+  JavascriptChannel _javascriptEventChannel() {
     return JavascriptChannel(
-        name: 'Toaster',
-        onMessageReceived: (JavascriptMessage message) {
-          print('ToasterMessage : ${message.message}');
-          // // ignore: deprecated_member_use
-          // Scaffold.of(context).showSnackBar(
-          //   SnackBar(content: Text(message.message)),
-          // );
+        name: 'BoundChanged',
+        onMessageReceived: (JavascriptMessage message) async {
+          print(
+              'Message[BoundChanged] : ${message.message} ${await getVisibleRegion()}');
         });
   }
 
@@ -273,35 +271,34 @@ class GoogleMapController {
   // }
 
   // TODO : implement for google_map_tizen if necessary
-  // // Merges new options coming from the plugin into the _rawMapOptions map.
-  // //
-  // // Returns the updated _rawMapOptions object.
-  // Map<String, dynamic> _mergeRawOptions(Map<String, dynamic> newOptions) {
-  //   _rawMapOptions = <String, dynamic>{
-  //     ..._rawMapOptions,
-  //     ...newOptions,
-  //   };
-  //   return _rawMapOptions;
-  // }
+  // Merges new options coming from the plugin into the _rawMapOptions map.
+  //
+  // Returns the updated _rawMapOptions object.
+  Map<String, dynamic> _mergeRawOptions(Map<String, dynamic> newOptions) {
+    _rawMapOptions = <String, dynamic>{
+      ..._rawMapOptions,
+      ...newOptions,
+    };
+    return _rawMapOptions;
+  }
 
   /// Updates the map options from a `Map<String, dynamic>`.
   ///
   /// This method converts the map into the proper [gmaps.MapOptions]
   void updateRawOptions(Map<String, dynamic> optionsUpdate) {
     // TODO : implement for google_map_tizen if necessary
-    // assert(_googleMap != null, 'Cannot update options on a null map.');
-    // final newOptions = _mergeRawOptions(optionsUpdate);
-    // _setOptions(_rawOptionsToGmapsOptions(newOptions));
-    // _setTrafficLayer(_googleMap!, _isTrafficLayerEnabled(newOptions));
-
     assert(_widget != null, 'Cannot update options on a null map.');
+    final Map<String, dynamic> newOptions = _mergeRawOptions(optionsUpdate);
+    final String options = _rawOptionsToString(newOptions);
+    _setOptions('{$options}');
+    // _setTrafficLayer(_googleMap!, _isTrafficLayerEnabled(newOptions));
   }
 
-  // TODO : implement for google_map_tizen if necessary
-  // // Sets new [gmaps.MapOptions] on the wrapped map.
-  // void _setOptions(gmaps.MapOptions options) {
-  //   _googleMap?.options = options;
-  // }
+  Future<String> _setOptions(String options) async {
+    final WebViewController mapView = await controller;
+    final String value = await _callMethod(mapView, 'setOptions', [options]);
+    return value;
+  }
 
   // TODO : implement for google_map_tizen if necessary
   // // Attaches/detaches a Traffic Layer on the passed `map` if `attach` is true/false.
@@ -316,39 +313,34 @@ class GoogleMapController {
   // }
 
   Future<String> _callMethod(
-      WebViewController c, String method, List<Object?> args) async {
-    String command = 'JSON.stringify(map.$method.apply(map, $args))';
-    String result = await c.evaluateJavascript(command);
-
+      WebViewController mapView, String method, List<Object?> args) async {
+    final String command = 'JSON.stringify(map.$method.apply(map, $args))';
+    final String result = await mapView.evaluateJavascript(command);
     return result;
   }
 
   LatLngBounds _convertToBounds(String value) {
     try {
-      Map<String, dynamic> map = json.decode(value);
+      final Map<String, dynamic> map =
+          json.decode(value) as Map<String, dynamic>;
       return LatLngBounds(
-          southwest: LatLng(map['south'], map['west']),
-          northeast: LatLng(map['north'], map['east']));
+          southwest: LatLng(map['south'] as double, map['west'] as double),
+          northeast: LatLng(map['north'] as double, map['east'] as double));
     } catch (e) {
-      print('Javascript Error: ${e}');
+      print('Javascript Error: $e');
       return _nullLatLngBounds;
     }
   }
 
   Future<LatLngBounds> _getBounds(WebViewController c) async {
     final String value = await _callMethod(c, 'getBounds', []);
-    LatLngBounds result = _convertToBounds(value);
-    return result;
+    return _convertToBounds(value);
   }
 
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
     assert(_widget != null, 'Cannot get the visible region of a null map.');
-
-    WebViewController controller = await _controller.future;
-    LatLngBounds result = await _getBounds(controller);
-
-    return result;
+    return await _getBounds(await controller);
   }
 
   /// Returns the [ScreenCoordinate] for a given viewport [LatLng].
