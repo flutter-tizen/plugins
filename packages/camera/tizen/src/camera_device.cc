@@ -648,7 +648,7 @@ bool CameraDevice::SetRecorderRecordingLimitReachedCb(
 bool CameraDevice::SetRecorderStateChangedCb(RecorderStateChangedCb callback) {
   int error = recorder_set_state_changed_cb(recorder_, callback, this);
   RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
-                    " recorder_set_state_changed_cb	 fail - error[%d]: %s",
+                    " recorder_set_state_changed_cb fail - error[%d]: %s",
                     error, get_error_message(error));
   return true;
 }
@@ -827,7 +827,7 @@ void CameraDevice::Open(
     SetExposureMode(exposure_mode_);
   } catch (const CameraDeviceError &error) {
     LOG_WARN("[%s] %s", error.GetErrorCode().c_str(),
-              error.GetErrorMessage().c_str());
+             error.GetErrorMessage().c_str());
   }
 
   flutter::EncodableMap map;
