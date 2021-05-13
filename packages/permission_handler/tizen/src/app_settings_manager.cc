@@ -22,8 +22,7 @@ AppSettingsManager::AppSettingsManager() {}
 AppSettingsManager::~AppSettingsManager() {}
 
 void AppSettingsManager::OpenAppSettings(OnAppSettingsOpened success_callback,
-                                         OnAppSettingsError error_callback)
-{
+                                         OnAppSettingsError error_callback) {
   app_control_h service = nullptr;
   int result = app_control_create(&service);
   if (result != APP_CONTROL_ERROR_NONE) {

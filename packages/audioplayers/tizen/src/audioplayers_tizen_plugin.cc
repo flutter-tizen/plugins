@@ -155,7 +155,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
           flutter::EncodableValue &release_mode_value =
               encodables[flutter::EncodableValue("releaseMode")];
           if (std::holds_alternative<std::string>(release_mode_value)) {
-            std::string release_mode = std::get<std::string>(release_mode_value);
+            std::string release_mode =
+                std::get<std::string>(release_mode_value);
             if (release_mode.compare("ReleaseMode.RELEASE") == 0) {
               player->SetReleaseMode(RELEASE);
             } else if (release_mode.compare("ReleaseMode.LOOP") == 0) {
@@ -240,8 +241,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         };
 
     ErrorListener error_listener = [channel = channel_.get()](
-                                      const std::string &player_id,
-                                      const std::string &message) {
+                                       const std::string &player_id,
+                                       const std::string &message) {
       flutter::EncodableMap wrapped = {
           {flutter::EncodableValue("playerId"),
            flutter::EncodableValue(player_id)},
