@@ -16,6 +16,8 @@
 #include "device_method_channel.h"
 #include "orientation_manager.h"
 
+#define kCameraDeviceError "CameraDeviceError"
+
 using CameraCapturingCb = camera_capturing_cb;
 using CameraCaptureCompletedCb = camera_capture_completed_cb;
 using CameraFocusChangedCb = camera_focus_changed_cb;
@@ -170,6 +172,21 @@ struct Size {
   double height;
 };
 
+class CameraDeviceError {
+ public:
+  CameraDeviceError(const std::string &error_code,
+                    const std::string &error_message)
+      : error_code_(error_code), error_message_(error_message) {}
+  CameraDeviceError(const std::string &error_message)
+      : error_code_(kCameraDeviceError), error_message_(error_message) {}
+  std::string GetErrorCode() const { return error_code_; }
+  std::string GetErrorMessage() const { return error_message_; }
+
+ private:
+  std::string error_code_;
+  std::string error_message_;
+};
+
 class CameraDevice {
  public:
   static flutter::EncodableValue GetAvailableCameras();
@@ -185,25 +202,35 @@ class CameraDevice {
   Size GetRecommendedPreviewResolution();
   FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
+  double GetMaxExposureOffset();
+  double GetMinExposureOffset();
   double GetMaxZoomLevel();
   double GetMinZoomLevel();
-  bool Open(std::string image_format_group);
+  void Open(std::string image_format_group,
+            std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+                &&result) noexcept;
   void PauseVideoRecording(
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+          &&result) noexcept;
   void RestFocusPoint();
   void ResumeVideoRecording(
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+          &&result) noexcept;
   void SetExposureMode(ExposureMode exposure_mode);
+  void SetExposureOffset(double exposure_offset);
   void SetFlashMode(FlashMode flash_mode);
   void SetFocusMode(FocusMode focus_mode);
   void SetFocusPoint(double x, double y);
   void SetZoomLevel(double zoom_level);
   void StartVideoRecording(
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+          &&result) noexcept;
   void StopVideoRecording(
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+          &&result) noexcept;
   void TakePicture(
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> &&result);
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
+          &&result) noexcept;
 
   void LockCaptureOrientation(OrientationType orientation);
   void UnlockCaptureOrientation();
@@ -220,7 +247,9 @@ class CameraDevice {
   bool GetCameraZoomRange(int &min, int &max);
   bool SetCameraFlashMode(CameraFlashMode mode);
   bool SetCameraFlip(CameraFlip flip);
+  bool SetCameraExposure(int offset);
   bool SetCameraExposureMode(CameraExposureMode mode);
+  bool GetCameraExposureRange(int &min, int &max);
   bool SetCameraCaptureFormat(CameraPixelFormat format);
   bool SetCameraExifTagEnable(bool enable);
   bool SetCameraExifTagOrientatoin(ExifTagOrientation orientation);
