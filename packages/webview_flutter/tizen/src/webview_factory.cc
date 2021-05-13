@@ -22,7 +22,7 @@
 #include "webview_flutter_tizen_plugin.h"
 
 WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
-                               FlutterTextureRegistrar* textureRegistrar)
+                               flutter::TextureRegistrar* textureRegistrar)
     : PlatformViewFactory(registrar), textureRegistrar_(textureRegistrar) {
   char* path = app_get_data_path();
   if (!path || strlen(path) == 0) {

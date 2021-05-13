@@ -38,7 +38,7 @@ void WebviewFlutterTizenPluginRegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar);
   auto factory = std::make_unique<WebViewFactory>(
-      core_registrar, FlutterPluginRegistrarGetTexture(registrar));
+      core_registrar, core_registrar->texture_registrar());
   FlutterRegisterViewFactory(registrar, kViewType, std::move(factory));
   WebviewFlutterTizenPlugin::RegisterWithRegistrar(core_registrar);
 }

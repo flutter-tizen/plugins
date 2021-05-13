@@ -10,8 +10,10 @@
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_platform_view.h>
-#include <flutter_tizen_texture_registrar.h>
 #include <tbm_surface.h>
+
+#include <mutex>
+#include <stack>
 
 namespace LWE {
 class WebContainer;
@@ -22,7 +24,7 @@ class TextInputChannel;
 class WebView : public PlatformView {
  public:
   WebView(flutter::PluginRegistrar* registrar, int viewId,
-          FlutterTextureRegistrar* textureRegistrar, double width,
+          flutter::TextureRegistrar* textureRegistrar, double width,
           double height, flutter::EncodableMap& params);
   ~WebView();
   virtual void Dispose() override;
@@ -46,6 +48,9 @@ class WebView : public PlatformView {
   void HidePanel();
   void ShowPanel();
 
+  FlutterDesktopGpuBuffer* CopyGpuBuffer(size_t width, size_t height);
+  void Destruction(void* buffer);
+
  private:
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
@@ -59,16 +64,18 @@ class WebView : public PlatformView {
   void RegisterJavaScriptChannelName(const std::string& name);
   void ApplySettings(flutter::EncodableMap);
 
-  FlutterTextureRegistrar* texture_registrar_;
+  flutter::TextureRegistrar* texture_registrar_;
   LWE::WebContainer* webview_instance_;
   double width_;
   double height_;
-  tbm_surface_h tbm_surface_;
+  tbm_surface_h candidate_surface_;
+  tbm_surface_h rendered_surface_;
   bool is_mouse_lbutton_down_;
   bool has_navigation_delegate_;
   bool has_progress_tracking_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   Ecore_IMF_Context* context_;
+  std::mutex mutex_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
