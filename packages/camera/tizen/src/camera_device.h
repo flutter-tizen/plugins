@@ -28,6 +28,7 @@ using RecorderRecordingLimitReachedCb = recorder_recording_limit_reached_cb;
 using RecorderStateChangedCb = recorder_state_changed_cb;
 using RecorderStateChangedCb = recorder_state_changed_cb;
 
+using ForeachResolutionCb = std::function<bool(int width, int height)>;
 using OnCaptureSuccessCb =
     std::function<void(const std::string &captured_file_path)>;
 using OnCaptureFailureCb =
@@ -166,6 +167,20 @@ enum class FocusMode {
 bool FocusModeToString(FocusMode focus_mode, std::string &mode);
 bool StringToFocusMode(std::string mode, FocusMode &focus_mode);
 
+// These resolution values came from resolution_preset.dart
+// These may not be supported by device.
+// Note : Only kMedium is supported on TM1
+enum class ResolutionPreset {
+  kLow,        // 320x240 (352x288 on iOS, 240p (320x240) on Android
+  kMedium,     // 480p 640x480 (640x480 on iOS, 720x480 on Android)
+  kHigh,       // 720p 1280x720
+  kVeryHigh,   // 1080p 1920x1080
+  kUltraHigh,  // 2160p 3840x2160
+  kMax,        // The highest resolution available.
+};
+bool StringToResolutionPreset(std::string preset,
+                              ResolutionPreset &resolution_preset);
+
 struct Size {
   // Dart implementation use double as a unit of preview size
   double width;
@@ -194,7 +209,8 @@ class CameraDevice {
   CameraDevice();
   CameraDevice(flutter::PluginRegistrar *registrar,
                FlutterTextureRegistrar *texture_registrar,
-               CameraDeviceType typem, bool enable_audio);
+               CameraDeviceType typem, ResolutionPreset resolution_preset,
+               bool enable_audio);
   ~CameraDevice();
 
   void ChangeCameraDeviceType(CameraDeviceType type);
@@ -221,6 +237,7 @@ class CameraDevice {
   void SetFlashMode(FlashMode flash_mode);
   void SetFocusMode(FocusMode focus_mode);
   void SetFocusPoint(double x, double y);
+  void SetResolutionPreset(ResolutionPreset resolution_preset);
   void SetZoomLevel(double zoom_level);
   void StartVideoRecording(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
@@ -239,18 +256,23 @@ class CameraDevice {
   bool CreateCamera();
   bool ClearCameraAutoFocusArea();
   bool DestroyCamera();
+  bool ForeachCameraSupportedCaptureResolutions(
+      const ForeachResolutionCb &callback);
+  bool GetCameraCaptureResolution(int &width, int &height);
   bool GetCameraDeviceCount(int &count);
   bool GetCameraFocusMode(CameraAutoFocusMode &mode);
   bool GetCameraLensOrientation(int &angle);
   bool GetCameraPreviewResolution(int &width, int &height);
   bool GetCameraState(CameraDeviceState &state);
   bool GetCameraZoomRange(int &min, int &max);
+  bool IsCameraSupportedCaptureResolution(std::pair<int, int> resolution);
   bool SetCameraFlashMode(CameraFlashMode mode);
   bool SetCameraFlip(CameraFlip flip);
   bool SetCameraExposure(int offset);
   bool SetCameraExposureMode(CameraExposureMode mode);
   bool GetCameraExposureRange(int &min, int &max);
   bool SetCameraCaptureFormat(CameraPixelFormat format);
+  bool SetCameraCaptureResolution(int width, int height);
   bool SetCameraExifTagEnable(bool enable);
   bool SetCameraExifTagOrientatoin(ExifTagOrientation orientation);
   bool SetCameraAutoFocusMode(CameraAutoFocusMode mode);
@@ -274,8 +296,12 @@ class CameraDevice {
   bool CreateRecorder();
   bool CommitRecorder();
   bool DestroyRecorder();
+  bool ForeachRecorderSupprotedVideoResolutions(
+      const ForeachResolutionCb &callback);
   bool GetRecorderState(RecorderState &state);
   bool GetRecorderFileName(std::string &name);
+  bool GetRecorderVideoResolution(int &width, int &height);
+  bool IsRecorderSupportedVideoResolution(std::pair<int, int> resolution);
   bool SetRecorderAudioChannel(RecorderAudioChannel chennel);
   bool SetRecorderAudioDevice(RecorderAudioDevice device);
   bool SetRecorderAudioEncorder(RecorderAudioCodec codec);
@@ -288,6 +314,7 @@ class CameraDevice {
   bool SetRecorderStateChangedCb(RecorderStateChangedCb callback);
   bool SetRecorderVideoEncorder(RecorderVideoCodec codec);
   bool SetRecorderVideoEncorderBitrate(int bitrate);
+  bool SetRecorderVideoResolution(int width, int height);
 
   bool PauseRecorder();
   bool PrepareRecorder();
@@ -321,6 +348,11 @@ class CameraDevice {
   OrientationType locked_orientation_{OrientationType::kPortraitUp};
   bool is_orientation_locked_{false};
   int zoom_level_{0};
+
+  ResolutionPreset resolution_preset_{ResolutionPreset::kLow};
+  std::vector<std::pair<int, int>> supported_camera_resolutions_;
+  std::vector<std::pair<int, int>> supported_recorder_resolutions_;
+
   bool enable_audio_{true};
 };
 

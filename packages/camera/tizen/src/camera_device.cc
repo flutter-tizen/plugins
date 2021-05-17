@@ -162,6 +162,32 @@ bool StringToFocusMode(std::string mode, FocusMode &focus_mode) {
   return false;
 }
 
+bool StringToResolutionPreset(std::string preset,
+                              ResolutionPreset &resolution_preset) {
+  LOG_DEBUG("mode[%s]", preset.c_str());
+  if (preset == "low") {
+    resolution_preset = ResolutionPreset::kLow;
+    return true;
+  } else if (preset == "medium") {
+    resolution_preset = ResolutionPreset::kMedium;
+    return true;
+  } else if (preset == "high") {
+    resolution_preset = ResolutionPreset::kHigh;
+    return true;
+  } else if (preset == "veryHigh") {
+    resolution_preset = ResolutionPreset::kVeryHigh;
+    return true;
+  } else if (preset == "ultraHigh") {
+    resolution_preset = ResolutionPreset::kUltraHigh;
+    return true;
+  } else if (preset == "max") {
+    resolution_preset = ResolutionPreset::kMax;
+    return true;
+  }
+  LOG_WARN("Unknown ResolutionPreset!");
+  return false;
+}
+
 bool ExposureModeToString(ExposureMode exposure_mode, std::string &mode) {
   switch (exposure_mode) {
     case ExposureMode::kAuto:
@@ -228,13 +254,19 @@ CameraDevice::CameraDevice() {
 
 CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
                            FlutterTextureRegistrar *texture_registrar,
-                           CameraDeviceType type, bool enable_audio)
+                           CameraDeviceType type,
+                           ResolutionPreset resolution_preset,
+                           bool enable_audio)
     : registrar_(registrar),
       texture_registrar_(texture_registrar),
       type_(type),
+      resolution_preset_(resolution_preset),
       enable_audio_(enable_audio) {
-  // Init camera
+  // Init handles
   CreateCamera();
+  CreateRecorder();
+
+  // Init camera
   SetCameraExifTagEnable(true);
   SetCameraAutoFocusMode(CameraAutoFocusMode::kNormal);
   if (type == CameraDeviceType::kFront) {
@@ -244,8 +276,6 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
   GetCameraPreviewResolution(preview_width_, preview_height_);
 
   // Init recoder
-  CreateRecorder();
-
   SetRecorderFileFormat(RecorderFileFormat::kMP4);
   if (!enable_audio_) {
     LOG_DEBUG("Disable audio");
@@ -274,6 +304,26 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
       self->UpdateStates();
     }
   });
+
+  // Gather supported resolutions
+  ForeachCameraSupportedCaptureResolutions(
+      [this](int supported_width, int supported_height) -> bool {
+        LOG_DEBUG("supported camera capture resolution width[%d] height[%d]",
+                  supported_width, supported_height);
+        std::pair<int, int> resolution = {supported_width, supported_height};
+        supported_camera_resolutions_.emplace_back(resolution);
+        return true;
+      });
+  ForeachRecorderSupprotedVideoResolutions(
+      [this](int supported_width, int supported_height) -> bool {
+        LOG_DEBUG("supported recorder video resolution width[%d] height[%d]",
+                  supported_width, supported_height);
+        std::pair<int, int> resolution = {supported_width, supported_height};
+        supported_recorder_resolutions_.emplace_back(resolution);
+        return true;
+      });
+
+  SetResolutionPreset(resolution_preset_);
 
   // Init channels
   texture_id_ = FlutterRegisterExternalTexture(texture_registrar_);
@@ -353,6 +403,30 @@ void CameraDevice::Dispose() {
   }
 }
 
+bool CameraDevice::ForeachCameraSupportedCaptureResolutions(
+    const ForeachResolutionCb &callback) {
+  int error = camera_foreach_supported_capture_resolution(
+      camera_,
+      [](int width, int height, void *callback) -> bool {
+        auto cb = static_cast<ForeachResolutionCb *>(callback);
+        return (*cb)(width, height);
+      },
+      (void *)&callback);
+  RETV_LOG_ERROR_IF(
+      error != CAMERA_ERROR_NONE, false,
+      "camera_foreach_supported_capture_resolution fail - error[%d]: %s", error,
+      get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::GetCameraCaptureResolution(int &width, int &height) {
+  int error = camera_get_capture_resolution(camera_, &width, &height);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_get_capture_resolution fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
 bool CameraDevice::GetCameraDeviceCount(int &count) {
   // If the device supports primary and secondary camera, this returns 2. If 1
   // is returned, the device only supports primary camera.
@@ -418,6 +492,17 @@ bool CameraDevice::GetCameraZoomRange(int &min, int &max) {
     return false;
   }
   return true;
+}
+
+bool CameraDevice::IsCameraSupportedCaptureResolution(
+    std::pair<int, int> resolution) {
+  auto iter = find_if(supported_camera_resolutions_.begin(),
+                      supported_camera_resolutions_.end(),
+                      [resolution](std::pair<int, int> supported) -> bool {
+                        return supported.first == resolution.first &&
+                               resolution.second == resolution.second;
+                      });
+  return iter != supported_camera_resolutions_.end();
 }
 
 bool CameraDevice::SetCameraExifTagEnable(bool enable) {
@@ -518,7 +603,14 @@ bool CameraDevice::SetCameraCaptureFormat(CameraPixelFormat format) {
   RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
                     "camera_set_capture_format fail - error[%d]: %s", error,
                     get_error_message(error));
+  return true;
+}
 
+bool CameraDevice::SetCameraCaptureResolution(int width, int height) {
+  int error = camera_set_capture_resolution(camera_, width, height);
+  RETV_LOG_ERROR_IF(error != CAMERA_ERROR_NONE, false,
+                    "camera_set_capture_resolution fail - error[%d]: %s", error,
+                    get_error_message(error));
   return true;
 }
 
@@ -555,6 +647,22 @@ bool CameraDevice::DestroyRecorder() {
   return true;
 }
 
+bool CameraDevice::ForeachRecorderSupprotedVideoResolutions(
+    const ForeachResolutionCb &callback) {
+  int error = recorder_foreach_supported_video_resolution(
+      recorder_,
+      [](int width, int height, void *callback) -> bool {
+        auto cb = static_cast<ForeachResolutionCb *>(callback);
+        return (*cb)(width, height);
+      },
+      (void *)&callback);
+  RETV_LOG_ERROR_IF(
+      error != RECORDER_ERROR_NONE, false,
+      "recorder_foreach_supported_video_resolution fail - error[%d]: %s", error,
+      get_error_message(error));
+  return true;
+}
+
 bool CameraDevice::GetRecorderState(RecorderState &state) {
   int error = recorder_get_state(recorder_, (recorder_state_e *)&state);
   RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
@@ -572,6 +680,25 @@ bool CameraDevice::GetRecorderFileName(std::string &name) {
   name = file_name;
   free(file_name);
   return true;
+}
+
+bool CameraDevice::GetRecorderVideoResolution(int &width, int &height) {
+  int error = recorder_get_video_resolution(recorder_, &width, &height);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_get_video_resolution fail - error[%d]: %s", error,
+                    get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::IsRecorderSupportedVideoResolution(
+    std::pair<int, int> resolution) {
+  auto iter = find_if(supported_recorder_resolutions_.begin(),
+                      supported_recorder_resolutions_.end(),
+                      [resolution](std::pair<int, int> supported) -> bool {
+                        return supported.first == resolution.first &&
+                               resolution.second == resolution.second;
+                      });
+  return iter != supported_recorder_resolutions_.end();
 }
 
 bool CameraDevice::SetRecorderAudioChannel(RecorderAudioChannel chennel) {
@@ -668,6 +795,14 @@ bool CameraDevice::SetRecorderVideoEncorderBitrate(int bitrate) {
       error != RECORDER_ERROR_NONE, false,
       " recorder_attr_set_video_encoder_bitrate fail - error[%d]: %s", error,
       get_error_message(error));
+  return true;
+}
+
+bool CameraDevice::SetRecorderVideoResolution(int width, int height) {
+  int error = recorder_set_video_resolution(recorder_, width, height);
+  RETV_LOG_ERROR_IF(error != RECORDER_ERROR_NONE, false,
+                    "recorder_set_video_resolution fail - error[%d]: %s", error,
+                    get_error_message(error));
   return true;
 }
 
@@ -1004,6 +1139,58 @@ void CameraDevice::SetFocusPoint(double x, double y) {
     throw CameraDeviceError("Failed to set auto focus area");
   }
   return;
+}
+
+void CameraDevice::SetResolutionPreset(ResolutionPreset resolution_preset) {
+  std::pair<int, int> resolution{0, 0};
+  LOG_DEBUG("ResolutionPreset[%d]", (int)resolution_preset);
+  switch (resolution_preset) {
+    case ResolutionPreset::kLow:
+      resolution.first = 320;
+      resolution.second = 240;
+      break;
+    case ResolutionPreset::kMedium:
+      resolution.first = 640;
+      resolution.second = 480;
+      break;
+    case ResolutionPreset::kHigh:
+      resolution.first = 1280;
+      resolution.second = 720;
+      break;
+    case ResolutionPreset::kVeryHigh:
+      resolution.first = 1920;
+      resolution.second = 1080;
+      break;
+    case ResolutionPreset::kUltraHigh:
+      resolution.first = 3840;
+      resolution.second = 2160;
+      break;
+    case ResolutionPreset::kMax: {
+      // The highest resolution available
+      SetCameraCaptureResolution(supported_camera_resolutions_.back().first,
+                                 supported_camera_resolutions_.back().second);
+      SetRecorderVideoResolution(supported_recorder_resolutions_.back().first,
+                                 supported_recorder_resolutions_.back().second);
+      return;
+    } break;
+    default:
+      LOG_DEBUG("Unknown ResolutionPreset!");
+      break;
+  }
+  if (IsCameraSupportedCaptureResolution(resolution)) {
+    LOG_DEBUG("Set camera caputre resolution : width[%d], height[%d]",
+              resolution.first, resolution.second);
+    SetCameraCaptureResolution(resolution.first, resolution.second);
+  } else {
+    LOG_WARN("Not supported capture resolution!");
+  }
+  if (IsRecorderSupportedVideoResolution(resolution)) {
+    LOG_DEBUG("Set recorder video resolution : width[%d], height[%d]",
+              resolution.first, resolution.second);
+    SetRecorderVideoResolution(resolution.first, resolution.second);
+  } else {
+    LOG_WARN("Not supported video resolution!");
+  }
 }
 
 void CameraDevice::SetZoomLevel(double zoom_level) {
