@@ -30,15 +30,21 @@ void main() {
     await testDir.delete(recursive: true);
   });
 
+  // final Map<ResolutionPreset, Size> presetExpectedSizes =
+  //     <ResolutionPreset, Size>{
+  //   ResolutionPreset.low:
+  //       Platform.isAndroid ? const Size(240, 320) : const Size(288, 352),
+  //   ResolutionPreset.medium:
+  //       Platform.isAndroid ? const Size(480, 720) : const Size(480, 640),
+  //   ResolutionPreset.high: const Size(720, 1280),
+  //   ResolutionPreset.veryHigh: const Size(1080, 1920),
+  //   ResolutionPreset.ultraHigh: const Size(2160, 3840),
+  //   // Don't bother checking for max here since it could be anything.
+  // };
+
   final Map<ResolutionPreset, Size> presetExpectedSizes =
       <ResolutionPreset, Size>{
-    ResolutionPreset.low:
-        Platform.isAndroid ? const Size(240, 320) : const Size(288, 352),
-    ResolutionPreset.medium:
-        Platform.isAndroid ? const Size(480, 720) : const Size(480, 640),
-    ResolutionPreset.high: const Size(720, 1280),
-    ResolutionPreset.veryHigh: const Size(1080, 1920),
-    ResolutionPreset.ultraHigh: const Size(2160, 3840),
+    ResolutionPreset.medium: const Size(480, 720),
     // Don't bother checking for max here since it could be anything.
   };
 
@@ -95,7 +101,7 @@ void main() {
         await controller.dispose();
       }
     }
-  }, skip: !Platform.isAndroid);
+  });
 
   // This tests that the capture is no bigger than the preset, since we have
   // automatic code to fall back to smaller sizes when we need to. Returns
@@ -137,7 +143,7 @@ void main() {
         final CameraController controller =
             CameraController(cameraDescription, preset.key);
         await controller.initialize();
-        await controller.prepareForVideoRecording();
+        // await controller.prepareForVideoRecording();
         final bool presetExactlySupported =
             await testCaptureVideoResolution(controller, preset.key);
         assert(!(!previousPresetExactlySupported && presetExactlySupported),
@@ -146,7 +152,7 @@ void main() {
         await controller.dispose();
       }
     }
-  }, skip: !Platform.isAndroid);
+  });
 
   testWidgets('Pause and resume video recording', (WidgetTester tester) async {
     final List<CameraDescription> cameras = await availableCameras();
@@ -161,7 +167,7 @@ void main() {
     );
 
     await controller.initialize();
-    await controller.prepareForVideoRecording();
+    // await controller.prepareForVideoRecording();
 
     int startPause;
     int timePaused = 0;
@@ -199,7 +205,7 @@ void main() {
     await videoController.dispose();
 
     expect(duration, lessThan(recordingTime - timePaused));
-  }, skip: !Platform.isAndroid);
+  });
 
   testWidgets(
     'Android image streaming',
