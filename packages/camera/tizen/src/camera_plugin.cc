@@ -24,10 +24,12 @@
 template <typename T>
 bool GetValueFromEncodableMap(flutter::EncodableMap &map, std::string key,
                               T &out) {
-  flutter::EncodableValue value = map[flutter::EncodableValue(key)];
-  if (!value.IsNull()) {
-    out = std::get<T>(value);
-    return true;
+  auto iter = map.find(flutter::EncodableValue(key));
+  if (iter != map.end() && !iter->second.IsNull()) {
+    if (auto pval = std::get_if<T>(&iter->second)) {
+      out = *pval;
+      return true;
+    }
   }
   return false;
 }
