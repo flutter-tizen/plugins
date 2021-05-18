@@ -171,12 +171,17 @@ class GoogleMapController {
     return JavascriptChannel(
         name: 'Click',
         onMessageReceived: (JavascriptMessage message) async {
-          final Map<String, dynamic> event =
-              json.decode(message.message) as Map<String, dynamic>;
-          assert(event['latLng'] != null);
-          final LatLng position = LatLng(event['latLng']['lat'] as double,
-              event['latLng']['lng'] as double);
-          _streamController.add(MapTapEvent(_mapId, position));
+          try {
+            final dynamic event = json.decode(message.message);
+            if (event is Map<String, dynamic>) {
+              assert(event['latLng'] != null);
+              final LatLng position = LatLng(event['latLng']['lat'] as double,
+                  event['latLng']['lng'] as double);
+              _streamController.add(MapTapEvent(_mapId, position));
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
         });
   }
 
@@ -185,12 +190,17 @@ class GoogleMapController {
     return JavascriptChannel(
         name: 'RightClick',
         onMessageReceived: (JavascriptMessage message) async {
-          final Map<String, dynamic> event =
-              json.decode(message.message) as Map<String, dynamic>;
-          assert(event['latLng'] != null);
-          final LatLng position = LatLng(event['latLng']['lat'] as double,
-              event['latLng']['lng'] as double);
-          _streamController.add(MapLongPressEvent(_mapId, position));
+          try {
+            final dynamic event = json.decode(message.message);
+            if (event is Map<String, dynamic>) {
+              assert(event['latLng'] != null);
+              final LatLng position = LatLng(event['latLng']['lat'] as double,
+                  event['latLng']['lng'] as double);
+              _streamController.add(MapLongPressEvent(_mapId, position));
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
         });
   }
 
@@ -346,26 +356,35 @@ class GoogleMapController {
 
   LatLngBounds _convertToBounds(String value) {
     try {
-      final Map<String, dynamic> map =
-          json.decode(value) as Map<String, dynamic>;
-      return LatLngBounds(
-          southwest: LatLng(map['south'] as double, map['west'] as double),
-          northeast: LatLng(map['north'] as double, map['east'] as double));
+      final dynamic bound = json.decode(value);
+      if (bound is Map<String, dynamic>) {
+        assert(bound['south'] is double &&
+            bound['west'] is double &&
+            bound['north'] is double &&
+            bound['east'] is double);
+        return LatLngBounds(
+            southwest:
+                LatLng(bound['south'] as double, bound['west'] as double),
+            northeast:
+                LatLng(bound['north'] as double, bound['east'] as double));
+      }
     } catch (e) {
       print('Javascript Error: $e');
-      return _nullLatLngBounds;
     }
+    return _nullLatLngBounds;
   }
 
   LatLng _convertToLatLng(String value) {
     try {
-      final Map<String, dynamic> map =
-          json.decode(value) as Map<String, dynamic>;
-      return LatLng(map['lat'] as double, map['lng'] as double);
+      final dynamic latlng = json.decode(value);
+      if (latlng is Map<String, dynamic>) {
+        assert(latlng['lat'] is double && latlng['lng'] is double);
+        return LatLng(latlng['lat'] as double, latlng['lng'] as double);
+      }
     } catch (e) {
       print('Javascript Error: $e');
-      return _nullLatLng;
     }
+    return _nullLatLng;
   }
 
   Future<LatLngBounds> _getBounds(WebViewController c) async {
