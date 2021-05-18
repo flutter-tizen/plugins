@@ -27,64 +27,63 @@ class GoogleMapController {
     return _controller.future;
   }
 
-  /// The Flutter widget that will contain the rendered Map. Used for caching.
-  Widget? get widget {
-    if (_widget == null && !_streamController.isClosed) {
-      _widget = WebView(
-        javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (WebViewController webViewController) async {
-          _controller.complete(webViewController);
-
-          final String options = _createOptions();
-          final String initMap = '''
+  Future<void> _loadHtmlFromAssets() async {
+    final String options = _createOptions();
+    final String initMap = '''
           function initMap() {
             map = new google.maps.Map(document.getElementById('map'), $options);
             map.addListener('bounds_changed', BoundChanged.postMessage);
+            map.addListener('idle', Idle.postMessage);
+            map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
+            map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
           }
           ''';
 
-          String html = await rootBundle.loadString('assets/map.html');
-          final int pos = html.indexOf('let map;');
-          html = html.substring(0, pos + 8) +
-              initMap +
-              html.substring(pos + 8, html.length);
+    String html = await rootBundle.loadString('assets/map.html');
+    final int pos = html.indexOf('let map;');
+    html = html.substring(0, pos + 8) +
+        initMap +
+        html.substring(pos + 8, html.length);
 
-          final WebViewController mapView = await controller;
-          mapView.loadUrl(Uri.dataFromString(html,
-                  mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
-              .toString());
-        },
-        onProgress: (int progress) {
-          print('Google map is loading (progress : $progress%)');
-        },
-        javascriptChannels: <JavascriptChannel>{
-          _javascriptEventChannel(),
-        },
-        onPageStarted: (String url) {
-          print('Google map started loading.');
-        },
-        onPageFinished: (String url) async {
-          print('Google map finished loading.');
-        },
-        gestureNavigationEnabled: true,
-      );
-    }
-    return _widget;
+    final WebViewController mapView = await controller;
+    mapView.loadUrl(Uri.dataFromString(html,
+            mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
+        .toString());
   }
+
+  void _createWidget() {
+    _loadHtmlFromAssets();
+    _widget = WebView(
+      javascriptMode: JavascriptMode.unrestricted,
+      onWebViewCreated: (WebViewController webViewController) async {
+        _controller.complete(webViewController);
+      },
+      onProgress: (int progress) {
+        print('Google map is loading (progress : $progress%)');
+      },
+      javascriptChannels: <JavascriptChannel>{
+        _onBoundsChanged(),
+        _onIdle(),
+        _onClick(),
+        _onRightClick(),
+      },
+      onPageStarted: (String url) {
+        print('Google map started loading');
+      },
+      onPageFinished: (String url) async {
+        print('Google map finished loading');
+      },
+      gestureNavigationEnabled: true,
+    );
+  }
+
+  /// The Flutter widget that will contain the rendered Map. Used for caching.
+  Widget? get widget => _widget;
 
   String _createOptions() {
     String options = _rawOptionsToString(_rawMapOptions);
     options = _applyInitialPosition(_initialCameraPosition, options);
     return '{$options}';
-  }
-
-  JavascriptChannel _javascriptEventChannel() {
-    return JavascriptChannel(
-        name: 'BoundChanged',
-        onMessageReceived: (JavascriptMessage message) async {
-          print(
-              'Message[BoundChanged] : ${message.message} ${await getVisibleRegion()}');
-        });
   }
 
   // TODO : implement for google_map_tizen if necessary
@@ -113,7 +112,7 @@ class GoogleMapController {
   // // Keeps track if _attachGeometryControllers has been called or not.
   // bool _controllersBoundToMap = false;
   // // Keeps track if the map is moving or not.
-  // bool _mapIsMoving = false;
+  bool _mapIsMoving = false;
 
   /// Initializes the GoogleMapController.
   GoogleMapController({
@@ -141,6 +140,68 @@ class GoogleMapController {
     // _polygonsController = PolygonsController(stream: this._streamController);
     // _polylinesController = PolylinesController(stream: this._streamController);
     // _markersController = MarkersController(stream: this._streamController);
+  }
+
+  JavascriptChannel _onBoundsChanged() {
+    return JavascriptChannel(
+        name: 'BoundChanged',
+        onMessageReceived: (JavascriptMessage message) async {
+          final LatLng center = await getCenter();
+          final double zoom = await getZoomLevel();
+          if (!_mapIsMoving) {
+            _mapIsMoving = true;
+            _streamController.add(CameraMoveStartedEvent(_mapId));
+          }
+          _streamController.add(
+            CameraMoveEvent(_mapId, CameraPosition(target: center, zoom: zoom)),
+          );
+        });
+  }
+
+  JavascriptChannel _onIdle() {
+    return JavascriptChannel(
+        name: 'Idle',
+        onMessageReceived: (JavascriptMessage message) async {
+          _mapIsMoving = false;
+          _streamController.add(CameraIdleEvent(_mapId));
+        });
+  }
+
+  JavascriptChannel _onClick() {
+    return JavascriptChannel(
+        name: 'Click',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            final dynamic event = json.decode(message.message);
+            if (event is Map<String, dynamic>) {
+              assert(event['latLng'] != null);
+              final LatLng position = LatLng(event['latLng']['lat'] as double,
+                  event['latLng']['lng'] as double);
+              _streamController.add(MapTapEvent(_mapId, position));
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
+  JavascriptChannel _onRightClick() {
+    // NOTE: LWE does not support a long press event.
+    return JavascriptChannel(
+        name: 'RightClick',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            final dynamic event = json.decode(message.message);
+            if (event is Map<String, dynamic>) {
+              assert(event['latLng'] != null);
+              final LatLng position = LatLng(event['latLng']['lat'] as double,
+                  event['latLng']['lng'] as double);
+              _streamController.add(MapLongPressEvent(_mapId, position));
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
   }
 
   // TODO : implement for google_map_tizen if necessary
@@ -193,37 +254,12 @@ class GoogleMapController {
     //   polylines: _polylines,
     // );
     // _setTrafficLayer(map, _isTrafficLayerEnabled(_rawMapOptions));
-  }
+    //
 
-  // TODO : implement for google_map_tizen if necessary
-  // // Funnels map gmap events into the plugin's stream controller.
-  // void _attachMapEvents(gmaps.GMap map) {
-  //   map.onClick.listen((event) {
-  //     assert(event.latLng != null);
-  //     _streamController.add(
-  //       MapTapEvent(_mapId, _gmLatLngToLatLng(event.latLng!)),
-  //     );
-  //   });
-  //   map.onRightclick.listen((event) {
-  //     assert(event.latLng != null);
-  //     _streamController.add(
-  //       MapLongPressEvent(_mapId, _gmLatLngToLatLng(event.latLng!)),
-  //     );
-  //   });
-  //   map.onBoundsChanged.listen((event) {
-  //     if (!_mapIsMoving) {
-  //       _mapIsMoving = true;
-  //       _streamController.add(CameraMoveStartedEvent(_mapId));
-  //     }
-  //     _streamController.add(
-  //       CameraMoveEvent(_mapId, _gmViewportToCameraPosition(map)),
-  //     );
-  //   });
-  //   map.onIdle.listen((event) {
-  //     _mapIsMoving = false;
-  //     _streamController.add(CameraIdleEvent(_mapId));
-  //   });
-  // }
+    if (_widget == null && !_streamController.isClosed) {
+      _createWidget();
+    }
+  }
 
   // TODO : implement for google_map_tizen if necessary
   // // Binds the Geometry controllers to a map instance
@@ -286,7 +322,6 @@ class GoogleMapController {
   ///
   /// This method converts the map into the proper [gmaps.MapOptions]
   void updateRawOptions(Map<String, dynamic> optionsUpdate) {
-    // TODO : implement for google_map_tizen if necessary
     assert(_widget != null, 'Cannot update options on a null map.');
     final Map<String, dynamic> newOptions = _mergeRawOptions(optionsUpdate);
     final String options = _rawOptionsToString(newOptions);
@@ -321,15 +356,35 @@ class GoogleMapController {
 
   LatLngBounds _convertToBounds(String value) {
     try {
-      final Map<String, dynamic> map =
-          json.decode(value) as Map<String, dynamic>;
-      return LatLngBounds(
-          southwest: LatLng(map['south'] as double, map['west'] as double),
-          northeast: LatLng(map['north'] as double, map['east'] as double));
+      final dynamic bound = json.decode(value);
+      if (bound is Map<String, dynamic>) {
+        assert(bound['south'] is double &&
+            bound['west'] is double &&
+            bound['north'] is double &&
+            bound['east'] is double);
+        return LatLngBounds(
+            southwest:
+                LatLng(bound['south'] as double, bound['west'] as double),
+            northeast:
+                LatLng(bound['north'] as double, bound['east'] as double));
+      }
     } catch (e) {
       print('Javascript Error: $e');
-      return _nullLatLngBounds;
     }
+    return _nullLatLngBounds;
+  }
+
+  LatLng _convertToLatLng(String value) {
+    try {
+      final dynamic latlng = json.decode(value);
+      if (latlng is Map<String, dynamic>) {
+        assert(latlng['lat'] is double && latlng['lng'] is double);
+        return LatLng(latlng['lat'] as double, latlng['lng'] as double);
+      }
+    } catch (e) {
+      print('Javascript Error: $e');
+    }
+    return _nullLatLng;
   }
 
   Future<LatLngBounds> _getBounds(WebViewController c) async {
@@ -337,10 +392,30 @@ class GoogleMapController {
     return _convertToBounds(value);
   }
 
+  Future<LatLng> _getCenter(WebViewController c) async {
+    final String value = await _callMethod(c, 'getCenter', []);
+    return _convertToLatLng(value);
+  }
+
+  Future<double> _getZoom(WebViewController c) async {
+    try {
+      final String value = await _callMethod(c, 'getZoom', []);
+      return double.parse(value);
+    } catch (e) {
+      print('Javascript Error: $e');
+      return 0.0;
+    }
+  }
+
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
     assert(_widget != null, 'Cannot get the visible region of a null map.');
     return await _getBounds(await controller);
+  }
+
+  Future<LatLng> getCenter() async {
+    assert(_widget != null, 'Cannot get the visible region of a null map.');
+    return await _getCenter(await controller);
   }
 
   /// Returns the [ScreenCoordinate] for a given viewport [LatLng].
@@ -386,14 +461,8 @@ class GoogleMapController {
 
   /// Returns the zoom level of the current viewport.
   Future<double> getZoomLevel() async {
-    // TODO : implement for google_map_tizen if necessary
-    // assert(_googleMap != null, 'Cannot get zoom level of a null map.');
-    // assert(_googleMap!.zoom != null,
-    //     'Zoom level should not be null. Is the map correctly initialized?');
-    // return _googleMap!.zoom!.toDouble();
-
     assert(_widget != null, 'Cannot get zoom level of a null map.');
-    return 0.0;
+    return await _getZoom(await controller);
   }
 
   // Geometry manipulation
