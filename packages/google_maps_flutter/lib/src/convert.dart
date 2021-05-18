@@ -18,12 +18,12 @@ Map<int, String> _mapTypeToMapTypeId = {
 };
 
 String? _getCameraBounds(dynamic option) {
-  if (option.runtimeType != List || option.first == null) {
+  if (option is! List<Object?> || option.first == null) {
     return null;
   }
 
   // ex: [[[-34.022631, 150.62068499999998], [-33.571835, 151.32595200000003]]]
-  final List<Object> bound = (option as List<Object?>)[0] as List<Object>;
+  final List<Object> bound = option[0] as List<Object>;
   final LatLng? southwest = LatLng.fromJson(bound[0]);
   final LatLng? northeast = LatLng.fromJson(bound[1]);
 
@@ -66,6 +66,8 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
     final String? bound = _getCameraBounds(rawOptions['cameraTargetBounds']);
     if (bound != null) {
       options += ', restriction: { latLngBounds: $bound, strictBounds: false }';
+    } else {
+      options += ', restriction: null';
     }
   }
 
@@ -96,4 +98,12 @@ String _applyInitialPosition(
       ', center: {lat: ${initialPosition.target.latitude} ,lng: ${initialPosition.target.longitude}}';
 
   return options;
+}
+
+// Extracts the status of the traffic layer from the rawOptions map.
+bool _isTrafficLayerEnabled(Map<String, dynamic> rawOptions) {
+  if (rawOptions['trafficEnabled'] != null) {
+    return rawOptions['trafficEnabled'] as bool;
+  }
+  return false;
 }
