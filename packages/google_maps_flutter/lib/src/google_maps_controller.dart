@@ -23,9 +23,7 @@ class GoogleMapController {
   WebView? _widget;
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
-  Future<WebViewController> get controller {
-    return _controller.future;
-  }
+  Future<WebViewController> get controller => _controller.future;
 
   Future<void> _loadHtmlFromAssets() async {
     final String options = _createOptions();
@@ -86,9 +84,6 @@ class GoogleMapController {
     return '{$options}';
   }
 
-  // TODO : implement for google_map_tizen if necessary
-  // // The currently-enabled traffic layer.
-  // gmaps.TrafficLayer? _trafficLayer;
   // /// A getter for the current traffic layer. Only for tests.
   // @visibleForTesting
   // gmaps.TrafficLayer? get trafficLayer => _trafficLayer;
@@ -259,6 +254,8 @@ class GoogleMapController {
     if (_widget == null && !_streamController.isClosed) {
       _createWidget();
     }
+
+    _setTrafficLayer(_isTrafficLayerEnabled(_rawMapOptions));
   }
 
   // TODO : implement for google_map_tizen if necessary
@@ -323,29 +320,39 @@ class GoogleMapController {
   /// This method converts the map into the proper [gmaps.MapOptions]
   void updateRawOptions(Map<String, dynamic> optionsUpdate) {
     assert(_widget != null, 'Cannot update options on a null map.');
+
     final Map<String, dynamic> newOptions = _mergeRawOptions(optionsUpdate);
     final String options = _rawOptionsToString(newOptions);
+
     _setOptions('{$options}');
-    // _setTrafficLayer(_googleMap!, _isTrafficLayerEnabled(newOptions));
+    _setTrafficLayer(_isTrafficLayerEnabled(newOptions));
   }
 
   Future<String> _setOptions(String options) async {
+    print('setOptions: $options');
     final WebViewController mapView = await controller;
     final String value = await _callMethod(mapView, 'setOptions', [options]);
     return value;
   }
 
-  // TODO : implement for google_map_tizen if necessary
-  // // Attaches/detaches a Traffic Layer on the passed `map` if `attach` is true/false.
-  // void _setTrafficLayer(gmaps.GMap map, bool attach) {
-  //   if (attach && _trafficLayer == null) {
-  //     _trafficLayer = gmaps.TrafficLayer()..set('map', map);
-  //   }
-  //   if (!attach && _trafficLayer != null) {
-  //     _trafficLayer!.set('map', null);
-  //     _trafficLayer = null;
-  //   }
-  // }
+  // Attaches/detaches a Traffic Layer on the `map` if `attach` is true/false.
+  Future<void> _setTrafficLayer(bool attach) async {
+    final WebViewController mapView = await controller;
+    final String command = '''
+      var trafficLayer;
+      if ($attach == true && trafficLayer == null) {
+        trafficLayer = new google.maps.TrafficLayer();
+        trafficLayer.setMap(map);
+        console.log('trafficLayer attached!!');
+      }
+      if ($attach == false && trafficLayer != null) {
+        trafficLayer.setMap(null);
+        trafficLayer = null;
+        console.log('trafficLayer detached!!');
+      }
+    ''';
+    await mapView.evaluateJavascript(command);
+  }
 
   Future<String> _callMethod(
       WebViewController mapView, String method, List<Object?> args) async {
