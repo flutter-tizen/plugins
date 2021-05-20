@@ -77,6 +77,8 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
 
   if (rawOptions['styles'] != null) {
     options += ', styles: ${rawOptions['styles']}';
+  } else {
+    options += ', styles: null';
   }
 
   if (rawOptions['scrollGesturesEnabled'] == false ||
@@ -106,4 +108,8 @@ bool _isTrafficLayerEnabled(Map<String, dynamic> rawOptions) {
     return rawOptions['trafficEnabled'] as bool;
   }
   return false;
+}
+
+String _mapStyles(String? mapStyleJson) {
+  return mapStyleJson ?? 'null';
 }
