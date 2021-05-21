@@ -1,0 +1,34 @@
+# See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
+# for details.
+
+APPNAME = wearable_rotary_plugin
+type = sharedLib
+profile = common-4.0
+
+# Source files
+USER_SRCS += src/wearable_rotary_plugin.cc
+
+# User defines
+USER_DEFS =
+USER_UNDEFS =
+USER_CPP_DEFS = TIZEN_DEPRECATION DEPRECATION_WARNING FLUTTER_PLUGIN_IMPL
+USER_CPP_UNDEFS =
+
+# Compiler/linker flags
+USER_CFLAGS_MISC =
+USER_CPPFLAGS_MISC = -c -fmessage-length=0
+USER_LFLAGS =
+
+# Libraries and objects
+# To provide libraries for your plugin, you must put them in specific
+# directories that match their supporting cpu architecture type.
+# Due to compatibility issue with Tizen CLI, directory names must be armel for arm 
+# and i586 for x86.
+USER_LIB_DIRS = lib/${BUILD_ARCH}
+USER_LIBS =
+USER_OBJS =
+
+# User includes
+USER_INC_DIRS = inc src
+USER_INC_FILES =
+USER_CPP_INC_FILES =
