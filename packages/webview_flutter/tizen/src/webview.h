@@ -55,6 +55,16 @@ class WebView : public PlatformView {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   std::string GetChannelName();
   void InitWebView();
+  void InitFlutterChannels();
+  void InitWebViewCallbacks();
+
+  void ReinitializeWebView();
+
+  // web view properties
+  std::string webview_url_;
+  flutter::EncodableMap webview_settings_;
+  flutter::EncodableList webview_javascript_channel_names_list_;
+  std::optional<std::string> webview_user_agent_;
 
   void RegisterJavaScriptChannelName(const std::string& name);
   void ApplySettings(flutter::EncodableMap);

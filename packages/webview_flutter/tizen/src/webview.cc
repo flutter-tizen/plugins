@@ -168,7 +168,81 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       context_(nullptr) {
   SetTextureId(FlutterRegisterExternalTexture(texture_registrar_));
   InitWebView();
+  InitFlutterChannels();
 
+  auto initial_url = params[flutter::EncodableValue("initialUrl")];
+  if (std::holds_alternative<std::string>(initial_url)) {
+    webview_url_ = std::get<std::string>(initial_url);
+  } else {
+    webview_url_ = "about:blank";
+  }
+
+  auto settings = params[flutter::EncodableValue("settings")];
+  if (std::holds_alternative<flutter::EncodableMap>(settings)) {
+    webview_settings_ = std::get<flutter::EncodableMap>(settings);
+    if (webview_settings_.size() > 0) {
+      ApplySettings(webview_settings_);
+    }
+  }
+
+  auto names = params[flutter::EncodableValue("javascriptChannelNames")];
+  if (std::holds_alternative<flutter::EncodableList>(names)) {
+    webview_javascript_channel_names_list_ =
+        std::get<flutter::EncodableList>(names);
+    for (size_t i = 0; i < webview_javascript_channel_names_list_.size(); i++) {
+      if (std::holds_alternative<std::string>(
+              webview_javascript_channel_names_list_[i])) {
+        RegisterJavaScriptChannelName(
+            std::get<std::string>(webview_javascript_channel_names_list_[i]));
+      }
+    }
+  }
+
+  // TODO: Not implemented
+  // auto media = params[flutter::EncodableValue("autoMediaPlaybackPolicy")];
+
+  auto user_agent = params[flutter::EncodableValue("userAgent")];
+  if (std::holds_alternative<std::string>(user_agent)) {
+    auto settings = webview_instance_->GetSettings();
+    webview_user_agent_ = std::get<std::string>(user_agent);
+    settings.SetUserAgentString(webview_user_agent_.value());
+    webview_instance_->SetSettings(settings);
+  }
+
+  InitWebViewCallbacks();
+  webview_instance_->LoadURL(webview_url_);
+}
+
+void WebView::ReinitializeWebView() {
+  InitWebView();
+  InitFlutterChannels();
+
+  if (webview_settings_.size() > 0) {
+    ApplySettings(webview_settings_);
+  }
+
+  for (size_t i = 0; i < webview_javascript_channel_names_list_.size(); i++) {
+    if (std::holds_alternative<std::string>(
+            webview_javascript_channel_names_list_[i])) {
+      RegisterJavaScriptChannelName(
+          std::get<std::string>(webview_javascript_channel_names_list_[i]));
+    }
+  }
+
+  // TODO: Not implemented
+  // auto media = params[flutter::EncodableValue("autoMediaPlaybackPolicy")];
+
+  if (webview_user_agent_) {
+    auto settings = webview_instance_->GetSettings();
+    settings.SetUserAgentString(webview_user_agent_.value());
+    webview_instance_->SetSettings(settings);
+  }
+
+  InitWebViewCallbacks();
+  webview_instance_->LoadURL(webview_url_);
+}
+
+void WebView::InitFlutterChannels() {
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
       GetPluginRegistrar()->messenger(), GetChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
@@ -186,43 +260,9 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       [webview = this](const auto& call, auto result) {
         webview->HandleCookieMethodCall(call, std::move(result));
       });
+}
 
-  std::string url;
-  auto initial_url = params[flutter::EncodableValue("initialUrl")];
-  if (std::holds_alternative<std::string>(initial_url)) {
-    url = std::get<std::string>(initial_url);
-  } else {
-    url = "about:blank";
-  }
-
-  auto settings = params[flutter::EncodableValue("settings")];
-  if (std::holds_alternative<flutter::EncodableMap>(settings)) {
-    auto settingList = std::get<flutter::EncodableMap>(settings);
-    if (settingList.size() > 0) {
-      ApplySettings(settingList);
-    }
-  }
-
-  auto names = params[flutter::EncodableValue("javascriptChannelNames")];
-  if (std::holds_alternative<flutter::EncodableList>(names)) {
-    auto name_list = std::get<flutter::EncodableList>(names);
-    for (size_t i = 0; i < name_list.size(); i++) {
-      if (std::holds_alternative<std::string>(name_list[i])) {
-        RegisterJavaScriptChannelName(std::get<std::string>(name_list[i]));
-      }
-    }
-  }
-
-  // TODO: Not implemented
-  // auto media = params[flutter::EncodableValue("autoMediaPlaybackPolicy")];
-
-  auto user_agent = params[flutter::EncodableValue("userAgent")];
-  if (std::holds_alternative<std::string>(user_agent)) {
-    auto settings = webview_instance_->GetSettings();
-    settings.SetUserAgentString(std::get<std::string>(user_agent));
-    webview_instance_->SetSettings(settings);
-  }
-
+void WebView::InitWebViewCallbacks() {
   webview_instance_->RegisterOnPageStartedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
         LOG_DEBUG("RegisterOnPageStartedHandler(url: %s)\n", url.c_str());
@@ -303,8 +343,6 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
 
         return true;
       });
-
-  webview_instance_->LoadURL(url);
 }
 
 void WebView::ApplySettings(flutter::EncodableMap settings) {
@@ -381,11 +419,23 @@ void WebView::Dispose() {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
   }
+
+  if (tbm_surface_) {
+    tbm_surface_destroy(tbm_surface_);
+    tbm_surface_ = nullptr;
+  }
 }
 
 void WebView::Resize(double width, double height) {
   LOG_DEBUG("WebView::Resize width: %f height: %f \n", width, height);
-  // NOTE: Not supported by LWE on Tizen.
+  width_ = width;
+  height_ = height;
+
+  // size changed so need to destroy previous surface
+  tbm_surface_destroy(tbm_surface_);
+  tbm_surface_ = nullptr;
+
+  ReinitializeWebView();
 }
 
 void WebView::Touch(int type, int button, double x, double y, double dx,
@@ -765,8 +815,6 @@ void WebView::InitWebView() {
         if (isRendered) {
           FlutterMarkExternalTextureFrameAvailable(
               texture_registrar_, GetTextureId(), tbm_surface_);
-          tbm_surface_destroy(tbm_surface_);
-          tbm_surface_ = nullptr;
         }
       });
 #ifndef TV_PROFILE
@@ -791,6 +839,7 @@ void WebView::HandleMethodCall(
   if (method_name.compare("loadUrl") == 0) {
     std::string url = ExtractStringFromMap(arguments, "url");
     webview_instance_->LoadURL(url);
+    webview_url_ = url;
     result->Success();
   } else if (method_name.compare("updateSettings") == 0) {
     if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
