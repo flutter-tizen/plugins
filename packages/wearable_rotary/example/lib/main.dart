@@ -1,45 +1,57 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:wearable_rotary/wearable_rotary.dart';
 
-void main() => runApp(MyApp());
+import './custom_page_view.dart';
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
+void main() => runApp(
+      MaterialApp(
+        title: 'Rotary example app',
+        home: MyApp(),
+      ),
+    );
 
-class _MyAppState extends State<MyApp> {
-  String _latestRotaryEvent = 'Initial value';
-  StreamSubscription<RotaryEvent>? _rotarySubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _rotarySubscription = rotaryEvent.listen((RotaryEvent event) {
-      setState(() {
-        _latestRotaryEvent =
-            event == RotaryEvent.CLOCKWISE ? 'CLOCKWISE' : 'COUNTER_CLOCKWISE';
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _rotarySubscription?.cancel();
-  }
-
+class MyApp extends StatelessWidget {
+  final CustomPageView _horizonPageView = CustomPageView(Axis.horizontal);
+  final CustomPageView _verticalPageView = CustomPageView(Axis.vertical);
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Rotary example app'),
-        ),
-        body: Center(
-          child: Text(_latestRotaryEvent),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Rotary example app'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            RaisedButton(
+              padding: const EdgeInsets.all(20.0),
+              child: const Text(
+                'HorizonPageView',
+                style: TextStyle(fontSize: 15),
+              ),
+              onPressed: () {
+                Navigator.push<dynamic>(
+                  context,
+                  MaterialPageRoute<dynamic>(
+                      builder: (BuildContext context) => _horizonPageView),
+                );
+              },
+            ),
+            RaisedButton(
+              padding: const EdgeInsets.all(20.0),
+              child: const Text(
+                'VerticalPageView',
+                style: TextStyle(fontSize: 15),
+              ),
+              onPressed: () {
+                Navigator.push<dynamic>(
+                  context,
+                  MaterialPageRoute<dynamic>(
+                      builder: (BuildContext context) => _verticalPageView),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
