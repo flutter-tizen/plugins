@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.example.messageport_tizen_example" version="1.0.0" api-version="5.5" xmlns="http://tizen.org/ns/packages">
+    <profile name="common"/>
+    <ui-application appid="com.example.messageport_tizen_example" exec="runner" type="capp" multiple="false" nodisplay="false" taskmanage="true" hw-acceleration="on">
+        <label>messageport_tizen_example</label>
+        <icon>ic_launcher.png</icon>
+    </ui-application>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+</manifest>

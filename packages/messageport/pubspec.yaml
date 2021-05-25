@@ -1,0 +1,23 @@
+name: messageport_tizen
+description: Tizen messageport plugin
+version: 0.0.1
+homepage: https://github.com/flutter-tizen/plugins
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.20.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: MessageportTizenPlugin
+        fileName: messageport_tizen_plugin.h
