@@ -134,8 +134,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     required int mapId,
   }) async {
     _map(mapId).updateRawOptions({
-      // TODO
-      // 'styles': _mapStyles(mapStyle),
+      'styles': _mapStyles(mapStyle),
     });
   }
 
