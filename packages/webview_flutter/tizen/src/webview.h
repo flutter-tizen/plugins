@@ -75,6 +75,7 @@ class WebView : public PlatformView {
   bool has_progress_tracking_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   Ecore_IMF_Context* context_;
+  flutter::TextureVariant* textureVariant_;
   std::mutex mutex_;
 };
 

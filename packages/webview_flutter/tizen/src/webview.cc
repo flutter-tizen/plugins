@@ -168,13 +168,11 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       has_navigation_delegate_(false),
       has_progress_tracking_(false),
       context_(nullptr) {
-  flutter::TextureVariant* textureVariant_ =
-      new flutter::TextureVariant(flutter::GpuBufferTexture(
-          [this](size_t width,
-                 size_t height) -> const FlutterDesktopGpuBuffer* {
-            return this->CopyGpuBuffer(width, height);
-          },
-          [this](void* buffer) -> void { this->Destruction(buffer); }));
+  textureVariant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
+      [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
+        return this->CopyGpuBuffer(width, height);
+      },
+      [this](void* buffer) -> void { this->Destruction(buffer); }));
   SetTextureId(texture_registrar_->RegisterTexture(textureVariant_));
   InitWebView();
 
@@ -389,6 +387,11 @@ void WebView::Dispose() {
   if (webview_instance_) {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
+  }
+
+  if (textureVariant_) {
+    delete textureVariant_;
+    textureVariant_ = nullptr;
   }
 }
 
