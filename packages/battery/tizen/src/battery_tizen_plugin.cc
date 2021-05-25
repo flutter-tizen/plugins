@@ -18,29 +18,6 @@
 
 #include "log.h"
 
-static std::string DeviceErrorToString(int error) {
-  switch (error) {
-    case DEVICE_ERROR_NONE:
-      return "Device - Successful";
-    case DEVICE_ERROR_OPERATION_FAILED:
-      return "Device - Operation not permitted";
-    case DEVICE_ERROR_PERMISSION_DENIED:
-      return "Device - Permission denied";
-    case DEVICE_ERROR_INVALID_PARAMETER:
-      return "Device - Invalid parameter";
-    case DEVICE_ERROR_ALREADY_IN_PROGRESS:
-      return "Device - Operation already in progress";
-    case DEVICE_ERROR_NOT_SUPPORTED:
-      return "Device - Not supported on this device";
-    case DEVICE_ERROR_RESOURCE_BUSY:
-      return "Device - Device or resource busy";
-    case DEVICE_ERROR_NOT_INITIALIZED:
-      return "Device - Not initialized";
-    default:
-      return "Device - Unknown Error";
-  }
-}
-
 class BatteryTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
@@ -105,14 +82,14 @@ class BatteryTizenPlugin : public flutter::Plugin {
     int ret = device_add_callback(DEVICE_CALLBACK_BATTERY_CHARGING,
                                   BatteryChangedCB, this);
     if (ret != DEVICE_ERROR_NONE) {
-      m_events->Error("failed_to_add_callback", DeviceErrorToString(ret));
+      m_events->Error("failed_to_add_callback", get_error_message(ret));
       return;
     }
 
     ret = device_add_callback(DEVICE_CALLBACK_BATTERY_LEVEL, BatteryChangedCB,
                               this);
     if (ret != DEVICE_ERROR_NONE) {
-      m_events->Error("failed_to_add_callback", DeviceErrorToString(ret));
+      m_events->Error("failed_to_add_callback", get_error_message(ret));
       return;
     }
 
@@ -129,13 +106,13 @@ class BatteryTizenPlugin : public flutter::Plugin {
                                      BatteryChangedCB);
     if (ret != DEVICE_ERROR_NONE) {
       LOG_ERROR("Failed to run device_remove_callback (%d: %s)", ret,
-                DeviceErrorToString(ret).c_str());
+                get_error_message(ret));
     }
     ret =
         device_remove_callback(DEVICE_CALLBACK_BATTERY_LEVEL, BatteryChangedCB);
     if (ret != DEVICE_ERROR_NONE) {
       LOG_ERROR("Failed to run device_remove_callback (%d: %s)", ret,
-                DeviceErrorToString(ret).c_str());
+                get_error_message(ret));
     }
 
     m_events = nullptr;
@@ -146,7 +123,7 @@ class BatteryTizenPlugin : public flutter::Plugin {
     int ret = device_battery_get_status(&status);
     if (ret != DEVICE_ERROR_NONE) {
       LOG_ERROR("Failed to run device_battery_get_status (%d: %s)", ret,
-                DeviceErrorToString(ret).c_str());
+                get_error_message(ret));
       return "";
     }
 
@@ -209,7 +186,7 @@ class BatteryTizenPlugin : public flutter::Plugin {
     int ret, percentage;
     ret = device_battery_get_percent(&percentage);
     if (ret != DEVICE_ERROR_NONE) {
-      result->Error("failed_to_get_percentage", DeviceErrorToString(ret));
+      result->Error("failed_to_get_percentage", get_error_message(ret));
     }
     LOG_INFO("battery percentage [%d]", percentage);
     result->Success(flutter::EncodableValue(percentage));

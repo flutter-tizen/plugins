@@ -125,7 +125,7 @@ class SensorsPlugin : public flutter::Plugin {
 
  private:
   void setupEventChannels(flutter::PluginRegistrar *registrar) {
-    accelerometer_channel_ =
+    auto accelerometer_channel =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
             registrar->messenger(), ACCELEROMETER_CHANNEL_NAME,
             &flutter::StandardMethodCodec::GetInstance());
@@ -151,10 +151,10 @@ class SensorsPlugin : public flutter::Plugin {
               }
               return nullptr;
             });
-    accelerometer_channel_->SetStreamHandler(
+    accelerometer_channel->SetStreamHandler(
         std::move(accelerometer_channel_handler));
 
-    gyroscope_channel_ =
+    auto gyroscope_channel =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
             registrar->messenger(), GYROSCOPE_CHANNEL_NAME,
             &flutter::StandardMethodCodec::GetInstance());
@@ -180,9 +180,9 @@ class SensorsPlugin : public flutter::Plugin {
               }
               return nullptr;
             });
-    gyroscope_channel_->SetStreamHandler(std::move(gyroscope_channel_handler));
+    gyroscope_channel->SetStreamHandler(std::move(gyroscope_channel_handler));
 
-    user_accel_channel_ =
+    auto user_accel_channel =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
             registrar->messenger(), USER_ACCELEROMETER_CHANNEL_NAME,
             &flutter::StandardMethodCodec::GetInstance());
@@ -208,17 +208,11 @@ class SensorsPlugin : public flutter::Plugin {
               }
               return nullptr;
             });
-    user_accel_channel_->SetStreamHandler(std::move(user_accel_handler));
+    user_accel_channel->SetStreamHandler(std::move(user_accel_handler));
   }
 
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      accelerometer_channel_;
   std::unique_ptr<Listener> accelerometer_listener_;
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      gyroscope_channel_;
   std::unique_ptr<Listener> gyroscope_listener_;
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      user_accel_channel_;
   std::unique_ptr<Listener> user_accel_listener_;
 };
 

@@ -20,50 +20,6 @@
 
 #include "log.h"
 
-static std::string appErrorToString(int error) {
-  switch (error) {
-    case APP_ERROR_NONE:
-      return "APP - Successful";
-    case APP_ERROR_INVALID_PARAMETER:
-      return "APP - Invalid parameter";
-    case APP_ERROR_OUT_OF_MEMORY:
-      return "APP - Out of Memory";
-    case APP_ERROR_INVALID_CONTEXT:
-      return "APP - Invalid application context";
-    case APP_ERROR_NO_SUCH_FILE:
-      return "APP - No such file or directory";
-    case APP_ERROR_NOT_SUPPORTED:
-      return "APP - Not supported";
-    case APP_ERROR_ALREADY_RUNNING:
-      return "APP - Application is already running";
-    case APP_ERROR_PERMISSION_DENIED:
-      return "APP - Permission denied";
-    default:
-      return "APP - Unknown Error";
-  }
-}
-
-static std::string packageErrorToString(int error) {
-  switch (error) {
-    case PACKAGE_MANAGER_ERROR_NONE:
-      return "PackageManager - Successful";
-    case PACKAGE_MANAGER_ERROR_INVALID_PARAMETER:
-      return "PackageManager - Invalid parameter";
-    case PACKAGE_MANAGER_ERROR_OUT_OF_MEMORY:
-      return "PackageManager - Out of Memory";
-    case PACKAGE_MANAGER_ERROR_IO_ERROR:
-      return "PackageManager - Internal I/O error";
-    case PACKAGE_MANAGER_ERROR_NO_SUCH_PACKAGE:
-      return "PackageManager - No such package";
-    case PACKAGE_MANAGER_ERROR_SYSTEM_ERROR:
-      return "PackageManager - Severe system error";
-    case PACKAGE_MANAGER_ERROR_PERMISSION_DENIED:
-      return "PackageManager - Permission denied";
-    default:
-      return "PackageManager - Unknown Error";
-  }
-}
-
 class PackageInfoTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
@@ -108,7 +64,7 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     int ret = app_get_id(&app_id);
     if (ret != APP_ERROR_NONE || app_id == NULL) {
       result->Error(std::to_string(ret), "Failed to get app_id",
-                    flutter::EncodableValue(appErrorToString(ret)));
+                    flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
     }
     LOG_INFO("app id : %s\n", app_id);
@@ -116,14 +72,14 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     ret = package_info_create(app_id, &package_info);
     if (ret != PACKAGE_MANAGER_ERROR_NONE || package_info == NULL) {
       result->Error(std::to_string(ret), "Failed to create package_info",
-                    flutter::EncodableValue(packageErrorToString(ret)));
+                    flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
     }
 
     ret = package_info_get_label(package_info, &label);
     if (ret != PACKAGE_MANAGER_ERROR_NONE || label == NULL) {
       result->Error(std::to_string(ret), "Failed to get app name",
-                    flutter::EncodableValue(packageErrorToString(ret)));
+                    flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
     }
     LOG_INFO("package label : %s\n", label);
@@ -131,7 +87,7 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     ret = package_info_get_package(package_info, &pkg_name);
     if (ret != PACKAGE_MANAGER_ERROR_NONE || pkg_name == NULL) {
       result->Error(std::to_string(ret), "Failed to get package name",
-                    flutter::EncodableValue(packageErrorToString(ret)));
+                    flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
     }
     LOG_INFO("package name : %s\n", pkg_name);
@@ -139,7 +95,7 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     ret = package_info_get_version(package_info, &version);
     if (ret != PACKAGE_MANAGER_ERROR_NONE || version == NULL) {
       result->Error(std::to_string(ret), "Failed to get version",
-                    flutter::EncodableValue(packageErrorToString(ret)));
+                    flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
     }
     LOG_INFO("package version : %s\n", version);

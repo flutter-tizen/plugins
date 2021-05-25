@@ -4,19 +4,6 @@
 
 #include "log.h"
 
-static std::string ErrorToString(int error) {
-  switch (error) {
-    case APP_CONTROL_ERROR_NONE:
-      return "AppControl - Successful";
-    case APP_CONTROL_ERROR_INVALID_PARAMETER:
-      return "AppControl - Invalid parameter";
-    case APP_CONTROL_ERROR_OUT_OF_MEMORY:
-      return "AppControl - Out of memory";
-    default:
-      return "AppControl - Unknown error";
-  }
-}
-
 AppSettingsManager::AppSettingsManager() {}
 
 AppSettingsManager::~AppSettingsManager() {}
@@ -26,7 +13,7 @@ void AppSettingsManager::OpenAppSettings(OnAppSettingsOpened success_callback,
   app_control_h service = nullptr;
   int result = app_control_create(&service);
   if (result != APP_CONTROL_ERROR_NONE) {
-    error_callback(ErrorToString(result),
+    error_callback(get_error_message(result),
                    "An error occurred when call app_control_create()");
   }
 

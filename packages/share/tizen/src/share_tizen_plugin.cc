@@ -17,44 +17,13 @@
 
 #include "log.h"
 
-static std::string appControlErrorToString(int error) {
-  switch (error) {
-    case APP_CONTROL_ERROR_NONE:
-      return "APP_CONTROL - Successful";
-    case APP_CONTROL_ERROR_INVALID_PARAMETER:
-      return "APP_CONTROL - Invalid parameter";
-    case APP_CONTROL_ERROR_OUT_OF_MEMORY:
-      return "APP_CONTROL - Out of Memory";
-    case APP_CONTROL_ERROR_APP_NOT_FOUND:
-      return "APP_CONTROL - The application is not found";
-    case APP_CONTROL_ERROR_KEY_NOT_FOUND:
-      return "APP_CONTROL - Specified key is not found";
-    case APP_CONTROL_ERROR_KEY_REJECTED:
-      return "APP_CONTROL - Key is not available";
-    case APP_CONTROL_ERROR_INVALID_DATA_TYPE:
-      return "APP_CONTROL - Invalid data type";
-    case APP_CONTROL_ERROR_LAUNCH_REJECTED:
-      return "APP_CONTROL - The application cannot be launched now";
-    case APP_CONTROL_ERROR_PERMISSION_DENIED:
-      return "APP_CONTROL - Permission denied";
-    case APP_CONTROL_ERROR_LAUNCH_FAILED:
-      return "APP_CONTROL - Internal launch error";
-    case APP_CONTROL_ERROR_TIMED_OUT:
-      return "APP_CONTROL - Time out";
-    case APP_CONTROL_ERROR_IO_ERROR:
-      return "APP_CONTROL - IO error";
-    default:
-      return "APP_CONTROL - Unknown Error";
-  }
-}
-
-#define RET_IF_ERROR(ret)                                             \
-  if (ret != APP_CONTROL_ERROR_NONE) {                                \
-    result->Error(std::to_string(ret), appControlErrorToString(ret)); \
-    if (handle) {                                                     \
-      app_control_destroy(handle);                                    \
-    }                                                                 \
-    return;                                                           \
+#define RET_IF_ERROR(ret)                                       \
+  if (ret != APP_CONTROL_ERROR_NONE) {                          \
+    result->Error(std::to_string(ret), get_error_message(ret)); \
+    if (handle) {                                               \
+      app_control_destroy(handle);                              \
+    }                                                           \
+    return;                                                     \
   }
 
 class ShareTizenPlugin : public flutter::Plugin {

@@ -24,23 +24,6 @@ const char* PRIVILEGE_EXTERNAL_STORAGE =
     "http://tizen.org/privilege/externalstorage";
 const char* PRIVILEGE_MEDIA_STORAGE = "http://tizen.org/privilege/mediastorage";
 
-static std::string PPMErrorToString(int error) {
-  switch (error) {
-    case PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE:
-      return "PrivacyPrivilegeManager - Successful";
-    case PRIVACY_PRIVILEGE_MANAGER_ERROR_IO_ERROR:
-      return "PrivacyPrivilegeManager - IO error";
-    case PRIVACY_PRIVILEGE_MANAGER_ERROR_INVALID_PARAMETER:
-      return "PrivacyPrivilegeManager - Invalid parameter";
-    case PRIVACY_PRIVILEGE_MANAGER_ERROR_ALREADY_IN_PROGRESS:
-      return "PrivacyPrivilegeManager - Operation already in progress";
-    case PRIVACY_PRIVILEGE_MANAGER_ERROR_OUT_OF_MEMORY:
-      return "PrivacyPrivilegeManager - Out of memory";
-    default:
-      return "PrivacyPrivilegeManager - Unknown error";
-  }
-}
-
 static std::string CheckResultToString(int result) {
   switch (result) {
     case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
@@ -79,7 +62,7 @@ void PermissionManager::CheckPermissionStatus(
   int status;
   int result = DeterminePermissionStatus(permission, &status);
   if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    error_callback(PPMErrorToString(result),
+    error_callback(get_error_message(result),
                    "An error occurred when call ppm_check_permission()");
   } else {
     success_callback(status);
@@ -101,7 +84,7 @@ void PermissionManager::RequestPermissions(
   for (auto permission : permissions) {
     result = DeterminePermissionStatus(permission, &status);
     if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-      error_callback(PPMErrorToString(result),
+      error_callback(get_error_message(result),
                      "An error occurred when call ppm_check_permission()");
       return;
     }
@@ -131,7 +114,7 @@ void PermissionManager::RequestPermissions(
                                    permissions_to_request.size(),
                                    OnRequestPermissionsResponse, this);
   if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    error_callback(PPMErrorToString(result),
+    error_callback(get_error_message(result),
                    "An error occurred when call ppm_request_permissions()");
     on_going_ = false;
   }
@@ -228,7 +211,7 @@ int PermissionManager::DeterminePermissionStatus(int permission, int* status) {
     result = ppm_check_permission(iter, &check_result);
     if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
       LOG_ERROR("ppm_check_permission (%s) error: %s", iter,
-                PPMErrorToString(result).c_str());
+                get_error_message(result));
       return result;
     } else {
       LOG_DEBUG("ppm_check_permission (%s) result: %s", iter,
