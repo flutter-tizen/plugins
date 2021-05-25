@@ -500,7 +500,7 @@ bool CameraDevice::IsCameraSupportedCaptureResolution(
                       supported_camera_resolutions_.end(),
                       [resolution](std::pair<int, int> supported) -> bool {
                         return supported.first == resolution.first &&
-                               resolution.second == resolution.second;
+                               supported.second == resolution.second;
                       });
   return iter != supported_camera_resolutions_.end();
 }
@@ -696,7 +696,7 @@ bool CameraDevice::IsRecorderSupportedVideoResolution(
                       supported_recorder_resolutions_.end(),
                       [resolution](std::pair<int, int> supported) -> bool {
                         return supported.first == resolution.first &&
-                               resolution.second == resolution.second;
+                               supported.second == resolution.second;
                       });
   return iter != supported_recorder_resolutions_.end();
 }
