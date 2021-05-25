@@ -42,7 +42,7 @@ class WearableRotaryPlugin : public flutter::Plugin {
                   eext_rotary_event_handler_add(RotaryEventCallBack, this);
               if (ret == EINA_FALSE) {
                 LOG_ERROR("[WearableRotaryPlugin] failed_to_add_callback");
-                events_->Error("failed_to_add_callback");
+                events->Error("failed_to_add_callback");
                 return nullptr;
               }
               events_ = std::move(events);
@@ -54,7 +54,9 @@ class WearableRotaryPlugin : public flutter::Plugin {
               void *ret = eext_rotary_event_handler_del(RotaryEventCallBack);
               if (!ret) {
                 LOG_ERROR("[WearableRotaryPlugin] failed_to_del_callback");
-                events_->Error("failed_to_del_callback");
+                if (events_ != nullptr) {
+                  events_->Error("failed_to_del_callback");
+                }
                 return nullptr;
               }
               events_ = nullptr;

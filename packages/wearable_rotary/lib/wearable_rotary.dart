@@ -7,7 +7,7 @@ const EventChannel _channel = EventChannel(_ROTARY_CHANNEL_NAME);
 Stream<RotaryEvent> get rotaryEvent {
   _rotaryEvent ??= _channel
       .receiveBroadcastStream()
-      .map((dynamic event) => _parseEvent(event as bool));
+      .map((dynamic event) => _parseEvent(event));
   return _rotaryEvent!;
 }
 
@@ -18,5 +18,12 @@ enum RotaryEvent {
   COUNTER_CLOCKWISE,
 }
 
-RotaryEvent _parseEvent(bool clockwise) =>
-    clockwise ? RotaryEvent.CLOCKWISE : RotaryEvent.COUNTER_CLOCKWISE;
+RotaryEvent _parseEvent(dynamic event) {
+  if (event is bool) {
+    return event ? RotaryEvent.CLOCKWISE : RotaryEvent.COUNTER_CLOCKWISE;
+  } else {
+    throw PlatformException(
+        code: '_parseEvent',
+        details: 'Platform plugin returns non-bool type for rotary event');
+  }
+}
