@@ -109,8 +109,8 @@ MessagePortResult MessagePortManager::RegisterLocalPort(
     ret = message_port_register_trusted_local_port(port_name.c_str(),
                                                    OnMessageReceived, this);
   } else {
-    ret = message_port_register_local_port(port_name.c_str(),
-                                           OnMessageReceived, this);
+    ret = message_port_register_local_port(port_name.c_str(), OnMessageReceived,
+                                           this);
   }
 
   if (ret < 0) {
@@ -195,8 +195,8 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
     ret = message_port_send_trusted_message(remote_app_id.c_str(),
                                             port_name.c_str(), b);
   } else {
-    ret = message_port_send_message(remote_app_id.c_str(),
-                                    port_name.c_str(), b);
+    ret =
+        message_port_send_message(remote_app_id.c_str(), port_name.c_str(), b);
   }
   bundle_free(b);
   return CreateResult(ret);
@@ -205,8 +205,7 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
 MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            std::string& port_name,
                                            flutter::EncodableValue& message,
-                                           bool is_trusted,
-                                           int local_port) {
+                                           bool is_trusted, int local_port) {
   LOG_DEBUG("Send (%s, %s), port: %d", remote_app_id.c_str(), port_name.c_str(),
             local_port);
   bundle* b = bundle_create();
@@ -224,10 +223,10 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
   int ret;
   if (is_trusted) {
     ret = message_port_send_trusted_message_with_local_port(
-          remote_app_id.c_str(), port_name.c_str(), b, local_port);
+        remote_app_id.c_str(), port_name.c_str(), b, local_port);
   } else {
     ret = message_port_send_message_with_local_port(
-          remote_app_id.c_str(), port_name.c_str(), b, local_port);
+        remote_app_id.c_str(), port_name.c_str(), b, local_port);
   }
 
   bundle_free(b);

@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
 
 import 'package:messageport_tizen/messageport_tizen.dart';
 
 const String kPortName = 'servicePort';
 const String kRemoteAppId = 'com.example.messageport_tizen_example';
 
-Future<String> _showErrorDialog(BuildContext context, dynamic error) {
+Future<String?> _showErrorDialog(BuildContext context, dynamic error) {
   return showDialog<String>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -36,13 +36,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   int _responseCount = 0;
-  void onMessage(Object message, [TizenRemotePort remotePort]) {
+  void onMessage(dynamic message, [TizenRemotePort? remotePort]) {
     _log('message received: ' + message.toString());
     if (remotePort != null) {
-      _log("remotePort received: ${remotePort.portName}, "
-          "${remotePort.remoteAppId}, trusted: ${remotePort.trusted}");
+      _log('remotePort received: ${remotePort.portName}, '
+          '${remotePort.remoteAppId}, trusted: ${remotePort.trusted}');
       _responseCount++;
-      remotePort.send("Response: $_responseCount");
+      remotePort.send('Response: $_responseCount');
     }
   }
 
@@ -57,65 +57,59 @@ class _MyAppState extends State<MyApp> {
               : null,
           style: ElevatedButton.styleFrom(
             primary: Colors.blue,
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             elevation: 3,
           ),
           child: Text(text)),
-      margin: EdgeInsets.all(5),
+      margin: const EdgeInsets.all(5),
     );
   }
 
-  List _sendOptions = [
-    ['bool', true],
-    ['int', 134],
-    ['double', 157.986],
-    ['String', "Test message"],
-    [
-      "List",
-      [1, 2, 3]
-    ],
-    [
-      "Map",
-      {"a": 1, "b": 2, "c": 3}
-    ]
-  ];
+  final Map<String, dynamic> _sendOptions = <String, dynamic>{
+    'bool': true,
+    'int': 134,
+    'double': 157.986,
+    'String': 'Test message',
+    'List': <int>[1, 2, 3],
+    'Map': <String, int>{'a': 1, 'b': 2, 'c': 3}
+  };
   bool _attachLocalPort = false;
 
   Widget _sendButtons(BuildContext context, bool enabled) {
     return Column(
-      children: [
+      children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Checkbox(
                 value: _attachLocalPort,
-                onChanged: (value) {
+                onChanged: (bool? value) {
                   setState(() {
-                    _attachLocalPort = value;
+                    _attachLocalPort = value ?? false;
                   });
                 }),
-            Text("Attach local port"),
+            const Text('Attach local port'),
           ],
         ),
         GridView.builder(
             scrollDirection: Axis.vertical,
             shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 100,
                 childAspectRatio: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10),
             itemCount: _sendOptions.length,
-            itemBuilder: (BuildContext ctx, index) {
+            itemBuilder: (BuildContext ctx, int index) {
+              final String key = _sendOptions.keys.elementAt(index);
               return Builder(
-                builder: (context) =>
-                    _textButton(_sendOptions[index][0], () async {
+                builder: (BuildContext context) => _textButton(key, () async {
                   try {
                     if (_attachLocalPort) {
-                      await _remotePort.sendWithLocalPort(
-                          _sendOptions[index][1], _localPort);
+                      await _remotePort?.sendWithLocalPort(
+                          _sendOptions[key], _localPort!);
                     } else {
-                      await _remotePort.send(_sendOptions[index][1]);
+                      await _remotePort?.send(_sendOptions[key]);
                     }
                   } catch (e) {
                     _showErrorDialog(context, e);
@@ -127,11 +121,11 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  List<String> _logList = [];
+  final List<String> _logList = <String>[];
 
   void _log(String log) {
     setState(() {
-      String date = '${DateTime.now().hour.toString().padLeft(2, '0')}:'
+      final String date = '${DateTime.now().hour.toString().padLeft(2, '0')}:'
           '${DateTime.now().minute.toString().padLeft(2, '0')}:'
           '${DateTime.now().second.toString().padLeft(2, '0')}.'
           '${DateTime.now().millisecond.toString().padLeft(3, '0')}';
@@ -150,18 +144,18 @@ class _MyAppState extends State<MyApp> {
           },
           child: ListView.builder(
             itemCount: _logList.length,
-            itemBuilder: (context, index) {
+            itemBuilder: (BuildContext context, int index) {
               return Text(
                 _logList[index],
-                style: TextStyle(fontSize: 8),
+                style: const TextStyle(fontSize: 8),
               );
             },
           ),
         ),
         decoration: BoxDecoration(
             border: Border.all(width: 1),
-            borderRadius: BorderRadius.all(Radius.circular(3))),
-        margin: EdgeInsets.all(5),
+            borderRadius: const BorderRadius.all(Radius.circular(3))),
+        margin: const EdgeInsets.all(5),
       ),
     );
   }
@@ -173,9 +167,9 @@ class _MyAppState extends State<MyApp> {
             appBar: AppBar(
               title: const Text('MessagePort Tizen Plugin'),
             ),
-            body: Column(children: [
+            body: Column(children: <Widget>[
               Builder(
-                builder: (context) =>
+                builder: (BuildContext context) =>
                     _textButton('Create local port', () async {
                   _localPort =
                       await TizenMessageport.createLocalPort(kPortName);
@@ -184,31 +178,33 @@ class _MyAppState extends State<MyApp> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
+                children: <Widget>[
                   Builder(
-                    builder: (context) => _textButton('Register', () async {
+                    builder: (BuildContext context) =>
+                        _textButton('Register', () async {
                       try {
-                        _localPort.register(onMessage);
+                        _localPort?.register(onMessage);
                         setState(() {});
                       } catch (e) {
                         _showErrorDialog(context, e.toString());
                       }
-                    }, (_localPort != null && !_localPort.registered)),
+                    }, _localPort != null && !_localPort!.registered),
                   ),
                   Builder(
-                      builder: (context) => _textButton('Unregister', () async {
+                      builder: (BuildContext context) =>
+                          _textButton('Unregister', () async {
                             try {
-                              _localPort.unregister();
+                              _localPort?.unregister();
                               setState(() {});
                             } catch (e) {
                               _showErrorDialog(context, e.toString());
                             }
-                          }, (_localPort != null && _localPort.registered))),
+                          }, _localPort?.registered ?? false)),
                 ],
               ),
               Builder(
-                  builder: (context) => _textButton('Connect to remote',
-                          () async {
+                  builder: (BuildContext context) =>
+                      _textButton('Connect to remote', () async {
                         try {
                           _remotePort =
                               await TizenMessageport.connectToRemotePort(
@@ -218,13 +214,10 @@ class _MyAppState extends State<MyApp> {
                           _showErrorDialog(context, e.toString());
                         }
                       },
-                          (_localPort != null &&
-                              _localPort.registered &&
-                              _remotePort == null))),
-              _sendButtons(
-                  context,
-                  _remotePort != null &&
-                      (_localPort != null && _localPort.registered)),
+                          (_localPort?.registered ?? false) &&
+                              _remotePort == null)),
+              _sendButtons(context,
+                  _remotePort != null && (_localPort?.registered ?? false)),
               _logger(context),
             ])));
   }
@@ -234,6 +227,6 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
-  TizenLocalPort _localPort;
-  TizenRemotePort _remotePort;
+  TizenLocalPort? _localPort;
+  TizenRemotePort? _remotePort;
 }

@@ -8,5 +8,5 @@ To run tests use:
 
 ```bash
 cd example/
-flutter-tizen drive --target=integration_test/messageport_test.dart --driver=test_driver/integration_test.dart
+flutter-tizen drive --target=integration_test/messageport_test.dart --driver=test_driver/integration_test.dart --no-sound-null-safety
 ```
