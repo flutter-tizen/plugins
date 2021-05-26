@@ -52,7 +52,7 @@ class _CustomPageViewState extends State<CustomPageView> {
   Widget build(BuildContext context) {
     String _title = widget.scrollDirection == Axis.vertical
         ? 'verticalPageView'
-        : 'HorizonPageView';
+        : 'HorizontalPageView';
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),

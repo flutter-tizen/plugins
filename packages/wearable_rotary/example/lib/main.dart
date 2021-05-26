@@ -11,7 +11,7 @@ void main() => runApp(
     );
 
 class MyApp extends StatelessWidget {
-  final CustomPageView _horizonPageView = CustomPageView(Axis.horizontal);
+  final CustomPageView _horizontalPageView = CustomPageView(Axis.horizontal);
   final CustomPageView _verticalPageView = CustomPageView(Axis.vertical);
   @override
   Widget build(BuildContext context) {
@@ -26,14 +26,14 @@ class MyApp extends StatelessWidget {
             RaisedButton(
               padding: const EdgeInsets.all(20.0),
               child: const Text(
-                'HorizonPageView',
+                'HorizontalPageView',
                 style: TextStyle(fontSize: 15),
               ),
               onPressed: () {
                 Navigator.push<dynamic>(
                   context,
                   MaterialPageRoute<dynamic>(
-                      builder: (BuildContext context) => _horizonPageView),
+                      builder: (BuildContext context) => _horizontalPageView),
                 );
               },
             ),

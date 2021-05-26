@@ -12,7 +12,7 @@
 
 #include "log.h"
 
-#define ROTARY_CHANNEL_NAME "flutter.wearable_rotary.channel"
+static constexpr char kChannelName[] = "flutter.wearable_rotary.channel";
 
 class WearableRotaryPlugin : public flutter::Plugin {
  public:
@@ -30,7 +30,7 @@ class WearableRotaryPlugin : public flutter::Plugin {
  private:
   void setupEventChannels(flutter::PluginRegistrar *registrar) {
     channel_ = std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-        registrar->messenger(), ROTARY_CHANNEL_NAME,
+        registrar->messenger(), kChannelName,
         &flutter::StandardMethodCodec::GetInstance());
     auto wearable_rotary_channel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
@@ -41,8 +41,7 @@ class WearableRotaryPlugin : public flutter::Plugin {
               Eina_Bool ret =
                   eext_rotary_event_handler_add(RotaryEventCallBack, this);
               if (ret == EINA_FALSE) {
-                LOG_ERROR("[WearableRotaryPlugin] failed_to_add_callback");
-                events->Error("failed_to_add_callback");
+                events->Error("failed to add callback");
                 return nullptr;
               }
               events_ = std::move(events);
@@ -51,14 +50,7 @@ class WearableRotaryPlugin : public flutter::Plugin {
             [this](const flutter::EncodableValue *arguments)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnCancel");
-              void *ret = eext_rotary_event_handler_del(RotaryEventCallBack);
-              if (!ret) {
-                LOG_ERROR("[WearableRotaryPlugin] failed_to_del_callback");
-                if (events_ != nullptr) {
-                  events_->Error("failed_to_del_callback");
-                }
-                return nullptr;
-              }
+              eext_rotary_event_handler_del(RotaryEventCallBack);
               events_ = nullptr;
               return nullptr;
             });

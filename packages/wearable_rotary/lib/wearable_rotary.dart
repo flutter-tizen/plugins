@@ -23,7 +23,7 @@ RotaryEvent _parseEvent(dynamic event) {
     return event ? RotaryEvent.CLOCKWISE : RotaryEvent.COUNTER_CLOCKWISE;
   } else {
     throw PlatformException(
-        code: '_parseEvent',
+        code: 'type_cast',
         details: 'Platform plugin returns non-bool type for rotary event');
   }
 }
