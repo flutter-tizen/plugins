@@ -16,10 +16,10 @@
 class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *pluginRegistrar,
-                                    FlutterTextureRegistrar *textureRegistrar);
+                                    flutter::TextureRegistrar *textureRegistrar);
   // Creates a plugin that communicates on the given channel.
   VideoPlayerTizenPlugin(flutter::PluginRegistrar *pluginRegistrar,
-                         FlutterTextureRegistrar *textureRegistrar);
+                         flutter::TextureRegistrar *textureRegistrar);
   virtual ~VideoPlayerTizenPlugin();
 
   virtual void initialize() override;
@@ -39,7 +39,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   void disposeAllPlayers();
 
   flutter::PluginRegistrar *pluginRegistrar_;
-  FlutterTextureRegistrar *textureRegistrar_;
+  flutter::TextureRegistrar *textureRegistrar_;
   VideoPlayerOptions options_;
   std::map<long, std::unique_ptr<VideoPlayer>> videoPlayers_;
 };
@@ -47,7 +47,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
 // static
 void VideoPlayerTizenPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar *pluginRegistrar,
-    FlutterTextureRegistrar *textureRegistrar) {
+    flutter::TextureRegistrar *textureRegistrar) {
   auto plugin = std::make_unique<VideoPlayerTizenPlugin>(pluginRegistrar,
                                                          textureRegistrar);
   pluginRegistrar->AddPlugin(std::move(plugin));
@@ -55,7 +55,7 @@ void VideoPlayerTizenPlugin::RegisterWithRegistrar(
 
 VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
     flutter::PluginRegistrar *pluginRegistrar,
-    FlutterTextureRegistrar *textureRegistrar)
+    flutter::TextureRegistrar *textureRegistrar)
     : pluginRegistrar_(pluginRegistrar), textureRegistrar_(textureRegistrar) {
   VideoPlayerApi::setup(pluginRegistrar->messenger(), this);
 }
@@ -222,5 +222,6 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
   VideoPlayerTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar),
-      FlutterPluginRegistrarGetTexture(registrar));
+      flutter::PluginRegistrarManager::GetInstance()
+          ->GetRegistrar<flutter::PluginRegistrar>(registrar)->texture_registrar());
 }
