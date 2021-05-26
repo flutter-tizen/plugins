@@ -76,6 +76,7 @@ class WebView : public PlatformView {
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   Ecore_IMF_Context* context_;
   flutter::TextureVariant* texture_variant_;
+  FlutterDesktopGpuBuffer* gpu_buffer_;
   std::mutex mutex_;
 };
 

@@ -167,7 +167,9 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       is_mouse_lbutton_down_(false),
       has_navigation_delegate_(false),
       has_progress_tracking_(false),
-      context_(nullptr) {
+      context_(nullptr),
+      texture_variant_(nullptr),
+      gpu_buffer_(nullptr) {
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
       [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
         return this->CopyGpuBuffer(width, height);
@@ -392,6 +394,11 @@ void WebView::Dispose() {
   if (texture_variant_) {
     delete texture_variant_;
     texture_variant_ = nullptr;
+  }
+
+  if (gpu_buffer_) {
+    delete gpu_buffer_;
+    gpu_buffer_ = nullptr;
   }
 }
 
@@ -759,6 +766,10 @@ void WebView::InitWebView() {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
   }
+  if (!gpu_buffer_) {
+    gpu_buffer_ = new FlutterDesktopGpuBuffer();
+  }
+
   float scale_factor = 1;
 
   webview_instance_ = (LWE::WebContainer*)createWebViewInstance(
@@ -925,11 +936,12 @@ FlutterDesktopGpuBuffer* WebView::CopyGpuBuffer(size_t width, size_t height) {
   rendered_surface_ = candidate_surface_;
   candidate_surface_ = nullptr;
 
-  FlutterDesktopGpuBuffer* gpu_buffer = new FlutterDesktopGpuBuffer();
-  gpu_buffer->buffer = rendered_surface_;
-  gpu_buffer->width = width;
-  gpu_buffer->height = height;
-  return gpu_buffer;
+  if (gpu_buffer_) {
+    gpu_buffer_->buffer = rendered_surface_;
+    gpu_buffer_->width = width;
+    gpu_buffer_->height = height;
+  }
+  return gpu_buffer_;
 }
 
 void WebView::DestructBuffer(void* buffer) {
