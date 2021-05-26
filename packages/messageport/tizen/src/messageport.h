@@ -65,9 +65,9 @@ class MessagePortManager {
       bool is_trusted, int* local_port);
   MessagePortResult UnregisterLocalPort(int local_port_id);
   MessagePortResult Send(std::string& remote_app_id, std::string& port_name,
-                         flutter::EncodableValue& message);
+                         flutter::EncodableValue& message, bool is_trusted);
   MessagePortResult Send(std::string& remote_app_id, std::string& port_name,
-                         flutter::EncodableValue& message, int local_port);
+                         flutter::EncodableValue& message, bool is_trusted, int local_port);
 
  private:
   static void OnMessageReceived(int local_port_id, const char* remote_app_id,

@@ -1,11 +1,11 @@
 # messageport_tizen
 
-This plugin adds support communication between Flutter applications on Tizen platform.
+This plugin adds for a support communication between Flutter applications on Tizen platform.
 
 
 ## Getting Started
 
-First, imports the package in dart file.
+First, import the package in dart file.
 
 ```dart
 import 'package:messageport_tizen/messageport_tizen.dart';
@@ -49,7 +49,7 @@ To connect to already registered port in remote application, use `TizenMessagepo
 To send message to remote applcation use `TizenRemotePort.send()` method.
 
 ```dart
-  String message = "This is message";
+  final message = {"a": 1, "b": 2, "c": 3};
   try{
     remotePort.send(message);
   } catch (e) {
@@ -62,7 +62,7 @@ To send message to remote applcation use `TizenRemotePort.send()` method.
 To send message with local port use `TizenRemotePort.send()` method. Local port received by remote application can be use to send a response.
 
 ```dart
-  String message = "This is message";
+  final message = "This is a string message";
   try{
     remotePort.sendWithLocalPort(message, localPort);
   } catch (e) {

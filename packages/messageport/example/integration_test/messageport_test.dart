@@ -36,6 +36,18 @@ void main() {
     await localPort.unregister();
   }, timeout: Timeout(Duration(seconds: 5)));
 
+  testWidgets('Create trusted remote port from not trusted',
+      (WidgetTester tester) async {
+    final localPort =
+        await TizenMessageport.createLocalPort('test_port', isTrusted: false);
+    localPort.register((message, [remotePort]) => null);
+    expect(
+        () async => await TizenMessageport.connectToRemotePort(
+            'com.example.messageport_tizen_example', 'test_port'),
+        throwsA(isA<Exception>()));
+    await localPort.unregister();
+  }, timeout: Timeout(Duration(seconds: 5)));
+
   testWidgets('Send simple message', (WidgetTester tester) async {
     final localPort = await TizenMessageport.createLocalPort('test_port');
     Completer completer = Completer();

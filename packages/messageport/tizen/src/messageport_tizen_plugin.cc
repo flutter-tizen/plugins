@@ -184,9 +184,11 @@ class MessageportTizenPlugin : public flutter::Plugin {
     flutter::EncodableValue message(nullptr);
     std::string remote_app_id = "";
     std::string port_name = "";
+    bool is_trusted = false;
     if (!GetEncodableValueFromArgs(args, "message", message) ||
         !GetValueFromArgs<std::string>(args, "remoteAppId", remote_app_id) ||
-        !GetValueFromArgs<std::string>(args, "portName", port_name)) {
+        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
+        !GetValueFromArgs<bool>(args, "isTrusted", is_trusted)) {
       result->Error("Could not send message", "Invalid parameter");
       return;
     }
@@ -201,10 +203,10 @@ class MessageportTizenPlugin : public flutter::Plugin {
         return;
       }
 
-      native_result = manager.Send(remote_app_id, port_name, message,
+      native_result = manager.Send(remote_app_id, port_name, message, is_trusted,
                                    local_dart_ports_to_native_ports_[id]);
     } else {
-      native_result = manager.Send(remote_app_id, port_name, message);
+      native_result = manager.Send(remote_app_id, port_name, message, is_trusted);
     }
 
     if (native_result) {

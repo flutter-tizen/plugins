@@ -84,6 +84,7 @@ class TizenRemotePort {
   /// Sends message through remote messageport
   Future<void> send(Object message) async {
     Map<String, Object> args = new Map<String, Object>();
+    args["isTrusted"] = _isTrusted;
     args["remoteAppId"] = _remoteAppId;
     args["portName"] = _portName;
     args["message"] = message;
@@ -97,6 +98,7 @@ class TizenRemotePort {
   Future<void> sendWithLocalPort(
       Object message, TizenLocalPort localPort) async {
     Map<String, Object> args = new Map<String, Object>();
+    args["isTrusted"] = _isTrusted;
     args["remoteAppId"] = _remoteAppId;
     args["portName"] = _portName;
     args["localPort"] = localPort._id;
