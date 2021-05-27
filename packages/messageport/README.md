@@ -26,24 +26,24 @@ Data can contain any value or collection type supported by Flutter's standard me
 
 ### Create local port
 
-Use `TizenMessageport.createLocalPort` method to create local port.
+Use `TizenMessagePort.createLocalPort` method to create local port.
 
 ```dart
 String portName = 'servicePort';
-TizenLocalPort localPort = await TizenMessageport.createLocalPort(portName);
+LocalPort localPort = await TizenMessagePort.createLocalPort(portName);
 ```
 
-To register callback when message arrives to the local port, use `TizenLocalPort.register()` method.
+To register callback when message arrives to the local port, use `LocalPort.register()` method.
 
 ```dart
-  void onMessage(Object message, [TizenRemotePort remotePort]) {
+  void onMessage(Object message, [RemotePort remotePort]) {
     print('Message received: ' + message.toString());
   }
   ...
   localPort.register(onMessage);
 ```
 
-Use `TizenLocalPort.unregister()` to unregister port when it is no longer needed.
+Use `LocalPort.unregister()` to unregister port when it is no longer needed.
 
 ```dart
   localPort.unregister();
@@ -51,17 +51,17 @@ Use `TizenLocalPort.unregister()` to unregister port when it is no longer needed
 
 ### Connect to remote port
 
-To connect to already registered port in remote application, use `TizenMessageport.connectToRemotePort()` method.
+To connect to already registered port in remote application, use `TizenMessagePort.connectToRemotePort()` method.
 
 ```dart
   String portName = 'servicePort';
   String remoteAppId = 'remote.app.id';
-  TizenRemotePort remotePort = await TizenMessageport.connectToRemotePort(remoteAppId, portName);
+  RemotePort remotePort = await TizenMessagePort.connectToRemotePort(remoteAppId, portName);
 ```
 
 ### Send message
 
-To send message to remote applcation use `TizenRemotePort.send()` method.
+To send message to remote applcation use `RemotePort.send()` method.
 
 ```dart
   final message = {"a": 1, "b": 2, "c": 3};
@@ -74,7 +74,7 @@ To send message to remote applcation use `TizenRemotePort.send()` method.
 
 ### Send message with local port
 
-To send message with local port use `TizenRemotePort.send()` method. Local port received by remote application can be used to send a response.
+To send message with local port use `RemotePort.send()` method. Local port received by remote application can be used to send a response.
 
 ```dart
   final message = "This is a string message";

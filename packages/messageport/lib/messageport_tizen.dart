@@ -10,13 +10,12 @@ const MethodChannel _channel = MethodChannel('tizen/messageport');
 
 /// Signature for a callback receiving message on messageport.
 ///
-/// This is used by [TizenLocalPort.register].
-typedef OnMessageReceived = Function(dynamic message,
-    [TizenRemotePort? remotePort]);
+/// This is used by [LocalPort.register].
+typedef OnMessageReceived = Function(dynamic message, [RemotePort? remotePort]);
 
 /// Local port to receive messages
-class TizenLocalPort {
-  TizenLocalPort._(this._id, this._portName, this._isTrusted);
+class LocalPort {
+  LocalPort._(this._id, this._portName, this._isTrusted);
 
   /// Register messageport and sets listener
   ///
@@ -37,8 +36,7 @@ class TizenLocalPort {
           final String remoteAppId = map['remoteAppId'] as String;
           final String remotePort = map['remotePort'] as String;
           final bool isTrusted = map['isTrusted'] as bool;
-          onMessage(
-              message, TizenRemotePort._(remoteAppId, remotePort, isTrusted));
+          onMessage(message, RemotePort._(remoteAppId, remotePort, isTrusted));
         } else {
           onMessage(message);
         }
@@ -79,8 +77,8 @@ class TizenLocalPort {
 }
 
 /// Remote port to send messages
-class TizenRemotePort {
-  TizenRemotePort._(this._remoteAppId, this._portName, this._isTrusted);
+class RemotePort {
+  RemotePort._(this._remoteAppId, this._portName, this._isTrusted);
 
   /// Sends message through remote messageport
   Future<void> send(dynamic message) async {
@@ -96,8 +94,7 @@ class TizenRemotePort {
   /// Sends message through remote messageport with local port
   ///
   /// Remote application can reply to the message by use of provided local port
-  Future<void> sendWithLocalPort(
-      dynamic message, TizenLocalPort localPort) async {
+  Future<void> sendWithLocalPort(dynamic message, LocalPort localPort) async {
     final Map<String, dynamic> args = <String, dynamic>{};
     args['isTrusted'] = _isTrusted;
     args['remoteAppId'] = _remoteAppId;
@@ -129,20 +126,20 @@ class TizenRemotePort {
 }
 
 /// API for accessing MessagePorts in Tizen
-class TizenMessageport {
+class TizenMessagePort {
   /// Creates Local Port
   ///
   /// By default trusted local port is created. Set isTrusted to false,
   /// to change this behaviour.
   ///
   /// Remember to call `register()` on local port to enable receiving messages
-  static Future<TizenLocalPort> createLocalPort(String portName,
+  static Future<LocalPort> createLocalPort(String portName,
       {bool isTrusted = true}) async {
     final Map<String, dynamic> args = <String, dynamic>{};
     args['portName'] = portName;
     args['isTrusted'] = isTrusted;
     final int id = await _channel.invokeMethod<int>('createLocal', args) as int;
-    return TizenLocalPort._(id, portName, isTrusted);
+    return LocalPort._(id, portName, isTrusted);
   }
 
   /// Connects to `portName` remote port in `remoteAppId`
@@ -150,7 +147,7 @@ class TizenMessageport {
   /// Remote port has to be created and registered on client side first.
   ///
   /// Exception will be thrown if remote port does not exist.
-  static Future<TizenRemotePort> connectToRemotePort(
+  static Future<RemotePort> connectToRemotePort(
       String remoteAppId, String portName,
       {bool isTrusted = true}) async {
     final Map<String, dynamic> args = <String, dynamic>{};
@@ -160,7 +157,7 @@ class TizenMessageport {
     final bool check =
         await _channel.invokeMethod<bool>('createRemote', args) as bool;
     if (check) {
-      return TizenRemotePort._(remoteAppId, portName, isTrusted);
+      return RemotePort._(remoteAppId, portName, isTrusted);
     }
     throw Exception('Remote port not found');
   }

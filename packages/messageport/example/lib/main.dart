@@ -36,7 +36,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   int _responseCount = 0;
-  void onMessage(dynamic message, [TizenRemotePort? remotePort]) {
+  void onMessage(dynamic message, [RemotePort? remotePort]) {
     _log('message received: ' + message.toString());
     if (remotePort != null) {
       _log('remotePort received: ${remotePort.portName}, '
@@ -172,7 +172,7 @@ class _MyAppState extends State<MyApp> {
                 builder: (BuildContext context) =>
                     _textButton('Create local port', () async {
                   _localPort =
-                      await TizenMessageport.createLocalPort(kPortName);
+                      await TizenMessagePort.createLocalPort(kPortName);
                   setState(() {});
                 }, _localPort == null),
               ),
@@ -207,7 +207,7 @@ class _MyAppState extends State<MyApp> {
                       _textButton('Connect to remote', () async {
                         try {
                           _remotePort =
-                              await TizenMessageport.connectToRemotePort(
+                              await TizenMessagePort.connectToRemotePort(
                                   kRemoteAppId, kPortName);
                           setState(() {});
                         } catch (e) {
@@ -227,6 +227,6 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
-  TizenLocalPort? _localPort;
-  TizenRemotePort? _remotePort;
+  LocalPort? _localPort;
+  RemotePort? _remotePort;
 }
