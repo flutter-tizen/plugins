@@ -10,8 +10,9 @@ void main() => runApp(
     );
 
 class MyApp extends StatelessWidget {
-  final CustomPageView _horizontalPageView = CustomPageView(Axis.horizontal);
-  final CustomPageView _verticalPageView = CustomPageView(Axis.vertical);
+  final CustomPageView _horizontalPageView =
+      const CustomPageView(Axis.horizontal);
+  final CustomPageView _verticalPageView = const CustomPageView(Axis.vertical);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             ElevatedButton(
               child: const Text(
                 'HorizontalPageView',

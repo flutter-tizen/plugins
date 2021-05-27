@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:wearable_rotary/wearable_rotary.dart';
 
 class CustomPageView extends StatefulWidget {
-  final Axis scrollDirection;
+  const CustomPageView(this.scrollDirection);
 
-  CustomPageView(this.scrollDirection);
+  final Axis scrollDirection;
 
   @override
   _CustomPageViewState createState() => _CustomPageViewState();
@@ -14,7 +14,7 @@ class CustomPageView extends StatefulWidget {
 
 class _CustomPageViewState extends State<CustomPageView> {
   StreamSubscription<RotaryEvent>? _rotarySubscription;
-  PageController _pager = PageController(initialPage: 0);
+  final PageController _pager = PageController(initialPage: 0);
   int _currentPageIdx = 0;
 
   @override
@@ -25,7 +25,7 @@ class _CustomPageViewState extends State<CustomPageView> {
         if (_currentPageIdx != Colors.primaries.length - 1) {
           _pager.animateToPage(
             ++_currentPageIdx,
-            duration: Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 500),
             curve: Curves.ease,
           );
         }
@@ -33,7 +33,7 @@ class _CustomPageViewState extends State<CustomPageView> {
         if (_currentPageIdx != 0) {
           _pager.animateToPage(
             --_currentPageIdx,
-            duration: Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 500),
             curve: Curves.ease,
           );
         }
@@ -50,7 +50,7 @@ class _CustomPageViewState extends State<CustomPageView> {
 
   @override
   Widget build(BuildContext context) {
-    String _title = widget.scrollDirection == Axis.vertical
+    final String _title = widget.scrollDirection == Axis.vertical
         ? 'verticalPageView'
         : 'HorizontalPageView';
     return Scaffold(
@@ -61,15 +61,13 @@ class _CustomPageViewState extends State<CustomPageView> {
         controller: _pager,
         scrollDirection: widget.scrollDirection,
         itemCount: Colors.primaries.length,
-        itemBuilder: (context, index) {
+        itemBuilder: (BuildContext context, int index) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(color: Colors.primaries[index]),
           );
         },
-        onPageChanged: (index) => {
-          _currentPageIdx = index,
-        },
+        onPageChanged: (int index) => _currentPageIdx = index,
       ),
     );
   }
