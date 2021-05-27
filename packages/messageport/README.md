@@ -2,7 +2,6 @@
 
 This plugin adds for a support communication between Flutter applications on Tizen platform.
 
-
 ## Getting Started
 
 First, import the package in dart file.
@@ -11,9 +10,19 @@ First, import the package in dart file.
 import 'package:messageport_tizen/messageport_tizen.dart';
 ```
 
-### Required privileges
+### Supported data types
 
-No additional privileges needed.
+Data types that can be transferred using this plugin:
+* null
+* bool
+* numbers: int, double
+* String
+* Uint8List, Int32List, Int64List, Float64List
+* List of supported values
+* Map from supported values to supported values
+
+Plugin uses Flutter's [StandardMessageCodec](https://api.flutter.dev/flutter/services/StandardMessageCodec-class.html) to encode transferred data into binary.
+Data can contain any value or collection type supported by Flutter's standard method codec.
 
 ### Create local port
 
@@ -32,6 +41,12 @@ To register callback when message arrives to the local port, use `TizenLocalPort
   }
   ...
   localPort.register(onMessage);
+```
+
+Use `TizenLocalPort.unregister()` to unregister port when it is no longer needed.
+
+```dart
+  localPort.unregister();
 ```
 
 ### Connect to remote port
@@ -59,7 +74,7 @@ To send message to remote applcation use `TizenRemotePort.send()` method.
 
 ### Send message with local port
 
-To send message with local port use `TizenRemotePort.send()` method. Local port received by remote application can be use to send a response.
+To send message with local port use `TizenRemotePort.send()` method. Local port received by remote application can be used to send a response.
 
 ```dart
   final message = "This is a string message";
