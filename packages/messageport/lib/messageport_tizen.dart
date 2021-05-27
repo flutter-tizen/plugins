@@ -48,7 +48,7 @@ class LocalPort {
 
   /// Unregisters messageport
   Future<void> unregister() async {
-    await _streamSubscription.cancel();
+    await _streamSubscription?.cancel();
     _registeredPorts.remove(portName);
   }
 
@@ -57,7 +57,7 @@ class LocalPort {
     return _isTrusted;
   }
 
-  // Returns port name
+  /// Returns port name
   String get portName {
     return _portName;
   }
@@ -70,7 +70,7 @@ class LocalPort {
   final int _id;
   final bool _isTrusted;
   final String _portName;
-  late StreamSubscription<dynamic> _streamSubscription;
+  StreamSubscription<dynamic>? _streamSubscription;
   late EventChannel _eventChannel;
 
   static final Set<String> _registeredPorts = <String>{};
