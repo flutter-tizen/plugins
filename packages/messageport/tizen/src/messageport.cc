@@ -73,8 +73,6 @@ void MessagePortManager::OnMessageReceived(int local_port_id,
     if (ret != BUNDLE_ERROR_NONE) {
       manager->sinks_[local_port_id]->Error("Failed to parse response");
     }
-    LOG_DEBUG("bundle_get_byte_array: len: %u, array_element_size[0]: %u", len,
-              array_element_size[0]);
 
     uint8_t** begin = (uint8_t**)byte_array;
     std::vector<uint8_t> encoded(begin[0], begin[0] + len);
@@ -99,9 +97,8 @@ void MessagePortManager::OnMessageReceived(int local_port_id,
 }
 
 MessagePortResult MessagePortManager::RegisterLocalPort(
-    const std::string& port_name,
-    std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> sink,
-    bool is_trusted, int* local_port) {
+    const std::string& port_name, EventSink sink, bool is_trusted,
+    int* local_port) {
   LOG_DEBUG("RegisterLocalPort: %s, is_trusted: %s", port_name.c_str(),
             is_trusted ? "yes" : "no");
   int ret = -1;
@@ -230,7 +227,7 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
   }
 
   bundle_free(b);
-  LOG_DEBUG("native error: %d", ret);
+
   return CreateResult(ret);
 }
 

@@ -40,7 +40,7 @@ class MessageportTizenPlugin : public flutter::Plugin {
   }
 
   MessageportTizenPlugin(flutter::PluginRegistrar *pluginRegistrar)
-      : pluginRegistrar_(pluginRegistrar) {}
+      : plugin_registrar_(pluginRegistrar) {}
 
   virtual ~MessageportTizenPlugin() {}
 
@@ -50,12 +50,14 @@ class MessageportTizenPlugin : public flutter::Plugin {
                         T &out) {
     if (std::holds_alternative<flutter::EncodableMap>(*args)) {
       flutter::EncodableMap map = std::get<flutter::EncodableMap>(*args);
-      flutter::EncodableValue value = map[flutter::EncodableValue(key)];
-      if (std::holds_alternative<T>(value)) {
-        out = std::get<T>(value);
-        return true;
+      if (map.find(flutter::EncodableValue(key)) != map.end()) {
+        flutter::EncodableValue value = map[flutter::EncodableValue(key)];
+        if (std::holds_alternative<T>(value)) {
+          out = std::get<T>(value);
+          return true;
+        }
       }
-      LOG_ERROR("Key %s not found", key);
+      LOG_DEBUG("Key %s not found", key);
     }
     return false;
   }
@@ -132,7 +134,7 @@ class MessageportTizenPlugin : public flutter::Plugin {
 
     auto event_channel =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            pluginRegistrar_->messenger(), event_channel_name.str(),
+            plugin_registrar_->messenger(), event_channel_name.str(),
             &flutter::StandardMethodCodec::GetInstance());
 
     auto event_channel_handler =
@@ -223,7 +225,7 @@ class MessageportTizenPlugin : public flutter::Plugin {
   std::set<std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>>
       event_channels_;
   MessagePortManager manager;
-  flutter::PluginRegistrar *pluginRegistrar_;
+  flutter::PluginRegistrar *plugin_registrar_;
 };
 
 }  // namespace
