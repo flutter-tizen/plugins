@@ -6,9 +6,9 @@
 
 #include <Ecore_IMF_Evas.h>
 #include <Ecore_Input_Evas.h>
+#include <flutter/texture_registrar.h>
 #include <flutter_platform_view.h>
 #include <flutter_texture_registrar.h>
-#include <texture_registrar.h>
 
 #include <map>
 #include <memory>
@@ -172,7 +172,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       gpu_buffer_(nullptr) {
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
       [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
-        return this->CopyGpuBuffer(width, height);
+        return this->ObtainGpuBuffer(width, height);
       },
       [this](void* buffer) -> void { this->DestructBuffer(buffer); }));
   SetTextureId(texture_registrar_->RegisterTexture(texture_variant_));
@@ -922,7 +922,7 @@ void WebView::HandleCookieMethodCall(
   }
 }
 
-FlutterDesktopGpuBuffer* WebView::CopyGpuBuffer(size_t width, size_t height) {
+FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
   if (!candidate_surface_) {
     return nullptr;
   }

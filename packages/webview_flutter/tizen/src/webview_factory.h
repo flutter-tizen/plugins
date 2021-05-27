@@ -16,7 +16,7 @@ class WebViewFactory : public PlatformViewFactory {
       const std::vector<uint8_t>& createParams) override;
 
  private:
-  flutter::TextureRegistrar* textureRegistrar_;
+  flutter::TextureRegistrar* texture_registrar_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_FACTORY_H_

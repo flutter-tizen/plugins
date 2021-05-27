@@ -48,7 +48,7 @@ class WebView : public PlatformView {
   void HidePanel();
   void ShowPanel();
 
-  FlutterDesktopGpuBuffer* CopyGpuBuffer(size_t width, size_t height);
+  FlutterDesktopGpuBuffer* ObtainGpuBuffer(size_t width, size_t height);
   void DestructBuffer(void* buffer);
 
  private:

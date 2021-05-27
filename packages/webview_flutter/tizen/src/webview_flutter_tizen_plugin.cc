@@ -4,20 +4,8 @@
 
 #include "webview_flutter_tizen_plugin.h"
 
-#include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
-#include <flutter/standard_message_codec.h>
-#include <flutter/standard_method_codec.h>
-#include <flutter_platform_view.h>
-#include <flutter_tizen_texture_registrar.h>
-
-#include <map>
 #include <memory>
-#include <sstream>
-#include <string>
 
-#include "log.h"
-#include "webview.h"
 #include "webview_factory.h"
 
 static constexpr char kViewType[] = "plugins.flutter.io/webview";
