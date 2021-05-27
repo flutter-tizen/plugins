@@ -14,20 +14,20 @@ dependencies:
 ## Example
 
 ```dart
-// Import package
+// Import package.
 import 'package:wearable_rotary/wearable_rotary.dart';
 
-// Be informed when the event (RotaryEvent.CLOCKWISE, RotaryEvent.COUNTER_CLOCKWISE) occurs
+// Be informed when the event (RotaryEvent.clockwise, RotaryEvent.counterClockwise) occurs.
 StreamSubscription<RotaryEvent> rotarySubscription =
     rotaryEvents.listen((RotaryEvent event) {
   if (event == RotaryEvent.clockwise) {
-    // Do something
+    // Do something.
   } else if (event == RotaryEvent.counterClockwise) {
-    // Do something
+    // Do something.
   }
 });
 
-// Be sure to cancel on dispose
+// Be sure to cancel on dispose.
 rotarySubscription.cancel();
 ```
 

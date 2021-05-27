@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 
 import './custom_page_view.dart';
@@ -23,8 +22,7 @@ class MyApp extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            RaisedButton(
-              padding: const EdgeInsets.all(20.0),
+            ElevatedButton(
               child: const Text(
                 'HorizontalPageView',
                 style: TextStyle(fontSize: 15),
@@ -37,8 +35,7 @@ class MyApp extends StatelessWidget {
                 );
               },
             ),
-            RaisedButton(
-              padding: const EdgeInsets.all(20.0),
+            ElevatedButton(
               child: const Text(
                 'VerticalPageView',
                 style: TextStyle(fontSize: 15),
