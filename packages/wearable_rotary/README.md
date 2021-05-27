@@ -19,7 +19,7 @@ import 'package:wearable_rotary/wearable_rotary.dart';
 
 // Be informed when the event (RotaryEvent.CLOCKWISE, RotaryEvent.COUNTER_CLOCKWISE) occurs
 StreamSubscription<RotaryEvent> rotarySubscription =
-    rotaryEvent.listen((RotaryEvent event) {
+    rotaryEvents.listen((RotaryEvent event) {
   if (event == RotaryEvent.clockwise) {
     // Do something
   } else if (event == RotaryEvent.counterClockwise) {

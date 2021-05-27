@@ -4,14 +4,14 @@ const String _channelName = 'flutter.wearable_rotary.channel';
 
 const EventChannel _channel = EventChannel(_channelName);
 
-Stream<RotaryEvent> get rotaryEvent {
-  _rotaryEvent ??= _channel
+Stream<RotaryEvent> get rotaryEvents {
+  _rotaryEvents ??= _channel
       .receiveBroadcastStream()
       .map((dynamic event) => _parseEvent(event));
-  return _rotaryEvent!;
+  return _rotaryEvents!;
 }
 
-Stream<RotaryEvent>? _rotaryEvent;
+Stream<RotaryEvent>? _rotaryEvents;
 
 enum RotaryEvent {
   clockwise,

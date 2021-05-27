@@ -20,7 +20,7 @@ class _CustomPageViewState extends State<CustomPageView> {
   @override
   void initState() {
     super.initState();
-    _rotarySubscription = rotaryEvent.listen((RotaryEvent event) {
+    _rotarySubscription = rotaryEvents.listen((RotaryEvent event) {
       if (event == RotaryEvent.clockwise) {
         if (_currentPageIdx != Colors.primaries.length - 1) {
           _pager.animateToPage(
