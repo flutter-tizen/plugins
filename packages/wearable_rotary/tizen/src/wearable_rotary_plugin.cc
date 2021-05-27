@@ -19,7 +19,7 @@ class WearableRotaryPlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     LOG_DEBUG("RegisterWithRegistrar for WearableRotaryPlugin");
     auto plugin = std::make_unique<WearableRotaryPlugin>();
-    plugin->setupEventChannels(registrar);
+    plugin->setupEventChannel(registrar);
     registrar->AddPlugin(std::move(plugin));
   }
 
@@ -28,7 +28,7 @@ class WearableRotaryPlugin : public flutter::Plugin {
   virtual ~WearableRotaryPlugin() {}
 
  private:
-  void setupEventChannels(flutter::PluginRegistrar *registrar) {
+  void setupEventChannel(flutter::PluginRegistrar *registrar) {
     channel_ = std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
         registrar->messenger(), kChannelName,
         &flutter::StandardMethodCodec::GetInstance());

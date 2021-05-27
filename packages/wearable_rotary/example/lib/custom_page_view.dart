@@ -21,7 +21,7 @@ class _CustomPageViewState extends State<CustomPageView> {
   void initState() {
     super.initState();
     _rotarySubscription = rotaryEvent.listen((RotaryEvent event) {
-      if (event == RotaryEvent.CLOCKWISE) {
+      if (event == RotaryEvent.clockwise) {
         if (_currentPageIdx != Colors.primaries.length - 1) {
           _pager.animateToPage(
             ++_currentPageIdx,
@@ -29,7 +29,7 @@ class _CustomPageViewState extends State<CustomPageView> {
             curve: Curves.ease,
           );
         }
-      } else if (event == RotaryEvent.COUNTER_CLOCKWISE) {
+      } else if (event == RotaryEvent.counterClockwise) {
         if (_currentPageIdx != 0) {
           _pager.animateToPage(
             --_currentPageIdx,

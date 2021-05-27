@@ -1,5 +1,7 @@
 # wearable_rotary
 
+Plugin that can listen to rotary events on Galaxy watch devices.
+
 ## Usage
 
 To use this plugin, add wearable_rotary as a dependency in your pubspec.yaml file:
@@ -18,9 +20,9 @@ import 'package:wearable_rotary/wearable_rotary.dart';
 // Be informed when the event (RotaryEvent.CLOCKWISE, RotaryEvent.COUNTER_CLOCKWISE) occurs
 StreamSubscription<RotaryEvent> rotarySubscription =
     rotaryEvent.listen((RotaryEvent event) {
-  if (event == RotaryEvent.CLOCKWISE) {
+  if (event == RotaryEvent.clockwise) {
     // Do something
-  } else if (event == RotaryEvent.COUNTER_CLOCKWISE) {
+  } else if (event == RotaryEvent.counterClockwise) {
     // Do something
   }
 });

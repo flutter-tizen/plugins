@@ -1,8 +1,8 @@
 import 'package:flutter/services.dart';
 
-const String _ROTARY_CHANNEL_NAME = 'flutter.wearable_rotary.channel';
+const String _channelName = 'flutter.wearable_rotary.channel';
 
-const EventChannel _channel = EventChannel(_ROTARY_CHANNEL_NAME);
+const EventChannel _channel = EventChannel(_channelName);
 
 Stream<RotaryEvent> get rotaryEvent {
   _rotaryEvent ??= _channel
@@ -14,13 +14,13 @@ Stream<RotaryEvent> get rotaryEvent {
 Stream<RotaryEvent>? _rotaryEvent;
 
 enum RotaryEvent {
-  CLOCKWISE,
-  COUNTER_CLOCKWISE,
+  clockwise,
+  counterClockwise,
 }
 
 RotaryEvent _parseEvent(dynamic event) {
   if (event is bool) {
-    return event ? RotaryEvent.CLOCKWISE : RotaryEvent.COUNTER_CLOCKWISE;
+    return event ? RotaryEvent.clockwise : RotaryEvent.counterClockwise;
   } else {
     throw PlatformException(
         code: 'type_cast',
