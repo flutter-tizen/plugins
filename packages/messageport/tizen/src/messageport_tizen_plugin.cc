@@ -203,10 +203,12 @@ class MessageportTizenPlugin : public flutter::Plugin {
         return;
       }
 
-      native_result = manager.Send(remote_app_id, port_name, message, is_trusted,
-                                   local_dart_ports_to_native_ports_[id]);
+      native_result =
+          manager.Send(remote_app_id, port_name, message, is_trusted,
+                       local_dart_ports_to_native_ports_[id]);
     } else {
-      native_result = manager.Send(remote_app_id, port_name, message, is_trusted);
+      native_result =
+          manager.Send(remote_app_id, port_name, message, is_trusted);
     }
 
     if (native_result) {
