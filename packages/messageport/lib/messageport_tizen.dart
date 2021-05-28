@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'src/messageport_manager.dart';
 
-const MethodChannel _channel = MethodChannel('tizen/messageport');
+TizenMessagePortManager _manager = TizenMessagePortManager();
 
 /// Signature for a callback receiving message on messageport.
 ///
@@ -15,41 +15,38 @@ typedef OnMessageReceived = Function(dynamic message, [RemotePort? remotePort]);
 
 /// Local port to receive messages.
 class LocalPort {
-  LocalPort._(this._id, this.portName, this.trusted);
+  LocalPort._(this.portName, this.trusted);
 
-  /// Register messageport and sets listener.
+  /// Registers port and sets listener.
   ///
-  /// Names of already registered ports has to be unique.
-  /// Exception will be thrown when using on already registered port
+  /// Exception will be thrown when using on already registered port.
   void register(OnMessageReceived onMessage) {
     if (registered) {
       throw Exception('Port $portName is already registered');
     }
 
-    _eventChannel = EventChannel('tizen/messageport$_id');
-    _streamSubscription =
-        _eventChannel.receiveBroadcastStream().listen((dynamic event) {
+    final Stream<dynamic> stream = _manager.registerLocalPort(this);
+    _streamSubscription = stream.listen((dynamic event) {
       if (event is Map) {
         final Map<dynamic, dynamic> map = event;
         final dynamic message = map['message'];
         if (map.containsKey('remotePort')) {
           final String remoteAppId = map['remoteAppId'] as String;
           final String remotePort = map['remotePort'] as String;
-          final bool isTrusted = map['isTrusted'] as bool;
-          onMessage(message, RemotePort._(remoteAppId, remotePort, isTrusted));
+          final bool trusted = map['trusted'] as bool;
+          onMessage(message, RemotePort._(remoteAppId, remotePort, trusted));
         } else {
           onMessage(message);
         }
       }
     });
-
-    _registeredPorts.add(portName);
+    _registered = true;
   }
 
-  /// Unregisters messageport.
+  /// Unregisters messageport. No operation for already unregistered port.
   Future<void> unregister() async {
     await _streamSubscription?.cancel();
-    _registeredPorts.remove(portName);
+    _registered = false;
   }
 
   /// Checks whether local port is trusted.
@@ -60,14 +57,11 @@ class LocalPort {
 
   /// Checks whether local port is registered.
   bool get registered {
-    return _registeredPorts.contains(portName);
+    return _registered;
   }
 
-  final int _id;
   StreamSubscription<dynamic>? _streamSubscription;
-  late EventChannel _eventChannel;
-
-  static final Set<String> _registeredPorts = <String>{};
+  bool _registered = false;
 }
 
 /// Remote port to send messages.
@@ -76,27 +70,19 @@ class RemotePort {
 
   /// Sends message through remote messageport.
   Future<void> send(dynamic message) async {
-    final Map<String, dynamic> args = <String, dynamic>{};
-    args['isTrusted'] = trusted;
-    args['remoteAppId'] = remoteAppId;
-    args['portName'] = portName;
-    args['message'] = message;
-
-    return _channel.invokeMethod('send', args);
+    return _manager.send(this, message);
   }
 
-  /// Sends message through remote messageport with local port.
+  /// Sends message through remote messageport with [localPort].
   ///
   /// Remote application can reply to the message by use of provided local port.
   Future<void> sendWithLocalPort(dynamic message, LocalPort localPort) async {
-    final Map<String, dynamic> args = <String, dynamic>{};
-    args['isTrusted'] = trusted;
-    args['remoteAppId'] = remoteAppId;
-    args['portName'] = portName;
-    args['localPort'] = localPort._id;
-    args['message'] = message;
+    return _manager.sendWithLocalPort(this, localPort, message);
+  }
 
-    return _channel.invokeMethod('send', args);
+  // Checks whether remote port is registered in remote application.
+  Future<bool> check() async {
+    return _manager.checkForRemotePort(remoteAppId, portName, trusted);
   }
 
   /// Returns remote appId.
@@ -113,35 +99,33 @@ class RemotePort {
 class TizenMessagePort {
   /// Creates Local Port
   ///
-  /// By default trusted local port is created. Set [isTrusted] to false,
+  /// By default trusted local port is created. Trusted port restricts communication
+  /// through them to applications that share a signing certificate. Set [trusted] to false,
   /// to change this behaviour.
   ///
   /// Remember to call `register()` on local port to enable receiving messages.
+  /// Multiple local ports with the same [portName] can be created and registered.
+  /// Incoming messages will be delivered to all registered local ports with the same name.
   static Future<LocalPort> createLocalPort(String portName,
-      {bool isTrusted = true}) async {
-    final Map<String, dynamic> args = <String, dynamic>{};
-    args['portName'] = portName;
-    args['isTrusted'] = isTrusted;
-    final int id = await _channel.invokeMethod<int>('createLocal', args) as int;
-    return LocalPort._(id, portName, isTrusted);
+      {bool trusted = true}) async {
+    await _manager.createLocalPort(portName, trusted);
+    return LocalPort._(portName, trusted);
   }
 
-  /// Connects to `portName` remote port in `remoteAppId`.
+  /// Connects to [portName] remote port in [remoteAppId].
   ///
-  /// Remote port has to be created and registered on client side first.
+  /// Corresponding local port has to be created and registered on the client side first.
   ///
-  /// Exception will be thrown if remote port does not exist.
+  /// By default trusted remote port is created. Trusted port restricts communication
+  /// through them to applications that share a signing certificate.
+  /// Set [trusted] to false, to change this behaviour.
+  ///
+  /// Exception will be thrown if the remote port does not exist.
   static Future<RemotePort> connectToRemotePort(
       String remoteAppId, String portName,
-      {bool isTrusted = true}) async {
-    final Map<String, dynamic> args = <String, dynamic>{};
-    args['remoteAppId'] = remoteAppId;
-    args['portName'] = portName;
-    args['isTrusted'] = isTrusted;
-    final bool check =
-        await _channel.invokeMethod<bool>('createRemote', args) as bool;
-    if (check) {
-      return RemotePort._(remoteAppId, portName, isTrusted);
+      {bool trusted = true}) async {
+    if (await _manager.checkForRemotePort(remoteAppId, portName, trusted)) {
+      return RemotePort._(remoteAppId, portName, trusted);
     }
     throw Exception('Remote port not found');
   }

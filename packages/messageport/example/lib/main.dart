@@ -65,6 +65,65 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  Widget _localPortRegisteringButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: <Widget>[
+        Builder(
+          builder: (BuildContext context) => _textButton('Register', () async {
+            try {
+              _localPort?.register(onMessage);
+              setState(() {});
+            } catch (e) {
+              _showErrorDialog(context, e.toString());
+            }
+          }, _localPort != null && !_localPort!.registered),
+        ),
+        Builder(
+            builder: (BuildContext context) =>
+                _textButton('Unregister', () async {
+                  try {
+                    _localPort?.unregister();
+                    setState(() {});
+                  } catch (e) {
+                    _showErrorDialog(context, e.toString());
+                  }
+                }, _localPort?.registered ?? false)),
+      ],
+    );
+  }
+
+  Widget _remotePortButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        Builder(
+            builder: (BuildContext context) =>
+                _textButton('Connect to remote', () async {
+                  try {
+                    _remotePort = await TizenMessagePort.connectToRemotePort(
+                        kRemoteAppId, kPortName);
+                    setState(() {});
+                  } catch (e) {
+                    _showErrorDialog(context, e.toString());
+                  }
+                }, (_localPort?.registered ?? false) && _remotePort == null)),
+        Builder(
+          builder: (BuildContext context) =>
+              _textButton('Check remote', () async {
+            try {
+              final bool status = await _remotePort!.check();
+              _log('Status of remote port: ' + (status ? 'opened' : 'closed'));
+              setState(() {});
+            } catch (e) {
+              _showErrorDialog(context, e.toString());
+            }
+          }, _remotePort != null),
+        ),
+      ],
+    );
+  }
+
   final Map<String, dynamic> _sendOptions = <String, dynamic>{
     'bool': true,
     'int': 134,
@@ -175,43 +234,8 @@ class _MyAppState extends State<MyApp> {
               setState(() {});
             }, _localPort == null),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              Builder(
-                builder: (BuildContext context) =>
-                    _textButton('Register', () async {
-                  try {
-                    _localPort?.register(onMessage);
-                    setState(() {});
-                  } catch (e) {
-                    _showErrorDialog(context, e.toString());
-                  }
-                }, _localPort != null && !_localPort!.registered),
-              ),
-              Builder(
-                  builder: (BuildContext context) =>
-                      _textButton('Unregister', () async {
-                        try {
-                          _localPort?.unregister();
-                          setState(() {});
-                        } catch (e) {
-                          _showErrorDialog(context, e.toString());
-                        }
-                      }, _localPort?.registered ?? false)),
-            ],
-          ),
-          Builder(
-              builder: (BuildContext context) =>
-                  _textButton('Connect to remote', () async {
-                    try {
-                      _remotePort = await TizenMessagePort.connectToRemotePort(
-                          kRemoteAppId, kPortName);
-                      setState(() {});
-                    } catch (e) {
-                      _showErrorDialog(context, e.toString());
-                    }
-                  }, (_localPort?.registered ?? false) && _remotePort == null)),
+          _localPortRegisteringButtons(),
+          _remotePortButtons(),
           _sendButtons(context,
               _remotePort != null && (_localPort?.registered ?? false)),
           _logger(context),

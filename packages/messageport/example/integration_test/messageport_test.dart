@@ -13,7 +13,7 @@ void main() {
 
   testWidgets('Create non trusted local port', (WidgetTester tester) async {
     final LocalPort port =
-        await TizenMessagePort.createLocalPort('test_port', isTrusted: false);
+        await TizenMessagePort.createLocalPort('test_port', trusted: false);
     assert(port is LocalPort, true);
     assert(!port.trusted, true);
   }, timeout: const Timeout(Duration(seconds: 5)));
@@ -40,13 +40,26 @@ void main() {
   testWidgets('Create trusted remote port from not trusted',
       (WidgetTester tester) async {
     final LocalPort localPort =
-        await TizenMessagePort.createLocalPort('test_port', isTrusted: false);
+        await TizenMessagePort.createLocalPort('test_port', trusted: false);
     localPort.register((dynamic message, [RemotePort? remotePort]) => null);
     expect(
         () async => await TizenMessagePort.connectToRemotePort(
             'com.example.messageport_tizen_example', 'test_port'),
         throwsA(isA<Exception>()));
     await localPort.unregister();
+  }, timeout: const Timeout(Duration(seconds: 5)));
+
+  testWidgets('Check for remote', (WidgetTester tester) async {
+    final LocalPort localPort =
+        await TizenMessagePort.createLocalPort('test_port');
+    localPort.register((dynamic message, [RemotePort? remotePort]) => null);
+    final RemotePort remotePort = await TizenMessagePort.connectToRemotePort(
+        'com.example.messageport_tizen_example', 'test_port');
+    final bool statuOne = await remotePort.check();
+    expect(statuOne, equals(true));
+    await localPort.unregister();
+    final bool statusTwo = await remotePort.check();
+    expect(statusTwo, equals(false));
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   testWidgets('Send simple message', (WidgetTester tester) async {

@@ -64,7 +64,7 @@ void MessagePortManager::OnMessageReceived(int local_port_id,
 
     int ret = bundle_get_byte(message, "bytes", (void**)&byte_array, &size);
     if (ret != BUNDLE_ERROR_NONE) {
-      manager->sinks_[local_port_id]->Error("Failed to parse response");
+      manager->sinks_[local_port_id]->Error("Failed to parse a response");
     }
 
     std::vector<uint8_t> encoded(byte_array, byte_array + size);
@@ -81,7 +81,7 @@ void MessagePortManager::OnMessageReceived(int local_port_id,
     map[flutter::EncodableValue("remoteAppId")] =
         flutter::EncodableValue(remote_app_id);
 
-    map[flutter::EncodableValue("isTrusted")] =
+    map[flutter::EncodableValue("trusted")] =
         flutter::EncodableValue(trusted_remote_port);
 
     manager->sinks_[local_port_id]->Success(flutter::EncodableValue(map));
