@@ -25,5 +25,4 @@ dev_dependencies:
   integration_test_tizen: ^2.0.0
 
 flutter:
-
   uses-material-design: true

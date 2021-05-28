@@ -38,12 +38,7 @@ static bool ConvertEncodableValueToBundle(flutter::EncodableValue& v,
   std::unique_ptr<std::vector<uint8_t>> encoded =
       flutter::StandardMessageCodec::GetInstance().EncodeMessage(v);
 
-  int ret = bundle_add_byte_array(b, "bytes", encoded->size());
-  if (BUNDLE_ERROR_NONE != ret) {
-    return false;
-  }
-  ret = bundle_set_byte_array_element(b, "bytes", 0, encoded->data(),
-                                      encoded->size());
+  int ret = bundle_add_byte(b, "bytes", encoded->data(), encoded->size());
   if (BUNDLE_ERROR_NONE != ret) {
     return false;
   }
@@ -64,18 +59,15 @@ void MessagePortManager::OnMessageReceived(int local_port_id,
   MessagePortManager* manager = static_cast<MessagePortManager*>(user_data);
 
   if (manager->sinks_.find(local_port_id) != manager->sinks_.end()) {
-    void** byte_array = NULL;
-    unsigned int len = 0;
-    unsigned int* array_element_size = NULL;
+    uint8_t* byte_array = NULL;
+    size_t size = 0;
 
-    int ret = bundle_get_byte_array(message, "bytes", &byte_array, &len,
-                                    &array_element_size);
+    int ret = bundle_get_byte(message, "bytes", (void**)&byte_array, &size);
     if (ret != BUNDLE_ERROR_NONE) {
       manager->sinks_[local_port_id]->Error("Failed to parse response");
     }
 
-    uint8_t** begin = (uint8_t**)byte_array;
-    std::vector<uint8_t> encoded(begin[0], begin[0] + len);
+    std::vector<uint8_t> encoded(byte_array, byte_array + size);
 
     auto value =
         flutter::StandardMessageCodec::GetInstance().DecodeMessage(encoded);

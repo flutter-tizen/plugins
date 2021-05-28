@@ -13,16 +13,16 @@ const MethodChannel _channel = MethodChannel('tizen/messageport');
 /// This is used by [LocalPort.register].
 typedef OnMessageReceived = Function(dynamic message, [RemotePort? remotePort]);
 
-/// Local port to receive messages
+/// Local port to receive messages.
 class LocalPort {
-  LocalPort._(this._id, this._portName, this._isTrusted);
+  LocalPort._(this._id, this.portName, this.trusted);
 
-  /// Register messageport and sets listener
+  /// Register messageport and sets listener.
   ///
   /// Names of already registered ports has to be unique.
   /// Exception will be thrown when using on already registered port
   void register(OnMessageReceived onMessage) {
-    if (_registeredPorts.contains(portName)) {
+    if (registered) {
       throw Exception('Port $portName is already registered');
     }
 
@@ -46,93 +46,77 @@ class LocalPort {
     _registeredPorts.add(portName);
   }
 
-  /// Unregisters messageport
+  /// Unregisters messageport.
   Future<void> unregister() async {
     await _streamSubscription?.cancel();
     _registeredPorts.remove(portName);
   }
 
-  /// Checks whether local port is trusted
-  bool get trusted {
-    return _isTrusted;
-  }
+  /// Checks whether local port is trusted.
+  final bool trusted;
 
-  /// Returns port name
-  String get portName {
-    return _portName;
-  }
+  /// Returns port name.
+  final String portName;
 
-  /// Checks whether local port is registered
+  /// Checks whether local port is registered.
   bool get registered {
-    return _registeredPorts.contains(_portName);
+    return _registeredPorts.contains(portName);
   }
 
   final int _id;
-  final bool _isTrusted;
-  final String _portName;
   StreamSubscription<dynamic>? _streamSubscription;
   late EventChannel _eventChannel;
 
   static final Set<String> _registeredPorts = <String>{};
 }
 
-/// Remote port to send messages
+/// Remote port to send messages.
 class RemotePort {
-  RemotePort._(this._remoteAppId, this._portName, this._isTrusted);
+  RemotePort._(this.remoteAppId, this.portName, this.trusted);
 
-  /// Sends message through remote messageport
+  /// Sends message through remote messageport.
   Future<void> send(dynamic message) async {
     final Map<String, dynamic> args = <String, dynamic>{};
-    args['isTrusted'] = _isTrusted;
-    args['remoteAppId'] = _remoteAppId;
-    args['portName'] = _portName;
+    args['isTrusted'] = trusted;
+    args['remoteAppId'] = remoteAppId;
+    args['portName'] = portName;
     args['message'] = message;
 
     return _channel.invokeMethod('send', args);
   }
 
-  /// Sends message through remote messageport with local port
+  /// Sends message through remote messageport with local port.
   ///
-  /// Remote application can reply to the message by use of provided local port
+  /// Remote application can reply to the message by use of provided local port.
   Future<void> sendWithLocalPort(dynamic message, LocalPort localPort) async {
     final Map<String, dynamic> args = <String, dynamic>{};
-    args['isTrusted'] = _isTrusted;
-    args['remoteAppId'] = _remoteAppId;
-    args['portName'] = _portName;
+    args['isTrusted'] = trusted;
+    args['remoteAppId'] = remoteAppId;
+    args['portName'] = portName;
     args['localPort'] = localPort._id;
     args['message'] = message;
 
     return _channel.invokeMethod('send', args);
   }
 
-  /// Returns remote appId
-  String get remoteAppId {
-    return _remoteAppId;
-  }
+  /// Returns remote appId.
+  final String remoteAppId;
 
-  /// Returns port name
-  String get portName {
-    return _portName;
-  }
+  /// Returns port name.
+  final String portName;
 
-  /// Checks whether remote port is trusted
-  bool get trusted {
-    return _isTrusted;
-  }
-
-  final String _remoteAppId;
-  final String _portName;
-  final bool _isTrusted;
+  /// Checks whether remote port is trusted.
+  final bool trusted;
 }
 
-/// API for accessing MessagePorts in Tizen
+/// API for accessing MessagePorts in Tizen.
 class TizenMessagePort {
   /// Creates Local Port
   ///
-  /// By default trusted local port is created. Set isTrusted to false,
+  /// By default trusted local port is created. Set [isTrusted] to false,
   /// to change this behaviour.
   ///
-  /// Remember to call `register()` on local port to enable receiving messages
+  /// Remember to call `register()` on local port to enable receiving messages.
   static Future<LocalPort> createLocalPort(String portName,
       {bool isTrusted = true}) async {
     final Map<String, dynamic> args = <String, dynamic>{};
@@ -142,7 +126,7 @@ class TizenMessagePort {
     return LocalPort._(id, portName, isTrusted);
   }
 
-  /// Connects to `portName` remote port in `remoteAppId`
+  /// Connects to `portName` remote port in `remoteAppId`.
   ///
   /// Remote port has to be created and registered on client side first.
   ///

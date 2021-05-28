@@ -163,63 +163,61 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: Scaffold(
-            appBar: AppBar(
-              title: const Text('MessagePort Tizen Plugin'),
-            ),
-            body: Column(children: <Widget>[
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('MessagePort Tizen Plugin'),
+        ),
+        body: Column(children: <Widget>[
+          Builder(
+            builder: (BuildContext context) =>
+                _textButton('Create local port', () async {
+              _localPort = await TizenMessagePort.createLocalPort(kPortName);
+              setState(() {});
+            }, _localPort == null),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
               Builder(
                 builder: (BuildContext context) =>
-                    _textButton('Create local port', () async {
-                  _localPort =
-                      await TizenMessagePort.createLocalPort(kPortName);
-                  setState(() {});
-                }, _localPort == null),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  Builder(
-                    builder: (BuildContext context) =>
-                        _textButton('Register', () async {
-                      try {
-                        _localPort?.register(onMessage);
-                        setState(() {});
-                      } catch (e) {
-                        _showErrorDialog(context, e.toString());
-                      }
-                    }, _localPort != null && !_localPort!.registered),
-                  ),
-                  Builder(
-                      builder: (BuildContext context) =>
-                          _textButton('Unregister', () async {
-                            try {
-                              _localPort?.unregister();
-                              setState(() {});
-                            } catch (e) {
-                              _showErrorDialog(context, e.toString());
-                            }
-                          }, _localPort?.registered ?? false)),
-                ],
+                    _textButton('Register', () async {
+                  try {
+                    _localPort?.register(onMessage);
+                    setState(() {});
+                  } catch (e) {
+                    _showErrorDialog(context, e.toString());
+                  }
+                }, _localPort != null && !_localPort!.registered),
               ),
               Builder(
                   builder: (BuildContext context) =>
-                      _textButton('Connect to remote', () async {
+                      _textButton('Unregister', () async {
                         try {
-                          _remotePort =
-                              await TizenMessagePort.connectToRemotePort(
-                                  kRemoteAppId, kPortName);
+                          _localPort?.unregister();
                           setState(() {});
                         } catch (e) {
                           _showErrorDialog(context, e.toString());
                         }
-                      },
-                          (_localPort?.registered ?? false) &&
-                              _remotePort == null)),
-              _sendButtons(context,
-                  _remotePort != null && (_localPort?.registered ?? false)),
-              _logger(context),
-            ])));
+                      }, _localPort?.registered ?? false)),
+            ],
+          ),
+          Builder(
+              builder: (BuildContext context) =>
+                  _textButton('Connect to remote', () async {
+                    try {
+                      _remotePort = await TizenMessagePort.connectToRemotePort(
+                          kRemoteAppId, kPortName);
+                      setState(() {});
+                    } catch (e) {
+                      _showErrorDialog(context, e.toString());
+                    }
+                  }, (_localPort?.registered ?? false) && _remotePort == null)),
+          _sendButtons(context,
+              _remotePort != null && (_localPort?.registered ?? false)),
+          _logger(context),
+        ]),
+      ),
+    );
   }
 
   @override
