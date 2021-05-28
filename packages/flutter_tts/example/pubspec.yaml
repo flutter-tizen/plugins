@@ -1,6 +1,6 @@
 name: flutter_tts_tizen_example
 description: Demonstrates how to use the flutter_tts_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   flutter:
@@ -18,7 +18,7 @@ dev_dependencies:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
-    
+
 flutter:
   uses-material-design: true
 

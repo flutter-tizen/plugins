@@ -53,7 +53,7 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
   std::string GetWifiInfo(WifiInfoType type) {
     std::string result;
     wifi_manager_ap_h current_ap = nullptr;
-    char *name = NULL;
+    char *name = nullptr;
     int errorcode;
 
     errorcode = wifi_manager_get_connected_ap(m_wifi_manager, &current_ap);
@@ -85,7 +85,7 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
     } else if (method_call.method_name().compare("wifiBSSID") == 0) {
       replay = GetWifiInfo(WifiInfoType::BSSID);
     } else if (method_call.method_name().compare("wifiIPAddress") == 0) {
-      char *ip_addr = NULL;
+      char *ip_addr = nullptr;
       if (connection_get_ip_address(m_connection,
                                     CONNECTION_ADDRESS_FAMILY_IPV4,
                                     &ip_addr) != CONNECTION_ERROR_NONE) {

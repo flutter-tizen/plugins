@@ -1,6 +1,6 @@
 name: connectivity_example
 description: Demonstrates how to use the connectivity_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   connectivity: ^3.0.3

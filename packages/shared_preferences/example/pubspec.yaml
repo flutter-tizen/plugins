@@ -1,6 +1,6 @@
 name: shared_preferences_tizen_example
 description: Demonstrates how to use the shared_preferences_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   flutter:

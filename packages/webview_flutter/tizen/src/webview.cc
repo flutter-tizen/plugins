@@ -704,7 +704,7 @@ void WebView::DispatchCompositionEndEvent(const char* str, int size) {
 void WebView::ShowPanel() {
   LOG_DEBUG("WebView::ShowPanel()");
   if (!context_) {
-    LOG_ERROR("Ecore_IMF_Context NULL");
+    LOG_ERROR("Ecore_IMF_Context nullptr");
     return;
   }
   ecore_imf_context_input_panel_show(context_);
@@ -714,7 +714,7 @@ void WebView::ShowPanel() {
 void WebView::HidePanel() {
   LOG_DEBUG("WebView::HidePanel()");
   if (!context_) {
-    LOG_ERROR("Ecore_IMF_Context NULL");
+    LOG_ERROR("Ecore_IMF_Context nullptr");
     return;
   }
   ecore_imf_context_reset(context_);

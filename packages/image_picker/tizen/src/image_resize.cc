@@ -68,8 +68,8 @@ bool ImageResize::TransformImage(transformation_h transform_h,
                                  image_util_image_h& dst_image) {
   unsigned int org_width;
   unsigned int org_height;
-  int ret = image_util_get_image(src_image, &org_width, &org_height, NULL, NULL,
-                                 NULL);
+  int ret = image_util_get_image(src_image, &org_width, &org_height, nullptr,
+                                 nullptr, nullptr);
   if (ret != IMAGE_UTIL_ERROR_NONE) {
     LOG_ERROR("image_util_get_image fail! [%s]",
               imageUitlErrorToString(ret).c_str());
@@ -170,9 +170,9 @@ bool ImageResize::Resize(const std::string& src_file, std::string& dst_file) {
   }
 
   // ===========================================================
-  image_util_image_h src_image = NULL;
-  image_util_image_h dst_image = NULL;
-  image_util_decode_h decode_h = NULL;
+  image_util_image_h src_image = nullptr;
+  image_util_image_h dst_image = nullptr;
+  image_util_decode_h decode_h = nullptr;
 
   int ret = image_util_decode_create(&decode_h);
   if (ret != IMAGE_UTIL_ERROR_NONE) {
@@ -190,7 +190,7 @@ bool ImageResize::Resize(const std::string& src_file, std::string& dst_file) {
   }
 
   // ===========================================================
-  transformation_h transform_h = NULL;
+  transformation_h transform_h = nullptr;
   ret = image_util_transform_create(&transform_h);
   if (ret != IMAGE_UTIL_ERROR_NONE) {
     LOG_ERROR("image_util_transform_create fail! [%s]",
@@ -246,7 +246,7 @@ bool ImageResize::Resize(const std::string& src_file, std::string& dst_file) {
     }
   }
 
-  image_util_encode_h encode_h = NULL;
+  image_util_encode_h encode_h = nullptr;
   ret = image_util_encode_create(encoder_type, &encode_h);
   if (ret != IMAGE_UTIL_ERROR_NONE) {
     LOG_ERROR("image_util_encode_create fail! [%s]",

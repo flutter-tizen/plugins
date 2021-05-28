@@ -1,6 +1,6 @@
 name: battery_example
 description: Demonstrates how to use the battery_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   battery: ^2.0.1
