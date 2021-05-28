@@ -14,6 +14,7 @@ struct MessagePortResult {
   MessagePortResult() : error_code(MESSAGE_PORT_ERROR_NONE){};
   MessagePortResult(int code) : error_code(code) {}
 
+  // Returns false on error
   operator bool() const { return MESSAGE_PORT_ERROR_NONE == error_code; }
 
   std::string message() { return get_error_message(error_code); }
@@ -46,6 +47,7 @@ class MessagePortManager {
                                 void* user_data);
 
   MessagePortResult CreateResult(int return_code);
+  MessagePortResult PrepareBundle(flutter::EncodableValue& message, bundle*& b);
   std::map<int, EventSink> sinks_;
   std::set<int> trusted_ports_;
 };

@@ -167,16 +167,10 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            flutter::EncodableValue& message,
                                            bool is_trusted) {
   LOG_DEBUG("Send (%s, %s)", remote_app_id.c_str(), port_name.c_str());
-  bundle* b = bundle_create();
-  if (nullptr == b) {
-    return CreateResult(MESSAGE_PORT_ERROR_OUT_OF_MEMORY);
-  }
-
-  bool result = ConvertEncodableValueToBundle(message, b);
+  bundle* b;
+  MessagePortResult result = PrepareBundle(message, b);
   if (!result) {
-    LOG_ERROR("Failed to parse EncodableValue");
-    bundle_free(b);
-    return CreateResult(MESSAGE_PORT_ERROR_INVALID_PARAMETER);
+    return result;
   }
 
   int ret;
@@ -197,18 +191,11 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            bool is_trusted, int local_port) {
   LOG_DEBUG("Send (%s, %s), port: %d", remote_app_id.c_str(), port_name.c_str(),
             local_port);
-  bundle* b = bundle_create();
-  if (nullptr == b) {
-    return CreateResult(MESSAGE_PORT_ERROR_OUT_OF_MEMORY);
-  }
-
-  bool result = ConvertEncodableValueToBundle(message, b);
+  bundle* b;
+  MessagePortResult result = PrepareBundle(message, b);
   if (!result) {
-    LOG_ERROR("Failed to parse EncodableValue");
-    bundle_free(b);
-    return CreateResult(MESSAGE_PORT_ERROR_INVALID_PARAMETER);
+    return result;
   }
-
   int ret;
   if (is_trusted) {
     ret = message_port_send_trusted_message_with_local_port(
@@ -221,6 +208,22 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
   bundle_free(b);
 
   return CreateResult(ret);
+}
+
+MessagePortResult MessagePortManager::PrepareBundle(
+    flutter::EncodableValue& message, bundle*& b) {
+  b = bundle_create();
+  if (nullptr == b) {
+    return CreateResult(MESSAGE_PORT_ERROR_OUT_OF_MEMORY);
+  }
+
+  bool result = ConvertEncodableValueToBundle(message, b);
+  if (!result) {
+    LOG_ERROR("Failed to parse EncodableValue");
+    bundle_free(b);
+    return CreateResult(MESSAGE_PORT_ERROR_INVALID_PARAMETER);
+  }
+  return CreateResult(MESSAGE_PORT_ERROR_NONE);
 }
 
 MessagePortResult MessagePortManager::CreateResult(int return_code) {
