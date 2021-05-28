@@ -13,41 +13,6 @@
 
 #include "log.h"
 
-static std::string ErrorToString(int error) {
-  switch (error) {
-    case TTS_ERROR_NONE:
-      return "TTS - Successful";
-    case TTS_ERROR_OUT_OF_MEMORY:
-      return "TTS - Out of Memory";
-    case TTS_ERROR_IO_ERROR:
-      return "TTS - I/O error";
-    case TTS_ERROR_INVALID_PARAMETER:
-      return "TTS - Invalid parameter";
-    case TTS_ERROR_OUT_OF_NETWORK:
-      return "TTS - Network is down";
-    case TTS_ERROR_TIMED_OUT:
-      return "TTS - No answer from the daemon";
-    case TTS_ERROR_PERMISSION_DENIED:
-      return "TTS - Permission denied";
-    case TTS_ERROR_NOT_SUPPORTED:
-      return "TTS - TTS NOT supported";
-    case TTS_ERROR_INVALID_STATE:
-      return "TTS - Invalid state";
-    case TTS_ERROR_INVALID_VOICE:
-      return "TTS - Invalid voice";
-    case TTS_ERROR_OPERATION_FAILED:
-      return "TTS - Operation failed";
-    case TTS_ERROR_AUDIO_POLICY_BLOCKED:
-      return "TTS - Audio policy blocked";
-    case TTS_ERROR_NOT_SUPPORTED_FEATURE:
-      return "TTS - Not supported feature of current engine";
-    case TTS_ERROR_SERVICE_RESET:
-      return "TTS - Service reset";
-    default:
-      return "TTS - Unknown Error";
-  }
-}
-
 class FlutterTtsTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
@@ -86,7 +51,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
     int ret = tts_create(&m_tts);
     if (ret != TTS_ERROR_NONE) {
-      LOG_ERROR("[TTS] tts_create failed: %s", ErrorToString(ret).c_str());
+      LOG_ERROR("[TTS] tts_create failed: %s", get_error_message(ret));
       m_tts = nullptr;
       return false;
     }
@@ -94,7 +59,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     ret = tts_set_state_changed_cb(m_tts, OnStateChanged, (void *)this);
     if (ret != TTS_ERROR_NONE) {
       LOG_ERROR("[TTS] tts_set_state_changed_cb failed: %s",
-                ErrorToString(ret).c_str());
+                get_error_message(ret));
       tts_destroy(m_tts);
       m_tts = nullptr;
       return false;
@@ -104,7 +69,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
                                          (void *)this);
     if (ret != TTS_ERROR_NONE) {
       LOG_ERROR("[TTS] tts_set_utterance_completed_cb failed: %s",
-                ErrorToString(ret).c_str());
+                get_error_message(ret));
       tts_destroy(m_tts);
       m_tts = nullptr;
       return false;
@@ -116,7 +81,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_get_default_voice failed: %s",
-                  ErrorToString(ret).c_str());
+                  get_error_message(ret));
         tts_destroy(m_tts);
         m_tts = nullptr;
         return false;
@@ -128,7 +93,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     ret = tts_foreach_supported_voices(m_tts, OnSupportedVoices, (void *)this);
     if (ret != TTS_ERROR_NONE) {
       LOG_ERROR("[TTS] tts_foreach_supported_voices failed: %s",
-                ErrorToString(ret).c_str());
+                get_error_message(ret));
       tts_destroy(m_tts);
       m_tts = nullptr;
       return false;
@@ -138,7 +103,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
     ret = tts_prepare(m_tts);
     if (ret != TTS_ERROR_NONE) {
-      LOG_ERROR("[TTS] tts_prepare failed: %s", ErrorToString(ret).c_str());
+      LOG_ERROR("[TTS] tts_prepare failed: %s", get_error_message(ret));
       tts_destroy(m_tts);
       m_tts = nullptr;
       return false;
@@ -182,8 +147,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         ret = tts_add_text(m_tts, text.c_str(), m_language.c_str(),
                            m_voice_type, m_speed, &utt_id);
         if (ret != TTS_ERROR_NONE) {
-          LOG_ERROR("[TTS] tts_add_text failed: %s",
-                    ErrorToString(ret).c_str());
+          LOG_ERROR("[TTS] tts_add_text failed: %s", get_error_message(ret));
           result->Error(std::to_string(ret), "Failed to speak(tts_add_text).");
           return;
         }
@@ -193,7 +157,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       }
       ret = tts_play(m_tts);
       if (ret != TTS_ERROR_NONE) {
-        LOG_ERROR("[TTS] tts_play failed: %s", ErrorToString(ret).c_str());
+        LOG_ERROR("[TTS] tts_play failed: %s", get_error_message(ret));
         result->Error(std::to_string(ret), "Failed to speak(tts_play).");
         return;
       }
@@ -207,7 +171,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     } else if (method_name.compare("stop") == 0) {
       ret = tts_stop(m_tts);
       if (ret != TTS_ERROR_NONE) {
-        LOG_ERROR("[TTS] tts_stop failed: %s", ErrorToString(ret).c_str());
+        LOG_ERROR("[TTS] tts_stop failed: %s", get_error_message(ret));
         result->Error(std::to_string(ret), "Failed to stop.");
         return;
       }
@@ -216,7 +180,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     } else if (method_name.compare("pause") == 0) {
       ret = tts_pause(m_tts);
       if (ret != TTS_ERROR_NONE) {
-        LOG_ERROR("[TTS] tts_pause failed: %s", ErrorToString(ret).c_str());
+        LOG_ERROR("[TTS] tts_pause failed: %s", get_error_message(ret));
         result->Error(std::to_string(ret), "Failed to pause.");
         return;
       }
@@ -227,7 +191,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       ret = tts_get_speed_range(m_tts, &min, &normal, &max);
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_get_speed_range failed: %s",
-                  ErrorToString(ret).c_str());
+                  get_error_message(ret));
         result->Error(std::to_string(ret),
                       "Failed to getSpeechRateValidRange.");
         return;

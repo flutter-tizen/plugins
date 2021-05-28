@@ -49,70 +49,6 @@ static std::string StateToString(player_state_e state) {
   return ret;
 }
 
-static std::string ErrorToString(int code) {
-  std::string ret;
-  switch (code) {
-    case PLAYER_ERROR_NONE:
-      ret = "PLAYER_ERROR_NONE";
-      break;
-    case PLAYER_ERROR_INVALID_PARAMETER:
-      ret = "PLAYER_ERROR_INVALID_PARAMETER";
-      break;
-    case PLAYER_ERROR_OUT_OF_MEMORY:
-      ret = "PLAYER_ERROR_OUT_OF_MEMORY";
-      break;
-    case PLAYER_ERROR_INVALID_OPERATION:
-      ret = "PLAYER_ERROR_INVALID_OPERATION";
-      break;
-    case PLAYER_ERROR_RESOURCE_LIMIT:
-      ret = "PLAYER_ERROR_RESOURCE_LIMIT";
-      break;
-    case PLAYER_ERROR_FILE_NO_SPACE_ON_DEVICE:
-      ret = "PLAYER_ERROR_FILE_NO_SPACE_ON_DEVICE";
-      break;
-    case PLAYER_ERROR_INVALID_STATE:
-      ret = "PLAYER_ERROR_INVALID_STATE";
-      break;
-    case PLAYER_ERROR_INVALID_URI:
-      ret = "PLAYER_ERROR_INVALID_URI";
-      break;
-    case PLAYER_ERROR_NO_SUCH_FILE:
-      ret = "PLAYER_ERROR_NO_SUCH_FILE";
-      break;
-    case PLAYER_ERROR_NOT_SUPPORTED_FILE:
-      ret = "PLAYER_ERROR_NOT_SUPPORTED_FILE";
-      break;
-    case PLAYER_ERROR_CONNECTION_FAILED:
-      ret = "PLAYER_ERROR_CONNECTION_FAILED";
-      break;
-    case PLAYER_ERROR_SEEK_FAILED:
-      ret = "PLAYER_ERROR_SEEK_FAILED";
-      break;
-    case PLAYER_ERROR_FEATURE_NOT_SUPPORTED_ON_DEVICE:
-      ret = "PLAYER_ERROR_FEATURE_NOT_SUPPORTED_ON_DEVICE";
-      break;
-    case PLAYER_ERROR_DRM_NOT_PERMITTED:
-      ret = "PLAYER_ERROR_DRM_NOT_PERMITTED";
-      break;
-    case PLAYER_ERROR_SERVICE_DISCONNECTED:
-      ret = "PLAYER_ERROR_SERVICE_DISCONNECTED";
-      break;
-    case PLAYER_ERROR_NOT_SUPPORTED_SUBTITLE:
-      ret = "PLAYER_ERROR_NOT_SUPPORTED_SUBTITLE";
-      break;
-    case PLAYER_ERROR_NOT_SUPPORTED_AUDIO_CODEC:
-      ret = "PLAYER_ERROR_NOT_SUPPORTED_AUDIO_CODEC";
-      break;
-    case PLAYER_ERROR_NOT_SUPPORTED_VIDEO_CODEC:
-      ret = "PLAYER_ERROR_NOT_SUPPORTED_VIDEO_CODEC";
-      break;
-    default:
-      ret = "PLAYER_ERROR_UNKNOWN";
-      break;
-  }
-  return ret;
-}
-
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
                          FlutterTextureRegistrar *textureRegistrar,
                          const std::string &uri, VideoPlayerOptions &options) {
@@ -125,9 +61,8 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   LOG_DEBUG("[VideoPlayer] call player_create to create player");
   int ret = player_create(&player_);
   if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_create failed: %s",
-              ErrorToString(ret).c_str());
-    throw VideoPlayerError("player_create failed", ErrorToString(ret));
+    LOG_ERROR("[VideoPlayer] player_create failed: %s", get_error_message(ret));
+    throw VideoPlayerError("player_create failed", get_error_message(ret));
   }
 
   LOG_DEBUG("[VideoPlayer] call player_set_uri to set video path (%s)",
@@ -136,8 +71,8 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_uri failed: %s",
-              ErrorToString(ret).c_str());
-    throw VideoPlayerError("player_set_uri failed", ErrorToString(ret));
+              get_error_message(ret));
+    throw VideoPlayerError("player_set_uri failed", get_error_message(ret));
   }
 
   LOG_DEBUG(
@@ -149,10 +84,10 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
     LOG_ERROR(
         "[VideoPlayer] player_set_media_packet_video_frame_decoded_cb "
         "failed: %s",
-        ErrorToString(ret).c_str());
+        get_error_message(ret));
     throw VideoPlayerError(
         "player_set_media_packet_video_frame_decoded_cb failed",
-        ErrorToString(ret));
+        get_error_message(ret));
   }
 
   LOG_DEBUG("[VideoPlayer] call player_set_buffering_cb");
@@ -160,9 +95,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_buffering_cb failed: %s",
-              ErrorToString(ret).c_str());
+              get_error_message(ret));
     throw VideoPlayerError("player_set_buffering_cb failed",
-                           ErrorToString(ret));
+                           get_error_message(ret));
   }
 
   LOG_DEBUG("[VideoPlayer] call player_set_completed_cb");
@@ -170,9 +105,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_completed_cb failed: %s",
-              ErrorToString(ret).c_str());
+              get_error_message(ret));
     throw VideoPlayerError("player_set_completed_cb failed",
-                           ErrorToString(ret));
+                           get_error_message(ret));
   }
 
   LOG_DEBUG("[VideoPlayer] call player_set_interrupted_cb");
@@ -180,9 +115,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_interrupted_cb failed: %s",
-              ErrorToString(ret).c_str());
+              get_error_message(ret));
     throw VideoPlayerError("player_set_interrupted_cb failed",
-                           ErrorToString(ret));
+                           get_error_message(ret));
   }
 
   LOG_DEBUG("[VideoPlayer] call player_set_error_cb");
@@ -190,8 +125,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_error_cb failed: %s",
-              ErrorToString(ret).c_str());
-    throw VideoPlayerError("player_set_error_cb failed", ErrorToString(ret));
+              get_error_message(ret));
+    throw VideoPlayerError("player_set_error_cb failed",
+                           get_error_message(ret));
   }
 
   LOG_DEBUG("[VideoPlayer] call player_prepare_async");
@@ -199,8 +135,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_prepare_async failed: %s",
-              ErrorToString(ret).c_str());
-    throw VideoPlayerError("player_prepare_async failed", ErrorToString(ret));
+              get_error_message(ret));
+    throw VideoPlayerError("player_prepare_async failed",
+                           get_error_message(ret));
   }
 
   setupEventChannel(pluginRegistrar->messenger());
@@ -228,8 +165,8 @@ void VideoPlayer::play() {
   ret = player_start(player_);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer.play] player_start failed: %s",
-              ErrorToString(ret).c_str());
-    throw VideoPlayerError("player_start failed", ErrorToString(ret));
+              get_error_message(ret));
+    throw VideoPlayerError("player_start failed", get_error_message(ret));
   }
 }
 
@@ -248,8 +185,8 @@ void VideoPlayer::pause() {
   ret = player_pause(player_);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer.pause] player_pause failed: %s",
-              ErrorToString(ret).c_str());
-    throw VideoPlayerError("player_pause failed", ErrorToString(ret));
+              get_error_message(ret));
+    throw VideoPlayerError("player_pause failed", get_error_message(ret));
   }
 }
 
@@ -258,8 +195,8 @@ void VideoPlayer::setLooping(bool isLooping) {
   int ret = player_set_looping(player_, isLooping);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer.setLooping] player_set_looping failed: %s",
-              ErrorToString(ret).c_str());
-    throw VideoPlayerError("player_set_looping failed", ErrorToString(ret));
+              get_error_message(ret));
+    throw VideoPlayerError("player_set_looping failed", get_error_message(ret));
   }
 }
 
@@ -268,8 +205,8 @@ void VideoPlayer::setVolume(double volume) {
   int ret = player_set_volume(player_, volume, volume);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer.setVolume] player_set_volume failed: %s",
-              ErrorToString(ret).c_str());
-    throw VideoPlayerError("player_set_volume failed", ErrorToString(ret));
+              get_error_message(ret));
+    throw VideoPlayerError("player_set_volume failed", get_error_message(ret));
   }
 }
 
@@ -279,9 +216,9 @@ void VideoPlayer::setPlaybackSpeed(double speed) {
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR(
         "[VideoPlayer.setPlaybackSpeed] player_set_playback_rate failed: %s",
-        ErrorToString(ret).c_str());
+        get_error_message(ret));
     throw VideoPlayerError("player_set_playback_rate failed",
-                           ErrorToString(ret));
+                           get_error_message(ret));
   }
 }
 
@@ -290,9 +227,9 @@ void VideoPlayer::seekTo(int position) {
   int ret = player_set_play_position(player_, position, true, nullptr, nullptr);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer.seekTo] player_set_play_position failed: %s",
-              ErrorToString(ret).c_str());
+              get_error_message(ret));
     throw VideoPlayerError("player_set_play_position failed",
-                           ErrorToString(ret));
+                           get_error_message(ret));
   }
 }
 
@@ -302,9 +239,9 @@ int VideoPlayer::getPosition() {
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer.getPosition] player_get_play_position failed: %s",
-              ErrorToString(ret).c_str());
+              get_error_message(ret));
     throw VideoPlayerError("player_get_play_position failed",
-                           ErrorToString(ret));
+                           get_error_message(ret));
   }
 
   LOG_DEBUG("[VideoPlayer.getPosition] position: %d", position);
@@ -378,7 +315,7 @@ void VideoPlayer::initialize() {
     }
   } else {
     LOG_ERROR("[VideoPlayer.initialize] player_get_state failed: %s",
-              ErrorToString(ret).c_str());
+              get_error_message(ret));
   }
 }
 
@@ -388,8 +325,8 @@ void VideoPlayer::sendInitialized() {
     int ret = player_get_duration(player_, &duration);
     if (ret != PLAYER_ERROR_NONE) {
       LOG_ERROR("[VideoPlayer.sendInitialized] player_get_duration failed: %s",
-                ErrorToString(ret).c_str());
-      eventSink_->Error(ErrorToString(ret), "player_get_duration failed");
+                get_error_message(ret));
+      eventSink_->Error("player_get_duration failed", get_error_message(ret));
       return;
     }
     LOG_DEBUG("[VideoPlayer.sendInitialized] video duration: %d", duration);
@@ -399,8 +336,8 @@ void VideoPlayer::sendInitialized() {
     if (ret != PLAYER_ERROR_NONE) {
       LOG_ERROR(
           "[VideoPlayer.sendInitialized] player_get_video_size failed: %s",
-          ErrorToString(ret).c_str());
-      eventSink_->Error(ErrorToString(ret), "player_get_video_size failed");
+          get_error_message(ret));
+      eventSink_->Error("player_get_video_size failed", get_error_message(ret));
       return;
     }
     LOG_DEBUG("[VideoPlayer.sendInitialized] video width: %d, height: %d",
@@ -412,7 +349,7 @@ void VideoPlayer::sendInitialized() {
       LOG_ERROR(
           "[VideoPlayer.sendInitialized] player_get_display_rotation "
           "failed: %s",
-          ErrorToString(ret).c_str());
+          get_error_message(ret));
     } else {
       LOG_DEBUG("[VideoPlayer.sendInitialized] rotation: %s",
                 RotationToString(rotation).c_str());
@@ -509,19 +446,19 @@ void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
 
   if (player->eventSink_) {
     LOG_INFO("[VideoPlayer.onInterrupted] send error event");
-    player->eventSink_->Error("VideoInterrupted",
-                              "Video player is interrupted");
+    player->eventSink_->Error("Video player is interrupted", "");
   }
 }
 
 void VideoPlayer::onErrorOccurred(int code, void *data) {
   VideoPlayer *player = (VideoPlayer *)data;
   LOG_DEBUG("[VideoPlayer.onErrorOccurred] error code: %s",
-            ErrorToString(code).c_str());
+            get_error_message(code));
 
   if (player->eventSink_) {
     LOG_INFO("[VideoPlayer.onErrorOccurred] send error event");
-    player->eventSink_->Error(ErrorToString(code), "Video player had error");
+    player->eventSink_->Error("Video player had error",
+                              get_error_message(code));
   }
 }
 

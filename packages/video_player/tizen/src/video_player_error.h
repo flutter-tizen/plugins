@@ -5,26 +5,26 @@
 
 class VideoPlayerError {
  public:
-  VideoPlayerError(const std::string &message, const std::string &code)
-      : message_(message), code_(code) {}
+  VideoPlayerError(const std::string &code, const std::string &message)
+      : code_(code), message_(message) {}
   ~VideoPlayerError() = default;
 
   VideoPlayerError(const VideoPlayerError &other) {
-    this->message_ = other.message_;
     this->code_ = other.code_;
+    this->message_ = other.message_;
   }
   VideoPlayerError &operator=(const VideoPlayerError &other) {
-    this->message_ = other.message_;
     this->code_ = other.code_;
+    this->message_ = other.message_;
     return *this;
   }
 
-  std::string getMessage() const { return message_; }
   std::string getCode() const { return code_; }
+  std::string getMessage() const { return message_; }
 
  private:
-  std::string message_;
   std::string code_;
+  std::string message_;
 };
 
 #endif  // VIDEO_PLAYER_ERROR_H_

@@ -100,8 +100,7 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
       LOG_DEBUG(
           "[VideoPlayerTizenPlugin.create] failed to get resource path "
           "of package");
-      throw VideoPlayerError("failed to get resource path",
-                             "PLAYER_ERROR_INVALID_RESOURCE_PATH");
+      throw VideoPlayerError("failed to get resource path", "");
     }
   }
   LOG_DEBUG("[VideoPlayerTizenPlugin.create] uri of video player: %s",

@@ -19,23 +19,6 @@
 
 #include "log.h"
 
-static std::string systemInfoErrorToString(int error) {
-  switch (error) {
-    case SYSTEM_INFO_ERROR_NONE:
-      return "SystemInfo - Successful";
-    case SYSTEM_INFO_ERROR_INVALID_PARAMETER:
-      return "SystemInfo - Invalid parameter";
-    case SYSTEM_INFO_ERROR_OUT_OF_MEMORY:
-      return "SystemInfo - Out of Memory";
-    case SYSTEM_INFO_ERROR_IO_ERROR:
-      return "SystemInfo - IO Error";
-    case SYSTEM_INFO_ERROR_PERMISSION_DENIED:
-      return "SystemInfo - Permission denied";
-    default:
-      return "SystemInfo - Unknown Error";
-  }
-}
-
 class DeviceInfoTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
@@ -75,7 +58,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string("http://tizen.org/system/model_name",
                                           &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get model name: ");
       errorStr.append(resultStr);
     } else {
@@ -91,7 +74,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string(
         "http://tizen.org/feature/platform.core.cpu.arch", &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get cpu arch: ");
       errorStr.append(resultStr);
     } else {
@@ -107,7 +90,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string(
         "http://tizen.org/feature/platform.native.api.version", &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get native api version: ");
       errorStr.append(resultStr);
     } else {
@@ -123,7 +106,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string(
         "http://tizen.org/feature/platform.version", &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get platform version: ");
       errorStr.append(resultStr);
     } else {
@@ -139,7 +122,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string(
         "http://tizen.org/feature/platform.web.api.version", &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get web api version: ");
       errorStr.append(resultStr);
     } else {
@@ -155,7 +138,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string("http://tizen.org/system/build.date",
                                           &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get build date: ");
       errorStr.append(resultStr);
     } else {
@@ -171,7 +154,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string("http://tizen.org/system/build.id",
                                           &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get build id: ");
       errorStr.append(resultStr);
     } else {
@@ -187,7 +170,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string(
         "http://tizen.org/system/build.string", &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get build string: ");
       errorStr.append(resultStr);
     } else {
@@ -203,7 +186,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string("http://tizen.org/system/build.time",
                                           &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get build time: ");
       errorStr.append(resultStr);
     } else {
@@ -219,7 +202,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string("http://tizen.org/system/build.type",
                                           &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get build type: ");
       errorStr.append(resultStr);
     } else {
@@ -235,7 +218,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string(
         "http://tizen.org/system/build.variant", &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get build variant: ");
       errorStr.append(resultStr);
     } else {
@@ -251,7 +234,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string(
         "http://tizen.org/system/build.release", &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get build release: ");
       errorStr.append(resultStr);
     } else {
@@ -267,7 +250,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string("http://tizen.org/system/device_type",
                                           &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get device type: ");
       errorStr.append(resultStr);
     } else {
@@ -283,7 +266,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     ret = system_info_get_platform_string(
         "http://tizen.org/system/manufacturer", &value);
     if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = systemInfoErrorToString(ret);
+      resultStr = get_error_message(ret);
       errorStr.append(" Failed to get manufacturer: ");
       errorStr.append(resultStr);
     } else {
