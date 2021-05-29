@@ -1,6 +1,6 @@
 name: path_provider_tizen_example
 description: Demonstrates how to use the path_provider_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   flutter:

@@ -1,6 +1,6 @@
 name: image_picker_tizen_example
 description: Demonstrates how to use the image_picker_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   flutter:

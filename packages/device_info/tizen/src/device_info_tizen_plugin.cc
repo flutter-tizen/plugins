@@ -47,7 +47,7 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_INFO("method : %s", method_call.method_name().data());
 
-    char *value = NULL;
+    char *value = nullptr;
     flutter::EncodableMap msg;
     int ret;
     bool hasResult = false;

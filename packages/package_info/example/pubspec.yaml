@@ -1,6 +1,6 @@
 name: package_info_example
 description: Demonstrates how to use the package_info_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   flutter:

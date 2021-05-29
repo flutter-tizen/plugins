@@ -154,7 +154,7 @@ class ShareTizenPlugin : public flutter::Plugin {
     ret = app_control_set_launch_mode(handle, APP_CONTROL_LAUNCH_MODE_GROUP);
     RET_IF_ERROR(ret);
 
-    ret = app_control_send_launch_request(handle, NULL, NULL);
+    ret = app_control_send_launch_request(handle, nullptr, nullptr);
     RET_IF_ERROR(ret);
 
     if (handle) {

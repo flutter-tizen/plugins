@@ -177,7 +177,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
   void PickContent() {
     if (mime_type_.size() == 0) return;
 
-    app_control_h handle = NULL;
+    app_control_h handle = nullptr;
     int ret = app_control_create(&handle);
     RET_IF_ERROR(ret);
 
@@ -224,7 +224,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
       return;
     }
 
-    char **value = NULL;
+    char **value = nullptr;
     int count = 0;
     int ret = app_control_get_extra_data_array(reply, APP_CONTROL_DATA_SELECTED,
                                                &value, &count);

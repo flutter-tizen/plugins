@@ -18,7 +18,7 @@
 
 static uint64_t Timestamp() {
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   return (uint64_t)tv.tv_sec * 1000UL + tv.tv_usec / 1000UL;
 }
 

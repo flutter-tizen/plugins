@@ -1,6 +1,6 @@
 name: wifi_info_flutter_tizen_example
 description: Demonstrates how to use the wifi_info_flutter_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   connectivity: ^3.0.3

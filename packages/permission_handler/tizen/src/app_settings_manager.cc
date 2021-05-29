@@ -18,7 +18,7 @@ void AppSettingsManager::OpenAppSettings(OnAppSettingsOpened success_callback,
   }
 
   app_control_set_operation(service, APP_CONTROL_OPERATION_SETTING);
-  result = app_control_send_launch_request(service, NULL, NULL);
+  result = app_control_send_launch_request(service, nullptr, nullptr);
   app_control_destroy(service);
   if (result == APP_CONTROL_ERROR_NONE) {
     LOG_DEBUG("successed to open app settings");

@@ -54,15 +54,15 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
       return;
     }
 
-    char *app_id = NULL;
-    char *pkg_name = NULL;
-    char *version = NULL;
-    char *label = NULL;
-    package_info_h package_info = NULL;
+    char *app_id = nullptr;
+    char *pkg_name = nullptr;
+    char *version = nullptr;
+    char *label = nullptr;
+    package_info_h package_info = nullptr;
     flutter::EncodableMap msg;
 
     int ret = app_get_id(&app_id);
-    if (ret != APP_ERROR_NONE || app_id == NULL) {
+    if (ret != APP_ERROR_NONE || app_id == nullptr) {
       result->Error(std::to_string(ret), "Failed to get app_id",
                     flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
@@ -70,14 +70,14 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     LOG_INFO("app id : %s\n", app_id);
 
     ret = package_info_create(app_id, &package_info);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || package_info == NULL) {
+    if (ret != PACKAGE_MANAGER_ERROR_NONE || package_info == nullptr) {
       result->Error(std::to_string(ret), "Failed to create package_info",
                     flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
     }
 
     ret = package_info_get_label(package_info, &label);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || label == NULL) {
+    if (ret != PACKAGE_MANAGER_ERROR_NONE || label == nullptr) {
       result->Error(std::to_string(ret), "Failed to get app name",
                     flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
@@ -85,7 +85,7 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     LOG_INFO("package label : %s\n", label);
 
     ret = package_info_get_package(package_info, &pkg_name);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || pkg_name == NULL) {
+    if (ret != PACKAGE_MANAGER_ERROR_NONE || pkg_name == nullptr) {
       result->Error(std::to_string(ret), "Failed to get package name",
                     flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;
@@ -93,7 +93,7 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     LOG_INFO("package name : %s\n", pkg_name);
 
     ret = package_info_get_version(package_info, &version);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || version == NULL) {
+    if (ret != PACKAGE_MANAGER_ERROR_NONE || version == nullptr) {
       result->Error(std::to_string(ret), "Failed to get version",
                     flutter::EncodableValue(get_error_message(ret)));
       goto cleanup;

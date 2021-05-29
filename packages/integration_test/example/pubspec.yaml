@@ -1,6 +1,6 @@
 name: integration_test_example
 description: Demonstrates how to use the integration_test_tizen plugin.
-publish_to: 'none'
+publish_to: "none"
 
 dependencies:
   flutter:
