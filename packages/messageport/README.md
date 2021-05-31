@@ -1,6 +1,6 @@
 # messageport_tizen
 
-This plugin adds for a support communication between Flutter applications on Tizen platform.
+This plugin adds support for communication between Flutter applications on Tizen platform.
 
 ## Getting Started
 

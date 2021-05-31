@@ -4,20 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:messageport_tizen/messageport_tizen.dart';
 
 const String kPortName = 'servicePort';
-const String kRemoteAppId = 'com.example.messageport_tizen_example';
+const String kRemoteAppId = 'org.tizen.messageport_tizen_example';
 
 Future<String?> _showErrorDialog(BuildContext context, dynamic error) {
   return showDialog<String>(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-              title: const Text('Error occurred'),
-              content: Text(error.toString()),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.pop(context, ''),
-                  child: const Text('OK'),
-                )
-              ]));
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      title: const Text('Error occurred'),
+      content: Text(error.toString()),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.pop(context, ''),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 }
 
 void main() {
@@ -49,18 +51,19 @@ class _MyAppState extends State<MyApp> {
   Widget _textButton(String text, Function func, bool enabled) {
     return Container(
       child: ElevatedButton(
-          onPressed: enabled
-              ? () {
-                  _log('$text button clicked');
-                  func();
-                }
-              : null,
-          style: ElevatedButton.styleFrom(
-            primary: Colors.blue,
-            padding: const EdgeInsets.all(20),
-            elevation: 3,
-          ),
-          child: Text(text)),
+        onPressed: enabled
+            ? () {
+                _log('$text button clicked');
+                func();
+              }
+            : null,
+        style: ElevatedButton.styleFrom(
+          primary: Colors.blue,
+          padding: const EdgeInsets.all(20),
+          elevation: 3,
+        ),
+        child: Text(text),
+      ),
       margin: const EdgeInsets.all(5),
     );
   }
@@ -70,25 +73,33 @@ class _MyAppState extends State<MyApp> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
         Builder(
-          builder: (BuildContext context) => _textButton('Register', () async {
-            try {
-              _localPort?.register(onMessage);
-              setState(() {});
-            } catch (e) {
-              _showErrorDialog(context, e.toString());
-            }
-          }, _localPort != null && !_localPort!.registered),
+          builder: (BuildContext context) => _textButton(
+            'Register',
+            () async {
+              try {
+                _localPort?.register(onMessage);
+                setState(() {});
+              } catch (e) {
+                _showErrorDialog(context, e.toString());
+              }
+            },
+            _localPort != null && !_localPort!.registered,
+          ),
         ),
         Builder(
-            builder: (BuildContext context) =>
-                _textButton('Unregister', () async {
-                  try {
-                    _localPort?.unregister();
-                    setState(() {});
-                  } catch (e) {
-                    _showErrorDialog(context, e.toString());
-                  }
-                }, _localPort?.registered ?? false)),
+          builder: (BuildContext context) => _textButton(
+            'Unregister',
+            () async {
+              try {
+                _localPort?.unregister();
+                setState(() {});
+              } catch (e) {
+                _showErrorDialog(context, e.toString());
+              }
+            },
+            _localPort?.registered ?? false,
+          ),
+        ),
       ],
     );
   }
@@ -98,27 +109,35 @@ class _MyAppState extends State<MyApp> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         Builder(
-            builder: (BuildContext context) =>
-                _textButton('Connect to remote', () async {
-                  try {
-                    _remotePort = await TizenMessagePort.connectToRemotePort(
-                        kRemoteAppId, kPortName);
-                    setState(() {});
-                  } catch (e) {
-                    _showErrorDialog(context, e.toString());
-                  }
-                }, (_localPort?.registered ?? false) && _remotePort == null)),
+          builder: (BuildContext context) => _textButton(
+            'Connect to remote',
+            () async {
+              try {
+                _remotePort = await TizenMessagePort.connectToRemotePort(
+                    kRemoteAppId, kPortName);
+                setState(() {});
+              } catch (e) {
+                _showErrorDialog(context, e.toString());
+              }
+            },
+            (_localPort?.registered ?? false) && _remotePort == null,
+          ),
+        ),
         Builder(
-          builder: (BuildContext context) =>
-              _textButton('Check remote', () async {
-            try {
-              final bool status = await _remotePort!.check();
-              _log('Status of remote port: ' + (status ? 'opened' : 'closed'));
-              setState(() {});
-            } catch (e) {
-              _showErrorDialog(context, e.toString());
-            }
-          }, _remotePort != null),
+          builder: (BuildContext context) => _textButton(
+            'Check remote',
+            () async {
+              try {
+                final bool status = await _remotePort!.check();
+                _log(
+                    'Status of remote port: ' + (status ? 'opened' : 'closed'));
+                setState(() {});
+              } catch (e) {
+                _showErrorDialog(context, e.toString());
+              }
+            },
+            _remotePort != null,
+          ),
         ),
       ],
     );
@@ -151,31 +170,39 @@ class _MyAppState extends State<MyApp> {
           ],
         ),
         GridView.builder(
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 100,
-                childAspectRatio: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10),
-            itemCount: _sendOptions.length,
-            itemBuilder: (BuildContext ctx, int index) {
-              final String key = _sendOptions.keys.elementAt(index);
-              return Builder(
-                builder: (BuildContext context) => _textButton(key, () async {
+          scrollDirection: Axis.vertical,
+          shrinkWrap: true,
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 100,
+            childAspectRatio: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemCount: _sendOptions.length,
+          itemBuilder: (BuildContext ctx, int index) {
+            final String key = _sendOptions.keys.elementAt(index);
+            return Builder(
+              builder: (BuildContext context) => _textButton(
+                key,
+                () async {
                   try {
                     if (_attachLocalPort) {
                       await _remotePort?.sendWithLocalPort(
-                          _sendOptions[key], _localPort!);
+                        _sendOptions[key],
+                        _localPort!,
+                      );
                     } else {
                       await _remotePort?.send(_sendOptions[key]);
                     }
                   } catch (e) {
                     _showErrorDialog(context, e);
                   }
-                }, enabled),
-              );
-            }),
+                },
+                enabled,
+              ),
+            );
+          },
+        ),
       ],
     );
   }
@@ -212,8 +239,9 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         decoration: BoxDecoration(
-            border: Border.all(width: 1),
-            borderRadius: const BorderRadius.all(Radius.circular(3))),
+          border: Border.all(width: 1),
+          borderRadius: const BorderRadius.all(Radius.circular(3)),
+        ),
         margin: const EdgeInsets.all(5),
       ),
     );
@@ -228,16 +256,21 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Column(children: <Widget>[
           Builder(
-            builder: (BuildContext context) =>
-                _textButton('Create local port', () async {
-              _localPort = await TizenMessagePort.createLocalPort(kPortName);
-              setState(() {});
-            }, _localPort == null),
+            builder: (BuildContext context) => _textButton(
+              'Create local port',
+              () async {
+                _localPort = await TizenMessagePort.createLocalPort(kPortName);
+                setState(() {});
+              },
+              _localPort == null,
+            ),
           ),
           _localPortRegisteringButtons(),
           _remotePortButtons(),
-          _sendButtons(context,
-              _remotePort != null && (_localPort?.registered ?? false)),
+          _sendButtons(
+            context,
+            _remotePort != null && (_localPort?.registered ?? false),
+          ),
           _logger(context),
         ]),
       ),

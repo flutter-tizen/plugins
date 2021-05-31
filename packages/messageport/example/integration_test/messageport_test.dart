@@ -29,10 +29,10 @@ void main() {
         await TizenMessagePort.createLocalPort('test_port');
     localPort.register((dynamic message, [RemotePort? remotePort]) => null);
     final RemotePort remotePort = await TizenMessagePort.connectToRemotePort(
-        'com.example.messageport_tizen_example', 'test_port');
+        'org.tizen.messageport_tizen_example', 'test_port');
     expect(remotePort is RemotePort, true);
-    expect(remotePort.remoteAppId,
-        equals('com.example.messageport_tizen_example'));
+    expect(
+        remotePort.remoteAppId, equals('org.tizen.messageport_tizen_example'));
     expect(remotePort.portName, equals('test_port'));
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
@@ -44,7 +44,7 @@ void main() {
     localPort.register((dynamic message, [RemotePort? remotePort]) => null);
     expect(
         () async => await TizenMessagePort.connectToRemotePort(
-            'com.example.messageport_tizen_example', 'test_port'),
+            'org.tizen.messageport_tizen_example', 'test_port'),
         throwsA(isA<Exception>()));
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
@@ -54,7 +54,7 @@ void main() {
         await TizenMessagePort.createLocalPort('test_port');
     localPort.register((dynamic message, [RemotePort? remotePort]) => null);
     final RemotePort remotePort = await TizenMessagePort.connectToRemotePort(
-        'com.example.messageport_tizen_example', 'test_port');
+        'org.tizen.messageport_tizen_example', 'test_port');
     final bool statuOne = await remotePort.check();
     expect(statuOne, equals(true));
     await localPort.unregister();
@@ -69,7 +69,7 @@ void main() {
     localPort.register((dynamic message, [RemotePort? remotePort]) =>
         completer.complete(<dynamic>[message, remotePort]));
     final RemotePort port = await TizenMessagePort.connectToRemotePort(
-        'com.example.messageport_tizen_example', 'test_port');
+        'org.tizen.messageport_tizen_example', 'test_port');
     port.send('Test message 1');
     final List<dynamic> value = await completer.future;
     final String message = value[0] as String;
@@ -91,15 +91,15 @@ void main() {
       }
     });
     final RemotePort port = await TizenMessagePort.connectToRemotePort(
-        'com.example.messageport_tizen_example', 'test_port');
+        'org.tizen.messageport_tizen_example', 'test_port');
     port.sendWithLocalPort('Test message 2', localPort);
     final List<dynamic> value = await completer.future;
     final String message = value[0] as String;
     final RemotePort? remotePort = value[1] as RemotePort?;
     expect(message, equals('Test message 2'));
     expect(remotePort is RemotePort, true);
-    expect(remotePort?.remoteAppId,
-        equals('com.example.messageport_tizen_example'));
+    expect(
+        remotePort?.remoteAppId, equals('org.tizen.messageport_tizen_example'));
     expect(remotePort?.portName, equals('test_port'));
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
@@ -117,7 +117,7 @@ void main() {
       localPort = await TizenMessagePort.createLocalPort('test_port');
       localPort.register(onMessage);
       remotePort = await TizenMessagePort.connectToRemotePort(
-          'com.example.messageport_tizen_example', 'test_port');
+          'org.tizen.messageport_tizen_example', 'test_port');
     });
 
     setUp(() {

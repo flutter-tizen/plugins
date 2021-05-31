@@ -166,8 +166,9 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            std::string& port_name,
                                            flutter::EncodableValue& message,
                                            bool is_trusted) {
-  LOG_DEBUG("Send (%s, %s)", remote_app_id.c_str(), port_name.c_str());
-  bundle* b;
+  LOG_DEBUG("Send (%s, %s), trusted: %s", remote_app_id.c_str(),
+            port_name.c_str(), is_trusted ? "yes" : "no");
+  bundle* b = nullptr;;
   MessagePortResult result = PrepareBundle(message, b);
   if (!result) {
     return result;
@@ -189,9 +190,9 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            std::string& port_name,
                                            flutter::EncodableValue& message,
                                            bool is_trusted, int local_port) {
-  LOG_DEBUG("Send (%s, %s), port: %d", remote_app_id.c_str(), port_name.c_str(),
-            local_port);
-  bundle* b;
+  LOG_DEBUG("Send (%s, %s), port: %d, trusted: %s", remote_app_id.c_str(),
+            port_name.c_str(), local_port, is_trusted ? "yes" : "no");
+  bundle* b = nullptr;;
   MessagePortResult result = PrepareBundle(message, b);
   if (!result) {
     return result;
