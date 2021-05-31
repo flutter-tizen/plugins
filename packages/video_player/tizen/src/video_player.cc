@@ -516,7 +516,7 @@ void VideoPlayer::onVideoFrameDecoded(media_packet_h packet, void *data) {
   }
   std::lock_guard<std::mutex> lock(player->mutex_);
   if (player->mediaPacket_) {
-    LOG_ERROR("Render not finished");
+    LOG_INFO("Render not finished");
     media_packet_destroy(packet);
     return;
   }
