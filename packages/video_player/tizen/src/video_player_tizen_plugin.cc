@@ -15,8 +15,9 @@
 
 class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
  public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar *pluginRegistrar,
-                                    flutter::TextureRegistrar *textureRegistrar);
+  static void RegisterWithRegistrar(
+      flutter::PluginRegistrar *pluginRegistrar,
+      flutter::TextureRegistrar *textureRegistrar);
   // Creates a plugin that communicates on the given channel.
   VideoPlayerTizenPlugin(flutter::PluginRegistrar *pluginRegistrar,
                          flutter::TextureRegistrar *textureRegistrar);
@@ -223,5 +224,6 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar),
       flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar)->texture_registrar());
+          ->GetRegistrar<flutter::PluginRegistrar>(registrar)
+          ->texture_registrar());
 }

@@ -49,8 +49,8 @@ static std::string StateToString(player_state_e state) {
   return ret;
 }
 
-FlutterDesktopGpuBuffer *VideoPlayer::CopyGpuBuffer(size_t width,
-                                                    size_t height) {
+FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
+                                                      size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (mediaPacket_ == nullptr) {
     LOG_ERROR("[VideoPlayer.CopyGpuBuffer] mediaPacket_ is null");
@@ -68,14 +68,13 @@ FlutterDesktopGpuBuffer *VideoPlayer::CopyGpuBuffer(size_t width,
     return nullptr;
   }
 
-  flutterDesttopGpuBuffer_->buffer = surface;
-  flutterDesttopGpuBuffer_->width = width;
-  flutterDesttopGpuBuffer_->height = height;
-  return flutterDesttopGpuBuffer_.get();
+  flutterDesktopGpuBuffer_->buffer = surface;
+  flutterDesktopGpuBuffer_->width = width;
+  flutterDesktopGpuBuffer_->height = height;
+  return flutterDesktopGpuBuffer_.get();
 }
 
-void VideoPlayer::Destruction(void* buffer) {
-  LOG_ERROR("[VideoPlayer.CopyGpuBuffer] Destruction");
+void VideoPlayer::Destruct(void *buffer) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (mediaPacket_) {
     media_packet_destroy(mediaPacket_);
@@ -93,12 +92,10 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
       std::make_unique<flutter::TextureVariant>(flutter::GpuBufferTexture(
           [this](size_t width,
                  size_t height) -> const FlutterDesktopGpuBuffer * {
-            return this->CopyGpuBuffer(width, height);
+            return this->ObtainGpuBuffer(width, height);
           },
-          [this](void* buffer) -> void { this->Destruction(buffer); }));
-  
-  flutterDesttopGpuBuffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
-  
+          [this](void *buffer) -> void { this->Destruct(buffer); }));
+  flutterDesktopGpuBuffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
 
   LOG_DEBUG("[VideoPlayer] register texture");
   textureId_ = textureRegistrar->RegisterTexture(textureVariant_.get());
@@ -201,7 +198,7 @@ void VideoPlayer::play() {
   int ret = player_get_state(player_, &state);
   if (ret == PLAYER_ERROR_NONE) {
     LOG_DEBUG("[VideoPlayer.play] player state: %s",
-             StateToString(state).c_str());
+              StateToString(state).c_str());
     if (state != PLAYER_STATE_PAUSED && state != PLAYER_STATE_READY) {
       return;
     }
@@ -221,7 +218,7 @@ void VideoPlayer::pause() {
   int ret = player_get_state(player_, &state);
   if (ret == PLAYER_ERROR_NONE) {
     LOG_DEBUG("[VideoPlayer.pause] player state: %s",
-             StateToString(state).c_str());
+              StateToString(state).c_str());
     if (state != PLAYER_STATE_PLAYING) {
       return;
     }
@@ -354,7 +351,7 @@ void VideoPlayer::initialize() {
   int ret = player_get_state(player_, &state);
   if (ret == PLAYER_ERROR_NONE) {
     LOG_DEBUG("[VideoPlayer.initialize] player state: %s",
-             StateToString(state).c_str());
+              StateToString(state).c_str());
     if (state == PLAYER_STATE_READY && !isInitialized_) {
       sendInitialized();
     }
