@@ -47,12 +47,22 @@ class TizenMessagePortManager {
     args['remoteAppId'] = remotePort.remoteAppId;
     args['portName'] = remotePort.portName;
     args['localPort'] = localPort.portName;
+    args['localPortTrusted'] = localPort.trusted;
     args['message'] = message;
 
     return _channel.invokeMethod('send', args);
   }
 
   Stream<dynamic> registerLocalPort(LocalPort localPort) {
+    if (localPort.trusted) {
+      if (!_trustedLocalPorts.containsKey(localPort.portName)) {
+        final EventChannel eventChannel =
+            EventChannel('tizen/messageport/${localPort.portName}_trusted');
+        _trustedLocalPorts[localPort.portName] =
+            eventChannel.receiveBroadcastStream();
+      }
+      return _trustedLocalPorts[localPort.portName]!;
+    }
     if (!_localPorts.containsKey(localPort.portName)) {
       final EventChannel eventChannel =
           EventChannel('tizen/messageport/${localPort.portName}');
@@ -63,4 +73,6 @@ class TizenMessagePortManager {
   }
 
   final Map<String, Stream<dynamic>> _localPorts = <String, Stream<dynamic>>{};
+  final Map<String, Stream<dynamic>> _trustedLocalPorts =
+      <String, Stream<dynamic>>{};
 }

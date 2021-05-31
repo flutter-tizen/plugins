@@ -10,20 +10,6 @@ First, import the package in dart file.
 import 'package:messageport_tizen/messageport_tizen.dart';
 ```
 
-### Supported data types
-
-Data types that can be transferred using this plugin:
-* null
-* bool
-* numbers: int, double
-* String
-* Uint8List, Int32List, Int64List, Float64List
-* List of supported values
-* Map from supported values to supported values
-
-Plugin uses Flutter's [StandardMessageCodec](https://api.flutter.dev/flutter/services/StandardMessageCodec-class.html) to encode transferred data into binary.
-Data can contain any value or collection type supported by Flutter's standard method codec.
-
 ### Create local port
 
 Use `TizenMessagePort.createLocalPort` method to create local port.
@@ -66,7 +52,7 @@ To send message to remote applcation use `RemotePort.send()` method.
 ```dart
   final message = {"a": 1, "b": 2, "c": 3};
   try{
-    remotePort.send(message);
+    await remotePort.send(message);
   } catch (e) {
     print('Could not send message: ${e.toString()}");
   }
@@ -79,11 +65,25 @@ To send message with local port use `RemotePort.send()` method. Local port recei
 ```dart
   final message = "This is a string message";
   try{
-    remotePort.sendWithLocalPort(message, localPort);
+    await remotePort.sendWithLocalPort(message, localPort);
   } catch (e) {
     print('Could not send message: ${e.toString()}");
   }
 ```
+
+### Supported data types
+
+Data types that can be transferred using this plugin:
+* null
+* bool
+* numbers: int, double
+* String
+* Uint8List, Int32List, Int64List, Float64List
+* List of supported values
+* Map from supported values to supported values
+
+Plugin uses Flutter's [StandardMessageCodec](https://api.flutter.dev/flutter/services/StandardMessageCodec-class.html) to encode transferred data into binary.
+Data can contain any value or collection type supported by Flutter's standard method codec.
 
 To learn more about how to use this plugin, please check example application.
 

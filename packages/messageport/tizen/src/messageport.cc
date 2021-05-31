@@ -143,8 +143,9 @@ MessagePortResult MessagePortManager::UnregisterLocalPort(int local_port_id) {
 MessagePortResult MessagePortManager::CheckRemotePort(
     std::string& remote_app_id, std::string& port_name, bool is_trusted,
     bool* port_check) {
-  LOG_DEBUG("CheckRemotePort remote_app_id: %s, port_name: %s",
-            remote_app_id.c_str(), port_name.c_str());
+  LOG_DEBUG("CheckRemotePort remote_app_id: %s, port_name: %s, trusted: %s",
+            remote_app_id.c_str(), port_name.c_str(),
+            is_trusted ? "yes" : "no");
 
   int ret;
   if (is_trusted) {
@@ -168,7 +169,7 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            bool is_trusted) {
   LOG_DEBUG("Send (%s, %s), trusted: %s", remote_app_id.c_str(),
             port_name.c_str(), is_trusted ? "yes" : "no");
-  bundle* b = nullptr;;
+  bundle* b = nullptr;
   MessagePortResult result = PrepareBundle(message, b);
   if (!result) {
     return result;
@@ -192,7 +193,7 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            bool is_trusted, int local_port) {
   LOG_DEBUG("Send (%s, %s), port: %d, trusted: %s", remote_app_id.c_str(),
             port_name.c_str(), local_port, is_trusted ? "yes" : "no");
-  bundle* b = nullptr;;
+  bundle* b = nullptr;
   MessagePortResult result = PrepareBundle(message, b);
   if (!result) {
     return result;

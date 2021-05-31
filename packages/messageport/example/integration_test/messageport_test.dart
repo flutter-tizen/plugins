@@ -70,7 +70,7 @@ void main() {
         completer.complete(<dynamic>[message, remotePort]));
     final RemotePort port = await TizenMessagePort.connectToRemotePort(
         'org.tizen.messageport_tizen_example', 'test_port');
-    port.send('Test message 1');
+    await port.send('Test message 1');
     final List<dynamic> value = await completer.future;
     final String message = value[0] as String;
     final RemotePort? remotePort = value[1] as RemotePort?;
@@ -92,7 +92,7 @@ void main() {
     });
     final RemotePort port = await TizenMessagePort.connectToRemotePort(
         'org.tizen.messageport_tizen_example', 'test_port');
-    port.sendWithLocalPort('Test message 2', localPort);
+    await port.sendWithLocalPort('Test message 2', localPort);
     final List<dynamic> value = await completer.future;
     final String message = value[0] as String;
     final RemotePort? remotePort = value[1] as RemotePort?;
@@ -129,7 +129,7 @@ void main() {
     });
 
     Future<void> checkForMessage<T>(dynamic message) async {
-      remotePort.send(message);
+      await remotePort.send(message);
       final List<dynamic> ret = await completer.future;
       final dynamic receivedMessage = ret[0];
       final dynamic receivedPort = ret[1];
