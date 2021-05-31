@@ -143,8 +143,8 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   ret = player_set_completed_cb(player_, onPlayCompleted, (void *)this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
-    LOG_INFO("[VideoPlayer] player_set_completed_cb failed: %s",
-             get_error_message(ret));
+    LOG_ERROR("[VideoPlayer] player_set_completed_cb failed: %s",
+              get_error_message(ret));
     throw VideoPlayerError("player_set_completed_cb failed",
                            get_error_message(ret));
   }
@@ -153,8 +153,8 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   ret = player_set_interrupted_cb(player_, onInterrupted, (void *)this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
-    LOG_INFO("[VideoPlayer] player_set_interrupted_cb failed: %s",
-             get_error_message(ret));
+    LOG_ERROR("[VideoPlayer] player_set_interrupted_cb failed: %s",
+              get_error_message(ret));
     throw VideoPlayerError("player_set_interrupted_cb failed",
                            get_error_message(ret));
   }
@@ -173,8 +173,8 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   ret = player_prepare_async(player_, onPrepared, (void *)this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
-    LOG_INFO("[VideoPlayer] player_prepare_async failed: %s",
-             get_error_message(ret));
+    LOG_ERROR("[VideoPlayer] player_prepare_async failed: %s",
+              get_error_message(ret));
     throw VideoPlayerError("player_prepare_async failed",
                            get_error_message(ret));
   }
@@ -183,7 +183,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
 }
 
 VideoPlayer::~VideoPlayer() {
-  LOG_DEBUG("[VideoPlayer] destructor");
+  LOG_INFO("[VideoPlayer] destructor");
   dispose();
 }
 
@@ -194,8 +194,8 @@ void VideoPlayer::play() {
   player_state_e state;
   int ret = player_get_state(player_, &state);
   if (ret == PLAYER_ERROR_NONE) {
-    LOG_DEBUG("[VideoPlayer.play] player state: %s",
-              StateToString(state).c_str());
+    LOG_INFO("[VideoPlayer.play] player state: %s",
+             StateToString(state).c_str());
     if (state != PLAYER_STATE_PAUSED && state != PLAYER_STATE_READY) {
       return;
     }
@@ -214,8 +214,8 @@ void VideoPlayer::pause() {
   player_state_e state;
   int ret = player_get_state(player_, &state);
   if (ret == PLAYER_ERROR_NONE) {
-    LOG_DEBUG("[VideoPlayer.pause] player state: %s",
-              StateToString(state).c_str());
+    LOG_INFO("[VideoPlayer.pause] player state: %s",
+             StateToString(state).c_str());
     if (state != PLAYER_STATE_PLAYING) {
       return;
     }
