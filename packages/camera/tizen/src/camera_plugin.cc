@@ -7,7 +7,6 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
-#include <flutter_tizen_texture_registrar.h>
 
 #include <map>
 #include <memory>
@@ -36,16 +35,13 @@ bool GetValueFromEncodableMap(flutter::EncodableMap &map, std::string key,
 
 class CameraPlugin : public flutter::Plugin {
  public:
-  static void RegisterWithRegistrar(
-      flutter::PluginRegistrar *registrar,
-      FlutterTextureRegistrar *texture_registrar) {
+  static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto camera_channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
             registrar->messenger(), CAMERA_CHANNEL_NAME,
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto camera_plugin =
-        std::make_unique<CameraPlugin>(registrar, texture_registrar);
+    auto camera_plugin = std::make_unique<CameraPlugin>(registrar);
 
     camera_channel->SetMethodCallHandler(
         [plugin_pointer = camera_plugin.get()](const auto &call, auto result) {
@@ -55,9 +51,7 @@ class CameraPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(camera_plugin));
   }
 
-  CameraPlugin(flutter::PluginRegistrar *registrar,
-               FlutterTextureRegistrar *texture_registrar)
-      : registrar_(registrar), texture_registrar_(texture_registrar) {}
+  CameraPlugin(flutter::PluginRegistrar *registrar) : registrar_(registrar) {}
 
   virtual ~CameraPlugin() {}
 
@@ -334,8 +328,8 @@ class CameraPlugin : public flutter::Plugin {
     ResolutionPreset resolution_preset = ResolutionPreset::kLow;
     StringToResolutionPreset(preset, resolution_preset);
 
-    camera_ = std::make_unique<CameraDevice>(
-        registrar_, texture_registrar_, type, resolution_preset, enable_audio);
+    camera_ = std::make_unique<CameraDevice>(registrar_, type,
+                                             resolution_preset, enable_audio);
 
     flutter::EncodableMap ret;
     ret[flutter::EncodableValue("cameraId")] =
@@ -344,7 +338,6 @@ class CameraPlugin : public flutter::Plugin {
   }
 
   flutter::PluginRegistrar *registrar_{nullptr};
-  FlutterTextureRegistrar *texture_registrar_{nullptr};
   std::unique_ptr<CameraDevice> camera_;
   PermissionManager pmm_;
 };
@@ -353,6 +346,5 @@ void CameraPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
   CameraPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar),
-      FlutterPluginRegistrarGetTexture(registrar));
+          ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }
