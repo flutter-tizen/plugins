@@ -6,8 +6,9 @@
 
 #include <Ecore_IMF_Evas.h>
 #include <Ecore_Input_Evas.h>
+#include <flutter/texture_registrar.h>
 #include <flutter_platform_view.h>
-#include <flutter_tizen_texture_registrar.h>
+#include <flutter_texture_registrar.h>
 
 #include <map>
 #include <memory>
@@ -154,19 +155,27 @@ double ExtractDoubleFromMap(const flutter::EncodableValue& arguments,
 }
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
-                 FlutterTextureRegistrar* texture_registrar, double width,
+                 flutter::TextureRegistrar* texture_registrar, double width,
                  double height, flutter::EncodableMap& params)
     : PlatformView(registrar, viewId),
       texture_registrar_(texture_registrar),
       webview_instance_(nullptr),
       width_(width),
       height_(height),
-      tbm_surface_(nullptr),
+      candidate_surface_(nullptr),
+      rendered_surface_(nullptr),
       is_mouse_lbutton_down_(false),
       has_navigation_delegate_(false),
       has_progress_tracking_(false),
-      context_(nullptr) {
-  SetTextureId(FlutterRegisterExternalTexture(texture_registrar_));
+      context_(nullptr),
+      texture_variant_(nullptr),
+      gpu_buffer_(nullptr) {
+  texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
+      [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
+        return this->ObtainGpuBuffer(width, height);
+      },
+      [this](void* buffer) -> void { this->DestructBuffer(buffer); }));
+  SetTextureId(texture_registrar_->RegisterTexture(texture_variant_));
   InitWebView();
 
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
@@ -375,11 +384,21 @@ std::string WebView::GetChannelName() {
 }
 
 void WebView::Dispose() {
-  FlutterUnregisterExternalTexture(texture_registrar_, GetTextureId());
+  texture_registrar_->UnregisterTexture(GetTextureId());
 
   if (webview_instance_) {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
+  }
+
+  if (texture_variant_) {
+    delete texture_variant_;
+    texture_variant_ = nullptr;
+  }
+
+  if (gpu_buffer_) {
+    delete gpu_buffer_;
+    gpu_buffer_ = nullptr;
   }
 }
 
@@ -747,26 +766,28 @@ void WebView::InitWebView() {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
   }
+  if (!gpu_buffer_) {
+    gpu_buffer_ = new FlutterDesktopGpuBuffer();
+  }
+
   float scale_factor = 1;
 
   webview_instance_ = (LWE::WebContainer*)createWebViewInstance(
       0, 0, width_, height_, scale_factor, "SamsungOneUI", "ko-KR",
       "Asia/Seoul",
       [this]() -> LWE::WebContainer::ExternalImageInfo {
+        std::lock_guard<std::mutex> lock(mutex_);
         LWE::WebContainer::ExternalImageInfo result;
-        if (!tbm_surface_) {
-          tbm_surface_ =
+        if (!candidate_surface_) {
+          candidate_surface_ =
               tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
         }
-        result.imageAddress = (void*)tbm_surface_;
+        result.imageAddress = (void*)candidate_surface_;
         return result;
       },
       [this](LWE::WebContainer* c, bool isRendered) {
         if (isRendered) {
-          FlutterMarkExternalTextureFrameAvailable(
-              texture_registrar_, GetTextureId(), tbm_surface_);
-          tbm_surface_destroy(tbm_surface_);
-          tbm_surface_ = nullptr;
+          texture_registrar_->MarkTextureFrameAvailable(GetTextureId());
         }
       });
 #ifndef TV_PROFILE
@@ -898,5 +919,37 @@ void WebView::HandleCookieMethodCall(
     result->Success(flutter::EncodableValue(true));
   } else {
     result->NotImplemented();
+  }
+}
+
+FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
+  if (!candidate_surface_) {
+    return nullptr;
+  }
+
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (rendered_surface_) {
+    tbm_surface_destroy(rendered_surface_);
+    rendered_surface_ = nullptr;
+  }
+
+  rendered_surface_ = candidate_surface_;
+  candidate_surface_ = nullptr;
+
+  if (gpu_buffer_) {
+    gpu_buffer_->buffer = rendered_surface_;
+    gpu_buffer_->width = width;
+    gpu_buffer_->height = height;
+  }
+  return gpu_buffer_;
+}
+
+void WebView::DestructBuffer(void* buffer) {
+  if (buffer) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    tbm_surface_destroy((tbm_surface_h)buffer);
+    if (rendered_surface_ == buffer) {
+      rendered_surface_ = nullptr;
+    }
   }
 }

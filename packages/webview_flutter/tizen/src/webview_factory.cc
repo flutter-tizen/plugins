@@ -10,7 +10,6 @@
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_platform_view.h>
-#include <flutter_tizen_texture_registrar.h>
 
 #include <map>
 #include <memory>
@@ -22,8 +21,8 @@
 #include "webview_flutter_tizen_plugin.h"
 
 WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
-                               FlutterTextureRegistrar* textureRegistrar)
-    : PlatformViewFactory(registrar), textureRegistrar_(textureRegistrar) {
+                               flutter::TextureRegistrar* textureRegistrar)
+    : PlatformViewFactory(registrar), texture_registrar_(textureRegistrar) {
   char* path = app_get_data_path();
   if (!path || strlen(path) == 0) {
     path = "/tmp/";
@@ -51,7 +50,7 @@ PlatformView* WebViewFactory::Create(int viewId, double width, double height,
   }
 
   try {
-    return new WebView(GetPluginRegistrar(), viewId, textureRegistrar_, width,
+    return new WebView(GetPluginRegistrar(), viewId, texture_registrar_, width,
                        height, params);
   } catch (const std::invalid_argument& ex) {
     LOG_ERROR("[Exception] %s\n", ex.what());
