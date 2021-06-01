@@ -404,7 +404,14 @@ void WebView::Dispose() {
 
 void WebView::Resize(double width, double height) {
   LOG_DEBUG("WebView::Resize width: %f height: %f \n", width, height);
-  // NOTE: Not supported by LWE on Tizen.
+  width_ = width;
+  height_ = height;
+
+  if (candidate_surface_) {
+    tbm_surface_destroy(candidate_surface_);
+    candidate_surface_ = nullptr;
+  }
+  webview_instance_->ResizeTo(width_, height_);
 }
 
 void WebView::Touch(int type, int button, double x, double y, double dx,

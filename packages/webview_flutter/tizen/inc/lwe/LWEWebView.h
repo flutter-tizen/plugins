@@ -83,6 +83,7 @@ class LWE_EXPORT Settings {
   void GetBaseForegroundColor(unsigned char& r, unsigned char& g,
                               unsigned char& b, unsigned char& a) const;
   bool NeedsDownloadWebFontsEarly() const;
+  bool UseHttp2() const;
   uint32_t NeedsDownScaleImageResourceLargerThan() const;
   void SetUserAgentString(const std::string& ua);
   void SetCacheMode(int mode);
@@ -97,6 +98,7 @@ class LWE_EXPORT Settings {
   void SetIdleModeJob(IdleModeJob j);
   void SetIdleModeCheckIntervalInMS(uint32_t intervalInMS);
   void SetNeedsDownloadWebFontsEarly(bool b);
+  void SetUseHttp2(bool b);
   void SetNeedsDownScaleImageResourceLargerThan(
       uint32_t demention);  // Experimental
 
@@ -113,6 +115,7 @@ class LWE_EXPORT Settings {
   IdleModeJob m_idleModeJob;  // default value is IdleModeJob::IdleModeFull
   uint32_t m_idleModeCheckIntervalInMS;  // default value is 3000(ms)
   bool m_needsDownloadWebFontsEarly;
+  bool m_useHttp2;  // default value is false
   uint32_t m_needsDownScaleImageResourceLargerThan;
 };
 

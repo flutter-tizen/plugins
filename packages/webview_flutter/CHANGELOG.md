@@ -11,3 +11,7 @@
 
 ## 0.2.1
 * Add lightweight web engine binary for arm64
+
+## 0.2.2
+* Update lightweight web engine binary & header file
+* Activate resizing function
