@@ -1,0 +1,93 @@
+name: Build changed packages
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: jitterbit/get-changed-files@v1
+        id: files
+        with:
+          format: space-delimited
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Find changed packages
+        run: |
+          function list_include_item {
+            local list="$1"
+            local item="$2"
+            if [[ $list =~ (^|[[:space:]])"$item"($|[[:space:]]) ]] ; then
+              result=0
+            else
+              result=1
+            fi
+            return $result
+          }
+          CHANGED_PACKAGES=()
+          for changed_file in ${{ steps.files.outputs.all }}; do
+            if [[ "$changed_file" == "packages"*".cc" ]] || [[ "$changed_file" == "packages"*".h" ]]; then
+                package=$(echo ${changed_file} | sed 's|\/tizen.*||;s|.*packages\/||')
+                if ! list_include_item $CHANGED_PACKAGES $package; then
+                    CHANGED_PACKAGES+=($package)
+                fi
+            fi
+          done
+          if [[ ${#CHANGED_PACKAGES[@]} -ne 0 ]]; then
+              echo "CHANGED_PACKAGES=${CHANGED_PACKAGES[@]}" >> "$GITHUB_ENV"
+          fi
+      - name: Install prerequisite packages
+        if: env.CHANGED_PACKAGES != ''
+        run: |
+          sudo apt install -y \
+          acl \
+          bridge-utils \
+          gettext \
+          openvpn \
+          libfontconfig1 \
+          libglib2.0-0 \
+          libjpeg-turbo8 \
+          libpixman-1-0 \
+          libpng16-16 \
+          libsdl1.2debian \
+          libsm6 \
+          libv4l-0 \
+          libx11-xcb1 \
+          libxcb-icccm4 \
+          libxcb-image0 \
+          libxcb-randr0 \
+          libxcb-render-util0 \
+          libxcb-shape0 \
+          libxcb-xfixes0 \
+          libxi6
+      - name: Install Tizen Studio
+        if: env.CHANGED_PACKAGES != ''
+        run: |
+          sudo apt install -y pciutils zip libncurses5 python libpython2.7
+          curl http://download.tizen.org/sdk/Installer/tizen-studio_4.1/web-cli_Tizen_Studio_4.1_ubuntu-64.bin -o install.bin
+          chmod a+x install.bin
+          ./install.bin --accept-license $HOME/tizen-studio
+          rm install.bin
+      - name: Install Tizen Studio packages
+        if: env.CHANGED_PACKAGES != ''
+        run: |
+          $HOME/tizen-studio/package-manager/package-manager-cli.bin install \
+          NativeCLI \
+          NativeToolchain-Gcc-9.2 \
+          WEARABLE-4.0-NativeAppDevelopment \
+          WEARABLE-5.5-NativeAppDevelopment
+      - name: Install flutter-tizen
+        if: env.CHANGED_PACKAGES != ''
+        run: |
+          git clone https://github.com/flutter-tizen/flutter-tizen.git
+      - name: Build examples of changed packages
+        if: env.CHANGED_PACKAGES != ''
+        run: |
+          ROOT_DIR=`pwd`
+          export PATH=$PATH:`pwd`/flutter-tizen/bin
+          for package in ${{ env.CHANGED_PACKAGES }}; do
+            echo Build ${package}...
+            cd ${ROOT_DIR}/packages/${package}/example
+            flutter-tizen pub get
+            flutter-tizen build tpk --device-profile wearable -v
+          done
