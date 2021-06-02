@@ -20,12 +20,18 @@ import 'package:path_provider/path_provider.dart';
 
 For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/path_provider/path_provider#usage.
 
+## Notes
+
+- On Tizen, `getExternalStorageDirectories` will return internal storage paths (such as `/home/owner/media/Music`) unlike on Android where the function returns external storage (separate partition or SD card) paths.
+- To access paths returned by `getExternalStorageDirectory` and `getExternalCacheDirectories`, you will need an SD card inserted to your Tizen device.
+- This plugin will work correctly only if your code is running in the **main isolate**.
+
 ## Required privileges
 
 - To access paths returned by
 
-  - `getExternalStoragePaths`
-  - `getDownloadsPath`
+  - `getExternalStorageDirectories`
+  - `getDownloadsDirectory`
 
   add below lines under the `<manifest>` section in your `tizen-manifest.xml` file,
 
@@ -35,12 +41,12 @@ For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/
   </privileges>
   ```
 
-  and also acquire `Permission.accessMediaLocation` using the [`permission_handler`](https://pub.dev/packages/permission_handler_tizen) plugin (to be available soon). The permission is already granted on TV devices by default.
+  and also acquire the `Permission.mediaLibrary` permission using the [`permission_handler`](https://pub.dev/packages/permission_handler_tizen) plugin. The permission is already granted on TV devices by default.
 
 - To access paths returned by
 
-  - `getExternalDataPath`
-  - `getExternalCachePath`
+  - `getExternalStorageDirectory`
+  - `getExternalCacheDirectories`
 
   add below lines under the `<manifest>` section in your `tizen-manifest.xml` file.
 
