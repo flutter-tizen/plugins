@@ -6,7 +6,7 @@ type = sharedLib
 profile = common-5.5
 
 # Source files
-USER_SRCS += src/webview_flutter_tizen_plugin.cc  src/webview.cc src/webview_factory.cc
+USER_SRCS += src/webview_flutter_tizen_plugin.cc  src/webview.cc src/webview_factory.cc src/buffer_pool.cc
 
 # User defines
 USER_DEFS =

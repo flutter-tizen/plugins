@@ -15,3 +15,4 @@
 ## 0.2.2
 * Update lightweight web engine binary & header file
 * Activate resizing function
+* Apply embedder's texture APIs change
