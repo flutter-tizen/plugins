@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "battery_tizen_plugin.h"
+#include "battery_plus_tizen_plugin.h"
 
 #include <device/battery.h>
 #include <device/callback.h>
@@ -18,20 +18,20 @@
 
 #include "log.h"
 
-class BatteryTizenPlugin : public flutter::Plugin {
+class BatteryPlusTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
-    LOG_DEBUG("RegisterWithRegistrar for BatteryTizenPlugin");
+    LOG_DEBUG("RegisterWithRegistrar for BatteryPlusTizenPlugin");
     auto method_channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/battery",
+            registrar->messenger(), "dev.fluttercommunity.plus/battery",
             &flutter::StandardMethodCodec::GetInstance());
     auto event_channel =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/charging",
+            registrar->messenger(), "dev.fluttercommunity.plus/charging",
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto plugin = std::make_unique<BatteryTizenPlugin>();
+    auto plugin = std::make_unique<BatteryPlusTizenPlugin>();
 
     auto method_channel_handler = [plugin_pointer = plugin.get()](
                                       const auto &call, auto result) {
@@ -62,9 +62,9 @@ class BatteryTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  BatteryTizenPlugin() {}
+  BatteryPlusTizenPlugin() {}
 
-  virtual ~BatteryTizenPlugin() {}
+  virtual ~BatteryPlusTizenPlugin() {}
 
   void RegisterObserver(
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
@@ -154,7 +154,8 @@ class BatteryTizenPlugin : public flutter::Plugin {
       return;
     }
 
-    BatteryTizenPlugin *plugin_pointer = (BatteryTizenPlugin *)user_data;
+    BatteryPlusTizenPlugin *plugin_pointer =
+        (BatteryPlusTizenPlugin *)user_data;
 
     std::string status = GetBatteryStatus();
     bool isFull = (status == "full") ? true : false;
@@ -196,9 +197,9 @@ class BatteryTizenPlugin : public flutter::Plugin {
   bool m_isFull;
 };
 
-void BatteryTizenPluginRegisterWithRegistrar(
+void BatteryPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  BatteryTizenPlugin::RegisterWithRegistrar(
+  BatteryPlusTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

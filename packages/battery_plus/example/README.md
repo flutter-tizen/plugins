@@ -1,6 +1,6 @@
-# battery_example
+# battery_plus_example
 
-Demonstrates how to use the battery_tizen plugin.
+Demonstrates how to use the battery_plus_tizen plugin.
 
 ## Getting Started
 

@@ -1,27 +1,25 @@
-# battery_tizen
+# Battery Plus Tizen
 
-The Tizen implementation of [`battery`](https://github.com/flutter/plugins/tree/master/packages/battery).
+The Tizen implementation of [`battery_plus`](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/battery_plus).
 
 ## Usage
 
-This package is not an _endorsed_ implementation of `battery`. Therefore, you have to include `battery_tizen` alongside `battery` as dependencies in your `pubspec.yaml` file.
+This package is not an _endorsed_ implementation of `battery_plus`. Therefore, you have to include `battery_plus_tizen` alongside `battery_plus` as dependencies in your `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  battery: ^2.0.1
-  battery_tizen: ^2.0.0
+  battery_plus: ^1.0.1
+  battery__plus_tizen: ^1.0.0
 ```
 
-Then you can import `battery` in your Dart code:
+Then you can import `battery_plus` in your Dart code:
 
 ```dart
-import 'package:battery/battery.dart';
+import 'package:battery_plus/battery_plus.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/battery/battery#usage.
+For detailed usage, see https://pub.dev/packages/battery_plus#usage.
 
 ## Supported devices
 
-This plugin is supported on these types of devices:
-
-- Galaxy Watch (running Tizen 4.0 or later)
+This plugin is supported on Galaxy Watch (running Tizen 4.0 or later).

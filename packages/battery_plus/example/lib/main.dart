@@ -1,4 +1,4 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2020 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,7 +7,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:battery/battery.dart';
+import 'package:battery_plus/battery_plus.dart';
 
 void main() {
   runApp(MyApp());
@@ -21,15 +21,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -39,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final Battery _battery = Battery();
 
   BatteryState? _batteryState;
-  late StreamSubscription<BatteryState> _batteryStateSubscription;
+  StreamSubscription<BatteryState>? _batteryStateSubscription;
 
   @override
   void initState() {
@@ -62,9 +62,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Text('$_batteryState'),
       ),
       floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.battery_unknown),
         onPressed: () async {
-          final int batteryLevel = await _battery.batteryLevel;
+          final batteryLevel = await _battery.batteryLevel;
           // ignore: unawaited_futures
           showDialog<void>(
             context: context,
@@ -72,15 +71,16 @@ class _MyHomePageState extends State<MyHomePage> {
               content: Text('Battery: $batteryLevel%'),
               actions: <Widget>[
                 TextButton(
-                  child: const Text('OK'),
                   onPressed: () {
                     Navigator.pop(context);
                   },
+                  child: const Text('OK'),
                 )
               ],
             ),
           );
         },
+        child: const Icon(Icons.battery_unknown),
       ),
     );
   }
@@ -89,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void dispose() {
     super.dispose();
     if (_batteryStateSubscription != null) {
-      _batteryStateSubscription.cancel();
+      _batteryStateSubscription!.cancel();
     }
   }
 }

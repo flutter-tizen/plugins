@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_BATTERY_TIZEN_PLUGIN_H_
-#define FLUTTER_PLUGIN_BATTERY_TIZEN_PLUGIN_H_
+#ifndef FLUTTER_PLUGIN_BATTERY_PLUS_TIZEN_PLUGIN_H_
+#define FLUTTER_PLUGIN_BATTERY_PLUS_TIZEN_PLUGIN_H_
 
 #include <flutter_plugin_registrar.h>
 
@@ -17,11 +17,11 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void BatteryTizenPluginRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void BatteryPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)
 }  // extern "C"
 #endif
 
-#endif  // FLUTTER_PLUGIN_BATTERY_TIZEN_PLUGIN_H_
+#endif  // FLUTTER_PLUGIN_BATTERY_PLUS_TIZEN_PLUGIN_H_

@@ -1,12 +1,12 @@
 # See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
 # for details.
 
-APPNAME = battery_tizen_plugin
+APPNAME = battery_plus_tizen_plugin
 type = sharedLib
 profile = common-4.0
 
 # Source files
-USER_SRCS += src/battery_tizen_plugin.cc
+USER_SRCS += src/battery_plus_tizen_plugin.cc
 
 # User defines
 USER_DEFS =
