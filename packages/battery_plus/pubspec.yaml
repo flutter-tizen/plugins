@@ -7,6 +7,7 @@ flutter:
   plugin:
     platforms:
       tizen:
+        dartPluginClass: BatteryPlugin
         pluginClass: BatteryPlusTizenPlugin
         fileName: battery_plus_tizen_plugin.h
 
