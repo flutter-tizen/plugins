@@ -45,16 +45,17 @@ class VideoPlayer {
   static void onErrorOccurred(int code, void *data);
   static void onVideoFrameDecoded(media_packet_h packet, void *data);
 
-  bool isInitialized_;
+  bool is_initialized_;
   player_h player_;
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> eventChannel_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> eventSink_;
-  long textureId_;
-  flutter::TextureRegistrar *textureRegistrar_;
-  std::unique_ptr<flutter::TextureVariant> textureVariant_;
-  std::unique_ptr<FlutterDesktopGpuBuffer> flutterDesktopGpuBuffer_;
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
+      event_channel_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
+  long texture_id_;
+  flutter::TextureRegistrar *texture_registrar_;
+  std::unique_ptr<flutter::TextureVariant> texture_variant_;
+  std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
   std::mutex mutex_;
-  media_packet_h mediaPacket_ = nullptr;
+  media_packet_h media_packet_ = nullptr;
 };
 
 #endif  // VIDEO_PLAYER_H_

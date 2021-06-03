@@ -52,50 +52,50 @@ static std::string StateToString(player_state_e state) {
 FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
                                                       size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (mediaPacket_ == nullptr) {
+  if (media_packet_ == nullptr) {
     LOG_ERROR("Media packet  is null");
     return nullptr;
   }
   tbm_surface_h surface;
-  int ret = media_packet_get_tbm_surface(mediaPacket_, &surface);
+  int ret = media_packet_get_tbm_surface(media_packet_, &surface);
   if (ret != MEDIA_PACKET_ERROR_NONE) {
     LOG_ERROR("media_packet_get_tbm_surface failed, error: %d", ret);
-    media_packet_destroy(mediaPacket_);
-    mediaPacket_ = nullptr;
+    media_packet_destroy(media_packet_);
+    media_packet_ = nullptr;
     return nullptr;
   }
 
-  flutterDesktopGpuBuffer_->buffer = surface;
-  flutterDesktopGpuBuffer_->width = width;
-  flutterDesktopGpuBuffer_->height = height;
-  return flutterDesktopGpuBuffer_.get();
+  flutter_desktop_gpu_buffer_->buffer = surface;
+  flutter_desktop_gpu_buffer_->width = width;
+  flutter_desktop_gpu_buffer_->height = height;
+  return flutter_desktop_gpu_buffer_.get();
 }
 
 void VideoPlayer::Destruct(void *buffer) {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (mediaPacket_) {
-    media_packet_destroy(mediaPacket_);
-    mediaPacket_ = nullptr;
+  if (media_packet_) {
+    media_packet_destroy(media_packet_);
+    media_packet_ = nullptr;
   }
 }
 
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
                          flutter::TextureRegistrar *textureRegistrar,
                          const std::string &uri, VideoPlayerOptions &options) {
-  isInitialized_ = false;
-  textureRegistrar_ = textureRegistrar;
+  is_initialized_ = false;
+  texture_registrar_ = textureRegistrar;
 
-  textureVariant_ =
+  texture_variant_ =
       std::make_unique<flutter::TextureVariant>(flutter::GpuBufferTexture(
           [this](size_t width,
                  size_t height) -> const FlutterDesktopGpuBuffer * {
             return this->ObtainGpuBuffer(width, height);
           },
           [this](void *buffer) -> void { this->Destruct(buffer); }));
-  flutterDesktopGpuBuffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
+  flutter_desktop_gpu_buffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
 
   LOG_INFO("[VideoPlayer] register texture");
-  textureId_ = textureRegistrar->RegisterTexture(textureVariant_.get());
+  texture_id_ = textureRegistrar->RegisterTexture(texture_variant_.get());
 
   LOG_DEBUG("[VideoPlayer] call player_create to create player");
   int ret = player_create(&player_);
@@ -187,7 +187,7 @@ VideoPlayer::~VideoPlayer() {
   dispose();
 }
 
-long VideoPlayer::getTextureId() { return textureId_; }
+long VideoPlayer::getTextureId() { return texture_id_; }
 
 void VideoPlayer::play() {
   LOG_DEBUG("[VideoPlayer.play] start player");
@@ -289,9 +289,9 @@ int VideoPlayer::getPosition() {
 
 void VideoPlayer::dispose() {
   LOG_DEBUG("[VideoPlayer.dispose] dispose video player");
-  isInitialized_ = false;
-  eventSink_ = nullptr;
-  eventChannel_->SetStreamHandler(nullptr);
+  is_initialized_ = false;
+  event_sink_ = nullptr;
+  event_channel_->SetStreamHandler(nullptr);
 
   if (player_) {
     player_unprepare(player_);
@@ -304,16 +304,16 @@ void VideoPlayer::dispose() {
     player_ = 0;
   }
 
-  if (textureRegistrar_) {
-    textureRegistrar_->UnregisterTexture(textureId_);
-    textureRegistrar_ = nullptr;
+  if (texture_registrar_) {
+    texture_registrar_->UnregisterTexture(texture_id_);
+    texture_registrar_ = nullptr;
   }
 }
 
 void VideoPlayer::setupEventChannel(flutter::BinaryMessenger *messenger) {
   LOG_DEBUG("[VideoPlayer.setupEventChannel] setup event channel");
   std::string name =
-      "flutter.io/videoPlayer/videoEvents" + std::to_string(textureId_);
+      "flutter.io/videoPlayer/videoEvents" + std::to_string(texture_id_);
   auto channel =
       std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
           messenger, name, &flutter::StandardMethodCodec::GetInstance());
@@ -327,7 +327,7 @@ void VideoPlayer::setupEventChannel(flutter::BinaryMessenger *messenger) {
               flutter::StreamHandlerError<flutter::EncodableValue>> {
         LOG_DEBUG(
             "[VideoPlayer.setupEventChannel] call listen of StreamHandler");
-        eventSink_ = std::move(events);
+        event_sink_ = std::move(events);
         initialize();
         return nullptr;
       },
@@ -336,11 +336,11 @@ void VideoPlayer::setupEventChannel(flutter::BinaryMessenger *messenger) {
               flutter::StreamHandlerError<flutter::EncodableValue>> {
         LOG_DEBUG(
             "[VideoPlayer.setupEventChannel] call cancel of StreamHandler");
-        eventSink_ = nullptr;
+        event_sink_ = nullptr;
         return nullptr;
       });
   channel->SetStreamHandler(std::move(handler));
-  eventChannel_ = std::move(channel);
+  event_channel_ = std::move(channel);
 }
 
 void VideoPlayer::initialize() {
@@ -349,7 +349,7 @@ void VideoPlayer::initialize() {
   if (ret == PLAYER_ERROR_NONE) {
     LOG_INFO("[VideoPlayer.initialize] player state: %s",
              StateToString(state).c_str());
-    if (state == PLAYER_STATE_READY && !isInitialized_) {
+    if (state == PLAYER_STATE_READY && !is_initialized_) {
       sendInitialized();
     }
   } else {
@@ -359,13 +359,13 @@ void VideoPlayer::initialize() {
 }
 
 void VideoPlayer::sendInitialized() {
-  if (!isInitialized_ && eventSink_ != nullptr) {
+  if (!is_initialized_ && event_sink_ != nullptr) {
     int duration;
     int ret = player_get_duration(player_, &duration);
     if (ret != PLAYER_ERROR_NONE) {
       LOG_ERROR("[VideoPlayer.sendInitialized] player_get_duration failed: %s",
                 get_error_message(ret));
-      eventSink_->Error("player_get_duration failed", get_error_message(ret));
+      event_sink_->Error("player_get_duration failed", get_error_message(ret));
       return;
     }
     LOG_DEBUG("[VideoPlayer.sendInitialized] video duration: %d", duration);
@@ -376,7 +376,8 @@ void VideoPlayer::sendInitialized() {
       LOG_ERROR(
           "[VideoPlayer.sendInitialized] player_get_video_size failed: %s",
           get_error_message(ret));
-      eventSink_->Error("player_get_video_size failed", get_error_message(ret));
+      event_sink_->Error("player_get_video_size failed",
+                         get_error_message(ret));
       return;
     }
     LOG_DEBUG("[VideoPlayer.sendInitialized] video width: %d, height: %d",
@@ -400,7 +401,7 @@ void VideoPlayer::sendInitialized() {
       }
     }
 
-    isInitialized_ = true;
+    is_initialized_ = true;
     flutter::EncodableMap encodables = {
         {flutter::EncodableValue("event"),
          flutter::EncodableValue("initialized")},
@@ -410,23 +411,23 @@ void VideoPlayer::sendInitialized() {
         {flutter::EncodableValue("height"), flutter::EncodableValue(height)}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.sendInitialized] send initialized event");
-    eventSink_->Success(eventValue);
+    event_sink_->Success(eventValue);
   }
 }
 
 void VideoPlayer::sendBufferingStart() {
-  if (eventSink_) {
+  if (event_sink_) {
     flutter::EncodableMap encodables = {
         {flutter::EncodableValue("event"),
          flutter::EncodableValue("bufferingStart")}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onBuffering] send bufferingStart event");
-    eventSink_->Success(eventValue);
+    event_sink_->Success(eventValue);
   }
 }
 
 void VideoPlayer::sendBufferingUpdate(int position) {
-  if (eventSink_) {
+  if (event_sink_) {
     flutter::EncodableList range = {flutter::EncodableValue(0),
                                     flutter::EncodableValue(position)};
     flutter::EncodableList rangeList = {flutter::EncodableValue(range)};
@@ -437,18 +438,18 @@ void VideoPlayer::sendBufferingUpdate(int position) {
          flutter::EncodableValue(rangeList)}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onBuffering] send bufferingUpdate event");
-    eventSink_->Success(eventValue);
+    event_sink_->Success(eventValue);
   }
 }
 
 void VideoPlayer::sendBufferingEnd() {
-  if (eventSink_) {
+  if (event_sink_) {
     flutter::EncodableMap encodables = {
         {flutter::EncodableValue("event"),
          flutter::EncodableValue("bufferingEnd")}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onBuffering] send bufferingEnd event");
-    eventSink_->Success(eventValue);
+    event_sink_->Success(eventValue);
   }
 }
 
@@ -456,7 +457,7 @@ void VideoPlayer::onPrepared(void *data) {
   VideoPlayer *player = (VideoPlayer *)data;
   LOG_DEBUG("[VideoPlayer.onPrepared] video player is prepared");
 
-  if (!player->isInitialized_) {
+  if (!player->is_initialized_) {
     player->sendInitialized();
   }
 }
@@ -470,12 +471,12 @@ void VideoPlayer::onPlayCompleted(void *data) {
   VideoPlayer *player = (VideoPlayer *)data;
   LOG_DEBUG("[VideoPlayer.onPlayCompleted] completed to playe video");
 
-  if (player->eventSink_) {
+  if (player->event_sink_) {
     flutter::EncodableMap encodables = {{flutter::EncodableValue("event"),
                                          flutter::EncodableValue("completed")}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onPlayCompleted] send completed event");
-    player->eventSink_->Success(eventValue);
+    player->event_sink_->Success(eventValue);
   }
 }
 
@@ -483,9 +484,9 @@ void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
   VideoPlayer *player = (VideoPlayer *)data;
   LOG_DEBUG("[VideoPlayer.onInterrupted] interrupted code: %d", code);
 
-  if (player->eventSink_) {
+  if (player->event_sink_) {
     LOG_INFO("[VideoPlayer.onInterrupted] send error event");
-    player->eventSink_->Error("Video player is interrupted", "");
+    player->event_sink_->Error("Video player is interrupted", "");
   }
 }
 
@@ -494,10 +495,10 @@ void VideoPlayer::onErrorOccurred(int code, void *data) {
   LOG_DEBUG("[VideoPlayer.onErrorOccurred] error code: %s",
             get_error_message(code));
 
-  if (player->eventSink_) {
+  if (player->event_sink_) {
     LOG_INFO("[VideoPlayer.onErrorOccurred] send error event");
-    player->eventSink_->Error("Video player had error",
-                              get_error_message(code));
+    player->event_sink_->Error("Video player had error",
+                               get_error_message(code));
   }
 }
 
@@ -515,11 +516,11 @@ void VideoPlayer::onVideoFrameDecoded(media_packet_h packet, void *data) {
     return;
   }
   std::lock_guard<std::mutex> lock(player->mutex_);
-  if (player->mediaPacket_) {
+  if (player->media_packet_) {
     LOG_INFO("Render not finished");
     media_packet_destroy(packet);
     return;
   }
-  player->mediaPacket_ = packet;
-  player->textureRegistrar_->MarkTextureFrameAvailable(player->textureId_);
+  player->media_packet_ = packet;
+  player->texture_registrar_->MarkTextureFrameAvailable(player->texture_id_);
 }
