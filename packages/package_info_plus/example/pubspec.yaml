@@ -1,12 +1,12 @@
-name: package_info_example
-description: Demonstrates how to use the package_info_tizen plugin.
+name: package_info_plus_example
+description: Demonstrates how to use the package_info_plus_tizen plugin.
 publish_to: "none"
 
 dependencies:
   flutter:
     sdk: flutter
-  package_info: ^2.0.0
-  package_info_tizen:
+  package_info_plus: ^1.0.1
+  package_info_plus_tizen:
     path: ../
 
 dev_dependencies:

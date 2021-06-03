@@ -1,8 +1,8 @@
-// Copyright 2020 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "package_info_tizen_plugin.h"
+#include "package_info_plus_tizen_plugin.h"
 
 #include <app_common.h>
 #include <flutter/event_channel.h>
@@ -20,15 +20,15 @@
 
 #include "log.h"
 
-class PackageInfoTizenPlugin : public flutter::Plugin {
+class PackageInfoPlusTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/package_info",
+            registrar->messenger(), "dev.fluttercommunity.plus/package_info",
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto plugin = std::make_unique<PackageInfoTizenPlugin>();
+    auto plugin = std::make_unique<PackageInfoPlusTizenPlugin>();
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -38,9 +38,9 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  PackageInfoTizenPlugin() {}
+  PackageInfoPlusTizenPlugin() {}
 
-  virtual ~PackageInfoTizenPlugin() {}
+  virtual ~PackageInfoPlusTizenPlugin() {}
 
  private:
   void HandleMethodCall(
@@ -129,9 +129,9 @@ class PackageInfoTizenPlugin : public flutter::Plugin {
   }
 };
 
-void PackageInfoTizenPluginRegisterWithRegistrar(
+void PackageInfoPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  PackageInfoTizenPlugin::RegisterWithRegistrar(
+  PackageInfoPlusTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

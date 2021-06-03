@@ -1,4 +1,4 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,7 +7,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:package_info/package_info.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,15 +19,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'PackageInfo Demo',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const MyHomePage(title: 'PackageInfo example app'),
+      home: MyHomePage(title: 'PackageInfo example app'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -48,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _initPackageInfo() async {
-    final PackageInfo info = await PackageInfo.fromPlatform();
+    final info = await PackageInfo.fromPlatform();
     setState(() {
       _packageInfo = info;
     });
@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _infoTile(String title, String subtitle) {
     return ListTile(
       title: Text(title),
-      subtitle: Text(subtitle.isNotEmpty ? subtitle : 'Not set'),
+      subtitle: Text(subtitle.isEmpty ? 'Not set' : subtitle),
     );
   }
 
@@ -65,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title!),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
