@@ -9,7 +9,7 @@
 #define BUFFER_POOL_SIZE 5
 
 BufferUnit::BufferUnit(int index, int width, int height)
-    : isAllocated_(false),
+    : isUsed_(false),
       index_(index),
       width_(0),
       height_(0),
@@ -24,24 +24,26 @@ BufferUnit::~BufferUnit() {
   }
 }
 
-bool BufferUnit::Allocate() {
-  if (!isAllocated_) {
-    isAllocated_ = true;
+bool BufferUnit::MarkInUse() {
+  if (!isUsed_) {
+    isUsed_ = true;
     return true;
   }
   return false;
 }
 
 int BufferUnit::Index() { return index_; }
-bool BufferUnit::isAllocate() { return isAllocated_ && tbm_surface_; }
+
+bool BufferUnit::IsUsed() { return isUsed_ && tbm_surface_; }
+
 tbm_surface_h BufferUnit::Surface() {
-  if (isAllocate()) {
+  if (IsUsed()) {
     return tbm_surface_;
   }
   return nullptr;
 }
 
-void BufferUnit::Release() { isAllocated_ = false; }
+void BufferUnit::UnmarkInUse() { isUsed_ = false; }
 
 void BufferUnit::Reset(int width, int height) {
   if (width_ == width && height_ == height) {
@@ -65,8 +67,8 @@ BufferPool::BufferPool(int width, int height) {
 
 BufferPool::~BufferPool() {}
 
-BufferUnit* BufferPool::Get(tbm_surface_h surface) {
-  for (int idx = 0; idx < BUFFER_POOL_SIZE; idx++) {
+BufferUnit* BufferPool::Find(tbm_surface_h surface) {
+  for (int idx = 0; idx < pool_.size(); idx++) {
     BufferUnit* buffer = pool_[idx].get();
     if (buffer->Surface() == surface) {
       return buffer;
@@ -75,11 +77,11 @@ BufferUnit* BufferPool::Get(tbm_surface_h surface) {
   return nullptr;
 }
 
-BufferUnit* BufferPool::AllocateBuffer() {
+BufferUnit* BufferPool::GetAvailableBuffer() {
   std::lock_guard<std::mutex> lock(mutex_);
-  for (int idx = 0; idx < BUFFER_POOL_SIZE; idx++) {
+  for (int idx = 0; idx < pool_.size(); idx++) {
     BufferUnit* buffer = pool_[idx].get();
-    if (buffer->Allocate()) {
+    if (buffer->MarkInUse()) {
       return buffer;
     }
   }
@@ -88,12 +90,12 @@ BufferUnit* BufferPool::AllocateBuffer() {
 
 void BufferPool::Release(BufferUnit* unit) {
   std::lock_guard<std::mutex> lock(mutex_);
-  unit->Release();
+  unit->UnmarkInUse();
 }
 
 void BufferPool::Prepare(int width, int height) {
   std::lock_guard<std::mutex> lock(mutex_);
-  for (int idx = 0; idx < BUFFER_POOL_SIZE; idx++) {
+  for (int idx = 0; idx < pool_.size(); idx++) {
     BufferUnit* buffer = pool_[idx].get();
     buffer->Reset(width, height);
   }

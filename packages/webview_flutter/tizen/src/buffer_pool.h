@@ -17,14 +17,14 @@ class BufferUnit {
   explicit BufferUnit(int index, int width, int height);
   ~BufferUnit();
   void Reset(int width, int height);
-  bool Allocate();
-  void Release();
+  bool MarkInUse();
+  void UnmarkInUse();
   int Index();
-  bool isAllocate();
+  bool IsUsed();
   tbm_surface_h Surface();
 
  private:
-  bool isAllocated_;
+  bool isUsed_;
   int index_;
   int width_;
   int height_;
@@ -36,8 +36,8 @@ class BufferPool {
   explicit BufferPool(int width, int height);
   ~BufferPool();
 
-  BufferUnit* AllocateBuffer();
-  BufferUnit* Get(tbm_surface_h surface);
+  BufferUnit* GetAvailableBuffer();
+  BufferUnit* Find(tbm_surface_h surface);
   void Release(BufferUnit* unit);
   void Prepare(int with, int height);
 

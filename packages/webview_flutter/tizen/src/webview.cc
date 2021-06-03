@@ -788,7 +788,7 @@ void WebView::InitWebView() {
         std::lock_guard<std::mutex> lock(mutex_);
         LWE::WebContainer::ExternalImageInfo result;
         if (!candidate_surface_) {
-          candidate_surface_ = tbm_pool_->AllocateBuffer();
+          candidate_surface_ = tbm_pool_->GetAvailableBuffer();
         }
         if (candidate_surface_) {
           result.imageAddress = (void*)candidate_surface_->Surface();
@@ -955,7 +955,7 @@ FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
 
 void WebView::DestructBuffer(void* buffer) {
   if (buffer) {
-    BufferUnit* unit = tbm_pool_->Get((tbm_surface_h)buffer);
+    BufferUnit* unit = tbm_pool_->Find((tbm_surface_h)buffer);
     if (unit) {
       tbm_pool_->Release(unit);
     }
