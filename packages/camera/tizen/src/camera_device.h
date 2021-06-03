@@ -9,8 +9,9 @@
 #include <flutter/encodable_value.h>
 #include <flutter/method_result.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter_tizen_texture_registrar.h>
 #include <recorder.h>
+
+#include <mutex>
 
 #include "camera_method_channel.h"
 #include "device_method_channel.h"
@@ -207,16 +208,13 @@ class CameraDevice {
   static flutter::EncodableValue GetAvailableCameras();
 
   CameraDevice();
-  CameraDevice(flutter::PluginRegistrar *registrar,
-               FlutterTextureRegistrar *texture_registrar,
-               CameraDeviceType typem, ResolutionPreset resolution_preset,
-               bool enable_audio);
+  CameraDevice(flutter::PluginRegistrar *registrar, CameraDeviceType typem,
+               ResolutionPreset resolution_preset, bool enable_audio);
   ~CameraDevice();
 
   void ChangeCameraDeviceType(CameraDeviceType type);
   void Dispose();
   Size GetRecommendedPreviewResolution();
-  FlutterTextureRegistrar *GetTextureRegistrar() { return texture_registrar_; }
   long GetTextureId() { return texture_id_; }
   double GetMaxExposureOffset();
   double GetMinExposureOffset();
@@ -325,7 +323,10 @@ class CameraDevice {
 
   long texture_id_{0};
   flutter::PluginRegistrar *registrar_{nullptr};
-  FlutterTextureRegistrar *texture_registrar_{nullptr};
+  std::unique_ptr<flutter::TextureVariant> texture_variant_;
+  std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
+  media_packet_h packet_{nullptr};
+  std::mutex mutex_;
 
   std::unique_ptr<CameraMethodChannel> camera_method_channel_;
   std::unique_ptr<DeviceMethodChannel> device_method_channel_;

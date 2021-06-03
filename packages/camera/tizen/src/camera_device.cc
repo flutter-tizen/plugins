@@ -253,12 +253,10 @@ CameraDevice::CameraDevice() {
 }
 
 CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
-                           FlutterTextureRegistrar *texture_registrar,
                            CameraDeviceType type,
                            ResolutionPreset resolution_preset,
                            bool enable_audio)
     : registrar_(registrar),
-      texture_registrar_(texture_registrar),
       type_(type),
       resolution_preset_(resolution_preset),
       enable_audio_(enable_audio) {
@@ -326,7 +324,39 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
   SetResolutionPreset(resolution_preset_);
 
   // Init channels
-  texture_id_ = FlutterRegisterExternalTexture(texture_registrar_);
+  texture_variant_ =
+      std::make_unique<flutter::TextureVariant>(flutter::GpuBufferTexture(
+          [this](size_t width,
+                 size_t height) -> const FlutterDesktopGpuBuffer * {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (packet_ == nullptr) {
+              return nullptr;
+            }
+            tbm_surface_h surface;
+            int ret = media_packet_get_tbm_surface(packet_, &surface);
+            if (ret != MEDIA_PACKET_ERROR_NONE) {
+              LOG_ERROR("media_packet_get_tbm_surface failed, error: %d", ret);
+              media_packet_destroy(packet_);
+              packet_ = nullptr;
+              return nullptr;
+            }
+
+            flutter_desktop_gpu_buffer_->buffer = surface;
+            flutter_desktop_gpu_buffer_->width = width;
+            flutter_desktop_gpu_buffer_->height = height;
+            return flutter_desktop_gpu_buffer_.get();
+          },
+          [this](void *buffer) -> void {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (packet_) {
+              media_packet_destroy(packet_);
+              packet_ = nullptr;
+            }
+          }));
+  texture_id_ =
+      registrar_->texture_registrar()->RegisterTexture(texture_variant_.get());
+  flutter_desktop_gpu_buffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
+
   LOG_DEBUG("texture_id_[%ld]", texture_id_);
   camera_method_channel_ =
       std::make_unique<CameraMethodChannel>(registrar_, texture_id_);
@@ -397,9 +427,8 @@ void CameraDevice::Dispose() {
     orientation_manager_->Stop();
   }
 
-  if (texture_registrar_) {
-    FlutterUnregisterExternalTexture(texture_registrar_, texture_id_);
-    texture_registrar_ = nullptr;
+  if (texture_id_ != 0) {
+    registrar_->texture_registrar()->UnregisterTexture(texture_id_);
   }
 }
 
@@ -921,25 +950,15 @@ void CameraDevice::Open(
   }
 
   if (!SetCameraMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
-        tbm_surface_h surface = nullptr;
-        int error = media_packet_get_tbm_surface(pkt, &surface);
-        LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                     "media_packet_get_tbm_surface fail - error[%d]: %s", error,
-                     get_error_message(error));
-
-        if (error == 0) {
-          auto camera_device = static_cast<CameraDevice *>(data);
-          FlutterMarkExternalTextureFrameAvailable(
-              camera_device->GetTextureRegistrar(),
-              camera_device->GetTextureId(), surface);
-        }
-
-        // destroy packet
-        if (pkt) {
-          error = media_packet_destroy(pkt);
-          LOG_ERROR_IF(error != MEDIA_PACKET_ERROR_NONE,
-                       "media_packet_destroy fail - error[%d]: %s", error,
-                       get_error_message(error));
+        auto self = static_cast<CameraDevice *>(data);
+        std::lock_guard<std::mutex> lock(self->mutex_);
+        media_packet_h unused_packet = self->packet_;
+        self->packet_ = pkt;
+        if (unused_packet != nullptr) {
+          media_packet_destroy(unused_packet);
+        } else {
+          self->registrar_->texture_registrar()->MarkTextureFrameAvailable(
+              self->texture_id_);
         }
       })) {
     result->Error(kCameraDeviceError, "Failed to set media callback");
