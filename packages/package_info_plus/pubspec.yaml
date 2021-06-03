@@ -7,12 +7,14 @@ flutter:
   plugin:
     platforms:
       tizen:
+        dartPluginClass: PackageInfoPlugin
         pluginClass: PackageInfoPlusTizenPlugin
         fileName: package_info_plus_tizen_plugin.h
 
 dependencies:
   flutter:
     sdk: flutter
+  package_info_plus: ^1.0.1
   package_info_plus_platform_interface: ^1.0.0
 
 environment:
