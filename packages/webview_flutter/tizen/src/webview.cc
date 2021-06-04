@@ -791,7 +791,8 @@ void WebView::InitWebView() {
           candidate_surface_ = tbm_pool_->GetAvailableBuffer();
         }
         if (candidate_surface_) {
-          result.imageAddress = (void*)candidate_surface_->Surface();
+          result.imageAddress =
+              static_cast<void*>(candidate_surface_->Surface());
         } else {
           result.imageAddress = nullptr;
         }
@@ -946,7 +947,7 @@ FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
   rendered_surface_ = candidate_surface_;
   candidate_surface_ = nullptr;
   if (gpu_buffer_) {
-    gpu_buffer_->buffer = (void*)rendered_surface_->Surface();
+    gpu_buffer_->buffer = static_cast<void*>(rendered_surface_->Surface());
     gpu_buffer_->width = width;
     gpu_buffer_->height = height;
   }
