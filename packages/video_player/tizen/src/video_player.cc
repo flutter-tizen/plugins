@@ -79,11 +79,11 @@ void VideoPlayer::Destruct(void *buffer) {
   }
 }
 
-VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
-                         flutter::TextureRegistrar *textureRegistrar,
+VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
+                         flutter::TextureRegistrar *texture_registrar,
                          const std::string &uri, VideoPlayerOptions &options) {
   is_initialized_ = false;
-  texture_registrar_ = textureRegistrar;
+  texture_registrar_ = texture_registrar;
 
   texture_variant_ =
       std::make_unique<flutter::TextureVariant>(flutter::GpuBufferTexture(
@@ -95,7 +95,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
   flutter_desktop_gpu_buffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
 
   LOG_INFO("[VideoPlayer] register texture");
-  texture_id_ = textureRegistrar->RegisterTexture(texture_variant_.get());
+  texture_id_ = texture_registrar->RegisterTexture(texture_variant_.get());
 
   LOG_DEBUG("[VideoPlayer] call player_create to create player");
   int ret = player_create(&player_);
@@ -179,7 +179,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
                            get_error_message(ret));
   }
 
-  setupEventChannel(pluginRegistrar->messenger());
+  setupEventChannel(plugin_registrar->messenger());
 }
 
 VideoPlayer::~VideoPlayer() {
@@ -229,9 +229,9 @@ void VideoPlayer::pause() {
   }
 }
 
-void VideoPlayer::setLooping(bool isLooping) {
-  LOG_DEBUG("[VideoPlayer.setLooping] isLooping: %d", isLooping);
-  int ret = player_set_looping(player_, isLooping);
+void VideoPlayer::setLooping(bool is_looping) {
+  LOG_DEBUG("[VideoPlayer.setLooping] isLooping: %d", is_looping);
+  int ret = player_set_looping(player_, is_looping);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer.setLooping] player_set_looping failed: %s",
               get_error_message(ret));
@@ -503,18 +503,7 @@ void VideoPlayer::onErrorOccurred(int code, void *data) {
 }
 
 void VideoPlayer::onVideoFrameDecoded(media_packet_h packet, void *data) {
-  LOG_DEBUG("onVideoFrameDecoded");
   VideoPlayer *player = (VideoPlayer *)data;
-  tbm_surface_h surface;
-  int ret = media_packet_get_tbm_surface(packet, &surface);
-  if (ret != MEDIA_PACKET_ERROR_NONE) {
-    LOG_ERROR(
-        "[VideoPlayer.onVideoFrameDecoded] media_packet_get_tbm_surface "
-        "failed, error: %d",
-        ret);
-    media_packet_destroy(packet);
-    return;
-  }
   std::lock_guard<std::mutex> lock(player->mutex_);
   if (player->media_packet_) {
     LOG_INFO("Render not finished");

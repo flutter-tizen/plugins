@@ -13,15 +13,15 @@
 
 class VideoPlayer {
  public:
-  VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
-              flutter::TextureRegistrar *textureRegistrar,
+  VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
+              flutter::TextureRegistrar *texture_registrar,
               const std::string &uri, VideoPlayerOptions &options);
   ~VideoPlayer();
 
   long getTextureId();
   void play();
   void pause();
-  void setLooping(bool isLooping);
+  void setLooping(bool is_looping);
   void setVolume(double volume);
   void setPlaybackSpeed(double speed);
   void seekTo(int position);  // milliseconds
