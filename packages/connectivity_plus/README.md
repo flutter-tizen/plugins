@@ -1,30 +1,24 @@
-# connectivity_tizen
+# connectivity_plus_tizen
 
-The Tizen implementation of [`connectivity`](https://github.com/flutter/plugins/tree/master/packages/connectivity).
+The Tizen implementation of [`connectivity_plus`](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus).
 
 ## Usage
 
-This package is not an _endorsed_ implementation of `connectivity`. Therefore, you have to include `connectivity_tizen` alongside `connectivity` as dependencies in your `pubspec.yaml` file.
+This package is not an _endorsed_ implementation of `connectivity_plus`. Therefore, you have to include `connectivity_plus_tizen` alongside `connectivity_plus` as dependencies in your `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  connectivity: ^3.0.3
-  connectivity_tizen: ^2.0.0
+  connectivity_plus: ^1.0.1
+  connectivity_plus_tizen: ^1.0.0
 ```
 
-Then you can import `connectivity` in your Dart code:
+Then you can import `connectivity_plus` in your Dart code:
 
 ```dart
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/connectivity/connectivity#usage.
-
-## Supported devices
-
-This plugin is supported on these types of devices:
-
-- Galaxy Watch (running Tizen 4.0 or later)
+For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus#usage.
 
 ## Required privileges
 

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "connectivity_tizen_plugin.h"
+#include "connectivity_plus_tizen_plugin.h"
 
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
@@ -20,20 +20,21 @@
 
 #include "log.h"
 
-class ConnectivityTizenPlugin : public flutter::Plugin {
+class ConnectivityPlusTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     LOG_INFO("RegisterWithRegistrar");
     auto method_channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/connectivity",
+            registrar->messenger(), "dev.fluttercommunity.plus/connectivity",
             &flutter::StandardMethodCodec::GetInstance());
     auto event_channel =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/connectivity_status",
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/connectivity_status",
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto plugin = std::make_unique<ConnectivityTizenPlugin>();
+    auto plugin = std::make_unique<ConnectivityPlusTizenPlugin>();
     method_channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
           plugin_pointer->HandleMethodCall(call, std::move(result));
@@ -59,11 +60,11 @@ class ConnectivityTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  ConnectivityTizenPlugin() : m_connection(nullptr), m_events(nullptr) {
+  ConnectivityPlusTizenPlugin() : m_connection(nullptr), m_events(nullptr) {
     ensureConnectionHandle();
   }
 
-  virtual ~ConnectivityTizenPlugin() {
+  virtual ~ConnectivityPlusTizenPlugin() {
     if (m_connection != nullptr) {
       connection_destroy(m_connection);
       m_connection = nullptr;
@@ -97,7 +98,8 @@ class ConnectivityTizenPlugin : public flutter::Plugin {
  private:
   static void connetionTypeChangedCB(connection_type_e state, void *data) {
     LOG_DEBUG("connetionTypeChangedCB");
-    ConnectivityTizenPlugin *plugin_pointer = (ConnectivityTizenPlugin *)data;
+    ConnectivityPlusTizenPlugin *plugin_pointer =
+        (ConnectivityPlusTizenPlugin *)data;
     plugin_pointer->sendConnectivityChangedEvent(state);
   }
 
@@ -156,9 +158,9 @@ class ConnectivityTizenPlugin : public flutter::Plugin {
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_events;
 };
 
-void ConnectivityTizenPluginRegisterWithRegistrar(
+void ConnectivityPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  ConnectivityTizenPlugin::RegisterWithRegistrar(
+  ConnectivityPlusTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

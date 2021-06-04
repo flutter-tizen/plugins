@@ -1,6 +1,6 @@
-# connectiviy_example
+# connectiviy_plus_example
 
-Demonstrates how to use the connectiviy_tizen plugin.
+Demonstrates how to use the connectiviy_plus_tizen plugin.
 
 ## Getting Started
 
