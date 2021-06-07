@@ -15,6 +15,7 @@
 #include <sstream>
 #include <string>
 
+#include "buffer_pool.h"
 #include "log.h"
 #include "lwe/LWEWebView.h"
 #include "lwe/PlatformIntegrationData.h"
@@ -170,6 +171,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       context_(nullptr),
       texture_variant_(nullptr),
       gpu_buffer_(nullptr) {
+  tbm_pool_ = std::make_unique<BufferPool>(width, height);
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
       [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
         return this->ObtainGpuBuffer(width, height);
@@ -404,7 +406,14 @@ void WebView::Dispose() {
 
 void WebView::Resize(double width, double height) {
   LOG_DEBUG("WebView::Resize width: %f height: %f \n", width, height);
-  // NOTE: Not supported by LWE on Tizen.
+  width_ = width;
+  height_ = height;
+
+  if (candidate_surface_) {
+    candidate_surface_ = nullptr;
+  }
+  tbm_pool_->Prepare(width_, height_);
+  webview_instance_->ResizeTo(width_, height_);
 }
 
 void WebView::Touch(int type, int button, double x, double y, double dx,
@@ -779,10 +788,14 @@ void WebView::InitWebView() {
         std::lock_guard<std::mutex> lock(mutex_);
         LWE::WebContainer::ExternalImageInfo result;
         if (!candidate_surface_) {
-          candidate_surface_ =
-              tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
+          candidate_surface_ = tbm_pool_->GetAvailableBuffer();
         }
-        result.imageAddress = (void*)candidate_surface_;
+        if (candidate_surface_) {
+          result.imageAddress =
+              static_cast<void*>(candidate_surface_->Surface());
+        } else {
+          result.imageAddress = nullptr;
+        }
         return result;
       },
       [this](LWE::WebContainer* c, bool isRendered) {
@@ -924,20 +937,17 @@ void WebView::HandleCookieMethodCall(
 
 FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
   if (!candidate_surface_) {
-    return nullptr;
+    if (!rendered_surface_) {
+      return nullptr;
+    } else {
+      return gpu_buffer_;
+    }
   }
-
   std::lock_guard<std::mutex> lock(mutex_);
-  if (rendered_surface_) {
-    tbm_surface_destroy(rendered_surface_);
-    rendered_surface_ = nullptr;
-  }
-
   rendered_surface_ = candidate_surface_;
   candidate_surface_ = nullptr;
-
   if (gpu_buffer_) {
-    gpu_buffer_->buffer = rendered_surface_;
+    gpu_buffer_->buffer = static_cast<void*>(rendered_surface_->Surface());
     gpu_buffer_->width = width;
     gpu_buffer_->height = height;
   }
@@ -946,10 +956,9 @@ FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
 
 void WebView::DestructBuffer(void* buffer) {
   if (buffer) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    tbm_surface_destroy((tbm_surface_h)buffer);
-    if (rendered_surface_ == buffer) {
-      rendered_surface_ = nullptr;
+    BufferUnit* unit = tbm_pool_->Find((tbm_surface_h)buffer);
+    if (unit) {
+      tbm_pool_->Release(unit);
     }
   }
 }

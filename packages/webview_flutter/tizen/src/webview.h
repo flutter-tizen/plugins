@@ -20,6 +20,8 @@ class WebContainer;
 }
 
 class TextInputChannel;
+class BufferPool;
+class BufferUnit;
 
 class WebView : public PlatformView {
  public:
@@ -68,8 +70,8 @@ class WebView : public PlatformView {
   LWE::WebContainer* webview_instance_;
   double width_;
   double height_;
-  tbm_surface_h candidate_surface_;
-  tbm_surface_h rendered_surface_;
+  BufferUnit* candidate_surface_;
+  BufferUnit* rendered_surface_;
   bool is_mouse_lbutton_down_;
   bool has_navigation_delegate_;
   bool has_progress_tracking_;
@@ -78,6 +80,7 @@ class WebView : public PlatformView {
   flutter::TextureVariant* texture_variant_;
   FlutterDesktopGpuBuffer* gpu_buffer_;
   std::mutex mutex_;
+  std::unique_ptr<BufferPool> tbm_pool_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
