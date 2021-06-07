@@ -6,22 +6,22 @@
 #include <flutter/plugin_registrar.h>
 #include <player.h>
 
+#include <mutex>
 #include <string>
 
-#include "flutter_tizen_texture_registrar.h"
 #include "video_player_options.h"
 
 class VideoPlayer {
  public:
-  VideoPlayer(flutter::PluginRegistrar *pluginRegistrar,
-              FlutterTextureRegistrar *textureRegistrar, const std::string &uri,
-              VideoPlayerOptions &options);
+  VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
+              flutter::TextureRegistrar *texture_registrar,
+              const std::string &uri, VideoPlayerOptions &options);
   ~VideoPlayer();
 
   long getTextureId();
   void play();
   void pause();
-  void setLooping(bool isLooping);
+  void setLooping(bool is_looping);
   void setVolume(double volume);
   void setPlaybackSpeed(double speed);
   void seekTo(int position);  // milliseconds
@@ -35,6 +35,8 @@ class VideoPlayer {
   void sendBufferingStart();
   void sendBufferingUpdate(int position);  // milliseconds
   void sendBufferingEnd();
+  FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
+  void Destruct(void *buffer);
 
   static void onPrepared(void *data);
   static void onBuffering(int percent, void *data);
@@ -43,12 +45,17 @@ class VideoPlayer {
   static void onErrorOccurred(int code, void *data);
   static void onVideoFrameDecoded(media_packet_h packet, void *data);
 
-  bool isInitialized_;
+  bool is_initialized_;
   player_h player_;
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> eventChannel_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> eventSink_;
-  long textureId_;
-  FlutterTextureRegistrar *textureRegistrar_;
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
+      event_channel_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
+  long texture_id_;
+  flutter::TextureRegistrar *texture_registrar_;
+  std::unique_ptr<flutter::TextureVariant> texture_variant_;
+  std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
+  std::mutex mutex_;
+  media_packet_h media_packet_ = nullptr;
 };
 
 #endif  // VIDEO_PLAYER_H_
