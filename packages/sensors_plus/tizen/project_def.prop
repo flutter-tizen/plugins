@@ -1,12 +1,12 @@
 # See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
 # for details.
 
-APPNAME = sensors_plugin
+APPNAME = sensors_plus_plugin
 type = sharedLib
 profile = common-4.0
 
 # Source files
-USER_SRCS += src/sensors_plugin.cc
+USER_SRCS += src/sensors_plus_plugin.cc
 
 # User defines
 USER_DEFS =

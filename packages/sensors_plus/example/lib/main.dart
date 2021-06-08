@@ -1,4 +1,4 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,7 +6,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:sensors/sensors.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 import 'snake.dart';
 
@@ -22,15 +22,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -44,16 +44,15 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double>? _accelerometerValues;
   List<double>? _userAccelerometerValues;
   List<double>? _gyroscopeValues;
-  final List<StreamSubscription<dynamic>> _streamSubscriptions =
-      <StreamSubscription<dynamic>>[];
+  final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
   @override
   Widget build(BuildContext context) {
-    final List<String>? accelerometer =
+    final accelerometer =
         _accelerometerValues?.map((double v) => v.toStringAsFixed(1)).toList();
-    final List<String>? gyroscope =
+    final gyroscope =
         _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
-    final List<String>? userAccelerometer = _userAccelerometerValues
+    final userAccelerometer = _userAccelerometerValues
         ?.map((double v) => v.toStringAsFixed(1))
         .toList();
 
@@ -69,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                 border: Border.all(width: 1.0, color: Colors.black38),
               ),
-              child: const SizedBox(
+              child: SizedBox(
                 height: _snakeRows * _snakeCellSize,
                 width: _snakeColumns * _snakeCellSize,
                 child: Snake(
@@ -81,31 +80,31 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text('Accelerometer: $accelerometer'),
               ],
             ),
-            padding: const EdgeInsets.all(16.0),
           ),
           Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text('UserAccelerometer: $userAccelerometer'),
               ],
             ),
-            padding: const EdgeInsets.all(16.0),
           ),
           Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text('Gyroscope: $gyroscope'),
               ],
             ),
-            padding: const EdgeInsets.all(16.0),
           ),
         ],
       ),
@@ -115,8 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void dispose() {
     super.dispose();
-    for (final StreamSubscription<dynamic> subscription
-        in _streamSubscriptions) {
+    for (final subscription in _streamSubscriptions) {
       subscription.cancel();
     }
   }
@@ -124,22 +122,32 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _streamSubscriptions
-        .add(accelerometerEvents.listen((AccelerometerEvent event) {
-      setState(() {
-        _accelerometerValues = <double>[event.x, event.y, event.z];
-      });
-    }));
-    _streamSubscriptions.add(gyroscopeEvents.listen((GyroscopeEvent event) {
-      setState(() {
-        _gyroscopeValues = <double>[event.x, event.y, event.z];
-      });
-    }));
-    _streamSubscriptions
-        .add(userAccelerometerEvents.listen((UserAccelerometerEvent event) {
-      setState(() {
-        _userAccelerometerValues = <double>[event.x, event.y, event.z];
-      });
-    }));
+    _streamSubscriptions.add(
+      accelerometerEvents.listen(
+        (AccelerometerEvent event) {
+          setState(() {
+            _accelerometerValues = <double>[event.x, event.y, event.z];
+          });
+        },
+      ),
+    );
+    _streamSubscriptions.add(
+      gyroscopeEvents.listen(
+        (GyroscopeEvent event) {
+          setState(() {
+            _gyroscopeValues = <double>[event.x, event.y, event.z];
+          });
+        },
+      ),
+    );
+    _streamSubscriptions.add(
+      userAccelerometerEvents.listen(
+        (UserAccelerometerEvent event) {
+          setState(() {
+            _userAccelerometerValues = <double>[event.x, event.y, event.z];
+          });
+        },
+      ),
+    );
   }
 }

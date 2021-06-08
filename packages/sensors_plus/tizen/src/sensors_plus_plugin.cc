@@ -1,4 +1,4 @@
-#include "sensors_plugin.h"
+#include "sensors_plus_plugin.h"
 
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
@@ -17,9 +17,11 @@
 
 #include "log.h"
 
-#define ACCELEROMETER_CHANNEL_NAME "plugins.flutter.io/sensors/accelerometer"
-#define GYROSCOPE_CHANNEL_NAME "plugins.flutter.io/sensors/gyroscope"
-#define USER_ACCELEROMETER_CHANNEL_NAME "plugins.flutter.io/sensors/user_accel"
+#define ACCELEROMETER_CHANNEL_NAME \
+  "dev.fluttercommunity.plus/sensors/accelerometer"
+#define GYROSCOPE_CHANNEL_NAME "dev.fluttercommunity.plus/sensors/gyroscope"
+#define USER_ACCELEROMETER_CHANNEL_NAME \
+  "dev.fluttercommunity.plus/sensors/user_accel"
 
 class Listener {
  public:
@@ -110,18 +112,18 @@ class Listener {
   bool is_listening_{false};
 };
 
-class SensorsPlugin : public flutter::Plugin {
+class SensorsPlusPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     LOG_DEBUG("RegisterWithRegistrar");
-    auto plugin = std::make_unique<SensorsPlugin>();
+    auto plugin = std::make_unique<SensorsPlusPlugin>();
     plugin->setupEventChannels(registrar);
     registrar->AddPlugin(std::move(plugin));
   }
 
-  SensorsPlugin() { LOG_DEBUG("Create"); }
+  SensorsPlusPlugin() { LOG_DEBUG("Create"); }
 
-  virtual ~SensorsPlugin() { LOG_DEBUG("Destroy"); }
+  virtual ~SensorsPlusPlugin() { LOG_DEBUG("Destroy"); }
 
  private:
   void setupEventChannels(flutter::PluginRegistrar *registrar) {
@@ -216,9 +218,9 @@ class SensorsPlugin : public flutter::Plugin {
   std::unique_ptr<Listener> user_accel_listener_;
 };
 
-void SensorsPluginRegisterWithRegistrar(
+void SensorsPlusPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  SensorsPlugin::RegisterWithRegistrar(
+  SensorsPlusPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

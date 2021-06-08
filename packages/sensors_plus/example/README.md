@@ -1,6 +1,6 @@
-# sensors_example
+# sensors_plus_example
 
-Demonstrates how to use the sensors_tizen plugin.
+Demonstrates how to use the sensors_plus_tizen plugin.
 
 ## Getting Started
 

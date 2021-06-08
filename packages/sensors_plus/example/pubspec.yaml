@@ -1,21 +1,18 @@
-name: sensors_example
-description: Demonstrates how to use the sensors plugin.
+name: sensors_plus_example
+description: Demonstrates how to use the sensors_plus plugin.
 publish_to: "none"
 
 dependencies:
   flutter:
     sdk: flutter
-  sensors: ^2.0.0
-  sensors_tizen:
+  sensors_plus: ^1.0.0
+  sensors_plus_tizen:
     path: ../
 
 dev_dependencies:
   flutter_driver:
     sdk: flutter
-  flutter_test:
-    sdk: flutter
-  integration_test:
-    sdk: flutter
+  integration_test: ^1.0.2
   integration_test_tizen:
     path: ../../integration_test/
 
