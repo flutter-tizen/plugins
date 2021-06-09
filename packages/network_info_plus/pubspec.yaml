@@ -1,0 +1,20 @@
+name: wifi_info_flutter_tizen
+description: Tizen implementation of the wifi_info_flutter plugin
+version: 2.0.0
+homepage: https://github.com/flutter-tizen/plugins
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: WifiInfoFlutterTizenPlugin
+        fileName: wifi_info_flutter_tizen_plugin.h
+
+dependencies:
+  flutter:
+    sdk: flutter
+  wifi_info_flutter_platform_interface: ^2.0.1
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
