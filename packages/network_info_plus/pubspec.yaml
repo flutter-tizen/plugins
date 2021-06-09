@@ -7,6 +7,7 @@ flutter:
   plugin:
     platforms:
       tizen:
+        dartPluginClass: NetworkInfoPlugin
         pluginClass: NetworkInfoPlusTizenPlugin
         fileName: network_info_plus_tizen_plugin.h
 
