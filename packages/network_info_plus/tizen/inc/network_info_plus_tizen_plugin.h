@@ -1,5 +1,5 @@
-#ifndef FLUTTER_PLUGIN_WIFI_INFO_FLUTTER_TIZEN_PLUGIN_H_
-#define FLUTTER_PLUGIN_WIFI_INFO_FLUTTER_TIZEN_PLUGIN_H_
+#ifndef FLUTTER_PLUGIN_NETWORK_INFO_PLUS_TIZEN_PLUGIN_H_
+#define FLUTTER_PLUGIN_NETWORK_INFO_PLUS_TIZEN_PLUGIN_H_
 
 #include <flutter_plugin_registrar.h>
 
@@ -13,11 +13,11 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void WifiInfoFlutterTizenPluginRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void NetworkInfoPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)
 }  // extern "C"
 #endif
 
-#endif  // FLUTTER_PLUGIN_WIFI_INFO_FLUTTER_TIZEN_PLUGIN_H_
+#endif  // FLUTTER_PLUGIN_NETWORK_INFO_PLUS_TIZEN_PLUGIN_H_

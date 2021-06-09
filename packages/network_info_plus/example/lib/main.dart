@@ -1,4 +1,4 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,12 +7,10 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:connectivity/connectivity.dart'
-    show Connectivity, ConnectivityResult;
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wifi_info_flutter/wifi_info_flutter.dart';
 
 // Sets a platform override for desktop to avoid exceptions. See
 // https://flutter.dev/desktop#target-platform-override for more info.
@@ -36,15 +34,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -52,122 +50,78 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String _connectionStatus = 'Unknown';
-  final Connectivity _connectivity = Connectivity();
-  final WifiInfo _wifiInfo = WifiInfo();
-  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  final NetworkInfo _networkInfo = NetworkInfo();
 
   @override
   void initState() {
     super.initState();
-    initConnectivity();
-    _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
-  }
-
-  @override
-  void dispose() {
-    _connectivitySubscription.cancel();
-    super.dispose();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initConnectivity() async {
-    late ConnectivityResult result;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      result = await _connectivity.checkConnectivity();
-    } on PlatformException catch (e) {
-      print(e.toString());
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) {
-      return;
-    }
-
-    return _updateConnectionStatus(result);
+    _initNetworkInfo();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Connectivity example app'),
+        title: const Text('NetworkInfo example app'),
       ),
       body: Center(child: Text('Connection Status: $_connectionStatus')),
     );
   }
 
-  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
-    switch (result) {
-      case ConnectivityResult.wifi:
-        String? wifiName, wifiBSSID, wifiIP;
+  Future<void> _initNetworkInfo() async {
+    String? wifiName, wifiBSSID, wifiIP;
 
-        try {
-          if (!kIsWeb && Platform.isIOS) {
-            LocationAuthorizationStatus status =
-                await _wifiInfo.getLocationServiceAuthorization();
-            if (status == LocationAuthorizationStatus.notDetermined) {
-              status = await _wifiInfo.requestLocationServiceAuthorization();
-            }
-            if (status == LocationAuthorizationStatus.authorizedAlways ||
-                status == LocationAuthorizationStatus.authorizedWhenInUse) {
-              wifiName = await _wifiInfo.getWifiName();
-            } else {
-              wifiName = await _wifiInfo.getWifiName();
-            }
-          } else {
-            wifiName = await _wifiInfo.getWifiName();
-          }
-        } on PlatformException catch (e) {
-          print(e.toString());
-          wifiName = 'Failed to get Wifi Name';
+    try {
+      if (!kIsWeb && Platform.isIOS) {
+        var status = await _networkInfo.getLocationServiceAuthorization();
+        if (status == LocationAuthorizationStatus.notDetermined) {
+          status = await _networkInfo.requestLocationServiceAuthorization();
         }
-
-        try {
-          if (!kIsWeb && Platform.isIOS) {
-            LocationAuthorizationStatus status =
-                await _wifiInfo.getLocationServiceAuthorization();
-            if (status == LocationAuthorizationStatus.notDetermined) {
-              status = await _wifiInfo.requestLocationServiceAuthorization();
-            }
-            if (status == LocationAuthorizationStatus.authorizedAlways ||
-                status == LocationAuthorizationStatus.authorizedWhenInUse) {
-              wifiBSSID = await _wifiInfo.getWifiBSSID();
-            } else {
-              wifiBSSID = await _wifiInfo.getWifiBSSID();
-            }
-          } else {
-            wifiBSSID = await _wifiInfo.getWifiBSSID();
-          }
-        } on PlatformException catch (e) {
-          print(e.toString());
-          wifiBSSID = 'Failed to get Wifi BSSID';
+        if (status == LocationAuthorizationStatus.authorizedAlways ||
+            status == LocationAuthorizationStatus.authorizedWhenInUse) {
+          wifiName = await _networkInfo.getWifiName();
+        } else {
+          wifiName = await _networkInfo.getWifiName();
         }
-
-        try {
-          wifiIP = await _wifiInfo.getWifiIP();
-        } on PlatformException catch (e) {
-          print(e.toString());
-          wifiIP = 'Failed to get Wifi IP';
-        }
-
-        setState(() {
-          _connectionStatus = '$result\n'
-              'Wifi Name: $wifiName\n'
-              'Wifi BSSID: $wifiBSSID\n'
-              'Wifi IP: $wifiIP\n';
-        });
-        break;
-      case ConnectivityResult.mobile:
-      case ConnectivityResult.none:
-        setState(() => _connectionStatus = result.toString());
-        break;
-      default:
-        setState(() => _connectionStatus = 'Failed to get connectivity.');
-        break;
+      } else {
+        wifiName = await _networkInfo.getWifiName();
+      }
+    } on PlatformException catch (e) {
+      print(e.toString());
+      wifiName = 'Failed to get Wifi Name';
     }
+
+    try {
+      if (!kIsWeb && Platform.isIOS) {
+        var status = await _networkInfo.getLocationServiceAuthorization();
+        if (status == LocationAuthorizationStatus.notDetermined) {
+          status = await _networkInfo.requestLocationServiceAuthorization();
+        }
+        if (status == LocationAuthorizationStatus.authorizedAlways ||
+            status == LocationAuthorizationStatus.authorizedWhenInUse) {
+          wifiBSSID = await _networkInfo.getWifiBSSID();
+        } else {
+          wifiBSSID = await _networkInfo.getWifiBSSID();
+        }
+      } else {
+        wifiBSSID = await _networkInfo.getWifiBSSID();
+      }
+    } on PlatformException catch (e) {
+      print(e.toString());
+      wifiBSSID = 'Failed to get Wifi BSSID';
+    }
+
+    try {
+      wifiIP = await _networkInfo.getWifiIP();
+    } on PlatformException catch (e) {
+      print(e.toString());
+      wifiIP = 'Failed to get Wifi IP';
+    }
+
+    setState(() {
+      _connectionStatus = 'Wifi Name: $wifiName\n'
+          'Wifi BSSID: $wifiBSSID\n'
+          'Wifi IP: $wifiIP\n';
+    });
   }
 }

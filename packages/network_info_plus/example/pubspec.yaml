@@ -1,15 +1,12 @@
-name: wifi_info_flutter_tizen_example
-description: Demonstrates how to use the wifi_info_flutter_tizen plugin.
+name: network_info_plus_example
+description: Demonstrates how to use the network_info_plus_tizen plugin.
 publish_to: "none"
 
 dependencies:
-  connectivity: ^3.0.3
-  connectivity_tizen:
-    path: ../../connectivity/
   flutter:
     sdk: flutter
-  wifi_info_flutter: ^2.0.0
-  wifi_info_flutter_tizen:
+  network_info_plus: ^1.0.1
+  network_info_plus_tizen:
     path: ../
 
 dev_dependencies:
@@ -19,6 +16,9 @@ dev_dependencies:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
+
+dependency_overrides:
+  args: ^2.0.0
 
 flutter:
   uses-material-design: true

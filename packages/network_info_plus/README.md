@@ -1,24 +1,24 @@
-# wifi_info_flutter_tizen
+# network_info_plus_tizen
 
-The Tizen implementation of [`wifi_info_flutter`](https://github.com/flutter/plugins/tree/master/packages/wifi_info_flutter).
+The Tizen implementation of [`network_info_plus`](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/network_info_plus).
 
 ## Usage
 
-This package is not an _endorsed_ implementation of `wifi_info_flutter`. Therefore, you have to include `wifi_info_flutter_tizen` alongside `wifi_info_flutter` as dependencies in your `pubspec.yaml` file.
+This package is not an _endorsed_ implementation of `network_info_plus`. Therefore, you have to include `network_info_plus_tizen` alongside `network_info_plus` as dependencies in your `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  wifi_info_flutter: ^2.0.0
-  wifi_info_flutter_tizen: ^2.0.0
+  network_info_plus: ^1.0.1
+  network_info_plus_tizen: ^1.0.0
 ```
 
-Then you can import `wifi_info_flutter` in your Dart code:
+Then you can import `network_info_plus` in your Dart code:
 
 ```dart
-import 'package:wifi_info_flutter/wifi_info_flutter.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/wifi_info_flutter/wifi_info_flutter#usage.
+For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/network_info_plus#usage.
 
 ## Required privileges
 

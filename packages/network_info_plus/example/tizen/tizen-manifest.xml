@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="org.tizen.wifi_info_flutter_tizen_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
+<manifest package="org.tizen.network_info_plus_tizen_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
     <profile name="common"/>
-    <ui-application appid="org.tizen.wifi_info_flutter_tizen_example" exec="Runner.dll" type="dotnet" multiple="false" taskmanage="true" nodisplay="false" api-version="4" launch_mode="single">
-        <label>wifi_info_flutter_tizen_example</label>
+    <ui-application appid="org.tizen.network_info_plus_tizen_example" exec="Runner.dll" type="dotnet" multiple="false" taskmanage="true" nodisplay="false" api-version="4" launch_mode="single">
+        <label>network_info_plus_tizen_example</label>
         <icon>ic_launcher.png</icon>
         <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true"/>
         <metadata key="http://tizen.org/metadata/direct-launch" value="yes"/>

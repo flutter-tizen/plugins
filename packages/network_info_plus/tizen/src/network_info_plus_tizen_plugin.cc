@@ -1,4 +1,8 @@
-#include "wifi_info_flutter_tizen_plugin.h"
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#include "network_info_plus_tizen_plugin.h"
 
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -13,17 +17,17 @@
 
 #include "log.h"
 
-class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
+class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
  public:
   enum WifiInfoType { ESSID, BSSID };
 
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/wifi_info_flutter",
+            registrar->messenger(), "dev.fluttercommunity.plus/network_info",
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto plugin = std::make_unique<WifiInfoFlutterTizenPlugin>();
+    auto plugin = std::make_unique<NetworkInfoPlusTizenPlugin>();
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -33,12 +37,12 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  WifiInfoFlutterTizenPlugin()
+  NetworkInfoPlusTizenPlugin()
       : m_connection(nullptr), m_wifi_manager(nullptr) {
     EnsureConnectionHandle();
   }
 
-  virtual ~WifiInfoFlutterTizenPlugin() {
+  virtual ~NetworkInfoPlusTizenPlugin() {
     if (m_connection != nullptr) {
       connection_destroy(m_connection);
       m_connection = nullptr;
@@ -126,9 +130,9 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
   wifi_manager_h m_wifi_manager;
 };
 
-void WifiInfoFlutterTizenPluginRegisterWithRegistrar(
+void NetworkInfoPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  WifiInfoFlutterTizenPlugin::RegisterWithRegistrar(
+  NetworkInfoPlusTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }
