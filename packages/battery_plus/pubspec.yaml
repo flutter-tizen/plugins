@@ -1,0 +1,21 @@
+name: battery_plus_tizen
+description: Tizen implementation of the battery_plus plugin
+version: 1.0.0
+homepage: https://github.com/flutter-tizen/plugins
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        dartPluginClass: BatteryPlugin
+        pluginClass: BatteryPlusTizenPlugin
+        fileName: battery_plus_tizen_plugin.h
+
+dependencies:
+  battery_plus_platform_interface: ^1.0.1
+  flutter:
+    sdk: flutter
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
