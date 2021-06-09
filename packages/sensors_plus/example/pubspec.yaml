@@ -12,7 +12,8 @@ dependencies:
 dev_dependencies:
   flutter_driver:
     sdk: flutter
-  integration_test: ^1.0.2
+  integration_test:
+    sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
 

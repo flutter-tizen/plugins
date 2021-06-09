@@ -51,8 +51,8 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**package_info_plus_tizen**](packages/package_info_plus) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**path_provider_tizen**](packages/path_provider) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | No external storage |
 | [**permission_handler_tizen**](packages/permission_handler) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
-| [**sensors_tizen**](packages/sensors) | ✔️ | ✔️ | ❌ | ❌ | No hardware |
-| [**sensors_plus_tizen**](packages/sensors_plus) | ✔️ | ✔️ | ❌ | ❌ | No hardware |
+| [**sensors_tizen**](packages/sensors) | ✔️ | ✔️ | ❌ | ❌ | No sensor hardware |
+| [**sensors_plus_tizen**](packages/sensors_plus) | ✔️ | ✔️ | ❌ | ❌ | No sensor hardware |
 | [**share_tizen**](packages/share) | ⚠️ | ⚠️ | ❌ | ❌ | No SMS or e-mail app |
 | [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
