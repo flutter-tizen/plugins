@@ -1,0 +1,17 @@
+# package_info_plus_tizen
+
+The Tizen implementation of [`package_info_plus`](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/package_info_plus).
+
+## Usage
+
+This package is not an _endorsed_ implementation of `package_info_plus`. Therefore, you have to include `package_info_plus_tizen` alongside `package_info_plus` as dependencies in your `pubspec.yaml` file.
+
+```yaml
+dependencies:
+  package_info_plus: ^1.0.1
+  package_info_plus_tizen: ^1.0.0
+```
+
+Then you can import `package_info_plus` in your Dart code.
+
+For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/package_info_plus#usage.
