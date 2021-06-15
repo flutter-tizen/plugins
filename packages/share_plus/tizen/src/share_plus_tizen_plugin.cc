@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "share_tizen_plugin.h"
+#include "share_plus_tizen_plugin.h"
 
 #include <app_control.h>
 #include <flutter/method_channel.h>
@@ -26,15 +26,15 @@
     return;                                                     \
   }
 
-class ShareTizenPlugin : public flutter::Plugin {
+class SharePlusTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/share",
+            registrar->messenger(), "dev.fluttercommunity.plus/share",
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto plugin = std::make_unique<ShareTizenPlugin>();
+    auto plugin = std::make_unique<SharePlusTizenPlugin>();
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -44,9 +44,9 @@ class ShareTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  ShareTizenPlugin() {}
+  SharePlusTizenPlugin() {}
 
-  virtual ~ShareTizenPlugin() {}
+  virtual ~SharePlusTizenPlugin() {}
 
  private:
   void HandleMethodCall(
@@ -196,9 +196,9 @@ class ShareTizenPlugin : public flutter::Plugin {
   }
 };
 
-void ShareTizenPluginRegisterWithRegistrar(
+void SharePlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  ShareTizenPlugin::RegisterWithRegistrar(
+  SharePlusTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

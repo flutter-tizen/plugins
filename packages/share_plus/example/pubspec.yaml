@@ -1,15 +1,15 @@
-name: share_example
-description: Demonstrates how to use the share_tizen plugin.
+name: share_plus_example
+description: Demonstrates how to use the share_plus_tizen plugin.
 publish_to: "none"
 
 dependencies:
   flutter:
     sdk: flutter
-  image_picker: ^0.7.3
+  image_picker: ^0.8.0+3
   image_picker_tizen:
     path: ../../image_picker/
-  share: ^2.0.1
-  share_tizen:
+  share_plus: ^2.1.2
+  share_plus_tizen:
     path: ../
 
 dev_dependencies:

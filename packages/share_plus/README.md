@@ -1,15 +1,15 @@
-# share_tizen
+# share_plus_tizen
 
-The Tizen implementation of [`share`](https://github.com/flutter/plugins/tree/master/packages/share).
+The Tizen implementation of [`share_plus`](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/share_plus).
 
 ## Usage
 
-To use this plugin, add `share` and `share_tizen` as [dependencies in your pubspec.yaml file](https://flutter.io/platform-plugins/).
+To use this plugin, add `share_plus` and `share_plus_tizen` as [dependencies in your pubspec.yaml file](https://flutter.io/platform-plugins/).
 
 ```yaml
 dependencies:
-  share: ^2.0.1
-  share_tizen: ^2.0.0
+  share_plus: ^2.1.2
+  share_plus_tizen: ^1.0.0
 ```
 
 ## Example
@@ -17,7 +17,7 @@ dependencies:
 Import the library.
 
 ``` dart
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 ```
 
 Then invoke the static `share` method anywhere in your Dart code.
@@ -29,7 +29,7 @@ Share.share('check out my website https://example.com');
 ## Limitations
 
 - This plugin is only supported on **Galaxy Watch** devices running Tizen 4.0 or later.
-- Passing in an optional argument `subject` to `Share.share()` or invoking `Share.shareFiles()` leads to a **PlatformException** because no e-mail app is available on watche devices.
+- Passing in an optional argument `subject` to `Share.share()` or invoking `Share.shareFiles()` leads to a **PlatformException** because no e-mail app is available on watch devices.
 - You cannot choose which application to use for sharing. Only the **Message** app can handle sharing requests.
 
 ## Required privileges

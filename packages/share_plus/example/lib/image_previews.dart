@@ -1,7 +1,3 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -26,8 +22,8 @@ class ImagePreviews extends StatelessWidget {
       return Container();
     }
 
-    List<Widget> imageWidgets = [];
-    for (int i = 0; i < imagePaths.length; i++) {
+    final imageWidgets = <Widget>[];
+    for (var i = 0; i < imagePaths.length; i++) {
       imageWidgets.add(_ImagePreview(
         imagePaths[i],
         onDelete: onDelete != null ? () => onDelete!(i) : null,
@@ -50,7 +46,7 @@ class _ImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    File imageFile = File(imagePath);
+    final imageFile = File(imagePath);
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Stack(
@@ -68,8 +64,8 @@ class _ImagePreview extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: FloatingActionButton(
                   backgroundColor: Colors.red,
-                  child: Icon(Icons.delete),
-                  onPressed: onDelete),
+                  onPressed: onDelete,
+                  child: Icon(Icons.delete)),
             ),
           ),
         ],
