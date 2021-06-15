@@ -60,29 +60,33 @@ class DemoAppState extends State<DemoApp> {
                   ),
                   const Padding(padding: EdgeInsets.only(top: 12.0)),
                   ImagePreviews(imagePaths, onDelete: _onDeleteImage),
-                  ListTile(
-                    leading: Icon(Icons.add),
-                    title: Text('Add image'),
-                    onTap: () async {
-                      final imagePicker = ImagePicker();
-                      final pickedFile = await imagePicker.getImage(
-                        source: ImageSource.gallery,
-                      );
-                      if (pickedFile != null) {
-                        setState(() {
-                          imagePaths.add(pickedFile.path);
-                        });
-                      }
-                    },
+                  Center(
+                    child: ListTile(
+                      leading: Icon(Icons.add),
+                      title: Text('Add image'),
+                      onTap: () async {
+                        final imagePicker = ImagePicker();
+                        final pickedFile = await imagePicker.getImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (pickedFile != null) {
+                          setState(() {
+                            imagePaths.add(pickedFile.path);
+                          });
+                        }
+                      },
+                    ),
                   ),
                   const Padding(padding: EdgeInsets.only(top: 12.0)),
                   Builder(
                     builder: (BuildContext context) {
-                      return ElevatedButton(
-                        onPressed: text.isEmpty && imagePaths.isEmpty
-                            ? null
-                            : () => _onShare(context),
-                        child: const Text('Share'),
+                      return Center(
+                        child: ElevatedButton(
+                          onPressed: text.isEmpty && imagePaths.isEmpty
+                              ? null
+                              : () => _onShare(context),
+                          child: const Text('Share'),
+                        ),
                       );
                     },
                   ),
