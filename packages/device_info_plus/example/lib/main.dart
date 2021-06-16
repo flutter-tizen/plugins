@@ -9,7 +9,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:device_info_tizen/device_info_tizen.dart';
+import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 
 void main() {
   runZonedGuarded(() {

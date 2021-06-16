@@ -1,9 +1,9 @@
-name: device_info_example
-description: Demonstrates how to use the device_info_tizen plugin.
+name: device_info_plus_example
+description: Demonstrates how to use the device_info_plus_tizen plugin.
 publish_to: "none"
 
 dependencies:
-  device_info_tizen:
+  device_info_plus_tizen:
     path: ../
   flutter:
     sdk: flutter

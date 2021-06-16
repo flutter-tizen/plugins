@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "device_info_tizen_plugin.h"
+#include "device_info_plus_tizen_plugin.h"
 
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
@@ -19,15 +19,15 @@
 
 #include "log.h"
 
-class DeviceInfoTizenPlugin : public flutter::Plugin {
+class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/device_info",
+            registrar->messenger(), "dev.fluttercommunity.plus/device_info",
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto plugin = std::make_unique<DeviceInfoTizenPlugin>();
+    auto plugin = std::make_unique<DeviceInfoPlusTizenPlugin>();
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -37,9 +37,9 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  DeviceInfoTizenPlugin() {}
+  DeviceInfoPlusTizenPlugin() {}
 
-  virtual ~DeviceInfoTizenPlugin() {}
+  virtual ~DeviceInfoPlusTizenPlugin() {}
 
  private:
   void HandleMethodCall(
@@ -287,9 +287,9 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
   }
 };
 
-void DeviceInfoTizenPluginRegisterWithRegistrar(
+void DeviceInfoPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  DeviceInfoTizenPlugin::RegisterWithRegistrar(
+  DeviceInfoPlusTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

@@ -6,7 +6,7 @@
 // @dart = 2.9
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:device_info_tizen/device_info_tizen.dart';
+import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 import 'package:integration_test/integration_test.dart';
 
 void main() {

@@ -5,7 +5,7 @@
 
 import 'dart:async';
 
-import 'package:device_info_platform_interface/device_info_platform_interface.dart';
+import 'package:device_info_plus_platform_interface/device_info_plus_platform_interface.dart';
 import 'package:flutter/services.dart';
 
 /// Information derived from `system_info`.
@@ -124,7 +124,8 @@ class TizenDeviceInfo {
 /// An implementation of [DeviceInfoPlatform] that uses method channels.
 class MethodChannelDeviceInfoTizen extends DeviceInfoPlatform {
   /// The method channel used to interact with the native platform.
-  MethodChannel channel = const MethodChannel('plugins.flutter.io/device_info');
+  MethodChannel channel =
+      const MethodChannel('dev.fluttercommunity.plus/device_info');
 
   /// Method channel for Tizen devices
   Future<TizenDeviceInfo> tizenInfo() async {
