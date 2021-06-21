@@ -18,7 +18,7 @@ Then you can import `network_info_plus` in your Dart code:
 import 'package:network_info_plus/network_info_plus.dart';
 ```
 
-For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/network_info_plus#usage.
+For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/network_info_plus/network_info_plus#usage.
 
 ## Required privileges
 
