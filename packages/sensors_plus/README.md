@@ -18,7 +18,7 @@ Then you can import `sensors_plus` in your Dart code:
 import 'package:sensors_plus/sensors_plus.dart';
 ```
 
-For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/sensors_plus#usage.
+For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/sensors_plus/sensors_plus#usage.
 
 ## Supported devices
 
