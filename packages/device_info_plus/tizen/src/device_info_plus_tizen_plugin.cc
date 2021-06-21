@@ -53,17 +53,17 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
     for (auto &request : requests_) {
       const std::string &map_key = request.first;
       const std::string &tizen_key = request.second;
-      std::string resultStr = "";
+      std::string result("");
       int ret = system_info_get_platform_string(tizen_key.c_str(), &value);
       if (ret == SYSTEM_INFO_ERROR_NONE) {
-        resultStr = std::string(value);
+        result = std::string(value);
         free(value);
       } else {
         LOG_ERROR("Failed to get %s from the system: %s", tizen_key.c_str(),
                   get_error_message(ret));
       }
       msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-          map_key, resultStr));
+          map_key, result));
     }
 
     result->Success(flutter::EncodableValue(msg));
