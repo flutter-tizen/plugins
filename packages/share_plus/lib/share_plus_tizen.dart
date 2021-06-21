@@ -10,7 +10,7 @@ import 'package:share_plus_platform_interface/share_plus_platform_interface.dart
 /// This class disables platform overriding so that it always uses the default
 /// implementation of [SharePlatform].
 ///
-/// Although [Share.disablePackageInfoPlatformOverride] is meant to be
+/// Although [Share.disableSharePlatformOverride] is meant to be
 /// used for testing, it is required for Tizen to avoid platform interface
 /// being set to Linux's.
 /// https://github.com/fluttercommunity/plus_plugins/blob/fc6864f21cf1d1f6db47a3c938f24370362d00cd/packages/share_plus/lib/share_plus.dart#L30-L42
