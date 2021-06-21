@@ -29,7 +29,7 @@ class WearableRotaryPlugin : public flutter::Plugin {
 
  private:
   void SetupEventChannel(flutter::PluginRegistrar *registrar) {
-    auto channel =
+    event_channel_ =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
             registrar->messenger(), kChannelName,
             &flutter::StandardMethodCodec::GetInstance());
@@ -55,7 +55,8 @@ class WearableRotaryPlugin : public flutter::Plugin {
               events_ = nullptr;
               return nullptr;
             });
-    channel->SetStreamHandler(std::move(wearable_rotary_channel_handler));
+    event_channel_->SetStreamHandler(
+        std::move(wearable_rotary_channel_handler));
   }
 
   static Eina_Bool RotaryEventCallBack(void *data,
@@ -66,6 +67,9 @@ class WearableRotaryPlugin : public flutter::Plugin {
     return EINA_TRUE;
   }
 
+ private:
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
+      event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> events_;
 };
 

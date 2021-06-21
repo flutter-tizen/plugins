@@ -22,43 +22,8 @@ class BatteryTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     LOG_DEBUG("RegisterWithRegistrar for BatteryTizenPlugin");
-    auto method_channel =
-        std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/battery",
-            &flutter::StandardMethodCodec::GetInstance());
-    auto event_channel =
-        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/charging",
-            &flutter::StandardMethodCodec::GetInstance());
-
     auto plugin = std::make_unique<BatteryTizenPlugin>();
-
-    auto method_channel_handler = [plugin_pointer = plugin.get()](
-                                      const auto &call, auto result) {
-      LOG_DEBUG("HandleMethodCall call");
-      plugin_pointer->HandleMethodCall(call, std::move(result));
-    };
-    auto event_channel_handler =
-        std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [plugin_pointer = plugin.get()](
-                const flutter::EncodableValue *arguments,
-                std::unique_ptr<flutter::EventSink<>> &&events)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_DEBUG("OnListen");
-              plugin_pointer->RegisterObserver(std::move(events));
-              return nullptr;
-            },
-            [plugin_pointer =
-                 plugin.get()](const flutter::EncodableValue *arguments)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_DEBUG("OnCancel");
-              plugin_pointer->UnregisterObserver();
-              return nullptr;
-            });
-
-    method_channel->SetMethodCallHandler(method_channel_handler);
-    event_channel->SetStreamHandler(std::move(event_channel_handler));
-
+    plugin->SetupChannels(registrar);
     registrar->AddPlugin(std::move(plugin));
   }
 
@@ -192,6 +157,43 @@ class BatteryTizenPlugin : public flutter::Plugin {
     result->Success(flutter::EncodableValue(percentage));
   }
 
+ private:
+  void SetupChannels(flutter::PluginRegistrar *registrar) {
+    auto method_channel =
+        std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+            registrar->messenger(), "plugins.flutter.io/battery",
+            &flutter::StandardMethodCodec::GetInstance());
+    m_event_channel =
+        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+            registrar->messenger(), "plugins.flutter.io/charging",
+            &flutter::StandardMethodCodec::GetInstance());
+
+    auto method_channel_handler = [this](const auto &call, auto result) {
+      LOG_DEBUG("HandleMethodCall call");
+      this->HandleMethodCall(call, std::move(result));
+    };
+
+    auto event_channel_handler =
+        std::make_unique<flutter::StreamHandlerFunctions<>>(
+            [this](const flutter::EncodableValue *arguments,
+                   std::unique_ptr<flutter::EventSink<>> &&events)
+                -> std::unique_ptr<flutter::StreamHandlerError<>> {
+              LOG_DEBUG("OnListen");
+              this->RegisterObserver(std::move(events));
+              return nullptr;
+            },
+            [this](const flutter::EncodableValue *arguments)
+                -> std::unique_ptr<flutter::StreamHandlerError<>> {
+              LOG_DEBUG("OnCancel");
+              this->UnregisterObserver();
+              return nullptr;
+            });
+
+    method_channel->SetMethodCallHandler(method_channel_handler);
+    m_event_channel->SetStreamHandler(std::move(event_channel_handler));
+  }
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
+      m_event_channel;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_events;
   bool m_isFull;
 };
