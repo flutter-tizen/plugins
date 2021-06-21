@@ -18,7 +18,7 @@ Then you can import `connectivity_plus` in your Dart code:
 import 'package:connectivity_plus/connectivity_plus.dart';
 ```
 
-For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus#usage.
+For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus/connectivity_plus#usage.
 
 ## Required privileges
 
