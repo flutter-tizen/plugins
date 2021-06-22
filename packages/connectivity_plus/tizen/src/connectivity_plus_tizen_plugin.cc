@@ -24,39 +24,8 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     LOG_INFO("RegisterWithRegistrar");
-    auto method_channel =
-        std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "dev.fluttercommunity.plus/connectivity",
-            &flutter::StandardMethodCodec::GetInstance());
-    auto event_channel =
-        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(),
-            "dev.fluttercommunity.plus/connectivity_status",
-            &flutter::StandardMethodCodec::GetInstance());
-
     auto plugin = std::make_unique<ConnectivityPlusTizenPlugin>();
-    method_channel->SetMethodCallHandler(
-        [plugin_pointer = plugin.get()](const auto &call, auto result) {
-          plugin_pointer->HandleMethodCall(call, std::move(result));
-        });
-    auto event_channel_handler =
-        std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [plugin_pointer = plugin.get()](
-                const flutter::EncodableValue *arguments,
-                std::unique_ptr<flutter::EventSink<>> &&events)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_INFO("OnListen");
-              plugin_pointer->registerObsever(std::move(events));
-              return nullptr;
-            },
-            [plugin_pointer =
-                 plugin.get()](const flutter::EncodableValue *arguments)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_INFO("OnCancel");
-              plugin_pointer->clearObserver();
-              return nullptr;
-            });
-    event_channel->SetStreamHandler(std::move(event_channel_handler));
+    plugin->SetupChannels(registrar);
     registrar->AddPlugin(std::move(plugin));
   }
 
@@ -154,6 +123,41 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
     flutter::EncodableValue msg(replay);
     result->Success(msg);
   }
+
+  void SetupChannels(flutter::PluginRegistrar *registrar) {
+    auto method_channel =
+        std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+            registrar->messenger(), "dev.fluttercommunity.plus/connectivity",
+            &flutter::StandardMethodCodec::GetInstance());
+    m_event_channel =
+        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/connectivity_status",
+            &flutter::StandardMethodCodec::GetInstance());
+    method_channel->SetMethodCallHandler([this](const auto &call, auto result) {
+      this->HandleMethodCall(call, std::move(result));
+    });
+
+    auto event_channel_handler =
+        std::make_unique<flutter::StreamHandlerFunctions<>>(
+            [this](const flutter::EncodableValue *arguments,
+                   std::unique_ptr<flutter::EventSink<>> &&events)
+                -> std::unique_ptr<flutter::StreamHandlerError<>> {
+              LOG_INFO("OnListen");
+              this->registerObsever(std::move(events));
+              return nullptr;
+            },
+            [this](const flutter::EncodableValue *arguments)
+                -> std::unique_ptr<flutter::StreamHandlerError<>> {
+              LOG_INFO("OnCancel");
+              this->clearObserver();
+              return nullptr;
+            });
+    m_event_channel->SetStreamHandler(std::move(event_channel_handler));
+  }
+
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
+      m_event_channel;
   connection_h m_connection;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_events;
 };
