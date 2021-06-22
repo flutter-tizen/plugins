@@ -18,7 +18,7 @@ Then you can import `battery_plus` in your Dart code:
 import 'package:battery_plus/battery_plus.dart';
 ```
 
-For detailed usage, see https://pub.dev/packages/battery_plus#usage.
+For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/battery_plus/battery_plus#usage.
 
 ## Supported devices
 
