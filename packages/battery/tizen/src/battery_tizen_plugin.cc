@@ -33,7 +33,7 @@ class BatteryTizenPlugin : public flutter::Plugin {
 
   void RegisterObserver(
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
-    m_events = std::move(events);
+    events_ = std::move(events);
 
     // DEVICE_CALLBACK_BATTERY_CHARGING callback is called in only two cases
     // like charging and discharing. When the charging status becomes "Full",
@@ -47,22 +47,22 @@ class BatteryTizenPlugin : public flutter::Plugin {
     int ret = device_add_callback(DEVICE_CALLBACK_BATTERY_CHARGING,
                                   BatteryChangedCB, this);
     if (ret != DEVICE_ERROR_NONE) {
-      m_events->Error("failed_to_add_callback", get_error_message(ret));
+      events_->Error("failed_to_add_callback", get_error_message(ret));
       return;
     }
 
     ret = device_add_callback(DEVICE_CALLBACK_BATTERY_LEVEL, BatteryChangedCB,
                               this);
     if (ret != DEVICE_ERROR_NONE) {
-      m_events->Error("failed_to_add_callback", get_error_message(ret));
+      events_->Error("failed_to_add_callback", get_error_message(ret));
       return;
     }
 
     std::string status = GetBatteryStatus();
     if (status.empty()) {
-      m_events->Error("invalid_status", "Charging status error");
+      events_->Error("invalid_status", "Charging status error");
     } else {
-      m_events->Success(flutter::EncodableValue(status));
+      events_->Success(flutter::EncodableValue(status));
     }
   }
 
@@ -80,7 +80,7 @@ class BatteryTizenPlugin : public flutter::Plugin {
                 get_error_message(ret));
     }
 
-    m_events = nullptr;
+    events_ = nullptr;
   }
 
   static std::string GetBatteryStatus() {
@@ -123,18 +123,17 @@ class BatteryTizenPlugin : public flutter::Plugin {
 
     std::string status = GetBatteryStatus();
     bool isFull = (status == "full") ? true : false;
-    if (isFull == true && plugin_pointer->m_isFull == true) {
+    if (isFull == true && plugin_pointer->is_full_ == true) {
       // This function is called twice by registered callbacks when battery
       // status is full. So, it needs to avoid the unnecessary second call.
       return;
     }
-    plugin_pointer->m_isFull = isFull;
+    plugin_pointer->is_full_ = isFull;
 
     if (status.empty()) {
-      plugin_pointer->m_events->Error("invalid_status",
-                                      "Charging status error");
+      plugin_pointer->events_->Error("invalid_status", "Charging status error");
     } else {
-      plugin_pointer->m_events->Success(flutter::EncodableValue(status));
+      plugin_pointer->events_->Success(flutter::EncodableValue(status));
     }
   }
 
@@ -163,7 +162,7 @@ class BatteryTizenPlugin : public flutter::Plugin {
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
             registrar->messenger(), "plugins.flutter.io/battery",
             &flutter::StandardMethodCodec::GetInstance());
-    m_event_channel =
+    event_channel_ =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
             registrar->messenger(), "plugins.flutter.io/charging",
             &flutter::StandardMethodCodec::GetInstance());
@@ -190,12 +189,12 @@ class BatteryTizenPlugin : public flutter::Plugin {
             });
 
     method_channel->SetMethodCallHandler(method_channel_handler);
-    m_event_channel->SetStreamHandler(std::move(event_channel_handler));
+    event_channel_->SetStreamHandler(std::move(event_channel_handler));
   }
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      m_event_channel;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_events;
-  bool m_isFull;
+      event_channel_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> events_;
+  bool is_full_;
 };
 
 void BatteryTizenPluginRegisterWithRegistrar(

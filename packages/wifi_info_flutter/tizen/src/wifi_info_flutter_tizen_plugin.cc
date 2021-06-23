@@ -33,19 +33,18 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  WifiInfoFlutterTizenPlugin()
-      : m_connection(nullptr), m_wifi_manager(nullptr) {
+  WifiInfoFlutterTizenPlugin() : connection_(nullptr), wifi_manager_(nullptr) {
     EnsureConnectionHandle();
   }
 
   virtual ~WifiInfoFlutterTizenPlugin() {
-    if (m_connection != nullptr) {
-      connection_destroy(m_connection);
-      m_connection = nullptr;
+    if (connection_ != nullptr) {
+      connection_destroy(connection_);
+      connection_ = nullptr;
     }
-    if (m_wifi_manager != nullptr) {
-      wifi_manager_deinitialize(m_wifi_manager);
-      m_wifi_manager = nullptr;
+    if (wifi_manager_ != nullptr) {
+      wifi_manager_deinitialize(wifi_manager_);
+      wifi_manager_ = nullptr;
     }
   }
 
@@ -56,7 +55,7 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
     char *name = nullptr;
     int errorcode;
 
-    errorcode = wifi_manager_get_connected_ap(m_wifi_manager, &current_ap);
+    errorcode = wifi_manager_get_connected_ap(wifi_manager_, &current_ap);
     if (errorcode == WIFI_MANAGER_ERROR_NONE && current_ap != nullptr) {
       if (type == WifiInfoType::ESSID) {
         errorcode = wifi_manager_ap_get_essid(current_ap, &name);
@@ -86,8 +85,7 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
       replay = GetWifiInfo(WifiInfoType::BSSID);
     } else if (method_call.method_name().compare("wifiIPAddress") == 0) {
       char *ip_addr = nullptr;
-      if (connection_get_ip_address(m_connection,
-                                    CONNECTION_ADDRESS_FAMILY_IPV4,
+      if (connection_get_ip_address(connection_, CONNECTION_ADDRESS_FAMILY_IPV4,
                                     &ip_addr) != CONNECTION_ERROR_NONE) {
         result->Error("-1", "Couldn't obtain current ip address");
         return;
@@ -107,23 +105,23 @@ class WifiInfoFlutterTizenPlugin : public flutter::Plugin {
   }
 
   bool EnsureConnectionHandle() {
-    if (m_connection == nullptr) {
-      if (connection_create(&m_connection) != CONNECTION_ERROR_NONE) {
-        m_connection = nullptr;
+    if (connection_ == nullptr) {
+      if (connection_create(&connection_) != CONNECTION_ERROR_NONE) {
+        connection_ = nullptr;
         return false;
       }
     }
-    if (m_wifi_manager == nullptr) {
-      if (wifi_manager_initialize(&m_wifi_manager) != WIFI_MANAGER_ERROR_NONE) {
-        m_wifi_manager = nullptr;
+    if (wifi_manager_ == nullptr) {
+      if (wifi_manager_initialize(&wifi_manager_) != WIFI_MANAGER_ERROR_NONE) {
+        wifi_manager_ = nullptr;
         return false;
       }
     }
     return true;
   }
 
-  connection_h m_connection;
-  wifi_manager_h m_wifi_manager;
+  connection_h connection_;
+  wifi_manager_h wifi_manager_;
 };
 
 void WifiInfoFlutterTizenPluginRegisterWithRegistrar(
