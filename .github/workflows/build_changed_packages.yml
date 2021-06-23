@@ -39,6 +39,7 @@ jobs:
       - name: Install prerequisite packages
         if: env.CHANGED_PACKAGES != ''
         run: |
+          sudo apt-get update
           sudo apt install -y \
           acl \
           bridge-utils \
