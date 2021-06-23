@@ -1,7 +1,7 @@
 name: sensors_plus_tizen
 description: Tizen implementation of the sensors plugin
 homepage: https://github.com/flutter-tizen/plugins
-version: 1.0.0
+version: 1.0.1
 
 flutter:
   plugin:

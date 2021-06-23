@@ -8,7 +8,7 @@ To use this plugin, add wearable_rotary as a dependency in your pubspec.yaml fil
 
 ```yaml
 dependencies:
-  wearable_rotary: ^1.0.0
+  wearable_rotary: ^1.0.1
 ```
 
 ## Example
