@@ -24,7 +24,6 @@ For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/
 
 - On Tizen, `getExternalStorageDirectories` will return internal storage paths (such as `/home/owner/media/Music`) unlike on Android where the function returns external storage (separate partition or SD card) paths.
 - To access paths returned by `getExternalStorageDirectory` and `getExternalCacheDirectories`, you will need an SD card inserted to your Tizen device.
-- This plugin will work correctly only if your code is running in the **main isolate**.
 
 ## Required privileges
 
