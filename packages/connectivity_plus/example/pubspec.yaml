@@ -19,9 +19,6 @@ dev_dependencies:
   integration_test_tizen:
     path: ../../integration_test/
 
-dependency_overrides:
-  args: ^2.0.0
-
 flutter:
   uses-material-design: true
 

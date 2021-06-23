@@ -23,64 +23,63 @@
 class ConnectivityPlusTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
-    LOG_INFO("RegisterWithRegistrar");
     auto plugin = std::make_unique<ConnectivityPlusTizenPlugin>();
     plugin->SetupChannels(registrar);
     registrar->AddPlugin(std::move(plugin));
   }
 
-  ConnectivityPlusTizenPlugin() : m_connection(nullptr), m_events(nullptr) {
-    ensureConnectionHandle();
+  ConnectivityPlusTizenPlugin() : connection_(nullptr), events_(nullptr) {
+    EnsureConnectionHandle();
   }
 
   virtual ~ConnectivityPlusTizenPlugin() {
-    if (m_connection != nullptr) {
-      connection_destroy(m_connection);
-      m_connection = nullptr;
+    if (connection_ != nullptr) {
+      connection_destroy(connection_);
+      connection_ = nullptr;
     }
   }
 
-  void registerObsever(
+  void RegisterObsever(
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
-    ensureConnectionHandle();
-    if (connection_set_type_changed_cb(m_connection, connetionTypeChangedCB,
+    EnsureConnectionHandle();
+    if (connection_set_type_changed_cb(connection_, ConnetionTypeChangedCB,
                                        this) != CONNECTION_ERROR_NONE) {
       return;
     }
-    m_events = std::move(events);
+    events_ = std::move(events);
   }
 
-  void clearObserver() {
-    if (m_connection == nullptr || m_events == nullptr) return;
+  void ClearObserver() {
+    if (connection_ == nullptr || events_ == nullptr) return;
 
-    connection_unset_type_changed_cb(m_connection);
-    m_events = nullptr;
+    connection_unset_type_changed_cb(connection_);
+    events_ = nullptr;
   }
 
-  void sendConnectivityChangedEvent(connection_type_e state) {
-    if (m_events == nullptr) return;
-    std::string replay = convertConnectionTypeToString(state);
+  void SendConnectivityChangedEvent(connection_type_e state) {
+    if (events_ == nullptr) return;
+    std::string replay = ConvertConnectionTypeToString(state);
     flutter::EncodableValue msg(replay);
-    m_events->Success(msg);
+    events_->Success(msg);
   }
 
  private:
-  static void connetionTypeChangedCB(connection_type_e state, void *data) {
+  static void ConnetionTypeChangedCB(connection_type_e state, void *data) {
     LOG_DEBUG("connetionTypeChangedCB");
     ConnectivityPlusTizenPlugin *plugin_pointer =
         (ConnectivityPlusTizenPlugin *)data;
-    plugin_pointer->sendConnectivityChangedEvent(state);
+    plugin_pointer->SendConnectivityChangedEvent(state);
   }
 
-  void ensureConnectionHandle() {
-    if (m_connection == nullptr) {
-      if (connection_create(&m_connection) != CONNECTION_ERROR_NONE) {
-        m_connection = nullptr;
+  void EnsureConnectionHandle() {
+    if (connection_ == nullptr) {
+      if (connection_create(&connection_) != CONNECTION_ERROR_NONE) {
+        connection_ = nullptr;
       }
     }
   }
 
-  std::string convertConnectionTypeToString(connection_type_e net_state) {
+  std::string ConvertConnectionTypeToString(connection_type_e net_state) {
     std::string result;
     switch (net_state) {
       case CONNECTION_TYPE_WIFI:
@@ -100,17 +99,17 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    ensureConnectionHandle();
+    EnsureConnectionHandle();
     LOG_INFO("method : %s", method_call.method_name().data());
     std::string replay = "";
     if (method_call.method_name().compare("check") == 0) {
       connection_type_e net_state;
-      if (connection_get_type(m_connection, &net_state) !=
+      if (connection_get_type(connection_, &net_state) !=
           CONNECTION_ERROR_NONE) {
         result->Error("-1", "Couldn't know current connection type");
         return;
       }
-      replay = convertConnectionTypeToString(net_state);
+      replay = ConvertConnectionTypeToString(net_state);
     } else {
       result->Error("-1", "Not supported method");
       return;
@@ -129,13 +128,13 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
             registrar->messenger(), "dev.fluttercommunity.plus/connectivity",
             &flutter::StandardMethodCodec::GetInstance());
-    m_event_channel =
+    event_channel_ =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
             registrar->messenger(),
             "dev.fluttercommunity.plus/connectivity_status",
             &flutter::StandardMethodCodec::GetInstance());
     method_channel->SetMethodCallHandler([this](const auto &call, auto result) {
-      this->HandleMethodCall(call, std::move(result));
+      HandleMethodCall(call, std::move(result));
     });
 
     auto event_channel_handler =
@@ -144,22 +143,22 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
                    std::unique_ptr<flutter::EventSink<>> &&events)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_INFO("OnListen");
-              this->registerObsever(std::move(events));
+              RegisterObsever(std::move(events));
               return nullptr;
             },
             [this](const flutter::EncodableValue *arguments)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_INFO("OnCancel");
-              this->clearObserver();
+              ClearObserver();
               return nullptr;
             });
-    m_event_channel->SetStreamHandler(std::move(event_channel_handler));
+    event_channel_->SetStreamHandler(std::move(event_channel_handler));
   }
 
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      m_event_channel;
-  connection_h m_connection;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_events;
+      event_channel_;
+  connection_h connection_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> events_;
 };
 
 void ConnectivityPlusTizenPluginRegisterWithRegistrar(
