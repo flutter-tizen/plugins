@@ -13,3 +13,7 @@
 * Update Flutter copyright information
 * Update example and integration_test
 * Organize dev_dependencies
+
+## 2.0.1
+
+* Fix bug with EventChannel

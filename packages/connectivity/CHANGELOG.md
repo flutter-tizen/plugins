@@ -10,3 +10,7 @@
 * Update platform interface to 2.0.1
 * Organize dev_dependencies
 * Replace pointer-based `Success()` with reference-based version
+
+## 2.0.1
+
+* Fix bug with EventChannel

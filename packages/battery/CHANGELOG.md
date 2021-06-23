@@ -13,3 +13,7 @@
 * Update example and integration_test
 * Update platform interface to 2.0.1
 * Organize dev_dependencies
+
+## 2.0.1
+
+* Fix bug with EventChannel
