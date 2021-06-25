@@ -21,91 +21,91 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   FlutterTtsTizenPlugin(flutter::PluginRegistrar *registrar)
-      : m_tts(nullptr),
-        m_voice_type(TTS_VOICE_TYPE_AUTO),
-        m_speed(TTS_SPEED_AUTO),
-        m_speaking(false),
-        m_await_speak_completion(false) {
-    m_channel =
+      : tts_(nullptr),
+        voice_type_(TTS_VOICE_TYPE_AUTO),
+        speed_(TTS_SPEED_AUTO),
+        speaking_(false),
+        await_speak_completion_(false) {
+    channel_ =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
             registrar->messenger(), "flutter_tts",
             &flutter::StandardMethodCodec::GetInstance());
-    m_channel->SetMethodCallHandler([this](const auto &call, auto result) {
+    channel_->SetMethodCallHandler([this](const auto &call, auto result) {
       this->HandleMethodCall(call, std::move(result));
     });
     EnsureTtsHandle();
   }
 
   virtual ~FlutterTtsTizenPlugin() {
-    if (m_tts != nullptr) {
-      tts_destroy(m_tts);
-      m_tts = nullptr;
+    if (tts_ != nullptr) {
+      tts_destroy(tts_);
+      tts_ = nullptr;
     }
   }
 
  private:
   bool EnsureTtsHandle() {
-    if (m_tts != nullptr) {
+    if (tts_ != nullptr) {
       return true;
     }
 
-    int ret = tts_create(&m_tts);
+    int ret = tts_create(&tts_);
     if (ret != TTS_ERROR_NONE) {
       LOG_ERROR("[TTS] tts_create failed: %s", get_error_message(ret));
-      m_tts = nullptr;
+      tts_ = nullptr;
       return false;
     }
 
-    ret = tts_set_state_changed_cb(m_tts, OnStateChanged, (void *)this);
+    ret = tts_set_state_changed_cb(tts_, OnStateChanged, (void *)this);
     if (ret != TTS_ERROR_NONE) {
       LOG_ERROR("[TTS] tts_set_state_changed_cb failed: %s",
                 get_error_message(ret));
-      tts_destroy(m_tts);
-      m_tts = nullptr;
+      tts_destroy(tts_);
+      tts_ = nullptr;
       return false;
     }
 
-    ret = tts_set_utterance_completed_cb(m_tts, OnUtteranceCompleted,
+    ret = tts_set_utterance_completed_cb(tts_, OnUtteranceCompleted,
                                          (void *)this);
     if (ret != TTS_ERROR_NONE) {
       LOG_ERROR("[TTS] tts_set_utterance_completed_cb failed: %s",
                 get_error_message(ret));
-      tts_destroy(m_tts);
-      m_tts = nullptr;
+      tts_destroy(tts_);
+      tts_ = nullptr;
       return false;
     }
 
-    if (m_language.size() == 0) {
+    if (language_.size() == 0) {
       char *language;
-      ret = tts_get_default_voice(m_tts, &language, &m_voice_type);
+      ret = tts_get_default_voice(tts_, &language, &voice_type_);
 
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_get_default_voice failed: %s",
                   get_error_message(ret));
-        tts_destroy(m_tts);
-        m_tts = nullptr;
+        tts_destroy(tts_);
+        tts_ = nullptr;
         return false;
       }
-      m_language = language;
+      language_ = language;
       free(language);
     }
 
-    ret = tts_foreach_supported_voices(m_tts, OnSupportedVoices, (void *)this);
+    ret = tts_foreach_supported_voices(tts_, OnSupportedVoices, (void *)this);
     if (ret != TTS_ERROR_NONE) {
       LOG_ERROR("[TTS] tts_foreach_supported_voices failed: %s",
                 get_error_message(ret));
-      tts_destroy(m_tts);
-      m_tts = nullptr;
+      tts_destroy(tts_);
+      tts_ = nullptr;
       return false;
     }
-    m_languages.erase(unique(m_languages.begin(), m_languages.end()),
-                      m_languages.end());
+    language_s.erase(unique(language_s.begin(), language_s.end()),
+                     language_s.end());
 
-    ret = tts_prepare(m_tts);
+    ret = tts_prepare(tts_);
     if (ret != TTS_ERROR_NONE) {
       LOG_ERROR("[TTS] tts_prepare failed: %s", get_error_message(ret));
-      tts_destroy(m_tts);
-      m_tts = nullptr;
+      tts_destroy(tts_);
+      tts_ = nullptr;
       return false;
     }
 
@@ -128,7 +128,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
     if (method_name.compare("awaitSpeakCompletion") == 0) {
       if (std::holds_alternative<bool>(arguments)) {
-        m_await_speak_completion = std::get<bool>(arguments);
+        await_speak_completion_ = std::get<bool>(arguments);
         result->Success();
         return;
       } else {
@@ -136,7 +136,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         return;
       }
     } else if (method_name.compare("speak") == 0) {
-      if (m_speaking) {
+      if (speaking_) {
         LOG_ERROR("[TTS] : You cannot speak again while speaking.");
         result->Error("Invalid Operation", "Invalid Operation");
         return;
@@ -144,8 +144,8 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       if (std::holds_alternative<std::string>(arguments)) {
         std::string text = std::get<std::string>(arguments);
         int utt_id;
-        ret = tts_add_text(m_tts, text.c_str(), m_language.c_str(),
-                           m_voice_type, m_speed, &utt_id);
+        ret = tts_add_text(tts_, text.c_str(), language_.c_str(), voice_type_,
+                           speed_, &utt_id);
         if (ret != TTS_ERROR_NONE) {
           LOG_ERROR("[TTS] tts_add_text failed: %s", get_error_message(ret));
           result->Error(std::to_string(ret), "Failed to speak(tts_add_text).");
@@ -155,21 +155,21 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         result->Error("Invalid Arguments", "Invalid Arguments");
         return;
       }
-      ret = tts_play(m_tts);
+      ret = tts_play(tts_);
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_play failed: %s", get_error_message(ret));
         result->Error(std::to_string(ret), "Failed to speak(tts_play).");
         return;
       }
-      if (m_await_speak_completion) {
-        m_speaking = true;
-        m_result = std::move(result);
+      if (await_speak_completion_) {
+        speaking_ = true;
+        result_ = std::move(result);
       } else {
         result->Success();
         return;
       }
     } else if (method_name.compare("stop") == 0) {
-      ret = tts_stop(m_tts);
+      ret = tts_stop(tts_);
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_stop failed: %s", get_error_message(ret));
         result->Error(std::to_string(ret), "Failed to stop.");
@@ -178,7 +178,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       result->Success();
       return;
     } else if (method_name.compare("pause") == 0) {
-      ret = tts_pause(m_tts);
+      ret = tts_pause(tts_);
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_pause failed: %s", get_error_message(ret));
         result->Error(std::to_string(ret), "Failed to pause.");
@@ -188,7 +188,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       return;
     } else if (method_name.compare("getSpeechRateValidRange") == 0) {
       int min, normal, max;
-      ret = tts_get_speed_range(m_tts, &min, &normal, &max);
+      ret = tts_get_speed_range(tts_, &min, &normal, &max);
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_get_speed_range failed: %s",
                   get_error_message(ret));
@@ -209,7 +209,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       return;
     } else if (method_name.compare("setSpeechRate") == 0) {
       if (std::holds_alternative<double>(arguments)) {
-        m_speed = (int)std::get<double>(arguments);
+        speed_ = (int)std::get<double>(arguments);
         result->Success();
         return;
       } else {
@@ -218,7 +218,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       }
     } else if (method_name.compare("setLanguages") == 0) {
       if (std::holds_alternative<std::string>(arguments)) {
-        m_language = std::move(std::get<std::string>(arguments));
+        language_ = std::move(std::get<std::string>(arguments));
         result->Success();
         return;
       } else {
@@ -226,7 +226,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         return;
       }
     } else if (method_name.compare("getLanguages") == 0) {
-      result->Success(flutter::EncodableValue(m_languages));
+      result->Success(flutter::EncodableValue(language_s));
       return;
     } else {
       result->Error("-1", "Not supported method");
@@ -242,31 +242,31 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         std::make_unique<flutter::EncodableValue>(true);
     if (current == TTS_STATE_PLAYING) {
       if (previous == TTS_STATE_READY) {
-        plugin->m_channel->InvokeMethod("speak.onStart", std::move(args));
+        plugin->channel_->InvokeMethod("speak.onStart", std::move(args));
       } else if (previous == TTS_STATE_PAUSED) {
-        plugin->m_channel->InvokeMethod("speak.onContinue", std::move(args));
+        plugin->channel_->InvokeMethod("speak.onContinue", std::move(args));
       }
     } else if (current == TTS_STATE_PAUSED) {
-      plugin->m_channel->InvokeMethod("speak.onPause", std::move(args));
+      plugin->channel_->InvokeMethod("speak.onPause", std::move(args));
     } else if (current == TTS_STATE_READY) {
       if (previous == TTS_STATE_PLAYING || previous == TTS_STATE_PAUSED) {
-        plugin->m_channel->InvokeMethod("speak.onCancel", std::move(args));
+        plugin->channel_->InvokeMethod("speak.onCancel", std::move(args));
       }
     }
-    plugin->m_current_state = current;
+    plugin->current_state_ = current;
   }
 
   static void OnUtteranceCompleted(tts_h tts, int utt_id, void *user_data) {
     FlutterTtsTizenPlugin *plugin = (FlutterTtsTizenPlugin *)user_data;
-    tts_stop(plugin->m_tts);
+    tts_stop(plugin->tts_);
     LOG_INFO("[TTS] Utterance (%d) is completed", true);
-    if (plugin->m_await_speak_completion) {
-      plugin->m_speaking = false;
-      plugin->m_result->Success();
+    if (plugin->await_speak_completion_) {
+      plugin->speaking_ = false;
+      plugin->result_->Success();
     }
     std::unique_ptr<flutter::EncodableValue> args =
         std::make_unique<flutter::EncodableValue>(true);
-    plugin->m_channel->InvokeMethod("speak.onComplete", std::move(args));
+    plugin->channel_->InvokeMethod("speak.onComplete", std::move(args));
   }
 
   static bool OnSupportedVoices(tts_h tts, const char *language, int voice_type,
@@ -274,7 +274,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     if (nullptr != language) {
       FlutterTtsTizenPlugin *plugin = (FlutterTtsTizenPlugin *)user_data;
 
-      plugin->m_languages.push_back(flutter::EncodableValue(language));
+      plugin->language_s.push_back(flutter::EncodableValue(language));
       LOG_INFO("[TTS] Supported Voices - Language(%s), Type(%d)", language,
                voice_type);
       return true;
@@ -282,16 +282,16 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     return false;
   }
 
-  tts_h m_tts;
-  tts_state_e m_current_state;
-  bool m_speaking;
-  bool m_await_speak_completion;
-  std::string m_language;
-  int m_voice_type;
-  int m_speed;
-  flutter::EncodableList m_languages;
-  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> m_channel;
-  std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> m_result;
+  tts_h tts_;
+  tts_state_e current_state_;
+  bool speaking_;
+  bool await_speak_completion_;
+  std::string language_;
+  int voice_type_;
+  int speed_;
+  flutter::EncodableList language_s;
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
+  std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result_;
 };
 
 void FlutterTtsTizenPluginRegisterWithRegistrar(
