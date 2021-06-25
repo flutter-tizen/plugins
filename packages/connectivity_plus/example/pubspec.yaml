@@ -3,7 +3,7 @@ description: Demonstrates how to use the connectivity_plus_tizen plugin.
 publish_to: "none"
 
 dependencies:
-  connectivity_plus: ^1.0.1
+  connectivity_plus: ^1.0.4
   connectivity_plus_tizen:
     path: ../
   flutter:
@@ -24,4 +24,4 @@ flutter:
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.0"
+  flutter: ">=2.2.0"
