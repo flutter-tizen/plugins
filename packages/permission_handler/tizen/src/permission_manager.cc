@@ -1,5 +1,7 @@
 #include "permission_manager.h"
 
+#include <Ecore.h>
+
 #include "log.h"
 #include "type.h"
 
@@ -108,16 +110,83 @@ void PermissionManager::RequestPermissions(
   }
 
   on_going_ = true;
-  request_success_callback_ = success_callback;
-  request_error_callback_ = error_callback;
-  result = ppm_request_permissions(permissions_to_request.data(),
-                                   permissions_to_request.size(),
-                                   OnRequestPermissionsResponse, this);
-  if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    error_callback(get_error_message(result),
-                   "An error occurred when call ppm_request_permissions()");
-    on_going_ = false;
+
+  struct Param {
+    PermissionManager* self{nullptr};
+    bool is_done{false};
+    size_t remaining_request{0};
+  };
+  Param p;
+  p.self = this;
+  p.remaining_request = permissions_to_request.size();
+
+  for (size_t i = 0; i < permissions_to_request.size(); i++) {
+    const char* permission = permissions_to_request[i];
+    p.is_done = false;
+    result = ppm_request_permission(
+        permission,
+        [](ppm_call_cause_e cause, ppm_request_result_e result,
+           const char* privilege, void* data) {
+          Param* param = (Param*)data;
+          PermissionManager* self = param->self;
+
+          if (cause != PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ANSWER) {
+            // abandon a request
+            LOG_ERROR("Privilege[%s] request failed with an error", privilege);
+            param->is_done = true;
+            return;
+          }
+
+          int permission = self->ConvertToPermission(privilege);
+
+          if (self->request_results_.count(permission) == 0) {
+            switch (result) {
+              case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
+                self->request_results_[permission] = PERMISSION_STATUS_GRANTED;
+                break;
+              case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
+                self->request_results_[permission] = PERMISSION_STATUS_DENIED;
+                break;
+              case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
+                self->request_results_[permission] =
+                    PERMISSION_STATUS_NEVER_ASK_AGAIN;
+                break;
+            }
+          }
+          LOG_DEBUG("permission %d status: %d", permission,
+                    self->request_results_[permission]);
+          auto location =
+              self->request_results_.find(PERMISSION_GROUP_LOCATION);
+          if (location != self->request_results_.end()) {
+            self->request_results_[PERMISSION_GROUP_LOCATION_ALWAYS] =
+                location->second;
+            self->request_results_[PERMISSION_GROUP_LOCATION_WHEN_IN_USE] =
+                location->second;
+          }
+
+          param->remaining_request--;
+          param->is_done = true;
+        },
+        &p);
+
+    if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
+      LOG_ERROR("Failed to call ppm_request_permission with [%s]", permission);
+      continue;
+    }
+
+    // Wait until ppm_request_permission is done;
+    while (!p.is_done) {
+      ecore_main_loop_iterate();
+    }
   }
+
+  if (p.remaining_request) {
+    error_callback(get_error_message(result),
+                   "some error occurred when call ppm_request_permission");
+  } else {
+    success_callback(request_results_);
+  }
+  on_going_ = false;
 }
 
 int PermissionManager::ConvertToPermission(const std::string& privilege) {
@@ -229,65 +298,4 @@ int PermissionManager::DeterminePermissionStatus(int permission, int* status) {
     }
   }
   return result;
-}
-
-void PermissionManager::OnRequestPermissionsResponse(
-    ppm_call_cause_e cause, const ppm_request_result_e* results,
-    const char** privileges, size_t privileges_count, void* user_data) {
-  if (!user_data) {
-    LOG_ERROR("Invalid user data");
-    return;
-  }
-
-  PermissionManager* permission_manager = (PermissionManager*)user_data;
-  if (cause != PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ANSWER) {
-    permission_manager->request_error_callback_(
-        "PrivacyPrivilegeManager - Request callback error",
-        "ppm_request_permissions callback was called because of an error");
-    permission_manager->on_going_ = false;
-    return;
-  }
-
-  for (int i = 0; i < privileges_count; i++) {
-    LOG_DEBUG("ppm_request_permissions (%s) result: %s", privileges[i],
-              RequestResultToString(results[i]).c_str());
-
-    int permission = permission_manager->ConvertToPermission(privileges[i]);
-    if (permission == PERMISSION_GROUP_UNKNOWN) {
-      continue;
-    }
-
-    if (permission_manager->request_results_.count(permission) == 0) {
-      switch (results[i]) {
-        case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
-          permission_manager->request_results_[permission] =
-              PERMISSION_STATUS_GRANTED;
-          break;
-        case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
-          permission_manager->request_results_[permission] =
-              PERMISSION_STATUS_DENIED;
-          break;
-        case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
-          permission_manager->request_results_[permission] =
-              PERMISSION_STATUS_NEVER_ASK_AGAIN;
-          break;
-      }
-    }
-    LOG_DEBUG("permission %d status: %d", permission,
-              permission_manager->request_results_[permission]);
-  }
-
-  auto location =
-      permission_manager->request_results_.find(PERMISSION_GROUP_LOCATION);
-  if (location != permission_manager->request_results_.end()) {
-    permission_manager->request_results_[PERMISSION_GROUP_LOCATION_ALWAYS] =
-        location->second;
-    permission_manager
-        ->request_results_[PERMISSION_GROUP_LOCATION_WHEN_IN_USE] =
-        location->second;
-  }
-
-  permission_manager->request_success_callback_(
-      permission_manager->request_results_);
-  permission_manager->on_going_ = false;
 }

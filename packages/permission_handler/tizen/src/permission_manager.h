@@ -32,15 +32,7 @@ class PermissionManager {
                            std::vector<const char *> &privileges);
   int DeterminePermissionStatus(int permission, int *status);
 
-  static void OnRequestPermissionsResponse(ppm_call_cause_e cause,
-                                           const ppm_request_result_e *results,
-                                           const char **privileges,
-                                           size_t privileges_count,
-                                           void *user_data);
-
   bool on_going_;
-  OnPermissionRequested request_success_callback_;
-  OnPermissionError request_error_callback_;
   std::map<int, int> request_results_;
 };
 
