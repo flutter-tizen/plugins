@@ -49,242 +49,43 @@ class DeviceInfoTizenPlugin : public flutter::Plugin {
 
     char *value = nullptr;
     flutter::EncodableMap msg;
-    int ret;
-    bool hasResult = false;
-    std::string resultStr;
-    std::string errorStr;
 
-    // http://tizen.org/system/model_name
-    ret = system_info_get_platform_string("http://tizen.org/system/model_name",
-                                          &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get model name: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("model name : %s\n", value);
-      free(value);
+    for (auto &request : requests_) {
+      const std::string &map_key = request.first;
+      const std::string &tizen_key = request.second;
+      std::string result("");
+      int ret = system_info_get_platform_string(tizen_key.c_str(), &value);
+      if (ret == SYSTEM_INFO_ERROR_NONE) {
+        result = std::string(value);
+        free(value);
+      } else {
+        LOG_ERROR("Failed to get %s from the system: %s", tizen_key.c_str(),
+                  get_error_message(ret));
+      }
+      msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+          map_key, result));
     }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "modelName", resultStr));
 
-    // http://tizen.org/feature/platform.core.cpu.arch
-    ret = system_info_get_platform_string(
-        "http://tizen.org/feature/platform.core.cpu.arch", &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get cpu arch: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("cpu arch : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "cpuArch", resultStr));
-
-    // http://tizen.org/feature/platform.native.api.version
-    ret = system_info_get_platform_string(
-        "http://tizen.org/feature/platform.native.api.version", &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get native api version: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("native api version : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "nativeApiVersion", resultStr));
-
-    // http://tizen.org/feature/platform.version
-    ret = system_info_get_platform_string(
-        "http://tizen.org/feature/platform.version", &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get platform version: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("platform version : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "platformVersion", resultStr));
-
-    // http://tizen.org/feature/platform.web.api.version
-    ret = system_info_get_platform_string(
-        "http://tizen.org/feature/platform.web.api.version", &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get web api version: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("web api version : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "webApiVersion", resultStr));
-
-    // http://tizen.org/system/build.date
-    ret = system_info_get_platform_string("http://tizen.org/system/build.date",
-                                          &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get build date: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("build date : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "buildDate", resultStr));
-
-    // http://tizen.org/system/build.id
-    ret = system_info_get_platform_string("http://tizen.org/system/build.id",
-                                          &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get build id: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("build id : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "buildId", resultStr));
-
-    // http://tizen.org/system/build.string
-    ret = system_info_get_platform_string(
-        "http://tizen.org/system/build.string", &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get build string: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("build string : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "buildString", resultStr));
-
-    // http://tizen.org/system/build.time
-    ret = system_info_get_platform_string("http://tizen.org/system/build.time",
-                                          &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get build time: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("build time : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "buildTime", resultStr));
-
-    // http://tizen.org/system/build.type
-    ret = system_info_get_platform_string("http://tizen.org/system/build.type",
-                                          &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get build type: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("build type : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "buildType", resultStr));
-
-    // http://tizen.org/system/build.variant
-    ret = system_info_get_platform_string(
-        "http://tizen.org/system/build.variant", &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get build variant: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("build variant : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "buildVariant", resultStr));
-
-    // http://tizen.org/system/build.release
-    ret = system_info_get_platform_string(
-        "http://tizen.org/system/build.release", &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get build release: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("build release : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "buildRelease", resultStr));
-
-    // http://tizen.org/system/device_type
-    ret = system_info_get_platform_string("http://tizen.org/system/device_type",
-                                          &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get device type: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("device type : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "deviceType", resultStr));
-
-    // http://tizen.org/system/manufacturer
-    ret = system_info_get_platform_string(
-        "http://tizen.org/system/manufacturer", &value);
-    if (ret != SYSTEM_INFO_ERROR_NONE) {
-      resultStr = get_error_message(ret);
-      errorStr.append(" Failed to get manufacturer: ");
-      errorStr.append(resultStr);
-    } else {
-      hasResult = true;
-      resultStr = std::string(value);
-      LOG_INFO("manufacturer : %s\n", value);
-      free(value);
-    }
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "manufacturer", resultStr));
-
-    if (hasResult) {
-      result->Success(flutter::EncodableValue(msg));
-    } else {
-      result->Error(std::to_string(-1), "Failed to get deviceinfo",
-                    flutter::EncodableValue(errorStr));
-    }
+    result->Success(flutter::EncodableValue(msg));
   }
+
+  const std::vector<std::pair<std::string, std::string>> requests_ = {
+      {"modelName", "http://tizen.org/system/model_name"},
+      {"cpuArch", "http://tizen.org/feature/platform.core.cpu.arch"},
+      {"nativeApiVersion",
+       "http://tizen.org/feature/platform.native.api.version"},
+      {"platformVersion", "http://tizen.org/feature/platform.version"},
+      {"webApiVersion", "http://tizen.org/feature/platform.web.api.version"},
+      {"buildDate", "http://tizen.org/system/build.date"},
+      {"buildId", "http://tizen.org/system/build.id"},
+      {"buildString", "http://tizen.org/system/build.string"},
+      {"buildTime", "http://tizen.org/system/build.time"},
+      {"buildType", "http://tizen.org/system/build.type"},
+      {"buildVariant", "http://tizen.org/system/build.variant"},
+      {"buildRelease", "http://tizen.org/system/build.release"},
+      {"deviceType", "http://tizen.org/system/device_type"},
+      {"manufacturer", "http://tizen.org/system/manufacturer"},
+  };
 };
 
 void DeviceInfoTizenPluginRegisterWithRegistrar(

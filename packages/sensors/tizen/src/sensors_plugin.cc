@@ -115,7 +115,7 @@ class SensorsPlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     LOG_DEBUG("RegisterWithRegistrar");
     auto plugin = std::make_unique<SensorsPlugin>();
-    plugin->setupEventChannels(registrar);
+    plugin->SetupEventChannels(registrar);
     registrar->AddPlugin(std::move(plugin));
   }
 
@@ -124,7 +124,7 @@ class SensorsPlugin : public flutter::Plugin {
   virtual ~SensorsPlugin() { LOG_DEBUG("Destroy"); }
 
  private:
-  void setupEventChannels(flutter::PluginRegistrar *registrar) {
+  void SetupEventChannels(flutter::PluginRegistrar *registrar) {
     accelerometer_channel_ =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
             registrar->messenger(), ACCELEROMETER_CHANNEL_NAME,
