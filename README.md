@@ -16,6 +16,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**battery_tizen**](packages/battery) | [battery](https://github.com/flutter/plugins/tree/master/packages/battery) (1st-party) | [![pub package](https://img.shields.io/pub/v/battery_tizen.svg)](https://pub.dev/packages/battery_tizen) | No |
 | [**battery_plus_tizen**](packages/battery_plus) | [battery_plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/battery_plus) (3rd-party) | [![pub package](https://img.shields.io/pub/v/battery_plus_tizen.svg)](https://pub.dev/packages/battery_plus_tizen) | No |
 | [**connectivity_tizen**](packages/connectivity) | [connectivity](https://github.com/flutter/plugins/tree/master/packages/connectivity) (1st-party) | [![pub package](https://img.shields.io/pub/v/connectivity_tizen.svg)](https://pub.dev/packages/connectivity_tizen) | No |
+| [**connectivity_plus_tizen**](packages/connectivity_plus) | [connectivity_plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus) (3rd-party) | [![pub package](https://img.shields.io/pub/v/connectivity_plus_tizen.svg)](https://pub.dev/packages/connectivity_plus_tizen) | No |
 | [**device_info_tizen**](packages/device_info) | [device_info](https://github.com/flutter/plugins/tree/master/packages/device_info) (1st-party) | [![pub package](https://img.shields.io/pub/v/device_info_tizen.svg)](https://pub.dev/packages/device_info_tizen) | No |
 | [**device_info_plus_tizen**](packages/device_info_plus) | [device_info_plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/device_info_plus) (3rd-party) | [![pub package](https://img.shields.io/pub/v/device_info_plus_tizen.svg)](https://pub.dev/packages/device_info_plus_tizen) | No |
 | [**flutter_tts_tizen**](packages/flutter_tts) | [flutter_tts](https://github.com/dlutton/flutter_tts) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen) | No |
@@ -45,7 +46,8 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**audioplayers_tizen**](packages/audioplayers) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**battery_tizen**](packages/battery) | ✔️ | ✔️ | ❌ | ❌ | No battery |
 | [**battery_plus_tizen**](packages/battery_plus) | ✔️ | ✔️ | ❌ | ❌ | No battery |
-| [**connectivity_tizen**](packages/connectivity) | ✔️ | ⚠️ | ✔️ | ✔️ | The return value is incorrect |
+| [**connectivity_tizen**](packages/connectivity) | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
+| [**connectivity_plus_tizen**](packages/connectivity_plus) | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
 | [**device_info_tizen**](packages/device_info) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**device_info_plus_tizen**](packages/device_info_plus) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_tts_tizen**](packages/flutter_tts) | ✔️ | ✔️ | ✔️ | ✔️ |

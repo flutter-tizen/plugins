@@ -1,0 +1,27 @@
+name: connectivity_plus_example
+description: Demonstrates how to use the connectivity_plus_tizen plugin.
+publish_to: "none"
+
+dependencies:
+  connectivity_plus: ^1.0.4
+  connectivity_plus_tizen:
+    path: ../
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
+
+flutter:
+  uses-material-design: true
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.2.0"
