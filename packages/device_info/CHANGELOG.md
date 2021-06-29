@@ -12,3 +12,7 @@
 * Migrate to null safety
 * Add missing documentation
 * Resolve the visibility warning (`channel` is visible for testing purposes only)
+
+## 2.0.1
+
+* Return an empty string when information is not available on target instead of an error message

@@ -169,7 +169,7 @@ class BatteryTizenPlugin : public flutter::Plugin {
 
     auto method_channel_handler = [this](const auto &call, auto result) {
       LOG_DEBUG("HandleMethodCall call");
-      this->HandleMethodCall(call, std::move(result));
+      HandleMethodCall(call, std::move(result));
     };
 
     auto event_channel_handler =
@@ -178,13 +178,13 @@ class BatteryTizenPlugin : public flutter::Plugin {
                    std::unique_ptr<flutter::EventSink<>> &&events)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnListen");
-              this->RegisterObserver(std::move(events));
+              RegisterObserver(std::move(events));
               return nullptr;
             },
             [this](const flutter::EncodableValue *arguments)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnCancel");
-              this->UnregisterObserver();
+              UnregisterObserver();
               return nullptr;
             });
 

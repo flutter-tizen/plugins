@@ -6,7 +6,7 @@ The Tizen implementation of [`device_info`](https://github.com/flutter/plugins/t
 
 ```yaml
 dependencies:
-  device_info_tizen: ^2.0.0
+  device_info_tizen: ^2.0.1
 ```
 
 You can import `device_info_tizen` in your Dart code:
