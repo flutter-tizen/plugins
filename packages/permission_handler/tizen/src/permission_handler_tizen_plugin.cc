@@ -9,15 +9,17 @@
 #include "permission_manager.h"
 #include "service_manager.h"
 
-#define PERMISSION_HANDLER_CHANNEL_NAME \
-  "flutter.baseflow.com/permissions/methods"
+namespace {
+constexpr char kPermissionHandlerChannelName[] =
+    "flutter.baseflow.com/permissions/methods";
+}
 
 class PermissionHandlerTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), PERMISSION_HANDLER_CHANNEL_NAME,
+            registrar->messenger(), kPermissionHandlerChannelName,
             &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin = std::make_unique<PermissionHandlerTizenPlugin>();
@@ -46,8 +48,8 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
       if (std::holds_alternative<int32_t>(*arguments)) {
         int permission = std::get<int32_t>(*arguments);
         auto reply = result.release();
-        auto on_success = [reply](int status) {
-          reply->Success(flutter::EncodableValue(status));
+        auto on_success = [reply](ServiceStatus status) {
+          reply->Success(flutter::EncodableValue(static_cast<int>(status)));
           delete reply;
         };
         auto on_error = [reply](const std::string &code,
@@ -55,7 +57,8 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
           reply->Error(code, message);
           delete reply;
         };
-        service_manager_.CheckServiceStatus(permission, on_success, on_error);
+        service_manager_.CheckServiceStatus(
+            static_cast<PermissionGroup>(permission), on_success, on_error);
       } else {
         result->Error("MethodCall - Invalid arguments",
                       "arguments type of method checkServiceStatus isn't int");
@@ -65,8 +68,8 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
       if (std::holds_alternative<int32_t>(*arguments)) {
         int permission = std::get<int32_t>(*arguments);
         auto reply = result.release();
-        auto on_success = [reply](int status) {
-          reply->Success(flutter::EncodableValue(status));
+        auto on_success = [reply](PermissionStatus status) {
+          reply->Success(flutter::EncodableValue(static_cast<int>(status)));
           delete reply;
         };
         auto on_error = [reply](const std::string &code,
@@ -74,8 +77,8 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
           reply->Error(code, message);
           delete reply;
         };
-        permission_manager_.CheckPermissionStatus(permission, on_success,
-                                                  on_error);
+        permission_manager_.CheckPermissionStatus(
+            static_cast<PermissionGroup>(permission), on_success, on_error);
       } else {
         result->Error(
             "MethodCall - Invalid arguments",
@@ -84,20 +87,24 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
     } else if (method_name.compare("requestPermissions") == 0) {
       const flutter::EncodableValue *arguments = method_call.arguments();
       if (std::holds_alternative<flutter::EncodableList>(*arguments)) {
-        std::vector<int> permissions;
+        std::vector<PermissionGroup> permissions;
         for (auto iter : std::get<flutter::EncodableList>(*arguments)) {
-          permissions.push_back(std::get<int32_t>(iter));
+          permissions.push_back(
+              static_cast<PermissionGroup>(std::get<int32_t>(iter)));
         }
         auto reply = result.release();
-        auto on_success = [reply](const std::map<int, int> &results) {
-          flutter::EncodableMap encodables;
-          for (auto [key, value] : results) {
-            encodables.emplace(flutter::EncodableValue(key),
-                               flutter::EncodableValue(value));
-          }
-          reply->Success(flutter::EncodableValue(encodables));
-          delete reply;
-        };
+        auto on_success =
+            [reply](
+                const std::map<PermissionGroup, PermissionStatus> &results) {
+              flutter::EncodableMap encodables;
+              for (auto [key, value] : results) {
+                encodables.emplace(
+                    flutter::EncodableValue(static_cast<int>(key)),
+                    flutter::EncodableValue(static_cast<int>(value)));
+              }
+              reply->Success(flutter::EncodableValue(encodables));
+              delete reply;
+            };
         auto on_error = [reply](const std::string &code,
                                 const std::string &message) {
           reply->Error(code, message);

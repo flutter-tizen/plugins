@@ -5,28 +5,39 @@
 #include "log.h"
 #include "type.h"
 
-const char* PRIVILEGE_CALENDAR_READ =
-    "http://tizen.org/privilege/calendar.read";
-const char* PRIVILEGE_CALENDAR_WRITE =
-    "http://tizen.org/privilege/calendar.write";
-const char* PRIVILEGE_CAMERA = "http://tizen.org/privilege/camera";
-const char* PRIVILEGE_CONTACT_READ = "http://tizen.org/privilege/contact.read";
-const char* PRIVILEGE_CONTACT_WRITE =
-    "http://tizen.org/privilege/contact.write";
-const char* PRIVILEGE_LOCATION = "http://tizen.org/privilege/location";
-const char* PRIVILEGE_LOCATION_COARSE =
-    "http://tizen.org/privilege/location.coarse";
-const char* PRIVILEGE_RECORDER = "http://tizen.org/privilege/recorder";
-const char* PRIVILEGE_CALL = "http://tizen.org/privilege/call";
-const char* PRIVILEGE_SENSORS = "http://tizen.org/privilege/healthinfo";
-const char* PRIVILEGE_MESSAGE_READ = "http://tizen.org/privilege/message.read";
-const char* PRIVILEGE_MESSAGE_WRITE =
-    "http://tizen.org/privilege/message.write";
-const char* PRIVILEGE_EXTERNAL_STORAGE =
-    "http://tizen.org/privilege/externalstorage";
-const char* PRIVILEGE_MEDIA_STORAGE = "http://tizen.org/privilege/mediastorage";
+namespace {
 
-static std::string CheckResultToString(int result) {
+constexpr char kPrivilegeCalendarRead[] =
+    "http://tizen.org/privilege/calendar.read";
+constexpr char kPrivilegeCalendarWrite[] =
+    "http://tizen.org/privilege/calendar.write";
+constexpr char kPrivilegeCamera[] = "http://tizen.org/privilege/camera";
+constexpr char kPrivilegeContactRead[] =
+    "http://tizen.org/privilege/contact.read";
+constexpr char kPrivilegeContactWrite[] =
+    "http://tizen.org/privilege/contact.write";
+constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
+constexpr char kPrivilegeLocationCoarse[] =
+    "http://tizen.org/privilege/location.coarse";
+constexpr char kPrivilegeRecorder[] = "http://tizen.org/privilege/recorder";
+constexpr char kPrivilegeCall[] = "http://tizen.org/privilege/call";
+constexpr char kPrivilegeSensors[] = "http://tizen.org/privilege/healthinfo";
+constexpr char kPrivilegeMessageRead[] =
+    "http://tizen.org/privilege/message.read";
+constexpr char kPrivilegeMessageWrite[] =
+    "http://tizen.org/privilege/message.write";
+constexpr char kPrivilegeExternalStorage[] =
+    "http://tizen.org/privilege/externalstorage";
+constexpr char kPrivilegeMediaStorage[] =
+    "http://tizen.org/privilege/mediastorage";
+
+struct Param {
+  PermissionManager* manager{nullptr};
+  bool is_done{false};
+  size_t remaining_request{0};
+};
+
+std::string CheckResultToString(int result) {
   switch (result) {
     case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
       return "CHECK_RESULT_ALLOW";
@@ -39,29 +50,177 @@ static std::string CheckResultToString(int result) {
   }
 }
 
-static std::string RequestResultToString(int result) {
-  switch (result) {
-    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
-      return "REQUEST_RESULT_ALLOW_FOREVER";
-    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
-      return "REQUEST_RESULT_DENY_FOREVER";
-    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
-      return "REQUEST_RESULT_DENY_ONCE";
-    default:
-      return "REQUEST_RESULT_UNKNOWN";
+bool ConvertToPermission(const std::string& privilege,
+                         PermissionGroup* permission) {
+  if (privilege == kPrivilegeCalendarRead ||
+      privilege == kPrivilegeCalendarWrite) {
+    *permission = PermissionGroup::kCalendar;
+  } else if (privilege == kPrivilegeCamera) {
+    *permission = PermissionGroup::kCamera;
+  } else if (privilege == kPrivilegeContactRead ||
+             privilege == kPrivilegeContactWrite) {
+    *permission = PermissionGroup::kContacts;
+  } else if (privilege == kPrivilegeLocation ||
+             privilege == kPrivilegeLocationCoarse) {
+    *permission = PermissionGroup::kLocation;
+  } else if (privilege == kPrivilegeRecorder) {
+    *permission = PermissionGroup::kMicrophone;
+  } else if (privilege == kPrivilegeCall) {
+    *permission = PermissionGroup::kPhone;
+  } else if (privilege == kPrivilegeSensors) {
+    *permission = PermissionGroup::kSensors;
+  } else if (privilege == kPrivilegeMessageRead ||
+             privilege == kPrivilegeMessageWrite) {
+    *permission = PermissionGroup::kSMS;
+  } else if (privilege == kPrivilegeExternalStorage) {
+    *permission = PermissionGroup::kStorage;
+  } else if (privilege == kPrivilegeMediaStorage) {
+    *permission = PermissionGroup::kMediaLibrary;
+  } else {
+    LOG_WARN("Unknown Privilege!");
+    return false;
   }
+  return true;
 }
+
+bool ConvertToPrivileges(PermissionGroup permission,
+                         std::vector<const char*>* privileges) {
+  switch (permission) {
+    case PermissionGroup::kCalendar:
+      privileges->push_back(kPrivilegeCalendarRead);
+      privileges->push_back(kPrivilegeCalendarWrite);
+      break;
+    case PermissionGroup::kCamera:
+      privileges->push_back(kPrivilegeCamera);
+      break;
+    case PermissionGroup::kContacts:
+      privileges->push_back(kPrivilegeContactRead);
+      privileges->push_back(kPrivilegeContactWrite);
+      break;
+    case PermissionGroup::kLocation:
+    case PermissionGroup::kLocationAlways:
+    case PermissionGroup::kLocationWhenInUse:
+      privileges->push_back(kPrivilegeLocation);
+      privileges->push_back(kPrivilegeLocationCoarse);
+      break;
+    case PermissionGroup::kMicrophone:
+      privileges->push_back(kPrivilegeRecorder);
+      break;
+    case PermissionGroup::kPhone:
+      privileges->push_back(kPrivilegeCall);
+      break;
+    case PermissionGroup::kSensors:
+      privileges->push_back(kPrivilegeSensors);
+      break;
+    case PermissionGroup::kSMS:
+      privileges->push_back(kPrivilegeMessageRead);
+      privileges->push_back(kPrivilegeMessageWrite);
+      break;
+    case PermissionGroup::kStorage:
+      privileges->push_back(kPrivilegeExternalStorage);
+      break;
+    case PermissionGroup::kMediaLibrary:
+      privileges->push_back(kPrivilegeMediaStorage);
+      break;
+    default:
+      LOG_WARN("Unknown Permission!");
+      return false;
+  }
+  return true;
+}
+
+int DeterminePermissionStatus(PermissionGroup permission,
+                              PermissionStatus* status) {
+  std::vector<const char*> privileges;
+  ConvertToPrivileges(permission, &privileges);
+
+  if (privileges.size() == 0) {
+    LOG_DEBUG("No tizen specific privileges needed for permission %d",
+              permission);
+    *status = PermissionStatus::kGranted;
+    return PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE;
+  }
+
+  int result;
+  ppm_check_result_e check_result;
+  for (auto iter : privileges) {
+    result = ppm_check_permission(iter, &check_result);
+    if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
+      LOG_ERROR("ppm_check_permission (%s) error: %s", iter,
+                get_error_message(result));
+      return result;
+    } else {
+      LOG_DEBUG("ppm_check_permission (%s) result: %s", iter,
+                CheckResultToString(check_result).c_str());
+      switch (check_result) {
+        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
+        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
+          *status = PermissionStatus::kDenied;
+          return result;
+        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
+        default:
+          *status = PermissionStatus::kGranted;
+          break;
+      }
+    }
+  }
+  return result;
+}
+
+void OnRequestPermissionResponse(ppm_call_cause_e cause,
+                                 ppm_request_result_e result,
+                                 const char* privilege, void* data) {
+  Param* param = (Param*)data;
+  PermissionManager* manager = param->manager;
+  PermissionGroup permission;
+
+  if (cause != PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ANSWER ||
+      !ConvertToPermission(privilege, &permission)) {
+    // abandon a request
+    LOG_ERROR("Privilege[%s] request failed with an error", privilege);
+    param->is_done = true;
+    return;
+  }
+
+  if (manager->RequestResults().count(permission) == 0) {
+    switch (result) {
+      case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
+        manager->RequestResults()[permission] = PermissionStatus::kGranted;
+        break;
+      case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
+        manager->RequestResults()[permission] = PermissionStatus::kDenied;
+        break;
+      case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
+        manager->RequestResults()[permission] =
+            PermissionStatus::kNeverAskAgain;
+        break;
+    }
+  }
+  LOG_DEBUG("permission %d status: %d", permission,
+            manager->RequestResults()[permission]);
+  auto location = manager->RequestResults().find(PermissionGroup::kLocation);
+  if (location != manager->RequestResults().end()) {
+    manager->RequestResults()[PermissionGroup::kLocationAlways] =
+        location->second;
+    manager->RequestResults()[PermissionGroup::kLocationWhenInUse] =
+        location->second;
+  }
+
+  param->remaining_request--;
+  param->is_done = true;
+}
+}  // namespace
 
 PermissionManager::PermissionManager() : on_going_(false) {}
 
 PermissionManager::~PermissionManager() {}
 
 void PermissionManager::CheckPermissionStatus(
-    int permission, OnPermissionChecked success_callback,
+    PermissionGroup permission, OnPermissionChecked success_callback,
     OnPermissionError error_callback) {
   LOG_DEBUG("Check permission %d status", permission);
 
-  int status;
+  PermissionStatus status;
   int result = DeterminePermissionStatus(permission, &status);
   if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
     error_callback(get_error_message(result),
@@ -72,15 +231,15 @@ void PermissionManager::CheckPermissionStatus(
 }
 
 void PermissionManager::RequestPermissions(
-    std::vector<int> permissions, OnPermissionRequested success_callback,
-    OnPermissionError error_callback) {
+    std::vector<PermissionGroup> permissions,
+    OnPermissionRequested success_callback, OnPermissionError error_callback) {
   if (on_going_) {
     error_callback("RequestPermissions - error",
                    "A request for permissions is already running");
     return;
   }
-
-  int status, result;
+  int result;
+  PermissionStatus status;
   request_results_.clear();
   std::vector<const char*> permissions_to_request;
   for (auto permission : permissions) {
@@ -91,16 +250,15 @@ void PermissionManager::RequestPermissions(
       return;
     }
 
-    if (status == PERMISSION_STATUS_GRANTED) {
+    if (status == PermissionStatus::kGranted) {
       if (request_results_.find(permission) == request_results_.end()) {
-        LOG_DEBUG("Request permission %d result: PERMISSION_STATUS_GRANTED",
-                  permission);
-        request_results_[permission] = PERMISSION_STATUS_GRANTED;
+        LOG_DEBUG("Request permission %d result: kGranted", permission);
+        request_results_[permission] = PermissionStatus::kGranted;
       }
       continue;
     }
 
-    ConvertToPrivileges(permission, permissions_to_request);
+    ConvertToPrivileges(permission, &permissions_to_request);
   }
 
   // no permission is needed to requested
@@ -111,63 +269,15 @@ void PermissionManager::RequestPermissions(
 
   on_going_ = true;
 
-  struct Param {
-    PermissionManager* self{nullptr};
-    bool is_done{false};
-    size_t remaining_request{0};
-  };
   Param p;
-  p.self = this;
+  p.manager = this;
   p.remaining_request = permissions_to_request.size();
 
   for (size_t i = 0; i < permissions_to_request.size(); i++) {
     const char* permission = permissions_to_request[i];
     p.is_done = false;
-    result = ppm_request_permission(
-        permission,
-        [](ppm_call_cause_e cause, ppm_request_result_e result,
-           const char* privilege, void* data) {
-          Param* param = (Param*)data;
-          PermissionManager* self = param->self;
-
-          if (cause != PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ANSWER) {
-            // abandon a request
-            LOG_ERROR("Privilege[%s] request failed with an error", privilege);
-            param->is_done = true;
-            return;
-          }
-
-          int permission = self->ConvertToPermission(privilege);
-
-          if (self->request_results_.count(permission) == 0) {
-            switch (result) {
-              case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
-                self->request_results_[permission] = PERMISSION_STATUS_GRANTED;
-                break;
-              case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
-                self->request_results_[permission] = PERMISSION_STATUS_DENIED;
-                break;
-              case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
-                self->request_results_[permission] =
-                    PERMISSION_STATUS_NEVER_ASK_AGAIN;
-                break;
-            }
-          }
-          LOG_DEBUG("permission %d status: %d", permission,
-                    self->request_results_[permission]);
-          auto location =
-              self->request_results_.find(PERMISSION_GROUP_LOCATION);
-          if (location != self->request_results_.end()) {
-            self->request_results_[PERMISSION_GROUP_LOCATION_ALWAYS] =
-                location->second;
-            self->request_results_[PERMISSION_GROUP_LOCATION_WHEN_IN_USE] =
-                location->second;
-          }
-
-          param->remaining_request--;
-          param->is_done = true;
-        },
-        &p);
+    result =
+        ppm_request_permission(permission, OnRequestPermissionResponse, &p);
 
     if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
       LOG_ERROR("Failed to call ppm_request_permission with [%s]", permission);
@@ -187,115 +297,4 @@ void PermissionManager::RequestPermissions(
     success_callback(request_results_);
   }
   on_going_ = false;
-}
-
-int PermissionManager::ConvertToPermission(const std::string& privilege) {
-  if (privilege == PRIVILEGE_CALENDAR_READ ||
-      privilege == PRIVILEGE_CALENDAR_WRITE) {
-    return PERMISSION_GROUP_CALENDAR;
-  } else if (privilege == PRIVILEGE_CAMERA) {
-    return PERMISSION_GROUP_CAMERA;
-  } else if (privilege == PRIVILEGE_CONTACT_READ ||
-             privilege == PRIVILEGE_CONTACT_WRITE) {
-    return PERMISSION_GROUP_CONTACTS;
-  } else if (privilege == PRIVILEGE_LOCATION ||
-             privilege == PRIVILEGE_LOCATION_COARSE) {
-    return PERMISSION_GROUP_LOCATION;
-  } else if (privilege == PRIVILEGE_RECORDER) {
-    return PERMISSION_GROUP_MICROPHONE;
-  } else if (privilege == PRIVILEGE_CALL) {
-    return PERMISSION_GROUP_PHONE;
-  } else if (privilege == PRIVILEGE_SENSORS) {
-    return PERMISSION_GROUP_SENSORS;
-  } else if (privilege == PRIVILEGE_MESSAGE_READ ||
-             privilege == PRIVILEGE_MESSAGE_WRITE) {
-    return PERMISSION_GROUP_SMS;
-  } else if (privilege == PRIVILEGE_EXTERNAL_STORAGE) {
-    return PERMISSION_GROUP_STORAGE;
-  } else if (privilege == PRIVILEGE_MEDIA_STORAGE) {
-    return PERMISSION_GROUP_MEDIA_LIBRARY;
-  } else {
-    return PERMISSION_GROUP_UNKNOWN;
-  }
-}
-
-void PermissionManager::ConvertToPrivileges(
-    int permission, std::vector<const char*>& privileges) {
-  switch (permission) {
-    case PERMISSION_GROUP_CALENDAR:
-      privileges.push_back(PRIVILEGE_CALENDAR_READ);
-      privileges.push_back(PRIVILEGE_CALENDAR_WRITE);
-      break;
-    case PERMISSION_GROUP_CAMERA:
-      privileges.push_back(PRIVILEGE_CAMERA);
-      break;
-    case PERMISSION_GROUP_CONTACTS:
-      privileges.push_back(PRIVILEGE_CONTACT_READ);
-      privileges.push_back(PRIVILEGE_CONTACT_WRITE);
-      break;
-    case PERMISSION_GROUP_LOCATION:
-    case PERMISSION_GROUP_LOCATION_ALWAYS:
-    case PERMISSION_GROUP_LOCATION_WHEN_IN_USE:
-      privileges.push_back(PRIVILEGE_LOCATION);
-      privileges.push_back(PRIVILEGE_LOCATION_COARSE);
-      break;
-    case PERMISSION_GROUP_MICROPHONE:
-      privileges.push_back(PRIVILEGE_RECORDER);
-      break;
-    case PERMISSION_GROUP_PHONE:
-      privileges.push_back(PRIVILEGE_CALL);
-      break;
-    case PERMISSION_GROUP_SENSORS:
-      privileges.push_back(PRIVILEGE_SENSORS);
-      break;
-    case PERMISSION_GROUP_SMS:
-      privileges.push_back(PRIVILEGE_MESSAGE_READ);
-      privileges.push_back(PRIVILEGE_MESSAGE_WRITE);
-      break;
-    case PERMISSION_GROUP_STORAGE:
-      privileges.push_back(PRIVILEGE_EXTERNAL_STORAGE);
-      break;
-    case PERMISSION_GROUP_MEDIA_LIBRARY:
-      privileges.push_back(PRIVILEGE_MEDIA_STORAGE);
-      break;
-    default:
-      break;
-  }
-}
-
-int PermissionManager::DeterminePermissionStatus(int permission, int* status) {
-  std::vector<const char*> privileges;
-  ConvertToPrivileges(permission, privileges);
-
-  if (privileges.size() == 0) {
-    LOG_DEBUG("No tizen specific privileges needed for permission %d",
-              permission);
-    *status = PERMISSION_STATUS_GRANTED;
-    return PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE;
-  }
-
-  int result;
-  ppm_check_result_e check_result;
-  for (auto iter : privileges) {
-    result = ppm_check_permission(iter, &check_result);
-    if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-      LOG_ERROR("ppm_check_permission (%s) error: %s", iter,
-                get_error_message(result));
-      return result;
-    } else {
-      LOG_DEBUG("ppm_check_permission (%s) result: %s", iter,
-                CheckResultToString(check_result).c_str());
-      switch (check_result) {
-        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
-        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
-          *status = PERMISSION_STATUS_DENIED;
-          return result;
-        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
-        default:
-          *status = PERMISSION_STATUS_GRANTED;
-          break;
-      }
-    }
-  }
-  return result;
 }

@@ -8,9 +8,11 @@
 #include <memory>
 #include <vector>
 
-using OnPermissionChecked = std::function<void(int status)>;
-using OnPermissionRequested =
-    std::function<void(const std::map<int, int> &results)>;
+#include "type.h"
+
+using OnPermissionChecked = std::function<void(PermissionStatus status)>;
+using OnPermissionRequested = std::function<void(
+    const std::map<PermissionGroup, PermissionStatus> &results)>;
 using OnPermissionError =
     std::function<void(const std::string &code, const std::string &message)>;
 
@@ -19,21 +21,19 @@ class PermissionManager {
   PermissionManager();
   ~PermissionManager();
 
-  void CheckPermissionStatus(int permission,
+  void CheckPermissionStatus(PermissionGroup permission,
                              OnPermissionChecked success_callback,
                              OnPermissionError error_callback);
-  void RequestPermissions(std::vector<int> permissions,
+  void RequestPermissions(std::vector<PermissionGroup> permissions,
                           OnPermissionRequested success_callback,
                           OnPermissionError error_callback);
+  inline std::map<PermissionGroup, PermissionStatus> &RequestResults() {
+    return request_results_;
+  }
 
  private:
-  int ConvertToPermission(const std::string &privilege);
-  void ConvertToPrivileges(int permission,
-                           std::vector<const char *> &privileges);
-  int DeterminePermissionStatus(int permission, int *status);
-
   bool on_going_;
-  std::map<int, int> request_results_;
+  std::map<PermissionGroup, PermissionStatus> request_results_;
 };
 
 #endif  // PERMISSION_MANAGER_H_

@@ -4,7 +4,9 @@
 #include <functional>
 #include <memory>
 
-using OnServiceChecked = std::function<void(int status)>;
+#include "type.h"
+
+using OnServiceChecked = std::function<void(ServiceStatus status)>;
 using OnServiceError =
     std::function<void(const std::string &code, const std::string &message)>;
 
@@ -13,7 +15,8 @@ class ServiceManager {
   ServiceManager();
   ~ServiceManager();
 
-  void CheckServiceStatus(int permission, OnServiceChecked success_callback,
+  void CheckServiceStatus(PermissionGroup permission,
+                          OnServiceChecked success_callback,
                           OnServiceError error_callback);
 };
 

@@ -1,46 +1,44 @@
 #ifndef PERMISSION_HANDLER_TYPE_H_
 #define PERMISSION_HANDLER_TYPE_H_
 
-// permission group
-enum PermissionGroup {
-  PERMISSION_GROUP_CALENDAR = 0,
-  PERMISSION_GROUP_CAMERA = 1,
-  PERMISSION_GROUP_CONTACTS = 2,
-  PERMISSION_GROUP_LOCATION = 3,
-  PERMISSION_GROUP_LOCATION_ALWAYS = 4,
-  PERMISSION_GROUP_LOCATION_WHEN_IN_USE = 5,
-  PERMISSION_GROUP_MEDIA_LIBRARY = 6,
-  PERMISSION_GROUP_MICROPHONE = 7,
-  PERMISSION_GROUP_PHONE = 8,
-  PERMISSION_GROUP_PHOTOS = 9,
-  PERMISSION_GROUP_PHOTOS_ADD_ONLY = 10,
-  PERMISSION_GROUP_REMINDERS = 11,
-  PERMISSION_GROUP_SENSORS = 12,
-  PERMISSION_GROUP_SMS = 13,
-  PERMISSION_GROUP_SPEECH = 14,
-  PERMISSION_GROUP_STORAGE = 15,
-  PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS = 16,
-  PERMISSION_GROUP_NOTIFICATION = 17,
-  PERMISSION_GROUP_ACCESS_MEDIA_LOCATION = 18,
-  PERMISSION_GROUP_ACTIVITY_RECOGNITION = 19,
-  PERMISSION_GROUP_UNKNOWN = 20,
-  PERMISSION_GROUP_BLUETOOTH = 21
+// See :
+// flutter-permission-handler/permission_handler_platform_interface/lib/src/permissions.dart
+enum class PermissionGroup {
+  kCalendar = 0,
+  kCamera = 1,
+  kContacts = 2,
+  kLocation = 3,
+  kLocationAlways = 4,
+  kLocationWhenInUse = 5,
+  kMediaLibrary = 6,
+  kMicrophone = 7,
+  kPhone = 8,
+  kPhotos = 9,
+  kPhotosAddOnly = 10,
+  kReminders = 11,
+  kSensors = 12,
+  kSMS = 13,
+  kSpeech = 14,
+  kStorage = 15,
+  kIgnoreBatteryOptimizations = 16,
+  kNotification = 17,
+  kAccessMediaLocation = 18,
+  kActivityRecognition = 19,
+  kUnknown =
+      20,  // Define only to hold space, please never use it in native side
+  kBluetooth = 21
 };
 
 // permission status
-enum PermissionStatus {
-  PERMISSION_STATUS_DENIED = 0,
-  PERMISSION_STATUS_GRANTED,
-  PERMISSION_STATUS_RESTRICTED,
-  PERMISSION_STATUS_LIMITED,
-  PERMISSION_STATUS_NEVER_ASK_AGAIN
+enum class PermissionStatus {
+  kDenied = 0,
+  kGranted,
+  kRestricted,
+  kLimited,
+  kNeverAskAgain
 };
 
 // service status
-enum ServiceStatus {
-  SERVICE_STATUS_DISABLED = 0,
-  SERVICE_STATUS_ENABLED,
-  SERVICE_STATUS_NOT_APPLICABLE
-};
+enum class ServiceStatus { kDisabled = 0, kEnabled, kNotApplicable };
 
 #endif  // PERMISSION_HANDLER_TYPE_H_
