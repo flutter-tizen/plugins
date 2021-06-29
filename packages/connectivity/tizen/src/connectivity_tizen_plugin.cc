@@ -39,10 +39,10 @@ class ConnectivityTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void RegisterObsever(
+  void RegisterObserver(
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
     EnsureConnectionHandle();
-    if (connection_set_type_changed_cb(connection_, ConnetionTypeChangedCB,
+    if (connection_set_type_changed_cb(connection_, ConnectionTypeChangedCB,
                                        this) != CONNECTION_ERROR_NONE) {
       return;
     }
@@ -64,8 +64,8 @@ class ConnectivityTizenPlugin : public flutter::Plugin {
   }
 
  private:
-  static void ConnetionTypeChangedCB(connection_type_e state, void *data) {
-    LOG_DEBUG("connetionTypeChangedCB");
+  static void ConnectionTypeChangedCB(connection_type_e state, void *data) {
+    LOG_DEBUG("connectionTypeChangedCB");
     ConnectivityTizenPlugin *plugin_pointer = (ConnectivityTizenPlugin *)data;
     plugin_pointer->SendConnectivityChangedEvent(state);
   }
@@ -141,7 +141,7 @@ class ConnectivityTizenPlugin : public flutter::Plugin {
                    std::unique_ptr<flutter::EventSink<>> &&events)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_INFO("OnListen");
-              RegisterObsever(std::move(events));
+              RegisterObserver(std::move(events));
               return nullptr;
             },
             [this](const flutter::EncodableValue *arguments)
