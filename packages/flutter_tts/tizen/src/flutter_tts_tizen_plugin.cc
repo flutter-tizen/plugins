@@ -43,6 +43,13 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     }
   }
 
+  void EndSpeaking() {
+    speaking_ = false;
+    if (await_speak_completion_) {
+      result_->Success();
+    }
+  }
+
  private:
   bool EnsureTtsHandle() {
     if (tts_ != nullptr) {
@@ -247,11 +254,11 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         plugin->channel_->InvokeMethod("speak.onContinue", std::move(args));
       }
     } else if (current == TTS_STATE_PAUSED) {
-      plugin->speaking_ = false;
+      plugin->EndSpeaking();
       plugin->channel_->InvokeMethod("speak.onPause", std::move(args));
     } else if (current == TTS_STATE_READY) {
-      plugin->speaking_ = false;
       if (previous == TTS_STATE_PLAYING || previous == TTS_STATE_PAUSED) {
+        plugin->EndSpeaking();
         plugin->channel_->InvokeMethod("speak.onCancel", std::move(args));
       }
     }
@@ -262,9 +269,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     FlutterTtsTizenPlugin *plugin = (FlutterTtsTizenPlugin *)user_data;
     tts_stop(plugin->tts_);
     LOG_INFO("[TTS] Utterance (%d) is completed", true);
-    if (plugin->await_speak_completion_) {
-      plugin->result_->Success();
-    }
+
     std::unique_ptr<flutter::EncodableValue> args =
         std::make_unique<flutter::EncodableValue>(true);
     plugin->channel_->InvokeMethod("speak.onComplete", std::move(args));
