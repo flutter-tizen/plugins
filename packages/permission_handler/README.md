@@ -54,6 +54,6 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 
    For detailed usage of the plugin, see https://github.com/Baseflow/flutter-permission-handler#how-to-use.
 
-## Limitations
+## Notes
 
-- This plugin is only supported on **Galaxy Watch** devices running **Tizen 5.5** or later. On **TV**s, you don't need to request permissions since they are already granted to apps by default.
+This plugin is intended for **Galaxy Watch** devices only. On **TV**s, you don't need to request permissions since they are already granted to apps by default.

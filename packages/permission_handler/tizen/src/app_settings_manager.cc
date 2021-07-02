@@ -114,10 +114,8 @@ void AppSettingsManager::OpenAppSettings(OnAppSettingsOpened success_callback,
   PackageName pkg_name;
   AppPermissions app_permissions;
   if (app_permissions.Launch(pkg_name.Get())) {
-    LOG_DEBUG("successed to open app settings");
     success_callback(true);
   } else {
-    LOG_DEBUG("failed to open app settings");
     success_callback(false);
   }
 }
