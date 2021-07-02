@@ -109,13 +109,8 @@ AppSettingsManager::AppSettingsManager() {}
 
 AppSettingsManager::~AppSettingsManager() {}
 
-void AppSettingsManager::OpenAppSettings(OnAppSettingsOpened success_callback,
-                                         OnAppSettingsError error_callback) {
+bool AppSettingsManager::OpenAppSettings() {
   PackageName pkg_name;
   AppPermissions app_permissions;
-  if (app_permissions.Launch(pkg_name.Get())) {
-    success_callback(true);
-  } else {
-    success_callback(false);
-  }
+  return app_permissions.Launch(pkg_name.Get());
 }

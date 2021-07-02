@@ -118,17 +118,8 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
                       "vector<int32_t>");
       }
     } else if (method_name.compare("openAppSettings") == 0) {
-      auto reply = result.release();
-      auto on_success = [reply](bool result) {
-        reply->Success(flutter::EncodableValue(result));
-        delete reply;
-      };
-      auto on_error = [reply](const std::string &code,
-                              const std::string &message) {
-        reply->Error(code, message);
-        delete reply;
-      };
-      app_settings_manager_.OpenAppSettings(on_success, on_error);
+      bool ret = app_settings_manager_.OpenAppSettings();
+      result->Success(flutter::EncodableValue(ret));
     } else {
       result->NotImplemented();
       return;
