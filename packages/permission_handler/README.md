@@ -57,4 +57,3 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 ## Limitations
 
 - This plugin is only supported on **Galaxy Watch** devices running **Tizen 5.5** or later. On **TV**s, you don't need to request permissions since they are already granted to apps by default.
-- `openAppSettings()` will open the system settings instead of the app settings on Tizen. To use it, add the app manager privilege (`http://tizen.org/privilege/appmanager.launch`) in your `tizen-manifest.xml` file.
