@@ -4,8 +4,6 @@
 #include <app_control.h>
 #include <package_manager.h>
 
-#include <string>
-
 #include "log.h"
 
 namespace {
