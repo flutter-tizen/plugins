@@ -16,10 +16,16 @@ class AppPermissions {
 
   ~AppPermissions() { Deinit(); }
 
-  bool Launch(const char* pkg_name) {
-    int ret = app_control_add_extra_data(app_control_, kPackageID, pkg_name);
+  bool Launch(const std::string& package_name) {
+    if (package_name.length() == 0) {
+      return false;
+    }
+
+    int ret = app_control_add_extra_data(app_control_, kPackageID,
+                                         package_name.c_str());
     if (ret != APP_CONTROL_ERROR_NONE) {
-      LOG_ERROR("Failed to add key[%s]:value[%s]", kPackageID, pkg_name);
+      LOG_ERROR("Failed to add key[%s]:value[%s]", kPackageID,
+                package_name.c_str());
       return false;
     }
 
@@ -103,12 +109,18 @@ class PackageName {
 };
 }  // namespace
 
-AppSettingsManager::AppSettingsManager() {}
+AppSettingsManager::AppSettingsManager() {
+  app_permissions_ = std::make_unique<AppPermissions>();
+  PackageName pkg_name;
+  char* name = pkg_name.Get();
+  if (name == nullptr) {
+    return;
+  }
+  package_name_ = std::string(name);
+}
 
 AppSettingsManager::~AppSettingsManager() {}
 
 bool AppSettingsManager::OpenAppSettings() {
-  PackageName pkg_name;
-  AppPermissions app_permissions;
-  return app_permissions.Launch(pkg_name.Get());
+  return app_permissions_->Launch(package_name_);
 }
