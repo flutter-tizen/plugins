@@ -3,7 +3,7 @@
 
 APPNAME = permission_handler_tizen_plugin
 type = sharedLib
-profile = common-5.5
+profile = common-4.0
 
 # Source files
 USER_SRCS += src/permission_manager.cc src/app_settings_manager.cc src/service_manager.cc src/permission_handler_tizen_plugin.cc
