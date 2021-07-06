@@ -3,18 +3,22 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 
-using OnAppSettingsOpened = std::function<void(bool result)>;
-using OnAppSettingsError =
-    std::function<void(const std::string &code, const std::string &message)>;
+namespace {
+class AppPermissions;
+}
 
 class AppSettingsManager {
  public:
   AppSettingsManager();
   ~AppSettingsManager();
 
-  void OpenAppSettings(OnAppSettingsOpened success_callback,
-                       OnAppSettingsError error_callback);
+  bool OpenAppSettings();
+
+ private:
+  std::unique_ptr<AppPermissions> app_permissions_;
+  std::string package_name_;
 };
 
 #endif  // APP_SETTINGS_MANAGER_H_

@@ -1,8 +1,8 @@
 #ifndef PERMISSION_HANDLER_TYPE_H_
 #define PERMISSION_HANDLER_TYPE_H_
 
-// See :
-// flutter-permission-handler/permission_handler_platform_interface/lib/src/permissions.dart
+// Keep in sync with the values defined in:
+// https://github.com/Baseflow/flutter-permission-handler/blob/master/permission_handler_platform_interface/lib/src/permissions.dart
 enum class PermissionGroup {
   kCalendar = 0,
   kCamera = 1,
