@@ -1,6 +1,6 @@
 name: flutter_tts_tizen
 description: The tizen implementation of flutter_tts plugin.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/flutter-tizen/plugins
 
 dependencies:
