@@ -1,0 +1,25 @@
+name: webview_flutter_tizen_ewk
+description: Tizen implementation of the webview plugin
+homepage: https://github.com/flutter-tizen/plugins
+version: 0.1.0
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_flutter: ^2.0.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: WebviewFlutterTizenEwkPlugin
+        fileName: webview_flutter_tizen_ewk_plugin.h
+        dartPluginClass: TizenWebView
