@@ -51,7 +51,7 @@ PlatformView* WebViewFactory::Create(int viewId, double width, double height,
 
   try {
     return new WebView(GetPluginRegistrar(), viewId, texture_registrar_, width,
-                       height, params);
+                       height, params, platform_window_);
   } catch (const std::invalid_argument& ex) {
     LOG_ERROR("[Exception] %s\n", ex.what());
     return nullptr;

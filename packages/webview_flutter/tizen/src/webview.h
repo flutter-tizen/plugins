@@ -27,7 +27,7 @@ class WebView : public PlatformView {
  public:
   WebView(flutter::PluginRegistrar* registrar, int viewId,
           flutter::TextureRegistrar* textureRegistrar, double width,
-          double height, flutter::EncodableMap& params);
+          double height, flutter::EncodableMap& params, void* winHandle);
   ~WebView();
   virtual void Dispose() override;
   virtual void Resize(double width, double height) override;
