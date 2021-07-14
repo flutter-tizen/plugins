@@ -157,8 +157,9 @@ double ExtractDoubleFromMap(const flutter::EncodableValue& arguments,
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
                  flutter::TextureRegistrar* texture_registrar, double width,
-                 double height, flutter::EncodableMap& params, void* winHandle)
-    : PlatformView(registrar, viewId, winHandle),
+                 double height, flutter::EncodableMap& params,
+                 void* platform_window)
+    : PlatformView(registrar, viewId, platform_window),
       texture_registrar_(texture_registrar),
       webview_instance_(nullptr),
       width_(width),
