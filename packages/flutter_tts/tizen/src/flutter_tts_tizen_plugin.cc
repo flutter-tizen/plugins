@@ -46,7 +46,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   void EndSpeaking() {
     speaking_ = false;
     if (await_speak_completion_) {
-      result_->Success();
+      result_->Success(flutter::EncodableValue(1));
     }
   }
 
@@ -136,18 +136,17 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     if (method_name.compare("awaitSpeakCompletion") == 0) {
       if (std::holds_alternative<bool>(arguments)) {
         await_speak_completion_ = std::get<bool>(arguments);
-        result->Success();
-        return;
-      } else {
-        result->Error("Invalid Arguments", "Invalid Arguments");
+        result->Success(flutter::EncodableValue(1));
         return;
       }
+      result->Success(flutter::EncodableValue(0));
     } else if (method_name.compare("speak") == 0) {
       if (speaking_) {
         LOG_ERROR("[TTS] : You cannot speak again while speaking.");
-        result->Error("Invalid Operation", "Invalid Operation");
+        result->Success(flutter::EncodableValue(0));
         return;
       }
+
       if (std::holds_alternative<std::string>(arguments)) {
         std::string text = std::get<std::string>(arguments);
         int utt_id;
@@ -155,52 +154,50 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
                            speed_, &utt_id);
         if (ret != TTS_ERROR_NONE) {
           LOG_ERROR("[TTS] tts_add_text failed: %s", get_error_message(ret));
-          result->Error(std::to_string(ret), "Failed to speak(tts_add_text).");
+          result->Success(flutter::EncodableValue(0));
           return;
         }
       } else {
-        result->Error("Invalid Arguments", "Invalid Arguments");
+        LOG_ERROR("Invalid Arguments!");
+        result->Success(flutter::EncodableValue(0));
         return;
       }
+
       ret = tts_play(tts_);
+
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_play failed: %s", get_error_message(ret));
-        result->Error(std::to_string(ret), "Failed to speak(tts_play).");
+        result->Success(flutter::EncodableValue(0));
         return;
       }
+
       if (await_speak_completion_) {
         result_ = std::move(result);
       } else {
-        result->Success();
-        return;
+        result->Success(flutter::EncodableValue(1));
       }
     } else if (method_name.compare("stop") == 0) {
       ret = tts_stop(tts_);
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_stop failed: %s", get_error_message(ret));
-        result->Error(std::to_string(ret), "Failed to stop.");
+        result->Success(flutter::EncodableValue(0));
         return;
       }
-      result->Success();
-      return;
+      result->Success(flutter::EncodableValue(1));
     } else if (method_name.compare("pause") == 0) {
       ret = tts_pause(tts_);
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_pause failed: %s", get_error_message(ret));
-        result->Error(std::to_string(ret), "Failed to pause.");
+        result->Success(flutter::EncodableValue(0));
         return;
       }
-      result->Success();
-      return;
+      result->Success(flutter::EncodableValue(1));
     } else if (method_name.compare("getSpeechRateValidRange") == 0) {
-      int min, normal, max;
+      int min = 0, normal = 0, max = 0;
       ret = tts_get_speed_range(tts_, &min, &normal, &max);
       if (ret != TTS_ERROR_NONE) {
         LOG_ERROR("[TTS] tts_get_speed_range failed: %s",
                   get_error_message(ret));
-        result->Error(std::to_string(ret),
-                      "Failed to getSpeechRateValidRange.");
-        return;
       }
       flutter::EncodableMap map;
       map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
@@ -216,24 +213,19 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     } else if (method_name.compare("setSpeechRate") == 0) {
       if (std::holds_alternative<double>(arguments)) {
         speed_ = (int)std::get<double>(arguments);
-        result->Success();
-        return;
-      } else {
-        result->Error("Invalid Arguments", "Invalid Arguments");
+        result->Success(flutter::EncodableValue(1));
         return;
       }
+      result->Success(flutter::EncodableValue(0));
     } else if (method_name.compare("setLanguages") == 0) {
       if (std::holds_alternative<std::string>(arguments)) {
         language_ = std::move(std::get<std::string>(arguments));
-        result->Success();
-        return;
-      } else {
-        result->Error("Invalid Arguments", "Invalid Arguments");
+        result->Success(flutter::EncodableValue(1));
         return;
       }
+      result->Success(flutter::EncodableValue(0));
     } else if (method_name.compare("getLanguages") == 0) {
       result->Success(flutter::EncodableValue(language_s));
-      return;
     } else {
       result->Error("-1", "Not supported method");
       return;
