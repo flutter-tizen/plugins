@@ -145,14 +145,20 @@ int ExtractIntFromMap(const flutter::EncodableValue& arguments,
   }
   return -1;
 }
-double ExtractDoubleFromMap(const flutter::EncodableValue& arguments,
-                            const char* key) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
-    flutter::EncodableValue value = values[flutter::EncodableValue(key)];
-    if (std::holds_alternative<double>(value)) return std::get<double>(value);
+
+template <typename T>
+bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
+                              std::string key, T* out) {
+  if (auto pmap = std::get_if<flutter::EncodableMap>(&arguments)) {
+    auto iter = pmap->find(flutter::EncodableValue(key));
+    if (iter != pmap->end() && !iter->second.IsNull()) {
+      if (auto pval = std::get_if<T>(&iter->second)) {
+        *out = *pval;
+        return true;
+      }
+    }
   }
-  return -1;
+  return false;
 }
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
@@ -824,9 +830,13 @@ void WebView::HandleMethodCall(
   LOG_DEBUG("WebView::HandleMethodCall : %s \n ", method_name.c_str());
 
   if (method_name.compare("loadUrl") == 0) {
-    std::string url = ExtractStringFromMap(arguments, "url");
-    webview_instance_->LoadURL(url);
-    result->Success();
+    std::string url;
+    if (GetValueFromEncodableMap(arguments, "viewType", &url)) {
+      webview_instance_->LoadURL(url);
+      result->Success();
+      return;
+    }
+    result->Error("Invalid Arguments", "Invalid Arguments");
   } else if (method_name.compare("updateSettings") == 0) {
     if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
       auto settings = std::get<flutter::EncodableMap>(arguments);
@@ -897,15 +907,23 @@ void WebView::HandleMethodCall(
   } else if (method_name.compare("getTitle") == 0) {
     result->Success(flutter::EncodableValue(webview_instance_->GetTitle()));
   } else if (method_name.compare("scrollTo") == 0) {
-    int x = ExtractIntFromMap(arguments, "x");
-    int y = ExtractIntFromMap(arguments, "y");
-    webview_instance_->ScrollTo(x, y);
-    result->Success();
+    int x = 0, y = 0;
+    if (GetValueFromEncodableMap(arguments, "x", &x) &&
+        GetValueFromEncodableMap(arguments, "y", &y)) {
+      webview_instance_->ScrollTo(x, y);
+      result->Success();
+      return;
+    }
+    result->Error("Invalid Arguments", "Invalid Arguments");
   } else if (method_name.compare("scrollBy") == 0) {
-    int x = ExtractIntFromMap(arguments, "x");
-    int y = ExtractIntFromMap(arguments, "y");
-    webview_instance_->ScrollBy(x, y);
-    result->Success();
+    int x = 0, y = 0;
+    if (GetValueFromEncodableMap(arguments, "x", &x) &&
+        GetValueFromEncodableMap(arguments, "y", &y)) {
+      webview_instance_->ScrollBy(x, y);
+      result->Success();
+      return;
+    }
+    result->Error("Invalid Arguments", "Invalid Arguments");
   } else if (method_name.compare("getScrollX") == 0) {
     result->Success(flutter::EncodableValue(webview_instance_->GetScrollX()));
   } else if (method_name.compare("getScrollY") == 0) {
