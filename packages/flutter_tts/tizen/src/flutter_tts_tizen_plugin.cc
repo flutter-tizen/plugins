@@ -123,10 +123,16 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     if (!EnsureTtsHandle()) {
-      LOG_ERROR("[TTS] EnsureTtsHandle() failed: %s", "EnsureTtsHandle failed");
-      result->Error("Invalid Operation", "Invalid Operation");
+      LOG_ERROR("[TTS] Failed to ensure native tts APIs handle.");
+      result->Error("Platform Error",
+                    "Failed to ensure native tts APIs handle.");
       return;
     }
+
+    // Keep in sync with the return values implemented in:
+    // https://github.com/dlutton/flutter_tts/blob/master/android/src/main/java/com/tundralabs/fluttertts/FlutterTtsPlugin.java
+    // The API specification is vague, and there is no detailed description of
+    // the return value, so I mimic the Android implementation.
 
     const auto method_name = method_call.method_name();
     const auto &arguments = *method_call.arguments();
