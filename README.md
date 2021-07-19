@@ -1,5 +1,7 @@
 # plugins
 
+[![Build](https://github.com/flutter-tizen/plugins/actions/workflows/build.yml/badge.svg)](https://github.com/flutter-tizen/plugins/actions)
+
 This repo contains Flutter plugins maintained by the flutter-tizen team. We're in process of adding Tizen platform support to existing first and third-party plugins on [pub.dev](https://pub.dev) based on their popularity. If the plugin you're looking for isn't implemented for Tizen yet, consider filing an [issue](../../issues) or creating a package by yourself. (We welcome your pull requests!)
 
 To build Flutter applications with plugins, use the [flutter-tizen](https://github.com/flutter-tizen/flutter-tizen) tool.
