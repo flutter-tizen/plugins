@@ -27,7 +27,7 @@ class WebView : public PlatformView {
  public:
   WebView(flutter::PluginRegistrar* registrar, int viewId,
           flutter::TextureRegistrar* textureRegistrar, double width,
-          double height, flutter::EncodableMap& params);
+          double height, flutter::EncodableMap& params, void* platform_window);
   ~WebView();
   virtual void Dispose() override;
   virtual void Resize(double width, double height) override;
@@ -39,11 +39,10 @@ class WebView : public PlatformView {
   // Key input event
   virtual void DispatchKeyDownEvent(Ecore_Event_Key* key) override;
   virtual void DispatchKeyUpEvent(Ecore_Event_Key* key) override;
-  virtual void DispatchCompositionUpdateEvent(const char* str,
-                                              int size) override;
-  virtual void DispatchCompositionEndEvent(const char* str, int size) override;
 
-  virtual void SetSoftwareKeyboardContext(Ecore_IMF_Context* context) override;
+  void DispatchCompositionUpdateEvent(const char* str, int size);
+  void DispatchCompositionEndEvent(const char* str, int size);
+  void SetSoftwareKeyboardContext(Ecore_IMF_Context* context);
 
   LWE::WebContainer* GetWebViewInstance() { return webview_instance_; }
 

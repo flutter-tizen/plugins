@@ -16,3 +16,6 @@
 * Update lightweight web engine binary & header file (6263be6c888d5cb9dcca5466dfc3941a70b424eb)
 * Activate resizing function
 * Apply embedder's texture APIs change
+
+## 0.3.0
+* Apply PlatformView, PlatformViewFactory APIs change
