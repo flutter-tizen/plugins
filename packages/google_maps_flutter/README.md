@@ -22,10 +22,8 @@ dependencies:
   google_maps_flutter_tizen: ^0.0.1
 ```
 
-In addition, you need a Maps JavaScript API Key to use this plugin. Please refer to the site below to get the API key.
-```
-https://developers.google.com/maps/documentation/javascript/get-api-key
-```
+In addition, you need a Maps JavaScript API Key to use this plugin. Please refer to the site below to get the API key.  
+<https://developers.google.com/maps/documentation/javascript/get-api-key>
 
 To use 'newCameraPosition' API, please add 'v=beta' option in map.html as shown below:
 ```
