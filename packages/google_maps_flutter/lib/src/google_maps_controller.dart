@@ -511,7 +511,8 @@ class GoogleMapController {
           zoomDelta = (json[1] as num) + 0.0;
         }
         // Web only supports integer changes...
-        int newZoomDelta = zoomDelta < 0 ? zoomDelta.floor() : zoomDelta.ceil();
+        final int newZoomDelta =
+            zoomDelta < 0 ? zoomDelta.floor() : zoomDelta.ceil();
         if (json.length == 3) {
           // With focus
           try {
