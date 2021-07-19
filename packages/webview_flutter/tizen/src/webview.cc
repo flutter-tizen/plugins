@@ -126,26 +126,6 @@ static std::string ErrorCodeToString(int error_code) {
   throw std::invalid_argument(message);
 }
 
-std::string ExtractStringFromMap(const flutter::EncodableValue& arguments,
-                                 const char* key) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
-    flutter::EncodableValue value = values[flutter::EncodableValue(key)];
-    if (std::holds_alternative<std::string>(value))
-      return std::get<std::string>(value);
-  }
-  return std::string();
-}
-int ExtractIntFromMap(const flutter::EncodableValue& arguments,
-                      const char* key) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap values = std::get<flutter::EncodableMap>(arguments);
-    flutter::EncodableValue value = values[flutter::EncodableValue(key)];
-    if (std::holds_alternative<int>(value)) return std::get<int>(value);
-  }
-  return -1;
-}
-
 template <typename T>
 bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
                               std::string key, T* out) {
