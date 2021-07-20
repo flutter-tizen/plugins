@@ -91,7 +91,7 @@ void main() {
         if (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS) {
           expect(networkController.value.duration,
-                  (Duration duration) => duration != Duration.zero);
+              (Duration duration) => duration != Duration.zero);
         }
       },
       skip: (kIsWeb),
