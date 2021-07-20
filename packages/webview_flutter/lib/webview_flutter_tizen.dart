@@ -17,16 +17,19 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter/platform_interface.dart';
 import 'package:webview_flutter/src/webview_method_channel.dart';
 
-enum _TizenViewState {
-  waitingForSize,
-  creating,
-  created,
-  disposed,
-}
-
+/// How an embedded platform view behave during hit tests.
 enum PlatformViewHitTestBehavior {
+  /// Opaque targets can be hit by hit tests, causing them to both receive
+  /// events within their bounds and prevent targets visually behind them from
+  /// also receiving events.
   opaque,
+
+  /// Translucent targets both receive events within their bounds and permit
+  /// targets visually behind them to also receive events.
   translucent,
+
+  /// Transparent targets don't receive events within their bounds and permit
+  /// targets visually behind them to receive events.
   transparent,
 }
 
@@ -34,6 +37,219 @@ enum _PlatformViewState {
   uninitialized,
   resizing,
   ready,
+}
+
+bool _factoryTypesSetEquals<T>(Set<Factory<T>>? a, Set<Factory<T>>? b) {
+  if (a == b) {
+    return true;
+  }
+  if (a == null || b == null) {
+    return false;
+  }
+  return setEquals(_factoriesTypeSet(a), _factoriesTypeSet(b));
+}
+
+Set<Type> _factoriesTypeSet<T>(Set<Factory<T>> factories) {
+  return factories.map<Type>((Factory<T> factory) => factory.type).toSet();
+}
+
+/// Builds an Tizen webview.
+///
+/// This is used as the default implementation for [WebView.platform] on Tizen. It uses a method channel to
+/// communicate with the platform code.
+class TizenWebView implements WebViewPlatform {
+  static void register() {
+    WebView.platform = TizenWebView();
+  }
+
+  @override
+  Widget build({
+    required BuildContext context,
+    required CreationParams creationParams,
+    WebViewPlatformCreatedCallback? onWebViewPlatformCreated,
+    Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers,
+    required WebViewPlatformCallbacksHandler webViewPlatformCallbacksHandler,
+  }) {
+    assert(webViewPlatformCallbacksHandler != null);
+    return GestureDetector(
+      onLongPress: () {},
+      excludeFromSemantics: true,
+      child: TizenView(
+        viewType: 'plugins.flutter.io/webview',
+        onPlatformViewCreated: (int id) {
+          if (onWebViewPlatformCreated == null) {
+            return;
+          }
+          onWebViewPlatformCreated(MethodChannelWebViewPlatform(
+              id, webViewPlatformCallbacksHandler));
+        },
+        gestureRecognizers: gestureRecognizers,
+        layoutDirection: TextDirection.rtl,
+        creationParams:
+            MethodChannelWebViewPlatform.creationParamsToMap(creationParams),
+        creationParamsCodec: const StandardMessageCodec(),
+      ),
+    );
+  }
+
+  @override
+  Future<bool> clearCookies() => MethodChannelWebViewPlatform.clearCookies();
+}
+
+class TizenView extends StatefulWidget {
+  const TizenView({
+    Key? key,
+    required this.viewType,
+    this.onPlatformViewCreated,
+    this.hitTestBehavior = PlatformViewHitTestBehavior.opaque,
+    this.layoutDirection,
+    this.gestureRecognizers,
+    this.creationParams,
+    this.creationParamsCodec,
+  })  : assert(viewType != null),
+        assert(hitTestBehavior != null),
+        assert(creationParams == null || creationParamsCodec != null),
+        super(key: key);
+
+  final String viewType;
+  final PlatformViewCreatedCallback? onPlatformViewCreated;
+  final PlatformViewHitTestBehavior hitTestBehavior;
+  final TextDirection? layoutDirection;
+  final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
+  final dynamic creationParams;
+  final MessageCodec<dynamic>? creationParamsCodec;
+
+  @override
+  State<TizenView> createState() => _TizenWebViewState();
+}
+
+class _TizenWebViewState extends State<TizenView> {
+  int? _id;
+  late TizenViewController _controller;
+  TextDirection? _layoutDirection;
+  bool _initialized = false;
+  FocusNode? _focusNode;
+
+  static final Set<Factory<OneSequenceGestureRecognizer>> _emptyRecognizersSet =
+      <Factory<OneSequenceGestureRecognizer>>{};
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      focusNode: _focusNode,
+      onFocusChange: _onFocusChange,
+      child: _TizenPlatformTextureView(
+          controller: _controller,
+          hitTestBehavior: widget.hitTestBehavior,
+          gestureRecognizers:
+              widget.gestureRecognizers ?? _emptyRecognizersSet),
+    );
+  }
+
+  void _initializeOnce() {
+    if (_initialized) {
+      return;
+    }
+    _initialized = true;
+    _createNewTizenWebView();
+    _focusNode = FocusNode(debugLabel: 'TizenWebView(id: $_id)');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final TextDirection newLayoutDirection = _findLayoutDirection();
+    final bool didChangeLayoutDirection =
+        _layoutDirection != newLayoutDirection;
+    _layoutDirection = newLayoutDirection;
+
+    _initializeOnce();
+    if (didChangeLayoutDirection) {
+      _controller.setLayoutDirection(_layoutDirection!);
+    }
+  }
+
+  @override
+  void didUpdateWidget(TizenView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final TextDirection newLayoutDirection = _findLayoutDirection();
+    final bool didChangeLayoutDirection =
+        _layoutDirection != newLayoutDirection;
+    _layoutDirection = newLayoutDirection;
+
+    if (widget.viewType != oldWidget.viewType) {
+      _controller.dispose();
+      _createNewTizenWebView();
+      return;
+    }
+
+    if (didChangeLayoutDirection) {
+      _controller.setLayoutDirection(_layoutDirection!);
+    }
+  }
+
+  TextDirection _findLayoutDirection() {
+    assert(
+        widget.layoutDirection != null || debugCheckHasDirectionality(context));
+    return widget.layoutDirection ?? Directionality.of(context);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _createNewTizenWebView() {
+    _id = platformViewsRegistry.getNextPlatformViewId();
+    _controller = PlatformViewsServiceTizen.initTizenView(
+      id: _id!,
+      viewType: widget.viewType,
+      layoutDirection: _layoutDirection!,
+      creationParams: widget.creationParams,
+      creationParamsCodec: widget.creationParamsCodec,
+      onFocus: () {
+        _focusNode!.requestFocus();
+      },
+    );
+    if (widget.onPlatformViewCreated != null) {
+      _controller
+          .addOnPlatformViewCreatedListener(widget.onPlatformViewCreated!);
+    }
+  }
+
+  void _onFocusChange(bool isFocused) {
+    if (!_controller.isCreated) {
+      return;
+    }
+
+    if (!isFocused) {
+      _controller.clearFocus().catchError((dynamic e) {
+        if (e is MissingPluginException) {
+          return;
+        }
+      });
+      return;
+    }
+    SystemChannels.textInput
+        .invokeMethod<void>(
+      'TextInput.setPlatformViewClient',
+      _id,
+    )
+        .catchError((dynamic e) {
+      if (e is MissingPluginException) {
+        return;
+      }
+    });
+  }
+}
+
+enum _TizenViewState {
+  waitingForSize,
+  creating,
+  created,
+  disposed,
 }
 
 class TizenViewController extends PlatformViewController {
@@ -225,47 +441,18 @@ class TizenViewController extends PlatformViewController {
     if (_state != _TizenViewState.created) {
       return Future<void>.value();
     }
-    print('TizenViewController::clearFocus() : $viewId');
     return SystemChannels.platform_views
         .invokeMethod<void>('clearFocus', viewId);
   }
 
   @override
   Future<void> dispose() async {
-    print('TizenViewController::dispose()');
     if (_state == _TizenViewState.creating || _state == _TizenViewState.created)
       await _sendDisposeMessage();
     _platformViewCreatedCallbacks.clear();
     _state = _TizenViewState.disposed;
     PlatformViewsServiceTizen._instance._focusCallbacks.remove(viewId);
   }
-}
-
-class TizenView extends StatefulWidget {
-  const TizenView({
-    Key? key,
-    required this.viewType,
-    this.onPlatformViewCreated,
-    this.hitTestBehavior = PlatformViewHitTestBehavior.opaque,
-    this.layoutDirection,
-    this.gestureRecognizers,
-    this.creationParams,
-    this.creationParamsCodec,
-  })  : assert(viewType != null),
-        assert(hitTestBehavior != null),
-        assert(creationParams == null || creationParamsCodec != null),
-        super(key: key);
-
-  final String viewType;
-  final PlatformViewCreatedCallback? onPlatformViewCreated;
-  final PlatformViewHitTestBehavior hitTestBehavior;
-  final TextDirection? layoutDirection;
-  final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
-  final dynamic creationParams;
-  final MessageCodec<dynamic>? creationParamsCodec;
-
-  @override
-  State<TizenView> createState() => _TizenWebViewState();
 }
 
 class PlatformViewsServiceTizen {
@@ -276,11 +463,9 @@ class PlatformViewsServiceTizen {
       PlatformViewsServiceTizen._();
 
   Future<void> _onMethodCall(MethodCall call) {
-    print('TizenView::_onMethodCall() - ${call.method}');
     switch (call.method) {
       case 'viewFocused':
         final int id = call.arguments as int;
-        print('viewFocused: id - $id');
         if (_focusCallbacks.containsKey(id)) {
           _focusCallbacks[id]!();
         }
@@ -307,9 +492,6 @@ class PlatformViewsServiceTizen {
     assert(layoutDirection != null);
     assert(creationParams == null || creationParamsCodec != null);
 
-    print(
-        'PlatformViewsServiceTizen::initTizenView [id:$id] [onFocus:$onFocus]');
-
     final TizenViewController controller = TizenViewController._(
       viewId: id,
       viewType: viewType,
@@ -323,6 +505,200 @@ class PlatformViewsServiceTizen {
   }
 }
 
+/// A render object for an Tizen view.
+///
+/// [RenderTizenView] is responsible for sizing, displaying and passing touch events to Tizen
+///
+/// See also:
+///
+///  * [PlatformViewsService] which is a service for controlling platform views.
+class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
+  /// Creates a render object for an Tizen view.
+  RenderTizenView({
+    required TizenViewController viewController,
+    required PlatformViewHitTestBehavior hitTestBehavior,
+    required Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers,
+    Clip clipBehavior = Clip.hardEdge,
+  })  : assert(viewController != null),
+        assert(hitTestBehavior != null),
+        assert(gestureRecognizers != null),
+        _viewController = viewController,
+        _clipBehavior = clipBehavior {
+    _viewController.pointTransformer = (Offset offset) => globalToLocal(offset);
+    updateGestureRecognizers(gestureRecognizers);
+    _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
+    this.hitTestBehavior = hitTestBehavior;
+  }
+
+  _PlatformViewState _state = _PlatformViewState.uninitialized;
+
+  TizenViewController get viewcontroller => _viewController;
+  TizenViewController _viewController;
+
+  /// Sets a new Tizen view controller.
+  ///
+  /// `viewController` must not be null.
+  set viewController(TizenViewController viewController) {
+    assert(_viewController != null);
+    assert(viewController != null);
+    if (_viewController == viewController) {
+      return;
+    }
+    _viewController.removeOnPlatformViewCreatedListener(_onPlatformViewCreated);
+    _viewController = viewController;
+    _sizePlatformView();
+    if (_viewController.isCreated) {
+      markNeedsSemanticsUpdate();
+    }
+    _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
+  }
+
+  /// {@macro flutter.material.Material.clipBehavior}
+  ///
+  /// Defaults to [Clip.hardEdge], and must not be null.
+  Clip get clipBehavior => _clipBehavior;
+  Clip _clipBehavior = Clip.hardEdge;
+  set clipBehavior(Clip value) {
+    assert(value != null);
+    if (value != _clipBehavior) {
+      _clipBehavior = value;
+      markNeedsPaint();
+      markNeedsSemanticsUpdate();
+    }
+  }
+
+  void _onPlatformViewCreated(int id) {
+    markNeedsSemanticsUpdate();
+  }
+
+  /// {@template flutter.rendering.RenderTizenView.updateGestureRecognizers}
+  /// Updates which gestures should be forwarded to the platform view.
+  ///
+  /// Gesture recognizers created by factories in this set participate in the gesture arena for each
+  /// pointer that was put down on the render box. If any of the recognizers on this list wins the
+  /// gesture arena, the entire pointer event sequence starting from the pointer down event
+  /// will be dispatched to the Tizen.
+  ///
+  /// The `gestureRecognizers` property must not contain more than one factory with the same [Factory.type].
+  ///
+  /// Setting a new set of gesture recognizer factories with the same [Factory.type]s as the current
+  /// set has no effect, because the factories' constructors would have already been called with the previous set.
+  /// {@endtemplate}
+  ///
+  void updateGestureRecognizers(
+      Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers) {
+    _updateGestureRecognizersWithCallBack(
+        gestureRecognizers, _viewController.dispatchPointerEvent);
+  }
+
+  @override
+  bool get sizedByParent => true;
+
+  @override
+  bool get alwaysNeedsCompositing => true;
+
+  @override
+  bool get isRepaintBoundary => true;
+
+  @override
+  void performResize() {
+    size = constraints.biggest;
+    _sizePlatformView();
+  }
+
+  late Size _currentTizenViewSize;
+
+  Future<void> _sizePlatformView() async {
+    if (_state == _PlatformViewState.resizing || size.isEmpty) {
+      return;
+    }
+    _state = _PlatformViewState.resizing;
+    markNeedsPaint();
+
+    Size targetSize;
+    do {
+      targetSize = size;
+      await _viewController.setSize(targetSize);
+      _currentTizenViewSize = targetSize;
+    } while (size != targetSize);
+
+    _state = _PlatformViewState.ready;
+    markNeedsPaint();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (_viewController.textureId == null) {
+      return;
+    }
+    if ((size.width < _currentTizenViewSize.width ||
+            size.height < _currentTizenViewSize.height) &&
+        clipBehavior != Clip.none) {
+      _clipRectLayer = context.pushClipRect(
+          true, offset, offset & size, _paintTexture,
+          clipBehavior: clipBehavior, oldLayer: _clipRectLayer);
+      return;
+    }
+    _clipRectLayer = null;
+    _paintTexture(context, offset);
+  }
+
+  ClipRectLayer? _clipRectLayer;
+
+  void _paintTexture(PaintingContext context, Offset offset) {
+    context.addLayer(TextureLayer(
+      rect: offset & _currentTizenViewSize,
+      textureId: _viewController.textureId!,
+      freeze: _state == _PlatformViewState.resizing,
+    ));
+  }
+
+  @override
+  void describeSemanticsConfiguration(SemanticsConfiguration config) {
+    super.describeSemanticsConfiguration(config);
+
+    config.isSemanticBoundary = true;
+
+    if (_viewController.isCreated) {
+      config.platformViewId = _viewController.viewId;
+    }
+  }
+}
+
+class _TizenPlatformTextureView extends LeafRenderObjectWidget {
+  const _TizenPlatformTextureView({
+    Key? key,
+    required this.controller,
+    required this.hitTestBehavior,
+    required this.gestureRecognizers,
+    this.clipBehavior = Clip.hardEdge,
+  })  : assert(controller != null),
+        assert(hitTestBehavior != null),
+        assert(gestureRecognizers != null),
+        super(key: key);
+
+  final TizenViewController controller;
+  final PlatformViewHitTestBehavior hitTestBehavior;
+  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
+  final Clip clipBehavior;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => RenderTizenView(
+        viewController: controller,
+        hitTestBehavior: hitTestBehavior,
+        gestureRecognizers: gestureRecognizers,
+        clipBehavior: clipBehavior,
+      );
+
+  @override
+  void updateRenderObject(BuildContext context, RenderTizenView renderObject) {
+    renderObject.viewController = controller;
+    renderObject.hitTestBehavior = hitTestBehavior;
+    renderObject.updateGestureRecognizers(gestureRecognizers);
+  }
+}
+
+// Copied from 'packages/flutter/lib/src/rendering/platform_view.dart' github.com:flutter/flutter.git@02c026b03cd31dd3f867e5faeb7e104cce174c5f
 typedef _HandlePointerEvent = Future<void> Function(PointerEvent event);
 
 // This recognizer constructs gesture recognizers from a set of gesture recognizer factories
@@ -439,352 +815,6 @@ class _PlatformViewGestureRecognizer extends OneSequenceGestureRecognizer {
   }
 }
 
-class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
-  /// Creates a render object for an Tizen view.
-  RenderTizenView({
-    required TizenViewController viewController,
-    required PlatformViewHitTestBehavior hitTestBehavior,
-    required Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers,
-    Clip clipBehavior = Clip.hardEdge,
-  })  : assert(viewController != null),
-        assert(hitTestBehavior != null),
-        assert(gestureRecognizers != null),
-        _viewController = viewController,
-        _clipBehavior = clipBehavior {
-    _viewController.pointTransformer = (Offset offset) => globalToLocal(offset);
-    updateGestureRecognizers(gestureRecognizers);
-    _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
-    this.hitTestBehavior = hitTestBehavior;
-  }
-
-  _PlatformViewState _state = _PlatformViewState.uninitialized;
-
-  TizenViewController get viewcontroller => _viewController;
-  TizenViewController _viewController;
-
-  set viewController(TizenViewController viewController) {
-    assert(_viewController != null);
-    assert(viewController != null);
-    if (_viewController == viewController) {
-      return;
-    }
-    _viewController.removeOnPlatformViewCreatedListener(_onPlatformViewCreated);
-    _viewController = viewController;
-    _sizePlatformView();
-    if (_viewController.isCreated) {
-      markNeedsSemanticsUpdate();
-    }
-    _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
-  }
-
-  Clip get clipBehavior => _clipBehavior;
-  Clip _clipBehavior = Clip.hardEdge;
-  set clipBehavior(Clip value) {
-    assert(value != null);
-    if (value != _clipBehavior) {
-      _clipBehavior = value;
-      markNeedsPaint();
-      markNeedsSemanticsUpdate();
-    }
-  }
-
-  void _onPlatformViewCreated(int id) {
-    markNeedsSemanticsUpdate();
-  }
-
-  void updateGestureRecognizers(
-      Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers) {
-    _updateGestureRecognizersWithCallBack(
-        gestureRecognizers, _viewController.dispatchPointerEvent);
-  }
-
-  @override
-  bool get sizedByParent => true;
-
-  @override
-  bool get alwaysNeedsCompositing => true;
-
-  @override
-  bool get isRepaintBoundary => true;
-
-  @override
-  void performResize() {
-    size = constraints.biggest;
-    _sizePlatformView();
-  }
-
-  late Size _currentTizenViewSize;
-
-  Future<void> _sizePlatformView() async {
-    if (_state == _PlatformViewState.resizing || size.isEmpty) {
-      return;
-    }
-    _state = _PlatformViewState.resizing;
-    markNeedsPaint();
-
-    Size targetSize;
-    do {
-      targetSize = size;
-      await _viewController.setSize(targetSize);
-      _currentTizenViewSize = targetSize;
-    } while (size != targetSize);
-
-    _state = _PlatformViewState.ready;
-    markNeedsPaint();
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    if (_viewController.textureId == null) {
-      return;
-    }
-    if ((size.width < _currentTizenViewSize.width ||
-            size.height < _currentTizenViewSize.height) &&
-        clipBehavior != Clip.none) {
-      _clipRectLayer = context.pushClipRect(
-          true, offset, offset & size, _paintTexture,
-          clipBehavior: clipBehavior, oldLayer: _clipRectLayer);
-      return;
-    }
-    _clipRectLayer = null;
-    _paintTexture(context, offset);
-  }
-
-  ClipRectLayer? _clipRectLayer;
-
-  void _paintTexture(PaintingContext context, Offset offset) {
-    context.addLayer(TextureLayer(
-      rect: offset & _currentTizenViewSize,
-      textureId: _viewController.textureId!,
-      freeze: _state == _PlatformViewState.resizing,
-    ));
-  }
-
-  @override
-  void describeSemanticsConfiguration(SemanticsConfiguration config) {
-    super.describeSemanticsConfiguration(config);
-
-    config.isSemanticBoundary = true;
-
-    if (_viewController.isCreated) {
-      config.platformViewId = _viewController.viewId;
-    }
-  }
-}
-
-class _TizenPlatformTextureView extends LeafRenderObjectWidget {
-  const _TizenPlatformTextureView({
-    Key? key,
-    required this.controller,
-    required this.hitTestBehavior,
-    required this.gestureRecognizers,
-    this.clipBehavior = Clip.hardEdge,
-  })  : assert(controller != null),
-        assert(hitTestBehavior != null),
-        assert(gestureRecognizers != null),
-        super(key: key);
-
-  final TizenViewController controller;
-  final PlatformViewHitTestBehavior hitTestBehavior;
-  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers;
-  final Clip clipBehavior;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) => RenderTizenView(
-        viewController: controller,
-        hitTestBehavior: hitTestBehavior,
-        gestureRecognizers: gestureRecognizers,
-        clipBehavior: clipBehavior,
-      );
-
-  @override
-  void updateRenderObject(BuildContext context, RenderTizenView renderObject) {
-    renderObject.viewController = controller;
-    renderObject.hitTestBehavior = hitTestBehavior;
-    renderObject.updateGestureRecognizers(gestureRecognizers);
-  }
-}
-
-class _TizenWebViewState extends State<TizenView> {
-  int? _id;
-  late TizenViewController _controller;
-  TextDirection? _layoutDirection;
-  bool _initialized = false;
-  FocusNode? _focusNode;
-
-  static final Set<Factory<OneSequenceGestureRecognizer>> _emptyRecognizersSet =
-      <Factory<OneSequenceGestureRecognizer>>{};
-
-  @override
-  Widget build(BuildContext context) {
-    return Focus(
-      focusNode: _focusNode,
-      onFocusChange: _onFocusChange,
-      child: _TizenPlatformTextureView(
-          controller: _controller,
-          hitTestBehavior: widget.hitTestBehavior,
-          gestureRecognizers:
-              widget.gestureRecognizers ?? _emptyRecognizersSet),
-    );
-  }
-
-  void _initializeOnce() {
-    if (_initialized) {
-      return;
-    }
-    _initialized = true;
-    _createNewTizenWebView();
-    _focusNode = FocusNode(debugLabel: 'TizenWebView(id: $_id)');
-  }
-
-  @override
-  void didChangeDependencies() {
-    print('_TizenWebViewState::didChangeDependencies()');
-    super.didChangeDependencies();
-    final TextDirection newLayoutDirection = _findLayoutDirection();
-    final bool didChangeLayoutDirection =
-        _layoutDirection != newLayoutDirection;
-    _layoutDirection = newLayoutDirection;
-
-    _initializeOnce();
-    if (didChangeLayoutDirection) {
-      _controller.setLayoutDirection(_layoutDirection!);
-    }
-  }
-
-  @override
-  void didUpdateWidget(TizenView oldWidget) {
-    print('_TizenWebViewState::didUpdateWidget()');
-    super.didUpdateWidget(oldWidget);
-
-    final TextDirection newLayoutDirection = _findLayoutDirection();
-    final bool didChangeLayoutDirection =
-        _layoutDirection != newLayoutDirection;
-    _layoutDirection = newLayoutDirection;
-
-    if (widget.viewType != oldWidget.viewType) {
-      _controller.dispose();
-      _createNewTizenWebView();
-      return;
-    }
-
-    if (didChangeLayoutDirection) {
-      _controller.setLayoutDirection(_layoutDirection!);
-    }
-  }
-
-  TextDirection _findLayoutDirection() {
-    assert(
-        widget.layoutDirection != null || debugCheckHasDirectionality(context));
-    return widget.layoutDirection ?? Directionality.of(context);
-  }
-
-  @override
-  void dispose() {
-    print('_TizenWebViewState::dispose()');
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _createNewTizenWebView() {
-    _id = platformViewsRegistry.getNextPlatformViewId();
-    _controller = PlatformViewsServiceTizen.initTizenView(
-      id: _id!,
-      viewType: widget.viewType,
-      layoutDirection: _layoutDirection!,
-      creationParams: widget.creationParams,
-      creationParamsCodec: widget.creationParamsCodec,
-      onFocus: () {
-        print('_TizenWebViewState::_createNewTizenWebView() - onFocus()');
-        _focusNode!.requestFocus();
-      },
-    );
-    if (widget.onPlatformViewCreated != null) {
-      _controller
-          .addOnPlatformViewCreatedListener(widget.onPlatformViewCreated!);
-    }
-  }
-
-  void _onFocusChange(bool isFocused) {
-    print('_TizenWebViewState::_onFocusChange(isFocused:$isFocused)');
-    if (!_controller.isCreated) {
-      return;
-    }
-
-    if (!isFocused) {
-      _controller.clearFocus().catchError((dynamic e) {
-        if (e is MissingPluginException) {
-          return;
-        }
-      });
-      return;
-    }
-    SystemChannels.textInput
-        .invokeMethod<void>(
-      'TextInput.setPlatformViewClient',
-      _id,
-    )
-        .catchError((dynamic e) {
-      if (e is MissingPluginException) {
-        return;
-      }
-    });
-  }
-}
-
-class TizenWebView implements WebViewPlatform {
-  static void register() {
-    WebView.platform = TizenWebView();
-  }
-
-  @override
-  Widget build({
-    required BuildContext context,
-    required CreationParams creationParams,
-    WebViewPlatformCreatedCallback? onWebViewPlatformCreated,
-    Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers,
-    required WebViewPlatformCallbacksHandler webViewPlatformCallbacksHandler,
-  }) {
-    assert(webViewPlatformCallbacksHandler != null);
-    return GestureDetector(
-      onLongPress: () {},
-      excludeFromSemantics: true,
-      child: TizenView(
-        viewType: 'plugins.flutter.io/webview',
-        onPlatformViewCreated: (int id) {
-          if (onWebViewPlatformCreated == null) {
-            return;
-          }
-          onWebViewPlatformCreated(MethodChannelWebViewPlatform(
-              id, webViewPlatformCallbacksHandler));
-        },
-        gestureRecognizers: gestureRecognizers,
-        layoutDirection: TextDirection.rtl,
-        creationParams:
-            MethodChannelWebViewPlatform.creationParamsToMap(creationParams),
-        creationParamsCodec: const StandardMessageCodec(),
-      ),
-    );
-  }
-
-  @override
-  Future<bool> clearCookies() => MethodChannelWebViewPlatform.clearCookies();
-}
-
-bool _factoryTypesSetEquals<T>(Set<Factory<T>>? a, Set<Factory<T>>? b) {
-  if (a == b) {
-    return true;
-  }
-  if (a == null || b == null) {
-    return false;
-  }
-  return setEquals(_factoriesTypeSet(a), _factoriesTypeSet(b));
-}
-
-Set<Type> _factoriesTypeSet<T>(Set<Factory<T>> factories) {
-  return factories.map<Type>((Factory<T> factory) => factory.type).toSet();
-}
-
 /// The Mixin handling the pointer events and gestures of a platform view render box.
 mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
   /// How to behave during hit testing.
@@ -792,9 +822,7 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
   set hitTestBehavior(PlatformViewHitTestBehavior value) {
     if (value != _hitTestBehavior) {
       _hitTestBehavior = value;
-      if (owner != null) {
-        markNeedsPaint();
-      }
+      if (owner != null) markNeedsPaint();
     }
   }
 
@@ -802,8 +830,6 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
 
   _HandlePointerEvent? _handlePointerEvent;
 
-  /// {@macro  flutter.rendering.platformView.updateGestureRecognizers}
-  ///
   /// Any active gesture arena the `PlatformView` participates in is rejected when the
   /// set of gesture recognizers is changed.
   void _updateGestureRecognizersWithCallBack(
