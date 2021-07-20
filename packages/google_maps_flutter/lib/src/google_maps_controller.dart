@@ -43,8 +43,7 @@ class GoogleMapController {
         initMap +
         html.substring(pos + 8, html.length);
 
-    final WebViewController mapView = await controller;
-    mapView.loadUrl(Uri.dataFromString(html,
+    (await controller).loadUrl(Uri.dataFromString(html,
             mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
         .toString());
   }
@@ -329,15 +328,15 @@ class GoogleMapController {
   }
 
   Future<String> _setOptions(String options) async {
-    print('setOptions: $options');
-    final WebViewController mapView = await controller;
-    final String value = await _callMethod(mapView, 'setOptions', [options]);
-    return value;
+    return await _callMethod(await controller, 'setOptions', [options]);
+  }
+
+  Future<void> _setZoom(String options) async {
+    await _callMethod(await controller, 'setZoom', [options]);
   }
 
   // Attaches/detaches a Traffic Layer on the `map` if `attach` is true/false.
   Future<void> _setTrafficLayer(bool attach) async {
-    final WebViewController mapView = await controller;
     final String command = '''
       var trafficLayer;
       if ($attach == true && trafficLayer == null) {
@@ -351,11 +350,28 @@ class GoogleMapController {
         console.log('trafficLayer detached!!');
       }
     ''';
-    await mapView.evaluateJavascript(command);
+    await (await controller).evaluateJavascript(command);
+  }
+
+  Future<void> _setMoveCamera(String options) async {
+    await _callMethod(await controller, 'moveCamera', [options]);
+  }
+
+  Future<void> _setPanTo(String options) async {
+    await _callMethod(await controller, 'panTo', [options]);
+  }
+
+  Future<void> _setPanBy(String options) async {
+    await _callMethod(await controller, 'panBy', [options]);
+  }
+
+  Future<void> _setFitBounds(String options) async {
+    await _callMethod(await controller, 'fitBounds', [options]);
   }
 
   Future<String> _callMethod(
       WebViewController mapView, String method, List<Object?> args) async {
+    print('callMethod: $method($args)');
     final String command = 'JSON.stringify(map.$method.apply(map, $args))';
     final String result = await mapView.evaluateJavascript(command);
     return result;
@@ -385,8 +401,9 @@ class GoogleMapController {
     try {
       final dynamic latlng = json.decode(value);
       if (latlng is Map<String, dynamic>) {
-        assert(latlng['lat'] is double && latlng['lng'] is double);
-        return LatLng(latlng['lat'] as double, latlng['lng'] as double);
+        assert(latlng['lat'] is num && latlng['lng'] is num);
+        return LatLng(
+            (latlng['lat'] as num) + 0.0, (latlng['lng'] as num) + 0.0);
       }
     } catch (e) {
       print('Javascript Error: $e');
@@ -459,11 +476,102 @@ class GoogleMapController {
 
   /// Applies a `cameraUpdate` to the current viewport.
   Future<void> moveCamera(CameraUpdate cameraUpdate) async {
-    // TODO : implement for google_map_tizen if necessary
-    // assert(_googleMap != null, 'Cannot update the camera of a null map.');
-    // return _applyCameraUpdate(_googleMap!, cameraUpdate);
-
     assert(_widget != null, 'Cannot update the camera of a null map.');
+    _applyCameraUpdate(cameraUpdate);
+  }
+
+  // Translates a [CameraUpdate] into operations on a [Javascript].
+  Future<void> _applyCameraUpdate(CameraUpdate update) async {
+    final List<dynamic> json = update.toJson() as List<dynamic>;
+    switch (json[0]) {
+      case 'newCameraPosition':
+        _setMoveCamera(
+            '{heading: ${json[1]['bearing']}, zoom: ${json[1]['zoom']}, tilt: ${json[1]['tilt']}}');
+        _setPanTo(
+            '{lat:${json[1]['target'][0]}, lng: ${json[1]['target'][1]}}');
+        break;
+      case 'newLatLng':
+        _setPanTo('{lat:${json[1][0]}, lng:${json[1][1]}}');
+        break;
+      case 'newLatLngZoom':
+        _setMoveCamera('{zoom: ${json[2]}}');
+        _setPanTo('{lat:${json[1][0]}, lng: ${json[1][1]}}');
+        break;
+      case 'newLatLngBounds':
+        _setFitBounds(
+            '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}, ${json[2]}');
+        break;
+      case 'scrollBy':
+        _setPanBy('${json[1]}, ${json[2]}');
+        break;
+      case 'zoomBy':
+        String? focusLatLng;
+        double zoomDelta = 0.0;
+        if (json[1] != null) {
+          zoomDelta = (json[1] as num) + 0.0;
+        }
+        // Web only supports integer changes...
+        final int newZoomDelta =
+            zoomDelta < 0 ? zoomDelta.floor() : zoomDelta.ceil();
+        if (json.length == 3) {
+          // With focus
+          try {
+            focusLatLng = await _pixelToLatLng(
+                json[2][0] as double, json[2][1] as double);
+          } catch (e) {
+            print('Error computing focus LatLng. JS Error: ' + e.toString());
+          }
+        }
+        _setZoom('${(await getZoomLevel()) + newZoomDelta}');
+        if (focusLatLng != null) {
+          _setPanTo(focusLatLng);
+        }
+        break;
+      case 'zoomIn':
+        _setZoom('${(await getZoomLevel()) + 1}');
+        break;
+      case 'zoomOut':
+        _setZoom('${(await getZoomLevel()) - 1}');
+        break;
+      case 'zoomTo':
+        _setZoom('${json[1]}');
+        break;
+      default:
+        throw UnimplementedError('Unimplemented CameraMove: ${json[0]}.');
+    }
+  }
+
+  Future<String> _pixelToLatLng(double x, double y) async {
+    final String command = '''
+      function assert(condition, message) {
+        if (!condition) {
+          throw new Error(message || "Assertion failed");
+        }
+      }
+
+      function getPixelToLatLng() {
+        var bounds = map.getBounds();
+        var projection = map.getProjection();
+        var zoom = map.zoom;
+
+        assert(bounds != null, 'Map Bounds required to compute LatLng of screen x/y.');
+        assert(projection != null, 'Map Projection required to compute LatLng of screen x/y');
+        assert(zoom != null, 'Current map zoom level required to compute LatLng of screen x/y');
+
+        var ne = bounds.getNorthEast();
+        var sw = bounds.getSouthWest();
+        var topRight = projection.fromLatLngToPoint(ne);
+        var bottomLeft = projection.fromLatLngToPoint(sw);
+        var scale = 1 << parseInt(zoom); // 2 ^ zoom
+
+        var point = new google.maps.Point(topRight.x - ($x / scale), bottomLeft.y - ($y / scale));
+        return projection.fromPointToLatLng(point);
+      }
+
+      JSON.stringify(getPixelToLatLng());
+    ''';
+
+    return await (await controller).evaluateJavascript(command);
   }
 
   /// Returns the zoom level of the current viewport.
