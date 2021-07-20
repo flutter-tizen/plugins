@@ -22,7 +22,6 @@ String? _getCameraBounds(dynamic option) {
     return null;
   }
 
-  // ex: [[[-34.022631, 150.62068499999998], [-33.571835, 151.32595200000003]]]
   final List<Object> bound = option[0] as List<Object>;
   final LatLng? southwest = LatLng.fromJson(bound[0]);
   final LatLng? northeast = LatLng.fromJson(bound[1]);
