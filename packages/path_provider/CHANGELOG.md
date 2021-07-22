@@ -28,7 +28,6 @@
 ## 2.0.1
 
 * Update path_provider to 2.0.2
-* Update permission_handler to 8.1.3
-* Add missing permission_handler_tizen dependency
+* Remove permission_handler dependency
+* Comment out integration tests that depend on permission_handler
 * Migrate example test code to null safety
-* Updated integration test to request the correct permission
