@@ -2,10 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart=2.9
-
-import 'dart:async';
-
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider/path_provider.dart';
@@ -35,34 +31,35 @@ void main() {
       final Directory result = await getLibraryDirectory();
       _verifySampleFile(result, 'library');
     } else if (Platform.isAndroid) {
-      final Future<Directory> result = getLibraryDirectory();
+      final Future<Directory?> result = getLibraryDirectory();
       expect(result, throwsA(isInstanceOf<UnsupportedError>()));
     }
   });
 
   testWidgets('getExternalStorageDirectory', (WidgetTester tester) async {
     if (Platform.isIOS) {
-      final Future<Directory> result = getExternalStorageDirectory();
+      final Future<Directory?> result = getExternalStorageDirectory();
       expect(result, throwsA(isInstanceOf<UnsupportedError>()));
     } else if (Platform.isAndroid) {
-      final Directory result = await getExternalStorageDirectory();
+      final Directory? result = await getExternalStorageDirectory();
       _verifySampleFile(result, 'externalStorage');
     }
   });
 
   testWidgets('getExternalCacheDirectories', (WidgetTester tester) async {
     if (Platform.isIOS) {
-      final Future<List<Directory>> result = getExternalCacheDirectories();
+      final Future<List<Directory>?> result = getExternalCacheDirectories();
       expect(result, throwsA(isInstanceOf<UnsupportedError>()));
     } else if (Platform.isAndroid) {
-      final List<Directory> directories = await getExternalCacheDirectories();
-      for (final Directory result in directories) {
+      final List<Directory>? directories = await getExternalCacheDirectories();
+      expect(directories, isNotNull);
+      for (final Directory result in directories!) {
         _verifySampleFile(result, 'externalCache');
       }
     }
   });
 
-  final List<StorageDirectory> _allDirs = <StorageDirectory>[
+  final List<StorageDirectory?> _allDirs = <StorageDirectory?>[
     null,
     StorageDirectory.music,
     StorageDirectory.podcasts,
@@ -72,20 +69,31 @@ void main() {
     StorageDirectory.movies,
   ];
 
-  for (final StorageDirectory type in _allDirs) {
+  for (final StorageDirectory? type in _allDirs) {
     test('getExternalStorageDirectories (type: $type)', () async {
       if (Platform.isIOS) {
-        final Future<List<Directory>> result =
+        final Future<List<Directory>?> result =
             getExternalStorageDirectories(type: null);
         expect(result, throwsA(isInstanceOf<UnsupportedError>()));
-      } else {
-        // Remove when testing on TV.
-        if (!await Permission.accessMediaLocation.isGranted) {
-          await Permission.accessMediaLocation.request();
-        }
-        final List<Directory> directories =
+      } else if (Platform.isAndroid) {
+        final List<Directory>? directories =
             await getExternalStorageDirectories(type: type);
-        for (final Directory result in directories) {
+        expect(directories, isNotNull);
+        for (final Directory result in directories!) {
+          _verifySampleFile(result, '$type');
+        }
+      } else {
+        // Tizen platform
+
+        // Required to access media directories for non-TV targets.
+        if (!await Permission.mediaLibrary.isGranted) {
+          await Permission.mediaLibrary.request();
+        }
+
+        final List<Directory>? directories =
+            await getExternalStorageDirectories(type: type);
+        expect(directories, isNotNull);
+        for (final Directory result in directories!) {
           _verifySampleFile(result, '$type');
         }
       }
@@ -95,7 +103,11 @@ void main() {
 
 /// Verify a file called [name] in [directory] by recreating it with test
 /// contents when necessary.
-void _verifySampleFile(Directory directory, String name) {
+void _verifySampleFile(Directory? directory, String name) {
+  expect(directory, isNotNull);
+  if (directory == null) {
+    return;
+  }
   final File file = File('${directory.path}/$name');
 
   if (file.existsSync()) {
