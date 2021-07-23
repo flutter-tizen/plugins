@@ -18,8 +18,6 @@ analyzer:
     # Stream and not importing dart:async
     # Please see https://github.com/flutter/flutter/pull/24528 for details.
     sdk_version_async_exported_from_core: ignore
-  exclude:
-    - "**/example/**"
 
 linter:
   rules:
