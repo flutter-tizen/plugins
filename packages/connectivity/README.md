@@ -20,12 +20,6 @@ import 'package:connectivity/connectivity.dart';
 
 For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/connectivity/connectivity#usage.
 
-## Supported devices
-
-This plugin is supported on these types of devices:
-
-- Galaxy Watch (running Tizen 4.0 or later)
-
 ## Required privileges
 
 To get connectivity information using this plugin, add below lines under the `<manifest>` section in your `tizen-manifest.xml` file,
