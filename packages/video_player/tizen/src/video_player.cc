@@ -477,6 +477,9 @@ void VideoPlayer::onPlayCompleted(void *data) {
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onPlayCompleted] send completed event");
     player->event_sink_->Success(eventValue);
+
+    LOG_DEBUG("[VideoPlayer.onPlayCompleted] change player state to pause");
+    player->pause();
   }
 }
 
