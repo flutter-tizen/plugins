@@ -18,9 +18,3 @@ DeviceInfoPluginTizen deviceInfo = DeviceInfoPluginTizen();
 TizenDeviceInfo tizenInfo = await deviceInfo.tizenInfo;
 print('Running on ${tizenInfo.modelName}');  // e.g. "SM-R800"
 ```
-
-## Supported devices
-
-This plugin is supported on these types of devices:
-
-- Galaxy Watch (running Tizen 4.0 or later)
