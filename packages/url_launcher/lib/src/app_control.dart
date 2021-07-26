@@ -76,13 +76,19 @@ class AppControl {
   /// Corresponds to `app_control_set_operation()`.
   void setOperation(String operation) {
     assert(_handle != nullptr);
-    _throwOnError(_appControlSetOperation(_handle, operation.toNativeUtf8()));
+    final Pointer<Utf8> operationNative = operation.toNativeUtf8();
+    final int ret = _appControlSetOperation(_handle, operationNative);
+    malloc.free(operationNative);
+    _throwOnError(ret);
   }
 
   /// Corresponds to `app_control_set_uri()`.
   void setUri(String uri) {
     assert(_handle != nullptr);
-    _throwOnError(_appControlSetUri(_handle, uri.toNativeUtf8()));
+    final Pointer<Utf8> uriNative = uri.toNativeUtf8();
+    final int ret = _appControlSetUri(_handle, uriNative);
+    malloc.free(uriNative);
+    _throwOnError(ret);
   }
 
   /// Corresponds to `app_control_send_launch_request()`.
