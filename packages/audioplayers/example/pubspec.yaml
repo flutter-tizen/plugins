@@ -13,9 +13,19 @@ dependencies:
   path_provider_tizen: ^2.0.0
   provider: ^5.0.0
 
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
+  pedantic: ^1.10.0
+
 flutter:
   uses-material-design: true
-
   assets:
     - assets/audio.mp3
     - assets/audio2.mp3
