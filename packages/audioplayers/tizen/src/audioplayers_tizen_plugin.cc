@@ -227,7 +227,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
     StartPlayingListener start_playing_listener =
         [plugin = this](const std::string &player_id) {
-          plugin->StartPositionUpdates();
+          ecore_main_loop_thread_safe_call_async(StartPositionUpdates,
+                                                 (void *)plugin);
         };
 
     PlayCompletedListener play_completed_listener =
@@ -258,11 +259,12 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     return audio_players_[player_id].get();
   }
 
-  void StartPositionUpdates() {
-    if (!timer_) {
+  static void StartPositionUpdates(void *data) {
+    AudioplayersTizenPlugin *plugin = (AudioplayersTizenPlugin *)data;
+    if (!plugin->timer_) {
       LOG_DEBUG("add timer to update position of playing audio");
-      timer_ = ecore_timer_add(TIMEOUT, UpdatePosition, (void *)this);
-      if (timer_ == nullptr) {
+      plugin->timer_ = ecore_timer_add(TIMEOUT, UpdatePosition, data);
+      if (plugin->timer_ == nullptr) {
         LOG_ERROR("failed to add timer for UpdatePosition");
       }
     }
