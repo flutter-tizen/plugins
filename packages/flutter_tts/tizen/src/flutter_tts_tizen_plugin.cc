@@ -44,6 +44,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
             channel_->InvokeMethod("speak.onPause", std::move(value));
           } else if (current == TTS_STATE_READY) {
             if (previous == TTS_STATE_PLAYING || previous == TTS_STATE_PAUSED) {
+              // utterance ID is not zero during speaking and pausing.
               if (tts_->GetUttId()) {
                 channel_->InvokeMethod("speak.onCancel", std::move(value));
                 HandleAwaitSpeakCompletion(0);
@@ -96,7 +97,6 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       if (std::holds_alternative<std::string>(arguments)) {
         std::string text = std::get<std::string>(arguments);
         if (!tts_->AddText(text)) {
-          LOG_ERROR("Invalid Arguments!");
           result->Success(flutter::EncodableValue(0));
           return;
         }

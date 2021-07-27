@@ -5,8 +5,6 @@
 #ifndef FLUTTER_PLUGIN_TEXT_TO_SPEACH_H_
 #define FLUTTER_PLUGIN_TEXT_TO_SPEACH_H_
 
-#include <flutter/method_channel.h>
-#include <flutter/standard_method_codec.h>
 #include <tts.h>
 
 #include <functional>

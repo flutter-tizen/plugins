@@ -17,6 +17,7 @@ void OnStateChanged(tts_h tts, tts_state_e previous, tts_state_e current,
 void OnUtteranceCompleted(tts_h tts, int utt_id, void *user_data) {
   TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
   self->OnUtteranceCompleted(utt_id);
+  // Explicitly call stop method to change the tts state to ready.
   self->Stop();
 }
 
