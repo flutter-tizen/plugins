@@ -33,7 +33,6 @@ void TextToSpeech::Init() {
   if (ret != TTS_ERROR_NONE) {
     tts_ = nullptr;
     LOG_ERROR("[TTS] tts_create failed: %s", get_error_message(ret));
-    // TODO : throw error
   }
 }
 
@@ -57,12 +56,10 @@ void TextToSpeech::Prepare() {
   ret = tts_prepare(tts_);
   if (ret != TTS_ERROR_NONE) {
     LOG_ERROR("[TTS] tts_prepare failed: %s", get_error_message(ret));
-    // TODO : throw error
   }
 }
 
 void TextToSpeech::RegisterTtsCallback() {
-  // TODO : check return and throw error
   tts_set_state_changed_cb(tts_, ::OnStateChanged, (void *)this);
   tts_set_utterance_completed_cb(tts_, ::OnUtteranceCompleted, (void *)this);
   tts_set_error_cb(tts_, ::OnError, (void *)this);
@@ -107,7 +104,6 @@ tts_state_e TextToSpeech::GetState() {
   int ret = tts_get_state(tts_, &state);
   if (ret != TTS_ERROR_NONE) {
     LOG_ERROR("[TTS] tts_prepare failed: %s", get_error_message(ret));
-    // throw error
   }
   return state;
 }

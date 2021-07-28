@@ -19,6 +19,12 @@ using OnErrorCallback = std::function<void(int utt_id, tts_error_e reason)>;
 class TextToSpeech {
  public:
   TextToSpeech() {
+    // TODO : Handle initialization failure cases
+    // Rarely, initializing TextToSpeech can fail. IMO, in this case,
+    // we should throw an exception which means that the TextToSpeech instance
+    // creation failed. In addition, we should consider catching the exception
+    // and propagating it to the flutter side. however, I think this is optional
+    // because flutter side is not expecting any errors.
     Init();
     RegisterTtsCallback();
     Prepare();
