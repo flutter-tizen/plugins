@@ -24,3 +24,10 @@
 * Organize dev_dependencies
 * Migrate to ffi 1.0.0
 * Migrate to null safety
+
+## 2.0.1
+
+* Update path_provider to 2.0.2
+* Remove permission_handler dependency
+* Comment out integration tests that depend on permission_handler
+* Migrate example test code to null safety
