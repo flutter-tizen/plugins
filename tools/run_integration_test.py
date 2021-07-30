@@ -134,6 +134,22 @@ def run_integration_test(plugin_dir, timeout):
             errors.append(completed_process.stderr)
         return PluginResult.fail(errors)
 
+    # This prevents ci test failures when depending packages accidentally
+    # publishes breaking changes as minor or patch versions.
+    # (e.g. package_info_plus 1.0.4 breaks PackageInfo's public constructor.)
+    completed_process = subprocess.run('flutter-tizen pub downgrade',
+                                       shell=True,
+                                       cwd=example_dir,
+                                       stderr=subprocess.PIPE,
+                                       stdout=subprocess.PIPE)
+    if completed_process.returncode != 0:
+        if not completed_process.stderr:
+            errors.append('pub downgrade failed. Make sure the pubspec file \
+                    in your project is valid.')
+        else:
+            errors.append(completed_process.stderr)
+        return PluginResult.fail(errors)
+
     is_timed_out = False
     process = subprocess.Popen('flutter-tizen test integration_test',
                                shell=True,
@@ -168,6 +184,10 @@ clicking the UI button for permissions.""")
         return PluginResult.fail(errors)
     if last_line.strip() == 'No tests ran.':
         return PluginResult.fail(['No tests ran.'])
+    elif last_line.strip().startswith('No devices found'):
+        return PluginResult.fail([
+            'The runner cannot find any devices to run tests. Check if the hosted test server has connections to Tizen devices.'
+        ])
 
     match = re.search(_LOG_PATTERN, last_line.strip())
     if not match:
