@@ -4,4 +4,4 @@
 
 ## 1.0.1
 
-* Add integration_test
+* Add integration test
