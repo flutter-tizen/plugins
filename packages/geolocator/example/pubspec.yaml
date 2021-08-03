@@ -1,0 +1,32 @@
+name: geolocator_tizen_example
+description: Demonstrates how to use the geolocator_tizen plugin.
+publish_to: 'none'
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  baseflow_plugin_template:
+    git:
+      url: git://github.com/Baseflow/baseflow_plugin_template.git
+      ref: v2.1.0
+  flutter:
+    sdk: flutter
+  geolocator_tizen:
+    path: ../
+  cupertino_icons: ^1.0.1+1
+  url_launcher_tizen:
+    path: ../../url_launcher
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - res/images/baseflow_logo_def_light-02.png
+    - res/images/poweredByBaseflowLogoLight@3x.png
+    - packages/baseflow_plugin_template/logo.png
+    - packages/baseflow_plugin_template/poweredByBaseflow.png
