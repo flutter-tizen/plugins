@@ -26,51 +26,49 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
     final String key = pKey.toDartString();
     int ret;
 
-    final Pointer<Int8> pBool = malloc();
-    ret = bindings.getBoolean(pKey, pBool);
-    final bool boolValue = pBool.value == 1;
-    malloc.free(pBool);
-    if (ret == 0) {
-      _cachedPreferences![key] = boolValue;
-      return 1;
-    }
-
-    final Pointer<Double> pDouble = malloc();
-    ret = bindings.getDouble(pKey, pDouble);
-    final double doubleValue = pDouble.value;
-    malloc.free(pDouble);
-    if (ret == 0) {
-      _cachedPreferences![key] = doubleValue;
-      return 1;
-    }
-
-    final Pointer<Int32> pInt = malloc();
-    ret = bindings.getInt(pKey, pInt);
-    final int intValue = pInt.value;
-    malloc.free(pInt);
-    if (ret == 0) {
-      _cachedPreferences![key] = intValue;
-      return 1;
-    }
-
-    final Pointer<Pointer<Utf8>> ppString = malloc();
-    ret = bindings.getString(pKey, ppString);
-    final Pointer<Utf8> pString = ppString.value;
-    malloc.free(ppString);
-    if (ret == 0) {
-      // The value could be either String or StringList. For details, see
-      // setValue().
-      final String stringValue = pString.toDartString();
-      if (stringValue == _separator) {
-        _cachedPreferences![key] = <String>[];
-      } else if (stringValue.contains(_separator)) {
-        final List<String> list = stringValue.split(_separator);
-        _cachedPreferences![key] = list.getRange(1, list.length - 1);
-      } else {
-        _cachedPreferences![key] = stringValue;
+    using((Arena arena) {
+      // Try as boolean type
+      final Pointer<Int8> pBool = arena();
+      ret = bindings.getBoolean(pKey, pBool);
+      final bool boolValue = pBool.value == 1;
+      if (ret == 0) {
+        _cachedPreferences![key] = boolValue;
+        return;
       }
-      return 1;
-    }
+
+      final Pointer<Double> pDouble = arena();
+      ret = bindings.getDouble(pKey, pDouble);
+      final double doubleValue = pDouble.value;
+      if (ret == 0) {
+        _cachedPreferences![key] = doubleValue;
+        return;
+      }
+
+      final Pointer<Int32> pInt = arena();
+      ret = bindings.getInt(pKey, pInt);
+      final int intValue = pInt.value;
+      if (ret == 0) {
+        _cachedPreferences![key] = intValue;
+        return;
+      }
+
+      final Pointer<Pointer<Utf8>> ppString = arena();
+      ret = bindings.getString(pKey, ppString);
+      final Pointer<Utf8> pString = ppString.value;
+      if (ret == 0) {
+        final String stringValue = pString.toDartString();
+        if (stringValue == _separator) {
+          _cachedPreferences![key] = <String>[];
+        } else if (stringValue.contains(_separator)) {
+          final List<String> list = stringValue.split(_separator);
+          _cachedPreferences![key] = list.getRange(1, list.length - 1);
+        } else {
+          _cachedPreferences![key] = stringValue;
+        }
+        malloc.free(pString);
+        return;
+      }
+    });
 
     return 1;
   }
@@ -101,39 +99,56 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
 
   @override
   Future<bool> remove(String key) async {
-    _preferences.remove(key);
-
-    return bindings.remove(key.toNativeUtf8()) == 0;
+    return using((Arena arena) {
+      final bool ret = bindings.remove(key.toNativeUtf8(allocator: arena)) == 0;
+      if (ret) {
+        _preferences.remove(key);
+      }
+      return ret;
+    });
   }
 
   @override
   Future<bool> setValue(String valueType, String key, Object value) async {
     _preferences[key] = value;
 
-    final Pointer<Utf8> pKey = key.toNativeUtf8();
-    int ret;
-    if (valueType == 'Bool') {
-      ret = bindings.setBoolean(pKey, (value as bool) ? 1 : 0);
-    } else if (valueType == 'Double') {
-      ret = bindings.setDouble(pKey, value as double);
-    } else if (valueType == 'Int') {
-      ret = bindings.setInt(pKey, value as int);
-    } else if (valueType == 'String') {
-      ret = bindings.setString(pKey, (value as String).toNativeUtf8());
-    } else if (valueType == 'StringList') {
-      // Tizen Preference API doesn't support arrays.
-      final List<String> list = value as List<String>;
-      String joined;
-      if (list.isEmpty) {
-        joined = _separator;
-      } else {
-        joined = _separator + list.join(_separator) + _separator;
+    return using((Arena arena) {
+      int ret;
+      final Pointer<Utf8> pKey = key.toNativeUtf8(allocator: arena);
+      switch (valueType) {
+        case 'Bool':
+          ret = bindings.setBoolean(pKey, (value as bool) ? 1 : 0);
+          break;
+        case 'Double':
+          ret = bindings.setDouble(pKey, value as double);
+          break;
+        case 'Int':
+          ret = bindings.setInt(pKey, value as int);
+          break;
+        case 'String':
+          ret = bindings.setString(
+            pKey,
+            (value as String).toNativeUtf8(allocator: arena),
+          );
+          break;
+        case 'StringList':
+          ret = bindings.setString(
+            pKey,
+            _joinStringList(value as List<String>)
+                .toNativeUtf8(allocator: arena),
+          );
+          break;
+        default:
+          print('Not implemented : valueType[' + valueType + ']');
+          ret = -1;
       }
-      ret = bindings.setString(pKey, joined.toNativeUtf8());
-    } else {
-      print('Not implemented : valueType[' + valueType + ']');
-      ret = -1;
-    }
-    return ret == 0;
+      return ret == 0;
+    });
+  }
+
+  String _joinStringList(List<String> list) {
+    return list.isEmpty
+        ? _separator
+        : _separator + list.join(_separator) + _separator;
   }
 }
