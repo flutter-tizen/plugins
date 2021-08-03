@@ -24,7 +24,6 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
 
   static int _preferenceItemCallback(Pointer<Utf8> pKey, Pointer<Void> data) {
     final String key = pKey.toDartString();
-    int ret;
 
     using((Arena arena) {
       final Pointer<Int8> pBool = arena();
