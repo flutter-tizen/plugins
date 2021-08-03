@@ -1,6 +1,6 @@
-# geolocator_android_example
+# geolocator_tizen_example
 
-Demonstrates how to use the geolocator_android plugin.
+Demonstrates how to use the geolocator_tizen plugin.
 
 ## Getting Started
 
