@@ -27,35 +27,27 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
     int ret;
 
     using((Arena arena) {
-      // Try as boolean type
       final Pointer<Int8> pBool = arena();
-      ret = bindings.getBoolean(pKey, pBool);
-      final bool boolValue = pBool.value == 1;
-      if (ret == 0) {
-        _cachedPreferences![key] = boolValue;
+      if (bindings.getBoolean(pKey, pBool) == 0) {
+        _cachedPreferences![key] = pBool.value == 1;
         return;
       }
 
       final Pointer<Double> pDouble = arena();
-      ret = bindings.getDouble(pKey, pDouble);
-      final double doubleValue = pDouble.value;
-      if (ret == 0) {
-        _cachedPreferences![key] = doubleValue;
+      if (bindings.getDouble(pKey, pDouble) == 0) {
+        _cachedPreferences![key] = pDouble.value;
         return;
       }
 
       final Pointer<Int32> pInt = arena();
-      ret = bindings.getInt(pKey, pInt);
-      final int intValue = pInt.value;
-      if (ret == 0) {
-        _cachedPreferences![key] = intValue;
+      if (bindings.getInt(pKey, pInt) == 0) {
+        _cachedPreferences![key] = pInt.value;
         return;
       }
 
       final Pointer<Pointer<Utf8>> ppString = arena();
-      ret = bindings.getString(pKey, ppString);
-      final Pointer<Utf8> pString = ppString.value;
-      if (ret == 0) {
+      if (bindings.getString(pKey, ppString) == 0) {
+        final Pointer<Utf8> pString = ppString.value;
         final String stringValue = pString.toDartString();
         if (stringValue == _separator) {
           _cachedPreferences![key] = <String>[];
