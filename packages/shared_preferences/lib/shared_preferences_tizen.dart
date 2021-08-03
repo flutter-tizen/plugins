@@ -102,40 +102,36 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
 
   @override
   Future<bool> setValue(String valueType, String key, Object value) async {
-    _preferences[key] = value;
-
-    return using((Arena arena) {
-      int ret;
+    final int ret = using((Arena arena) {
       final Pointer<Utf8> pKey = key.toNativeUtf8(allocator: arena);
       switch (valueType) {
         case 'Bool':
-          ret = bindings.setBoolean(pKey, (value as bool) ? 1 : 0);
-          break;
+          return bindings.setBoolean(pKey, (value as bool) ? 1 : 0);
         case 'Double':
-          ret = bindings.setDouble(pKey, value as double);
-          break;
+          return bindings.setDouble(pKey, value as double);
         case 'Int':
-          ret = bindings.setInt(pKey, value as int);
-          break;
+          return bindings.setInt(pKey, value as int);
         case 'String':
-          ret = bindings.setString(
+          return bindings.setString(
             pKey,
             (value as String).toNativeUtf8(allocator: arena),
           );
-          break;
         case 'StringList':
-          ret = bindings.setString(
+          return bindings.setString(
             pKey,
             _joinStringList(value as List<String>)
                 .toNativeUtf8(allocator: arena),
           );
-          break;
         default:
           print('Not implemented : valueType[' + valueType + ']');
-          ret = -1;
+          return -1;
       }
-      return ret == 0;
     });
+    if (ret == 0) {
+      _preferences[key] = value;
+      return true;
+    }
+    return false;
   }
 
   String _joinStringList(List<String> list) {
