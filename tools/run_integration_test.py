@@ -28,7 +28,7 @@ _TERM_EMPTY = '\033[0m'
 _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 
 
-class PluginResult:
+class TestResult:
     """A class that specifies the result of a plugin integration test.
 
     Attributes:
@@ -51,7 +51,7 @@ class PluginResult:
 
 def parse_args(args):
     parser = argparse.ArgumentParser(
-        description='A script to run multiple tizen plugin driver tests.')
+        description='A script to run multiple Tizen plugin driver tests.')
 
     parser.add_argument(
         '--plugins',
@@ -67,7 +67,7 @@ def parse_args(args):
                         default=[],
                         help='Exclude plugins from test.')
     parser.add_argument(
-        '--run-on-changed-plugins',
+        '--run-on-changed-packages',
         default=False,
         action='store_true',
         help='Run the test on changed plugins. If --plugins is specified, \
@@ -99,11 +99,11 @@ def run_integration_test(plugin_dir, timeout):
         timeout (int): Time limit in seconds before cancelling the test.
 
     Returns:
-        PluginResult: The result of the plugin integration test.
+        TestResult: The result of the plugin integration test.
     """
     example_dir = os.path.join(plugin_dir, 'example')
     if not os.path.isdir(example_dir):
-        return PluginResult.fail([
+        return TestResult.fail([
             'Missing example directory (use --exclude if this is intentional).'
         ])
 
@@ -111,12 +111,12 @@ def run_integration_test(plugin_dir, timeout):
     if not os.path.isfile(f'{pubspec_path}.yaml') and not os.path.isfile(
             f'{pubspec_path}.yml'):
         # TODO: Support multiple example packages.
-        return PluginResult.fail(['Missing pubspec file in example directory'])
+        return TestResult.fail(['Missing pubspec file in example directory'])
 
     integration_test_dir = os.path.join(example_dir, 'integration_test')
     if not os.path.isdir(integration_test_dir) or not os.listdir(
             integration_test_dir):
-        return PluginResult.fail([
+        return TestResult.fail([
             'Missing integration tests (use --exclude if this is intentional).'
         ])
 
@@ -132,23 +132,7 @@ def run_integration_test(plugin_dir, timeout):
                     in your project is valid.')
         else:
             errors.append(completed_process.stderr)
-        return PluginResult.fail(errors)
-
-    # This prevents ci test failures when depending packages accidentally
-    # publishes breaking changes as minor or patch versions.
-    # (e.g. package_info_plus 1.0.4 breaks PackageInfo's public constructor.)
-    completed_process = subprocess.run('flutter-tizen pub downgrade',
-                                       shell=True,
-                                       cwd=example_dir,
-                                       stderr=subprocess.PIPE,
-                                       stdout=subprocess.PIPE)
-    if completed_process.returncode != 0:
-        if not completed_process.stderr:
-            errors.append('pub downgrade failed. Make sure the pubspec file \
-                    in your project is valid.')
-        else:
-            errors.append(completed_process.stderr)
-        return PluginResult.fail(errors)
+        return TestResult.fail(errors)
 
     is_timed_out = False
     process = subprocess.Popen('flutter-tizen test integration_test',
@@ -181,17 +165,17 @@ def run_integration_test(plugin_dir, timeout):
 If you expect the test to finish before timeout, check if the tests 
 require device screen to be awake or if they require manually 
 clicking the UI button for permissions.""")
-        return PluginResult.fail(errors)
+        return TestResult.fail(errors)
     if last_line.strip() == 'No tests ran.':
-        return PluginResult.fail(['No tests ran.'])
+        return TestResult.fail(['No tests ran.'])
     elif last_line.strip().startswith('No devices found'):
-        return PluginResult.fail([
+        return TestResult.fail([
             'The runner cannot find any devices to run tests. Check if the hosted test server has connections to Tizen devices.'
         ])
 
     match = re.search(_LOG_PATTERN, last_line.strip())
     if not match:
-        return PluginResult.fail(['Log message is not formatted correctly.'])
+        return TestResult.fail(['Log message is not formatted correctly.'])
 
     # In some cases, the command returns 0 for failed cases, so we check again
     # with the last log message.
@@ -205,9 +189,9 @@ clicking the UI button for permissions.""")
         exit_code = 1
 
     if exit_code == 0:
-        return PluginResult.success()
+        return TestResult.success()
     else:
-        return PluginResult.fail(errors)
+        return TestResult.fail(errors)
 
 
 def main(argv):
@@ -221,7 +205,7 @@ def main(argv):
             print(f'{plugin} package does not exist, ignoring input...')
 
     plugin_names = []
-    if len(args.plugins) == 0 and args.run_on_changed_plugins:
+    if len(args.plugins) == 0 and args.run_on_changed_packages:
         base_sha = args.base_sha
         if base_sha == '':
             base_sha = subprocess.run(
