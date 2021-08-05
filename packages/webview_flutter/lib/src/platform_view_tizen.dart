@@ -10,7 +10,7 @@
 // Imported from above files, the content has been minimally modified.
 // (e.g. Rename keyword 'Android' -> 'Tizen' )
 
-part of 'webview_flutter_tizen.dart';
+part of '../webview_flutter_tizen.dart';
 
 class TizenView extends StatefulWidget {
   const TizenView({

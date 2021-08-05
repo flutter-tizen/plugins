@@ -7,7 +7,7 @@
 // packages/flutter/lib/src/rendering/platform_view.dart
 // Imported from above file, the content has not been modified.
 
-part of 'webview_flutter_tizen.dart';
+part of '../webview_flutter_tizen.dart';
 
 enum _PlatformViewState {
   uninitialized,
