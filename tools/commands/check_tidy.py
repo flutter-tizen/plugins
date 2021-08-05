@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright 2015-present Samsung Electronics Co., Ltd.
 #
@@ -23,8 +23,9 @@ import sys
 from argparse import ArgumentParser
 from difflib import unified_diff
 from os.path import abspath, dirname, join, relpath, splitext
+import commands.command_utils as command_utils
 
-DEFAULT_DIR = dirname(dirname(abspath(__file__)))
+DEFAULT_DIR = command_utils.get_package_dir()
 
 TERM_RED = '\033[1;31m'
 TERM_GREEN = '\033[1;32m'
@@ -50,7 +51,7 @@ def is_checked_by_clang(file):
     return ext in clang_format_exts and file not in skip_files
 
 
-def check_tidy(src_dir, update, clang_format, stats):
+def _run_check_tidy(src_dir, update, clang_format, stats):
     print('processing directory: %s' % src_dir)
 
     for dirpath, _, filenames in os.walk(src_dir):
@@ -64,7 +65,7 @@ def check_tidy(src_dir, update, clang_format, stats):
 
             with open(file, 'r') as f:
                 original = f.readlines()
-            formatted = subprocess.check_output([clang_format, '-style=file', file])
+            formatted = subprocess.check_output([clang_format, '-style=file', file]).decode('utf-8')
 
             if update:
                 with open(file, 'w') as f:
@@ -95,7 +96,7 @@ def check_tidy(src_dir, update, clang_format, stats):
                     print(diffline, end='')
 
 
-def main():
+def run_check_tidy(argv):
     parser = ArgumentParser(description='Plugins Source Format Checker and Updater')
     parser.add_argument('--clang-format', metavar='PATH', default='clang-format-11',
                         help='path to clang-format (default: %(default)s)')
@@ -103,11 +104,11 @@ def main():
                         help='reformat files')
     parser.add_argument('--dir', metavar='PATH', default=DEFAULT_DIR,
                         help='directory to process (default: %(default)s)')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     stats = Stats()
 
-    check_tidy(args.dir, args.update, args.clang_format, stats)
+    _run_check_tidy(args.dir, args.update, args.clang_format, stats)
 
     print()
     print('* Total number of files: %d' % stats.files)
@@ -119,10 +120,10 @@ def main():
 
     if args.update:
         print()
-        print('All files reformatted, check for changes with `git diff`.');
+        print('All files reformatted, check for changes with `git diff`.')
 
     sys.exit(1 if stats.errors else 0)
 
 
 if __name__ == '__main__':
-    main()
+    run_check_tidy(sys.argv)
