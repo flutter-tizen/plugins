@@ -9,22 +9,6 @@
 
 part of 'webview_flutter_tizen.dart';
 
-/// How an embedded platform view behave during hit tests.
-enum PlatformViewHitTestBehavior {
-  /// Opaque targets can be hit by hit tests, causing them to both receive
-  /// events within their bounds and prevent targets visually behind them from
-  /// also receiving events.
-  opaque,
-
-  /// Translucent targets both receive events within their bounds and permit
-  /// targets visually behind them to also receive events.
-  translucent,
-
-  /// Transparent targets don't receive events within their bounds and permit
-  /// targets visually behind them to receive events.
-  transparent,
-}
-
 enum _PlatformViewState {
   uninitialized,
   resizing,
