@@ -39,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
     packageName: 'Unknown',
     version: 'Unknown',
     buildNumber: 'Unknown',
+    buildSignature: 'Unknown',
   );
 
   @override
