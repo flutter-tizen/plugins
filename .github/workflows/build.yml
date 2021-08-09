@@ -8,12 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
+          fetch-depth: 2
       - name: Find changed packages
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
-          CHANGED_PACKAGES=$(python3 tools/run_command.py plugins --run-on-changed-packages 2>&1)
+          git fetch origin master
+          CHANGED_PACKAGES=$(python3 tools/run_command.py plugins --run-on-changed-packages --base-sha $(git rev-parse HEAD^) 2>&1)
           echo $CHANGED_PACKAGES
           if [[ ${#CHANGED_PACKAGES[@]} -ne 0 ]]; then
               echo "CHANGED_PACKAGES=${CHANGED_PACKAGES[@]}" >> "$GITHUB_ENV"
@@ -68,4 +67,4 @@ jobs:
         run: |
           ROOT_DIR=`pwd`
           export PATH=$PATH:`pwd`/flutter-tizen/bin
-          tools/run_command.py build --run-on-changed-packages
+          tools/run_command.py build --run-on-changed-packages --base-sha $(git rev-parse HEAD^)
