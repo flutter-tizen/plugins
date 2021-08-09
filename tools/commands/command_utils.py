@@ -6,7 +6,8 @@ import os
 from time import sleep, time
 
 
-def get_options_parser(plugins=False, exclude=False, run_on_changed_packages=False, base_sha=False, timeout=False):
+def get_options_parser(
+        plugins=False, exclude=False, run_on_changed_packages=False, base_sha=False, timeout=False, command=''):
     parser = argparse.ArgumentParser()
 
     if plugins:
@@ -15,24 +16,24 @@ def get_options_parser(plugins=False, exclude=False, run_on_changed_packages=Fal
             type=str,
             nargs='*',
             default=[],
-            help='Specifies which plugins to test. If it is not specified and \
-            --run-on-changed-packages is also not specified, \
-                then it will include every plugin under packages.')
+            help=f'Specifies which plugins to { command }. \
+            If it is not specified and --run-on-changed-packages is also not specified, \
+            then it will include every plugin under packages. \
+            If both flags are specified, then --run-on-changed-packages is ignored.')
 
     if exclude:
         parser.add_argument('--exclude',
                             type=str,
                             nargs='*',
                             default=[],
-                            help='Exclude plugins from test.')
+                            help=f'Exclude plugins from { command }.')
 
     if run_on_changed_packages:
         parser.add_argument(
             '--run-on-changed-packages',
             default=False,
             action='store_true',
-            help='Run the test on changed plugins. If --plugins is specified, \
-            this flag is ignored.')
+            help=f'Run the { command } on changed plugins.')
 
     if base_sha:
         parser.add_argument(
@@ -48,7 +49,7 @@ def get_options_parser(plugins=False, exclude=False, run_on_changed_packages=Fal
             '--timeout',
             type=int,
             default=120,
-            help='Timeout limit of each integration test in seconds. \
+            help=f'Timeout limit of each { command } in seconds. \
             Default is 120 seconds.')
 
     return parser

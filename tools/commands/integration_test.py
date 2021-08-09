@@ -21,7 +21,6 @@ import re
 import subprocess
 import sys
 import time
-from typing import Tuple
 
 import commands.command_utils as command_utils
 
@@ -56,7 +55,7 @@ class TestResult:
 
 def parse_args(args):
     parser = command_utils.get_options_parser(
-        plugins=True, exclude=True, run_on_changed_packages=True, base_sha=True, timeout=True)
+        plugins=True, exclude=True, run_on_changed_packages=True, base_sha=True, timeout=True, command='test')
 
     return parser.parse_args(args)
 

@@ -18,7 +18,7 @@ jobs:
               echo "CHANGED_PACKAGES=${CHANGED_PACKAGES[@]}" >> "$GITHUB_ENV"
           fi
       - name: Install prerequisite packages
-        if: env.CHANGED_PACKAGES != '[]'
+        if: env.CHANGED_PACKAGES != ''
         run: |
           sudo apt-get update
           sudo apt install -y \
@@ -43,7 +43,7 @@ jobs:
           libxcb-xfixes0 \
           libxi6
       - name: Install Tizen Studio
-        if: env.CHANGED_PACKAGES != '[]'
+        if: env.CHANGED_PACKAGES != ''
         run: |
           sudo apt install -y pciutils zip libncurses5 python libpython2.7
           curl http://download.tizen.org/sdk/Installer/tizen-studio_4.1/web-cli_Tizen_Studio_4.1_ubuntu-64.bin -o install.bin
@@ -51,7 +51,7 @@ jobs:
           ./install.bin --accept-license $HOME/tizen-studio
           rm install.bin
       - name: Install Tizen Studio packages
-        if: env.CHANGED_PACKAGES != '[]'
+        if: env.CHANGED_PACKAGES != ''
         run: |
           $HOME/tizen-studio/package-manager/package-manager-cli.bin install \
           NativeCLI \
@@ -59,11 +59,11 @@ jobs:
           WEARABLE-4.0-NativeAppDevelopment \
           WEARABLE-5.5-NativeAppDevelopment
       - name: Install flutter-tizen
-        if: env.CHANGED_PACKAGES != '[]'
+        if: env.CHANGED_PACKAGES != ''
         run: |
           git clone https://github.com/flutter-tizen/flutter-tizen.git
       - name: Build examples of changed packages
-        if: env.CHANGED_PACKAGES != '[]'
+        if: env.CHANGED_PACKAGES != ''
         run: |
           ROOT_DIR=`pwd`
           export PATH=$PATH:`pwd`/flutter-tizen/bin
