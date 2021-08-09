@@ -97,7 +97,8 @@ def _run_check_tidy(src_dir, update, clang_format, stats):
 
 
 def run_check_tidy(argv):
-    parser = ArgumentParser(description='Plugins Source Format Checker and Updater')
+    parser = ArgumentParser(description='Plugins Source Format Checker and Updater',
+                            usage='run_command.py tidy [-h] [--clang-format PATH] [--update] [--dir PATH]')
     parser.add_argument('--clang-format', metavar='PATH', default='clang-format-11',
                         help='path to clang-format (default: %(default)s)')
     parser.add_argument('--update', action='store_true',

@@ -29,13 +29,21 @@ def run_print_plugins(arv):
 
 
 commands = {}
-commands["tidy"] = run_check_tidy
-commands["test"] = run_integration_test
-commands["build"] = run_build_examples
-commands["plugins"] = run_print_plugins
+commands["tidy"] = {"func": run_check_tidy, "info": "Check and Updat format for C++ files"}
+commands["test"] = {"func": run_integration_test, "info": "Run integration test"}
+commands["build"] = {"func": run_build_examples, "info": "Build examples of plugin"}
+commands["plugins"] = {"func": run_print_plugins, "info": "Print plugins list"}
+
+
+def print_usage():
+    print("usage: run_command.py [command] ")
+    print("command lists:")
+    for k, v in commands.items():
+        print(f'    { k } : { v["info"] }')
+
 
 if __name__ == "__main__":
     try:
-        commands[sys.argv[1]](sys.argv[2:])
+        commands[sys.argv[1]]["func"](sys.argv[2:])
     except Exception as e:
-        print(e)
+        print_usage()

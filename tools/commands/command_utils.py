@@ -8,7 +8,7 @@ from time import sleep, time
 
 def get_options_parser(
         plugins=False, exclude=False, run_on_changed_packages=False, base_sha=False, timeout=False, command=''):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(usage=f'{ command } [optional arguments]')
 
     if plugins:
         parser.add_argument(
