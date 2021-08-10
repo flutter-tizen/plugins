@@ -8,7 +8,7 @@ from time import sleep, time
 
 def get_options_parser(
         plugins=False, exclude=False, run_on_changed_packages=False, base_sha=False, timeout=False, command=''):
-    parser = argparse.ArgumentParser(usage=f'{ command } [optional arguments]')
+    parser = argparse.ArgumentParser(usage=f'{command} [optional arguments]')
 
     if plugins:
         parser.add_argument(
@@ -16,7 +16,7 @@ def get_options_parser(
             type=str,
             nargs='*',
             default=[],
-            help=f'Specifies which plugins to { command }. \
+            help=f'Specifies which plugins to {command}. \
             If it is not specified and --run-on-changed-packages is also not specified, \
             then it will include every plugin under packages. \
             If both flags are specified, then --run-on-changed-packages is ignored.')
@@ -26,14 +26,14 @@ def get_options_parser(
                             type=str,
                             nargs='*',
                             default=[],
-                            help=f'Exclude plugins from { command }.')
+                            help=f'Exclude plugins from {command}.')
 
     if run_on_changed_packages:
         parser.add_argument(
             '--run-on-changed-packages',
             default=False,
             action='store_true',
-            help=f'Run the { command } on changed plugins.')
+            help=f'Run the {command} on changed plugins.')
 
     if base_sha:
         parser.add_argument(
@@ -49,7 +49,7 @@ def get_options_parser(
             '--timeout',
             type=int,
             default=120,
-            help=f'Timeout limit of each { command } in seconds. \
+            help=f'Timeout limit of each {command} in seconds. \
             Default is 120 seconds.')
 
     return parser
