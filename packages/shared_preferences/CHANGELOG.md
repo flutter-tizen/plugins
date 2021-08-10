@@ -18,3 +18,7 @@
 * Migrate to ffi 1.0.0
 * Migrate to null safety
 * Remove unused `PreferenceIsExisiting` from the implementation
+
+## 2.0.1
+
+* Fix memory leaks
