@@ -6,7 +6,7 @@ type = sharedLib
 profile = common-4.0
 
 # Source files
-USER_SRCS += src/geolocator_tizen_plugin.cc
+USER_SRCS += src/*.cc
 
 # User defines
 USER_DEFS =
