@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """A script that helps running integration tests for multiple Tizen plugins.
 
 To run integrations tests for all plugins under packages/, 
@@ -13,12 +14,15 @@ tools/run_integration_test.py --exclude a b c # runs d, e
 - exclude has precedence:
 tools/run_integration_test.py --plugins a b c --exclude b # runs a c
 """
+
 import argparse
+import os
+import re
 import subprocess
 import sys
-import os
 import time
-import re
+
+import commands.command_utils as command_utils
 
 _TERM_RED = '\033[1;31m'
 _TERM_GREEN = '\033[1;32m'
@@ -50,46 +54,13 @@ class TestResult:
 
 
 def parse_args(args):
-    parser = argparse.ArgumentParser(
-        description='A script to run multiple Tizen plugin driver tests.')
-
-    parser.add_argument(
-        '--plugins',
-        type=str,
-        nargs='*',
-        default=[],
-        help='Specifies which plugins to test. If it is not specified and \
-            --run-on-changed-packages is also not specified, \
-                then it will include every plugin under packages.')
-    parser.add_argument('--exclude',
-                        type=str,
-                        nargs='*',
-                        default=[],
-                        help='Exclude plugins from test.')
-    parser.add_argument(
-        '--run-on-changed-packages',
-        default=False,
-        action='store_true',
-        help='Run the test on changed plugins. If --plugins is specified, \
-            this flag is ignored.')
-    parser.add_argument(
-        '--base-sha',
-        type=str,
-        default='',
-        help='The base sha used to determine git diff. This is useful when \
-            --run-on-changed-packages is specified. If not specified, \
-                merge-base is used as base sha.')
-    parser.add_argument(
-        '--timeout',
-        type=int,
-        default=120,
-        help='Timeout limit of each integration test in seconds. \
-            Default is 120 seconds.')
+    parser = command_utils.get_options_parser(
+        plugins=True, exclude=True, run_on_changed_packages=True, base_sha=True, timeout=True, command='test')
 
     return parser.parse_args(args)
 
 
-def run_integration_test(plugin_dir, timeout):
+def _integration_test(plugin_dir, timeout):
     """Runs integration test in the example package for plugin_dir
 
     Currently the tools assumes that there's only one example package per plugin.
@@ -194,66 +165,12 @@ clicking the UI button for permissions.""")
         return TestResult.fail(errors)
 
 
-def main(argv):
-    args = parse_args(argv[1:])
-
-    packages_dir = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../packages'))
-    existing_plugins = os.listdir(packages_dir)
-    for plugin in args.plugins:
-        if plugin not in existing_plugins:
-            print(f'{plugin} package does not exist, ignoring input...')
-
-    plugin_names = []
-    if len(args.plugins) == 0 and args.run_on_changed_packages:
-        base_sha = args.base_sha
-        if base_sha == '':
-            base_sha = subprocess.run(
-                'git merge-base --fork-point FETCH_HEAD HEAD',
-                shell=True,
-                cwd=packages_dir,
-                encoding='utf-8',
-                stdout=subprocess.PIPE).stdout.strip()
-            if base_sha == '':
-                base_sha = subprocess.run(
-                    'git merge-base FETCH_HEAD HEAD',
-                    shell=True,
-                    cwd=packages_dir,
-                    encoding='utf-8',
-                    stdout=subprocess.PIPE).stdout.strip()
-
-        changed_files = subprocess.run(
-            f'git diff {base_sha} HEAD',
-            shell=True,
-            cwd=packages_dir,
-            encoding='utf-8',
-            stdout=subprocess.PIPE).stdout.strip().splitlines()
-
-        changed_plugins = []
-        for changed_file in changed_files:
-            relpath = os.path.relpath(changed_file, start=packages_dir)
-            path_segments = relpath.split('/')
-            if 'packages' not in path_segments:
-                continue
-            index = path_segments.index('packages')
-            if index < len(path_segments):
-                changed_plugins.append(path_segments[index + 1])
-        plugin_names = list(set(changed_plugins))
-    else:
-        for plugin_name in existing_plugins:
-            if not os.path.isdir(os.path.join(packages_dir, plugin_name)):
-                continue
-            if len(args.plugins) > 0 and plugin_name not in args.plugins:
-                continue
-            plugin_names.append(plugin_name)
-
-    excluded_plugins = []
-    testing_plugins = []
-    for plugin_name in plugin_names:
-        if plugin_name in args.exclude:
-            excluded_plugins.append(plugin_name)
-        else:
-            testing_plugins.append(plugin_name)
+def run_integration_test(argv):
+    args = parse_args(argv)
+    packages_dir = command_utils.get_package_dir()
+    testing_plugins, excluded_plugins = command_utils.get_target_plugins(
+        packages_dir, plugins=args.plugins, exclude=args.exclude, run_on_changed_packages=args.run_on_changed_packages,
+        base_sha=args.base_sha)
 
     test_num = 0
     total_plugin_num = len(testing_plugins)
@@ -263,7 +180,7 @@ def main(argv):
         print(
             f'============= Testing for {testing_plugin} ({test_num}/{total_plugin_num}) ============='
         )
-        results[testing_plugin] = run_integration_test(
+        results[testing_plugin] = _integration_test(
             os.path.join(packages_dir, testing_plugin), args.timeout)
 
     print(f'============= TEST RESULT =============')
@@ -296,4 +213,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    run_integration_test(sys.argv)
