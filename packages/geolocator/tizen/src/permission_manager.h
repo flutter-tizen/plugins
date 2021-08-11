@@ -5,6 +5,9 @@
 #ifndef PERMISSION_MANAGER_H_
 #define PERMISSION_MANAGER_H_
 
+#include <functional>
+#include <string>
+
 #include "tizen_result.h"
 
 // Keep in sync with the enum values implemented in:
@@ -17,12 +20,17 @@ enum class PermissionStatus {
   kAlways = 3,
 };
 
+using OnSuccess = std::function<void(PermissionStatus)>;
+using OnFailure = std::function<void(TizenResult)>;
 class PermissionManager {
  public:
   PermissionManager();
   ~PermissionManager();
 
   TizenResult CheckPermissionStatus(PermissionStatus *permission_status);
+
+  void RequestPermssion(const OnSuccess &on_success,
+                        const OnFailure &on_failure);
 };
 
 #endif  // PERMISSION_MANAGER_H_
