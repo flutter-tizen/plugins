@@ -10,4 +10,8 @@
         <infolink>T-INFOLINK2021-1000</infolink>
     </tv-info>
     <feature name="http://tizen.org/feature/screen.size.all"/>
+    <privileges>
+        <privilege>http://tizen.org/privilege/location</privilege>
+        <privilege>http://tizen.org/privilege/location.coarse</privilege>
+    </privileges>
 </manifest>
