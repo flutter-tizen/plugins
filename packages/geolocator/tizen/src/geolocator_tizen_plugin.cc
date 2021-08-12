@@ -54,6 +54,8 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       onCheckPermission(std::move(result));
     } else if (method_name == "isLocationServiceEnabled") {
       onIsLocationServiceEnabled(std::move(result));
+    } else if (method_name == "requestPermission") {
+      onRequestPermission(std::move(result));
     } else {
       result->NotImplemented();
     }
@@ -83,6 +85,22 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       result->Error("Failed to check service enabled", ret.message());
     }
     result->Success(flutter::EncodableValue(is_enabled));
+  }
+
+  void onRequestPermission(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    auto result_ptr = result.release();
+    permission_manager_->RequestPermssion(
+        [result_ptr](PermissionStatus permission_status) {
+          result_ptr->Success(
+              flutter::EncodableValue(static_cast<int>(permission_status)));
+          delete result_ptr;
+        },
+        [result_ptr](TizenResult tizen_result) {
+          result_ptr->Error("Failed to request permssion",
+                            tizen_result.message());
+          delete result_ptr;
+        });
   }
 
   std::unique_ptr<PermissionManager> permission_manager_;
