@@ -27,7 +27,7 @@ LatLng _convertToLatLng(String value) {
 }
 
 class GMarkerOptions {
-  factory GMarkerOptions() => create();
+  GMarkerOptions();
   Point? anchorPoint;
   Animation? animation;
   bool? clickable;
@@ -36,7 +36,6 @@ class GMarkerOptions {
   bool? draggable;
   Object? /*String?|Icon?|GSymbol?*/ icon;
   Object? /*String?|MarkerLabel?*/ label;
-  Object? /*GMap?|StreetViewPanorama?*/ map;
   num? opacity;
   bool? optimized;
   LatLng? position;
@@ -44,21 +43,27 @@ class GMarkerOptions {
   String? title;
   bool? visible;
   num? zIndex;
+
+  @override
+  String toString() {
+    return '{anchorPoint:$anchorPoint, animation:$animation, clickable:$clickable, crossOnDrag:$crossOnDrag, cursor:$cursor, draggable:$draggable, icon:$icon, label:$label, map, opacity:$opacity, optimized:$optimized, position:{lat:${position?.latitude}, lng:${position?.longitude}},shape: $shape, title:"$title", visible:$visible, zIndex:$zIndex}';
+  }
 }
 
 class GMarkerShape {
-  factory GMarkerShape() => create();
+  GMarkerShape();
   String? type;
+  @override
+  String toString() {
+    return type ?? '';
+  }
 }
 
 extension GMarkerShape$Ext on GMarkerShape {
   List<num?>? get coords {
     final String value = getProperty(this, 'coords') as String;
-    print('[LEESS] MarkerShape 1: $value');
     final List<String> list = value.split(',');
-    print('[LEESS] MarkerShape 2: $list');
     final List<num> result = list.map(num.parse).toList();
-    print('[LEESS] MarkerShape 3: $result');
     return result;
   }
 
@@ -68,7 +73,7 @@ extension GMarkerShape$Ext on GMarkerShape {
 }
 
 class GIcon {
-  factory GIcon() => create();
+  GIcon();
 
   String? url;
   Point? anchor;
@@ -81,21 +86,30 @@ class GIcon {
 // 'google.maps.Size'
 class GSize {
   GSize(
-    num? width,
-    num? height, [
+    num? this.width,
+    num? this.height, [
     String? widthUnit, // ignore: unused_element
     String? heightUnit, // ignore: unused_element
   ]);
 
   num? width;
   num? height;
+
+  @override
+  String toString() {
+    return 'new google.maps.Size($width, $height)';
+  }
+
+  String toValue() {
+    return '{width:$width, height:$height}';
+  }
 }
 
 // 'google.maps.Animation'
 enum Animation { bounce, drop }
 
 class GMarkerLabel {
-  factory GMarkerLabel() => create();
+  GMarkerLabel();
 
   String? text;
   String? className;
@@ -105,8 +119,6 @@ class GMarkerLabel {
   String? fontWeight;
 }
 
-T create<T>() => const Object() as T;
-
 class GInfoWindowOptions {
   factory GInfoWindowOptions() {
     return _options;
@@ -114,38 +126,54 @@ class GInfoWindowOptions {
   GInfoWindowOptions._internal();
   static final GInfoWindowOptions _options = GInfoWindowOptions._internal();
 
-  Object? /*String?|Node?*/ content;
+  String? content;
   bool? disableAutoPan;
   num? maxWidth;
   num? minWidth;
   GSize? pixelOffset;
   LatLng? position;
   num? zIndex;
+
+  @override
+  String toString() {
+    final String pos = position != null
+        ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
+        : 'null';
+    return '{content:$content, disableAutoPan:$disableAutoPan, maxWidth:$maxWidth, minWidth:$minWidth, pixelOffset:$pixelOffset, position:$pos, zIndex:$zIndex}';
+  }
 }
 
 class GInfoWindow {
-  GInfoWindow(GInfoWindowOptions? opts) {
-    _id++;
-    _createInfoWindow([opts]);
+  GInfoWindow(GInfoWindowOptions? opts) : _id = _gid++ {
+    _createInfoWindow(opts);
   }
 
-  Future<void> _createInfoWindow(List<Object?> opts) async {
+  Future<void> _createInfoWindow(GInfoWindowOptions? opts) async {
     final String command =
-        'var ${toString()} = new google.maps.InfoWindow($opts)';
-    await controller!.evaluateJavascript(command);
+        'var ${toString()} = new google.maps.InfoWindow($opts);';
+    await webController!.evaluateJavascript(command);
   }
 
-  static int _id = 0;
+  final int _id;
+  static int _gid = 0;
 
   void close() {
-    // TODO: It should be implemented
+    _callCloseInfoWindow();
+  }
+
+  Future<void> _callCloseInfoWindow() async {
+    await webController!.evaluateJavascript('${toString()}.close();');
   }
 
   void open([
-    Object? /*GMap?|StreetViewPanorama?*/ map,
-    Object? anchor,
+    GMarker? anchor,
   ]) {
-    // TODO: It should be implemented
+    _callOpenInfoWindow(anchor);
+  }
+
+  Future<void> _callOpenInfoWindow(GMarker? anchor) async {
+    await webController!.evaluateJavascript(
+        '${toString()}.open({anchor: ${anchor.toString()}, map});');
   }
 
   @override
@@ -158,20 +186,39 @@ extension GInfoWindow$Ext on GInfoWindow {
   Object? /*String?|Node?*/ get content => _getContent();
   LatLng? get position => _getPosition();
   num? get zIndex => _getZIndex();
+  GSize? get pixelOffset => _getPixelOffset();
   set content(Object? /*String?|Node?*/ content) => _setContent(content);
   set options(GInfoWindowOptions? options) => _setOptions(options);
   set position(LatLng? position) => _setPosition(position);
   set zIndex(num? zIndex) => _setZIndex(zIndex);
+  set pixelOffset(GSize? size) => _setPixelOffset(size);
 
   Object? /*String?|Node?*/ _getContent() => callMethod(this, 'getContent', []);
+
+  // LatLng? _getPosition() {
+  //   print('[LEESS] 2._getPosition');
+  //   final String value = callMethod(this, 'getPosition', []) as String;
+  //   // return _convertToLatLng(value);
+  //   final LatLng result = _convertToLatLng(value);
+  //   print('[LEESS] 2._getPosition: $result');
+  //   return result;
+  // }
+
   LatLng? _getPosition() {
+    print('[LEESS] 2._getPosition');
     final String value = callMethod(this, 'getPosition', []) as String;
-    return _convertToLatLng(value);
+    final LatLng result = _convertToLatLng(value);
+    print('[LEESS] 2._getPosition: $result');
+    return result;
   }
 
   num? _getZIndex() {
     final String value = callMethod(this, 'getZIndex', []) as String;
     return num.parse(value);
+  }
+
+  GSize? _getPixelOffset() {
+    return null;
   }
 
   void _setContent(Object? /*String?|Node?*/ content) {
@@ -189,49 +236,41 @@ extension GInfoWindow$Ext on GInfoWindow {
   void _setZIndex(num? zIndex) {
     callMethod(this, 'setZIndex', [zIndex]);
   }
-}
 
-class MapMouseEvent {
-  factory MapMouseEvent() => create();
-  Object? /*MouseEvent?|TouchEvent?|PointerEvent?|KeyboardEvent?|Object?*/ domEvent;
-  LatLng? latLng;
-  void stop() {
-    // TODO: Implement here!
+  void _setPixelOffset(GSize? size) {
+    setProperty(this, 'pixelOffset', size?.toValue());
   }
 }
 
-class MapsEventListener {
-  factory MapsEventListener() => create();
-  void remove() {
-    // TODO: Implement here!
-  }
-}
-
-class Event {
-  static MapsEventListener addListener(
-      Object? instance, String? eventName, Function? handler) {
-    // [javascript example]
-    // google.maps.event.addListener(marker, 'click', function (event){
-    //   popInfoWindow(latlng);
-    // });
-
-    // TODO: Implement here!!!!!
-    // final String value = callMethod('google.maps.event', 'addListener', [
-    //   instance,
-    //   eventName,
-    //   handler == null ? null : allowInterop(handler)
-    // ]) as String;
-
-    print('[LEESS] addListener: $instance, $eventName, $handler');
-    return MapsEventListener();
-  }
-}
+// class GMap {
+//   @override
+//   String toString() {
+//     return 'map';
+//   }
+// }
 
 // 'google.maps.Marker'
 class GMarker {
   GMarker([
     GMarkerOptions? opts, // ignore: unused_element
-  ]);
+  ]) : id = _gid++ {
+    _createMarker(opts);
+  }
+
+  Future<void> _createMarker(GMarkerOptions? opts) async {
+    final String command = 'var ${toString()} = new google.maps.Marker($opts);';
+    await webController!.evaluateJavascript(command);
+  }
+
+  final int id;
+  static int _gid = 0;
+
+  GMarkerOptions? opts;
+
+  @override
+  String toString() {
+    return 'marker$id';
+  }
 }
 
 extension GMarker$Ext on GMarker {
@@ -256,55 +295,23 @@ extension GMarker$Ext on GMarker {
   set label(Object? /*String?|MarkerLabel?*/ label) => _setLabel(label);
   set map(Object? /*GMap?|StreetViewPanorama?*/ map) => _setMap(map);
   set opacity(num? opacity) => _setOpacity(opacity);
-  set options(GMarkerOptions? options) => _setOptions(options);
+  set options(GMarkerOptions? options) {
+    opts = options;
+    _setOptions(options);
+  }
+
   set position(LatLng? position) => _setPosition(position);
   set shape(GMarkerShape? shape) => _setShape(shape);
   set title(String? title) => _setTitle(title);
   set visible(bool? visible) => _setVisible(visible);
   set zIndex(num? zIndex) => _setZIndex(zIndex);
 
-  Stream<MapMouseEvent> get onClick {
-    late StreamController<MapMouseEvent> sc; // ignore: close_sinks
-    late MapsEventListener mapsEventListener;
-    void start() => mapsEventListener = Event.addListener(
-          this,
-          'click',
-          (MapMouseEvent event) => sc.add(event),
-        );
-    void stop() => mapsEventListener.remove();
-    sc = StreamController<MapMouseEvent>(
-      onListen: start,
-      onCancel: stop,
-      onResume: start,
-      onPause: stop,
-    );
-    return sc.stream;
-  }
-
-  Stream<MapMouseEvent> get onDragend {
-    late StreamController<MapMouseEvent> sc; // ignore: close_sinks
-    late MapsEventListener mapsEventListener;
-    void start() => mapsEventListener = Event.addListener(
-          this,
-          'dragend',
-          (MapMouseEvent event) => sc.add(event),
-        );
-    void stop() => mapsEventListener.remove();
-    sc = StreamController<MapMouseEvent>(
-      onListen: start,
-      onCancel: stop,
-      onResume: start,
-      onPause: stop,
-    );
-    return sc.stream;
-  }
-
   Animation? _getAnimation() {
     final String value = callMethod(this, 'getAnimation', []) as String;
-    final Animation a =
-        Animation.values.firstWhere((e) => e.toString() == value);
-    print('[LEESS] _getAnimation: $a');
-    return a;
+    final Animation animation =
+        Animation.values.firstWhere((Animation e) => e.toString() == value);
+    print('[LEESS] _getAnimation: $animation');
+    return animation;
   }
 
   bool? _getClickable() {
@@ -352,10 +359,41 @@ extension GMarker$Ext on GMarker {
     return result;
   }
 
+  // LatLng? _getPosition() {
+  //   print('[LEESS] 1._getPosition');
+  //   final Future<String> value = callMethod(this, 'getPosition', []);
+  //   LatLng result = nullLatLng;
+  //   value.then((String value) {
+  //     result = _convertToLatLng(value);
+  //   });
+  //   print('[LEESS] 1._getPosition: $value');
+  //   return result;
+  // }
+
   LatLng? _getPosition() {
-    final String value = callMethod(this, 'getPosition', []) as String;
+    print('[LEESS] 1._getPosition');
+    LatLng result = nullLatLng;
+    final Future<LatLng> value = _callMethod();
+    value.then((LatLng value) => result = value);
+    // final LatLng result = _convertToLatLng2(value) as LatLng;
+    // print('[LEESS] 1._getPosition: $value');
+    return result;
+  }
+
+  Future<LatLng> _callMethod() async {
+    final String value = await _callMethod2(this, 'getPosition', []);
     final LatLng result = _convertToLatLng(value);
-    print('[LEESS] _getPosition: $result');
+    return result;
+  }
+
+  Future<String> _callMethod2(
+      Object o, String method, List<Object?> args) async {
+    assert(webController != null, 'webController is null!!');
+    final String command =
+        'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
+    print('[LEESS] 3.InfoWindow [$method($args)] : $command');
+    final String result = await webController!.evaluateJavascript(command);
+    print('[LEESS] 4.InfoWindow [$method] result: $result');
     return result;
   }
 
@@ -385,108 +423,88 @@ extension GMarker$Ext on GMarker {
     return result;
   }
 
-  void _setAnimation(Animation? animation) {
-    final String value =
-        callMethod(this, 'setAnimation', [animation]) as String;
-    print('[LEESS] _getShape: $value');
+  Future<void> _setAnimation(Animation? animation) async {
+    await callMethod(this, 'setAnimation', [animation]);
   }
 
-  void _setClickable(bool? flag) {
-    final String value = callMethod(this, 'setClickable', [flag]) as String;
-    print('[LEESS] _setClickable: $value');
+  Future<void> _setClickable(bool? flag) async {
+    await callMethod(this, 'setClickable', [flag]);
   }
 
-  void _setCursor(String? cursor) {
-    final String value = callMethod(this, 'setCursor', [cursor]) as String;
-    print('[LEESS] _setCursor: $value');
+  Future<void> _setCursor(String? cursor) async {
+    await callMethod(this, 'setCursor', [cursor]);
   }
 
-  void _setDraggable(bool? flag) {
-    final String value = callMethod(this, 'setDraggable', [flag]) as String;
-    print('[LEESS] _setDraggable: $value');
+  Future<void> _setDraggable(bool? flag) async {
+    await callMethod(this, 'setDraggable', [flag]);
   }
 
-  void _setIcon(Object? /*String?|Icon?|GSymbol?*/ icon) {
-    final String value = callMethod(this, 'setIcon', [icon]) as String;
-    print('[LEESS] _setIcon: $value');
+  Future<void> _setIcon(Object? /*String?|Icon?|GSymbol?*/ icon) async {
+    await callMethod(this, 'setIcon', [icon]);
   }
 
-  void _setLabel(Object? /*String?|MarkerLabel?*/ label) {
-    final String value = callMethod(this, 'setLabel', [label]) as String;
-    print('[LEESS] _setLabel: $value');
+  Future<void> _setLabel(Object? /*String?|MarkerLabel?*/ label) async {
+    await callMethod(this, 'setLabel', [label]);
   }
 
-  void _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) {
-    final String value = callMethod(this, 'setMap', [map]) as String;
-    print('[LEESS] _setMap: $value');
+  Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
+    await callMethod(this, 'setMap', [map]);
   }
 
-  void _setOpacity(num? opacity) {
-    final String value = callMethod(this, 'setOpacity', [opacity]) as String;
-    print('[LEESS] _setOpacity: $value');
+  Future<void> _setOpacity(num? opacity) async {
+    await callMethod(this, 'setOpacity', [opacity]);
   }
 
-  void _setOptions(GMarkerOptions? options) {
-    final String value = callMethod(this, 'setOptions', [options]) as String;
-    print('[LEESS] _setOptions: $value');
+  Future<void> _setOptions(GMarkerOptions? options) async {
+    await callMethod(this, 'setOptions', [options]);
   }
 
-  void _setPosition(LatLng? latlng) {
-    final String value = callMethod(this, 'setPosition', [latlng]) as String;
-    print('[LEESS] _setPosition: $value');
+  Future<void> _setPosition(LatLng? latlng) async {
+    await callMethod(this, 'setPosition', [latlng]);
   }
 
-  void _setShape(GMarkerShape? shape) {
-    final String value = callMethod(this, 'setShape', [shape]) as String;
-    print('[LEESS] _setShape: $value');
+  Future<void> _setShape(GMarkerShape? shape) async {
+    await callMethod(this, 'setShape', [shape]);
   }
 
-  void _setTitle(String? title) {
-    final String value = callMethod(this, 'setTitle', [title]) as String;
-    print('[LEESS] _setTitle: $value');
+  Future<void> _setTitle(String? title) async {
+    await callMethod(this, 'setTitle', [title]);
   }
 
-  void _setVisible(bool? visible) {
-    final String value = callMethod(this, 'setVisible', [visible]) as String;
-    print('[LEESS] _setVisible: $value');
+  Future<void> _setVisible(bool? visible) async {
+    await callMethod(this, 'setVisible', [visible]);
   }
 
-  void _setZIndex(num? zIndex) {
-    final String value = callMethod(this, 'setZIndex', [zIndex]) as String;
-    print('[LEESS] _setZIndex: $value');
+  Future<void> _setZIndex(num? zIndex) async {
+    await callMethod(this, 'setZIndex', [zIndex]);
   }
 }
 
-WebViewController? controller;
+WebView? webview;
+WebViewController? webController;
 
 Future<String> getProperty(Object o, String method) async {
-  assert(controller != null, 'mapController is null!!');
+  assert(webController != null, 'mapController is null!!');
 
-  // toString() or o.toString()??
-  final String command = 'JSON.stringify(${o.toString()}[$method])';
-  print('MarkerShape getProperty: $command');
-  final String result = await controller!.evaluateJavascript(command);
-  return result;
+  final String command = 'JSON.stringify(${o.toString()}[\'$method\'])';
+  print('${o.toString()}.getProperty: $command');
+  return await webController!.evaluateJavascript(command);
 }
 
 Future<String> setProperty(Object o, String method, Object? value) async {
-  assert(controller != null, 'mapController is null!!');
-  print('MarkerShape setProperty: $method($value)');
+  assert(webController != null, 'mapController is null!!');
 
-  // toString() or o.toString()??
-  final String command = 'JSON.stringify(${o.toString()}[$method] = $value)';
-  print('MarkerShape setProperty: $command');
-  final String result = await controller!.evaluateJavascript(command);
-  return result;
+  final String command =
+      'JSON.stringify(${o.toString()}[\'$method\'] = $value)';
+  print('${o.toString()}.setProperty: $command');
+  return await webController!.evaluateJavascript(command);
 }
 
 Future<String> callMethod(Object o, String method, List<Object?> args) async {
-  assert(controller != null, 'mapController is null!!');
-  print('InfoWindow callMethod: $method($args)');
+  assert(webController != null, 'webController is null!!');
 
-  // toString() or o.toString()??
   final String command =
       'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
-  final String result = await controller!.evaluateJavascript(command);
-  return result;
+  print('[${o.toString()}][$method($args)] : $command');
+  return await webController!.evaluateJavascript(command);
 }

@@ -8,6 +8,7 @@ part of google_maps_flutter_tizen;
 class MarkersController extends GeometryController {
   // A cache of [MarkerController]s indexed by their [MarkerId].
   final Map<MarkerId, MarkerController> _markerIdToController;
+  final Map<int, MarkerId> _idToMarkerId;
 
   // The stream over which markers broadcast their events
   StreamController<MapEvent> _streamController;
@@ -16,6 +17,7 @@ class MarkersController extends GeometryController {
   MarkersController({
     required StreamController<MapEvent> stream,
   })   : _streamController = stream,
+        _idToMarkerId = Map<int, MarkerId>(),
         _markerIdToController = Map<MarkerId, MarkerController>();
 
   /// Returns the cache of [MarkerController]s. Test only.
@@ -40,36 +42,25 @@ class MarkersController extends GeometryController {
 
     if (infoWindowOptions != null) {
       infoWindow = util.GInfoWindow(infoWindowOptions);
-      // Google Maps' JS SDK does not have a click event on the InfoWindow, so
-      // we make one...
-      if (infoWindowOptions.content is HtmlElement) {
-        final HtmlElement content = infoWindowOptions.content as HtmlElement;
-        content.onClick.listen((_) {
-          _onInfoWindowTap(marker.markerId);
-        });
-      }
     }
 
-    final currentMarker = _markerIdToController[marker.markerId]?.marker;
+    final util.GMarkerOptions populationOptions = _markerOptionsFromMarker(
+        marker, _markerIdToController[marker.markerId]?.marker);
+    final util.GMarker gMarker = util.GMarker(populationOptions);
 
-    final populationOptions = _markerOptionsFromMarker(marker, currentMarker);
-    util.GMarker gMarker = util.GMarker(populationOptions);
-
-    // TODO: Please consider how you will handle this code
-    // gMarker.map = googleMap;
-
-    MarkerController controller = MarkerController(
-      marker: gMarker,
-      infoWindow: infoWindow,
-      consumeTapEvents: marker.consumeTapEvents,
-      onTap: () {
-        this.showMarkerInfoWindow(marker.markerId);
-        _onMarkerTap(marker.markerId);
-      },
-      onDragEnd: (LatLng latLng) {
-        _onMarkerDragEnd(marker.markerId, latLng);
-      },
-    );
+    final MarkerController controller = MarkerController(
+        marker: gMarker,
+        infoWindow: infoWindow,
+        consumeTapEvents: marker.consumeTapEvents,
+        onTap: () {
+          showMarkerInfoWindow(marker.markerId);
+          _onMarkerTap(marker.markerId);
+        },
+        onDragEnd: (LatLng latLng) {
+          _onMarkerDragEnd(marker.markerId, latLng);
+        },
+        controller: util.webController);
+    _idToMarkerId[gMarker.id] = marker.markerId;
     _markerIdToController[marker.markerId] = controller;
   }
 
@@ -79,16 +70,21 @@ class MarkersController extends GeometryController {
   }
 
   void _changeMarker(Marker marker) {
-    MarkerController? markerController = _markerIdToController[marker.markerId];
+    print('_changeMarker()');
+    final MarkerController? markerController =
+        _markerIdToController[marker.markerId];
+
     if (markerController != null) {
-      final markerOptions = _markerOptionsFromMarker(
+      final util.GMarkerOptions markerOptions = _markerOptionsFromMarker(
         marker,
         markerController.marker,
       );
-      final infoWindow = _infoWindowOptionsFromMarker(marker);
+      final util.GInfoWindowOptions? infoWindow =
+          _infoWindowOptionsFromMarker(marker);
       markerController.update(
+        marker,
         markerOptions,
-        newInfoWindowContent: infoWindow?.content as HtmlElement?,
+        newInfoWindowContent: infoWindow?.content,
       );
     }
   }
@@ -104,31 +100,26 @@ class MarkersController extends GeometryController {
     _markerIdToController.remove(markerId);
   }
 
-  // InfoWindow...
-
   /// Shows the [InfoWindow] of a [MarkerId].
   ///
   /// See also [hideMarkerInfoWindow] and [isInfoWindowShown].
   void showMarkerInfoWindow(MarkerId markerId) {
     _hideAllMarkerInfoWindow();
-    MarkerController? markerController = _markerIdToController[markerId];
-    markerController?.showInfoWindow();
+    _markerIdToController[markerId]?.showInfoWindow();
   }
 
   /// Hides the [InfoWindow] of a [MarkerId].
   ///
   /// See also [showMarkerInfoWindow] and [isInfoWindowShown].
   void hideMarkerInfoWindow(MarkerId markerId) {
-    MarkerController? markerController = _markerIdToController[markerId];
-    markerController?.hideInfoWindow();
+    _markerIdToController[markerId]?.hideInfoWindow();
   }
 
   /// Returns whether or not the [InfoWindow] of a [MarkerId] is shown.
   ///
   /// See also [showMarkerInfoWindow] and [hideMarkerInfoWindow].
   bool isInfoWindowShown(MarkerId markerId) {
-    MarkerController? markerController = _markerIdToController[markerId];
-    return markerController?.infoWindowShown ?? false;
+    return _markerIdToController[markerId]?.infoWindowShown ?? false;
   }
 
   // Handle internal events

@@ -141,8 +141,8 @@ LatLng _convertToLatLng(String value) {
 }
 
 util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
-  final markerTitle = marker.infoWindow.title ?? '';
-  final markerSnippet = marker.infoWindow.snippet ?? '';
+  final String markerTitle = marker.infoWindow.title ?? '';
+  final String markerSnippet = marker.infoWindow.snippet ?? '';
 
   // If both the title and snippet of an infowindow are empty, we don't really
   // want an infowindow...
@@ -152,30 +152,24 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
 
   // Add an outer wrapper to the contents of the infowindow, we need it to listen
   // to click events...
-  final HtmlElement container = DivElement()
-    ..id = 'gmaps-marker-${marker.markerId.value}-infowindow';
-
+  final StringBuffer buffer = StringBuffer();
+  buffer.write('\'<div id="marker-${marker.markerId.value}-infowindow">');
   if (markerTitle.isNotEmpty) {
-    final HtmlElement title = HeadingElement.h3()
-      ..className = 'infowindow-title'
-      ..innerText = markerTitle;
-    container.children.add(title);
+    buffer.write('<h3 class="infowindow-title">');
+    buffer.write(markerTitle);
+    buffer.write('</h3>');
   }
   if (markerSnippet.isNotEmpty) {
-    final HtmlElement snippet = DivElement()
-      ..className = 'infowindow-snippet'
-      ..setInnerHtml(
-        sanitizeHtml(markerSnippet),
-        treeSanitizer: NodeTreeSanitizer.trusted,
-      );
-    container.children.add(snippet);
+    buffer.write('<div class="infowindow-snippet">');
+    buffer.write(markerSnippet);
+    buffer.write('</dvi>');
   }
+  buffer.write('</div>\'');
 
+  // TODO(seungsoo47): Need to add Click Event to infoWindow's content
   return util.GInfoWindowOptions()
-    ..content = container
+    ..content = buffer.toString()
     ..zIndex = marker.zIndex;
-  // TODO: Compute the pixelOffset of the infoWindow, from the size of the Marker,
-  // and the marker.infoWindow.anchor property.
 }
 
 // Computes the options for a new [gmaps.Marker] from an incoming set of options
@@ -188,6 +182,7 @@ util.GMarkerOptions _markerOptionsFromMarker(
   final iconConfig = marker.icon.toJson() as List;
   util.GIcon? icon;
 
+  // TODO(seungsoo): Please implement the code below appropriately.
   if (iconConfig != null || iconConfig.isEmpty) {
     if (iconConfig[0] == 'fromAssetImage') {
       assert(iconConfig.length >= 2);
@@ -196,7 +191,6 @@ util.GMarkerOptions _markerOptionsFromMarker(
 
       // TODO(seungsoo): temporally make hard code
       icon = util.GIcon()..url = '${iconConfig[1]}';
-      print('[LEESS] util.GIcon()..url: ${iconConfig[1]}');
       // ..url = ui.webOnlyAssetManager.getAssetUrl(iconConfig[1]);
 
       // iconConfig[3] may contain the [width, height] of the image, if passed!
@@ -208,7 +202,6 @@ util.GMarkerOptions _markerOptionsFromMarker(
           ..scaledSize = size;
       }
     } else if (iconConfig[0] == 'fromBytes') {
-      // TODO: temporally make hard code
       // // Grab the bytes, and put them into a blob
       // List<int> bytes = iconConfig[1] as List<int>;
       // final blob = Blob(bytes); // Let the browser figure out the encoding
@@ -216,12 +209,12 @@ util.GMarkerOptions _markerOptionsFromMarker(
     }
   }
   return util.GMarkerOptions()
-    ..position = currentMarker?.position ??
+    ..position = currentMarker?.opts?.position ??
         LatLng(
           marker.position.latitude,
           marker.position.longitude,
         )
-    ..title = sanitizeHtml(marker.infoWindow.title ?? "")
+    ..title = sanitizeHtml(marker.infoWindow.title ?? '')
     ..zIndex = marker.zIndex
     ..visible = marker.visible
     ..opacity = marker.alpha

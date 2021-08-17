@@ -48,9 +48,9 @@ class GoogleMapController {
         .toString());
   }
 
-  void _createWidget() {
+  WebView _createWidget() {
     _loadHtmlFromAssets();
-    _widget = WebView(
+    return WebView(
       javascriptMode: JavascriptMode.unrestricted,
       onWebViewCreated: (WebViewController webViewController) async {
         _controller.complete(webViewController);
@@ -63,6 +63,8 @@ class GoogleMapController {
         _onIdle(),
         _onClick(),
         _onRightClick(),
+        _onMarkerClick(),
+        _onMarkerDragEnd(),
       },
       onPageStarted: (String url) {
         print('Google map started loading');
@@ -179,6 +181,48 @@ class GoogleMapController {
         });
   }
 
+  JavascriptChannel _onMarkerClick() {
+    return JavascriptChannel(
+        name: 'MarkerClick',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            final dynamic id = json.decode(message.message);
+            if (_markersController != null && id is int) {
+              // _markersController!.onTap(id);
+              final MarkerId? markerId = _markersController!._idToMarkerId[id];
+              final MarkerController? marker =
+                  _markersController!._markerIdToController[markerId];
+              marker?._onTop!();
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
+  JavascriptChannel _onMarkerDragEnd() {
+    return JavascriptChannel(
+        name: 'MarkerDragEnd',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            // TODO(seungsoo47): Parse appropriately.
+            // final dynamic id = json.decode(message.message);
+            // if (_markersController != null && id is int) {
+            //   final MarkerId? markerId = _markersController!._idToMarkerId[id];
+            //   final MarkerController? marker =
+            //       _markersController!._markerIdToController[markerId];
+            //   LatLng latlng = event.latLng ?? util.nullLatLng;
+            //   if (marker._marker != null) {
+            //     marker._marker.position = latlng;
+            //   }
+            //   marker?._onDragEnd!(latlng);
+            // }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
   JavascriptChannel _onRightClick() {
     // NOTE: LWE does not support a long press event.
     return JavascriptChannel(
@@ -251,8 +295,9 @@ class GoogleMapController {
     //
 
     if (_widget == null && !_streamController.isClosed) {
-      _createWidget();
-      _attachGeometryControllers(await controller);
+      final WebView webview = _createWidget();
+      _widget = webview;
+      _attachGeometryControllers(webview, await controller);
     }
 
     _setTrafficLayer(_isTrafficLayerEnabled(_rawMapOptions));
@@ -260,7 +305,8 @@ class GoogleMapController {
 
   // TODO : implement for google_map_tizen if necessary
   // // Binds the Geometry controllers to a map instance
-  void _attachGeometryControllers(WebViewController controller) {
+  void _attachGeometryControllers(
+      WebView webview, WebViewController controller) {
     // Now we can add the initial geometry.
     // And bind the (ready) map instance to the other geometry controllers.
     //
@@ -278,8 +324,9 @@ class GoogleMapController {
     //   _circlesController!.bindToMap(_mapId, map);
     //   _polygonsController!.bindToMap(_mapId, map);
     //   _polylinesController!.bindToMap(_mapId, map);
-    _markersController!.bindToMap(_mapId, controller);
-    util.controller = controller;
+    _markersController!.bindToMap(_mapId, webview);
+    util.webview = webview;
+    util.webController = controller;
     _controllersBoundToMap = true;
   }
 
@@ -373,8 +420,8 @@ class GoogleMapController {
 
   Future<String> _callMethod(
       WebViewController mapView, String method, List<Object?> args) async {
-    print('callMethod: $method($args)');
     final String command = 'JSON.stringify(map.$method.apply(map, $args))';
+    print('callMethod: $command');
     final String result = await mapView.evaluateJavascript(command);
     return result;
   }

@@ -4,6 +4,10 @@
 
 part of google_maps_flutter_tizen;
 
+// Marker Size
+const int markerWidth = 24;
+const int markerHeight = 43;
+
 /// The `MarkerController` class wraps a [gmaps.Marker], how it handles events, and its associated (optional) [gmaps.InfoWindow] widget.
 class MarkerController {
   util.GMarker? _marker;
@@ -14,6 +18,9 @@ class MarkerController {
 
   bool _infoWindowShown = false;
 
+  ui.VoidCallback? _onTop;
+  LatLngCallback? _onDragEnd;
+
   /// Creates a `MarkerController`, which wraps a [gmaps.Marker] object, its `onTap`/`onDrag` behavior, and its associated [gmaps.InfoWindow].
   MarkerController({
     required util.GMarker marker,
@@ -21,22 +28,23 @@ class MarkerController {
     bool consumeTapEvents = false,
     LatLngCallback? onDragEnd,
     ui.VoidCallback? onTap,
+    WebViewController? controller,
   })  : _marker = marker,
         _infoWindow = infoWindow,
         _consumeTapEvents = consumeTapEvents {
-    if (onTap != null) {
-      marker.onClick.listen((event) {
-        onTap.call();
-      });
+    if (controller != null) {
+      _createMarkerController(controller);
+      _onTop = onTap;
+      _onDragEnd = onDragEnd;
     }
-    if (onDragEnd != null) {
-      marker.onDragend.listen((event) {
-        if (marker != null) {
-          marker.position = event.latLng;
-        }
-        onDragEnd.call(event.latLng ?? util.nullLatLng);
-      });
-    }
+  }
+
+  Future<void> _createMarkerController(WebViewController _controller) async {
+    String command =
+        "$marker.addListener('click', (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));";
+    command +=
+        "$marker.addListener('dragend', (event) => MarkerDragEnd.postMessage(JSON.stringify({id:${marker?.id}, event:event})));";
+    await _controller.evaluateJavascript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.
@@ -56,14 +64,18 @@ class MarkerController {
   ///
   /// This cannot be called after [remove].
   void update(
+    Marker marker,
     util.GMarkerOptions options, {
-    HtmlElement? newInfoWindowContent,
+    String? newInfoWindowContent,
   }) {
     assert(_marker != null, 'Cannot `update` Marker after calling `remove`.');
-    _marker!.options = options;
     if (_infoWindow != null && newInfoWindowContent != null) {
       _infoWindow!.content = newInfoWindowContent;
+      _infoWindow!.pixelOffset = util.GSize(
+          (marker.infoWindow.anchor.dx - 0.5) * markerWidth,
+          marker.infoWindow.anchor.dy * markerHeight);
     }
+    _marker!.options = options;
   }
 
   /// Disposes of the currently wrapped [gmaps.Marker].
@@ -93,7 +105,7 @@ class MarkerController {
   void showInfoWindow() {
     assert(_marker != null, 'Cannot `showInfoWindow` on a `remove`d Marker.');
     if (_infoWindow != null) {
-      _infoWindow!.open(_marker!.map, _marker);
+      _infoWindow!.open(_marker);
       _infoWindowShown = true;
     }
   }
