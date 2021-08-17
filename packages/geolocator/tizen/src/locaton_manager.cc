@@ -4,11 +4,11 @@
 
 #include "locaton_manager.h"
 
-#include <locations.h>
+#include "log.h"
 
-LocationManager::LocationManager() {}
+LocationManager::LocationManager() { CreateLocationManager(); }
 
-LocationManager::~LocationManager() {}
+LocationManager::~LocationManager() { DestroyLocationManager(); }
 
 TizenResult LocationManager::IsLocationServiceEnabled(bool *is_enabled) {
   bool gps_enabled = false;
@@ -28,4 +28,46 @@ TizenResult LocationManager::IsLocationServiceEnabled(bool *is_enabled) {
   *is_enabled = gps_enabled || wps_enabled;
 
   return TizenResult();
+}
+
+TizenResult LocationManager::RequestCurrentLocationOnce(
+    OnLocationUpdate on_position_update, OnError on_error) {
+  on_position_update_ = on_position_update;
+  on_error_ = on_error;
+  TizenResult ret = location_manager_request_single_location(
+      manager_, 5,
+      [](location_error_e error, double latitude, double longitude,
+         double altitude, time_t timestamp, double speed, double direction,
+         double climb, void *user_data) {
+        LocationManager *self = static_cast<LocationManager *>(user_data);
+
+        if (error != LOCATIONS_ERROR_NONE && self->on_error_) {
+          self->on_error_(error);
+        } else if (self->on_position_update_) {
+          Location location;
+          location.latitude = latitude;
+          location.longitude = longitude;
+          location.altitude = altitude;
+          location.timestamp = timestamp;
+          location.speed = speed;
+          location.heading = direction;
+
+          self->on_position_update_(location);
+        }
+
+        self->on_error_ = nullptr;
+        self->on_position_update_ = nullptr;
+      },
+      this);
+  return ret;
+}
+
+TizenResult LocationManager::CreateLocationManager() {
+  return location_manager_create(LOCATIONS_METHOD_HYBRID, &manager_);
+}
+
+TizenResult LocationManager::DestroyLocationManager() {
+  int ret = location_manager_destroy(manager_);
+  manager_ = nullptr;
+  return TizenResult(ret);
 }
