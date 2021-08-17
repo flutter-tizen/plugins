@@ -56,6 +56,8 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       onIsLocationServiceEnabled(std::move(result));
     } else if (method_name == "requestPermission") {
       onRequestPermission(std::move(result));
+    } else if (method_name == "getCurrentPosition") {
+      onGetCurrentPosition(std::move(result));
     } else {
       result->NotImplemented();
     }
@@ -101,6 +103,28 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
                             tizen_result.message());
           delete result_ptr;
         });
+  }
+
+  void onGetCurrentPosition(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    auto result_ptr = result.release();
+    TizenResult tizen_result = location_manager_->RequestCurrentLocationOnce(
+        [result_ptr](Location location) {
+          result_ptr->Success(location.ToEncodableValue());
+          delete result_ptr;
+        },
+        [result_ptr](TizenResult error) {
+          result_ptr->Error(
+              "An error occurred while requesting current location",
+              error.message());
+          delete result_ptr;
+        });
+
+    if (!tizen_result) {
+      result_ptr->Error("Failed to call RequestCurrentLocationOnce",
+                        tizen_result.message());
+      delete result_ptr;
+    }
   }
 
   std::unique_ptr<PermissionManager> permission_manager_;
