@@ -30,7 +30,6 @@ PermissionManager::~PermissionManager() {}
 
 TizenResult PermissionManager::CheckPermissionStatus(
     PermissionStatus *permission_status) {
-  PermissionStatus status;
   ppm_check_result_e check_result;
 
   int result = ppm_check_permission(kPrivilegeLocation, &check_result);
