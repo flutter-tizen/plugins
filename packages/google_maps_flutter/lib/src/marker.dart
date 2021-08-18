@@ -77,6 +77,9 @@ class MarkerController {
           marker.infoWindow.anchor.dy * markerHeight);
     }
     _marker!.options = options;
+    if (!marker.visible) {
+      hideInfoWindow();
+    }
   }
 
   /// Disposes of the currently wrapped [gmaps.Marker].

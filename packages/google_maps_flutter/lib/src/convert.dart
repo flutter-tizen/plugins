@@ -206,12 +206,17 @@ util.GMarkerOptions _markerOptionsFromMarker(
       // icon = gmaps.Icon()..url = Url.createObjectUrlFromBlob(blob);
     }
   }
+
+  final LatLng? position;
+  if (currentMarker?.opts?.position == null ||
+      currentMarker?.opts?.position != marker.position) {
+    position = marker.position;
+  } else {
+    position = currentMarker?.opts?.position;
+  }
+
   return util.GMarkerOptions()
-    ..position = currentMarker?.opts?.position ??
-        LatLng(
-          marker.position.latitude,
-          marker.position.longitude,
-        )
+    ..position = position
     ..title = sanitizeHtml(marker.infoWindow.title ?? '')
     ..zIndex = marker.zIndex
     ..visible = marker.visible
