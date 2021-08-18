@@ -17,6 +17,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**audioplayers_tizen**](packages/audioplayers) | [audioplayers](https://github.com/luanpotter/audioplayers) (3rd-party) | [![pub package](https://img.shields.io/pub/v/audioplayers_tizen.svg)](https://pub.dev/packages/audioplayers_tizen) | No |
 | [**battery_tizen**](packages/battery) | [battery](https://github.com/flutter/plugins/tree/master/packages/battery) (1st-party) | [![pub package](https://img.shields.io/pub/v/battery_tizen.svg)](https://pub.dev/packages/battery_tizen) | No |
 | [**battery_plus_tizen**](packages/battery_plus) | [battery_plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/battery_plus) (3rd-party) | [![pub package](https://img.shields.io/pub/v/battery_plus_tizen.svg)](https://pub.dev/packages/battery_plus_tizen) | No |
+| [**camera_tizen**](packages/camera) | [camera](https://github.com/flutter/plugins/tree/master/packages/camera) (1st-party) | [![pub package](https://img.shields.io/pub/v/camera_tizen.svg)](https://pub.dev/packages/camera_tizen) | No |
 | [**connectivity_tizen**](packages/connectivity) | [connectivity](https://github.com/flutter/plugins/tree/master/packages/connectivity) (1st-party) | [![pub package](https://img.shields.io/pub/v/connectivity_tizen.svg)](https://pub.dev/packages/connectivity_tizen) | No |
 | [**connectivity_plus_tizen**](packages/connectivity_plus) | [connectivity_plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus) (3rd-party) | [![pub package](https://img.shields.io/pub/v/connectivity_plus_tizen.svg)](https://pub.dev/packages/connectivity_plus_tizen) | No |
 | [**device_info_tizen**](packages/device_info) | [device_info](https://github.com/flutter/plugins/tree/master/packages/device_info) (1st-party) | [![pub package](https://img.shields.io/pub/v/device_info_tizen.svg)](https://pub.dev/packages/device_info_tizen) | No |
@@ -49,6 +50,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**audioplayers_tizen**](packages/audioplayers) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**battery_tizen**](packages/battery) | ✔️ | ✔️ | ❌ | ❌ | No battery |
 | [**battery_plus_tizen**](packages/battery_plus) | ✔️ | ✔️ | ❌ | ❌ | No battery |
+| [**camera_tizen**](packages/camera) | ❌ | ❌ | ❌ | ❌ | No camera |
 | [**connectivity_tizen**](packages/connectivity) | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
 | [**connectivity_plus_tizen**](packages/connectivity_plus) | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
 | [**device_info_tizen**](packages/device_info) | ✔️ | ✔️ | ✔️ | ✔️ |
@@ -71,5 +73,5 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
 | [**wakelock_tizen**](packages/wakelock) | ✔️ | ✔️ | ❌ | ❌ | Cannot override system display setting |
 | [**wearable_rotary**](packages/wearable_rotary) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
-| [**webview_flutter_tizen**](packages/webview_flutter) | ✔️ | ❌ | ✔️ | ❌ | Dependent library unavailable |
+| [**webview_flutter_tizen**](packages/webview_flutter) | ❌ | ❌ | ✔️ | ❌ | Dependent library unavailable |
 | [**wifi_info_flutter_tizen**](packages/wifi_info_flutter) | ✔️ | ❌ | ✔️ | ❌ | API unsupported by emulators |
