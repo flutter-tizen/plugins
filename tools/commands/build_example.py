@@ -14,7 +14,6 @@ def parse_args(args):
 
 def _build_examples(plugin):
     name = os.path.basename(plugin)
-    print(f'============= Build {name} ... =============')
     example_dir = os.path.join(plugin, 'example')
     subprocess.run('flutter-tizen pub get', shell=True, cwd=example_dir)
 
@@ -22,10 +21,8 @@ def _build_examples(plugin):
                                        shell=True,
                                        cwd=example_dir)
     if completed_process.returncode == 0:
-        print(f'============= Succeed to build {name} =============')
         return True
     else:
-        print(f'============= Failed to build {name} =============')
         return False
 
 
