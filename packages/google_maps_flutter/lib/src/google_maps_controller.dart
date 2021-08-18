@@ -89,12 +89,6 @@ class GoogleMapController {
     return '{$options}';
   }
 
-  // /// A getter for the current traffic layer. Only for tests.
-  // @visibleForTesting
-  // gmaps.TrafficLayer? get trafficLayer => _trafficLayer;
-  // // The underlying GMap instance. This is the interface with the JS SDK.
-  // gmaps.GMap? _googleMap;
-
   // The StreamController used by this controller and the geometry ones.
   final StreamController<MapEvent> _streamController;
 
@@ -108,7 +102,6 @@ class GoogleMapController {
   // PolylinesController? _polylinesController;
   MarkersController? _markersController;
 
-  // TODO : implement for google_map_tizen if necessary
   // Keeps track if _attachGeometryControllers has been called or not.
   bool _controllersBoundToMap = false;
   // Keeps track if the map is moving or not.
@@ -192,7 +185,6 @@ class GoogleMapController {
           try {
             final dynamic id = json.decode(message.message);
             if (_markersController != null && id is int) {
-              // _markersController!.onTap(id);
               final MarkerId? markerId = _markersController!._idToMarkerId[id];
               final MarkerController? marker =
                   _markersController!._markerIdToController[markerId];
@@ -209,18 +201,7 @@ class GoogleMapController {
         name: 'MarkerDragEnd',
         onMessageReceived: (JavascriptMessage message) async {
           try {
-            // TODO(seungsoo47): Parse appropriately.
-            // final dynamic id = json.decode(message.message);
-            // if (_markersController != null && id is int) {
-            //   final MarkerId? markerId = _markersController!._idToMarkerId[id];
-            //   final MarkerController? marker =
-            //       _markersController!._markerIdToController[markerId];
-            //   LatLng latlng = event.latLng ?? util.nullLatLng;
-            //   if (marker._marker != null) {
-            //     marker._marker.position = latlng;
-            //   }
-            //   marker?._onDragEnd!(latlng);
-            // }
+            // TODO(seungsoo47): Implement properly.
           } catch (e) {
             print('Javascript Error: $e');
           }
@@ -245,24 +226,6 @@ class GoogleMapController {
           }
         });
   }
-
-  // TODO : implement for google_map_tizen if necessary
-  // /// Overrides certain properties to install mocks defined during testing.
-  // @visibleForTesting
-  // void debugSetOverrides({
-  //   DebugCreateMapFunction? createMap,
-  //   MarkersController? markers,
-  //   CirclesController? circles,
-  //   PolygonsController? polygons,
-  //   PolylinesController? polylines,
-  // }) {
-  //   _overrideCreateMap = createMap;
-  //   _markersController = markers ?? _markersController;
-  //   _circlesController = circles ?? _circlesController;
-  //   _polygonsController = polygons ?? _polygonsController;
-  //   _polylinesController = polylines ?? _polylinesController;
-  // }
-  // DebugCreateMapFunction? _overrideCreateMap;
 
   // TODO : implement for google_map_tizen if necessary
   // gmaps.GMap _createMap(HtmlElement div, gmaps.MapOptions options) {
@@ -313,8 +276,7 @@ class GoogleMapController {
     _setTrafficLayer(_isTrafficLayerEnabled(_rawMapOptions));
   }
 
-  // TODO : implement for google_map_tizen if necessary
-  // // Binds the Geometry controllers to a map instance
+  // Binds the Geometry controllers to a map instance
   void _attachGeometryControllers() {
     // Now we can add the initial geometry.
     // And bind the (ready) map instance to the other geometry controllers.
@@ -339,7 +301,6 @@ class GoogleMapController {
     _controllersBoundToMap = true;
   }
 
-  // TODO : implement for google_map_tizen if necessary
   // Renders the initial sets of geometry.
   void _renderInitialGeometry({
     Set<Marker> markers = const {},
@@ -360,7 +321,6 @@ class GoogleMapController {
     //   _polylinesController!.addPolylines(polylines);
   }
 
-  // TODO : implement for google_map_tizen if necessary
   // Merges new options coming from the plugin into the _rawMapOptions map.
   //
   // Returns the updated _rawMapOptions object.

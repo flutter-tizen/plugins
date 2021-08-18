@@ -18,12 +18,6 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
   // A cache of map controllers by map Id.
   Map _mapById = Map<int, GoogleMapController>();
 
-  /// Allows tests to inject controllers without going through the buildView flow.
-  @visibleForTesting
-  void debugSetMapById(Map<int, GoogleMapController> mapById) {
-    _mapById = mapById;
-  }
-
   // Convenience getter for a stream of events filtered by their mapId.
   Stream<MapEvent> _events(int mapId) => _map(mapId).events;
 

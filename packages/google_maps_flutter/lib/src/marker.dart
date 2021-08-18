@@ -8,7 +8,7 @@ part of google_maps_flutter_tizen;
 const int markerWidth = 24;
 const int markerHeight = 43;
 
-/// The `MarkerController` class wraps a [gmaps.Marker], how it handles events, and its associated (optional) [gmaps.InfoWindow] widget.
+/// The `MarkerController` class wraps a [GMarker], how it handles events, and its associated (optional) [GInfoWindow] widget.
 class MarkerController {
   util.GMarker? _marker;
 
@@ -21,7 +21,7 @@ class MarkerController {
   ui.VoidCallback? _onTop;
   LatLngCallback? _onDragEnd;
 
-  /// Creates a `MarkerController`, which wraps a [gmaps.Marker] object, its `onTap`/`onDrag` behavior, and its associated [gmaps.InfoWindow].
+  /// Creates a `MarkerController`, which wraps a [GMarker] object, its `onTap`/`onDrag` behavior, and its associated [GInfoWindow].
   MarkerController({
     required util.GMarker marker,
     util.GInfoWindow? infoWindow,
@@ -51,17 +51,13 @@ class MarkerController {
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.
   bool get consumeTapEvents => _consumeTapEvents;
 
-  /// Returns `true` if the [gmaps.InfoWindow] associated to this marker is being shown.
+  /// Returns `true` if the [GInfoWindow] associated to this marker is being shown.
   bool get infoWindowShown => _infoWindowShown;
 
-  /// Returns the [gmaps.Marker] associated to this controller.
+  /// Returns the [GMarker] associated to this controller.
   util.GMarker? get marker => _marker;
 
-  /// Returns the [gmaps.InfoWindow] associated to the marker.
-  @visibleForTesting
-  util.GInfoWindow? get infoWindow => _infoWindow;
-
-  /// Updates the options of the wrapped [gmaps.Marker] object.
+  /// Updates the options of the wrapped [GMarker] object.
   ///
   /// This cannot be called after [remove].
   void update(
@@ -82,7 +78,7 @@ class MarkerController {
     }
   }
 
-  /// Disposes of the currently wrapped [gmaps.Marker].
+  /// Disposes of the currently wrapped [GMarker].
   void remove() {
     if (_marker != null) {
       _infoWindowShown = false;
@@ -92,7 +88,7 @@ class MarkerController {
     }
   }
 
-  /// Hide the associated [gmaps.InfoWindow].
+  /// Hide the associated [GInfoWindow].
   ///
   /// This cannot be called after [remove].
   void hideInfoWindow() {
@@ -103,7 +99,7 @@ class MarkerController {
     }
   }
 
-  /// Show the associated [gmaps.InfoWindow].
+  /// Show the associated [GInfoWindow].
   ///
   /// This cannot be called after [remove].
   void showInfoWindow() {

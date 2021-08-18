@@ -6,7 +6,6 @@ library google_maps_flutter_tizen;
 
 import 'dart:async';
 import 'dart:convert';
-// import 'dart:html';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -15,8 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
-
-import 'package:sanitize_html/sanitize_html.dart';
 
 import 'package:stream_transform/stream_transform.dart';
 
@@ -38,4 +35,3 @@ part 'src/marker.dart';
 part 'src/markers.dart';
 part 'src/convert.dart';
 part 'src/types.dart';
-// part 'src/util.dart';

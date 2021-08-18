@@ -150,8 +150,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
     return null;
   }
 
-  // Add an outer wrapper to the contents of the infowindow, we need it to listen
-  // to click events...
+  // Add an outer wrapper to the contents of the infowindow
   final StringBuffer buffer = StringBuffer();
   buffer.write('\'<div id="marker-${marker.markerId.value}-infowindow">');
   if (markerTitle.isNotEmpty) {
@@ -172,7 +171,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
     ..zIndex = marker.zIndex;
 }
 
-// Computes the options for a new [gmaps.Marker] from an incoming set of options
+// Computes the options for a new [GMarker] from an incoming set of options
 // [marker], and the existing marker registered with the map: [currentMarker].
 // Preserves the position from the [currentMarker], if set.
 util.GMarkerOptions _markerOptionsFromMarker(
@@ -217,7 +216,7 @@ util.GMarkerOptions _markerOptionsFromMarker(
 
   return util.GMarkerOptions()
     ..position = position
-    ..title = sanitizeHtml(marker.infoWindow.title ?? '')
+    ..title = marker.infoWindow.title ?? ''
     ..zIndex = marker.zIndex
     ..visible = marker.visible
     ..opacity = marker.alpha

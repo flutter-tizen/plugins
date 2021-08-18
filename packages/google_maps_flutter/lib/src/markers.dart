@@ -20,10 +20,6 @@ class MarkersController extends GeometryController {
         _idToMarkerId = Map<int, MarkerId>(),
         _markerIdToController = Map<MarkerId, MarkerController>();
 
-  /// Returns the cache of [MarkerController]s. Test only.
-  @visibleForTesting
-  Map<MarkerId, MarkerController> get markers => _markerIdToController;
-
   /// Adds a set of [Marker] objects to the cache.
   ///
   /// Wraps each [Marker] into its corresponding [MarkerController].

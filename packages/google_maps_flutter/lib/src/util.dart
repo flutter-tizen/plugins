@@ -59,19 +59,6 @@ class GMarkerShape {
   }
 }
 
-extension GMarkerShape$Ext on GMarkerShape {
-  List<num?>? get coords {
-    final String value = getProperty(this, 'coords') as String;
-    final List<String> list = value.split(',');
-    final List<num> result = list.map(num.parse).toList();
-    return result;
-  }
-
-  set coords(List<num?>? value) {
-    setProperty(this, 'coords', value);
-  }
-}
-
 class GIcon {
   GIcon();
 
@@ -205,43 +192,11 @@ class GInfoWindow {
 }
 
 extension GInfoWindow$Ext on GInfoWindow {
-  Object? /*String?|Node?*/ get content => _getContent();
-  LatLng? get position => _getPosition();
-  num? get zIndex => _getZIndex();
-  GSize? get pixelOffset => _getPixelOffset();
   set content(Object? /*String?|Node?*/ content) => _setContent(content);
   set options(GInfoWindowOptions? options) => _setOptions(options);
   set position(LatLng? position) => _setPosition(position);
   set zIndex(num? zIndex) => _setZIndex(zIndex);
   set pixelOffset(GSize? size) => _setPixelOffset(size);
-
-  Object? /*String?|Node?*/ _getContent() => callMethod(this, 'getContent', []);
-
-  // LatLng? _getPosition() {
-  //   print('[LEESS] 2._getPosition');
-  //   final String value = callMethod(this, 'getPosition', []) as String;
-  //   // return _convertToLatLng(value);
-  //   final LatLng result = _convertToLatLng(value);
-  //   print('[LEESS] 2._getPosition: $result');
-  //   return result;
-  // }
-
-  LatLng? _getPosition() {
-    print('[LEESS] 2._getPosition');
-    final String value = callMethod(this, 'getPosition', []) as String;
-    final LatLng result = _convertToLatLng(value);
-    print('[LEESS] 2._getPosition: $result');
-    return result;
-  }
-
-  num? _getZIndex() {
-    final String value = callMethod(this, 'getZIndex', []) as String;
-    return num.parse(value);
-  }
-
-  GSize? _getPixelOffset() {
-    return null;
-  }
 
   void _setContent(Object? /*String?|Node?*/ content) {
     callMethod(this, 'setContent', [content]);
@@ -263,13 +218,6 @@ extension GInfoWindow$Ext on GInfoWindow {
     setProperty(this, 'pixelOffset', size?.toValue());
   }
 }
-
-// class GMap {
-//   @override
-//   String toString() {
-//     return 'map';
-//   }
-// }
 
 // 'google.maps.Marker'
 class GMarker {
@@ -296,19 +244,6 @@ class GMarker {
 }
 
 extension GMarker$Ext on GMarker {
-  Animation? get animation => _getAnimation();
-  bool? get clickable => _getClickable();
-  String? get cursor => _getCursor();
-  bool? get draggable => _getDraggable();
-  Object? /*String?|Icon?|GSymbol?*/ get icon => _getIcon();
-  GMarkerLabel? get label => _getLabel();
-  Object? /*GMap?|StreetViewPanorama?*/ get map => _getMap();
-  num? get opacity => _getOpacity();
-  LatLng? get position => _getPosition();
-  GMarkerShape? get shape => _getShape();
-  String? get title => _getTitle();
-  bool? get visible => _getVisible();
-  num? get zIndex => _getZIndex();
   set animation(Animation? animation) => _setAnimation(animation);
   set clickable(bool? clickable) => _setClickable(clickable);
   set cursor(String? cursor) => _setCursor(cursor);
@@ -327,124 +262,6 @@ extension GMarker$Ext on GMarker {
   set title(String? title) => _setTitle(title);
   set visible(bool? visible) => _setVisible(visible);
   set zIndex(num? zIndex) => _setZIndex(zIndex);
-
-  Animation? _getAnimation() {
-    final String value = callMethod(this, 'getAnimation', []) as String;
-    final Animation animation =
-        Animation.values.firstWhere((Animation e) => e.toString() == value);
-    print('[LEESS] _getAnimation: $animation');
-    return animation;
-  }
-
-  bool? _getClickable() {
-    final String value = callMethod(this, 'getClickable', []) as String;
-    bool b = value.toLowerCase() == 'true';
-    print('[LEESS] _getClickable: $b');
-    return b;
-  }
-
-  String? _getCursor() {
-    final String value = callMethod(this, 'getCursor', []) as String;
-    print('[LEESS] _getCursor: $value');
-    return value;
-  }
-
-  bool? _getDraggable() {
-    final String value = callMethod(this, 'getDraggable', []) as String;
-    final bool b = value.toLowerCase() == 'true';
-    print('[LEESS] _getDraggable: $b');
-    return b;
-  }
-
-  Object? /*String?|Icon?|GSymbol?*/ _getIcon() {
-    final String value = callMethod(this, 'getIcon', []) as String;
-    print('[LEESS] _getIcon: $value');
-    return value;
-  }
-
-  GMarkerLabel? _getLabel() {
-    final String value = callMethod(this, 'getLabel', []) as String;
-    print('[LEESS] _getLabel: $value');
-    return GMarkerLabel();
-  }
-
-  Object? /*GMap?|StreetViewPanorama?*/ _getMap() {
-    final String value = callMethod(this, 'getMap', []) as String;
-    print('[LEESS] _getMap: $value');
-    return Object();
-  }
-
-  num? _getOpacity() {
-    final String value = callMethod(this, 'getOpacity', []) as String;
-    final num result = num.parse(value);
-    print('[LEESS] _getOpacity: $result');
-    return result;
-  }
-
-  // LatLng? _getPosition() {
-  //   print('[LEESS] 1._getPosition');
-  //   final Future<String> value = callMethod(this, 'getPosition', []);
-  //   LatLng result = nullLatLng;
-  //   value.then((String value) {
-  //     result = _convertToLatLng(value);
-  //   });
-  //   print('[LEESS] 1._getPosition: $value');
-  //   return result;
-  // }
-
-  LatLng? _getPosition() {
-    print('[LEESS] 1._getPosition');
-    LatLng result = nullLatLng;
-    final Future<LatLng> value = _callMethod();
-    value.then((LatLng value) => result = value);
-    // final LatLng result = _convertToLatLng2(value) as LatLng;
-    // print('[LEESS] 1._getPosition: $value');
-    return result;
-  }
-
-  Future<LatLng> _callMethod() async {
-    final String value = await _callMethod2(this, 'getPosition', []);
-    final LatLng result = _convertToLatLng(value);
-    return result;
-  }
-
-  Future<String> _callMethod2(
-      Object o, String method, List<Object?> args) async {
-    assert(webController != null, 'webController is null!!');
-    final String command =
-        'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
-    print('[LEESS] 3.InfoWindow [$method($args)] : $command');
-    final String result =
-        await (await webController!).evaluateJavascript(command);
-    print('[LEESS] 4.InfoWindow [$method] result: $result');
-    return result;
-  }
-
-  GMarkerShape? _getShape() {
-    final String value = callMethod(this, 'getShape', []) as String;
-    print('[LEESS] _getShape: $value');
-    return Object() as GMarkerShape;
-  }
-
-  String? _getTitle() {
-    final String value = callMethod(this, 'getTitle', []) as String;
-    print('[LEESS] _getTitle: $value');
-    return value;
-  }
-
-  bool? _getVisible() {
-    final String value = callMethod(this, 'getVisible', []) as String;
-    final bool b = value.toLowerCase() == 'true';
-    print('[LEESS] _getVisible: $b');
-    return b;
-  }
-
-  num? _getZIndex() {
-    final String value = callMethod(this, 'getZIndex', []) as String;
-    final num result = num.parse(value);
-    print('[LEESS] _getZIndex: $result');
-    return result;
-  }
 
   Future<void> _setAnimation(Animation? animation) async {
     await callMethod(this, 'setAnimation', [animation]);
