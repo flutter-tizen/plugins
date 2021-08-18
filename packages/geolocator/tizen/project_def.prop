@@ -2,7 +2,7 @@
 # for details.
 
 APPNAME = geolocator_tizen_plugin
-type = sharedLib
+type = staticLib
 profile = common-4.0
 
 # Source files
