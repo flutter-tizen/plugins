@@ -28,7 +28,7 @@ LatLng _convertToLatLng(String value) {
 
 class GMarkerOptions {
   GMarkerOptions();
-  Point? anchorPoint;
+  GPoint? anchorPoint;
   Animation? animation;
   bool? clickable;
   bool? crossOnDrag;
@@ -76,11 +76,16 @@ class GIcon {
   GIcon();
 
   String? url;
-  Point? anchor;
-  Point? labelOrigin;
-  Point? origin;
+  GPoint? anchor;
+  GPoint? labelOrigin;
+  GPoint? origin;
   GSize? scaledSize;
   GSize? size;
+
+  @override
+  String toString() {
+    return '{url: "$url", anchor: $anchor, labelOrigin:$labelOrigin, origin: $origin, scaledSize:$scaledSize, size: $size}';
+  }
 }
 
 // 'google.maps.Size'
@@ -102,6 +107,23 @@ class GSize {
 
   String toValue() {
     return '{width:$width, height:$height}';
+  }
+}
+
+// 'google.maps.Point'
+class GPoint {
+  GPoint(num? this.x, num? this.y);
+
+  num? x;
+  num? y;
+
+  @override
+  String toString() {
+    return 'new google.maps.Point($x, $y)';
+  }
+
+  String toValue() {
+    return '{x:$x, y:$y}';
   }
 }
 
@@ -151,7 +173,7 @@ class GInfoWindow {
   Future<void> _createInfoWindow(GInfoWindowOptions? opts) async {
     final String command =
         'var ${toString()} = new google.maps.InfoWindow($opts);';
-    await webController!.evaluateJavascript(command);
+    await (await webController!).evaluateJavascript(command);
   }
 
   final int _id;
@@ -162,7 +184,7 @@ class GInfoWindow {
   }
 
   Future<void> _callCloseInfoWindow() async {
-    await webController!.evaluateJavascript('${toString()}.close();');
+    await (await webController!).evaluateJavascript('${toString()}.close();');
   }
 
   void open([
@@ -172,7 +194,7 @@ class GInfoWindow {
   }
 
   Future<void> _callOpenInfoWindow(GMarker? anchor) async {
-    await webController!.evaluateJavascript(
+    await (await webController!).evaluateJavascript(
         '${toString()}.open({anchor: ${anchor.toString()}, map});');
   }
 
@@ -259,7 +281,7 @@ class GMarker {
 
   Future<void> _createMarker(GMarkerOptions? opts) async {
     final String command = 'var ${toString()} = new google.maps.Marker($opts);';
-    await webController!.evaluateJavascript(command);
+    await (await webController!).evaluateJavascript(command);
   }
 
   final int id;
@@ -392,7 +414,8 @@ extension GMarker$Ext on GMarker {
     final String command =
         'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
     print('[LEESS] 3.InfoWindow [$method($args)] : $command');
-    final String result = await webController!.evaluateJavascript(command);
+    final String result =
+        await (await webController!).evaluateJavascript(command);
     print('[LEESS] 4.InfoWindow [$method] result: $result');
     return result;
   }
@@ -481,14 +504,14 @@ extension GMarker$Ext on GMarker {
 }
 
 WebView? webview;
-WebViewController? webController;
+Future<WebViewController>? webController;
 
 Future<String> getProperty(Object o, String method) async {
   assert(webController != null, 'mapController is null!!');
 
   final String command = 'JSON.stringify(${o.toString()}[\'$method\'])';
   print('${o.toString()}.getProperty: $command');
-  return await webController!.evaluateJavascript(command);
+  return await (await webController!).evaluateJavascript(command);
 }
 
 Future<String> setProperty(Object o, String method, Object? value) async {
@@ -497,7 +520,7 @@ Future<String> setProperty(Object o, String method, Object? value) async {
   final String command =
       'JSON.stringify(${o.toString()}[\'$method\'] = $value)';
   print('${o.toString()}.setProperty: $command');
-  return await webController!.evaluateJavascript(command);
+  return await (await webController!).evaluateJavascript(command);
 }
 
 Future<String> callMethod(Object o, String method, List<Object?> args) async {
@@ -506,5 +529,5 @@ Future<String> callMethod(Object o, String method, List<Object?> args) async {
   final String command =
       'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
   print('[${o.toString()}][$method($args)] : $command');
-  return await webController!.evaluateJavascript(command);
+  return await (await webController!).evaluateJavascript(command);
 }

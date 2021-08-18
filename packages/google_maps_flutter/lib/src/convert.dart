@@ -182,16 +182,13 @@ util.GMarkerOptions _markerOptionsFromMarker(
   final iconConfig = marker.icon.toJson() as List;
   util.GIcon? icon;
 
-  // TODO(seungsoo): Please implement the code below appropriately.
   if (iconConfig != null || iconConfig.isEmpty) {
     if (iconConfig[0] == 'fromAssetImage') {
       assert(iconConfig.length >= 2);
       // iconConfig[2] contains the DPIs of the screen, but that information is
       // already encoded in the iconConfig[1]
 
-      // TODO(seungsoo): temporally make hard code
-      icon = util.GIcon()..url = '${iconConfig[1]}';
-      // ..url = ui.webOnlyAssetManager.getAssetUrl(iconConfig[1]);
+      icon = util.GIcon()..url = '../${iconConfig[1]}';
 
       // iconConfig[3] may contain the [width, height] of the image, if passed!
       if (iconConfig.length >= 4 && iconConfig[3] != null) {
@@ -202,6 +199,7 @@ util.GMarkerOptions _markerOptionsFromMarker(
           ..scaledSize = size;
       }
     } else if (iconConfig[0] == 'fromBytes') {
+      // TODO(seungsoo): Please implement the code below appropriately.
       // // Grab the bytes, and put them into a blob
       // List<int> bytes = iconConfig[1] as List<int>;
       // final blob = Blob(bytes); // Let the browser figure out the encoding

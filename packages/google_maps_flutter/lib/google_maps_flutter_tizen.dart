@@ -7,6 +7,7 @@ library google_maps_flutter_tizen;
 import 'dart:async';
 import 'dart:convert';
 // import 'dart:html';
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';

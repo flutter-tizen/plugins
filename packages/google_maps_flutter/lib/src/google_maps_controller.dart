@@ -25,35 +25,20 @@ class GoogleMapController {
       Completer<WebViewController>();
   Future<WebViewController> get controller => _controller.future;
 
-  Future<void> _loadHtmlFromAssets() async {
-    final String options = _createOptions();
-    final String initMap = '''
-          function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), $options);
-            map.addListener('bounds_changed', BoundChanged.postMessage);
-            map.addListener('idle', Idle.postMessage);
-            map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
-            map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
-          }
-          ''';
+  late WebViewController temp;
+  void _getWebview() {
+    print('_getWebview()');
 
-    String html = await rootBundle.loadString('assets/map.html');
-    final int pos = html.indexOf('let map;');
-    html = html.substring(0, pos + 8) +
-        initMap +
-        html.substring(pos + 8, html.length);
+    // TODO(seungsoo47): We need to check if the variable's value exists.
+    // If the variable does not exist, we must find other alternatives.
+    String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
+    path += '/res/flutter_assets/assets/map.html';
 
-    (await controller).loadUrl(Uri.dataFromString(html,
-            mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
-        .toString());
-  }
-
-  WebView _createWidget() {
-    _loadHtmlFromAssets();
-    return WebView(
+    _widget = WebView(
+      initialUrl: path,
       javascriptMode: JavascriptMode.unrestricted,
       onWebViewCreated: (WebViewController webViewController) async {
-        _controller.complete(webViewController);
+        temp = webViewController;
       },
       onProgress: (int progress) {
         print('Google map is loading (progress : $progress%)');
@@ -70,14 +55,33 @@ class GoogleMapController {
         print('Google map started loading');
       },
       onPageFinished: (String url) async {
+        _controller.complete(temp);
         print('Google map finished loading');
       },
       gestureNavigationEnabled: true,
     );
   }
 
+  Future<void> _createMap() async {
+    final String options = _createOptions();
+    final String command = '''
+      map = new google.maps.Map(document.getElementById('map'), $options);
+      map.addListener('bounds_changed', BoundChanged.postMessage);
+      map.addListener('idle', Idle.postMessage);
+      map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
+      map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
+    ''';
+    await (await controller).evaluateJavascript(command);
+  }
+
   /// The Flutter widget that will contain the rendered Map. Used for caching.
-  Widget? get widget => _widget;
+  Widget? get widget {
+    if (_widget == null && !_streamController.isClosed) {
+      _getWebview();
+      _createMap();
+    }
+    return _widget;
+  }
 
   String _createOptions() {
     String options = _rawOptionsToString(_rawMapOptions);
@@ -275,7 +279,7 @@ class GoogleMapController {
   ///
   /// Failure to call this method would result in the GMap not rendering at all,
   /// and most of the public methods on this class no-op'ing.
-  Future<void> init() async {
+  void init() {
     // TODO : implement for google_map_tizen if necessary
     // var options = _rawOptionsToGmapsOptions(_rawMapOptions);
     // // Initial position can only to be set here!
@@ -294,19 +298,24 @@ class GoogleMapController {
     // _setTrafficLayer(map, _isTrafficLayerEnabled(_rawMapOptions));
     //
 
+    print('init()');
     if (_widget == null && !_streamController.isClosed) {
-      final WebView webview = _createWidget();
-      _widget = webview;
-      _attachGeometryControllers(webview, await controller);
+      _getWebview();
+      _createMap();
     }
-
+    _attachGeometryControllers();
+    _renderInitialGeometry(
+      markers: _markers,
+      circles: _circles,
+      polygons: _polygons,
+      polylines: _polylines,
+    );
     _setTrafficLayer(_isTrafficLayerEnabled(_rawMapOptions));
   }
 
   // TODO : implement for google_map_tizen if necessary
   // // Binds the Geometry controllers to a map instance
-  void _attachGeometryControllers(
-      WebView webview, WebViewController controller) {
+  void _attachGeometryControllers() {
     // Now we can add the initial geometry.
     // And bind the (ready) map instance to the other geometry controllers.
     //
@@ -324,8 +333,8 @@ class GoogleMapController {
     //   _circlesController!.bindToMap(_mapId, map);
     //   _polygonsController!.bindToMap(_mapId, map);
     //   _polylinesController!.bindToMap(_mapId, map);
-    _markersController!.bindToMap(_mapId, webview);
-    util.webview = webview;
+    _markersController!.bindToMap(_mapId, _widget!);
+    util.webview = _widget!;
     util.webController = controller;
     _controllersBoundToMap = true;
   }
@@ -376,8 +385,10 @@ class GoogleMapController {
     _setTrafficLayer(_isTrafficLayerEnabled(newOptions));
   }
 
-  Future<String> _setOptions(String options) async {
-    return await _callMethod(await controller, 'setOptions', [options]);
+  Future<void> _setOptions(String options) async {
+    if (_controller.isCompleted) {
+      await _callMethod(await controller, 'setOptions', [options]);
+    }
   }
 
   Future<void> _setZoom(String options) async {
