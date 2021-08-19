@@ -161,7 +161,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
   if (markerSnippet.isNotEmpty) {
     buffer.write('<div class="infowindow-snippet">');
     buffer.write(markerSnippet);
-    buffer.write('</dvi>');
+    buffer.write('</div>');
   }
   buffer.write('</div>\'');
 
