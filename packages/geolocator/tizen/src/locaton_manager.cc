@@ -62,6 +62,36 @@ TizenResult LocationManager::RequestCurrentLocationOnce(
   return ret;
 }
 
+TizenResult LocationManager::GetLastKnownLocation(Location *location) {
+  double altitude = 0.0;
+  double latitude = 0.0;
+  double longitude = 0.0;
+  double climb = 0.0;
+  double direction = 0.0;
+  double speed = 0.0;
+  double horizontal = 0.0;
+  double vertical = 0.0;
+  location_accuracy_level_e level = LOCATIONS_ACCURACY_NONE;
+  time_t timestamp = 0;
+
+  TizenResult ret = location_manager_get_last_location(
+      manager_, &altitude, &latitude, &longitude, &climb, &direction, &speed,
+      &level, &horizontal, &vertical, &timestamp);
+  if (!ret) {
+    return ret;
+  }
+
+  location->longitude = longitude;
+  location->latitude = latitude;
+  location->timestamp = timestamp;
+  location->accuracy = horizontal;
+  location->altitude = altitude;
+  location->heading = direction;
+  location->speed = speed;
+
+  return ret;
+}
+
 TizenResult LocationManager::CreateLocationManager() {
   return location_manager_create(LOCATIONS_METHOD_HYBRID, &manager_);
 }
