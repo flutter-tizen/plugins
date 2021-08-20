@@ -56,6 +56,8 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       onIsLocationServiceEnabled(std::move(result));
     } else if (method_name == "requestPermission") {
       onRequestPermission(std::move(result));
+    } else if (method_name == "getLastKnownPosition") {
+      onGetLastKnownPosition(std::move(result));
     } else if (method_name == "getCurrentPosition") {
       onGetCurrentPosition(std::move(result));
     } else {
@@ -103,6 +105,19 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
                             tizen_result.message());
           delete result_ptr;
         });
+  }
+
+  void onGetLastKnownPosition(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    Location location;
+    TizenResult tizen_result =
+        location_manager_->GetLastKnownLocation(&location);
+    if (!tizen_result) {
+      result->Error("Failed to get last known position",
+                    tizen_result.message());
+      return;
+    }
+    result->Success(location.ToEncodableValue());
   }
 
   void onGetCurrentPosition(

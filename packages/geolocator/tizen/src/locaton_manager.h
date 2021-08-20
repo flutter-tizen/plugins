@@ -20,10 +20,12 @@ class LocationManager {
   LocationManager();
   ~LocationManager();
 
-  TizenResult IsLocationServiceEnabled(bool *is_enabled);
+  TizenResult IsLocationServiceEnabled(bool* is_enabled);
 
   TizenResult RequestCurrentLocationOnce(OnLocationUpdate on_position_update,
                                          OnError on_error);
+
+  TizenResult GetLastKnownLocation(Location* locaton);
 
  private:
   TizenResult CreateLocationManager();
