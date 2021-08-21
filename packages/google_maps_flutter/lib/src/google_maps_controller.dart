@@ -1,3 +1,4 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -13,7 +14,7 @@ class GoogleMapController {
   final Set<Polygon> _polygons;
   final Set<Polyline> _polylines;
   final Set<Circle> _circles;
-  // The raw options passed by the user, before converting to gmaps.
+  // The raw options passed by the user, before converting to maps.
   // Caching this allows us to re-create the map faithfully when needed.
   Map<String, dynamic> _rawMapOptions = <String, dynamic>{};
 
@@ -50,6 +51,9 @@ class GoogleMapController {
         _onRightClick(),
         _onMarkerClick(),
         _onMarkerDragEnd(),
+        _onPolylineClick(),
+        _onPolygonClick(),
+        _onCircleClick(),
       },
       onPageStarted: (String url) {
         print('Google map started loading');
@@ -95,11 +99,10 @@ class GoogleMapController {
   /// The Stream over which this controller broadcasts events.
   Stream<MapEvent> get events => _streamController.stream;
 
-  // TODO : implement for google_map_tizen if necessary
   // // Geometry controllers, for different features of the map.
-  // CirclesController? _circlesController;
-  // PolygonsController? _polygonsController;
-  // PolylinesController? _polylinesController;
+  CirclesController? _circlesController;
+  PolygonsController? _polygonsController;
+  PolylinesController? _polylinesController;
   MarkersController? _markersController;
 
   // Keeps track if _attachGeometryControllers has been called or not.
@@ -128,10 +131,9 @@ class GoogleMapController {
         _polylines = polylines,
         _circles = circles,
         _rawMapOptions = mapOptions {
-    // TODO : implement for google_map_tizen if necessary
-    // _circlesController = CirclesController(stream: this._streamController);
-    // _polygonsController = PolygonsController(stream: this._streamController);
-    // _polylinesController = PolylinesController(stream: this._streamController);
+    _circlesController = CirclesController(stream: _streamController);
+    _polygonsController = PolygonsController(stream: _streamController);
+    _polylinesController = PolylinesController(stream: _streamController);
     _markersController = MarkersController(stream: _streamController);
   }
 
@@ -178,36 +180,6 @@ class GoogleMapController {
         });
   }
 
-  JavascriptChannel _onMarkerClick() {
-    return JavascriptChannel(
-        name: 'MarkerClick',
-        onMessageReceived: (JavascriptMessage message) async {
-          try {
-            final dynamic id = json.decode(message.message);
-            if (_markersController != null && id is int) {
-              final MarkerId? markerId = _markersController!._idToMarkerId[id];
-              final MarkerController? marker =
-                  _markersController!._markerIdToController[markerId];
-              marker?._onTop!();
-            }
-          } catch (e) {
-            print('Javascript Error: $e');
-          }
-        });
-  }
-
-  JavascriptChannel _onMarkerDragEnd() {
-    return JavascriptChannel(
-        name: 'MarkerDragEnd',
-        onMessageReceived: (JavascriptMessage message) async {
-          try {
-            // TODO(seungsoo47): Implement properly.
-          } catch (e) {
-            print('Javascript Error: $e');
-          }
-        });
-  }
-
   JavascriptChannel _onRightClick() {
     // NOTE: LWE does not support a long press event.
     return JavascriptChannel(
@@ -227,40 +199,107 @@ class GoogleMapController {
         });
   }
 
-  // TODO : implement for google_map_tizen if necessary
-  // gmaps.GMap _createMap(HtmlElement div, gmaps.MapOptions options) {
-  //   if (_overrideCreateMap != null) {
-  //     return _overrideCreateMap!(div, options);
-  //   }
-  //   return gmaps.GMap(div, options);
-  // }
+  JavascriptChannel _onMarkerClick() {
+    return JavascriptChannel(
+        name: 'MarkerClick',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            final dynamic id = json.decode(message.message);
+            if (_markersController != null && id is int) {
+              final MarkerId? markerId = _markersController!._idToMarkerId[id];
+              final MarkerController? marker =
+                  _markersController!._markerIdToController[markerId];
+              if (marker?._onTap != null) {
+                marker?._onTap!();
+              }
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
 
-  /// Initializes the [gmaps.GMap] instance from the stored `rawOptions`.
+  JavascriptChannel _onMarkerDragEnd() {
+    return JavascriptChannel(
+        name: 'MarkerDragEnd',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            // TODO(seungsoo47): Implement properly.
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
+  JavascriptChannel _onPolylineClick() {
+    return JavascriptChannel(
+        name: 'PolylineClick',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            final dynamic id = json.decode(message.message);
+            if (_polylinesController != null && id is int) {
+              final PolylineId? polylineId =
+                  _polylinesController!._idToPolylineId[id];
+              final PolylineController? polyline =
+                  _polylinesController!._polylineIdToController[polylineId];
+              if (polyline?._onTap != null) {
+                polyline?._onTap!();
+              }
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
+  JavascriptChannel _onPolygonClick() {
+    return JavascriptChannel(
+        name: 'PolygonClick',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            final dynamic id = json.decode(message.message);
+            if (_polygonsController != null && id is int) {
+              final PolygonId? polygonId =
+                  _polygonsController!._idToPolygonId[id];
+              final PolygonController? polygon =
+                  _polygonsController!._polygonIdToController[polygonId];
+              if (polygon?._onTap != null) {
+                polygon?._onTap!();
+              }
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
+  JavascriptChannel _onCircleClick() {
+    return JavascriptChannel(
+        name: 'CircleClick',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            final dynamic id = json.decode(message.message);
+            if (_polygonsController != null && id is int) {
+              final CircleId? circleId = _circlesController!._idToCircleId[id];
+              final CircleController? circle =
+                  _circlesController!._circleIdToController[circleId];
+              if (circle?._onTap != null) {
+                circle?._onTap!();
+              }
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
+  /// Initializes the map from the stored `rawOptions`.
   ///
-  /// This method actually renders the GMap into the cached `_div`. This is
-  /// called by the [GoogleMapsPlugin.init] method when appropriate.
+  /// This is called by the [GoogleMapsPlugin.init] method when appropriate.
   ///
-  /// Failure to call this method would result in the GMap not rendering at all,
+  /// Failure to call this method would result in not rendering at all,
   /// and most of the public methods on this class no-op'ing.
   void init() {
-    // TODO : implement for google_map_tizen if necessary
-    // var options = _rawOptionsToGmapsOptions(_rawMapOptions);
-    // // Initial position can only to be set here!
-    // options = _applyInitialPosition(_initialCameraPosition, options);
-    // // Create the map...
-    // final map = _createMap(_div, options);
-    // _googleMap = map;
-    // _attachMapEvents(map);
-    // _attachGeometryControllers(map);
-    // _renderInitialGeometry(
-    //   markers: _markers,
-    //   circles: _circles,
-    //   polygons: _polygons,
-    //   polylines: _polylines,
-    // );
-    // _setTrafficLayer(map, _isTrafficLayerEnabled(_rawMapOptions));
-    //
-
     print('init()');
     if (_widget == null && !_streamController.isClosed) {
       _getWebview();
@@ -284,17 +323,17 @@ class GoogleMapController {
     // These controllers are either created in the constructor of this class, or
     // overriden (for testing) by the [debugSetOverrides] method. They can't be
     // null.
-    //   assert(_circlesController != null,
-    //       'Cannot attach a map to a null CirclesController instance.');
-    //   assert(_polygonsController != null,
-    //       'Cannot attach a map to a null PolygonsController instance.');
-    //   assert(_polylinesController != null,
-    //       'Cannot attach a map to a null PolylinesController instance.');
+    assert(_circlesController != null,
+        'Cannot attach a map to a null CirclesController instance.');
+    assert(_polygonsController != null,
+        'Cannot attach a map to a null PolygonsController instance.');
+    assert(_polylinesController != null,
+        'Cannot attach a map to a null PolylinesController instance.');
     assert(_markersController != null,
         'Cannot attach a map to a null MarkersController instance.');
-    //   _circlesController!.bindToMap(_mapId, map);
-    //   _polygonsController!.bindToMap(_mapId, map);
-    //   _polylinesController!.bindToMap(_mapId, map);
+    _circlesController!.bindToMap(_mapId, _widget!);
+    _polygonsController!.bindToMap(_mapId, _widget!);
+    _polylinesController!.bindToMap(_mapId, _widget!);
     _markersController!.bindToMap(_mapId, _widget!);
     util.webview = _widget!;
     util.webController = controller;
@@ -316,9 +355,9 @@ class GoogleMapController {
     // in the [_attachGeometryControllers] method, which ensures that all these
     // controllers below are *not* null.
     _markersController!.addMarkers(markers);
-    //   _circlesController!.addCircles(circles);
-    //   _polygonsController!.addPolygons(polygons);
-    //   _polylinesController!.addPolylines(polylines);
+    _circlesController!.addCircles(circles);
+    _polygonsController!.addPolygons(polygons);
+    _polylinesController!.addPolylines(polylines);
   }
 
   // Merges new options coming from the plugin into the _rawMapOptions map.
@@ -334,7 +373,7 @@ class GoogleMapController {
 
   /// Updates the map options from a `Map<String, dynamic>`.
   ///
-  /// This method converts the map into the proper [gmaps.MapOptions]
+  /// This method converts the map into the proper [MapOptions]
   void updateRawOptions(Map<String, dynamic> optionsUpdate) {
     assert(_widget != null, 'Cannot update options on a null map.');
 
@@ -570,37 +609,33 @@ class GoogleMapController {
 
   /// Applies [CircleUpdates] to the currently managed circles.
   void updateCircles(CircleUpdates updates) {
-    // TODO : implement for google_map_tizen if necessary
-    // assert(
-    //     _circlesController != null, 'Cannot update circles after dispose().');
-    // _circlesController?.addCircles(updates.circlesToAdd);
-    // _circlesController?.changeCircles(updates.circlesToChange);
-    // _circlesController?.removeCircles(updates.circleIdsToRemove);
+    assert(
+        _circlesController != null, 'Cannot update circles after dispose().');
+    _circlesController?.addCircles(updates.circlesToAdd);
+    _circlesController?.changeCircles(updates.circlesToChange);
+    _circlesController?.removeCircles(updates.circleIdsToRemove);
   }
 
   /// Applies [PolygonUpdates] to the currently managed polygons.
   void updatePolygons(PolygonUpdates updates) {
-    // TODO : implement for google_map_tizen if necessary
-    // assert(
-    //     _polygonsController != null, 'Cannot update polygons after dispose().');
-    // _polygonsController?.addPolygons(updates.polygonsToAdd);
-    // _polygonsController?.changePolygons(updates.polygonsToChange);
-    // _polygonsController?.removePolygons(updates.polygonIdsToRemove);
+    assert(
+        _polygonsController != null, 'Cannot update polygons after dispose().');
+    _polygonsController?.addPolygons(updates.polygonsToAdd);
+    _polygonsController?.changePolygons(updates.polygonsToChange);
+    _polygonsController?.removePolygons(updates.polygonIdsToRemove);
   }
 
   /// Applies [PolylineUpdates] to the currently managed lines.
   void updatePolylines(PolylineUpdates updates) {
-    // TODO : implement for google_map_tizen if necessary
-    // assert(_polylinesController != null,
-    //     'Cannot update polylines after dispose().');
-    // _polylinesController?.addPolylines(updates.polylinesToAdd);
-    // _polylinesController?.changePolylines(updates.polylinesToChange);
-    // _polylinesController?.removePolylines(updates.polylineIdsToRemove);
+    assert(_polylinesController != null,
+        'Cannot update polylines after dispose().');
+    _polylinesController?.addPolylines(updates.polylinesToAdd);
+    _polylinesController?.changePolylines(updates.polylinesToChange);
+    _polylinesController?.removePolylines(updates.polylineIdsToRemove);
   }
 
   /// Applies [MarkerUpdates] to the currently managed markers.
   void updateMarkers(MarkerUpdates updates) {
-    // TODO : implement for google_map_tizen if necessary
     assert(
         _markersController != null, 'Cannot update markers after dispose().');
     _markersController?.addMarkers(updates.markersToAdd);
@@ -610,7 +645,6 @@ class GoogleMapController {
 
   /// Shows the [InfoWindow] of the marker identified by its [MarkerId].
   void showInfoWindow(MarkerId markerId) {
-    // TODO : implement for google_map_tizen if necessary
     assert(_markersController != null,
         'Cannot show infowindow of marker [${markerId.value}] after dispose().');
     _markersController?.showMarkerInfoWindow(markerId);
@@ -618,7 +652,6 @@ class GoogleMapController {
 
   /// Hides the [InfoWindow] of the marker identified by its [MarkerId].
   void hideInfoWindow(MarkerId markerId) {
-    // TODO : implement for google_map_tizen if necessary
     assert(_markersController != null,
         'Cannot hide infowindow of marker [${markerId.value}] after dispose().');
     _markersController?.hideMarkerInfoWindow(markerId);
@@ -626,10 +659,7 @@ class GoogleMapController {
 
   /// Returns true if the [InfoWindow] of the marker identified by [MarkerId] is shown.
   bool isInfoWindowShown(MarkerId markerId) {
-    // TODO : implement for google_map_tizen if necessary
     return _markersController?.isInfoWindowShown(markerId) ?? false;
-
-    return false;
   }
 
   // Cleanup
@@ -639,16 +669,11 @@ class GoogleMapController {
   /// You won't be able to call many of the methods on this controller after
   /// calling `dispose`!
   void dispose() {
-    // TODO : implement for google_map_tizen if necessary
-    // _widget = null;
-    // _googleMap = null;
-    // _circlesController = null;
-    // _polygonsController = null;
-    // _polylinesController = null;
-    _markersController = null;
-    // _streamController.close();
-
     _widget = null;
+    _circlesController = null;
+    _polygonsController = null;
+    _polylinesController = null;
+    _markersController = null;
     _streamController.close();
   }
 }
