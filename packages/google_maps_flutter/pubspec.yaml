@@ -10,7 +10,6 @@ flutter:
         dartPluginClass: GoogleMapsPlugin
         fileName: google_maps_flutter_tizen.dart
 
-
 dependencies:
   flutter:
     sdk: flutter
