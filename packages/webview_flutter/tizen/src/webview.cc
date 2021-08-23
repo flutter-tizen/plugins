@@ -811,12 +811,12 @@ void WebView::HandleMethodCall(
 
   if (method_name.compare("loadUrl") == 0) {
     std::string url;
-    if (GetValueFromEncodableMap(arguments, "viewType", &url)) {
+    if (GetValueFromEncodableMap(arguments, "url", &url)) {
       webview_instance_->LoadURL(url);
       result->Success();
       return;
     }
-    result->Error("Invalid Arguments", "Invalid Arguments");
+    result->Error("InvalidArguments", "Please set 'url' properly");
   } else if (method_name.compare("updateSettings") == 0) {
     if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
       auto settings = std::get<flutter::EncodableMap>(arguments);
@@ -858,7 +858,7 @@ void WebView::HandleMethodCall(
             }
           });
     } else {
-      result->Error("Invalid Arguments", "Invalid Arguments");
+      result->Error("InvalidArguments", "Please set javascript string");
     }
   } else if (method_name.compare("addJavascriptChannels") == 0) {
     if (std::holds_alternative<flutter::EncodableList>(arguments)) {
@@ -894,7 +894,7 @@ void WebView::HandleMethodCall(
       result->Success();
       return;
     }
-    result->Error("Invalid Arguments", "Invalid Arguments");
+    result->Error("InvalidArguments", "Please set 'x' or 'y' properly");
   } else if (method_name.compare("scrollBy") == 0) {
     int x = 0, y = 0;
     if (GetValueFromEncodableMap(arguments, "x", &x) &&
@@ -903,7 +903,7 @@ void WebView::HandleMethodCall(
       result->Success();
       return;
     }
-    result->Error("Invalid Arguments", "Invalid Arguments");
+    result->Error("InvalidArguments", "Please set 'x' or 'y' properly");
   } else if (method_name.compare("getScrollX") == 0) {
     result->Success(flutter::EncodableValue(webview_instance_->GetScrollX()));
   } else if (method_name.compare("getScrollY") == 0) {
