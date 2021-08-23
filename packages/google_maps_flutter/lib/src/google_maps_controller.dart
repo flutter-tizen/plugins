@@ -25,35 +25,20 @@ class GoogleMapController {
       Completer<WebViewController>();
   Future<WebViewController> get controller => _controller.future;
 
-  Future<void> _loadHtmlFromAssets() async {
-    final String options = _createOptions();
-    final String initMap = '''
-          function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), $options);
-            map.addListener('bounds_changed', BoundChanged.postMessage);
-            map.addListener('idle', Idle.postMessage);
-            map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
-            map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
-          }
-          ''';
+  late WebViewController temp;
+  void _getWebview() {
+    print('_getWebview()');
 
-    String html = await rootBundle.loadString('assets/map.html');
-    final int pos = html.indexOf('let map;');
-    html = html.substring(0, pos + 8) +
-        initMap +
-        html.substring(pos + 8, html.length);
+    // TODO(seungsoo47): We need to check if the variable's value exists.
+    // If the variable does not exist, we must find other alternatives.
+    String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
+    path += '/res/flutter_assets/assets/map.html';
 
-    (await controller).loadUrl(Uri.dataFromString(html,
-            mimeType: 'text/html', encoding: Encoding.getByName('utf-8'))
-        .toString());
-  }
-
-  void _createWidget() {
-    _loadHtmlFromAssets();
     _widget = WebView(
+      initialUrl: path,
       javascriptMode: JavascriptMode.unrestricted,
       onWebViewCreated: (WebViewController webViewController) async {
-        _controller.complete(webViewController);
+        temp = webViewController;
       },
       onProgress: (int progress) {
         print('Google map is loading (progress : $progress%)');
@@ -63,31 +48,46 @@ class GoogleMapController {
         _onIdle(),
         _onClick(),
         _onRightClick(),
+        _onMarkerClick(),
+        _onMarkerDragEnd(),
       },
       onPageStarted: (String url) {
         print('Google map started loading');
       },
       onPageFinished: (String url) async {
+        _controller.complete(temp);
         print('Google map finished loading');
       },
       gestureNavigationEnabled: true,
     );
   }
 
+  Future<void> _createMap() async {
+    final String options = _createOptions();
+    final String command = '''
+      map = new google.maps.Map(document.getElementById('map'), $options);
+      map.addListener('bounds_changed', BoundChanged.postMessage);
+      map.addListener('idle', Idle.postMessage);
+      map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
+      map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
+    ''';
+    await (await controller).evaluateJavascript(command);
+  }
+
   /// The Flutter widget that will contain the rendered Map. Used for caching.
-  Widget? get widget => _widget;
+  Widget? get widget {
+    if (_widget == null && !_streamController.isClosed) {
+      _getWebview();
+      _createMap();
+    }
+    return _widget;
+  }
 
   String _createOptions() {
     String options = _rawOptionsToString(_rawMapOptions);
     options = _applyInitialPosition(_initialCameraPosition, options);
     return '{$options}';
   }
-
-  // /// A getter for the current traffic layer. Only for tests.
-  // @visibleForTesting
-  // gmaps.TrafficLayer? get trafficLayer => _trafficLayer;
-  // // The underlying GMap instance. This is the interface with the JS SDK.
-  // gmaps.GMap? _googleMap;
 
   // The StreamController used by this controller and the geometry ones.
   final StreamController<MapEvent> _streamController;
@@ -100,12 +100,11 @@ class GoogleMapController {
   // CirclesController? _circlesController;
   // PolygonsController? _polygonsController;
   // PolylinesController? _polylinesController;
-  // MarkersController? _markersController;
+  MarkersController? _markersController;
 
-  // TODO : implement for google_map_tizen if necessary
-  // // Keeps track if _attachGeometryControllers has been called or not.
-  // bool _controllersBoundToMap = false;
-  // // Keeps track if the map is moving or not.
+  // Keeps track if _attachGeometryControllers has been called or not.
+  bool _controllersBoundToMap = false;
+  // Keeps track if the map is moving or not.
   bool _mapIsMoving = false;
 
   /// Initializes the GoogleMapController.
@@ -133,7 +132,7 @@ class GoogleMapController {
     // _circlesController = CirclesController(stream: this._streamController);
     // _polygonsController = PolygonsController(stream: this._streamController);
     // _polylinesController = PolylinesController(stream: this._streamController);
-    // _markersController = MarkersController(stream: this._streamController);
+    _markersController = MarkersController(stream: _streamController);
   }
 
   JavascriptChannel _onBoundsChanged() {
@@ -179,6 +178,36 @@ class GoogleMapController {
         });
   }
 
+  JavascriptChannel _onMarkerClick() {
+    return JavascriptChannel(
+        name: 'MarkerClick',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            final dynamic id = json.decode(message.message);
+            if (_markersController != null && id is int) {
+              final MarkerId? markerId = _markersController!._idToMarkerId[id];
+              final MarkerController? marker =
+                  _markersController!._markerIdToController[markerId];
+              marker?._onTop!();
+            }
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
+  JavascriptChannel _onMarkerDragEnd() {
+    return JavascriptChannel(
+        name: 'MarkerDragEnd',
+        onMessageReceived: (JavascriptMessage message) async {
+          try {
+            // TODO(seungsoo47): Implement properly.
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
+        });
+  }
+
   JavascriptChannel _onRightClick() {
     // NOTE: LWE does not support a long press event.
     return JavascriptChannel(
@@ -197,24 +226,6 @@ class GoogleMapController {
           }
         });
   }
-
-  // TODO : implement for google_map_tizen if necessary
-  // /// Overrides certain properties to install mocks defined during testing.
-  // @visibleForTesting
-  // void debugSetOverrides({
-  //   DebugCreateMapFunction? createMap,
-  //   MarkersController? markers,
-  //   CirclesController? circles,
-  //   PolygonsController? polygons,
-  //   PolylinesController? polylines,
-  // }) {
-  //   _overrideCreateMap = createMap;
-  //   _markersController = markers ?? _markersController;
-  //   _circlesController = circles ?? _circlesController;
-  //   _polygonsController = polygons ?? _polygonsController;
-  //   _polylinesController = polylines ?? _polylinesController;
-  // }
-  // DebugCreateMapFunction? _overrideCreateMap;
 
   // TODO : implement for google_map_tizen if necessary
   // gmaps.GMap _createMap(HtmlElement div, gmaps.MapOptions options) {
@@ -250,59 +261,66 @@ class GoogleMapController {
     // _setTrafficLayer(map, _isTrafficLayerEnabled(_rawMapOptions));
     //
 
+    print('init()');
     if (_widget == null && !_streamController.isClosed) {
-      _createWidget();
+      _getWebview();
+      _createMap();
     }
-
+    _attachGeometryControllers();
+    _renderInitialGeometry(
+      markers: _markers,
+      circles: _circles,
+      polygons: _polygons,
+      polylines: _polylines,
+    );
     _setTrafficLayer(_isTrafficLayerEnabled(_rawMapOptions));
   }
 
-  // TODO : implement for google_map_tizen if necessary
-  // // Binds the Geometry controllers to a map instance
-  // void _attachGeometryControllers(gmaps.GMap map) {
-  //   // Now we can add the initial geometry.
-  //   // And bind the (ready) map instance to the other geometry controllers.
-  //   //
-  //   // These controllers are either created in the constructor of this class, or
-  //   // overriden (for testing) by the [debugSetOverrides] method. They can't be
-  //   // null.
-  //   assert(_circlesController != null,
-  //       'Cannot attach a map to a null CirclesController instance.');
-  //   assert(_polygonsController != null,
-  //       'Cannot attach a map to a null PolygonsController instance.');
-  //   assert(_polylinesController != null,
-  //       'Cannot attach a map to a null PolylinesController instance.');
-  //   assert(_markersController != null,
-  //       'Cannot attach a map to a null MarkersController instance.');
-  //   _circlesController!.bindToMap(_mapId, map);
-  //   _polygonsController!.bindToMap(_mapId, map);
-  //   _polylinesController!.bindToMap(_mapId, map);
-  //   _markersController!.bindToMap(_mapId, map);
-  //   _controllersBoundToMap = true;
-  // }
+  // Binds the Geometry controllers to a map instance
+  void _attachGeometryControllers() {
+    // Now we can add the initial geometry.
+    // And bind the (ready) map instance to the other geometry controllers.
+    //
+    // These controllers are either created in the constructor of this class, or
+    // overriden (for testing) by the [debugSetOverrides] method. They can't be
+    // null.
+    //   assert(_circlesController != null,
+    //       'Cannot attach a map to a null CirclesController instance.');
+    //   assert(_polygonsController != null,
+    //       'Cannot attach a map to a null PolygonsController instance.');
+    //   assert(_polylinesController != null,
+    //       'Cannot attach a map to a null PolylinesController instance.');
+    assert(_markersController != null,
+        'Cannot attach a map to a null MarkersController instance.');
+    //   _circlesController!.bindToMap(_mapId, map);
+    //   _polygonsController!.bindToMap(_mapId, map);
+    //   _polylinesController!.bindToMap(_mapId, map);
+    _markersController!.bindToMap(_mapId, _widget!);
+    util.webview = _widget!;
+    util.webController = controller;
+    _controllersBoundToMap = true;
+  }
 
-  // TODO : implement for google_map_tizen if necessary
-  // // Renders the initial sets of geometry.
-  // void _renderInitialGeometry({
-  //   Set<Marker> markers = const {},
-  //   Set<Circle> circles = const {},
-  //   Set<Polygon> polygons = const {},
-  //   Set<Polyline> polylines = const {},
-  // }) {
-  //   assert(
-  //       _controllersBoundToMap,
-  //       'Geometry controllers must be bound to a map before any geometry can ' +
-  //           'be added to them. Ensure _attachGeometryControllers is called first.');
-  //   // The above assert will only succeed if the controllers have been bound to a map
-  //   // in the [_attachGeometryControllers] method, which ensures that all these
-  //   // controllers below are *not* null.
-  //   _markersController!.addMarkers(markers);
-  //   _circlesController!.addCircles(circles);
-  //   _polygonsController!.addPolygons(polygons);
-  //   _polylinesController!.addPolylines(polylines);
-  // }
+  // Renders the initial sets of geometry.
+  void _renderInitialGeometry({
+    Set<Marker> markers = const {},
+    Set<Circle> circles = const {},
+    Set<Polygon> polygons = const {},
+    Set<Polyline> polylines = const {},
+  }) {
+    assert(
+        _controllersBoundToMap,
+        'Geometry controllers must be bound to a map before any geometry can ' +
+            'be added to them. Ensure _attachGeometryControllers is called first.');
+    // The above assert will only succeed if the controllers have been bound to a map
+    // in the [_attachGeometryControllers] method, which ensures that all these
+    // controllers below are *not* null.
+    _markersController!.addMarkers(markers);
+    //   _circlesController!.addCircles(circles);
+    //   _polygonsController!.addPolygons(polygons);
+    //   _polylinesController!.addPolylines(polylines);
+  }
 
-  // TODO : implement for google_map_tizen if necessary
   // Merges new options coming from the plugin into the _rawMapOptions map.
   //
   // Returns the updated _rawMapOptions object.
@@ -327,8 +345,10 @@ class GoogleMapController {
     _setTrafficLayer(_isTrafficLayerEnabled(newOptions));
   }
 
-  Future<String> _setOptions(String options) async {
-    return await _callMethod(await controller, 'setOptions', [options]);
+  Future<void> _setOptions(String options) async {
+    if (_controller.isCompleted) {
+      await _callMethod(await controller, 'setOptions', [options]);
+    }
   }
 
   Future<void> _setZoom(String options) async {
@@ -371,44 +391,10 @@ class GoogleMapController {
 
   Future<String> _callMethod(
       WebViewController mapView, String method, List<Object?> args) async {
-    print('callMethod: $method($args)');
     final String command = 'JSON.stringify(map.$method.apply(map, $args))';
+    print('callMethod: $command');
     final String result = await mapView.evaluateJavascript(command);
     return result;
-  }
-
-  LatLngBounds _convertToBounds(String value) {
-    try {
-      final dynamic bound = json.decode(value);
-      if (bound is Map<String, dynamic>) {
-        assert(bound['south'] is double &&
-            bound['west'] is double &&
-            bound['north'] is double &&
-            bound['east'] is double);
-        return LatLngBounds(
-            southwest:
-                LatLng(bound['south'] as double, bound['west'] as double),
-            northeast:
-                LatLng(bound['north'] as double, bound['east'] as double));
-      }
-    } catch (e) {
-      print('Javascript Error: $e');
-    }
-    return _nullLatLngBounds;
-  }
-
-  LatLng _convertToLatLng(String value) {
-    try {
-      final dynamic latlng = json.decode(value);
-      if (latlng is Map<String, dynamic>) {
-        assert(latlng['lat'] is num && latlng['lng'] is num);
-        return LatLng(
-            (latlng['lat'] as num) + 0.0, (latlng['lng'] as num) + 0.0);
-      }
-    } catch (e) {
-      print('Javascript Error: $e');
-    }
-    return _nullLatLng;
   }
 
   Future<LatLngBounds> _getBounds(WebViewController c) async {
@@ -615,33 +601,33 @@ class GoogleMapController {
   /// Applies [MarkerUpdates] to the currently managed markers.
   void updateMarkers(MarkerUpdates updates) {
     // TODO : implement for google_map_tizen if necessary
-    // assert(
-    //     _markersController != null, 'Cannot update markers after dispose().');
-    // _markersController?.addMarkers(updates.markersToAdd);
-    // _markersController?.changeMarkers(updates.markersToChange);
-    // _markersController?.removeMarkers(updates.markerIdsToRemove);
+    assert(
+        _markersController != null, 'Cannot update markers after dispose().');
+    _markersController?.addMarkers(updates.markersToAdd);
+    _markersController?.changeMarkers(updates.markersToChange);
+    _markersController?.removeMarkers(updates.markerIdsToRemove);
   }
 
   /// Shows the [InfoWindow] of the marker identified by its [MarkerId].
   void showInfoWindow(MarkerId markerId) {
     // TODO : implement for google_map_tizen if necessary
-    // assert(_markersController != null,
-    //     'Cannot show infowindow of marker [${markerId.value}] after dispose().');
-    // _markersController?.showMarkerInfoWindow(markerId);
+    assert(_markersController != null,
+        'Cannot show infowindow of marker [${markerId.value}] after dispose().');
+    _markersController?.showMarkerInfoWindow(markerId);
   }
 
   /// Hides the [InfoWindow] of the marker identified by its [MarkerId].
   void hideInfoWindow(MarkerId markerId) {
     // TODO : implement for google_map_tizen if necessary
-    // assert(_markersController != null,
-    //     'Cannot hide infowindow of marker [${markerId.value}] after dispose().');
-    // _markersController?.hideMarkerInfoWindow(markerId);
+    assert(_markersController != null,
+        'Cannot hide infowindow of marker [${markerId.value}] after dispose().');
+    _markersController?.hideMarkerInfoWindow(markerId);
   }
 
   /// Returns true if the [InfoWindow] of the marker identified by [MarkerId] is shown.
   bool isInfoWindowShown(MarkerId markerId) {
     // TODO : implement for google_map_tizen if necessary
-    // return _markersController?.isInfoWindowShown(markerId) ?? false;
+    return _markersController?.isInfoWindowShown(markerId) ?? false;
 
     return false;
   }
@@ -659,7 +645,7 @@ class GoogleMapController {
     // _circlesController = null;
     // _polygonsController = null;
     // _polylinesController = null;
-    // _markersController = null;
+    _markersController = null;
     // _streamController.close();
 
     _widget = null;
