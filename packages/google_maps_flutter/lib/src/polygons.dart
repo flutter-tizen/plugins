@@ -17,7 +17,7 @@ class PolygonsController extends GeometryController {
   /// Initializes the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
   PolygonsController({
     required StreamController<MapEvent> stream,
-  })   : _streamController = stream,
+  })  : _streamController = stream,
         _polygonIdToController = Map<PolygonId, PolygonController>(),
         _idToPolygonId = Map<int, PolygonId>();
 

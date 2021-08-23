@@ -17,7 +17,7 @@ class CirclesController extends GeometryController {
   /// Initialize the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
   CirclesController({
     required StreamController<MapEvent> stream,
-  })   : _streamController = stream,
+  })  : _streamController = stream,
         _circleIdToController = Map<CircleId, CircleController>(),
         _idToCircleId = Map<int, CircleId>();
 
