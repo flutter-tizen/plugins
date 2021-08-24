@@ -1,8 +1,13 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 part of google_maps_flutter_tizen;
+
+// Defaults taken from the Google Maps Platform SDK documentation.
+const String _defaultCssColor = '#000000';
+const double _defaultCssOpacity = 0.0;
 
 // Indices in the plugin side don't match with the ones
 Map<int, String> _mapTypeToMapTypeId = {
@@ -222,6 +227,102 @@ util.GMarkerOptions _markerOptionsFromMarker(
     ..opacity = marker.alpha
     ..draggable = marker.draggable
     ..icon = icon;
-  // TODO: Compute anchor properly, otherwise infowindows attach to the wrong spot.
-  // Flat and Rotation are not supported directly on the web.
+  // TODO: Flat and Rotation are not supported directly on the web.
+}
+
+// Converts a [Color] into a valid CSS value #RRGGBB.
+String _getCssColor(Color color) {
+  if (color == null) {
+    return _defaultCssColor;
+  }
+  return '#' + color.value.toRadixString(16).padLeft(8, '0').substring(2);
+}
+
+// Extracts the opacity from a [Color].
+double _getCssOpacity(Color color) {
+  if (color == null) {
+    return _defaultCssOpacity;
+  }
+  return color.opacity;
+}
+
+util.GPolylineOptions _polylineOptionsFromPolyline(Polyline polyline) {
+  return util.GPolylineOptions()
+    ..path = polyline.points
+    ..strokeWeight = polyline.width
+    ..strokeColor = _getCssColor(polyline.color)
+    ..strokeOpacity = _getCssOpacity(polyline.color)
+    ..visible = polyline.visible
+    ..zIndex = polyline.zIndex
+    ..geodesic = polyline.geodesic;
+//  The properties below are not directly supported on the web.
+//  this.endCap = Cap.buttCap,
+//  this.jointType = JointType.mitered,
+//  this.patterns = const <PatternItem>[],
+//  this.startCap = Cap.buttCap,
+//  this.width = 10,
+}
+
+util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
+  final List<LatLng> path = polygon.points;
+  final bool polygonDirection = _isPolygonClockwise(path);
+  final List<List<LatLng>> paths = [path];
+  int holeIndex = 0;
+  polygon.holes.forEach((List<LatLng> hole) {
+    List<LatLng> holePath = hole;
+    if (_isPolygonClockwise(holePath) == polygonDirection) {
+      holePath = holePath.reversed.toList();
+      if (kDebugMode) {
+        print(
+            'Hole [$holeIndex] in Polygon [${polygon.polygonId.value}] has been reversed.'
+            ' Ensure holes in polygons are "wound in the opposite direction to the outer path."'
+            ' More info: https://github.com/flutter/flutter/issues/74096');
+      }
+    }
+    paths.add(holePath);
+    holeIndex++;
+  });
+  return util.GPolygonOptions()
+    ..paths = paths
+    ..strokeColor = _getCssColor(polygon.strokeColor)
+    ..strokeOpacity = _getCssOpacity(polygon.strokeColor)
+    ..strokeWeight = polygon.strokeWidth
+    ..fillColor = _getCssColor(polygon.fillColor)
+    ..fillOpacity = _getCssOpacity(polygon.fillColor)
+    ..visible = polygon.visible
+    ..zIndex = polygon.zIndex
+    ..geodesic = polygon.geodesic;
+}
+
+/// Calculates the direction of a given Polygon
+/// based on: https://stackoverflow.com/a/1165943
+///
+/// returns [true] if clockwise [false] if counterclockwise
+///
+/// This method expects that the incoming [path] is a `List` of well-formed,
+/// non-null [LatLng] objects.
+///
+/// Currently, this method is only called from [_polygonOptionsFromPolygon], and
+/// the `path` is a transformed version of [Polygon.points] or each of the
+/// [Polygon.holes], guaranteeing that `lat` and `lng` can be accessed with `!`.
+bool _isPolygonClockwise(List<LatLng> path) {
+  double direction = 0.0;
+  for (int i = 0; i < path.length; i++) {
+    direction = direction +
+        ((path[(i + 1) % path.length].latitude - path[i].latitude) *
+            (path[(i + 1) % path.length].longitude + path[i].longitude));
+  }
+  return direction >= 0;
+}
+
+util.GCircleOptions _circleOptionsFromCircle(Circle circle) {
+  return util.GCircleOptions()
+    ..strokeColor = _getCssColor(circle.strokeColor)
+    ..strokeOpacity = _getCssOpacity(circle.strokeColor)
+    ..strokeWeight = circle.strokeWidth
+    ..fillColor = _getCssColor(circle.fillColor)
+    ..fillOpacity = _getCssOpacity(circle.fillColor)
+    ..center = LatLng(circle.center.latitude, circle.center.longitude)
+    ..radius = circle.radius
+    ..visible = circle.visible;
 }
