@@ -1,3 +1,4 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -25,12 +26,12 @@ import 'src/util.dart' as util;
 
 part 'src/google_maps_flutter_tizen.dart';
 part 'src/google_maps_controller.dart';
-// part 'src/circle.dart';
-// part 'src/circles.dart';
-// part 'src/polygon.dart';
-// part 'src/polygons.dart';
-// part 'src/polyline.dart';
-// part 'src/polylines.dart';
+part 'src/circle.dart';
+part 'src/circles.dart';
+part 'src/polygon.dart';
+part 'src/polygons.dart';
+part 'src/polyline.dart';
+part 'src/polylines.dart';
 part 'src/marker.dart';
 part 'src/markers.dart';
 part 'src/convert.dart';

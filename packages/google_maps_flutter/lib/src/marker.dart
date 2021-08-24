@@ -1,3 +1,4 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -18,7 +19,7 @@ class MarkerController {
 
   bool _infoWindowShown = false;
 
-  ui.VoidCallback? _onTop;
+  ui.VoidCallback? _onTap;
   LatLngCallback? _onDragEnd;
 
   /// Creates a `MarkerController`, which wraps a [GMarker] object, its `onTap`/`onDrag` behavior, and its associated [GInfoWindow].
@@ -31,16 +32,15 @@ class MarkerController {
     Future<WebViewController>? controller,
   })  : _marker = marker,
         _infoWindow = infoWindow,
-        _consumeTapEvents = consumeTapEvents {
+        _consumeTapEvents = consumeTapEvents,
+        _onTap = onTap,
+        _onDragEnd = onDragEnd {
     if (controller != null) {
-      _createMarkerController(controller);
-      _onTop = onTap;
-      _onDragEnd = onDragEnd;
+      _addMarkerEvent(controller);
     }
   }
 
-  Future<void> _createMarkerController(
-      Future<WebViewController>? _controller) async {
+  Future<void> _addMarkerEvent(Future<WebViewController>? _controller) async {
     String command =
         "$marker.addListener('click', (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));";
     command +=
