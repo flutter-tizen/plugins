@@ -469,34 +469,17 @@ class GoogleMapController {
 
   /// Returns the [ScreenCoordinate] for a given viewport [LatLng].
   Future<ScreenCoordinate> getScreenCoordinate(LatLng latLng) async {
-    // TODO : implement for google_map_tizen if necessary
-    // assert(_googleMap != null,
-    //     'Cannot get the screen coordinates with a null map.');
-    // assert(_googleMap!.projection != null,
-    //     'Cannot compute screen coordinate with a null map or projection.');
-    // final point =
-    //     _googleMap!.projection!.fromLatLngToPoint!(_latLngToGmLatLng(latLng))!;
-    // assert(point.x != null && point.y != null,
-    //     'The x and y of a ScreenCoordinate cannot be null.');
-    // return ScreenCoordinate(x: point.x!.toInt(), y: point.y!.toInt());
-
     assert(
         _widget != null, 'Cannot get the screen coordinates with a null map.');
-    return ScreenCoordinate(x: 0, y: 0);
+    return _convertToPoint(await _latLngToPoint(latLng));
   }
 
   /// Returns the [LatLng] for a `screenCoordinate` (in pixels) of the viewport.
   Future<LatLng> getLatLng(ScreenCoordinate screenCoordinate) async {
-    // TODO : implement for google_map_tizen if necessary
-    // assert(_googleMap != null,
-    //     'Cannot get the lat, lng of a screen coordinate with a null map.');
-    // final gmaps.LatLng latLng =
-    //     _pixelToLatLng(_googleMap!, screenCoordinate.x, screenCoordinate.y);
-    // return _gmLatLngToLatLng(latLng);
-
     assert(_widget != null,
         'Cannot get the lat, lng of a screen coordinate with a null map.');
-    return LatLng(0, 0);
+    return _convertToLatLng(await _pixelToLatLng(
+        screenCoordinate.x + 0.0, screenCoordinate.y + 0.0));
   }
 
   /// Applies a `cameraUpdate` to the current viewport.
@@ -594,6 +577,18 @@ class GoogleMapController {
       }
 
       JSON.stringify(getPixelToLatLng());
+    ''';
+
+    return await (await controller).evaluateJavascript(command);
+  }
+
+  Future<String> _latLngToPoint(LatLng latLng) async {
+    final String command = '''
+      function getLatLngToPixel() {
+        var latlng = new google.maps.LatLng(${latLng.latitude}, ${latLng.longitude});
+        return map.getProjection().fromLatLngToPoint(latlng);
+      }
+      JSON.stringify(getLatLngToPixel());
     ''';
 
     return await (await controller).evaluateJavascript(command);

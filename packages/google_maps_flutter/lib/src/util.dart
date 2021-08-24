@@ -12,6 +12,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 const LatLng nullLatLng = LatLng(0, 0);
 final LatLngBounds nullLatLngBounds =
     LatLngBounds(southwest: nullLatLng, northeast: nullLatLng);
+const ScreenCoordinate nullScreenCoordinate = ScreenCoordinate(x: 0, y: 0);
 
 class GMarkerOptions {
   GMarkerOptions();
