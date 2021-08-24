@@ -13,19 +13,6 @@ const LatLng nullLatLng = LatLng(0, 0);
 final LatLngBounds nullLatLngBounds =
     LatLngBounds(southwest: nullLatLng, northeast: nullLatLng);
 
-LatLng _convertToLatLng(String value) {
-  try {
-    final dynamic latlng = json.decode(value);
-    if (latlng is Map<String, dynamic>) {
-      assert(latlng['lat'] is num && latlng['lng'] is num);
-      return LatLng((latlng['lat'] as num) + 0.0, (latlng['lng'] as num) + 0.0);
-    }
-  } catch (e) {
-    print('Javascript Error: $e');
-  }
-  return nullLatLng;
-}
-
 class GMarkerOptions {
   GMarkerOptions();
   GPoint? anchorPoint;
@@ -46,7 +33,7 @@ class GMarkerOptions {
 
   @override
   String toString() {
-    return '{anchorPoint:$anchorPoint, animation:$animation, clickable:$clickable, crossOnDrag:$crossOnDrag, cursor:$cursor, draggable:$draggable, icon:$icon, label:$label, map, opacity:$opacity, optimized:$optimized, position:{lat:${position?.latitude}, lng:${position?.longitude}},shape: $shape, title:"$title", visible:$visible, zIndex:$zIndex}';
+    return '{anchorPoint:$anchorPoint, animation:$animation, clickable:$clickable, crossOnDrag:$crossOnDrag, cursor:$cursor, draggable:$draggable, icon:$icon, label:$label, map: map, opacity:$opacity, optimized:$optimized, position:new google.maps.LatLng(${position?.latitude}, ${position?.longitude}),shape: $shape, title:"$title", visible:$visible, zIndex:$zIndex}';
   }
 }
 
@@ -327,7 +314,7 @@ Future<String> getProperty(Object o, String method) async {
   assert(webController != null, 'mapController is null!!');
 
   final String command = 'JSON.stringify(${o.toString()}[\'$method\'])';
-  print('${o.toString()}.getProperty: $command');
+  print(command);
   return await (await webController!).evaluateJavascript(command);
 }
 
@@ -336,7 +323,7 @@ Future<String> setProperty(Object o, String method, Object? value) async {
 
   final String command =
       'JSON.stringify(${o.toString()}[\'$method\'] = $value)';
-  print('${o.toString()}.setProperty: $command');
+  print(command);
   return await (await webController!).evaluateJavascript(command);
 }
 
@@ -345,6 +332,252 @@ Future<String> callMethod(Object o, String method, List<Object?> args) async {
 
   final String command =
       'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
-  print('[${o.toString()}][$method($args)] : $command');
+  print(command);
   return await (await webController!).evaluateJavascript(command);
+}
+
+// 'google.maps.Polyline'
+class GPolyline {
+  GPolyline([
+    GPolylineOptions? opts, // ignore: unused_element
+  ]) : id = _gid++ {
+    _createPolyline(opts);
+  }
+
+  Future<void> _createPolyline(GPolylineOptions? opts) async {
+    final String command =
+        'var ${toString()} = new google.maps.Polyline($opts);';
+    await (await webController!).evaluateJavascript(command);
+  }
+
+  final int id;
+  static int _gid = 0;
+
+  GPolylineOptions? opts;
+
+  @override
+  String toString() {
+    return 'polyline$id';
+  }
+}
+
+extension GPolyline$Ext on GPolyline {
+  set visible(bool? visible) => _setVisible(visible);
+  set map(Object? /*GMap?|StreetViewPanorama?*/ map) => _setMap(map);
+
+  set options(GPolylineOptions? options) {
+    opts = options;
+    _setOptions(options);
+  }
+
+  Future<void> _setVisible(bool? visible) async {
+    await callMethod(this, 'setVisible', [visible]);
+  }
+
+  Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
+    await callMethod(this, 'setMap', [map]);
+  }
+
+  Future<void> _setOptions(GPolylineOptions? options) async {
+    await callMethod(this, 'setOptions', [options]);
+  }
+}
+
+class GPolylineOptions {
+  factory GPolylineOptions() {
+    return _options;
+  }
+  GPolylineOptions._internal();
+  static final GPolylineOptions _options = GPolylineOptions._internal();
+
+  bool? clickable;
+  bool? draggable;
+  bool? editable;
+  bool? geodesic;
+  List<LatLng?>? path;
+  String? strokeColor;
+  num? strokeOpacity;
+  num? strokeWeight;
+  bool? visible;
+  num? zIndex;
+
+  @override
+  String toString() {
+    final StringBuffer paths = StringBuffer();
+    for (final LatLng? position in path!) {
+      if (position != null) {
+        paths.write(
+            'new google.maps.LatLng(${position.latitude},${position.longitude}), ');
+      }
+    }
+
+    return '{clickable:$clickable, draggable:$draggable, editable:$editable, geodesic:$geodesic, path:[${paths.toString()}], strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+  }
+}
+
+// 'google.maps.StrokePosition'
+enum GStrokePosition { CENTER, INSIDE, OUTSIDE }
+
+// 'google.maps.Polygon'
+class GPolygon {
+  GPolygon([
+    GPolygonOptions? opts, // ignore: unused_element
+  ]) : id = _gid++ {
+    _createPolygon(opts);
+  }
+
+  Future<void> _createPolygon(GPolygonOptions? opts) async {
+    final String command =
+        'var ${toString()} = new google.maps.Polygon($opts);';
+    await (await webController!).evaluateJavascript(command);
+  }
+
+  final int id;
+  static int _gid = 0;
+
+  GPolygonOptions? opts;
+
+  @override
+  String toString() {
+    return 'polygon$id';
+  }
+}
+
+extension GPolygon$Ext on GPolygon {
+  set visible(bool? visible) => _setVisible(visible);
+  set map(Object? /*GMap?|StreetViewPanorama?*/ map) => _setMap(map);
+
+  set options(GPolygonOptions? options) {
+    opts = options;
+    _setOptions(options);
+  }
+
+  Future<void> _setVisible(bool? visible) async {
+    await callMethod(this, 'setVisible', [visible]);
+  }
+
+  Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
+    await callMethod(this, 'setMap', [map]);
+  }
+
+  Future<void> _setOptions(GPolygonOptions? options) async {
+    await callMethod(this, 'setOptions', [options]);
+  }
+}
+
+class GPolygonOptions {
+  factory GPolygonOptions() {
+    return _options;
+  }
+  GPolygonOptions._internal();
+  static final GPolygonOptions _options = GPolygonOptions._internal();
+
+  bool? clickable;
+  bool? draggable;
+  bool? editable;
+  String? fillColor;
+  num? fillOpacity;
+  bool? geodesic;
+  List<List<LatLng?>?>? paths;
+  String? strokeColor;
+  num? strokeOpacity;
+  GStrokePosition? strokePosition;
+  num? strokeWeight;
+  bool? visible;
+  num? zIndex;
+
+  @override
+  String toString() {
+    final StringBuffer str = StringBuffer();
+    for (final List<LatLng?>? latlng in paths!) {
+      str.write('[');
+      for (final LatLng? position in latlng!) {
+        if (position != null) {
+          str.write(
+              'new google.maps.LatLng(${position.latitude},${position.longitude}), ');
+        }
+      }
+      str.write('], ');
+    }
+
+    return '{clickable:$clickable, draggable:$draggable, editable:$editable, fillColor:"$fillColor", fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[${str.toString()}], strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map, strokePosition:$strokePosition ,strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+  }
+}
+
+// 'google.maps.Circle'
+class GCircle {
+  GCircle([
+    GCircleOptions? opts, // ignore: unused_element
+  ]) : id = _gid++ {
+    _createCircle(opts);
+  }
+
+  Future<void> _createCircle(GCircleOptions? opts) async {
+    final String command = 'var ${toString()} = new google.maps.Circle($opts);';
+    await (await webController!).evaluateJavascript(command);
+  }
+
+  final int id;
+  static int _gid = 0;
+
+  GCircleOptions? opts;
+
+  @override
+  String toString() {
+    return 'polygon$id';
+  }
+}
+
+extension GCircle$Ext on GCircle {
+  set visible(bool? visible) => _setVisible(visible);
+  set radius(num? radius) => _setRadius(radius);
+  set map(Object? /*GMap?|StreetViewPanorama?*/ map) => _setMap(map);
+
+  set options(GCircleOptions? options) {
+    opts = options;
+    _setOptions(options);
+  }
+
+  Future<void> _setVisible(bool? visible) async {
+    await callMethod(this, 'setVisible', [visible]);
+  }
+
+  Future<void> _setRadius(num? radius) async {
+    await callMethod(this, 'setRadius', [radius]);
+  }
+
+  Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
+    await callMethod(this, 'setMap', [map]);
+  }
+
+  Future<void> _setOptions(GCircleOptions? options) async {
+    await callMethod(this, 'setOptions', [options]);
+  }
+}
+
+class GCircleOptions {
+  factory GCircleOptions() {
+    return _options;
+  }
+  GCircleOptions._internal();
+  static final GCircleOptions _options = GCircleOptions._internal();
+
+  LatLng? center;
+  bool? clickable;
+  bool? draggable;
+  bool? editable;
+  String? fillColor;
+  num? fillOpacity;
+  num? radius;
+  String? strokeColor;
+  num? strokeOpacity;
+  GStrokePosition? strokePosition;
+  num? strokeWeight;
+  bool? visible;
+  num? zIndex;
+
+  @override
+  String toString() {
+    return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}), clickable:$clickable, draggable:$draggable, editable:$editable, fillColor:"$fillColor", fillOpacity:$fillOpacity, radius:$radius, strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map, strokePosition:$strokePosition ,strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+  }
 }
