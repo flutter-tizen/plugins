@@ -92,6 +92,27 @@ TizenResult LocationManager::GetLastKnownLocation(Location *location) {
   return ret;
 }
 
+TizenResult LocationManager::SetOnServiceStateChanged(
+    OnServiceStateChanged callback) {
+  return location_manager_set_service_state_changed_cb(
+      manager_,
+      [](location_service_state_e state, void *user_data) {
+        LocationManager *self = static_cast<LocationManager *>(user_data);
+        if (self->on_service_state_changed_) {
+          ServiceState service_state = ServiceState::kDisabled;
+          if (state == LOCATIONS_SERVICE_ENABLED) {
+            service_state = ServiceState::kEnabled;
+          }
+          self->on_service_state_changed_(service_state);
+        }
+      },
+      this);
+}
+
+TizenResult LocationManager::UnsetOnServiceStateChanged() {
+  return location_manager_unset_service_state_changed_cb(manager_);
+}
+
 TizenResult LocationManager::CreateLocationManager() {
   return location_manager_create(LOCATIONS_METHOD_HYBRID, &manager_);
 }
