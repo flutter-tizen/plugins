@@ -13,7 +13,6 @@
 #include "tizen_result.h"
 
 // Defined in:
-
 // https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_platform_interface/lib/src/enums/location_service.dart
 enum class ServiceState { kDisabled, kEnabled };
 
