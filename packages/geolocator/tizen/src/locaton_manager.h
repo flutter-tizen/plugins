@@ -12,8 +12,13 @@
 #include "location.h"
 #include "tizen_result.h"
 
+// Defined in:
+// https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_platform_interface/lib/src/enums/location_service.dart
+enum class ServiceState { kDisabled, kEnabled };
+
 using OnLocationUpdate = std::function<void(Location)>;
 using OnError = std::function<void(TizenResult)>;
+using OnServiceStateChanged = std::function<void(ServiceState)>;
 
 class LocationManager {
  public:
@@ -27,6 +32,10 @@ class LocationManager {
 
   TizenResult GetLastKnownLocation(Location* locaton);
 
+  TizenResult SetOnServiceStateChanged(OnServiceStateChanged callback);
+
+  TizenResult UnsetOnServiceStateChanged();
+
  private:
   TizenResult CreateLocationManager();
 
@@ -36,5 +45,6 @@ class LocationManager {
 
   OnLocationUpdate on_position_update_;
   OnError on_error_;
+  OnServiceStateChanged on_service_state_changed_;
 };
 #endif  // LOCATON_MANAGER_H_
