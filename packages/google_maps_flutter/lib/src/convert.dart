@@ -145,6 +145,27 @@ LatLng _convertToLatLng(String value) {
   return util.nullLatLng;
 }
 
+ScreenCoordinate _convertToPoint(String value) {
+  try {
+    final dynamic latlng = json.decode(value);
+    int x = 0, y = 0;
+
+    if (latlng is Map<String, dynamic>) {
+      x = latlng['x'] is int
+          ? latlng['x'] as int
+          : (latlng['x'] as double).toInt();
+      y = latlng['y'] is int
+          ? latlng['y'] as int
+          : (latlng['y'] as double).toInt();
+
+      return ScreenCoordinate(x: x, y: y);
+    }
+  } catch (e) {
+    print('Javascript Error: $e');
+  }
+  return util.nullScreenCoordinate;
+}
+
 util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
   final String markerTitle = marker.infoWindow.title ?? '';
   final String markerSnippet = marker.infoWindow.snippet ?? '';
