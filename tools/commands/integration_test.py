@@ -132,7 +132,7 @@ def _integration_test(plugin_dir, test_targets, timeout):
         return [TestResult.fail(plugin_name, errors=errors)]
 
     test_results = []
-    target_table = {}
+    target_table = _get_target_table()
 
     for test_target in test_targets:
         if test_target not in target_table:
@@ -141,12 +141,12 @@ def _integration_test(plugin_dir, test_targets, timeout):
             continue
 
         is_timed_out = False
-        process = subprocess.Popen('flutter-tizen test integration_test',
-                                shell=True,
-                                cwd=example_dir,
-                                universal_newlines=True,
-                                stderr=subprocess.PIPE,
-                                stdout=subprocess.PIPE)
+        process = subprocess.Popen(f'flutter-tizen -d {target_table[test_target]} test integration_test',
+                                   shell=True,
+                                   cwd=example_dir,
+                                   universal_newlines=True,
+                                   stderr=subprocess.PIPE,
+                                   stdout=subprocess.PIPE)
         last_line = ''
         start = time.time()
         for line in process.stdout:
@@ -208,6 +208,45 @@ def _integration_test(plugin_dir, test_targets, timeout):
                 plugin_name, test_target, errors=errors))
 
     return test_results
+
+
+def _get_target_table():
+
+    def _parse_target_info(capability_info: str):
+        capability_info.rstrip()
+        profile_name = ''
+        platform_version = ''
+        for line in capability_info.split('\n'):
+            tokens = line.split(':')
+            if(tokens[0] == 'profile_name'):
+                profile_name = tokens[1]
+            elif(tokens[0] == 'platform_version'):
+                platform_version = tokens[1]
+        # (TODO: HakkyuKim) Handle empty values here.
+        return profile_name, platform_version
+
+    completed_process = subprocess.run('sdb devices',
+                                       shell=True,
+                                       cwd='.',
+                                       universal_newlines=True,
+                                       stderr=subprocess.PIPE,
+                                       stdout=subprocess.PIPE)
+
+    table = {}
+    if completed_process.returncode == 0:
+        lines = completed_process.stdout.rstrip().split('\n')
+        for line in lines[1:]:
+            id = line.split(' ')[0]
+            completed_process = subprocess.run(f'sdb -s {id} capability',
+                                               shell=True,
+                                               cwd='.',
+                                               universal_newlines=True,
+                                               stderr=subprocess.PIPE,
+                                               stdout=subprocess.PIPE)
+            profile, platform_version = _parse_target_info(
+                completed_process.stdout)
+            table[f'{profile}-{platform_version}'] = id
+    return table
 
 
 def run_integration_test(argv):
