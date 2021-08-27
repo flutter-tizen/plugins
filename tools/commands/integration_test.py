@@ -43,17 +43,19 @@ class TestResult:
         details: A list of details about the test result. (e.g. reasons for failure.)
     """
 
-    def __init__(self, run_state, details=[]):
+    def __init__(self, plugin_name, run_state, test_target='', details=[]):
+        self.plugin_name = plugin_name
+        self.test_target = test_target
         self.run_state = run_state
         self.details = details
 
     @classmethod
-    def success(cls):
-        return cls('succeeded')
+    def success(cls, plugin_name, test_target):
+        return cls(plugin_name, 'succeeded', test_target=test_target)
 
     @classmethod
-    def fail(cls, errors=[]):
-        return cls('failed', details=errors)
+    def fail(cls, plugin_name, test_target, errors=[]):
+        return cls(plugin_name, 'failed', test_target=test_target, details=errors)
 
 
 def parse_args(args):
@@ -77,36 +79,43 @@ plugins:
     return parser.parse_args(args)
 
 
-def _integration_test(plugin_dir, timeout):
+def _integration_test(plugin_dir, test_targets, timeout):
     """Runs integration test in the example package for plugin_dir
 
     Currently the tools assumes that there's only one example package per plugin.
 
     Args:
         plugin_dir (str): The path to a single plugin directory.
+        test_targets (List[str]): A list of testing targets.
         timeout (int): Time limit in seconds before cancelling the test.
 
     Returns:
         TestResult: The result of the plugin integration test.
     """
+    plugin_name = os.path.basename(plugin_dir)
+
+    if not test_targets:
+        # (TODO: HakkyuKim) Get default test target
+        return [TestResult.fail(plugin_name, errors=['Test target not specified.'])]
+
     example_dir = os.path.join(plugin_dir, 'example')
     if not os.path.isdir(example_dir):
-        return TestResult.fail([
+        return [TestResult.fail(plugin_name, errors=[
             'Missing example directory (use --exclude if this is intentional).'
-        ])
+        ])]
 
     pubspec_path = os.path.join(example_dir, 'pubspec')
     if not os.path.isfile(f'{pubspec_path}.yaml') and not os.path.isfile(
             f'{pubspec_path}.yml'):
         # TODO: Support multiple example packages.
-        return TestResult.fail(['Missing pubspec file in example directory'])
+        return [TestResult.fail(plugin_name, errors=['Missing pubspec file in example directory'])]
 
     integration_test_dir = os.path.join(example_dir, 'integration_test')
     if not os.path.isdir(integration_test_dir) or not os.listdir(
             integration_test_dir):
-        return TestResult.fail([
+        return [TestResult.fail(plugin_name, errors=[
             'Missing integration tests (use --exclude if this is intentional).'
-        ])
+        ])]
 
     errors = []
     completed_process = subprocess.run('flutter-tizen pub get',
@@ -120,66 +129,85 @@ def _integration_test(plugin_dir, timeout):
                     in your project is valid.')
         else:
             errors.append(completed_process.stderr)
-        return TestResult.fail(errors)
+        return [TestResult.fail(plugin_name, errors=errors)]
 
-    is_timed_out = False
-    process = subprocess.Popen('flutter-tizen test integration_test',
-                               shell=True,
-                               cwd=example_dir,
-                               universal_newlines=True,
-                               stderr=subprocess.PIPE,
-                               stdout=subprocess.PIPE)
-    last_line = ''
-    start = time.time()
-    for line in process.stdout:
-        match = re.search(_LOG_PATTERN, line)
-        last_match = re.search(_LOG_PATTERN, last_line)
-        if match and last_match and last_match.group(2) == match.group(2):
-            sys.stdout.write(f'\r{line.strip()}')
-        else:
-            sys.stdout.write(f'\n{line.strip()}')
+    test_results = []
+    target_table = {}
+
+    for test_target in test_targets:
+        if test_target not in target_table:
+            test_results.append(TestResult.fail(plugin_name, test_target, [
+                                f'Test target {test_target} not available in test server.']))
+            continue
+
+        is_timed_out = False
+        process = subprocess.Popen('flutter-tizen test integration_test',
+                                shell=True,
+                                cwd=example_dir,
+                                universal_newlines=True,
+                                stderr=subprocess.PIPE,
+                                stdout=subprocess.PIPE)
+        last_line = ''
+        start = time.time()
+        for line in process.stdout:
+            match = re.search(_LOG_PATTERN, line)
+            last_match = re.search(_LOG_PATTERN, last_line)
+            if match and last_match and last_match.group(2) == match.group(2):
+                sys.stdout.write(f'\r{line.strip()}')
+            else:
+                sys.stdout.write(f'\n{line.strip()}')
+            sys.stdout.flush()
+            last_line = line
+            if time.time() - start > timeout:
+                process.kill()
+                is_timed_out = True
+                break
+        sys.stdout.write('\n')
         sys.stdout.flush()
-        last_line = line
-        if time.time() - start > timeout:
-            process.kill()
-            is_timed_out = True
-            break
-    sys.stdout.write('\n')
-    sys.stdout.flush()
-    process.wait()
+        process.wait()
 
-    if is_timed_out:
-        errors.append("""Timeout expired. The test may need more time to finish.
-If you expect the test to finish before timeout, check if the tests 
-require device screen to be awake or if they require manually 
-clicking the UI button for permissions.""")
-        return TestResult.fail(errors)
-    if last_line.strip() == 'No tests ran.':
-        return TestResult.fail(['No tests ran.'])
-    elif last_line.strip().startswith('No devices found'):
-        return TestResult.fail([
-            'The runner cannot find any devices to run tests. Check if the hosted test server has connections to Tizen devices.'
-        ])
+        if is_timed_out:
+            errors.append("""Timeout expired. The test may need more time to finish.
+    If you expect the test to finish before timeout, check if the tests 
+    require device screen to be awake or if they require manually 
+    clicking the UI button for permissions.""")
+            test_results.append(TestResult.fail(
+                plugin_name, test_target, errors=errors))
+            continue
+        if last_line.strip() == 'No tests ran.':
+            test_results.append(TestResult.fail(
+                plugin_name, test_target, ['No tests ran.']))
+            continue
+        elif last_line.strip().startswith('No devices found'):
+            test_results.append(TestResult.fail(plugin_name, test_target, [
+                'The runner cannot find any devices to run tests. Check if the hosted test server has connections to Tizen devices.'
+            ]))
+            continue
 
-    match = re.search(_LOG_PATTERN, last_line.strip())
-    if not match:
-        return TestResult.fail(['Log message is not formatted correctly.'])
+        match = re.search(_LOG_PATTERN, last_line.strip())
+        if not match:
+            test_results.append(TestResult.fail(plugin_name, test_target,
+                                                ['Log message is not formatted correctly.']))
+            continue
 
-    # In some cases, the command returns 0 for failed cases, so we check again
-    # with the last log message.
-    exit_code = process.returncode
-    if match.group(2) == 'All tests passed!':
-        exit_code = 0
-    elif match.group(2) == 'Some tests failed.':
-        errors.append(
-            'flutter-tizen test integration_test failed, see the output above for details.'
-        )
-        exit_code = 1
+        # In some cases, the command returns 0 for failed cases, so we check again
+        # with the last log message.
+        exit_code = process.returncode
+        if match.group(2) == 'All tests passed!':
+            exit_code = 0
+        elif match.group(2) == 'Some tests failed.':
+            errors.append(
+                'flutter-tizen test integration_test failed, see the output above for details.'
+            )
+            exit_code = 1
 
-    if exit_code == 0:
-        return TestResult.success()
-    else:
-        return TestResult.fail(errors)
+        if exit_code == 0:
+            test_results.append(TestResult.success(plugin_name, test_target))
+        else:
+            test_results.append(TestResult.fail(
+                plugin_name, test_target, errors=errors))
+
+    return test_results
 
 
 def run_integration_test(argv):
@@ -203,24 +231,28 @@ def run_integration_test(argv):
 
     test_num = 0
     total_plugin_num = len(testing_plugins)
-    results = {}
+    results = []
     for testing_plugin in testing_plugins:
         test_num += 1
         print(
             f'============= Testing for {testing_plugin} ({test_num}/{total_plugin_num}) ============='
         )
-        results[testing_plugin] = _integration_test(
-            os.path.join(packages_dir, testing_plugin), args.timeout)
+        test_targets_list = []
+        if testing_plugin in test_targets:
+            test_targets_list = test_targets[testing_plugin]
+
+        results.extend(_integration_test(
+            os.path.join(packages_dir, testing_plugin), test_targets_list, args.timeout))
 
     print(f'============= TEST RESULT =============')
     failed_plugins = []
-    for testing_plugin, result in results.items():
+    for result in results:
         color = _TERM_GREEN
         if result.run_state == 'failed':
             color = _TERM_RED
 
         print(
-            f'{color}{result.run_state.upper()}: {testing_plugin}{_TERM_EMPTY}')
+            f'{color}{result.run_state.upper()}: {result.plugin_name} {result.test_target}{_TERM_EMPTY}')
         if result.run_state != 'succeeded':
             for detail in result.details:
                 print(f'{detail}')
