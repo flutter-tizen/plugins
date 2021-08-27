@@ -22,6 +22,9 @@ import subprocess
 import sys
 import time
 
+# (TODO: HakkyuKim) Install dependency with pip.
+import yaml
+
 import commands.command_utils as command_utils
 
 _TERM_RED = '\033[1;31m'
@@ -56,6 +59,20 @@ class TestResult:
 def parse_args(args):
     parser = command_utils.get_options_parser(
         plugins=True, exclude=True, run_on_changed_packages=True, base_sha=True, timeout=True, command='test')
+    parser.add_argument(
+        '--recipe',
+        type=str,
+        default='',
+        help='''
+The recipe file path. A recipe refers to a yaml file that defines a list of test targets plugins.
+If --recipe is specified, --plugins, --exclude, --run-on-changed-packages, and --base-sha options are ignored.
+(
+plugins:
+  a: [wearable-5.5, tv-6.0]
+  b: [mobile-6.0]
+  c: [wearable-4.0]
+)
+''')
 
     return parser.parse_args(args)
 
@@ -167,6 +184,18 @@ clicking the UI button for permissions.""")
 
 def run_integration_test(argv):
     args = parse_args(argv)
+
+    test_targets = {}
+    if args.recipe:
+        if not os.path.isfile(args.recipe):
+            # (TODO: HakkyuKim) Print error log here.
+            exit(1)
+        with open(args.recipe) as f:
+            # (TODO: HakkyuKim) Validate yaml format here.
+            test_targets = yaml.load(
+                f.read(), Loader=yaml.FullLoader)['plugins']
+        args.plugins = list(test_targets.keys())
+
     packages_dir = command_utils.get_package_dir()
     testing_plugins, excluded_plugins = command_utils.get_target_plugins(
         packages_dir, plugins=args.plugins, exclude=args.exclude, run_on_changed_packages=args.run_on_changed_packages,
