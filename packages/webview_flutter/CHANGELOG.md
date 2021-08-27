@@ -22,3 +22,4 @@
 
 ## 0.3.1
 * Update lightweight web engine binary (ad0e77631f96180e19a11c3dc80b6b72c32bdffb)
+* Fix bug on handling parameter of `loadUrl` API
