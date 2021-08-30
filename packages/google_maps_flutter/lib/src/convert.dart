@@ -110,8 +110,49 @@ bool _isTrafficLayerEnabled(Map<String, dynamic> rawOptions) {
   return false;
 }
 
+// The keys we'd expect to see in a serialized MapTypeStyle JSON object.
+final Set<String> _mapStyleKeys = <String>{
+  'elementType',
+  'featureType',
+  'stylers',
+};
+
+// Checks if the passed in Map contains some of the _mapStyleKeys.
+bool _isJsonMapStyle(Map value) {
+  return _mapStyleKeys.intersection(value.keys.toSet()).isNotEmpty;
+}
+
+class MapTypeStyle {
+  String? elementType;
+  String? featureType;
+  List<Object?>? stylers;
+}
+
+// Checks if there is un-parsable styling JSON, unrecognized feature type,
+// unrecognized element type, or invalid styler keys in mapStyleJson.
 String _mapStyles(String? mapStyleJson) {
-  return mapStyleJson ?? 'null';
+  if (mapStyleJson != null) {
+    try {
+      json
+          .decode(mapStyleJson, reviver: (key, value) {
+            if (value is Map && _isJsonMapStyle(value)) {
+              return MapTypeStyle()
+                ..elementType = value['elementType'] as String?
+                ..featureType = value['featureType'] as String?
+                ..stylers = (value['stylers'] as List<dynamic>)
+                    .map<dynamic>((dynamic e) => e)
+                    .toList();
+            }
+            return value;
+          })
+          .cast<MapTypeStyle>()
+          .toList() as List<MapTypeStyle>;
+    } catch (e) {
+      throw MapStyleException('Invalid Map Style JSON: ${e.toString()}');
+    }
+    return mapStyleJson;
+  }
+  return 'null';
 }
 
 LatLngBounds _convertToBounds(String value) {

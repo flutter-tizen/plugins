@@ -5,7 +5,7 @@
 
 part of google_maps_flutter_tizen;
 
-class GoogleMapController {
+class GoogleMapsController {
   // The internal ID of the map. Used to broadcast events, DOM IDs and everything where a unique ID is needed.
   final int _mapId;
 
@@ -25,6 +25,54 @@ class GoogleMapController {
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
   Future<WebViewController> get controller => _controller.future;
+
+  @visibleForTesting
+  Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
+    final String value = await (await controller)
+        .evaluateJavascript('JSON.stringify([map.minZoom, map.maxZoom])');
+    final dynamic bound = json.decode(value);
+    double min = 0, max = 0;
+    if (bound is List<dynamic>) {
+      if (bound[0] is num) {
+        min = (bound[0] is double)
+            ? (bound[0] as double)
+            : (bound[0] as int).toDouble();
+      }
+      if (bound[1] is num) {
+        max = (bound[1] is double)
+            ? (bound[1] as double)
+            : (bound[1] as int).toDouble();
+      }
+      return MinMaxZoomPreference(min, max);
+    }
+    return const MinMaxZoomPreference(0, 0);
+  }
+
+  @visibleForTesting
+  Future<bool> isZoomGesturesEnabled() async {
+    final String value =
+        await (await controller).evaluateJavascript('map.gestureHandling');
+    return value != 'none';
+  }
+
+  @visibleForTesting
+  Future<bool> isZoomControlsEnabled() async {
+    final String value =
+        await (await controller).evaluateJavascript('map.zoomControl');
+    return value != 'false';
+  }
+
+  @visibleForTesting
+  Future<bool> isScrollGesturesEnabled() async {
+    final String value =
+        await (await controller).evaluateJavascript('map.gestureHandling');
+    return value != 'none';
+  }
+
+  @visibleForTesting
+  Future<bool> isTrafficEnabled() async {
+    return _isTrafficLayerEnabled(_rawMapOptions);
+  }
 
   late WebViewController temp;
   void _getWebview() {
@@ -110,8 +158,8 @@ class GoogleMapController {
   // Keeps track if the map is moving or not.
   bool _mapIsMoving = false;
 
-  /// Initializes the GoogleMapController.
-  GoogleMapController({
+  /// Initializes the GoogleMapsController.
+  GoogleMapsController({
     required int mapId,
     required StreamController<MapEvent> streamController,
     required CameraPosition initialCameraPosition,
@@ -551,31 +599,16 @@ class GoogleMapController {
 
   Future<String> _pixelToLatLng(double x, double y) async {
     final String command = '''
-      function assert(condition, message) {
-        if (!condition) {
-          throw new Error(message || "Assertion failed");
-        }
-      }
-
       function getPixelToLatLng() {
-        var bounds = map.getBounds();
         var projection = map.getProjection();
-        var zoom = map.zoom;
-
-        assert(bounds != null, 'Map Bounds required to compute LatLng of screen x/y.');
-        assert(projection != null, 'Map Projection required to compute LatLng of screen x/y');
-        assert(zoom != null, 'Current map zoom level required to compute LatLng of screen x/y');
-
-        var ne = bounds.getNorthEast();
-        var sw = bounds.getSouthWest();
+        var ne = map.getBounds().getNorthEast();
+        var sw = map.getBounds().getSouthWest();
         var topRight = projection.fromLatLngToPoint(ne);
         var bottomLeft = projection.fromLatLngToPoint(sw);
-        var scale = 1 << parseInt(zoom); // 2 ^ zoom
-
-        var point = new google.maps.Point(topRight.x - ($x / scale), bottomLeft.y - ($y / scale));
+        var scale = 1 << map.zoom;
+        var point = new google.maps.Point(($x / scale) + bottomLeft.x, ($y / scale) + topRight.y);
         return projection.fromPointToLatLng(point);
       }
-
       JSON.stringify(getPixelToLatLng());
     ''';
 
@@ -585,8 +618,16 @@ class GoogleMapController {
   Future<String> _latLngToPoint(LatLng latLng) async {
     final String command = '''
       function getLatLngToPixel() {
-        var latlng = new google.maps.LatLng(${latLng.latitude}, ${latLng.longitude});
-        return map.getProjection().fromLatLngToPoint(latlng);
+        var ne = map.getBounds().getNorthEast();
+        var sw = map.getBounds().getSouthWest();
+        var projection = map.getProjection();
+        var topRight = projection.fromLatLngToPoint(ne);
+        var bottomLeft = projection.fromLatLngToPoint(sw);
+        var scale = 1 << map.getZoom();
+        var newLatlng = projection.fromLatLngToPoint(new google.maps.LatLng(${latLng.latitude}, ${latLng.longitude}));
+        var xx = (newLatlng.x - bottomLeft.x) * scale;
+        var yy = (newLatlng.y - topRight.y) * scale;
+        return new google.maps.Point(xx, yy);
       }
       JSON.stringify(getLatLngToPixel());
     ''';
