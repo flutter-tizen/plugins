@@ -22,8 +22,8 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 
 ```yaml
 dependencies:
-  webview_flutter: ^1.0.6
-  webview_flutter_tizen: ^0.1.0
+  webview_flutter: ^2.0.4
+  webview_flutter_tizen: ^0.3.1
 ```
 
 ## Example
