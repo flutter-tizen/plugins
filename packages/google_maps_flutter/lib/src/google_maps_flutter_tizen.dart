@@ -17,15 +17,21 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
   }
 
   // A cache of map controllers by map Id.
-  Map _mapById = Map<int, GoogleMapController>();
+  Map _mapById = Map<int, GoogleMapsController>();
+
+  /// Get controller for debugging.
+  @visibleForTesting
+  GoogleMapsController? debugGetMapById(int mapId) {
+    return _mapById[mapId] as GoogleMapsController?;
+  }
 
   // Convenience getter for a stream of events filtered by their mapId.
   Stream<MapEvent> _events(int mapId) => _map(mapId).events;
 
   // Convenience getter for a map controller by its mapId.
-  GoogleMapController _map(int mapId) {
-    final GoogleMapController? controller =
-        _mapById[mapId] as GoogleMapController;
+  GoogleMapsController _map(int mapId) {
+    final GoogleMapsController? controller =
+        _mapById[mapId] as GoogleMapsController;
     assert(controller != null,
         'Maps cannot be retrieved before calling buildView!');
     return controller!;
@@ -294,7 +300,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     final StreamController<MapEvent> controller =
         StreamController<MapEvent>.broadcast();
 
-    final mapController = GoogleMapController(
+    final mapController = GoogleMapsController(
       initialCameraPosition: initialCameraPosition,
       mapId: creationId,
       streamController: controller,
@@ -310,7 +316,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     onPlatformViewCreated.call(creationId);
 
     assert(mapController.widget != null,
-        'The widget of a GoogleMapController cannot be null before calling dispose on it.');
+        'The widget of a GoogleMapsController cannot be null before calling dispose on it.');
 
     return mapController.widget!;
   }

@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^0.1.0
-  google_maps_flutter: ^2.0.3
+  google_maps_flutter: ^2.0.6
   google_maps_flutter_tizen:
     path: ../
 
