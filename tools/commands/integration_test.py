@@ -66,8 +66,8 @@ def parse_args(args):
         type=str,
         default='',
         help='''
-The recipe file path. A recipe refers to a yaml file that defines a list of test targets plugins.
-If --recipe is specified, --plugins, --exclude, --run-on-changed-packages, and --base-sha options are ignored.
+The recipe file path. A recipe refers to a yaml file that defines a list of test targets for plugins.
+Passing this file will allow the tool to test with specified targets instead of the default target, wearable-5.5.
 (
 plugins:
   a: [wearable-5.5, tv-6.0]
@@ -271,7 +271,6 @@ def run_integration_test(argv):
             except yaml.parser.ParserError:
                 print(f'The recipe file {args.recipe} is not a valid yaml file.')
                 exit(1)
-        args.plugins = list(test_targets.keys())
 
     packages_dir = command_utils.get_package_dir()
     testing_plugins, excluded_plugins = command_utils.get_target_plugins(
