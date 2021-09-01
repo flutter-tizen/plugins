@@ -22,7 +22,6 @@ import subprocess
 import sys
 import time
 
-# (TODO: HakkyuKim) Install dependency with pip.
 import yaml
 
 import commands.command_utils as command_utils
@@ -34,6 +33,7 @@ _TERM_EMPTY = '\033[0m'
 
 _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 
+_DEFAULT_TEST_TARGET = 'wearable-5.5'
 
 class TestResult:
     """A class that specifies the result of a plugin integration test.
@@ -95,8 +95,8 @@ def _integration_test(plugin_dir, test_targets, timeout):
     plugin_name = os.path.basename(plugin_dir)
 
     if not test_targets:
-        # (TODO: HakkyuKim) Get default test target
-        return [TestResult.fail(plugin_name, errors=['Test target not specified.'])]
+        # (TODO: HakkyuKim) Improve logic for setting default targets.
+        test_targets.append(_DEFAULT_TEST_TARGET)
 
     example_dir = os.path.join(plugin_dir, 'example')
     if not os.path.isdir(example_dir):
@@ -137,7 +137,7 @@ def _integration_test(plugin_dir, test_targets, timeout):
     for test_target in test_targets:
         if test_target not in target_table:
             test_results.append(TestResult.fail(plugin_name, test_target, [
-                                f'Test target {test_target} not available in test server.']))
+                                f'Test runner cannot find target {test_target}.']))
             continue
 
         is_timed_out = False
@@ -180,7 +180,7 @@ def _integration_test(plugin_dir, test_targets, timeout):
             continue
         elif last_line.strip().startswith('No devices found'):
             test_results.append(TestResult.fail(plugin_name, test_target, [
-                'The runner cannot find any devices to run tests. Check if the hosted test server has connections to Tizen devices.'
+                'The runner cannot find any devices to run tests.'
             ]))
             continue
 
@@ -222,7 +222,6 @@ def _get_target_table():
                 profile_name = tokens[1]
             elif(tokens[0] == 'platform_version'):
                 platform_version = tokens[1]
-        # (TODO: HakkyuKim) Handle empty values here.
         return profile_name, platform_version
 
     completed_process = subprocess.run('sdb devices',
@@ -245,6 +244,14 @@ def _get_target_table():
                                                stdout=subprocess.PIPE)
             profile, platform_version = _parse_target_info(
                 completed_process.stdout)
+            if not profile or not platform_version:
+                print(f'''
+Cannot extract {profile} or {platform_version} information from device {id}
+profile: {profile}
+platform_version: {platform_version}
+''')
+            if f'{profile}-{platform_version}' in table:
+                print(f'Multiple targets of {profile}-{platform_version} found. Replacing {table[{profile}-{platform_version}]} to {id}...')
             table[f'{profile}-{platform_version}'] = id
     return table
 
@@ -255,12 +262,15 @@ def run_integration_test(argv):
     test_targets = {}
     if args.recipe:
         if not os.path.isfile(args.recipe):
-            # (TODO: HakkyuKim) Print error log here.
+            print(f'The recipe file {args.recipe} does not exist.')
             exit(1)
         with open(args.recipe) as f:
-            # (TODO: HakkyuKim) Validate yaml format here.
-            test_targets = yaml.load(
-                f.read(), Loader=yaml.FullLoader)['plugins']
+            try:
+                test_targets = yaml.load(
+                    f.read(), Loader=yaml.FullLoader)['plugins']
+            except yaml.parser.ParserError:
+                print(f'The recipe file {args.recipe} is not a valid yaml file.')
+                exit(1)
         args.plugins = list(test_targets.keys())
 
     packages_dir = command_utils.get_package_dir()
