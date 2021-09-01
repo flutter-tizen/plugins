@@ -33,6 +33,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     auto plugin = std::make_unique<GeolocatorTizenPlugin>();
 
     plugin->SetupGeolocatorServiceUpdatesChannel(registrar->messenger());
+    plugin->SetupGeolocatorUpdatesChannel(registrar->messenger());
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -70,11 +71,29 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     geolocator_service_updates_channel_->SetStreamHandler(std::move(handler));
   }
 
+  void SetupGeolocatorUpdatesChannel(flutter::BinaryMessenger *messenger) {
+    geolocator_updates_channel_ =
+        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+            messenger, "flutter.baseflow.com/geolocator_updates",
+            &flutter::StandardMethodCodec::GetInstance());
+    auto handler = std::make_unique<flutter::StreamHandlerFunctions<>>(
+        [this](const flutter::EncodableValue *arguments,
+               std::unique_ptr<flutter::EventSink<>> &&events)
+            -> std::unique_ptr<flutter::StreamHandlerError<>> {
+          OnListenGeolocatorUpdates(std::move(events));
+          return nullptr;
+        },
+        [this](const flutter::EncodableValue *arguments)
+            -> std::unique_ptr<flutter::StreamHandlerError<>> {
+          OnCancelGeolocatorUpdates();
+          return nullptr;
+        });
+    geolocator_updates_channel_->SetStreamHandler(std::move(handler));
+  }
+
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("method call [%s]", method_call.method_name().c_str());
-
     std::string method_name = method_call.method_name();
     if (method_name == "checkPermission") {
       onCheckPermission(std::move(result));
@@ -186,7 +205,27 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
 
   void OnCancelGeolocatorServiceUpdates() {
     geolocator_service_updates_event_sink_ = nullptr;
-    TizenResult tizen_result = location_manager_->UnsetOnServiceStateChanged();
+    location_manager_->UnsetOnServiceStateChanged();
+  }
+
+  void OnListenGeolocatorUpdates(
+      std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
+          &&event_sink) {
+    geolocator_updates_event_sink_ = std::move(event_sink);
+    TizenResult tizen_result =
+        location_manager_->SetOnLocationUpdated([this](Location locatoin) {
+          geolocator_updates_event_sink_->Success(locatoin.ToEncodableValue());
+        });
+    if (!tizen_result) {
+      LOG_ERROR("Failed to set SetOnLocationUpdated, %s",
+                tizen_result.message().c_str());
+      geolocator_updates_event_sink_ = nullptr;
+    }
+  }
+
+  void OnCancelGeolocatorUpdates() {
+    geolocator_updates_event_sink_ = nullptr;
+    location_manager_->UnsetOnLocationUpdated();
   }
 
   std::unique_ptr<PermissionManager> permission_manager_;
@@ -195,6 +234,10 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       geolocator_service_updates_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
       geolocator_service_updates_event_sink_;
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
+      geolocator_updates_channel_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
+      geolocator_updates_event_sink_;
 };
 
 }  // namespace

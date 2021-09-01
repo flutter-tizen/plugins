@@ -6,9 +6,15 @@
 
 #include "log.h"
 
-LocationManager::LocationManager() { CreateLocationManager(); }
+LocationManager::LocationManager() {
+  CreateLocationManager(&manager_);
+  CreateLocationManager(&manager_for_current_location_);
+}
 
-LocationManager::~LocationManager() { DestroyLocationManager(); }
+LocationManager::~LocationManager() {
+  DestroyLocationManager(manager_);
+  DestroyLocationManager(manager_for_current_location_);
+}
 
 TizenResult LocationManager::IsLocationServiceEnabled(bool *is_enabled) {
   bool gps_enabled = false;
@@ -31,11 +37,11 @@ TizenResult LocationManager::IsLocationServiceEnabled(bool *is_enabled) {
 }
 
 TizenResult LocationManager::RequestCurrentLocationOnce(
-    OnLocationUpdate on_position_update, OnError on_error) {
-  on_position_update_ = on_position_update;
+    OnLocationUpdated on_success, OnError on_error) {
+  on_success_ = on_success;
   on_error_ = on_error;
   TizenResult ret = location_manager_request_single_location(
-      manager_, 5,
+      manager_for_current_location_, 5,
       [](location_error_e error, double latitude, double longitude,
          double altitude, time_t timestamp, double speed, double direction,
          double climb, void *user_data) {
@@ -43,7 +49,7 @@ TizenResult LocationManager::RequestCurrentLocationOnce(
 
         if (error != LOCATIONS_ERROR_NONE && self->on_error_) {
           self->on_error_(error);
-        } else if (self->on_position_update_) {
+        } else if (self->on_success_) {
           Location location;
           location.latitude = latitude;
           location.longitude = longitude;
@@ -52,11 +58,11 @@ TizenResult LocationManager::RequestCurrentLocationOnce(
           location.speed = speed;
           location.heading = direction;
 
-          self->on_position_update_(location);
+          self->on_success_(location);
         }
 
         self->on_error_ = nullptr;
-        self->on_position_update_ = nullptr;
+        self->on_success_ = nullptr;
       },
       this);
   return ret;
@@ -93,7 +99,8 @@ TizenResult LocationManager::GetLastKnownLocation(Location *location) {
 }
 
 TizenResult LocationManager::SetOnServiceStateChanged(
-    OnServiceStateChanged callback) {
+    OnServiceStateChanged on_service_state_changed) {
+  on_service_state_changed_ = on_service_state_changed;
   return location_manager_set_service_state_changed_cb(
       manager_,
       [](location_service_state_e state, void *user_data) {
@@ -113,12 +120,41 @@ TizenResult LocationManager::UnsetOnServiceStateChanged() {
   return location_manager_unset_service_state_changed_cb(manager_);
 }
 
-TizenResult LocationManager::CreateLocationManager() {
-  return location_manager_create(LOCATIONS_METHOD_HYBRID, &manager_);
+TizenResult LocationManager::SetOnLocationUpdated(
+    OnLocationUpdated on_location_updated) {
+  on_location_updated_ = on_location_updated;
+  TizenResult result = location_manager_set_position_updated_cb(
+      manager_,
+      [](double latitude, double longitude, double altitude, time_t timestamp,
+         void *user_data) {
+        LocationManager *self = static_cast<LocationManager *>(user_data);
+        if (self->on_location_updated_) {
+          Location location;
+          location.longitude = longitude;
+          location.latitude = latitude;
+          location.timestamp = timestamp;
+          location.altitude = altitude;
+          self->on_location_updated_(location);
+        }
+      },
+      2, this);
+  if (!result) {
+    return result;
+  }
+  return location_manager_start(manager_);
 }
 
-TizenResult LocationManager::DestroyLocationManager() {
-  int ret = location_manager_destroy(manager_);
-  manager_ = nullptr;
-  return TizenResult(ret);
+TizenResult LocationManager::UnsetOnLocationUpdated() {
+  location_manager_unset_position_updated_cb(manager_);
+  return location_manager_stop(manager_);
+}
+
+TizenResult LocationManager::CreateLocationManager(
+    location_manager_h *manager) {
+  return location_manager_create(LOCATIONS_METHOD_HYBRID, manager);
+}
+
+TizenResult LocationManager::DestroyLocationManager(
+    location_manager_h manager) {
+  return location_manager_destroy(manager);
 }

@@ -16,7 +16,7 @@
 // https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_platform_interface/lib/src/enums/location_service.dart
 enum class ServiceState { kDisabled, kEnabled };
 
-using OnLocationUpdate = std::function<void(Location)>;
+using OnLocationUpdated = std::function<void(Location)>;
 using OnError = std::function<void(TizenResult)>;
 using OnServiceStateChanged = std::function<void(ServiceState)>;
 
@@ -27,24 +27,34 @@ class LocationManager {
 
   TizenResult IsLocationServiceEnabled(bool* is_enabled);
 
-  TizenResult RequestCurrentLocationOnce(OnLocationUpdate on_position_update,
+  TizenResult RequestCurrentLocationOnce(OnLocationUpdated on_success,
                                          OnError on_error);
 
   TizenResult GetLastKnownLocation(Location* locaton);
 
-  TizenResult SetOnServiceStateChanged(OnServiceStateChanged callback);
+  TizenResult SetOnServiceStateChanged(
+      OnServiceStateChanged on_service_state_changed);
 
   TizenResult UnsetOnServiceStateChanged();
 
- private:
-  TizenResult CreateLocationManager();
+  TizenResult SetOnLocationUpdated(OnLocationUpdated on_location_updated);
 
-  TizenResult DestroyLocationManager();
+  TizenResult UnsetOnLocationUpdated();
+
+ private:
+  TizenResult CreateLocationManager(location_manager_h* manager);
+
+  TizenResult DestroyLocationManager(location_manager_h manager);
 
   location_manager_h manager_ = nullptr;
 
-  OnLocationUpdate on_position_update_;
+  // According to the document, the handler to request current location once
+  // must not be the same as a handler to listen position updated
+  location_manager_h manager_for_current_location_ = nullptr;
+
+  OnLocationUpdated on_success_;
   OnError on_error_;
   OnServiceStateChanged on_service_state_changed_;
+  OnLocationUpdated on_location_updated_;
 };
 #endif  // LOCATON_MANAGER_H_
