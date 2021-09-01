@@ -19,6 +19,7 @@
 #include "locaton_manager.h"
 #include "log.h"
 #include "permission_manager.h"
+#include "setting.h"
 
 namespace {
 
@@ -105,6 +106,12 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       onGetLastKnownPosition(std::move(result));
     } else if (method_name == "getCurrentPosition") {
       onGetCurrentPosition(std::move(result));
+    } else if (method_name == "openAppSettings") {
+      TizenResult ret = Setting::LaunchAppSetting();
+      result->Success(flutter::EncodableValue(static_cast<bool>(ret)));
+    } else if (method_name == "openLocationSettings") {
+      TizenResult ret = Setting::LaunchLocatoinSetting();
+      result->Success(flutter::EncodableValue(static_cast<bool>(ret)));
     } else {
       result->NotImplemented();
     }
