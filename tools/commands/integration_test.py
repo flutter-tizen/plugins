@@ -14,7 +14,6 @@ tools/run_integration_test.py --exclude a b c # runs d, e
 tools/run_integration_test.py --plugins a b c --exclude b # runs a c
 """
 
-import argparse
 import os
 import re
 import subprocess
