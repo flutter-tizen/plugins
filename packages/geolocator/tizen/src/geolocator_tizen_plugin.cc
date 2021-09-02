@@ -110,7 +110,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       TizenResult ret = Setting::LaunchAppSetting();
       result->Success(flutter::EncodableValue(static_cast<bool>(ret)));
     } else if (method_name == "openLocationSettings") {
-      TizenResult ret = Setting::LaunchLocatoinSetting();
+      TizenResult ret = Setting::LaunchLocationSetting();
       result->Success(flutter::EncodableValue(static_cast<bool>(ret)));
     } else {
       result->NotImplemented();

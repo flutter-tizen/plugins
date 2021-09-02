@@ -1,4 +1,3 @@
-
 // Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -86,7 +85,7 @@ TizenResult Setting::LaunchAppSetting() {
   return app_ctrl.SendLauchRequest();
 }
 
-TizenResult Setting::LaunchLocatoinSetting() {
+TizenResult Setting::LaunchLocationSetting() {
   AppControl app_ctrl;
 
   app_ctrl.SetAppId("com.samsung.setting-location");

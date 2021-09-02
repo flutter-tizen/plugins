@@ -10,7 +10,7 @@
 namespace Setting {
 
 TizenResult LaunchAppSetting();
-TizenResult LaunchLocatoinSetting();
+TizenResult LaunchLocationSetting();
 
 };  // namespace Setting
 
