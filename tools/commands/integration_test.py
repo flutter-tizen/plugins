@@ -68,19 +68,19 @@ def parse_args(args):
                                               base_sha=True,
                                               timeout=True,
                                               command='test')
-    parser.add_argument('--recipe',
-                        type=str,
-                        default='',
-                        help='''
-The recipe file path. A recipe refers to a yaml file that defines a list of test targets for plugins.
+    parser.add_argument(
+        '--recipe',
+        type=str,
+        default='',
+        help=
+        '''The recipe file path. A recipe refers to a yaml file that defines a list of test targets for plugins.
 Passing this file will allow the tool to test with specified targets instead of the default target, wearable-5.5.
 (
 plugins:
   a: [wearable-5.5, tv-6.0]
   b: [mobile-6.0]
   c: [wearable-4.0]
-)
-''')
+)''')
 
     return parser.parse_args(args)
 
@@ -121,7 +121,7 @@ def _integration_test(plugin_dir, test_targets, timeout):
         return [
             TestResult.fail(
                 plugin_name,
-                errors=['Missing pubspec file in example directory'])
+                errors=['Missing pubspec file in example directory.'])
         ]
 
     integration_test_dir = os.path.join(example_dir, 'integration_test')
@@ -269,11 +269,10 @@ def _get_target_table():
             profile, platform_version = _parse_target_info(
                 completed_process.stdout)
             if not profile or not platform_version:
-                print(f'''
-Cannot extract {profile} or {platform_version} information from device {id}
+                print(
+                    f'''Cannot extract profile or platform_version information from device {id}.
 profile: {profile}
-platform_version: {platform_version}
-''')
+platform_version: {platform_version}''')
             if f'{profile}-{platform_version}' in table:
                 print(
                     f'Multiple targets of {profile}-{platform_version} found. Replacing {table[{profile}-{platform_version}]} to {id}...'
