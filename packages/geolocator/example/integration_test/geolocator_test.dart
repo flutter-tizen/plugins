@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:integration_test/integration_test.dart';
 
-// Note: To pass All tests on the emulator, please inject the location using the control panel
+// Note: To pass all tests on the emulator, please inject the location using the control panel
 
 Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
