@@ -75,4 +75,3 @@ The following packages are deprecated.
 | [**wakelock_tizen**](packages/wakelock) | ✔️ | ✔️ | ❌ | ❌ | Cannot override system display setting |
 | [**wearable_rotary**](packages/wearable_rotary) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**webview_flutter_tizen**](packages/webview_flutter) | ❌ | ❌ | ✔️ | ❌ | Dependent library unavailable |
-| [**wifi_info_flutter_tizen**](packages/wifi_info_flutter) | ✔️ | ❌ | ✔️ | ❌ | API unsupported by emulators |
