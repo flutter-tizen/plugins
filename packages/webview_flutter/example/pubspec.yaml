@@ -18,6 +18,7 @@ dev_dependencies:
   integration_test: ^1.0.1
   integration_test_tizen:
     path: ../../integration_test/
+  pedantic: ^1.10.0
 
 flutter:
   uses-material-design: true

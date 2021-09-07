@@ -1,0 +1,7 @@
+# This file was copied from Baseflow/flutter-permission-handler/analysis_options.yaml.
+
+include: package:effective_dart/analysis_options.1.2.0.yaml
+
+linter:
+  rules:
+    - public_member_api_docs
