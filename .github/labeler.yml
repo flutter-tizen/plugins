@@ -17,6 +17,8 @@
   - packages/device_info_plus/**/*
 'p: flutter_tts':
   - packages/flutter_tts/**/*
+'p: geolocator':
+  - packages/geolocator/**/*
 'p: google_maps_flutter':
   - packages/google_maps_flutter/**/*
 'p: image_picker':
