@@ -97,15 +97,15 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     std::string method_name = method_call.method_name();
     if (method_name == "checkPermission") {
-      onCheckPermission(std::move(result));
+      OnCheckPermission(std::move(result));
     } else if (method_name == "isLocationServiceEnabled") {
-      onIsLocationServiceEnabled(std::move(result));
+      OnIsLocationServiceEnabled(std::move(result));
     } else if (method_name == "requestPermission") {
-      onRequestPermission(std::move(result));
+      OnRequestPermission(std::move(result));
     } else if (method_name == "getLastKnownPosition") {
-      onGetLastKnownPosition(std::move(result));
+      OnGetLastKnownPosition(std::move(result));
     } else if (method_name == "getCurrentPosition") {
-      onGetCurrentPosition(std::move(result));
+      OnGetCurrentPosition(std::move(result));
     } else if (method_name == "openAppSettings") {
       TizenResult ret = Setting::LaunchAppSetting();
       result->Success(flutter::EncodableValue(static_cast<bool>(ret)));
@@ -117,13 +117,13 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void onCheckPermission(
+  void OnCheckPermission(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     PermissionStatus permission_status;
     TizenResult ret =
         permission_manager_->CheckPermissionStatus(&permission_status);
     if (!ret) {
-      result->Error("Failed to check permssion status", ret.message());
+      result->Error("Failed to check permssion status.", ret.message());
       return;
     }
     LOG_INFO("permission_status is %d", permission_status);
@@ -131,19 +131,19 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
         flutter::EncodableValue(static_cast<int>(permission_status)));
   }
 
-  void onIsLocationServiceEnabled(
+  void OnIsLocationServiceEnabled(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     bool is_enabled = false;
     TizenResult ret = location_manager_->IsLocationServiceEnabled(&is_enabled);
 
     // TODO : add location service listener
     if (!ret) {
-      result->Error("Failed to check service enabled", ret.message());
+      result->Error("Failed to check service enabled.", ret.message());
     }
     result->Success(flutter::EncodableValue(is_enabled));
   }
 
-  void onRequestPermission(
+  void OnRequestPermission(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     auto result_ptr = result.release();
     permission_manager_->RequestPermssion(
@@ -153,26 +153,26 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
           delete result_ptr;
         },
         [result_ptr](TizenResult tizen_result) {
-          result_ptr->Error("Failed to request permssion",
+          result_ptr->Error("Failed to request permssion.",
                             tizen_result.message());
           delete result_ptr;
         });
   }
 
-  void onGetLastKnownPosition(
+  void OnGetLastKnownPosition(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     Location location;
     TizenResult tizen_result =
         location_manager_->GetLastKnownLocation(&location);
     if (!tizen_result) {
-      result->Error("Failed to get last known position",
+      result->Error("Failed to get last known position.",
                     tizen_result.message());
       return;
     }
     result->Success(location.ToEncodableValue());
   }
 
-  void onGetCurrentPosition(
+  void OnGetCurrentPosition(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     auto result_ptr = result.release();
     TizenResult tizen_result = location_manager_->RequestCurrentLocationOnce(
@@ -182,13 +182,13 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
         },
         [result_ptr](TizenResult error) {
           result_ptr->Error(
-              "An error occurred while requesting current location",
+              "An error occurred while requesting current location.",
               error.message());
           delete result_ptr;
         });
 
     if (!tizen_result) {
-      result_ptr->Error("Failed to call RequestCurrentLocationOnce",
+      result_ptr->Error("Failed to call RequestCurrentLocationOnce.",
                         tizen_result.message());
       delete result_ptr;
     }
@@ -204,7 +204,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
           geolocator_service_updates_event_sink_->Success(value);
         });
     if (!tizen_result) {
-      LOG_ERROR("Failed to set OnServiceStateChanged, %s",
+      LOG_ERROR("Failed to set OnServiceStateChanged, %s.",
                 tizen_result.message().c_str());
       geolocator_service_updates_event_sink_ = nullptr;
     }
@@ -224,7 +224,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
           geolocator_updates_event_sink_->Success(location.ToEncodableValue());
         });
     if (!tizen_result) {
-      LOG_ERROR("Failed to set SetOnLocationUpdated, %s",
+      LOG_ERROR("Failed to set OnLocationUpdated, %s.",
                 tizen_result.message().c_str());
       geolocator_updates_event_sink_ = nullptr;
     }

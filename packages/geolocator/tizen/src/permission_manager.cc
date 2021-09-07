@@ -72,16 +72,17 @@ void PermissionManager::RequestPermssion(const OnSuccess &on_success,
         },
         &response);
     if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-      LOG_ERROR("Failed to call ppm_request_permission with [%s]", permission);
+      LOG_ERROR("Failed to call ppm_request_permission with [%s].", permission);
       break;
     }
-    // Wait until ppm_request_permission is done;
+
+    // Wait until ppm_request_permission is done.
     while (!response.received) {
       ecore_main_loop_iterate();
     }
 
     if (response.cause != PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ANSWER) {
-      LOG_ERROR("permission[%s] request failed with an error", permission);
+      LOG_ERROR("permission[%s] request failed with an error.", permission);
       ret = response.cause;
       break;
     }
@@ -97,7 +98,7 @@ void PermissionManager::RequestPermssion(const OnSuccess &on_success,
         results.push_back(PermissionStatus::kDeniedForever);
         break;
       default:
-        LOG_ERROR("Unknown ppm_request_result_e!");
+        LOG_ERROR("Unknown ppm_request_result_e.");
         break;
     }
   }
