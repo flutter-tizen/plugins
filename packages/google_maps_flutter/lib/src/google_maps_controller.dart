@@ -1,5 +1,5 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -17,9 +17,6 @@ class GoogleMapsController {
   // The raw options passed by the user, before converting to maps.
   // Caching this allows us to re-create the map faithfully when needed.
   Map<String, dynamic> _rawMapOptions = <String, dynamic>{};
-
-  // Creates the 'viewType' for the _widget
-  String _getViewType(int mapId) => 'plugins.flutter.io/google_maps_$mapId';
 
   WebView? _widget;
   final Completer<WebViewController> _controller =
@@ -76,9 +73,6 @@ class GoogleMapsController {
 
   late WebViewController temp;
   void _getWebview() {
-    print('_getWebview()');
-
-    // TODO(seungsoo47): We need to check if the variable's value exists.
     // If the variable does not exist, we must find other alternatives.
     String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
     path += '/res/flutter_assets/assets/map.html';
@@ -88,9 +82,6 @@ class GoogleMapsController {
       javascriptMode: JavascriptMode.unrestricted,
       onWebViewCreated: (WebViewController webViewController) async {
         temp = webViewController;
-      },
-      onProgress: (int progress) {
-        print('Google map is loading (progress : $progress%)');
       },
       javascriptChannels: <JavascriptChannel>{
         _onBoundsChanged(),
@@ -103,12 +94,8 @@ class GoogleMapsController {
         _onPolygonClick(),
         _onCircleClick(),
       },
-      onPageStarted: (String url) {
-        print('Google map started loading');
-      },
       onPageFinished: (String url) async {
         _controller.complete(temp);
-        print('Google map finished loading');
       },
       gestureNavigationEnabled: true,
     );
@@ -189,6 +176,9 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'BoundChanged',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           final LatLng center = await getCenter();
           final double zoom = await getZoomLevel();
           if (!_mapIsMoving) {
@@ -205,6 +195,9 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'Idle',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           _mapIsMoving = false;
           _streamController.add(CameraIdleEvent(_mapId));
         });
@@ -214,6 +207,9 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'Click',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           try {
             final dynamic event = json.decode(message.message);
             if (event is Map<String, dynamic>) {
@@ -229,10 +225,13 @@ class GoogleMapsController {
   }
 
   JavascriptChannel _onRightClick() {
-    // NOTE: LWE does not support a long press event.
+    // LWE does not support a long press event yet.
     return JavascriptChannel(
         name: 'RightClick',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           try {
             final dynamic event = json.decode(message.message);
             if (event is Map<String, dynamic>) {
@@ -251,14 +250,17 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'MarkerClick',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           try {
             final dynamic id = json.decode(message.message);
             if (_markersController != null && id is int) {
               final MarkerId? markerId = _markersController!._idToMarkerId[id];
               final MarkerController? marker =
                   _markersController!._markerIdToController[markerId];
-              if (marker?._onTap != null) {
-                marker?._onTap!();
+              if (marker?.tapEvent != null) {
+                marker?.tapEvent!();
               }
             }
           } catch (e) {
@@ -271,8 +273,28 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'MarkerDragEnd',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           try {
-            // TODO(seungsoo47): Implement properly.
+            final dynamic result = json.decode(message.message);
+            if (result is Map<String, dynamic>) {
+              assert(result['id'] != null && result['event'] != null);
+              if (_markersController != null && result['id'] is int) {
+                final MarkerId? markerId =
+                    _markersController!._idToMarkerId[result['id']];
+                final MarkerController? marker =
+                    _markersController!._markerIdToController[markerId];
+
+                final LatLng position = LatLng(
+                    result['event']['latLng']['lat'] as double,
+                    result['event']['latLng']['lng'] as double);
+
+                if (marker?.dragEndEvent != null) {
+                  marker?.dragEndEvent!(position);
+                }
+              }
+            }
           } catch (e) {
             print('Javascript Error: $e');
           }
@@ -283,6 +305,9 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'PolylineClick',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           try {
             final dynamic id = json.decode(message.message);
             if (_polylinesController != null && id is int) {
@@ -290,8 +315,8 @@ class GoogleMapsController {
                   _polylinesController!._idToPolylineId[id];
               final PolylineController? polyline =
                   _polylinesController!._polylineIdToController[polylineId];
-              if (polyline?._onTap != null) {
-                polyline?._onTap!();
+              if (polyline?.tapEvent != null) {
+                polyline?.tapEvent!();
               }
             }
           } catch (e) {
@@ -304,6 +329,9 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'PolygonClick',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           try {
             final dynamic id = json.decode(message.message);
             if (_polygonsController != null && id is int) {
@@ -311,8 +339,8 @@ class GoogleMapsController {
                   _polygonsController!._idToPolygonId[id];
               final PolygonController? polygon =
                   _polygonsController!._polygonIdToController[polygonId];
-              if (polygon?._onTap != null) {
-                polygon?._onTap!();
+              if (polygon?.tapEvent != null) {
+                polygon?.tapEvent!();
               }
             }
           } catch (e) {
@@ -325,14 +353,17 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'CircleClick',
         onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null) {
+            return;
+          }
           try {
             final dynamic id = json.decode(message.message);
             if (_polygonsController != null && id is int) {
               final CircleId? circleId = _circlesController!._idToCircleId[id];
               final CircleController? circle =
                   _circlesController!._circleIdToController[circleId];
-              if (circle?._onTap != null) {
-                circle?._onTap!();
+              if (circle?.tapEvent != null) {
+                circle?.tapEvent!();
               }
             }
           } catch (e) {
@@ -348,7 +379,6 @@ class GoogleMapsController {
   /// Failure to call this method would result in not rendering at all,
   /// and most of the public methods on this class no-op'ing.
   void init() {
-    print('init()');
     if (_widget == null && !_streamController.isClosed) {
       _getWebview();
       _createMap();
@@ -367,10 +397,6 @@ class GoogleMapsController {
   void _attachGeometryControllers() {
     // Now we can add the initial geometry.
     // And bind the (ready) map instance to the other geometry controllers.
-    //
-    // These controllers are either created in the constructor of this class, or
-    // overriden (for testing) by the [debugSetOverrides] method. They can't be
-    // null.
     assert(_circlesController != null,
         'Cannot attach a map to a null CirclesController instance.');
     assert(_polygonsController != null,
@@ -397,8 +423,8 @@ class GoogleMapsController {
   }) {
     assert(
         _controllersBoundToMap,
-        'Geometry controllers must be bound to a map before any geometry can ' +
-            'be added to them. Ensure _attachGeometryControllers is called first.');
+        'Geometry controllers must be bound to a map before any geometry can '
+        'be added to them. Ensure _attachGeometryControllers is called first.');
     // The above assert will only succeed if the controllers have been bound to a map
     // in the [_attachGeometryControllers] method, which ensures that all these
     // controllers below are *not* null.
@@ -478,26 +504,13 @@ class GoogleMapsController {
 
   Future<String> _callMethod(
       WebViewController mapView, String method, List<Object?> args) async {
-    final String command = 'JSON.stringify(map.$method.apply(map, $args))';
-    print('callMethod: $command');
-    final String result = await mapView.evaluateJavascript(command);
-    return result;
-  }
-
-  Future<LatLngBounds> _getBounds(WebViewController c) async {
-    final String value = await _callMethod(c, 'getBounds', []);
-    return _convertToBounds(value);
-  }
-
-  Future<LatLng> _getCenter(WebViewController c) async {
-    final String value = await _callMethod(c, 'getCenter', []);
-    return _convertToLatLng(value);
+    return await mapView
+        .evaluateJavascript('JSON.stringify(map.$method.apply(map, $args))');
   }
 
   Future<double> _getZoom(WebViewController c) async {
     try {
-      final String value = await _callMethod(c, 'getZoom', []);
-      return double.parse(value);
+      return double.parse(await _callMethod(c, 'getZoom', []));
     } catch (e) {
       print('Javascript Error: $e');
       return 0.0;
@@ -506,33 +519,28 @@ class GoogleMapsController {
 
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
-    assert(_widget != null, 'Cannot get the visible region of a null map.');
-    return await _getBounds(await controller);
+    return _convertToBounds(
+        await _callMethod(await controller, 'getBounds', []));
   }
 
   Future<LatLng> getCenter() async {
-    assert(_widget != null, 'Cannot get the visible region of a null map.');
-    return await _getCenter(await controller);
+    return _convertToLatLng(
+        await _callMethod(await controller, 'getCenter', []));
   }
 
   /// Returns the [ScreenCoordinate] for a given viewport [LatLng].
   Future<ScreenCoordinate> getScreenCoordinate(LatLng latLng) async {
-    assert(
-        _widget != null, 'Cannot get the screen coordinates with a null map.');
     return _convertToPoint(await _latLngToPoint(latLng));
   }
 
   /// Returns the [LatLng] for a `screenCoordinate` (in pixels) of the viewport.
   Future<LatLng> getLatLng(ScreenCoordinate screenCoordinate) async {
-    assert(_widget != null,
-        'Cannot get the lat, lng of a screen coordinate with a null map.');
     return _convertToLatLng(await _pixelToLatLng(
         screenCoordinate.x + 0.0, screenCoordinate.y + 0.0));
   }
 
   /// Applies a `cameraUpdate` to the current viewport.
   Future<void> moveCamera(CameraUpdate cameraUpdate) async {
-    assert(_widget != null, 'Cannot update the camera of a null map.');
     _applyCameraUpdate(cameraUpdate);
   }
 
@@ -637,7 +645,6 @@ class GoogleMapsController {
 
   /// Returns the zoom level of the current viewport.
   Future<double> getZoomLevel() async {
-    assert(_widget != null, 'Cannot get zoom level of a null map.');
     return await _getZoom(await controller);
   }
 

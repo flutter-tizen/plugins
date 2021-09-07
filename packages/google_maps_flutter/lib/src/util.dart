@@ -1,11 +1,10 @@
+// Copyright 2013 The Flutter Authors. All rights reserved.
 // Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 //part of google_maps_flutter_tizen;
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -15,7 +14,12 @@ final LatLngBounds nullLatLngBounds =
 const ScreenCoordinate nullScreenCoordinate = ScreenCoordinate(x: 0, y: 0);
 
 class GMarkerOptions {
-  GMarkerOptions();
+  factory GMarkerOptions() {
+    return _options;
+  }
+  GMarkerOptions._internal();
+  static final GMarkerOptions _options = GMarkerOptions._internal();
+
   GPoint? anchorPoint;
   Animation? animation;
   bool? clickable;
@@ -34,7 +38,11 @@ class GMarkerOptions {
 
   @override
   String toString() {
-    return '{anchorPoint:$anchorPoint, animation:$animation, clickable:$clickable, crossOnDrag:$crossOnDrag, cursor:$cursor, draggable:$draggable, icon:$icon, label:$label, map: map, opacity:$opacity, optimized:$optimized, position:new google.maps.LatLng(${position?.latitude}, ${position?.longitude}),shape: $shape, title:"$title", visible:$visible, zIndex:$zIndex}';
+    return '{anchorPoint:$anchorPoint, animation:$animation, clickable:$clickable,'
+        ' crossOnDrag:$crossOnDrag, cursor:$cursor, draggable:$draggable, icon:$icon,'
+        ' label:$label, map: map, opacity:$opacity, optimized:$optimized,'
+        ' position:new google.maps.LatLng(${position?.latitude}, ${position?.longitude}),'
+        ' shape: $shape, title:"$title", visible:$visible, zIndex:$zIndex}';
   }
 }
 
@@ -59,18 +67,14 @@ class GIcon {
 
   @override
   String toString() {
-    return '{url: "$url", anchor: $anchor, labelOrigin:$labelOrigin, origin: $origin, scaledSize:$scaledSize, size: $size}';
+    return '{url: "$url", anchor: $anchor, labelOrigin:$labelOrigin, origin: $origin,'
+        ' scaledSize:$scaledSize, size: $size}';
   }
 }
 
 // 'google.maps.Size'
 class GSize {
-  GSize(
-    num? this.width,
-    num? this.height, [
-    String? widthUnit, // ignore: unused_element
-    String? heightUnit, // ignore: unused_element
-  ]);
+  GSize(this.width, this.height);
 
   num? width;
   num? height;
@@ -87,7 +91,7 @@ class GSize {
 
 // 'google.maps.Point'
 class GPoint {
-  GPoint(num? this.x, num? this.y);
+  GPoint(this.x, this.y);
 
   num? x;
   num? y;
@@ -136,7 +140,8 @@ class GInfoWindowOptions {
     final String pos = position != null
         ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
         : 'null';
-    return '{content:$content, disableAutoPan:$disableAutoPan, maxWidth:$maxWidth, minWidth:$minWidth, pixelOffset:$pixelOffset, position:$pos, zIndex:$zIndex}';
+    return '{content:$content, disableAutoPan:$disableAutoPan, maxWidth:$maxWidth,'
+        ' minWidth:$minWidth, pixelOffset:$pixelOffset, position:$pos, zIndex:$zIndex}';
   }
 }
 
@@ -146,9 +151,8 @@ class GInfoWindow {
   }
 
   Future<void> _createInfoWindow(GInfoWindowOptions? opts) async {
-    final String command =
-        'var ${toString()} = new google.maps.InfoWindow($opts);';
-    await (await webController!).evaluateJavascript(command);
+    await (await webController!).evaluateJavascript(
+        'var ${toString()} = new google.maps.InfoWindow($opts);');
   }
 
   final int _id;
@@ -181,25 +185,10 @@ class GInfoWindow {
 
 extension GInfoWindow$Ext on GInfoWindow {
   set content(Object? /*String?|Node?*/ content) => _setContent(content);
-  set options(GInfoWindowOptions? options) => _setOptions(options);
-  set position(LatLng? position) => _setPosition(position);
-  set zIndex(num? zIndex) => _setZIndex(zIndex);
   set pixelOffset(GSize? size) => _setPixelOffset(size);
 
   void _setContent(Object? /*String?|Node?*/ content) {
     callMethod(this, 'setContent', [content]);
-  }
-
-  void _setOptions(GInfoWindowOptions? options) {
-    callMethod(this, 'setOptions', [options]);
-  }
-
-  void _setPosition(LatLng? position) {
-    callMethod(this, 'setPosition', [position]);
-  }
-
-  void _setZIndex(num? zIndex) {
-    callMethod(this, 'setZIndex', [zIndex]);
   }
 
   void _setPixelOffset(GSize? size) {
@@ -216,8 +205,8 @@ class GMarker {
   }
 
   Future<void> _createMarker(GMarkerOptions? opts) async {
-    final String command = 'var ${toString()} = new google.maps.Marker($opts);';
-    await (await webController!).evaluateJavascript(command);
+    await (await webController!).evaluateJavascript(
+        'var ${toString()} = new google.maps.Marker($opts);');
   }
 
   final int id;
@@ -232,109 +221,24 @@ class GMarker {
 }
 
 extension GMarker$Ext on GMarker {
-  set animation(Animation? animation) => _setAnimation(animation);
-  set clickable(bool? clickable) => _setClickable(clickable);
-  set cursor(String? cursor) => _setCursor(cursor);
-  set draggable(bool? draggable) => _setDraggable(draggable);
-  set icon(Object? /*String?|Icon?|GSymbol?*/ icon) => _setIcon(icon);
-  set label(Object? /*String?|MarkerLabel?*/ label) => _setLabel(label);
   set map(Object? /*GMap?|StreetViewPanorama?*/ map) => _setMap(map);
-  set opacity(num? opacity) => _setOpacity(opacity);
+  set visible(bool? visible) => _setVisible(visible);
   set options(GMarkerOptions? options) {
     opts = options;
     _setOptions(options);
-  }
-
-  set position(LatLng? position) => _setPosition(position);
-  set shape(GMarkerShape? shape) => _setShape(shape);
-  set title(String? title) => _setTitle(title);
-  set visible(bool? visible) => _setVisible(visible);
-  set zIndex(num? zIndex) => _setZIndex(zIndex);
-
-  Future<void> _setAnimation(Animation? animation) async {
-    await callMethod(this, 'setAnimation', [animation]);
-  }
-
-  Future<void> _setClickable(bool? flag) async {
-    await callMethod(this, 'setClickable', [flag]);
-  }
-
-  Future<void> _setCursor(String? cursor) async {
-    await callMethod(this, 'setCursor', [cursor]);
-  }
-
-  Future<void> _setDraggable(bool? flag) async {
-    await callMethod(this, 'setDraggable', [flag]);
-  }
-
-  Future<void> _setIcon(Object? /*String?|Icon?|GSymbol?*/ icon) async {
-    await callMethod(this, 'setIcon', [icon]);
-  }
-
-  Future<void> _setLabel(Object? /*String?|MarkerLabel?*/ label) async {
-    await callMethod(this, 'setLabel', [label]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
     await callMethod(this, 'setMap', [map]);
   }
 
-  Future<void> _setOpacity(num? opacity) async {
-    await callMethod(this, 'setOpacity', [opacity]);
-  }
-
   Future<void> _setOptions(GMarkerOptions? options) async {
     await callMethod(this, 'setOptions', [options]);
-  }
-
-  Future<void> _setPosition(LatLng? latlng) async {
-    await callMethod(this, 'setPosition', [latlng]);
-  }
-
-  Future<void> _setShape(GMarkerShape? shape) async {
-    await callMethod(this, 'setShape', [shape]);
-  }
-
-  Future<void> _setTitle(String? title) async {
-    await callMethod(this, 'setTitle', [title]);
   }
 
   Future<void> _setVisible(bool? visible) async {
     await callMethod(this, 'setVisible', [visible]);
   }
-
-  Future<void> _setZIndex(num? zIndex) async {
-    await callMethod(this, 'setZIndex', [zIndex]);
-  }
-}
-
-WebView? webview;
-Future<WebViewController>? webController;
-
-Future<String> getProperty(Object o, String method) async {
-  assert(webController != null, 'mapController is null!!');
-
-  final String command = 'JSON.stringify(${o.toString()}[\'$method\'])';
-  print(command);
-  return await (await webController!).evaluateJavascript(command);
-}
-
-Future<String> setProperty(Object o, String method, Object? value) async {
-  assert(webController != null, 'mapController is null!!');
-
-  final String command =
-      'JSON.stringify(${o.toString()}[\'$method\'] = $value)';
-  print(command);
-  return await (await webController!).evaluateJavascript(command);
-}
-
-Future<String> callMethod(Object o, String method, List<Object?> args) async {
-  assert(webController != null, 'webController is null!!');
-
-  final String command =
-      'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
-  print(command);
-  return await (await webController!).evaluateJavascript(command);
 }
 
 // 'google.maps.Polyline'
@@ -346,9 +250,8 @@ class GPolyline {
   }
 
   Future<void> _createPolyline(GPolylineOptions? opts) async {
-    final String command =
-        'var ${toString()} = new google.maps.Polyline($opts);';
-    await (await webController!).evaluateJavascript(command);
+    await (await webController!).evaluateJavascript(
+        'var ${toString()} = new google.maps.Polyline($opts);');
   }
 
   final int id;
@@ -412,7 +315,9 @@ class GPolylineOptions {
       }
     }
 
-    return '{clickable:$clickable, draggable:$draggable, editable:$editable, geodesic:$geodesic, path:[${paths.toString()}], strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+    return '{clickable:$clickable, draggable:$draggable, editable:$editable, geodesic:$geodesic,'
+        ' path:[${paths.toString()}], strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity,'
+        ' map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
 
@@ -428,9 +333,8 @@ class GPolygon {
   }
 
   Future<void> _createPolygon(GPolygonOptions? opts) async {
-    final String command =
-        'var ${toString()} = new google.maps.Polygon($opts);';
-    await (await webController!).evaluateJavascript(command);
+    await (await webController!).evaluateJavascript(
+        'var ${toString()} = new google.maps.Polygon($opts);');
   }
 
   final int id;
@@ -501,7 +405,10 @@ class GPolygonOptions {
       str.write('], ');
     }
 
-    return '{clickable:$clickable, draggable:$draggable, editable:$editable, fillColor:"$fillColor", fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[${str.toString()}], strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map, strokePosition:$strokePosition ,strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+    return '{clickable:$clickable, draggable:$draggable, editable:$editable, fillColor:"$fillColor",'
+        ' fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[${str.toString()}],'
+        ' strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map,'
+        ' strokePosition:$strokePosition ,strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
 
@@ -514,8 +421,8 @@ class GCircle {
   }
 
   Future<void> _createCircle(GCircleOptions? opts) async {
-    final String command = 'var ${toString()} = new google.maps.Circle($opts);';
-    await (await webController!).evaluateJavascript(command);
+    await (await webController!).evaluateJavascript(
+        'var ${toString()} = new google.maps.Circle($opts);');
   }
 
   final int id;
@@ -579,6 +486,32 @@ class GCircleOptions {
 
   @override
   String toString() {
-    return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}), clickable:$clickable, draggable:$draggable, editable:$editable, fillColor:"$fillColor", fillOpacity:$fillOpacity, radius:$radius, strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map, strokePosition:$strokePosition ,strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+    return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}),'
+        ' clickable:$clickable, draggable:$draggable, editable:$editable, fillColor:"$fillColor",'
+        ' fillOpacity:$fillOpacity, radius:$radius, strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity,'
+        ' map: map, strokePosition:$strokePosition ,strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
+}
+
+WebView? webview;
+Future<WebViewController>? webController;
+
+Future<String> getProperty(Object o, String method) async {
+  assert(webController != null, 'mapController is null!!');
+  final String command = 'JSON.stringify(${o.toString()}[\'$method\'])';
+  return await (await webController!).evaluateJavascript(command);
+}
+
+Future<String> setProperty(Object o, String method, Object? value) async {
+  assert(webController != null, 'mapController is null!!');
+  final String command =
+      'JSON.stringify(${o.toString()}[\'$method\'] = $value)';
+  return await (await webController!).evaluateJavascript(command);
+}
+
+Future<String> callMethod(Object o, String method, List<Object?> args) async {
+  assert(webController != null, 'webController is null!!');
+  final String command =
+      'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
+  return await (await webController!).evaluateJavascript(command);
 }

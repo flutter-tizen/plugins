@@ -69,28 +69,6 @@ class MapUiBodyState extends State<MapUiBody> {
     super.dispose();
   }
 
-  Widget _compassToggler() {
-    return TextButton(
-      child: Text('${_compassEnabled ? 'disable' : 'enable'} compass'),
-      onPressed: () {
-        setState(() {
-          _compassEnabled = !_compassEnabled;
-        });
-      },
-    );
-  }
-
-  Widget _mapToolbarToggler() {
-    return TextButton(
-      child: Text('${_mapToolbarEnabled ? 'disable' : 'enable'} map toolbar'),
-      onPressed: () {
-        setState(() {
-          _mapToolbarEnabled = !_mapToolbarEnabled;
-        });
-      },
-    );
-  }
-
   Widget _latLngBoundsToggler() {
     return TextButton(
       child: Text(
@@ -136,34 +114,12 @@ class MapUiBodyState extends State<MapUiBody> {
     );
   }
 
-  Widget _rotateToggler() {
-    return TextButton(
-      child: Text('${_rotateGesturesEnabled ? 'disable' : 'enable'} rotate'),
-      onPressed: () {
-        setState(() {
-          _rotateGesturesEnabled = !_rotateGesturesEnabled;
-        });
-      },
-    );
-  }
-
   Widget _scrollToggler() {
     return TextButton(
       child: Text('${_scrollGesturesEnabled ? 'disable' : 'enable'} scroll'),
       onPressed: () {
         setState(() {
           _scrollGesturesEnabled = !_scrollGesturesEnabled;
-        });
-      },
-    );
-  }
-
-  Widget _tiltToggler() {
-    return TextButton(
-      child: Text('${_tiltGesturesEnabled ? 'disable' : 'enable'} tilt'),
-      onPressed: () {
-        setState(() {
-          _tiltGesturesEnabled = !_tiltGesturesEnabled;
         });
       },
     );
@@ -187,41 +143,6 @@ class MapUiBodyState extends State<MapUiBody> {
       onPressed: () {
         setState(() {
           _zoomControlsEnabled = !_zoomControlsEnabled;
-        });
-      },
-    );
-  }
-
-  Widget _indoorViewToggler() {
-    return TextButton(
-      child: Text('${_indoorViewEnabled ? 'disable' : 'enable'} indoor'),
-      onPressed: () {
-        setState(() {
-          _indoorViewEnabled = !_indoorViewEnabled;
-        });
-      },
-    );
-  }
-
-  Widget _myLocationToggler() {
-    return TextButton(
-      child: Text(
-          '${_myLocationEnabled ? 'disable' : 'enable'} my location marker'),
-      onPressed: () {
-        setState(() {
-          _myLocationEnabled = !_myLocationEnabled;
-        });
-      },
-    );
-  }
-
-  Widget _myLocationButtonToggler() {
-    return TextButton(
-      child: Text(
-          '${_myLocationButtonEnabled ? 'disable' : 'enable'} my location button'),
-      onPressed: () {
-        setState(() {
-          _myLocationButtonEnabled = !_myLocationButtonEnabled;
         });
       },
     );
@@ -314,19 +235,12 @@ class MapUiBodyState extends State<MapUiBody> {
               Text('camera zoom: ${_position.zoom}'),
               Text('camera tilt: ${_position.tilt}'),
               Text(_isMoving ? '(Camera moving)' : '(Camera idle)'),
-              _compassToggler(),
-              _mapToolbarToggler(),
               _latLngBoundsToggler(),
               _mapTypeCycler(),
               _zoomBoundsToggler(),
-              _rotateToggler(),
               _scrollToggler(),
-              _tiltToggler(),
               _zoomToggler(),
               _zoomControlsToggler(),
-              _indoorViewToggler(),
-              _myLocationToggler(),
-              _myLocationButtonToggler(),
               _myTrafficToggler(),
               _nightModeToggler(),
             ],
