@@ -30,7 +30,7 @@ Future<void> main() async {
         isA<bool>());
   }, timeout: const Timeout(Duration(seconds: 10)));
 
-  testWidgets('get current postion', (WidgetTester tester) async {
+  testWidgets('get current position', (WidgetTester tester) async {
     expect(await GeolocatorPlatform.instance.getCurrentPosition(),
         isA<Position>());
   }, timeout: const Timeout(Duration(seconds: 10)));

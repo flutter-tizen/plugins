@@ -220,8 +220,8 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
           &&event_sink) {
     geolocator_updates_event_sink_ = std::move(event_sink);
     TizenResult tizen_result =
-        location_manager_->SetOnLocationUpdated([this](Location locatoin) {
-          geolocator_updates_event_sink_->Success(locatoin.ToEncodableValue());
+        location_manager_->SetOnLocationUpdated([this](Location location) {
+          geolocator_updates_event_sink_->Success(location.ToEncodableValue());
         });
     if (!tizen_result) {
       LOG_ERROR("Failed to set SetOnLocationUpdated, %s",

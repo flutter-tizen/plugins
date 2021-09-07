@@ -49,7 +49,7 @@ class LocationManager {
   location_manager_h manager_ = nullptr;
 
   // According to the document, the handler to request current location once
-  // must not be the same as a handler to listen position updated
+  // must not be the same as a handler to listen position updated.
   location_manager_h manager_for_current_location_ = nullptr;
 
   OnLocationUpdated on_success_;
