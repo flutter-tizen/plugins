@@ -87,11 +87,10 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
           child: Text("Open App Settings"),
           value: 3,
         ),
-        if (Platform.isAndroid)
-          const PopupMenuItem(
-            child: Text("Open Location Settings"),
-            value: 4,
-          ),
+        const PopupMenuItem(
+          child: Text("Open Location Settings"),
+          value: 4,
+        ),
         const PopupMenuItem(
           child: Text("Clear"),
           value: 5,
@@ -111,7 +110,10 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
         githubURL: 'https://github.com/Baseflow/flutter-geolocator',
         pubDevURL: 'https://pub.dev/packages/geolocator',
         appBarActions: [
-          _createActions()
+          Padding(
+            padding: const EdgeInsets.only(right: 50),
+            child: _createActions(),
+          ),
         ],
         pages: [
           ExamplePage(
