@@ -1,4 +1,4 @@
-# This file was copied from flutter/analysis_options.yaml.
+# This file was copied from flutter/plugins/analysis_options.yaml.
 
 analyzer:
   strong-mode:
