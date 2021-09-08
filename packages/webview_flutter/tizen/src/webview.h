@@ -69,6 +69,7 @@ class WebView : public PlatformView {
   LWE::WebContainer* webview_instance_;
   double width_;
   double height_;
+  BufferUnit* working_surface_;
   BufferUnit* candidate_surface_;
   BufferUnit* rendered_surface_;
   bool is_mouse_lbutton_down_;

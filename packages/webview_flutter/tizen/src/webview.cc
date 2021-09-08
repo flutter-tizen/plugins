@@ -150,6 +150,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       webview_instance_(nullptr),
       width_(width),
       height_(height),
+      working_surface_(nullptr),
       candidate_surface_(nullptr),
       rendered_surface_(nullptr),
       is_mouse_lbutton_down_(false),
@@ -774,12 +775,11 @@ void WebView::InitWebView() {
       [this]() -> LWE::WebContainer::ExternalImageInfo {
         std::lock_guard<std::mutex> lock(mutex_);
         LWE::WebContainer::ExternalImageInfo result;
-        if (!candidate_surface_) {
-          candidate_surface_ = tbm_pool_->GetAvailableBuffer();
+        if (!working_surface_) {
+          working_surface_ = tbm_pool_->GetAvailableBuffer();
         }
-        if (candidate_surface_) {
-          result.imageAddress =
-              static_cast<void*>(candidate_surface_->Surface());
+        if (working_surface_) {
+          result.imageAddress = static_cast<void*>(working_surface_->Surface());
         } else {
           result.imageAddress = nullptr;
         }
@@ -787,7 +787,15 @@ void WebView::InitWebView() {
       },
       [this](LWE::WebContainer* c, bool isRendered) {
         if (isRendered) {
-          texture_registrar_->MarkTextureFrameAvailable(GetTextureId());
+          std::lock_guard<std::mutex> lock(mutex_);
+          if (candidate_surface_) {
+            tbm_pool_->Release(candidate_surface_);
+            candidate_surface_ = nullptr;
+          } else {
+            texture_registrar_->MarkTextureFrameAvailable(GetTextureId());
+          }
+          candidate_surface_ = working_surface_;
+          working_surface_ = nullptr;
         }
       });
 #ifndef TV_PROFILE
@@ -935,14 +943,14 @@ void WebView::HandleCookieMethodCall(
 }
 
 FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
+  std::lock_guard<std::mutex> lock(mutex_);
   if (!candidate_surface_) {
-    if (!rendered_surface_) {
-      return nullptr;
-    } else {
+    if (rendered_surface_) {
       return gpu_buffer_;
+    } else {
+      return nullptr;
     }
   }
-  std::lock_guard<std::mutex> lock(mutex_);
   rendered_surface_ = candidate_surface_;
   candidate_surface_ = nullptr;
   if (gpu_buffer_) {
