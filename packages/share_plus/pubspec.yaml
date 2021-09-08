@@ -17,6 +17,9 @@ dependencies:
   share_plus: ^2.1.2
   share_plus_platform_interface: ^2.0.0
 
+dev_dependencies:
+  pedantic: ^1.9.2
+
 environment:
   sdk: ">=2.12.0 <3.0.0"
   flutter: ">=2.0.0"
