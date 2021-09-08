@@ -36,7 +36,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initPlatformState() async {
-    Map<String, dynamic> deviceData = <String, dynamic>{};
+    var deviceData = <String, dynamic>{};
 
     try {
       deviceData = _readTizenDeviceInfo(await deviceInfoPlugin.tizenInfo);

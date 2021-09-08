@@ -13,7 +13,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('fromPlatform', (WidgetTester tester) async {
-    final PackageInfo info = await PackageInfo.fromPlatform();
+    final info = await PackageInfo.fromPlatform();
     // These tests are based on the example app. The tests should be updated if any related info changes.
     expect(info.appName, 'package_info_plus_tizen_example');
     expect(info.packageName, 'org.tizen.package_info_plus_tizen_example');
