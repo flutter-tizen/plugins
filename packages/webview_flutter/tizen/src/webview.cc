@@ -947,9 +947,8 @@ FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
   if (!candidate_surface_) {
     if (rendered_surface_) {
       return gpu_buffer_;
-    } else {
-      return nullptr;
     }
+    return nullptr;
   }
   rendered_surface_ = candidate_surface_;
   candidate_surface_ = nullptr;

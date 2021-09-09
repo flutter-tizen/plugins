@@ -58,8 +58,7 @@ void BufferUnit::Reset(int width, int height) {
   tbm_surface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
 }
 
-BufferPool::BufferPool(int width, int height) {
-  last_index_ = 0;
+BufferPool::BufferPool(int width, int height) : last_index_(0) {
   for (int idx = 0; idx < BUFFER_POOL_SIZE; idx++) {
     pool_.emplace_back(new BufferUnit(idx, width, height));
   }
