@@ -12,13 +12,13 @@ flutter:
         fileName: video_player_tizen_plugin.h
 
 dependencies:
-  video_player_platform_interface: ^4.1.0
   flutter:
     sdk: flutter
+  video_player_platform_interface: ^4.1.0
 
 dev_dependencies:
   pedantic: ^1.10.0
 
 environment:
-  sdk: ">=2.12.0<3.0.0"
   flutter: ">=2.0.0"
+  sdk: ">=2.12.0<3.0.0"
