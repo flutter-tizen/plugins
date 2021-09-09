@@ -1,0 +1,12 @@
+# This file was copied from Baseflow/flutter-geolocator/geolocator/analysis_options.yaml.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    # Ignore generated files
+    - '**/*.g.dart'
+    - 'lib/src/generated/*.dart'
+linter:
+  rules:
+    - public_member_api_docs
