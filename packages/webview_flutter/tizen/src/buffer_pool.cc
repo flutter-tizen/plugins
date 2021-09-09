@@ -58,7 +58,7 @@ void BufferUnit::Reset(int width, int height) {
   tbm_surface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
 }
 
-BufferPool::BufferPool(int width, int height) {
+BufferPool::BufferPool(int width, int height) : last_index_(0) {
   for (int idx = 0; idx < BUFFER_POOL_SIZE; idx++) {
     pool_.emplace_back(new BufferUnit(idx, width, height));
   }
@@ -80,8 +80,10 @@ BufferUnit* BufferPool::Find(tbm_surface_h surface) {
 BufferUnit* BufferPool::GetAvailableBuffer() {
   std::lock_guard<std::mutex> lock(mutex_);
   for (int idx = 0; idx < pool_.size(); idx++) {
-    BufferUnit* buffer = pool_[idx].get();
+    int current = (idx + last_index_) % pool_.size();
+    BufferUnit* buffer = pool_[current].get();
     if (buffer->MarkInUse()) {
+      last_index_ = current;
       return buffer;
     }
   }
