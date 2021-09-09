@@ -14,7 +14,7 @@ void main() {
   TizenDeviceInfo tizenInfo;
 
   setUpAll(() async {
-    final DeviceInfoPluginTizen deviceInfo = DeviceInfoPluginTizen();
+    final deviceInfo = DeviceInfoPluginTizen();
     tizenInfo = await deviceInfo.tizenInfo;
   });
 
