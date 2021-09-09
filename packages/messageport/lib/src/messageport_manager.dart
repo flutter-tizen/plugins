@@ -25,9 +25,9 @@ class TizenMessagePortManager {
     args['remoteAppId'] = remoteAppId;
     args['portName'] = portName;
     args['trusted'] = trusted;
-    final bool status =
-        await _channel.invokeMethod<bool>('checkForRemote', args) as bool;
-    return status;
+    final bool? status =
+        await _channel.invokeMethod<bool>('checkForRemote', args);
+    return status ?? false;
   }
 
   Future<void> send(RemotePort remotePort, dynamic message) async {

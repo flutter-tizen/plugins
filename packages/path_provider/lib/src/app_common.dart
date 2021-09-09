@@ -8,10 +8,10 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-typedef _app_common_get_data_path = Pointer<Utf8> Function();
-typedef _app_common_get_cache_path = Pointer<Utf8> Function();
-typedef _app_common_get_external_data_path = Pointer<Utf8> Function();
-typedef _app_common_get_external_cache_path = Pointer<Utf8> Function();
+typedef _AppCommonGetDataPath = Pointer<Utf8> Function();
+typedef _AppCommonGetCachePath = Pointer<Utf8> Function();
+typedef _AppCommonGetExternalDataPath = Pointer<Utf8> Function();
+typedef _AppCommonGetExternalCachePath = Pointer<Utf8> Function();
 
 AppCommon? _appCommonInstance;
 AppCommon get appCommon => _appCommonInstance ??= AppCommon();
@@ -24,18 +24,17 @@ class AppCommon {
     final DynamicLibrary libAppCommon =
         DynamicLibrary.open('libcapi-appfw-app-common.so.0');
     _getDataPath = libAppCommon
-        .lookup<NativeFunction<_app_common_get_data_path>>('app_get_data_path')
+        .lookup<NativeFunction<_AppCommonGetDataPath>>('app_get_data_path')
         .asFunction();
     _getCachePath = libAppCommon
-        .lookup<NativeFunction<_app_common_get_cache_path>>(
-            'app_get_cache_path')
+        .lookup<NativeFunction<_AppCommonGetCachePath>>('app_get_cache_path')
         .asFunction();
     _getExternalDataPath = libAppCommon
-        .lookup<NativeFunction<_app_common_get_external_data_path>>(
+        .lookup<NativeFunction<_AppCommonGetExternalDataPath>>(
             'app_get_external_data_path')
         .asFunction();
     _getExternalCachePath = libAppCommon
-        .lookup<NativeFunction<_app_common_get_external_cache_path>>(
+        .lookup<NativeFunction<_AppCommonGetExternalCachePath>>(
             'app_get_external_cache_path')
         .asFunction();
   }
