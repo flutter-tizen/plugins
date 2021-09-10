@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="org.tizen.tizen_app_control_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
+    <profile name="wearable"/>
+    <service-application appid="org.tizen.tizen_app_control_example_service" exec="runner_service" type="capp" multiple="false" nodisplay="true" taskmanage="false" auto-restart="false">
+        <label>tizen_app_control_example</label>
+        <icon>ic_launcher.png</icon>
+        <background-category value="media"/>
+    </service-application>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+</manifest>

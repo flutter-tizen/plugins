@@ -1,0 +1,13 @@
+name: tizen_app_control_example
+description: Demonstrates how to use the tizen_app_control plugin.
+publish_to: "none"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  messageport_tizen: ^0.1.0
+  tizen_app_control:
+    path: ../
+
+environment:
+  sdk: ">=2.13.0 <3.0.0"
