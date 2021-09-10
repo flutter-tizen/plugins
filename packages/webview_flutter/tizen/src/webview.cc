@@ -157,8 +157,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       has_navigation_delegate_(false),
       has_progress_tracking_(false),
       context_(nullptr),
-      texture_variant_(nullptr),
-      gpu_buffer_(nullptr) {
+      texture_variant_(nullptr) {
   tbm_pool_ = std::make_unique<BufferPool>(width, height);
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
       [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
@@ -384,11 +383,6 @@ void WebView::Dispose() {
   if (texture_variant_) {
     delete texture_variant_;
     texture_variant_ = nullptr;
-  }
-
-  if (gpu_buffer_) {
-    delete gpu_buffer_;
-    gpu_buffer_ = nullptr;
   }
 }
 
@@ -763,9 +757,6 @@ void WebView::InitWebView() {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
   }
-  if (!gpu_buffer_) {
-    gpu_buffer_ = new FlutterDesktopGpuBuffer();
-  }
 
   float scale_factor = 1;
 
@@ -946,24 +937,23 @@ FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!candidate_surface_) {
     if (rendered_surface_) {
-      return gpu_buffer_;
+      return rendered_surface_->GpuBuffer();
     }
     return nullptr;
   }
+  if (rendered_surface_ && rendered_surface_->IsUsed()) {
+    tbm_pool_->Release(rendered_surface_);
+  }
   rendered_surface_ = candidate_surface_;
   candidate_surface_ = nullptr;
-  if (gpu_buffer_) {
-    gpu_buffer_->buffer = static_cast<void*>(rendered_surface_->Surface());
-    gpu_buffer_->width = width;
-    gpu_buffer_->height = height;
-  }
-  return gpu_buffer_;
+  return rendered_surface_->GpuBuffer();
 }
 
 void WebView::DestructBuffer(void* buffer) {
   if (buffer) {
+    std::lock_guard<std::mutex> lock(mutex_);
     BufferUnit* unit = tbm_pool_->Find((tbm_surface_h)buffer);
-    if (unit) {
+    if (unit && unit != rendered_surface_) {
       tbm_pool_->Release(unit);
     }
   }

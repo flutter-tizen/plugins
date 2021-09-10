@@ -22,6 +22,10 @@ BufferUnit::~BufferUnit() {
     tbm_surface_destroy(tbm_surface_);
     tbm_surface_ = nullptr;
   }
+  if (gpu_buffer_) {
+    delete gpu_buffer_;
+    gpu_buffer_ = nullptr;
+  }
 }
 
 bool BufferUnit::MarkInUse() {
@@ -31,6 +35,8 @@ bool BufferUnit::MarkInUse() {
   }
   return false;
 }
+
+FlutterDesktopGpuBuffer* BufferUnit::GpuBuffer() { return gpu_buffer_; }
 
 int BufferUnit::Index() { return index_; }
 
@@ -55,7 +61,15 @@ void BufferUnit::Reset(int width, int height) {
     tbm_surface_destroy(tbm_surface_);
     tbm_surface_ = nullptr;
   }
+  if (gpu_buffer_) {
+    delete gpu_buffer_;
+    gpu_buffer_ = nullptr;
+  }
   tbm_surface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
+  gpu_buffer_ = new FlutterDesktopGpuBuffer();
+  gpu_buffer_->width = width_;
+  gpu_buffer_->height = height_;
+  gpu_buffer_->buffer = tbm_surface_;
 }
 
 BufferPool::BufferPool(int width, int height) : last_index_(0) {
@@ -101,4 +115,23 @@ void BufferPool::Prepare(int width, int height) {
     BufferUnit* buffer = pool_[idx].get();
     buffer->Reset(width, height);
   }
+}
+
+#include <cairo.h>
+void BufferUnit::dumpToPng(int filename) {
+  char filePath[256];
+  sprintf(filePath, "/tmp/dump%d.png", filename);
+  tbm_surface_info_s surfaceInfo;
+  tbm_surface_map(tbm_surface_, TBM_SURF_OPTION_WRITE, &surfaceInfo);
+  void* buffer = surfaceInfo.planes[0].ptr;
+
+  cairo_surface_t* png_buffer;
+  png_buffer = cairo_image_surface_create_for_data(
+      (unsigned char*)buffer, CAIRO_FORMAT_ARGB32, width_, height_,
+      surfaceInfo.planes[0].stride);
+
+  cairo_surface_write_to_png(png_buffer, filePath);
+
+  tbm_surface_unmap(tbm_surface_);
+  cairo_surface_destroy(png_buffer);
 }
