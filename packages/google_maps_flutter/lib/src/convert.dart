@@ -5,10 +5,6 @@
 
 part of google_maps_flutter_tizen;
 
-// Defaults taken from the Google Maps Platform SDK documentation.
-const String _defaultCssColor = '#000000';
-const double _defaultCssOpacity = 0.0;
-
 // Indices in the plugin side don't match with the ones
 Map<int, String> _mapTypeToMapTypeId = {
   0: 'roadmap', // None
@@ -122,9 +118,13 @@ bool _isJsonMapStyle(Map value) {
   return _mapStyleKeys.intersection(value.keys.toSet()).isNotEmpty;
 }
 
+// ignore: public_member_api_docs
 class MapTypeStyle {
+  // ignore: public_member_api_docs
   String? elementType;
+  // ignore: public_member_api_docs
   String? featureType;
+  // ignore: public_member_api_docs
   List<Object?>? stylers;
 }
 
@@ -232,7 +232,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
   }
   buffer.write('</div>\'');
 
-  // TODO(seungsoo47): Need to add Click Event to infoWindow's content
+  // Need to add Click Event to infoWindow's content
   return util.GInfoWindowOptions()
     ..content = buffer.toString()
     ..zIndex = marker.zIndex;
@@ -269,11 +269,11 @@ util.GMarkerOptions _markerOptionsFromMarker(
   }
 
   final LatLng? position;
-  if (currentMarker?.opts?.position == null ||
-      currentMarker?.opts?.position != marker.position) {
+  if (currentMarker?.options?.position == null ||
+      currentMarker?.options?.position != marker.position) {
     position = marker.position;
   } else {
-    position = currentMarker?.opts?.position;
+    position = currentMarker?.options?.position;
   }
 
   // Flat and Rotation are not supported directly on the web.

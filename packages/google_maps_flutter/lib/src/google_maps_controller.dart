@@ -5,6 +5,7 @@
 
 part of google_maps_flutter_tizen;
 
+/// This class implements a Map Controller and its events
 class GoogleMapsController {
   // The internal ID of the map. Used to broadcast events, DOM IDs and everything where a unique ID is needed.
   final int _mapId;
@@ -21,8 +22,11 @@ class GoogleMapsController {
   WebView? _widget;
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
+
+  /// Returns webview controller instance.
   Future<WebViewController> get controller => _controller.future;
 
+  /// Returns min-max zoom levels. Test only.
   @visibleForTesting
   Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
     final String value = await (await controller)
@@ -45,6 +49,7 @@ class GoogleMapsController {
     return const MinMaxZoomPreference(0, 0);
   }
 
+  /// Returns if zoomGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomGesturesEnabled() async {
     final String value =
@@ -53,12 +58,15 @@ class GoogleMapsController {
   }
 
   @visibleForTesting
+
+  /// Returns if zoomControls property is enabled. Test only.
   Future<bool> isZoomControlsEnabled() async {
     final String value =
         await (await controller).evaluateJavascript('map.zoomControl');
     return value != 'false';
   }
 
+  /// Returns if scrollGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isScrollGesturesEnabled() async {
     final String value =
@@ -66,12 +74,13 @@ class GoogleMapsController {
     return value != 'none';
   }
 
+  /// Returns if traffic layer is enabled. Test only.
   @visibleForTesting
   Future<bool> isTrafficEnabled() async {
     return _isTrafficLayerEnabled(_rawMapOptions);
   }
 
-  late WebViewController temp;
+  late WebViewController _temp;
   void _getWebview() {
     // If the variable does not exist, we must find other alternatives.
     String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
@@ -81,7 +90,7 @@ class GoogleMapsController {
       initialUrl: path,
       javascriptMode: JavascriptMode.unrestricted,
       onWebViewCreated: (WebViewController webViewController) async {
-        temp = webViewController;
+        _temp = webViewController;
       },
       javascriptChannels: <JavascriptChannel>{
         _onBoundsChanged(),
@@ -95,7 +104,7 @@ class GoogleMapsController {
         _onCircleClick(),
       },
       onPageFinished: (String url) async {
-        _controller.complete(temp);
+        _controller.complete(_temp);
       },
       gestureNavigationEnabled: true,
     );
@@ -409,7 +418,6 @@ class GoogleMapsController {
     _polygonsController!.bindToMap(_mapId, _widget!);
     _polylinesController!.bindToMap(_mapId, _widget!);
     _markersController!.bindToMap(_mapId, _widget!);
-    util.webview = _widget!;
     util.webController = controller;
     _controllersBoundToMap = true;
   }
@@ -523,6 +531,7 @@ class GoogleMapsController {
         await _callMethod(await controller, 'getBounds', []));
   }
 
+  /// Returns the [LatLng] at the center of the map.
   Future<LatLng> getCenter() async {
     return _convertToLatLng(
         await _callMethod(await controller, 'getCenter', []));
@@ -541,7 +550,7 @@ class GoogleMapsController {
 
   /// Applies a `cameraUpdate` to the current viewport.
   Future<void> moveCamera(CameraUpdate cameraUpdate) async {
-    _applyCameraUpdate(cameraUpdate);
+    await _applyCameraUpdate(cameraUpdate);
   }
 
   // Translates a [CameraUpdate] into operations on a [Javascript].
@@ -549,24 +558,24 @@ class GoogleMapsController {
     final List<dynamic> json = update.toJson() as List<dynamic>;
     switch (json[0]) {
       case 'newCameraPosition':
-        _setMoveCamera(
+        await _setMoveCamera(
             '{heading: ${json[1]['bearing']}, zoom: ${json[1]['zoom']}, tilt: ${json[1]['tilt']}}');
-        _setPanTo(
+        await _setPanTo(
             '{lat:${json[1]['target'][0]}, lng: ${json[1]['target'][1]}}');
         break;
       case 'newLatLng':
-        _setPanTo('{lat:${json[1][0]}, lng:${json[1][1]}}');
+        await _setPanTo('{lat:${json[1][0]}, lng:${json[1][1]}}');
         break;
       case 'newLatLngZoom':
-        _setMoveCamera('{zoom: ${json[2]}}');
-        _setPanTo('{lat:${json[1][0]}, lng: ${json[1][1]}}');
+        await _setMoveCamera('{zoom: ${json[2]}}');
+        await _setPanTo('{lat:${json[1][0]}, lng: ${json[1][1]}}');
         break;
       case 'newLatLngBounds':
-        _setFitBounds(
+        await _setFitBounds(
             '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}, ${json[2]}');
         break;
       case 'scrollBy':
-        _setPanBy('${json[1]}, ${json[2]}');
+        await _setPanBy('${json[1]}, ${json[2]}');
         break;
       case 'zoomBy':
         String? focusLatLng;
@@ -586,19 +595,19 @@ class GoogleMapsController {
             print('Error computing focus LatLng. JS Error: ' + e.toString());
           }
         }
-        _setZoom('${(await getZoomLevel()) + newZoomDelta}');
+        await _setZoom('${(await getZoomLevel()) + newZoomDelta}');
         if (focusLatLng != null) {
-          _setPanTo(focusLatLng);
+          await _setPanTo(focusLatLng);
         }
         break;
       case 'zoomIn':
-        _setZoom('${(await getZoomLevel()) + 1}');
+        await _setZoom('${(await getZoomLevel()) + 1}');
         break;
       case 'zoomOut':
-        _setZoom('${(await getZoomLevel()) - 1}');
+        await _setZoom('${(await getZoomLevel()) - 1}');
         break;
       case 'zoomTo':
-        _setZoom('${json[1]}');
+        await _setZoom('${json[1]}');
         break;
       default:
         throw UnimplementedError('Unimplemented CameraMove: ${json[0]}.');

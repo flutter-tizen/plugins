@@ -22,6 +22,7 @@ class CircleController {
   util.GCircle? _circle;
   final bool _consumeTapEvents;
 
+  /// Circle component's tap event.
   ui.VoidCallback? tapEvent;
 
   Future<void> _addCircleEvent(Future<WebViewController>? _controller) async {

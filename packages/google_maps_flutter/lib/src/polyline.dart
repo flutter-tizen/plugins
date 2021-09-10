@@ -22,6 +22,7 @@ class PolylineController {
   util.GPolyline? _polyline;
   final bool _consumeTapEvents;
 
+  /// Polyline component's tap event.
   ui.VoidCallback? tapEvent;
 
   Future<void> _addPolylineEvent(Future<WebViewController>? _controller) async {

@@ -6,8 +6,8 @@
 part of google_maps_flutter_tizen;
 
 // Marker Size
-const int markerWidth = 24;
-const int markerHeight = 43;
+const int _markerWidth = 24;
+const int _markerHeight = 43;
 
 /// The `MarkerController` class wraps a [GMarker], how it handles events, and its associated (optional) [GInfoWindow] widget.
 class MarkerController {
@@ -34,7 +34,10 @@ class MarkerController {
   final util.GInfoWindow? _infoWindow;
   bool _infoWindowShown = false;
 
+  /// Marker component's tap event.
   ui.VoidCallback? tapEvent;
+
+  /// Marker component's drag end event.
   LatLngCallback? dragEndEvent;
 
   Future<void> _addMarkerEvent(Future<WebViewController>? _controller) async {
@@ -65,8 +68,8 @@ class MarkerController {
     if (_infoWindow != null && newInfoWindowContent != null) {
       _infoWindow!.content = newInfoWindowContent;
       _infoWindow!.pixelOffset = util.GSize(
-          (marker.infoWindow.anchor.dx - 0.5) * markerWidth,
-          marker.infoWindow.anchor.dy * markerHeight);
+          (marker.infoWindow.anchor.dx - 0.5) * _markerWidth,
+          marker.infoWindow.anchor.dy * _markerHeight);
     }
     _marker!.options = options;
     if (!marker.visible) {

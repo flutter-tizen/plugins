@@ -21,6 +21,8 @@ class PolygonController {
 
   util.GPolygon? _polygon;
   final bool _consumeTapEvents;
+
+  /// Polygon component's tap event.
   ui.VoidCallback? tapEvent;
 
   Future<void> _addPolygonEvent(Future<WebViewController>? _controller) async {

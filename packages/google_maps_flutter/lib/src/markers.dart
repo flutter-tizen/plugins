@@ -127,6 +127,7 @@ class MarkersController extends GeometryController {
     return _markerIdToController[markerId]?.consumeTapEvents ?? false;
   }
 
+  // ignore: unused_element
   void _onInfoWindowTap(MarkerId markerId) {
     _streamController.add(InfoWindowTapEvent(mapId, markerId));
   }
