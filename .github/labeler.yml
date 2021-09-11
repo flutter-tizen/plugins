@@ -47,6 +47,8 @@
   - packages/shared_preferences/**/*
 'p: share_plus':
   - packages/share_plus/**/*
+'p: tizen_app_control':
+  - packages/tizen_app_control/**/*
 'p: url_launcher':
   - packages/url_launcher/**/*
 'p: video_player':
