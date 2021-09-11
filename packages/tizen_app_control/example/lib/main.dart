@@ -26,7 +26,7 @@ void serviceMain() {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Listen for incoming AppControls.
-  final StreamSubscription<AppControl> appControlListener =
+  final StreamSubscription<ReceivedAppControl> appControlListener =
       AppControl.onAppControl.listen((ReceivedAppControl request) async {
     if (request.shouldReply) {
       final AppControl reply = AppControl();
@@ -62,6 +62,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final GlobalKey<ScaffoldMessengerState> _messengerKey =
+      GlobalKey<ScaffoldMessengerState>();
   LocalPort? _localPort;
   int _messagesCount = 0;
   bool _isServiceStarted = false;
@@ -88,22 +90,59 @@ class _MyAppState extends State<MyApp> {
     _localPort?.unregister();
   }
 
-  Future<void> _launchService() async {
-    // Send a launch request to the service app.
-    final AppControl request = AppControl(appId: _kServiceAppId);
-    return request.sendLaunchRequest(
+  Future<void> _sendSms() async {
+    final AppControl request = AppControl(
+      operation: 'http://tizen.org/appcontrol/operation/share_text',
+      uri: 'sms:',
+      launchMode: LaunchMode.group,
+      extraData: <String, dynamic>{
+        'http://tizen.org/appcontrol/data/text': 'Some text',
+      },
+    );
+    await request.sendLaunchRequest();
+  }
+
+  Future<void> _pickImage() async {
+    final AppControl request = AppControl(
+      operation: 'http://tizen.org/appcontrol/operation/pick',
+      mime: 'image/*',
+      launchMode: LaunchMode.group,
+    );
+    await request.sendLaunchRequest(
       replyCallback: (
         AppControl request,
         AppControl reply,
         AppControlReplyResult result,
-      ) async {
+      ) {
+        const String kAppControlDataSelected =
+            'http://tizen.org/appcontrol/data/selected';
+        String? imagePath;
+        if (result == AppControlReplyResult.succeeded &&
+            reply.extraData.containsKey(kAppControlDataSelected)) {
+          imagePath = reply.extraData[kAppControlDataSelected][0] as String;
+        }
+        _messengerKey.currentState!.showSnackBar(
+          SnackBar(content: Text(imagePath ?? 'No image selected.')),
+        );
+      },
+    );
+  }
+
+  Future<void> _launchService() async {
+    final AppControl request = AppControl(appId: _kServiceAppId);
+    await request.sendLaunchRequest(
+      replyCallback: (
+        AppControl request,
+        AppControl reply,
+        AppControlReplyResult result,
+      ) {
         if (result == AppControlReplyResult.succeeded) {
           setState(() {
             _isServiceStarted = true;
           });
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Launch $result.')),
+          _messengerKey.currentState!.showSnackBar(
+            const SnackBar(content: Text('Launch failed.')),
           );
         }
       },
@@ -111,7 +150,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _terminateService() async {
-    // Send a terminate request to the service app.
     AppManager.terminateBackgroundApplication(_kServiceAppId);
     setState(() {
       _isServiceStarted = AppManager.isRunning(_kServiceAppId);
@@ -121,6 +159,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: _messengerKey,
       home: Scaffold(
         appBar: AppBar(title: const Text('Tizen App Control Example')),
         body: Center(
@@ -128,14 +167,26 @@ class _MyAppState extends State<MyApp> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ElevatedButton(
-                onPressed: _isServiceStarted ? null : _launchService,
-                child: const Text('Launch service'),
+                onPressed: _sendSms,
+                child: const Text('Send SMS'),
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: _isServiceStarted ? _terminateService : null,
-                child: const Text('Terminate service'),
+                onPressed: _pickImage,
+                child: const Text('Pick image'),
               ),
+              const SizedBox(height: 10),
+              if (_isServiceStarted)
+                ElevatedButton(
+                  onPressed: _terminateService,
+                  style: ElevatedButton.styleFrom(primary: Colors.redAccent),
+                  child: const Text('Terminate service'),
+                )
+              else
+                ElevatedButton(
+                  onPressed: _launchService,
+                  child: const Text('Launch service'),
+                ),
               const SizedBox(height: 10),
               Text('Received messages: $_messagesCount'),
             ],

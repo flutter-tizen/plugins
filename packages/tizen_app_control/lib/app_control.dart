@@ -44,7 +44,7 @@ enum AppControlReplyResult {
 /// [request] represents the launch request that has been sent.
 /// [reply] represents the reply message sent by the callee application.
 /// [result] represents the result of launch.
-typedef AppControlReplyCallback = Function(
+typedef AppControlReplyCallback = FutureOr<void> Function(
   AppControl request,
   AppControl reply,
   AppControlReplyResult result,
@@ -61,11 +61,11 @@ typedef AppControlReplyCallback = Function(
 class AppControl {
   /// Creates an instance of [AppControl] with the given parameters.
   AppControl({
-    this.appId = '',
-    this.operation = '',
-    this.uri = '',
-    this.mime = '',
-    this.category = '',
+    this.appId,
+    this.operation,
+    this.uri,
+    this.mime,
+    this.category,
     this.launchMode = LaunchMode.single,
     this.extraData = const <String, dynamic>{},
   }) {
@@ -74,11 +74,11 @@ class AppControl {
 
   AppControl._fromMap(dynamic map)
       : _id = map['id'] as int,
-        appId = map['appId'] as String,
-        operation = map['operation'] as String,
-        uri = map['uri'] as String,
-        mime = map['mime'] as String,
-        category = map['category'] as String,
+        appId = map['appId'] as String?,
+        operation = map['operation'] as String?,
+        uri = map['uri'] as String?,
+        mime = map['mime'] as String?,
+        category = map['category'] as String?,
         launchMode =
             enumFromString(LaunchMode.values, map['launchMode'] as String),
         extraData = Map<String, dynamic>.from(
@@ -86,26 +86,27 @@ class AppControl {
 
   /// The ID of the application to handle this request (applicable for explicit
   /// requests).
-  String appId;
+  String? appId;
 
-  /// The operation to be performed by the target application, such as
+  /// The operation to be performed by the callee, such as
   /// `http://tizen.org/appcontrol/operation/view`.
-  String operation;
+  String? operation;
 
   /// The URI of the data to be handled by this request.
-  String uri;
+  String? uri;
 
   /// The MIME type of the data to be handled by this request.
-  String mime;
+  String? mime;
 
-  /// The category of application that should handle this request, such as
+  /// The type of the application that should handle this request, such as
   /// `http://tizen.org/category/homeapp`.
-  String category;
+  String? category;
 
   /// The launch mode, either [LaunchMode.single] or [LaunchMode.group].
   LaunchMode launchMode;
 
-  /// Additional information required to perform the operation.
+  /// Additional information contained by this application control. Each value
+  /// must be either `String` or `List<String>`.
   Map<String, dynamic> extraData;
 
   /// The unique ID internally used for managing application control handles.
@@ -128,7 +129,8 @@ class AppControl {
   /// The `http://tizen.org/privilege/appmanager.launch` privilege is required
   /// to use this API.
   ///
-  /// If [replyCallback] is null, this call returns immediately.
+  /// If [replyCallback] is null, this call returns immediately after sending
+  /// a request to the platform.
   ///
   /// If [replyCallback] is non-null, this call will not return until a reply
   /// is received from the callee and [replyCallback] is invoked.
@@ -142,7 +144,7 @@ class AppControl {
       'waitForReply': replyCallback != null,
     };
     if (replyCallback == null) {
-      return _methodChannel.invokeMethod<void>('sendLaunchRequest', args);
+      await _methodChannel.invokeMethod<void>('sendLaunchRequest', args);
     } else {
       final dynamic response =
           await _methodChannel.invokeMethod<dynamic>('sendLaunchRequest', args);
@@ -156,7 +158,7 @@ class AppControl {
       final Map<String, dynamic> replyMap = Map<String, dynamic>.from(
           responseMap['reply'] as Map<dynamic, dynamic>);
       final AppControl reply = AppControl._fromMap(replyMap);
-      replyCallback(this, reply, result);
+      await replyCallback(this, reply, result);
     }
   }
 
@@ -172,7 +174,7 @@ class AppControl {
     final Map<String, dynamic> args = <String, dynamic>{
       'id': _id,
     };
-    return _methodChannel.invokeMethod<void>('sendTerminateRequest', args);
+    await _methodChannel.invokeMethod<void>('sendTerminateRequest', args);
   }
 
   Future<void> _setAppControlData() async {
@@ -186,19 +188,19 @@ class AppControl {
       'launchMode': enumToString(launchMode),
       'extraData': extraData,
     };
-    return _methodChannel.invokeMethod<void>('setAppControlData', args);
+    await _methodChannel.invokeMethod<void>('setAppControlData', args);
   }
 }
 
 /// Represents a received [AppControl] message.
 class ReceivedAppControl extends AppControl {
   ReceivedAppControl._fromMap(dynamic map)
-      : callerAppId = map['callerAppId'] as String,
+      : callerAppId = map['callerAppId'] as String?,
         shouldReply = map['shouldReply'] as bool,
         super._fromMap(map);
 
   /// The caller application ID.
-  final String callerAppId;
+  final String? callerAppId;
 
   /// Whether a reply is requested.
   ///
@@ -218,6 +220,6 @@ class ReceivedAppControl extends AppControl {
       'requestId': _id,
       'result': enumToString(result),
     };
-    return AppControl._methodChannel.invokeMethod<void>('reply', args);
+    await AppControl._methodChannel.invokeMethod<void>('reply', args);
   }
 }

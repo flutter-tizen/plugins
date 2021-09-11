@@ -30,7 +30,7 @@ DynamicLibrary get _libEmbedder {
         _libEmbedderCache = DynamicLibrary.open(path);
         break;
       } on ArgumentError {
-        // No-op.
+        continue;
       }
     }
     if (_libEmbedderCache == null) {

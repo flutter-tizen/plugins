@@ -30,7 +30,7 @@ class AppManager {
 
   /// Sends a terminate request to an application with the given [appId].
   /// UI applications that are in a paused state and service applications can
-  /// be terminated using this API.
+  /// be terminated by this API.
   ///
   /// The `http://tizen.org/privilege/appmanager.kill.bgapp` privilege is
   /// required to use this API.
