@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 // ignore_for_file: public_member_api_docs
-// ignore_for_file: always_specify_types
 
 import 'dart:ffi';
 
@@ -13,6 +12,8 @@ typedef _InitializeDartApiNative = IntPtr Function(Pointer<Void>);
 typedef _InitializeDartApi = int Function(Pointer<Void>);
 typedef _CreateAppControlNative = Uint32 Function(Handle);
 typedef _CreateAppControl = int Function(Object);
+typedef _AttachAppControlNative = Int8 Function(Int32, Handle);
+typedef _AttachAppControl = int Function(int, Object);
 
 DynamicLibrary? _libEmbedderCache;
 
@@ -47,6 +48,13 @@ DynamicLibrary get _libEmbedder {
 final _CreateAppControl nativeCreateAppControl =
     _libEmbedder.lookupFunction<_CreateAppControlNative, _CreateAppControl>(
         'NativeCreateAppControl');
+final _AttachAppControl _nativeAttachAppControl =
+    _libEmbedder.lookupFunction<_AttachAppControlNative, _AttachAppControl>(
+        'NativeAttachAppControl');
+
+bool nativeAttachAppControl(int id, Object dartObject) {
+  return _nativeAttachAppControl(id, dartObject) > 0;
+}
 
 class _AppContext extends Opaque {}
 

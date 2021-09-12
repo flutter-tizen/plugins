@@ -52,8 +52,9 @@ typedef AppControlReplyCallback = FutureOr<void> Function(
 
 /// Represents a control message exchanged between applications.
 ///
-/// An explicit or implicit control request may be sent by an application to
-/// launch another application. For detailed information, see:
+/// An explicit or implicit control request can be made by an application to
+/// launch another application using this API. For detailed information on
+/// Tizen application controls, see:
 /// https://docs.tizen.org/application/native/guides/app-management/app-controls
 ///
 /// For a list of common operation types and examples, see:
@@ -70,6 +71,9 @@ class AppControl {
     this.extraData = const <String, dynamic>{},
   }) {
     _id = nativeCreateAppControl(this);
+    if (_id < 0) {
+      throw Exception('Could not create an instance of AppControl.');
+    }
   }
 
   AppControl._fromMap(dynamic map)
@@ -82,7 +86,11 @@ class AppControl {
         launchMode =
             enumFromString(LaunchMode.values, map['launchMode'] as String),
         extraData = Map<String, dynamic>.from(
-            map['extraData'] as Map<dynamic, dynamic>);
+            map['extraData'] as Map<dynamic, dynamic>) {
+    if (!nativeAttachAppControl(_id, this)) {
+      throw Exception('Could not find an instance of AppControl with ID $_id.');
+    }
+  }
 
   /// The ID of the application to handle this request (applicable for explicit
   /// requests).
