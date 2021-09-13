@@ -196,8 +196,12 @@ def _integration_test(plugin_dir, test_targets, timeout):
                 TestResult.fail(plugin_name, test_target, errors=errors))
             continue
         if last_line.strip() == 'No tests ran.':
+            # This message occurs when the integration test file exists,
+            # but no actual test code is written in it.
             test_results.append(
-                TestResult.fail(plugin_name, test_target, ['No tests ran.']))
+                TestResult.fail(plugin_name, test_target, [
+                    'Missing integration tests (use --exclude if this is intentional).'
+                ]))
             continue
         elif last_line.strip().startswith('No devices found'):
             test_results.append(
