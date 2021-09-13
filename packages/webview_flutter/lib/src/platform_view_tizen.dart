@@ -363,8 +363,10 @@ class TizenViewController extends PlatformViewController {
 
   @override
   Future<void> dispose() async {
-    if (_state == _TizenViewState.creating || _state == _TizenViewState.created)
+    if (_state == _TizenViewState.creating ||
+        _state == _TizenViewState.created) {
       await _sendDisposeMessage();
+    }
     _platformViewCreatedCallbacks.clear();
     _state = _TizenViewState.disposed;
     PlatformViewsServiceTizen._instance._focusCallbacks.remove(viewId);

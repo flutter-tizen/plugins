@@ -10,12 +10,12 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
-typedef _storage_get_directory = Int32 Function(
+typedef _StorageGetDirectory = Int32 Function(
     Int32, Int32, Pointer<Pointer<Utf8>>);
-typedef _storage_callback = Int32 Function(
+typedef _StorageCallback = Int32 Function(
     Int32, Int32, Int32, Pointer<Utf8>, Pointer<Void>);
-typedef _storage_foreach_device_supported = Int32 Function(
-    Pointer<NativeFunction<_storage_callback>>, Pointer<Void>);
+typedef _StorageForeachDeviceSupported = Int32 Function(
+    Pointer<NativeFunction<_StorageCallback>>, Pointer<Void>);
 
 /// Corresponds to `storage_directory_e`.
 enum StorageDirectoryType {
@@ -40,11 +40,11 @@ class Storage {
   Storage() {
     final DynamicLibrary libStorage = DynamicLibrary.open('libstorage.so.0.1');
     _storageGetDirectory = libStorage
-        .lookup<NativeFunction<_storage_get_directory>>('storage_get_directory')
+        .lookup<NativeFunction<_StorageGetDirectory>>('storage_get_directory')
         .asFunction();
 
     _storageForeachDeviceSupported = libStorage
-        .lookup<NativeFunction<_storage_foreach_device_supported>>(
+        .lookup<NativeFunction<_StorageForeachDeviceSupported>>(
             'storage_foreach_device_supported')
         .asFunction();
 
@@ -63,7 +63,7 @@ class Storage {
   }
 
   late int Function(int, int, Pointer<Pointer<Utf8>>) _storageGetDirectory;
-  late int Function(Pointer<NativeFunction<_storage_callback>>, Pointer<Void>)
+  late int Function(Pointer<NativeFunction<_StorageCallback>>, Pointer<Void>)
       _storageForeachDeviceSupported;
 
   /// The unique storage device id.

@@ -12,12 +12,12 @@ void main() {
   });
 
   testWidgets('enable wakelock', (WidgetTester tester) async {
-    Wakelock.enable();
+    await Wakelock.enable();
     expect(await Wakelock.enabled, true);
   });
 
   testWidgets('disable wakelock', (WidgetTester tester) async {
-    Wakelock.disable();
+    await Wakelock.disable();
     expect(await Wakelock.enabled, false);
   });
 }
