@@ -47,3 +47,4 @@ if __name__ == "__main__":
         commands[sys.argv[1]]['func'](sys.argv[2:])
     except Exception as e:
         print_usage()
+        exit(1)
