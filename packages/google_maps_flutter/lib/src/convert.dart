@@ -1,13 +1,9 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 part of google_maps_flutter_tizen;
-
-// Defaults taken from the Google Maps Platform SDK documentation.
-const String _defaultCssColor = '#000000';
-const double _defaultCssOpacity = 0.0;
 
 // Indices in the plugin side don't match with the ones
 Map<int, String> _mapTypeToMapTypeId = {
@@ -34,7 +30,7 @@ String? _getCameraBounds(dynamic option) {
 }
 
 // Converts options into String that can be used by a webview.
-// The following options are not handled here, for various reasons:
+// The following options are not handled here due to various reasons:
 // The following are not available in web, because the map doesn't rotate there:
 //   compassEnabled
 //   rotateGesturesEnabled
@@ -122,9 +118,13 @@ bool _isJsonMapStyle(Map value) {
   return _mapStyleKeys.intersection(value.keys.toSet()).isNotEmpty;
 }
 
+// ignore: public_member_api_docs
 class MapTypeStyle {
+  // ignore: public_member_api_docs
   String? elementType;
+  // ignore: public_member_api_docs
   String? featureType;
+  // ignore: public_member_api_docs
   List<Object?>? stylers;
 }
 
@@ -232,7 +232,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
   }
   buffer.write('</div>\'');
 
-  // TODO(seungsoo47): Need to add Click Event to infoWindow's content
+  // Need to add Click Event to infoWindow's content
   return util.GInfoWindowOptions()
     ..content = buffer.toString()
     ..zIndex = marker.zIndex;
@@ -248,39 +248,35 @@ util.GMarkerOptions _markerOptionsFromMarker(
   final iconConfig = marker.icon.toJson() as List;
   util.GIcon? icon;
 
-  if (iconConfig != null || iconConfig.isEmpty) {
+  if (iconConfig.isNotEmpty) {
     if (iconConfig[0] == 'fromAssetImage') {
       assert(iconConfig.length >= 2);
       // iconConfig[2] contains the DPIs of the screen, but that information is
       // already encoded in the iconConfig[1]
-
       icon = util.GIcon()..url = '../${iconConfig[1]}';
 
       // iconConfig[3] may contain the [width, height] of the image, if passed!
       if (iconConfig.length >= 4 && iconConfig[3] != null) {
-        final size =
+        final util.GSize size =
             util.GSize(iconConfig[3][0] as num, iconConfig[3][1] as num);
         icon
           ..size = size
           ..scaledSize = size;
       }
     } else if (iconConfig[0] == 'fromBytes') {
-      // TODO(seungsoo): Please implement the code below appropriately.
-      // // Grab the bytes, and put them into a blob
-      // List<int> bytes = iconConfig[1] as List<int>;
-      // final blob = Blob(bytes); // Let the browser figure out the encoding
-      // icon = gmaps.Icon()..url = Url.createObjectUrlFromBlob(blob);
+      throw UnimplementedError('Not Implemented');
     }
   }
 
   final LatLng? position;
-  if (currentMarker?.opts?.position == null ||
-      currentMarker?.opts?.position != marker.position) {
+  if (currentMarker?.options?.position == null ||
+      currentMarker?.options?.position != marker.position) {
     position = marker.position;
   } else {
-    position = currentMarker?.opts?.position;
+    position = currentMarker?.options?.position;
   }
 
+  // Flat and Rotation are not supported directly on the web.
   return util.GMarkerOptions()
     ..position = position
     ..title = marker.infoWindow.title ?? ''
@@ -289,26 +285,21 @@ util.GMarkerOptions _markerOptionsFromMarker(
     ..opacity = marker.alpha
     ..draggable = marker.draggable
     ..icon = icon;
-  // TODO: Flat and Rotation are not supported directly on the web.
 }
 
 // Converts a [Color] into a valid CSS value #RRGGBB.
 String _getCssColor(Color color) {
-  if (color == null) {
-    return _defaultCssColor;
-  }
   return '#' + color.value.toRadixString(16).padLeft(8, '0').substring(2);
 }
 
 // Extracts the opacity from a [Color].
 double _getCssOpacity(Color color) {
-  if (color == null) {
-    return _defaultCssOpacity;
-  }
   return color.opacity;
 }
 
 util.GPolylineOptions _polylineOptionsFromPolyline(Polyline polyline) {
+  // Some properties of polyline (endCap, jointType, patterns, startCap) are not
+  // directly supported on the web.
   return util.GPolylineOptions()
     ..path = polyline.points
     ..strokeWeight = polyline.width
@@ -317,12 +308,6 @@ util.GPolylineOptions _polylineOptionsFromPolyline(Polyline polyline) {
     ..visible = polyline.visible
     ..zIndex = polyline.zIndex
     ..geodesic = polyline.geodesic;
-//  The properties below are not directly supported on the web.
-//  this.endCap = Cap.buttCap,
-//  this.jointType = JointType.mitered,
-//  this.patterns = const <PatternItem>[],
-//  this.startCap = Cap.buttCap,
-//  this.width = 10,
 }
 
 util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
@@ -386,5 +371,6 @@ util.GCircleOptions _circleOptionsFromCircle(Circle circle) {
     ..fillOpacity = _getCssOpacity(circle.fillColor)
     ..center = LatLng(circle.center.latitude, circle.center.longitude)
     ..radius = circle.radius
-    ..visible = circle.visible;
+    ..visible = circle.visible
+    ..zIndex = circle.zIndex;
 }

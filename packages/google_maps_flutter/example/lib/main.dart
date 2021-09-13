@@ -5,22 +5,17 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:flutter/material.dart';
-import 'lite_mode.dart';
 import 'animate_camera.dart';
 import 'map_click.dart';
 import 'map_coordinates.dart';
 import 'map_ui.dart';
 import 'marker_icons.dart';
 import 'move_camera.dart';
-import 'padding.dart';
 import 'page.dart';
 import 'place_circle.dart';
 import 'place_marker.dart';
 import 'place_polygon.dart';
 import 'place_polyline.dart';
-import 'scrolling_map.dart';
-import 'snapshot.dart';
-import 'tile_overlay.dart';
 
 final List<GoogleMapExampleAppPage> _allPages = <GoogleMapExampleAppPage>[
   MapUiPage(),
@@ -30,14 +25,9 @@ final List<GoogleMapExampleAppPage> _allPages = <GoogleMapExampleAppPage>[
   MoveCameraPage(),
   PlaceMarkerPage(),
   MarkerIconsPage(),
-  ScrollingMapPage(),
   PlacePolylinePage(),
   PlacePolygonPage(),
   PlaceCirclePage(),
-  PaddingPage(),
-  SnapshotPage(),
-  LiteModePage(),
-  TileOverlayPage(),
 ];
 
 class MapsDemo extends StatelessWidget {

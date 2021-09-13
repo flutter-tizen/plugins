@@ -1,5 +1,5 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,12 +7,6 @@ part of google_maps_flutter_tizen;
 
 /// The `PolygonController` class wraps a [GPolygon] and its `onTap` behavior.
 class PolygonController {
-  util.GPolygon? _polygon;
-
-  final bool _consumeTapEvents;
-
-  ui.VoidCallback? _onTap;
-
   /// Creates a `PolygonController` that wraps a [GPolygon] object and its `onTap` behavior.
   PolygonController({
     required util.GPolygon polygon,
@@ -21,9 +15,15 @@ class PolygonController {
     Future<WebViewController>? controller,
   })  : _polygon = polygon,
         _consumeTapEvents = consumeTapEvents,
-        _onTap = onTap {
+        tapEvent = onTap {
     _addPolygonEvent(controller);
   }
+
+  util.GPolygon? _polygon;
+  final bool _consumeTapEvents;
+
+  /// Polygon component's tap event.
+  ui.VoidCallback? tapEvent;
 
   Future<void> _addPolygonEvent(Future<WebViewController>? _controller) async {
     final String command =

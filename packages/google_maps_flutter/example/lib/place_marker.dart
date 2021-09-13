@@ -152,17 +152,6 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
     });
   }
 
-  void _changeAnchor(MarkerId markerId) {
-    final Marker marker = markers[markerId]!;
-    final Offset currentAnchor = marker.anchor;
-    final Offset newAnchor = Offset(1.0 - currentAnchor.dy, currentAnchor.dx);
-    setState(() {
-      markers[markerId] = marker.copyWith(
-        anchorParam: newAnchor,
-      );
-    });
-  }
-
   Future<void> _changeInfoAnchor(MarkerId markerId) async {
     final Marker marker = markers[markerId]!;
     final Offset currentAnchor = marker.infoWindow.anchor;
@@ -185,15 +174,6 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
     });
   }
 
-  Future<void> _toggleFlat(MarkerId markerId) async {
-    final Marker marker = markers[markerId]!;
-    setState(() {
-      markers[markerId] = marker.copyWith(
-        flatParam: !marker.flat,
-      );
-    });
-  }
-
   Future<void> _changeInfo(MarkerId markerId) async {
     final Marker marker = markers[markerId]!;
     final String newSnippet = marker.infoWindow.snippet! + '*';
@@ -212,16 +192,6 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
     setState(() {
       markers[markerId] = marker.copyWith(
         alphaParam: current < 0.1 ? 1.0 : current * 0.75,
-      );
-    });
-  }
-
-  Future<void> _changeRotation(MarkerId markerId) async {
-    final Marker marker = markers[markerId]!;
-    final double current = marker.rotation;
-    setState(() {
-      markers[markerId] = marker.copyWith(
-        rotationParam: current == 330.0 ? 0.0 : current + 30.0,
       );
     });
   }
@@ -345,34 +315,16 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
                               : () => _changeAlpha(selectedId),
                         ),
                         TextButton(
-                          child: const Text('change anchor'),
-                          onPressed: selectedId == null
-                              ? null
-                              : () => _changeAnchor(selectedId),
-                        ),
-                        TextButton(
                           child: const Text('toggle draggable'),
                           onPressed: selectedId == null
                               ? null
                               : () => _toggleDraggable(selectedId),
                         ),
                         TextButton(
-                          child: const Text('toggle flat'),
-                          onPressed: selectedId == null
-                              ? null
-                              : () => _toggleFlat(selectedId),
-                        ),
-                        TextButton(
                           child: const Text('change position'),
                           onPressed: selectedId == null
                               ? null
                               : () => _changePosition(selectedId),
-                        ),
-                        TextButton(
-                          child: const Text('change rotation'),
-                          onPressed: selectedId == null
-                              ? null
-                              : () => _changeRotation(selectedId),
                         ),
                         TextButton(
                           child: const Text('toggle visible'),

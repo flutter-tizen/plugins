@@ -1,5 +1,5 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -20,7 +20,6 @@ import 'package:stream_transform/stream_transform.dart';
 
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_tizen/webview_flutter_tizen.dart';
 
 import 'src/util.dart' as util;
 

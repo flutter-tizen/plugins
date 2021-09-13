@@ -1,5 +1,5 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,12 +7,6 @@ part of google_maps_flutter_tizen;
 
 /// The `PolygonController` class wraps a [GPolyline] and its `onTap` behavior.
 class PolylineController {
-  util.GPolyline? _polyline;
-
-  final bool _consumeTapEvents;
-
-  ui.VoidCallback? _onTap;
-
   /// Creates a `PolylineController` that wraps a [GPolyline] object and its `onTap` behavior.
   PolylineController({
     required util.GPolyline polyline,
@@ -21,9 +15,15 @@ class PolylineController {
     Future<WebViewController>? controller,
   })  : _polyline = polyline,
         _consumeTapEvents = consumeTapEvents,
-        _onTap = onTap {
+        tapEvent = onTap {
     _addPolylineEvent(controller);
   }
+
+  util.GPolyline? _polyline;
+  final bool _consumeTapEvents;
+
+  /// Polyline component's tap event.
+  ui.VoidCallback? tapEvent;
 
   Future<void> _addPolylineEvent(Future<WebViewController>? _controller) async {
     final String command =

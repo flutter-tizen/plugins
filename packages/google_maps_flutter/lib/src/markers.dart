@@ -1,5 +1,5 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,19 +7,19 @@ part of google_maps_flutter_tizen;
 
 /// This class manages a set of [MarkerController]s associated to a [GoogleMapController].
 class MarkersController extends GeometryController {
+  /// Initialize the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
+  MarkersController({
+    required StreamController<MapEvent> stream,
+  })  : _streamController = stream,
+        _idToMarkerId = <int, MarkerId>{},
+        _markerIdToController = <MarkerId, MarkerController>{};
+
   // A cache of [MarkerController]s indexed by their [MarkerId].
   final Map<MarkerId, MarkerController> _markerIdToController;
   final Map<int, MarkerId> _idToMarkerId;
 
   // The stream over which markers broadcast their events
-  StreamController<MapEvent> _streamController;
-
-  /// Initialize the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
-  MarkersController({
-    required StreamController<MapEvent> stream,
-  })  : _streamController = stream,
-        _idToMarkerId = Map<int, MarkerId>(),
-        _markerIdToController = Map<MarkerId, MarkerController>();
+  final StreamController<MapEvent> _streamController;
 
   /// Adds a set of [Marker] objects to the cache.
   ///
@@ -67,7 +67,6 @@ class MarkersController extends GeometryController {
   }
 
   void _changeMarker(Marker marker) {
-    print('_changeMarker()');
     final MarkerController? markerController =
         _markerIdToController[marker.markerId];
 
@@ -128,6 +127,7 @@ class MarkersController extends GeometryController {
     return _markerIdToController[markerId]?.consumeTapEvents ?? false;
   }
 
+  // ignore: unused_element
   void _onInfoWindowTap(MarkerId markerId) {
     _streamController.add(InfoWindowTapEvent(mapId, markerId));
   }

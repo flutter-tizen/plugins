@@ -1,7 +1,7 @@
 name: google_maps_flutter_tizen
 description: Tizen platform implementation of google_maps_flutter
 homepage: https://github.com/flutter-tizen/plugins
-version: 0.0.1
+version: 0.1.0
 
 flutter:
   plugin:
@@ -15,9 +15,10 @@ dependencies:
     sdk: flutter
   meta: ^1.3.0
   google_maps_flutter_platform_interface: ^2.0.1
+  flutter_lints: ^1.0.4
   stream_transform: ^2.0.0
   webview_flutter: 2.0.4
-  webview_flutter_tizen: ^0.3.0
+  webview_flutter_tizen: ^0.3.2
     
 dev_dependencies:
   flutter_test:

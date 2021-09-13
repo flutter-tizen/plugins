@@ -9,8 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^0.1.0
-  google_maps_flutter: ^2.0.6
+  google_maps_flutter: ^2.0.8
   google_maps_flutter_tizen:
     path: ../
 
@@ -19,6 +18,8 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
   pedantic: ^1.10.0
 
 flutter:

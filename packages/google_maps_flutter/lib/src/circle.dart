@@ -1,5 +1,5 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -7,12 +7,6 @@ part of google_maps_flutter_tizen;
 
 /// The `CircleController` class wraps a [GCircle] and its `onTap` behavior.
 class CircleController {
-  util.GCircle? _circle;
-
-  final bool _consumeTapEvents;
-
-  ui.VoidCallback? _onTap;
-
   /// Creates a `CircleController`, which wraps a [GCircle] object and its `onTap` behavior.
   CircleController({
     required util.GCircle circle,
@@ -21,9 +15,15 @@ class CircleController {
     Future<WebViewController>? controller,
   })  : _circle = circle,
         _consumeTapEvents = consumeTapEvents,
-        _onTap = onTap {
+        tapEvent = onTap {
     _addCircleEvent(controller);
   }
+
+  util.GCircle? _circle;
+  final bool _consumeTapEvents;
+
+  /// Circle component's tap event.
+  ui.VoidCallback? tapEvent;
 
   Future<void> _addCircleEvent(Future<WebViewController>? _controller) async {
     final String command =
@@ -35,7 +35,6 @@ class CircleController {
   bool get consumeTapEvents => _consumeTapEvents;
 
   /// Updates the options of the wrapped [GCircle] object.
-  ///
   /// This cannot be called after [remove].
   void update(util.GCircleOptions options) {
     assert(_circle != null, 'Cannot `update` Circle after calling `remove`.');
