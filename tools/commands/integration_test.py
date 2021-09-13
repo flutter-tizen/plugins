@@ -53,7 +53,7 @@ class TestResult:
         return cls(plugin_name, 'succeeded', test_target=test_target)
 
     @classmethod
-    def fail(cls, plugin_name, test_target, errors=[]):
+    def fail(cls, plugin_name, test_target='', errors=[]):
         return cls(plugin_name,
                    'failed',
                    test_target=test_target,
