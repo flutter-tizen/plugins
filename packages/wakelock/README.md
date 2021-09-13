@@ -9,7 +9,7 @@ This package is not an _endorsed_ implementation of `wakelock`. Therefore, you h
 ```yaml
 dependencies:
   wakelock: ^0.5.1
-  wakelock_tizen: ^1.0.0
+  wakelock_tizen: ^1.0.1
 ```
 
 Then you can import `wakelock` in your Dart code:
