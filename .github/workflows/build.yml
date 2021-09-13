@@ -57,6 +57,11 @@ jobs:
           NativeToolchain-Gcc-9.2 \
           WEARABLE-4.0-NativeAppDevelopment \
           WEARABLE-5.5-NativeAppDevelopment
+      - name: Create certificate
+        if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
+        run: |
+          $HOME/tizen-studio/tools/ide/bin/tizen certificate -a tizen_certificate -f tizen -p tizencertpw
+          $HOME/tizen-studio/tools/ide/bin/tizen security-profiles add -n TizenProfile -a $HOME/tizen-studio-data/keystore/author/tizen.p12 -p tizencertpw
       - name: Install flutter-tizen
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
