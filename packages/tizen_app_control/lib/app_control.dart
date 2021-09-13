@@ -127,7 +127,7 @@ class AppControl {
       EventChannel('tizen/internal/app_control_event');
 
   /// A stream of incoming application controls.
-  static Stream<ReceivedAppControl> get onAppControl => _eventChannel
+  static final Stream<ReceivedAppControl> onAppControl = _eventChannel
       .receiveBroadcastStream()
       .map((dynamic event) => ReceivedAppControl._fromMap(
           Map<String, dynamic>.from(event as Map<dynamic, dynamic>)));
