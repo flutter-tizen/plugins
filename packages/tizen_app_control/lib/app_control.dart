@@ -94,13 +94,22 @@ class AppControl {
 
   /// The ID of the application to handle this request (applicable for explicit
   /// requests).
+  ///
+  /// Either `appId` or `operation` must be set to non-null before sending a
+  /// request.
   String? appId;
 
-  /// The operation to be performed by the callee, such as
+  /// The operation to be performed by the callee application, such as
   /// `http://tizen.org/appcontrol/operation/view`.
+  ///
+  /// If null, defaults to `http://tizen.org/appcontrol/operation/default`.
   String? operation;
 
   /// The URI of the data to be handled by this request.
+  ///
+  /// If the URI points to a file (`file://`) in the caller's data directory,
+  /// the callee process will be granted a read access to the file temporarily
+  /// during its lifetime.
   String? uri;
 
   /// The MIME type of the data to be handled by this request.
@@ -111,6 +120,9 @@ class AppControl {
   String? category;
 
   /// The launch mode, either [LaunchMode.single] or [LaunchMode.group].
+  ///
+  /// This value acts as a hint for the platform and cannot override the value
+  /// set in the callee's manifest file.
   LaunchMode launchMode;
 
   /// Additional information contained by this application control. Each value
@@ -141,7 +153,10 @@ class AppControl {
   /// a request to the platform.
   ///
   /// If [replyCallback] is non-null, this call will not return until a reply
-  /// is received from the callee and [replyCallback] is invoked.
+  /// is received from the callee and [replyCallback] is invoked. If the callee
+  /// doesn't reply to the request or is terminated before replying, this call
+  /// will never return and [replyCallback] will never be invoked, resulting in
+  /// a memory leak.
   Future<void> sendLaunchRequest({
     AppControlReplyCallback? replyCallback,
   }) async {
@@ -176,6 +191,9 @@ class AppControl {
   /// caller application as a group. To terminate background applications not
   /// launched as a group, use [AppManager.terminateBackgroundApplication]
   /// instead.
+  ///
+  /// Applications that were launched by the callee application as a group will
+  /// be terminated by this API as well.
   Future<void> sendTerminateRequest() async {
     await _setAppControlData();
 
