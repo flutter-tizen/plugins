@@ -13,7 +13,8 @@ BufferUnit::BufferUnit(int index, int width, int height)
       index_(index),
       width_(0),
       height_(0),
-      tbm_surface_(nullptr) {
+      tbm_surface_(nullptr),
+      gpu_buffer_(nullptr) {
   Reset(width, height);
 }
 
