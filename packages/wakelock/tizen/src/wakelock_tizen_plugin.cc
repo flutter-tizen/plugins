@@ -5,7 +5,95 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_message_codec.h>
 
+#include <typeinfo>
+
 #include "log.h"
+
+class IsEnabledMessage {
+ public:
+  flutter::EncodableValue encode() const {
+    flutter::EncodableMap wrapped = {
+        {flutter::EncodableValue("enabled"), flutter::EncodableValue(enabled)}};
+    return flutter::EncodableValue(wrapped);
+  }
+
+  static flutter::EncodableValue decode(flutter::EncodableValue message) {
+    auto &map = std::get<flutter::EncodableMap>(message);
+    IsEnabledMessage isEnabledMessage;
+    isEnabledMessage.enabled =
+        std::get<bool>(map[flutter::EncodableValue("enabled")]);
+    return flutter::CustomEncodableValue(isEnabledMessage);
+  }
+
+  bool enabled;
+};
+
+class ToggleMessage {
+ public:
+  flutter::EncodableValue encode() const {
+    flutter::EncodableMap wrapped = {
+        {flutter::EncodableValue("enable"), flutter::EncodableValue(enable)}};
+    return flutter::EncodableValue(wrapped);
+  }
+
+  static flutter::EncodableValue decode(flutter::EncodableValue message) {
+    auto &map = std::get<flutter::EncodableMap>(message);
+    ToggleMessage toggleMessage;
+    toggleMessage.enable =
+        std::get<bool>(map[flutter::EncodableValue("enable")]);
+    return flutter::CustomEncodableValue(toggleMessage);
+  }
+
+  bool enable;
+};
+
+class WakelockApiCodec : public flutter::StandardCodecSerializer {
+ public:
+  static const WakelockApiCodec &GetInstance() {
+    static WakelockApiCodec sInstance;
+    return sInstance;
+  }
+
+  // Prevent copying.
+  WakelockApiCodec(WakelockApiCodec const &) = delete;
+  WakelockApiCodec &operator=(WakelockApiCodec const &) = delete;
+
+  void WriteValue(const flutter::EncodableValue &value,
+                  flutter::ByteStreamWriter *stream) const override {
+    if (std::holds_alternative<flutter::CustomEncodableValue>(value)) {
+      const auto &custom_type = std::get<flutter::CustomEncodableValue>(value);
+      if (custom_type.type() == typeid(IsEnabledMessage)) {
+        const IsEnabledMessage &my_type_value =
+            std::any_cast<IsEnabledMessage>(custom_type);
+        stream->WriteByte(static_cast<uint8_t>(128));
+        StandardCodecSerializer::WriteValue(my_type_value.encode(), stream);
+      } else if (custom_type.type() == typeid(ToggleMessage)) {
+        const ToggleMessage &my_type_value =
+            std::any_cast<ToggleMessage>(custom_type);
+        stream->WriteByte(static_cast<uint8_t>(129));
+        StandardCodecSerializer::WriteValue(my_type_value.encode(), stream);
+      }
+    } else {
+      StandardCodecSerializer::WriteValue(value, stream);
+    }
+  }
+
+ protected:
+  WakelockApiCodec() = default;
+
+  flutter::EncodableValue ReadValueOfType(
+      uint8_t type, flutter::ByteStreamReader *stream) const override {
+    switch (type) {
+      case 128:
+        return IsEnabledMessage::decode(ReadValue(stream));
+        break;
+      case 129:
+        return ToggleMessage::decode(ReadValue(stream));
+      default:
+        return StandardCodecSerializer::ReadValueOfType(type, stream);
+    }
+  }
+};
 
 class WakelockTizenPlugin : public flutter::Plugin {
  public:
