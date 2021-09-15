@@ -104,11 +104,13 @@ class WakelockTizenPlugin : public flutter::Plugin {
     auto enabled_channel =
         std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
             registrar->messenger(), "dev.flutter.pigeon.WakelockApi.isEnabled",
-            &flutter::StandardMessageCodec::GetInstance());
+            &flutter::StandardMessageCodec::GetInstance(
+                &WakelockApiCodec::GetInstance()));
     auto toggle_channel =
         std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
             registrar->messenger(), "dev.flutter.pigeon.WakelockApi.toggle",
-            &flutter::StandardMessageCodec::GetInstance());
+            &flutter::StandardMessageCodec::GetInstance(
+                &WakelockApiCodec::GetInstance()));
 
     auto plugin = std::make_unique<WakelockTizenPlugin>();
     enabled_channel->SetMessageHandler([plugin_pointer = plugin.get()](
@@ -117,11 +119,10 @@ class WakelockTizenPlugin : public flutter::Plugin {
       LOG_DEBUG("[WakelockTizenPlugin] wakelock status: %s",
                 plugin_pointer->wakelocked_ ? "enabled" : "disabled");
 
-      flutter::EncodableMap resultMap = {
-          {flutter::EncodableValue("enabled"),
-           flutter::EncodableValue(plugin_pointer->wakelocked_)}};
+      IsEnabledMessage isEnabledMessage;
+      isEnabledMessage.enabled = plugin_pointer->wakelocked_;
       flutter::EncodableMap wrapped = {{flutter::EncodableValue("result"),
-                                        flutter::EncodableValue(resultMap)}};
+                                        flutter::CustomEncodableValue(isEnabledMessage)}};
       reply(flutter::EncodableValue(wrapped));
     });
     toggle_channel->SetMessageHandler([plugin_pointer = plugin.get()](
@@ -129,18 +130,21 @@ class WakelockTizenPlugin : public flutter::Plugin {
       LOG_DEBUG("[WakelockTizenPlugin] Toggling wakelock status.");
 
       bool enable;
-      if (std::holds_alternative<flutter::EncodableMap>(message)) {
-        flutter::EncodableMap emap = std::get<flutter::EncodableMap>(message);
-        flutter::EncodableValue &enable_encoded =
-            emap[flutter::EncodableValue("enable")];
-        if (std::holds_alternative<bool>(enable_encoded)) {
-          enable = std::get<bool>(enable_encoded);
-        } else {
-          LOG_ERROR("[WakelockTizenPlugin] Invalid arguments for toggle.");
-          reply(WrapError("Invalid arguments for toggle.", ""));
-          return;
+      bool argument_parsed = false;
+      if (std::holds_alternative<flutter::EncodableList>(message)) {
+        const flutter::EncodableList &elist = std::get<flutter::EncodableList>(message);
+        const flutter::EncodableValue &args = elist[0];
+        if (std::holds_alternative<flutter::CustomEncodableValue>(args)) {
+          const auto &custom_type = std::get<flutter::CustomEncodableValue>(args);
+          if (custom_type.type() == typeid(ToggleMessage)) {
+          const ToggleMessage &toggleMessage = std::any_cast<ToggleMessage>(custom_type);
+          enable = toggleMessage.enable;
+          argument_parsed = true;
+          }
         }
-      } else {
+      }
+
+      if (!argument_parsed) {
         LOG_ERROR("[WakelockTizenPlugin] Invalid arguments for toggle.");
         reply(WrapError("Invalid arguments for toggle.", ""));
         return;
