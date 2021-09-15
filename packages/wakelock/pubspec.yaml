@@ -13,8 +13,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  # Add caret syntax after Flutter 2.5 migration.
-  wakelock_platform_interface: 0.2.1+2
+  wakelock_platform_interface: ^0.3.0
 
 dev_dependencies:
   pedantic: ^1.11.0

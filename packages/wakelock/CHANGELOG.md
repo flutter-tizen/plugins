@@ -4,4 +4,6 @@
 
 ## 1.0.1
 
-* Use specific version of `wakelock_platform_interface` to resolve build error
+* Bump up `wakelock_platform_interface` to 0.3.0
+* Update implementation according to the changed platform interface
+* Bump up `wakelock` to 0.5.6 in example
