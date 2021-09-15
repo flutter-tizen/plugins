@@ -12,9 +12,8 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def _build_examples(plugin):
-    name = os.path.basename(plugin)
-    example_dir = os.path.join(plugin, 'example')
+def _build_examples(plugin_dir):
+    example_dir = os.path.join(plugin_dir, 'example')
     subprocess.run('flutter-tizen pub get', shell=True, cwd=example_dir)
 
     completed_process = subprocess.run('flutter-tizen build tpk --device-profile wearable -v',
