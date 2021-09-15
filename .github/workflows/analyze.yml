@@ -1,4 +1,4 @@
-name: Format
+name: Analyze
 
 on: [push, pull_request]
 
@@ -18,6 +18,10 @@ jobs:
           done
       - name: Verify formatting
         run: flutter format --set-exit-if-changed packages
+      - name: Analyze the plugin's Dart code
+        run: |
+          cd packages
+          flutter analyze
   clang:
     runs-on: ubuntu-latest
     steps:
