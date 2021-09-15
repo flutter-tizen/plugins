@@ -98,9 +98,6 @@ class WakelockApiCodec : public flutter::StandardCodecSerializer {
 class WakelockTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
-    LOG_DEBUG(
-        "[WakelockTizenPlugin.RegisterWithRegistrar] setting up channels...");
-
     auto enabled_channel =
         std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
             registrar->messenger(), "dev.flutter.pigeon.WakelockApi.isEnabled",
@@ -113,69 +110,68 @@ class WakelockTizenPlugin : public flutter::Plugin {
                 &WakelockApiCodec::GetInstance()));
 
     auto plugin = std::make_unique<WakelockTizenPlugin>();
-    enabled_channel->SetMessageHandler([plugin_pointer = plugin.get()](
-                                           const auto &message, auto &reply) {
-      LOG_DEBUG("[WakelockTizenPlugin] fetching wakelock status");
-      LOG_DEBUG("[WakelockTizenPlugin] wakelock status: %s",
-                plugin_pointer->wakelocked_ ? "enabled" : "disabled");
+    enabled_channel->SetMessageHandler(
+        [plugin_pointer = plugin.get()](const auto &message, auto &reply) {
+          LOG_DEBUG("Fetching wakelock status: %s",
+                    plugin_pointer->wakelocked_ ? "enabled" : "disabled");
 
-      IsEnabledMessage isEnabledMessage;
-      isEnabledMessage.enabled = plugin_pointer->wakelocked_;
-      flutter::EncodableMap wrapped = {{flutter::EncodableValue("result"),
-                                        flutter::CustomEncodableValue(isEnabledMessage)}};
-      reply(flutter::EncodableValue(wrapped));
-    });
-    toggle_channel->SetMessageHandler([plugin_pointer = plugin.get()](
-                                          const auto &message, auto &reply) {
-      LOG_DEBUG("[WakelockTizenPlugin] Toggling wakelock status.");
+          IsEnabledMessage isEnabledMessage;
+          isEnabledMessage.enabled = plugin_pointer->wakelocked_;
+          flutter::EncodableMap wrapped = {
+              {flutter::EncodableValue("result"),
+               flutter::CustomEncodableValue(isEnabledMessage)}};
+          reply(flutter::EncodableValue(wrapped));
+        });
 
-      bool enable;
-      bool argument_parsed = false;
-      if (std::holds_alternative<flutter::EncodableList>(message)) {
-        const flutter::EncodableList &elist = std::get<flutter::EncodableList>(message);
-        const flutter::EncodableValue &args = elist[0];
-        if (std::holds_alternative<flutter::CustomEncodableValue>(args)) {
-          const auto &custom_type = std::get<flutter::CustomEncodableValue>(args);
-          if (custom_type.type() == typeid(ToggleMessage)) {
-          const ToggleMessage &toggleMessage = std::any_cast<ToggleMessage>(custom_type);
-          enable = toggleMessage.enable;
-          argument_parsed = true;
+    toggle_channel->SetMessageHandler(
+        [plugin_pointer = plugin.get()](const auto &message, auto &reply) {
+          bool enable;
+          bool argument_parsed = false;
+          if (std::holds_alternative<flutter::EncodableList>(message)) {
+            const flutter::EncodableList &elist =
+                std::get<flutter::EncodableList>(message);
+            const flutter::EncodableValue &args = elist[0];
+            if (std::holds_alternative<flutter::CustomEncodableValue>(args)) {
+              const auto &custom_type =
+                  std::get<flutter::CustomEncodableValue>(args);
+              if (custom_type.type() == typeid(ToggleMessage)) {
+                const ToggleMessage &toggleMessage =
+                    std::any_cast<ToggleMessage>(custom_type);
+                enable = toggleMessage.enable;
+                argument_parsed = true;
+              }
+            }
           }
-        }
-      }
 
-      if (!argument_parsed) {
-        LOG_ERROR("[WakelockTizenPlugin] Invalid arguments for toggle.");
-        reply(WrapError("Invalid arguments for toggle.", ""));
-        return;
-      }
+          if (!argument_parsed) {
+            reply(WrapError("Invalid arguments for toggle.", ""));
+            return;
+          }
 
-      flutter::EncodableMap resultMap = {
-          {flutter::EncodableValue("result"), flutter::EncodableValue()}};
-      flutter::EncodableValue wrapped = flutter::EncodableValue(resultMap);
-      LOG_DEBUG("[WakelockTizenPlugin] toggle to %s",
-                enable ? "enable" : "disable");
-      if (enable != plugin_pointer->wakelocked_) {
-        const int WAKELOCK_PERMANENT = 0;
-        int ret = enable ? device_power_request_lock(POWER_LOCK_DISPLAY,
-                                                     WAKELOCK_PERMANENT)
-                         : device_power_release_lock(POWER_LOCK_DISPLAY);
-        if (ret == DEVICE_ERROR_NONE) {
-          plugin_pointer->wakelocked_ = enable;
-        } else {
-          LOG_ERROR("[WakelockTizenPlugin] toggling wakelock failed: %s",
-                    get_error_message(ret));
-          std::string details =
-              ret == DEVICE_ERROR_PERMISSION_DENIED
-                  ? "You need to declare "
-                    "\"http://tizen.org/privilege/display\" "
-                    "privilege in your tizen manifest to toggle wakelock."
-                  : "";
-          wrapped = WrapError(get_error_message(ret), details);
-        }
-      }
-      reply(wrapped);
-    });
+          flutter::EncodableMap resultMap = {
+              {flutter::EncodableValue("result"), flutter::EncodableValue()}};
+          flutter::EncodableValue wrapped = flutter::EncodableValue(resultMap);
+          LOG_DEBUG("Toggling wakelock status to %s",
+                    enable ? "enable" : "disable");
+          if (enable != plugin_pointer->wakelocked_) {
+            const int WAKELOCK_PERMANENT = 0;
+            int ret = enable ? device_power_request_lock(POWER_LOCK_DISPLAY,
+                                                         WAKELOCK_PERMANENT)
+                             : device_power_release_lock(POWER_LOCK_DISPLAY);
+            if (ret == DEVICE_ERROR_NONE) {
+              plugin_pointer->wakelocked_ = enable;
+            } else {
+              std::string details =
+                  ret == DEVICE_ERROR_PERMISSION_DENIED
+                      ? "You need to declare "
+                        "\"http://tizen.org/privilege/display\" "
+                        "privilege in your tizen manifest to toggle wakelock."
+                      : "";
+              wrapped = WrapError(get_error_message(ret), details);
+            }
+          }
+          reply(wrapped);
+        });
 
     registrar->AddPlugin(std::move(plugin));
   }
