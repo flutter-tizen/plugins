@@ -19,11 +19,11 @@ dependencies:
   stream_transform: ^2.0.0
   webview_flutter: 2.0.4
   webview_flutter_tizen: ^0.3.3
-    
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pedantic: ^1.10.0  
+  pedantic: ^1.10.0
 
 environment:
   sdk: ">=2.12.0 <3.0.0"

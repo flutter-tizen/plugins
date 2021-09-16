@@ -185,7 +185,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'BoundChanged',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           final LatLng center = await getCenter();
@@ -204,7 +204,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'Idle',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           _mapIsMoving = false;
@@ -216,7 +216,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'Click',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           try {
@@ -238,7 +238,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'RightClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           try {
@@ -259,7 +259,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'MarkerClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           try {
@@ -282,7 +282,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'MarkerDragEnd',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           try {
@@ -314,7 +314,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'PolylineClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           try {
@@ -338,7 +338,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'PolygonClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           try {
@@ -362,7 +362,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'CircleClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null) {
+          if (_widget == null || _streamController == null) {
             return;
           }
           try {
