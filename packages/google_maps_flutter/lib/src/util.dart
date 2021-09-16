@@ -146,7 +146,7 @@ class GInfoWindowOptions {
     final String pos = position != null
         ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
         : 'null';
-    return '{content:$content, position:$pos, zIndex:$zIndex}';
+    return '{content:$content, pixelOffset:null , position:$pos, zIndex:$zIndex}';
   }
 }
 
