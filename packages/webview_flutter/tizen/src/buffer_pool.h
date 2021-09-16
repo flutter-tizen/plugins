@@ -25,7 +25,7 @@ class BufferUnit {
   tbm_surface_h Surface();
   FlutterDesktopGpuBuffer* GpuBuffer();
 #ifndef NDEBUG
-  void dumpToPng(int filename);
+  void DumpToPng(int file_name);
 #endif
 
  private:

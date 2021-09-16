@@ -120,9 +120,9 @@ void BufferPool::Prepare(int width, int height) {
 
 #ifndef NDEBUG
 #include <cairo.h>
-void BufferUnit::dumpToPng(int filename) {
+void BufferUnit::DumpToPng(int file_name) {
   char filePath[256];
-  sprintf(filePath, "/tmp/dump%d.png", filename);
+  sprintf(filePath, "/tmp/dump%d.png", file_name);
   tbm_surface_info_s surfaceInfo;
   tbm_surface_map(tbm_surface_, TBM_SURF_OPTION_WRITE, &surfaceInfo);
   void* buffer = surfaceInfo.planes[0].ptr;
