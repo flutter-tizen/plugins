@@ -37,6 +37,11 @@ void main() {
     final ReceivedAppControl received = await AppControl.onAppControl.first;
     expect(received.appId, kAppId);
     expect(received.operation, 'operation_1');
+    expect(received.uri, isNull);
+    expect(received.mime, isNull);
+    expect(received.category, isNull);
+    expect(received.launchMode, LaunchMode.single);
+    expect(received.extraData, isEmpty);
     expect(received.shouldReply, isFalse);
   }, timeout: kTimeout);
 

@@ -126,7 +126,7 @@ class AppControl {
   LaunchMode launchMode;
 
   /// Additional information contained by this application control. Each value
-  /// must be either `String` or `List<String>`.
+  /// must be either `String` or non-empty `List<String>`.
   Map<String, dynamic> extraData;
 
   /// The unique ID internally used for managing application control handles.
@@ -242,8 +242,8 @@ class ReceivedAppControl extends AppControl {
     await reply._setAppControlData();
 
     final Map<String, dynamic> args = <String, dynamic>{
-      'id': reply._id,
-      'requestId': _id,
+      'id': _id,
+      'replyId': reply._id,
       'result': enumToString(result),
     };
     await AppControl._methodChannel.invokeMethod<void>('reply', args);
