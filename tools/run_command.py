@@ -8,7 +8,6 @@ from commands import integration_test
 from commands import build_example
 from commands import print_plugins
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='subcommand')

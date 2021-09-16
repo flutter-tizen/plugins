@@ -3,17 +3,22 @@ import os
 
 
 def set_parser_arguments(parser,
-                       plugins=False, exclude=False, run_on_changed_packages=False, base_sha=False, timeout=False, command=''):
+                         plugins=False,
+                         exclude=False,
+                         run_on_changed_packages=False,
+                         base_sha=False,
+                         timeout=False,
+                         command=''):
     if plugins:
-        parser.add_argument(
-            '--plugins',
-            type=str,
-            nargs='*',
-            default=[],
-            help=f'Specifies which plugins to {command}. \
+        parser.add_argument('--plugins',
+                            type=str,
+                            nargs='*',
+                            default=[],
+                            help=f'Specifies which plugins to {command}. \
             If it is not specified and --run-on-changed-packages is also not specified, \
             then it will include every plugin under packages. \
-            If both flags are specified, then --run-on-changed-packages is ignored.')
+            If both flags are specified, then --run-on-changed-packages is ignored.'
+                            )
 
     if exclude:
         parser.add_argument('--exclude',
@@ -23,11 +28,10 @@ def set_parser_arguments(parser,
                             help=f'Exclude plugins from {command}.')
 
     if run_on_changed_packages:
-        parser.add_argument(
-            '--run-on-changed-packages',
-            default=False,
-            action='store_true',
-            help=f'Run the {command} on changed plugins.')
+        parser.add_argument('--run-on-changed-packages',
+                            default=False,
+                            action='store_true',
+                            help=f'Run the {command} on changed plugins.')
 
     if base_sha:
         parser.add_argument(
@@ -56,12 +60,11 @@ def get_changed_plugins(packages_dir, base_sha=''):
             encoding='utf-8',
             stdout=subprocess.PIPE).stdout.strip()
         if base_sha == '':
-            base_sha = subprocess.run(
-                'git merge-base FETCH_HEAD HEAD',
-                shell=True,
-                cwd=packages_dir,
-                encoding='utf-8',
-                stdout=subprocess.PIPE).stdout.strip()
+            base_sha = subprocess.run('git merge-base FETCH_HEAD HEAD',
+                                      shell=True,
+                                      cwd=packages_dir,
+                                      encoding='utf-8',
+                                      stdout=subprocess.PIPE).stdout.strip()
 
     changed_files = subprocess.run(
         f'git diff --name-only {base_sha} HEAD',
@@ -76,13 +79,18 @@ def get_changed_plugins(packages_dir, base_sha=''):
         if 'packages' not in path_segments:
             continue
         index = path_segments.index('packages')
-        if index < len(path_segments) and path_segments[index + 1] not in changed_plugins:
+        if index < len(path_segments) and path_segments[
+                index + 1] not in changed_plugins:
             changed_plugins.append(path_segments[index + 1])
 
     return list(set(changed_plugins))
 
 
-def get_target_plugins(packages_dir, plugins=[], exclude=[], run_on_changed_packages=False, base_sha=''):
+def get_target_plugins(packages_dir,
+                       plugins=[],
+                       exclude=[],
+                       run_on_changed_packages=False,
+                       base_sha=''):
     existing_plugins = os.listdir(packages_dir)
     for plugin in plugins:
         if plugin not in existing_plugins:
@@ -110,4 +118,5 @@ def get_target_plugins(packages_dir, plugins=[], exclude=[], run_on_changed_pack
 
 
 def get_package_dir():
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '../../packages'))
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '../../packages'))

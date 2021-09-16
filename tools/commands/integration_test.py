@@ -40,7 +40,6 @@ class TestResult:
         run_state: The result of the test. Can be either succeeded for failed.
         details: A list of details about the test result. (e.g. reasons for failure.)
     """
-
     def __init__(self, plugin_name, run_state, test_target='', details=[]):
         self.plugin_name = plugin_name
         self.test_target = test_target
@@ -62,12 +61,12 @@ class TestResult:
 def set_subparser(subparsers):
     parser = subparsers.add_parser('test', help='Run integration test')
     command_utils.set_parser_arguments(parser,
-                                              plugins=True,
-                                              exclude=True,
-                                              run_on_changed_packages=True,
-                                              base_sha=True,
-                                              timeout=True,
-                                              command='test')
+                                       plugins=True,
+                                       exclude=True,
+                                       run_on_changed_packages=True,
+                                       base_sha=True,
+                                       timeout=True,
+                                       command='test')
     parser.add_argument(
         '--recipe',
         type=str,
@@ -237,7 +236,6 @@ def _integration_test(plugin_dir, test_targets, timeout):
 
 
 def _get_target_table():
-
     def _parse_target_info(capability_info: str):
         capability_info.rstrip()
         profile_name = ''
