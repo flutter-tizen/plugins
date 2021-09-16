@@ -6,10 +6,8 @@ import os
 from time import sleep, time
 
 
-def get_options_parser(
-        plugins=False, exclude=False, run_on_changed_packages=False, base_sha=False, timeout=False, command=''):
-    parser = argparse.ArgumentParser(usage=f'{command} [optional arguments]')
-
+def set_parser_arguments(parser,
+                       plugins=False, exclude=False, run_on_changed_packages=False, base_sha=False, timeout=False, command=''):
     if plugins:
         parser.add_argument(
             '--plugins',
@@ -51,8 +49,6 @@ def get_options_parser(
             default=120,
             help=f'Timeout limit of each {command} in seconds. \
             Default is 120 seconds.')
-
-    return parser
 
 
 def get_changed_plugins(packages_dir, base_sha=''):

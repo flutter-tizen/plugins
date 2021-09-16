@@ -6,10 +6,11 @@ import os
 import commands.command_utils as command_utils
 
 
-def parse_args(args):
-    parser = command_utils.get_options_parser(
+def set_subparser(subparsers):
+    parser = subparsers.add_parser(
+        'build', help='Build examples of plugin')
+    command_utils.set_parser_arguments(parser, 
         plugins=True, exclude=True, run_on_changed_packages=True, base_sha=True, command='build')
-    return parser.parse_args(args)
 
 
 def _build_examples(plugin):
@@ -26,8 +27,7 @@ def _build_examples(plugin):
         return False
 
 
-def run_build_examples(argv):
-    args = parse_args(argv)
+def run_build_examples(args):
     packages_dir = command_utils.get_package_dir()
     target_plugins, _ = command_utils.get_target_plugins(
         packages_dir, plugins=args.plugins, exclude=args.exclude, run_on_changed_packages=args.run_on_changed_packages,

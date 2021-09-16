@@ -96,17 +96,19 @@ def _run_check_tidy(src_dir, update, clang_format, stats):
                     print(diffline, end='')
 
 
-def run_check_tidy(argv):
-    parser = ArgumentParser(description='Plugins Source Format Checker and Updater',
-                            usage='run_command.py tidy [-h] [--clang-format PATH] [--update] [--dir PATH]')
+def set_subparser(subparsers):
+    parser = subparsers.add_parser(
+        'tidy', help='Check and update format for C++ files',
+        usage='run_command.py tidy [-h] [--clang-format PATH] [--update] [--dir PATH]')
     parser.add_argument('--clang-format', metavar='PATH', default='clang-format-11',
                         help='path to clang-format (default: %(default)s)')
     parser.add_argument('--update', action='store_true',
                         help='reformat files')
     parser.add_argument('--dir', metavar='PATH', default=DEFAULT_DIR,
                         help='directory to process (default: %(default)s)')
-    args = parser.parse_args(argv)
 
+
+def run_check_tidy(args):
     stats = Stats()
 
     _run_check_tidy(args.dir, args.update, args.clang_format, stats)

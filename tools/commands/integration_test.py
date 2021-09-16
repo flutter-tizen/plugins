@@ -60,8 +60,10 @@ class TestResult:
                    details=errors)
 
 
-def parse_args(args):
-    parser = command_utils.get_options_parser(plugins=True,
+def set_subparser(subparsers):
+    parser = subparsers.add_parser('test', help='Run integration test')
+    command_utils.set_parser_arguments(parser,
+                                              plugins=True,
                                               exclude=True,
                                               run_on_changed_packages=True,
                                               base_sha=True,
@@ -80,8 +82,6 @@ plugins:
   b: [mobile-6.0]
   c: [wearable-4.0]
 )''')
-
-    return parser.parse_args(args)
 
 
 def _integration_test(plugin_dir, test_targets, timeout):
@@ -284,9 +284,7 @@ platform_version: {platform_version}''')
     return table
 
 
-def run_integration_test(argv):
-    args = parse_args(argv)
-
+def run_integration_test(args):
     test_targets = {}
     if args.recipe:
         if not os.path.isfile(args.recipe):
