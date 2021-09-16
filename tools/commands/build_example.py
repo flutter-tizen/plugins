@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-
 import subprocess
-import sys
 import os
+
 import commands.command_utils as command_utils
 
 
@@ -41,7 +39,3 @@ def run_build_examples(args):
         exit(0)
     else:
         exit(1)
-
-
-if __name__ == '__main__':
-    run_build_examples(sys.argv)

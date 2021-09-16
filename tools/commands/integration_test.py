@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """A script that helps running integration tests for multiple Tizen plugins.
 
 To run integrations tests for all plugins under packages/, 
@@ -351,7 +350,3 @@ def run_integration_test(args):
     for excluded_plugin in excluded_plugins:
         print(f'{_TERM_YELLOW}EXCLUDED: {excluded_plugin}{_TERM_EMPTY}')
     exit(exit_code)
-
-
-if __name__ == "__main__":
-    run_integration_test(sys.argv)

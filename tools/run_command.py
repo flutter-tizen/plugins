@@ -7,7 +7,6 @@ from commands import check_tidy
 from commands import integration_test
 from commands import build_example
 from commands import print_plugins
-from commands import command_utils
 
 
 if __name__ == "__main__":

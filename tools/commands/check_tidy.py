@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright 2015-present Samsung Electronics Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +18,8 @@ import os
 import subprocess
 import sys
 
-from argparse import ArgumentParser
 from difflib import unified_diff
-from os.path import abspath, dirname, join, relpath, splitext
+from os.path import join, relpath, splitext
 import commands.command_utils as command_utils
 
 DEFAULT_DIR = command_utils.get_package_dir()
@@ -126,7 +123,3 @@ def run_check_tidy(args):
         print('All files reformatted, check for changes with `git diff`.')
 
     sys.exit(1 if stats.errors else 0)
-
-
-if __name__ == '__main__':
-    run_check_tidy(sys.argv)

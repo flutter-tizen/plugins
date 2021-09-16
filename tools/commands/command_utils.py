@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-
-import argparse
 import subprocess
 import os
-from time import sleep, time
 
 
 def set_parser_arguments(parser,
