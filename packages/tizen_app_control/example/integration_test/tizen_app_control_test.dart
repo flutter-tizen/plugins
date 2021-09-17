@@ -26,6 +26,16 @@ void main() {
     expect(received.operation, 'http://tizen.org/appcontrol/operation/default');
   }, timeout: kTimeout);
 
+  testWidgets('Can find matching applications', (WidgetTester _) async {
+    final AppControl request = AppControl(
+      operation: 'http://tizen.org/appcontrol/operation/view',
+      uri: 'file:///opt/usr/globalapps/$kAppId/shared/res/ic_launcher.png',
+      mime: 'image/*',
+    );
+    final List<String> matches = await request.getMatchedAppIds();
+    expect(matches, isNotEmpty);
+  }, timeout: kTimeout);
+
   testWidgets('Can send and receive request', (WidgetTester _) async {
     // Send a request to this app (the test runner itself).
     final AppControl request = AppControl(
