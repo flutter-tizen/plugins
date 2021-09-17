@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="org.tizen.tizen_app_control_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
+    <profile name="wearable"/>
+    <ui-application appid="org.tizen.tizen_app_control_example" exec="runner" type="capp" multiple="false" nodisplay="false" taskmanage="true" hw-acceleration="on">
+        <label>tizen_app_control_example</label>
+        <icon>ic_launcher.png</icon>
+    </ui-application>
+    <privileges>
+        <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
+        <privilege>http://tizen.org/privilege/appmanager.kill.bgapp</privilege>
+    </privileges>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+</manifest>
