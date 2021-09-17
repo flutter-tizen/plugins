@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 // ignore_for_file: public_member_api_docs
+// ignore_for_file: always_specify_types
 
 import 'dart:ffi';
 
@@ -59,6 +60,7 @@ bool nativeAttachAppControl(int id, Object dartObject) {
 class _AppContext extends Opaque {}
 
 typedef AppContextHandle = Pointer<_AppContext>;
+
 typedef _AppContextDestroyNative = Int32 Function(AppContextHandle);
 typedef _AppContextDestroy = int Function(AppContextHandle);
 
