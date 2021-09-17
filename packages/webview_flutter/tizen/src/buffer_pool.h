@@ -5,6 +5,7 @@
 #ifndef FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEBVIEW_BUFFER_POOL_H_
 #define FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEBVIEW_BUFFER_POOL_H_
 
+#include <flutter_texture_registrar.h>
 #include <tbm_surface.h>
 
 #include <memory>
@@ -22,6 +23,10 @@ class BufferUnit {
   int Index();
   bool IsUsed();
   tbm_surface_h Surface();
+  FlutterDesktopGpuBuffer* GpuBuffer();
+#ifndef NDEBUG
+  void DumpToPng(int file_name);
+#endif
 
  private:
   bool isUsed_;
@@ -29,6 +34,7 @@ class BufferUnit {
   int width_;
   int height_;
   tbm_surface_h tbm_surface_;
+  FlutterDesktopGpuBuffer* gpu_buffer_;
 };
 
 class BufferPool {
