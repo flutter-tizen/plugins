@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """A script that helps running integration tests for multiple Tizen plugins.
 
 To run integrations tests for all plugins under packages/, 
@@ -41,7 +40,6 @@ class TestResult:
         run_state: The result of the test. Can be either succeeded for failed.
         details: A list of details about the test result. (e.g. reasons for failure.)
     """
-
     def __init__(self, plugin_name, run_state, test_target='', details=[]):
         self.plugin_name = plugin_name
         self.test_target = test_target
@@ -53,20 +51,22 @@ class TestResult:
         return cls(plugin_name, 'succeeded', test_target=test_target)
 
     @classmethod
-    def fail(cls, plugin_name, test_target, errors=[]):
+    def fail(cls, plugin_name, test_target='', errors=[]):
         return cls(plugin_name,
                    'failed',
                    test_target=test_target,
                    details=errors)
 
 
-def parse_args(args):
-    parser = command_utils.get_options_parser(plugins=True,
-                                              exclude=True,
-                                              run_on_changed_packages=True,
-                                              base_sha=True,
-                                              timeout=True,
-                                              command='test')
+def set_subparser(subparsers):
+    parser = subparsers.add_parser('test', help='Run integration test')
+    command_utils.set_parser_arguments(parser,
+                                       plugins=True,
+                                       exclude=True,
+                                       run_on_changed_packages=True,
+                                       base_sha=True,
+                                       timeout=True,
+                                       command='test')
     parser.add_argument(
         '--recipe',
         type=str,
@@ -80,8 +80,6 @@ plugins:
   b: [mobile-6.0]
   c: [wearable-4.0]
 )''')
-
-    return parser.parse_args(args)
 
 
 def _integration_test(plugin_dir, test_targets, timeout):
@@ -196,8 +194,12 @@ def _integration_test(plugin_dir, test_targets, timeout):
                 TestResult.fail(plugin_name, test_target, errors=errors))
             continue
         if last_line.strip() == 'No tests ran.':
+            # This message occurs when the integration test file exists,
+            # but no actual test code is written in it.
             test_results.append(
-                TestResult.fail(plugin_name, test_target, ['No tests ran.']))
+                TestResult.fail(plugin_name, test_target, [
+                    'Missing integration tests (use --exclude if this is intentional).'
+                ]))
             continue
         elif last_line.strip().startswith('No devices found'):
             test_results.append(
@@ -234,7 +236,6 @@ def _integration_test(plugin_dir, test_targets, timeout):
 
 
 def _get_target_table():
-
     def _parse_target_info(capability_info: str):
         capability_info.rstrip()
         profile_name = ''
@@ -280,9 +281,7 @@ platform_version: {platform_version}''')
     return table
 
 
-def run_integration_test(argv):
-    args = parse_args(argv)
-
+def run_integration_test(args):
     test_targets = {}
     if args.recipe:
         if not os.path.isfile(args.recipe):
@@ -349,7 +348,3 @@ def run_integration_test(argv):
     for excluded_plugin in excluded_plugins:
         print(f'{_TERM_YELLOW}EXCLUDED: {excluded_plugin}{_TERM_EMPTY}')
     exit(exit_code)
-
-
-if __name__ == "__main__":
-    run_integration_test(sys.argv)
