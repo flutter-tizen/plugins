@@ -33,3 +33,7 @@
 
 ## 0.3.4
 * Fix flicking issue at animation
+
+## 0.3.5
+* Update LWE binary (b2fad69f50d693c86abc45b363a39b0625f5e95f)
+* Fix crash issue
