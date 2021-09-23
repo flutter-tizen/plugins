@@ -130,15 +130,17 @@ class WakelockTizenPlugin : public flutter::Plugin {
           if (std::holds_alternative<flutter::EncodableList>(message)) {
             const flutter::EncodableList &elist =
                 std::get<flutter::EncodableList>(message);
-            const flutter::EncodableValue &args = elist[0];
-            if (std::holds_alternative<flutter::CustomEncodableValue>(args)) {
-              const auto &custom_type =
-                  std::get<flutter::CustomEncodableValue>(args);
-              if (custom_type.type() == typeid(ToggleMessage)) {
-                const ToggleMessage &toggleMessage =
-                    std::any_cast<ToggleMessage>(custom_type);
-                enable = toggleMessage.enable;
-                argument_parsed = true;
+            if (!elist.empty()) {
+              const flutter::EncodableValue &args = elist[0];
+              if (std::holds_alternative<flutter::CustomEncodableValue>(args)) {
+                const auto &custom_type =
+                    std::get<flutter::CustomEncodableValue>(args);
+                if (custom_type.type() == typeid(ToggleMessage)) {
+                  const ToggleMessage &toggleMessage =
+                      std::any_cast<ToggleMessage>(custom_type);
+                  enable = toggleMessage.enable;
+                  argument_parsed = true;
+                }
               }
             }
           }
