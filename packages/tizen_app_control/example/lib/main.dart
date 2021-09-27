@@ -99,6 +99,13 @@ class _MyAppState extends State<MyApp> {
         'http://tizen.org/appcontrol/data/text': 'Some text',
       },
     );
+    final List<String> matches = await request.getMatchedAppIds();
+    if (matches.isEmpty) {
+      _messengerKey.currentState!.showSnackBar(
+        const SnackBar(content: Text('No application found.')),
+      );
+      return;
+    }
     await request.sendLaunchRequest();
   }
 
@@ -108,6 +115,13 @@ class _MyAppState extends State<MyApp> {
       mime: 'image/*',
       launchMode: LaunchMode.group,
     );
+    final List<String> matches = await request.getMatchedAppIds();
+    if (matches.isEmpty) {
+      _messengerKey.currentState!.showSnackBar(
+        const SnackBar(content: Text('No application found.')),
+      );
+      return;
+    }
     await request.sendLaunchRequest(
       replyCallback: (
         AppControl request,

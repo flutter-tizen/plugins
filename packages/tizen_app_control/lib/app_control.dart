@@ -144,6 +144,16 @@ class AppControl {
       .map((dynamic event) => ReceivedAppControl._fromMap(
           Map<String, dynamic>.from(event as Map<dynamic, dynamic>)));
 
+  /// Returns a list of installed applications that can handle this request.
+  Future<List<String>> getMatchedAppIds() async {
+    await _setAppControlData();
+
+    final Map<String, dynamic> args = <String, dynamic>{'id': _id};
+    final dynamic response =
+        await _methodChannel.invokeMethod<dynamic>('getMatchedAppIds', args);
+    return List<String>.from(response as List<dynamic>);
+  }
+
   /// Sends a launch request to an application.
   ///
   /// The `http://tizen.org/privilege/appmanager.launch` privilege is required
@@ -197,9 +207,7 @@ class AppControl {
   Future<void> sendTerminateRequest() async {
     await _setAppControlData();
 
-    final Map<String, dynamic> args = <String, dynamic>{
-      'id': _id,
-    };
+    final Map<String, dynamic> args = <String, dynamic>{'id': _id};
     await _methodChannel.invokeMethod<void>('sendTerminateRequest', args);
   }
 
