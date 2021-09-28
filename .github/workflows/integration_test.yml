@@ -25,7 +25,8 @@ jobs:
             --base-sha=$(git rev-parse HEAD^) \
             --exclude wearable_rotary image_picker camera webview_flutter \
               video_player permission_handler geolocator battery connectivity \
-              device_info package_info sensors share wifi_info google_maps_flutter
+              device_info package_info sensors share wifi_info \
+              google_maps_flutter tizen_app_control
         # The following packages are excluded from tests: 
         #   wearable_rotary, image_picker: no tests.
         #   camera: the current test target is wearable emulator 5.5, which doesn't support this package.
@@ -35,3 +36,4 @@ jobs:
         #   geolocator: test requires console manipulation.
         #   battery, connectivity, device_info, package_info, sensors, share, wifi_info: deprecated.
         #   google_maps_flutter: device limitation not yet specified.
+        #   tizen_app_control: test available after Flutter 2.5 migration.
