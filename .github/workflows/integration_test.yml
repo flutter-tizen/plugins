@@ -17,7 +17,7 @@ jobs:
       - name: Install flutter-tizen
         run: |
           git clone --depth=1 https://github.com/flutter-tizen/flutter-tizen.git
-      - name: Run script
+      - name: Run integration tests
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           `pwd`/tools/run_command.py test \
