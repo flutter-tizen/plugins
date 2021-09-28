@@ -8,9 +8,9 @@ on:
 jobs:
   changed_packages:
     runs-on: [self-hosted, linux]
-    if: ${{ github.repository_owner == 'flutter-tizen' && github.event_name == 'pull_request' }}
+    if: ${{ github.repository_owner == 'flutter-tizen' }}
     steps:
-      - name: Check out repository
+      - name: Checkout repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 2
