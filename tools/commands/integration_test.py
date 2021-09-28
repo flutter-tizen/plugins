@@ -132,105 +132,115 @@ def _integration_test(plugin_dir, test_targets, timeout):
                 ])
         ]
 
-    errors = []
-    completed_process = subprocess.run('flutter-tizen pub get',
-                                       shell=True,
-                                       cwd=example_dir,
-                                       stderr=subprocess.PIPE,
-                                       stdout=subprocess.PIPE)
-    if completed_process.returncode != 0:
-        if not completed_process.stderr:
-            errors.append('pub get failed. Make sure the pubspec file \
-                    in your project is valid.')
-        else:
-            errors.append(completed_process.stderr)
-        return [TestResult.fail(plugin_name, errors=errors)]
-
-    test_results = []
-    target_table = _get_target_table()
-
-    for test_target in test_targets:
-        if test_target not in target_table:
-            test_results.append(
-                TestResult.fail(
-                    plugin_name, test_target,
-                    [f'Test runner cannot find target {test_target}.']))
-            continue
-
-        is_timed_out = False
-        process = subprocess.Popen(
-            f'flutter-tizen -d {target_table[test_target]} test integration_test',
-            shell=True,
-            cwd=example_dir,
-            universal_newlines=True,
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE)
-        last_line = ''
-        start = time.time()
-        for line in process.stdout:
-            match = re.search(_LOG_PATTERN, line)
-            last_match = re.search(_LOG_PATTERN, last_line)
-            if match and last_match and last_match.group(2) == match.group(2):
-                sys.stdout.write(f'\r{line.strip()}')
+    try:
+        errors = []
+        completed_process = subprocess.run('flutter-tizen pub get',
+                                           shell=True,
+                                           cwd=example_dir,
+                                           stderr=subprocess.PIPE,
+                                           stdout=subprocess.PIPE)
+        if completed_process.returncode != 0:
+            if not completed_process.stderr:
+                errors.append('pub get failed. Make sure the pubspec file \
+                        in your project is valid.')
             else:
-                sys.stdout.write(f'\n{line.strip()}')
+                errors.append(completed_process.stderr)
+            return [TestResult.fail(plugin_name, errors=errors)]
+
+        test_results = []
+        target_table = _get_target_table()
+
+        for test_target in test_targets:
+            if test_target not in target_table:
+                test_results.append(
+                    TestResult.fail(
+                        plugin_name, test_target,
+                        [f'Test runner cannot find target {test_target}.']))
+                continue
+
+            is_timed_out = False
+            process = subprocess.Popen(
+                f'flutter-tizen -d {target_table[test_target]} test integration_test',
+                shell=True,
+                cwd=example_dir,
+                universal_newlines=True,
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE)
+            last_line = ''
+            start = time.time()
+            for line in process.stdout:
+                match = re.search(_LOG_PATTERN, line)
+                last_match = re.search(_LOG_PATTERN, last_line)
+                if match and last_match and last_match.group(2) == match.group(
+                        2):
+                    sys.stdout.write(f'\r{line.strip()}')
+                else:
+                    sys.stdout.write(f'\n{line.strip()}')
+                sys.stdout.flush()
+                last_line = line
+                if time.time() - start > timeout:
+                    process.kill()
+                    is_timed_out = True
+                    break
+            sys.stdout.write('\n')
             sys.stdout.flush()
-            last_line = line
-            if time.time() - start > timeout:
-                process.kill()
-                is_timed_out = True
-                break
-        sys.stdout.write('\n')
-        sys.stdout.flush()
-        process.wait()
+            process.wait()
 
-        if is_timed_out:
-            errors.append(
-                """Timeout expired. The test may need more time to finish.
-    If you expect the test to finish before timeout, check if the tests 
-    require device screen to be awake or if they require manually 
-    clicking the UI button for permissions.""")
-            test_results.append(
-                TestResult.fail(plugin_name, test_target, errors=errors))
-            continue
-        if last_line.strip() == 'No tests ran.':
-            # This message occurs when the integration test file exists,
-            # but no actual test code is written in it.
-            test_results.append(
-                TestResult.fail(plugin_name, test_target, [
-                    'Missing integration tests (use --exclude if this is intentional).'
-                ]))
-            continue
-        elif last_line.strip().startswith('No devices found'):
-            test_results.append(
-                TestResult.fail(
-                    plugin_name, test_target,
-                    ['The runner cannot find any devices to run tests.']))
-            continue
+            if is_timed_out:
+                errors.append(
+                    """Timeout expired. The test may need more time to finish.
+        If you expect the test to finish before timeout, check if the tests 
+        require device screen to be awake or if they require manually 
+        clicking the UI button for permissions.""")
+                test_results.append(
+                    TestResult.fail(plugin_name, test_target, errors=errors))
+                continue
+            if last_line.strip() == 'No tests ran.':
+                # This message occurs when the integration test file exists,
+                # but no actual test code is written in it.
+                test_results.append(
+                    TestResult.fail(plugin_name, test_target, [
+                        'Missing integration tests (use --exclude if this is intentional).'
+                    ]))
+                continue
+            elif last_line.strip().startswith('No devices found'):
+                test_results.append(
+                    TestResult.fail(
+                        plugin_name, test_target,
+                        ['The runner cannot find any devices to run tests.']))
+                continue
 
-        match = re.search(_LOG_PATTERN, last_line.strip())
-        if not match:
-            test_results.append(
-                TestResult.fail(plugin_name, test_target,
-                                ['Log message is not formatted correctly.']))
-            continue
+            match = re.search(_LOG_PATTERN, last_line.strip())
+            if not match:
+                test_results.append(
+                    TestResult.fail(
+                        plugin_name, test_target,
+                        ['Log message is not formatted correctly.']))
+                continue
 
-        # In some cases, the command returns 0 for failed cases, so we check again
-        # with the last log message.
-        exit_code = process.returncode
-        if match.group(2) == 'All tests passed!':
-            exit_code = 0
-        elif match.group(2) == 'Some tests failed.':
-            errors.append(
-                'flutter-tizen test integration_test failed, see the output above for details.'
-            )
-            exit_code = 1
+            # In some cases, the command returns 0 for failed cases, so we check again
+            # with the last log message.
+            exit_code = process.returncode
+            if match.group(2) == 'All tests passed!':
+                exit_code = 0
+            elif match.group(2) == 'Some tests failed.':
+                errors.append(
+                    'flutter-tizen test integration_test failed, see the output above for details.'
+                )
+                exit_code = 1
 
-        if exit_code == 0:
-            test_results.append(TestResult.success(plugin_name, test_target))
-        else:
-            test_results.append(
-                TestResult.fail(plugin_name, test_target, errors=errors))
+            if exit_code == 0:
+                test_results.append(
+                    TestResult.success(plugin_name, test_target))
+            else:
+                test_results.append(
+                    TestResult.fail(plugin_name, test_target, errors=errors))
+    finally:
+        subprocess.run('flutter-tizen clean',
+                       shell=True,
+                       cwd=example_dir,
+                       stderr=subprocess.PIPE,
+                       stdout=subprocess.PIPE)
 
     return test_results
 
@@ -273,11 +283,12 @@ def _get_target_table():
                     f'''Cannot extract profile or platform_version information from device {id}.
 profile: {profile}
 platform_version: {platform_version}''')
-            if f'{profile}-{platform_version}' in table:
+            target_entry = f'{profile}-{platform_version}'
+            if target_entry in table:
                 print(
-                    f'Multiple targets of {profile}-{platform_version} found. Replacing {table[{profile}-{platform_version}]} to {id}...'
+                    f'Multiple targets of {target_entry} found. Replacing {table[target_entry]} to {id}...'
                 )
-            table[f'{profile}-{platform_version}'] = id
+            table[target_entry] = id
     return table
 
 
