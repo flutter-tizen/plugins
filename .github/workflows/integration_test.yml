@@ -1,11 +1,8 @@
-# TODO: Support running all integration tests for master branch when
-# it's possible to run self-hosted runners in parallel.
+# TODO: Support running all integration tests when it's possible to 
+# run self-hosted runners in parallel.
 name: Integration Test
 
-on: 
-#  push:
-#    branches:
-#      - "master"
+on:
   pull_request:
 
 jobs:
@@ -17,9 +14,18 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 2
+      - name: Install flutter-tizen
+        run: |
+          git clone --depth=1 https://github.com/flutter-tizen/flutter-tizen.git
       - name: Run script
         run: |
-          `pwd`/tools/run_command.py test --run-on-changed-packages --base-sha=$(git rev-parse HEAD^) --exclude wearable_rotary image_picker camera webview_flutter video_player permission_handler geolocator battery connectivity device_info package_info sensors share wifi_info google_maps_flutter
+          export PATH=`pwd`/flutter-tizen/bin:$PATH
+          `pwd`/tools/run_command.py test \
+            --run-on-changed-packages \
+            --base-sha=$(git rev-parse HEAD^) \
+            --exclude wearable_rotary image_picker camera webview_flutter \
+              video_player permission_handler geolocator battery connectivity \
+              device_info package_info sensors share wifi_info google_maps_flutter
         # The following packages are excluded from tests: 
         #   wearable_rotary, image_picker: no tests.
         #   camera: the current test target is wearable emulator 5.5, which doesn't support this package.
@@ -29,14 +35,3 @@ jobs:
         #   geolocator: test requires console manipulation.
         #   battery, connectivity, device_info, package_info, sensors, share, wifi_info: deprecated.
         #   google_maps_flutter: device limitation not yet specified.
-        
-
-#  all:
-#    runs-on: [self-hosted, linux]
-#    if: ${{ github.repository_owner == 'flutter-tizen' && github.ref == 'refs/heads/master' }}
-#    steps:
-#      - name: Check out repository
-#        uses: actions/checkout@v2
-#      - name: Run script
-#        run: |
-#          `pwd`/tools/run_command.py test --exclude wearable_rotary camera webview_flutter image_picker video_player
