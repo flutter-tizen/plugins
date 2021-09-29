@@ -236,11 +236,7 @@ def _integration_test(plugin_dir, test_targets, timeout):
                 test_results.append(
                     TestResult.fail(plugin_name, test_target, errors=errors))
     finally:
-        subprocess.run('flutter-tizen clean',
-                       shell=True,
-                       cwd=example_dir,
-                       stderr=subprocess.PIPE,
-                       stdout=subprocess.PIPE)
+        subprocess.run('flutter-tizen clean', shell=True, cwd=example_dir)
 
     return test_results
 
