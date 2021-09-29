@@ -65,11 +65,12 @@ jobs:
           tizen security-profiles add -n platform -a $HOME/tizen-studio-data/keystore/author/platform.p12 -p platform
       - name: Install flutter-tizen
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
-        run: |
-          git clone https://github.com/flutter-tizen/flutter-tizen.git
+        uses: actions/checkout@v2
+        with:
+          repository: flutter-tizen/flutter-tizen
+          path: flutter-tizen
       - name: Build examples of changed packages
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
-          ROOT_DIR=`pwd`
-          export PATH=$PATH:`pwd`/flutter-tizen/bin
-          tools/run_command.py build --run-on-changed-packages --base-sha $(git rev-parse HEAD^)
+          export PATH=`pwd`/flutter-tizen/bin:$PATH
+          ./tools/run_command.py build --run-on-changed-packages --base-sha $(git rev-parse HEAD^)

@@ -15,12 +15,14 @@ jobs:
         with:
           fetch-depth: 2
       - name: Install flutter-tizen
-        run: |
-          git clone --depth=1 https://github.com/flutter-tizen/flutter-tizen.git
+        uses: actions/checkout@v2
+        with:
+          repository: flutter-tizen/flutter-tizen
+          path: flutter-tizen
       - name: Run integration tests
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          `pwd`/tools/run_command.py test \
+          ./tools/run_command.py test \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^) \
             --exclude wearable_rotary image_picker camera webview_flutter \
