@@ -49,6 +49,91 @@ _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 _DEFAULT_PLATFORM = 'wearable-5.5'
 
 
+class Target:
+    """A Tizen device that can run Flutter applications."""
+
+    def __init__(self, name, platform, id=None):
+        self.name = name
+        self.platform = platform
+        self.id = id
+        self.target_tuple = (self.platform, self.name, self.id)
+
+    def run_integration_test(self, plugin_name, directory, timeout):
+        """Runs integration test in the given directory.
+        
+        Args:
+            plugin_name (str): The name of the testing plugin.
+            directory (str): The path to the directory in which to perform 
+                             integration test.
+            timeout (int): Time limit in seconds before cancelling the test.
+
+        Returns:
+            TestResult: The result of the integration test.
+        """
+        is_timed_out = False
+        process = subprocess.Popen(
+            f'flutter-tizen -d {self.id} test integration_test',
+            shell=True,
+            cwd=directory,
+            universal_newlines=True,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE)
+        last_line = ''
+        start = time.time()
+        for line in process.stdout:
+            match = re.search(_LOG_PATTERN, line)
+            last_match = re.search(_LOG_PATTERN, last_line)
+            if match and last_match and last_match.group(2) == match.group(2):
+                sys.stdout.write(f'\r{line.strip()}')
+            else:
+                sys.stdout.write(f'\n{line.strip()}')
+            sys.stdout.flush()
+            last_line = line
+            if time.time() - start > timeout:
+                process.kill()
+                is_timed_out = True
+                break
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+        process.wait()
+
+        if is_timed_out:
+            return TestResult.fail(plugin_name, self.target_tuple, [
+                '''Timeout expired. The test may need more time to finish.
+If you expect the test to finish before timeout, check if the tests 
+require device screen to be awake or if they require manually 
+clicking the UI button for permissions.'''
+            ])
+        if last_line.strip() == 'No tests ran.':
+            # This message occurs when the integration test file exists,
+            # but no actual test code is written in it.
+
+            return TestResult.fail(plugin_name, self.target_tuple, [
+                'Missing integration tests \
+                    (use --exclude if this is intentional).'
+            ])
+        elif last_line.strip().startswith('No devices found'):
+            return TestResult.fail(plugin_name, self.target_tuple,
+                                   ['Device was disconnected during test.'])
+
+        match = re.search(_LOG_PATTERN, last_line.strip())
+        if not match:
+            # To protect from illegal log messages that may be introduced in the
+            # future.
+            raise Exception('Log message is not parsed correctly.')
+
+        # In some cases, the command returns 0 for failed cases,
+        # so we check again with the last log message.
+        if match.group(2) == 'All tests passed!':
+            return TestResult.success(plugin_name, self.target_tuple)
+        else:
+            # match.group(2) == 'Some tests failed.'
+            return TestResult.fail(plugin_name, self.target_tuple, [
+                'flutter-tizen test integration_test failed, \
+                    see the output above for details.'
+            ])
+
+
 class TestResult:
     """A class that specifies the result of a plugin integration test.
 
@@ -171,83 +256,11 @@ def _integration_test(plugin_dir, platforms, timeout):
                         plugin_name, platform,
                         [f'Test runner cannot find target {platform}.']))
                 continue
+            result = Target('', platform,
+                            id_per_platform[platform]).run_integration_test(
+                                plugin_name, example_dir, timeout)
+            test_results.append(result)
 
-            is_timed_out = False
-            process = subprocess.Popen(
-                f'flutter-tizen -d {id_per_platform[platform]} test integration_test',
-                shell=True,
-                cwd=example_dir,
-                universal_newlines=True,
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE)
-            last_line = ''
-            start = time.time()
-            for line in process.stdout:
-                match = re.search(_LOG_PATTERN, line)
-                last_match = re.search(_LOG_PATTERN, last_line)
-                if match and last_match and last_match.group(2) == match.group(
-                        2):
-                    sys.stdout.write(f'\r{line.strip()}')
-                else:
-                    sys.stdout.write(f'\n{line.strip()}')
-                sys.stdout.flush()
-                last_line = line
-                if time.time() - start > timeout:
-                    process.kill()
-                    is_timed_out = True
-                    break
-            sys.stdout.write('\n')
-            sys.stdout.flush()
-            process.wait()
-
-            if is_timed_out:
-                errors.append(
-                    """Timeout expired. The test may need more time to finish.
-        If you expect the test to finish before timeout, check if the tests 
-        require device screen to be awake or if they require manually 
-        clicking the UI button for permissions.""")
-                test_results.append(
-                    TestResult.fail(plugin_name, platform, errors=errors))
-                continue
-            if last_line.strip() == 'No tests ran.':
-                # This message occurs when the integration test file exists,
-                # but no actual test code is written in it.
-                test_results.append(
-                    TestResult.fail(plugin_name, platform, [
-                        'Missing integration tests (use --exclude if this is intentional).'
-                    ]))
-                continue
-            elif last_line.strip().startswith('No devices found'):
-                test_results.append(
-                    TestResult.fail(
-                        plugin_name, platform,
-                        ['The runner cannot find any devices to run tests.']))
-                continue
-
-            match = re.search(_LOG_PATTERN, last_line.strip())
-            if not match:
-                test_results.append(
-                    TestResult.fail(
-                        plugin_name, platform,
-                        ['Log message is not formatted correctly.']))
-                continue
-
-            # In some cases, the command returns 0 for failed cases, so we check again
-            # with the last log message.
-            exit_code = process.returncode
-            if match.group(2) == 'All tests passed!':
-                exit_code = 0
-            elif match.group(2) == 'Some tests failed.':
-                errors.append(
-                    'flutter-tizen test integration_test failed, see the output above for details.'
-                )
-                exit_code = 1
-
-            if exit_code == 0:
-                test_results.append(TestResult.success(plugin_name, platform))
-            else:
-                test_results.append(
-                    TestResult.fail(plugin_name, platform, errors=errors))
     finally:
         subprocess.run('flutter-tizen clean', shell=True, cwd=example_dir)
 
