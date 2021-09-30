@@ -34,6 +34,7 @@ import re
 import subprocess
 import sys
 import time
+from collections import defaultdict
 
 import yaml
 
@@ -134,6 +135,77 @@ clicking the UI button for permissions.'''
             ])
 
 
+class TargetManager:
+    """A manager class that finds and keep tracks of Tizen targets."""
+
+    def __init__(self):
+        self.target_per_id = {}
+        self.targets_per_platform = defaultdict(list)
+        self._find_all_targets()
+
+    def exists_platform(self, platform):
+        return len(self.targets_per_platform[platform]) > 0
+
+    def exists_id(self, id):
+        return id in self.target_per_id
+
+    def get_by_platform(self, platform):
+        return self.targets_per_platform[platform]
+
+    def get_by_id(self, id):
+        return self.target_per_id[id]
+
+    def _find_all_targets(self):
+        completed_process = subprocess.run('sdb devices',
+                                           shell=True,
+                                           cwd='.',
+                                           universal_newlines=True,
+                                           stderr=subprocess.PIPE,
+                                           stdout=subprocess.PIPE)
+        if completed_process.returncode != 0:
+            raise Exception('sdb failure.')
+
+        lines = completed_process.stdout.rstrip().split('\n')
+        for line in lines[1:]:
+            tokens = re.split('[\t ]', line)
+            id = tokens[0]
+            name = tokens[-1]
+            completed_process = subprocess.run(f'sdb -s {id} capability',
+                                               shell=True,
+                                               cwd='.',
+                                               universal_newlines=True,
+                                               stderr=subprocess.PIPE,
+                                               stdout=subprocess.PIPE)
+            if completed_process.returncode != 0:
+                print(f'capability failure for target {id}.')
+                continue
+            device_profile, tizen_version = self._parse_target_info(
+                completed_process.stdout)
+            if not device_profile or not tizen_version:
+                print(f'''Cannot extract device profile or 
+Tizen version information from target {id}.
+device_profile: {device_profile}
+tizen_version: {tizen_version}''')
+                continue
+
+            platform = f'{device_profile}-{tizen_version}'
+            target = Target(name, platform, id)
+            self.target_per_id[id] = target
+            self.targets_per_platform[platform].append(target)
+
+    def _parse_target_info(self, capability_info):
+        capability_info.rstrip()
+        device_profile = ''
+        tizen_version = ''
+        for line in capability_info.split('\n'):
+            tokens = line.split(':')
+            if (tokens[0] == 'profile_name'):
+                device_profile = tokens[1]
+            elif (tokens[0] == 'platform_version'):
+                tizen_version = tokens[1]
+        return device_profile, tizen_version
+
+
 class TestResult:
     """A class that specifies the result of a plugin integration test.
 
@@ -142,19 +214,19 @@ class TestResult:
         details: A list of details about the test result. (e.g. reasons for failure.)
     """
 
-    def __init__(self, plugin_name, run_state, platform='', details=[]):
+    def __init__(self, plugin_name, run_state, target='', details=[]):
         self.plugin_name = plugin_name
-        self.platform = platform
+        self.target = target
         self.run_state = run_state
         self.details = details
 
     @classmethod
-    def success(cls, plugin_name, platform):
-        return cls(plugin_name, 'succeeded', platform=platform)
+    def success(cls, plugin_name, target):
+        return cls(plugin_name, 'succeeded', target)
 
     @classmethod
-    def fail(cls, plugin_name, platform='', errors=[]):
-        return cls(plugin_name, 'failed', platform=platform, details=errors)
+    def fail(cls, plugin_name, target='', errors=[]):
+        return cls(plugin_name, 'failed', target, details=errors)
 
 
 def set_subparser(subparsers):
@@ -247,72 +319,25 @@ def _integration_test(plugin_dir, platforms, timeout):
             return [TestResult.fail(plugin_name, errors=errors)]
 
         test_results = []
-        id_per_platform = _get_target_table()
+        target_manager = TargetManager()
 
         for platform in platforms:
-            if platform not in id_per_platform:
+            if not target_manager.exists_platform(platform):
                 test_results.append(
                     TestResult.fail(
                         plugin_name, platform,
                         [f'Test runner cannot find target {platform}.']))
                 continue
-            result = Target('', platform,
-                            id_per_platform[platform]).run_integration_test(
-                                plugin_name, example_dir, timeout)
-            test_results.append(result)
+            targets = target_manager.get_by_platform(platform)
+            for target in targets:
+                result = target.run_integration_test(plugin_name, example_dir,
+                                                     timeout)
+                test_results.append(result)
 
     finally:
         subprocess.run('flutter-tizen clean', shell=True, cwd=example_dir)
 
     return test_results
-
-
-def _get_target_table():
-
-    def _parse_target_info(capability_info: str):
-        capability_info.rstrip()
-        device_profile = ''
-        tizen_version = ''
-        for line in capability_info.split('\n'):
-            tokens = line.split(':')
-            if (tokens[0] == 'profile_name'):
-                device_profile = tokens[1]
-            elif (tokens[0] == 'platform_version'):
-                tizen_version = tokens[1]
-        return device_profile, tizen_version
-
-    completed_process = subprocess.run('sdb devices',
-                                       shell=True,
-                                       cwd='.',
-                                       universal_newlines=True,
-                                       stderr=subprocess.PIPE,
-                                       stdout=subprocess.PIPE)
-
-    id_per_platform = {}
-    if completed_process.returncode == 0:
-        lines = completed_process.stdout.rstrip().split('\n')
-        for line in lines[1:]:
-            id = line.split(' ')[0]
-            completed_process = subprocess.run(f'sdb -s {id} capability',
-                                               shell=True,
-                                               cwd='.',
-                                               universal_newlines=True,
-                                               stderr=subprocess.PIPE,
-                                               stdout=subprocess.PIPE)
-            device_profile, tizen_version = _parse_target_info(
-                completed_process.stdout)
-            if not device_profile or not tizen_version:
-                print(
-                    f'''Cannot extract device_profile or tizen_version information from device {id}.
-device_profile: {device_profile}
-tizen_version: {tizen_version}''')
-            platform = f'{device_profile}-{tizen_version}'
-            if platform in id_per_platform:
-                print(
-                    f'Multiple targets of {platform} found. Replacing {id_per_platform[platform]} to {id}...'
-                )
-            id_per_platform[platform] = id
-    return id_per_platform
 
 
 def run_integration_test(args):
@@ -362,7 +387,7 @@ def run_integration_test(args):
             color = _TERM_RED
 
         print(
-            f'{color}{result.run_state.upper()}: {result.plugin_name} {result.platform}{_TERM_EMPTY}'
+            f'{color}{result.run_state.upper()}: {result.plugin_name} {result.target}{_TERM_EMPTY}'
         )
         if result.run_state != 'succeeded':
             for detail in result.details:
