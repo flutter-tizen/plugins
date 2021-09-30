@@ -1,16 +1,32 @@
-"""A script that helps running integration tests for multiple Tizen plugins.
-
-To run integrations tests for all plugins under packages/, 
-run tools/run_integration_test.py in the root of this repository.
+"""A subcommand that runs integration tests for multiple Tizen plugins 
+under packages.
 
 Here are some of the common use cases. Assume packages contain plugins 
 a, b, c, d, and e.
-- running specific packages:
-tools/run_integration_test.py --plugins a b c # runs a, b, c
+- testing specific packages:
+tools/run_command.py test --plugins a b c # runs a, b, c
 - excluding some packages:
-tools/run_integration_test.py --exclude a b c # runs d, e
+tools/run_command.py test --exclude a b c # runs d, e
 - exclude has precedence:
-tools/run_integration_test.py --plugins a b c --exclude b # runs a c
+tools/run_command.py test --plugins a b c --exclude b # runs a c
+
+By default, the tool will run integration tests on all connected targets.
+A target is a Tizen device (either a physical device or an emulator) that can
+run Flutter applications. Generally targets are connected when device is 
+connected to the host PC either with a cable or wirelessly for physical device,
+and when launching targets from Tizen SDK's Emulator Manager for emulators.
+
+Each target has three important pieces of information:
+- name: the name of the target.
+- platform: defines the device profile and Tizen version, usually expressed in
+<device_profile>-<tizen_version> (ex: wearable-5.5, tv-6.0).
+- id: the identifier assigned to a **connected** target.
+
+Here are some of the use cases where the information can be useful:
+- testing all targets that satisfies platform:
+tools/run_command.py test --platform wearable-5.5
+- testing target with id:
+tools/run_command.py test --id some_id
 """
 
 import os
@@ -30,7 +46,7 @@ _TERM_EMPTY = '\033[0m'
 
 _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 
-_DEFAULT_TEST_TARGET = 'wearable-5.5'
+_DEFAULT_PLATFORM = 'wearable-5.5'
 
 
 class TestResult:
@@ -40,22 +56,20 @@ class TestResult:
         run_state: The result of the test. Can be either succeeded for failed.
         details: A list of details about the test result. (e.g. reasons for failure.)
     """
-    def __init__(self, plugin_name, run_state, test_target='', details=[]):
+
+    def __init__(self, plugin_name, run_state, platform='', details=[]):
         self.plugin_name = plugin_name
-        self.test_target = test_target
+        self.platform = platform
         self.run_state = run_state
         self.details = details
 
     @classmethod
-    def success(cls, plugin_name, test_target):
-        return cls(plugin_name, 'succeeded', test_target=test_target)
+    def success(cls, plugin_name, platform):
+        return cls(plugin_name, 'succeeded', platform=platform)
 
     @classmethod
-    def fail(cls, plugin_name, test_target='', errors=[]):
-        return cls(plugin_name,
-                   'failed',
-                   test_target=test_target,
-                   details=errors)
+    def fail(cls, plugin_name, platform='', errors=[]):
+        return cls(plugin_name, 'failed', platform=platform, details=errors)
 
 
 def set_subparser(subparsers):
@@ -82,14 +96,14 @@ plugins:
 )''')
 
 
-def _integration_test(plugin_dir, test_targets, timeout):
+def _integration_test(plugin_dir, platforms, timeout):
     """Runs integration test in the example package for plugin_dir
 
     Currently the tools assumes that there's only one example package per plugin.
 
     Args:
         plugin_dir (str): The path to a single plugin directory.
-        test_targets (List[str]): A list of testing targets.
+        platforms (List[str]): A list of testing platforms.
         timeout (int): Time limit in seconds before cancelling the test.
 
     Returns:
@@ -97,9 +111,9 @@ def _integration_test(plugin_dir, test_targets, timeout):
     """
     plugin_name = os.path.basename(plugin_dir)
 
-    if not test_targets:
+    if not platforms:
         # (TODO: HakkyuKim) Improve logic for setting default targets.
-        test_targets.append(_DEFAULT_TEST_TARGET)
+        platforms.append(_DEFAULT_PLATFORM)
 
     example_dir = os.path.join(plugin_dir, 'example')
     if not os.path.isdir(example_dir):
@@ -148,19 +162,19 @@ def _integration_test(plugin_dir, test_targets, timeout):
             return [TestResult.fail(plugin_name, errors=errors)]
 
         test_results = []
-        target_table = _get_target_table()
+        id_per_platform = _get_target_table()
 
-        for test_target in test_targets:
-            if test_target not in target_table:
+        for platform in platforms:
+            if platform not in id_per_platform:
                 test_results.append(
                     TestResult.fail(
-                        plugin_name, test_target,
-                        [f'Test runner cannot find target {test_target}.']))
+                        plugin_name, platform,
+                        [f'Test runner cannot find target {platform}.']))
                 continue
 
             is_timed_out = False
             process = subprocess.Popen(
-                f'flutter-tizen -d {target_table[test_target]} test integration_test',
+                f'flutter-tizen -d {id_per_platform[platform]} test integration_test',
                 shell=True,
                 cwd=example_dir,
                 universal_newlines=True,
@@ -193,20 +207,20 @@ def _integration_test(plugin_dir, test_targets, timeout):
         require device screen to be awake or if they require manually 
         clicking the UI button for permissions.""")
                 test_results.append(
-                    TestResult.fail(plugin_name, test_target, errors=errors))
+                    TestResult.fail(plugin_name, platform, errors=errors))
                 continue
             if last_line.strip() == 'No tests ran.':
                 # This message occurs when the integration test file exists,
                 # but no actual test code is written in it.
                 test_results.append(
-                    TestResult.fail(plugin_name, test_target, [
+                    TestResult.fail(plugin_name, platform, [
                         'Missing integration tests (use --exclude if this is intentional).'
                     ]))
                 continue
             elif last_line.strip().startswith('No devices found'):
                 test_results.append(
                     TestResult.fail(
-                        plugin_name, test_target,
+                        plugin_name, platform,
                         ['The runner cannot find any devices to run tests.']))
                 continue
 
@@ -214,7 +228,7 @@ def _integration_test(plugin_dir, test_targets, timeout):
             if not match:
                 test_results.append(
                     TestResult.fail(
-                        plugin_name, test_target,
+                        plugin_name, platform,
                         ['Log message is not formatted correctly.']))
                 continue
 
@@ -230,11 +244,10 @@ def _integration_test(plugin_dir, test_targets, timeout):
                 exit_code = 1
 
             if exit_code == 0:
-                test_results.append(
-                    TestResult.success(plugin_name, test_target))
+                test_results.append(TestResult.success(plugin_name, platform))
             else:
                 test_results.append(
-                    TestResult.fail(plugin_name, test_target, errors=errors))
+                    TestResult.fail(plugin_name, platform, errors=errors))
     finally:
         subprocess.run('flutter-tizen clean', shell=True, cwd=example_dir)
 
@@ -242,17 +255,18 @@ def _integration_test(plugin_dir, test_targets, timeout):
 
 
 def _get_target_table():
+
     def _parse_target_info(capability_info: str):
         capability_info.rstrip()
-        profile_name = ''
-        platform_version = ''
+        device_profile = ''
+        tizen_version = ''
         for line in capability_info.split('\n'):
             tokens = line.split(':')
             if (tokens[0] == 'profile_name'):
-                profile_name = tokens[1]
+                device_profile = tokens[1]
             elif (tokens[0] == 'platform_version'):
-                platform_version = tokens[1]
-        return profile_name, platform_version
+                tizen_version = tokens[1]
+        return device_profile, tizen_version
 
     completed_process = subprocess.run('sdb devices',
                                        shell=True,
@@ -261,7 +275,7 @@ def _get_target_table():
                                        stderr=subprocess.PIPE,
                                        stdout=subprocess.PIPE)
 
-    table = {}
+    id_per_platform = {}
     if completed_process.returncode == 0:
         lines = completed_process.stdout.rstrip().split('\n')
         for line in lines[1:]:
@@ -272,32 +286,32 @@ def _get_target_table():
                                                universal_newlines=True,
                                                stderr=subprocess.PIPE,
                                                stdout=subprocess.PIPE)
-            profile, platform_version = _parse_target_info(
+            device_profile, tizen_version = _parse_target_info(
                 completed_process.stdout)
-            if not profile or not platform_version:
+            if not device_profile or not tizen_version:
                 print(
-                    f'''Cannot extract profile or platform_version information from device {id}.
-profile: {profile}
-platform_version: {platform_version}''')
-            target_entry = f'{profile}-{platform_version}'
-            if target_entry in table:
+                    f'''Cannot extract device_profile or tizen_version information from device {id}.
+device_profile: {device_profile}
+tizen_version: {tizen_version}''')
+            platform = f'{device_profile}-{tizen_version}'
+            if platform in id_per_platform:
                 print(
-                    f'Multiple targets of {target_entry} found. Replacing {table[target_entry]} to {id}...'
+                    f'Multiple targets of {platform} found. Replacing {id_per_platform[platform]} to {id}...'
                 )
-            table[target_entry] = id
-    return table
+            id_per_platform[platform] = id
+    return id_per_platform
 
 
 def run_integration_test(args):
-    test_targets = {}
+    platforms_per_plugin = {}
     if args.recipe:
         if not os.path.isfile(args.recipe):
             print(f'The recipe file {args.recipe} does not exist.')
             exit(1)
         with open(args.recipe) as f:
             try:
-                test_targets = yaml.load(f.read(),
-                                         Loader=yaml.FullLoader)['plugins']
+                platforms_per_plugin = yaml.load(
+                    f.read(), Loader=yaml.FullLoader)['plugins']
             except yaml.parser.ParserError:
                 print(
                     f'The recipe file {args.recipe} is not a valid yaml file.')
@@ -319,13 +333,13 @@ def run_integration_test(args):
         print(
             f'============= Testing for {testing_plugin} ({test_num}/{total_plugin_num}) ============='
         )
-        test_targets_list = []
-        if testing_plugin in test_targets:
-            test_targets_list = test_targets[testing_plugin]
+        platforms = []
+        if testing_plugin in platforms_per_plugin:
+            platforms = platforms_per_plugin[testing_plugin]
 
         results.extend(
             _integration_test(os.path.join(packages_dir, testing_plugin),
-                              test_targets_list, args.timeout))
+                              platforms, args.timeout))
 
     print(f'============= TEST RESULT =============')
     failed_plugins = []
@@ -335,7 +349,7 @@ def run_integration_test(args):
             color = _TERM_RED
 
         print(
-            f'{color}{result.run_state.upper()}: {result.plugin_name} {result.test_target}{_TERM_EMPTY}'
+            f'{color}{result.run_state.upper()}: {result.plugin_name} {result.platform}{_TERM_EMPTY}'
         )
         if result.run_state != 'succeeded':
             for detail in result.details:
