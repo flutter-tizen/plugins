@@ -54,6 +54,7 @@ class Target:
     def __init__(self, name, platform, id=None):
         self.name = name
         self.platform = platform
+        self.device_profile, self.tizen_version = platform.split('-')
         self.id = id
         self.target_tuple = (self.platform, self.name, self.id)
 
@@ -131,6 +132,92 @@ clicking the UI button for permissions.'''
                 'flutter-tizen test integration_test failed, \
                     see the output above for details.'
             ])
+
+
+class EphemeralTarget(Target):
+
+    def __init__(self, name, platform):
+        super().__init__(name, platform)
+
+    def run_integration_test(self, plugin_name, directory, timeout):
+        if self.device_profile == 'tv':
+            return TestResult.fail(plugin_name, self.target_tuple, [
+                'Running integration test for ephemeral tv targets is not supported.'
+            ])
+        self.launch()
+        result = super().run_integration_test(plugin_name, directory, timeout)
+        self.power_off()
+        return result
+
+    def _find_id(self):
+        completed_process = subprocess.run('sdb devices',
+                                           shell=True,
+                                           cwd='.',
+                                           universal_newlines=True,
+                                           stderr=subprocess.PIPE,
+                                           stdout=subprocess.PIPE)
+        if completed_process.returncode != 0:
+            raise Exception('sdb failure.')
+
+        lines = completed_process.stdout.rstrip().split('\n')
+        for line in lines[1:]:
+            tokens = re.split('[\t ]', line)
+            id = tokens[0]
+            name = tokens[-1]
+            if name == self.name:
+                return id
+        raise Exception(f'Could not find connected target {self.name}')
+
+    def launch(self):
+        completed_process = subprocess.run(f'em-cli launch -n {self.name}',
+                                           shell=True,
+                                           cwd='.')
+        if completed_process.returncode != 0:
+            raise Exception(f'Target {self.name} launch failed.')
+        time.sleep(5)
+        self.id = self._find_id()
+        pass
+
+    def power_off(self):
+        completed_process = subprocess.run(f'sdb -s {self.id} root on',
+                                           shell=True,
+                                           cwd='.',
+                                           stdout=open(os.devnull, 'wb'))
+        if completed_process.returncode != 0:
+            raise Exception(f'Target {self.id} power off failed.')
+        completed_process = subprocess.run(f'sdb -s {self.id} shell poweroff',
+                                           shell=True,
+                                           cwd='.')
+        if completed_process.returncode != 0:
+            raise Exception(f'Target {self.id} power off failed.')
+        time.sleep(1)
+        self.id = None
+
+    def create(self):
+        completed_process = subprocess.run(
+            f'em-cli create -n {self.name} -p {self._get_tizensdk_platform()}',
+            shell=True,
+            cwd='.')
+
+    def delete(self):
+        completed_process = subprocess.run(f'em-cli delete -n {self.name}',
+                                           shell=True,
+                                           cwd='.')
+        if completed_process.returncode != 0:
+            raise Exception(f'Target {self.name} deletion failed.')
+
+    def _get_tizensdk_platform(self):
+        """Gets the platform name that's understood by the Tizen sdk's em-cli command."""
+        if self.device_profile == 'wearable':
+            return f'{self.platform}-circle-x86'
+        elif self.device_profile == 'tv':
+            return f'tv-samsung-{self.tizen_version}-x86'
+        elif self.device_profile == 'mobile':
+            return f'{self.platform}-x86'
+        else:
+            raise Exception(
+                f'Test target must start with wearable, mobile, or tv. {self.platform} is an unknown test target.'
+            )
 
 
 class TargetManager:
@@ -214,6 +301,33 @@ tizen_version: {tizen_version}''')
         return device_profile, tizen_version
 
 
+class EphemeralTargetManager(TargetManager):
+
+    def __init__(self, platforms):
+        self.platforms = platforms
+        super().__init__()
+
+    def __enter__(self):
+        for platform in self.platforms:
+            self._create_ephemeral_target(platform)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._delete_ephemeral_targets()
+
+    def _create_ephemeral_target(self, platform):
+        device_profile = platform.split('-')[0]
+        target_name = f'{device_profile}-{os.getpid()}'
+        target = EphemeralTarget(target_name, platform)
+        target.create()
+        self.targets_per_platform[platform].append(target)
+
+    def _delete_ephemeral_targets(self):
+        for targets in self.targets_per_platform.values():
+            for target in targets:
+                target.delete()
+
+
 class TestResult:
     """A class that specifies the result of a plugin integration test.
 
@@ -276,9 +390,23 @@ plugins:
   b: [mobile-6.0]
   c: [wearable-4.0]
 )''')
+    parser.add_argument(
+        '--use-ephemeral-targets',
+        default=False,
+        action='store_true',
+        help='''Create and destroy ephemeral targets during test. 
+Must provide --platforms to specify which platform targets to create.
+Otherwise the option is ignored.''')
 
 
-def _integration_test(plugin_dir, platforms, timeout):
+def _get_target_manager(use_ephemeral_targets, platforms):
+    if use_ephemeral_targets:
+        return EphemeralTargetManager(platforms)
+    else:
+        return TargetManager()
+
+
+def _integration_test(plugin_dir, platforms, timeout, use_ephemeral_targets):
     """Runs integration test in the example package for plugin_dir
 
     Currently the tools assumes that there's only one example package per plugin.
@@ -287,6 +415,8 @@ def _integration_test(plugin_dir, platforms, timeout):
         plugin_dir (str): The path to a single plugin directory.
         platforms (List[str]): A list of testing platforms.
         timeout (int): Time limit in seconds before cancelling the test.
+        use_ephemeral_targets (bool): Whether to create and delete targets 
+                                      for test.
 
     Returns:
         TestResult: The result of the plugin integration test.
@@ -325,7 +455,8 @@ def _integration_test(plugin_dir, platforms, timeout):
         ]
 
     try:
-        with TargetManager() as target_manager:
+        with _get_target_manager(use_ephemeral_targets,
+                                 platforms) as target_manager:
             if not platforms:
                 platforms.extend(target_manager.platforms())
                 if not platforms:
@@ -386,6 +517,11 @@ def run_integration_test(args):
                     f'The recipe file {args.recipe} is not a valid yaml file.')
                 exit(1)
 
+    # --use-ephemeral-targets option is ignored if not used
+    # with --platforms option.
+    if args.use_ephemeral_targets and not args.platforms:
+        args.use_ephemeral_targets = False
+
     packages_dir = command_utils.get_package_dir()
     testing_plugins, excluded_plugins = command_utils.get_target_plugins(
         packages_dir,
@@ -407,8 +543,9 @@ def run_integration_test(args):
             platforms = platforms_per_plugin[testing_plugin]
 
         results.extend(
-            _integration_test(os.path.join(packages_dir, testing_plugin),
-                              platforms, args.timeout))
+            _integration_test(os.path.join(packages_dir,
+                                           testing_plugin), platforms,
+                              args.timeout, args.use_ephemeral_targets))
 
     print(f'============= TEST RESULT =============')
     failed_plugins = []
