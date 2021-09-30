@@ -357,7 +357,10 @@ def _integration_test(plugin_dir, platforms, timeout):
                 test_results.append(result)
 
     finally:
-        subprocess.run('flutter-tizen clean', shell=True, cwd=example_dir)
+        subprocess.run('flutter-tizen clean',
+                       shell=True,
+                       cwd=example_dir,
+                       stdout=open(os.devnull, 'wb'))
 
     return test_results
 
