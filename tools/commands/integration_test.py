@@ -139,7 +139,14 @@ class TargetManager:
     def __init__(self):
         self.target_per_id = {}
         self.targets_per_platform = defaultdict(list)
+
+    def __enter__(self):
         self._find_all_targets()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.target_per_id.clear()
+        self.targets_per_platform.clear()
 
     def exists_platform(self, platform):
         return len(self.targets_per_platform[platform]) > 0
@@ -286,15 +293,6 @@ def _integration_test(plugin_dir, platforms, timeout):
     """
     plugin_name = os.path.basename(plugin_dir)
 
-    target_manager = TargetManager()
-    if not platforms:
-        platforms.extend(target_manager.platforms())
-        if not platforms:
-            return [
-                TestResult.fail(plugin_name,
-                                errors=['Cannot find any connected targets.'])
-            ]
-
     example_dir = os.path.join(plugin_dir, 'example')
     if not os.path.isdir(example_dir):
         return [
@@ -327,35 +325,43 @@ def _integration_test(plugin_dir, platforms, timeout):
         ]
 
     try:
-        errors = []
-        completed_process = subprocess.run('flutter-tizen pub get',
-                                           shell=True,
-                                           cwd=example_dir,
-                                           stderr=subprocess.PIPE,
-                                           stdout=subprocess.PIPE)
-        if completed_process.returncode != 0:
-            if not completed_process.stderr:
-                errors.append('pub get failed. Make sure the pubspec file \
-                        in your project is valid.')
-            else:
-                errors.append(completed_process.stderr)
-            return [TestResult.fail(plugin_name, errors=errors)]
+        with TargetManager() as target_manager:
+            if not platforms:
+                platforms.extend(target_manager.platforms())
+                if not platforms:
+                    return [
+                        TestResult.fail(
+                            plugin_name,
+                            errors=['Cannot find any connected targets.'])
+                    ]
+            errors = []
+            completed_process = subprocess.run('flutter-tizen pub get',
+                                               shell=True,
+                                               cwd=example_dir,
+                                               stderr=subprocess.PIPE,
+                                               stdout=subprocess.PIPE)
+            if completed_process.returncode != 0:
+                if not completed_process.stderr:
+                    errors.append('pub get failed. Make sure the pubspec file \
+                            in your project is valid.')
+                else:
+                    errors.append(completed_process.stderr)
+                return [TestResult.fail(plugin_name, errors=errors)]
 
-        test_results = []
+            test_results = []
 
-        for platform in platforms:
-            if not target_manager.exists_platform(platform):
-                test_results.append(
-                    TestResult.fail(
-                        plugin_name, platform,
-                        [f'Test runner cannot find any {platform} targets.']))
-                continue
-            targets = target_manager.get_by_platform(platform)
-            for target in targets:
-                result = target.run_integration_test(plugin_name, example_dir,
-                                                     timeout)
-                test_results.append(result)
-
+            for platform in platforms:
+                if not target_manager.exists_platform(platform):
+                    test_results.append(
+                        TestResult.fail(plugin_name, platform, [
+                            f'Test runner cannot find any {platform} targets.'
+                        ]))
+                    continue
+                targets = target_manager.get_by_platform(platform)
+                for target in targets:
+                    result = target.run_integration_test(
+                        plugin_name, example_dir, timeout)
+                    test_results.append(result)
     finally:
         subprocess.run('flutter-tizen clean',
                        shell=True,
