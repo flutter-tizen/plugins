@@ -47,8 +47,6 @@ _TERM_EMPTY = '\033[0m'
 
 _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 
-_DEFAULT_PLATFORM = 'wearable-5.5'
-
 
 class Target:
     """A Tizen device that can run Flutter applications."""
@@ -155,6 +153,9 @@ class TargetManager:
     def get_by_id(self, id):
         return self.target_per_id[id]
 
+    def platforms(self):
+        return self.targets_per_platform.keys()
+
     def _find_all_targets(self):
         completed_process = subprocess.run('sdb devices',
                                            shell=True,
@@ -230,7 +231,12 @@ class TestResult:
 
 
 def set_subparser(subparsers):
-    parser = subparsers.add_parser('test', help='Run integration test')
+    parser = subparsers.add_parser(
+        'test',
+        help='Run integration test',
+        description='''Runs integration test on specified plugins.
+By default it will run integration tests on all plugins under packages with 
+all connected targets.''')
     command_utils.set_parser_arguments(parser,
                                        plugins=True,
                                        exclude=True,
@@ -238,13 +244,25 @@ def set_subparser(subparsers):
                                        base_sha=True,
                                        timeout=True,
                                        command='test')
-    parser.add_argument(
-        '--recipe',
-        type=str,
-        default='',
-        help=
-        '''The recipe file path. A recipe refers to a yaml file that defines a list of test targets for plugins.
-Passing this file will allow the tool to test with specified targets instead of the default target, wearable-5.5.
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--platforms',
+                       type=str,
+                       nargs='*',
+                       default=[],
+                       help='''Run integration test on all connected targets 
+that satisfy <device_profile>-<platform_version> (ex: wearable-5.5, tv-6.0).
+The selected targets will be used for all plugins, if you wish to run different 
+targets for each plugin, use the --recipe option instead.
+''')
+    parser.add_argument('--recipe',
+                        type=str,
+                        default='',
+                        help='''The recipe file path. A recipe refers to a 
+yaml file that defines a list of target platforms to test for each plugin. 
+Pass this file if you want to select specific target platform for different
+plugins. Note that recipe does not select which plugins to test(that is covered
+by the --plugins option), it only defines which target platform to test
+for certain plugins if those plugins are being tested.
 (
 plugins:
   a: [wearable-5.5, tv-6.0]
@@ -268,9 +286,14 @@ def _integration_test(plugin_dir, platforms, timeout):
     """
     plugin_name = os.path.basename(plugin_dir)
 
+    target_manager = TargetManager()
     if not platforms:
-        # (TODO: HakkyuKim) Improve logic for setting default targets.
-        platforms.append(_DEFAULT_PLATFORM)
+        platforms.extend(target_manager.platforms())
+        if not platforms:
+            return [
+                TestResult.fail(plugin_name,
+                                errors=['Cannot find any connected targets.'])
+            ]
 
     example_dir = os.path.join(plugin_dir, 'example')
     if not os.path.isdir(example_dir):
@@ -319,14 +342,13 @@ def _integration_test(plugin_dir, platforms, timeout):
             return [TestResult.fail(plugin_name, errors=errors)]
 
         test_results = []
-        target_manager = TargetManager()
 
         for platform in platforms:
             if not target_manager.exists_platform(platform):
                 test_results.append(
                     TestResult.fail(
                         plugin_name, platform,
-                        [f'Test runner cannot find target {platform}.']))
+                        [f'Test runner cannot find any {platform} targets.']))
                 continue
             targets = target_manager.get_by_platform(platform)
             for target in targets:
@@ -371,7 +393,7 @@ def run_integration_test(args):
         print(
             f'============= Testing for {testing_plugin} ({test_num}/{total_plugin_num}) ============='
         )
-        platforms = []
+        platforms = args.platforms
         if testing_plugin in platforms_per_plugin:
             platforms = platforms_per_plugin[testing_plugin]
 
