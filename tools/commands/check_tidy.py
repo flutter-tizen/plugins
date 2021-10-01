@@ -36,6 +36,7 @@ skip_files = []
 
 
 class Stats(object):
+
     def __init__(self):
         self.files = 0
         self.lines = 0
@@ -56,7 +57,8 @@ def _run_check_tidy(src_dir, update, clang_format, stats):
             continue
 
         for file in [
-                join(dirpath, name) for name in filenames
+                join(dirpath, name)
+                for name in filenames
                 if is_checked_by_clang(name)
         ]:
 
@@ -87,8 +89,7 @@ def _run_check_tidy(src_dir, update, clang_format, stats):
                 if line.endswith(' \n') or line.endswith('\t\n'):
                     report_error('trailing whitespace', lineno)
                 if not line.endswith('\n'):
-                    report_error('line ends without NEW LINE character',
-                                 lineno)
+                    report_error('line ends without NEW LINE character', lineno)
 
                 if not line.strip():
                     stats.empty_lines += 1
@@ -116,6 +117,7 @@ def set_subparser(subparsers):
                         metavar='PATH',
                         default=DEFAULT_DIR,
                         help='directory to process (default: %(default)s)')
+    parser.set_defaults(func=run_check_tidy)
 
 
 def run_check_tidy(args):

@@ -408,6 +408,7 @@ plugins:
         action='store_true',
         help='''Create and destroy ephemeral targets during test. 
 Must provide --platforms to specify which platform targets to create.''')
+    parser.set_defaults(func=run_integration_test)
 
 
 def _get_target_manager(use_ephemeral_targets, platforms):

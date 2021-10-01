@@ -12,6 +12,7 @@ def set_subparser(subparsers):
                                        run_on_changed_packages=True,
                                        base_sha=True,
                                        command='build')
+    parser.set_defaults(func=run_build_examples)
 
 
 def _build_examples(plugin_dir):
