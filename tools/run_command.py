@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""CLI tool that manages multiple plugin packages in this repository.
+It is mainly intended to run in CI systems. Each subcommand has the following
+dependent executables and the system must be able to find their correct paths.
+
+- check_tidy: clang-format-11
+- integration_test: flutter-tizen, sdb, em-cli
+- build_example: flutter-tizen
+"""
 
 import sys
 import argparse
