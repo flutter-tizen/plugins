@@ -387,10 +387,10 @@ that satisfy <device_profile>-<platform_version> (ex: wearable-5.5, tv-6.0).
 The selected targets will be used for all plugins, if you wish to run different 
 targets for each plugin, use the --recipe option instead.
 ''')
-    parser.add_argument('--recipe',
-                        type=str,
-                        default='',
-                        help='''The recipe file path. A recipe refers to a 
+    group.add_argument('--recipe',
+                       type=str,
+                       default='',
+                       help='''The recipe file path. A recipe refers to a 
 yaml file that defines a list of target platforms to test for each plugin. 
 Pass this file if you want to select specific target platform for different
 plugins. Note that recipe does not select which plugins to test(that is covered
@@ -407,7 +407,8 @@ plugins:
         default=False,
         action='store_true',
         help='''Create and destroy ephemeral targets during test. 
-Must provide --platforms to specify which platform targets to create.''')
+Must provide --platforms or --recipe option to specify which 
+platform targets to create.''')
     parser.set_defaults(func=run_integration_test)
 
 
@@ -477,7 +478,7 @@ def _integration_test(plugin_dir, platforms, timeout, use_ephemeral_targets):
                     return [
                         TestResult.fail(
                             plugin_name,
-                            errors=['Cannot find any connected targets.'])
+                            errors=['Cannot find any testable targets.'])
                     ]
             errors = []
             completed_process = subprocess.run('flutter-tizen pub get',
@@ -539,9 +540,9 @@ def run_integration_test(args):
                 )
                 exit(1)
 
-    if args.use_ephemeral_targets and not args.platforms:
+    if args.use_ephemeral_targets and not args.platforms and not args.recipe:
         print(
-            '--use-ephemeral-targets option must be used with --platforms option.'
+            '--use-ephemeral-targets option must be used with either --platforms or --recipe option.'
         )
         exit(1)
 
