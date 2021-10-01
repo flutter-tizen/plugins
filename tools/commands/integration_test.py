@@ -51,7 +51,7 @@ class Target:
     def __init__(self, name, platform, id=None):
         self.name = name
         self.platform = platform
-        self.device_profile, self.tizen_version = platform.split('-')
+        self.device_profile, self.tizen_version = platform.split('-', 1)
         self.id = id
         self.target_tuple = (self.platform, self.name, self.id)
 
@@ -308,8 +308,7 @@ class EphemeralTargetManager(TargetManager):
         super().__exit__(exc_type, exc_value, traceback)
 
     def _create_ephemeral_target(self, platform):
-        device_profile = platform.split('-')[0]
-        target_name = f'{device_profile}-{os.getpid()}'
+        target_name = f'{platform}-{os.getpid()}'
         target = EphemeralTarget(target_name, platform)
         target.create()
         self.targets_per_platform[platform].append(target)
@@ -389,8 +388,7 @@ plugins:
         default=False,
         action='store_true',
         help='''Create and destroy ephemeral targets during test. 
-Must provide --platforms to specify which platform targets to create.
-Otherwise the option is ignored.''')
+Must provide --platforms to specify which platform targets to create.''')
 
 
 def _get_target_manager(use_ephemeral_targets, platforms):
@@ -513,10 +511,19 @@ def run_integration_test(args):
                     f'The recipe file {args.recipe} is not a valid yaml file.')
                 exit(1)
 
-    # --use-ephemeral-targets option is ignored if not used
-    # with --platforms option.
+    if args.platforms:
+        for platform in args.platforms:
+            if '-' not in platform:
+                print(
+                    f'inputs of --platforms must be <device_profile>-<tizen-version> format, {platform}.'
+                )
+                exit(1)
+
     if args.use_ephemeral_targets and not args.platforms:
-        args.use_ephemeral_targets = False
+        print(
+            '--use-ephemeral-targets option must be used with --platforms option.'
+        )
+        exit(1)
 
     packages_dir = command_utils.get_package_dir()
     testing_plugins, excluded_plugins = command_utils.get_target_plugins(
