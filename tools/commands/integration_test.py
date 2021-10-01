@@ -137,10 +137,6 @@ class EphemeralTarget(Target):
         super().__init__(name, platform)
 
     def run_integration_test(self, plugin_name, directory, timeout):
-        if self.device_profile == 'tv':
-            return TestResult.fail(plugin_name, self.target_tuple, [
-                'Running integration test for ephemeral tv targets is not supported.'
-            ])
         self.launch()
         result = super().run_integration_test(plugin_name, directory, timeout)
         self.power_off()
@@ -176,6 +172,27 @@ class EphemeralTarget(Target):
         pass
 
     def power_off(self):
+        # The poweroff logic for tv is different because sdb root is not allowed.
+        if self.device_profile == 'tv':
+            completed_process = subprocess.run(
+                f'ps a | grep emulator-x86_64 | grep {self.name}',
+                shell=True,
+                cwd='.',
+                universal_newlines=True,
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE)
+            if completed_process.returncode != 0:
+                raise Exception(f'Target {self.id} power off failed.')
+            pid = completed_process.stdout.strip().split(' ')[0]
+            completed_process = subprocess.run(f'kill -9 {pid}',
+                                               shell=True,
+                                               cwd='.',
+                                               stdout=open(os.devnull, 'wb'))
+            if completed_process.returncode != 0:
+                raise Exception(f'Target {self.id} power off failed.')
+            time.sleep(1)
+            self.id = None
+            return
         completed_process = subprocess.run(f'sdb -s {self.id} root on',
                                            shell=True,
                                            cwd='.',
@@ -308,7 +325,9 @@ class EphemeralTargetManager(TargetManager):
         super().__exit__(exc_type, exc_value, traceback)
 
     def _create_ephemeral_target(self, platform):
-        target_name = f'{platform}-{os.getpid()}'
+        device_profile, tizen_version = platform.split('-', 1)
+        # Target name valid characters are [A-Za-z0-9-_].
+        target_name = f'{device_profile}-{tizen_version.replace(".", "_")}-{os.getpid()}'
         target = EphemeralTarget(target_name, platform)
         target.create()
         self.targets_per_platform[platform].append(target)
