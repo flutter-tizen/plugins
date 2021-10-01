@@ -1,5 +1,6 @@
 """A subcommand that runs integration tests for multiple Tizen plugins 
-under packages.
+under packages. By default, the tool will run integration tests of all plugins
+under packages on all connected targets.
 
 Here are some of the common use cases. Assume packages contain plugins 
 a, b, c, d, and e.
@@ -9,24 +10,8 @@ tools/run_command.py test --plugins a b c # runs a, b, c
 tools/run_command.py test --exclude a b c # runs d, e
 - exclude has precedence:
 tools/run_command.py test --plugins a b c --exclude b # runs a c
-
-By default, the tool will run integration tests on all connected targets.
-A target is a Tizen device (either a physical device or an emulator) that can
-run Flutter applications. Generally targets are connected when device is 
-connected to the host PC either with a cable or wirelessly for physical device,
-and when launching targets from Tizen SDK's Emulator Manager for emulators.
-
-Each target has three important pieces of information:
-- name: the name of the target.
-- platform: defines the device profile and Tizen version, usually expressed in
-<device_profile>-<tizen_version> (ex: wearable-5.5, tv-6.0).
-- id: the identifier assigned to a **connected** target.
-
-Here are some of the use cases where the information can be useful:
-- testing all targets that satisfies platform:
-tools/run_command.py test --platform wearable-5.5
-- testing target with id:
-tools/run_command.py test --id some_id
+- testing on all targets that satisfies wearable-5.5 platform:
+tools/run_command.py test --platforms wearable-5.5
 """
 
 import os
@@ -49,7 +34,19 @@ _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 
 
 class Target:
-    """A Tizen device that can run Flutter applications."""
+    """A Tizen device that can run Flutter applications.
+    
+    A target is a Tizen device (either a physical device or an emulator) that can
+    run Flutter applications. Generally targets are connected when physical devices
+    are connected to the host PC either with a cable or wirelessly, and when 
+    emulators are launched by Tizen SDK's Emulator Manager.
+
+    Each target has three important pieces of information:
+    - name: the name of the target.
+    - platform: defines the device profile and Tizen version, expressed in
+    <device_profile>-<tizen_version> (ex: wearable-5.5, tv-6.0).
+    - id: the identifier assigned to a **connected** target.
+    """
 
     def __init__(self, name, platform, id=None):
         self.name = name
@@ -129,12 +126,12 @@ clicking the UI button for permissions.'''
         else:
             # match.group(2) == 'Some tests failed.'
             return TestResult.fail(plugin_name, self.target_tuple, [
-                'flutter-tizen test integration_test failed, \
-                    see the output above for details.'
+                'flutter-tizen test integration_test failed, see the output above for details.'
             ])
 
 
 class EphemeralTarget(Target):
+    """A Tizen emulator that launches/poweroffs itself during test."""
 
     def __init__(self, name, platform):
         super().__init__(name, platform)
@@ -198,6 +195,8 @@ class EphemeralTarget(Target):
             f'em-cli create -n {self.name} -p {self._get_tizensdk_platform()}',
             shell=True,
             cwd='.')
+        if completed_process.returncode != 0:
+            raise Exception(f'Target {self.name} creation failed.')
 
     def delete(self):
         completed_process = subprocess.run(f'em-cli delete -n {self.name}',
@@ -221,10 +220,9 @@ class EphemeralTarget(Target):
 
 
 class TargetManager:
-    """A manager class that finds and keep tracks of Tizen targets."""
+    """A manager class that finds and manages a collection of Tizen targets."""
 
     def __init__(self):
-        self.target_per_id = {}
         self.targets_per_platform = defaultdict(list)
 
     def __enter__(self):
@@ -232,22 +230,15 @@ class TargetManager:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.target_per_id.clear()
         self.targets_per_platform.clear()
 
     def exists_platform(self, platform):
         return len(self.targets_per_platform[platform]) > 0
 
-    def exists_id(self, id):
-        return id in self.target_per_id
-
     def get_by_platform(self, platform):
         return self.targets_per_platform[platform]
 
-    def get_by_id(self, id):
-        return self.target_per_id[id]
-
-    def platforms(self):
+    def get_platforms(self):
         return self.targets_per_platform.keys()
 
     def _find_all_targets(self):
@@ -285,7 +276,6 @@ tizen_version: {tizen_version}''')
 
             platform = f'{device_profile}-{tizen_version}'
             target = Target(name, platform, id)
-            self.target_per_id[id] = target
             self.targets_per_platform[platform].append(target)
 
     def _parse_target_info(self, capability_info):
@@ -302,10 +292,11 @@ tizen_version: {tizen_version}''')
 
 
 class EphemeralTargetManager(TargetManager):
+    """A TargetManager for EphemeralTargets."""
 
     def __init__(self, platforms):
-        self.platforms = platforms
         super().__init__()
+        self.platforms = platforms
 
     def __enter__(self):
         for platform in self.platforms:
@@ -314,6 +305,7 @@ class EphemeralTargetManager(TargetManager):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self._delete_ephemeral_targets()
+        super().__exit__(exc_type, exc_value, traceback)
 
     def _create_ephemeral_target(self, platform):
         device_profile = platform.split('-')[0]
@@ -332,7 +324,9 @@ class TestResult:
     """A class that specifies the result of a plugin integration test.
 
     Attributes:
+        plugin_name: The name of the tested plugin.
         run_state: The result of the test. Can be either succeeded for failed.
+        target: Information of the target that plugin was tested on.
         details: A list of details about the test result. (e.g. reasons for failure.)
     """
 
@@ -455,10 +449,12 @@ def _integration_test(plugin_dir, platforms, timeout, use_ephemeral_targets):
         ]
 
     try:
-        with _get_target_manager(use_ephemeral_targets,
-                                 platforms) as target_manager:
+        with _get_target_manager(
+                use_ephemeral_targets,
+                platforms,
+        ) as target_manager:
             if not platforms:
-                platforms.extend(target_manager.platforms())
+                platforms.extend(target_manager.get_platforms())
                 if not platforms:
                     return [
                         TestResult.fail(
@@ -543,9 +539,12 @@ def run_integration_test(args):
             platforms = platforms_per_plugin[testing_plugin]
 
         results.extend(
-            _integration_test(os.path.join(packages_dir,
-                                           testing_plugin), platforms,
-                              args.timeout, args.use_ephemeral_targets))
+            _integration_test(
+                os.path.join(packages_dir, testing_plugin),
+                platforms,
+                args.timeout,
+                args.use_ephemeral_targets,
+            ))
 
     print(f'============= TEST RESULT =============')
     failed_plugins = []
