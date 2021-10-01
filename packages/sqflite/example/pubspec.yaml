@@ -1,0 +1,38 @@
+name: sqflite_tizen_example
+description: Demonstrates how to use the geolocator_tizen plugin.
+publish_to: "none"
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  baseflow_plugin_template:
+    git:
+      ref: v2.1.0
+      url: git://github.com/Baseflow/baseflow_plugin_template.git
+  cupertino_icons: ^1.0.1+1
+  flutter:
+    sdk: flutter
+  sqflite: ^2.0.0
+  sqflite_tizen:
+    path: ../
+  url_launcher_tizen:
+    path: ../../url_launcher
+
+dev_dependencies:
+  flutter_lints: ^1.0.4
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
+  pedantic: ^1.11.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - res/images/baseflow_logo_def_light-02.png
+    - res/images/poweredByBaseflowLogoLight@3x.png
+    - packages/baseflow_plugin_template/logo.png
+    - packages/baseflow_plugin_template/poweredByBaseflow.png
