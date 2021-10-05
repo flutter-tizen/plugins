@@ -135,6 +135,7 @@ class EphemeralTarget(Target):
 
     def __init__(self, name, platform):
         super().__init__(name, platform)
+        self._pid = None
 
     def run_integration_test(self, plugin_name, directory, timeout):
         self.launch()
@@ -159,6 +160,19 @@ class EphemeralTarget(Target):
                 return tokens[0]
         raise Exception(f'Could not find connected target {self.name}')
 
+    def _find_pid(self):
+        completed_process = subprocess.run(
+            f'ps a | grep emulator-x86_64 | grep {self.name}',
+            shell=True,
+            cwd='.',
+            universal_newlines=True,
+            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE)
+        if completed_process.returncode != 0:
+            raise Exception(f'Could not find pid of target {self.name}')
+        pid = completed_process.stdout.strip().split(' ')[0]
+        return pid
+
     def launch(self):
         completed_process = subprocess.run(f'em-cli launch -n {self.name}',
                                            shell=True,
@@ -166,44 +180,21 @@ class EphemeralTarget(Target):
         if completed_process.returncode != 0:
             raise Exception(f'Target {self.name} launch failed.')
         # There's no straightforward way to know when the target is fully
-        # launched. The current setting is based on some testing.
+        # launched. The current sleep setting is based on some testing.
         time.sleep(5)
         self.id = self._find_id()
+        self._pid = self._find_pid()
 
     def power_off(self):
-        # The poweroff logic for tv is different because sdb root is not allowed.
-        if self.device_profile == 'tv':
-            try:
-                stdout = subprocess.check_output(
-                    f'ps a | grep emulator-x86_64 | grep {self.name}',
-                    shell=True,
-                    cwd='.',
-                    universal_newlines=True)
-                pid = stdout.strip().split(' ')[0]
-                subprocess.run(f'kill -9 {pid}',
-                               shell=True,
-                               check=True,
-                               cwd='.',
-                               stdout=open(os.devnull, 'wb'))
-                time.sleep(1)
-                self.id = None
-            except subprocess.CalledProcessError:
-                raise Exception(f'Target {self.id} power off failed.')
-            return
-        try:
-            subprocess.run(f'sdb -s {self.id} root on',
-                           shell=True,
-                           check=True,
-                           cwd='.',
-                           stdout=open(os.devnull, 'wb'))
-            subprocess.run(f'sdb -s {self.id} shell poweroff',
-                           shell=True,
-                           check=True,
-                           cwd='.')
-            time.sleep(1)
-            self.id = None
-        except subprocess.CalledProcessError:
+        completed_process = subprocess.run(f'kill -9 {self._pid}',
+                                           shell=True,
+                                           cwd='.',
+                                           stdout=open(os.devnull, 'wb'))
+        if completed_process.returncode != 0:
             raise Exception(f'Target {self.id} power off failed.')
+        time.sleep(1)
+        self.id = None
+        self.pid = None
 
     def create(self):
         completed_process = subprocess.run(
