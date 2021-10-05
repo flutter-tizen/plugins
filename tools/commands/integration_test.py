@@ -154,11 +154,9 @@ class EphemeralTarget(Target):
 
         lines = completed_process.stdout.rstrip().split('\n')
         for line in lines[1:]:
-            tokens = re.split('[\t ]', line)
-            id = tokens[0]
-            name = tokens[-1]
-            if name == self.name:
-                return id
+            tokens = re.split('\s+', line)
+            if tokens[-1] == self.name:
+                return tokens[0]
         raise Exception(f'Could not find connected target {self.name}')
 
     def launch(self):
@@ -167,45 +165,45 @@ class EphemeralTarget(Target):
                                            cwd='.')
         if completed_process.returncode != 0:
             raise Exception(f'Target {self.name} launch failed.')
+        # There's no straightforward way to know when the target is fully
+        # launched. The current setting is based on some testing.
         time.sleep(5)
         self.id = self._find_id()
-        pass
 
     def power_off(self):
         # The poweroff logic for tv is different because sdb root is not allowed.
         if self.device_profile == 'tv':
-            completed_process = subprocess.run(
-                f'ps a | grep emulator-x86_64 | grep {self.name}',
-                shell=True,
-                cwd='.',
-                universal_newlines=True,
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE)
-            if completed_process.returncode != 0:
+            try:
+                stdout = subprocess.check_output(
+                    f'ps a | grep emulator-x86_64 | grep {self.name}',
+                    shell=True,
+                    cwd='.',
+                    universal_newlines=True)
+                pid = stdout.strip().split(' ')[0]
+                subprocess.run(f'kill -9 {pid}',
+                               shell=True,
+                               check=True,
+                               cwd='.',
+                               stdout=open(os.devnull, 'wb'))
+                time.sleep(1)
+                self.id = None
+            except subprocess.CalledProcessError:
                 raise Exception(f'Target {self.id} power off failed.')
-            pid = completed_process.stdout.strip().split(' ')[0]
-            completed_process = subprocess.run(f'kill -9 {pid}',
-                                               shell=True,
-                                               cwd='.',
-                                               stdout=open(os.devnull, 'wb'))
-            if completed_process.returncode != 0:
-                raise Exception(f'Target {self.id} power off failed.')
+            return
+        try:
+            subprocess.run(f'sdb -s {self.id} root on',
+                           shell=True,
+                           check=True,
+                           cwd='.',
+                           stdout=open(os.devnull, 'wb'))
+            subprocess.run(f'sdb -s {self.id} shell poweroff',
+                           shell=True,
+                           check=True,
+                           cwd='.')
             time.sleep(1)
             self.id = None
-            return
-        completed_process = subprocess.run(f'sdb -s {self.id} root on',
-                                           shell=True,
-                                           cwd='.',
-                                           stdout=open(os.devnull, 'wb'))
-        if completed_process.returncode != 0:
+        except subprocess.CalledProcessError:
             raise Exception(f'Target {self.id} power off failed.')
-        completed_process = subprocess.run(f'sdb -s {self.id} shell poweroff',
-                                           shell=True,
-                                           cwd='.')
-        if completed_process.returncode != 0:
-            raise Exception(f'Target {self.id} power off failed.')
-        time.sleep(1)
-        self.id = None
 
     def create(self):
         completed_process = subprocess.run(
@@ -270,7 +268,7 @@ class TargetManager:
 
         lines = completed_process.stdout.rstrip().split('\n')
         for line in lines[1:]:
-            tokens = re.split('[\t ]', line)
+            tokens = re.split('\s+', line)
             id = tokens[0]
             name = tokens[-1]
             completed_process = subprocess.run(f'sdb -s {id} capability',
