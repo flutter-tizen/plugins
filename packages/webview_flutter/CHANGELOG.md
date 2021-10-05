@@ -37,3 +37,7 @@
 ## 0.3.5
 * Update LWE binary (b2fad69f50d693c86abc45b363a39b0625f5e95f)
 * Fix crash issue
+
+## 0.3.6
+* Update LWE binary (3dff8724bfb4b2b0b9e7c4e3976a9b02e74ee13c)
+* Fix various issue
