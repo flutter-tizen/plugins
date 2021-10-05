@@ -4,6 +4,7 @@ const String _channelName = 'flutter.wearable_rotary.channel';
 
 const EventChannel _channel = EventChannel(_channelName);
 
+/// A broadcast stream of events from the device rotary sensor.
 Stream<RotaryEvent> get rotaryEvents {
   _rotaryEvents ??= _channel
       .receiveBroadcastStream()
@@ -13,8 +14,14 @@ Stream<RotaryEvent> get rotaryEvents {
 
 Stream<RotaryEvent>? _rotaryEvents;
 
+/// Discrete reading from an rotary sensor. Rotary sensor measure the rotation
+/// of the wearable device. The event refers to a single "click" of rotatation
+/// angle which may differ by device.
 enum RotaryEvent {
+  /// A roation angle in the clockwise direction.
   clockwise,
+
+  /// A roation angle in the counter clockwise direction.
   counterClockwise,
 }
 

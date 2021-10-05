@@ -15,6 +15,7 @@ import 'package:share_plus_platform_interface/share_plus_platform_interface.dart
 /// being set to Linux's.
 /// https://github.com/fluttercommunity/plus_plugins/blob/fc6864f21cf1d1f6db47a3c938f24370362d00cd/packages/share_plus/lib/share_plus.dart#L30-L42
 class SharePlugin extends SharePlatform {
+  /// Register dart plugin to inject Tizen plugin.
   static void register() {
     // ignore: invalid_use_of_visible_for_testing_member
     Share.disableSharePlatformOverride = true;

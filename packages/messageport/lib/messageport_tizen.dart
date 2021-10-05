@@ -80,7 +80,7 @@ class RemotePort {
     return _manager.sendWithLocalPort(this, localPort, message);
   }
 
-  // Checks whether remote port is registered in remote application.
+  /// Checks whether remote port is registered in remote application.
   Future<bool> check() async {
     return _manager.checkForRemotePort(remoteAppId, portName, trusted);
   }
@@ -95,6 +95,7 @@ class RemotePort {
   final bool trusted;
 }
 
+// ignore: avoid_classes_with_only_static_members
 /// API for accessing MessagePorts in Tizen.
 class TizenMessagePort {
   /// Creates Local Port
