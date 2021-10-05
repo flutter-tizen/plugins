@@ -21,15 +21,11 @@ if __name__ == "__main__":
         parser.print_help()
         exit(1)
 
-    try:
-        if args.subcommand == 'tidy':
-            check_tidy.run_check_tidy(args)
-        elif args.subcommand == 'test':
-            integration_test.run_integration_test(args)
-        elif args.subcommand == 'build':
-            build_example.run_build_examples(args)
-        elif args.subcommand == 'plugins':
-            print_plugins.run_print_plugins(args)
-    except Exception as e:
-        print(e)
-        exit(1)
+    if args.subcommand == 'tidy':
+        check_tidy.run_check_tidy(args)
+    elif args.subcommand == 'test':
+        integration_test.run_integration_test(args)
+    elif args.subcommand == 'build':
+        build_example.run_build_examples(args)
+    elif args.subcommand == 'plugins':
+        print_plugins.run_print_plugins(args)
