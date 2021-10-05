@@ -146,7 +146,6 @@ class EphemeralTarget(Target):
     def _find_id(self):
         completed_process = subprocess.run('sdb devices',
                                            shell=True,
-                                           cwd='.',
                                            universal_newlines=True,
                                            stderr=subprocess.PIPE,
                                            stdout=subprocess.PIPE)
@@ -164,7 +163,6 @@ class EphemeralTarget(Target):
         completed_process = subprocess.run(
             f'ps a | grep emulator-x86_64 | grep {self.name}',
             shell=True,
-            cwd='.',
             universal_newlines=True,
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE)
@@ -175,8 +173,7 @@ class EphemeralTarget(Target):
 
     def launch(self):
         completed_process = subprocess.run(f'em-cli launch -n {self.name}',
-                                           shell=True,
-                                           cwd='.')
+                                           shell=True)
         if completed_process.returncode != 0:
             raise Exception(f'Target {self.name} launch failed.')
         # There's no straightforward way to know when the target is fully
@@ -188,7 +185,6 @@ class EphemeralTarget(Target):
     def power_off(self):
         completed_process = subprocess.run(f'kill -9 {self._pid}',
                                            shell=True,
-                                           cwd='.',
                                            stdout=open(os.devnull, 'wb'))
         if completed_process.returncode != 0:
             raise Exception(f'Target {self.id} power off failed.')
@@ -199,15 +195,13 @@ class EphemeralTarget(Target):
     def create(self):
         completed_process = subprocess.run(
             f'em-cli create -n {self.name} -p {self._get_tizensdk_platform()}',
-            shell=True,
-            cwd='.')
+            shell=True)
         if completed_process.returncode != 0:
             raise Exception(f'Target {self.name} creation failed.')
 
     def delete(self):
         completed_process = subprocess.run(f'em-cli delete -n {self.name}',
-                                           shell=True,
-                                           cwd='.')
+                                           shell=True)
         if completed_process.returncode != 0:
             raise Exception(f'Target {self.name} deletion failed.')
 
@@ -250,7 +244,6 @@ class TargetManager:
     def _find_all_targets(self):
         completed_process = subprocess.run('sdb devices',
                                            shell=True,
-                                           cwd='.',
                                            universal_newlines=True,
                                            stderr=subprocess.PIPE,
                                            stdout=subprocess.PIPE)
@@ -264,7 +257,6 @@ class TargetManager:
             name = tokens[-1]
             completed_process = subprocess.run(f'sdb -s {id} capability',
                                                shell=True,
-                                               cwd='.',
                                                universal_newlines=True,
                                                stderr=subprocess.PIPE,
                                                stdout=subprocess.PIPE)
