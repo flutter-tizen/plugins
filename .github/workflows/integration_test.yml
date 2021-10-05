@@ -1,0 +1,42 @@
+# TODO: Support running all integration tests when it's possible to
+# run self-hosted runners in parallel.
+name: Integration Test
+
+on:
+  pull_request:
+
+jobs:
+  changed_packages:
+    runs-on: [self-hosted, linux]
+    if: ${{ github.repository_owner == 'flutter-tizen' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - name: Install flutter-tizen
+        uses: actions/checkout@v2
+        with:
+          repository: flutter-tizen/flutter-tizen
+          path: flutter-tizen
+      - name: Run integration tests
+        run: |
+          export PATH=`pwd`/flutter-tizen/bin:$PATH
+          ./tools/run_command.py test \
+            --platforms wearable-5.5 \
+            --run-on-changed-packages \
+            --base-sha=$(git rev-parse HEAD^) \
+            --exclude wearable_rotary image_picker camera webview_flutter \
+              video_player permission_handler geolocator battery connectivity \
+              device_info package_info sensors share wifi_info_flutter \
+              google_maps_flutter tizen_app_control
+        # The following packages are excluded from tests:
+        #   wearable_rotary, image_picker: no tests.
+        #   camera: the current test target is wearable emulator 5.5, which doesn't support this package.
+        #   webview_flutter: the current test target is wearable emulator 5.5, which doesn't support this package.
+        #   video_player: test frequently breaks due to memory issue(https://github.com/flutter-tizen/plugins/issues/135).
+        #   permission_handler: permission related test.
+        #   geolocator: test requires console manipulation.
+        #   battery, connectivity, device_info, package_info, sensors, share, wifi_info_flutter: deprecated.
+        #   google_maps_flutter: device limitation not yet specified.
+        #   tizen_app_control: test available after Flutter 2.5 migration.
