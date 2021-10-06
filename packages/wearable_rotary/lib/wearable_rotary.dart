@@ -18,10 +18,10 @@ Stream<RotaryEvent>? _rotaryEvents;
 /// of the wearable device. The event refers to a single "click" of rotatation
 /// angle which may differ by device.
 enum RotaryEvent {
-  /// A roation angle in the clockwise direction.
+  /// A roation event in the clockwise direction.
   clockwise,
 
-  /// A roation angle in the counter clockwise direction.
+  /// A roation event in the counter clockwise direction.
   counterClockwise,
 }
 
