@@ -41,3 +41,6 @@
 ## 0.3.6
 * Update LWE binary (3dff8724bfb4b2b0b9e7c4e3976a9b02e74ee13c)
 * Fix various issue
+
+## 0.3.7
+* Change dependency package
