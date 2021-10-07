@@ -7,6 +7,7 @@ def set_subparser(subparsers):
                                        run_on_changed_packages=True,
                                        base_sha=True,
                                        command='print plugins')
+    parser.set_defaults(func=run_print_plugins)
 
 
 def run_print_plugins(args):
