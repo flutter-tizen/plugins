@@ -23,7 +23,8 @@ jobs:
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           ./tools/run_command.py test \
-            --platforms wearable-5.5 \
+            --recipe ./tools/recipe.yaml \
+            --use-ephemeral-targets \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^) \
             --exclude wearable_rotary image_picker camera webview_flutter \
@@ -32,11 +33,10 @@ jobs:
               google_maps_flutter tizen_app_control
         # The following packages are excluded from tests:
         #   wearable_rotary, image_picker: no tests.
-        #   camera: the current test target is wearable emulator 5.5, which doesn't support this package.
-        #   webview_flutter: the current test target is wearable emulator 5.5, which doesn't support this package.
+        #   camera: no supported profiles.
         #   video_player: test frequently breaks due to memory issue(https://github.com/flutter-tizen/plugins/issues/135).
         #   permission_handler: permission related test.
         #   geolocator: test requires console manipulation.
         #   battery, connectivity, device_info, package_info, sensors, share, wifi_info_flutter: deprecated.
-        #   google_maps_flutter: device limitation not yet specified.
+        #   google_maps_flutter, webview_flutter: not supported by emulators
         #   tizen_app_control: test available after Flutter 2.5 migration.
