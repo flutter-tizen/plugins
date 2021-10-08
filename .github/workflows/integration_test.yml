@@ -30,7 +30,7 @@ jobs:
             --exclude wearable_rotary image_picker camera webview_flutter \
               video_player permission_handler geolocator battery connectivity \
               device_info package_info sensors share wifi_info_flutter \
-              google_maps_flutter tizen_app_control
+              google_maps_flutter tizen_app_control url_launcher network_info_plus
         # The following packages are excluded from tests:
         #   wearable_rotary, image_picker: no tests.
         #   camera: no supported profiles.
@@ -38,5 +38,5 @@ jobs:
         #   permission_handler: permission related test.
         #   geolocator: test requires console manipulation.
         #   battery, connectivity, device_info, package_info, sensors, share, wifi_info_flutter: deprecated.
-        #   google_maps_flutter, webview_flutter: not supported by emulators
+        #   google_maps_flutter, webview_flutter, url_launcher, network_info_plus: not supported by emulators
         #   tizen_app_control: test available after Flutter 2.5 migration.
