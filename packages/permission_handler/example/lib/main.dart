@@ -15,43 +15,44 @@ class BaseflowPluginExample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Baseflow $pluginName',
-      theme: ThemeData(
-        accentColor: Colors.white60,
-        backgroundColor: const Color.fromRGBO(48, 49, 60, 0.8),
-        buttonTheme: ButtonThemeData(
-          buttonColor: themeMaterialColor.shade500,
-          disabledColor: themeMaterialColor.withRed(200),
-          splashColor: themeMaterialColor.shade50,
-          textTheme: ButtonTextTheme.primary,
+    final theme = ThemeData(
+      backgroundColor: const Color.fromRGBO(48, 49, 60, 0.8),
+      buttonTheme: ButtonThemeData(
+        buttonColor: themeMaterialColor.shade500,
+        disabledColor: themeMaterialColor.withRed(200),
+        splashColor: themeMaterialColor.shade50,
+        textTheme: ButtonTextTheme.primary,
+      ),
+      bottomAppBarColor: const Color.fromRGBO(57, 58, 71, 1),
+      hintColor: themeMaterialColor.shade500,
+      primarySwatch: createMaterialColor(const Color.fromRGBO(48, 49, 60, 1)),
+      textTheme: TextTheme(
+        bodyText1: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          height: 1.3,
         ),
-        bottomAppBarColor: const Color.fromRGBO(57, 58, 71, 1),
-        hintColor: themeMaterialColor.shade500,
-        primarySwatch: createMaterialColor(const Color.fromRGBO(48, 49, 60, 1)),
-        textTheme: TextTheme(
-          bodyText1: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            height: 1.3,
-          ),
-          bodyText2: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            height: 1.2,
-          ),
-          button: TextStyle(color: Colors.white),
-          headline1: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-          ),
+        bodyText2: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          height: 1.2,
         ),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        inputDecorationTheme: InputDecorationTheme(
-          fillColor: const Color.fromRGBO(37, 37, 37, 1),
-          filled: true,
+        button: TextStyle(color: Colors.white),
+        headline1: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
         ),
       ),
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      inputDecorationTheme: InputDecorationTheme(
+        fillColor: const Color.fromRGBO(37, 37, 37, 1),
+        filled: true,
+      ),
+    );
+    return MaterialApp(
+      title: 'Baseflow $pluginName',
+      theme: theme.copyWith(
+          colorScheme: theme.colorScheme.copyWith(secondary: Colors.white60)),
       home: AppHome(title: 'Baseflow $pluginName example app'),
     );
   }
@@ -150,6 +151,8 @@ class _AppHomeState extends State<AppHome> {
   }
 
   Color _bottomAppBarIconColor(int page) {
-    return _currentPage == page ? Colors.white : Theme.of(context).accentColor;
+    return _currentPage == page
+        ? Colors.white
+        : Theme.of(context).colorScheme.secondary;
   }
 }

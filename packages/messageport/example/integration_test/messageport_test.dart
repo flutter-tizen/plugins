@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:messageport_tizen/messageport_tizen.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:messageport_tizen/messageport_tizen.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
