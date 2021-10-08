@@ -24,7 +24,7 @@ jobs:
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           ./tools/run_command.py test \
             --recipe ./tools/recipe.yaml \
-            --use-ephemeral-targets \
+            --generate-emulators \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^) \
             --exclude wearable_rotary image_picker camera webview_flutter \
