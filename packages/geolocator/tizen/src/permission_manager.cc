@@ -14,8 +14,6 @@
 namespace {
 
 constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
-constexpr char kPrivilegeLocationCoarse[] =
-    "http://tizen.org/privilege/location.coarse";
 
 struct PermissionResponse {
   ppm_call_cause_e cause;
@@ -52,15 +50,9 @@ TizenResult PermissionManager::CheckPermissionStatus(
 
 void PermissionManager::RequestPermssion(const OnSuccess &on_success,
                                          const OnFailure &on_failure) {
-  std::vector<std::string> permissions = {kPrivilegeLocation,
-                                          kPrivilegeLocationCoarse};
-  std::vector<PermissionStatus> results;
-
-  int ret = 0;
-  for (size_t i = 0; i < permissions.size(); i++) {
-    const char *permission = permissions[i].c_str();
+    const char *permission = kPrivilegeLocation;
     PermissionResponse response;
-    ret = ppm_request_permission(
+    int ret = ppm_request_permission(
         permission,
         [](ppm_call_cause_e cause, ppm_request_result_e result,
            const char *privilege, void *data) {
@@ -73,7 +65,8 @@ void PermissionManager::RequestPermssion(const OnSuccess &on_success,
         &response);
     if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
       LOG_ERROR("Failed to call ppm_request_permission with [%s].", permission);
-      break;
+      on_failure(TizenResult(ret));
+      return;
     }
 
     // Wait until ppm_request_permission is done.
@@ -83,29 +76,23 @@ void PermissionManager::RequestPermssion(const OnSuccess &on_success,
 
     if (response.cause != PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ANSWER) {
       LOG_ERROR("permission[%s] request failed with an error.", permission);
-      ret = response.cause;
-      break;
+      on_failure(TizenResult(ret));
+      return;
     }
 
     switch (response.result) {
       case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
-        results.push_back(PermissionStatus::kAlways);
+        on_success(PermissionStatus::kAlways);
         break;
       case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
-        results.push_back(PermissionStatus::kDenied);
+        on_success(PermissionStatus::kDenied);
         break;
       case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
-        results.push_back(PermissionStatus::kDeniedForever);
+        on_success(PermissionStatus::kDeniedForever);
         break;
       default:
         LOG_ERROR("Unknown ppm_request_result_e.");
+        on_failure(TizenResult(ret));
         break;
     }
-  }
-
-  if (ret || results.size() != permissions.size()) {
-    on_failure(TizenResult(ret));
-  } else {
-    on_success(results[0]);
-  }
 }
