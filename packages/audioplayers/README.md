@@ -85,3 +85,12 @@ For details about Tizen privileges, see [Security and API Privileges](https://do
     return result;
   }
 ```
+
+## Limitations
+
+This plugin has some limitations on TV:
+
+- Don't change playback speed at last 3 senconds when playing audio, otherwise it will be failed.
+- If playing a audio in a loop and change the playback speed(not 1.0) successfully, the playback speed will be recovered to 1.0 when play video again.
+- Don't use seekTo if playback speed isn't 1.0, seekTo doesn't work after change playback speed.
+- The audio has some key frames, seekTo will set position to the key frame. For example, the audio has key frame on 0 second and 3 second, actually the position is at 3 second when seek the position to 2 second.

@@ -5,3 +5,7 @@
 ## 1.0.1
 
 * Add integration test
+
+## 1.0.2
+
+* Update README
