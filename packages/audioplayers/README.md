@@ -91,6 +91,6 @@ For details about Tizen privileges, see [Security and API Privileges](https://do
 
 This plugin has some limitations on TV:
 
-- The setPlaybackRate method will fail if triggered within last 3 seconds.
+- The 'setPlaybackRate' method will fail if triggered within last 3 seconds.
 - The playback rate will reset to 1.0 when audio is replayed in loop mode.
-- The seek method works only when playback rate is 1.0, and it sets audio position to the nearest key frame which isn't accurately.
+- The 'seek' method works only when playback rate is 1.0, and it sets audio position to the nearest key frame which may differ from the passed argument.
