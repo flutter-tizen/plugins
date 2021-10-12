@@ -1,6 +1,4 @@
 plugins:
-  # audioplayers should also test for tv-6.0, currently the test fails on tv-6.0.
-  # https://github.com/flutter-tizen/plugins/issues/239
   audioplayers: ["wearable-5.5"]
   battery_plus: ["wearable-5.5"]
   camera: []
