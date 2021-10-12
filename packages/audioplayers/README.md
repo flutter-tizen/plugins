@@ -9,7 +9,8 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 ```yaml
 dependencies:
   audioplayers: ^0.18.3
-  audioplayers_tizen: ^1.0.1
+  audioplayers_tizen: ^1.0.2
+
 ```
 
 Then you can import `audioplayers` in your Dart code:
@@ -90,7 +91,6 @@ For details about Tizen privileges, see [Security and API Privileges](https://do
 
 This plugin has some limitations on TV:
 
-- Don't change playback speed at last 3 senconds when playing audio, otherwise it will be failed.
-- If playing a audio in a loop and change the playback speed(not 1.0) successfully, the playback speed will be recovered to 1.0 when play video again.
-- Don't use seekTo if playback speed isn't 1.0, seekTo doesn't work after change playback speed.
-- The audio has some key frames, seekTo will set position to the key frame. For example, the audio has key frame on 0 second and 3 second, actually the position is at 3 second when seek the position to 2 second.
+- The setPlaybackRate method will fail if triggered within last 3 seconds.
+- The playback rate will reset to 1.0 when audio is replayed in loop mode.
+- The seek method works only when playback rate is 1.0, and it sets audio position to the nearest key frame which isn't accurately.
