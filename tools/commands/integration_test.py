@@ -130,8 +130,8 @@ clicking the UI button for permissions.'''
             ])
 
 
-class EphemeralTarget(Target):
-    """A Tizen emulator that launches/poweroffs itself during test."""
+class TemporaryEmulator(Target):
+    """A Tizen emulator that is created temporary by the tool for testing purposes."""
 
     def __init__(self, name, platform):
         super().__init__(name, platform)
@@ -289,8 +289,8 @@ tizen_version: {tizen_version}''')
         return device_profile, tizen_version
 
 
-class EphemeralTargetManager(TargetManager):
-    """A TargetManager for EphemeralTargets."""
+class TemporaryEmulatorManager(TargetManager):
+    """A TargetManager for TemporaryEmulators."""
 
     def __init__(self, platforms):
         super().__init__()
@@ -298,22 +298,22 @@ class EphemeralTargetManager(TargetManager):
 
     def __enter__(self):
         for platform in self.platforms:
-            self._create_ephemeral_target(platform)
+            self._create_emulator(platform)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self._delete_ephemeral_targets()
+        self._delete_emulators()
         super().__exit__(exc_type, exc_value, traceback)
 
-    def _create_ephemeral_target(self, platform):
+    def _create_emulator(self, platform):
         device_profile, tizen_version = platform.split('-', 1)
         # Target name valid characters are [A-Za-z0-9-_].
-        target_name = f'{device_profile}-{tizen_version.replace(".", "_")}-{os.getpid()}'
-        target = EphemeralTarget(target_name, platform)
-        target.create()
-        self.targets_per_platform[platform].append(target)
+        emulator_name = f'{device_profile}-{tizen_version.replace(".", "_")}-{os.getpid()}'
+        emulator = TemporaryEmulator(emulator_name, platform)
+        emulator.create()
+        self.targets_per_platform[platform].append(emulator)
 
-    def _delete_ephemeral_targets(self):
+    def _delete_emulators(self):
         for targets in self.targets_per_platform.values():
             for target in targets:
                 target.delete()
@@ -384,23 +384,23 @@ plugins:
   c: [wearable-4.0]
 )''')
     parser.add_argument(
-        '--use-ephemeral-targets',
+        '--generate-emulators',
         default=False,
         action='store_true',
-        help='''Create and destroy ephemeral targets during test. 
-Must provide --platforms or --recipe option to specify which 
-platform targets to create.''')
+        help='''Create and destroy emulators during test. 
+Must provide either --platforms or --recipe option to specify which 
+platforms to create.''')
     parser.set_defaults(func=run_integration_test)
 
 
-def _get_target_manager(use_ephemeral_targets, platforms):
-    if use_ephemeral_targets:
-        return EphemeralTargetManager(platforms)
+def _get_target_manager(generate_emulators, platforms):
+    if generate_emulators:
+        return TemporaryEmulatorManager(platforms)
     else:
         return TargetManager()
 
 
-def _integration_test(plugin_dir, platforms, timeout, use_ephemeral_targets):
+def _integration_test(plugin_dir, platforms, timeout, generate_emulators):
     """Runs integration test in the example package for plugin_dir
 
     Currently the tools assumes that there's only one example package per plugin.
@@ -409,7 +409,7 @@ def _integration_test(plugin_dir, platforms, timeout, use_ephemeral_targets):
         plugin_dir (str): The path to a single plugin directory.
         platforms (List[str]): A list of testing platforms.
         timeout (int): Time limit in seconds before cancelling the test.
-        use_ephemeral_targets (bool): Whether to create and delete targets 
+        generate_emulators (bool): Whether to create and delete targets 
                                       for test.
 
     Returns:
@@ -450,7 +450,7 @@ def _integration_test(plugin_dir, platforms, timeout, use_ephemeral_targets):
 
     try:
         with _get_target_manager(
-                use_ephemeral_targets,
+                generate_emulators,
                 platforms,
         ) as target_manager:
             if not platforms:
@@ -521,9 +521,9 @@ def run_integration_test(args):
                 )
                 exit(1)
 
-    if args.use_ephemeral_targets and not args.platforms and not args.recipe:
+    if args.generate_emulators and not args.platforms and not args.recipe:
         print(
-            '--use-ephemeral-targets option must be used with either --platforms or --recipe option.'
+            '--generate-emulators option must be used with either --platforms or --recipe option.'
         )
         exit(1)
 
@@ -552,7 +552,7 @@ def run_integration_test(args):
                 os.path.join(packages_dir, testing_plugin),
                 platforms,
                 args.timeout,
-                args.use_ephemeral_targets,
+                args.generate_emulators,
             ))
 
     print(f'============= TEST RESULT =============')
