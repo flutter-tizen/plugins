@@ -7,7 +7,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:integration_test/integration_test.dart';
 
 // Note: To pass all tests on the emulator, please inject the location using the control panel
@@ -16,8 +16,7 @@ Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('check permission', (WidgetTester tester) async {
-    expect(await GeolocatorPlatform.instance.checkPermission(),
-        isA<LocationPermission>());
+    expect(await Sqflite.instance.checkPermission(), isA<LocationPermission>());
   }, timeout: const Timeout(Duration(seconds: 10)));
 
   testWidgets('request permission', (WidgetTester tester) async {
