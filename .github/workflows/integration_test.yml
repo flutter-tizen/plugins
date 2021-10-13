@@ -1,12 +1,13 @@
-# TODO: Support running all integration tests when it's possible to
-# run self-hosted runners in parallel.
 name: Integration Test
 
 on:
   pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
-  changed_packages:
+  integration_test:
     runs-on: [self-hosted, linux]
     if: ${{ github.repository_owner == 'flutter-tizen' }}
     steps:
@@ -19,7 +20,8 @@ jobs:
         with:
           repository: flutter-tizen/flutter-tizen
           path: flutter-tizen
-      - name: Run integration tests
+      - name: Run tests for changed plugins
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           ./tools/run_command.py test \
@@ -27,6 +29,17 @@ jobs:
             --generate-emulators \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^) \
+            --exclude wearable_rotary image_picker camera webview_flutter \
+              video_player permission_handler geolocator battery connectivity \
+              device_info package_info sensors share wifi_info_flutter \
+              google_maps_flutter tizen_app_control url_launcher network_info_plus
+      - name: Run tests for all plugins
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          export PATH=`pwd`/flutter-tizen/bin:$PATH
+          ./tools/run_command.py test \
+            --recipe ./tools/recipe.yaml \
+            --generate-emulators \
             --exclude wearable_rotary image_picker camera webview_flutter \
               video_player permission_handler geolocator battery connectivity \
               device_info package_info sensors share wifi_info_flutter \
