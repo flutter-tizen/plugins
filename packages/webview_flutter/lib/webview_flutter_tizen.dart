@@ -15,7 +15,8 @@ import 'package:flutter/rendering.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter/platform_interface.dart';
-import 'package:webview_flutter/src/webview_method_channel.dart';
+import 'package:webview_flutter_platform_interface/src/method_channel/webview_method_channel.dart';
+import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 part 'src/platform_view.dart';
 part 'src/platform_view_tizen.dart';
@@ -25,6 +26,7 @@ part 'src/platform_view_tizen.dart';
 /// This is used as the default implementation for [WebView.platform] on Tizen. It uses a method channel to
 /// communicate with the platform code.
 class TizenWebView implements WebViewPlatform {
+  /// Sets a tizen [WebViewPlatform].
   static void register() {
     WebView.platform = TizenWebView();
   }
@@ -33,9 +35,10 @@ class TizenWebView implements WebViewPlatform {
   Widget build({
     required BuildContext context,
     required CreationParams creationParams,
+    required WebViewPlatformCallbacksHandler webViewPlatformCallbacksHandler,
+    required JavascriptChannelRegistry javascriptChannelRegistry,
     WebViewPlatformCreatedCallback? onWebViewPlatformCreated,
     Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers,
-    required WebViewPlatformCallbacksHandler webViewPlatformCallbacksHandler,
   }) {
     assert(webViewPlatformCallbacksHandler != null);
     return GestureDetector(
@@ -48,10 +51,13 @@ class TizenWebView implements WebViewPlatform {
             return;
           }
           onWebViewPlatformCreated(MethodChannelWebViewPlatform(
-              id, webViewPlatformCallbacksHandler));
+            id,
+            webViewPlatformCallbacksHandler,
+            javascriptChannelRegistry,
+          ));
         },
         gestureRecognizers: gestureRecognizers,
-        layoutDirection: TextDirection.rtl,
+        layoutDirection: Directionality.maybeOf(context) ?? TextDirection.rtl,
         creationParams:
             MethodChannelWebViewPlatform.creationParamsToMap(creationParams),
         creationParamsCodec: const StandardMessageCodec(),
