@@ -76,10 +76,6 @@ class SqflitePlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("HandleMethodCall: %s", method_call.method_name().c_str());
-    for (const auto &elem : singleInstancesByPath) {
-      LOG_DEBUG("Item in singleInstancesByPath map: %s-%d", elem.first.c_str(),
-                elem.second);
-    }
     // CheckPermissions();
     const std::string methodName = method_call.method_name();
     if (methodName == "openDatabase") {
@@ -100,6 +96,8 @@ class SqflitePlugin : public flutter::Plugin {
       OnInsertCall(method_call, std::move(result));
     } else if (methodName == "update") {
       OnUpdateCall(method_call, std::move(result));
+    } else if (methodName == "batch") {
+      OnBatchCall(method_call, std::move(result));
     } else {
       result->NotImplemented();
     }
@@ -157,7 +155,7 @@ class SqflitePlugin : public flutter::Plugin {
 
  private:
   static int *getDatabaseId(std::string path) {
-    int *result = NULL;
+    int *result = nullptr;
     auto itr = singleInstancesByPath.find(path);
     if (itr != singleInstancesByPath.end()) {
       result = &itr->second;
@@ -165,7 +163,7 @@ class SqflitePlugin : public flutter::Plugin {
     return result;
   }
   static DatabaseManager *getDatabase(int databaseId) {
-    DatabaseManager *result = NULL;
+    DatabaseManager *result = nullptr;
     auto itr = databaseMap.find(databaseId);
     if (itr != databaseMap.end()) {
       result = &itr->second;
@@ -179,12 +177,10 @@ class SqflitePlugin : public flutter::Plugin {
         std::get<flutter::EncodableMap>(*method_call.arguments());
     int databaseId;
     GetValueFromEncodableMap(arguments, "id", databaseId);
-    DatabaseManager *database = getDatabase(databaseId);
-
-    return database;
+    return getDatabase(databaseId);
   }
 
-  static void OnExecuteCall(
+  void OnExecuteCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     flutter::EncodableMap arguments =
@@ -198,69 +194,48 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "id", databaseId);
 
     DatabaseManager *database = getDatabaseOrError(method_call);
-    if (database == NULL) {
+    if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
       return;
     }
-    auto resultCode = database->execute(sql, params);
-    if (resultCode != DATABASE_STATUS_OK) {
-      result->Error(DATABASE_ERROR_CODE, std::string("execute failed sql: ") +
-                                             database->getErrorMsg());
+    return execute(database, sql, params, std::move(result));
+  }
+
+  void execute(
+      DatabaseManager *database, std::string sql,
+      DatabaseManager::parameters params,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    try {
+      database->execute(sql, params);
+    } catch (const DatabaseError &e) {
+      result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
     result->Success();
-    // LOG_DEBUG("Before thread struct declaration");
-    // struct ThreadData {
-    //   DatabaseManager *dm;
-    //   std::string sql;
-    //   flutter::EncodableList params;
-    //   std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
-    //   result;
-    // };
-    // LOG_DEBUG("Before thread struct variable declaration");
-    // struct ThreadData *thd, d;
-    // thd = &d;
-    // LOG_DEBUG("Before thread struct variable assignment: database");
-    // thd->dm = database;
-    // LOG_DEBUG("Before thread struct variable assignment: params");
-    // thd->params = params;
-    // LOG_DEBUG("Before thread struct variable assignment: sql %s",
-    // sql.c_str()); thd->sql = sql; LOG_DEBUG("Before thread struct variable
-    // assignment: result"); thd->result = std::move(result);
-    // LOG_DEBUG("Before thread execution");
-    // ecore_thread_run(
-    //     [](void *data, Ecore_Thread *thread) {
-    //       ThreadData *thd = (ThreadData *)data;
-    //       LOG_DEBUG("Thread cb init");
-    //       LOG_DEBUG("Thread cb executing sql: %s", thd->sql.c_str());
-    //       int rc = thd->dm->execute(thd->sql, thd->params);
-    //       LOG_DEBUG("Thread cb result code: %d", rc);
-    //       if (rc != DATABASE_STATUS_OK) {
-    //         thd->result->Error(
-    //             DATABASE_ERROR_CODE,
-    //             std::string("faile while exec sql: ") +
-    //             thd->dm->getErrorMsg());
-    //       }
-    //       LOG_DEBUG("Thread cb executed!");
-    //     },
-    //     [](void *data, Ecore_Thread *thread) {
-    //       ThreadData *thd = (ThreadData *)data;
-    //       LOG_DEBUG("Thread cb finished callback start!");
-    //       thd->result->Success();
-    //       LOG_DEBUG("Thread cb finished!");
-    //     },
-    //     NULL, thd);
+  }
+
+  int queryChanges(DatabaseManager *database) {
+    std::string changesSql = "SELECT changes();";
+    std::list<std::string> columns;
+    DatabaseManager::resultset resultset;
+
+    database->query(changesSql, flutter::EncodableList(), columns, resultset);
+
+    auto rs = resultset.begin();
+    auto newList = *rs;
+    auto it = newList.begin();
+    return std::get<int>(it->second);
   }
 
   void update(
       DatabaseManager *database, std::string sql,
       DatabaseManager::parameters params, bool noResult,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    int resultCode = database->execute(sql, params);
-    if (resultCode != DATABASE_STATUS_OK) {
-      result->Error(DATABASE_ERROR_CODE, std::string("execute failed sql: ") +
-                                             database->getErrorMsg());
+    try {
+      database->execute(sql, params);
+    } catch (const DatabaseError &e) {
+      result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
     if (noResult) {
@@ -272,11 +247,10 @@ class SqflitePlugin : public flutter::Plugin {
     std::list<std::string> columns;
     DatabaseManager::resultset resultset;
 
-    resultCode = database->query(changesSql, flutter::EncodableList(), columns,
-                                 resultset);
-    if (resultCode != DATABASE_STATUS_OK) {
-      result->Error(DATABASE_ERROR_CODE, std::string("fail while exec sql: ") +
-                                             database->getErrorMsg());
+    try {
+      database->query(changesSql, flutter::EncodableList(), columns, resultset);
+    } catch (const DatabaseError &e) {
+      result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
     auto rs = resultset.begin();
@@ -290,10 +264,10 @@ class SqflitePlugin : public flutter::Plugin {
       DatabaseManager *database, std::string sql,
       DatabaseManager::parameters params, bool noResult,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    int resultCode = database->execute(sql, params);
-    if (resultCode != DATABASE_STATUS_OK) {
-      result->Error(DATABASE_ERROR_CODE, std::string("execute failed sql: ") +
-                                             database->getErrorMsg());
+    try {
+      database->execute(sql, params);
+    } catch (const DatabaseError &e) {
+      result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
     if (noResult) {
@@ -305,11 +279,10 @@ class SqflitePlugin : public flutter::Plugin {
     std::list<std::string> columns;
     DatabaseManager::resultset resultset;
 
-    resultCode = database->query(changesSql, flutter::EncodableList(), columns,
-                                 resultset);
-    if (resultCode != DATABASE_STATUS_OK) {
-      result->Error(DATABASE_ERROR_CODE, std::string("fail while exec sql: ") +
-                                             database->getErrorMsg());
+    try {
+      database->query(changesSql, flutter::EncodableList(), columns, resultset);
+    } catch (const DatabaseError &e) {
+      result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
     auto rs = resultset.begin();
@@ -332,10 +305,10 @@ class SqflitePlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     DatabaseManager::columns columns;
     DatabaseManager::resultset resultset;
-    int resultCode = database->query(sql, params, columns, resultset);
-    if (resultCode != DATABASE_STATUS_OK) {
-      result->Error(DATABASE_ERROR_CODE, std::string("fail while exec sql: ") +
-                                             database->getErrorMsg());
+    try {
+      database->query(sql, params, columns, resultset);
+    } catch (const DatabaseError &e) {
+      result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
     const auto columnsLength = columns.size();
@@ -432,7 +405,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "noResult", noResult);
 
     DatabaseManager *database = getDatabaseOrError(method_call);
-    if (database == NULL) {
+    if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
       return;
@@ -456,7 +429,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "noResult", noResult);
 
     DatabaseManager *database = getDatabaseOrError(method_call);
-    if (database == NULL) {
+    if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
       return;
@@ -494,7 +467,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "sql", sql);
     GetValueFromEncodableMap(arguments, "id", databaseId);
     DatabaseManager *database = getDatabaseOrError(method_call);
-    if (database == NULL) {
+    if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
       return;
@@ -506,7 +479,7 @@ class SqflitePlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     auto path = app_get_data_path();
-    if (path == NULL) {
+    if (path == nullptr) {
       result->Error("storage_error", "not enough space to get data directory");
       return;
     }
@@ -531,10 +504,10 @@ class SqflitePlugin : public flutter::Plugin {
       DatabaseManager *dbm = getDatabase(*existingDatabaseId);
       if (dbm && dbm->sqliteDatabase) {
         LOG_DEBUG("db exists, deleting it...");
-        int closeResult = dbm->close();
-        if (closeResult != DATABASE_STATUS_OK) {
-          result->Error(DATABASE_ERROR_CODE,
-                        std::string("close failed: ") + dbm->getErrorMsg());
+        try {
+          dbm->close();
+        } catch (const DatabaseError &e) {
+          result->Error(DATABASE_ERROR_CODE, e.what());
           return;
         }
         databaseMap.erase(*existingDatabaseId);
@@ -561,19 +534,16 @@ class SqflitePlugin : public flutter::Plugin {
     DatabaseManager databaseManager =
         DatabaseManager(path, newDatabaseId, true, 0);
 
-    int returnCode = DATABASE_STATUS_OK;
-    if (readOnly) {
-      LOG_DEBUG("opening read only database in path %s", path.c_str());
-      returnCode = databaseManager.open();
-    } else {
-      LOG_DEBUG("opening read-write database in path %s", path.c_str());
-      returnCode = databaseManager.openReadOnly();
-    }
-    if (returnCode != DATABASE_STATUS_OK) {
-      result->Error(DATABASE_ERROR_CODE, std::string("open_failed: ") +
-                                             databaseManager.getErrorMsg() +
-                                             std::string(", target path: ") +
-                                             path);
+    try {
+      if (readOnly) {
+        LOG_DEBUG("opening read only database in path %s", path.c_str());
+        databaseManager.open();
+      } else {
+        LOG_DEBUG("opening read-write database in path %s", path.c_str());
+        databaseManager.openReadOnly();
+      }
+    } catch (const DatabaseError &e) {
+      result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
 
@@ -597,7 +567,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "id", databaseId);
 
     DatabaseManager *database = getDatabaseOrError(method_call);
-    if (database == NULL) {
+    if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
       return;
@@ -613,16 +583,62 @@ class SqflitePlugin : public flutter::Plugin {
     }
 
     LOG_DEBUG("closing database id %d in path %s", databaseId, path.c_str());
-    const int closeResult = database->close();
-    if (closeResult != DATABASE_STATUS_OK) {
-      result->Error(DATABASE_ERROR_CODE,
-                    std::string("close_failed: ") + database->getErrorMsg());
+    try {
+      database->close();
+    } catch (const DatabaseError &e) {
+      result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
 
     result->Success();
   };
 
+  void OnBatchCall(
+      const flutter::MethodCall<flutter::EncodableValue> &method_call,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    flutter::EncodableMap arguments =
+        std::get<flutter::EncodableMap>(*method_call.arguments());
+    // int databaseId;
+    // bool continueOnError = false;
+    // std::list<std::map<std::string, void *>> operations;
+    // GetValueFromEncodableMap(arguments, "id", databaseId);
+    // GetValueFromEncodableMap(arguments, "operations", operations);
+    // GetValueFromEncodableMap(arguments, "continueOnError", continueOnError);
+
+    // DatabaseManager *database = getDatabaseOrError(method_call);
+    // if (database == nullptr) {
+    //   result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
+    //                                          std::to_string(databaseId));
+    //   return;
+    // }
+
+    // for (auto item : operations) {
+    //   std::string *method = nullptr;
+    //   auto it = item.find("method");
+    //   if (it != item.end()) {
+    //     method = static_cast<std::string *>(it->second);
+    //   }
+    //   if (method == nullptr) {
+    //     result->Error("bad param", "Batch method was not specified");
+    //     return;
+    //   }
+    //   if (*method == "execute") {
+    //     execute();
+    //   }
+    //   case "execute":
+    //     break;
+    //   case "insert":
+    //     break;
+    //   case "query":
+    //     break;
+    //   case "update":
+    //     break;
+    //   default:
+    //     result->Error("bad param", "Batch method \"%s\" not supported",
+    //                   method.c_str());
+    //     break;
+    // }
+  }
   flutter::PluginRegistrar *registrar_;
   std::unique_ptr<PermissionManager> pmm_;
 };

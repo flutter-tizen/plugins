@@ -11,63 +11,73 @@ using std::string;
 
 DatabaseManager::DatabaseManager(string aPath, int aId, bool aSingleInstance,
                                  int aLogLevel) {
+  sqliteDatabase = nullptr;
+  if (aPath.size() == 0) {
+    throw DatabaseError(-1, "empty database path");
+  }
   path = aPath;
   singleInstance = aSingleInstance;
   id = aId;
   logLevel = aLogLevel;
 }
-DatabaseManager::~DatabaseManager(){};
+DatabaseManager::~DatabaseManager() {
+  for (auto &&stmt : stmtCache) {
+    finalizeStmt(stmt.second);
+    stmt.second = nullptr;
+  }
+};
 
-int DatabaseManager::init() {
+void DatabaseManager::init() {
   LOG_DEBUG("initializing database");
   int resultCode = DATABASE_STATUS_OK;
   resultCode = sqlite3_shutdown();
   if (resultCode != DATABASE_STATUS_OK) {
-    return resultCode;
-  }
+    throw DatabaseError(resultCode, "error while shutting down database");
+  };
   resultCode = sqlite3_config(SQLITE_CONFIG_URI, 1);
   if (resultCode != DATABASE_STATUS_OK) {
-    return resultCode;
+    throw DatabaseError(resultCode, "error while configuring database");
   }
-  return sqlite3_initialize();
+  resultCode = sqlite3_initialize();
+  if (resultCode != DATABASE_STATUS_OK) {
+    throw DatabaseError(resultCode, "error while initializing database");
+  }
 }
 
-int DatabaseManager::open() {
-  int resultCode = DATABASE_STATUS_OK;
-  resultCode = init();
-  if (resultCode != DATABASE_STATUS_OK) {
-    return resultCode;
-  }
+void DatabaseManager::open() {
+  init();
   LOG_DEBUG("opening/creating read write database");
-  return sqlite3_open_v2(path.c_str(), &sqliteDatabase,
-                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+  int resultCode =
+      sqlite3_open_v2(path.c_str(), &sqliteDatabase,
+                      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+  if (resultCode != DATABASE_STATUS_OK) {
+    throw DatabaseError(resultCode, "error while openning database");
+  }
 }
 
-int DatabaseManager::openReadOnly() {
-  int resultCode = DATABASE_STATUS_OK;
-  resultCode = init();
-  if (resultCode != DATABASE_STATUS_OK) {
-    return resultCode;
-  }
+void DatabaseManager::openReadOnly() {
+  init();
   LOG_DEBUG("open read only database");
-  return sqlite3_open_v2(path.c_str(), &sqliteDatabase, SQLITE_READONLY, NULL);
+  int resultCode =
+      sqlite3_open_v2(path.c_str(), &sqliteDatabase, SQLITE_READONLY, NULL);
+  if (resultCode != DATABASE_STATUS_OK) {
+    throw DatabaseError(resultCode, "error while openning read only database");
+  }
 }
 const char *DatabaseManager::getErrorMsg() {
   return sqlite3_errmsg(sqliteDatabase);
 }
 
-int DatabaseManager::close() {
+void DatabaseManager::close() {
   LOG_DEBUG("close database");
-  return sqlite3_close(sqliteDatabase);
+  int resultCode = sqlite3_close(sqliteDatabase);
+  if (resultCode) {
+    throw DatabaseError(resultCode, getErrorMsg());
+  }
 }
 
-int DatabaseManager::prepareStmt(DatabaseManager::statement stmt, string sql) {
-  LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
-  return sqlite3_prepare_v2(sqliteDatabase, sql.c_str(), -1, &stmt, nullptr);
-}
-
-int DatabaseManager::bindStmtParams(DatabaseManager::statement stmt,
-                                    DatabaseManager::parameters params) {
+void DatabaseManager::bindStmtParams(DatabaseManager::statement stmt,
+                                     DatabaseManager::parameters params) {
   int resultCode = DATABASE_STATUS_OK;
   const int paramsLength = params.size();
   LOG_DEBUG("received %d params to execute sql", paramsLength);
@@ -111,20 +121,44 @@ int DatabaseManager::bindStmtParams(DatabaseManager::statement stmt,
         break;
       }
       default:
-        return SQLITE_ERROR;
+        throw DatabaseError(-1, "statement parameter is not supported");
+    }
+    if (resultCode != DATABASE_STATUS_OK) {
+      throw DatabaseError(resultCode, getErrorMsg());
     }
   }
-  return resultCode;
 }
 
-int DatabaseManager::executeStmt(DatabaseManager::statement stmt) {
+sqlite3_stmt *DatabaseManager::prepareStmt(std::string sql) {
+  auto cacheEntry = stmtCache.find(sql);
+  if (cacheEntry != stmtCache.end()) {
+    sqlite3_stmt *stmt = cacheEntry->second;
+    sqlite3_reset(stmt);
+    sqlite3_clear_bindings(stmt);
+    return stmt;
+  } else {
+    sqlite3_stmt *stmt;
+    int resultCode =
+        sqlite3_prepare_v2(sqliteDatabase, sql.c_str(), -1, &stmt, nullptr);
+    if (resultCode) {
+      throw DatabaseError(resultCode, getErrorMsg());
+    }
+    if (stmt != nullptr) {
+      stmtCache[sql] = stmt;
+    }
+    return stmt;
+  }
+}
+
+void DatabaseManager::executeStmt(DatabaseManager::statement stmt) {
   LOG_DEBUG("executing prepared statement");
   int resultCode = DATABASE_STATUS_OK;
-  resultCode = sqlite3_step(stmt);
-  while (resultCode == SQLITE_ROW) {
+  do {
     resultCode = sqlite3_step(stmt);
+  } while (resultCode == SQLITE_ROW);
+  if (resultCode != SQLITE_DONE) {
+    throw DatabaseError(resultCode, getErrorMsg());
   }
-  return resultCode;
 }
 
 int DatabaseManager::getStmtColumnsCount(DatabaseManager::statement stmt) {
@@ -142,17 +176,9 @@ const char *DatabaseManager::getColumnName(DatabaseManager::statement stmt,
   return sqlite3_column_name(stmt, iCol);
 }
 
-int DatabaseManager::queryStmt(DatabaseManager::statement stmt,
-                               DatabaseManager::columns &cols,
-                               DatabaseManager::resultset &rs) {
-  // LOG_DEBUG("querying prepared statement");
-  //   LOG_DEBUG("Error??? %d", sqlite3_errcode(sqliteDatabase));
-  //   LOG_DEBUG("Error??? %s", sqlite3_errmsg(sqliteDatabase));
-  //   LOG_DEBUG("column type %d", cType);
-  //   LOG_DEBUG("column name %s", cName);
-  //   cols.push_back(string(cName));
-  //   columns[i].name = string(cName);
-  //   columns[i].type = cType;
+void DatabaseManager::queryStmt(DatabaseManager::statement stmt,
+                                DatabaseManager::columns &cols,
+                                DatabaseManager::resultset &rs) {
   const int columnsCount = getStmtColumnsCount(stmt);
   LOG_DEBUG("columns count %d", columnsCount);
   int resultCode;
@@ -214,69 +240,34 @@ int DatabaseManager::queryStmt(DatabaseManager::statement stmt,
     }
   } while (resultCode == SQLITE_ROW);
   if (resultCode != SQLITE_DONE) {
-    LOG_DEBUG("error step");
+    throw DatabaseError(resultCode, getErrorMsg());
   }
-  return resultCode;
 }
 
-int DatabaseManager::query(string sql, DatabaseManager::parameters params,
-                           DatabaseManager::columns &cols,
-                           DatabaseManager::resultset &rs) {
-  DatabaseManager::statement stmt;
-  int resultCode = DATABASE_STATUS_OK;
-  // resultCode = prepareStmt(stmt, sql);
+void DatabaseManager::query(string sql, DatabaseManager::parameters params,
+                            DatabaseManager::columns &cols,
+                            DatabaseManager::resultset &rs) {
   LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
-  resultCode =
-      sqlite3_prepare_v2(sqliteDatabase, sql.c_str(), -1, &stmt, nullptr);
-  if (resultCode != DATABASE_STATUS_OK) {
-    return resultCode;
-  }
-  resultCode = bindStmtParams(stmt, params);
-  if (resultCode != DATABASE_STATUS_OK) {
-    // Finalize statement to avoid memory leaks.
-    finalizeStmt(stmt);
-    return resultCode;
-  }
-  resultCode = queryStmt(stmt, cols, rs);
-  if (resultCode != SQLITE_DONE) {
-    // Finalize statement to avoid memory leaks.
-    finalizeStmt(stmt);
-    return resultCode;
-  }
-  return finalizeStmt(stmt);
+  auto stmt = prepareStmt(sql);
+  bindStmtParams(stmt, params);
+  queryStmt(stmt, cols, rs);
 }
 
-int DatabaseManager::finalizeStmt(DatabaseManager::statement stmt) {
+void DatabaseManager::finalizeStmt(DatabaseManager::statement stmt) {
   LOG_DEBUG("finalizing prepared statement for sql");
-  return sqlite3_finalize(stmt);
+  int resultCode = sqlite3_finalize(stmt);
+  if (resultCode) {
+    throw DatabaseError(resultCode, getErrorMsg());
+  }
 }
 
 sqlite3 *DatabaseManager::getWritableDatabase() { return sqliteDatabase; }
 
 sqlite3 *DatabaseManager::getReadableDatabase() { return sqliteDatabase; }
 
-int DatabaseManager::execute(string sql, DatabaseManager::parameters params) {
-  DatabaseManager::statement stmt;
-  int resultCode = DATABASE_STATUS_OK;
-  // resultCode = prepareStmt(stmt, sql);
+void DatabaseManager::execute(string sql, DatabaseManager::parameters params) {
   LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
-  resultCode =
-      sqlite3_prepare_v2(sqliteDatabase, sql.c_str(), -1, &stmt, nullptr);
-  if (resultCode != DATABASE_STATUS_OK) {
-    return resultCode;
-  }
-  resultCode = bindStmtParams(stmt, params);
-  if (resultCode != DATABASE_STATUS_OK) {
-    // Finalize statement to avoid memory leaks.
-    finalizeStmt(stmt);
-    return resultCode;
-  }
-  resultCode = executeStmt(stmt);
-  if (resultCode != SQLITE_DONE) {
-    LOG_DEBUG("execute statement failed with code %d", resultCode);
-    // Finalize statement to avoid memory leaks.
-    finalizeStmt(stmt);
-    return resultCode;
-  }
-  return finalizeStmt(stmt);
+  auto stmt = prepareStmt(sql);
+  bindStmtParams(stmt, params);
+  executeStmt(stmt);
 }
