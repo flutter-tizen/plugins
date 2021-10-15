@@ -29,17 +29,17 @@ DatabaseManager::~DatabaseManager() {
 
 void DatabaseManager::init() {
   LOG_DEBUG("initializing database");
-  int resultCode = DATABASE_STATUS_OK;
+  int resultCode = SQLITE_OK;
   resultCode = sqlite3_shutdown();
-  if (resultCode != DATABASE_STATUS_OK) {
+  if (resultCode != SQLITE_OK) {
     throw DatabaseError(resultCode, "error while shutting down database");
   };
   resultCode = sqlite3_config(SQLITE_CONFIG_URI, 1);
-  if (resultCode != DATABASE_STATUS_OK) {
+  if (resultCode != SQLITE_OK) {
     throw DatabaseError(resultCode, "error while configuring database");
   }
   resultCode = sqlite3_initialize();
-  if (resultCode != DATABASE_STATUS_OK) {
+  if (resultCode != SQLITE_OK) {
     throw DatabaseError(resultCode, "error while initializing database");
   }
 }
@@ -50,7 +50,7 @@ void DatabaseManager::open() {
   int resultCode =
       sqlite3_open_v2(path.c_str(), &sqliteDatabase,
                       SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-  if (resultCode != DATABASE_STATUS_OK) {
+  if (resultCode != SQLITE_OK) {
     throw DatabaseError(resultCode, "error while openning database");
   }
 }
@@ -60,7 +60,7 @@ void DatabaseManager::openReadOnly() {
   LOG_DEBUG("open read only database");
   int resultCode =
       sqlite3_open_v2(path.c_str(), &sqliteDatabase, SQLITE_READONLY, NULL);
-  if (resultCode != DATABASE_STATUS_OK) {
+  if (resultCode != SQLITE_OK) {
     throw DatabaseError(resultCode, "error while openning read only database");
   }
 }
@@ -78,7 +78,7 @@ void DatabaseManager::close() {
 
 void DatabaseManager::bindStmtParams(DatabaseManager::statement stmt,
                                      DatabaseManager::parameters params) {
-  int resultCode = DATABASE_STATUS_OK;
+  int resultCode = SQLITE_OK;
   const int paramsLength = params.size();
   LOG_DEBUG("received %d params to execute sql", paramsLength);
   for (int i = 0; i < paramsLength; i++) {
@@ -123,7 +123,7 @@ void DatabaseManager::bindStmtParams(DatabaseManager::statement stmt,
       default:
         throw DatabaseError(-1, "statement parameter is not supported");
     }
-    if (resultCode != DATABASE_STATUS_OK) {
+    if (resultCode != SQLITE_OK) {
       throw DatabaseError(resultCode, getErrorMsg());
     }
   }
@@ -152,7 +152,7 @@ sqlite3_stmt *DatabaseManager::prepareStmt(std::string sql) {
 
 void DatabaseManager::executeStmt(DatabaseManager::statement stmt) {
   LOG_DEBUG("executing prepared statement");
-  int resultCode = DATABASE_STATUS_OK;
+  int resultCode = SQLITE_OK;
   do {
     resultCode = sqlite3_step(stmt);
   } while (resultCode == SQLITE_ROW);
