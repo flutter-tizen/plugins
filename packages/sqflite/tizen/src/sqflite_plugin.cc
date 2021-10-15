@@ -48,7 +48,7 @@ class SqflitePlugin : public flutter::Plugin {
   inline static std::string databasesPath;
   inline static int internalStorageId;
   inline static bool queryAsMapList = false;
-  inline static int databaseId = 0;
+  inline static int databaseId = 0;  // incremental database id
   inline static int logLevel = DLOG_UNKNOWN;
 
  public:
@@ -506,43 +506,83 @@ class SqflitePlugin : public flutter::Plugin {
     result->Success();
   }
 
+  flutter::EncodableValue makeOpenResult(int databaseId,
+                                         bool recoveredInTransaction) {
+    flutter::EncodableMap response;
+    response.insert(std::make_pair(flutter::EncodableValue("id"),
+                                   flutter::EncodableValue(databaseId)));
+    if (recoveredInTransaction) {
+      response.insert(
+          std::make_pair(flutter::EncodableValue("recoveredInTransaction"),
+                         flutter::EncodableValue(true)));
+    }
+    return flutter::EncodableValue(response);
+  }
+
   void OnOpenDatabaseCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     flutter::EncodableMap arguments =
         std::get<flutter::EncodableMap>(*method_call.arguments());
     std::string path;
-    bool readOnly;
+    bool readOnly = false;
+    bool singleInstance = false;
+
     GetValueFromEncodableMap(arguments, "path", path);
     GetValueFromEncodableMap(arguments, "readOnly", readOnly);
-    // const bool inMemory = isInMemoryPath(path);
+    GetValueFromEncodableMap(arguments, "singleInstance", singleInstance);
+
+    const bool inMemory = isInMemoryPath(path);
+    singleInstance = singleInstance && !inMemory;
+
+    if (singleInstance) {
+      int foundDatabaseId = 0;
+      auto sit = singleInstancesByPath.find(path);
+      if (sit != singleInstancesByPath.end()) {
+        foundDatabaseId = sit->second;
+      }
+      if (foundDatabaseId) {
+        DatabaseManager *storedDb = nullptr;
+        auto dit = databaseMap.find(foundDatabaseId);
+        if (dit != databaseMap.end()) {
+          *storedDb = dit->second;
+        }
+        if (storedDb && storedDb->sqliteDatabase) {
+          auto response = makeOpenResult(foundDatabaseId, true);
+          result->Success(response);
+          return;
+        }
+      }
+    }
+    // TODO: Protect with mutex
     const int newDatabaseId = ++databaseId;
-
-    DatabaseManager databaseManager =
-        DatabaseManager(path, newDatabaseId, true, 0);
-
     try {
-      if (readOnly) {
+      DatabaseManager databaseManager =
+          DatabaseManager(path, newDatabaseId, singleInstance, 0);
+      if (!readOnly) {
         LOG_DEBUG("opening read only database in path %s", path.c_str());
         databaseManager.open();
       } else {
         LOG_DEBUG("opening read-write database in path %s", path.c_str());
         databaseManager.openReadOnly();
       }
+
+      // Store dbid in internal map
+      // TODO: Protect with mutex
+      LOG_DEBUG("saving database id %d for path %s", databaseId, path.c_str());
+      if (singleInstance) {
+        singleInstancesByPath.insert(
+            std::pair<std::string, int>(path, databaseId));
+      }
+      databaseMap.insert(
+          std::pair<int, DatabaseManager>(databaseId, databaseManager));
     } catch (const DatabaseError &e) {
       result->Error(DATABASE_ERROR_CODE, e.what());
       return;
     }
 
-    // Store dbid in internal map
-    LOG_DEBUG("saving database id %d for path %s", databaseId, path.c_str());
-    singleInstancesByPath.insert(std::pair<std::string, int>(path, databaseId));
-    databaseMap.insert(
-        std::pair<int, DatabaseManager>(databaseId, databaseManager));
-
-    result->Success(flutter::EncodableValue(flutter::EncodableMap{
-        {flutter::EncodableValue("id"), flutter::EncodableValue(databaseId)},
-    }));
+    auto response = makeOpenResult(databaseId, false);
+    result->Success(response);
   }
 
   void OnCloseDatabaseCall(
@@ -563,6 +603,7 @@ class SqflitePlugin : public flutter::Plugin {
     auto path = database->path;
 
     // Remove from map right away
+    // TODO: Protect with mutex
     databaseMap.erase(databaseId);
 
     if (database->singleInstance) {

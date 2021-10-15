@@ -58,8 +58,8 @@ void DatabaseManager::open() {
 void DatabaseManager::openReadOnly() {
   init();
   LOG_DEBUG("open read only database");
-  int resultCode =
-      sqlite3_open_v2(path.c_str(), &sqliteDatabase, SQLITE_READONLY, NULL);
+  int resultCode = sqlite3_open_v2(path.c_str(), &sqliteDatabase,
+                                   SQLITE_OPEN_READONLY, NULL);
   if (resultCode != SQLITE_OK) {
     throw DatabaseError(resultCode, "error while openning read only database");
   }
