@@ -721,7 +721,7 @@ class SqflitePlugin : public flutter::Plugin {
         }
       } else {
         result->NotImplemented();
-        break;
+        return;
       }
     }
     if (noResult) {
