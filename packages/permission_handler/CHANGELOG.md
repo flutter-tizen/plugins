@@ -1,6 +1,6 @@
 ## 1.0.0
 
-* Initial release
+* Initial release.
 
 ## 1.1.0
 
@@ -8,4 +8,8 @@
     * Change the version of the example app from 5.5 to 4.0.
 * Revise OpenAppSetting.
     * Open permission view of each application instead of system setting.
-* Refactor the overall implementation in C++ way
+* Refactor the overall implementation in C++ way.
+
+## 1.1.1
+
+* Fix a permission request bug.
