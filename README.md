@@ -57,7 +57,7 @@ The following packages are deprecated.
 
 | Package name | Watch | Watch<br>emulator | TV | TV<br>emulator | Remarks |
 |-|:-:|:-:|:-:|:-:|-|
-| [**audioplayers_tizen**](packages/audioplayers) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**audioplayers_tizen**](packages/audioplayers) | ✔️ | ✔️ | ⚠️ | ⚠️ | Functional limitations (see README) |
 | [**battery_plus_tizen**](packages/battery_plus) | ✔️ | ✔️ | ❌ | ❌ | No battery |
 | [**camera_tizen**](packages/camera) | ❌ | ❌ | ❌ | ❌ | No camera |
 | [**connectivity_plus_tizen**](packages/connectivity_plus) | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |

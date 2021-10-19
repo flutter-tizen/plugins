@@ -9,7 +9,8 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 ```yaml
 dependencies:
   audioplayers: ^0.18.3
-  audioplayers_tizen: ^1.0.1
+  audioplayers_tizen: ^1.0.2
+
 ```
 
 Then you can import `audioplayers` in your Dart code:
@@ -85,3 +86,11 @@ For details about Tizen privileges, see [Security and API Privileges](https://do
     return result;
   }
 ```
+
+## Limitations
+
+This plugin has some limitations on TV:
+
+- The 'setPlaybackRate' method will fail if triggered within last 3 seconds.
+- The playback rate will reset to 1.0 when audio is replayed in loop mode.
+- The 'seek' method works only when playback rate is 1.0, and it sets audio position to the nearest key frame which may differ from the passed argument.
