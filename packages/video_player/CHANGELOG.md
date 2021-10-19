@@ -14,3 +14,7 @@
 
 * Update video_player to 2.2.3
 * Update platform interface to 4.2.0
+
+## 2.2.1
+
+* Update README

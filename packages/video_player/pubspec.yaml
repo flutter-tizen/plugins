@@ -1,7 +1,7 @@
 name: video_player_tizen
 description: Flutter plugin for displaying inline video with other Flutter
   widgets on Tizen.
-version: 2.2.0
+version: 2.2.1
 homepage: https://github.com/flutter-tizen/plugins
 
 flutter:
