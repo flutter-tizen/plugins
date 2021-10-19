@@ -88,20 +88,17 @@ bool ConvertToPrivileges(PermissionGroup permission,
   switch (permission) {
     case PermissionGroup::kCalendar:
       privileges->push_back(kPrivilegeCalendarRead);
-      privileges->push_back(kPrivilegeCalendarWrite);
       break;
     case PermissionGroup::kCamera:
       privileges->push_back(kPrivilegeCamera);
       break;
     case PermissionGroup::kContacts:
       privileges->push_back(kPrivilegeContactRead);
-      privileges->push_back(kPrivilegeContactWrite);
       break;
     case PermissionGroup::kLocation:
     case PermissionGroup::kLocationAlways:
     case PermissionGroup::kLocationWhenInUse:
       privileges->push_back(kPrivilegeLocation);
-      privileges->push_back(kPrivilegeLocationCoarse);
       break;
     case PermissionGroup::kMicrophone:
       privileges->push_back(kPrivilegeRecorder);
@@ -114,7 +111,6 @@ bool ConvertToPrivileges(PermissionGroup permission,
       break;
     case PermissionGroup::kSMS:
       privileges->push_back(kPrivilegeMessageRead);
-      privileges->push_back(kPrivilegeMessageWrite);
       break;
     case PermissionGroup::kStorage:
       privileges->push_back(kPrivilegeExternalStorage);
