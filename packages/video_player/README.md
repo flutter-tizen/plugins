@@ -27,7 +27,7 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 ```yaml
 dependencies:
   video_player: ^2.2.3
-  video_player_tizen: ^2.2.0
+  video_player_tizen: ^2.2.1
 ```
 
 Then you can import `video_player` in your Dart code:
@@ -44,7 +44,6 @@ The 'httpheaders' option for 'VideoPlayerController.network' and 'mixWithOthers'
 
 This plugin has some limitations on TV:
 
-- Don't change playback speed at last 3 senconds when playing video, otherwise it will be failed.
-- If playing a video in a loop and change the playback speed(not 1.0) successfully, the playback speed will be recovered to 1.0 when play video again.
-- Don't use seekTo if playback speed isn't 1.0, seekTo doesn't work after change playback speed.
-- The video has some key frames, seekTo will set position to the key frame. For example, the video has key frame on 0 second and 3 second, actually the position is at 3 second when seek the position to 2 second.
+- The 'setPlaybackSpeed' method will fail if triggered within last 3 seconds.
+- The playback speed will reset to 1.0 when video is replayed in loop mode.
+- The 'seekTo' method works only when playback speed is 1.0, and it sets video position to the nearest key frame which may differ from the passed argument.

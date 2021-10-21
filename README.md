@@ -77,7 +77,7 @@ The following packages are deprecated.
 | [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_app_control**](packages/tizen_app_control) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
-| [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
+| [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ⚠️ | ❌ | Functional limitations (see README)<br>TV emulator issue |
 | [**wakelock_tizen**](packages/wakelock) | ✔️ | ✔️ | ❌ | ❌ | Cannot override system display setting |
 | [**wearable_rotary**](packages/wearable_rotary) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**webview_flutter_tizen**](packages/webview_flutter) | ❌ | ❌ | ✔️ | ❌ | Dependent library unavailable |
