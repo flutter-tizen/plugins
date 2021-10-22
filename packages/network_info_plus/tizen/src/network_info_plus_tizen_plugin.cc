@@ -92,11 +92,11 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
       result->Error("-1", "Initialization failed");
       return;
     }
-    std::string replay = "";
+    std::string reply = "";
     if (method_call.method_name().compare("wifiName") == 0) {
-      replay = GetWifiInfo(WifiInfoType::ESSID);
+      reply = GetWifiInfo(WifiInfoType::ESSID);
     } else if (method_call.method_name().compare("wifiBSSID") == 0) {
-      replay = GetWifiInfo(WifiInfoType::BSSID);
+      reply = GetWifiInfo(WifiInfoType::BSSID);
     } else if (method_call.method_name().compare("wifiIPAddress") == 0) {
       char *ip_addr = nullptr;
       if (connection_get_ip_address(connection_, CONNECTION_ADDRESS_FAMILY_IPV4,
@@ -104,7 +104,7 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
         result->Error("-1", "Couldn't obtain current ipv4 address");
         return;
       }
-      replay = ip_addr;
+      reply = ip_addr;
       free(ip_addr);
     } else if (method_call.method_name().compare("wifiIPv6Address") == 0) {
       char *ip_addr = nullptr;
@@ -113,21 +113,21 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
         result->Error("-1", "Couldn't obtain current ipv6 address");
         return;
       }
-      replay = ip_addr;
+      reply = ip_addr;
       free(ip_addr);
     } else if (method_call.method_name().compare("wifiSubmask") == 0) {
-      replay = GetWifiInfo(WifiInfoType::SUBNET_MASK);
+      reply = GetWifiInfo(WifiInfoType::SUBNET_MASK);
     } else if (method_call.method_name().compare("wifiGatewayAddress") == 0) {
-      replay = GetWifiInfo(WifiInfoType::GATEWAY_ADDR);
+      reply = GetWifiInfo(WifiInfoType::GATEWAY_ADDR);
     } else {
       result->NotImplemented();
       return;
     }
-    if (replay.length() == 0) {
+    if (reply.length() == 0) {
       result->Error("-1", "Not valid result");
       return;
     }
-    flutter::EncodableValue msg(replay);
+    flutter::EncodableValue msg(reply);
     result->Success(msg);
   }
 
