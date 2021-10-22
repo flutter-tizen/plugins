@@ -8,7 +8,7 @@ To use this plugin, add `share_plus` and `share_plus_tizen` as [dependencies in 
 
 ```yaml
 dependencies:
-  share_plus: ^2.1.2
+  share_plus: ^3.0.4
   share_plus_tizen: ^1.0.0
 ```
 
