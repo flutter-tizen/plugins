@@ -19,7 +19,7 @@
 
 class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
  public:
-  enum WifiInfoType { ESSID, BSSID, SUBNET_MASK, GATEWAY_ADDR };
+  enum WifiInfoType { ESSID, BSSID, IPV4, IPV6, SUBNET_MASK, GATEWAY_ADDR };
 
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
@@ -65,10 +65,16 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
         errorcode = wifi_manager_ap_get_essid(current_ap, &name);
       } else if (type == WifiInfoType::BSSID) {
         errorcode = wifi_manager_ap_get_bssid(current_ap, &name);
+      } else if (type == WifiInfoType::IPV4) {
+        errorcode = wifi_manager_ap_get_ip_address(
+            current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &name);
+      } else if (type == WifiInfoType::IPV6) {
+        errorcode = wifi_manager_ap_get_ip_address(
+            current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV6, &name);
       } else if (type == WifiInfoType::SUBNET_MASK) {
         errorcode = wifi_manager_ap_get_subnet_mask(
             current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &name);
-      } else {
+      } else {  // WifiInfoType::GATEWAY_ADDR
         // The requested gateway address is implicitly ipv4.
         // https://github.com/fluttercommunity/plus_plugins/blob/bd0262e5f4627358bfb42481a84122f60921d98b/packages/network_info_plus/network_info_plus/android/src/main/java/dev/fluttercommunity/plus/network_info/NetworkInfo.java#L108
         errorcode = wifi_manager_ap_get_gateway_address(
@@ -96,37 +102,16 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     } else if (method_call.method_name().compare("wifiBSSID") == 0) {
       reply = GetWifiInfo(WifiInfoType::BSSID);
     } else if (method_call.method_name().compare("wifiIPAddress") == 0) {
-      char *ip_addr = nullptr;
-      if (connection_get_ip_address(connection_, CONNECTION_ADDRESS_FAMILY_IPV4,
-                                    &ip_addr) != CONNECTION_ERROR_NONE) {
-        result->Error("-1", "Couldn't obtain current ipv4 address");
-        return;
-      }
-      reply = ip_addr;
-      free(ip_addr);
+      reply = GetWifiInfo(WifiInfoType::IPV4);
     } else if (method_call.method_name().compare("wifiIPv6Address") == 0) {
-      char *ip_addr = nullptr;
-      if (connection_get_ip_address(connection_, CONNECTION_ADDRESS_FAMILY_IPV6,
-                                    &ip_addr) != CONNECTION_ERROR_NONE) {
-        result->Error("-1", "Couldn't obtain current ipv6 address");
-        return;
-      }
-      reply = ip_addr;
-      free(ip_addr);
+      reply = GetWifiInfo(WifiInfoType::IPV6);
     } else if (method_call.method_name().compare("wifiSubmask") == 0) {
       reply = GetWifiInfo(WifiInfoType::SUBNET_MASK);
     } else if (method_call.method_name().compare("wifiGatewayAddress") == 0) {
       reply = GetWifiInfo(WifiInfoType::GATEWAY_ADDR);
     } else if (method_call.method_name().compare("wifiBroadcast") == 0) {
+      std::string ipv4 = GetWifiInfo(WifiInfoType::IPV4);
       std::string subnet_mask = GetWifiInfo(WifiInfoType::SUBNET_MASK);
-      char *ip_addr = nullptr;
-      if (connection_get_ip_address(connection_, CONNECTION_ADDRESS_FAMILY_IPV4,
-                                    &ip_addr) != CONNECTION_ERROR_NONE) {
-        result->Error("-1", "Couldn't obtain current ipv4 address");
-        return;
-      }
-      std::string ipv4 = ip_addr;
-      free(ip_addr);
       reply = IntegerToDottedDecimal(DottedDecimalToInteger(ipv4) |
                                      ~DottedDecimalToInteger(subnet_mask));
     } else {
