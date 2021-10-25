@@ -37,15 +37,11 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  NetworkInfoPlusTizenPlugin() : connection_(nullptr), wifi_manager_(nullptr) {
+  NetworkInfoPlusTizenPlugin() : wifi_manager_(nullptr) {
     EnsureConnectionHandle();
   }
 
   virtual ~NetworkInfoPlusTizenPlugin() {
-    if (connection_ != nullptr) {
-      connection_destroy(connection_);
-      connection_ = nullptr;
-    }
     if (wifi_manager_ != nullptr) {
       wifi_manager_deinitialize(wifi_manager_);
       wifi_manager_ = nullptr;
@@ -127,12 +123,6 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
   }
 
   bool EnsureConnectionHandle() {
-    if (connection_ == nullptr) {
-      if (connection_create(&connection_) != CONNECTION_ERROR_NONE) {
-        connection_ = nullptr;
-        return false;
-      }
-    }
     if (wifi_manager_ == nullptr) {
       if (wifi_manager_initialize(&wifi_manager_) != WIFI_MANAGER_ERROR_NONE) {
         wifi_manager_ = nullptr;
@@ -151,7 +141,7 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     while (pos < len) {
       if (dottedDecimal[pos] == '.') {
         value += std::stoul(token) * base;
-        base >>= 8;
+        base >>= 8U;
         token.clear();
       } else {
         token.push_back(dottedDecimal[pos]);
@@ -168,7 +158,6 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
            std::to_string(value % 256U);
   }
 
-  connection_h connection_;
   wifi_manager_h wifi_manager_;
 };
 
