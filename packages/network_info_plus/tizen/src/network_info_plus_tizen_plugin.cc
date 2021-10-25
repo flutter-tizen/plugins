@@ -66,8 +66,6 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
       } else if (type == WifiInfoType::BSSID) {
         errorcode = wifi_manager_ap_get_bssid(current_ap, &name);
       } else if (type == WifiInfoType::SUBNET_MASK) {
-        // The requested subnet mask is implicitly ipv4.
-        // https://github.com/fluttercommunity/plus_plugins/blob/bd0262e5f4627358bfb42481a84122f60921d98b/packages/network_info_plus/network_info_plus/android/src/main/java/dev/fluttercommunity/plus/network_info/NetworkInfo.java#L63
         errorcode = wifi_manager_ap_get_subnet_mask(
             current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &name);
       } else {
