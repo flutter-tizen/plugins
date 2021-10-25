@@ -14,7 +14,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  share_plus: ^2.1.2
+  share_plus: ^3.0.4
   share_plus_platform_interface: ^2.0.0
 
 dev_dependencies:
