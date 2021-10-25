@@ -6,4 +6,5 @@
 
 * Add IPv6 information.
 * Add gateway ip address information.
+* Add broadcast information.
 * Add subnet mask information.

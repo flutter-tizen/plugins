@@ -31,7 +31,3 @@ To get network information using this plugin, add below lines under the `<manife
 ```
 
 For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
-
-## Limitation
-
-`getWifiBroadcast()` is not supported in Tizen.

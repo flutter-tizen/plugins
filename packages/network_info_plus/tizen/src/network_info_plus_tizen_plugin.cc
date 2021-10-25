@@ -119,6 +119,18 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
       reply = GetWifiInfo(WifiInfoType::SUBNET_MASK);
     } else if (method_call.method_name().compare("wifiGatewayAddress") == 0) {
       reply = GetWifiInfo(WifiInfoType::GATEWAY_ADDR);
+    } else if (method_call.method_name().compare("wifiBroadcast") == 0) {
+      std::string subnet_mask = GetWifiInfo(WifiInfoType::SUBNET_MASK);
+      char *ip_addr = nullptr;
+      if (connection_get_ip_address(connection_, CONNECTION_ADDRESS_FAMILY_IPV4,
+                                    &ip_addr) != CONNECTION_ERROR_NONE) {
+        result->Error("-1", "Couldn't obtain current ipv4 address");
+        return;
+      }
+      std::string ipv4 = ip_addr;
+      free(ip_addr);
+      reply = IntegerToDottedDecimal(DottedDecimalToInteger(ipv4) |
+                                     ~DottedDecimalToInteger(subnet_mask));
     } else {
       result->NotImplemented();
       return;
@@ -145,6 +157,32 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
       }
     }
     return true;
+  }
+
+  unsigned int DottedDecimalToInteger(std::string dottedDecimal) {
+    size_t pos = 0;
+    size_t len = dottedDecimal.size();
+    std::string token;
+    unsigned int value = 0U;
+    unsigned int base = 1U << 24U;
+    while (pos < len) {
+      if (dottedDecimal[pos] == '.') {
+        value += std::stoul(token) * base;
+        base >>= 8;
+        token.clear();
+      } else {
+        token.push_back(dottedDecimal[pos]);
+      }
+      pos++;
+    }
+    return value + std::stoul(token);
+  }
+
+  std::string IntegerToDottedDecimal(unsigned int value) {
+    return std::to_string((value >> 24U) % 256U) + "." +
+           std::to_string((value >> 16U) % 256U) + "." +
+           std::to_string((value >> 8U) % 256U) + "." +
+           std::to_string(value % 256U);
   }
 
   connection_h connection_;
