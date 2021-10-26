@@ -1,7 +1,7 @@
 name: connectivity_plus_tizen
 description: Tizen implementation of the connectivity_plus plugin.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/blob/master/packages/connectivity_plus
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/connectivity_plus
 version: 1.0.0
 
 flutter:

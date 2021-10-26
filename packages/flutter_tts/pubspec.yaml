@@ -1,7 +1,7 @@
 name: flutter_tts_tizen
 description: The tizen implementation of flutter_tts plugin.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/blob/master/packages/flutter_tts
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_tts
 version: 1.1.1
 
 dependencies:
