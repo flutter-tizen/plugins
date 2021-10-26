@@ -8,15 +8,14 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 
 ```yaml
 dependencies:
-  audioplayers: ^0.18.3
-  audioplayers_tizen: ^1.0.2
+  audioplayers: ^0.20.1
+  audioplayers_tizen: ^1.1.0
 
 ```
 
 Then you can import `audioplayers` in your Dart code:
 
 ```dart
-import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 ```
 
@@ -24,7 +23,7 @@ For detailed usage, see https://github.com/luanpotter/audioplayers#usage.
 
 ## Required privileges
 
-To use this plugin in a Tizen application, the mediastorage, externalstorage and internet privileges may be required. Add below lines under the `<manifest>` section in your `tizen-manifest.xml` file.
+To use this plugin in a Tizen application, you may need to declare the following privileges in your `tizen-manifest.xml` file.
 
 ```xml
 <privileges>
@@ -34,63 +33,58 @@ To use this plugin in a Tizen application, the mediastorage, externalstorage and
 </privileges>
 ```
 
-- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) must be added to play audio files located in the internal storage.
-- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) must be added to play audio files located in the external storage.
-- The internet privilege (`http://tizen.org/privilege/internet`) must be added to play any URLs from network.
+- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) is required to play audio files located in the internal storage.
+- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) is required to play audio files located in the external storage.
+- The internet privilege (`http://tizen.org/privilege/internet`) is required to play any URLs from network.
 
-For details about Tizen privileges, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
+For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
 
-## Some notes
+## Supported APIs
 
-`earpieceOrSpeakersToggle` isn't supported on Tizen. `AudioPlay` will change stream routing automatically on Tizen, you can't choose speakers or earpiece.
+- [x] `AudioPlayer.play` (supported arguments: `url`, `volume`, `position`)
+- [x] `AudioPlayer.playBytes` (supported arguments: `bytes`, `volume`, `position`)
+- [x] `AudioPlayer.pause`
+- [x] `AudioPlayer.stop`
+- [x] `AudioPlayer.resume`
+- [x] `AudioPlayer.release`
+- [x] `AudioPlayer.seek`
+- [x] `AudioPlayer.setVolume`
+- [x] `AudioPlayer.setReleaseMode`
+- [x] `AudioPlayer.setPlaybackRate`
+- [x] `AudioPlayer.setUrl` (supported arguments: `url`)
+- [x] `AudioPlayer.getDuration`
+- [x] `AudioPlayer.getCurrentPosition`
+- [x] `AudioPlayer.dispose`
+- [ ] `AudioPlayer.earpieceOrSpeakersToggle` (not supported by Tizen)
+- [ ] `Logger.changeLogLevel` (not implemented)
+- [ ] `NotificationService` (iOS-only)
 
-`AudioPlay` supports `playBytes` on Tizen, to use this api, you have to modify the `audioplayers.dart`.
+Note: In order to use the `AudioPlayer.playBytes` method, you need to manually modify the source code (`audioplayers.dart`) of your cached audioplayers package.
 
 ```dart
-  Future<int> playBytes(
-    Uint8List bytes, {
-    double volume = 1.0,
-    // position must be null by default to be compatible with radio streams
-    Duration position,
-    bool respectSilence = false,
-    bool stayAwake = false,
-    bool duckAudio = false,
-    bool recordingActive = false,
-  }) async {
-    volume ??= 1.0;
-    respectSilence ??= false;
-    stayAwake ??= false;
+Future<int> playBytes(
+  Uint8List bytes, {
+  ...
+}) async {
+  // Delete or comment out the following lines.
+  // if (!_isAndroid()) {
+  //   throw PlatformException(
+  //     code: 'Not supported',
+  //     message: 'Only Android is currently supported',
+  //   );
+  // }
 
-    // To use this api on Tizen, you have to delete the following code
-    ///if (!Platform.isAndroid) {
-    ///  throw PlatformException(
-    ///    code: 'Not supported',
-    ///    message: 'Only Android is currently supported',
-    ///  );
-    ///}
-
-    final int result = await _invokeMethod('playBytes', {
-      'bytes': bytes,
-      'volume': volume,
-      'position': position?.inMilliseconds,
-      'respectSilence': respectSilence,
-      'stayAwake': stayAwake,
-      'duckAudio': duckAudio,
-      'recordingActive': recordingActive,
-    });
-
-    if (result == 1) {
-      state = AudioPlayerState.PLAYING;
-    }
-
-    return result;
-  }
+  final result = await _invokeMethod(
+    'playBytes',
+    <String, dynamic>{
+  ...
+}
 ```
 
 ## Limitations
 
-This plugin has some limitations on TV:
+This plugin has some limitations on TV devices.
 
-- The 'setPlaybackRate' method will fail if triggered within last 3 seconds.
+- The `setPlaybackRate` method will fail if triggered within last 3 seconds.
 - The playback rate will reset to 1.0 when audio is replayed in loop mode.
-- The 'seek' method works only when playback rate is 1.0, and it sets audio position to the nearest key frame which may differ from the passed argument.
+- The `seek` method works only when playback rate is 1.0, and it sets audio position to the nearest key frame which may differ from the passed argument.
