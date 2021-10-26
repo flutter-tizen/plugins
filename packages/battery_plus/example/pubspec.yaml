@@ -3,7 +3,7 @@ description: Demonstrates how to use the battery_plus plugin.
 publish_to: "none"
 
 dependencies:
-  battery_plus: ^1.0.1
+  battery_plus: ^2.0.1
   battery_plus_tizen:
     path: ../
   flutter:

@@ -10,10 +10,12 @@ import 'package:flutter/material.dart';
 import 'package:battery_plus/battery_plus.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,13 +23,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, this.title}) : super(key: key);
+  const MyHomePage({Key? key, this.title}) : super(key: key);
 
   final String? title;
 
@@ -59,28 +61,53 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Text('Plugin example app'),
       ),
       body: Center(
-        child: Text('$_batteryState'),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final batteryLevel = await _battery.batteryLevel;
-          // ignore: unawaited_futures
-          showDialog<void>(
-            context: context,
-            builder: (_) => AlertDialog(
-              content: Text('Battery: $batteryLevel%'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('OK'),
-                )
-              ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('$_batteryState'),
+            ElevatedButton(
+              onPressed: () async {
+                final batteryLevel = await _battery.batteryLevel;
+                // ignore: unawaited_futures
+                showDialog<void>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    content: Text('Battery: $batteryLevel%'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('OK'),
+                      )
+                    ],
+                  ),
+                );
+              },
+              child: const Text('Get battery level'),
             ),
-          );
-        },
-        child: const Icon(Icons.battery_unknown),
+            ElevatedButton(
+                onPressed: () async {
+                  final isInPowerSaveMode = await _battery.isInBatterySaveMode;
+                  // ignore: unawaited_futures
+                  showDialog<void>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      content: Text('Is on low power mode: $isInPowerSaveMode'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('OK'),
+                        )
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('Is on low power mode'))
+          ],
+        ),
       ),
     );
   }
