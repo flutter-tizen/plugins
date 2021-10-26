@@ -1,6 +1,7 @@
 name: wakelock_tizen
 description: Tizen implementation of the wakelock plugin
 homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/blob/master/packages/wakelock
 version: 1.0.1
 
 flutter:

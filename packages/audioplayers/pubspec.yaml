@@ -1,6 +1,7 @@
 name: audioplayers_tizen
 description: Tizen implementation of the audioplayers plugin.
 homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/audioplayers
 version: 1.0.2
 
 flutter:
