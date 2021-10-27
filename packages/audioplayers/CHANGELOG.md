@@ -15,3 +15,4 @@
 * Update README and analysis_options.
 * Update audioplayers to 0.20.1.
 * Update the example app and integration_test.
+* Initialize variables properly.
