@@ -36,7 +36,7 @@ class VideoPlayer {
   void setupEventChannel(flutter::BinaryMessenger *messenger);
   void sendInitialized();
   void sendBufferingStart();
-  void sendBufferingUpdate(int position); // milliseconds
+  void sendBufferingUpdate(int position);  // milliseconds
   void sendBufferingEnd();
   FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
   void Destruct(void *buffer);
