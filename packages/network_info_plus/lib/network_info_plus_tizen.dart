@@ -30,6 +30,21 @@ class NetworkInfoPlugin extends NetworkInfoPlatform {
   Future<String?> getWifiIP() => _methodChannelNetworkInfo.getWifiIP();
 
   @override
+  Future<String?> getWifiIPv6() => _methodChannelNetworkInfo.getWifiIPv6();
+
+  @override
+  Future<String?> getWifiSubmask() =>
+      _methodChannelNetworkInfo.getWifiSubmask();
+
+  @override
+  Future<String?> getWifiGatewayIP() =>
+      _methodChannelNetworkInfo.getWifiGatewayIP();
+
+  @override
+  Future<String?> getWifiBroadcast() =>
+      _methodChannelNetworkInfo.getWifiBroadcast();
+
+  @override
   Future<LocationAuthorizationStatus> requestLocationServiceAuthorization({
     bool requestAlwaysLocationUsage = false,
   }) =>
