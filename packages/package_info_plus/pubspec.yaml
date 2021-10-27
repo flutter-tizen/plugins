@@ -1,7 +1,8 @@
 name: package_info_plus_tizen
 description: Tizen implementation of the package_info_plus plugin
-version: 1.0.0
 homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/package_info_plus
+version: 1.0.0
 
 flutter:
   plugin:
