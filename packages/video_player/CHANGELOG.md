@@ -18,3 +18,7 @@
 ## 2.2.1
 
 * Update README
+
+## 2.2.2
+
+* Fix `seekTo` is returned when seeking.

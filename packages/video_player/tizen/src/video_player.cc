@@ -261,14 +261,17 @@ void VideoPlayer::setPlaybackSpeed(double speed) {
   }
 }
 
-void VideoPlayer::seekTo(int position) {
+void VideoPlayer::seekTo(int position, const SeekCompletedCb &seekCompletedCb) {
   LOG_DEBUG("[VideoPlayer.seekTo] position: %d", position);
-  int ret = player_set_play_position(player_, position, true, nullptr, nullptr);
+  int ret =
+      player_set_play_position(player_, position, true, onSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer.seekTo] player_set_play_position failed: %s",
               get_error_message(ret));
     throw VideoPlayerError("player_set_play_position failed",
                            get_error_message(ret));
+  } else {
+    on_seek_completed_ = seekCompletedCb;
   }
 }
 
@@ -465,6 +468,16 @@ void VideoPlayer::onPrepared(void *data) {
 void VideoPlayer::onBuffering(int percent, void *data) {
   // percent isn't used for video size, it's the used storage of buffer
   LOG_DEBUG("[VideoPlayer.onBuffering] percent: %d", percent);
+}
+
+void VideoPlayer::onSeekCompleted(void *data) {
+  VideoPlayer *player = (VideoPlayer *)data;
+  LOG_DEBUG("[VideoPlayer.onSeekCompleted] completed to seek");
+
+  if (player->on_seek_completed_) {
+    player->on_seek_completed_();
+    player->on_seek_completed_ = nullptr;
+  }
 }
 
 void VideoPlayer::onPlayCompleted(void *data) {

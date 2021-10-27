@@ -11,6 +11,8 @@
 
 #include "video_player_options.h"
 
+using SeekCompletedCb = std::function<void()>;
+
 class VideoPlayer {
  public:
   VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
@@ -24,8 +26,9 @@ class VideoPlayer {
   void setLooping(bool is_looping);
   void setVolume(double volume);
   void setPlaybackSpeed(double speed);
-  void seekTo(int position);  // milliseconds
-  int getPosition();          // milliseconds
+  void seekTo(int position,
+              const SeekCompletedCb &seekCompletedCb);  // milliseconds
+  int getPosition();                                    // milliseconds
   void dispose();
 
  private:
@@ -33,13 +36,14 @@ class VideoPlayer {
   void setupEventChannel(flutter::BinaryMessenger *messenger);
   void sendInitialized();
   void sendBufferingStart();
-  void sendBufferingUpdate(int position);  // milliseconds
+  void sendBufferingUpdate(int position); // milliseconds
   void sendBufferingEnd();
   FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
   void Destruct(void *buffer);
 
   static void onPrepared(void *data);
   static void onBuffering(int percent, void *data);
+  static void onSeekCompleted(void *data);
   static void onPlayCompleted(void *data);
   static void onInterrupted(player_interrupted_code_e code, void *data);
   static void onErrorOccurred(int code, void *data);
@@ -56,6 +60,7 @@ class VideoPlayer {
   std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
   std::mutex mutex_;
   media_packet_h media_packet_ = nullptr;
+  SeekCompletedCb on_seek_completed_;
 };
 
 #endif  // VIDEO_PLAYER_H_

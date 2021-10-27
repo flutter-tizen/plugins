@@ -517,16 +517,18 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         [api](const flutter::EncodableValue &message,
               flutter::MessageReply<flutter::EncodableValue> reply) {
           PositionMessage input = PositionMessage::fromMap(message);
-          flutter::EncodableMap wrapped;
           try {
-            api->seekTo(input);
-            wrapped.emplace(flutter::EncodableValue("result"),
-                            flutter::EncodableValue());
+            api->seekTo(input, [reply]() {
+              flutter::EncodableMap wrapped = {
+                  {flutter::EncodableValue("result"),
+                   flutter::EncodableValue()}};
+              reply(flutter::EncodableValue(wrapped));
+            });
           } catch (const VideoPlayerError &e) {
-            wrapped.emplace(flutter::EncodableValue("error"),
-                            VideoPlayerApi::wrapError(e));
+            flutter::EncodableMap error = {{flutter::EncodableValue("error"),
+                                            VideoPlayerApi::wrapError(e)}};
+            reply(flutter::EncodableValue(error));
           }
-          reply(flutter::EncodableValue(wrapped));
         });
   }
 
