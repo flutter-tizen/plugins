@@ -1,127 +1,131 @@
 import 'dart:async';
 
-import 'package:integration_test/integration_test.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
-const Duration _playDuration = const Duration(seconds: 1);
+const Duration _kPlayDuration = Duration(seconds: 1);
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('asset audio', () {
     testWidgets('can be initialized', (WidgetTester tester) async {
-      AudioPlayer audioPlayer = AudioPlayer();
-      final Completer<void> initialized = Completer();
-      audioPlayer.onDurationChanged
-          .listen((duration) => initialized.complete());
+      final player = AudioPlayer();
+      final initialized = Completer<void>();
+      player.onDurationChanged
+          .listen((Duration duration) => initialized.complete());
 
-      AudioCache audioCache = AudioCache();
-      await audioPlayer.setUrl(await audioCache.getAbsoluteUrl('audio2.mp3'));
+      final audioCache = AudioCache();
+      final uri = await audioCache.load('audio2.mp3');
+      await player.setUrl(uri.toString());
       await initialized.future;
-      expect(audioPlayer.state, AudioPlayerState.STOPPED);
+      expect(player.state, PlayerState.STOPPED);
 
-      int duration = await audioPlayer.getDuration();
+      final duration = await player.getDuration();
       expect(duration, greaterThan(0));
 
-      int position = await audioPlayer.getCurrentPosition();
+      final position = await player.getCurrentPosition();
       expect(position, 0);
 
-      audioPlayer.dispose();
+      await player.dispose();
     });
 
     testWidgets('can be played', (WidgetTester tester) async {
-      AudioPlayer audioPlayer = AudioPlayer();
-      final Completer<void> started = Completer();
-      audioPlayer.onAudioPositionChanged.listen((position) {
+      final player = AudioPlayer();
+      final started = Completer<void>();
+      player.onAudioPositionChanged.listen((position) {
         if (!started.isCompleted) {
           started.complete();
         }
       });
 
-      AudioCache audioCache = AudioCache();
-      await audioPlayer.play(await audioCache.getAbsoluteUrl('audio2.mp3'));
+      final audioCache = AudioCache();
+      final uri = await audioCache.load('audio2.mp3');
+      await player.play(uri.toString());
       await started.future;
-      expect(audioPlayer.state, AudioPlayerState.PLAYING);
+      expect(player.state, PlayerState.PLAYING);
 
-      int position = await audioPlayer.getCurrentPosition();
-      await tester.pumpAndSettle(_playDuration);
-      int currentPosition = await audioPlayer.getCurrentPosition();
+      final position = await player.getCurrentPosition();
+      await Future<void>.delayed(_kPlayDuration);
+      final currentPosition = await player.getCurrentPosition();
       expect(currentPosition, greaterThan(position));
 
-      audioPlayer.dispose();
+      await player.dispose();
     });
 
     testWidgets('can seek', (WidgetTester tester) async {
-      AudioPlayer audioPlayer = AudioPlayer();
-      final Completer<void> seek = Completer();
-      audioPlayer.onSeekComplete.listen((event) => seek.complete());
+      final player = AudioPlayer();
+      final seek = Completer<void>();
+      player.onSeekComplete.listen((event) => seek.complete());
 
-      AudioCache audioCache = AudioCache();
-      await audioPlayer.setUrl(await audioCache.getAbsoluteUrl('audio2.mp3'));
-      Duration seekToPosition = const Duration(seconds: 1);
-      await audioPlayer.seek(seekToPosition);
+      final audioCache = AudioCache();
+      final uri = await audioCache.load('audio2.mp3');
+      await player.setUrl(uri.toString());
+      const seekToPosition = Duration(seconds: 1);
+      await player.seek(seekToPosition);
       await seek.future;
-      expect(audioPlayer.state, AudioPlayerState.STOPPED);
+      expect(player.state, PlayerState.STOPPED);
 
-      int position = await audioPlayer.getCurrentPosition();
+      final position = await player.getCurrentPosition();
       expect(position, seekToPosition.inMilliseconds);
 
-      audioPlayer.dispose();
+      await player.dispose();
     });
 
     testWidgets('can be paused', (WidgetTester tester) async {
-      AudioPlayer audioPlayer = AudioPlayer();
-      final Completer<void> started = Completer();
-      audioPlayer.onAudioPositionChanged.listen((position) {
+      final player = AudioPlayer();
+      final started = Completer<void>();
+      player.onAudioPositionChanged.listen((position) {
         if (!started.isCompleted) {
           started.complete();
         }
       });
 
-      AudioCache audioCache = AudioCache();
-      await audioPlayer.play(await audioCache.getAbsoluteUrl('audio2.mp3'));
+      final audioCache = AudioCache();
+      final uri = await audioCache.load('audio2.mp3');
+      await player.play(uri.toString());
       await started.future;
-      expect(audioPlayer.state, AudioPlayerState.PLAYING);
+      expect(player.state, PlayerState.PLAYING);
 
-      await tester.pumpAndSettle(_playDuration);
-      await audioPlayer.pause();
-      int pausedPosition = await audioPlayer.getCurrentPosition();
-      await tester.pumpAndSettle(_playDuration);
-      int currentPosition = await audioPlayer.getCurrentPosition();
+      await Future<void>.delayed(_kPlayDuration);
+      await player.pause();
+      final pausedPosition = await player.getCurrentPosition();
+      await Future<void>.delayed(_kPlayDuration);
+      final currentPosition = await player.getCurrentPosition();
 
-      expect(audioPlayer.state, AudioPlayerState.PAUSED);
+      expect(player.state, PlayerState.PAUSED);
       expect(currentPosition, pausedPosition);
 
-      audioPlayer.dispose();
+      await player.dispose();
     });
 
     testWidgets('do not exceed duration after audio completed',
         (WidgetTester tester) async {
-      AudioPlayer audioPlayer = AudioPlayer();
-      final Completer<void> initialized = Completer();
-      final Completer<void> seek = Completer();
-      audioPlayer.onDurationChanged.listen((duration) {
+      final player = AudioPlayer();
+      final initialized = Completer<void>();
+      final seek = Completer<void>();
+      player.onDurationChanged.listen((duration) {
         if (!initialized.isCompleted) {
           initialized.complete();
         }
       });
-      audioPlayer.onSeekComplete.listen((event) => seek.complete());
+      player.onSeekComplete.listen((event) => seek.complete());
 
-      AudioCache audioCache = AudioCache();
-      await audioPlayer.setUrl(await audioCache.getAbsoluteUrl('audio2.mp3'));
+      final audioCache = AudioCache();
+      final uri = await audioCache.load('audio2.mp3');
+      await player.setUrl(uri.toString());
       await initialized.future;
-      int duration = await audioPlayer.getDuration();
-      await audioPlayer
-          .seek(Duration(milliseconds: duration) - Duration(milliseconds: 500));
+      final duration = await player.getDuration();
+      await player.seek(
+          Duration(milliseconds: duration) - const Duration(milliseconds: 500));
       await seek.future;
 
-      await audioPlayer.resume();
-      await tester.pumpAndSettle(_playDuration);
-      expect(audioPlayer.state, AudioPlayerState.COMPLETED);
+      await player.resume();
+      await Future<void>.delayed(_kPlayDuration);
+      expect(player.state, PlayerState.COMPLETED);
 
-      audioPlayer.dispose();
+      await player.dispose();
     });
   });
 }

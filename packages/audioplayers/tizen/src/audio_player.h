@@ -60,7 +60,7 @@ class AudioPlayer {
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnErrorOccurred(int code, void *data);
 
-  player_h player_;
+  player_h player_ = nullptr;
   std::string player_id_;
   bool low_latency_;
   std::string url_;
@@ -69,9 +69,9 @@ class AudioPlayer {
   double playback_rate_;
   ReleaseMode release_mode_;
   int should_seek_to_;
-  bool preparing_;
-  bool seeking_;
-  bool should_play_;
+  bool preparing_ = false;
+  bool seeking_ = false;
+  bool should_play_ = false;
   PreparedListener prepared_listener_;
   StartPlayingListener start_playing_listener_;
   SeekCompletedListener seek_completed_listener_;

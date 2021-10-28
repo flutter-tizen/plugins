@@ -18,7 +18,6 @@ AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
   play_completed_listener_ = play_completed_listener;
   error_listener_ = error_listener;
 
-  player_ = nullptr;
   volume_ = 1.0;
   playback_rate_ = 1.0;
   release_mode_ = RELEASE;
