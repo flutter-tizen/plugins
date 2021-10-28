@@ -261,7 +261,7 @@ void VideoPlayer::setPlaybackSpeed(double speed) {
   }
 }
 
-void VideoPlayer::seekTo(int position, const SeekCompletedCb &seekCompletedCb) {
+void VideoPlayer::seekTo(int position, const SeekCompletedCb &seek_completed_cb) {
   LOG_DEBUG("[VideoPlayer.seekTo] position: %d", position);
   int ret =
       player_set_play_position(player_, position, true, onSeekCompleted, this);
@@ -271,7 +271,7 @@ void VideoPlayer::seekTo(int position, const SeekCompletedCb &seekCompletedCb) {
     throw VideoPlayerError("player_set_play_position failed",
                            get_error_message(ret));
   } else {
-    on_seek_completed_ = seekCompletedCb;
+    on_seek_completed_ = seek_completed_cb;
   }
 }
 

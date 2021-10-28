@@ -21,4 +21,4 @@
 
 ## 2.2.2
 
-* Fix `seekTo` is returned when seeking.
+* Fix `seekTo` so that it returns when seeking is completed.

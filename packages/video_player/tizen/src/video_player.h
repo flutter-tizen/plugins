@@ -27,8 +27,8 @@ class VideoPlayer {
   void setVolume(double volume);
   void setPlaybackSpeed(double speed);
   void seekTo(int position,
-              const SeekCompletedCb &seekCompletedCb);  // milliseconds
-  int getPosition();                                    // milliseconds
+              const SeekCompletedCb &seek_completed_cb);  // milliseconds
+  int getPosition();                                      // milliseconds
   void dispose();
 
  private:
