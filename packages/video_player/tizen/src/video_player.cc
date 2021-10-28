@@ -261,7 +261,8 @@ void VideoPlayer::setPlaybackSpeed(double speed) {
   }
 }
 
-void VideoPlayer::seekTo(int position, const SeekCompletedCb &seek_completed_cb) {
+void VideoPlayer::seekTo(int position,
+                         const SeekCompletedCb &seek_completed_cb) {
   LOG_DEBUG("[VideoPlayer.seekTo] position: %d", position);
   int ret =
       player_set_play_position(player_, position, true, onSeekCompleted, this);
