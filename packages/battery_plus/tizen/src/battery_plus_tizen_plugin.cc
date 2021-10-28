@@ -123,13 +123,13 @@ class BatteryPlusTizenPlugin : public flutter::Plugin {
         (BatteryPlusTizenPlugin *)user_data;
 
     std::string status = GetBatteryStatus();
-    bool isFull = (status == "full") ? true : false;
-    if (isFull == true && plugin_pointer->is_full_ == true) {
+    bool is_full = status == "full";
+    if (is_full && plugin_pointer->is_full_) {
       // This function is called twice by registered callbacks when battery
       // status is full. So, it needs to avoid the unnecessary second call.
       return;
     }
-    plugin_pointer->is_full_ = isFull;
+    plugin_pointer->is_full_ = is_full;
 
     if (status.empty()) {
       plugin_pointer->events_->Error("invalid_status", "Charging status error");
@@ -139,22 +139,21 @@ class BatteryPlusTizenPlugin : public flutter::Plugin {
   }
 
   void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &methodCall,
+      const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("method : %s", methodCall.method_name().data());
+    const auto &method_name = method_call.method_name();
 
-    if (methodCall.method_name().compare("getBatteryLevel") != 0) {
-      result->Error("not_supported_method", "Not supported method");
-      return;
+    if (method_name == "getBatteryLevel") {
+      int percentage;
+      int ret = device_battery_get_percent(&percentage);
+      if (ret != DEVICE_ERROR_NONE) {
+        result->Error("internal_error", get_error_message(ret));
+      }
+      LOG_INFO("battery percentage [%d]", percentage);
+      result->Success(flutter::EncodableValue(percentage));
+    } else {
+      result->NotImplemented();
     }
-
-    int ret, percentage;
-    ret = device_battery_get_percent(&percentage);
-    if (ret != DEVICE_ERROR_NONE) {
-      result->Error("failed_to_get_percentage", get_error_message(ret));
-    }
-    LOG_INFO("battery percentage [%d]", percentage);
-    result->Success(flutter::EncodableValue(percentage));
   }
 
  private:
