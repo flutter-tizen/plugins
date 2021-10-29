@@ -32,7 +32,8 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   virtual void play(const TextureMessage &textureMsg) override;
   virtual void pause(const TextureMessage &textureMsg) override;
   virtual PositionMessage position(const TextureMessage &textureMsg) override;
-  virtual void seekTo(const PositionMessage &positionMsg) override;
+  virtual void seekTo(const PositionMessage &positionMsg,
+                      const SeekCompletedCb &onSeekCompleted) override;
   virtual void setMixWithOthers(
       const MixWithOthersMessage &mixWithOthersMsg) override;
 
@@ -199,7 +200,8 @@ PositionMessage VideoPlayerTizenPlugin::position(
   return result;
 }
 
-void VideoPlayerTizenPlugin::seekTo(const PositionMessage &positionMsg) {
+void VideoPlayerTizenPlugin::seekTo(const PositionMessage &positionMsg,
+                                    const SeekCompletedCb &onSeekCompleted) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.seekTo] textureId: %ld",
             positionMsg.getTextureId());
   LOG_DEBUG("[VideoPlayerTizenPlugin.seekTo] position: %ld",
@@ -207,7 +209,7 @@ void VideoPlayerTizenPlugin::seekTo(const PositionMessage &positionMsg) {
 
   auto iter = videoPlayers_.find(positionMsg.getTextureId());
   if (iter != videoPlayers_.end()) {
-    iter->second->seekTo(positionMsg.getPosition());
+    iter->second->seekTo(positionMsg.getPosition(), onSeekCompleted);
   }
 }
 
