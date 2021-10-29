@@ -40,7 +40,7 @@ class VideoPlayer {
   void sendBufferingEnd();
   FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
   void Destruct(void *buffer);
-  bool IsValidMediaPacket(media_packet_h media_packet);
+  bool isValidMediaPacket(media_packet_h media_packet);
 
   static void onPrepared(void *data);
   static void onBuffering(int percent, void *data);
