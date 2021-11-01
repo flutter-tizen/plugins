@@ -49,7 +49,7 @@ static std::string StateToString(player_state_e state) {
   return ret;
 }
 
-bool VideoPlayer::isValidMediaPacket(media_packet_h media_packet) {
+bool VideoPlayer::IsValidMediaPacket(media_packet_h media_packet) {
   tbm_surface_h surface;
   int ret = media_packet_get_tbm_surface(media_packet, &surface);
   if (ret != MEDIA_PACKET_ERROR_NONE) {
@@ -62,11 +62,11 @@ bool VideoPlayer::isValidMediaPacket(media_packet_h media_packet) {
 FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
                                                       size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (prepared_media_packet_ && !isValidMediaPacket(prepared_media_packet_)) {
+  if (prepared_media_packet_ && !IsValidMediaPacket(prepared_media_packet_)) {
     media_packet_destroy(prepared_media_packet_);
     prepared_media_packet_ = nullptr;
   }
-  if (current_media_packet_ && !isValidMediaPacket(current_media_packet_)) {
+  if (current_media_packet_ && !IsValidMediaPacket(current_media_packet_)) {
     media_packet_destroy(current_media_packet_);
     current_media_packet_ = nullptr;
   }
