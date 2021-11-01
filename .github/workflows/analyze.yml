@@ -21,7 +21,7 @@ jobs:
       - name: Analyze the plugin's Dart code
         run: |
           cd packages
-          flutter analyze
+          dart analyze --fatal-infos
   clang:
     runs-on: ubuntu-latest
     steps:
