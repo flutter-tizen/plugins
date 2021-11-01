@@ -548,8 +548,10 @@ void VideoPlayer::onVideoFrameDecoded(media_packet_h packet, void *data) {
   VideoPlayer *player = (VideoPlayer *)data;
   std::lock_guard<std::mutex> lock(player->mutex_);
   if (player->prepared_media_packet_) {
-    LOG_INFO("prepared_media_packet_ not null");
+    LOG_INFO("prepared packet not null, store new");
     media_packet_destroy(player->prepared_media_packet_);
+    player->prepared_media_packet_ = packet;
+    return;
   }
   player->prepared_media_packet_ = packet;
   player->texture_registrar_->MarkTextureFrameAvailable(player->texture_id_);
