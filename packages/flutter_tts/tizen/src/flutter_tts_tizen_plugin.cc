@@ -146,7 +146,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         return;
       }
       result->Success(flutter::EncodableValue(0));
-    } else if (method_name.compare("setLanguages") == 0) {
+    } else if (method_name.compare("setLanguage") == 0) {
       if (std::holds_alternative<std::string>(arguments)) {
         std::string language = std::move(std::get<std::string>(arguments));
         tts_->SetDefaultLanguage(language);
