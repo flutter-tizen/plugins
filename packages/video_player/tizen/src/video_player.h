@@ -62,7 +62,7 @@ class VideoPlayer {
   std::mutex mutex_;
   SeekCompletedCb on_seek_completed_;
   media_packet_h prepared_media_packet_ = nullptr;
-  media_packet_h using_media_packet_ = nullptr;
+  media_packet_h current_media_packet_ = nullptr;
 };
 
 #endif  // VIDEO_PLAYER_H_

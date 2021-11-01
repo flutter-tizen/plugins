@@ -66,20 +66,20 @@ FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
     media_packet_destroy(prepared_media_packet_);
     prepared_media_packet_ = nullptr;
   }
-  if (using_media_packet_ && !isValidMediaPacket(using_media_packet_)) {
-    media_packet_destroy(using_media_packet_);
-    using_media_packet_ = nullptr;
+  if (current_media_packet_ && !isValidMediaPacket(current_media_packet_)) {
+    media_packet_destroy(current_media_packet_);
+    current_media_packet_ = nullptr;
   }
-  if (!prepared_media_packet_ && !using_media_packet_) {
+  if (!prepared_media_packet_ && !current_media_packet_) {
     LOG_ERROR("No vaild media packet");
     return nullptr;
   }
-  if (prepared_media_packet_ && !using_media_packet_) {
-    using_media_packet_ = prepared_media_packet_;
+  if (prepared_media_packet_ && !current_media_packet_) {
+    current_media_packet_ = prepared_media_packet_;
     prepared_media_packet_ = nullptr;
   }
   tbm_surface_h surface;
-  media_packet_get_tbm_surface(using_media_packet_, &surface);
+  media_packet_get_tbm_surface(current_media_packet_, &surface);
   flutter_desktop_gpu_buffer_->buffer = surface;
   flutter_desktop_gpu_buffer_->width = width;
   flutter_desktop_gpu_buffer_->height = height;
@@ -88,9 +88,9 @@ FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
 
 void VideoPlayer::Destruct(void *buffer) {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (using_media_packet_) {
-    media_packet_destroy(using_media_packet_);
-    using_media_packet_ = nullptr;
+  if (current_media_packet_) {
+    media_packet_destroy(current_media_packet_);
+    current_media_packet_ = nullptr;
   }
 }
 
@@ -323,9 +323,9 @@ void VideoPlayer::dispose() {
     player_ = 0;
   }
 
-  if (using_media_packet_) {
-    media_packet_destroy(using_media_packet_);
-    using_media_packet_ = nullptr;
+  if (current_media_packet_) {
+    media_packet_destroy(current_media_packet_);
+    current_media_packet_ = nullptr;
   }
 
   if (prepared_media_packet_) {
