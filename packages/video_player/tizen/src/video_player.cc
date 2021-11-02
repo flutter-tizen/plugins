@@ -49,22 +49,37 @@ static std::string StateToString(player_state_e state) {
   return ret;
 }
 
+bool VideoPlayer::IsValidMediaPacket(media_packet_h media_packet) {
+  tbm_surface_h surface;
+  int ret = media_packet_get_tbm_surface(media_packet, &surface);
+  if (ret != MEDIA_PACKET_ERROR_NONE) {
+    LOG_ERROR("get tbm surface failed, error: %d", ret);
+    return false;
+  }
+  return true;
+}
+
 FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
                                                       size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (media_packet_ == nullptr) {
-    LOG_ERROR("Media packet  is null");
+  if (prepared_media_packet_ && !IsValidMediaPacket(prepared_media_packet_)) {
+    media_packet_destroy(prepared_media_packet_);
+    prepared_media_packet_ = nullptr;
+  }
+  if (current_media_packet_ && !IsValidMediaPacket(current_media_packet_)) {
+    media_packet_destroy(current_media_packet_);
+    current_media_packet_ = nullptr;
+  }
+  if (!prepared_media_packet_ && !current_media_packet_) {
+    LOG_ERROR("No vaild media packet");
     return nullptr;
+  }
+  if (prepared_media_packet_ && !current_media_packet_) {
+    current_media_packet_ = prepared_media_packet_;
+    prepared_media_packet_ = nullptr;
   }
   tbm_surface_h surface;
-  int ret = media_packet_get_tbm_surface(media_packet_, &surface);
-  if (ret != MEDIA_PACKET_ERROR_NONE) {
-    LOG_ERROR("media_packet_get_tbm_surface failed, error: %d", ret);
-    media_packet_destroy(media_packet_);
-    media_packet_ = nullptr;
-    return nullptr;
-  }
-
+  media_packet_get_tbm_surface(current_media_packet_, &surface);
   flutter_desktop_gpu_buffer_->buffer = surface;
   flutter_desktop_gpu_buffer_->width = width;
   flutter_desktop_gpu_buffer_->height = height;
@@ -73,9 +88,9 @@ FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
 
 void VideoPlayer::Destruct(void *buffer) {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (media_packet_) {
-    media_packet_destroy(media_packet_);
-    media_packet_ = nullptr;
+  if (current_media_packet_) {
+    media_packet_destroy(current_media_packet_);
+    current_media_packet_ = nullptr;
   }
 }
 
@@ -308,6 +323,16 @@ void VideoPlayer::dispose() {
     player_ = 0;
   }
 
+  if (current_media_packet_) {
+    media_packet_destroy(current_media_packet_);
+    current_media_packet_ = nullptr;
+  }
+
+  if (prepared_media_packet_) {
+    media_packet_destroy(prepared_media_packet_);
+    prepared_media_packet_ = nullptr;
+  }
+
   if (texture_registrar_) {
     texture_registrar_->UnregisterTexture(texture_id_);
     texture_registrar_ = nullptr;
@@ -522,11 +547,12 @@ void VideoPlayer::onErrorOccurred(int code, void *data) {
 void VideoPlayer::onVideoFrameDecoded(media_packet_h packet, void *data) {
   VideoPlayer *player = (VideoPlayer *)data;
   std::lock_guard<std::mutex> lock(player->mutex_);
-  if (player->media_packet_) {
-    LOG_INFO("Render not finished");
-    media_packet_destroy(packet);
+  if (player->prepared_media_packet_) {
+    LOG_INFO("prepared packet not null, store new");
+    media_packet_destroy(player->prepared_media_packet_);
+    player->prepared_media_packet_ = packet;
     return;
   }
-  player->media_packet_ = packet;
+  player->prepared_media_packet_ = packet;
   player->texture_registrar_->MarkTextureFrameAvailable(player->texture_id_);
 }
