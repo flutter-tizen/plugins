@@ -6,6 +6,10 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include <map>
+#include <memory>
+#include <string>
+
 #include "flutter_texture_registrar.h"
 #include "log.h"
 #include "message.h"
@@ -102,7 +106,7 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
       LOG_DEBUG(
           "[VideoPlayerTizenPlugin.create] failed to get resource path "
           "of package");
-      throw VideoPlayerError("failed to get resource path", "");
+      throw VideoPlayerError("Internal error", "Failed to get resource path.");
     }
   }
   LOG_DEBUG("[VideoPlayerTizenPlugin.create] uri of video player: %s",

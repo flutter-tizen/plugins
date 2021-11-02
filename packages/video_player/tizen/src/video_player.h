@@ -6,6 +6,8 @@
 #include <flutter/plugin_registrar.h>
 #include <player.h>
 
+#include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 

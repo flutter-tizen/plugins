@@ -4,6 +4,9 @@
 #include <flutter/binary_messenger.h>
 #include <flutter/encodable_value.h>
 
+#include <functional>
+#include <string>
+
 #include "video_player_error.h"
 
 class TextureMessage {

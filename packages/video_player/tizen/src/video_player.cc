@@ -528,7 +528,8 @@ void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
 
   if (player->event_sink_) {
     LOG_INFO("[VideoPlayer.onInterrupted] send error event");
-    player->event_sink_->Error("Video player is interrupted", "");
+    player->event_sink_->Error("Interrupted error",
+                               "Video player has been interrupted.");
   }
 }
 
@@ -539,8 +540,7 @@ void VideoPlayer::onErrorOccurred(int code, void *data) {
 
   if (player->event_sink_) {
     LOG_INFO("[VideoPlayer.onErrorOccurred] send error event");
-    player->event_sink_->Error("Video player had error",
-                               get_error_message(code));
+    player->event_sink_->Error("Player error", get_error_message(code));
   }
 }
 
