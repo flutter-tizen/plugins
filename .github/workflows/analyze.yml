@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: subosito/flutter-action@v1
         with:
-          flutter-version: "2.5.1"
+          channel: stable
       - name: Install pub dependencies
         run: |
           for d in `pwd`/packages/*/; do
@@ -17,11 +17,9 @@ jobs:
             flutter pub get
           done
       - name: Verify formatting
-        run: flutter format --set-exit-if-changed packages
-      - name: Analyze the plugin's Dart code
-        run: |
-          cd packages
-          flutter analyze
+        run: dart format --output=none --set-exit-if-changed packages
+      - name: Analyze source code
+        run: dart analyze --fatal-infos packages
   clang:
     runs-on: ubuntu-latest
     steps:
