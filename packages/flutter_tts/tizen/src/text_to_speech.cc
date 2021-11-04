@@ -166,8 +166,8 @@ bool TextToSpeech::SetVolume(double volume_rate) {
   return true;
 }
 
-bool TextToSpeech::GetSpeedRange(int *min, int *nomal, int *max) {
-  int ret = tts_get_speed_range(tts_, min, nomal, max);
+bool TextToSpeech::GetSpeedRange(int *min, int *normal, int *max) {
+  int ret = tts_get_speed_range(tts_, min, normal, max);
   if (ret != TTS_ERROR_NONE) {
     LOG_ERROR("[TTS] tts_get_speed_range failed: %s", get_error_message(ret));
     return false;

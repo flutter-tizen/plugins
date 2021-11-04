@@ -74,7 +74,7 @@ class TextToSpeech {
 
   bool SetVolume(double volume_rate);
 
-  bool GetSpeedRange(int *min, int *nomal, int *max);
+  bool GetSpeedRange(int *min, int *normal, int *max);
 
   void SetTtsSpeed(int speed) { tts_speed_ = speed; }
 
@@ -94,7 +94,6 @@ class TextToSpeech {
   int GetSpeechVolumeInternal();
 
   tts_h tts_ = nullptr;
-  tts_state_e state_ = TTS_STATE_CREATED;
   std::string default_language_;
   int default_voice_type_ = TTS_VOICE_TYPE_AUTO;
   int tts_speed_ = TTS_SPEED_AUTO;

@@ -19,3 +19,4 @@
 * Fix a bug where `setLanguage()` wasn't invoked due to typo in "setLanguage".
 * Update flutter_tts to 3.2.2 and update the example app.
 * Support `setVolume()`.
+* Minor cleanups.
