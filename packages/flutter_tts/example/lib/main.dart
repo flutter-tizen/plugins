@@ -17,6 +17,7 @@ enum TtsState { playing, stopped, paused, continued }
 class _MyAppState extends State<MyApp> {
   late FlutterTts flutterTts;
   String? language;
+  double volume = 0.5;
   double pitch = 1.0;
   double rate = 0.5;
   String? _newVoiceText;
@@ -82,6 +83,7 @@ class _MyAppState extends State<MyApp> {
   Future<dynamic> _getLanguages() => flutterTts.getLanguages;
 
   Future _speak() async {
+    await flutterTts.setVolume(volume);
     await flutterTts.setSpeechRate(rate);
 
     if (_newVoiceText != null) {
@@ -216,8 +218,20 @@ class _MyAppState extends State<MyApp> {
 
   Widget _buildSliders() {
     return Column(
-      children: [_rate()],
+      children: [_volume(), _rate()],
     );
+  }
+
+  Widget _volume() {
+    return Slider(
+        value: volume,
+        onChanged: (newVolume) {
+          setState(() => volume = newVolume);
+        },
+        min: 0.0,
+        max: 1.0,
+        divisions: 10,
+        label: "Volume: $volume");
   }
 
   Widget _rate() {

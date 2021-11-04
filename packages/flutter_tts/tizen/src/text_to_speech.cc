@@ -4,6 +4,8 @@
 
 #include "text_to_speech.h"
 
+#include <sound_manager.h>
+
 #include "log.h"
 
 namespace {
@@ -52,6 +54,13 @@ void TextToSpeech::Prepare() {
     default_voice_type_ = voice_type;
     free(language);
   }
+  ret = sound_manager_get_max_volume(SOUND_TYPE_VOICE, &system_max_volume_);
+  if (ret != SOUND_MANAGER_ERROR_NONE) {
+    LOG_ERROR("[SOUNDMANAGER] sound_manager_get_max_volume failed: %s",
+              get_error_message(ret));
+  }
+  system_volume_ = GetSpeechVolumeInternal();
+  tts_volume_ = system_volume_;
 
   ret = tts_prepare(tts_);
   if (ret != TTS_ERROR_NONE) {
@@ -72,6 +81,7 @@ void TextToSpeech::UnregisterTtsCallback() {
 }
 
 void TextToSpeech::OnStateChanged(tts_state_e previous, tts_state_e current) {
+  SwitchVolumeOnStateChange(previous, current);
   on_state_changed_(previous, current);
 }
 
@@ -145,10 +155,57 @@ bool TextToSpeech::Pause() {
   return true;
 }
 
+bool TextToSpeech::SetVolume(double volume_rate) {
+  tts_volume_ = static_cast<int>(system_max_volume_ * volume_rate);
+  // Change volume instantly when tts is playing.
+  if (GetState() == TTS_STATE_PLAYING) {
+    if (!SetSpeechVolumeInternal(tts_volume_)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool TextToSpeech::GetSpeedRange(int *min, int *nomal, int *max) {
   int ret = tts_get_speed_range(tts_, min, nomal, max);
   if (ret != TTS_ERROR_NONE) {
     LOG_ERROR("[TTS] tts_get_speed_range failed: %s", get_error_message(ret));
+    return false;
+  }
+  return true;
+}
+
+void TextToSpeech::SwitchVolumeOnStateChange(tts_state_e previous,
+                                             tts_state_e current) {
+  if (previous == TTS_STATE_PLAYING) {
+    // When playback is finished, save the tts_volume that might've changed
+    // from hardware key, then restore the system volume.
+    tts_volume_ = GetSpeechVolumeInternal();
+    SetSpeechVolumeInternal(system_volume_);
+  } else if (current == TTS_STATE_PLAYING) {
+    // Before playback starts, save the system volume to restore when playback
+    // is finished, then set the tts volume.
+    system_volume_ = GetSpeechVolumeInternal();
+    SetSpeechVolumeInternal(tts_volume_);
+  }
+}
+
+int TextToSpeech::GetSpeechVolumeInternal() {
+  int volume;
+  int ret = sound_manager_get_volume(SOUND_TYPE_VOICE, &volume);
+  if (ret != SOUND_MANAGER_ERROR_NONE) {
+    LOG_ERROR("[SOUNDMANAGER] sound_manager_get_volume failed: %s",
+              get_error_message(ret));
+    volume = 0;
+  }
+  return volume;
+}
+
+bool TextToSpeech::SetSpeechVolumeInternal(int volume) {
+  int ret = sound_manager_set_volume(SOUND_TYPE_VOICE, volume);
+  if (ret != SOUND_MANAGER_ERROR_NONE) {
+    LOG_ERROR("[SOUNDMANAGER] sound_manager_set_volume failed: %s",
+              get_error_message(ret));
     return false;
   }
   return true;

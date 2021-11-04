@@ -14,7 +14,8 @@
 
 * Fix calling onCancel in a successful situation and refactor native implementations.
 
-## 1.1.2
+## 1.2.0
 
 * Fix a bug where `setLanguage()` wasn't invoked due to typo in "setLanguage".
-* Update flutter_tts to 3.2.2 in example app.
+* Update flutter_tts to 3.2.2 and update the example app.
+* Support `setVolume()`.

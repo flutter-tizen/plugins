@@ -160,6 +160,15 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         list.push_back(flutter::EncodableValue(language));
       }
       result->Success(flutter::EncodableValue(list));
+    } else if (method_name.compare("setVolume") == 0) {
+      if (std::holds_alternative<double>(arguments)) {
+        double rate = std::get<double>(arguments);
+        if (tts_->SetVolume(rate)) {
+          result->Success(flutter::EncodableValue(1));
+          return;
+        }
+      }
+      result->Success(flutter::EncodableValue(0));
     } else {
       result->Error("-1", "Not supported method");
       return;
