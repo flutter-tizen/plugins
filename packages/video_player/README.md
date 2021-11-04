@@ -4,7 +4,7 @@ The Tizen implementation of [`video_player`](https://github.com/flutter/plugins/
 
 ## Required privileges
 
-To use this plugin in a Tizen application, the mediastorage, externalstorage and internet privileges are required. Add below lines under the `<manifest>` section in your `tizen-manifest.xml` file.
+To use this plugin in a Tizen application, you may need to declare the following privileges in your `tizen-manifest.xml` file.
 
 ```xml
 <privileges>
@@ -14,11 +14,11 @@ To use this plugin in a Tizen application, the mediastorage, externalstorage and
 </privileges>
 ```
 
-- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) must be added to play video files located in the internal storage.
-- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) must be added to play video files located in the external storage.
-- The internet privilege (`http://tizen.org/privilege/internet`) must be added to play any URLs from network.
+- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) is required to play video files located in the internal storage.
+- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) is required to play video files located in the external storage.
+- The internet privilege (`http://tizen.org/privilege/internet`) is required to play any URLs from network.
 
-For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
+For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
 
 ## Usage
 
@@ -26,8 +26,8 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 
 ```yaml
 dependencies:
-  video_player: ^2.2.3
-  video_player_tizen: ^2.2.2
+  video_player: ^2.2.6
+  video_player_tizen: ^2.3.0
 ```
 
 Then you can import `video_player` in your Dart code:
@@ -36,14 +36,14 @@ Then you can import `video_player` in your Dart code:
 import 'package:video_player/video_player.dart';
 ```
 
-For how to use the plugin, see https://github.com/flutter/plugins/tree/master/packages/video_player/video_player#usage.
+For how to use the plugin, see https://github.com/flutter/plugins/tree/master/packages/video_player/video_player#example.
 
 ## Limitations
 
-The 'httpheaders' option for 'VideoPlayerController.network' and 'mixWithOthers' option of 'VideoPlayerOptions' will be silently ignored in Tizen platform.
+The `httpHeaders` option of `VideoPlayerController.network` and the `mixWithOthers` option of `VideoPlayerOptions` will be silently ignored in Tizen platform.
 
-This plugin has some limitations on TV:
+This plugin has some limitations on TV devices.
 
-- The 'setPlaybackSpeed' method will fail if triggered within last 3 seconds.
+- The `setPlaybackSpeed` method will fail if triggered within last 3 seconds.
 - The playback speed will reset to 1.0 when video is replayed in loop mode.
-- The 'seekTo' method works only when playback speed is 1.0, and it sets video position to the nearest key frame which may differ from the passed argument.
+- The `seekTo` method works only when playback speed is 1.0, and it sets video position to the nearest key frame which may differ from the passed argument.
