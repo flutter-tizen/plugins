@@ -94,6 +94,7 @@ static RecorderOrientationTag ChooseRecorderOrientationTag(
       break;
     case OrientationType::kLandscapeRight:
       tag = RecorderOrientationTag::kNone;
+      break;
     default:
       LOG_ERROR("Unknown RecorderOrientationTag!");
       break;
