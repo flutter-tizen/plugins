@@ -25,5 +25,4 @@ flutter:
   uses-material-design: true
 
 flutter_splash_tizen:
-  image: assets/test.png
-  
+  image: test.png
