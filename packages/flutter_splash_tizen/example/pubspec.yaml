@@ -1,0 +1,28 @@
+name: flutter_splash_tizen_example
+description: Demonstrates how to use the flutter_splash_tizen plugin.
+
+publish_to: 'none'
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_splash_tizen:
+    path: ../
+
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^1.0.0
+
+flutter:
+  uses-material-design: true
+
+flutter_splash_tizen:
+  image: assets/test.png
