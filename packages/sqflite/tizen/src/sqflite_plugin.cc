@@ -180,6 +180,21 @@ class SqflitePlugin : public flutter::Plugin {
     return getDatabase(databaseId);
   }
 
+  static void handleException(
+      DatabaseError exception, std::string sql,
+      DatabaseManager::parameters sqlParams,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    flutter::EncodableMap exceptionMap;
+    exceptionMap.insert(
+        std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+            flutter::EncodableValue("sql"), flutter::EncodableValue(sql)));
+    exceptionMap.insert(
+        std::pair<flutter::EncodableValue, flutter::EncodableList>(
+            flutter::EncodableValue("arguments"), sqlParams));
+    result->Error(DATABASE_ERROR_CODE, exception.what(),
+                  flutter::EncodableValue(exceptionMap));
+  }
+
   void OnExecuteCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
@@ -369,7 +384,7 @@ class SqflitePlugin : public flutter::Plugin {
     try {
       response = insert(database, sql, params, noResult);
     } catch (const DatabaseError &e) {
-      result->Error(DATABASE_ERROR_CODE, e.what());
+      handleException(e, sql, params, std::move(result));
       return;
     }
     result->Success(response);
@@ -400,7 +415,7 @@ class SqflitePlugin : public flutter::Plugin {
     try {
       response = update(database, sql, params, noResult);
     } catch (const DatabaseError &e) {
-      result->Error(DATABASE_ERROR_CODE, e.what());
+      handleException(e, sql, params, std::move(result));
       return;
     }
     result->Success(response);
@@ -445,7 +460,7 @@ class SqflitePlugin : public flutter::Plugin {
     try {
       response = query(database, sql, params);
     } catch (const DatabaseError &e) {
-      result->Error(DATABASE_ERROR_CODE, e.what());
+      handleException(e, sql, params, std::move(result));
       return;
     }
     result->Success(response);
@@ -677,7 +692,7 @@ class SqflitePlugin : public flutter::Plugin {
           }
         } catch (const DatabaseError &e) {
           if (!continueOnError) {
-            result->Error(DATABASE_ERROR_CODE, e.what());
+            handleException(e, sql, params, std::move(result));
             return;
           } else {
             if (!noResult) {
@@ -696,7 +711,7 @@ class SqflitePlugin : public flutter::Plugin {
           }
         } catch (const DatabaseError &e) {
           if (!continueOnError) {
-            result->Error(DATABASE_ERROR_CODE, e.what());
+            handleException(e, sql, params, std::move(result));
             return;
           } else {
             if (!noResult) {
@@ -715,7 +730,7 @@ class SqflitePlugin : public flutter::Plugin {
           }
         } catch (const DatabaseError &e) {
           if (!continueOnError) {
-            result->Error(DATABASE_ERROR_CODE, e.what());
+            handleException(e, sql, params, std::move(result));
             return;
           } else {
             if (!noResult) {
@@ -734,7 +749,7 @@ class SqflitePlugin : public flutter::Plugin {
           }
         } catch (const DatabaseError &e) {
           if (!continueOnError) {
-            result->Error(DATABASE_ERROR_CODE, e.what());
+            handleException(e, sql, params, std::move(result));
             return;
           } else {
             if (!noResult) {
