@@ -26,7 +26,9 @@ DatabaseManager::~DatabaseManager() {
     finalizeStmt(stmt.second);
     stmt.second = nullptr;
   }
-  close();
+  if (sqliteDatabase != nullptr) {
+    close();
+  }
 }
 
 void DatabaseManager::init() {

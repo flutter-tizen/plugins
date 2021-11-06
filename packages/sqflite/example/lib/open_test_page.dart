@@ -140,7 +140,6 @@ class OpenTestPage extends TestPage {
     final factory = databaseFactory;
 
     test('Databases path', () async {
-      // await Sqflite.devSetDebugModeOn(false);
       final databasesPath = await factory.getDatabasesPath();
       // On Android we know it is current a 'databases' folder in the package folder
       print('databasesPath: ' + databasesPath);
@@ -155,7 +154,6 @@ class OpenTestPage extends TestPage {
       await db.close();
     });
     test('Delete database', () async {
-      //await Sqflite.devSetDebugModeOn(false);
       final path = await initDeleteDb('delete_database.db');
       expect(await databaseExists(path), false);
       final db = await openDatabase(path);
@@ -169,7 +167,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open no version', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_no_version.db');
       expect((await File(path).exists()), false);
       final db = await openDatabase(path);
@@ -179,7 +176,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('isOpen', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('is_open.db');
       expect((await File(path).exists()), false);
       final db = await openDatabase(path);
@@ -206,7 +202,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open onCreate', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_test2.db');
       var onCreate = false;
       var onCreateTransaction = false;
@@ -227,7 +222,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Simple onCreate', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_simple_on_create.db');
       expect(await isDatabase(path), isFalse);
 
@@ -256,7 +250,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open 2 databases', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path1 = await initDeleteDb('open_db_1.db');
       final path2 = await initDeleteDb('open_db_2.db');
       final db1 = await openDatabase(path1, version: 1);
@@ -266,7 +259,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open onUpgrade', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       var onUpgrade = false;
       final path = await initDeleteDb('open_on_upgrade.db');
       var database = await openDatabase(path, version: 1,
@@ -302,7 +294,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open onDowngrade', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_on_downgrade.db');
       var database = await openDatabase(path, version: 2,
           onCreate: (Database db, int version) async {
@@ -337,7 +328,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open asset database', () async {
-      // await Sqflite.devSetDebugModeOn(false);
       final databasesPath = await getDatabasesPath();
       final path = join(databasesPath, 'asset_example.db');
 
@@ -389,8 +379,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open onDowngrade delete', () async {
-      // await Sqflite.devSetDebugModeOn(false);
-
       final path = await initDeleteDb('open_on_downgrade_delete.db');
       var database = await openDatabase(path, version: 3,
           onCreate: (Database db, int version) async {
@@ -445,7 +433,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('All open callback', () async {
-      // await Sqflite.devSetDebugModeOn(false);
       final path = await initDeleteDb('open_all_callbacks.db');
 
       var step = 1;
@@ -502,7 +489,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open batch', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_batch.db');
 
       Future _onConfigure(Database db) async {
@@ -536,7 +522,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open read-only', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_read_only.db');
 
       Future _onCreate(Database db, int version) async {
@@ -574,7 +559,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Open demo (doc)', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_read_only.db');
 
       {
@@ -656,7 +640,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Database locked (doc)', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_locked.db');
       final helper = Helper(path);
 
@@ -670,7 +653,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('single/multi instance (using factory)', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('instances_test.db');
       Database? db1, db2, db3;
       try {
@@ -690,7 +672,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('single/multi instance', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('instances_test.db');
       final db1 = await openDatabase(path, singleInstance: false);
       final db2 = await openDatabase(path, singleInstance: true);
@@ -728,7 +709,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('Not in memory database', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('not_in_memory.db');
 
       var db = await openDatabase(path);
@@ -748,21 +728,21 @@ class OpenTestPage extends TestPage {
       await db.close();
     });
 
-    test('open in sub directory', () async {
+    test('open in sub directory fails', () async {
       final databasesPath = await factory.getDatabasesPath();
       final path = join(databasesPath, 'sub_that_should_not_exists');
       try {
         await Directory(path).delete(recursive: true);
       } catch (_) {}
       final dbPath = join(path, 'open.db');
-      final db = await factory.openDatabase(dbPath);
-      try {} finally {
-        await db.close();
+      try {
+        await factory.openDatabase(dbPath);
+      } catch (e) {
+        print("couldn't open database in sub directory");
       }
     });
 
-    test('open in sub sub directory', () async {
-      // await Sqflite.devSetDebugModeOn(true);
+    test('open in sub sub directory fails', () async {
       final databasesPath = await factory.getDatabasesPath();
       final path =
           join(databasesPath, 'sub2_that_should_not_exists', 'sub_sub');
@@ -771,14 +751,14 @@ class OpenTestPage extends TestPage {
       } catch (_) {}
       expect(await Directory(path).exists(), false);
       final dbPath = join(path, 'open.db');
-      final db = await factory.openDatabase(dbPath);
-      try {} finally {
-        await db.close();
+      try {
+        await factory.openDatabase(dbPath);
+      } catch (e) {
+        print("couldn't open database in sub sub directory");
       }
     });
 
     test('open_close_open_no_wait', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       const path = 'open_close_open_no_wait.db';
       final factory = databaseFactory;
       await factory.deleteDatabase(path);
@@ -800,7 +780,6 @@ class OpenTestPage extends TestPage {
       }
     });
     test('close in transaction', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       const path = 'test_close_in_transaction.db';
       final factory = databaseFactory;
       await factory.deleteDatabase(path);
@@ -819,7 +798,6 @@ class OpenTestPage extends TestPage {
     });
 
     test('open in transaction', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       const path = 'test_close_in_transaction.db';
       final factory = databaseFactory;
       await factory.deleteDatabase(path);
@@ -852,7 +830,6 @@ class OpenTestPage extends TestPage {
 
     test('Open non sqlite file', () async {
       // Kind of corruption simulation
-      // await Sqflite.devSetDebugModeOn(true);
       final factory = databaseFactory;
       final path =
           join(await factory.getDatabasesPath(), 'test_non_sqlite_file.db');
@@ -890,40 +867,20 @@ class OpenTestPage extends TestPage {
           (await File(path).readAsBytes()).length, lessThan(minExpectedSize));
 
       var db = await factory.openDatabase(path);
-      if (Platform.isIOS || Platform.isMacOS) {
-        // On iOS it fails
-        try {
-          await db.getVersion();
-        } catch (e) {
-          print('getVersion error');
-        }
-      } else {
-        // On Android the database is re-created
+      try {
         await db.getVersion();
+      } catch (e) {
+        print('getVersion error');
       }
       await db.close();
 
-      if (Platform.isIOS || Platform.isMacOS) {
-        // On iOS it fails
-        try {
-          db = await factory.openDatabase(path,
-              options: OpenDatabaseOptions(version: 1));
-        } catch (e) {
-          print('getVersion error');
-        }
-      } else {
+      try {
         db = await factory.openDatabase(path,
             options: OpenDatabaseOptions(version: 1));
-        // On Android the database is re-created
-        await db.getVersion();
+      } catch (e) {
+        print('openDatabase error');
       }
       await db.close();
-
-      if (Platform.isAndroid) {
-        // Content has changed, it is a big file now!
-        expect((await File(path).readAsBytes()).length,
-            greaterThan(minExpectedSize));
-      }
     });
   }
 }

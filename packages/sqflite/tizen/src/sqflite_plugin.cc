@@ -582,6 +582,7 @@ class SqflitePlugin : public flutter::Plugin {
       databaseMap.insert(std::pair<int, std::shared_ptr<DatabaseManager>>(
           databaseId, databaseManager));
     } catch (const DatabaseError &e) {
+      LOG_DEBUG("ERROR: open db %s", e.what());
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_OPEN_FAILED + " " + path);
       return;
     }
