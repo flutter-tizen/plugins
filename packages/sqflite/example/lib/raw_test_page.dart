@@ -17,8 +17,6 @@ class RawTestPage extends TestPage {
   /// Raw test page.
   RawTestPage({Key? key}) : super('Raw tests', key: key) {
     test('Simple', () async {
-      // await Sqflite.devSetDebugModeOn(true);
-
       final path = await initDeleteDb('raw_simple.db');
       final db = await openDatabase(path);
       try {
@@ -46,8 +44,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Options', () async {
-      // Sqflite.devSetDebugModeOn(true);
-
       final path = await initDeleteDb('raw_query_format.db');
       final db = await openDatabase(path);
       try {
@@ -111,7 +107,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Transaction', () async {
-      //Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('simple_transaction.db');
       final db = await openDatabase(path);
       try {
@@ -143,7 +138,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Concurrency 1', () async {
-      // Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('simple_concurrency_1.db');
       final db = await openDatabase(path);
       try {
@@ -199,7 +193,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Concurrency 2', () async {
-      // Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('simple_concurrency_2.db');
       final db = await openDatabase(path);
       try {
@@ -279,7 +272,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Transaction open twice', () async {
-      //Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('transaction_open_twice.db');
       final db = await openDatabase(path);
       Database? db2;
@@ -315,28 +307,7 @@ class RawTestPage extends TestPage {
       }
     });
 
-    test('Debug mode (log)', () async {
-      //await Sqflite.devSetDebugModeOn(false);
-      final path = await initDeleteDb('debug_mode.db');
-      final db = await openDatabase(path);
-      try {
-        final debugModeOn = await Sqflite.getDebugModeOn();
-        await Sqflite.setDebugModeOn(true);
-        await db.setVersion(1);
-        await Sqflite.setDebugModeOn(false);
-        // this message should not appear
-        await db.setVersion(2);
-        await Sqflite.setDebugModeOn(true);
-        await db.setVersion(3);
-        // restore
-        await Sqflite.setDebugModeOn(debugModeOn);
-      } finally {
-        await db.close();
-      }
-    });
-
     test('Demo', () async {
-      // await Sqflite.devSetDebugModeOn();
       final path = await initDeleteDb('simple_demo.db');
       final database = await openDatabase(path);
       try {
@@ -459,7 +430,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Open twice', () async {
-      // Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_twice.db');
       final db = await openDatabase(path);
       Database? db2;
@@ -478,7 +448,6 @@ class RawTestPage extends TestPage {
     });
 
     test('text primary key', () async {
-      // Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('text_primary_key.db');
       final db = await openDatabase(path);
       try {
