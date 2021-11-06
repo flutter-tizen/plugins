@@ -14,7 +14,8 @@ const string DATABASE_MSG_ERROR_CLOSED = "database_closed";
 
 struct DatabaseError : public std::runtime_error {
   DatabaseError(int code, const char *msg)
-      : std::runtime_error("[" + std::to_string(code) + "]: " + string(msg)) {}
+      : std::runtime_error(string(msg) + " (code " + std::to_string(code) +
+                           ")") {}
 };
 
 class DatabaseManager {
@@ -29,7 +30,9 @@ class DatabaseManager {
   DatabaseManager(string aPath, int aId, bool aSingleInstance, int aLogLevel);
   virtual ~DatabaseManager();
 
-  typedef std::variant<int, string, double, std::nullptr_t> resultvalue;
+  typedef std::variant<int64_t, string, double, std::vector<uint8_t>,
+                       std::nullptr_t>
+      resultvalue;
   typedef std::list<std::pair<string, resultvalue>> result;
   typedef std::list<result> resultset;
   typedef std::list<string> columns;
@@ -37,8 +40,8 @@ class DatabaseManager {
 
   void open();
   void openReadOnly();
-  void close();
   const char *getErrorMsg();
+  int getErrorCode();
   sqlite3 *getWritableDatabase();
   sqlite3 *getReadableDatabase();
   void execute(string sql, parameters params);
@@ -48,6 +51,7 @@ class DatabaseManager {
   typedef sqlite3_stmt *statement;
 
   void init();
+  void close();
   void prepareStmt(statement stmt, string sql);
   void bindStmtParams(statement stmt, parameters params);
   void executeStmt(statement stmt);

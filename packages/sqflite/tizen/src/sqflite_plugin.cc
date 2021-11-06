@@ -44,7 +44,7 @@ bool GetValueFromEncodableMap(flutter::EncodableMap &map, std::string key,
 
 class SqflitePlugin : public flutter::Plugin {
   inline static std::map<std::string, int> singleInstancesByPath;
-  inline static std::map<int, DatabaseManager> databaseMap;
+  inline static std::map<int, std::shared_ptr<DatabaseManager>> databaseMap;
   inline static std::string databasesPath;
   inline static int internalStorageId;
   inline static bool queryAsMapList = false;
@@ -162,16 +162,16 @@ class SqflitePlugin : public flutter::Plugin {
     }
     return result;
   }
-  static DatabaseManager *getDatabase(int databaseId) {
-    DatabaseManager *result = nullptr;
+  static std::shared_ptr<DatabaseManager> getDatabase(int databaseId) {
+    std::shared_ptr<DatabaseManager> result = nullptr;
     auto itr = databaseMap.find(databaseId);
     if (itr != databaseMap.end()) {
-      result = &itr->second;
+      result = itr->second;
     }
     return result;
   }
 
-  static DatabaseManager *getDatabaseOrError(
+  static std::shared_ptr<DatabaseManager> getDatabaseOrError(
       const flutter::MethodCall<flutter::EncodableValue> &method_call) {
     flutter::EncodableMap arguments =
         std::get<flutter::EncodableMap>(*method_call.arguments());
@@ -193,7 +193,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "sql", sql);
     GetValueFromEncodableMap(arguments, "id", databaseId);
 
-    DatabaseManager *database = getDatabaseOrError(method_call);
+    auto database = getDatabaseOrError(method_call);
     if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
@@ -208,12 +208,12 @@ class SqflitePlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void execute(DatabaseManager *database, std::string sql,
+  void execute(std::shared_ptr<DatabaseManager> database, std::string sql,
                DatabaseManager::parameters params) {
     database->execute(sql, params);
   }
 
-  int queryUpdateChanges(DatabaseManager *database) {
+  int64_t queryUpdateChanges(std::shared_ptr<DatabaseManager> database) {
     std::string changesSql = "SELECT changes();";
     std::list<std::string> columns;
     DatabaseManager::resultset resultset;
@@ -223,10 +223,11 @@ class SqflitePlugin : public flutter::Plugin {
     auto rs = resultset.begin();
     auto newList = *rs;
     auto it = newList.begin();
-    return std::get<int>(it->second);
+    return std::get<int64_t>(it->second);
   }
 
-  std::pair<int, int> queryInsertChanges(DatabaseManager *database) {
+  std::pair<int64_t, int64_t> queryInsertChanges(
+      std::shared_ptr<DatabaseManager> database) {
     std::string changesSql = "SELECT changes(), last_insert_rowid();";
     std::list<std::string> columns;
     DatabaseManager::resultset resultset;
@@ -235,16 +236,17 @@ class SqflitePlugin : public flutter::Plugin {
     auto rs = resultset.begin();
     auto newList = *rs;
     auto it = newList.begin();
-    auto changes = std::get<int>(it->second);
+    auto changes = std::get<int64_t>(it->second);
     int lastId = 0;
     if (changes > 0) {
       std::advance(it, 1);
-      lastId = std::get<int>(it->second);
+      lastId = std::get<int64_t>(it->second);
     }
     return std::make_pair(changes, lastId);
   }
 
-  flutter::EncodableValue update(DatabaseManager *database, std::string sql,
+  flutter::EncodableValue update(std::shared_ptr<DatabaseManager> database,
+                                 std::string sql,
                                  DatabaseManager::parameters params,
                                  bool noResult) {
     database->execute(sql, params);
@@ -257,7 +259,8 @@ class SqflitePlugin : public flutter::Plugin {
     return flutter::EncodableValue(changes);
   }
 
-  flutter::EncodableValue insert(DatabaseManager *database, std::string sql,
+  flutter::EncodableValue insert(std::shared_ptr<DatabaseManager> database,
+                                 std::string sql,
                                  DatabaseManager::parameters params,
                                  bool noResult) {
     database->execute(sql, params);
@@ -274,35 +277,39 @@ class SqflitePlugin : public flutter::Plugin {
     return flutter::EncodableValue(insertChanges.second);
   }
 
-  flutter::EncodableValue query(DatabaseManager *database, std::string sql,
+  struct DBResultVisitor {
+    flutter::EncodableValue operator()(int64_t val) {
+      return flutter::EncodableValue(val);
+    };
+    flutter::EncodableValue operator()(std::string val) {
+      return flutter::EncodableValue(val);
+    };
+    flutter::EncodableValue operator()(double val) {
+      return flutter::EncodableValue(val);
+    };
+    flutter::EncodableValue operator()(std::vector<uint8_t> val) {
+      return flutter::EncodableValue(val);
+    };
+    flutter::EncodableValue operator()(std::nullptr_t val) {
+      return flutter::EncodableValue();
+    };
+  };
+
+  flutter::EncodableValue query(std::shared_ptr<DatabaseManager> database,
+                                std::string sql,
                                 DatabaseManager::parameters params) {
     DatabaseManager::columns columns;
     DatabaseManager::resultset resultset;
+    auto dbResultVisitor = DBResultVisitor{};
     database->query(sql, params, columns, resultset);
     if (queryAsMapList) {
       flutter::EncodableList response;
       for (auto row : resultset) {
         flutter::EncodableMap rowMap;
         for (auto col : row) {
-          flutter::EncodableValue rowValue;
-          LOG_DEBUG("Col type is %d", col.second.index());
-          switch (col.second.index()) {
-            case 0:
-              rowValue = flutter::EncodableValue(std::get<int>(col.second));
-              break;
-            case 1:
-              rowValue =
-                  flutter::EncodableValue(std::get<std::string>(col.second));
-              break;
-            case 2:
-              rowValue = flutter::EncodableValue(std::get<double>(col.second));
-              break;
-            case 3:
-              rowValue = flutter::EncodableValue();
-              break;
-            default:
-              break;
-          }
+          LOG_DEBUG("Trying to visit value");
+          auto rowValue = std::visit(dbResultVisitor, col.second);
+          LOG_DEBUG("value visited!");
           rowMap.insert(
               std::pair<flutter::EncodableValue, flutter::EncodableValue>(
                   flutter::EncodableValue(col.first), rowValue));
@@ -315,31 +322,13 @@ class SqflitePlugin : public flutter::Plugin {
       flutter::EncodableList colsResponse;
       flutter::EncodableList rowsResponse;
       for (auto col : columns) {
-        LOG_DEBUG("pushing back col %s", col.c_str());
         colsResponse.push_back(flutter::EncodableValue(col));
       }
       for (auto row : resultset) {
         flutter::EncodableList rowList;
         for (auto col : row) {
-          LOG_DEBUG("Col type is %d", col.second.index());
-          switch (col.second.index()) {
-            case 0:
-              rowList.push_back(
-                  flutter::EncodableValue(std::get<int>(col.second)));
-              break;
-            case 1:
-              rowList.push_back(
-                  flutter::EncodableValue(std::get<std::string>(col.second)));
-              break;
-            case 2:
-              rowList.push_back(
-                  flutter::EncodableValue(std::get<double>(col.second)));
-            case 3:
-              rowList.push_back(flutter::EncodableValue());
-              break;
-            default:
-              break;
-          }
+          auto rowValue = std::visit(dbResultVisitor, col.second);
+          rowList.push_back(rowValue);
         }
         rowsResponse.push_back(flutter::EncodableValue(rowList));
       }
@@ -370,7 +359,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "id", databaseId);
     GetValueFromEncodableMap(arguments, "noResult", noResult);
 
-    DatabaseManager *database = getDatabaseOrError(method_call);
+    auto database = getDatabaseOrError(method_call);
     if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
@@ -401,7 +390,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "id", databaseId);
     GetValueFromEncodableMap(arguments, "noResult", noResult);
 
-    DatabaseManager *database = getDatabaseOrError(method_call);
+    auto database = getDatabaseOrError(method_call);
     if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
@@ -446,7 +435,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "arguments", params);
     GetValueFromEncodableMap(arguments, "sql", sql);
     GetValueFromEncodableMap(arguments, "id", databaseId);
-    DatabaseManager *database = getDatabaseOrError(method_call);
+    auto database = getDatabaseOrError(method_call);
     if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
@@ -488,16 +477,12 @@ class SqflitePlugin : public flutter::Plugin {
     int *existingDatabaseId = getDatabaseId(path);
     if (existingDatabaseId) {
       LOG_DEBUG("db id exists: %d", *existingDatabaseId);
-      DatabaseManager *dbm = getDatabase(*existingDatabaseId);
+      auto dbm = getDatabase(*existingDatabaseId);
       if (dbm && dbm->sqliteDatabase) {
         LOG_DEBUG("db exists, deleting it...");
-        try {
-          dbm->close();
-        } catch (const DatabaseError &e) {
-          result->Error(DATABASE_ERROR_CODE, e.what());
-          return;
-        }
+        LOG_DEBUG("erasing db id from map");
         databaseMap.erase(*existingDatabaseId);
+        LOG_DEBUG("erasing path from map");
         singleInstancesByPath.erase(path);
       }
     }
@@ -542,29 +527,28 @@ class SqflitePlugin : public flutter::Plugin {
         foundDatabaseId = sit->second;
       }
       if (foundDatabaseId) {
-        DatabaseManager *storedDb = nullptr;
         auto dit = databaseMap.find(foundDatabaseId);
         if (dit != databaseMap.end()) {
-          *storedDb = dit->second;
-        }
-        if (storedDb && storedDb->sqliteDatabase) {
-          auto response = makeOpenResult(foundDatabaseId, true);
-          result->Success(response);
-          return;
+          if (dit->second->sqliteDatabase) {
+            auto response = makeOpenResult(foundDatabaseId, true);
+            result->Success(response);
+            return;
+          }
         }
       }
     }
     // TODO: Protect with mutex
     const int newDatabaseId = ++databaseId;
     try {
-      DatabaseManager databaseManager =
-          DatabaseManager(path, newDatabaseId, singleInstance, 0);
+      std::shared_ptr<DatabaseManager> databaseManager =
+          std::make_shared<DatabaseManager>(path, newDatabaseId, singleInstance,
+                                            0);
       if (!readOnly) {
-        LOG_DEBUG("opening read only database in path %s", path.c_str());
-        databaseManager.open();
-      } else {
         LOG_DEBUG("opening read-write database in path %s", path.c_str());
-        databaseManager.openReadOnly();
+        databaseManager->open();
+      } else {
+        LOG_DEBUG("opening read only database in path %s", path.c_str());
+        databaseManager->openReadOnly();
       }
 
       // Store dbid in internal map
@@ -574,8 +558,8 @@ class SqflitePlugin : public flutter::Plugin {
         singleInstancesByPath.insert(
             std::pair<std::string, int>(path, databaseId));
       }
-      databaseMap.insert(
-          std::pair<int, DatabaseManager>(databaseId, databaseManager));
+      databaseMap.insert(std::pair<int, std::shared_ptr<DatabaseManager>>(
+          databaseId, databaseManager));
     } catch (const DatabaseError &e) {
       result->Error(DATABASE_ERROR_CODE, e.what());
       return;
@@ -593,7 +577,7 @@ class SqflitePlugin : public flutter::Plugin {
     int databaseId;
     GetValueFromEncodableMap(arguments, "id", databaseId);
 
-    DatabaseManager *database = getDatabaseOrError(method_call);
+    auto database = getDatabaseOrError(method_call);
     if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));
@@ -602,17 +586,17 @@ class SqflitePlugin : public flutter::Plugin {
 
     auto path = database->path;
 
-    // Remove from map right away
-    // TODO: Protect with mutex
-    databaseMap.erase(databaseId);
-
-    if (database->singleInstance) {
-      singleInstancesByPath.erase(path);
-    }
-
-    LOG_DEBUG("closing database id %d in path %s", databaseId, path.c_str());
     try {
-      database->close();
+      LOG_DEBUG("closing database id %d in path %s", databaseId, path.c_str());
+      // By erasing the entry from databaseMap, the destructor of
+      // DatabaseManager is called, which finalizes all open statements and
+      // closes the database.
+      // TODO: Protect with mutex
+      databaseMap.erase(databaseId);
+
+      if (database->singleInstance) {
+        singleInstancesByPath.erase(path);
+      }
     } catch (const DatabaseError &e) {
       result->Error(DATABASE_ERROR_CODE, e.what());
       return;
@@ -667,7 +651,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, "continueOnError", continueOnError);
     GetValueFromEncodableMap(arguments, "noResult", noResult);
 
-    DatabaseManager *database = getDatabaseOrError(method_call);
+    auto database = getDatabaseOrError(method_call);
     if (database == nullptr) {
       result->Error(DATABASE_ERROR_CODE, DATABASE_MSG_ERROR_CLOSED + " " +
                                              std::to_string(databaseId));

@@ -4,7 +4,7 @@ The Tizen implementation of [`sqflite`](https://github.com/tekartik/sqflite).
 
 ## Getting Started
 
- This package is not an _endorsed_ implementation of `geolocator`. Therefore, you have to include `geolocator_tizen` alongside `geolocator` as dependencies in your `pubspec.yaml` file.
+ This package is not an _endorsed_ implementation of `sqflite`. Therefore, you have to include `sqflite_tizen` alongside `sqflite` as dependencies in your `pubspec.yaml` file.
 
  ```yaml
 dependencies:
@@ -18,7 +18,7 @@ Then you can import `sqflite` in your Dart code:
 import 'package:sqflite/sqflite.dart';
 ```
 
-For more details, see [here](https://github.com/Baseflow/flutter-geolocator/tree/master/geolocator#usage).
+For more details, see [here](https://github.com/tekartik/sqflite/blob/master/sqflite/README.md).
 
 ## Required privileges
 
