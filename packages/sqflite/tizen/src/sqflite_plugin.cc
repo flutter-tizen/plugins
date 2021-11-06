@@ -319,6 +319,9 @@ class SqflitePlugin : public flutter::Plugin {
     database->query(sql, params, columns, resultset);
     if (queryAsMapList) {
       flutter::EncodableList response;
+      if (resultset.size() == 0) {
+        return flutter::EncodableValue(response);
+      }
       for (auto row : resultset) {
         flutter::EncodableMap rowMap;
         for (auto col : row) {
@@ -334,6 +337,9 @@ class SqflitePlugin : public flutter::Plugin {
       return flutter::EncodableValue(response);
     } else {
       flutter::EncodableMap response;
+      if (resultset.size() == 0) {
+        return flutter::EncodableValue(response);
+      }
       flutter::EncodableList colsResponse;
       flutter::EncodableList rowsResponse;
       for (auto col : columns) {
