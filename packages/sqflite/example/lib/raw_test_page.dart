@@ -532,7 +532,7 @@ class RawTestPage extends TestPage {
       }
     });
 
-    test('Binding null (fails on Android)', () async {
+    test('Binding null', () async {
       final db = await openDatabase(inMemoryDatabasePath);
       try {
         for (var value in [null, 2]) {
