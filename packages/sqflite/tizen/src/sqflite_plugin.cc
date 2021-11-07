@@ -99,6 +99,8 @@ class SqflitePlugin : public flutter::Plugin {
       OnUpdateCall(method_call, std::move(result));
     } else if (methodName == METHOD_BATCH) {
       OnBatchCall(method_call, std::move(result));
+    } else if (methodName == METHOD_DEBUG) {
+      OnDebugCall(method_call, std::move(result));
     } else {
       result->NotImplemented();
     }
@@ -194,6 +196,46 @@ class SqflitePlugin : public flutter::Plugin {
             flutter::EncodableValue(PARAM_SQL_ARGUMENTS), sqlParams));
     result->Error(ERROR_DATABASE, exception.what(),
                   flutter::EncodableValue(exceptionMap));
+  }
+
+  void OnDebugCall(
+      const flutter::MethodCall<flutter::EncodableValue> &method_call,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    flutter::EncodableMap arguments =
+        std::get<flutter::EncodableMap>(*method_call.arguments());
+    std::string cmd;
+    GetValueFromEncodableMap(arguments, PARAM_CMD, cmd);
+
+    flutter::EncodableMap map;
+
+    if (cmd == CMD_GET) {
+      if (logLevel > 0) {
+        map.insert(std::make_pair(flutter::EncodableValue(PARAM_LOG_LEVEL),
+                                  flutter::EncodableValue(logLevel)));
+      }
+      if (databaseMap.size() > 0) {
+        flutter::EncodableMap databasesInfo;
+        for (auto entry : databaseMap) {
+          auto [id, database] = entry;
+          flutter::EncodableMap info;
+          info.insert(std::make_pair(flutter::EncodableValue(PARAM_PATH),
+                                     flutter::EncodableValue(database->path)));
+          info.insert(std::make_pair(
+              flutter::EncodableValue(PARAM_SINGLE_INSTANCE),
+              flutter::EncodableValue(database->singleInstance)));
+          if (database->logLevel > 0) {
+            info.insert(
+                std::make_pair(flutter::EncodableValue(PARAM_LOG_LEVEL),
+                               flutter::EncodableValue(database->logLevel)));
+          }
+          databasesInfo.insert(
+              std::make_pair(flutter::EncodableValue(id), info));
+        }
+        map.insert(std::make_pair(flutter::EncodableValue("databases"),
+                                  databasesInfo));
+      }
+    }
+    result->Success(flutter::EncodableValue(map));
   }
 
   void OnExecuteCall(

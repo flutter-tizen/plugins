@@ -38,9 +38,9 @@ class _ManualTestPageState extends State<ManualTestPage> {
   }
 
   Future _incrementVersion() async {
-    final version = await database!.getVersion();
+    final version = await database?.getVersion() ?? 0;
     print('version $version');
-    await database!.setVersion(version + 1);
+    await database?.setVersion(version + 1);
   }
 
   late List<MenuItem> items;
@@ -97,7 +97,7 @@ class _ManualTestPageState extends State<ManualTestPage> {
         print(info.toString());
       }, summary: 'Implementation info (dev only)'),
       MenuItem('Increment version', () async {
-        print(await _incrementVersion());
+        await _incrementVersion();
       }, summary: 'Implementation info (dev only)'),
       MenuItem('Multiple db', () async {
         await Navigator.of(context).push(MaterialPageRoute(builder: (_) {
