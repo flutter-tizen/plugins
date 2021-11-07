@@ -9,10 +9,6 @@
 
 using std::string;
 
-const string DATABASE_ERROR_CODE = "sqlite_error";
-const string DATABASE_MSG_ERROR_CLOSED = "database_closed";
-const string DATABASE_MSG_OPEN_FAILED = "open_failed";
-
 struct DatabaseError : public std::runtime_error {
   DatabaseError(int code, const char *msg)
       : std::runtime_error(string(msg) + " (code " + std::to_string(code) +
