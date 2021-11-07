@@ -63,7 +63,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('in', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('simple_exp.db');
       final db = await openDatabase(path);
 
@@ -102,7 +101,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('Raw escaping', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('raw_escaping_fields.db');
       final db = await openDatabase(path);
 
@@ -131,7 +129,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('Escaping fields', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('escaping_fields.db');
       final db = await openDatabase(path);
 
@@ -158,7 +155,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('Functions', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('exp_functions.db');
       final db = await openDatabase(path);
 
@@ -203,7 +199,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('Alias', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('exp_alias.db');
       final db = await openDatabase(path);
 
@@ -226,7 +221,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('Dart2 query', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('exp_dart2_query.db');
       final db = await openDatabase(path);
 
@@ -286,7 +280,6 @@ class ExpTestPage extends TestPage {
     return rawResult;
     */
     test('Issue#48', () async {
-      // Sqflite.devSetDebugModeOn(true);
       // devPrint('issue #48');
       // Try to query on a non-indexed field
       final path = await initDeleteDb('exp_issue_48.db');
@@ -437,7 +430,7 @@ CREATE TABLE test (
         id = await db.rawInsert('''
         INSERT INTO test (label) VALUES(?)
         ''', ['label-1']);
-        expect(id, null);
+        expect(id, 0);
       } finally {
         await db.close();
       }
@@ -478,7 +471,6 @@ CREATE TABLE test (
     });
 
     test('Issue#206', () async {
-      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('issue_206.db');
 
       final db = await openDatabase(path);
@@ -546,7 +538,6 @@ CREATE TABLE test (
       // This test does not work yet
       // Need background registration. I Kept the code for future reference
       await Future.sync(() async {
-        // await Sqflite.devSetDebugModeOn(true);
         final path = await initDeleteDb('isolate.db');
 
         // Open the db in the main isolate

@@ -249,8 +249,7 @@ class SqflitePlugin : public flutter::Plugin {
 
     database->query(changesSql, flutter::EncodableList(), columns, resultset);
     auto rs = resultset.begin();
-    auto newList = *rs;
-    auto it = newList.begin();
+    auto it = rs->begin();
     auto changes = std::get<int64_t>(it->second);
     int lastId = 0;
     if (changes > 0) {
