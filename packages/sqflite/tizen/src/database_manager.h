@@ -34,9 +34,9 @@ class DatabaseManager {
   typedef std::variant<int64_t, string, double, std::vector<uint8_t>,
                        std::nullptr_t>
       resultvalue;
-  typedef std::list<std::pair<string, resultvalue>> result;
-  typedef std::list<result> resultset;
-  typedef std::list<string> columns;
+  typedef std::vector<resultvalue> result;
+  typedef std::vector<result> resultset;
+  typedef std::vector<string> columns;
   typedef flutter::EncodableList parameters;
 
   void open();
@@ -45,8 +45,9 @@ class DatabaseManager {
   int getErrorCode();
   sqlite3 *getWritableDatabase();
   sqlite3 *getReadableDatabase();
-  void execute(string sql, parameters params);
-  void query(string sql, parameters params, columns &cols, resultset &rs);
+  void execute(string sql, parameters params = parameters());
+  std::pair<DatabaseManager::columns, DatabaseManager::resultset> query(
+      string sql, parameters params = parameters());
 
  private:
   typedef sqlite3_stmt *statement;
@@ -56,7 +57,8 @@ class DatabaseManager {
   void prepareStmt(statement stmt, string sql);
   void bindStmtParams(statement stmt, parameters params);
   void executeStmt(statement stmt);
-  void queryStmt(statement stmt, columns &cols, resultset &rs);
+  std::pair<DatabaseManager::columns, DatabaseManager::resultset> queryStmt(
+      statement stmt);
   void finalizeStmt(statement stmt);
   sqlite3_stmt *prepareStmt(string sql);
   int getStmtColumnsCount(statement stmt);

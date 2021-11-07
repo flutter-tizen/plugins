@@ -230,31 +230,22 @@ class SqflitePlugin : public flutter::Plugin {
 
   int64_t queryUpdateChanges(std::shared_ptr<DatabaseManager> database) {
     std::string changesSql = "SELECT changes();";
-    std::list<std::string> columns;
-    DatabaseManager::resultset resultset;
+    auto [_, resultset] = database->query(changesSql);
 
-    database->query(changesSql, flutter::EncodableList(), columns, resultset);
-
-    auto rs = resultset.begin();
-    auto newList = *rs;
-    auto it = newList.begin();
-    return std::get<int64_t>(it->second);
+    auto firstResult = resultset[0];
+    return std::get<int64_t>(firstResult[0]);
   }
 
   std::pair<int64_t, int64_t> queryInsertChanges(
       std::shared_ptr<DatabaseManager> database) {
     std::string changesSql = "SELECT changes(), last_insert_rowid();";
-    std::list<std::string> columns;
-    DatabaseManager::resultset resultset;
 
-    database->query(changesSql, flutter::EncodableList(), columns, resultset);
-    auto rs = resultset.begin();
-    auto it = rs->begin();
-    auto changes = std::get<int64_t>(it->second);
+    auto [_, resultset] = database->query(changesSql);
+    auto firstResult = resultset[0];
+    auto changes = std::get<int64_t>(firstResult[0]);
     int lastId = 0;
     if (changes > 0) {
-      std::advance(it, 1);
-      lastId = std::get<int64_t>(it->second);
+      lastId = std::get<int64_t>(firstResult[1]);
     }
     return std::make_pair(changes, lastId);
   }
@@ -283,12 +274,12 @@ class SqflitePlugin : public flutter::Plugin {
       return flutter::EncodableValue();
     }
 
-    auto insertChanges = queryInsertChanges(database);
+    auto [changes, lastId] = queryInsertChanges(database);
 
-    if (insertChanges.first == 0) {
+    if (changes == 0) {
       return flutter::EncodableValue();
     }
-    return flutter::EncodableValue(insertChanges.second);
+    return flutter::EncodableValue(lastId);
   }
 
   struct DBResultVisitor {
@@ -312,10 +303,8 @@ class SqflitePlugin : public flutter::Plugin {
   flutter::EncodableValue query(std::shared_ptr<DatabaseManager> database,
                                 std::string sql,
                                 DatabaseManager::parameters params) {
-    DatabaseManager::columns columns;
-    DatabaseManager::resultset resultset;
     auto dbResultVisitor = DBResultVisitor{};
-    database->query(sql, params, columns, resultset);
+    auto [columns, resultset] = database->query(sql, params);
     if (queryAsMapList) {
       flutter::EncodableList response;
       if (resultset.size() == 0) {
@@ -323,13 +312,11 @@ class SqflitePlugin : public flutter::Plugin {
       }
       for (auto row : resultset) {
         flutter::EncodableMap rowMap;
-        for (auto col : row) {
-          LOG_DEBUG("Trying to visit value");
-          auto rowValue = std::visit(dbResultVisitor, col.second);
-          LOG_DEBUG("value visited!");
+        for (size_t i = 0; i < row.size(); i++) {
+          auto rowValue = std::visit(dbResultVisitor, row[i]);
           rowMap.insert(
               std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-                  flutter::EncodableValue(col.first), rowValue));
+                  flutter::EncodableValue(columns[i]), rowValue));
         }
         response.push_back(flutter::EncodableValue(rowMap));
       }
@@ -347,7 +334,7 @@ class SqflitePlugin : public flutter::Plugin {
       for (auto row : resultset) {
         flutter::EncodableList rowList;
         for (auto col : row) {
-          auto rowValue = std::visit(dbResultVisitor, col.second);
+          auto rowValue = std::visit(dbResultVisitor, col);
           rowList.push_back(rowValue);
         }
         rowsResponse.push_back(flutter::EncodableValue(rowList));

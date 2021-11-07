@@ -232,9 +232,10 @@ const char *DatabaseManager::getColumnName(DatabaseManager::statement stmt,
   return sqlite3_column_name(stmt, iCol);
 }
 
-void DatabaseManager::queryStmt(DatabaseManager::statement stmt,
-                                DatabaseManager::columns &cols,
-                                DatabaseManager::resultset &rs) {
+std::pair<DatabaseManager::columns, DatabaseManager::resultset>
+DatabaseManager::queryStmt(DatabaseManager::statement stmt) {
+  DatabaseManager::columns cols;
+  DatabaseManager::resultset rs;
   const int columnsCount = getStmtColumnsCount(stmt);
   LOG_DEBUG("columns count %d", columnsCount);
   int resultCode = SQLITE_OK;
@@ -258,19 +259,19 @@ void DatabaseManager::queryStmt(DatabaseManager::statement stmt,
             val = (int64_t)sqlite3_column_int64(stmt, i);
             LOG_DEBUG("obtained result for col %s and value %d", columnName,
                       std::get<int64_t>(val));
-            result.push_back(std::make_pair(string(columnName), val));
+            result.push_back(val);
             break;
           case SQLITE_FLOAT:
             val = sqlite3_column_double(stmt, i);
             LOG_DEBUG("obtained result for col %s and value %d", columnName,
                       std::get<double>(val));
-            result.push_back(std::make_pair(string(columnName), val));
+            result.push_back(val);
             break;
           case SQLITE_TEXT:
             val = string((const char *)sqlite3_column_text(stmt, i));
             LOG_DEBUG("obtained result for col %s and value %s", columnName,
                       std::get<string>(val).c_str());
-            result.push_back(std::make_pair(string(columnName), val));
+            result.push_back(val);
             break;
           case SQLITE_BLOB: {
             LOG_DEBUG("obtained BLOB result for col %s", columnName);
@@ -278,13 +279,13 @@ void DatabaseManager::queryStmt(DatabaseManager::statement stmt,
                 reinterpret_cast<const uint8_t *>(sqlite3_column_blob(stmt, i));
             std::vector<uint8_t> v(&blob[0],
                                    &blob[sqlite3_column_bytes(stmt, i)]);
-            result.push_back(std::make_pair(string(columnName), v));
+            result.push_back(v);
             break;
           }
           case SQLITE_NULL:
             LOG_DEBUG("obtained NULL result for col %s", columnName);
             val = nullptr;
-            result.push_back(std::make_pair(string(columnName), val));
+            result.push_back(val);
             break;
           default:
             break;
@@ -296,15 +297,15 @@ void DatabaseManager::queryStmt(DatabaseManager::statement stmt,
   if (resultCode != SQLITE_DONE) {
     throw DatabaseError(getErrorCode(), getErrorMsg());
   }
+  return std::make_pair(cols, rs);
 }
 
-void DatabaseManager::query(string sql, DatabaseManager::parameters params,
-                            DatabaseManager::columns &cols,
-                            DatabaseManager::resultset &rs) {
+std::pair<DatabaseManager::columns, DatabaseManager::resultset>
+DatabaseManager::query(string sql, DatabaseManager::parameters params) {
   LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
   auto stmt = prepareStmt(sql);
   bindStmtParams(stmt, params);
-  queryStmt(stmt, cols, rs);
+  return queryStmt(stmt);
 }
 
 void DatabaseManager::finalizeStmt(DatabaseManager::statement stmt) {
