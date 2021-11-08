@@ -17,7 +17,7 @@ void main() {
   }
   XmlElement? splashScreens = uiApp.getElement("splash-screens");
   if (splashScreens == null) {
-    splashScreens = XmlElement(XmlName("splash-screen"));
+    splashScreens = XmlElement(XmlName("splash-screens"));
     uiApp.children.add(splashScreens);
   }
 
