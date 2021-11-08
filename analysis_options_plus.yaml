@@ -1,10 +1,8 @@
 # This file was copied from plus_plugins/analysis_options.yaml.
 
-include: package:pedantic/analysis_options.yaml
+include: package:flutter_lints/flutter.yaml
 
 analyzer:
-  enable-experiment:
-    - non-nullable
   exclude:
     # Ignore generated files
     - '**/*.g.dart'
@@ -12,6 +10,5 @@ analyzer:
 
 linter:
   rules:
-    public_member_api_docs: true
     prefer_final_in_for_each: true
     prefer_final_locals: true

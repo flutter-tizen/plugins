@@ -21,7 +21,7 @@ void main() {
   });
 
   testWidgets('example', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
     expect(find.text('package_info_plus_tizen_example'), findsOneWidget);
     expect(
