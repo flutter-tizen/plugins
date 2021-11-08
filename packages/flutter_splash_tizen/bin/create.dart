@@ -5,8 +5,6 @@ void main() {
   var doc = loadYamlFileSync("pubspec.yaml")?['flutter_splash_tizen'];
   String color = doc["color"] ?? ""; //[TODO] generation of image in this color?
   String image = doc["image"] ?? "";
-  bool tizenFlag = doc["tizen"] ?? false;
-  if (!tizenFlag) return;
 
   String tizenManifestPath = "tizen/tizen-manifest.xml";
 
@@ -31,6 +29,6 @@ void main() {
   splashScreen.setAttribute("app-control-operation", "true");
   splashScreen.setAttribute("orientation", "portrait");
   splashScreens.children.add(splashScreen);
-
+  
   writeToFileSync(tizenManifestPath, el.toXmlString());
 }
