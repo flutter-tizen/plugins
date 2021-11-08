@@ -25,8 +25,7 @@ void main() {
   XmlElement splashScreen = XmlElement(XmlName("splash-screen"));
   splashScreen.setAttribute("src", image);
   splashScreen.setAttribute("type", "img");
-  splashScreen.setAttribute("indicator-display", "true");
-  splashScreen.setAttribute("app-control-operation", "true");
+  splashScreen.setAttribute("indicator-display", "false");
   splashScreen.setAttribute("orientation", "portrait");
   splashScreens.children.add(splashScreen);
   
