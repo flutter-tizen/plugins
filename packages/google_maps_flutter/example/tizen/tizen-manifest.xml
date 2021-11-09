@@ -10,6 +10,5 @@
     <privileges>
         <privilege>http://tizen.org/privilege/internet</privilege>
     </privileges>
-
     <feature name="http://tizen.org/feature/screen.size.all"/>
 </manifest>

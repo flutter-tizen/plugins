@@ -18,8 +18,8 @@ dependencies:
   google_maps_flutter_platform_interface: ^2.0.1
   flutter_lints: ^1.0.4
   stream_transform: ^2.0.0
-  webview_flutter: ^2.0.4
-  webview_flutter_tizen: ^0.3.3
+  webview_flutter: ^2.3.0
+  webview_flutter_tizen: ^0.3.8
 
 dev_dependencies:
   flutter_test:
