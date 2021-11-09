@@ -44,3 +44,6 @@
 
 ## 0.3.7
 * Update webivew_flutter to 2.1.1
+
+## 0.3.8
+* Update webivew_flutter to 2.3.0
