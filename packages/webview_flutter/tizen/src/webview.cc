@@ -845,7 +845,8 @@ void WebView::HandleMethodCall(
     result->Success();
   } else if (method_name.compare("currentUrl") == 0) {
     result->Success(flutter::EncodableValue(webview_instance_->GetURL()));
-  } else if (method_name.compare("evaluateJavascript") == 0) {
+  } else if (method_name.compare("evaluateJavascript") == 0 ||
+             method_name.compare("runJavascriptReturningResult") == 0) {
     if (std::holds_alternative<std::string>(arguments)) {
       std::string js_string = std::get<std::string>(arguments);
       webview_instance_->EvaluateJavaScript(
@@ -853,6 +854,20 @@ void WebView::HandleMethodCall(
             LOG_DEBUG("value: %s\n", value.c_str());
             if (res) {
               res->Success(flutter::EncodableValue(value));
+              delete res;
+            }
+          });
+    } else {
+      result->Error("InvalidArguments", "Please set javascript string");
+    }
+  } else if (method_name.compare("runJavascript") == 0) {
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string js_string = std::get<std::string>(arguments);
+      webview_instance_->EvaluateJavaScript(
+          js_string, [res = result.release()](std::string value) {
+            LOG_DEBUG("value: %s\n", value.c_str());
+            if (res) {
+              res->Success();
               delete res;
             }
           });
