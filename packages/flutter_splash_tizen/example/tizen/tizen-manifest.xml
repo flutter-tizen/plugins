@@ -5,7 +5,7 @@
         <label>flutter_splash_tizen_example</label>
         <icon>ic_launcher.png</icon>
         <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true"/>
-    </ui-application>
+    <splash-screens><splash-screen src="" type="img" indicator-display="false" orientation="portrait"/></splash-screens></ui-application>
     <tv-info api-version="8.8.0">
         <infolink>T-INFOLINK2021-1000</infolink>
     </tv-info>
