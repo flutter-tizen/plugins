@@ -37,5 +37,5 @@ void main() {
   splashScreen.setAttribute("orientation", "portrait");
   splashScreens.children.add(splashScreen);
   
-  File(tizenManifestPath).writeAsStringSync(el.toXmlString());
+  File(tizenManifestPath).writeAsStringSync(el.toXmlString(pretty: true, indent: '    ') + '\n');
 }

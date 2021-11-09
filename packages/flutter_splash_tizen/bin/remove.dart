@@ -23,6 +23,6 @@ void main() {
 
   if (splashScreens != null) {
     splashScreens.children.clear();
-    File(tizenManifestPath).writeAsStringSync(el.toXmlString());
+    File(tizenManifestPath).writeAsStringSync(el.toXmlString(pretty: true, indent: '    ') + '\n');
   }
 }
