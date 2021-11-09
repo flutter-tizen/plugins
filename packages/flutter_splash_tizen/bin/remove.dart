@@ -15,13 +15,14 @@ void main() {
     
   XmlNode el = tizenManifest.root;
 
-  XmlElement? splashScreens = el
-      .getElement("manifest")
-      ?.getElement("ui-application")
-      ?.getElement("splash-screens");
-  if (splashScreens == null) {
+  XmlElement? uiApp = el.getElement("manifest")?.getElement("ui-application");
+  if (uiApp == null) {
     throw FormatException("error when reading $tizenManifestPath");
   }
-  splashScreens.children.clear();
-  File(tizenManifestPath).writeAsStringSync(el.toXmlString());
+  XmlElement? splashScreens = uiApp.getElement("splash-screens");
+
+  if (splashScreens != null) {
+    splashScreens.children.clear();
+    File(tizenManifestPath).writeAsStringSync(el.toXmlString());
+  }
 }

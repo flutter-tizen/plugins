@@ -1,5 +1,5 @@
 name: flutter_splash_tizen
-description: A new flutter plugin project.
+description: Flutter-tizen package that allows to add custom splash-screen images into your apps.
 version: 0.1.0
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_splash_tizen
