@@ -32,7 +32,8 @@ jobs:
             --exclude wearable_rotary image_picker camera webview_flutter \
               video_player permission_handler geolocator battery connectivity \
               device_info package_info sensors share wifi_info_flutter \
-              google_maps_flutter tizen_app_control url_launcher network_info_plus flutter_splash_tizen
+              google_maps_flutter tizen_app_control url_launcher network_info_plus \
+              flutter_splash_tizen
       - name: Run tests for all plugins
         if: ${{ github.event_name == 'push' }}
         run: |
@@ -43,9 +44,10 @@ jobs:
             --exclude wearable_rotary image_picker camera webview_flutter \
               video_player permission_handler geolocator battery connectivity \
               device_info package_info sensors share wifi_info_flutter \
-              google_maps_flutter tizen_app_control url_launcher network_info_plus flutter_splash_tizen
+              google_maps_flutter tizen_app_control url_launcher network_info_plus \
+              flutter_splash_tizen
         # The following packages are excluded from tests:
-        #   wearable_rotary, image_picker: no tests.
+        #   wearable_rotary, image_picker: no tests, flutter_splash_tizen: runs manually.
         #   camera: no supported profiles.
         #   video_player: test frequently breaks due to memory issue(https://github.com/flutter-tizen/plugins/issues/135).
         #   permission_handler: permission related test.
@@ -53,4 +55,3 @@ jobs:
         #   battery, connectivity, device_info, package_info, sensors, share, wifi_info_flutter: deprecated.
         #   google_maps_flutter, webview_flutter, url_launcher, network_info_plus: not supported by emulators
         #   tizen_app_control: test available after Flutter 2.5 migration.
-        #   flutter_splash_tizen: non plugin package.
