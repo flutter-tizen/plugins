@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:xml/xml.dart';
 
 void main() {
-  var doc = loadYamlFileSync("pubspec.yaml");
+  var doc = loadYamlFileSync("pubspec.yaml")?['flutter_splash_tizen'];
   if(doc == null)
     throw FormatException("could not read pubspec.yaml!");
 
-  String color = doc["color"] ?? ""; //[TODO] generation of image in this color?
-  String image = doc["image"] ?? "";
+  String? image = doc["image"];
+  if(image == null)
+    throw FormatException("could not find image section!");
 
   String tizenManifestPath = "tizen/tizen-manifest.xml";
 
