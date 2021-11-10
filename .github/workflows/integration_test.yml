@@ -47,7 +47,7 @@ jobs:
               google_maps_flutter tizen_app_control url_launcher network_info_plus \
               flutter_splash_tizen
         # The following packages are excluded from tests:
-        #   wearable_rotary, image_picker: no tests, flutter_splash_tizen: runs manually.
+        #   wearable_rotary, image_picker, flutter_splash_tizen: no tests.
         #   camera: no supported profiles.
         #   video_player: test frequently breaks due to memory issue(https://github.com/flutter-tizen/plugins/issues/135).
         #   permission_handler: permission related test.
