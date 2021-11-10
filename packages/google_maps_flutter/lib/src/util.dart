@@ -158,7 +158,7 @@ class GInfoWindow {
   }
 
   Future<void> _createInfoWindow(GInfoWindowOptions? opts) async {
-    await (await webController!).evaluateJavascript(
+    await (await webController!).runJavascript(
         'var ${toString()} = new google.maps.InfoWindow($opts);');
   }
 
@@ -171,7 +171,7 @@ class GInfoWindow {
   }
 
   Future<void> _callCloseInfoWindow() async {
-    await (await webController!).evaluateJavascript('${toString()}.close();');
+    await (await webController!).runJavascript('${toString()}.close();');
   }
 
   /// Opens InfoWindow on the given map.
@@ -182,7 +182,7 @@ class GInfoWindow {
   }
 
   Future<void> _callOpenInfoWindow(GMarker? anchor) async {
-    await (await webController!).evaluateJavascript(
+    await (await webController!).runJavascript(
         '${toString()}.open({anchor: ${anchor.toString()}, map});');
   }
 
@@ -217,8 +217,8 @@ class GMarker {
   }
 
   Future<void> _createMarker(GMarkerOptions? opts) async {
-    await (await webController!).evaluateJavascript(
-        'var ${toString()} = new google.maps.Marker($opts);');
+    await (await webController!)
+        .runJavascript('var ${toString()} = new google.maps.Marker($opts);');
   }
 
   /// GMarker id.
@@ -269,8 +269,8 @@ class GPolyline {
   }
 
   Future<void> _createPolyline(GPolylineOptions? opts) async {
-    await (await webController!).evaluateJavascript(
-        'var ${toString()} = new google.maps.Polyline($opts);');
+    await (await webController!)
+        .runJavascript('var ${toString()} = new google.maps.Polyline($opts);');
   }
 
   /// GPolyline id.
@@ -363,8 +363,8 @@ class GPolygon {
   }
 
   Future<void> _createPolygon(GPolygonOptions? opts) async {
-    await (await webController!).evaluateJavascript(
-        'var ${toString()} = new google.maps.Polygon($opts);');
+    await (await webController!)
+        .runJavascript('var ${toString()} = new google.maps.Polygon($opts);');
   }
 
   /// GPolygon id.
@@ -467,8 +467,8 @@ class GCircle {
   }
 
   Future<void> _createCircle(GCircleOptions? opts) async {
-    await (await webController!).evaluateJavascript(
-        'var ${toString()} = new google.maps.Circle($opts);');
+    await (await webController!)
+        .runJavascript('var ${toString()} = new google.maps.Circle($opts);');
   }
 
   /// GCircle id.
@@ -562,7 +562,7 @@ Future<WebViewController>? webController;
 Future<String> getProperty(Object o, String property) async {
   assert(webController != null, 'mapController is null!!');
   final String command = 'JSON.stringify(${o.toString()}[\'$property\'])';
-  return await (await webController!).evaluateJavascript(command);
+  return await (await webController!).runJavascriptReturningResult(command);
 }
 
 /// Sets the value to property of the object.
@@ -570,7 +570,7 @@ Future<String> setProperty(Object o, String property, Object? value) async {
   assert(webController != null, 'mapController is null!!');
   final String command =
       'JSON.stringify(${o.toString()}[\'$property\'] = $value)';
-  return await (await webController!).evaluateJavascript(command);
+  return await (await webController!).runJavascriptReturningResult(command);
 }
 
 /// Calls the method of the object with the args.
@@ -578,5 +578,5 @@ Future<String> callMethod(Object o, String method, List<Object?> args) async {
   assert(webController != null, 'webController is null!!');
   final String command =
       'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
-  return await (await webController!).evaluateJavascript(command);
+  return await (await webController!).runJavascriptReturningResult(command);
 }

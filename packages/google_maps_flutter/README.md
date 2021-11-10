@@ -19,7 +19,7 @@ This package is not an _endorsed_ implementation of `google_maps_flutter`. There
 ```yaml
 dependencies:
   google_maps_flutter: ^2.0.8
-  google_maps_flutter_tizen: ^0.1.0
+  google_maps_flutter_tizen: ^0.1.1
 ```
 
 In addition, you need a Maps JavaScript API Key to use this plugin. Please refer to the site below to get the API key.  

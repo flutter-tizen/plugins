@@ -29,8 +29,8 @@ class GoogleMapsController {
   /// Returns min-max zoom levels. Test only.
   @visibleForTesting
   Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
-    final String value = await (await controller)
-        .evaluateJavascript('JSON.stringify([map.minZoom, map.maxZoom])');
+    final String value = await (await controller).runJavascriptReturningResult(
+        'JSON.stringify([map.minZoom, map.maxZoom])');
     final dynamic bound = json.decode(value);
     double min = 0, max = 0;
     if (bound is List<dynamic>) {
@@ -52,8 +52,8 @@ class GoogleMapsController {
   /// Returns if zoomGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomGesturesEnabled() async {
-    final String value =
-        await (await controller).evaluateJavascript('map.gestureHandling');
+    final String value = await (await controller)
+        .runJavascriptReturningResult('map.gestureHandling');
     return value != 'none';
   }
 
@@ -61,16 +61,16 @@ class GoogleMapsController {
 
   /// Returns if zoomControls property is enabled. Test only.
   Future<bool> isZoomControlsEnabled() async {
-    final String value =
-        await (await controller).evaluateJavascript('map.zoomControl');
+    final String value = await (await controller)
+        .runJavascriptReturningResult('map.zoomControl');
     return value != 'false';
   }
 
   /// Returns if scrollGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isScrollGesturesEnabled() async {
-    final String value =
-        await (await controller).evaluateJavascript('map.gestureHandling');
+    final String value = await (await controller)
+        .runJavascriptReturningResult('map.gestureHandling');
     return value != 'none';
   }
 
@@ -119,7 +119,7 @@ class GoogleMapsController {
       map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
       map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
     ''';
-    await (await controller).evaluateJavascript(command);
+    await (await controller).runJavascript(command);
   }
 
   /// The Flutter widget that will contain the rendered Map. Used for caching.
@@ -491,7 +491,7 @@ class GoogleMapsController {
         console.log('trafficLayer detached!!');
       }
     ''';
-    await (await controller).evaluateJavascript(command);
+    await (await controller).runJavascript(command);
   }
 
   Future<void> _setMoveCamera(String options) async {
@@ -512,8 +512,8 @@ class GoogleMapsController {
 
   Future<String> _callMethod(
       WebViewController mapView, String method, List<Object?> args) async {
-    return await mapView
-        .evaluateJavascript('JSON.stringify(map.$method.apply(map, $args))');
+    return await mapView.runJavascriptReturningResult(
+        'JSON.stringify(map.$method.apply(map, $args))');
   }
 
   Future<double> _getZoom(WebViewController c) async {
@@ -629,7 +629,7 @@ class GoogleMapsController {
       JSON.stringify(getPixelToLatLng());
     ''';
 
-    return await (await controller).evaluateJavascript(command);
+    return await (await controller).runJavascriptReturningResult(command);
   }
 
   Future<String> _latLngToPoint(LatLng latLng) async {
@@ -649,7 +649,7 @@ class GoogleMapsController {
       JSON.stringify(getLatLngToPixel());
     ''';
 
-    return await (await controller).evaluateJavascript(command);
+    return await (await controller).runJavascriptReturningResult(command);
   }
 
   /// Returns the zoom level of the current viewport.
