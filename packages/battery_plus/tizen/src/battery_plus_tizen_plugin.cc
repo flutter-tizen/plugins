@@ -194,7 +194,7 @@ class BatteryPlusTizenPlugin : public flutter::Plugin {
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> events_;
-  bool is_full_;
+  bool is_full_ = false;
 };
 
 void BatteryPlusTizenPluginRegisterWithRegistrar(

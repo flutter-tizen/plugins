@@ -323,7 +323,7 @@ void WebView::ApplySettings(flutter::EncodableMap settings) {
         // NOTE: Not supported by LWE on Tizen.
       } else if ("gestureNavigationEnabled" == k) {
         // NOTE: Not supported by LWE on Tizen.
-      } else if ("allowsInlineMediaPlayback") {
+      } else if ("allowsInlineMediaPlayback" == k) {
         // no-op inline media playback is always allowed on Tizen.
       } else if ("userAgent" == k) {
         if (std::holds_alternative<std::string>(val)) {
