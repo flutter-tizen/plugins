@@ -323,7 +323,7 @@ void WebView::ApplySettings(flutter::EncodableMap settings) {
         // NOTE: Not supported by LWE on Tizen.
       } else if ("gestureNavigationEnabled" == k) {
         // NOTE: Not supported by LWE on Tizen.
-      } else if ("allowsInlineMediaPlayback") {
+      } else if ("allowsInlineMediaPlayback" == k) {
         // no-op inline media playback is always allowed on Tizen.
       } else if ("userAgent" == k) {
         if (std::holds_alternative<std::string>(val)) {
@@ -845,14 +845,23 @@ void WebView::HandleMethodCall(
     result->Success();
   } else if (method_name.compare("currentUrl") == 0) {
     result->Success(flutter::EncodableValue(webview_instance_->GetURL()));
-  } else if (method_name.compare("evaluateJavascript") == 0) {
+  } else if (method_name.compare("evaluateJavascript") == 0 ||
+             method_name.compare("runJavascriptReturningResult") == 0 ||
+             method_name.compare("runJavascript") == 0) {
     if (std::holds_alternative<std::string>(arguments)) {
       std::string js_string = std::get<std::string>(arguments);
+      bool returns_value =
+          method_name.compare("runJavascript") == 0 ? false : true;
       webview_instance_->EvaluateJavaScript(
-          js_string, [res = result.release()](std::string value) {
+          js_string,
+          [res = result.release(), returns_value](std::string value) {
             LOG_DEBUG("value: %s\n", value.c_str());
             if (res) {
-              res->Success(flutter::EncodableValue(value));
+              if (returns_value) {
+                res->Success(flutter::EncodableValue(value));
+              } else {
+                res->Success();
+              }
               delete res;
             }
           });

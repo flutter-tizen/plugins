@@ -19,9 +19,9 @@ class ImageResize {
                       image_util_image_h& dst_image);
   bool EncodeImage(image_util_encode_h encode_h, image_util_image_h dst_image,
                    image_util_type_e encoder_type, const std::string& dst_file);
-  unsigned int max_width_;
-  unsigned int max_height_;
-  int quality_;
+  unsigned int max_width_ = 0;
+  unsigned int max_height_ = 0;
+  int quality_ = 0;
 };
 
 #endif

@@ -28,7 +28,7 @@ class CircleController {
   Future<void> _addCircleEvent(Future<WebViewController>? _controller) async {
     final String command =
         "$_circle.addListener('click', (event) => CircleClick.postMessage(JSON.stringify(${_circle?.id})));";
-    await (await _controller!).evaluateJavascript(command);
+    await (await _controller!).runJavascript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

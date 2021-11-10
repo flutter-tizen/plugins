@@ -6,6 +6,7 @@
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,14 +14,16 @@ import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 
 void main() {
   runZonedGuarded(() {
-    runApp(MyApp());
+    runApp(const MyApp());
   }, (dynamic error, dynamic stack) {
-    print(error);
-    print(stack);
+    developer.log(error);
+    developer.log(stack);
   });
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   _MyAppState createState() => _MyAppState();
 }
