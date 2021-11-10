@@ -30,3 +30,4 @@ If you wish to remove the splash image from your app simply run
 ```
 flutter-tizen pub run flutter_splash_tizen:remove
 ```
+Package has been tested on Mobile 6.0, Wearable 6.0 and IoT Headed 6.5 platform.
