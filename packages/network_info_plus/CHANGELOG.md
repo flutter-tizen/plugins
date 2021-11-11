@@ -8,3 +8,7 @@
 * Add gateway ip address information.
 * Add broadcast information.
 * Add subnet mask information.
+
+## 1.1.1
+
+* Fix app crash when wifi info is not available.
