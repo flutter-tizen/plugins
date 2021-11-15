@@ -92,7 +92,7 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
       result->Error("-1", "Initialization failed");
       return;
     }
-    std::string reply = "";
+    std::string reply;
     if (method_call.method_name().compare("wifiName") == 0) {
       reply = GetWifiInfo(WifiInfoType::ESSID);
     } else if (method_call.method_name().compare("wifiBSSID") == 0) {
@@ -108,14 +108,17 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     } else if (method_call.method_name().compare("wifiBroadcast") == 0) {
       std::string ipv4 = GetWifiInfo(WifiInfoType::IPV4);
       std::string subnet_mask = GetWifiInfo(WifiInfoType::SUBNET_MASK);
-      reply = IntegerToDottedDecimal(DottedDecimalToInteger(ipv4) |
-                                     ~DottedDecimalToInteger(subnet_mask));
+      if (!ipv4.empty() && !subnet_mask.empty()) {
+        reply = IntegerToDottedDecimal(DottedDecimalToInteger(ipv4) |
+                                       ~DottedDecimalToInteger(subnet_mask));
+      }
     } else {
       result->NotImplemented();
       return;
     }
     if (reply.length() == 0) {
       result->Error("-1", "Not valid result");
+      LOG_ERROR("Could not retrieve %s.", method_call.method_name().c_str());
       return;
     }
     flutter::EncodableValue msg(reply);
