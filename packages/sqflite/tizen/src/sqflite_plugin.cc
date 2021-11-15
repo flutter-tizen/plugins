@@ -481,7 +481,7 @@ class SqflitePlugin : public flutter::Plugin {
     flutter::EncodableMap arguments =
         std::get<flutter::EncodableMap>(*method_call.arguments());
     std::string path;
-    GetValueFromEncodableMap(arguments, "path", path);
+    GetValueFromEncodableMap(arguments, PARAM_PATH, path);
 
     LOG_DEBUG("Trying to delete path %s", path.c_str());
     int *existingDatabaseId = getDatabaseId(path);
