@@ -1,5 +1,5 @@
 name: sqflite_tizen_example
-description: Demonstrates how to use the geolocator_tizen plugin.
+description: Demonstrates how to use the sqflite_tizen plugin.
 publish_to: "none"
 
 environment:
