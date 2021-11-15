@@ -7,10 +7,8 @@
 #include "sqlite3.h"
 #include "variant"
 
-using std::string;
-
-DatabaseManager::DatabaseManager(string aPath, int aId, bool aSingleInstance,
-                                 int aLogLevel) {
+DatabaseManager::DatabaseManager(std::string aPath, int aId,
+                                 bool aSingleInstance, int aLogLevel) {
   sqliteDatabase = nullptr;
   if (aPath.size() == 0) {
     throw DatabaseError(-1, "empty database path");
@@ -123,7 +121,7 @@ void DatabaseManager::bindStmtParams(DatabaseManager::statement stmt,
         break;
       }
       case 5: {
-        auto val = std::get<string>(param);
+        auto val = std::get<std::string>(param);
         LOG_DEBUG("binding param: %s", val.c_str());
         err = sqlite3_bind_text(stmt, idx, val.c_str(), val.size(),
                                 SQLITE_TRANSIENT);
@@ -207,7 +205,6 @@ sqlite3_stmt *DatabaseManager::prepareStmt(std::string sql) {
 }
 
 void DatabaseManager::executeStmt(DatabaseManager::statement stmt) {
-  LOG_DEBUG("executing prepared statement");
   int resultCode = SQLITE_OK;
   do {
     resultCode = sqlite3_step(stmt);
@@ -222,13 +219,11 @@ int DatabaseManager::getStmtColumnsCount(DatabaseManager::statement stmt) {
 }
 
 int DatabaseManager::getColumnType(DatabaseManager::statement stmt, int iCol) {
-  LOG_DEBUG("get column type for col %d", iCol);
   return sqlite3_column_type(stmt, iCol);
 }
 
 const char *DatabaseManager::getColumnName(DatabaseManager::statement stmt,
                                            int iCol) {
-  LOG_DEBUG("get column name for col %d", iCol);
   return sqlite3_column_name(stmt, iCol);
 }
 
@@ -241,7 +236,7 @@ DatabaseManager::queryStmt(DatabaseManager::statement stmt) {
   int resultCode = SQLITE_OK;
   for (int i = 0; i < columnsCount; i++) {
     auto cName = getColumnName(stmt, i);
-    cols.push_back(string(cName));
+    cols.push_back(std::string(cName));
   }
   do {
     resultCode = sqlite3_step(stmt);
@@ -268,9 +263,9 @@ DatabaseManager::queryStmt(DatabaseManager::statement stmt) {
             result.push_back(val);
             break;
           case SQLITE_TEXT:
-            val = string((const char *)sqlite3_column_text(stmt, i));
+            val = std::string((const char *)sqlite3_column_text(stmt, i));
             LOG_DEBUG("obtained result for col %s and value %s", columnName,
-                      std::get<string>(val).c_str());
+                      std::get<std::string>(val).c_str());
             result.push_back(val);
             break;
           case SQLITE_BLOB: {
@@ -301,7 +296,7 @@ DatabaseManager::queryStmt(DatabaseManager::statement stmt) {
 }
 
 std::pair<DatabaseManager::columns, DatabaseManager::resultset>
-DatabaseManager::query(string sql, DatabaseManager::parameters params) {
+DatabaseManager::query(std::string sql, DatabaseManager::parameters params) {
   LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
   auto stmt = prepareStmt(sql);
   bindStmtParams(stmt, params);
@@ -317,7 +312,8 @@ sqlite3 *DatabaseManager::getWritableDatabase() { return sqliteDatabase; }
 
 sqlite3 *DatabaseManager::getReadableDatabase() { return sqliteDatabase; }
 
-void DatabaseManager::execute(string sql, DatabaseManager::parameters params) {
+void DatabaseManager::execute(std::string sql,
+                              DatabaseManager::parameters params) {
   LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
   auto stmt = prepareStmt(sql);
   bindStmtParams(stmt, params);
