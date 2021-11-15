@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:yaml/yaml.dart';
 import 'package:xml/xml.dart';
 
-
 Map? loadYamlFileSync(String path) {
   File file = File(path);
   if (file.existsSync()) {
@@ -19,22 +18,19 @@ XmlDocument? loadXMLFileSync(String path) {
   return null;
 }
 
-
 void main() {
   var doc = loadYamlFileSync("pubspec.yaml")?['flutter_splash_tizen'];
-  if(doc == null)
-    throw FormatException("could not read pubspec.yaml!");
+  if (doc == null) throw FormatException("could not read pubspec.yaml!");
 
   String? image = doc["image"];
-  if(image == null)
-    throw FormatException("could not find image section!");
+  if (image == null) throw FormatException("could not find image section!");
 
   String tizenManifestPath = "tizen/tizen-manifest.xml";
 
   XmlDocument? tizenManifest = loadXMLFileSync(tizenManifestPath);
-  if(tizenManifest == null)
+  if (tizenManifest == null)
     throw FormatException("could not read tizen-manifext.xml!");
-    
+
   XmlNode el = tizenManifest.root;
 
   XmlElement? uiApp = el.getElement("manifest")?.getElement("ui-application");
@@ -54,6 +50,7 @@ void main() {
   splashScreen.setAttribute("indicator-display", "false");
   splashScreen.setAttribute("orientation", "portrait");
   splashScreens.children.add(splashScreen);
-  
-  File(tizenManifestPath).writeAsStringSync(el.toXmlString(pretty: true, indent: '    ') + '\n');
+
+  File(tizenManifestPath)
+      .writeAsStringSync(el.toXmlString(pretty: true, indent: '    ') + '\n');
 }
