@@ -6,7 +6,6 @@ environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  cupertino_icons: ^1.0.1+1
   flutter:
     sdk: flutter
   sqflite: ^2.0.0
@@ -14,10 +13,22 @@ dependencies:
     path: ../
 
 dev_dependencies:
-  flutter_lints: ^1.0.4
+  pedantic: ^1.11.0
+  flutter_lints:
   flutter_test:
     sdk: flutter
-  pedantic: ^1.11.0
+  flutter_driver:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
+  permission_handler: ^6.1.1
+  permission_handler_tizen:
+    path: ../../permission_handler
+  test:
+  matcher: '>=0.12.10-nullsafety.3 <2.0.0'
+  process_run: '>=0.11.0+2'
 
 flutter:
   uses-material-design: true
