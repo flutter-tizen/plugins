@@ -77,7 +77,12 @@ class SqflitePlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("HandleMethodCall: %s", method_call.method_name().c_str());
-    // CheckPermissions();
+    try {
+      CheckPermissionsOrError();
+    } catch (const NotAllowedPermissionError &e) {
+      result->Error("permission_not_allowed", e.what());
+      return;
+    }
     const std::string methodName = method_call.method_name();
     if (methodName == METHOD_OPEN_DATABASE) {
       OnOpenDatabaseCall(method_call, std::move(result));
@@ -106,33 +111,14 @@ class SqflitePlugin : public flutter::Plugin {
     }
   }
 
-  void CheckPermissions(
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  void CheckPermissionsOrError() {
 #ifndef TV_PROFILE
-    const char *privilege = "http://tizen.org/privilege/mediastorage";
-
-    ppm_check_result_e permission;
-    int ret = ppm_check_permission(privilege, &permission);
-    if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-      LOG_ERROR("ppm_check_permission fail! [%d]", ret);
-    } else {
-      switch (permission) {
-        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
-          LOG_INFO("ppm_check_permission success! [%d]", (int)permission);
-          return;
-        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
-          ret = ppm_request_permission(privilege, AppRequestResponseCb, this);
-          if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-            LOG_ERROR("ppm_request_permission fail! [%d]", ret);
-            break;
-          }
-          return;
-        default:
-          LOG_ERROR("ppm_check_permission deny! [%d]", (int)permission);
-          break;
-      }
-    }
-    result->Error("Invalid permission");
+    pmm_->RequestPermission(
+        Permission::kMediastorage,
+        []() { LOG_DEBUG("MediaStorage permission granted"); },
+        [](const std::string &code, const std::string &message) {
+          throw NotAllowedPermissionError(code, message);
+        });
 #else
 #endif
   }

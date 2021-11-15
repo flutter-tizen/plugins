@@ -15,10 +15,6 @@ const char* PermissionToString(Permission permission) {
   switch (permission) {
     case Permission::kMediastorage:
       return "http://tizen.org/privilege/mediastorage";
-    case Permission::kContentRead:
-      return "http://tizen.org/privilege/content.read";
-    case Permission::kContentWrite:
-      return "http://tizen.org/privilege/content.write";
     default:
       LOG_WARN("Unknown permission!");
       return nullptr;
