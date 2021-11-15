@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:yaml/yaml.dart';
 import 'package:xml/xml.dart';
 
 XmlDocument? loadXMLFileSync(String path) {
@@ -14,9 +13,9 @@ void main() {
   String tizenManifestPath = "tizen/tizen-manifest.xml";
 
   XmlDocument? tizenManifest = loadXMLFileSync(tizenManifestPath);
-  if (tizenManifest == null)
-    throw FormatException("could not read tizen-manifext.xml!");
-
+  if (tizenManifest == null) {
+    throw const FormatException("could not read tizen-manifext.xml!");
+  }
   XmlNode el = tizenManifest.root;
 
   XmlElement? uiApp = el.getElement("manifest")?.getElement("ui-application");

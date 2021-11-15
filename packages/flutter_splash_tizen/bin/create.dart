@@ -20,17 +20,18 @@ XmlDocument? loadXMLFileSync(String path) {
 
 void main() {
   var doc = loadYamlFileSync("pubspec.yaml")?['flutter_splash_tizen'];
-  if (doc == null) throw FormatException("could not read pubspec.yaml!");
+  if (doc == null) throw const FormatException("could not read pubspec.yaml!");
 
   String? image = doc["image"];
-  if (image == null) throw FormatException("could not find image section!");
+  if (image == null)
+    throw const FormatException("could not find image section!");
 
   String tizenManifestPath = "tizen/tizen-manifest.xml";
 
   XmlDocument? tizenManifest = loadXMLFileSync(tizenManifestPath);
-  if (tizenManifest == null)
-    throw FormatException("could not read tizen-manifext.xml!");
-
+  if (tizenManifest == null) {
+    throw const FormatException("could not read tizen-manifext.xml!");
+  }
   XmlNode el = tizenManifest.root;
 
   XmlElement? uiApp = el.getElement("manifest")?.getElement("ui-application");
