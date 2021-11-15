@@ -161,8 +161,7 @@ void DatabaseManager::bindStmtParams(DatabaseManager::statement stmt,
         LOG_DEBUG("binding vector param from encodable list of length: %d",
                   val.size());
         // Only  a list of uint8_t for flutter EncodableValue is supported
-        // to store it as a BLOB, otherwise a DatabaseError is returned
-        // error is triggered.
+        // to store it as a BLOB, otherwise a DatabaseError is triggered
         try {
           for (auto item : val) {
             vec.push_back(std::get<int>(item));
@@ -232,7 +231,6 @@ DatabaseManager::queryStmt(DatabaseManager::statement stmt) {
   DatabaseManager::columns cols;
   DatabaseManager::resultset rs;
   const int columnsCount = getStmtColumnsCount(stmt);
-  LOG_DEBUG("columns count %d", columnsCount);
   int resultCode = SQLITE_OK;
   for (int i = 0; i < columnsCount; i++) {
     auto cName = getColumnName(stmt, i);

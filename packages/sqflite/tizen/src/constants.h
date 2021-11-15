@@ -3,6 +3,7 @@
 
 #include <string>
 
+const std::string PLUGIN_KEY = "com.tekartik.sqflite";
 const std::string METHOD_GET_PLATFORM_VERSION = "getPlatformVersion";
 const std::string METHOD_GET_DATABASES_PATH = "getDatabasesPath";
 const std::string METHOD_DEBUG = "debug";
@@ -35,6 +36,8 @@ const std::string PARAM_SQL = "sql";
 const std::string PARAM_SQL_ARGUMENTS = "arguments";
 const std::string PARAM_NO_RESULT = "noResult";
 const std::string PARAM_CONTINUE_ON_ERROR = "continueOnError";
+const std::string PARAM_COLUMNS = "columns";
+const std::string PARAM_ROWS = "rows";
 
 // debugMode
 const std::string PARAM_CMD = "cmd";  // debugMode cmd: get/set

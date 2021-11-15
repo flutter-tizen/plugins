@@ -46,7 +46,6 @@ class SqflitePlugin : public flutter::Plugin {
   inline static std::map<std::string, int> singleInstancesByPath;
   inline static std::map<int, std::shared_ptr<DatabaseManager>> databaseMap;
   inline static std::string databasesPath;
-  inline static int internalStorageId;
   inline static bool queryAsMapList = false;
   inline static int databaseId = 0;  // incremental database id
   inline static int logLevel = DLOG_UNKNOWN;
@@ -55,7 +54,7 @@ class SqflitePlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "com.tekartik.sqflite",
+            registrar->messenger(), PLUGIN_KEY,
             &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin = std::make_unique<SqflitePlugin>(registrar);
@@ -122,21 +121,6 @@ class SqflitePlugin : public flutter::Plugin {
 #endif
   }
 
-#ifndef TV_PROFILE
-  static void AppRequestResponseCb(ppm_call_cause_e cause,
-                                   ppm_request_result_e result,
-                                   const char *privilege, void *data) {
-    SqflitePlugin *plugin = (SqflitePlugin *)data;
-    assert(plugin);
-
-    if (cause == PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ERROR) {
-      LOG_ERROR("app_request_response_cb failed! [%d]", result);
-      // plugin->SendResultWithError("Invalid permission");
-      return;
-    }
-  }
-#endif
-
   static bool isInMemoryPath(std::string path) {
     return (path.empty() || path == MEMORY_DATABASE_PATH);
   }
@@ -157,15 +141,6 @@ class SqflitePlugin : public flutter::Plugin {
       result = itr->second;
     }
     return result;
-  }
-
-  static std::shared_ptr<DatabaseManager> getDatabaseOrError(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call) {
-    flutter::EncodableMap arguments =
-        std::get<flutter::EncodableMap>(*method_call.arguments());
-    int databaseId;
-    GetValueFromEncodableMap(arguments, PARAM_ID, databaseId);
-    return getDatabase(databaseId);
   }
 
   static void handleQueryException(
@@ -194,7 +169,7 @@ class SqflitePlugin : public flutter::Plugin {
     flutter::EncodableMap map;
 
     if (cmd == CMD_GET) {
-      if (logLevel > 0) {
+      if (logLevel > DLOG_UNKNOWN) {
         map.insert(std::make_pair(flutter::EncodableValue(PARAM_LOG_LEVEL),
                                   flutter::EncodableValue(logLevel)));
       }
@@ -208,7 +183,7 @@ class SqflitePlugin : public flutter::Plugin {
           info.insert(std::make_pair(
               flutter::EncodableValue(PARAM_SINGLE_INSTANCE),
               flutter::EncodableValue(database->singleInstance)));
-          if (database->logLevel > 0) {
+          if (database->logLevel > DLOG_UNKNOWN) {
             info.insert(
                 std::make_pair(flutter::EncodableValue(PARAM_LOG_LEVEL),
                                flutter::EncodableValue(database->logLevel)));
@@ -236,7 +211,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, PARAM_SQL, sql);
     GetValueFromEncodableMap(arguments, PARAM_ID, databaseId);
 
-    auto database = getDatabaseOrError(method_call);
+    auto database = getDatabase(databaseId);
     if (database == nullptr) {
       result->Error(ERROR_DATABASE,
                     ERROR_DATABASE_CLOSED + " " + std::to_string(databaseId));
@@ -369,11 +344,11 @@ class SqflitePlugin : public flutter::Plugin {
       }
       response.insert(
           std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-              flutter::EncodableValue("columns"),
+              flutter::EncodableValue(PARAM_COLUMNS),
               flutter::EncodableValue(colsResponse)));
       response.insert(
           std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-              flutter::EncodableValue("rows"),
+              flutter::EncodableValue(PARAM_ROWS),
               flutter::EncodableValue(rowsResponse)));
       return flutter::EncodableValue(response);
     }
@@ -394,7 +369,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, PARAM_ID, databaseId);
     GetValueFromEncodableMap(arguments, PARAM_NO_RESULT, noResult);
 
-    auto database = getDatabaseOrError(method_call);
+    auto database = getDatabase(databaseId);
     if (database == nullptr) {
       result->Error(ERROR_DATABASE,
                     ERROR_DATABASE_CLOSED + " " + std::to_string(databaseId));
@@ -425,7 +400,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, PARAM_ID, databaseId);
     GetValueFromEncodableMap(arguments, PARAM_NO_RESULT, noResult);
 
-    auto database = getDatabaseOrError(method_call);
+    auto database = getDatabase(databaseId);
     if (database == nullptr) {
       result->Error(ERROR_DATABASE,
                     ERROR_DATABASE_CLOSED + " " + std::to_string(databaseId));
@@ -447,7 +422,7 @@ class SqflitePlugin : public flutter::Plugin {
     flutter::EncodableMap arguments =
         std::get<flutter::EncodableMap>(*method_call.arguments());
     bool paramsAsList = false;
-    int logLevel = 0;
+    int logLevel = DLOG_UNKNOWN;
 
     GetValueFromEncodableMap(arguments, PARAM_QUERY_AS_MAP_LIST, paramsAsList);
     GetValueFromEncodableMap(arguments, PARAM_LOG_LEVEL, logLevel);
@@ -466,11 +441,11 @@ class SqflitePlugin : public flutter::Plugin {
     int databaseId;
     std::string sql;
     DatabaseManager::parameters params;
-
     GetValueFromEncodableMap(arguments, PARAM_SQL_ARGUMENTS, params);
     GetValueFromEncodableMap(arguments, PARAM_SQL, sql);
     GetValueFromEncodableMap(arguments, PARAM_ID, databaseId);
-    auto database = getDatabaseOrError(method_call);
+
+    auto database = getDatabase(databaseId);
     if (database == nullptr) {
       result->Error(ERROR_DATABASE,
                     ERROR_DATABASE_CLOSED + " " + std::to_string(databaseId));
@@ -514,10 +489,7 @@ class SqflitePlugin : public flutter::Plugin {
       LOG_DEBUG("db id exists: %d", *existingDatabaseId);
       auto dbm = getDatabase(*existingDatabaseId);
       if (dbm && dbm->sqliteDatabase) {
-        LOG_DEBUG("db exists, deleting it...");
-        LOG_DEBUG("erasing db id from map");
         databaseMap.erase(*existingDatabaseId);
-        LOG_DEBUG("erasing path from map");
         singleInstancesByPath.erase(path);
       }
     }
@@ -613,7 +585,7 @@ class SqflitePlugin : public flutter::Plugin {
     int databaseId;
     GetValueFromEncodableMap(arguments, PARAM_ID, databaseId);
 
-    auto database = getDatabaseOrError(method_call);
+    auto database = getDatabase(databaseId);
     if (database == nullptr) {
       result->Error(ERROR_DATABASE,
                     ERROR_DATABASE_CLOSED + " " + std::to_string(databaseId));
@@ -690,7 +662,7 @@ class SqflitePlugin : public flutter::Plugin {
                              continueOnError);
     GetValueFromEncodableMap(arguments, PARAM_NO_RESULT, noResult);
 
-    auto database = getDatabaseOrError(method_call);
+    auto database = getDatabase(databaseId);
     if (database == nullptr) {
       result->Error(ERROR_DATABASE,
                     ERROR_DATABASE_CLOSED + " " + std::to_string(databaseId));
