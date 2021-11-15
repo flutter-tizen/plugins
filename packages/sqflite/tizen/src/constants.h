@@ -29,8 +29,7 @@ const std::string PARAM_RECOVERED = "recovered";
 // Result when opening a database
 const std::string PARAM_RECOVERED_IN_TRANSACTION = "recoveredInTransaction";
 
-const std::string PARAM_QUERY_AS_MAP_LIST = "queryAsMapList";       // boolean
-const std::string PARAM_THREAD_PRIORITY = "androidThreadPriority";  // int
+const std::string PARAM_QUERY_AS_MAP_LIST = "queryAsMapList";  // boolean
 
 const std::string PARAM_SQL = "sql";
 const std::string PARAM_SQL_ARGUMENTS = "arguments";
@@ -60,8 +59,5 @@ const std::string ERROR_DATABASE_CLOSED = "database_closed";  // msg
 
 // memory database path
 const std::string MEMORY_DATABASE_PATH = ":memory:";
-
-// android log tag
-const std::string TAG = "Sqflite";
 
 #endif  // CONSTANTS_H

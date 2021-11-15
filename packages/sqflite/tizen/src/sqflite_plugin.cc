@@ -27,7 +27,6 @@
 #include "list"
 #include "log.h"
 #include "permission_manager.h"
-#include "setting.h"
 #include "sqflite_plugin.h"
 
 template <typename T>
