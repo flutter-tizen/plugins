@@ -1,6 +1,6 @@
 name: sqflite_tizen
 description: SQLite plugin for Flutter. This plugin provides the Tizen implementation for SQLite.
-version: 1.0.0
+version: 0.1.0
 homepage: https://github.com/flutter-tizen/plugins
 
 flutter:

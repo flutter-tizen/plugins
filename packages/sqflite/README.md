@@ -9,7 +9,7 @@ The Tizen implementation of [`sqflite`](https://github.com/tekartik/sqflite).
  ```yaml
 dependencies:
   sqflite: ^2.0.1
-  sqflite_tizen: ^1.0.0
+  sqflite_tizen: ^0.1.0
 ```
 
 Then you can import `sqflite` in your Dart code:
