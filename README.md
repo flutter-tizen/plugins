@@ -76,6 +76,7 @@ The following packages are deprecated.
 | [**sensors_plus_tizen**](packages/sensors_plus) | ✔️ | ✔️ | ❌ | ❌ | No sensor hardware |
 | [**share_plus_tizen**](packages/share_plus) | ⚠️ | ⚠️ | ❌ | ❌ | No SMS or e-mail app |
 | [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**sqflite_tizen**](packages/sqflite) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_app_control**](packages/tizen_app_control) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
 | [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ⚠️ | ❌ | Functional limitations (see README)<br>TV emulator issue |
