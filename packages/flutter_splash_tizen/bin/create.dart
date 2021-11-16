@@ -23,9 +23,9 @@ void main() {
   if (doc == null) throw const FormatException("could not read pubspec.yaml!");
 
   String? image = doc["image"];
-  if (image == null)
+  if (image == null) {
     throw const FormatException("could not find image section!");
-
+  }
   String tizenManifestPath = "tizen/tizen-manifest.xml";
 
   XmlDocument? tizenManifest = loadXMLFileSync(tizenManifestPath);
