@@ -26,7 +26,7 @@ void main() {
   if (image == null) {
     throw const FormatException("could not find image section!");
   }
-  String tizenManifestPath = "tizen/tizen-manifest.xml";
+  const String tizenManifestPath = "tizen/tizen-manifest.xml";
 
   XmlDocument? tizenManifest = loadXMLFileSync(tizenManifestPath);
   if (tizenManifest == null) {
@@ -36,7 +36,7 @@ void main() {
 
   XmlElement? uiApp = el.getElement("manifest")?.getElement("ui-application");
   if (uiApp == null) {
-    throw FormatException("error when reading $tizenManifestPath");
+    throw const FormatException("error when reading $tizenManifestPath");
   }
   XmlElement? splashScreens = uiApp.getElement("splash-screens");
   if (splashScreens == null) {

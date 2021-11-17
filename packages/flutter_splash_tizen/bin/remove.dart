@@ -1,26 +1,19 @@
 import 'dart:io';
 import 'package:xml/xml.dart';
 
-XmlDocument? loadXMLFileSync(String path) {
-  File file = File(path);
-  if (file.existsSync()) {
-    return XmlDocument.parse(file.readAsStringSync());
-  }
-  return null;
-}
-
 void main() {
-  String tizenManifestPath = "tizen/tizen-manifest.xml";
-
-  XmlDocument? tizenManifest = loadXMLFileSync(tizenManifestPath);
-  if (tizenManifest == null) {
+  const String tizenManifestPath = "tizen/tizen-manifest.xml";
+  File tizenManifestFile = File(tizenManifestPath);
+  if (!tizenManifestFile.existsSync()) {
     throw const FormatException("could not read tizen-manifext.xml!");
   }
+  XmlDocument? tizenManifest =
+      XmlDocument.parse(tizenManifestFile.readAsStringSync());
   XmlNode el = tizenManifest.root;
 
   XmlElement? uiApp = el.getElement("manifest")?.getElement("ui-application");
   if (uiApp == null) {
-    throw FormatException("error when reading $tizenManifestPath");
+    throw const FormatException("error when reading $tizenManifestPath");
   }
   XmlElement? splashScreens = uiApp.getElement("splash-screens");
 
