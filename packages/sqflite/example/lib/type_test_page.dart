@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -145,9 +144,9 @@ class TypeTestPage extends TestPage {
 
         final blob1234 = [1, 2, 3, 4];
         id = await insertValue(blob1234);
-        dynamic value = (await getValue(id)) as List;
+        final value = (await getValue(id)) as List;
         print(value);
-        print('${(value as List).length}');
+        print('${value.length}');
         expect(value, blob1234, reason: '${await getValue(id)}');
 
         // test hex feature on sqlite

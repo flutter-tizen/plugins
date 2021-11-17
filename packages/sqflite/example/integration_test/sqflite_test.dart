@@ -8,11 +8,10 @@ import 'package:flutter_test/flutter_test.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart';
-
-import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_tizen_example/src/common_import.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_tizen_example/src/common_import.dart';
 
 // ignore_for_file: avoid_print
 void main() {
@@ -39,11 +38,10 @@ void main() {
           db = await openDatabase(path, version: 1);
         } on DatabaseException catch (e) {
           // Can't create database in a non existing directory
-          expect(e.toString().contains("open_failed"), true);
+          expect(e.toString().contains('open_failed'), true);
         } finally {
           await db?.close();
         }
-        ;
       });
       test('failure', () {
         // This one seems ignored
