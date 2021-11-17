@@ -49,8 +49,6 @@ bool IsValidMediaPacket(media_packet_h media_packet) {
   return true;
 }
 
-}  // namespace
-
 ExifTagOrientation ChooseExifTagOrientatoin(OrientationType device_orientation,
                                             bool is_front_lens_facing) {
   ExifTagOrientation orientation = ExifTagOrientation::kTopLeft;
@@ -114,6 +112,8 @@ RecorderOrientationTag ChooseRecorderOrientationTag(
   }
   return tag;
 }
+
+}  // namespace
 
 bool StringToCameraPixelFormat(std::string Image_format,
                                CameraPixelFormat &pixel_format) {
