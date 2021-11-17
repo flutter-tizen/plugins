@@ -72,7 +72,9 @@ class TextToSpeech {
 
   bool Pause();
 
-  bool GetSpeedRange(int *min, int *nomal, int *max);
+  bool SetVolume(double volume_rate);
+
+  bool GetSpeedRange(int *min, int *normal, int *max);
 
   void SetTtsSpeed(int speed) { tts_speed_ = speed; }
 
@@ -87,12 +89,18 @@ class TextToSpeech {
   void HandleAwaitSpeakCompletion(tts_state_e previous, tts_state_e current);
   void ClearUttId() { utt_id_ = 0; }
 
+  void SwitchVolumeOnStateChange(tts_state_e previous, tts_state_e current);
+  bool SetSpeechVolumeInternal(int volume);
+  int GetSpeechVolumeInternal();
+
   tts_h tts_ = nullptr;
-  tts_state_e state_ = TTS_STATE_CREATED;
   std::string default_language_;
   int default_voice_type_ = TTS_VOICE_TYPE_AUTO;
   int tts_speed_ = TTS_SPEED_AUTO;
   int utt_id_ = 0;
+  int tts_volume_ = 0;
+  int system_volume_ = 0;
+  int system_max_volume_ = 0;
   std::vector<std::string> supported_lanaguages_;
 
   OnStateChangedCallback on_state_changed_;

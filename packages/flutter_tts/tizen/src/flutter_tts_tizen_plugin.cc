@@ -73,9 +73,12 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     // Keep in sync with the return values implemented in:
-    // https://github.com/dlutton/flutter_tts/blob/master/android/src/main/java/com/tundralabs/fluttertts/FlutterTtsPlugin.java
-    // The API specification is vague, and there is no detailed description of
-    // the return value, so I mimic the Android implementation.
+    // https://github.com/dlutton/flutter_tts/blob/master/android/src/main/java/com/tundralabs/fluttertts/FlutterTtsPlugin.java.
+    // In principle, MethodResult was designed to call MethodResult.Error() to
+    // notify the dart code of any method call failures from the host platform.
+    // However, in the case of flutter_tts, it expects a return value 0 on
+    // failure(and value 1 on success). Therefore in the scope of this plugin,
+    // we call result->Success(flutter::EncodableValue(0)) to notify errors.
 
     const auto method_name = method_call.method_name();
     const auto &arguments = *method_call.arguments();
@@ -137,7 +140,6 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
           "platform", "tizen"));
       result->Success(flutter::EncodableValue(std::move(map)));
-      return;
     } else if (method_name.compare("setSpeechRate") == 0) {
       if (std::holds_alternative<double>(arguments)) {
         int speed = (int)std::get<double>(arguments);
@@ -146,7 +148,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         return;
       }
       result->Success(flutter::EncodableValue(0));
-    } else if (method_name.compare("setLanguages") == 0) {
+    } else if (method_name.compare("setLanguage") == 0) {
       if (std::holds_alternative<std::string>(arguments)) {
         std::string language = std::move(std::get<std::string>(arguments));
         tts_->SetDefaultLanguage(language);
@@ -160,9 +162,17 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
         list.push_back(flutter::EncodableValue(language));
       }
       result->Success(flutter::EncodableValue(list));
+    } else if (method_name.compare("setVolume") == 0) {
+      if (std::holds_alternative<double>(arguments)) {
+        double rate = std::get<double>(arguments);
+        if (tts_->SetVolume(rate)) {
+          result->Success(flutter::EncodableValue(1));
+          return;
+        }
+      }
+      result->Success(flutter::EncodableValue(0));
     } else {
       result->Error("-1", "Not supported method");
-      return;
     }
   }
 
