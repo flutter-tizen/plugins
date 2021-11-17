@@ -16,14 +16,16 @@
 #define VIDEO_ENCODE_BITRATE 40000000 /* bps */
 #define AUDIO_SOURCE_SAMPLERATE_AAC 44100
 
-static uint64_t Timestamp() {
+namespace {
+
+uint64_t Timestamp() {
   struct timeval tv;
   gettimeofday(&tv, nullptr);
   return (uint64_t)tv.tv_sec * 1000UL + tv.tv_usec / 1000UL;
 }
 
-static std::string CreateTempFileName(const std::string &prefix,
-                                      const std::string &extension) {
+std::string CreateTempFileName(const std::string &prefix,
+                               const std::string &extension) {
   std::string file_name;
   char *cache_dir_path = app_get_cache_path();
   if (!cache_dir_path) {
@@ -38,8 +40,17 @@ static std::string CreateTempFileName(const std::string &prefix,
   return file_name;
 }
 
-static ExifTagOrientation ChooseExifTagOrientatoin(
-    OrientationType device_orientation, bool is_front_lens_facing) {
+bool IsValidMediaPacket(media_packet_h media_packet) {
+  tbm_surface_h surface = nullptr;
+  int ret = media_packet_get_tbm_surface(media_packet, &surface);
+  if (ret != MEDIA_PACKET_ERROR_NONE) {
+    return false;
+  }
+  return true;
+}
+
+ExifTagOrientation ChooseExifTagOrientatoin(OrientationType device_orientation,
+                                            bool is_front_lens_facing) {
   ExifTagOrientation orientation = ExifTagOrientation::kTopLeft;
 
   switch (device_orientation) {
@@ -79,7 +90,7 @@ static ExifTagOrientation ChooseExifTagOrientatoin(
   return orientation;
 }
 
-static RecorderOrientationTag ChooseRecorderOrientationTag(
+RecorderOrientationTag ChooseRecorderOrientationTag(
     OrientationType device_orientation) {
   RecorderOrientationTag tag = RecorderOrientationTag::kNone;
   switch (device_orientation) {
@@ -101,6 +112,8 @@ static RecorderOrientationTag ChooseRecorderOrientationTag(
   }
   return tag;
 }
+
+}  // namespace
 
 bool StringToCameraPixelFormat(std::string Image_format,
                                CameraPixelFormat &pixel_format) {
@@ -330,18 +343,30 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
           [this](size_t width,
                  size_t height) -> const FlutterDesktopGpuBuffer * {
             std::lock_guard<std::mutex> lock(mutex_);
-            if (packet_ == nullptr) {
+            if (prepared_packet_ && !IsValidMediaPacket(prepared_packet_)) {
+              media_packet_destroy(prepared_packet_);
+              prepared_packet_ = nullptr;
+            }
+            if (current_packet_ && !IsValidMediaPacket(current_packet_)) {
+              media_packet_destroy(current_packet_);
+              current_packet_ = nullptr;
+            }
+            if (!prepared_packet_ && !current_packet_) {
               return nullptr;
             }
-            tbm_surface_h surface;
-            int ret = media_packet_get_tbm_surface(packet_, &surface);
-            if (ret != MEDIA_PACKET_ERROR_NONE) {
-              LOG_ERROR("media_packet_get_tbm_surface failed, error: %d", ret);
-              media_packet_destroy(packet_);
-              packet_ = nullptr;
-              return nullptr;
+            if (prepared_packet_ && !current_packet_) {
+              current_packet_ = prepared_packet_;
+              prepared_packet_ = nullptr;
             }
 
+            tbm_surface_h surface = nullptr;
+            int ret = media_packet_get_tbm_surface(current_packet_, &surface);
+            if (ret != MEDIA_PACKET_ERROR_NONE) {
+              LOG_ERROR("media_packet_get_tbm_surface failed, error: %d", ret);
+              media_packet_destroy(current_packet_);
+              current_packet_ = nullptr;
+              return nullptr;
+            }
             flutter_desktop_gpu_buffer_->buffer = surface;
             flutter_desktop_gpu_buffer_->width = width;
             flutter_desktop_gpu_buffer_->height = height;
@@ -349,9 +374,9 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
           },
           [this](void *buffer) -> void {
             std::lock_guard<std::mutex> lock(mutex_);
-            if (packet_) {
-              media_packet_destroy(packet_);
-              packet_ = nullptr;
+            if (current_packet_) {
+              media_packet_destroy(current_packet_);
+              current_packet_ = nullptr;
             }
           }));
   texture_id_ =
@@ -430,6 +455,16 @@ void CameraDevice::Dispose() {
 
   if (texture_id_ != 0) {
     registrar_->texture_registrar()->UnregisterTexture(texture_id_);
+  }
+
+  if (current_packet_) {
+    media_packet_destroy(current_packet_);
+    current_packet_ = nullptr;
+  }
+
+  if (prepared_packet_) {
+    media_packet_destroy(prepared_packet_);
+    prepared_packet_ = nullptr;
   }
 }
 
@@ -950,17 +985,17 @@ void CameraDevice::Open(
     SetCameraPreviewFormat(pixel_format);
   }
 
-  if (!SetCameraMediaPacketPreviewCb([](media_packet_h pkt, void *data) {
+  if (!SetCameraMediaPacketPreviewCb([](media_packet_h packet, void *data) {
         auto self = static_cast<CameraDevice *>(data);
         std::lock_guard<std::mutex> lock(self->mutex_);
-        media_packet_h unused_packet = self->packet_;
-        self->packet_ = pkt;
-        if (unused_packet != nullptr) {
-          media_packet_destroy(unused_packet);
-        } else {
-          self->registrar_->texture_registrar()->MarkTextureFrameAvailable(
-              self->texture_id_);
+        if (self->prepared_packet_) {
+          media_packet_destroy(self->prepared_packet_);
+          self->prepared_packet_ = packet;
+          return;
         }
+        self->prepared_packet_ = packet;
+        self->registrar_->texture_registrar()->MarkTextureFrameAvailable(
+            self->texture_id_);
       })) {
     result->Error(kCameraDeviceError, "Failed to set media callback");
     return;
