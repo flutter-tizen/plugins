@@ -4,6 +4,7 @@ plugins:
   camera: []
   connectivity_plus: ["wearable-5.5", "tv-6.0"]
   device_info_plus: ["wearable-5.5", "tv-6.0"]
+  flutter_splash_tizen: ["wearable-5.5"]
   flutter_tts: ["wearable-5.5", "tv-6.0"]
   geolocator: ["wearable-5.5"]
   google_maps_flutter: []
