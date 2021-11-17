@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
           title: const Text('Welcome to Flutter'),
         ),
         body: const Center(
-          child: Text('sample app for flutter splash tizen'),
+          child: const Text('sample app for flutter splash tizen'),
         ),
       ),
     );
