@@ -250,6 +250,9 @@ class CameraDevice {
   void LockCaptureOrientation(OrientationType orientation);
   void UnlockCaptureOrientation();
 
+  void PausePreview() { is_preview_paused_ = true; }
+  void ResumePreview() { is_preview_paused_ = false; }
+
  private:
   bool CreateCamera();
   bool ClearCameraAutoFocusArea();
@@ -357,6 +360,7 @@ class CameraDevice {
   std::vector<std::pair<int, int>> supported_recorder_resolutions_;
 
   bool enable_audio_{true};
+  bool is_preview_paused_{false};
 };
 
 #endif

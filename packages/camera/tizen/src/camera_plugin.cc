@@ -301,6 +301,12 @@ class CameraPlugin : public flutter::Plugin {
     } else if (method_name == "unlockCaptureOrientation") {
       camera_->UnlockCaptureOrientation();
       result->Success();
+    } else if (method_name == "pausePreview") {
+      camera_->PausePreview();
+      result->Success();
+    } else if (method_name == "resumePreview") {
+      camera_->ResumePreview();
+      result->Success();
     } else if (method_name == "dispose") {
       if (camera_) {
         camera_->Dispose();
