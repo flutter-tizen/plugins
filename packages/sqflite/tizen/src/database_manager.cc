@@ -55,6 +55,11 @@ void DatabaseManager::open() {
   if (resultCode != SQLITE_OK) {
     throw DatabaseError(getErrorCode(), getErrorMsg());
   }
+  resultCode = sqlite3_busy_timeout(sqliteDatabase, BUSY_TIMEOUT_MS);
+  if (resultCode != SQLITE_OK) {
+    sqlite3_close(sqliteDatabase);
+    throw DatabaseError(getErrorCode(), getErrorMsg());
+  }
 }
 
 void DatabaseManager::openReadOnly() {
@@ -63,6 +68,11 @@ void DatabaseManager::openReadOnly() {
   int resultCode = sqlite3_open_v2(path.c_str(), &sqliteDatabase,
                                    SQLITE_OPEN_READONLY, NULL);
   if (resultCode != SQLITE_OK) {
+    throw DatabaseError(getErrorCode(), getErrorMsg());
+  }
+  resultCode = sqlite3_busy_timeout(sqliteDatabase, BUSY_TIMEOUT_MS);
+  if (resultCode != SQLITE_OK) {
+    sqlite3_close(sqliteDatabase);
     throw DatabaseError(getErrorCode(), getErrorMsg());
   }
 }

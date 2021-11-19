@@ -14,6 +14,8 @@ struct DatabaseError : public std::runtime_error {
 };
 
 class DatabaseManager {
+  static const int BUSY_TIMEOUT_MS = 2500;
+
  public:
   sqlite3 *sqliteDatabase;
   std::map<std::string, sqlite3_stmt *> stmtCache;

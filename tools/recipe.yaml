@@ -17,7 +17,7 @@ plugins:
   sensors_plus: ["wearable-5.5"]
   share_plus: ["wearable-5.5"]
   shared_preferences: ["wearable-5.5", "tv-6.0"]
-  sqflite: ["wearable-5.5"]
+  sqflite: ["wearable-5.5", "tv-6.0"]
   tizen_app_control: ["wearable-5.5", "tv-6.0"]
   url_launcher: []
   video_player: ["wearable-5.5"]
