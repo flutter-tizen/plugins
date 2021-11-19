@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "sqflite_plugin.h"
+
+#include <app_common.h>
+#include <dlog.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
 #include <flutter/event_stream_handler_functions.h>
@@ -9,12 +13,6 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 #include <storage.h>
-#ifndef TV_PROFILE
-#include <privacy_privilege_manager.h>
-#endif
-
-#include <app_common.h>
-#include <dlog.h>
 
 #include <filesystem>
 #include <map>
@@ -26,8 +24,6 @@
 #include "database_manager.h"
 #include "list"
 #include "log.h"
-#include "permission_manager.h"
-#include "sqflite_plugin.h"
 
 template <typename T>
 bool GetValueFromEncodableMap(flutter::EncodableMap &map, std::string key,
@@ -66,8 +62,7 @@ class SqflitePlugin : public flutter::Plugin {
 
     registrar->AddPlugin(std::move(plugin));
   }
-  SqflitePlugin(flutter::PluginRegistrar *registrar)
-      : registrar_(registrar), pmm_(std::make_unique<PermissionManager>()) {}
+  SqflitePlugin(flutter::PluginRegistrar *registrar) : registrar_(registrar) {}
 
   virtual ~SqflitePlugin() {}
 
@@ -75,12 +70,6 @@ class SqflitePlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("HandleMethodCall: %s", method_call.method_name().c_str());
-    try {
-      CheckPermissionsOrError();
-    } catch (const NotAllowedPermissionError &e) {
-      result->Error("permission_not_allowed", e.what());
-      return;
-    }
     const std::string methodName = method_call.method_name();
     if (methodName == METHOD_OPEN_DATABASE) {
       OnOpenDatabaseCall(method_call, std::move(result));
@@ -107,18 +96,6 @@ class SqflitePlugin : public flutter::Plugin {
     } else {
       result->NotImplemented();
     }
-  }
-
-  void CheckPermissionsOrError() {
-#ifndef TV_PROFILE
-    pmm_->RequestPermission(
-        Permission::kMediastorage,
-        []() { LOG_DEBUG("MediaStorage permission granted"); },
-        [](const std::string &code, const std::string &message) {
-          throw NotAllowedPermissionError(code, message);
-        });
-#else
-#endif
   }
 
   static bool isInMemoryPath(std::string path) {
@@ -768,7 +745,6 @@ class SqflitePlugin : public flutter::Plugin {
   }
 
   flutter::PluginRegistrar *registrar_;
-  std::unique_ptr<PermissionManager> pmm_;
 };
 
 void SqflitePluginRegisterWithRegistrar(

@@ -9,20 +9,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart';
 import 'package:pedantic/pedantic.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_tizen_example/src/common_import.dart';
 
 // ignore_for_file: avoid_print
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  setUpAll(() async {
-    // Ask for mediaLibrary permission first
-    if (!await Permission.mediaLibrary.isGranted) {
-      await Permission.mediaLibrary.request();
-    }
-  });
 
   group('sqflite', () {
     group('open', () {

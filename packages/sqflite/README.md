@@ -20,16 +20,6 @@ import 'package:sqflite/sqflite.dart';
 
 For more details, see [here](https://github.com/tekartik/sqflite/blob/master/sqflite/README.md).
 
-## Required privileges
-
-To use this plugin, you need to declare privileges in `tizen-manifest.xml` of your application.
-
-``` xml
-<privileges>
-  <privilege>http://tizen.org/privilege/mediastorage</privilege>
-</privileges>
-```
-
 ## Supported devices
 
 This plugin is supported on these types of devices:
