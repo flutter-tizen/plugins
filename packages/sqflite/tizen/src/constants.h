@@ -4,7 +4,6 @@
 #include <string>
 
 const std::string kPluginKey = "com.tekartik.sqflite";
-const std::string kMethodGetPlatformVersion = "getPlatformVersion";
 const std::string kMethodGetDatabasesPath = "getDatabasesPath";
 const std::string kMethodDebug = "debug";
 const std::string kMethodOptions = "options";
@@ -38,6 +37,7 @@ const std::string kParamNoResult = "noResult";
 const std::string kParamContinueOnError = "continueOnError";
 const std::string kParamColumns = "columns";
 const std::string kParamRows = "rows";
+const std::string kParamDatabases = "databases";
 
 // debugMode
 const std::string kParamCmd = "cmd";  // debugMode cmd: get/set

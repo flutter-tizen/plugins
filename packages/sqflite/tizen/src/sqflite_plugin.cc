@@ -39,6 +39,24 @@ bool GetValueFromEncodableMap(flutter::EncodableMap &map, std::string key,
   return false;
 }
 
+struct DBResultVisitor {
+  flutter::EncodableValue operator()(int64_t val) {
+    return flutter::EncodableValue(val);
+  };
+  flutter::EncodableValue operator()(std::string val) {
+    return flutter::EncodableValue(val);
+  };
+  flutter::EncodableValue operator()(double val) {
+    return flutter::EncodableValue(val);
+  };
+  flutter::EncodableValue operator()(std::vector<uint8_t> val) {
+    return flutter::EncodableValue(val);
+  };
+  flutter::EncodableValue operator()(std::nullptr_t val) {
+    return flutter::EncodableValue();
+  };
+};
+
 class SqflitePlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
@@ -163,7 +181,7 @@ class SqflitePlugin : public flutter::Plugin {
           databases_info.insert(
               std::make_pair(flutter::EncodableValue(id), info));
         }
-        map.insert(std::make_pair(flutter::EncodableValue("databases"),
+        map.insert(std::make_pair(flutter::EncodableValue(kParamDatabases),
                                   databases_info));
       }
     }
@@ -256,24 +274,6 @@ class SqflitePlugin : public flutter::Plugin {
     }
     return flutter::EncodableValue(last_id);
   }
-
-  struct DBResultVisitor {
-    flutter::EncodableValue operator()(int64_t val) {
-      return flutter::EncodableValue(val);
-    };
-    flutter::EncodableValue operator()(std::string val) {
-      return flutter::EncodableValue(val);
-    };
-    flutter::EncodableValue operator()(double val) {
-      return flutter::EncodableValue(val);
-    };
-    flutter::EncodableValue operator()(std::vector<uint8_t> val) {
-      return flutter::EncodableValue(val);
-    };
-    flutter::EncodableValue operator()(std::nullptr_t val) {
-      return flutter::EncodableValue();
-    };
-  };
 
   flutter::EncodableValue query(std::shared_ptr<DatabaseManager> database,
                                 std::string sql,
