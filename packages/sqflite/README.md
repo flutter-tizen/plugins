@@ -19,9 +19,3 @@ import 'package:sqflite/sqflite.dart';
 ```
 
 For more details, see [here](https://github.com/tekartik/sqflite/blob/master/sqflite/README.md).
-
-## Supported devices
-
-This plugin is supported on these types of devices:
-
-- Galaxy Watch (running Tizen 4.0 or later)
