@@ -1,8 +1,9 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef SQFLITE_CONSTANTS_H_
+#define SQFLITE_CONSTANTS_H_
 
 #include <string>
 
+namespace sqflite_constants {
 const std::string kPluginKey = "com.tekartik.sqflite";
 const std::string kMethodGetDatabasesPath = "getDatabasesPath";
 const std::string kMethodDebug = "debug";
@@ -63,4 +64,5 @@ const std::string kErrorDatabaseClosed = "database_closed";  // msg
 // memory database path
 const std::string kMemoryDatabasePath = ":memory:";
 
-#endif  // CONSTANTS_H
+}  // namespace sqflite_constants
+#endif  // SQFLITE_CONSTANTS_H_

@@ -1,5 +1,5 @@
-#ifndef DATABASE_MANAGER_H_
-#define DATABASE_MANAGER_H_
+#ifndef SQFLITE_DATABASE_MANAGER_H_
+#define SQFLITE_DATABASE_MANAGER_H_
 
 #include <flutter/standard_method_codec.h>
 #include <sqlite3.h>
@@ -7,16 +7,17 @@
 #include <list>
 #include <string>
 
+namespace sqflite_database {
+typedef std::variant<int64_t, std::string, double, std::vector<uint8_t>,
+                     std::nullptr_t>
+    ResultValue;
+typedef std::vector<ResultValue> Result;
+typedef std::vector<Result> Resultset;
+typedef std::vector<std::string> Columns;
+typedef flutter::EncodableList SQLParameters;
+
 class DatabaseManager {
  public:
-  typedef std::variant<int64_t, std::string, double, std::vector<uint8_t>,
-                       std::nullptr_t>
-      resultvalue;
-  typedef std::vector<resultvalue> result;
-  typedef std::vector<result> resultset;
-  typedef std::vector<std::string> columns;
-  typedef flutter::EncodableList parameters;
-
   static const int kBusyTimeoutMs = 2500;
 
   DatabaseManager(std::string path, int id, bool single_instance, int log_level)
@@ -35,24 +36,23 @@ class DatabaseManager {
   void OpenReadOnly();
   const char *GetErrorMsg();
   int GetErrorCode();
-  void Execute(std::string sql, parameters params = parameters());
-  std::pair<DatabaseManager::columns, DatabaseManager::resultset> Query(
-      std::string sql, parameters params = parameters());
+  void Execute(std::string sql, SQLParameters params = SQLParameters());
+  std::pair<Columns, Resultset> Query(std::string sql,
+                                      SQLParameters params = SQLParameters());
 
  private:
-  typedef sqlite3_stmt *statement;
+  typedef sqlite3_stmt *Statement;
 
   void Init();
   void Close();
-  void BindStmtParams(statement stmt, parameters params);
-  void ExecuteStmt(statement stmt);
-  std::pair<DatabaseManager::columns, DatabaseManager::resultset> QueryStmt(
-      statement stmt);
-  void FinalizeStmt(statement stmt);
+  void BindStmtParams(Statement stmt, SQLParameters params);
+  void ExecuteStmt(Statement stmt);
+  std::pair<Columns, Resultset> QueryStmt(Statement stmt);
+  void FinalizeStmt(Statement stmt);
   sqlite3_stmt *PrepareStmt(std::string sql);
-  int GetStmtColumnsCount(statement stmt);
-  int GetColumnType(statement stmt, int iCol);
-  const char *GetColumnName(statement stmt, int iCol);
+  int GetStmtColumnsCount(Statement stmt);
+  int GetColumnType(Statement stmt, int iCol);
+  const char *GetColumnName(Statement stmt, int iCol);
   void ThrowCurrentDatabaseError();
 
   sqlite3 *database_;
@@ -62,4 +62,5 @@ class DatabaseManager {
   int database_id_;
   int log_level_;
 };
-#endif  // DATABASE_MANAGER_H_
+}  // namespace sqflite_database
+#endif  // SQFLITE_DATABASE_MANAGER_H_

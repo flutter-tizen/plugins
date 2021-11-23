@@ -9,6 +9,7 @@
 #include "errors.h"
 #include "log.h"
 
+namespace sqflite_database {
 DatabaseManager::~DatabaseManager() {
   for (auto &&stmt : stmt_chache_) {
     FinalizeStmt(stmt.second);
@@ -20,7 +21,7 @@ DatabaseManager::~DatabaseManager() {
 }
 
 void DatabaseManager::ThrowCurrentDatabaseError() {
-  throw DatabaseError(GetErrorCode(), GetErrorMsg());
+  throw sqflite_errors::DatabaseError(GetErrorCode(), GetErrorMsg());
 }
 
 void DatabaseManager::Init() {
@@ -84,8 +85,8 @@ void DatabaseManager::Close() {
   }
 }
 
-void DatabaseManager::BindStmtParams(DatabaseManager::statement stmt,
-                                     DatabaseManager::parameters params) {
+void DatabaseManager::BindStmtParams(DatabaseManager::Statement stmt,
+                                     SQLParameters params) {
   int err = SQLITE_OK;
   const int params_length = params.size();
   LOG_DEBUG("received %d params to execute sql", params_length);
@@ -169,14 +170,18 @@ void DatabaseManager::BindStmtParams(DatabaseManager::statement stmt,
             vec.push_back(std::get<int>(item));
           }
         } catch (const std::bad_variant_access) {
-          throw DatabaseError(-1, "statement parameter is not supported");
+          throw sqflite_errors::DatabaseError(
+              sqflite_errors::kUnknownErrorCode,
+              "statement parameter is not supported");
         }
         err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
                                 SQLITE_TRANSIENT);
         break;
       }
       default:
-        throw DatabaseError(-1, "statement parameter is not supported");
+        throw sqflite_errors::DatabaseError(
+            sqflite_errors::kUnknownErrorCode,
+            "statement parameter is not supported");
     }
     if (err) {
       ThrowCurrentDatabaseError();
@@ -205,7 +210,7 @@ sqlite3_stmt *DatabaseManager::PrepareStmt(std::string sql) {
   }
 }
 
-void DatabaseManager::ExecuteStmt(DatabaseManager::statement stmt) {
+void DatabaseManager::ExecuteStmt(DatabaseManager::Statement stmt) {
   int result_code = SQLITE_OK;
   do {
     result_code = sqlite3_step(stmt);
@@ -215,23 +220,23 @@ void DatabaseManager::ExecuteStmt(DatabaseManager::statement stmt) {
   }
 }
 
-int DatabaseManager::GetStmtColumnsCount(DatabaseManager::statement stmt) {
+int DatabaseManager::GetStmtColumnsCount(DatabaseManager::Statement stmt) {
   return sqlite3_column_count(stmt);
 }
 
-int DatabaseManager::GetColumnType(DatabaseManager::statement stmt, int iCol) {
+int DatabaseManager::GetColumnType(DatabaseManager::Statement stmt, int iCol) {
   return sqlite3_column_type(stmt, iCol);
 }
 
-const char *DatabaseManager::GetColumnName(DatabaseManager::statement stmt,
+const char *DatabaseManager::GetColumnName(DatabaseManager::Statement stmt,
                                            int iCol) {
   return sqlite3_column_name(stmt, iCol);
 }
 
-std::pair<DatabaseManager::columns, DatabaseManager::resultset>
-DatabaseManager::QueryStmt(DatabaseManager::statement stmt) {
-  DatabaseManager::columns cols;
-  DatabaseManager::resultset rs;
+std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
+    DatabaseManager::Statement stmt) {
+  Columns cols;
+  Resultset rs;
   const int cols_count = GetStmtColumnsCount(stmt);
   int result_code = SQLITE_OK;
   for (int i = 0; i < cols_count; i++) {
@@ -242,9 +247,9 @@ DatabaseManager::QueryStmt(DatabaseManager::statement stmt) {
     result_code = sqlite3_step(stmt);
     LOG_DEBUG("step result %d", result_code);
     if (result_code == SQLITE_ROW) {
-      DatabaseManager::result result;
+      Result result;
       for (int i = 0; i < cols_count; i++) {
-        DatabaseManager::resultvalue val;
+        ResultValue val;
         auto columnType = GetColumnType(stmt, i);
         auto columnName = GetColumnName(stmt, i);
         LOG_DEBUG("obtained col type %d to be pushed to resultset row",
@@ -295,23 +300,23 @@ DatabaseManager::QueryStmt(DatabaseManager::statement stmt) {
   return std::make_pair(cols, rs);
 }
 
-std::pair<DatabaseManager::columns, DatabaseManager::resultset>
-DatabaseManager::Query(std::string sql, DatabaseManager::parameters params) {
+std::pair<Columns, Resultset> DatabaseManager::Query(std::string sql,
+                                                     SQLParameters params) {
   LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
   auto stmt = PrepareStmt(sql);
   BindStmtParams(stmt, params);
   return QueryStmt(stmt);
 }
 
-void DatabaseManager::FinalizeStmt(DatabaseManager::statement stmt) {
+void DatabaseManager::FinalizeStmt(DatabaseManager::Statement stmt) {
   LOG_DEBUG("finalizing prepared statement for sql");
   sqlite3_finalize(stmt);
 }
 
-void DatabaseManager::Execute(std::string sql,
-                              DatabaseManager::parameters params) {
+void DatabaseManager::Execute(std::string sql, SQLParameters params) {
   LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
   auto stmt = PrepareStmt(sql);
   BindStmtParams(stmt, params);
   ExecuteStmt(stmt);
 }
+}  // namespace sqflite_database
