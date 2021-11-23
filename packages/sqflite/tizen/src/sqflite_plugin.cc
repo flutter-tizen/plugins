@@ -316,8 +316,8 @@ class SqflitePlugin : public flutter::Plugin {
       for (auto row : resultset) {
         flutter::EncodableList row_list;
         for (auto col : row) {
-          auto rowValue = std::visit(db_result_visitor, col);
-          row_list.push_back(rowValue);
+          auto row_value = std::visit(db_result_visitor, col);
+          row_list.push_back(row_value);
         }
         rows_response.push_back(flutter::EncodableValue(row_list));
       }
