@@ -35,8 +35,6 @@ class DatabaseManager {
   void OpenReadOnly();
   const char *GetErrorMsg();
   int GetErrorCode();
-  sqlite3 *GetWritableDatabase();
-  sqlite3 *GetReadableDatabase();
   void Execute(std::string sql, parameters params = parameters());
   std::pair<DatabaseManager::columns, DatabaseManager::resultset> Query(
       std::string sql, parameters params = parameters());

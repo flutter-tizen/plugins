@@ -308,10 +308,6 @@ void DatabaseManager::FinalizeStmt(DatabaseManager::statement stmt) {
   sqlite3_finalize(stmt);
 }
 
-sqlite3 *DatabaseManager::GetWritableDatabase() { return database_; }
-
-sqlite3 *DatabaseManager::GetReadableDatabase() { return database_; }
-
 void DatabaseManager::Execute(std::string sql,
                               DatabaseManager::parameters params) {
   LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
