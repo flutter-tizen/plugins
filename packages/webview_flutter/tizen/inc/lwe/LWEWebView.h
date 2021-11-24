@@ -85,6 +85,8 @@ class LWE_EXPORT Settings {
   bool NeedsDownloadWebFontsEarly() const;
   bool UseHttp2() const;
   uint32_t NeedsDownScaleImageResourceLargerThan() const;
+  bool ScrollbarVisible() const;
+  bool UseExternalPopup() const;
   void SetUserAgentString(const std::string& ua);
   void SetCacheMode(int mode);
   void SetProxyURL(const std::string& proxyURL);
@@ -101,6 +103,8 @@ class LWE_EXPORT Settings {
   void SetUseHttp2(bool b);
   void SetNeedsDownScaleImageResourceLargerThan(
       uint32_t demention);  // Experimental
+  void SetScrollbarVisible(bool visible);
+  void SetUseExternalPopup(bool useExternalPopup);
 
  private:
   std::string m_defaultUserAgent;
@@ -117,6 +121,8 @@ class LWE_EXPORT Settings {
   bool m_needsDownloadWebFontsEarly;
   bool m_useHttp2;  // default value is false
   uint32_t m_needsDownScaleImageResourceLargerThan;
+  bool m_scrollbarVisible;
+  bool m_useExternalPopup;
 };
 
 class LWE_EXPORT ResourceError {
@@ -149,6 +155,10 @@ class LWE_EXPORT WebContainer {
     size_t bufferStride;
   };
 
+  struct ExternalImageInfo {
+    void* imageAddress;
+  };
+
   struct RenderResult {
     size_t updatedX;
     size_t updatedY;
@@ -163,6 +173,13 @@ class LWE_EXPORT WebContainer {
   void RegisterOnRenderedHandler(
       const std::function<void(WebContainer*,
                                const RenderResult& renderResult)>& cb);
+
+  static WebContainer* CreateWithPlatformImage(
+      unsigned width, unsigned height,
+      const std::function<ExternalImageInfo(void)>& prepareImageCb,
+      const std::function<void(WebContainer*, bool needsFlush)>& flushCb,
+      float devicePixelRatio, const char* defaultFontName, const char* locale,
+      const char* timezoneID);
   // <--- end of function set for render to buffer
 
   // Function set for render with OpenGL
@@ -174,10 +191,6 @@ class LWE_EXPORT WebContainer {
       float devicePixelRatio, const char* defaultFontName, const char* locale,
       const char* timezoneID);
 
-  struct ExternalImageInfo {
-    void* imageAddress;
-  };
-
   static WebContainer* CreateGLWithPlatformImage(
       unsigned width, unsigned height,
       const std::function<void(WebContainer*)>& onGLMakeCurrent,
@@ -187,6 +200,7 @@ class LWE_EXPORT WebContainer {
       const std::function<void(WebContainer*, bool needsFlush)>& flushCb,
       float devicePixelRatio, const char* defaultFontName, const char* locale,
       const char* timezoneID);
+
   // <--- end of function set for render with OpenGL
 
   // Function set for headless

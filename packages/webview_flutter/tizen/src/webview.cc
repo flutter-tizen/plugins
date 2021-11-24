@@ -28,8 +28,8 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
     const char* timezoneID,
     const std::function<::LWE::WebContainer::ExternalImageInfo(void)>&
         prepareImageCb,
-    const std::function<void(::LWE::WebContainer*, bool isRendered)>&
-        renderedCb);
+    const std::function<void(::LWE::WebContainer*, bool needsFlush)>& flushCb,
+    bool useSWBackend);
 
 template <typename T = flutter::EncodableValue>
 class NavigationRequestResult : public flutter::MethodResult<T> {
@@ -331,6 +331,8 @@ void WebView::ApplySettings(flutter::EncodableMap settings) {
           settings.SetUserAgentString(std::get<std::string>(val));
           webview_instance_->SetSettings(settings);
         }
+      } else if ("zoomEnabled" == k) {
+        // NOTE: Not supported by LWE on Tizen.
       } else {
         throw std::invalid_argument("Unknown WebView setting: " + k);
       }
@@ -788,7 +790,8 @@ void WebView::InitWebView() {
           candidate_surface_ = working_surface_;
           working_surface_ = nullptr;
         }
-      });
+      },
+      false);
 #ifndef TV_PROFILE
   auto settings = webview_instance_->GetSettings();
   settings.SetUserAgentString(
