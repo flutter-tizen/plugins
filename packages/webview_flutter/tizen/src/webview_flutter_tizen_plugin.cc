@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "flutter_tizen.h"
 #include "webview_factory.h"
 
 static constexpr char kViewType[] = "plugins.flutter.io/webview";
@@ -26,7 +27,8 @@ void WebviewFlutterTizenPluginRegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar);
   auto factory = std::make_unique<WebViewFactory>(
-      core_registrar, core_registrar->texture_registrar());
-  FlutterRegisterViewFactory(registrar, kViewType, std::move(factory));
+      core_registrar, core_registrar->texture_registrar(),
+      FlutterDesktopGetWindow(registrar));
+  FlutterDesktopRegisterViewFactory(registrar, kViewType, std::move(factory));
   WebviewFlutterTizenPlugin::RegisterWithRegistrar(core_registrar);
 }
