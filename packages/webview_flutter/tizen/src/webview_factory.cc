@@ -24,21 +24,22 @@ WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
                                flutter::TextureRegistrar* textureRegistrar)
     : PlatformViewFactory(registrar), texture_registrar_(textureRegistrar) {
   char* path = app_get_data_path();
+  std::string path_string;
   if (!path || strlen(path) == 0) {
-    path = "/tmp/";
-  }
-  LOG_DEBUG("application data path : %s\n", path);
-  std::string localstoragePath = path + std::string("StarFish_localStorage.db");
-  std::string cookiePath = path + std::string("StarFish_cookies.db");
-  std::string cachePath = path + std::string("Starfish_cache.db");
-
-  LWE::LWE::Initialize(localstoragePath.c_str(), cookiePath.c_str(),
-                       cachePath.c_str());
-
-  if (path) {
+    path_string = "/tmp/";
+  } else {
+    path_string = path;
     free(path);
     path = nullptr;
   }
+  LOG_DEBUG("application data path : %s\n", path_string.c_str());
+  std::string localstoragePath =
+      path_string + std::string("StarFish_localStorage.db");
+  std::string cookiePath = path_string + std::string("StarFish_cookies.db");
+  std::string cachePath = path_string + std::string("Starfish_cache.db");
+
+  LWE::LWE::Initialize(localstoragePath.c_str(), cookiePath.c_str(),
+                       cachePath.c_str());
 }
 
 PlatformView* WebViewFactory::Create(int viewId, double width, double height,
