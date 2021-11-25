@@ -21,8 +21,8 @@
 #include "webview_flutter_tizen_plugin.h"
 
 WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
-                               flutter::TextureRegistrar* textureRegistrar)
-    : PlatformViewFactory(registrar), texture_registrar_(textureRegistrar) {
+                               flutter::TextureRegistrar* texture_registrar)
+    : PlatformViewFactory(registrar), texture_registrar_(texture_registrar) {
   char* path = app_get_data_path();
   std::string path_string;
   if (!path || strlen(path) == 0) {
@@ -33,25 +33,26 @@ WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
     path = nullptr;
   }
   LOG_DEBUG("application data path : %s\n", path_string.c_str());
-  std::string localstoragePath =
+  std::string local_storage_path =
       path_string + std::string("StarFish_localStorage.db");
-  std::string cookiePath = path_string + std::string("StarFish_cookies.db");
-  std::string cachePath = path_string + std::string("Starfish_cache.db");
+  std::string cookie_path = path_string + std::string("StarFish_cookies.db");
+  std::string cache_path = path_string + std::string("Starfish_cache.db");
 
-  LWE::LWE::Initialize(localstoragePath.c_str(), cookiePath.c_str(),
-                       cachePath.c_str());
+  LWE::LWE::Initialize(local_storage_path.c_str(), cookie_path.c_str(),
+                       cache_path.c_str());
 }
 
-PlatformView* WebViewFactory::Create(int viewId, double width, double height,
-                                     const std::vector<uint8_t>& createParams) {
+PlatformView* WebViewFactory::Create(
+    int view_id, double width, double height,
+    const std::vector<uint8_t>& create_params) {
   flutter::EncodableMap params;
-  auto decodedValue = *GetCodec().DecodeMessage(createParams);
-  if (std::holds_alternative<flutter::EncodableMap>(decodedValue)) {
-    params = std::get<flutter::EncodableMap>(decodedValue);
+  auto decoded_value = *GetCodec().DecodeMessage(create_params);
+  if (std::holds_alternative<flutter::EncodableMap>(decoded_value)) {
+    params = std::get<flutter::EncodableMap>(decoded_value);
   }
 
   try {
-    return new WebView(GetPluginRegistrar(), viewId, texture_registrar_, width,
+    return new WebView(GetPluginRegistrar(), view_id, texture_registrar_, width,
                        height, params, platform_window_);
   } catch (const std::invalid_argument& ex) {
     LOG_ERROR("[Exception] %s\n", ex.what());
