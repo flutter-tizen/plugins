@@ -993,6 +993,11 @@ void CameraDevice::Open(
           self->prepared_packet_ = packet;
           return;
         }
+        if (self->is_preview_paused_) {
+          media_packet_destroy(packet);
+          self->prepared_packet_ = nullptr;
+          return;
+        }
         self->prepared_packet_ = packet;
         self->registrar_->texture_registrar()->MarkTextureFrameAvailable(
             self->texture_id_);
