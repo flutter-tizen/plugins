@@ -257,7 +257,6 @@ class SqflitePlugin : public flutter::Plugin {
       std::string sql, sqflite_database::SQLParameters params, bool no_result) {
     database->Execute(sql, params);
     if (no_result) {
-      LOG_DEBUG("ignoring insert result, 'noResult' is turned on");
       return flutter::EncodableValue();
     }
 
@@ -270,7 +269,6 @@ class SqflitePlugin : public flutter::Plugin {
       std::string sql, sqflite_database::SQLParameters params, bool no_result) {
     database->Execute(sql, params);
     if (no_result) {
-      LOG_DEBUG("ignoring insert result, 'noResult' is turned on");
       return flutter::EncodableValue();
     }
 
@@ -475,10 +473,8 @@ class SqflitePlugin : public flutter::Plugin {
     std::string path;
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamPath, path);
 
-    LOG_DEBUG("Trying to delete path %s", path.c_str());
     int *existing_database_id = GetDatabaseId(path);
     if (existing_database_id) {
-      LOG_DEBUG("db id exists: %d", *existing_database_id);
       auto dbm = GetDatabase(*existing_database_id);
       if (dbm && dbm->database()) {
         database_map_.erase(*existing_database_id);
@@ -547,17 +543,13 @@ class SqflitePlugin : public flutter::Plugin {
           std::make_shared<sqflite_database::DatabaseManager>(
               path, new_database_id, single_instance, 0);
       if (!read_only) {
-        LOG_DEBUG("opening read-write database in path %s", path.c_str());
         database_manager->Open();
       } else {
-        LOG_DEBUG("opening read only database in path %s", path.c_str());
         database_manager->OpenReadOnly();
       }
 
       // Store dbid in internal map
       // TODO: Protect with mutex
-      LOG_DEBUG("saving database id %d for path %s", database_id_,
-                path.c_str());
       if (single_instance) {
         single_instances_by_path_.insert(
             std::pair<std::string, int>(path, database_id_));
@@ -566,7 +558,6 @@ class SqflitePlugin : public flutter::Plugin {
           std::pair<int, std::shared_ptr<sqflite_database::DatabaseManager>>(
               database_id_, database_manager));
     } catch (const sqflite_errors::DatabaseError &e) {
-      LOG_DEBUG("ERROR: open db %s", e.what());
       result->Error(sqflite_constants::kErrorDatabase,
                     sqflite_constants::kErrorOpenFailed + " " + path);
       return;
@@ -596,8 +587,6 @@ class SqflitePlugin : public flutter::Plugin {
     auto path = database->path();
 
     try {
-      LOG_DEBUG("closing database id %d in path %s", database_id_,
-                path.c_str());
       // By erasing the entry from databaseMap, the destructor of
       // database::DatabaseManager is called, which finalizes all open
       // statements and closes the database.

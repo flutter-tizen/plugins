@@ -7,7 +7,6 @@
 #include <variant>
 
 #include "errors.h"
-#include "log.h"
 
 namespace sqflite_database {
 DatabaseManager::~DatabaseManager() {
@@ -25,7 +24,6 @@ void DatabaseManager::ThrowCurrentDatabaseError() {
 }
 
 void DatabaseManager::Init() {
-  LOG_DEBUG("initializing database");
   int result_code = SQLITE_OK;
   result_code = sqlite3_shutdown();
   if (result_code != SQLITE_OK) {
@@ -43,7 +41,6 @@ void DatabaseManager::Init() {
 
 void DatabaseManager::Open() {
   Init();
-  LOG_DEBUG("opening/creating read write database");
   int result_code =
       sqlite3_open_v2(path_.c_str(), &database_,
                       SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
@@ -59,7 +56,6 @@ void DatabaseManager::Open() {
 
 void DatabaseManager::OpenReadOnly() {
   Init();
-  LOG_DEBUG("open read only database");
   int result_code =
       sqlite3_open_v2(path_.c_str(), &database_, SQLITE_OPEN_READONLY, NULL);
   if (result_code != SQLITE_OK) {
@@ -78,7 +74,6 @@ int DatabaseManager::GetErrorCode() {
 }
 
 void DatabaseManager::Close() {
-  LOG_DEBUG("closing database");
   int result_code = sqlite3_close(database_);
   if (result_code) {
     ThrowCurrentDatabaseError();
@@ -89,71 +84,60 @@ void DatabaseManager::BindStmtParams(DatabaseManager::Statement stmt,
                                      SQLParameters params) {
   int err = SQLITE_OK;
   const int params_length = params.size();
-  LOG_DEBUG("received %d params to execute sql", params_length);
   for (int i = 0; i < params_length; i++) {
     auto idx = i + 1;
     auto param = params[i];
     switch (param.index()) {
       case 0: {
-        LOG_DEBUG("binding null param");
         err = sqlite3_bind_null(stmt, idx);
         break;
       }
       case 1: {
         auto val = std::get<bool>(param);
-        LOG_DEBUG("binding bool param: %d", int(val));
         err = sqlite3_bind_int(stmt, idx, int(val));
         break;
       }
       case 2: {
         auto val = std::get<int32_t>(param);
-        LOG_DEBUG("binding param: %d", val);
         err = sqlite3_bind_int(stmt, idx, val);
         break;
       }
       case 3: {
         auto val = std::get<int64_t>(param);
-        LOG_DEBUG("binding param: %d", val);
         err = sqlite3_bind_int64(stmt, idx, val);
         break;
       }
       case 4: {
         auto val = std::get<double>(param);
-        LOG_DEBUG("binding param: %d", val);
         err = sqlite3_bind_double(stmt, idx, val);
         break;
       }
       case 5: {
         auto val = std::get<std::string>(param);
-        LOG_DEBUG("binding param: %s", val.c_str());
         err = sqlite3_bind_text(stmt, idx, val.c_str(), val.size(),
                                 SQLITE_TRANSIENT);
         break;
       }
       case 6: {
         auto vec = std::get<std::vector<uint8_t>>(param);
-        LOG_DEBUG("binding uint8 vector param of length: %d", vec.size());
         err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
                                 SQLITE_TRANSIENT);
         break;
       }
       case 7: {
         auto vec = std::get<std::vector<int32_t>>(param);
-        LOG_DEBUG("binding int32 vector param of length: %d", vec.size());
         err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
                                 SQLITE_TRANSIENT);
         break;
       }
       case 8: {
         auto vec = std::get<std::vector<int64_t>>(param);
-        LOG_DEBUG("binding int64 vector param of length: %d", vec.size());
         err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
                                 SQLITE_TRANSIENT);
         break;
       }
       case 9: {
         auto vec = std::get<std::vector<double>>(param);
-        LOG_DEBUG("binding double vector param of length: %d", vec.size());
         err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
                                 SQLITE_TRANSIENT);
         break;
@@ -161,8 +145,6 @@ void DatabaseManager::BindStmtParams(DatabaseManager::Statement stmt,
       case 10: {
         auto val = std::get<flutter::EncodableList>(param);
         std::vector<uint8_t> vec;
-        LOG_DEBUG("binding vector param from encodable list of length: %d",
-                  val.size());
         // Only  a list of uint8_t for flutter EncodableValue is supported
         // to store it as a BLOB, otherwise a DatabaseError is triggered
         try {
@@ -245,36 +227,26 @@ std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
   }
   do {
     result_code = sqlite3_step(stmt);
-    LOG_DEBUG("step result %d", result_code);
     if (result_code == SQLITE_ROW) {
       Result result;
       for (int i = 0; i < cols_count; i++) {
         ResultValue val;
         auto columnType = GetColumnType(stmt, i);
         auto columnName = GetColumnName(stmt, i);
-        LOG_DEBUG("obtained col type %d to be pushed to resultset row",
-                  columnType);
         switch (columnType) {
           case SQLITE_INTEGER:
             val = (int64_t)sqlite3_column_int64(stmt, i);
-            LOG_DEBUG("obtained result for col %s and value %d", columnName,
-                      std::get<int64_t>(val));
             result.push_back(val);
             break;
           case SQLITE_FLOAT:
             val = sqlite3_column_double(stmt, i);
-            LOG_DEBUG("obtained result for col %s and value %d", columnName,
-                      std::get<double>(val));
             result.push_back(val);
             break;
           case SQLITE_TEXT:
             val = std::string((const char *)sqlite3_column_text(stmt, i));
-            LOG_DEBUG("obtained result for col %s and value %s", columnName,
-                      std::get<std::string>(val).c_str());
             result.push_back(val);
             break;
           case SQLITE_BLOB: {
-            LOG_DEBUG("obtained BLOB result for col %s", columnName);
             const uint8_t *blob =
                 reinterpret_cast<const uint8_t *>(sqlite3_column_blob(stmt, i));
             std::vector<uint8_t> v(&blob[0],
@@ -283,7 +255,6 @@ std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
             break;
           }
           case SQLITE_NULL:
-            LOG_DEBUG("obtained NULL result for col %s", columnName);
             val = nullptr;
             result.push_back(val);
             break;
@@ -302,19 +273,16 @@ std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
 
 std::pair<Columns, Resultset> DatabaseManager::Query(std::string sql,
                                                      SQLParameters params) {
-  LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
   auto stmt = PrepareStmt(sql);
   BindStmtParams(stmt, params);
   return QueryStmt(stmt);
 }
 
 void DatabaseManager::FinalizeStmt(DatabaseManager::Statement stmt) {
-  LOG_DEBUG("finalizing prepared statement for sql");
   sqlite3_finalize(stmt);
 }
 
 void DatabaseManager::Execute(std::string sql, SQLParameters params) {
-  LOG_DEBUG("preparing statement to execute sql: %s", sql.c_str());
   auto stmt = PrepareStmt(sql);
   BindStmtParams(stmt, params);
   ExecuteStmt(stmt);
