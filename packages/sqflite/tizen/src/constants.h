@@ -4,6 +4,7 @@
 #include <string>
 
 namespace sqflite_constants {
+
 const std::string kPluginKey = "com.tekartik.sqflite";
 const std::string kMethodGetDatabasesPath = "getDatabasesPath";
 const std::string kMethodDebug = "debug";
@@ -16,22 +17,23 @@ const std::string kMethodQuery = "query";
 const std::string kMethodUpdate = "update";
 const std::string kMethodBatch = "batch";
 const std::string kMethodDeleteDatabase = "deleteDatabase";
-
 const std::string kParamId = "id";
 const std::string kParamPath = "path";
+
 // when opening a database
 const std::string kParamReadOnly = "readOnly";              // boolean
 const std::string kParamSingleInstance = "singleInstance";  // boolean
 const std::string kParamLogLevel = "logLevel";              // int
+
 // true when entering, false when leaving, null otherwise
 const std::string kParamInTransaction = "inTransaction";
+
 // Result when opening a database
 const std::string kParamRecovered = "recovered";
+
 // Result when opening a database
 const std::string kParamRecoveredInTransaction = "recoveredInTransaction";
-
 const std::string kParamQueryAsMapList = "queryAsMapList";  // boolean
-
 const std::string kParamSql = "sql";
 const std::string kParamSqlArguments = "arguments";
 const std::string kParamNoResult = "noResult";
@@ -46,6 +48,7 @@ const std::string kCmdGet = "get";
 
 // in batch
 const std::string kParamOperations = "operations";
+
 // in each operation
 const std::string kParamMethod = "method";
 
@@ -63,6 +66,5 @@ const std::string kErrorDatabaseClosed = "database_closed";  // msg
 
 // memory database path
 const std::string kMemoryDatabasePath = ":memory:";
-
 }  // namespace sqflite_constants
 #endif  // SQFLITE_CONSTANTS_H_

@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 namespace sqflite_errors {
+
 const int kUnknownErrorCode = -1;
 
 struct DatabaseError : public std::runtime_error {

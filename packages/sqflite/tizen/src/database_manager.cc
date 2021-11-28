@@ -7,12 +7,15 @@
 #include <variant>
 
 #include "errors.h"
+#include "log.h"
+#include "log_level.h"
 
 namespace sqflite_database {
+
 DatabaseManager::~DatabaseManager() {
-  for (auto &&stmt : stmt_chache_) {
-    FinalizeStmt(stmt.second);
-    stmt.second = nullptr;
+  for (auto &&statement : statement_cache_) {
+    FinalizeStmt(statement.second);
+    statement.second = nullptr;
   }
   if (database_ != nullptr) {
     Close();
@@ -80,84 +83,84 @@ void DatabaseManager::Close() {
   }
 }
 
-void DatabaseManager::BindStmtParams(DatabaseManager::Statement stmt,
-                                     SQLParameters params) {
-  int err = SQLITE_OK;
-  const int params_length = params.size();
-  for (int i = 0; i < params_length; i++) {
+void DatabaseManager::BindStmtParams(DatabaseManager::Statement statement,
+                                     SQLParameters parameters) {
+  int error = SQLITE_OK;
+  const int parameters_length = parameters.size();
+  for (int i = 0; i < parameters_length; i++) {
     auto idx = i + 1;
-    auto param = params[i];
-    switch (param.index()) {
+    auto parameter = parameters[i];
+    switch (parameter.index()) {
       case 0: {
-        err = sqlite3_bind_null(stmt, idx);
+        error = sqlite3_bind_null(statement, idx);
         break;
       }
       case 1: {
-        auto val = std::get<bool>(param);
-        err = sqlite3_bind_int(stmt, idx, int(val));
+        auto value = std::get<bool>(parameter);
+        error = sqlite3_bind_int(statement, idx, int(value));
         break;
       }
       case 2: {
-        auto val = std::get<int32_t>(param);
-        err = sqlite3_bind_int(stmt, idx, val);
+        auto value = std::get<int32_t>(parameter);
+        error = sqlite3_bind_int(statement, idx, value);
         break;
       }
       case 3: {
-        auto val = std::get<int64_t>(param);
-        err = sqlite3_bind_int64(stmt, idx, val);
+        auto value = std::get<int64_t>(parameter);
+        error = sqlite3_bind_int64(statement, idx, value);
         break;
       }
       case 4: {
-        auto val = std::get<double>(param);
-        err = sqlite3_bind_double(stmt, idx, val);
+        auto value = std::get<double>(parameter);
+        error = sqlite3_bind_double(statement, idx, value);
         break;
       }
       case 5: {
-        auto val = std::get<std::string>(param);
-        err = sqlite3_bind_text(stmt, idx, val.c_str(), val.size(),
-                                SQLITE_TRANSIENT);
+        auto value = std::get<std::string>(parameter);
+        error = sqlite3_bind_text(statement, idx, value.c_str(), value.size(),
+                                  SQLITE_TRANSIENT);
         break;
       }
       case 6: {
-        auto vec = std::get<std::vector<uint8_t>>(param);
-        err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
-                                SQLITE_TRANSIENT);
+        auto vector = std::get<std::vector<uint8_t>>(parameter);
+        error = sqlite3_bind_blob(statement, idx, vector.data(),
+                                  (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       case 7: {
-        auto vec = std::get<std::vector<int32_t>>(param);
-        err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
-                                SQLITE_TRANSIENT);
+        auto vector = std::get<std::vector<int32_t>>(parameter);
+        error = sqlite3_bind_blob(statement, idx, vector.data(),
+                                  (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       case 8: {
-        auto vec = std::get<std::vector<int64_t>>(param);
-        err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
-                                SQLITE_TRANSIENT);
+        auto vector = std::get<std::vector<int64_t>>(parameter);
+        error = sqlite3_bind_blob(statement, idx, vector.data(),
+                                  (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       case 9: {
-        auto vec = std::get<std::vector<double>>(param);
-        err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
-                                SQLITE_TRANSIENT);
+        auto vector = std::get<std::vector<double>>(parameter);
+        error = sqlite3_bind_blob(statement, idx, vector.data(),
+                                  (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       case 10: {
-        auto val = std::get<flutter::EncodableList>(param);
-        std::vector<uint8_t> vec;
+        auto value = std::get<flutter::EncodableList>(parameter);
+        std::vector<uint8_t> vector;
         // Only  a list of uint8_t for flutter EncodableValue is supported
         // to store it as a BLOB, otherwise a DatabaseError is triggered
         try {
-          for (auto item : val) {
-            vec.push_back(std::get<int>(item));
+          for (auto item : value) {
+            vector.push_back(std::get<int>(item));
           }
         } catch (const std::bad_variant_access) {
           throw sqflite_errors::DatabaseError(
               sqflite_errors::kUnknownErrorCode,
               "statement parameter is not supported");
         }
-        err = sqlite3_bind_blob(stmt, idx, vec.data(), (int)vec.size(),
-                                SQLITE_TRANSIENT);
+        error = sqlite3_bind_blob(statement, idx, vector.data(),
+                                  (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       default:
@@ -165,126 +168,137 @@ void DatabaseManager::BindStmtParams(DatabaseManager::Statement stmt,
             sqflite_errors::kUnknownErrorCode,
             "statement parameter is not supported");
     }
-    if (err) {
+    if (error) {
       ThrowCurrentDatabaseError();
     }
   }
 }
 
-sqlite3_stmt *DatabaseManager::PrepareStmt(std::string sql) {
-  auto cache_entry = stmt_chache_.find(sql);
-  if (cache_entry != stmt_chache_.end()) {
-    sqlite3_stmt *stmt = cache_entry->second;
-    sqlite3_reset(stmt);
-    sqlite3_clear_bindings(stmt);
-    return stmt;
+DatabaseManager::Statement DatabaseManager::PrepareStmt(std::string sql) {
+  auto cache_entry = statement_cache_.find(sql);
+  if (cache_entry != statement_cache_.end()) {
+    DatabaseManager::Statement statement = cache_entry->second;
+    sqlite3_reset(statement);
+    sqlite3_clear_bindings(statement);
+    return statement;
   } else {
-    sqlite3_stmt *stmt;
+    DatabaseManager::Statement statement;
     int result_code =
-        sqlite3_prepare_v2(database_, sql.c_str(), -1, &stmt, nullptr);
+        sqlite3_prepare_v2(database_, sql.c_str(), -1, &statement, nullptr);
     if (result_code) {
       ThrowCurrentDatabaseError();
     }
-    if (stmt != nullptr) {
-      stmt_chache_[sql] = stmt;
+    if (statement != nullptr) {
+      statement_cache_[sql] = statement;
     }
-    return stmt;
+    return statement;
   }
 }
 
-void DatabaseManager::ExecuteStmt(DatabaseManager::Statement stmt) {
+void DatabaseManager::ExecuteStmt(DatabaseManager::Statement statement) {
   int result_code = SQLITE_OK;
   do {
-    result_code = sqlite3_step(stmt);
+    result_code = sqlite3_step(statement);
   } while (result_code == SQLITE_ROW);
   if (result_code != SQLITE_DONE) {
     ThrowCurrentDatabaseError();
   }
 }
 
-int DatabaseManager::GetStmtColumnsCount(DatabaseManager::Statement stmt) {
-  return sqlite3_column_count(stmt);
+int DatabaseManager::GetStmtColumnsCount(DatabaseManager::Statement statement) {
+  return sqlite3_column_count(statement);
 }
 
-int DatabaseManager::GetColumnType(DatabaseManager::Statement stmt, int iCol) {
-  return sqlite3_column_type(stmt, iCol);
+int DatabaseManager::GetColumnType(DatabaseManager::Statement statement,
+                                   int column_index) {
+  return sqlite3_column_type(statement, column_index);
 }
 
-const char *DatabaseManager::GetColumnName(DatabaseManager::Statement stmt,
-                                           int iCol) {
-  return sqlite3_column_name(stmt, iCol);
+const char *DatabaseManager::GetColumnName(DatabaseManager::Statement statement,
+                                           int column_index) {
+  return sqlite3_column_name(statement, column_index);
 }
 
 std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
-    DatabaseManager::Statement stmt) {
-  Columns cols;
-  Resultset rs;
-  const int cols_count = GetStmtColumnsCount(stmt);
+    DatabaseManager::Statement statement) {
+  Columns columns;
+  Resultset resultset;
+  const int columns_count = GetStmtColumnsCount(statement);
   int result_code = SQLITE_OK;
-  for (int i = 0; i < cols_count; i++) {
-    auto cName = GetColumnName(stmt, i);
-    cols.push_back(std::string(cName));
+  for (int i = 0; i < columns_count; i++) {
+    auto column_name = GetColumnName(statement, i);
+    columns.push_back(std::string(column_name));
   }
   do {
-    result_code = sqlite3_step(stmt);
+    result_code = sqlite3_step(statement);
     if (result_code == SQLITE_ROW) {
       Result result;
-      for (int i = 0; i < cols_count; i++) {
-        ResultValue val;
-        auto columnType = GetColumnType(stmt, i);
-        auto columnName = GetColumnName(stmt, i);
-        switch (columnType) {
+      for (int i = 0; i < columns_count; i++) {
+        ResultValue value;
+        auto column_type = GetColumnType(statement, i);
+        switch (column_type) {
           case SQLITE_INTEGER:
-            val = (int64_t)sqlite3_column_int64(stmt, i);
-            result.push_back(val);
+            value = (int64_t)sqlite3_column_int64(statement, i);
+            result.push_back(value);
             break;
           case SQLITE_FLOAT:
-            val = sqlite3_column_double(stmt, i);
-            result.push_back(val);
+            value = sqlite3_column_double(statement, i);
+            result.push_back(value);
             break;
           case SQLITE_TEXT:
-            val = std::string((const char *)sqlite3_column_text(stmt, i));
-            result.push_back(val);
+            value =
+                std::string((const char *)sqlite3_column_text(statement, i));
+            result.push_back(value);
             break;
           case SQLITE_BLOB: {
-            const uint8_t *blob =
-                reinterpret_cast<const uint8_t *>(sqlite3_column_blob(stmt, i));
+            const uint8_t *blob = reinterpret_cast<const uint8_t *>(
+                sqlite3_column_blob(statement, i));
             std::vector<uint8_t> v(&blob[0],
-                                   &blob[sqlite3_column_bytes(stmt, i)]);
+                                   &blob[sqlite3_column_bytes(statement, i)]);
             result.push_back(v);
             break;
           }
           case SQLITE_NULL:
-            val = nullptr;
-            result.push_back(val);
+            value = nullptr;
+            result.push_back(value);
             break;
           default:
             break;
         }
       }
-      rs.push_back(result);
+      resultset.push_back(result);
     }
   } while (result_code == SQLITE_ROW);
   if (result_code != SQLITE_DONE) {
     ThrowCurrentDatabaseError();
   }
-  return std::make_pair(cols, rs);
+  return std::make_pair(columns, resultset);
+}
+
+void DatabaseManager::FinalizeStmt(DatabaseManager::Statement statement) {
+  sqlite3_finalize(statement);
+}
+
+void DatabaseManager::LogQuery(Statement statement) {
+  LOG_DEBUG("%s", sqlite3_expanded_sql(statement));
 }
 
 std::pair<Columns, Resultset> DatabaseManager::Query(std::string sql,
-                                                     SQLParameters params) {
-  auto stmt = PrepareStmt(sql);
-  BindStmtParams(stmt, params);
-  return QueryStmt(stmt);
+                                                     SQLParameters parameters) {
+  auto statement = PrepareStmt(sql);
+  BindStmtParams(statement, parameters);
+  if (sqflite_log_level::HasSqlLevel(log_level_)) {
+    LogQuery(statement);
+  }
+  return QueryStmt(statement);
 }
 
-void DatabaseManager::FinalizeStmt(DatabaseManager::Statement stmt) {
-  sqlite3_finalize(stmt);
-}
-
-void DatabaseManager::Execute(std::string sql, SQLParameters params) {
-  auto stmt = PrepareStmt(sql);
-  BindStmtParams(stmt, params);
-  ExecuteStmt(stmt);
+void DatabaseManager::Execute(std::string sql, SQLParameters parameters) {
+  Statement statement = PrepareStmt(sql);
+  BindStmtParams(statement, parameters);
+  if (sqflite_log_level::HasSqlLevel(log_level_)) {
+    LogQuery(statement);
+  }
+  ExecuteStmt(statement);
 }
 }  // namespace sqflite_database

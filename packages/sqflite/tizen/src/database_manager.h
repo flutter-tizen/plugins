@@ -8,6 +8,8 @@
 #include <string>
 
 namespace sqflite_database {
+
+typedef sqlite3 *Database;
 typedef std::variant<int64_t, std::string, double, std::vector<uint8_t>,
                      std::nullptr_t>
     ResultValue;
@@ -28,9 +30,10 @@ class DatabaseManager {
   virtual ~DatabaseManager();
 
   inline const std::string path() { return path_; };
-  inline const int logLevel() { return log_level_; };
-  inline const bool singleInstance() { return single_instance_; };
-  inline const sqlite3 *database() { return database_; };
+  inline const int log_level() { return log_level_; };
+  inline const bool single_instance() { return single_instance_; };
+  inline const int database_id() { return database_id_; };
+  inline const Database database() { return database_; };
 
   void Open();
   void OpenReadOnly();
@@ -49,14 +52,15 @@ class DatabaseManager {
   void ExecuteStmt(Statement stmt);
   std::pair<Columns, Resultset> QueryStmt(Statement stmt);
   void FinalizeStmt(Statement stmt);
-  sqlite3_stmt *PrepareStmt(std::string sql);
+  Statement PrepareStmt(std::string sql);
   int GetStmtColumnsCount(Statement stmt);
   int GetColumnType(Statement stmt, int iCol);
   const char *GetColumnName(Statement stmt, int iCol);
   void ThrowCurrentDatabaseError();
+  void LogQuery(Statement statement);
 
-  sqlite3 *database_;
-  std::map<std::string, sqlite3_stmt *> stmt_chache_;
+  Database database_;
+  std::map<std::string, Statement> statement_cache_;
   bool single_instance_;
   std::string path_;
   int database_id_;
