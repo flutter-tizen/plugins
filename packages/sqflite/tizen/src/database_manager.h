@@ -22,40 +22,41 @@ class DatabaseManager {
  public:
   static const int kBusyTimeoutMs = 2500;
 
-  DatabaseManager(std::string path, int id, bool single_instance, int log_level)
+  DatabaseManager(std::string path, int database_id, bool single_instance,
+                  int log_level)
       : path_(path),
-        database_id_(id),
+        database_id_(database_id),
         single_instance_(single_instance),
         log_level_(log_level){};
   virtual ~DatabaseManager();
 
   inline const std::string path() { return path_; };
-  inline const int log_level() { return log_level_; };
-  inline const bool single_instance() { return single_instance_; };
   inline const int database_id() { return database_id_; };
+  inline const bool single_instance() { return single_instance_; };
+  inline const int log_level() { return log_level_; };
   inline const Database database() { return database_; };
 
   void Open();
   void OpenReadOnly();
   const char *GetErrorMsg();
   int GetErrorCode();
-  void Execute(std::string sql, SQLParameters params = SQLParameters());
-  std::pair<Columns, Resultset> Query(std::string sql,
-                                      SQLParameters params = SQLParameters());
+  void Execute(std::string sql, SQLParameters parameters = SQLParameters());
+  std::pair<Columns, Resultset> Query(
+      std::string sql, SQLParameters parameters = SQLParameters());
 
  private:
   typedef sqlite3_stmt *Statement;
 
   void Init();
   void Close();
-  void BindStmtParams(Statement stmt, SQLParameters params);
-  void ExecuteStmt(Statement stmt);
-  std::pair<Columns, Resultset> QueryStmt(Statement stmt);
-  void FinalizeStmt(Statement stmt);
+  void BindStmtParams(Statement statement, SQLParameters parameters);
+  void ExecuteStmt(Statement statement);
+  std::pair<Columns, Resultset> QueryStmt(Statement statement);
+  void FinalizeStmt(Statement statement);
   Statement PrepareStmt(std::string sql);
-  int GetStmtColumnsCount(Statement stmt);
-  int GetColumnType(Statement stmt, int iCol);
-  const char *GetColumnName(Statement stmt, int iCol);
+  int GetStmtColumnsCount(Statement statement);
+  int GetColumnType(Statement statement, int column_index);
+  const char *GetColumnName(Statement statement, int column_index);
   void ThrowCurrentDatabaseError();
   void LogQuery(Statement statement);
 
