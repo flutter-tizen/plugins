@@ -60,12 +60,12 @@ class DatabaseManager {
   void ThrowCurrentDatabaseError();
   void LogQuery(Statement statement);
 
-  Database database_;
   std::map<std::string, Statement> statement_cache_;
-  bool single_instance_;
   std::string path_;
   int database_id_;
+  bool single_instance_;
   int log_level_;
+  Database database_;
 };
 }  // namespace sqflite_database
 #endif  // SQFLITE_DATABASE_MANAGER_H_
