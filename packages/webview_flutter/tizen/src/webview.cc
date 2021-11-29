@@ -157,7 +157,8 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       has_navigation_delegate_(false),
       has_progress_tracking_(false),
       context_(nullptr),
-      texture_variant_(nullptr) {
+      texture_variant_(nullptr),
+      platform_window_(platform_window) {
   tbm_pool_ = std::make_unique<BufferPool>(width, height);
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
       [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {

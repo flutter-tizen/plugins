@@ -80,6 +80,7 @@ class WebView : public PlatformView {
   flutter::TextureVariant* texture_variant_;
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;
+  void* platform_window_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_

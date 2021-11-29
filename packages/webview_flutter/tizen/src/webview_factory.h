@@ -9,7 +9,8 @@
 class WebViewFactory : public PlatformViewFactory {
  public:
   WebViewFactory(flutter::PluginRegistrar* registrar,
-                 flutter::TextureRegistrar* textureRegistrar);
+                 flutter::TextureRegistrar* textureRegistrar,
+                 void* platform_window);
   virtual void Dispose() override;
   virtual PlatformView* Create(
       int viewId, double width, double height,
@@ -17,6 +18,7 @@ class WebViewFactory : public PlatformViewFactory {
 
  private:
   flutter::TextureRegistrar* texture_registrar_;
+  void* platform_window_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_FACTORY_H_
