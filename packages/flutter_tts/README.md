@@ -18,11 +18,12 @@ Then you can import `flutter_tts` in your Dart code:
 import 'package:flutter_tts/flutter_tts.dart';
 ```
 
-For more details, see [here](https://github.com/dlutton/flutter_tts#usage).
+For detailed usage, see https://github.com/dlutton/flutter_tts#usage.
 
-## Limitations
+## Supported APIs
 
 The features supported by Tizen are as follows. Other features are not supported.
+
  - [x] speak
  - [x] stop
  - [x] pause

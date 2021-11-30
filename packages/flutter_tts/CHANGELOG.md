@@ -4,11 +4,11 @@
 
 ## 1.0.1
 
-* Stabilize a speaking states management.
+* Stabilize speaking states management.
 
 ## 1.1.0
 
-* All APIs now return valid values(0 or 1, empty list, etc.).
+* All APIs now return valid values (0, 1, empty list, and etc.).
 
 ## 1.1.1
 
