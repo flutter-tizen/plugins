@@ -4,9 +4,7 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "log.h"
@@ -37,8 +35,10 @@ class IntegrationTestPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    if (method_call.method_name().compare("allTestsFinished") == 0) {
-      auto &arguments = *method_call.arguments();
+    const auto &method_name = method_call.method_name();
+
+    if (method_name == "allTestsFinished") {
+      const auto &arguments = *method_call.arguments();
       if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
         flutter::EncodableMap map = std::get<flutter::EncodableMap>(arguments);
         flutter::EncodableValue results =
