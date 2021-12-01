@@ -8,12 +8,12 @@ environment:
 dependencies:
   baseflow_plugin_template:
     git:
-      ref: v2.1.0
       url: git://github.com/Baseflow/baseflow_plugin_template.git
+      ref: v2.1.0
   cupertino_icons: ^1.0.1+1
   flutter:
     sdk: flutter
-  geolocator: ^7.4.0
+  geolocator: ^8.0.0
   geolocator_tizen:
     path: ../
   url_launcher_tizen:

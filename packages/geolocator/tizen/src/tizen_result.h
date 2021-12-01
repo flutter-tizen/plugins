@@ -14,10 +14,11 @@ struct TizenResult {
   TizenResult(int code) : error_code(code) {}
 
   // Returns false on error.
-  operator bool() const { return (0 == error_code); }
+  operator bool() const { return (error_code == TIZEN_ERROR_NONE); }
 
   std::string message() { return get_error_message(error_code); }
 
   int error_code = TIZEN_ERROR_NONE;
 };
+
 #endif  // TIZEN_RESULT_H_
