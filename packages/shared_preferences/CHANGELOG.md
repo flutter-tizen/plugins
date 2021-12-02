@@ -26,4 +26,5 @@
 ## 2.0.2
 
 * Update shared_preferences to 2.0.9.
-* Switch to new analysis options and update integration_test.
+* Switch to new analysis options.
+* Update integration_test.
