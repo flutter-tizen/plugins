@@ -71,8 +71,4 @@ class PathProviderPlugin extends PathProviderPlatform {
     }
     return <String>[await storage.getDirectory(type: dirType)];
   }
-
-  @override
-  Future<String> getDownloadsPath() async =>
-      await storage.getDirectory(type: StorageDirectoryType.downloads);
 }
