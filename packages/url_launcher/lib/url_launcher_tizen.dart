@@ -2,12 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-
+import 'package:tizen_app_control/app_control.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
-
-import 'src/app_control.dart';
 
 /// The Tizen implementation of [UrlLauncherPlatform].
 class UrlLauncherPlugin extends UrlLauncherPlatform {
@@ -43,12 +40,10 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
     required Map<String, String> headers,
     String? webOnlyWindowName,
   }) async {
-    AppControl()
-      ..create()
-      ..setOperation(APP_CONTROL_OPERATION_VIEW)
-      ..setUri(url)
-      ..sendLaunchRequest()
-      ..destroy();
+    await AppControl(
+      operation: 'http://tizen.org/appcontrol/operation/view',
+      uri: url,
+    ).sendLaunchRequest();
     return true;
   }
 }
