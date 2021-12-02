@@ -24,9 +24,17 @@ enum class PermissionGroup {
   kNotification = 17,
   kAccessMediaLocation = 18,
   kActivityRecognition = 19,
-  kUnknown =
-      20,  // Define only to hold space, please never use it in native side
-  kBluetooth = 21
+  kUnknown = 20,
+  kBluetooth = 21,
+  kManageExternalStorage = 22,
+  kSystemAlertWindow = 23,
+  kRequestInstallPackages = 24,
+  kAppTrackingTransparency = 25,
+  kCriticalAlerts = 26,
+  kAccessNotificationPolicy = 27,
+  kBluetoothScan = 28,
+  kBluetoothAdvertise = 29,
+  kBluetoothConnect = 30
 };
 
 // permission status
@@ -35,7 +43,7 @@ enum class PermissionStatus {
   kGranted,
   kRestricted,
   kLimited,
-  kNeverAskAgain
+  kPermanentlyDenied
 };
 
 // service status

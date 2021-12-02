@@ -188,7 +188,7 @@ void OnRequestPermissionResponse(ppm_call_cause_e cause,
         break;
       case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
         manager->RequestResults()[permission] =
-            PermissionStatus::kNeverAskAgain;
+            PermissionStatus::kPermanentlyDenied;
         break;
     }
   }
@@ -205,6 +205,7 @@ void OnRequestPermissionResponse(ppm_call_cause_e cause,
   param->remaining_request--;
   param->is_done = true;
 }
+
 }  // namespace
 
 PermissionManager::PermissionManager() : on_going_(false) {}
