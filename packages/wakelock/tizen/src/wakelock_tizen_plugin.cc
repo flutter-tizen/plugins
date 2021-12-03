@@ -17,12 +17,11 @@ class IsEnabledMessage {
     return flutter::EncodableValue(wrapped);
   }
 
-  static flutter::EncodableValue decode(flutter::EncodableValue message) {
-    auto &map = std::get<flutter::EncodableMap>(message);
-    IsEnabledMessage isEnabledMessage;
-    isEnabledMessage.enabled =
-        std::get<bool>(map[flutter::EncodableValue("enabled")]);
-    return flutter::CustomEncodableValue(isEnabledMessage);
+  static flutter::EncodableValue decode(flutter::EncodableValue value) {
+    auto &map = std::get<flutter::EncodableMap>(value);
+    IsEnabledMessage message;
+    message.enabled = std::get<bool>(map[flutter::EncodableValue("enabled")]);
+    return flutter::CustomEncodableValue(message);
   }
 
   bool enabled;
@@ -36,12 +35,11 @@ class ToggleMessage {
     return flutter::EncodableValue(wrapped);
   }
 
-  static flutter::EncodableValue decode(flutter::EncodableValue message) {
-    auto &map = std::get<flutter::EncodableMap>(message);
-    ToggleMessage toggleMessage;
-    toggleMessage.enable =
-        std::get<bool>(map[flutter::EncodableValue("enable")]);
-    return flutter::CustomEncodableValue(toggleMessage);
+  static flutter::EncodableValue decode(flutter::EncodableValue value) {
+    auto &map = std::get<flutter::EncodableMap>(value);
+    ToggleMessage message;
+    message.enable = std::get<bool>(map[flutter::EncodableValue("enable")]);
+    return flutter::CustomEncodableValue(message);
   }
 
   bool enable;
@@ -115,11 +113,11 @@ class WakelockTizenPlugin : public flutter::Plugin {
           LOG_DEBUG("Fetching wakelock status: %s",
                     plugin_pointer->wakelocked_ ? "enabled" : "disabled");
 
-          IsEnabledMessage isEnabledMessage;
-          isEnabledMessage.enabled = plugin_pointer->wakelocked_;
+          IsEnabledMessage is_enabled_message;
+          is_enabled_message.enabled = plugin_pointer->wakelocked_;
           flutter::EncodableMap wrapped = {
               {flutter::EncodableValue("result"),
-               flutter::CustomEncodableValue(isEnabledMessage)}};
+               flutter::CustomEncodableValue(is_enabled_message)}};
           reply(flutter::EncodableValue(wrapped));
         });
 
@@ -136,9 +134,9 @@ class WakelockTizenPlugin : public flutter::Plugin {
                 const auto &custom_type =
                     std::get<flutter::CustomEncodableValue>(args);
                 if (custom_type.type() == typeid(ToggleMessage)) {
-                  const ToggleMessage &toggleMessage =
+                  const ToggleMessage &toggle_message =
                       std::any_cast<ToggleMessage>(custom_type);
-                  enable = toggleMessage.enable;
+                  enable = toggle_message.enable;
                   argument_parsed = true;
                 }
               }
@@ -150,15 +148,15 @@ class WakelockTizenPlugin : public flutter::Plugin {
             return;
           }
 
-          flutter::EncodableMap resultMap = {
+          flutter::EncodableMap result_map = {
               {flutter::EncodableValue("result"), flutter::EncodableValue()}};
-          flutter::EncodableValue wrapped = flutter::EncodableValue(resultMap);
+          flutter::EncodableValue wrapped = flutter::EncodableValue(result_map);
           LOG_DEBUG("Toggling wakelock status to %s",
                     enable ? "enable" : "disable");
           if (enable != plugin_pointer->wakelocked_) {
-            const int WAKELOCK_PERMANENT = 0;
+            const int kTimeoutPermanent = 0;
             int ret = enable ? device_power_request_lock(POWER_LOCK_DISPLAY,
-                                                         WAKELOCK_PERMANENT)
+                                                         kTimeoutPermanent)
                              : device_power_release_lock(POWER_LOCK_DISPLAY);
             if (ret == DEVICE_ERROR_NONE) {
               plugin_pointer->wakelocked_ = enable;
