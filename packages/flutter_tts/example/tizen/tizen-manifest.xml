@@ -5,7 +5,6 @@
         <label>flutter_tts_tizen_example</label>
         <icon>ic_launcher.png</icon>
         <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true"/>
-        <metadata key="http://tizen.org/metadata/direct-launch" value="yes"/>
     </ui-application>
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <privileges>
