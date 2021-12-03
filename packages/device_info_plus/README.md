@@ -1,5 +1,7 @@
 # device_info_plus_tizen
 
+[![pub package](https://img.shields.io/pub/v/device_info_plus_tizen.svg)](https://pub.dev/packages/device_info_plus_tizen)
+
 The Tizen implementation of [`device_info_plus`](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/device_info_plus).
 
 ## Usage

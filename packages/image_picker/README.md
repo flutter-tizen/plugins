@@ -1,5 +1,7 @@
 # image_picker_tizen
 
+[![pub package](https://img.shields.io/pub/v/image_picker_tizen.svg)](https://pub.dev/packages/image_picker_tizen)
+
 The Tizen implementation of [`image_picker`](https://github.com/flutter/plugins/tree/master/packages/image_picker).
 
 ## Usage

@@ -1,5 +1,7 @@
 # integration_test_tizen
 
+[![pub package](https://img.shields.io/pub/v/integration_test_tizen.svg)](https://pub.dev/packages/integration_test_tizen)
+
 The Tizen implementation of [`integration_test`](https://github.com/flutter/flutter/tree/master/packages/integration_test).
 
 ## Usage

@@ -1,5 +1,7 @@
 # wifi_info_flutter_tizen
 
+[![pub package](https://img.shields.io/pub/v/wifi_info_flutter_tizen.svg)](https://pub.dev/packages/wifi_info_flutter_tizen)
+
 The Tizen implementation of [`wifi_info_flutter`](https://github.com/flutter/plugins/tree/master/packages/wifi_info_flutter).
 
 ## Usage

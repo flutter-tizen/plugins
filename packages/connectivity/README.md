@@ -1,5 +1,7 @@
 # connectivity_tizen
 
+[![pub package](https://img.shields.io/pub/v/connectivity_tizen.svg)](https://pub.dev/packages/connectivity_tizen)
+
 The Tizen implementation of [`connectivity`](https://github.com/flutter/plugins/tree/master/packages/connectivity).
 
 ## Usage

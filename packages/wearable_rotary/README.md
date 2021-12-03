@@ -1,5 +1,7 @@
 # wearable_rotary
 
+ [![pub package](https://img.shields.io/pub/v/wearable_rotary.svg)](https://pub.dev/packages/wearable_rotary)
+
 Plugin that can listen to rotary events on Galaxy watch devices.
 
 ## Usage

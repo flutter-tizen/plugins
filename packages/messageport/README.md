@@ -1,5 +1,7 @@
 # messageport_tizen
 
+[![pub package](https://img.shields.io/pub/v/messageport_tizen.svg)](https://pub.dev/packages/messageport_tizen)
+
 This plugin adds support for communication between Flutter applications on Tizen platform.
 
 ## Getting Started
