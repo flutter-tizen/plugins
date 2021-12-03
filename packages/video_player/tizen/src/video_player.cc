@@ -129,6 +129,16 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
     throw VideoPlayerError("player_set_uri failed", get_error_message(ret));
   }
 
+  LOG_DEBUG("[VideoPlayer] call player_set_display_visible");
+  ret = player_set_display_visible(player_, true);
+  if (ret != PLAYER_ERROR_NONE) {
+    player_destroy(player_);
+    LOG_ERROR("[VideoPlayer] player_set_display_visible failed: %s",
+              get_error_message(ret));
+    throw VideoPlayerError("player_set_display_visible failed",
+                           get_error_message(ret));
+  }
+
   LOG_DEBUG(
       "[VideoPlayer] call player_set_media_packet_video_frame_decoded_cb");
   ret = player_set_media_packet_video_frame_decoded_cb(
