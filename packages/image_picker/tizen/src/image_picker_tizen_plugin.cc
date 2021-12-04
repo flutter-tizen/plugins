@@ -156,6 +156,12 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
                   plugin->SendResultWithError("Permission denied");
                   return;
                 }
+                if (result !=
+                    PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER) {
+                  LOG_ERROR("ppm_request_permission deny! [%d]", result);
+                  plugin->SendResultWithError("Permission denied");
+                  return;
+                }
 
                 plugin->PickContent();
               },
@@ -177,10 +183,6 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
   }
 
   void PickContent() {
-    if (mime_type_.empty()) {
-      return;
-    }
-
     app_control_h handle = nullptr;
 #define RET_IF_ERROR(ret)                                             \
   if (ret != APP_CONTROL_ERROR_NONE) {                                \
