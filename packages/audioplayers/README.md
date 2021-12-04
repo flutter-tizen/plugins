@@ -1,5 +1,7 @@
 # audioplayers_tizen
 
+[![pub package](https://img.shields.io/pub/v/audioplayers_tizen.svg)](https://pub.dev/packages/audioplayers_tizen)
+
 The Tizen implementation of [`audioplayers`](https://github.com/luanpotter/audioplayers).
 
 ## Usage

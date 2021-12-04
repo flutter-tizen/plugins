@@ -1,4 +1,6 @@
-# Battery Plus Tizen
+# battery_plus_tizen
+
+[![pub package](https://img.shields.io/pub/v/battery_plus_tizen.svg)](https://pub.dev/packages/battery_plus_tizen)
 
 The Tizen implementation of [`battery_plus`](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/battery_plus).
 

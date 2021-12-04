@@ -1,5 +1,7 @@
 # webview_flutter_tizen
 
+[![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen)
+
 The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/master/packages/webview_flutter).
 
 ## Supported devices

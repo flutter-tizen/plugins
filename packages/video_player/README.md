@@ -1,5 +1,7 @@
 # video_player_tizen
 
+[![pub package](https://img.shields.io/pub/v/video_player_tizen.svg)](https://pub.dev/packages/video_player_tizen)
+
 The Tizen implementation of [`video_player`](https://github.com/flutter/plugins/tree/master/packages/video_player).
 
 ## Required privileges

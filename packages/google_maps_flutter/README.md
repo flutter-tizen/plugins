@@ -1,5 +1,7 @@
 # google_maps_flutter_tizen
 
+[![pub package](https://img.shields.io/pub/v/google_maps_flutter_tizen.svg)](https://pub.dev/packages/google_maps_flutter_tizen)
+
 The Tizen implementation of the [google_maps_flutter](https://pub.dev/packages/google_maps_flutter).
 
 ## Required privileges

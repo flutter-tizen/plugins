@@ -1,5 +1,7 @@
 # geolocator_tizen
 
+[![pub package](https://img.shields.io/pub/v/geolocator_tizen.svg)](https://pub.dev/packages/geolocator_tizen)
+
 The Tizen implementation of [`geolocator`](https://github.com/Baseflow/flutter-geolocator/tree/master/geolocator).
 
 ## Getting Started

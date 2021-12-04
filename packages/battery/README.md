@@ -1,5 +1,7 @@
 # battery_tizen
 
+[![pub package](https://img.shields.io/pub/v/battery_tizen.svg)](https://pub.dev/packages/battery_tizen)
+
 The Tizen implementation of [`battery`](https://github.com/flutter/plugins/tree/master/packages/battery).
 
 ## Usage

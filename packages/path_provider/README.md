@@ -1,5 +1,7 @@
 # path_provider_tizen
 
+[![pub package](https://img.shields.io/pub/v/path_provider_tizen.svg)](https://pub.dev/packages/path_provider_tizen)
+
 The Tizen implementation of [`path_provider`](https://github.com/flutter/plugins/tree/master/packages/path_provider).
 
 ## Usage

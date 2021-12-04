@@ -1,5 +1,7 @@
 # flutter_tts_tizen
 
+[![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen)
+
 The tizen implementation of [`flutter_tts`](https://github.com/dlutton/flutter_tts).
 
 ## Getting Started

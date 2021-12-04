@@ -1,5 +1,7 @@
 # sensors_tizen
 
+[![pub package](https://img.shields.io/pub/v/sensors_tizen.svg)](https://pub.dev/packages/sensors_tizen)
+
 The Tizen implementation of [`sensors`](https://github.com/flutter/plugins/tree/master/packages/sensors).
 
 ## Usage

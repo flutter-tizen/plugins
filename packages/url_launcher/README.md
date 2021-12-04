@@ -1,5 +1,7 @@
 # url_launcher_tizen
 
+[![pub package](https://img.shields.io/pub/v/url_launcher_tizen.svg)](https://pub.dev/packages/url_launcher_tizen)
+
 The Tizen implementation of [`url_launcher`](https://github.com/flutter/plugins/tree/master/packages/url_launcher).
 
 ## Usage

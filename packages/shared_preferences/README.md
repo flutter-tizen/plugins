@@ -1,5 +1,7 @@
 # shared_preferences_tizen
 
+[![pub package](https://img.shields.io/pub/v/shared_preferences_tizen.svg)](https://pub.dev/packages/shared_preferences_tizen)
+
 The Tizen implementation of [`shared_preferences`](https://github.com/flutter/plugins/tree/master/packages/shared_preferences).
 
 ## Usage

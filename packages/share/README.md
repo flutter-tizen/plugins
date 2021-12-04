@@ -1,5 +1,7 @@
 # share_tizen
 
+[![pub package](https://img.shields.io/pub/v/share_tizen.svg)](https://pub.dev/packages/share_tizen)
+
 The Tizen implementation of [`share`](https://github.com/flutter/plugins/tree/master/packages/share).
 
 ## Usage

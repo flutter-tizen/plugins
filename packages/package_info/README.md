@@ -1,5 +1,7 @@
 # package_info_tizen
 
+[![pub package](https://img.shields.io/pub/v/package_info_tizen.svg)](https://pub.dev/packages/package_info_tizen)
+
 The Tizen implementation of [`package_info`](https://github.com/flutter/plugins/tree/master/packages/package_info).
 
 ## Usage
