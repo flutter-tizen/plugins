@@ -16,6 +16,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "constants.h"
@@ -108,11 +109,11 @@ class SqflitePlugin : public flutter::Plugin {
     }
   }
 
+ private:
   static bool IsInMemoryPath(std::string path) {
     return (path.empty() || path == sqflite_constants::kMemoryDatabasePath);
   }
 
- private:
   static int *GetDatabaseId(std::string path) {
     int *result = nullptr;
     auto itr = single_instances_by_path_.find(path);
@@ -121,6 +122,7 @@ class SqflitePlugin : public flutter::Plugin {
     }
     return result;
   }
+
   static std::shared_ptr<sqflite_database::DatabaseManager> GetDatabase(
       int database_id) {
     std::shared_ptr<sqflite_database::DatabaseManager> result = nullptr;
@@ -129,6 +131,14 @@ class SqflitePlugin : public flutter::Plugin {
       result = itr->second;
     }
     return result;
+  }
+
+  bool IsDatabaseOpened(int database_id) {
+    auto itr = database_map_.find(database_id);
+    if (itr != database_map_.end()) {
+      return itr->second->database() != nullptr;
+    }
+    return false;
   }
 
   static void HandleQueryException(
@@ -158,6 +168,7 @@ class SqflitePlugin : public flutter::Plugin {
 
     flutter::EncodableMap map;
 
+    std::lock_guard<std::mutex> lock(mutex_);
     if (command == sqflite_constants::kCmdGet) {
       if (log_level_ > sqflite_log_level::kNone) {
         map.insert(std::make_pair(
@@ -166,7 +177,7 @@ class SqflitePlugin : public flutter::Plugin {
       }
       if (database_map_.size() > 0) {
         flutter::EncodableMap databases_info;
-        for (auto entry : database_map_) {
+        for (const auto &entry : database_map_) {
           auto [id, database] = entry;
           flutter::EncodableMap info;
           info.insert(std::make_pair(
@@ -206,6 +217,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamId,
                              database_id);
 
+    std::lock_guard<std::mutex> lock(mutex_);
     auto database = GetDatabase(database_id);
     if (database == nullptr) {
       result->Error(sqflite_constants::kErrorDatabase,
@@ -299,7 +311,7 @@ class SqflitePlugin : public flutter::Plugin {
       if (resultset.size() == 0) {
         return flutter::EncodableValue(response);
       }
-      for (auto row : resultset) {
+      for (const auto &row : resultset) {
         flutter::EncodableMap row_map;
         for (size_t i = 0; i < row.size(); i++) {
           auto row_value = std::visit(db_result_visitor, row[i]);
@@ -317,12 +329,12 @@ class SqflitePlugin : public flutter::Plugin {
       }
       flutter::EncodableList columns_response;
       flutter::EncodableList rows_response;
-      for (auto column : columns) {
+      for (const auto &column : columns) {
         columns_response.push_back(flutter::EncodableValue(column));
       }
-      for (auto row : resultset) {
+      for (const auto &row : resultset) {
         flutter::EncodableList row_list;
-        for (auto column : row) {
+        for (const auto &column : row) {
           auto row_value = std::visit(db_result_visitor, column);
           row_list.push_back(row_value);
         }
@@ -358,6 +370,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamNoResult,
                              no_result);
 
+    std::lock_guard<std::mutex> lock(mutex_);
     auto database = GetDatabase(database_id);
     if (database == nullptr) {
       result->Error(sqflite_constants::kErrorDatabase,
@@ -393,6 +406,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamNoResult,
                              no_result);
 
+    std::lock_guard<std::mutex> lock(mutex_);
     auto database = GetDatabase(database_id);
     if (database == nullptr) {
       result->Error(sqflite_constants::kErrorDatabase,
@@ -443,6 +457,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamId,
                              database_id);
 
+    std::lock_guard<std::mutex> lock(mutex_);
     auto database = GetDatabase(database_id);
     if (database == nullptr) {
       result->Error(sqflite_constants::kErrorDatabase,
@@ -482,10 +497,10 @@ class SqflitePlugin : public flutter::Plugin {
     std::string path;
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamPath, path);
 
-    int *existing_database_id = GetDatabaseId(path);
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto existing_database_id = GetDatabaseId(path);
     if (existing_database_id) {
-      auto dbm = GetDatabase(*existing_database_id);
-      if (dbm && dbm->database()) {
+      if (IsDatabaseOpened(*existing_database_id)) {
         database_map_.erase(*existing_database_id);
         single_instances_by_path_.erase(path);
         if (sqflite_log_level::HasVerboseLevel(log_level_)) {
@@ -536,10 +551,11 @@ class SqflitePlugin : public flutter::Plugin {
     const bool in_memory = IsInMemoryPath(path);
     single_instance = single_instance && !in_memory;
 
+    std::lock_guard<std::mutex> lock(mutex_);
     if (single_instance) {
       if (sqflite_log_level::HasVerboseLevel(log_level_)) {
         std::string paths_in_map = "";
-        for (auto const &pair : single_instances_by_path_) {
+        for (const auto &pair : single_instances_by_path_) {
           if (paths_in_map.empty()) {
             paths_in_map = pair.first;
           } else {
@@ -548,27 +564,20 @@ class SqflitePlugin : public flutter::Plugin {
         }
         LOG_DEBUG("Look for path %s in %s", path.c_str(), paths_in_map.c_str());
       }
-      int found_database_id = 0;
-      auto sit = single_instances_by_path_.find(path);
-      if (sit != single_instances_by_path_.end()) {
-        found_database_id = sit->second;
-      }
+      auto found_database_id = GetDatabaseId(path);
       if (found_database_id) {
-        auto dit = database_map_.find(found_database_id);
-        if (dit != database_map_.end()) {
-          if (dit->second->database()) {
-            if (sqflite_log_level::HasVerboseLevel(log_level_)) {
-              LOG_DEBUG("Re-opened single instance %d %s", found_database_id,
-                        path.c_str());
-            }
-            auto response = MakeOpenResult(found_database_id, true, false);
-            result->Success(response);
-            return;
+        auto database_manager = GetDatabase(*found_database_id);
+        if (database_manager->database()) {
+          if (sqflite_log_level::HasVerboseLevel(log_level_)) {
+            LOG_DEBUG("Re-opened single instance %d %s", *found_database_id,
+                      path.c_str());
           }
+          auto response = MakeOpenResult(*found_database_id, true, false);
+          result->Success(response);
+          return;
         }
       }
     }
-    // TODO: Protect with mutex
     const int new_database_id = ++database_id_;
     try {
       std::shared_ptr<sqflite_database::DatabaseManager> database_manager =
@@ -581,14 +590,10 @@ class SqflitePlugin : public flutter::Plugin {
       }
 
       // Store dbid in internal map
-      // TODO: Protect with mutex
       if (single_instance) {
-        single_instances_by_path_.insert(
-            std::pair<std::string, int>(path, new_database_id));
+        single_instances_by_path_.insert(std::make_pair(path, new_database_id));
       }
-      database_map_.insert(
-          std::pair<int, std::shared_ptr<sqflite_database::DatabaseManager>>(
-              new_database_id, database_manager));
+      database_map_.insert(std::make_pair(new_database_id, database_manager));
     } catch (const sqflite_errors::DatabaseError &exception) {
       result->Error(sqflite_constants::kErrorDatabase,
                     sqflite_constants::kErrorOpenFailed + " " + path);
@@ -612,6 +617,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamId,
                              database_id);
 
+    std::lock_guard<std::mutex> lock(mutex_);
     auto database = GetDatabase(database_id);
     if (database == nullptr) {
       result->Error(sqflite_constants::kErrorDatabase,
@@ -626,7 +632,6 @@ class SqflitePlugin : public flutter::Plugin {
       // By erasing the entry from databaseMap, the destructor of
       // database::DatabaseManager is called, which finalizes all open
       // statements and closes the database.
-      // TODO: Protect with mutex
       if (sqflite_log_level::HasSqlLevel(database->log_level())) {
         LOG_DEBUG("Closing database %d %s", database->database_id(),
                   database->path().c_str());
@@ -700,6 +705,7 @@ class SqflitePlugin : public flutter::Plugin {
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamNoResult,
                              no_result);
 
+    std::lock_guard<std::mutex> lock(mutex_);
     auto database = GetDatabase(database_id);
     if (database == nullptr) {
       result->Error(sqflite_constants::kErrorDatabase,
@@ -708,7 +714,7 @@ class SqflitePlugin : public flutter::Plugin {
       return;
     }
 
-    for (auto item : operations) {
+    for (const auto &item : operations) {
       auto item_map = std::get<flutter::EncodableMap>(item);
       std::string method;
       std::string sql;
@@ -809,6 +815,7 @@ class SqflitePlugin : public flutter::Plugin {
   }
 
   flutter::PluginRegistrar *registrar_;
+  inline static std::mutex mutex_;
   inline static std::map<std::string, int> single_instances_by_path_;
   inline static std::map<int,
                          std::shared_ptr<sqflite_database::DatabaseManager>>

@@ -17,132 +17,117 @@ DatabaseManager::~DatabaseManager() {
     FinalizeStmt(statement.second);
     statement.second = nullptr;
   }
-  if (database_ != nullptr) {
-    Close();
-  }
+
+  Close(true);
 }
 
 void DatabaseManager::ThrowCurrentDatabaseError() {
   throw sqflite_errors::DatabaseError(GetErrorCode(), GetErrorMsg());
 }
 
-void DatabaseManager::Init() {
-  int result_code = SQLITE_OK;
-  result_code = sqlite3_shutdown();
-  if (result_code != SQLITE_OK) {
-    ThrowCurrentDatabaseError();
-  };
-  result_code = sqlite3_config(SQLITE_CONFIG_URI, 1);
-  if (result_code != SQLITE_OK) {
-    ThrowCurrentDatabaseError();
-  }
-  result_code = sqlite3_initialize();
-  if (result_code != SQLITE_OK) {
-    ThrowCurrentDatabaseError();
-  }
-}
-
 void DatabaseManager::Open() {
-  Init();
   int result_code =
       sqlite3_open_v2(path_.c_str(), &database_,
                       SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
   if (result_code != SQLITE_OK) {
+    Close(false);
     ThrowCurrentDatabaseError();
   }
   result_code = sqlite3_busy_timeout(database_, kBusyTimeoutMs);
   if (result_code != SQLITE_OK) {
-    sqlite3_close(database_);
+    Close(false);
     ThrowCurrentDatabaseError();
   }
 }
 
 void DatabaseManager::OpenReadOnly() {
-  Init();
   int result_code =
       sqlite3_open_v2(path_.c_str(), &database_, SQLITE_OPEN_READONLY, NULL);
   if (result_code != SQLITE_OK) {
+    Close(false);
     ThrowCurrentDatabaseError();
   }
   result_code = sqlite3_busy_timeout(database_, kBusyTimeoutMs);
   if (result_code != SQLITE_OK) {
-    sqlite3_close(database_);
+    Close(false);
     ThrowCurrentDatabaseError();
   }
 }
+
 const char *DatabaseManager::GetErrorMsg() { return sqlite3_errmsg(database_); }
 
 int DatabaseManager::GetErrorCode() {
   return sqlite3_extended_errcode(database_);
 }
 
-void DatabaseManager::Close() {
-  int result_code = sqlite3_close(database_);
-  if (result_code) {
+void DatabaseManager::Close(bool raise_error) {
+  int result_code = sqlite3_close_v2(database_);
+  database_ = nullptr;
+  if (result_code != SQLITE_OK && raise_error) {
     ThrowCurrentDatabaseError();
   }
 }
 
 void DatabaseManager::BindStmtParams(DatabaseManager::Statement statement,
                                      SQLParameters parameters) {
-  int error = SQLITE_OK;
+  int result_code = SQLITE_OK;
   const int parameters_length = parameters.size();
   for (int i = 0; i < parameters_length; i++) {
     auto idx = i + 1;
     auto parameter = parameters[i];
     switch (parameter.index()) {
       case 0: {
-        error = sqlite3_bind_null(statement, idx);
+        result_code = sqlite3_bind_null(statement, idx);
         break;
       }
       case 1: {
         auto value = std::get<bool>(parameter);
-        error = sqlite3_bind_int(statement, idx, int(value));
+        result_code = sqlite3_bind_int(statement, idx, int(value));
         break;
       }
       case 2: {
         auto value = std::get<int32_t>(parameter);
-        error = sqlite3_bind_int(statement, idx, value);
+        result_code = sqlite3_bind_int(statement, idx, value);
         break;
       }
       case 3: {
         auto value = std::get<int64_t>(parameter);
-        error = sqlite3_bind_int64(statement, idx, value);
+        result_code = sqlite3_bind_int64(statement, idx, value);
         break;
       }
       case 4: {
         auto value = std::get<double>(parameter);
-        error = sqlite3_bind_double(statement, idx, value);
+        result_code = sqlite3_bind_double(statement, idx, value);
         break;
       }
       case 5: {
         auto value = std::get<std::string>(parameter);
-        error = sqlite3_bind_text(statement, idx, value.c_str(), value.size(),
-                                  SQLITE_TRANSIENT);
+        result_code = sqlite3_bind_text(statement, idx, value.c_str(),
+                                        value.size(), SQLITE_TRANSIENT);
         break;
       }
       case 6: {
         auto vector = std::get<std::vector<uint8_t>>(parameter);
-        error = sqlite3_bind_blob(statement, idx, vector.data(),
-                                  (int)vector.size(), SQLITE_TRANSIENT);
+        result_code = sqlite3_bind_blob(statement, idx, vector.data(),
+                                        (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       case 7: {
         auto vector = std::get<std::vector<int32_t>>(parameter);
-        error = sqlite3_bind_blob(statement, idx, vector.data(),
-                                  (int)vector.size(), SQLITE_TRANSIENT);
+        result_code = sqlite3_bind_blob(statement, idx, vector.data(),
+                                        (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       case 8: {
         auto vector = std::get<std::vector<int64_t>>(parameter);
-        error = sqlite3_bind_blob(statement, idx, vector.data(),
-                                  (int)vector.size(), SQLITE_TRANSIENT);
+        result_code = sqlite3_bind_blob(statement, idx, vector.data(),
+                                        (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       case 9: {
         auto vector = std::get<std::vector<double>>(parameter);
-        error = sqlite3_bind_blob(statement, idx, vector.data(),
-                                  (int)vector.size(), SQLITE_TRANSIENT);
+        result_code = sqlite3_bind_blob(statement, idx, vector.data(),
+                                        (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
       case 10: {
@@ -159,16 +144,17 @@ void DatabaseManager::BindStmtParams(DatabaseManager::Statement statement,
               sqflite_errors::kUnknownErrorCode,
               "statement parameter is not supported");
         }
-        error = sqlite3_bind_blob(statement, idx, vector.data(),
-                                  (int)vector.size(), SQLITE_TRANSIENT);
+        result_code = sqlite3_bind_blob(statement, idx, vector.data(),
+                                        (int)vector.size(), SQLITE_TRANSIENT);
         break;
       }
-      default:
+      default: {
         throw sqflite_errors::DatabaseError(
             sqflite_errors::kUnknownErrorCode,
             "statement parameter is not supported");
+      }
     }
-    if (error) {
+    if (result_code != SQLITE_OK) {
       ThrowCurrentDatabaseError();
     }
   }
@@ -186,6 +172,7 @@ DatabaseManager::Statement DatabaseManager::PrepareStmt(std::string sql) {
     int result_code =
         sqlite3_prepare_v2(database_, sql.c_str(), -1, &statement, nullptr);
     if (result_code) {
+      FinalizeStmt(statement);
       ThrowCurrentDatabaseError();
     }
     if (statement != nullptr) {

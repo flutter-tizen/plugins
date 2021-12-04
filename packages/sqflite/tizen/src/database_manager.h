@@ -47,8 +47,7 @@ class DatabaseManager {
  private:
   typedef sqlite3_stmt *Statement;
 
-  void Init();
-  void Close();
+  void Close(bool raise_error);
   void BindStmtParams(Statement statement, SQLParameters parameters);
   void ExecuteStmt(Statement statement);
   std::pair<Columns, Resultset> QueryStmt(Statement statement);
