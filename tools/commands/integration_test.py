@@ -456,11 +456,7 @@ def _integration_test(plugin_dir, platforms, timeout, generate_emulators):
             if not platforms:
                 platforms.extend(target_manager.get_platforms())
                 if not platforms:
-                    return [
-                        TestResult.fail(
-                            plugin_name,
-                            errors=['Cannot find any testable targets.'])
-                    ]
+                    return [TestResult.success(plugin_name, 'None')]
             errors = []
             completed_process = subprocess.run('flutter-tizen pub get',
                                                shell=True,
@@ -541,7 +537,7 @@ def run_integration_test(args):
     for testing_plugin in testing_plugins:
         test_num += 1
         print(
-            f'============= Testing for {testing_plugin} ({test_num}/{total_plugin_num}) ============='
+            f'============= Testing {testing_plugin} ({test_num}/{total_plugin_num}) ============='
         )
         platforms = args.platforms
         if testing_plugin in platforms_per_plugin:
