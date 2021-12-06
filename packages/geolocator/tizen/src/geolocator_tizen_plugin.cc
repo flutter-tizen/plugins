@@ -11,9 +11,7 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "locaton_manager.h"

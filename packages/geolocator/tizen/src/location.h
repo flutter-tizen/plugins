@@ -18,31 +18,26 @@ struct Location {
         {flutter::EncodableValue("latitude"),
          flutter::EncodableValue(latitude)},
         {flutter::EncodableValue("timestamp"),
-         flutter::EncodableValue((long long)timestamp)},
+         flutter::EncodableValue(static_cast<int64_t>(timestamp))},
         {flutter::EncodableValue("altitude"),
          flutter::EncodableValue(altitude)},
     };
-
     if (accuracy) {
       values[flutter::EncodableValue("accuracy")] =
           flutter::EncodableValue(*accuracy);
     }
-
     if (heading) {
       values[flutter::EncodableValue("heading")] =
           flutter::EncodableValue(*heading);
     }
-
     if (speed) {
       values[flutter::EncodableValue("speed")] =
           flutter::EncodableValue(*speed);
     }
-
     if (speedAccuracy) {
       values[flutter::EncodableValue("speedAccuracy")] =
           flutter::EncodableValue(*speedAccuracy);
     }
-
     return flutter::EncodableValue(values);
   }
 

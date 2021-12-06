@@ -41,6 +41,7 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
   final List<_PositionItem> _positionItems = <_PositionItem>[];
   StreamSubscription<Position>? _positionStreamSubscription;
   StreamSubscription<ServiceStatus>? _serviceStatusStreamSubscription;
+  bool positionStreamStarted = false;
 
   @override
   void initState() {
@@ -156,7 +157,10 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
                             _positionStreamSubscription!.isPaused)
                         ? const Icon(Icons.play_arrow)
                         : const Icon(Icons.pause),
-                    onPressed: _toggleListening,
+                    onPressed: () {
+                      positionStreamStarted = !positionStreamStarted;
+                      _toggleListening();
+                    },
                     tooltip: (_positionStreamSubscription == null)
                         ? 'Start position updates'
                         : _positionStreamSubscription!.isPaused
@@ -272,8 +276,19 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
       }).listen((serviceStatus) {
         String serviceStatusValue;
         if (serviceStatus == ServiceStatus.enabled) {
+          if (positionStreamStarted) {
+            _toggleListening();
+          }
           serviceStatusValue = 'enabled';
         } else {
+          if (_positionStreamSubscription != null) {
+            setState(() {
+              _positionStreamSubscription?.cancel();
+              _positionStreamSubscription = null;
+              _updatePositionList(
+                  _PositionItemType.log, 'Position Stream has been canceled');
+            });
+          }
           serviceStatusValue = 'disabled';
         }
         _updatePositionList(

@@ -4,14 +4,14 @@
 
 The Tizen implementation of [`geolocator`](https://github.com/Baseflow/flutter-geolocator/tree/master/geolocator).
 
-## Getting Started
+## Usage
 
  This package is not an _endorsed_ implementation of `geolocator`. Therefore, you have to include `geolocator_tizen` alongside `geolocator` as dependencies in your `pubspec.yaml` file.
 
  ```yaml
 dependencies:
-  geolocator: ^7.4.0
-  geolocator_tizen: ^1.0.1
+  geolocator: ^8.0.0
+  geolocator_tizen: ^1.0.2
 ```
 
 Then you can import `geolocator` in your Dart code:
@@ -20,7 +20,7 @@ Then you can import `geolocator` in your Dart code:
 import 'package:geolocator/geolocator.dart';
 ```
 
-For more details, see [here](https://github.com/Baseflow/flutter-geolocator/tree/master/geolocator#usage).
+For detailed usage, see https://github.com/Baseflow/flutter-geolocator/tree/master/geolocator#usage.
 
 ## Required privileges
 
@@ -36,6 +36,18 @@ To use this plugin, you need to declare privileges in `tizen-manifest.xml` of yo
 
 ## Supported devices
 
-This plugin is supported on these types of devices:
+- Galaxy Watch series (running Tizen 4.0 or later)
 
-- Galaxy Watch (running Tizen 4.0 or later)
+## Supported APIs
+
+- [x] `Geolocator.isLocationServiceEnabled`
+- [x] `Geolocator.getServiceStatusStream`
+- [x] `Geolocator.checkPermission`
+- [x] `Geolocator.requestPermission`
+- [x] `Geolocator.getLastKnownPosition`
+- [x] `Geolocator.getCurrentPosition` (supported arguments: `timeLimit`)
+- [x] `Geolocator.getPositionStream` (supported arguments: `locationSettings.timeLimit`)
+- [ ] `Geolocator.getLocationAccuracy`
+- [ ] `Geolocator.requestTemporaryFullAccuracy` (iOS-only)
+- [x] `Geolocator.openAppSettings` (not supported on emulators)
+- [x] `Geolocator.openLocationSettings` (not supported on emulators)
