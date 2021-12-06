@@ -9,8 +9,6 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-// @dart=2.9
-
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,7 +36,7 @@ void main() {
         find.byWidgetPredicate(
           (Widget widget) =>
               widget is Text &&
-              widget.data.startsWith('Platform: ${Platform.operatingSystem}'),
+              widget.data!.startsWith('Platform: ${Platform.operatingSystem}'),
         ),
         findsOneWidget,
       );
