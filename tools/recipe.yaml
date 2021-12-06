@@ -7,7 +7,7 @@ plugins:
   flutter_tts: ["wearable-5.5", "tv-6.0"]
   geolocator: ["wearable-5.5"]
   google_maps_flutter: []
-  image_picker: []
+  image_picker: ["wearable-5.5"]
   integration_test: ["wearable-5.5", "tv-6.0"]
   messageport: ["wearable-5.5", "tv-6.0"]
   network_info_plus: []
