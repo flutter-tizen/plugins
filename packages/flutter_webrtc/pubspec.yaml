@@ -1,0 +1,28 @@
+name: flutter_webrtc_tizen
+description: Flutter WebRTC plugin for Tizen, based on flutter_webrtc project.
+version: 0.0.1
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+  flutter: '>=1.22.0'
+
+dependencies:
+  dart_webrtc: ^1.0.1
+  flutter:
+    sdk: flutter
+  flutter_webrtc: ^0.8.0
+  path_provider: ^2.0.2
+  webrtc_interface: ^1.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  import_sorter: ^4.6.0
+  pedantic: ^1.11.1
+  test: any
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: FlutterWebRTCPlugin
+        fileName: flutter_webrtc_tizen_plugin.h
