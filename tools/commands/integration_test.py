@@ -374,14 +374,16 @@ targets for each plugin, use the --recipe option instead.
                        help='''The recipe file path. A recipe refers to a 
 yaml file that defines a list of target platforms to test for each plugin. 
 Pass this file if you want to select specific target platform for different
-plugins. Note that recipe does not select which plugins to test(that is covered
-by the --plugins option), it only defines which target platform to test
-for certain plugins if those plugins are being tested.
+plugins. Every package listed in the recipe file will be recognized by the tool
+(same as --plugins option) and those that specify an empty list will be
+explicitly excluded (same as --exclude option). If --recipe is used,
+--plugins and --exclude options will be ignored.
 (
 plugins:
   a: [wearable-5.5, tv-6.0]
   b: [mobile-6.0]
   c: [wearable-4.0]
+  d: [] # explicitly excluded
 )''')
     parser.add_argument(
         '--generate-emulators',
@@ -456,7 +458,11 @@ def _integration_test(plugin_dir, platforms, timeout, generate_emulators):
             if not platforms:
                 platforms.extend(target_manager.get_platforms())
                 if not platforms:
-                    return [TestResult.success(plugin_name, 'None')]
+                    return [
+                        TestResult.fail(
+                            plugin_name,
+                            errors=['Cannot find any testable targets.'])
+                    ]
             errors = []
             completed_process = subprocess.run('flutter-tizen pub get',
                                                shell=True,
@@ -508,6 +514,11 @@ def run_integration_test(args):
                 print(
                     f'The recipe file {args.recipe} is not a valid yaml file.')
                 exit(1)
+        if not all(map(lambda value: isinstance(value, list), platforms_per_plugin.values())):
+            print('Every package in the recipe file must specify a list.')
+            exit(1)
+        args.plugins = list(platforms_per_plugin.keys())
+        args.exclude = list(map(lambda item: item[0], filter(lambda item: not item[1], platforms_per_plugin.items())))
 
     if args.platforms:
         for platform in args.platforms:
