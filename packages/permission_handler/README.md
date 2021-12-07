@@ -8,44 +8,20 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 
 ## Usage
 
-1. Declare privileges in your `tizen-manifest.xml` file. For example, if you want to access the device's media library in your Flutter app:
+1. Declare necessary privileges in your `tizen-manifest.xml` file by referring to the below [permission list](#list-of-permissions). For example, if you want to access the device's media library in your Flutter app, add:
 
    ```xml
-   <manifest>
-     ...
-     <privileges>
-       <privilege>http://tizen.org/privilege/mediastorage</privilege>
-     </privileges>
-   </manifest>
+   <privileges>
+     <privilege>http://tizen.org/privilege/mediastorage</privilege>
+   </privileges>
    ```
-
-   | Permission | Tizen permission | Privileges |
-   |-|-|-|
-   | Permission.accessMediaLocation | _Android-only_ |
-   | Permission.activityRecognition | _Android-only_ |
-   | Permission.bluetooth | _iOS-only_ |
-   | Permission.calendar | Calendar | `http://tizen.org/privilege/calendar.read`<br>`http://tizen.org/privilege/calendar.write` |
-   | Permission.camera | Camera | `http://tizen.org/privilege/camera` |
-   | Permission.contact | Contacts | `http://tizen.org/privilege/contact.read`<br>`http://tizen.org/privilege/contact.write` |
-   | Permission.location<br>Permission.locationAlways<br>Permission.locationWhenInUse | Location | `http://tizen.org/privilege/location`<br>`http://tizen.org/privilege/location.coarse` |
-   | Permission.mediaLibrary | Storage | `http://tizen.org/privilege/mediastorage` |
-   | Permission.microphone | Microphone | `http://tizen.org/privilege/recorder` |
-   | Permission.phone | Call | `http://tizen.org/privilege/call` |
-   | Permission.photos<br>Permission.photosAddOnly | _iOS-only_ |
-   | Permission.reminders | _iOS-only_ |
-   | Permission.sensors | Sensor | `http://tizen.org/privilege/healthinfo` |
-   | Permission.sms | Message | `http://tizen.org/privilege/message.read`<br>`http://tizen.org/privilege/message.write` |
-   | Permission.speech | _iOS-only_ |
-   | Permission.storage | Storage | `http://tizen.org/privilege/externalstorage` |
-
-   For more information on Tizen privileges, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
 
 2. Add `permission_handler` and `permission_handler_tizen` as dependencies in your `pubspec.yaml` file.
 
    ```yaml
    dependencies:
-     permission_handler: ^6.1.1
-     permission_handler_tizen: ^1.1.1
+     permission_handler: ^8.3.0
+     permission_handler_tizen: ^1.2.0
    ```
 
    Then you can import `permission_handler` in your Dart code:
@@ -54,8 +30,41 @@ You can use this plugin to ask the user for runtime permissions if your app perf
    import 'package:permission_handler/permission_handler.dart';
    ```
 
-   For detailed usage of the plugin, see https://github.com/Baseflow/flutter-permission-handler#how-to-use.
+   For detailed usage, see https://pub.dev/packages/permission_handler#how-to-use.
 
-## Notes
+## List of permissions
 
-This plugin is intended for **Galaxy Watch** devices only. On **TV**s, you don't need to request permissions since they are already granted to apps by default.
+| Permission | Tizen permission | Tizen privileges |
+|-|-|-|
+| `Permission.calendar` | Calendar | `http://tizen.org/privilege/calendar.read`<br>`http://tizen.org/privilege/calendar.write` |
+| `Permission.camera` | Camera | `http://tizen.org/privilege/camera` |
+| `Permission.contact` | Contacts | `http://tizen.org/privilege/contact.read`<br>`http://tizen.org/privilege/contact.write` |
+| `Permission.location`<br>`Permission.locationAlways`<br>`Permission.locationWhenInUse` | Location | `http://tizen.org/privilege/location`<br>`http://tizen.org/privilege/location.coarse` |
+| `Permission.mediaLibrary` | Storage | `http://tizen.org/privilege/mediastorage` |
+| `Permission.microphone` | Microphone | `http://tizen.org/privilege/recorder` |
+| `Permission.phone` | Call | `http://tizen.org/privilege/call` |
+| `Permission.sensors` | Sensor | `http://tizen.org/privilege/healthinfo` |
+| `Permission.sms` | Message | `http://tizen.org/privilege/message.read`<br>`http://tizen.org/privilege/message.write` |
+| `Permission.storage` | Storage | `http://tizen.org/privilege/externalstorage` |
+
+The following permissions are not applicable for Tizen:
+
+- Android-only: `accessMediaLocation`, `accessNotificationPolicy`, `activityRecognition`, `bluetoothAdvertise`, `bluetoothConnect`, `bluetoothScan`, `manageExternalStorage`, `requestInstallPackages`, `systemAlertWindow`
+- iOS-only: `appTrackingTransparency`, `bluetooth`, `criticalAlerts`, `photos`, `photosAddOnly`, `reminders`, `speech`
+
+On Tizen, your app can use some security-sensitive features (such as bluetooth) without explicitly acquiring permissions. However, you might need to declare relevant privileges in its `tizen-manifest.xml` file. For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
+
+## Supported devices
+
+- Galaxy Watch series (running Tizen 4.0 or later)
+
+On TV devices, you don't need to explicitly request permissions since they are already granted to apps by default.
+
+## Supported APIs
+
+- [x] `Permission.status` (including shortcuts such as `Permission.isGranted` and `Permission.isPermanentlyDenied`)
+- [x] `Permission.serviceStatus`
+- [ ] `Permission.shouldShowRequestRationale` (Android-only)
+- [x] `Permission.request`
+- [x] `List<Permission>.request`
+- [x] `openAppSettings` (not supported on emulators)

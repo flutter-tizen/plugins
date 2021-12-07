@@ -10,16 +10,13 @@
 #include "service_manager.h"
 
 namespace {
-constexpr char kPermissionHandlerChannelName[] =
-    "flutter.baseflow.com/permissions/methods";
-}
 
 class PermissionHandlerTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), kPermissionHandlerChannelName,
+            registrar->messenger(), "flutter.baseflow.com/permissions/methods",
             &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin = std::make_unique<PermissionHandlerTizenPlugin>();
@@ -130,6 +127,8 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
   AppSettingsManager app_settings_manager_;
   ServiceManager service_manager_;
 };
+
+}  // namespace
 
 void PermissionHandlerTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
