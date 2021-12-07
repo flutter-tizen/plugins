@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `path_provider`. Therefore, 
 
 ```yaml
 dependencies:
-  path_provider: ^2.0.2
-  path_provider_tizen: ^2.0.1
+  path_provider: ^2.0.7
+  path_provider_tizen: ^2.0.2
 ```
 
 Then you can import `path_provider` in your Dart code:
@@ -22,19 +22,20 @@ import 'package:path_provider/path_provider.dart';
 
 For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/path_provider/path_provider#usage.
 
-## Notes
+## Supported APIs
 
-- On Tizen, `getExternalStorageDirectories` will return internal storage paths (such as `/home/owner/media/Music`) unlike on Android where the function returns external storage (separate partition or SD card) paths.
-- To access paths returned by `getExternalStorageDirectory` and `getExternalCacheDirectories`, you will need an SD card inserted to your Tizen device.
+- [x] `getTemporaryDirectory` (returns the app's cache directory path)
+- [x] `getApplicationSupportDirectory` (returns the app's data directory path)
+- [ ] `getLibraryDirectory` (iOS-only)
+- [x] `getApplicationDocumentsDirectory` (returns the app's data directory path)
+- [x] `getExternalStorageDirectory` (requires an SD card)
+- [x] `getExternalCacheDirectories` (requires an SD card)
+- [x] `getExternalStorageDirectories` (returns shared media library paths such as `/home/owner/media/Music`)
+- [ ] `getDownloadsDirectory` (desktop-only)
 
 ## Required privileges
 
-- To access paths returned by
-
-  - `getExternalStorageDirectories`
-  - `getDownloadsDirectory`
-
-  add below lines under the `<manifest>` section in your `tizen-manifest.xml` file,
+- To access paths returned by `getExternalStorageDirectories`, add below lines under the `<manifest>` section in your `tizen-manifest.xml` file,
 
   ```xml
   <privileges>

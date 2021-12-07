@@ -74,35 +74,15 @@ void main() {
         final Future<List<Directory>?> result =
             getExternalStorageDirectories(type: null);
         expect(result, throwsA(isInstanceOf<UnsupportedError>()));
-      } else if (Platform.isAndroid) {
+      } else {
         final List<Directory>? directories =
             await getExternalStorageDirectories(type: type);
         expect(directories, isNotNull);
         for (final Directory result in directories!) {
           _verifySampleFile(result, '$type');
         }
-      } else {
-        // Tizen platform
-        // Permissions for accessing media directories are granted
-        // for TV by default, but not for wearables.
-        // But the example app can't depend on permission_handler because
-        // TV doesn't support permission_handler:
-        //   https://github.com/flutter-tizen/plugins#device-limitations
-        // Uncomment and remove the skip option when it's possible
-        // to choose device types in testing.
-
-        // if (!await Permission.mediaLibrary.isGranted) {
-        //   await Permission.mediaLibrary.request();
-        // }
-
-        // final List<Directory>? directories =
-        //     await getExternalStorageDirectories(type: type);
-        // expect(directories, isNotNull);
-        // for (final Directory result in directories!) {
-        //   _verifySampleFile(result, '$type');
-        // }
       }
-    }, skip: true);
+    });
   }
 }
 
