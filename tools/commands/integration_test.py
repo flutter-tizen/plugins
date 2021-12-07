@@ -35,7 +35,7 @@ _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 
 class Target:
     """A Tizen device that can run Flutter applications.
-    
+
     A target is a Tizen device (either a physical device or an emulator) that can
     run Flutter applications. Generally targets are connected when physical devices
     are connected to the host PC either with a cable or wirelessly, and when 
@@ -57,7 +57,7 @@ class Target:
 
     def run_integration_test(self, plugin_name, directory, timeout):
         """Runs integration test in the given directory.
-        
+
         Args:
             plugin_name (str): The name of the testing plugin.
             directory (str): The path to the directory in which to perform 
@@ -514,11 +514,12 @@ def run_integration_test(args):
                 print(
                     f'The recipe file {args.recipe} is not a valid yaml file.')
                 exit(1)
-        if not all(map(lambda value: isinstance(value, list), platforms_per_plugin.values())):
+        if not all([isinstance(val, list) for val in platforms_per_plugin.values()]):
             print('Every package in the recipe file must specify a list.')
             exit(1)
         args.plugins = list(platforms_per_plugin.keys())
-        args.exclude = list(map(lambda item: item[0], filter(lambda item: not item[1], platforms_per_plugin.items())))
+        args.exclude = [item[0] for item in filter(
+            lambda item: not item[1], platforms_per_plugin.items())]
 
     if args.platforms:
         for platform in args.platforms:
