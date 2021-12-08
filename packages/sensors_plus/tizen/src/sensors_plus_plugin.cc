@@ -10,24 +10,17 @@
 #include <tizen.h>
 
 #include <functional>
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "log.h"
-
-#define ACCELEROMETER_CHANNEL_NAME \
-  "dev.fluttercommunity.plus/sensors/accelerometer"
-#define GYROSCOPE_CHANNEL_NAME "dev.fluttercommunity.plus/sensors/gyroscope"
-#define USER_ACCELEROMETER_CHANNEL_NAME \
-  "dev.fluttercommunity.plus/sensors/user_accel"
 
 class Listener {
  public:
   Listener(
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&event_sink)
       : event_sink_(std::move(event_sink)) {}
+
   bool Init(sensor_type_e type) {
     sensor_h sensor;
     int ret = sensor_get_default_sensor(type, &sensor);
@@ -50,7 +43,7 @@ class Listener {
     }
 
     int ret = sensor_listener_set_event_cb(
-        listener_, 1000,
+        listener_, 60,
         [](sensor_h sensor, sensor_event_s *event, void *user_data) {
           Listener *s = (Listener *)user_data;
           std::vector<double> list;
@@ -129,7 +122,8 @@ class SensorsPlusPlugin : public flutter::Plugin {
   void SetupEventChannels(flutter::PluginRegistrar *registrar) {
     accelerometer_channel_ =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), ACCELEROMETER_CHANNEL_NAME,
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/sensors/accelerometer",
             &flutter::StandardMethodCodec::GetInstance());
     auto accelerometer_channel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
@@ -158,7 +152,8 @@ class SensorsPlusPlugin : public flutter::Plugin {
 
     gyroscope_channel_ =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), GYROSCOPE_CHANNEL_NAME,
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/sensors/gyroscope",
             &flutter::StandardMethodCodec::GetInstance());
     auto gyroscope_channel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
@@ -186,7 +181,8 @@ class SensorsPlusPlugin : public flutter::Plugin {
 
     user_accel_channel_ =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), USER_ACCELEROMETER_CHANNEL_NAME,
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/sensors/user_accel",
             &flutter::StandardMethodCodec::GetInstance());
     auto user_accel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
