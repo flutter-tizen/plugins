@@ -28,7 +28,6 @@ To use the wakelock plugin in a Tizen application, the display privilege must be
 
 ```xml
 <privileges>
-    <privilege>http://tizen.org/privilege/display</privilege>
+  <privilege>http://tizen.org/privilege/display</privilege>
 </privileges>
 ```
-
