@@ -33,9 +33,28 @@ _TERM_EMPTY = '\033[0m'
 _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 
 
+def _sdb_devices():
+    """Returns a list of connected target information.
+
+    Returns:
+        A list of tuples where each tuple is target's
+        (instance id, status, emulator name).
+    """
+    completed_process = subprocess.run('sdb devices',
+                                       shell=True,
+                                       universal_newlines=True,
+                                       stderr=subprocess.PIPE,
+                                       stdout=subprocess.PIPE)
+    if completed_process.returncode != 0:
+        raise Exception('sdb devices failure.')
+
+    lines = completed_process.stdout.rstrip().split('\n')
+    return [tuple(re.split('\s+', line)) for line in lines[1:]]
+
+
 class Target:
     """A Tizen device that can run Flutter applications.
-    
+
     A target is a Tizen device (either a physical device or an emulator) that can
     run Flutter applications. Generally targets are connected when physical devices
     are connected to the host PC either with a cable or wirelessly, and when 
@@ -57,7 +76,7 @@ class Target:
 
     def run_integration_test(self, plugin_name, directory, timeout):
         """Runs integration test in the given directory.
-        
+
         Args:
             plugin_name (str): The name of the testing plugin.
             directory (str): The path to the directory in which to perform 
@@ -144,19 +163,10 @@ class TemporaryEmulator(Target):
         return result
 
     def _find_id(self):
-        completed_process = subprocess.run('sdb devices',
-                                           shell=True,
-                                           universal_newlines=True,
-                                           stderr=subprocess.PIPE,
-                                           stdout=subprocess.PIPE)
-        if completed_process.returncode != 0:
-            raise Exception('sdb failure.')
-
-        lines = completed_process.stdout.rstrip().split('\n')
-        for line in lines[1:]:
-            tokens = re.split('\s+', line)
-            if tokens[-1] == self.name:
-                return tokens[0]
+        target_infos = _sdb_devices()
+        for target_info in target_infos:
+            if target_info[-1] == self.name:
+                return target_info[0]
         raise Exception(f'Could not find connected target {self.name}')
 
     def _find_pid(self):
@@ -176,9 +186,16 @@ class TemporaryEmulator(Target):
                                            shell=True)
         if completed_process.returncode != 0:
             raise Exception(f'Target {self.name} launch failed.')
-        # There's no straightforward way to know when the target is fully
-        # launched. The current sleep setting is based on some testing.
-        time.sleep(5)
+
+        def check_power_on():
+            target_infos = _sdb_devices()
+            for target_info in target_infos:
+                # status 'device' indicates that the target is booted.
+                if target_info[-1] == self.name and target_info[1] == 'device':
+                    return True
+            return False
+
+        self._poll(check_power_on, interval=1, timeout=100)
         self.id = self._find_id()
         self._pid = self._find_pid()
 
@@ -188,9 +205,31 @@ class TemporaryEmulator(Target):
                                            stdout=open(os.devnull, 'wb'))
         if completed_process.returncode != 0:
             raise Exception(f'Target {self.id} power off failed.')
-        time.sleep(1)
+
+        def check_power_off():
+            target_infos = _sdb_devices()
+            return self.id not in [target_info[0] for target_info in target_infos]
+
+        self._poll(check_power_off, interval=1, timeout=100)
         self.id = None
         self.pid = None
+
+    def _poll(self, function, interval, timeout):
+        """Polls the given function until it returns true or raises an exception
+        after timeout.
+
+        Args:
+            function (Callable[[None], bool]): A function to execute between each poll.
+            interval (int): Time interval in seconds between each poll.
+            timeout (int): Time limit in seconds.
+        """
+        assert interval >= 0 and timeout >= 0
+        start = time.time()
+        while time.time() - start <= timeout:
+            if(function()):
+                return
+            time.sleep(interval)
+        raise Exception('Polling failed due to timeout.')
 
     def create(self):
         completed_process = subprocess.run(
@@ -242,19 +281,11 @@ class TargetManager:
         return self.targets_per_platform.keys()
 
     def _find_all_targets(self):
-        completed_process = subprocess.run('sdb devices',
-                                           shell=True,
-                                           universal_newlines=True,
-                                           stderr=subprocess.PIPE,
-                                           stdout=subprocess.PIPE)
-        if completed_process.returncode != 0:
-            raise Exception('sdb failure.')
+        target_infos = _sdb_devices()
 
-        lines = completed_process.stdout.rstrip().split('\n')
-        for line in lines[1:]:
-            tokens = re.split('\s+', line)
-            id = tokens[0]
-            name = tokens[-1]
+        for target_info in target_infos:
+            id = target_info[0]
+            name = target_info[-1]
             completed_process = subprocess.run(f'sdb -s {id} capability',
                                                shell=True,
                                                universal_newlines=True,
@@ -555,7 +586,7 @@ def run_integration_test(args):
                 args.generate_emulators,
             ))
 
-    print(f'============= TEST RESULT =============')
+    print('============= TEST RESULT =============')
     failed_plugins = []
     for result in results:
         color = _TERM_GREEN
