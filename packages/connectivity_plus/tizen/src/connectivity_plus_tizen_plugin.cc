@@ -40,8 +40,13 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
   void RegisterObserver(
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
     EnsureConnectionHandle();
-    if (connection_set_type_changed_cb(connection_, OnConnectionTypeChanged,
-                                       this) != CONNECTION_ERROR_NONE) {
+    if (connection_set_type_changed_cb(
+            connection_,
+            [](connection_type_e state, void *data) -> void {
+              auto *self = static_cast<ConnectivityPlusTizenPlugin *>(data);
+              self->SendConnectivityChangedEvent(state);
+            },
+            this) != CONNECTION_ERROR_NONE) {
       return;
     }
     events_ = std::move(events);
@@ -64,11 +69,6 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
   }
 
  private:
-  static void OnConnectionTypeChanged(connection_type_e state, void *data) {
-    auto *self = static_cast<ConnectivityPlusTizenPlugin *>(data);
-    self->SendConnectivityChangedEvent(state);
-  }
-
   void EnsureConnectionHandle() {
     if (connection_ == nullptr) {
       if (connection_create(&connection_) != CONNECTION_ERROR_NONE) {
