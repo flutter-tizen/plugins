@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
