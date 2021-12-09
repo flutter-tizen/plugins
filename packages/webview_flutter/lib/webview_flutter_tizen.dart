@@ -10,12 +10,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter/platform_interface.dart';
-import 'package:webview_flutter_platform_interface/src/method_channel/webview_method_channel.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 part 'src/platform_view.dart';
