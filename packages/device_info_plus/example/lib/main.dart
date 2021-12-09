@@ -1,5 +1,4 @@
-// Copyright 2020 Samsung Electronics Co., Ltd. All rights reserved.
-// Copyright 2013 The Flutter Authors. All rights reserved.
+// Copyright 2017 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,16 +7,16 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 
 void main() {
   runZonedGuarded(() {
     runApp(const MyApp());
   }, (dynamic error, dynamic stack) {
-    developer.log(error);
-    developer.log(stack);
+    developer.log("Something went wrong!", error: error, stackTrace: stack);
   });
 }
 
@@ -49,9 +48,7 @@ class _MyAppState extends State<MyApp> {
       };
     }
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     setState(() {
       _deviceData = deviceData;
@@ -65,6 +62,7 @@ class _MyAppState extends State<MyApp> {
       'nativeApiVersion': data.nativeApiVersion,
       'platformVersion': data.platformVersion,
       'webApiVersion': data.webApiVersion,
+      'profile': data.profile,
       'buildDate': data.buildDate,
       'buildId': data.buildId,
       'buildString': data.buildString,
@@ -74,6 +72,9 @@ class _MyAppState extends State<MyApp> {
       'buildRelease': data.buildRelease,
       'deviceType': data.deviceType,
       'manufacturer': data.manufacturer,
+      'platformName': data.platformName,
+      'platformProcessor': data.platformProcessor,
+      'tizenId': data.tizenId,
     };
   }
 
@@ -83,30 +84,32 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(title: const Text('Tizen Device Info')),
         body: ListView(
-          children: _deviceData.keys.map((String property) {
-            return Row(
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text(
-                    property,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+          children: _deviceData.keys.map(
+            (String property) {
+              return Row(
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text(
+                      property,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                    child: Container(
-                  padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-                  child: Text(
-                    '${_deviceData[property]}',
-                    maxLines: 10,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                )),
-              ],
-            );
-          }).toList(),
+                  Expanded(
+                      child: Container(
+                    padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+                    child: Text(
+                      '${_deviceData[property]}',
+                      maxLines: 10,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  )),
+                ],
+              );
+            },
+          ).toList(),
         ),
       ),
     );

@@ -4,17 +4,12 @@
 
 #include "device_info_plus_tizen_plugin.h"
 
-#include <flutter/event_channel.h>
-#include <flutter/event_sink.h>
-#include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 #include <system_info.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "log.h"
@@ -45,28 +40,31 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_INFO("method : %s", method_call.method_name().data());
+    const auto &method_name = method_call.method_name();
 
-    char *value = nullptr;
-    flutter::EncodableMap msg;
+    if (method_name == "getTizenDeviceInfo") {
+      char *value = nullptr;
+      flutter::EncodableMap map;
 
-    for (auto &request : requests_) {
-      const std::string &map_key = request.first;
-      const std::string &tizen_key = request.second;
-      std::string result("");
-      int ret = system_info_get_platform_string(tizen_key.c_str(), &value);
-      if (ret == SYSTEM_INFO_ERROR_NONE) {
-        result = std::string(value);
-        free(value);
-      } else {
-        LOG_ERROR("Failed to get %s from the system: %s", tizen_key.c_str(),
-                  get_error_message(ret));
+      for (auto &request : requests_) {
+        const auto &map_key = request.first;
+        const auto &tizen_key = request.second;
+        auto response = flutter::EncodableValue();
+        int ret = system_info_get_platform_string(tizen_key.c_str(), &value);
+        if (ret == SYSTEM_INFO_ERROR_NONE) {
+          response = std::string(value);
+          free(value);
+        } else {
+          LOG_ERROR("Failed to get %s from the system: %s", tizen_key.c_str(),
+                    get_error_message(ret));
+        }
+        map[flutter::EncodableValue(map_key)] = response;
       }
-      msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-          map_key, result));
-    }
 
-    result->Success(flutter::EncodableValue(msg));
+      result->Success(flutter::EncodableValue(map));
+    } else {
+      result->NotImplemented();
+    }
   }
 
   const std::vector<std::pair<std::string, std::string>> requests_ = {
@@ -76,6 +74,7 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
        "http://tizen.org/feature/platform.native.api.version"},
       {"platformVersion", "http://tizen.org/feature/platform.version"},
       {"webApiVersion", "http://tizen.org/feature/platform.web.api.version"},
+      {"profile", "http://tizen.org/feature/profile"},
       {"buildDate", "http://tizen.org/system/build.date"},
       {"buildId", "http://tizen.org/system/build.id"},
       {"buildString", "http://tizen.org/system/build.string"},
@@ -85,6 +84,9 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
       {"buildRelease", "http://tizen.org/system/build.release"},
       {"deviceType", "http://tizen.org/system/device_type"},
       {"manufacturer", "http://tizen.org/system/manufacturer"},
+      {"platformName", "http://tizen.org/system/platform.name"},
+      {"platformProcessor", "http://tizen.org/system/platform.processor"},
+      {"tizenId", "http://tizen.org/system/tizenid"},
   };
 };
 
