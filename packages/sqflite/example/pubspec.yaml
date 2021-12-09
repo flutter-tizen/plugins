@@ -1,0 +1,34 @@
+name: sqflite_tizen_example
+description: Demonstrates how to use the sqflite_tizen plugin.
+publish_to: "none"
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sqflite: ^2.0.0
+  sqflite_tizen:
+    path: ../
+
+dev_dependencies:
+  pedantic: ^1.11.0
+  flutter_lints:
+  flutter_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
+  test:
+  matcher: '>=0.12.10-nullsafety.3 <2.0.0'
+  process_run: '>=0.11.0+2'
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/example.db
+    - assets/issue_64.db
