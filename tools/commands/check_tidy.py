@@ -89,7 +89,8 @@ def _run_check_tidy(src_dir, update, clang_format, stats):
                 if line.endswith(' \n') or line.endswith('\t\n'):
                     report_error('trailing whitespace', lineno)
                 if not line.endswith('\n'):
-                    report_error('line ends without NEW LINE character', lineno)
+                    report_error(
+                        'line ends without NEW LINE character', lineno)
 
                 if not line.strip():
                     stats.empty_lines += 1
@@ -105,8 +106,7 @@ def set_subparser(subparsers):
     parser = subparsers.add_parser(
         'tidy',
         help='Check and update format for C++ files',
-        usage=
-        'run_command.py tidy [-h] [--clang-format PATH] [--update] [--dir PATH]'
+        usage='run_command.py tidy [-h] [--clang-format PATH] [--update] [--dir PATH]'
     )
     parser.add_argument('--clang-format',
                         metavar='PATH',

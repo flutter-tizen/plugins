@@ -11,36 +11,38 @@ jobs:
           fetch-depth: 2
       - name: Find changed packages
         run: |
-          CHANGED_PACKAGES=$(python3 tools/run_command.py plugins --run-on-changed-packages --base-sha $(git rev-parse HEAD^))
+          CHANGED_PACKAGES=$(python3 tools/run_command.py plugins \
+            --run-on-changed-packages \
+            --base-sha=$(git rev-parse HEAD^))
           if [[ ! -z $CHANGED_PACKAGES ]]; then
               echo $CHANGED_PACKAGES
-              echo "HAS_CHANGED_PACKAGES=true" >> "$GITHUB_ENV"
+              echo "HAS_CHANGED_PACKAGES=true" >> $GITHUB_ENV
           fi
       - name: Install prerequisite packages
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
-          sudo apt-get update
+          sudo apt update
           sudo apt install -y \
-          acl \
-          bridge-utils \
-          gettext \
-          openvpn \
-          libfontconfig1 \
-          libglib2.0-0 \
-          libjpeg-turbo8 \
-          libpixman-1-0 \
-          libpng16-16 \
-          libsdl1.2debian \
-          libsm6 \
-          libv4l-0 \
-          libx11-xcb1 \
-          libxcb-icccm4 \
-          libxcb-image0 \
-          libxcb-randr0 \
-          libxcb-render-util0 \
-          libxcb-shape0 \
-          libxcb-xfixes0 \
-          libxi6
+            acl \
+            bridge-utils \
+            gettext \
+            openvpn \
+            libfontconfig1 \
+            libglib2.0-0 \
+            libjpeg-turbo8 \
+            libpixman-1-0 \
+            libpng16-16 \
+            libsdl1.2debian \
+            libsm6 \
+            libv4l-0 \
+            libx11-xcb1 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-xfixes0 \
+            libxi6
       - name: Install Tizen Studio
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
@@ -62,7 +64,10 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/tizen-studio/tools/ide/bin
           tizen certificate -a platform -p platform -f platform
-          tizen security-profiles add -n platform -a $HOME/tizen-studio-data/keystore/author/platform.p12 -p platform
+          tizen security-profiles add \
+            -n platform \
+            -a $HOME/tizen-studio-data/keystore/author/platform.p12 \
+            -p platform
       - name: Install flutter-tizen
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         uses: actions/checkout@v2
@@ -73,4 +78,6 @@ jobs:
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          ./tools/run_command.py build --run-on-changed-packages --base-sha $(git rev-parse HEAD^)
+          ./tools/run_command.py build \
+            --run-on-changed-packages \
+            --base-sha=$(git rev-parse HEAD^)

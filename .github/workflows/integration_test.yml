@@ -20,7 +20,7 @@ jobs:
         with:
           repository: flutter-tizen/flutter-tizen
           path: flutter-tizen
-      - name: Run tests for changed plugins
+      - name: Run tests for changed packages
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
@@ -28,28 +28,11 @@ jobs:
             --recipe ./tools/recipe.yaml \
             --generate-emulators \
             --run-on-changed-packages \
-            --base-sha=$(git rev-parse HEAD^) \
-            --exclude wearable_rotary image_picker camera webview_flutter \
-              video_player permission_handler geolocator battery connectivity \
-              device_info package_info sensors share wifi_info_flutter \
-              google_maps_flutter tizen_app_control url_launcher network_info_plus
-      - name: Run tests for all plugins
+            --base-sha=$(git rev-parse HEAD^) 
+      - name: Run tests for all packages
         if: ${{ github.event_name == 'push' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           ./tools/run_command.py test \
             --recipe ./tools/recipe.yaml \
-            --generate-emulators \
-            --exclude wearable_rotary image_picker camera webview_flutter \
-              video_player permission_handler geolocator battery connectivity \
-              device_info package_info sensors share wifi_info_flutter \
-              google_maps_flutter tizen_app_control url_launcher network_info_plus
-        # The following packages are excluded from tests:
-        #   wearable_rotary, image_picker: no tests.
-        #   camera: no supported profiles.
-        #   video_player: test frequently breaks due to memory issue(https://github.com/flutter-tizen/plugins/issues/135).
-        #   permission_handler: permission related test.
-        #   geolocator: test requires console manipulation.
-        #   battery, connectivity, device_info, package_info, sensors, share, wifi_info_flutter: deprecated.
-        #   google_maps_flutter, webview_flutter, url_launcher, network_info_plus: not supported by emulators
-        #   tizen_app_control: test available after Flutter 2.5 migration.
+            --generate-emulators

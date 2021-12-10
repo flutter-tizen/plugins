@@ -35,7 +35,7 @@ _LOG_PATTERN = r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)'
 
 class Target:
     """A Tizen device that can run Flutter applications.
-    
+
     A target is a Tizen device (either a physical device or an emulator) that can
     run Flutter applications. Generally targets are connected when physical devices
     are connected to the host PC either with a cable or wirelessly, and when 
@@ -57,7 +57,7 @@ class Target:
 
     def run_integration_test(self, plugin_name, directory, timeout):
         """Runs integration test in the given directory.
-        
+
         Args:
             plugin_name (str): The name of the testing plugin.
             directory (str): The path to the directory in which to perform 
@@ -374,14 +374,16 @@ targets for each plugin, use the --recipe option instead.
                        help='''The recipe file path. A recipe refers to a 
 yaml file that defines a list of target platforms to test for each plugin. 
 Pass this file if you want to select specific target platform for different
-plugins. Note that recipe does not select which plugins to test(that is covered
-by the --plugins option), it only defines which target platform to test
-for certain plugins if those plugins are being tested.
+plugins. Every package listed in the recipe file will be recognized by the tool
+(same as --plugins option) and those that specify an empty list will be
+explicitly excluded (same as --exclude option). If --recipe is used,
+--plugins and --exclude options will be ignored.
 (
 plugins:
   a: [wearable-5.5, tv-6.0]
   b: [mobile-6.0]
   c: [wearable-4.0]
+  d: [] # explicitly excluded
 )''')
     parser.add_argument(
         '--generate-emulators',
@@ -512,6 +514,12 @@ def run_integration_test(args):
                 print(
                     f'The recipe file {args.recipe} is not a valid yaml file.')
                 exit(1)
+        if not all([isinstance(val, list) for val in platforms_per_plugin.values()]):
+            print('Every package in the recipe file must specify a list.')
+            exit(1)
+        args.plugins = list(platforms_per_plugin.keys())
+        args.exclude = [item[0] for item in filter(
+            lambda item: not item[1], platforms_per_plugin.items())]
 
     if args.platforms:
         for platform in args.platforms:
@@ -541,7 +549,7 @@ def run_integration_test(args):
     for testing_plugin in testing_plugins:
         test_num += 1
         print(
-            f'============= Testing for {testing_plugin} ({test_num}/{total_plugin_num}) ============='
+            f'============= Testing {testing_plugin} ({test_num}/{total_plugin_num}) ============='
         )
         platforms = args.platforms
         if testing_plugin in platforms_per_plugin:
