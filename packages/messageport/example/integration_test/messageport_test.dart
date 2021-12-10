@@ -14,13 +14,11 @@ void main() {
   testWidgets('Create non trusted local port', (WidgetTester tester) async {
     final LocalPort port =
         await TizenMessagePort.createLocalPort('test_port', trusted: false);
-    assert(port is LocalPort, true);
     assert(!port.trusted, true);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   testWidgets('Create trusted local port', (WidgetTester tester) async {
     final LocalPort port = await TizenMessagePort.createLocalPort('test_port');
-    assert(port is LocalPort, true);
     assert(port.trusted, true);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
@@ -30,7 +28,6 @@ void main() {
     localPort.register((dynamic message, [RemotePort? remotePort]) => null);
     final RemotePort remotePort = await TizenMessagePort.connectToRemotePort(
         'org.tizen.messageport_tizen_example', 'test_port');
-    expect(remotePort is RemotePort, true);
     expect(
         remotePort.remoteAppId, equals('org.tizen.messageport_tizen_example'));
     expect(remotePort.portName, equals('test_port'));
@@ -97,7 +94,6 @@ void main() {
     final String message = value[0] as String;
     final RemotePort? remotePort = value[1] as RemotePort?;
     expect(message, equals('Test message 2'));
-    expect(remotePort is RemotePort, true);
     expect(
         remotePort?.remoteAppId, equals('org.tizen.messageport_tizen_example'));
     expect(remotePort?.portName, equals('test_port'));

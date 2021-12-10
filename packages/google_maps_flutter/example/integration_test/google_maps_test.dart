@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:integration_test/integration_test.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_tizen/google_maps_flutter_tizen.dart';

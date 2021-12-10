@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 /// Widget for displaying a preview of images
 class ImagePreviews extends StatelessWidget {

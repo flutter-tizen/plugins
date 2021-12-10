@@ -10,7 +10,6 @@ import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_tizen_example/src/common_import.dart';
 
 // ignore_for_file: avoid_print
 void main() {
