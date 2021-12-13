@@ -13,9 +13,7 @@
 #include <net_connection.h>
 #include <wifi-manager.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "log.h"
@@ -42,8 +40,13 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
   void RegisterObserver(
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
     EnsureConnectionHandle();
-    if (connection_set_type_changed_cb(connection_, ConnectionTypeChangedCB,
-                                       this) != CONNECTION_ERROR_NONE) {
+    if (connection_set_type_changed_cb(
+            connection_,
+            [](connection_type_e state, void *data) -> void {
+              auto *self = static_cast<ConnectivityPlusTizenPlugin *>(data);
+              self->SendConnectivityChangedEvent(state);
+            },
+            this) != CONNECTION_ERROR_NONE) {
       return;
     }
     events_ = std::move(events);
@@ -57,20 +60,15 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
   }
 
   void SendConnectivityChangedEvent(connection_type_e state) {
-    if (events_ == nullptr) return;
+    if (events_ == nullptr) {
+      return;
+    }
     std::string replay = ConvertConnectionTypeToString(state);
     flutter::EncodableValue msg(replay);
     events_->Success(msg);
   }
 
  private:
-  static void ConnectionTypeChangedCB(connection_type_e state, void *data) {
-    LOG_DEBUG("connectionTypeChangedCB");
-    ConnectivityPlusTizenPlugin *plugin_pointer =
-        (ConnectivityPlusTizenPlugin *)data;
-    plugin_pointer->SendConnectivityChangedEvent(state);
-  }
-
   void EnsureConnectionHandle() {
     if (connection_ == nullptr) {
       if (connection_create(&connection_) != CONNECTION_ERROR_NONE) {
@@ -83,8 +81,10 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
     std::string result;
     switch (net_state) {
       case CONNECTION_TYPE_WIFI:
-      case CONNECTION_TYPE_ETHERNET:
         result = "wifi";
+        break;
+      case CONNECTION_TYPE_ETHERNET:
+        result = "ethernet";
         break;
       case CONNECTION_TYPE_CELLULAR:
         result = "mobile";
@@ -101,6 +101,7 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     EnsureConnectionHandle();
     LOG_INFO("method : %s", method_call.method_name().data());
+
     std::string replay = "";
     if (method_call.method_name().compare("check") == 0) {
       connection_type_e net_state;
