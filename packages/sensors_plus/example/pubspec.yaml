@@ -5,7 +5,7 @@ publish_to: "none"
 dependencies:
   flutter:
     sdk: flutter
-  sensors_plus: ^1.0.0
+  sensors_plus: ^1.2.1
   sensors_plus_tizen:
     path: ../
 
