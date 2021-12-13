@@ -33,8 +33,8 @@ def run_build_examples(args):
     packages_dir = command_utils.get_package_dir()
     target_plugins, _ = command_utils.get_target_plugins(
         packages_dir,
-        plugins=args.plugins,
-        exclude=args.exclude,
+        candidates=args.plugins,
+        excludes=args.exclude,
         run_on_changed_packages=args.run_on_changed_packages,
         base_sha=args.base_sha)
     results = []

@@ -87,30 +87,30 @@ def get_changed_plugins(packages_dir, base_sha=''):
 
 
 def get_target_plugins(packages_dir,
-                       plugins=[],
-                       exclude=[],
+                       candidates=[],
+                       excludes=[],
                        run_on_changed_packages=False,
                        base_sha=''):
     existing_plugins = os.listdir(packages_dir)
-    for plugin in plugins:
+    for plugin in candidates:
         if plugin not in existing_plugins:
             print(f'{plugin} package does not exist, ignoring input...')
 
     plugin_names = []
-    if len(plugins) == 0 and run_on_changed_packages:
+    if len(candidates) == 0 and run_on_changed_packages:
         plugin_names = get_changed_plugins(packages_dir, base_sha)
     else:
         for plugin_name in existing_plugins:
             if not os.path.isdir(os.path.join(packages_dir, plugin_name)):
                 continue
-            if len(plugins) > 0 and plugin_name not in plugins:
+            if len(candidates) > 0 and plugin_name not in candidates:
                 continue
             plugin_names.append(plugin_name)
 
     excluded_plugins = []
     testing_plugins = []
     for plugin_name in plugin_names:
-        if plugin_name in exclude:
+        if plugin_name in excludes:
             excluded_plugins.append(plugin_name)
         else:
             testing_plugins.append(plugin_name)
