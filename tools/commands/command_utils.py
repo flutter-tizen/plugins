@@ -15,10 +15,7 @@ def set_parser_arguments(parser,
                             nargs='*',
                             default=[],
                             help=f'Specifies which plugins to {command}. \
-            If it is not specified and --run-on-changed-packages is also not specified, \
-            then it will include every plugin under packages. \
-            If both flags are specified, then --run-on-changed-packages is ignored.'
-                            )
+            If it is not specified then it will include every plugin under packages.')
 
     if exclude:
         parser.add_argument('--exclude',
@@ -51,7 +48,7 @@ def set_parser_arguments(parser,
             Default is 120 seconds.')
 
 
-def get_changed_plugins(packages_dir, base_sha=''):
+def _get_changed_plugins(packages_dir, base_sha=''):
     if base_sha == '':
         base_sha = subprocess.run(
             'git merge-base --fork-point FETCH_HEAD HEAD',
@@ -91,30 +88,44 @@ def get_target_plugins(packages_dir,
                        excludes=[],
                        run_on_changed_packages=False,
                        base_sha=''):
-    existing_plugins = os.listdir(packages_dir)
-    for plugin in candidates:
-        if plugin not in existing_plugins:
-            print(f'{plugin} package does not exist, ignoring input...')
+    # If no candidates are provided, all packages under `/packages` are candidates.
+    existing_packages = os.listdir(packages_dir)
+    if not candidates:
+        candidates = existing_packages[:]
 
-    plugin_names = []
-    if len(candidates) == 0 and run_on_changed_packages:
-        plugin_names = get_changed_plugins(packages_dir, base_sha)
-    else:
-        for plugin_name in existing_plugins:
-            if not os.path.isdir(os.path.join(packages_dir, plugin_name)):
-                continue
-            if len(candidates) > 0 and plugin_name not in candidates:
-                continue
-            plugin_names.append(plugin_name)
-
-    excluded_plugins = []
-    testing_plugins = []
-    for plugin_name in plugin_names:
-        if plugin_name in excludes:
-            excluded_plugins.append(plugin_name)
+    # Remove non existing package names.
+    existing_candidates = []
+    for candidate in candidates:
+        if candidate not in existing_packages:
+            print(f'{candidate} package does not exist, ignoring input...')
         else:
-            testing_plugins.append(plugin_name)
-    return testing_plugins, excluded_plugins
+            existing_candidates.append(candidate)
+    existing_excludes = []
+    for exclude in excludes:
+        if exclude not in existing_packages:
+            print(f'{exclude} package does not exist, ignoring input...')
+        else:
+            existing_excludes.append(exclude)
+
+    # If `run_on_changed_packages` is true, get the subset of `existing_candidates` where each package is changed.
+    if run_on_changed_packages:
+        changed_packages = _get_changed_plugins(packages_dir, base_sha)
+        for changed_package in changed_packages:
+            if changed_package not in existing_candidates:
+                print(f'{changed_package} package is changed but is not tested because it\'t not one of the candidates.')
+        existing_candidates = list(set(existing_candidates).intersection(set(changed_packages)))
+
+    # Remove excludes that are not in `existing candidates`.
+    final_excludes = []
+    for existing_exclude in existing_excludes:
+        if existing_exclude not in existing_candidates:
+            print(f'{existing_exclude} package does not exist in candidates, ignoring input...')
+        else:
+            final_excludes.append(existing_exclude)
+
+    # Get the final candidates for testing by removing excludes.
+    final_candidates = list(set(existing_candidates).difference(set(final_excludes)))
+    return final_candidates, final_excludes
 
 
 def get_package_dir():
