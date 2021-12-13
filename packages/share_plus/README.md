@@ -11,28 +11,29 @@ To use this plugin, add `share_plus` and `share_plus_tizen` as [dependencies in 
 ```yaml
 dependencies:
   share_plus: ^3.0.4
-  share_plus_tizen: ^1.0.0
+  share_plus_tizen: ^1.1.0
 ```
 
-## Example
-
-Import the library.
+Then you can import `share_plus` in your Dart code.
 
 ``` dart
 import 'package:share_plus/share_plus.dart';
-```
 
-Then invoke the static `share` method anywhere in your Dart code.
-
-``` dart
 Share.share('check out my website https://example.com');
 ```
 
-## Limitations
+For detailed usage, see https://pub.dev/packages/share_plus#example.
 
-- This plugin is only supported on **Galaxy Watch** devices running Tizen 4.0 or later.
-- Passing in an optional argument `subject` to `Share.share()` or invoking `Share.shareFiles()` leads to a **PlatformException** because no e-mail app is available on watch devices.
-- You cannot choose which application to use for sharing. Only the **Message** app can handle sharing requests.
+## Supported devices
+
+- Galaxy Watch series (running Tizen 4.0 or later)
+
+You can send only **SMS messages** using this plugin. You can't use this plugin on TV devices because no SMS or e-mail app is available on them.
+
+## Supported APIs
+
+- [x] `Share.share` (no optional argument supported)
+- [ ] `Share.shareFiles` (no e-mail app available)
 
 ## Required privileges
 
