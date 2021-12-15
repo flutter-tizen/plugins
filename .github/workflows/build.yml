@@ -58,7 +58,8 @@ jobs:
           NativeCLI \
           NativeToolchain-Gcc-9.2 \
           WEARABLE-4.0-NativeAppDevelopment \
-          WEARABLE-5.5-NativeAppDevelopment
+          WEARABLE-5.5-NativeAppDevelopment \
+          WEARABLE-6.5-NativeAppDevelopment
       - name: Create a Tizen certificate profile
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
