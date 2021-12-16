@@ -24,6 +24,7 @@ plugins:
   # No tests.
   image_picker: []
   wearable_rotary: []
+  flutter_local_notifications: []
 
   # Permission cannot be granted without manual interaction.
   geolocator: []
