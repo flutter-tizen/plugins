@@ -25,7 +25,7 @@ jobs:
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           ./tools/run_command.py test \
-            --recipe ./tools/recipe.yaml \
+            --recipe ./.github/recipe.yaml \
             --generate-emulators \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^) 
@@ -34,5 +34,5 @@ jobs:
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           ./tools/run_command.py test \
-            --recipe ./tools/recipe.yaml \
+            --recipe ./.github/recipe.yaml \
             --generate-emulators
