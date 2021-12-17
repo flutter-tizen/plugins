@@ -30,7 +30,7 @@
 * Update video_player to 2.2.6 and update the example app.
 * Minor cleanups.
 
-## 2.4.0
+## 2.3.1
 
 * Show first frame after player is prepared.
 * Assign `on_completed_cb_` of player before calling `player_set_play_position` to fix intermittent issue.
