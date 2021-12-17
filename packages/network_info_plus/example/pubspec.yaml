@@ -5,7 +5,7 @@ publish_to: "none"
 dependencies:
   flutter:
     sdk: flutter
-  network_info_plus: ^2.0.2
+  network_info_plus: ^2.1.2
   network_info_plus_tizen:
     path: ../
 
