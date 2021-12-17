@@ -38,7 +38,7 @@ Then you can import `video_player` in your Dart code:
 import 'package:video_player/video_player.dart';
 ```
 
-For how to use the plugin, see https://github.com/flutter/plugins/tree/master/packages/video_player/video_player#example.
+For detailed usage, see https://pub.dev/packages/video_player#example.
 
 ## Limitations
 

@@ -20,7 +20,7 @@ Then you can import `sensors` in your Dart code:
 import 'package:sensors/sensors.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/sensors#usage.
+For detailed usage, see https://pub.dev/packages/sensors#usage.
 
 ## Supported devices
 

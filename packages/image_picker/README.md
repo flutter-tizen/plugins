@@ -23,7 +23,7 @@ final ImagePicker picker = ImagePicker();
 final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/image_picker/image_picker#example.
+For detailed usage, see https://pub.dev/packages/image_picker#example.
 
 ## Supported devices
 

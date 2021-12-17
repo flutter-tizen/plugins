@@ -38,7 +38,7 @@ PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
 });
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/blob/master/packages/package_info/README.md#usage.
+For detailed usage, see https://pub.dev/packages/package_info#usage.
 
 ## Supported devices
 

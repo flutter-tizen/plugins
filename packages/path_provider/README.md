@@ -20,7 +20,7 @@ Then you can import `path_provider` in your Dart code:
 import 'package:path_provider/path_provider.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/path_provider/path_provider#usage.
+For detailed usage, see https://pub.dev/packages/path_provider#usage.
 
 ## Supported APIs
 

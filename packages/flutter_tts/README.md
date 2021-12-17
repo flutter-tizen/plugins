@@ -20,7 +20,7 @@ Then you can import `flutter_tts` in your Dart code:
 import 'package:flutter_tts/flutter_tts.dart';
 ```
 
-For detailed usage, see https://github.com/dlutton/flutter_tts#usage.
+For detailed usage, see https://pub.dev/packages/flutter_tts#usage.
 
 ## Supported APIs
 

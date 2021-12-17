@@ -20,7 +20,7 @@ Then you can import `battery` in your Dart code:
 import 'package:battery/battery.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/battery/battery#usage.
+For detailed usage, see https://pub.dev/packages/battery#usage.
 
 ## Supported devices
 

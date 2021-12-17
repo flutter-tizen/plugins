@@ -20,4 +20,4 @@ Then you can import `shared_preferences` in your Dart code:
 import 'package:shared_preferences/shared_preferences.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/shared_preferences/shared_preferences#usage.
+For detailed usage, see https://pub.dev/packages/shared_preferences#usage.

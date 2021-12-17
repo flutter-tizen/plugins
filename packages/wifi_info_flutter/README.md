@@ -20,7 +20,7 @@ Then you can import `wifi_info_flutter` in your Dart code:
 import 'package:wifi_info_flutter/wifi_info_flutter.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/wifi_info_flutter/wifi_info_flutter#usage.
+For detailed usage, see https://pub.dev/packages/wifi_info_flutter#usage.
 
 ## Required privileges
 
@@ -32,4 +32,4 @@ To get network information using this plugin, add below lines under the `<manife
 </privileges>
 ```
 
-For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
+For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).

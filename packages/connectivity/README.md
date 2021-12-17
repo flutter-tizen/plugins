@@ -20,7 +20,7 @@ Then you can import `connectivity` in your Dart code:
 import 'package:connectivity/connectivity.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/connectivity/connectivity#usage.
+For detailed usage, see https://pub.dev/packages/connectivity#usage.
 
 ## Required privileges
 
