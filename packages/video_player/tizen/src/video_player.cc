@@ -289,15 +289,15 @@ void VideoPlayer::setPlaybackSpeed(double speed) {
 void VideoPlayer::seekTo(int position,
                          const SeekCompletedCb &seek_completed_cb) {
   LOG_DEBUG("[VideoPlayer.seekTo] position: %d", position);
+  on_seek_completed_ = seek_completed_cb;
   int ret =
       player_set_play_position(player_, position, true, onSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
+    on_seek_completed_ = nullptr;
     LOG_ERROR("[VideoPlayer.seekTo] player_set_play_position failed: %s",
               get_error_message(ret));
     throw VideoPlayerError("player_set_play_position failed",
                            get_error_message(ret));
-  } else {
-    on_seek_completed_ = seek_completed_cb;
   }
 }
 
