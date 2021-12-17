@@ -88,7 +88,7 @@ const MethodChannel _channel =
     MethodChannel('dexterous.com/flutter/local_notifications');
 
 /// A handle for sending notifications to Tizen.
-class TizenFlutterLocalNotificationsPlugin {
+class TizenLocalNotificationsPlugin {
   ///Removes a notification with [id].
   Future<void> cancel(int id, {String? tag}) =>
       _channel.invokeMethod('cancel', id.toString());

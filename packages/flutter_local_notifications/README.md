@@ -1,4 +1,4 @@
-# flutter_local_notifications
+# flutter_local_notifications_tizen
 
 [![pub package](https://img.shields.io/pub/v/flutter_local_notifications_tizen.svg)](https://pub.dev/packages/flutter_local_notifications_tizen)
 
@@ -19,9 +19,8 @@ Then you can import `flutter_local_notifications_tizen` in your Dart code:
 ```dart
 import 'package:flutter_local_notifications_tizen/flutter_local_notifications_tizen.dart';
 
-TizenFlutterLocalNotificationsPlugin plugin = TizenFlutterLocalNotificationsPlugin();
-int notification_id = 1;
-plugin.show(notification_id, 'Title', 'Body');
+TizenLocalNotificationsPlugin plugin = TizenLocalNotificationsPlugin();
+await plugin.show(1, 'Title', 'Body');
 ```
 
 ## Required privileges

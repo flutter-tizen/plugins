@@ -8,9 +8,9 @@ void main() {
 }
 
 class NotificationTest extends StatelessWidget {
-  final TizenFlutterLocalNotificationsPlugin
-      _tizenFlutterLocalNotificationsPlugin =
-      TizenFlutterLocalNotificationsPlugin();
+  final TizenLocalNotificationsPlugin
+      _tizenLocalNotificationsPlugin =
+      TizenLocalNotificationsPlugin();
   final int notificationId = 1;
 
   Future<void> _showNotification() async {
@@ -20,7 +20,7 @@ class NotificationTest extends StatelessWidget {
       vibration: NotificationVibration(type: VibrationType.builtIn),
       sound: NotificationSound(type: SoundType.builtIn),
     );
-    await _tizenFlutterLocalNotificationsPlugin.show(
+    await _tizenLocalNotificationsPlugin.show(
       notificationId,
       'show Notification Title',
       'show Notification Body',
@@ -29,11 +29,11 @@ class NotificationTest extends StatelessWidget {
   }
 
   Future<void> _cancelNotification() async {
-    await _tizenFlutterLocalNotificationsPlugin.cancel(notificationId);
+    await _tizenLocalNotificationsPlugin.cancel(notificationId);
   }
 
   Future<void> _cancelAllNotification() async {
-    await _tizenFlutterLocalNotificationsPlugin.cancelAll();
+    await _tizenLocalNotificationsPlugin.cancelAll();
   }
 
   @override
