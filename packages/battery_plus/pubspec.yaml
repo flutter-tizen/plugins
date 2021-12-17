@@ -2,18 +2,17 @@ name: battery_plus_tizen
 description: Tizen implementation of the battery_plus plugin
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/battery_plus
-version: 1.0.2
+version: 1.0.3
 
 flutter:
   plugin:
     platforms:
       tizen:
-        dartPluginClass: BatteryPlugin
         pluginClass: BatteryPlusTizenPlugin
         fileName: battery_plus_tizen_plugin.h
 
 dependencies:
-  battery_plus_platform_interface: ^1.1.0
+  battery_plus_platform_interface: ^1.1.1
   flutter:
     sdk: flutter
 
