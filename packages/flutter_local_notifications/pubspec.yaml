@@ -1,5 +1,7 @@
 name: tizen_notification
 description: Tizen notification APIs. Used to show and delete notifications on a Tizen device.
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_notification
 version: 1.0.0
 
 environment:
