@@ -1,25 +1,25 @@
-# flutter_local_notifications_tizen
+# tizen_notification
 
-[![pub package](https://img.shields.io/pub/v/flutter_local_notifications_tizen.svg)](https://pub.dev/packages/flutter_local_notifications_tizen)
+[![pub package](https://img.shields.io/pub/v/tizen_notification.svg)](https://pub.dev/packages/tizen_notification)
 
-The Tizen implementation of `flutter_local_notifications`.
+Tizen notification APIs. Used to show and delete notifications on a Tizen device.
 
 ## Usage
 
-To use this plugin, add `flutter_local_notifications_tizen` as a dependency in your pubspec.yaml file:
+To use this plugin, add `tizen_notification` as a dependency in your pubspec.yaml file:
 
 ```yaml
 dependencies:
-  flutter_local_notifications_tizen: ^1.0.0
+  tizen_notification: ^1.0.0
 ```
 
-Then you can import `flutter_local_notifications_tizen` in your Dart code:
+Then you can import `tizen_notification` in your Dart code:
 
 
 ```dart
-import 'package:flutter_local_notifications_tizen/flutter_local_notifications_tizen.dart';
+import 'package:tizen_notification/notification.dart';
 
-TizenLocalNotificationsPlugin plugin = TizenLocalNotificationsPlugin();
+TizenNotificationPlugin plugin = TizenNotificationPlugin();
 await plugin.show(1, 'Title', 'Body');
 ```
 

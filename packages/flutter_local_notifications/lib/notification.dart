@@ -12,22 +12,20 @@ class TizenNotificationDetails {
   ///
   /// [images] only supports type [List<NotificationImage>] and [NotificationImage].
   const TizenNotificationDetails({
-    this.onGoing = false,
-    this.displayApplist = DisplayApplist.all,
+    this.images,
     this.properties,
+    this.appControlData,
     this.vibration,
     this.sound,
-    this.appControlData,
-    this.images,
+    this.displayApplist = DisplayApplist.all,
+    this.onGoing = false,
   });
 
-  /// The destination app that displays notification.
+  /// A single or a list of [NotificationImage].
   ///
-  /// The notification can be sent to multiple apps by listing values with the
-  /// bitwise OR operator.
-  /// For example, [DisplayApplist.tray] | [DisplayApplist.indicator].
-  final int? displayApplist;
-
+  /// [NotificationImage] refers to any image shown on the notification panel.
+  final dynamic images;
+  
   /// Properties that configure how the system handles notification at
   /// certain scenarios.
   ///
@@ -35,19 +33,21 @@ class TizenNotificationDetails {
   /// For example, [Property.disableAppLaunch] | [Property.volatileDisplay].
   final int? properties;
 
+  /// A set of information used by app control to launch other applications.
+  final AppControlData? appControlData;
+
   /// The vibration triggered when a notification is shown on the panel.
   final NotificationVibration? vibration;
 
   /// The sound played when a notification is shown on the panel.
   final NotificationSound? sound;
 
-  /// A set of information used by app control to launch other applications.
-  final AppControlData? appControlData;
-
-  /// A single or a list of [NotificationImage].
+  /// The destination app that displays notification.
   ///
-  /// [NotificationImage] refers to any image shown on the notification panel.
-  final dynamic images;
+  /// The notification can be sent to multiple apps by listing values with the
+  /// bitwise OR operator.
+  /// For example, [DisplayApplist.tray] | [DisplayApplist.indicator].
+  final int? displayApplist;
 
   /// If [onGoing] is true, the user is not able to delete the notification.
   ///
@@ -84,11 +84,10 @@ class TizenNotificationDetails {
   }
 }
 
-const MethodChannel _channel =
-    MethodChannel('dexterous.com/flutter/local_notifications');
+const MethodChannel _channel = MethodChannel('tizen/internal/notification');
 
 /// A handle for sending notifications to Tizen.
-class TizenLocalNotificationsPlugin {
+class TizenNotificationPlugin {
   ///Removes a notification with [id].
   Future<void> cancel(int id, {String? tag}) =>
       _channel.invokeMethod('cancel', id.toString());
@@ -103,9 +102,8 @@ class TizenLocalNotificationsPlugin {
     int id,
     String? title,
     String? body,
-    TizenNotificationDetails? notificationDetails, {
-    String? payload,
-  }) {
+    TizenNotificationDetails? notificationDetails,
+  ) {
     final Map<String, dynamic> details =
         notificationDetails?.toMap() ?? <String, dynamic>{};
     details['id'] = id.toString();

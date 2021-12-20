@@ -22,8 +22,8 @@ plugins:
   webview_flutter: []
 
   # No tests.
-  flutter_local_notifications: []
   image_picker: []
+  tizen_notification: []
   wearable_rotary: []
 
   # Permission cannot be granted without manual interaction.

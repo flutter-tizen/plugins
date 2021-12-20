@@ -1,5 +1,5 @@
-name: flutter_local_notifications_tizen
-description: A new flutter plugin project.
+name: tizen_notification
+description: Tizen notification APIs. Used to show and delete notifications on a Tizen device.
 version: 1.0.0
 
 environment:
@@ -9,11 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_local_notifications: ^9.1.5
 
 flutter:
   plugin:
     platforms:
       tizen:
-        pluginClass: FlutterLocalNotificationsPlugin
-        fileName: flutter_local_notifications_plugin.h
+        pluginClass: TizenNotificationPlugin
+        fileName: tizen_notification_plugin.h

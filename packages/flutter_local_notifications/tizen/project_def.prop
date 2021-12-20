@@ -1,7 +1,7 @@
 # See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
 # for details.
 
-APPNAME = flutter_local_notifications_plugin
+APPNAME = tizen_notification_plugin
 type = staticLib
 profile = common-4.0
 

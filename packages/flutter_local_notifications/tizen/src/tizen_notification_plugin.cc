@@ -1,4 +1,4 @@
-#include "flutter_local_notifications_plugin.h"
+#include "tizen_notification_plugin.h"
 
 #include <app_common.h>
 #include <flutter/method_channel.h>
@@ -15,20 +15,20 @@
 
 #include "log.h"
 
-#define FLUTTER_LOCAL_NOTIFICATION_STRINGIFY(s) #s
+#define TIZEN_NOTIFICATION_STRINGIFY(s) #s
 
 constexpr int kNotification = 0;
 constexpr int kAppControl = 1;
 
-class FlutterLocalNotificationsPlugin : public flutter::Plugin {
+class TizenNotificationPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "dexterous.com/flutter/local_notifications",
+            registrar->messenger(), "tizen/internal/notification",
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto plugin = std::make_unique<FlutterLocalNotificationsPlugin>();
+    auto plugin = std::make_unique<TizenNotificationPlugin>();
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -38,9 +38,9 @@ class FlutterLocalNotificationsPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  FlutterLocalNotificationsPlugin() {}
+  TizenNotificationPlugin() {}
 
-  virtual ~FlutterLocalNotificationsPlugin() {}
+  virtual ~TizenNotificationPlugin() {}
 
  private:
   template <typename T>
@@ -503,9 +503,9 @@ class FlutterLocalNotificationsPlugin : public flutter::Plugin {
   }
 };
 
-void FlutterLocalNotificationsPluginRegisterWithRegistrar(
+void TizenNotificationPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  FlutterLocalNotificationsPlugin::RegisterWithRegistrar(
+  TizenNotificationPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

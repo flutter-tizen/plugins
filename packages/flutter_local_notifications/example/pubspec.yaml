@@ -1,5 +1,5 @@
-name: flutter_local_notifications_example
-description: Demonstrates how to use the flutter_local_notifications plugin.
+name: tizen_notification_example
+description: Demonstrates how to use the tizen_notification plugin.
 publish_to: "none"
 
 environment:
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_local_notifications_tizen:
+  tizen_notification:
     path: ../
 
 flutter:

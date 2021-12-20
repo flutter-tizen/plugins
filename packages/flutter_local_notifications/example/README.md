@@ -1,6 +1,6 @@
-# flutter_local_notifications_example
+# tizen_notification_example
 
-Demonstrates how to use the flutter_local_notifications plugin.
+Demonstrates how to use the tizen_notification plugin.
 
 ## Getting Started
 

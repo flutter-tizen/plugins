@@ -1,16 +1,15 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications_tizen/flutter_local_notifications_tizen.dart';
+import 'package:tizen_notification/notification.dart';
 
 void main() {
   runApp(NotificationTest());
 }
 
 class NotificationTest extends StatelessWidget {
-  final TizenLocalNotificationsPlugin
-      _tizenLocalNotificationsPlugin =
-      TizenLocalNotificationsPlugin();
+  final TizenNotificationPlugin _tizenNotificationPlugin =
+      TizenNotificationPlugin();
   final int notificationId = 1;
 
   Future<void> _showNotification() async {
@@ -20,7 +19,7 @@ class NotificationTest extends StatelessWidget {
       vibration: NotificationVibration(type: VibrationType.builtIn),
       sound: NotificationSound(type: SoundType.builtIn),
     );
-    await _tizenLocalNotificationsPlugin.show(
+    await _tizenNotificationPlugin.show(
       notificationId,
       'show Notification Title',
       'show Notification Body',
@@ -29,11 +28,11 @@ class NotificationTest extends StatelessWidget {
   }
 
   Future<void> _cancelNotification() async {
-    await _tizenLocalNotificationsPlugin.cancel(notificationId);
+    await _tizenNotificationPlugin.cancel(notificationId);
   }
 
   Future<void> _cancelAllNotification() async {
-    await _tizenLocalNotificationsPlugin.cancelAll();
+    await _tizenNotificationPlugin.cancelAll();
   }
 
   @override
