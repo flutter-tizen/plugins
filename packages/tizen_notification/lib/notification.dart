@@ -25,7 +25,7 @@ class TizenNotificationDetails {
   ///
   /// [NotificationImage] refers to any image shown on the notification panel.
   final dynamic images;
-  
+
   /// Properties that configure how the system handles notification at
   /// certain scenarios.
   ///
