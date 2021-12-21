@@ -1,8 +1,16 @@
 # share_tizen
 
+---
+
+## Deprecation Notice
+
+The `share` plugin has been replaced by the [Flutter Community Plus Plugins](https://plus.fluttercommunity.dev) version, [`share_plus`](https://pub.dev/packages/share_plus). Consider migrating to `share_plus` and its Tizen implementation [`share_plus_tizen`](https://pub.dev/packages/share_plus_tizen).
+
+---
+
 [![pub package](https://img.shields.io/pub/v/share_tizen.svg)](https://pub.dev/packages/share_tizen)
 
-The Tizen implementation of [`share`](https://github.com/flutter/plugins/tree/master/packages/share).
+The Tizen implementation of [`share`](https://pub.dev/packages/share).
 
 ## Usage
 
@@ -11,7 +19,7 @@ To use this plugin, add `share` and `share_tizen` as [dependencies in your pubsp
 ```yaml
 dependencies:
   share: ^2.0.1
-  share_tizen: ^2.0.0
+  share_tizen: ^2.0.1
 ```
 
 ## Example

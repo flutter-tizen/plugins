@@ -1,8 +1,16 @@
 # package_info_tizen
 
+---
+
+## Deprecation Notice
+
+The `package_info` plugin has been replaced by the [Flutter Community Plus Plugins](https://plus.fluttercommunity.dev) version, [`package_info_plus`](https://pub.dev/packages/package_info_plus). Consider migrating to `package_info_plus` and its Tizen implementation [`package_info_plus_tizen`](https://pub.dev/packages/package_info_plus_tizen).
+
+---
+
 [![pub package](https://img.shields.io/pub/v/package_info_tizen.svg)](https://pub.dev/packages/package_info_tizen)
 
-The Tizen implementation of [`package_info`](https://github.com/flutter/plugins/tree/master/packages/package_info).
+The Tizen implementation of [`package_info`](https://pub.dev/packages/package_info).
 
 ## Usage
 
@@ -11,7 +19,7 @@ This package is not an _endorsed_ implementation of `package_info`. Therefore, y
 ```yaml
 dependencies:
   package_info: ^2.0.0
-  package_info_tizen: ^2.0.0
+  package_info_tizen: ^2.0.1
 ```
 
 Then you can import `package_info` in your Dart code:
@@ -42,6 +50,4 @@ For detailed usage, see https://pub.dev/packages/package_info#usage.
 
 ## Supported devices
 
-This plugin is supported on these types of devices:
-
-- Galaxy Watch (running Tizen 4.0 or later)
+- Galaxy Watch series (running Tizen 4.0 or later)

@@ -1,8 +1,16 @@
 # wifi_info_flutter_tizen
 
+---
+
+## Deprecation Notice
+
+The `wifi_info_flutter` plugin has been replaced by the [Flutter Community Plus Plugins](https://plus.fluttercommunity.dev) version, [`network_info_plus`](https://pub.dev/packages/network_info_plus). Consider migrating to `network_info_plus` and its Tizen implementation [`network_info_plus_tizen`](https://pub.dev/packages/network_info_plus_tizen).
+
+---
+
 [![pub package](https://img.shields.io/pub/v/wifi_info_flutter_tizen.svg)](https://pub.dev/packages/wifi_info_flutter_tizen)
 
-The Tizen implementation of [`wifi_info_flutter`](https://github.com/flutter/plugins/tree/master/packages/wifi_info_flutter).
+The Tizen implementation of [`wifi_info_flutter`](https://pub.dev/packages/wifi_info_flutter).
 
 ## Usage
 
@@ -11,7 +19,7 @@ This package is not an _endorsed_ implementation of `wifi_info_flutter`. Therefo
 ```yaml
 dependencies:
   wifi_info_flutter: ^2.0.0
-  wifi_info_flutter_tizen: ^2.0.0
+  wifi_info_flutter_tizen: ^2.0.1
 ```
 
 Then you can import `wifi_info_flutter` in your Dart code:
