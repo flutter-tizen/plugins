@@ -2,20 +2,19 @@ name: network_info_plus_tizen
 description: Tizen implementation of the network_info_plus plugin
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/network_info_plus
-version: 1.1.1
+version: 1.1.2
 
 flutter:
   plugin:
     platforms:
       tizen:
-        dartPluginClass: NetworkInfoPlugin
         pluginClass: NetworkInfoPlusTizenPlugin
         fileName: network_info_plus_tizen_plugin.h
 
 dependencies:
   flutter:
     sdk: flutter
-  network_info_plus_platform_interface: ^1.1.0
+  network_info_plus_platform_interface: ^1.1.1
 
 dev_dependencies:
   flutter_lints: ^1.0.4
