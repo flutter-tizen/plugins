@@ -10,7 +10,7 @@ The `sensors` plugin has been replaced by the [Flutter Community Plus Plugins](h
 
 [![pub package](https://img.shields.io/pub/v/sensors_tizen.svg)](https://pub.dev/packages/sensors_tizen)
 
-The Tizen implementation of [`sensors`](https://github.com/flutter/plugins/tree/master/packages/sensors).
+The Tizen implementation of [`sensors`](https://pub.dev/packages/sensors).
 
 ## Usage
 
