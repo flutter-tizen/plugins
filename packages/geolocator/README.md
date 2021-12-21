@@ -20,7 +20,7 @@ Then you can import `geolocator` in your Dart code:
 import 'package:geolocator/geolocator.dart';
 ```
 
-For detailed usage, see https://github.com/Baseflow/flutter-geolocator/tree/master/geolocator#usage.
+For detailed usage, see https://pub.dev/packages/geolocator#usage.
 
 ## Required privileges
 

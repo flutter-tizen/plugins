@@ -21,7 +21,7 @@ Then you can import `audioplayers` in your Dart code:
 import 'package:audioplayers/audioplayers.dart';
 ```
 
-For detailed usage, see https://github.com/luanpotter/audioplayers#usage.
+For detailed usage, see https://pub.dev/packages/audioplayers#usage.
 
 ## Required privileges
 

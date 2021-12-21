@@ -20,7 +20,7 @@ Then you can import `url_launcher` in your Dart code:
 import 'package:url_launcher/url_launcher.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/url_launcher/url_launcher#usage.
+For detailed usage, see https://pub.dev/packages/url_launcher#usage.
 
 ## Required privileges
 
@@ -32,7 +32,7 @@ To use this plugin in a Tizen application, the application manager privilege is 
 </privileges>
 ```
 
-For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
+For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
 
 ## Notes
 

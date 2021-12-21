@@ -21,4 +21,4 @@ Then you can import `integration_test` in your Dart code:
 import 'package:integration_test/integration_test.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/flutter/tree/master/packages/integration_test#usage.
+For detailed usage, see https://pub.dev/packages/integration_test#usage.

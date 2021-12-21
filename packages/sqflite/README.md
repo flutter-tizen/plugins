@@ -18,4 +18,4 @@ Then you can import `sqflite` in your Dart code:
 import 'package:sqflite/sqflite.dart';
 ```
 
-For more details, see [here](https://github.com/tekartik/sqflite/blob/master/sqflite/README.md).
+For detailed usage, see https://pub.dev/packages/sqflite#usage-example.

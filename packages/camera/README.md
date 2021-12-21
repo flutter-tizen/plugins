@@ -35,7 +35,7 @@ Then you can import `camera` in your Dart code:
 import 'package:camera/camera.dart';
 ```
 
-For detailed usage, see https://github.com/flutter/plugins/tree/master/packages/camera/camera#example.
+For detailed usage, see https://pub.dev/packages/camera#example.
 
 ## Notes
 

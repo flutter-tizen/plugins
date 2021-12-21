@@ -16,4 +16,4 @@ dependencies:
 
 Then you can import `package_info_plus` in your Dart code.
 
-For detailed usage, see https://github.com/fluttercommunity/plus_plugins/tree/main/packages/package_info_plus/package_info_plus#usage.
+For detailed usage, see https://pub.dev/packages/package_info_plus#usage.
