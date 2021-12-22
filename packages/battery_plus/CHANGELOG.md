@@ -8,6 +8,13 @@
 
 ## 1.0.2
 
-* Update battery_plus and the platform interface to 2.0.1 and 1.1.0.
+* Update battery_plus to 2.0.1.
+* Update battery_plus_platform_interface to 1.1.0.
 * Update the example app and integration_test.
 * Minor code cleanups.
+
+## 1.0.3
+
+* Update battery_plus to 2.0.2.
+* Update battery_plus_platform_interface to 1.1.1.
+* Remove obsolete `battery_plus_tizen.dart`.
