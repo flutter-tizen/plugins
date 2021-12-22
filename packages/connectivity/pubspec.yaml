@@ -1,6 +1,6 @@
 name: connectivity_tizen
 description: Flutter plugin for discovering the state of the network (WiFi) connectivity on Tizen.
-version: 2.0.1
+version: 2.0.2
 homepage: https://github.com/flutter-tizen/plugins
 
 flutter:
