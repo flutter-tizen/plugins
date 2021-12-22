@@ -34,12 +34,3 @@ plugins:
 
   # Test frequently breaks due to memory issue: https://github.com/flutter-tizen/plugins/issues/135
   video_player: []
-
-  # Deprecated.
-  battery: []
-  connectivity: []
-  device_info: []
-  package_info: []
-  sensors: []
-  share: []
-  wifi_info_flutter: []
