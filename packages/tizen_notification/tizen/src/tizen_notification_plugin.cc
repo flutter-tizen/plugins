@@ -6,7 +6,6 @@
 #include <flutter/standard_method_codec.h>
 #include <notification.h>
 #include <notification_error.h>
-#include <system_info.h>
 
 #include <map>
 #include <memory>
@@ -14,8 +13,6 @@
 #include <string>
 
 #include "log.h"
-
-#define TIZEN_NOTIFICATION_STRINGIFY(s) #s
 
 constexpr int kNotification = 0;
 constexpr int kAppControl = 1;
@@ -86,7 +83,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
     }
   }
 
-  notification_sound_type_e String_to_sound_type(std::string sound_str) {
+  notification_sound_type_e StringToSoundType(std::string sound_str) {
     notification_sound_type_e ret = NOTIFICATION_SOUND_TYPE_NONE;
     if (sound_str.compare("none") == 0) {
       ret = NOTIFICATION_SOUND_TYPE_NONE;
@@ -98,7 +95,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
     return ret;
   }
 
-  notification_vibration_type_e String_to_vibration_type(
+  notification_vibration_type_e StringToVibrationType(
       std::string vibration_str) {
     notification_vibration_type_e ret = NOTIFICATION_VIBRATION_TYPE_NONE;
     if (vibration_str.compare("none") == 0) {
@@ -111,7 +108,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
     return ret;
   }
 
-  notification_image_type_e String_to_image_type(std::string image_type) {
+  notification_image_type_e StringToImageType(std::string image_type) {
     notification_image_type_e ret = NOTIFICATION_IMAGE_TYPE_NONE;
     if (image_type.compare("none") == 0) {
       ret = NOTIFICATION_IMAGE_TYPE_NONE;
@@ -131,8 +128,8 @@ class TizenNotificationPlugin : public flutter::Plugin {
     if (method_call.method_name().compare("show") == 0) {
       if (method_call.arguments()) {
         const flutter::EncodableValue *arguments = method_call.arguments();
-        notification_h noti_handle = NULL;
-        app_control_h app_control = NULL;
+        notification_h noti_handle = nullptr;
+        app_control_h app_control = nullptr;
 
         int ret = NOTIFICATION_ERROR_NONE;
         std::string id;
@@ -198,7 +195,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
 
         if (GetValueFromArgs(arguments, "title", title)) {
           ret = notification_set_text(noti_handle, NOTIFICATION_TEXT_TYPE_TITLE,
-                                      title.c_str(), NULL,
+                                      title.c_str(), nullptr,
                                       NOTIFICATION_VARIABLE_TYPE_NONE);
           if (ret != NOTIFICATION_ERROR_NONE) {
             FreeNotification(noti_handle);
@@ -212,8 +209,8 @@ class TizenNotificationPlugin : public flutter::Plugin {
 
         if (GetValueFromArgs(arguments, "body", body)) {
           ret = notification_set_text(
-              noti_handle, NOTIFICATION_TEXT_TYPE_CONTENT, body.c_str(), NULL,
-              NOTIFICATION_VARIABLE_TYPE_NONE);
+              noti_handle, NOTIFICATION_TEXT_TYPE_CONTENT, body.c_str(),
+              nullptr, NOTIFICATION_VARIABLE_TYPE_NONE);
           if (ret != NOTIFICATION_ERROR_NONE) {
             FreeNotification(noti_handle);
             LOG_ERROR("notification_set_text failed : %s",
@@ -333,6 +330,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
                 (void *)app_control);
             if (ret != NOTIFICATION_ERROR_NONE) {
               FreeNotification(noti_handle);
+              DestroyAppControl(app_control);
               LOG_ERROR("notification_set_launch_option failed : %s",
                         get_error_message(ret));
               result->Error("notification_set_launch_option failed",
@@ -348,11 +346,13 @@ class TizenNotificationPlugin : public flutter::Plugin {
             std::string type;
             if (GetValueFromArgs(&images[i], "type", type)) {
               std::string path;
+              char *resource_path = app_get_shared_resource_path();
               if (GetValueFromArgs(&images[i], "path", path)) {
-                path = std::string(app_get_shared_resource_path()) + path;
+                path = std::string(resource_path) + path;
               }
-              ret = notification_set_image(
-                  noti_handle, String_to_image_type(type), path.c_str());
+              ret = notification_set_image(noti_handle, StringToImageType(type),
+                                           path.c_str());
+              free(resource_path);
               if (ret != NOTIFICATION_ERROR_NONE) {
                 FreeNotification(noti_handle);
                 LOG_ERROR("notification_set_image failed : %s",
@@ -396,11 +396,13 @@ class TizenNotificationPlugin : public flutter::Plugin {
           std::string type;
           if (GetValueFromArgs(&sound, "type", type)) {
             std::string path;
+            char *resource_path = app_get_shared_resource_path();
             if (GetValueFromArgs(&sound, "path", path)) {
-              path = std::string(app_get_shared_resource_path()) + path;
+              path = std::string(resource_path) + path;
             }
-            ret = notification_set_sound(
-                noti_handle, String_to_sound_type(type), path.c_str());
+            ret = notification_set_sound(noti_handle, StringToSoundType(type),
+                                         path.c_str());
+            free(resource_path);
             if (ret != NOTIFICATION_ERROR_NONE) {
               FreeNotification(noti_handle);
               LOG_ERROR("notification_set_sound failed : %s",
@@ -417,11 +419,13 @@ class TizenNotificationPlugin : public flutter::Plugin {
           std::string type;
           if (GetValueFromArgs(&vibration, "type", type)) {
             std::string path;
+            char *resource_path = app_get_shared_resource_path();
             if (GetValueFromArgs(&vibration, "path", path)) {
-              path = std::string(app_get_shared_resource_path()) + path;
+              path = std::string(resource_path) + path;
             }
             ret = notification_set_vibration(
-                noti_handle, String_to_vibration_type(type), path.c_str());
+                noti_handle, StringToVibrationType(type), path.c_str());
+            free(resource_path);
             if (ret != NOTIFICATION_ERROR_NONE) {
               FreeNotification(noti_handle);
               LOG_ERROR("notification_set_vibration failed : %s",
@@ -466,9 +470,9 @@ class TizenNotificationPlugin : public flutter::Plugin {
       if (arguments != nullptr &&
           std::holds_alternative<std::string>(*arguments)) {
         std::string id = std::get<std::string>(*arguments);
-        notification_h notification = NULL;
+        notification_h notification = nullptr;
         notification = notification_load_by_tag(id.c_str());
-        if (notification != NULL) {
+        if (notification != nullptr) {
           int ret = notification_delete(notification);
           if (ret != NOTIFICATION_ERROR_NONE) {
             LOG_ERROR("notification_delete failed : %s",
