@@ -1,18 +1,12 @@
 # Packages
 'p: audioplayers':
   - packages/audioplayers/**/*
-'p: battery':
-  - packages/battery/**/*
 'p: battery_plus':
   - packages/battery_plus/**/*
 'p: camera':
   - packages/camera/**/*
-'p: connectivity':
-  - packages/connectivity/**/*
 'p: connectivity_plus':
   - packages/connectivity_plus/**/*
-'p: device_info':
-  - packages/device_info/**/*
 'p: device_info_plus':
   - packages/device_info_plus/**/*
 'p: flutter_tts':
@@ -29,20 +23,14 @@
   - packages/messageport/**/*
 'p: network_info_plus':
   - packages/network_info_plus/**/*
-'p: package_info':
-  - packages/package_info/**/*
 'p: package_info_plus':
   - packages/package_info_plus/**/*
 'p: path_provider':
   - packages/path_provider/**/*
 'p: permission_handler':
   - packages/permission_handler/**/*
-'p: sensors':
-  - packages/sensors/**/*
 'p: sensors_plus':
   - packages/sensors_plus/**/*
-'p: share':
-  - packages/share/**/*
 'p: shared_preferences':
   - packages/shared_preferences/**/*
 'p: share_plus':
@@ -59,22 +47,10 @@
   - packages/wearable_rotary/**/*
 'p: webview_flutter':
   - packages/webview_flutter/**/*
-'p: wifi_info_flutter':
-  - packages/wifi_info_flutter/**/*
 
 # Tools
 'tools':
   - tools/**/*
-
-# Deprecated
-'deprecated-packages-changed':
-  - packages/battery/**/*
-  - packages/connectivity/**/*
-  - packages/device_info/**/*
-  - packages/package_info/**/*
-  - packages/sensors/**/*
-  - packages/share/**/*
-  - packages/wifi_info_flutter/**/*
 
 # Publishing
 'needs-publishing':
