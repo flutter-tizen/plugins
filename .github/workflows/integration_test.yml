@@ -11,20 +11,25 @@ jobs:
     runs-on: [self-hosted, linux]
     if: ${{ github.repository_owner == 'flutter-tizen' }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 2
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: stable
       - name: Install flutter-tizen
         uses: actions/checkout@v2
         with:
           repository: flutter-tizen/flutter-tizen
           path: flutter-tizen
+      - name: Set up tools
+        run: dart pub get
+        working-directory: ${{ github.workspace }}/tool
       - name: Run tests for changed packages
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          ./tools/run_command.py test \
+          dart run ./tool/bin/flutter_tizen_plugin_tools.dart test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators \
             --run-on-changed-packages \
@@ -33,6 +38,6 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          ./tools/run_command.py test \
+          dart run ./tool/bin/flutter_tizen_plugin_tools.dart test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators

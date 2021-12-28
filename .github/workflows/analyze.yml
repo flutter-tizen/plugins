@@ -24,12 +24,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: subosito/flutter-action@v1
         with:
-          python-version: "2.7"
+          channel: stable
       - name: Install clang-format
         run: |
           sudo apt-get update
           sudo apt-get install clang-format-11
+      - name: Set up tools
+        run: dart pub get
+        working-directory: ${{ github.workspace }}/tool
       - name: Check tidy
-        run: tools/run_command.py tidy --dir packages
+        run: dart run ./tool/bin/flutter_tizen_plugin_tools.dart tidy --dir packages
