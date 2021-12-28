@@ -221,6 +221,103 @@ class TizenNotificationPlugin : public flutter::Plugin {
           }
         }
 
+        flutter::EncodableList images;
+        if (GetValueFromArgs(arguments, "images", images)) {
+          for (size_t i = 0; i < images.size(); i++) {
+            std::string type;
+            if (GetValueFromArgs(&images[i], "type", type)) {
+              std::string path;
+              char *resource_path = app_get_shared_resource_path();
+              if (GetValueFromArgs(&images[i], "path", path)) {
+                path = std::string(resource_path) + path;
+              }
+              ret = notification_set_image(noti_handle, StringToImageType(type),
+                                           path.c_str());
+              free(resource_path);
+              if (ret != NOTIFICATION_ERROR_NONE) {
+                FreeNotification(noti_handle);
+                LOG_ERROR("notification_set_image failed : %s",
+                          get_error_message(ret));
+                result->Error("notification_set_image failed",
+                              std::string(get_error_message(ret)));
+                return;
+              }
+            }
+          }
+        }
+
+        int32_t display_applist;
+        if (GetValueFromArgs(arguments, "displayApplist", display_applist)) {
+          ret = notification_set_display_applist(noti_handle, display_applist);
+          if (ret != NOTIFICATION_ERROR_NONE) {
+            FreeNotification(noti_handle);
+            LOG_ERROR("notification_set_display_applist failed : %s",
+                      get_error_message(ret));
+            result->Error("notification_set_display_applist failed",
+                          std::string(get_error_message(ret)));
+            return;
+          }
+        }
+
+        int32_t properties;
+        if (GetValueFromArgs(arguments, "properties", properties)) {
+          ret = notification_set_property(noti_handle, properties);
+          if (ret != NOTIFICATION_ERROR_NONE) {
+            FreeNotification(noti_handle);
+            LOG_ERROR("notification_set_property failed : %s",
+                      get_error_message(ret));
+            result->Error("notification_set_property failed",
+                          std::string(get_error_message(ret)));
+            return;
+          }
+        }
+
+        flutter::EncodableValue sound;
+        if (GetEncodableValueFromArgs(arguments, "sound", sound)) {
+          std::string type;
+          if (GetValueFromArgs(&sound, "type", type)) {
+            std::string path;
+            char *resource_path = app_get_shared_resource_path();
+            if (GetValueFromArgs(&sound, "path", path)) {
+              path = std::string(resource_path) + path;
+            }
+            ret = notification_set_sound(noti_handle, StringToSoundType(type),
+                                         path.c_str());
+            free(resource_path);
+            if (ret != NOTIFICATION_ERROR_NONE) {
+              FreeNotification(noti_handle);
+              LOG_ERROR("notification_set_sound failed : %s",
+                        get_error_message(ret));
+              result->Error("notification_set_sound failed",
+                            std::string(get_error_message(ret)));
+              return;
+            }
+          }
+        }
+
+        flutter::EncodableValue vibration;
+        if (GetEncodableValueFromArgs(arguments, "vibration", vibration)) {
+          std::string type;
+          if (GetValueFromArgs(&vibration, "type", type)) {
+            std::string path;
+            char *resource_path = app_get_shared_resource_path();
+            if (GetValueFromArgs(&vibration, "path", path)) {
+              path = std::string(resource_path) + path;
+            }
+            ret = notification_set_vibration(
+                noti_handle, StringToVibrationType(type), path.c_str());
+            free(resource_path);
+            if (ret != NOTIFICATION_ERROR_NONE) {
+              FreeNotification(noti_handle);
+              LOG_ERROR("notification_set_vibration failed : %s",
+                        get_error_message(ret));
+              result->Error("notification_set_vibration failed",
+                            std::string(get_error_message(ret)));
+              return;
+            }
+          }
+        }
+
         if (GetEncodableValueFromArgs(arguments, "appControlData",
                                       app_control_data)) {
           std::string app_id;
@@ -334,103 +431,6 @@ class TizenNotificationPlugin : public flutter::Plugin {
               LOG_ERROR("notification_set_launch_option failed : %s",
                         get_error_message(ret));
               result->Error("notification_set_launch_option failed",
-                            std::string(get_error_message(ret)));
-              return;
-            }
-          }
-        }
-
-        flutter::EncodableList images;
-        if (GetValueFromArgs(arguments, "images", images)) {
-          for (size_t i = 0; i < images.size(); i++) {
-            std::string type;
-            if (GetValueFromArgs(&images[i], "type", type)) {
-              std::string path;
-              char *resource_path = app_get_shared_resource_path();
-              if (GetValueFromArgs(&images[i], "path", path)) {
-                path = std::string(resource_path) + path;
-              }
-              ret = notification_set_image(noti_handle, StringToImageType(type),
-                                           path.c_str());
-              free(resource_path);
-              if (ret != NOTIFICATION_ERROR_NONE) {
-                FreeNotification(noti_handle);
-                LOG_ERROR("notification_set_image failed : %s",
-                          get_error_message(ret));
-                result->Error("notification_set_image failed",
-                              std::string(get_error_message(ret)));
-                return;
-              }
-            }
-          }
-        }
-
-        int32_t display_applist;
-        if (GetValueFromArgs(arguments, "displayApplist", display_applist)) {
-          ret = notification_set_display_applist(noti_handle, display_applist);
-          if (ret != NOTIFICATION_ERROR_NONE) {
-            FreeNotification(noti_handle);
-            LOG_ERROR("notification_set_display_applist failed : %s",
-                      get_error_message(ret));
-            result->Error("notification_set_display_applist failed",
-                          std::string(get_error_message(ret)));
-            return;
-          }
-        }
-
-        int32_t properties;
-        if (GetValueFromArgs(arguments, "properties", properties)) {
-          ret = notification_set_property(noti_handle, properties);
-          if (ret != NOTIFICATION_ERROR_NONE) {
-            FreeNotification(noti_handle);
-            LOG_ERROR("notification_set_property failed : %s",
-                      get_error_message(ret));
-            result->Error("notification_set_property failed",
-                          std::string(get_error_message(ret)));
-            return;
-          }
-        }
-
-        flutter::EncodableValue sound;
-        if (GetEncodableValueFromArgs(arguments, "sound", sound)) {
-          std::string type;
-          if (GetValueFromArgs(&sound, "type", type)) {
-            std::string path;
-            char *resource_path = app_get_shared_resource_path();
-            if (GetValueFromArgs(&sound, "path", path)) {
-              path = std::string(resource_path) + path;
-            }
-            ret = notification_set_sound(noti_handle, StringToSoundType(type),
-                                         path.c_str());
-            free(resource_path);
-            if (ret != NOTIFICATION_ERROR_NONE) {
-              FreeNotification(noti_handle);
-              LOG_ERROR("notification_set_sound failed : %s",
-                        get_error_message(ret));
-              result->Error("notification_set_sound failed",
-                            std::string(get_error_message(ret)));
-              return;
-            }
-          }
-        }
-
-        flutter::EncodableValue vibration;
-        if (GetEncodableValueFromArgs(arguments, "vibration", vibration)) {
-          std::string type;
-          if (GetValueFromArgs(&vibration, "type", type)) {
-            std::string path;
-            char *resource_path = app_get_shared_resource_path();
-            if (GetValueFromArgs(&vibration, "path", path)) {
-              path = std::string(resource_path) + path;
-            }
-            ret = notification_set_vibration(
-                noti_handle, StringToVibrationType(type), path.c_str());
-            free(resource_path);
-            if (ret != NOTIFICATION_ERROR_NONE) {
-              FreeNotification(noti_handle);
-              LOG_ERROR("notification_set_vibration failed : %s",
-                        get_error_message(ret));
-              result->Error("notification_set_vibration failed",
                             std::string(get_error_message(ret)));
               return;
             }
