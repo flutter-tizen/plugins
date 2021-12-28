@@ -580,7 +580,7 @@ def run_integration_test(args):
     for testing_plugin in testing_plugins:
         test_num += 1
         print(
-            f'============= Testing {testing_plugin} ({test_num}/{total_plugin_num}) ============='
+            f'============= Testing {testing_plugin} ({test_num}/{total_plugin_num}) =============', flush=True
         )
         platforms = args.platforms
         if testing_plugin in platforms_per_plugin:
