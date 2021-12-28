@@ -30,8 +30,10 @@ void main(List<String> args) {
 
   const ProcessRunner processRunner = ProcessRunner();
   final Directory sourceTreeRoot = packagesDir.parent;
-  final File pythonTool =
-      sourceTreeRoot.childDirectory('tools').childFile('run_command.py');
+  final File pythonTool = sourceTreeRoot
+      .childDirectory('tool')
+      .childDirectory('tools')
+      .childFile('run_command.py');
 
   if (!pythonTool.existsSync()) {
     print('Error: Cannot find ${pythonTool.path}.');
