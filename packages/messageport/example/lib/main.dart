@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:messageport_tizen/messageport_tizen.dart';
@@ -8,12 +9,12 @@ import 'package:messageport_tizen/messageport_tizen.dart';
 const String kPortName = 'servicePort';
 const String kRemoteAppId = 'org.tizen.messageport_tizen_example';
 
-Future<String?> _showErrorDialog(BuildContext context, dynamic error) {
+Future<String?> _showErrorDialog(BuildContext context, String message) {
   return showDialog<String>(
     context: context,
     builder: (BuildContext context) => AlertDialog(
       title: const Text('Error occurred'),
-      content: Text(error.toString()),
+      content: Text(message),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.pop(context, ''),
@@ -34,14 +35,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   int _responseCount = 0;
+
   void onMessage(dynamic message, [RemotePort? remotePort]) {
-    _log('message received: ' + message.toString());
+    _log('message received: $message');
     if (remotePort != null) {
       _log('remotePort received: ${remotePort.portName}, '
           '${remotePort.remoteAppId}, trusted: ${remotePort.trusted}');
@@ -50,20 +47,15 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Widget _textButton(String text, Function func, bool enabled) {
+  Widget _textButton(String text, Function onPressed, bool enabled) {
     return Container(
       child: ElevatedButton(
         onPressed: enabled
             ? () {
                 _log('$text button clicked');
-                func();
+                onPressed();
               }
             : null,
-        style: ElevatedButton.styleFrom(
-          primary: Colors.blue,
-          padding: const EdgeInsets.all(20),
-          elevation: 3,
-        ),
         child: Text(text),
       ),
       margin: const EdgeInsets.all(5),
@@ -115,8 +107,7 @@ class _MyAppState extends State<MyApp> {
             'Connect to remote',
             () async {
               try {
-                _remotePort = await TizenMessagePort.connectToRemotePort(
-                    kRemoteAppId, kPortName);
+                _remotePort = await RemotePort.connect(kRemoteAppId, kPortName);
                 setState(() {});
               } catch (e) {
                 _showErrorDialog(context, e.toString());
@@ -197,7 +188,7 @@ class _MyAppState extends State<MyApp> {
                       await _remotePort?.send(_sendOptions[key]);
                     }
                   } catch (e) {
-                    _showErrorDialog(context, e);
+                    _showErrorDialog(context, e.toString());
                   }
                 },
                 enabled,
@@ -212,13 +203,14 @@ class _MyAppState extends State<MyApp> {
   final List<String> _logList = <String>[];
 
   void _log(String log) {
+    final String date = '${DateTime.now().hour.toString().padLeft(2, '0')}:'
+        '${DateTime.now().minute.toString().padLeft(2, '0')}:'
+        '${DateTime.now().second.toString().padLeft(2, '0')}.'
+        '${DateTime.now().millisecond.toString().padLeft(3, '0')}';
     setState(() {
-      final String date = '${DateTime.now().hour.toString().padLeft(2, '0')}:'
-          '${DateTime.now().minute.toString().padLeft(2, '0')}:'
-          '${DateTime.now().second.toString().padLeft(2, '0')}.'
-          '${DateTime.now().millisecond.toString().padLeft(3, '0')}';
       _logList.add('$date: $log');
     });
+    debugPrint('$date: $log');
   }
 
   Widget _logger(BuildContext context) {
@@ -261,7 +253,7 @@ class _MyAppState extends State<MyApp> {
             builder: (BuildContext context) => _textButton(
               'Create local port',
               () async {
-                _localPort = await TizenMessagePort.createLocalPort(kPortName);
+                _localPort = await LocalPort.create(kPortName);
                 setState(() {});
               },
               _localPort == null,
@@ -282,6 +274,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     super.dispose();
+    _localPort?.unregister();
   }
 
   LocalPort? _localPort;

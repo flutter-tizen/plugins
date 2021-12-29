@@ -78,17 +78,17 @@ class MessageportTizenPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("HandleMethodCall: %s", method_call.method_name().c_str());
+    const auto &method_name = method_call.method_name();
     const flutter::EncodableValue *args = method_call.arguments();
 
-    if (method_call.method_name().compare("createLocal") == 0) {
+    if (method_name == "createLocal") {
       CreateLocal(args, std::move(result));
-    } else if (method_call.method_name().compare("checkForRemote") == 0) {
+    } else if (method_name == "checkForRemote") {
       CheckForRemote(args, std::move(result));
-    } else if (method_call.method_name().compare("send") == 0) {
+    } else if (method_name == "send") {
       Send(args, std::move(result));
     } else {
-      result->Error("Invalid method");
+      result->NotImplemented();
     }
   }
 
@@ -166,8 +166,7 @@ class MessageportTizenPlugin : public flutter::Plugin {
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnCancel: %s", key.first.c_str());
               if (native_ports_.find(key) == native_ports_.end()) {
-                LOG_ERROR("Error OnCancel: %s",
-                          "Could not find port to unregister");
+                LOG_ERROR("Error OnCancel: Could not find port to unregister");
                 return nullptr;
               }
 
