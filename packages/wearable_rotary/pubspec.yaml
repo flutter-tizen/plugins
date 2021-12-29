@@ -2,15 +2,11 @@ name: wearable_rotary
 description: Flutter plugin that can listen to rotary events on Galaxy watch devices.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/wearable_rotary
-version: 1.0.1
+version: 1.0.2
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
   flutter: ">=2.0.0"
-
-dependencies:
-  flutter:
-    sdk: flutter
 
 flutter:
   plugin:
@@ -18,3 +14,7 @@ flutter:
       tizen:
         pluginClass: WearableRotaryPlugin
         fileName: wearable_rotary_plugin.h
+
+dependencies:
+  flutter:
+    sdk: flutter

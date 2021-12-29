@@ -17,7 +17,6 @@ static constexpr char kChannelName[] = "flutter.wearable_rotary.channel";
 class WearableRotaryPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
-    LOG_DEBUG("RegisterWithRegistrar for WearableRotaryPlugin");
     auto plugin = std::make_unique<WearableRotaryPlugin>();
     plugin->SetupEventChannel(registrar);
     registrar->AddPlugin(std::move(plugin));
@@ -60,9 +59,9 @@ class WearableRotaryPlugin : public flutter::Plugin {
   }
 
   static Eina_Bool RotaryEventCallBack(void *data,
-                                       Eext_Rotary_Event_Info *dir) {
+                                       Eext_Rotary_Event_Info *info) {
     auto *self = reinterpret_cast<WearableRotaryPlugin *>(data);
-    bool clockwise = dir->direction == EEXT_ROTARY_DIRECTION_CLOCKWISE;
+    bool clockwise = info->direction == EEXT_ROTARY_DIRECTION_CLOCKWISE;
     self->events_->Success(flutter::EncodableValue(clockwise));
     return EINA_TRUE;
   }
