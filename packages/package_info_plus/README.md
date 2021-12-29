@@ -10,10 +10,22 @@ This package is not an _endorsed_ implementation of `package_info_plus`. Therefo
 
 ```yaml
 dependencies:
-  package_info_plus: ^1.0.1
-  package_info_plus_tizen: ^1.0.0
+  package_info_plus: ^1.3.0
+  package_info_plus_tizen: ^1.0.1
 ```
 
 Then you can import `package_info_plus` in your Dart code.
 
+```dart
+import 'package:package_info_plus/package_info_plus.dart';
+```
+
 For detailed usage, see https://pub.dev/packages/package_info_plus#usage.
+
+## Supported properties
+
+- [x] `PackageInfo.appName`
+- [x] `PackageInfo.packageName`
+- [x] `PackageInfo.version`
+- [ ] `PackageInfo.buildNumber`
+- [ ] `PackageInfo.buildSignature`
