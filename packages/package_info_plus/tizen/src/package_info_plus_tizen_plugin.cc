@@ -5,17 +5,12 @@
 #include "package_info_plus_tizen_plugin.h"
 
 #include <app_common.h>
-#include <flutter/event_channel.h>
-#include <flutter/event_sink.h>
-#include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 #include <package_manager.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "log.h"
