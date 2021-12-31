@@ -7,7 +7,8 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:messageport_tizen/messageport_tizen.dart';
+
+import '../messageport_tizen.dart';
 
 const MethodChannel _channel = MethodChannel('tizen/messageport');
 
@@ -38,12 +39,14 @@ class TizenMessagePortManager {
     args['remoteAppId'] = remotePort.remoteAppId;
     args['portName'] = remotePort.portName;
     args['message'] = message;
-
     return _channel.invokeMethod('send', args);
   }
 
   Future<void> sendWithLocalPort(
-      RemotePort remotePort, LocalPort localPort, dynamic message) async {
+    RemotePort remotePort,
+    LocalPort localPort,
+    dynamic message,
+  ) async {
     final Map<String, dynamic> args = <String, dynamic>{};
     args['trusted'] = remotePort.trusted;
     args['remoteAppId'] = remotePort.remoteAppId;
@@ -51,7 +54,6 @@ class TizenMessagePortManager {
     args['localPort'] = localPort.portName;
     args['localPortTrusted'] = localPort.trusted;
     args['message'] = message;
-
     return _channel.invokeMethod('send', args);
   }
 
@@ -70,7 +72,6 @@ class TizenMessagePortManager {
           EventChannel('tizen/messageport/${localPort.portName}');
       _localPorts[localPort.portName] = eventChannel.receiveBroadcastStream();
     }
-
     return _localPorts[localPort.portName]!;
   }
 

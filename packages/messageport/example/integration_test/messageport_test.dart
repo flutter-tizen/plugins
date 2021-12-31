@@ -8,77 +8,72 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:messageport_tizen/messageport_tizen.dart';
 
+const String kTestPort = 'test_port';
+const String kTestAppId = 'org.tizen.messageport_tizen_example';
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Create non trusted local port', (WidgetTester tester) async {
-    final LocalPort port =
-        await TizenMessagePort.createLocalPort('test_port', trusted: false);
-    assert(!port.trusted, true);
+    final LocalPort port = await LocalPort.create(kTestPort, trusted: false);
+    expect(port.trusted, isFalse);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   testWidgets('Create trusted local port', (WidgetTester tester) async {
-    final LocalPort port = await TizenMessagePort.createLocalPort('test_port');
-    assert(port.trusted, true);
+    final LocalPort port = await LocalPort.create(kTestPort);
+    expect(port.trusted, isTrue);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   testWidgets('Create remote port', (WidgetTester tester) async {
-    final LocalPort localPort =
-        await TizenMessagePort.createLocalPort('test_port');
+    final LocalPort localPort = await LocalPort.create(kTestPort);
     localPort.register((dynamic message, [RemotePort? remotePort]) => null);
-    final RemotePort remotePort = await TizenMessagePort.connectToRemotePort(
-        'org.tizen.messageport_tizen_example', 'test_port');
-    expect(
-        remotePort.remoteAppId, equals('org.tizen.messageport_tizen_example'));
-    expect(remotePort.portName, equals('test_port'));
+    final RemotePort remotePort =
+        await RemotePort.connect(kTestAppId, kTestPort);
+    expect(remotePort.remoteAppId, equals(kTestAppId));
+    expect(remotePort.portName, equals(kTestPort));
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   testWidgets('Create trusted remote port from not trusted',
       (WidgetTester tester) async {
     final LocalPort localPort =
-        await TizenMessagePort.createLocalPort('test_port', trusted: false);
+        await LocalPort.create(kTestPort, trusted: false);
     localPort.register((dynamic message, [RemotePort? remotePort]) => null);
-    expect(
-        () async => await TizenMessagePort.connectToRemotePort(
-            'org.tizen.messageport_tizen_example', 'test_port'),
-        throwsA(isA<Exception>()));
+    await expectLater(
+      () => RemotePort.connect(kTestAppId, kTestPort),
+      throwsException,
+    );
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   testWidgets('Check for remote', (WidgetTester tester) async {
-    final LocalPort localPort =
-        await TizenMessagePort.createLocalPort('test_port');
+    final LocalPort localPort = await LocalPort.create(kTestPort);
     localPort.register((dynamic message, [RemotePort? remotePort]) => null);
-    final RemotePort remotePort = await TizenMessagePort.connectToRemotePort(
-        'org.tizen.messageport_tizen_example', 'test_port');
-    final bool statuOne = await remotePort.check();
-    expect(statuOne, equals(true));
+    final RemotePort remotePort =
+        await RemotePort.connect(kTestAppId, kTestPort);
+    expect(await remotePort.check(), isTrue);
     await localPort.unregister();
-    final bool statusTwo = await remotePort.check();
-    expect(statusTwo, equals(false));
+    expect(await remotePort.check(), isFalse);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   testWidgets('Send simple message', (WidgetTester tester) async {
-    final LocalPort localPort =
-        await TizenMessagePort.createLocalPort('test_port');
+    final LocalPort localPort = await LocalPort.create(kTestPort);
     final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
-    localPort.register((dynamic message, [RemotePort? remotePort]) =>
-        completer.complete(<dynamic>[message, remotePort]));
-    final RemotePort port = await TizenMessagePort.connectToRemotePort(
-        'org.tizen.messageport_tizen_example', 'test_port');
+    localPort.register((dynamic message, [RemotePort? remotePort]) {
+      completer.complete(<dynamic>[message, remotePort]);
+    });
+    final RemotePort port = await RemotePort.connect(kTestAppId, kTestPort);
     await port.send('Test message 1');
     final List<dynamic> value = await completer.future;
     final String message = value[0] as String;
     final RemotePort? remotePort = value[1] as RemotePort?;
     expect(message, equals('Test message 1'));
-    expect(remotePort, equals(null));
+    expect(remotePort, isNull);
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   testWidgets('Send message with local port', (WidgetTester tester) async {
-    final LocalPort localPort =
-        await TizenMessagePort.createLocalPort('test_port');
+    final LocalPort localPort = await LocalPort.create(kTestPort);
     final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
     localPort.register((dynamic message, [RemotePort? remotePort]) {
       if (completer.isCompleted) {
@@ -87,16 +82,14 @@ void main() {
         completer.complete(<dynamic>[message, remotePort]);
       }
     });
-    final RemotePort port = await TizenMessagePort.connectToRemotePort(
-        'org.tizen.messageport_tizen_example', 'test_port');
+    final RemotePort port = await RemotePort.connect(kTestAppId, kTestPort);
     await port.sendWithLocalPort('Test message 2', localPort);
     final List<dynamic> value = await completer.future;
     final String message = value[0] as String;
     final RemotePort? remotePort = value[1] as RemotePort?;
     expect(message, equals('Test message 2'));
-    expect(
-        remotePort?.remoteAppId, equals('org.tizen.messageport_tizen_example'));
-    expect(remotePort?.portName, equals('test_port'));
+    expect(remotePort?.remoteAppId, equals(kTestAppId));
+    expect(remotePort?.portName, equals(kTestPort));
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
 
@@ -110,10 +103,9 @@ void main() {
     }
 
     setUpAll(() async {
-      localPort = await TizenMessagePort.createLocalPort('test_port');
+      localPort = await LocalPort.create(kTestPort);
       localPort.register(onMessage);
-      remotePort = await TizenMessagePort.connectToRemotePort(
-          'org.tizen.messageport_tizen_example', 'test_port');
+      remotePort = await RemotePort.connect(kTestAppId, kTestPort);
     });
 
     setUp(() {
@@ -129,9 +121,9 @@ void main() {
       final List<dynamic> ret = await completer.future;
       final dynamic receivedMessage = ret[0];
       final dynamic receivedPort = ret[1];
-      expect(receivedMessage, message);
+      expect(receivedMessage, equals(message));
       expect(receivedMessage, isA<T>());
-      expect(receivedPort, null);
+      expect(receivedPort, isNull);
     }
 
     testWidgets('bool', (WidgetTester tester) async {
@@ -160,9 +152,7 @@ void main() {
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     testWidgets('map', (WidgetTester tester) async {
-      final Map<String, int> value = <String, int>{};
-      value['a'] = 5;
-      value['b'] = 12;
+      final Map<String, int> value = <String, int>{'a': 5, 'b': 12};
       await checkForMessage<Map<dynamic, dynamic>>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
   });

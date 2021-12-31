@@ -2,19 +2,11 @@ name: messageport_tizen
 description: A Flutter plugin that allows communication between multiple applications on Tizen using Tizen Message Port.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/messageport
-version: 0.1.0
+version: 0.2.0
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
   flutter: ">=2.0.0"
-
-dependencies:
-  flutter:
-    sdk: flutter
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
 
 flutter:
   plugin:
@@ -22,3 +14,7 @@ flutter:
       tizen:
         pluginClass: MessageportTizenPlugin
         fileName: messageport_tizen_plugin.h
+
+dependencies:
+  flutter:
+    sdk: flutter

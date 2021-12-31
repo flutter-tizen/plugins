@@ -48,6 +48,7 @@ class MessagePortManager {
 
   MessagePortResult CreateResult(int return_code);
   MessagePortResult PrepareBundle(flutter::EncodableValue& message, bundle*& b);
+
   std::map<int, EventSink> sinks_;
   std::set<int> trusted_ports_;
 };

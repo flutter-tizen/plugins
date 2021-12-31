@@ -4,9 +4,9 @@
 
 This plugin adds support for communication between Flutter applications on Tizen platform.
 
-## Getting Started
+## Usage
 
-First, import the package in dart file.
+First, import the package in Dart file.
 
 ```dart
 import 'package:messageport_tizen/messageport_tizen.dart';
@@ -14,83 +14,74 @@ import 'package:messageport_tizen/messageport_tizen.dart';
 
 ### Create local port
 
-Use `TizenMessagePort.createLocalPort` method to create local port.
+Use `LocalPort.create()` method to create a local port.
 
 ```dart
 String portName = 'servicePort';
-LocalPort localPort = await TizenMessagePort.createLocalPort(portName);
+LocalPort localPort = await LocalPort.create(portName);
 ```
 
-To register callback when message arrives to the local port, use `LocalPort.register()` method.
+To register callback to be called when message arrives to the local port, use `LocalPort.register()` method.
 
 ```dart
-  void onMessage(Object message, [RemotePort remotePort]) {
-    print('Message received: ' + message.toString());
-  }
-  ...
-  localPort.register(onMessage);
+void onMessage(Object message, [RemotePort remotePort]) {
+  print('Message received: $message');
+}
+...
+localPort.register(onMessage);
 ```
 
 Use `LocalPort.unregister()` to unregister port when it is no longer needed.
 
 ```dart
-  localPort.unregister();
+localPort.unregister();
 ```
 
 ### Connect to remote port
 
-To connect to already registered port in remote application, use `TizenMessagePort.connectToRemotePort()` method.
+To connect to already registered port in remote application, use `RemotePort.connect()` method.
 
 ```dart
-  String portName = 'servicePort';
-  String remoteAppId = 'remote.app.id';
-  RemotePort remotePort = await TizenMessagePort.connectToRemotePort(remoteAppId, portName);
+String portName = 'servicePort';
+String remoteAppId = 'remote.app.id';
+RemotePort remotePort = await RemotePort.connect(remoteAppId, portName);
 ```
 
 ### Send message
 
-To send message to remote applcation use `RemotePort.send()` method.
+To send message to remote applcation, use `RemotePort.send()` method.
 
 ```dart
-  final message = {"a": 1, "b": 2, "c": 3};
-  try{
-    await remotePort.send(message);
-  } catch (e) {
-    print('Could not send message: ${e.toString()}");
-  }
+final message = {'a': 1, 'b': 2, 'c': 3};
+try{
+  await remotePort.send(message);
+} catch (error) {
+  print('Could not send message: $error');
+}
 ```
 
 ### Send message with local port
 
-To send message with local port use `RemotePort.send()` method. Local port received by remote application can be used to send a response.
+To send message with local port information, use `RemotePort.send()` method. Local port received by remote application can be used to send a response.
 
 ```dart
-  final message = "This is a string message";
-  try{
-    await remotePort.sendWithLocalPort(message, localPort);
-  } catch (e) {
-    print('Could not send message: ${e.toString()}");
-  }
+final message = 'This is a string message';
+try{
+  await remotePort.sendWithLocalPort(message, localPort);
+} catch (error) {
+  print('Could not send message: $error');
+}
 ```
 
 ### Supported data types
 
-Data types that can be transferred using this plugin:
-* null
-* bool
-* numbers: int, double
-* String
-* Uint8List, Int32List, Int64List, Float64List
-* List of supported values
-* Map from supported values to supported values
+This plugin uses Flutter's [StandardMessageCodec](https://api.flutter.dev/flutter/services/StandardMessageCodec-class.html) to encode transferred data into binary. The data can contain any value or collection type supported by Flutter's standard method codec.
 
-Plugin uses Flutter's [StandardMessageCodec](https://api.flutter.dev/flutter/services/StandardMessageCodec-class.html) to encode transferred data into binary.
-Data can contain any value or collection type supported by Flutter's standard method codec.
+* `null`
+* `bool`
+* `int`, `double`
+* `String`
+* `Uint8List`, `Int32List`, `Int64List`, `Float64List`
+* Lists and Maps of the above
 
-To learn more about how to use this plugin, please check example application.
-
-## Releated Info
-
-To learn more about Tizen Message Port API visit following guides:
-
-- [MessagePort Native Guide](https://docs.tizen.org/application/native/guides/app-management/message-port/)
+To learn more about the Tizen Message Port API, visit [Tizen Docs: Message Port](https://docs.tizen.org/application/native/guides/app-management/message-port).

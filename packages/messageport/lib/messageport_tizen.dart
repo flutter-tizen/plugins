@@ -8,18 +8,38 @@ import 'src/messageport_manager.dart';
 
 TizenMessagePortManager _manager = TizenMessagePortManager();
 
-/// Signature for a callback receiving message on messageport.
+/// Called when a message is received on message port.
 ///
 /// This is used by [LocalPort.register].
 typedef OnMessageReceived = Function(dynamic message, [RemotePort? remotePort]);
 
-/// Local port to receive messages.
+/// Local message port for receiving messages.
 class LocalPort {
   LocalPort._(this.portName, this.trusted);
 
-  /// Registers port and sets listener.
+  /// Creates a local port.
   ///
-  /// Exception will be thrown when using on already registered port.
+  /// By default a trusted local port is created. Trusted message ports
+  /// restrict communication through them to applications that share a signing
+  /// certificate. Set [trusted] to false to change this behaviour.
+  ///
+  /// Remember to call [register] on the created port to enable receiving
+  /// messages.
+  ///
+  /// Multiple local ports with the same [portName] can be created and
+  /// registered. Incoming messages will be delivered to all registered local
+  /// ports with the same name.
+  static Future<LocalPort> create(
+    String portName, {
+    bool trusted = true,
+  }) async {
+    await _manager.createLocalPort(portName, trusted);
+    return LocalPort._(portName, trusted);
+  }
+
+  /// Registers the local port and sets a listener.
+  ///
+  /// An [Exception] is thrown if the port is already registered.
   void register(OnMessageReceived onMessage) {
     if (registered) {
       throw Exception('Port $portName is already registered');
@@ -43,19 +63,19 @@ class LocalPort {
     _registered = true;
   }
 
-  /// Unregisters messageport. No operation for already unregistered port.
+  /// Unregisters the local port. No operation for already unregistered port.
   Future<void> unregister() async {
     await _streamSubscription?.cancel();
     _registered = false;
   }
 
-  /// Checks whether local port is trusted.
-  final bool trusted;
-
-  /// Returns port name.
+  /// The local port name.
   final String portName;
 
-  /// Checks whether local port is registered.
+  /// Whether the local port is trusted.
+  final bool trusted;
+
+  /// Whether the local port is registered.
   bool get registered {
     return _registered;
   }
@@ -64,70 +84,77 @@ class LocalPort {
   bool _registered = false;
 }
 
-/// Remote port to send messages.
+/// Remote message port for sending messages.
 class RemotePort {
   RemotePort._(this.remoteAppId, this.portName, this.trusted);
 
-  /// Sends message through remote messageport.
+  /// Connects to a remote port named [portName].
+  ///
+  /// The corresponding local port should first be created and registered by
+  /// the remote app [remoteAppId].
+  ///
+  /// By default a trusted remote port is created. Trusted message ports
+  /// restrict communication through them to applications that share a signing
+  /// certificate. Set [trusted] to false to change this behaviour.
+  ///
+  /// An [Exception] is thrown if the remote port does not exist.
+  static Future<RemotePort> connect(
+    String remoteAppId,
+    String portName, {
+    bool trusted = true,
+  }) async {
+    if (await _manager.checkForRemotePort(remoteAppId, portName, trusted)) {
+      return RemotePort._(remoteAppId, portName, trusted);
+    }
+    throw Exception('Remote port not found');
+  }
+
+  /// Sends a message through the remote port.
   Future<void> send(dynamic message) async {
     return _manager.send(this, message);
   }
 
-  /// Sends message through remote messageport with [localPort].
+  /// Sends a message through the remote port with [localPort] information.
   ///
-  /// Remote application can reply to the message by use of provided local port.
+  /// The remote app can reply to the message through the provided [localPort].
   Future<void> sendWithLocalPort(dynamic message, LocalPort localPort) async {
     return _manager.sendWithLocalPort(this, localPort, message);
   }
 
-  /// Checks whether remote port is registered in remote application.
+  /// Checks whether the remote port is registered by the remote app.
   Future<bool> check() async {
     return _manager.checkForRemotePort(remoteAppId, portName, trusted);
   }
 
-  /// Returns remote appId.
+  /// The remote application ID.
   final String remoteAppId;
 
-  /// Returns port name.
+  /// The remote port name.
   final String portName;
 
-  /// Checks whether remote port is trusted.
+  /// Whether the remote port is trusted.
   final bool trusted;
 }
 
 // ignore: avoid_classes_with_only_static_members
 /// API for accessing MessagePorts in Tizen.
 class TizenMessagePort {
-  /// Creates Local Port
-  ///
-  /// By default trusted local port is created. Trusted port restricts communication
-  /// through them to applications that share a signing certificate. Set [trusted] to false,
-  /// to change this behaviour.
-  ///
-  /// Remember to call `register()` on local port to enable receiving messages.
-  /// Multiple local ports with the same [portName] can be created and registered.
-  /// Incoming messages will be delivered to all registered local ports with the same name.
-  static Future<LocalPort> createLocalPort(String portName,
-      {bool trusted = true}) async {
-    await _manager.createLocalPort(portName, trusted);
-    return LocalPort._(portName, trusted);
+  /// Creates a local port.
+  @Deprecated('Use LocalPort.create instead.')
+  static Future<LocalPort> createLocalPort(
+    String portName, {
+    bool trusted = true,
+  }) async {
+    return LocalPort.create(portName, trusted: trusted);
   }
 
-  /// Connects to [portName] remote port in [remoteAppId].
-  ///
-  /// Corresponding local port has to be created and registered on the client side first.
-  ///
-  /// By default trusted remote port is created. Trusted port restricts communication
-  /// through them to applications that share a signing certificate.
-  /// Set [trusted] to false, to change this behaviour.
-  ///
-  /// Exception will be thrown if the remote port does not exist.
+  /// Connects to a remote port named [portName].
+  @Deprecated('Use RemotePort.connect instead.')
   static Future<RemotePort> connectToRemotePort(
-      String remoteAppId, String portName,
-      {bool trusted = true}) async {
-    if (await _manager.checkForRemotePort(remoteAppId, portName, trusted)) {
-      return RemotePort._(remoteAppId, portName, trusted);
-    }
-    throw Exception('Remote port not found');
+    String remoteAppId,
+    String portName, {
+    bool trusted = true,
+  }) async {
+    return RemotePort.connect(remoteAppId, portName, trusted: trusted);
   }
 }

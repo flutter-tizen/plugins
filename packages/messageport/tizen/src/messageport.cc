@@ -14,31 +14,30 @@
 MessagePortManager::MessagePortManager() {}
 
 MessagePortManager::~MessagePortManager() {
-  for (const auto& m : sinks_) {
+  for (const auto& [port, sink] : sinks_) {
     int ret;
-    bool is_trusted = trusted_ports_.find(m.first) != trusted_ports_.end();
+    bool is_trusted = trusted_ports_.find(port) != trusted_ports_.end();
     if (is_trusted) {
-      ret = message_port_unregister_trusted_local_port(m.first);
+      ret = message_port_unregister_trusted_local_port(port);
     } else {
-      ret = message_port_unregister_local_port(m.first);
+      ret = message_port_unregister_local_port(port);
     }
     if (MESSAGE_PORT_ERROR_NONE != ret) {
-      LOG_ERROR("Failed: message_port_unregister_%s_local_port",
-                is_trusted ? "trusted" : "");
+      LOG_ERROR("Failed to unregister port: %s", get_error_message(ret));
     }
   }
 }
 
-static bool ConvertEncodableValueToBundle(flutter::EncodableValue& v,
-                                          bundle* b) {
-  if (nullptr == b) {
+static bool ConvertEncodableValueToBundle(flutter::EncodableValue& value,
+                                          bundle* bundle) {
+  if (!bundle) {
     LOG_ERROR("Invalid bundle handle");
     return false;
   }
   std::unique_ptr<std::vector<uint8_t>> encoded =
-      flutter::StandardMessageCodec::GetInstance().EncodeMessage(v);
+      flutter::StandardMessageCodec::GetInstance().EncodeMessage(value);
 
-  int ret = bundle_add_byte(b, "bytes", encoded->data(), encoded->size());
+  int ret = bundle_add_byte(bundle, "bytes", encoded->data(), encoded->size());
   if (BUNDLE_ERROR_NONE != ret) {
     return false;
   }
@@ -169,8 +168,8 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            bool is_trusted) {
   LOG_DEBUG("Send (%s, %s), trusted: %s", remote_app_id.c_str(),
             port_name.c_str(), is_trusted ? "yes" : "no");
-  bundle* b = nullptr;
-  MessagePortResult result = PrepareBundle(message, b);
+  bundle* bundle = nullptr;
+  MessagePortResult result = PrepareBundle(message, bundle);
   if (!result) {
     return result;
   }
@@ -178,12 +177,13 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
   int ret;
   if (is_trusted) {
     ret = message_port_send_trusted_message(remote_app_id.c_str(),
-                                            port_name.c_str(), b);
+                                            port_name.c_str(), bundle);
   } else {
-    ret =
-        message_port_send_message(remote_app_id.c_str(), port_name.c_str(), b);
+    ret = message_port_send_message(remote_app_id.c_str(), port_name.c_str(),
+                                    bundle);
   }
-  bundle_free(b);
+  bundle_free(bundle);
+
   return CreateResult(ret);
 }
 
@@ -193,36 +193,35 @@ MessagePortResult MessagePortManager::Send(std::string& remote_app_id,
                                            bool is_trusted, int local_port) {
   LOG_DEBUG("Send (%s, %s), port: %d, trusted: %s", remote_app_id.c_str(),
             port_name.c_str(), local_port, is_trusted ? "yes" : "no");
-  bundle* b = nullptr;
-  MessagePortResult result = PrepareBundle(message, b);
+  bundle* bundle = nullptr;
+  MessagePortResult result = PrepareBundle(message, bundle);
   if (!result) {
     return result;
   }
   int ret;
   if (is_trusted) {
     ret = message_port_send_trusted_message_with_local_port(
-        remote_app_id.c_str(), port_name.c_str(), b, local_port);
+        remote_app_id.c_str(), port_name.c_str(), bundle, local_port);
   } else {
     ret = message_port_send_message_with_local_port(
-        remote_app_id.c_str(), port_name.c_str(), b, local_port);
+        remote_app_id.c_str(), port_name.c_str(), bundle, local_port);
   }
-
-  bundle_free(b);
+  bundle_free(bundle);
 
   return CreateResult(ret);
 }
 
 MessagePortResult MessagePortManager::PrepareBundle(
-    flutter::EncodableValue& message, bundle*& b) {
-  b = bundle_create();
-  if (nullptr == b) {
+    flutter::EncodableValue& message, bundle*& bundle) {
+  bundle = bundle_create();
+  if (!bundle) {
     return CreateResult(MESSAGE_PORT_ERROR_OUT_OF_MEMORY);
   }
 
-  bool result = ConvertEncodableValueToBundle(message, b);
+  bool result = ConvertEncodableValueToBundle(message, bundle);
   if (!result) {
     LOG_ERROR("Failed to parse EncodableValue");
-    bundle_free(b);
+    bundle_free(bundle);
     return CreateResult(MESSAGE_PORT_ERROR_INVALID_PARAMETER);
   }
   return CreateResult(MESSAGE_PORT_ERROR_NONE);
