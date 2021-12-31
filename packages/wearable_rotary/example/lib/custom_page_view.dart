@@ -27,7 +27,7 @@ class _CustomPageViewState extends State<CustomPageView> {
         if (_currentPageIdx != Colors.primaries.length - 1) {
           _pager.animateToPage(
             ++_currentPageIdx,
-            duration: const Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 300),
             curve: Curves.ease,
           );
         }
@@ -35,7 +35,7 @@ class _CustomPageViewState extends State<CustomPageView> {
         if (_currentPageIdx != 0) {
           _pager.animateToPage(
             --_currentPageIdx,
-            duration: const Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 300),
             curve: Curves.ease,
           );
         }
@@ -52,13 +52,11 @@ class _CustomPageViewState extends State<CustomPageView> {
 
   @override
   Widget build(BuildContext context) {
-    final String _title = widget.scrollDirection == Axis.vertical
-        ? 'verticalPageView'
+    final String title = widget.scrollDirection == Axis.vertical
+        ? 'VerticalPageView'
         : 'HorizontalPageView';
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_title),
-      ),
+      appBar: AppBar(title: Text(title)),
       body: PageView.builder(
         controller: _pager,
         scrollDirection: widget.scrollDirection,

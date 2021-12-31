@@ -2,34 +2,29 @@
 
 import 'package:flutter/material.dart';
 
-import './custom_page_view.dart';
+import 'custom_page_view.dart';
 
-void main() => runApp(
-      MaterialApp(
-        title: 'Rotary example app',
-        home: MyApp(),
-      ),
-    );
+void main() {
+  runApp(MaterialApp(
+    title: 'Rotary example app',
+    home: MyApp(),
+  ));
+}
 
 class MyApp extends StatelessWidget {
-  final CustomPageView _horizontalPageView =
-      const CustomPageView(Axis.horizontal);
-  final CustomPageView _verticalPageView = const CustomPageView(Axis.vertical);
+  final Widget _horizontalPageView = const CustomPageView(Axis.horizontal);
+  final Widget _verticalPageView = const CustomPageView(Axis.vertical);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Rotary example app'),
-      ),
+      appBar: AppBar(title: const Text('Rotary example app')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-              child: const Text(
-                'HorizontalPageView',
-                style: TextStyle(fontSize: 15),
-              ),
+              child: const Text('HorizontalPageView'),
               onPressed: () {
                 Navigator.push<dynamic>(
                   context,
@@ -38,11 +33,9 @@ class MyApp extends StatelessWidget {
                 );
               },
             ),
+            const SizedBox(height: 10),
             ElevatedButton(
-              child: const Text(
-                'VerticalPageView',
-                style: TextStyle(fontSize: 15),
-              ),
+              child: const Text('VerticalPageView'),
               onPressed: () {
                 Navigator.push<dynamic>(
                   context,
