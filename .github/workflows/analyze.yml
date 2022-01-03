@@ -32,4 +32,4 @@ jobs:
           sudo apt-get update
           sudo apt-get install clang-format-11
       - name: Check tidy
-        run: ./tool/tools_runner.sh tidy --dir packages
+        run: ./tools/tools_runner.sh tidy --dir packages

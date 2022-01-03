@@ -8,10 +8,10 @@ set -e
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 readonly REPO_DIR="$(dirname "$SCRIPT_DIR")"
-readonly TOOL_PATH="$REPO_DIR/tool/bin/flutter_tizen_plugin_tools.dart"
+readonly TOOL_PATH="$REPO_DIR/tools/bin/flutter_tizen_plugin_tools.dart"
 
 # Ensure that the tool dependencies have been fetched.
-(pushd "$REPO_DIR/tool" && dart pub get && popd) >/dev/null
+(pushd "$REPO_DIR/tools" && dart pub get && popd) >/dev/null
 
 # The tool expects to be run from the repo root.
 cd "$REPO_DIR"

@@ -49,8 +49,8 @@
   - packages/webview_flutter/**/*
 
 # Tools
-'tool':
-  - tool/**/*
+'tools':
+  - tools/**/*
 
 # Publishing
 'needs-publishing':
