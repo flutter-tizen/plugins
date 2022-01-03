@@ -12,12 +12,9 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: stable
-      - name: Set up tools
-        run: dart pub get
-        working-directory: ${{ github.workspace }}/tool
       - name: Find changed packages
         run: |
-          CHANGED_PACKAGES=$(dart run ./tool/bin/flutter_tizen_plugin_tools.dart plugins \
+          CHANGED_PACKAGES=$(./tool/tools_runner.sh plugins \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^))
           if [[ ! -z $CHANGED_PACKAGES ]]; then
@@ -85,6 +82,6 @@ jobs:
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          dart run ./tool/bin/flutter_tizen_plugin_tools.dart build \
+          ./tool/tools_runner.sh build \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^)

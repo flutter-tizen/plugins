@@ -22,14 +22,11 @@ jobs:
         with:
           repository: flutter-tizen/flutter-tizen
           path: flutter-tizen
-      - name: Set up tools
-        run: dart pub get
-        working-directory: ${{ github.workspace }}/tool
       - name: Run tests for changed packages
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          dart run ./tool/bin/flutter_tizen_plugin_tools.dart test \
+          ./tool/tools_runner.sh test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators \
             --run-on-changed-packages \
@@ -38,6 +35,6 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          dart run ./tool/bin/flutter_tizen_plugin_tools.dart test \
+          ./tool/tools_runner.sh test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators
