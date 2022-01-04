@@ -7,11 +7,16 @@
 
 import 'dart:io' as io;
 
+import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 
 import 'package:flutter_plugin_tools/src/common/core.dart';
-import 'package:flutter_plugin_tools/src/common/process_runner.dart';
+import 'package:flutter_plugin_tools/src/format_command.dart';
+import 'package:flutter_plugin_tools/src/list_command.dart';
+import 'package:flutter_tizen_plugin_tools/src/build_examples_command.dart';
+
+import 'integration_test_command.dart';
 
 void main(List<String> args) {
   const FileSystem fileSystem = LocalFileSystem();
@@ -28,19 +33,15 @@ void main(List<String> args) {
     }
   }
 
-  const ProcessRunner processRunner = ProcessRunner();
-  final Directory sourceTreeRoot = packagesDir.parent;
-  final File pythonTool = sourceTreeRoot
-      .childDirectory('tools')
-      .childDirectory('tools')
-      .childFile('run_command.py');
+  final CommandRunner<void> commandRunner = CommandRunner<void>(
+      'pub global run flutter_tizen_plugin tools',
+      'Productivity utils for hosting multiple plugins within one repository.')
+    ..addCommand(BuildExamplesCommand(packagesDir))
+    ..addCommand(FormatCommand(packagesDir))
+    ..addCommand(IntegrationTestCommand(packagesDir))
+    ..addCommand(ListCommand(packagesDir));
 
-  if (!pythonTool.existsSync()) {
-    print('Error: Cannot find ${pythonTool.path}.');
-    io.exit(1);
-  }
-
-  processRunner.runAndStream(pythonTool.path, args).catchError((Object e) {
+  commandRunner.run(args).catchError((Object e) {
     final ToolExit toolExit = e as ToolExit;
     int exitCode = toolExit.exitCode;
     // This should never happen; this check is here to guarantee that a ToolExit
