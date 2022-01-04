@@ -14,7 +14,7 @@ jobs:
           channel: stable
       - name: Find changed packages
         run: |
-          CHANGED_PACKAGES=$(./tools/tools_runner.sh plugins \
+          CHANGED_PACKAGES=$(./tools/tools_runner.sh list \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^))
           if [[ ! -z $CHANGED_PACKAGES ]]; then
@@ -82,6 +82,6 @@ jobs:
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          ./tools/tools_runner.sh build \
+          ./tools/tools_runner.sh build-examples \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^)
