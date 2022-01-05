@@ -130,4 +130,4 @@ def get_target_plugins(packages_dir,
 
 def get_package_dir():
     return os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../../packages'))
+        os.path.join(os.path.dirname(__file__), '../../../packages'))

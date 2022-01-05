@@ -1,0 +1,11 @@
+name: flutter_tizen_plugin_tools
+description: Productivity utils for flutter_tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/tool
+publish_to: none
+
+environment:
+  sdk: '>=2.15.0 <3.0.0'
+
+dependencies:
+  file: ^6.1.0
+  flutter_plugin_tools: ^0.7.3
