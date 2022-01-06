@@ -36,8 +36,7 @@ void serviceMain() {
 
   // Connect to the UI app and send messages.
   // An exception will be thrown if the UI app is not running.
-  TizenMessagePort.connectToRemotePort(_kAppId, _kPortName)
-      .then((RemotePort remotePort) async {
+  RemotePort.connect(_kAppId, _kPortName).then((RemotePort remotePort) async {
     while (true) {
       if (await remotePort.check()) {
         await remotePort.send(null);
@@ -73,7 +72,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     // Open a message port to receive messages from the service app.
-    TizenMessagePort.createLocalPort(_kPortName).then((LocalPort value) {
+    LocalPort.create(_kPortName).then((LocalPort value) {
       _localPort = value;
       _localPort?.register((dynamic message, [RemotePort? remotePort]) {
         setState(() {

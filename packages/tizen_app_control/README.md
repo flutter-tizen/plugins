@@ -10,7 +10,7 @@ To use this package, add `tizen_app_control` as a dependency in your `pubspec.ya
 
 ```yaml
 dependencies:
-  tizen_app_control: ^0.1.0
+  tizen_app_control: ^0.1.1
 ```
 
 ### Sending a launch request
