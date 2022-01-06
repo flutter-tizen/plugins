@@ -10,12 +10,11 @@ import 'dart:io' as io;
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/format_command.dart';
 import 'package:flutter_plugin_tools/src/list_command.dart';
-import 'package:flutter_tizen_plugin_tools/src/build_examples_command.dart';
 
+import 'build_examples_command.dart';
 import 'integration_test_command.dart';
 
 void main(List<String> args) {

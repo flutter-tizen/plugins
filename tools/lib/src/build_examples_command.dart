@@ -1,11 +1,16 @@
-// ignore_for_file: public_member_api_docs, implementation_imports
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// ignore_for_file: implementation_imports
 
 import 'package:file/file.dart';
-import 'package:file/src/interface/directory.dart';
 import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
 
+/// A command to build the example applications for packages.
 class BuildExamplesCommand extends PackageLoopingCommand {
+  /// Creates an instance of the build command.
   BuildExamplesCommand(Directory packagesDir) : super(packagesDir);
 
   @override

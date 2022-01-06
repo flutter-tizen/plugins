@@ -1,35 +1,42 @@
-// ignore_for_file: public_member_api_docs, implementation_imports
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// ignore_for_file: implementation_imports
 
 import 'package:file/file.dart';
-
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/common/plugin_command.dart';
 
+/// A command that runs integration test of plugin examples.
 class IntegrationTestCommand extends PluginCommand {
+  /// Creates an instance of the integration-test command, which runs the
+  /// integration test of each plugin example on physical targets or emulators.
   IntegrationTestCommand(Directory packagesDir) : super(packagesDir) {
     argParser.addFlag(
       _generateEmulatorsArg,
       help: 'Create and destroy emulators during test.\n\n'
-          'Must provide either $_platformsArg or $_recipeArg option to specify which '
-          'platforms to create.',
+          'Must provide either $_platformsArg or $_recipeArg option to specify\n'
+          'which platforms to create.',
     );
     argParser.addOption(
       _platformsArg,
-      help: 'Run integration test on all connected targets that satisfy '
+      help: 'Run integration test on all connected targets that satisfy\n'
           '<device_profile>-<platform_version> (ex: wearable-5.5, tv-6.0).\n\n'
-          'The selected targets will be used for all plugins, '
+          'The selected targets will be used for all plugins,\n'
           'if you wish to run different targets for each plugin,\n'
           'use the $_recipeArg option instead.',
       valueHelp: '<device_profile>-<platform_version>',
     );
     argParser.addOption(_recipeArg,
         help:
-            'The recipe file path. A recipe refers to a yaml file that defines '
+            'The recipe file path. A recipe refers to a yaml file that defines\n'
             'a list of target platforms to test for each plugin.\n\n'
-            'Pass this file if you want to select specific target platforms for different\n'
-            'plugins. Every package listed in the recipe file will be recognized by the tool\n'
-            '(same as $_packagesArg option) and those that specify an empty list will be\n'
-            'explicitly excluded (same as $_excludeArg option). If $_recipeArg is used,\n'
+            'Pass this file if you want to select specific target platforms\n'
+            'for different plugins. Every package listed in the recipe file\n'
+            'will be recognized by the tool (same as $_packagesArg option)\n'
+            'and those that specify an empty list will be explicitly excluded\n'
+            '(same as $_excludeArg option). If $_recipeArg is used,\n'
             '$_packagesArg and $_excludeArg options will be ignored.\n\n'
             'plugins:\n'
             '  a: [wearable-5.5, tv-6.0]\n'
@@ -62,21 +69,21 @@ class IntegrationTestCommand extends PluginCommand {
   @override
   String get name => 'integration-test';
 
-  File get pythonTool => packagesDir.parent
+  File get _pythonTool => packagesDir.parent
       .childDirectory('tools')
       .childDirectory('tools')
       .childFile('run_command.py');
 
   @override
   Future<void> run() async {
-    if (!pythonTool.existsSync()) {
-      print('Error: Cannot find ${pythonTool.path}.');
+    if (!_pythonTool.existsSync()) {
+      print('Error: Cannot find ${_pythonTool.path}.');
       throw ToolExit(1);
     }
 
     // (TODO: HakkyuKim) Migrate python tool logic to dart.
     final int exitCode = await processRunner.runAndStream(
-        pythonTool.path, <String>['test', ...argResults!.arguments]);
+        _pythonTool.path, <String>['test', ...argResults!.arguments]);
     if (exitCode != 0) {
       throw ToolExit(exitCode);
     }
