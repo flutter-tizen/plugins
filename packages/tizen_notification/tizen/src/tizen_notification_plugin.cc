@@ -318,7 +318,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
           }
         }
 
-        if (GetEncodableValueFromArgs(arguments, "appControlData",
+        if (GetEncodableValueFromArgs(arguments, "appControl",
                                       app_control_data)) {
           std::string app_id;
           if (GetValueFromArgs(&app_control_data, "appId", app_id)) {
@@ -326,7 +326,8 @@ class TizenNotificationPlugin : public flutter::Plugin {
             std::string uri;
             std::string category;
             std::string mime;
-            flutter::EncodableList extras;
+            flutter::EncodableMap extras;
+            flutter::EncodableValue extra_value;
             std::string key;
             ret = app_control_create(&app_control);
             if (ret != APP_CONTROL_ERROR_NONE) {
@@ -403,36 +404,44 @@ class TizenNotificationPlugin : public flutter::Plugin {
             }
 
             if (GetValueFromArgs(&app_control_data, "extraData", extras)) {
-              for (size_t i = 0; i < extras.size(); i++) {
-                std::string key;
-                flutter::EncodableList value_list;
-                if (GetValueFromArgs(&extras[i], "key", key)) {
+              extra_value = extras;
+              for (const auto &extra : extras) {
+                std::string map_key;
+                if (std::holds_alternative<std::string>(extra.first)) {
+                  map_key = std::get<std::string>(extra.first);
+                  flutter::EncodableList value_list;
                   std::vector<const char *> values;
                   std::vector<std::string> dummy;
-                  if (GetValueFromArgs(&extras[i], "values", value_list)) {
+                  std::string value;
+                  if (GetValueFromArgs(&extra_value, map_key.c_str(), value_list)) {
                     for (size_t i = 0; i < value_list.size(); i++) {
                       dummy.push_back(std::get<std::string>(value_list[i]));
                     }
                     for (size_t i = 0; i < value_list.size(); i++) {
                       values.push_back(dummy[i].c_str());
                     }
+                    app_control_add_extra_data_array(
+                        app_control, map_key.c_str(), values.data(),
+                        values.size());
+                  } else if (GetValueFromArgs(&extra_value, map_key.c_str(),
+                                              value)) {
+                    app_control_add_extra_data(app_control, map_key.c_str(),
+                                               value.c_str());
                   }
-                  app_control_add_extra_data_array(
-                      app_control, key.c_str(), values.data(), values.size());
                 }
               }
-            }
-            ret = notification_set_launch_option(
-                noti_handle, NOTIFICATION_LAUNCH_OPTION_APP_CONTROL,
-                (void *)app_control);
-            if (ret != NOTIFICATION_ERROR_NONE) {
-              FreeNotification(noti_handle);
-              DestroyAppControl(app_control);
-              LOG_ERROR("notification_set_launch_option failed : %s",
-                        get_error_message(ret));
-              result->Error("notification_set_launch_option failed",
-                            std::string(get_error_message(ret)));
-              return;
+              ret = notification_set_launch_option(
+                  noti_handle, NOTIFICATION_LAUNCH_OPTION_APP_CONTROL,
+                  (void *)app_control);
+              if (ret != NOTIFICATION_ERROR_NONE) {
+                FreeNotification(noti_handle);
+                DestroyAppControl(app_control);
+                LOG_ERROR("notification_set_launch_option failed : %s",
+                          get_error_message(ret));
+                result->Error("notification_set_launch_option failed",
+                              std::string(get_error_message(ret)));
+                return;
+              }
             }
           }
         }
