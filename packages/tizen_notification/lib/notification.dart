@@ -99,11 +99,11 @@ class TizenNotificationPlugin {
   /// of the notification which can later be passed to [cancel] to erase the
   /// notification.
   Future<void> show(
-    int id,
+    int id, {
     String? title,
     String? body,
     TizenNotificationDetails? notificationDetails,
-  ) {
+  }) {
     final Map<String, dynamic> details =
         notificationDetails?.toMap() ?? <String, dynamic>{};
     details['id'] = id.toString();

@@ -25,7 +25,7 @@ await plugin.show(1, 'Title', 'Body');
 
 ## Required privileges
 
-To Use this plugin, you need to declare the following privileges in `tizen-manifest.xml`.
+To use this plugin, you need to declare the following privileges in `tizen-manifest.xml`.
 
 ``` xml
 <privileges>
