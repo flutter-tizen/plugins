@@ -39,17 +39,25 @@ class DisplayApplist {
 class NotificationImage {
   /// [NotificationImage] specifies image options for notifications.
   NotificationImage({
-    required this.type,
-    this.path = '',
+    this.iconPath,
+    this.indicatorPath,
+    this.lockPath,
   });
 
-  final ImageType type;
-  final String path;
+  /// The path of icon.
+  final String? iconPath;
+
+  /// The path of indicator icon.
+  final String? indicatorPath;
+
+  /// The path of lock screen icon.
+  final String? lockPath;
 
   /// Returns [NotificationImage] memeber fields in a map format.
-  Map<String, String> toMap() => <String, String>{
-        'type': type.toString().split('.').last,
-        'path': path,
+  Map<String, dynamic> toMap() => <String, dynamic>{
+        'icon': iconPath,
+        'iconForIndicator': indicatorPath,
+        'iconForLock': lockPath,
       };
 }
 

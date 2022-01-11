@@ -24,10 +24,8 @@ class TizenNotificationDetails {
     this.ongoing = false,
   });
 
-  /// A single or a list of [NotificationImage].
-  ///
   /// [NotificationImage] refers to any image shown on the notification panel.
-  final dynamic images;
+  final NotificationImage? images;
 
   /// A set of information used by app control to launch other applications.
   final AppControl? appControl;
@@ -63,9 +61,7 @@ class TizenNotificationDetails {
         'properties': properties,
         'vibration': vibration?.toMap(),
         'sound': sound?.toMap(),
-        'images': _getImages(images)
-            ?.map((NotificationImage image) => image.toMap())
-            .toList(),
+        'images': images?.toMap(),
         'ongoing': ongoing,
         'appControl': <String, dynamic>{
           'appId': appControl?.appId,
@@ -75,22 +71,6 @@ class TizenNotificationDetails {
           'extraData': appControl?.extraData,
         },
       };
-
-  List<NotificationImage>? _getImages(dynamic image) {
-    assert(image == null ||
-        image is List<NotificationImage> ||
-        image is NotificationImage);
-    List<NotificationImage> images = <NotificationImage>[];
-    if (image is List<NotificationImage>) {
-      images = image;
-    } else if (image is NotificationImage) {
-      images.add(image);
-    } else {
-      // extras == null
-      return null;
-    }
-    return images;
-  }
 }
 
 const MethodChannel _channel = MethodChannel('tizen/notification');

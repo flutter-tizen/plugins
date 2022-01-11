@@ -109,10 +109,8 @@ class TizenNotificationPlugin : public flutter::Plugin {
   }
 
   notification_image_type_e StringToImageType(std::string image_type) {
-    notification_image_type_e ret = NOTIFICATION_IMAGE_TYPE_NONE;
-    if (image_type.compare("none") == 0) {
-      ret = NOTIFICATION_IMAGE_TYPE_NONE;
-    } else if (image_type.compare("icon") == 0) {
+    notification_image_type_e ret = NOTIFICATION_IMAGE_TYPE_ICON;
+    if (image_type.compare("icon") == 0) {
       ret = NOTIFICATION_IMAGE_TYPE_ICON;
     } else if (image_type.compare("iconForIndicator") == 0) {
       ret = NOTIFICATION_IMAGE_TYPE_ICON_FOR_INDICATOR;
@@ -221,27 +219,29 @@ class TizenNotificationPlugin : public flutter::Plugin {
           }
         }
 
-        flutter::EncodableList images;
+        flutter::EncodableMap images;
         if (GetValueFromArgs(arguments, "images", images)) {
-          for (size_t i = 0; i < images.size(); i++) {
+          for (const auto &image : images) {
             std::string type;
-            if (GetValueFromArgs(&images[i], "type", type)) {
-              std::string path;
-              char *resource_path = app_get_shared_resource_path();
-              if (GetValueFromArgs(&images[i], "path", path)) {
-                path = std::string(resource_path) + path;
-              }
-              ret = notification_set_image(noti_handle, StringToImageType(type),
-                                           path.c_str());
-              free(resource_path);
-              if (ret != NOTIFICATION_ERROR_NONE) {
-                FreeNotification(noti_handle);
-                LOG_ERROR("notification_set_image failed : %s",
-                          get_error_message(ret));
-                result->Error("notification_set_image failed",
-                              std::string(get_error_message(ret)));
-                return;
-              }
+            std::string path;
+            char *resource_path = app_get_shared_resource_path();
+            if (std::holds_alternative<std::string>(image.first)) {
+              type = std::get<std::string>(image.first);
+            }
+            if (std::holds_alternative<std::string>(image.second)) {
+              path = std::get<std::string>(image.second);
+              path = std::string(resource_path) + path;
+            }
+            ret = notification_set_image(noti_handle, StringToImageType(type),
+                                         path.c_str());
+            free(resource_path);
+            if (ret != NOTIFICATION_ERROR_NONE) {
+              FreeNotification(noti_handle);
+              LOG_ERROR("notification_set_image failed : %s",
+                        get_error_message(ret));
+              result->Error("notification_set_image failed",
+                            std::string(get_error_message(ret)));
+              return;
             }
           }
         }
