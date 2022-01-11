@@ -22,7 +22,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "tizen/internal/notification",
+            registrar->messenger(), "tizen/notification",
             &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin = std::make_unique<TizenNotificationPlugin>();
@@ -150,9 +150,9 @@ class TizenNotificationPlugin : public flutter::Plugin {
             }
           }
 
-          bool onGoing;
-          if (GetValueFromArgs(arguments, "onGoing", onGoing)) {
-            if (onGoing) {
+          bool ongoing;
+          if (GetValueFromArgs(arguments, "ongoing", ongoing)) {
+            if (ongoing) {
               noti_handle = notification_create(NOTIFICATION_TYPE_ONGOING);
               if (!noti_handle) {
                 LOG_ERROR(
@@ -413,7 +413,8 @@ class TizenNotificationPlugin : public flutter::Plugin {
                   std::vector<const char *> values;
                   std::vector<std::string> dummy;
                   std::string value;
-                  if (GetValueFromArgs(&extra_value, map_key.c_str(), value_list)) {
+                  if (GetValueFromArgs(&extra_value, map_key.c_str(),
+                                       value_list)) {
                     for (size_t i = 0; i < value_list.size(); i++) {
                       dummy.push_back(std::get<std::string>(value_list[i]));
                     }

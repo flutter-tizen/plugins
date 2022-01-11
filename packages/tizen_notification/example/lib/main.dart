@@ -38,21 +38,25 @@ class NotificationTest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              child: const Text('Show notification'),
-              onPressed: _showNotification,
-            ),
-            ElevatedButton(
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              ElevatedButton(
+                child: const Text('Show notification'),
+                onPressed: _showNotification,
+              ),
+              ElevatedButton(
                 child: const Text('Cancel notification'),
-                onPressed: _cancelNotification),
-            ElevatedButton(
+                onPressed: _cancelNotification,
+              ),
+              ElevatedButton(
                 child: const Text('Cancel all notifications'),
-                onPressed: _cancelAllNotifications),
-          ],
+                onPressed: _cancelAllNotifications,
+              ),
+            ],
+          ),
         ),
       ),
     );

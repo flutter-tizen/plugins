@@ -17,10 +17,10 @@ Then you can import `tizen_notification` in your Dart code:
 
 
 ```dart
-import 'package:tizen_notification/notification.dart';
+import 'package:tizen_notification/tizen_notification.dart';
 
 TizenNotificationPlugin plugin = TizenNotificationPlugin();
-await plugin.show(1, 'Title', 'Body');
+await plugin.show(1, title: 'Title', body: 'Body');
 ```
 
 ## Required privileges
