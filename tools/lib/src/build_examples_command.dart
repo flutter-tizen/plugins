@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: implementation_imports
-
 import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
@@ -38,9 +36,7 @@ class BuildExamplesCommand extends PackageLoopingCommand {
           getRelativePosixPath(example.directory, from: packagesDir);
 
       builtSomething = true;
-      // (TODO: HakkyuKim) Support different profiles.
-      final int exitCode = await processRunner.runAndStream('flutter-tizen',
-          <String>['build', 'tpk', '--device-profile', 'wearable', '-v'],
+      // TODO(HakkyuKim): Support different profiles.
           workingDir: example.directory);
       if (exitCode != 0) {
         errors.add(packageName);

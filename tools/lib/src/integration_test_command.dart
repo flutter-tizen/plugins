@@ -2,16 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: implementation_imports
-
 import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/common/plugin_command.dart';
 
 /// A command that runs integration test of plugin examples.
 class IntegrationTestCommand extends PluginCommand {
-  /// Creates an instance of the integration-test command, which runs the
-  /// integration test of each plugin example on physical targets or emulators.
+  /// Creates an instance of the integration-test command, which runs
+  /// integration tests of each plugin example on physical or emulator devices.
   IntegrationTestCommand(Directory packagesDir) : super(packagesDir) {
     argParser.addFlag(
       _generateEmulatorsArg,
@@ -21,10 +19,10 @@ class IntegrationTestCommand extends PluginCommand {
     );
     argParser.addOption(
       _platformsArg,
-      help: 'Run integration test on all connected targets that satisfy\n'
+      help: 'Run integration test on all connected devices that satisfy\n'
           '<device_profile>-<platform_version> (ex: wearable-5.5, tv-6.0).\n\n'
-          'The selected targets will be used for all plugins,\n'
-          'if you wish to run different targets for each plugin,\n'
+          'The selected devices will be used to test all plugins,\n'
+          'if you wish to run different devices for each plugin,\n'
           'use the $_recipeArg option instead.',
       valueHelp: '<device_profile>-<platform_version>',
     );
@@ -52,8 +50,10 @@ class IntegrationTestCommand extends PluginCommand {
     );
   }
 
-  // Copied from PluginCommand.
+  /// Copied from [PluginCommand].
   static const String _excludeArg = 'exclude';
+
+  /// Copied from [PluginCommand].
   static const String _packagesArg = 'packages';
 
   static const String _generateEmulatorsArg = 'generate-emulators';
@@ -81,7 +81,7 @@ class IntegrationTestCommand extends PluginCommand {
       throw ToolExit(1);
     }
 
-    // (TODO: HakkyuKim) Migrate python tool logic to dart.
+    // TODO(HakkyuKim): Migrate python tool logic to dart.
     final int exitCode = await processRunner.runAndStream(
         _pythonTool.path, <String>['test', ...argResults!.arguments]);
     if (exitCode != 0) {

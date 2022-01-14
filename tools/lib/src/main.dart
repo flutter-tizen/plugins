@@ -3,8 +3,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: implementation_imports
-
 import 'dart:io' as io;
 
 import 'package:args/command_runner.dart';
@@ -33,7 +31,7 @@ void main(List<String> args) {
   }
 
   final CommandRunner<void> commandRunner = CommandRunner<void>(
-      'pub global run flutter_tizen_plugin tools',
+      './tools/tools_runner.sh',
       'Productivity utils for hosting multiple plugins within one repository.')
     ..addCommand(BuildExamplesCommand(packagesDir))
     ..addCommand(FormatCommand(packagesDir))
