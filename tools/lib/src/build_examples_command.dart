@@ -22,34 +22,52 @@ class BuildExamplesCommand extends PackageLoopingCommand {
   Future<PackageResult> runForPackage(RepositoryPackage package) async {
     final List<String> errors = <String>[];
 
-    if (await processRunner.runAndStream(
-            'flutter-tizen', <String>['pub', 'get'],
-            workingDir: package.directory) !=
-        0) {
+    int exitCode = await processRunner.runAndStream(
+      'flutter-tizen',
+      <String>['pub', 'get'],
+      workingDir: package.directory,
+    );
+    if (exitCode != 0) {
       errors.add('${package.displayName} (pub get failed)');
       return PackageResult.fail(errors);
     }
 
     bool builtSomething = false;
     for (final RepositoryPackage example in package.getExamples()) {
-      final String packageName =
-          getRelativePosixPath(example.directory, from: packagesDir);
+      final String packageName = getRelativePosixPath(
+        example.directory,
+        from: packagesDir,
+      );
 
       builtSomething = true;
       // TODO(HakkyuKim): Support different profiles.
-          workingDir: example.directory);
+      final int exitCode = await processRunner.runAndStream(
+        'flutter-tizen',
+        <String>[
+          'build',
+          'tpk',
+          '--device-profile',
+          'wearable',
+          '-v',
+        ],
+        workingDir: example.directory,
+      );
       if (exitCode != 0) {
         errors.add(packageName);
       }
     }
-    if (await processRunner.runAndStream('flutter-tizen', <String>['clean'],
-            workingDir: package.directory) !=
-        0) {
-      logWarning('Failed to clean ${package.displayName} after build.');
-    }
 
     if (!builtSomething) {
       errors.add('No examples found');
+    }
+
+    exitCode = await processRunner.runAndStream(
+      'flutter-tizen',
+      <String>['clean'],
+      workingDir: package.directory,
+    );
+    if (exitCode != 0) {
+      logWarning('Failed to clean ${package.displayName} after build.');
     }
 
     return errors.isEmpty
