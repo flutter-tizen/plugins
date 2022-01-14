@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:flutter/material.dart';
-import 'package:tizen_notification/notification.dart';
+import 'package:tizen_notification/tizen_notification.dart';
 
 void main() {
   runApp(NotificationTest());
