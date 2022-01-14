@@ -15,7 +15,7 @@ class TizenNotificationDetails {
   ///
   /// [images] only supports type [List<NotificationImage>] and [NotificationImage].
   const TizenNotificationDetails({
-    this.images,
+    this.image,
     this.appControl,
     this.vibration,
     this.sound,
@@ -25,7 +25,7 @@ class TizenNotificationDetails {
   });
 
   /// [NotificationImage] refers to any image shown on the notification panel.
-  final NotificationImage? images;
+  final NotificationImage? image;
 
   /// A set of information used by app control to launch other applications.
   final AppControl? appControl;
@@ -61,7 +61,7 @@ class TizenNotificationDetails {
         'properties': properties,
         'vibration': vibration?.toMap(),
         'sound': sound?.toMap(),
-        'images': images?.toMap(),
+        'image': image?.toMap(),
         'ongoing': ongoing,
         'appControl': <String, dynamic>{
           'appId': appControl?.appId,

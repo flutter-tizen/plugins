@@ -76,7 +76,7 @@ class NotificationSound {
 
   /// Returns [NotificationSound] memeber fields in a map format.
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'type': type.toString().split('.').last,
+        'type': type.name,
         'path': path,
       };
 }
@@ -93,7 +93,7 @@ class NotificationVibration {
 
   /// Returns [NotificationVibration] memeber fields in a map format.
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'type': type.toString().split('.').last,
+        'type': type.name,
         'path': path,
       };
 }

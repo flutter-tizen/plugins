@@ -7,15 +7,10 @@
 #include <notification.h>
 #include <notification_error.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "log.h"
-
-constexpr int kNotification = 0;
-constexpr int kAppControl = 1;
 
 class TizenNotificationPlugin : public flutter::Plugin {
  public:
@@ -220,7 +215,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
         }
 
         flutter::EncodableMap images;
-        if (GetValueFromArgs(arguments, "images", images)) {
+        if (GetValueFromArgs(arguments, "image", images)) {
           for (const auto &image : images) {
             std::string type;
             std::string path;
@@ -331,7 +326,6 @@ class TizenNotificationPlugin : public flutter::Plugin {
             std::string key;
             ret = app_control_create(&app_control);
             if (ret != APP_CONTROL_ERROR_NONE) {
-              DestroyAppControl(app_control);
               FreeNotification(noti_handle);
               LOG_ERROR("app_control_create failed : %s",
                         get_error_message(ret));
@@ -474,16 +468,18 @@ class TizenNotificationPlugin : public flutter::Plugin {
           return;
         }
         result->Success();
+        return;
       }
+      result->Error("InvalidArguments", "Please check 'TizenNotificationPlugin'");
     } else if (method_call.method_name().compare("cancel") == 0) {
       const flutter::EncodableValue *arguments = method_call.arguments();
       if (arguments != nullptr &&
           std::holds_alternative<std::string>(*arguments)) {
         std::string id = std::get<std::string>(*arguments);
-        notification_h notification = nullptr;
-        notification = notification_load_by_tag(id.c_str());
-        if (notification != nullptr) {
-          int ret = notification_delete(notification);
+        notification_h noti_handle = nullptr;
+        noti_handle = notification_load_by_tag(id.c_str());
+        if (noti_handle != nullptr) {
+          int ret = notification_delete(noti_handle);
           if (ret != NOTIFICATION_ERROR_NONE) {
             LOG_ERROR("notification_delete failed : %s",
                       get_error_message(ret));
