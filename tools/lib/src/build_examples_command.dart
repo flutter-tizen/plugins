@@ -13,7 +13,7 @@ class BuildExamplesCommand extends PackageLoopingCommand {
 
   @override
   String get description => 'Builds all example apps.\n\n'
-      'This command requires "flutter-tizen" to be in your path.\n\n';
+      'This command requires "flutter-tizen" to be in your path.';
 
   @override
   String get name => 'build-examples';

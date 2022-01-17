@@ -13,28 +13,28 @@ class IntegrationTestCommand extends PluginCommand {
   IntegrationTestCommand(Directory packagesDir) : super(packagesDir) {
     argParser.addFlag(
       _generateEmulatorsArg,
-      help: 'Create and destroy emulators during test.\n\n'
+      help: 'Create and destroy emulators during test.\n'
           'Must provide either $_platformsArg or $_recipeArg option to specify '
           'which platforms to create.',
     );
     argParser.addOption(
       _platformsArg,
-      help: 'Run integration test on all connected devices that satisfy\n'
-          '<device_profile>-<platform_version> (ex: wearable-5.5, tv-6.0).\n\n'
-          'Selected devices will be used to test all plugins, if you wish to\n'
+      help: 'Run integration test on all connected devices that satisfy '
+          'profile-version (ex: wearable-5.5, tv-6.0).\n'
+          'Selected devices will be used to test all plugins, if you wish to '
           'run different devices for each plugin, use $_recipeArg instead.',
-      valueHelp: '<device_profile>-<platform_version>',
+      valueHelp: 'profile-version',
     );
     argParser.addOption(
       _recipeArg,
       help:
-          'The recipe file path. A recipe refers to a yaml file that defines\n'
-          'a list of target platforms to test for each plugin.\n\n'
-          'Pass this file if you want to select specific target platforms\n'
-          'for different plugins. Every package listed in the recipe file\n'
-          'will be recognized by the tool (same as $_packagesArg option)\n'
-          'and those that specify an empty list will be explicitly excluded\n'
-          '(same as $_excludeArg option). If $_recipeArg is used,\n'
+          'The recipe file path. A recipe refers to a yaml file that defines '
+          'a list of target platforms to test for each plugin.\n'
+          'Pass this file if you want to select specific target platforms '
+          'for different plugins. Every package listed in the recipe file '
+          'will be recognized by the tool(same as $_packagesArg option) '
+          'and those that specify an empty list will be explicitly excluded'
+          '(same as $_excludeArg option). If $_recipeArg is used, '
           '$_packagesArg and $_excludeArg options will be ignored.\n\n'
           'plugins:\n'
           '  a: [wearable-5.5, tv-6.0]\n'
