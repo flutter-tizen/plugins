@@ -21,7 +21,7 @@ class IntegrationTestCommand extends PluginCommand {
       _platformsArg,
       help: 'Run integration test on all connected devices that satisfy '
           'profile-version (ex: wearable-5.5, tv-6.0).\n'
-          'Selected devices will be used to test all plugins, if you wish to '
+          'Selected devices will be used to test all plugins. If you wish to '
           'run different devices for each plugin, use $_recipeArg instead.',
       valueHelp: 'profile-version',
     );
