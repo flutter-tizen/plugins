@@ -470,7 +470,7 @@ class TizenNotificationPlugin : public flutter::Plugin {
         result->Success();
         return;
       }
-      result->Error("InvalidArguments", "Please check 'TizenNotificationPlugin'");
+      result->Error("InvalidArguments", "Please check 'show'");
     } else if (method_call.method_name().compare("cancel") == 0) {
       const flutter::EncodableValue *arguments = method_call.arguments();
       if (arguments != nullptr &&
@@ -489,7 +489,9 @@ class TizenNotificationPlugin : public flutter::Plugin {
           }
         }
         result->Success();
+        return;
       }
+      result->Error("InvalidArguments", "Please check 'cancel'");
     } else if (method_call.method_name().compare("cancelAll") == 0) {
       int ret = NOTIFICATION_ERROR_NONE;
       ret = notification_delete_all(NOTIFICATION_TYPE_NOTI);
@@ -509,6 +511,8 @@ class TizenNotificationPlugin : public flutter::Plugin {
         return;
       }
       result->Success();
+    } else {
+      result->NotImplemented();
     }
   }
 };
