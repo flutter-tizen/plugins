@@ -26,7 +26,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          ./tools/tools_runner.sh test \
+          ./tools/tools_runner.sh integration-test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators \
             --run-on-changed-packages \
@@ -35,6 +35,6 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
-          ./tools/tools_runner.sh test \
+          ./tools/tools_runner.sh integration-test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators

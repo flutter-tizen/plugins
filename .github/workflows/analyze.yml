@@ -3,7 +3,7 @@ name: Analyze
 on: [push, pull_request]
 
 jobs:
-  dart:
+  dart_analyze:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -16,11 +16,9 @@ jobs:
             cd $d
             flutter pub get
           done
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed packages
       - name: Analyze source code
         run: dart analyze --fatal-infos packages
-  clang:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -31,5 +29,5 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install clang-format-11
-      - name: Check tidy
-        run: ./tools/tools_runner.sh tidy --dir packages
+      - name: Check format
+        run: ./tools/tools_runner.sh format --fail-on-change --clang-format=clang-format-11
