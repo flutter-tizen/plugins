@@ -53,7 +53,7 @@ class NotificationImage {
   /// The path of lock screen icon.
   final String? lockPath;
 
-  /// Returns [NotificationImage] memeber fields in a map format.
+  /// Returns [NotificationImage] member fields in a map format.
   Map<String, dynamic> toMap() => <String, dynamic>{
         'icon': iconPath,
         'iconForIndicator': indicatorPath,
@@ -64,7 +64,7 @@ class NotificationImage {
 class NotificationSound {
   /// [NotificationSound] specifies sound options for notifications.
   ///
-  /// [path] referes to a file path to custom sound data played on notification,
+  /// [path] refers to a file path to custom sound data played on notification,
   /// this value is ignored When [type] is not [SoundType.userData].
   NotificationSound({
     required this.type,
@@ -74,7 +74,7 @@ class NotificationSound {
   final SoundType type;
   String? path;
 
-  /// Returns [NotificationSound] memeber fields in a map format.
+  /// Returns [NotificationSound] member fields in a map format.
   Map<String, dynamic> toMap() => <String, dynamic>{
         'type': type.name,
         'path': path,
@@ -91,7 +91,7 @@ class NotificationVibration {
   final VibrationType type;
   String? path;
 
-  /// Returns [NotificationVibration] memeber fields in a map format.
+  /// Returns [NotificationVibration] member fields in a map format.
   Map<String, dynamic> toMap() => <String, dynamic>{
         'type': type.name,
         'path': path,

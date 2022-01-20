@@ -55,7 +55,7 @@ class TizenNotificationDetails {
   /// Currently, only the common profile supports this operation.
   final bool ongoing;
 
-  /// Returns [TizenNotificationDetails] memeber fields in a map format.
+  /// Returns [TizenNotificationDetails] member fields in a map format.
   Map<String, dynamic> toMap() => <String, dynamic>{
         'displayApplist': displayApplist,
         'properties': properties,
@@ -83,7 +83,7 @@ class TizenNotificationPlugin {
   /// Removes all notifications sent.
   Future<void> cancelAll() => _channel.invokeMethod('cancelAll');
 
-  /// Sends the notification with [id], [title], and [body]. [id] is the identider
+  /// Sends the notification with [id], [title], and [body]. [id] is the identifier
   /// of the notification which can later be passed to [cancel] to erase the
   /// notification.
   Future<void> show(
