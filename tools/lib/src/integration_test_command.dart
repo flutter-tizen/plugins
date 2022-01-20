@@ -3,21 +3,29 @@
 // found in the LICENSE file.
 
 import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
+import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
 import 'package:flutter_plugin_tools/src/common/plugin_command.dart';
+import 'package:flutter_plugin_tools/src/common/repository_package.dart';
+import 'package:yaml/yaml.dart';
 
 /// A command that runs integration test of plugin examples.
-class IntegrationTestCommand extends PluginCommand {
+class IntegrationTestCommand extends PackageLoopingCommand {
   /// Creates an instance of the integration-test command, which runs
   /// integration tests of each plugin example on physical or emulator devices.
-  IntegrationTestCommand(Directory packagesDir) : super(packagesDir) {
+  IntegrationTestCommand(
+    Directory packagesDir, {
+    FileSystem fileSystem = const LocalFileSystem(),
+  })  : _fileSystem = fileSystem,
+        super(packagesDir) {
     argParser.addFlag(
       _generateEmulatorsArg,
       help: 'Create and destroy emulators during test.\n'
           'Must provide either $_platformsArg or $_recipeArg option to specify '
           'which platforms to create.',
     );
-    argParser.addOption(
+    argParser.addMultiOption(
       _platformsArg,
       help: 'Run integration test on all connected devices that satisfy '
           'profile-version (ex: wearable-5.5, tv-6.0).\n'
@@ -27,8 +35,7 @@ class IntegrationTestCommand extends PluginCommand {
     );
     argParser.addOption(
       _recipeArg,
-      help:
-          'The recipe file path. A recipe refers to a yaml file that defines '
+      help: 'The recipe file path. A recipe refers to a yaml file that defines '
           'a list of target platforms to test for each plugin.\n'
           'Pass this file if you want to select specific target platforms '
           'for different plugins. Every package listed in the recipe file '
@@ -62,6 +69,8 @@ class IntegrationTestCommand extends PluginCommand {
   static const String _recipeArg = 'recipe';
   static const String _timeoutArg = 'timeout';
 
+  final FileSystem _fileSystem;
+
   @override
   String get description =>
       'Runs integration tests for plugin example apps.\n\n'
@@ -70,25 +79,56 @@ class IntegrationTestCommand extends PluginCommand {
   @override
   String get name => 'integration-test';
 
-  File get _pythonTool => packagesDir.parent
-      .childDirectory('tools')
-      .childDirectory('tools')
-      .childFile('run_command.py');
-
+  // TODO(HakkyuKim): Consider validating command-line arguments in the upper
+  // a Command object by subclassing [PackageLoopingCommand].
   @override
-  Future<void> run() async {
-    if (!_pythonTool.existsSync()) {
-      print('Error: Cannot find ${_pythonTool.path}.');
-      throw ToolExit(1);
+  Future<PackageResult> runForPackage(RepositoryPackage package) async {
+    if (argResults!.wasParsed(_platformsArg) &&
+        argResults!.wasParsed(_recipeArg)) {
+      print('Cannot specify both --$_platformsArg and --$_recipeArg.');
+      throw ToolExit(exitInvalidArguments);
     }
 
-    // TODO(HakkyuKim): Migrate python tool logic to dart.
-    final int exitCode = await processRunner.runAndStream(
-      _pythonTool.path,
-      <String>['test', ...argResults!.arguments],
-    );
-    if (exitCode != 0) {
-      throw ToolExit(exitCode);
+    if (argResults!.wasParsed(_generateEmulatorsArg) &&
+        !argResults!.wasParsed(_platformsArg) &&
+        !argResults!.wasParsed(_recipeArg)) {
+      print('Either --$_platformsArg or --$_recipeArg must be '
+          'provided with --$_generateEmulatorsArg.');
+      throw ToolExit(exitInvalidArguments);
     }
+
+    late List<String> platforms;
+    if (argResults!.wasParsed(_platformsArg)) {
+      platforms = getStringListArg(_platformsArg);
+    } else if (argResults!.wasParsed(_recipeArg)) {
+      final File recipeFile = _fileSystem.file(getStringArg(_recipeArg));
+      if (!recipeFile.existsSync()) {
+        print('Recipe file doesn\'t exist: ${recipeFile.absolute.path}');
+        throw ToolExit(exitCommandFoundErrors);
+      }
+      try {
+        final YamlMap recipe =
+            loadYaml(recipeFile.readAsStringSync()) as YamlMap;
+        platforms =
+            (recipe['plugins'][package.displayName] as YamlList).cast<String>();
+        if (platforms.isEmpty) {
+          // TODO(HakkyuKim): Return [PackageResult.exclude()] after subclassing
+          // [PackageLoopingCommand].
+          return PackageResult.skip(
+              'Skipped by recipe: ${package.displayName}.');
+        }
+      } on YamlException {
+        print('Invalid yaml file.');
+        throw ToolExit(exitCommandFoundErrors);
+      }
+    }
+
+    if (getBoolArg(_generateEmulatorsArg)) {
+      // TODO(HakkyuKim): Return emulator objects matching [platforms].
+    } else {
+      // TODO(HakkyuKim): Return all connected targets matching [platforms].
+    }
+
+    return PackageResult.success();
   }
 }
