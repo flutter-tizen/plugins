@@ -61,9 +61,9 @@ class AudioVolume {
 
   Future<AudioVolumeType> get currentPlaybackType async {
     try {
-      final String type =
-          await AudioManager._channel.invokeMethod('getCurrentPlaybackType');
-      return _stringToAudioVolumeType(type);
+      final String? type = await AudioManager._channel
+          .invokeMethod<String>('getCurrentPlaybackType');
+      return _stringToAudioVolumeType(type!);
     } catch (err) {
       throw Exception('currentPlaybackType failed, $err');
     }
@@ -71,8 +71,9 @@ class AudioVolume {
 
   Future<int> getLevel(AudioVolumeType type) async {
     try {
-      return await AudioManager._channel
-          .invokeMethod('getLevel', {'type': type.toString().split('.').last});
+      final int? level = await AudioManager._channel.invokeMethod<int>(
+          'getLevel', {'type': type.toString().split('.').last});
+      return level!;
     } catch (err) {
       throw Exception('getLevel failed, $err');
     }
@@ -80,7 +81,7 @@ class AudioVolume {
 
   void setLevel(AudioVolumeType type, int level) async {
     try {
-      await AudioManager._channel.invokeMethod('setLevel', {
+      await AudioManager._channel.invokeMethod<void>('setLevel', {
         'type': type.toString().split('.').last,
         'volume': level.toString()
       });
@@ -91,8 +92,9 @@ class AudioVolume {
 
   Future<int> getMaxLevel(AudioVolumeType type) async {
     try {
-      return await AudioManager._channel.invokeMethod(
+      final int? level = await AudioManager._channel.invokeMethod<int>(
           'getMaxLevel', {'type': type.toString().split('.').last});
+      return level!;
     } catch (err) {
       throw Exception('getMaxLevel failed, $err');
     }
@@ -100,7 +102,8 @@ class AudioVolume {
 
   Stream<VolumeChangedEvent> onChanged = AudioManager._eventChannel
       .receiveBroadcastStream()
-      .map((msg) => VolumeChangedEvent.fromMap(msg));
+      .map((dynamic msg) =>
+          VolumeChangedEvent.fromMap(msg as Map<String, String>));
 }
 
 class VolumeChangedEvent {
@@ -110,7 +113,8 @@ class VolumeChangedEvent {
 
   final AudioVolumeType type;
 
-  static VolumeChangedEvent fromMap(dynamic map) => VolumeChangedEvent(
-      level: int.parse(map['level']),
-      type: _stringToAudioVolumeType(map['type']));
+  static VolumeChangedEvent fromMap(Map<String, String> map) =>
+      VolumeChangedEvent(
+          level: int.parse(map['level'] ?? '0'),
+          type: _stringToAudioVolumeType(map['type'] ?? 'none'));
 }

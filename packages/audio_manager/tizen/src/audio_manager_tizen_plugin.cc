@@ -4,14 +4,13 @@
 
 #include "audio_manager_tizen_plugin.h"
 
-#include <sound_manager.h>
-
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
+#include <sound_manager.h>
 
 #include <memory>
 #include <string>
@@ -21,22 +20,20 @@
 namespace {
 
 constexpr std::array<std::pair<std::string_view, sound_type_e>, 8>
-    sound_type_string_map {{
-  { "system", SOUND_TYPE_SYSTEM },
-  { "notification", SOUND_TYPE_NOTIFICATION },
-  { "alarm", SOUND_TYPE_ALARM },
-  { "ringtone", SOUND_TYPE_RINGTONE },
-  { "media", SOUND_TYPE_MEDIA },
-  { "call", SOUND_TYPE_CALL },
-  { "voip", SOUND_TYPE_VOIP },
-  { "voice", SOUND_TYPE_VOICE }
-}};
+    sound_type_string_map{{{"system", SOUND_TYPE_SYSTEM},
+                           {"notification", SOUND_TYPE_NOTIFICATION},
+                           {"alarm", SOUND_TYPE_ALARM},
+                           {"ringtone", SOUND_TYPE_RINGTONE},
+                           {"media", SOUND_TYPE_MEDIA},
+                           {"call", SOUND_TYPE_CALL},
+                           {"voip", SOUND_TYPE_VOIP},
+                           {"voice", SOUND_TYPE_VOICE}}};
 
 bool ConvertSoundTypeToString(sound_type_e type, std::string &str) {
   auto iter = sound_type_string_map.begin();
 
-  for(; iter != sound_type_string_map.end(); iter++) {
-    if(iter->second == type) {
+  for (; iter != sound_type_string_map.end(); iter++) {
+    if (iter->second == type) {
       str = iter->first;
       return true;
     }
@@ -48,8 +45,8 @@ bool ConvertSoundTypeToString(sound_type_e type, std::string &str) {
 bool ConvertStringToSoundType(const std::string &str, sound_type_e &type) {
   auto iter = sound_type_string_map.begin();
 
-  for(; iter != sound_type_string_map.end(); iter++) {
-    if(iter->first == str) {
+  for (; iter != sound_type_string_map.end(); iter++) {
+    if (iter->first == str) {
       type = iter->second;
       return true;
     }
@@ -73,7 +70,7 @@ bool ExtractValueFromMap(const flutter::EncodableValue &arguments,
   return false;
 }
 
-} // namespace
+}  // namespace
 
 class AudioManagerTizenPlugin : public flutter::Plugin {
  public:
@@ -88,12 +85,10 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
 
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> events;
 
-  AudioManagerTizenPlugin(): volume_changed_cb_is_registered(false),
-                             volume_changed_cb_id(0) {}
+  AudioManagerTizenPlugin()
+      : volume_changed_cb_is_registered(false), volume_changed_cb_id(0) {}
 
-  virtual ~AudioManagerTizenPlugin() {
-    UnregisterObserver();
-  }
+  virtual ~AudioManagerTizenPlugin() { UnregisterObserver(); }
 
  private:
   void HandleMethodCall(
@@ -103,19 +98,15 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
 
     const auto &arguments = *method_call.arguments();
 
-    if(method_call.method_name().compare("getCurrentPlaybackType") == 0) {
+    if (method_call.method_name().compare("getCurrentPlaybackType") == 0) {
       GetCurrentPlaybackType(std::move(result));
-    }
-    else if(method_call.method_name().compare("getMaxLevel") == 0) {
+    } else if (method_call.method_name().compare("getMaxLevel") == 0) {
       GetMaxLevel(arguments, std::move(result));
-    }
-    else if(method_call.method_name().compare("setLevel") == 0) {
+    } else if (method_call.method_name().compare("setLevel") == 0) {
       SetLevel(arguments, std::move(result));
-    }
-    else if(method_call.method_name().compare("getLevel") == 0) {
+    } else if (method_call.method_name().compare("getLevel") == 0) {
       GetLevel(arguments, std::move(result));
-    }
-    else {
+    } else {
       result->NotImplemented();
     }
   }
@@ -125,13 +116,12 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
     LOG_INFO("RegisterObserver");
     this->events = std::move(events);
     const int ret = sound_manager_add_volume_changed_cb(
-                      VolumeChangedCb, static_cast<void*>(this),
-                      &this->volume_changed_cb_id);
+        VolumeChangedCb, static_cast<void *>(this),
+        &this->volume_changed_cb_id);
 
-    if(ret == SOUND_MANAGER_ERROR_NONE) {
+    if (ret == SOUND_MANAGER_ERROR_NONE) {
       this->volume_changed_cb_is_registered = true;
-    }
-    else {
+    } else {
       const char *message = get_error_message(ret);
       LOG_ERROR("Failed to get current playback type: %s", message);
       this->events->Error(std::to_string(ret),
@@ -143,7 +133,7 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
   void UnregisterObserver() {
     LOG_INFO("UnregisterObserver");
 
-    if(this->volume_changed_cb_is_registered) {
+    if (this->volume_changed_cb_is_registered) {
       sound_manager_remove_volume_changed_cb(this->volume_changed_cb_id);
       this->events = nullptr;
       this->volume_changed_cb_is_registered = false;
@@ -154,42 +144,38 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
     sound_type_e type;
     const int ret = sound_manager_get_current_sound_type(&type);
 
-    if(ret == SOUND_MANAGER_ERROR_NONE) {
+    if (ret == SOUND_MANAGER_ERROR_NONE) {
       std::string type_str;
 
-      if(ConvertSoundTypeToString(type, type_str)) {
+      if (ConvertSoundTypeToString(type, type_str)) {
         result->Success(flutter::EncodableValue(type_str));
-      }
-      else {
+      } else {
         LOG_ERROR("Failed to convert sound type to string.");
         result->Error("UnknownSoundType",
                       "Failed to convert sound type to string");
       }
-    }
-    else if(ret == SOUND_MANAGER_ERROR_NO_PLAYING_SOUND) {
+    } else if (ret == SOUND_MANAGER_ERROR_NO_PLAYING_SOUND) {
       result->Success(flutter::EncodableValue(std::string("none")));
-    }
-    else {
+    } else {
       const char *message = get_error_message(ret);
       LOG_ERROR("Failed to get current playback type: %s", message);
-      result->Error(std::to_string(ret),
-                    "Failed to get current playback type.",
+      result->Error(std::to_string(ret), "Failed to get current playback type.",
                     flutter::EncodableValue(std::string(message)));
     }
   }
 
   void GetMaxLevel(const flutter::EncodableValue &arguments,
-                MethodResultPtr result) {
+                   MethodResultPtr result) {
     std::string type_str;
     sound_type_e type;
     int max;
 
-    if(!ExtractValueFromMap(arguments, "type", type_str)) {
+    if (!ExtractValueFromMap(arguments, "type", type_str)) {
       result->Error("InvalidArguments", "Please check type");
       return;
     }
 
-    if(!ConvertStringToSoundType(type_str, type)) {
+    if (!ConvertStringToSoundType(type_str, type)) {
       LOG_ERROR("Failed to convert string to sound type.");
       result->Error("UnknownSoundType",
                     "Failed to convert string to sound type.");
@@ -198,10 +184,9 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
 
     const int ret = sound_manager_get_max_volume(type, &max);
 
-    if(ret == SOUND_MANAGER_ERROR_NONE) {
+    if (ret == SOUND_MANAGER_ERROR_NONE) {
       result->Success(flutter::EncodableValue(max));
-    }
-    else {
+    } else {
       const char *message = get_error_message(ret);
       LOG_ERROR("Failed to get max volume: %s", message);
       result->Error(std::to_string(ret), "Failed to get max volume.",
@@ -215,14 +200,13 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
     std::string volume_str;
     sound_type_e type;
 
-    if(!ExtractValueFromMap(arguments, "type", type_str) ||
-      !ExtractValueFromMap(arguments, "volume", volume_str))
-    {
+    if (!ExtractValueFromMap(arguments, "type", type_str) ||
+        !ExtractValueFromMap(arguments, "volume", volume_str)) {
       result->Error("InvalidArguments", "Please check type and volume.");
       return;
     }
 
-    if(!ConvertStringToSoundType(type_str, type)) {
+    if (!ConvertStringToSoundType(type_str, type)) {
       LOG_ERROR("Failed to convert string to sound type.");
       result->Error("UnknownSoundType",
                     "Failed to convert string to sound type.");
@@ -232,10 +216,9 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
     const int volume = std::atoi(volume_str.c_str());
     const int ret = sound_manager_set_volume(type, volume);
 
-    if(ret == SOUND_MANAGER_ERROR_NONE) {
+    if (ret == SOUND_MANAGER_ERROR_NONE) {
       result->Success();
-    }
-    else {
+    } else {
       const char *message = get_error_message(ret);
       LOG_ERROR("Failed to set volume: %s", message);
       result->Error(std::to_string(ret), "Failed to set volume.",
@@ -249,12 +232,12 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
     sound_type_e type;
     int volume;
 
-    if(!ExtractValueFromMap(arguments, "type", type_str)) {
+    if (!ExtractValueFromMap(arguments, "type", type_str)) {
       result->Error("InvalidArguments", "Please check type");
       return;
     }
 
-    if(!ConvertStringToSoundType(type_str, type)) {
+    if (!ConvertStringToSoundType(type_str, type)) {
       LOG_ERROR("Failed to convert string to sound type.");
       result->Error("UnknownSoundType",
                     "Failed to convert string to sound type.");
@@ -263,10 +246,9 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
 
     const int ret = sound_manager_get_volume(type, &volume);
 
-    if(ret == SOUND_MANAGER_ERROR_NONE) {
+    if (ret == SOUND_MANAGER_ERROR_NONE) {
       result->Success(flutter::EncodableValue(volume));
-    }
-    else {
+    } else {
       const char *message = get_error_message(ret);
       LOG_ERROR("Failed to get volume: %s", message);
       result->Error(std::to_string(ret), "Failed to get volume.",
@@ -290,37 +272,37 @@ class AudioManagerTizenPlugin : public flutter::Plugin {
     });
 
     auto event_channel_handler =
-      std::make_unique<flutter::StreamHandlerFunctions<>>(
-          [this](const flutter::EncodableValue *arguments,
-                std::unique_ptr<flutter::EventSink<>> &&events)
-              -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            LOG_INFO("OnListen");
-            this->RegisterObserver(std::move(events));
-            return nullptr;
-          },
-          [this](const flutter::EncodableValue *arguments)
-              -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            LOG_INFO("OnCancel");
-            this->UnregisterObserver();
-            return nullptr;
-          });
+        std::make_unique<flutter::StreamHandlerFunctions<>>(
+            [this](const flutter::EncodableValue *arguments,
+                   std::unique_ptr<flutter::EventSink<>> &&events)
+                -> std::unique_ptr<flutter::StreamHandlerError<>> {
+              LOG_INFO("OnListen");
+              this->RegisterObserver(std::move(events));
+              return nullptr;
+            },
+            [this](const flutter::EncodableValue *arguments)
+                -> std::unique_ptr<flutter::StreamHandlerError<>> {
+              LOG_INFO("OnCancel");
+              this->UnregisterObserver();
+              return nullptr;
+            });
 
     event_channel->SetStreamHandler(std::move(event_channel_handler));
   }
 
-  static void VolumeChangedCb(sound_type_e type, unsigned int volume, void *user_data) {
-    auto plugin = static_cast<AudioManagerTizenPlugin*>(user_data);
+  static void VolumeChangedCb(sound_type_e type, unsigned int volume,
+                              void *user_data) {
+    auto plugin = static_cast<AudioManagerTizenPlugin *>(user_data);
     std::string type_str;
 
-    if(ConvertSoundTypeToString(type, type_str)) {
+    if (ConvertSoundTypeToString(type, type_str)) {
       flutter::EncodableMap msg;
       msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "type", type_str));
+          "type", type_str));
       msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "level", std::to_string(volume)));
+          "level", std::to_string(volume)));
       plugin->events->Success(flutter::EncodableValue(msg));
-    }
-    else {
+    } else {
       LOG_ERROR("Failed to convert sound type to string.");
       plugin->events->Error("UnknownSoundType",
                             "Failed to convert sound type to string");
