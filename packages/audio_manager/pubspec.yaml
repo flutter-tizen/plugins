@@ -1,0 +1,25 @@
+name: audio_manager_tizen
+description: A Flutter plugin that allows setting and getting volume level for different audio types as well as getting current playback type.
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/audio_manager
+version: 0.1.0
+
+environment:
+  sdk: ">=2.15.1 <3.0.0"
+  flutter: ">=2.5.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: AudioManagerTizenPlugin
+        fileName: audio_manager_tizen_plugin.h
