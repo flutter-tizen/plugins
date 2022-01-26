@@ -2,69 +2,66 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:math';
-
-import 'package:integration_test/integration_test.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:audio_manager_tizen/audio_manager_tizen.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('test alarm max level', (WidgetTester tester) async {
-    final result =
+    final int result =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.alarm);
     expect(result, isNonNegative);
   });
 
   testWidgets('test call max level', (WidgetTester tester) async {
-    final result =
+    final int result =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.call);
     expect(result, isNonNegative);
   });
 
   testWidgets('test media max level', (WidgetTester tester) async {
-    final result =
+    final int result =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.media);
     expect(result, isNonNegative);
   });
 
   testWidgets('test notification max level', (WidgetTester tester) async {
-    final result = await AudioManager.volumeController
+    final int result = await AudioManager.volumeController
         .getMaxLevel(AudioVolumeType.notification);
     expect(result, isNonNegative);
   });
 
   testWidgets('test ringtone max level', (WidgetTester tester) async {
-    final result = await AudioManager.volumeController
+    final int result = await AudioManager.volumeController
         .getMaxLevel(AudioVolumeType.ringtone);
     expect(result, isNonNegative);
   });
 
   testWidgets('test system max level', (WidgetTester tester) async {
-    final result =
+    final int result =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.system);
     expect(result, isNonNegative);
   });
 
   testWidgets('test voice max level', (WidgetTester tester) async {
-    final result =
+    final int result =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.voice);
     expect(result, isNonNegative);
   });
 
   testWidgets('test voip max level', (WidgetTester tester) async {
-    final result =
+    final int result =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.voip);
     expect(result, isNonNegative);
   });
 
   testWidgets('test alarm set level', (WidgetTester tester) async {
-    final max =
+    final int max =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.alarm);
     AudioManager.volumeController.setLevel(AudioVolumeType.alarm, max);
-    var level =
+    int level =
         await AudioManager.volumeController.getLevel(AudioVolumeType.alarm);
     expect(level, equals(max));
 
@@ -74,10 +71,10 @@ void main() {
   });
 
   testWidgets('test call set level', (WidgetTester tester) async {
-    final max =
+    final int max =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.call);
     AudioManager.volumeController.setLevel(AudioVolumeType.call, max);
-    var level =
+    int level =
         await AudioManager.volumeController.getLevel(AudioVolumeType.call);
     expect(level, equals(max));
 
@@ -87,10 +84,10 @@ void main() {
   });
 
   testWidgets('test media set level', (WidgetTester tester) async {
-    final max =
+    final int max =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.media);
     AudioManager.volumeController.setLevel(AudioVolumeType.media, max);
-    var level =
+    int level =
         await AudioManager.volumeController.getLevel(AudioVolumeType.media);
     expect(level, equals(max));
 
@@ -100,10 +97,10 @@ void main() {
   });
 
   testWidgets('test notification set level', (WidgetTester tester) async {
-    final max = await AudioManager.volumeController
+    final int max = await AudioManager.volumeController
         .getMaxLevel(AudioVolumeType.notification);
     AudioManager.volumeController.setLevel(AudioVolumeType.notification, max);
-    var level = await AudioManager.volumeController
+    int level = await AudioManager.volumeController
         .getLevel(AudioVolumeType.notification);
     expect(level, equals(max));
 
@@ -114,10 +111,10 @@ void main() {
   });
 
   testWidgets('test ringtone set level', (WidgetTester tester) async {
-    final max = await AudioManager.volumeController
+    final int max = await AudioManager.volumeController
         .getMaxLevel(AudioVolumeType.ringtone);
     AudioManager.volumeController.setLevel(AudioVolumeType.ringtone, max);
-    var level =
+    int level =
         await AudioManager.volumeController.getLevel(AudioVolumeType.ringtone);
     expect(level, equals(max));
 
@@ -128,10 +125,10 @@ void main() {
   });
 
   testWidgets('test system set level', (WidgetTester tester) async {
-    final max =
+    final int max =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.system);
     AudioManager.volumeController.setLevel(AudioVolumeType.system, max);
-    var level =
+    int level =
         await AudioManager.volumeController.getLevel(AudioVolumeType.system);
     expect(level, equals(max));
 
@@ -142,10 +139,10 @@ void main() {
   });
 
   testWidgets('test voice set level', (WidgetTester tester) async {
-    final max =
+    final int max =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.voice);
     AudioManager.volumeController.setLevel(AudioVolumeType.voice, max);
-    var level =
+    int level =
         await AudioManager.volumeController.getLevel(AudioVolumeType.voice);
     expect(level, equals(max));
 
@@ -155,10 +152,10 @@ void main() {
   });
 
   testWidgets('test voip set level', (WidgetTester tester) async {
-    final max =
+    final int max =
         await AudioManager.volumeController.getMaxLevel(AudioVolumeType.voip);
     AudioManager.volumeController.setLevel(AudioVolumeType.voip, max);
-    var level =
+    int level =
         await AudioManager.volumeController.getLevel(AudioVolumeType.voip);
     expect(level, equals(max));
 

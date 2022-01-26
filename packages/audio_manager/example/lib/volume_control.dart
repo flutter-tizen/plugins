@@ -3,37 +3,39 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'package:audio_manager_tizen/audio_manager_tizen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'package:audio_manager_tizen/audio_manager_tizen.dart';
-
+/// A widget with audio controllers.
 class VolumeControlScreen extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _VolumeControlScreenState();
 }
 
 class _VolumeControlScreenState extends State<VolumeControlScreen> {
-  var _currentPlaybackType = AudioVolumeType.none;
-  var _selectedType = AudioVolumeType.ringtone;
-  var _currentVolume = 0;
-  var _maxVolume = 0;
+  AudioVolumeType _currentPlaybackType = AudioVolumeType.none;
+  AudioVolumeType _selectedType = AudioVolumeType.ringtone;
+  int _currentVolume = 0;
+  int _maxVolume = 0;
   Timer? _timer;
   VolumeChangedEvent? _volumeChangedEvent;
   StreamSubscription<VolumeChangedEvent>? _subscription;
-  final _dropdownButtonItems = AudioVolumeType.values
-      .where((e) => e != AudioVolumeType.none)
-      .map((e) =>
-          DropdownMenuItem(value: e, child: Text(e.toString().split('.').last)))
-      .toList();
+  final List<DropdownMenuItem<AudioVolumeType>> _dropdownButtonItems =
+      AudioVolumeType.values
+          .where((AudioVolumeType e) => e != AudioVolumeType.none)
+          .map((AudioVolumeType e) => DropdownMenuItem<AudioVolumeType>(
+              value: e, child: Text(e.toString().split('.').last)))
+          .toList();
 
   @override
   void initState() {
     super.initState();
     _onAudioTypeChanged(_selectedType);
 
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
-      final type = await AudioManager.volumeController.currentPlaybackType;
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) async {
+      final AudioVolumeType type =
+          await AudioManager.volumeController.currentPlaybackType;
 
       if (type != _currentPlaybackType) {
         setState(() {
@@ -42,7 +44,8 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
       }
     });
 
-    _subscription = AudioManager.volumeController.onChanged.listen((event) {
+    _subscription = AudioManager.volumeController.onChanged
+        .listen((VolumeChangedEvent event) {
       setState(() {
         _volumeChangedEvent = event;
 
@@ -60,10 +63,11 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
     super.dispose();
   }
 
-  void _onAudioTypeChanged(AudioVolumeType? type) async {
+  Future<void> _onAudioTypeChanged(AudioVolumeType? type) async {
     type = type ?? AudioVolumeType.ringtone;
-    final currentVolume = await AudioManager.volumeController.getLevel(type);
-    final maxVolume = await AudioManager.volumeController.getMaxLevel(type);
+    final int currentVolume =
+        await AudioManager.volumeController.getLevel(type);
+    final int maxVolume = await AudioManager.volumeController.getMaxLevel(type);
 
     setState(() {
       _selectedType = type!;
@@ -83,16 +87,16 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Volume control')),
+      appBar: AppBar(title: const Text('Volume control')),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: <Widget>[
           Text('Current playback type: ' +
               _currentPlaybackType.toString().split('.').last),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('Audio type:'),
-            SizedBox(width: 10),
-            DropdownButton(
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+            const Text('Audio type:'),
+            const SizedBox(width: 10),
+            DropdownButton<AudioVolumeType>(
                 value: _selectedType,
                 items: _dropdownButtonItems,
                 onChanged: _onAudioTypeChanged)

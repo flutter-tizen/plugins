@@ -9,6 +9,7 @@ void main() {
   runApp(MyApp());
 }
 
+/// The main UI app widget.
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -17,14 +18,17 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Audio Manager Demo'),
+      home: const MyHomePage(title: 'Audio Manager Demo'),
     );
   }
 }
 
+/// Home page.
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
+  /// Home page.
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
+  /// Home page title.
   final String title;
 
   @override
