@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:audio_manager_tizen_example/volume_control.dart';
 import 'package:flutter/material.dart';
+import 'package:tizen_audio_manager_example/volume_control.dart';
 
 void main() {
   runApp(MyApp());

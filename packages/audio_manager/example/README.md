@@ -1,6 +1,6 @@
-# audio_manager_tizen_example
+# tizen_audio_manager_example
 
-Demonstrates how to use the audio_manager_tizen plugin.
+Demonstrates how to use the tizen_audio_manager plugin.
 
 ## Getting Started
 

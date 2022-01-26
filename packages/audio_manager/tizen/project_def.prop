@@ -1,7 +1,7 @@
 # See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
 # for details.
 
-APPNAME = audio_manager_tizen_plugin
+APPNAME = tizen_audio_manager_plugin
 type = staticLib
 profile = common-4.0
 

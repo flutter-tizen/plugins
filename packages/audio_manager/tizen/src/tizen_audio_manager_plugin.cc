@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "audio_manager_tizen_plugin.h"
+#include "tizen_audio_manager_plugin.h"
 
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>

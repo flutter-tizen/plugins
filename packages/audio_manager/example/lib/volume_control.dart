@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'package:audio_manager_tizen/audio_manager_tizen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:tizen_audio_manager/tizen_audio_manager.dart';
 
 /// A widget with audio controllers.
 class VolumeControlScreen extends StatefulWidget {

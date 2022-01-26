@@ -134,8 +134,8 @@ class AudioVolume {
   /// A stream of events occurring when the volume level is changed.
   Stream<VolumeChangedEvent> onChanged = AudioManager._eventChannel
       .receiveBroadcastStream()
-      .map((dynamic msg) =>
-          VolumeChangedEvent.fromMap(msg as Map<String, String>));
+      .map((dynamic msg) => VolumeChangedEvent.fromMap(
+          (msg as Map<Object?, Object?>).cast<String, String>()));
 }
 
 /// Represents an event emitted on volume change.
