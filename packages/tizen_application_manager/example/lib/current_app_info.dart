@@ -6,6 +6,8 @@ import 'package:tizen_application_manager/tizen_application_manager.dart';
 import 'package:tizen_application_manager/application_running_context.dart';
 
 class CurrentAppScreen extends StatefulWidget {
+  const CurrentAppScreen({Key? key}) : super(key: key);
+
   @override
   _CurrentAppScreenState createState() => _CurrentAppScreenState();
 }

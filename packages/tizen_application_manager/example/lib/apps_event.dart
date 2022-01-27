@@ -18,6 +18,8 @@ class AppEventContext {
 }
 
 class AppsEventScreen extends StatefulWidget {
+  const AppsEventScreen({Key? key}) : super(key: key);
+
   @override
   _AppsEventScreenState createState() => _AppsEventScreenState();
 }
@@ -49,10 +51,10 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var controller = PageController(initialPage: 0);
+    final controller = PageController(initialPage: 0);
     return Scaffold(
       appBar: AppBar(
-        title: Text('application context events'),
+        title: const Text('application context events'),
       ),
       body: PageView(
           scrollDirection: Axis.horizontal,
@@ -62,11 +64,11 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
               child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
                 ElevatedButton(
                     onPressed: () async {
-                      print('launch button pressed');
                       try {
-                        var appControl = AppControl(appId: _appId);
+                        final appControl = AppControl(appId: _appId);
                         await appControl.sendLaunchRequest();
                       } catch (e) {
+                        // ignore: avoid_print
                         print('$_appId launch request failed : $e');
                       }
                     },
@@ -95,16 +97,17 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
 
   @override
   void dispose() {
-    _subscriptions.forEach((StreamSubscription s) => s.cancel());
+    for (final s in _subscriptions) {
+      s.cancel();
+    }
     _subscriptions.clear();
     super.dispose();
   }
 
   void getDeviceInfos() async {
-    DeviceInfoPluginTizen deviceInfo = DeviceInfoPluginTizen();
-    TizenDeviceInfo tizenInfo = await deviceInfo.tizenInfo;
+    final DeviceInfoPluginTizen deviceInfo = DeviceInfoPluginTizen();
+    final TizenDeviceInfo tizenInfo = await deviceInfo.tizenInfo;
     setState(() {
-      print('device info profile : ${tizenInfo.profile}');
       if (tizenInfo.profile == 'tv') {
         _appId = tvVolumeSettingAppId;
       } else if (tizenInfo.profile == 'wearable') {
@@ -117,7 +120,7 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
 class _EventsList extends StatelessWidget {
   final Iterable<AppEventContext> _events;
 
-  _EventsList({required List<AppEventContext> events}) : _events = events;
+  const _EventsList({required List<AppEventContext> events}) : _events = events;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +142,7 @@ class _EventsList extends StatelessWidget {
 class _AppContext extends StatelessWidget {
   final AppEventContext appEventContext;
 
-  _AppContext({required this.appEventContext});
+  const _AppContext({required this.appEventContext});
 
   @override
   Widget build(BuildContext context) {
@@ -161,6 +164,6 @@ class _EmptyList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('No event yet!'));
+    return const Center(child: Text('No event yet!'));
   }
 }

@@ -71,13 +71,3 @@ You can listen for application state change by subscribing to the stream.
     subscriptions.clear();
   }
 ```
-
-
-## Required privileges
-In order to terminate running application, add the following privilege in `tizen-manifest.xml` of your application. This privilege is partner privilege, For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
-
-```xml
-    <privileges>
-        <privilege>http://tizen.org/privilege/appmanager.kill</privilege>
-    </privileges>
-```

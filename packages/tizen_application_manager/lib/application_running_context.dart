@@ -41,8 +41,8 @@ class ApplicationRunningContext {
   }
 
   static ApplicationRunningContext fromMap(dynamic map) {
-    var appId = map['appId'] as String? ?? '';
-    var handle = map['handle'] as int;
+    final appId = map['appId'] as String? ?? '';
+    final handle = map['handle'] as int;
     return ApplicationRunningContext(
         applicationId: appId, handleAddress: handle);
   }

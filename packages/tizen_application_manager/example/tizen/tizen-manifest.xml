@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="com.example.tizen_application_manager_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
-    <profile name="tv"/>
+    <profile name="wearable"/>
     <ui-application appid="com.example.tizen_application_manager_example" exec="Runner.dll" type="dotnet" multiple="false" nodisplay="false" taskmanage="true" api-version="4">
         <label>tizen_application_manager_example</label>
         <icon>ic_launcher.png</icon>

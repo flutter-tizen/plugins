@@ -5,10 +5,12 @@ import './apps_list.dart';
 import './apps_event.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -32,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('application common demo')),
+      appBar: AppBar(title: const Text('application common demo')),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -42,28 +44,31 @@ class _MyHomePageState extends State<MyHomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute<Object>(
-                        builder: (BuildContext context) => CurrentAppScreen()),
+                        builder: (BuildContext context) =>
+                            const CurrentAppScreen()),
                   );
                 },
-                child: Text('Current application info')),
+                child: const Text('Current application info')),
             TextButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute<Object>(
-                        builder: (BuildContext context) => AppsListScreen()),
+                        builder: (BuildContext context) =>
+                            const AppsListScreen()),
                   );
                 },
-                child: Text('Installed applications list')),
+                child: const Text('Installed applications list')),
             TextButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute<Object>(
-                        builder: (BuildContext context) => AppsEventScreen()),
+                        builder: (BuildContext context) =>
+                            const AppsEventScreen()),
                   );
                 },
-                child: Text('Application launch/terminate and listener')),
+                child: const Text('Application launch/terminate and listener')),
           ],
         ),
       ),
