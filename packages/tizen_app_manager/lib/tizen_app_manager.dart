@@ -26,7 +26,7 @@ class TizenAppManager {
     }
 
     try {
-      var map = await _channel.invokeMapMethod<String, dynamic>(
+      final dynamic map = await _channel.invokeMapMethod<String, dynamic>(
               'getAppInfo', <String, String>{'appId': appId}) ??
           <String, dynamic>{};
 
@@ -42,8 +42,8 @@ class TizenAppManager {
           await _channel.invokeMethod('getInstalledApps');
 
       if (apps.isNotEmpty) {
-        var list = <AppInfo>[];
-        for (var app in apps) {
+        final List<AppInfo> list = <AppInfo>[];
+        for (final dynamic app in apps) {
           list.add(AppInfo.fromMap(app));
         }
         return list;
