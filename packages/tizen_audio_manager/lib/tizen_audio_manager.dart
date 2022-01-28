@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:flutter/services.dart';
 
 /// Enumeration for the audio volume types.
@@ -63,10 +64,10 @@ AudioVolumeType _stringToAudioVolumeType(String s) {
 class AudioManager {
   AudioManager._();
 
-  static const MethodChannel _channel = MethodChannel('audio_manager');
+  static const MethodChannel _channel = MethodChannel('tizen/audio_manager');
 
   static const EventChannel _eventChannel =
-      EventChannel('audio_manager_events');
+      EventChannel('tizen/audio_manager_events');
 
   /// Gets the volume controller.
   static final AudioVolume volumeController = AudioVolume();
@@ -85,57 +86,42 @@ class AudioVolume {
 
   /// Gets the volume type of the sound being currently played.
   Future<AudioVolumeType> get currentPlaybackType async {
-    try {
-      final String? type = await AudioManager._channel
-          .invokeMethod<String>('getCurrentPlaybackType');
-      return _stringToAudioVolumeType(type!);
-    } catch (err) {
-      throw Exception('currentPlaybackType failed, $err');
-    }
+    final String? type = await AudioManager._channel
+        .invokeMethod<String>('getCurrentPlaybackType');
+    return _stringToAudioVolumeType(type!);
   }
 
   /// Gets the current volume level for [type].
   Future<int> getLevel(AudioVolumeType type) async {
-    try {
-      final int? level = await AudioManager._channel.invokeMethod<int>(
-          'getLevel',
-          <String, String>{'type': type.toString().split('.').last});
-      return level!;
-    } catch (err) {
-      throw Exception('getLevel failed, $err');
-    }
+    final int? level = await AudioManager._channel.invokeMethod<int>(
+      'getLevel',
+      <String, String>{'type': type.name},
+    );
+    return level!;
   }
 
   /// Sets the volume level for [type].
   Future<void> setLevel(AudioVolumeType type, int level) async {
-    try {
-      await AudioManager._channel.invokeMethod<void>(
-          'setLevel', <String, String>{
-        'type': type.toString().split('.').last,
-        'volume': level.toString()
-      });
-    } catch (err) {
-      throw Exception('setLevel failed, $err');
-    }
+    await AudioManager._channel.invokeMethod<void>(
+      'setLevel',
+      <String, dynamic>{'type': type.name, 'volume': level},
+    );
   }
 
   /// Gets the maximum volume level for [type].
   Future<int> getMaxLevel(AudioVolumeType type) async {
-    try {
-      final int? level = await AudioManager._channel.invokeMethod<int>(
-          'getMaxLevel',
-          <String, String>{'type': type.toString().split('.').last});
-      return level!;
-    } catch (err) {
-      throw Exception('getMaxLevel failed, $err');
-    }
+    final int? level = await AudioManager._channel.invokeMethod<int>(
+      'getMaxLevel',
+      <String, String>{'type': type.name},
+    );
+    return level!;
   }
 
   /// A stream of events occurring when the volume level is changed.
   Stream<VolumeChangedEvent> onChanged = AudioManager._eventChannel
       .receiveBroadcastStream()
       .map((dynamic msg) => VolumeChangedEvent.fromMap(
-          (msg as Map<Object?, Object?>).cast<String, String>()));
+          (msg as Map<Object?, Object?>).cast<String, dynamic>()));
 }
 
 /// Represents an event emitted on volume change.
@@ -150,8 +136,8 @@ class VolumeChangedEvent {
   final AudioVolumeType type;
 
   /// Creates an event from a map.
-  static VolumeChangedEvent fromMap(Map<String, String> map) =>
+  static VolumeChangedEvent fromMap(Map<String, dynamic> map) =>
       VolumeChangedEvent(
-          level: int.parse(map['level'] ?? '0'),
-          type: _stringToAudioVolumeType(map['type'] ?? 'none'));
+          level: map['level'] as int? ?? 0,
+          type: _stringToAudioVolumeType(map['type'] as String? ?? 'none'));
 }
