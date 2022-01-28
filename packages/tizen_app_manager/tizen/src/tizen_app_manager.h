@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_TIZEN_APPLICATION_MANAGER_H_
-#define FLUTTER_PLUGIN_TIZEN_APPLICATION_MANAGER_H_
+#ifndef FLUTTER_PLUGIN_TIZEN_APP_MANAGER_H_
+#define FLUTTER_PLUGIN_TIZEN_APP_MANAGER_H_
 
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
@@ -11,15 +11,15 @@
 
 #include "application_utils.h"
 
-class TizenApplicationManagerPlugin : public flutter::Plugin {
+class TizenAppManagerPlugin : public flutter::Plugin {
  public:
   using MethodResultPtr =
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>;
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
 
-  TizenApplicationManagerPlugin();
+  TizenAppManagerPlugin();
 
-  virtual ~TizenApplicationManagerPlugin();
+  virtual ~TizenAppManagerPlugin();
 
   flutter::EncodableList m_applications;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_events;

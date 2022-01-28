@@ -5,23 +5,22 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 
-import 'application_running_context.dart';
+import 'app_running_context.dart';
 
-class TizenApplicationManager {
-  TizenApplicationManager._();
+class TizenAppManager {
+  TizenAppManager._();
 
-  static const MethodChannel _channel =
-      MethodChannel('tizen_application_manager');
+  static const MethodChannel _channel = MethodChannel('tizen_app_manager');
 
   static const EventChannel _eventChannel =
-      EventChannel('tizen_application_manager_events');
+      EventChannel('tizen_app_manager_events');
 
   static Future<String> get currentAppId async {
     final String appId = await _channel.invokeMethod('getCurrentAppId');
     return appId;
   }
 
-  static Future<ApplicationInfo> getApplicationInfo(String appId) async {
+  static Future<AppInfo> getAppInfo(String appId) async {
     if (appId.isEmpty) {
       throw Exception('The appId can not be empty');
     }
@@ -31,28 +30,28 @@ class TizenApplicationManager {
               'getAppInfo', <String, String>{'appId': appId}) ??
           <String, dynamic>{};
 
-      return ApplicationInfo.fromMap(map);
+      return AppInfo.fromMap(map);
     } catch (err) {
-      throw Exception('getApplicationInfo fail!, $err');
+      throw Exception('getAppInfo fail!, $err');
     }
   }
 
-  static Future<List<ApplicationInfo>> getInstalledApplications() async {
+  static Future<List<AppInfo>> getInstalledApps() async {
     try {
       final List<dynamic> apps =
           await _channel.invokeMethod('getInstalledApps');
 
       if (apps.isNotEmpty) {
-        var list = <ApplicationInfo>[];
+        var list = <AppInfo>[];
         for (var app in apps) {
-          list.add(ApplicationInfo.fromMap(app));
+          list.add(AppInfo.fromMap(app));
         }
         return list;
       } else {
-        return List<ApplicationInfo>.empty();
+        return List<AppInfo>.empty();
       }
     } catch (err) {
-      throw Exception('getInstalledApplications fail!, $err');
+      throw Exception('getInstalledApps fail!, $err');
     }
   }
 
@@ -70,23 +69,20 @@ class TizenApplicationManager {
     }
   }
 
-  static Stream<ApplicationRunningContext> get onApplicationLaunched =>
+  static Stream<AppRunningContext> get onAppLaunched =>
       _launchedStreamController.stream;
 
-  static Stream<ApplicationRunningContext> get onApplicationTerminated =>
+  static Stream<AppRunningContext> get onAppTerminated =>
       _terminatedStreamController.stream;
 
-  static final Stream<ApplicationRunningContext> _applicationEvents =
-      _eventChannel
-          .receiveBroadcastStream()
-          .map((dynamic map) => ApplicationRunningContext.fromMap(map));
+  static final Stream<AppRunningContext> _applicationEvents = _eventChannel
+      .receiveBroadcastStream()
+      .map((dynamic map) => AppRunningContext.fromMap(map));
 
-  static StreamSubscription<ApplicationRunningContext>?
-      _launchedStreamSubscription;
+  static StreamSubscription<AppRunningContext>? _launchedStreamSubscription;
 
-  static final StreamController<ApplicationRunningContext>
-      _launchedStreamController =
-      StreamController<ApplicationRunningContext>.broadcast(
+  static final StreamController<AppRunningContext> _launchedStreamController =
+      StreamController<AppRunningContext>.broadcast(
     onListen: () {
       _launchedStreamSubscription = _applicationEvents
           .where((context) => context.isTerminated == false)
@@ -97,12 +93,10 @@ class TizenApplicationManager {
     },
   );
 
-  static StreamSubscription<ApplicationRunningContext>?
-      _terminatedStreamSubscription;
+  static StreamSubscription<AppRunningContext>? _terminatedStreamSubscription;
 
-  static final StreamController<ApplicationRunningContext>
-      _terminatedStreamController =
-      StreamController<ApplicationRunningContext>.broadcast(
+  static final StreamController<AppRunningContext> _terminatedStreamController =
+      StreamController<AppRunningContext>.broadcast(
     onListen: () {
       _terminatedStreamSubscription = _applicationEvents
           .where((context) => context.isTerminated == true)
@@ -114,8 +108,8 @@ class TizenApplicationManager {
   );
 }
 
-class ApplicationInfo {
-  ApplicationInfo({
+class AppInfo {
+  AppInfo({
     required this.appId,
     required this.packageId,
     required this.label,
@@ -145,8 +139,8 @@ class ApplicationInfo {
 
   final Map metaData;
 
-  static ApplicationInfo fromMap(dynamic map) {
-    return ApplicationInfo(
+  static AppInfo fromMap(dynamic map) {
+    return AppInfo(
       appId: map['appId'] as String? ?? '',
       packageId: map['packageId'] as String? ?? '',
       label: map['label'] as String? ?? '',

@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "tizen_application_manager_plugin.h"
-#include "tizen_application_manager.h"
+#include "tizen_app_manager_plugin.h"
+
+#include "tizen_app_manager.h"
 
 static bool AppInfoCB(app_info_h app_info, void *user_data) {
   if (app_info != nullptr) {
-    TizenApplicationManagerPlugin *plugin =
-        (TizenApplicationManagerPlugin *)user_data;
+    TizenAppManagerPlugin *plugin = (TizenAppManagerPlugin *)user_data;
     flutter::EncodableMap value;
     int ret = application_utils::GetAppData(app_info, value);
     if (ret == APP_MANAGER_ERROR_NONE) {
@@ -24,8 +24,7 @@ static void ContextEventCB(app_context_h app_context, app_context_event_e event,
   char *app_id = nullptr;
 
   if (app_context != nullptr) {
-    TizenApplicationManagerPlugin *plugin =
-        (TizenApplicationManagerPlugin *)user_data;
+    TizenAppManagerPlugin *plugin = (TizenAppManagerPlugin *)user_data;
     app_context_h clone_context;
     flutter::EncodableMap msg;
     int ret = app_context_get_app_id(app_context, &app_id);
@@ -56,23 +55,21 @@ cleanup:
   }
 }
 
-TizenApplicationManagerPlugin::TizenApplicationManagerPlugin() {
+TizenAppManagerPlugin::TizenAppManagerPlugin() {
   m_registered_event_cb = false;
 }
 
-TizenApplicationManagerPlugin::~TizenApplicationManagerPlugin() {
-  UnregisterObserver();
-}
+TizenAppManagerPlugin::~TizenAppManagerPlugin() { UnregisterObserver(); }
 
-void TizenApplicationManagerPlugin::RegisterWithRegistrar(
+void TizenAppManagerPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar *registrar) {
   LOG_INFO("called RegisterWithRegistrar");
-  auto plugin = std::make_unique<TizenApplicationManagerPlugin>();
+  auto plugin = std::make_unique<TizenAppManagerPlugin>();
   plugin->SetupChannels(registrar);
   registrar->AddPlugin(std::move(plugin));
 }
 
-void TizenApplicationManagerPlugin::HandleMethodCall(
+void TizenAppManagerPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("method : %s", method_call.method_name().data());
@@ -91,7 +88,7 @@ void TizenApplicationManagerPlugin::HandleMethodCall(
   }
 }
 
-void TizenApplicationManagerPlugin::RegisterObserver(
+void TizenAppManagerPlugin::RegisterObserver(
     std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
   m_events = std::move(events);
   LOG_INFO("RegisterObserver");
@@ -106,7 +103,7 @@ void TizenApplicationManagerPlugin::RegisterObserver(
   m_registered_event_cb = true;
 }
 
-void TizenApplicationManagerPlugin::UnregisterObserver() {
+void TizenAppManagerPlugin::UnregisterObserver() {
   LOG_INFO("UnregisterObserver");
   if (m_registered_event_cb) {
     app_manager_unset_app_context_event_cb();
@@ -115,7 +112,7 @@ void TizenApplicationManagerPlugin::UnregisterObserver() {
   }
 }
 
-void TizenApplicationManagerPlugin::GetCurrentId(MethodResultPtr result) {
+void TizenAppManagerPlugin::GetCurrentId(MethodResultPtr result) {
   char *app_id = nullptr;
   int ret = app_get_id(&app_id);
   LOG_INFO("app_get_id ret== %d, app_id == %s", ret, app_id);
@@ -133,7 +130,7 @@ void TizenApplicationManagerPlugin::GetCurrentId(MethodResultPtr result) {
   }
 }
 
-void TizenApplicationManagerPlugin::GetApplicationInfo(
+void TizenAppManagerPlugin::GetApplicationInfo(
     const flutter::EncodableValue &arguments, MethodResultPtr result) {
   std::string id = "";
   const char *app_id;
@@ -173,7 +170,7 @@ cleanup:
   }
 }
 
-void TizenApplicationManagerPlugin::ApplicationIsRunning(
+void TizenAppManagerPlugin::ApplicationIsRunning(
     const flutter::EncodableValue &arguments, MethodResultPtr result) {
   std::string id = "";
   const char *app_id;
@@ -197,7 +194,7 @@ void TizenApplicationManagerPlugin::ApplicationIsRunning(
   result->Success(flutter::EncodableValue(running));
 }
 
-void TizenApplicationManagerPlugin::GetInstalledApplicationsInfo(
+void TizenAppManagerPlugin::GetInstalledApplicationsInfo(
     MethodResultPtr result) {
   char *err_msg;
   int ret = APP_MANAGER_ERROR_NONE;
@@ -215,16 +212,15 @@ void TizenApplicationManagerPlugin::GetInstalledApplicationsInfo(
   result->Success(flutter::EncodableValue(m_applications));
 }
 
-void TizenApplicationManagerPlugin::SetupChannels(
-    flutter::PluginRegistrar *registrar) {
+void TizenAppManagerPlugin::SetupChannels(flutter::PluginRegistrar *registrar) {
   auto method_channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "tizen_application_manager",
+          registrar->messenger(), "tizen_app_manager",
           &flutter::StandardMethodCodec::GetInstance());
 
   auto event_channel =
       std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "tizen_application_manager_events",
+          registrar->messenger(), "tizen_app_manager_events",
           &flutter::StandardMethodCodec::GetInstance());
 
   method_channel->SetMethodCallHandler([this](const auto &call, auto result) {
@@ -250,9 +246,9 @@ void TizenApplicationManagerPlugin::SetupChannels(
   event_channel->SetStreamHandler(std::move(event_channel_handler));
 }
 
-void TizenApplicationManagerPluginRegisterWithRegistrar(
+void TizenAppManagerPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  TizenApplicationManagerPlugin::RegisterWithRegistrar(
+  TizenAppManagerPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

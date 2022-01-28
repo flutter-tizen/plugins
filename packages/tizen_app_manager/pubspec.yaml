@@ -1,7 +1,7 @@
-name: tizen_application_manager
+name: tizen_app_manager
 description: A Flutter plugin that allows getting application info or app running context info.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_application_manager
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_app_manager
 version: 0.0.1
 
 environment:
@@ -22,6 +22,6 @@ flutter:
   plugin:
     platforms:
       tizen:
-        pluginClass: TizenApplicationManagerPlugin
-        fileName: tizen_application_manager_plugin.h
+        pluginClass: TizenAppManagerPlugin
+        fileName: tizen_app_manager_plugin.h
 

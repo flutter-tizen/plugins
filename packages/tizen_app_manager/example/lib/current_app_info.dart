@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:tizen_application_manager/tizen_application_manager.dart';
-import 'package:tizen_application_manager/application_running_context.dart';
+import 'package:tizen_app_manager/tizen_app_manager.dart';
+import 'package:tizen_app_manager/app_running_context.dart';
 
 class CurrentAppScreen extends StatefulWidget {
   const CurrentAppScreen({Key? key}) : super(key: key);
@@ -15,7 +15,7 @@ class CurrentAppScreen extends StatefulWidget {
 class _CurrentAppScreenState extends State<CurrentAppScreen> {
   String _appId = 'Unknown';
 
-  ApplicationInfo _appInfo = ApplicationInfo(
+  AppInfo _appInfo = AppInfo(
     appId: '',
     packageId: '',
     label: '',
@@ -27,8 +27,8 @@ class _CurrentAppScreenState extends State<CurrentAppScreen> {
     metaData: <String, String>{},
   );
 
-  late ApplicationRunningContext _currentAppContext = ApplicationRunningContext(
-      applicationId: 'com.example.tizen_application_manager_example');
+  late AppRunningContext _currentAppContext =
+      AppRunningContext(appId: 'com.example.tizen_app_manager_example');
 
   @override
   void initState() {
@@ -39,14 +39,14 @@ class _CurrentAppScreenState extends State<CurrentAppScreen> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> _initApplicationsInfo() async {
     String appId;
-    ApplicationInfo? appInfo;
-    ApplicationRunningContext? currentAppContext;
+    AppInfo? appInfo;
+    AppRunningContext? currentAppContext;
 
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      appId = await TizenApplicationManager.currentAppId;
-      appInfo = await TizenApplicationManager.getApplicationInfo(appId);
-      currentAppContext = ApplicationRunningContext(applicationId: appId);
+      appId = await TizenAppManager.currentAppId;
+      appInfo = await TizenAppManager.getAppInfo(appId);
+      currentAppContext = AppRunningContext(appId: appId);
     } on PlatformException {
       appId = 'Fail to get current app ID';
     }

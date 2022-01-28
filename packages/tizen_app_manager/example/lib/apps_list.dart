@@ -1,4 +1,4 @@
-import 'package:tizen_application_manager/tizen_application_manager.dart';
+import 'package:tizen_app_manager/tizen_app_manager.dart';
 import 'package:flutter/material.dart';
 
 class AppsListScreen extends StatefulWidget {
@@ -25,10 +25,9 @@ class _AppsListScreenContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<ApplicationInfo>>(
-      future: TizenApplicationManager.getInstalledApplications(),
-      builder: (BuildContext context,
-          AsyncSnapshot<List<ApplicationInfo>> snapshot) {
+    return FutureBuilder<List<AppInfo>>(
+      future: TizenAppManager.getInstalledApps(),
+      builder: (BuildContext context, AsyncSnapshot<List<AppInfo>> snapshot) {
         if (snapshot.data == null) {
           return const Center(child: CircularProgressIndicator());
         } else {

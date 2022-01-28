@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_TIZEN_APPLICATION_MANAGER_PLUGIN_H_
-#define FLUTTER_PLUGIN_TIZEN_APPLICATION_MANAGER_PLUGIN_H_
+#ifndef FLUTTER_PLUGIN_TIZEN_APP_MANAGER_PLUGIN_H_
+#define FLUTTER_PLUGIN_TIZEN_APP_MANAGER_PLUGIN_H_
 
 #include <flutter_plugin_registrar.h>
 
@@ -17,11 +17,11 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void TizenApplicationManagerPluginRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void TizenAppManagerPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)
 }  // extern "C"
 #endif
 
-#endif  // FLUTTER_PLUGIN_TIZEN_APPLICATION_MANAGER_PLUGIN_H_
+#endif  // FLUTTER_PLUGIN_TIZEN_APP_MANAGER_PLUGIN_H_

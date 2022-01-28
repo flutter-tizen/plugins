@@ -1,7 +1,7 @@
 # See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
 # for details.
 
-APPNAME = tizen_application_manager_plugin
+APPNAME = tizen_app_manager_plugin
 type = staticLib
 profile = common-4.0
 

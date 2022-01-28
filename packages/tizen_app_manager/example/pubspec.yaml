@@ -1,5 +1,5 @@
-name: tizen_application_manager_example
-description: Demonstrates how to use the tizen_application_manager plugin.
+name: tizen_app_manager_example
+description: Demonstrates how to use the tizen_app_manager plugin.
 publish_to: 'none' 
 
 environment:
@@ -10,7 +10,7 @@ dependencies:
     sdk: flutter
   tizen_app_control: ^0.1.1
   device_info_plus_tizen: ^1.1.0
-  tizen_application_manager:
+  tizen_app_manager:
     path: ../
 
 dev_dependencies:

@@ -1,6 +1,6 @@
-# tizen_application_manager_example
+# tizen_app_manager_example
 
-Demonstrates how to use the tizen_application_manager plugin.
+Demonstrates how to use the tizen_app_manager plugin.
 
 ## Getting Started
 

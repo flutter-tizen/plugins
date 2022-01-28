@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 import 'package:tizen_app_control/app_control.dart';
-import 'package:tizen_application_manager/tizen_application_manager.dart';
-import 'package:tizen_application_manager/application_running_context.dart';
+import 'package:tizen_app_manager/tizen_app_manager.dart';
+import 'package:tizen_app_manager/app_running_context.dart';
 
 const String settingAppId = 'org.tizen.setting';
 const String wearbleSettingAppId = 'org.tizen.watch-setting';
@@ -12,7 +12,7 @@ const String tvVolumeSettingAppId = 'org.tizen.volume-setting';
 class AppEventContext {
   final String event;
 
-  final ApplicationRunningContext context;
+  final AppRunningContext context;
 
   AppEventContext({required this.event, required this.context});
 }
@@ -35,14 +35,14 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
 
     getDeviceInfos();
 
-    _subscriptions.add(TizenApplicationManager.onApplicationLaunched
-        .listen((ApplicationRunningContext event) {
+    _subscriptions
+        .add(TizenAppManager.onAppLaunched.listen((AppRunningContext event) {
       setState(() {
         _events.add(AppEventContext(event: 'launched', context: event));
       });
     }));
-    _subscriptions.add(TizenApplicationManager.onApplicationTerminated
-        .listen((ApplicationRunningContext event) {
+    _subscriptions
+        .add(TizenAppManager.onAppTerminated.listen((AppRunningContext event) {
       setState(() {
         _events.add(AppEventContext(event: 'terminated', context: event));
       });
@@ -149,7 +149,7 @@ class _AppContext extends StatelessWidget {
     return Column(
       children: <Widget>[
         ListTile(
-          title: Text(appEventContext.context.applicationId),
+          title: Text(appEventContext.context.appId),
           subtitle: Text(
               'event: ${appEventContext.event}, pid: ${appEventContext.context.processId}'),
         ),

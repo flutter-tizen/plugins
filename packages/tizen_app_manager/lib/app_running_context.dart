@@ -22,10 +22,10 @@ enum AppState {
   terminated
 }
 
-class ApplicationRunningContext {
+class AppRunningContext {
   late AppContext _context;
 
-  final String applicationId;
+  final String appId;
 
   bool get isTerminated => !_context.isAppRunning();
 
@@ -35,16 +35,14 @@ class ApplicationRunningContext {
 
   AppState get appState => _stateConvert(_context.getAppState());
 
-  ApplicationRunningContext(
-      {required this.applicationId, int handleAddress = 0}) {
-    _context = AppContext(applicationId, handleAddress);
+  AppRunningContext({required this.appId, int handleAddress = 0}) {
+    _context = AppContext(appId, handleAddress);
   }
 
-  static ApplicationRunningContext fromMap(dynamic map) {
+  static AppRunningContext fromMap(dynamic map) {
     final appId = map['appId'] as String? ?? '';
     final handle = map['handle'] as int;
-    return ApplicationRunningContext(
-        applicationId: appId, handleAddress: handle);
+    return AppRunningContext(appId: appId, handleAddress: handle);
   }
 
   void dispose() {
