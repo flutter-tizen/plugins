@@ -13,17 +13,7 @@ dependencies:
   tizen_audio_manager: ^0.1.0
 ```
 
-## Required privileges
-
-In order to set the volume, add the following privileges to your `tizen-manifest.xml` file:
-
-```xml
-<privileges>
-  <privilege>http://tizen.org/privilege/volume.set</privilege>
-</privileges>
-```
-
-## Getting and setting the volume level
+### Getting and setting the volume level
 
 Get the maximum volume level for `alarm` media type:
 
@@ -44,7 +34,7 @@ final newLevel = 10;
 AudioManager.volumeController.setLevel(AudioVolumeType.alarm, newLevel);
 ```
 
-## Listening to volume changes
+### Listening to volume changes
 
 You can detect volume changes using `AudioManager.volumeController.onChanged`.
 
@@ -56,7 +46,7 @@ _subscription = AudioManager.volumeController.onChanged.listen((event) {
 _subscription.cancel();
 ```
 
-## Getting current playback type
+### Getting current playback type
 
 Use the following code to get currently playing playback type:
 
@@ -65,7 +55,7 @@ final type = await AudioManager.volumeController.currentPlaybackType;
 print(type);
 ```
 
-## Available types
+### Available types
 
 You can get and set the volume level for the following audio types:
 
@@ -81,4 +71,14 @@ enum AudioVolumeType {
   voice,
   none
 }
+```
+
+## Required privileges
+
+In order to set the volume, add the following privileges to your `tizen-manifest.xml` file:
+
+```xml
+<privileges>
+  <privilege>http://tizen.org/privilege/volume.set</privilege>
+</privileges>
 ```
