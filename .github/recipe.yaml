@@ -24,6 +24,7 @@ plugins:
   # No tests.
   image_picker: []
   tizen_log: []
+  tizen_notification: []
   wearable_rotary: []
 
   # Permission cannot be granted without manual interaction.
