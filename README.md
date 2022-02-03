@@ -66,7 +66,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**sqflite_tizen**](packages/sqflite) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_app_control**](packages/tizen_app_control) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_log**](packages/tizen_log) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_log**](packages/tizen_log) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**tizen_notification**](packages/tizen_notification) | ❌ | ✔️ | ✔️ | ✔️ | API not supported |
 | [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
 | [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ⚠️ | ❌ | Functional limitations (see README)<br>TV emulator issue |

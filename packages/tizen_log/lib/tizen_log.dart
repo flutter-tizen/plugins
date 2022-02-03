@@ -3,35 +3,35 @@
 // found in the LICENSE file.
 
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 
-typedef _DLogNative = Void Function(
+typedef _DlogNative = Void Function(
     Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
-typedef _DLog = void Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
+typedef _Dlog = void Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
 
 /// Provides the ability to use Tizen dlog logging service.
-/// More info: https://docs.tizen.org/application/native/guides/error/system-logs/
+/// More info: https://developer.tizen.org/dev-guide/training/native-app/en/wearable/lesson_13/index.html
 class Log {
   Log._();
 
   static final DynamicLibrary _library = DynamicLibrary.open('liblog.so');
-  static final _DLog _dlogPrint =
-      _library.lookup<NativeFunction<_DLogNative>>('dlog_print').asFunction();
+  static final _Dlog _dlogPrint =
+      _library.lookup<NativeFunction<_DlogNative>>('dlog_print').asFunction();
   static final RegExp _stackTraceRegExp =
       RegExp(r'^#(\d+)\s+(.+)\((.+):(\d+):(\d+)\)$', multiLine: true);
 
-  /// For displaying a file name, function name and line number in the logs,
-  /// use --dart-define=DEBUG_MODE=debug flag in build time.
-  /// flutter-tizen run --dart-define=DEBUG_MODE=debug
-  static const String debugMode =
-      String.fromEnvironment('DEBUG_MODE', defaultValue: 'no');
-
   /// Indicates whether debug mode is enabled. If so, logs contain
-  /// a file name, function name and line number.
-  static bool get isDebugEnabled => debugMode.toUpperCase() == 'DEBUG';
+  /// a file name, function name and line number. To enable debug mode use
+  /// --dart-define=DEBUG_MODE=debug flag in build time:
+  ///
+  /// flutter-tizen run --dart-define=DEBUG_MODE=debug
+  static bool get isDebugEnabled =>
+      const String.fromEnvironment('DEBUG_MODE').toUpperCase() == 'DEBUG';
 
-  /// Sends log with VERBOSE priority and tag.
+  /// Sends log with VERBOSE priority and tag. Verbose log messages are
+  /// supposed to provide detailed information for development.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -41,7 +41,8 @@ class Log {
         file: file, func: func, line: line);
   }
 
-  /// Sends log with DEBUG priority and tag.
+  /// Sends log with DEBUG priority and tag. Debug log messages are supposed
+  /// to provide useful information for development.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -50,7 +51,8 @@ class Log {
     _log(_LogPriority.debug, tag, message, file: file, func: func, line: line);
   }
 
-  /// Sends log with INFO priority and tag.
+  /// Sends log with INFO priority and tag. Info log messages are
+  /// for administration, typically used to report progress of the application.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -59,7 +61,9 @@ class Log {
     _log(_LogPriority.info, tag, message, file: file, func: func, line: line);
   }
 
-  /// Sends log with WARN priority and tag.
+  /// Sends log with WARN priority and tag. Warn log messages are supposed to
+  /// indicate problems that the program can tolerate, but should be resolved
+  /// whenever possible.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -68,7 +72,9 @@ class Log {
     _log(_LogPriority.warn, tag, message, file: file, func: func, line: line);
   }
 
-  /// Sends log with ERROR priority and tag.
+  /// Sends log with ERROR priority and tag. Error log messages are supposed
+  /// to indicate problems that disturb the normal workflow of the application,
+  /// such as functional or performance limitations.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -77,7 +83,9 @@ class Log {
     _log(_LogPriority.error, tag, message, file: file, func: func, line: line);
   }
 
-  /// Sends log with FATAL priority and tag.
+  /// Sends log with FATAL priority and tag. Fatal log messages are supposed
+  /// to indicate problems that entirely block the normal workflow
+  /// of the application.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -90,17 +98,14 @@ class Log {
       {String? file, String? func, int? line}) {
     if (isDebugEnabled) {
       if (file == null || func == null || line == null) {
-        const int frameIndex = 3;
-        final _StackFrame frame = _stackTrace().firstWhere(
-            (_StackFrame e) => e.index == frameIndex,
-            orElse: () => _StackFrame(0, '', '', 0, 0));
-        if (frame.index == frameIndex) {
+        final _StackFrame? frame = _getStackFrameAt(3);
+        if (frame != null) {
           file ??= frame.file;
           func ??= frame.function;
           line ??= frame.line;
         }
       }
-      message = '${file ?? "-"}: ${func ?? "-"}(${line ?? "-"}) > ' + message;
+      message = '${file ?? "-"}: ${func ?? "-"}(${line ?? "-"}) > $message';
     }
     final Pointer<Utf8> tagPtr = tag.toNativeUtf8();
     final Pointer<Utf8> formatPtr = '%s'.toNativeUtf8();
@@ -111,28 +116,29 @@ class Log {
     malloc.free(messagePtr);
   }
 
-  static List<_StackFrame> _stackTrace() {
-    final List<_StackFrame> frames = <_StackFrame>[];
+  static _StackFrame? _getStackFrameAt(int index) {
     try {
       final Iterable<RegExpMatch> matches =
           _stackTraceRegExp.allMatches(StackTrace.current.toString());
-      for (final RegExpMatch m in matches) {
-        final List<String?> g = m.groups(<int>[1, 2, 3, 4, 5]);
-        if (g.any((String? e) => e == null) == false) {
-          frames.add(_StackFrame(
-            int.parse(g[0]!),
-            g[1]!.trim(),
-            g[2]!.trim(),
-            int.parse(g[3]!),
-            int.parse(g[4]!),
-          ));
+      for (final RegExpMatch match in matches) {
+        final List<String?> groups = match.groups(<int>[1, 2, 3, 4, 5]);
+        if (groups.any((String? group) => group == null) == false) {
+          final int frameIndex = int.parse(groups[0]!);
+          if (frameIndex == index) {
+            return _StackFrame(
+              frameIndex,
+              groups[1]!.trim(),
+              groups[2]!.trim(),
+              int.parse(groups[3]!),
+              int.parse(groups[4]!),
+            );
+          }
         }
       }
     } catch (error) {
       debugPrint('[Log] Error parsing stack trace: $error');
-      return <_StackFrame>[];
     }
-    return frames;
+    return null;
   }
 }
 

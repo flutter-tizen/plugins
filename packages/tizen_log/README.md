@@ -13,19 +13,25 @@ dependencies:
   tizen_log: ^0.1.0
 ```
 
-### Logging
-
-Simple logs:
+### Simple logging
 
 ```dart
-const LOG_TAG = 'TEST';
-Log.verbose(LOG_TAG, 'verbose message');
-Log.debug(LOG_TAG, 'debug message');
-Log.info(LOG_TAG, 'info message');
-Log.warn(LOG_TAG, 'warn message');
-Log.error(LOG_TAG, 'error message');
-Log.fatal(LOG_TAG, 'fatal message');
+const logTag = 'TEST';
+Log.verbose(logTag, 'verbose message');
+Log.debug(logTag, 'debug message');
+Log.info(logTag, 'info message');
+Log.warn(logTag, 'warn message');
+Log.error(logTag, 'error message');
+Log.fatal(logTag, 'fatal message');
 ```
+
+Log priorities and their meaning:
+- verbose - log messages with very detailed information for development
+- debug - log messages for development
+- info - log messages for administration, typically used to report progress of the application
+- warn - to indicate problems that the program can tolerate, but should be resolved whenever possible
+- error - to indicate problems that disturb the normal workflow of the application, such as functional or performance limitations
+- fatal - to indicate problems that entirely block the normal workflow of the application
 
 ### Customizing the logs
 
@@ -38,11 +44,11 @@ $ flutter-tizen run --dart-define=DEBUG_MODE=debug
 To override file name, function name or line number in logs, use additional parameters in function calls:
 
 ```dart
-const LOG_TAG = 'TEST';
-Log.warn(LOG_TAG, 'warn message', file: 'main');
-Log.error(LOG_TAG, 'error message', func: 'constructor');
-Log.fatal(LOG_TAG, 'fatal message', line: 1111);
-Log.fatal(LOG_TAG, 'fatal message', file: 'main', line: 1234);
+const logTag = 'TEST';
+Log.warn(logTag, 'warn message', file: 'main');
+Log.error(logTag, 'error message', func: 'constructor');
+Log.fatal(logTag, 'fatal message', line: 1111);
+Log.fatal(logTag, 'fatal message', file: 'main', line: 1234);
 ```
 
 ### Viewing logs
@@ -50,5 +56,9 @@ Log.fatal(LOG_TAG, 'fatal message', file: 'main', line: 1234);
 To view logs use the following command:
 
 ```console
-$ sdb dlog LOG_TAG
+$ sdb dlog logTag
 ```
+
+## Supported devices
+
+- Galaxy Watch series (running Tizen 4.0 or later)
