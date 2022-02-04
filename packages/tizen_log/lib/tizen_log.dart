@@ -11,27 +11,36 @@ typedef _DlogNative = Void Function(
     Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
 typedef _Dlog = void Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
 
-/// Provides the ability to use Tizen dlog logging service.
-/// More info: https://developer.tizen.org/dev-guide/training/native-app/en/wearable/lesson_13/index.html
+/// Provides the ability to use Tizen's logging service, dlog.
+///
+/// Tizen dlog system defines six log priority levels, from lowest to highest:
+/// VERBOSE, DEBUG, INFO, WARN, ERROR, and FATAL. These priorities are used to
+/// semantically categorize certain log types so that it's easier to search and
+/// filter relevant logs while debugging or monitoring the app. For more
+/// information see:
+/// https://docs.tizen.org/application/native/guides/error/system-logs/
 class Log {
   Log._();
 
-  static final DynamicLibrary _library = DynamicLibrary.open('liblog.so');
+  static final DynamicLibrary _library = DynamicLibrary.open('libdlog.so.0');
   static final _Dlog _dlogPrint =
       _library.lookup<NativeFunction<_DlogNative>>('dlog_print').asFunction();
   static final RegExp _stackTraceRegExp =
       RegExp(r'^#(\d+)\s+(.+)\((.+):(\d+):(\d+)\)$', multiLine: true);
 
-  /// Indicates whether debug mode is enabled. If so, logs contain
-  /// a file name, function name and line number. To enable debug mode use
-  /// --dart-define=DEBUG_MODE=debug flag in build time:
+  /// Indicates whether debug mode is enabled.
+  ///
+  /// If debug mode is enabled, logs will contain file name, function name and
+  /// line number. To enable debug mode use --dart-define=DEBUG_MODE=debug
+  /// flag at build time:
   ///
   /// flutter-tizen run --dart-define=DEBUG_MODE=debug
   static bool get isDebugEnabled =>
       const String.fromEnvironment('DEBUG_MODE').toUpperCase() == 'DEBUG';
 
-  /// Sends log with VERBOSE priority and tag. Verbose log messages are
-  /// supposed to provide detailed information for development.
+  /// Sends log with VERBOSE priority and tag.
+  ///
+  /// Verbose log messages provide detailed information for debugging.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -41,8 +50,9 @@ class Log {
         file: file, func: func, line: line);
   }
 
-  /// Sends log with DEBUG priority and tag. Debug log messages are supposed
-  /// to provide useful information for development.
+  /// Sends log with DEBUG priority and tag.
+  ///
+  /// Debug log messages provide brief information for debugging.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -51,8 +61,10 @@ class Log {
     _log(_LogPriority.debug, tag, message, file: file, func: func, line: line);
   }
 
-  /// Sends log with INFO priority and tag. Info log messages are
-  /// for administration, typically used to report progress of the application.
+  /// Sends log with INFO priority and tag.
+  ///
+  /// Info log messages are for administration, typically used to report
+  /// progress of the application.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -61,9 +73,10 @@ class Log {
     _log(_LogPriority.info, tag, message, file: file, func: func, line: line);
   }
 
-  /// Sends log with WARN priority and tag. Warn log messages are supposed to
-  /// indicate problems that the program can tolerate, but should be resolved
-  /// whenever possible.
+  /// Sends log with WARN priority and tag.
+  ///
+  /// Warn log messages indicate problems that the program can tolerate, but
+  /// should be resolved whenever possible.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -72,9 +85,10 @@ class Log {
     _log(_LogPriority.warn, tag, message, file: file, func: func, line: line);
   }
 
-  /// Sends log with ERROR priority and tag. Error log messages are supposed
-  /// to indicate problems that disturb the normal workflow of the application,
-  /// such as functional or performance limitations.
+  /// Sends log with ERROR priority and tag.
+  ///
+  /// Error log messages indicate problems that disturb the normal workflow of
+  /// the application, such as functional or performance limitations.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -83,9 +97,10 @@ class Log {
     _log(_LogPriority.error, tag, message, file: file, func: func, line: line);
   }
 
-  /// Sends log with FATAL priority and tag. Fatal log messages are supposed
-  /// to indicate problems that entirely block the normal workflow
-  /// of the application.
+  /// Sends log with FATAL priority and tag.
+  ///
+  /// Fatal log messages indicate problems that entirely block the normal
+  /// workflow of the application.
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
@@ -125,10 +140,13 @@ class Log {
         if (groups.any((String? group) => group == null) == false) {
           final int frameIndex = int.parse(groups[0]!);
           if (frameIndex == index) {
+            final List<String> funcParts = groups[1]!.trim().split('.');
+            final List<String> pathParts =
+                groups[2]!.trim().split(RegExp(r'[:/]'));
             return _StackFrame(
               frameIndex,
-              groups[1]!.trim(),
-              groups[2]!.trim(),
+              funcParts.last,
+              pathParts.last,
               int.parse(groups[3]!),
               int.parse(groups[4]!),
             );

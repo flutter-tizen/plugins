@@ -25,10 +25,10 @@ Log.error(logTag, 'error message');
 Log.fatal(logTag, 'fatal message');
 ```
 
-Log priorities and their meaning:
-- verbose - log messages with very detailed information for development
-- debug - log messages for development
-- info - log messages for administration, typically used to report progress of the application
+Log priorities from lowest to highest and their meaning:
+- verbose - detailed information for debugging
+- debug - brief information for debugging
+- info - for administration, typically used to report progress of the application
 - warn - to indicate problems that the program can tolerate, but should be resolved whenever possible
 - error - to indicate problems that disturb the normal workflow of the application, such as functional or performance limitations
 - fatal - to indicate problems that entirely block the normal workflow of the application
