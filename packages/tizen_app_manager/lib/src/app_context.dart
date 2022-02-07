@@ -115,9 +115,9 @@ class AppContext {
     _appId = appId;
     if (handleAddress == 0) {
       final Pointer<Pointer<_ContextHandle>> pHandle = malloc();
-      final appIdP = appId.toNativeUtf8();
+      final pAppId = appId.toNativeUtf8();
       try {
-        final ret = appManager.getAppContext(appIdP, pHandle);
+        final ret = appManager.getAppContext(pAppId, pHandle);
         if (ret != 0) {
           throw PlatformException(
             message: 'Failed to excute app_manager_get_app_context $appId',
@@ -126,7 +126,7 @@ class AppContext {
         }
         _handle = pHandle.value;
       } finally {
-        malloc.free(appIdP);
+        malloc.free(pAppId);
         malloc.free(pHandle);
       }
     } else {
@@ -153,9 +153,9 @@ class AppContext {
 
   bool isAppRunning() {
     final Pointer<Int8> out = malloc();
-    final appIdPtr = _appId.toNativeUtf8();
+    final pAppId = _appId.toNativeUtf8();
     try {
-      final ret = appManager.appIsRunning(appIdPtr, out);
+      final ret = appManager.appIsRunning(pAppId, out);
       if (ret != 0) {
         throw PlatformException(
           message: 'Failed to excute app_manager_is_running $_appId',
@@ -165,7 +165,7 @@ class AppContext {
 
       return out.value != 0;
     } finally {
-      malloc.free(appIdPtr);
+      malloc.free(pAppId);
       malloc.free(out);
     }
   }
