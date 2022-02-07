@@ -1,11 +1,17 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:tizen_app_manager/tizen_app_manager.dart';
-import 'package:tizen_app_manager/app_running_context.dart';
+import 'package:tizen_app_manager/app_manager.dart';
 
+/// The current app's information page widget.
 class CurrentAppScreen extends StatefulWidget {
+  /// The constructor of the current app's information page widget.
   const CurrentAppScreen({Key? key}) : super(key: key);
 
   @override
@@ -19,12 +25,12 @@ class _CurrentAppScreenState extends State<CurrentAppScreen> {
     appId: '',
     packageId: '',
     label: '',
-    applicationType: '',
+    appType: '',
     iconPath: '',
     executablePath: '',
     sharedResourcePath: '',
     isNoDisplay: false,
-    metaData: <String, String>{},
+    metadata: <String, String>{},
   );
 
   late AppRunningContext _currentAppContext =
@@ -44,8 +50,8 @@ class _CurrentAppScreenState extends State<CurrentAppScreen> {
 
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      appId = await TizenAppManager.currentAppId;
-      appInfo = await TizenAppManager.getAppInfo(appId);
+      appId = await AppManager.currentAppId;
+      appInfo = await AppManager.getAppInfo(appId);
       currentAppContext = AppRunningContext(appId: appId);
     } on PlatformException {
       appId = 'Fail to get current app ID';
@@ -81,10 +87,10 @@ class _CurrentAppScreenState extends State<CurrentAppScreen> {
           _infoTile('App ID', _appId),
           _infoTile('Package ID', _appInfo.packageId),
           _infoTile('Label', _appInfo.label),
-          _infoTile('Application type', _appInfo.applicationType),
+          _infoTile('Application type', _appInfo.appType),
           _infoTile('Execuatable path', _appInfo.executablePath),
-          _infoTile('Shared res path', _appInfo.sharedResourcePath),
-          _infoTile('App meta data', _appInfo.metaData.toString()),
+          _infoTile('Shared res path', _appInfo.sharedResourcePath ?? ''),
+          _infoTile('App meta data', _appInfo.metadata.toString()),
           _infoTile(
               'App is terminated', _currentAppContext.isTerminated.toString()),
           _infoTile('process id', _currentAppContext.processId.toString()),

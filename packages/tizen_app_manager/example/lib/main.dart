@@ -1,14 +1,21 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'package:flutter/material.dart';
 
-import './current_app_info.dart';
-import './apps_list.dart';
 import './apps_event.dart';
+import './apps_list.dart';
+import './current_app_info.dart';
 
+/// The main entry point for the UI app.
 void main() {
   runApp(const MyApp());
 }
 
+/// The main UI app widget.
 class MyApp extends StatelessWidget {
+  /// The constructor of the main UI app widget.
   const MyApp({Key? key}) : super(key: key);
 
   @override
@@ -16,25 +23,26 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Application manager demo',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const MyHomePage(title: 'Application manager demo'),
+      home: const _MyHomePage(title: 'Application manager demo'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class _MyHomePage extends StatefulWidget {
+  const _MyHomePage({Key? key, required this.title}) : super(key: key);
 
+  /// The title label
   final String title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<_MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('application common demo')),
+      appBar: AppBar(title: const Text('Application manager demo')),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -1,7 +1,13 @@
-import 'package:tizen_app_manager/tizen_app_manager.dart';
-import 'package:flutter/material.dart';
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
+import 'package:flutter/material.dart';
+import 'package:tizen_app_manager/app_manager.dart';
+
+/// The installed applications's information page widget.
 class AppsListScreen extends StatefulWidget {
+  /// The constructor of the installed applications's information page widget.
   const AppsListScreen({Key? key}) : super(key: key);
 
   @override
@@ -26,23 +32,23 @@ class _AppsListScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<AppInfo>>(
-      future: TizenAppManager.getInstalledApps(),
+      future: AppManager.getInstalledApps(),
       builder: (BuildContext context, AsyncSnapshot<List<AppInfo>> snapshot) {
         if (snapshot.data == null) {
           return const Center(child: CircularProgressIndicator());
         } else {
-          final apps = snapshot.data!;
+          final List<AppInfo> apps = snapshot.data!;
 
           return Scrollbar(
             child: ListView.builder(
                 itemBuilder: (BuildContext context, int position) {
-                  final app = apps[position];
+                  final AppInfo app = apps[position];
                   return Column(
                     children: <Widget>[
                       ListTile(
                         title: Text(app.label),
                         subtitle: Text('Package Id: ${app.packageId}\n'
-                            'App type: ${app.applicationType}\n'),
+                            'App type: ${app.appType}\n'),
                       ),
                       const Divider(
                         height: 1.0,

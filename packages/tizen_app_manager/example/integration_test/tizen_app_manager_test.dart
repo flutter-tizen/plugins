@@ -4,8 +4,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:tizen_app_manager/app_running_context.dart';
-import 'package:tizen_app_manager/tizen_app_manager.dart';
+import 'package:tizen_app_manager/app_manager.dart';
 
 import 'package:tizen_app_manager_example/main.dart';
 
@@ -14,24 +13,22 @@ void main() {
 
   testWidgets('Can get current app info', (WidgetTester tester) async {
     // These test are based on the example app.
-    final appId = await TizenAppManager.currentAppId;
+    final String appId = await AppManager.currentAppId;
     expect(appId, 'com.example.tizen_app_manager_example');
-    final appInfo = await TizenAppManager.getAppInfo(appId);
+    final AppInfo appInfo = await AppManager.getAppInfo(appId);
     expect(appInfo.packageId, 'com.example.tizen_app_manager_example');
     expect(appInfo.label, 'tizen_app_manager_example');
-    expect(appInfo.applicationType, 'dotnet');
+    expect(appInfo.appType, 'dotnet');
   });
 
   testWidgets('Can get current app running context',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
-    await tester.pumpAndSettle();
 
-    final appId = await TizenAppManager.currentAppId;
-    final isRunning = await TizenAppManager.isRunning(appId);
-    final context = AppRunningContext(appId: appId);
+    final String appId = await AppManager.currentAppId;
+    final AppRunningContext context = AppRunningContext(appId: appId);
     expect(context.appState, AppState.foreground);
     expect(context.processId, isPositive);
-    expect(context.isTerminated, equals(!isRunning));
+    expect(context.isTerminated, isFalse);
   });
 }

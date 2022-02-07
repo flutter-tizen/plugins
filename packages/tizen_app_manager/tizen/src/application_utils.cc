@@ -23,8 +23,8 @@ bool ExtractValueFromMap(const flutter::EncodableValue &arguments,
 
 bool AppMetaDataCB(const char *key, const char *value, void *user_data) {
   if (key != nullptr) {
-    flutter::EncodableMap *meta_data = (flutter::EncodableMap *)user_data;
-    meta_data->insert(
+    flutter::EncodableMap *metadata = (flutter::EncodableMap *)user_data;
+    metadata->insert(
         std::pair<flutter::EncodableValue, flutter::EncodableValue>(
             std::string(key), std::string(value)));
     LOG_INFO("AppMetaDataCB key: %s, value: %s", key, value);
@@ -41,7 +41,7 @@ int GetAppData(app_info_h app_info, flutter::EncodableMap &value) {
   char *exec_path = nullptr;
   char *shared_res_path = nullptr;
   bool no_display = false;
-  flutter::EncodableMap meta_data;
+  flutter::EncodableMap metadata;
 
   int ret = app_info_get_app_id(app_info, &app_id);
   LOG_INFO("GetAppData %s", app_id);
@@ -93,7 +93,7 @@ int GetAppData(app_info_h app_info, flutter::EncodableMap &value) {
     goto cleanup;
   }
 
-  ret = app_info_foreach_metadata(app_info, AppMetaDataCB, (void *)&meta_data);
+  ret = app_info_foreach_metadata(app_info, AppMetaDataCB, (void *)&metadata);
   if (ret != APP_MANAGER_ERROR_NONE) {
     LOG_ERROR("app_info_foreach_metadata error! : %s", get_error_message(ret));
     goto cleanup;
@@ -118,7 +118,7 @@ int GetAppData(app_info_h app_info, flutter::EncodableMap &value) {
   value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
       "isNoDisplay", no_display));
   value.insert(std::pair<flutter::EncodableValue, flutter::EncodableMap>(
-      "metaData", meta_data));
+      "metadata", metadata));
 
 cleanup:
   if (app_id) {

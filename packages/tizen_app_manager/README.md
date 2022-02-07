@@ -2,7 +2,7 @@
 
  [![pub package](https://img.shields.io/pub/v/tizen_app_manager.svg)](https://pub.dev/packages/tizen_app_manager)
 
-tizen app manager API. Used for getting installed app info and getting running context info of specific app.
+Tizen application manager API. Used for getting installed app info and getting running context info of specific app.
 
 ## Usage
 
@@ -18,19 +18,19 @@ dependencies:
 To get the current app Info, get `currentAppId` and then get `AppInfo` with `getAppInfo` method.
 
 ```dart
-    var appId = await TizenAppManager.currentAppId;
-    var appInfo = await TizenAppManager.getAppInfo(appId);
+var appId = await AppManager.currentAppId;
+var appInfo = await AppManager.getAppInfo(appId);
 ```
 
 ### Getting installed apps info
 
-To retrive all apps information that are installed in the Tizen device, use `getInstalledApps` method.
+To retrive information of all apps installed on a Tizen device, use `getInstalledApps` method.
 
 ```dart
-      var apps = await TizenAppManager.getInstalledApps();
-      for (var app in apps) {
-         // handle each App's info.
-      }
+var apps = await AppManager.getInstalledApps();
+for (var app in apps) {
+  // Handle each app's info.
+}
 ```
 
 ### Getting app running context
@@ -38,8 +38,8 @@ To retrive all apps information that are installed in the Tizen device, use `get
 To get specific app running context, create `AppRunningContext` instance.
 
 ```dart
-    var appId = await TizenAppManager.currentAppId;
-    var appContext= AppRunningContext(appId: appId)
+var appId = await AppManager.currentAppId;
+var appContext = AppRunningContext(appId: appId);
 ```
 
 ### Listening for app state changes
@@ -47,27 +47,39 @@ To get specific app running context, create `AppRunningContext` instance.
 You can listen for app state change by subscribing to the stream.
 
 ```dart
-  final List<StreamSubscription<dynamic>> subscriptions = [];
+final List<StreamSubscription<dynamic>> subscriptions = [];
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
 
-    subscriptions.add(TizenAppManager.onAppLaunched
-        .listen((AppRunningContext event) {
-        //Got a launched app context info
-    }));
-    subscriptions.add(TizenAppManager.onAppTerminated
-        .listen((AppRunningContext event) {
-        //Got a terminated app context info
-    }));
-  }
+  subscriptions.add(AppManager.onAppLaunched
+      .listen((AppRunningContext event) {
+      // Got a launched app context.
+  }));
+  subscriptions.add(AppManager.onAppTerminated
+      .listen((AppRunningContext event) {
+      // Got a terminated app context.
+  }));
+}
 
-  @override
-  void dispose() {
-    super.dispose();
+@override
+void dispose() {
+  super.dispose();
 
-    subscriptions.forEach((StreamSubscription s) => s.cancel());
-    subscriptions.clear();
-  }
+  subscriptions.forEach((StreamSubscription s) => s.cancel());
+  subscriptions.clear();
+}
+```
+
+## Required privileges
+
+Privileges be required to perform `resume()` and `terminate()` in `AppRunningContext` class. Add required privileges in `tizen-manifest.xml` of your application.
+
+```xml
+<privileges>
+  <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
+  <!-- The below are partner privilege. -->
+  <privilege>http://tizen.org/privilege/appmanager.kill</privilege>
+</privileges>
 ```

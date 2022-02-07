@@ -1,4 +1,11 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// ignore_for_file: always_specify_types, public_member_api_docs
+
 import 'dart:ffi';
+
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
@@ -50,11 +57,11 @@ String _getErrorCode(int returnCode) => _errorCodes.containsKey(returnCode)
     ? _errorCodes[returnCode]!
     : '$returnCode';
 
-AppManager? _appManagerInstance;
-AppManager get appManager => _appManagerInstance ??= AppManager();
+_AppManager? _appManagerInstance;
+_AppManager get appManager => _appManagerInstance ??= _AppManager();
 
-class AppManager {
-  AppManager() {
+class _AppManager {
+  _AppManager() {
     final libAppMananger =
         DynamicLibrary.open('libcapi-appfw-app-manager.so.0');
     getAppContext = libAppMananger
@@ -100,16 +107,9 @@ class AppManager {
 }
 
 class AppContext {
-  Pointer<_ContextHandle> _handle = nullptr;
-  int _handleAddress = 0;
-  late String _appId;
-
   AppContext(String appId, int handleAddress) {
     if (appId.isEmpty) {
-      throw PlatformException(
-        code: _getErrorCode(tizenErrorInvalidParameter),
-        message: 'appId is empty',
-      );
+      throw ArgumentError('Must not be empty', 'appId');
     }
 
     _appId = appId;
@@ -125,7 +125,6 @@ class AppContext {
           );
         }
         _handle = pHandle.value;
-        _handleAddress = pHandle.value.address;
       } finally {
         malloc.free(appIdP);
         malloc.free(pHandle);
@@ -133,9 +132,11 @@ class AppContext {
     } else {
       // if have app_context_h
       _handle = Pointer.fromAddress(handleAddress);
-      _handleAddress = handleAddress;
     }
   }
+
+  Pointer<_ContextHandle> _handle = nullptr;
+  late String _appId;
 
   void destroy() {
     if (_handle != nullptr) {
@@ -150,16 +151,11 @@ class AppContext {
     }
   }
 
-  int getHandleAddress() {
-    return _handleAddress;
-  }
-
   bool isAppRunning() {
-    var isRun = false;
     final Pointer<Int8> out = malloc();
-    final appIdP = _appId.toNativeUtf8();
+    final appIdPtr = _appId.toNativeUtf8();
     try {
-      final ret = appManager.appIsRunning(appIdP, out);
+      final ret = appManager.appIsRunning(appIdPtr, out);
       if (ret != 0) {
         throw PlatformException(
           message: 'Failed to excute app_manager_is_running $_appId',
@@ -167,12 +163,9 @@ class AppContext {
         );
       }
 
-      if (out != nullptr) {
-        isRun = out.value != 0 ? true : false;
-      }
-      return isRun;
+      return out.value != 0;
     } finally {
-      malloc.free(appIdP);
+      malloc.free(appIdPtr);
       malloc.free(out);
     }
   }
@@ -180,7 +173,7 @@ class AppContext {
   String getPackageId() {
     final Pointer<Pointer<Utf8>> packageIdP = malloc();
     try {
-      _handleCheck();
+      _checkHandle();
       final ret = appManager.getPackageId(_handle, packageIdP);
       if (ret != 0) {
         throw PlatformException(
@@ -198,11 +191,11 @@ class AppContext {
   int getProcessId() {
     final Pointer<Int32> processIdP = malloc();
     try {
-      _handleCheck();
+      _checkHandle();
       final ret = appManager.getProcessId(_handle, processIdP);
       if (ret != 0) {
         throw PlatformException(
-          message: 'Failed to excute app_context_get_pid',
+          message: 'Failed to execute app_context_get_pid',
           code: _getErrorCode(ret),
         );
       }
@@ -215,7 +208,7 @@ class AppContext {
   int getAppState() {
     final Pointer<Int32> stateP = malloc();
     try {
-      _handleCheck();
+      _checkHandle();
       final ret = appManager.getAppState(_handle, stateP);
       if (ret != 0) {
         throw PlatformException(
@@ -230,7 +223,7 @@ class AppContext {
   }
 
   void terminate() {
-    _handleCheck();
+    _checkHandle();
     final ret = appManager.terminateApp(_handle);
     if (ret != 0) {
       throw PlatformException(
@@ -241,7 +234,7 @@ class AppContext {
   }
 
   void resume() {
-    _handleCheck();
+    _checkHandle();
     final ret = appManager.resumeApp(_handle);
     if (ret != 0) {
       throw PlatformException(
@@ -251,11 +244,9 @@ class AppContext {
     }
   }
 
-  void _handleCheck() {
+  void _checkHandle() {
     if (_handle == nullptr) {
-      throw PlatformException(
-          code: _getErrorCode(tizenErrorInvalidParameter),
-          message: 'context handle is null!');
+      throw StateError('The handle object has been destroyed');
     }
   }
 }

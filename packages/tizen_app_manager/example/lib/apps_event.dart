@@ -1,23 +1,38 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
-import 'package:tizen_app_control/app_control.dart';
-import 'package:tizen_app_manager/tizen_app_manager.dart';
-import 'package:tizen_app_manager/app_running_context.dart';
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
+import 'dart:async';
+
+import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
+import 'package:flutter/material.dart';
+import 'package:tizen_app_control/app_control.dart';
+import 'package:tizen_app_manager/app_manager.dart';
+
+/// The settings app ID
 const String settingAppId = 'org.tizen.setting';
+
+/// The wearable emulator settings app ID
 const String wearbleSettingAppId = 'org.tizen.watch-setting';
+
+/// The tv emulator volume setting app ID
 const String tvVolumeSettingAppId = 'org.tizen.volume-setting';
 
+/// Represents application event string and AppRunningContext instance.
 class AppEventContext {
+  /// Creates an instance of [AppEventContext] with event string and AppRunningContext instance.
+  AppEventContext({required this.event, required this.context});
+
+  /// The event string.
   final String event;
 
+  /// The AppRunningContext instance.
   final AppRunningContext context;
-
-  AppEventContext({required this.event, required this.context});
 }
 
+/// The application event page widget.
 class AppsEventScreen extends StatefulWidget {
+  /// The constructor of the application event page widget.
   const AppsEventScreen({Key? key}) : super(key: key);
 
   @override
@@ -26,23 +41,24 @@ class AppsEventScreen extends StatefulWidget {
 
 class _AppsEventScreenState extends State<AppsEventScreen> {
   final List<AppEventContext> _events = <AppEventContext>[];
-  final List<StreamSubscription<dynamic>> _subscriptions = [];
+  final List<StreamSubscription<dynamic>> _subscriptions =
+      <StreamSubscription<dynamic>>[];
   String _appId = settingAppId;
 
   @override
   void initState() {
     super.initState();
 
-    getDeviceInfos();
+    _getDeviceInfos();
 
     _subscriptions
-        .add(TizenAppManager.onAppLaunched.listen((AppRunningContext event) {
+        .add(AppManager.onAppLaunched.listen((AppRunningContext event) {
       setState(() {
         _events.add(AppEventContext(event: 'launched', context: event));
       });
     }));
     _subscriptions
-        .add(TizenAppManager.onAppTerminated.listen((AppRunningContext event) {
+        .add(AppManager.onAppTerminated.listen((AppRunningContext event) {
       setState(() {
         _events.add(AppEventContext(event: 'terminated', context: event));
       });
@@ -51,7 +67,7 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = PageController(initialPage: 0);
+    final PageController controller = PageController(initialPage: 0);
     return Scaffold(
       appBar: AppBar(
         title: const Text('application context events'),
@@ -65,7 +81,7 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
                 ElevatedButton(
                     onPressed: () async {
                       try {
-                        final appControl = AppControl(appId: _appId);
+                        final AppControl appControl = AppControl(appId: _appId);
                         await appControl.sendLaunchRequest();
                       } catch (e) {
                         // ignore: avoid_print
@@ -97,14 +113,15 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
 
   @override
   void dispose() {
-    for (final s in _subscriptions) {
+    // ignore: always_specify_types
+    for (final StreamSubscription s in _subscriptions) {
       s.cancel();
     }
     _subscriptions.clear();
     super.dispose();
   }
 
-  void getDeviceInfos() async {
+  Future<void> _getDeviceInfos() async {
     final DeviceInfoPluginTizen deviceInfo = DeviceInfoPluginTizen();
     final TizenDeviceInfo tizenInfo = await deviceInfo.tizenInfo;
     setState(() {
@@ -118,9 +135,9 @@ class _AppsEventScreenState extends State<AppsEventScreen> {
 }
 
 class _EventsList extends StatelessWidget {
-  final Iterable<AppEventContext> _events;
-
   const _EventsList({required List<AppEventContext> events}) : _events = events;
+
+  final Iterable<AppEventContext> _events;
 
   @override
   Widget build(BuildContext context) {
@@ -140,9 +157,9 @@ class _EventsList extends StatelessWidget {
 }
 
 class _AppContext extends StatelessWidget {
-  final AppEventContext appEventContext;
-
   const _AppContext({required this.appEventContext});
+
+  final AppEventContext appEventContext;
 
   @override
   Widget build(BuildContext context) {

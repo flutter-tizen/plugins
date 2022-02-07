@@ -215,12 +215,12 @@ void TizenAppManagerPlugin::GetInstalledApplicationsInfo(
 void TizenAppManagerPlugin::SetupChannels(flutter::PluginRegistrar *registrar) {
   auto method_channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "tizen_app_manager",
+          registrar->messenger(), "tizen/app_manager",
           &flutter::StandardMethodCodec::GetInstance());
 
   auto event_channel =
       std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "tizen_app_manager_events",
+          registrar->messenger(), "tizen/app_manager_events",
           &flutter::StandardMethodCodec::GetInstance());
 
   method_channel->SetMethodCallHandler([this](const auto &call, auto result) {
