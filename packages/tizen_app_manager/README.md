@@ -13,18 +13,18 @@ dependencies:
   tizen_app_manager: ^0.1.0
 ```
 
-### Getting current app info
+### Retrieving current app info
 
-To get the current app Info, get `currentAppId` and then get `AppInfo` with `getAppInfo` method.
+To retrieve information of the current app, get app ID with `currentAppId` and then get `AppInfo` with `getAppInfo` method.
 
 ```dart
 var appId = await AppManager.currentAppId;
 var appInfo = await AppManager.getAppInfo(appId);
 ```
 
-### Getting installed apps info
+### Retrieving all apps info
 
-To retrive information of all apps installed on a Tizen device, use `getInstalledApps` method.
+To retrieve information of all apps installed on a Tizen device, use `getInstalledApps` method.
 
 ```dart
 var apps = await AppManager.getInstalledApps();
@@ -42,7 +42,7 @@ var appId = await AppManager.currentAppId;
 var appContext = AppRunningContext(appId: appId);
 ```
 
-### Listening for app state changes
+### Monitoring app events
 
 You can listen for app state change by subscribing to the stream.
 
@@ -74,12 +74,10 @@ void dispose() {
 
 ## Required privileges
 
-Privileges be required to perform `resume()` and `terminate()` in `AppRunningContext` class. Add required privileges in `tizen-manifest.xml` of your application.
+Privileges be required to perform `resume()` in `AppRunningContext` class. Add required privileges in `tizen-manifest.xml` of your application.
 
 ```xml
 <privileges>
   <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
-  <!-- The below are partner privilege. -->
-  <privilege>http://tizen.org/privilege/appmanager.kill</privilege>
 </privileges>
 ```
