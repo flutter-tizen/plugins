@@ -23,7 +23,8 @@ class TizenAppManagerPlugin : public flutter::Plugin {
 
   flutter::EncodableList m_applications;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_launch_events;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_terminate_events;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
+      m_terminate_events;
   bool m_registered_event_cb;
   int m_registered_cnt;
 
