@@ -46,7 +46,12 @@ static void ContextEventCB(app_context_h app_context, app_context_event_e event,
         "appId", std::string(app_id)));
     msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
         "handle", int_address));
-    plugin->m_events->Success(flutter::EncodableValue(msg));
+    if(event == APP_CONTEXT_EVENT_LAUNCHED && plugin->m_launch_events != nullptr) {
+      plugin->m_launch_events->Success(flutter::EncodableValue(msg));
+    }
+    else if(event == APP_CONTEXT_EVENT_TERMINATED  && plugin->m_terminate_events != nullptr) {
+      plugin->m_terminate_events->Success(flutter::EncodableValue(msg));
+    }
   }
 
 cleanup:
@@ -57,6 +62,7 @@ cleanup:
 
 TizenAppManagerPlugin::TizenAppManagerPlugin() {
   m_registered_event_cb = false;
+  m_registered_cnt = 0;
 }
 
 TizenAppManagerPlugin::~TizenAppManagerPlugin() { UnregisterObserver(); }
@@ -90,24 +96,21 @@ void TizenAppManagerPlugin::HandleMethodCall(
 
 void TizenAppManagerPlugin::RegisterObserver(
     std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
-  m_events = std::move(events);
-  LOG_INFO("RegisterObserver");
-
+  LOG_DEBUG("RegisterObserver");
   int ret = app_manager_set_app_context_event_cb(ContextEventCB, (void *)this);
   if (ret != APP_MANAGER_ERROR_NONE) {
     char *err_msg = get_error_message(ret);
     LOG_ERROR("Failed app_manager_set_app_context_event_cb : %s", err_msg);
-    m_events->Error("Failed to add callback", std::string(err_msg));
+    events->Error("Failed to add callback", std::string(err_msg));
     return;
   }
   m_registered_event_cb = true;
 }
 
 void TizenAppManagerPlugin::UnregisterObserver() {
-  LOG_INFO("UnregisterObserver");
-  if (m_registered_event_cb) {
+  LOG_DEBUG("UnregisterObserver");
+  if ( m_registered_event_cb == true) {
     app_manager_unset_app_context_event_cb();
-    m_events = nullptr;
     m_registered_event_cb = false;
   }
 }
@@ -218,32 +221,71 @@ void TizenAppManagerPlugin::SetupChannels(flutter::PluginRegistrar *registrar) {
           registrar->messenger(), "tizen/app_manager",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto event_channel =
-      std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "tizen/app_manager_events",
-          &flutter::StandardMethodCodec::GetInstance());
-
   method_channel->SetMethodCallHandler([this](const auto &call, auto result) {
     this->HandleMethodCall(call, std::move(result));
   });
 
-  auto event_channel_handler =
+  auto launch_event_channel =
+      std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+          registrar->messenger(), "tizen/app_manager/launch_event",
+          &flutter::StandardMethodCodec::GetInstance());
+
+  auto terminate_event_channel =
+      std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+          registrar->messenger(), "tizen/app_manager/terminate_event",
+          &flutter::StandardMethodCodec::GetInstance());
+
+
+  auto launch_event_channel_handler =
       std::make_unique<flutter::StreamHandlerFunctions<>>(
           [this](const flutter::EncodableValue *arguments,
                  std::unique_ptr<flutter::EventSink<>> &&events)
               -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            LOG_INFO("OnListen");
-            this->RegisterObserver(std::move(events));
+            LOG_INFO("OnListen launch");
+            m_launch_events = std::move(events);
+            if(m_registered_cnt == 0){
+              this->RegisterObserver(std::move(events));
+            }
+            m_registered_cnt++;
             return nullptr;
           },
           [this](const flutter::EncodableValue *arguments)
               -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            LOG_INFO("OnCancel");
-            this->UnregisterObserver();
+            LOG_INFO("OnCancel launch");
+            m_registered_cnt--;
+            if ( m_registered_cnt == 0) {
+              this->UnregisterObserver();
+            }
+            m_launch_events = nullptr;
             return nullptr;
           });
 
-  event_channel->SetStreamHandler(std::move(event_channel_handler));
+    auto terminate_event_channel_handler =
+      std::make_unique<flutter::StreamHandlerFunctions<>>(
+          [this](const flutter::EncodableValue *arguments,
+                 std::unique_ptr<flutter::EventSink<>> &&events)
+              -> std::unique_ptr<flutter::StreamHandlerError<>> {
+            LOG_INFO("OnListen terminate");
+            m_terminate_events = std::move(events);
+            if(m_registered_cnt == 0){
+              this->RegisterObserver(std::move(events));
+            }
+            m_registered_cnt++;
+            return nullptr;
+          },
+          [this](const flutter::EncodableValue *arguments)
+              -> std::unique_ptr<flutter::StreamHandlerError<>> {
+            LOG_INFO("OnCancel terminate");
+            m_registered_cnt--;
+            if ( m_registered_cnt == 0) {
+              this->UnregisterObserver();
+            }
+            m_terminate_events = nullptr;
+            return nullptr;
+          });
+
+  launch_event_channel->SetStreamHandler(std::move(launch_event_channel_handler));
+  terminate_event_channel->SetStreamHandler(std::move(terminate_event_channel_handler));
 }
 
 void TizenAppManagerPluginRegisterWithRegistrar(

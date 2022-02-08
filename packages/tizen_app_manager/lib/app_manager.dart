@@ -38,8 +38,11 @@ class AppManager {
 
   static const MethodChannel _channel = MethodChannel('tizen/app_manager');
 
-  static const EventChannel _eventChannel =
-      EventChannel('tizen/app_manager_events');
+  static const EventChannel _launchEventChannel =
+      EventChannel('tizen/app_manager/launch_event');
+
+  static const EventChannel _terminateEventChannel =
+      EventChannel('tizen/app_manager/terminate_event');
 
   /// Gets the app id of current running app.
   static Future<String> get currentAppId async {
@@ -88,46 +91,14 @@ class AppManager {
   }
 
   /// A stream of events occurring when any application is launched.
-  static Stream<AppRunningContext> get onAppLaunched =>
-      _launchedStreamController.stream;
-
-  /// A stream of events occurring when any application is terminated.
-  static Stream<AppRunningContext> get onAppTerminated =>
-      _terminatedStreamController.stream;
-
-  static final Stream<AppRunningContext> _applicationEvents = _eventChannel
+  static Stream<AppRunningContext> get onAppLaunched => _launchEventChannel
       .receiveBroadcastStream()
       .map((dynamic map) => AppRunningContext.fromMap(map));
 
-  static StreamSubscription<AppRunningContext>? _launchedStreamSubscription;
-
-  static final StreamController<AppRunningContext> _launchedStreamController =
-      StreamController<AppRunningContext>.broadcast(
-    onListen: () {
-      _launchedStreamSubscription = _applicationEvents
-          .where((AppRunningContext context) => context.isTerminated == false)
-          .listen((AppRunningContext context) =>
-              _launchedStreamController.add(context));
-    },
-    onCancel: () {
-      _launchedStreamSubscription?.cancel();
-    },
-  );
-
-  static StreamSubscription<AppRunningContext>? _terminatedStreamSubscription;
-
-  static final StreamController<AppRunningContext> _terminatedStreamController =
-      StreamController<AppRunningContext>.broadcast(
-    onListen: () {
-      _terminatedStreamSubscription = _applicationEvents
-          .where((AppRunningContext context) => context.isTerminated == true)
-          .listen((AppRunningContext context) =>
-              _terminatedStreamController.add(context));
-    },
-    onCancel: () {
-      _terminatedStreamSubscription?.cancel();
-    },
-  );
+  /// A stream of events occurring when any application is terminated.
+  static Stream<AppRunningContext> get onAppTerminated => _terminateEventChannel
+      .receiveBroadcastStream()
+      .map((dynamic map) => AppRunningContext.fromMap(map));
 }
 
 /// Represents a information of specific application.
