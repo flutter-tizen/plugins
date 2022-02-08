@@ -25,14 +25,6 @@ Log.error(logTag, 'error message');
 Log.fatal(logTag, 'fatal message');
 ```
 
-Log priorities from lowest to highest and their meaning:
-- verbose - detailed information for debugging
-- debug - brief information for debugging
-- info - for administration, typically used to report progress of the application
-- warn - to indicate problems that the program can tolerate, but should be resolved whenever possible
-- error - to indicate problems that disturb the normal workflow of the application, such as functional or performance limitations
-- fatal - to indicate problems that entirely block the normal workflow of the application
-
 ### Customizing the logs
 
 To add file name, function name and line number to logs, use `--dart-define=DEBUG_MODE=debug` flag:
