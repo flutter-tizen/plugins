@@ -86,7 +86,7 @@ class _MyHomePageState extends State<_MyHomePage> {
                           const _AppsEventScreen()),
                 );
               },
-              child: const Text('Application launch/terminate and listener'),
+              child: const Text('Application event listener'),
             ),
           ],
         ),
@@ -174,7 +174,7 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
           _infoTile('Label', _appInfo.label),
           _infoTile('Application type', _appInfo.appType),
           _infoTile('Execuatable path', _appInfo.executablePath),
-          _infoTile('Shared res path', _appInfo.sharedResourcePath ?? ''),
+          _infoTile('Shared res path', _appInfo.sharedResourcePath),
           _infoTile('App meta data', _appInfo.metadata.toString()),
           _infoTile(
               'App is terminated', _currentAppContext.isTerminated.toString()),
@@ -245,16 +245,16 @@ class _AppsListScreenContent extends StatelessWidget {
   }
 }
 
-/// Represents application event string and AppRunningContext instance.
+/// Represents application event, app ID, and process ID.
 class _AppEventContext {
-  /// Creates an instance of [_AppEventContext] with event string and AppRunningContext instance.
-  _AppEventContext({required this.event, required this.context});
-
-  /// The event string.
+  _AppEventContext({
+    required this.event,
+    required this.appId,
+    required this.processId,
+  });
   final String event;
-
-  /// The AppRunningContext instance.
-  final AppRunningContext context;
+  final String appId;
+  final int processId;
 }
 
 /// The application event page widget.
@@ -280,13 +280,23 @@ class _AppsEventScreenState extends State<_AppsEventScreen> {
     _subscriptions
         .add(AppManager.onAppLaunched.listen((AppRunningContext event) {
       setState(() {
-        _events.add(_AppEventContext(event: 'launched', context: event));
+        _events.add(_AppEventContext(
+          event: 'launched',
+          appId: event.appId,
+          processId: event.processId,
+        ));
+        event.dispose();
       });
     }));
     _subscriptions
         .add(AppManager.onAppTerminated.listen((AppRunningContext event) {
       setState(() {
-        _events.add(_AppEventContext(event: 'terminated', context: event));
+        _events.add(_AppEventContext(
+          event: 'terminated',
+          appId: event.appId,
+          processId: event.processId,
+        ));
+        event.dispose();
       });
     }));
   }
@@ -394,9 +404,9 @@ class _AppContext extends StatelessWidget {
     return Column(
       children: <Widget>[
         ListTile(
-          title: Text(appEventContext.context.appId),
+          title: Text(appEventContext.appId),
           subtitle: Text(
-              'event: ${appEventContext.event}, pid: ${appEventContext.context.processId}'),
+              'event: ${appEventContext.event}, pid: ${appEventContext.processId}'),
         ),
         const Divider()
       ],

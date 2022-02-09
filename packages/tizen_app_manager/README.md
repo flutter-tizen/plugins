@@ -55,11 +55,15 @@ void initState() {
 
   subscriptions.add(AppManager.onAppLaunched
       .listen((AppRunningContext event) {
-      // Got a launched app context.
+      // Handle the launched app context object and dispose it.
+      ...
+      context.dispose();
   }));
   subscriptions.add(AppManager.onAppTerminated
       .listen((AppRunningContext event) {
-      // Got a terminated app context.
+      // Handle the terminated app context object and dispose it.
+      ...
+      context.dispose();
   }));
 }
 

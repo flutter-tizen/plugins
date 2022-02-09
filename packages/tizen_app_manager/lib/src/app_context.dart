@@ -24,38 +24,15 @@ typedef _AppContextDestroy = Int32 Function(Pointer<_ContextHandle>);
 
 class _ContextHandle extends Opaque {}
 
-const int tizenErrorNone = 0;
-const int tizenErrorIOError = -5;
-const int tizenErrorOutOfMemory = -12;
-const int tizenErrorPermissionDenied = -13;
-const int tizenErrorInvalidParameter = -22;
-const int tizenErrorUnknown = -1073741824;
-const int tizenErrorNotSupported = -1073741824 + 2;
-const int tizenErrorApplicationManager = -0x01110000;
-const int appManagerErrorNoSuchApp = tizenErrorApplicationManager | 0x01;
-const int appManagerErrorDBFailed = tizenErrorApplicationManager | 0x03;
-const int appManagerErrorInvalidPackage = tizenErrorApplicationManager | 0x04;
-const int appManagerErrorAppNoRunning = tizenErrorApplicationManager | 0x05;
-const int appManagerErrorRequestFailed = tizenErrorApplicationManager | 0x06;
+typedef _GetErrorMessageNative = Pointer<Utf8> Function(Int32);
+typedef _GetErrorMessage = Pointer<Utf8> Function(int);
 
-const Map<int, String> _errorCodes = <int, String>{
-  tizenErrorNone: 'APP_MANAGER_ERROR_NONE',
-  tizenErrorIOError: 'APP_MANAGER_ERROR_IO_ERROR',
-  tizenErrorOutOfMemory: 'APP_MANAGER_ERROR_OUT_OF_MEMORY',
-  tizenErrorPermissionDenied: 'APP_MANAGER_ERROR_PERMISSION_DENIED',
-  tizenErrorInvalidParameter: 'APP_MANAGER_ERROR_INVALID_PARAMETER',
-  tizenErrorUnknown: 'APP_MANAGER_ERROR_IO_ERROR ',
-  tizenErrorNotSupported: 'APP_MANAGER_ERROR_NOT_SUPPORTED ',
-  appManagerErrorNoSuchApp: 'appManagerErrorNoSuchApp',
-  appManagerErrorDBFailed: 'appManagerErrorDBFailed',
-  appManagerErrorInvalidPackage: 'appManagerErrorInvalidPackage',
-  appManagerErrorAppNoRunning: 'appManagerErrorAppNoRunning',
-  appManagerErrorRequestFailed: 'appManagerErrorRequestFailed',
-};
+final DynamicLibrary _libBaseCommon =
+    DynamicLibrary.open('libcapi-base-common.so.0');
 
-String _getErrorCode(int returnCode) => _errorCodes.containsKey(returnCode)
-    ? _errorCodes[returnCode]!
-    : '$returnCode';
+final _GetErrorMessage getErrorMessage =
+    _libBaseCommon.lookupFunction<_GetErrorMessageNative, _GetErrorMessage>(
+        'get_error_message');
 
 _AppManager? _appManagerInstance;
 _AppManager get appManager => _appManagerInstance ??= _AppManager();
@@ -120,8 +97,8 @@ class AppContext {
         final ret = appManager.getAppContext(pAppId, pHandle);
         if (ret != 0) {
           throw PlatformException(
-            message: 'Failed to excute app_manager_get_app_context $appId',
-            code: _getErrorCode(ret),
+            code: ret.toString(),
+            message: getErrorMessage(ret).toDartString(),
           );
         }
         _handle = pHandle.value;
@@ -144,8 +121,8 @@ class AppContext {
       _handle = nullptr;
       if (ret != 0) {
         throw PlatformException(
-          message: 'Failed to excute app_context_destroy',
-          code: _getErrorCode(ret),
+          code: ret.toString(),
+          message: getErrorMessage(ret).toDartString(),
         );
       }
     }
@@ -158,8 +135,8 @@ class AppContext {
       final ret = appManager.appIsRunning(pAppId, out);
       if (ret != 0) {
         throw PlatformException(
-          message: 'Failed to excute app_manager_is_running $_appId',
-          code: _getErrorCode(ret),
+          code: ret.toString(),
+          message: getErrorMessage(ret).toDartString(),
         );
       }
 
@@ -171,54 +148,54 @@ class AppContext {
   }
 
   String getPackageId() {
-    final Pointer<Pointer<Utf8>> packageIdP = malloc();
+    final Pointer<Pointer<Utf8>> pPackageId = malloc();
     try {
       _checkHandle();
-      final ret = appManager.getPackageId(_handle, packageIdP);
+      final ret = appManager.getPackageId(_handle, pPackageId);
       if (ret != 0) {
         throw PlatformException(
-          message: 'Failed to excute app_context_get_package_id',
-          code: _getErrorCode(ret),
+          code: ret.toString(),
+          message: getErrorMessage(ret).toDartString(),
         );
       }
 
-      return packageIdP.value.toDartString();
+      return pPackageId.value.toDartString();
     } finally {
-      malloc.free(packageIdP);
+      malloc.free(pPackageId);
     }
   }
 
   int getProcessId() {
-    final Pointer<Int32> processIdP = malloc();
+    final Pointer<Int32> pProcessId = malloc();
     try {
       _checkHandle();
-      final ret = appManager.getProcessId(_handle, processIdP);
+      final ret = appManager.getProcessId(_handle, pProcessId);
       if (ret != 0) {
         throw PlatformException(
-          message: 'Failed to execute app_context_get_pid',
-          code: _getErrorCode(ret),
+          code: ret.toString(),
+          message: getErrorMessage(ret).toDartString(),
         );
       }
-      return processIdP.value;
+      return pProcessId.value;
     } finally {
-      malloc.free(processIdP);
+      malloc.free(pProcessId);
     }
   }
 
   int getAppState() {
-    final Pointer<Int32> stateP = malloc();
+    final Pointer<Int32> pState = malloc();
     try {
       _checkHandle();
-      final ret = appManager.getAppState(_handle, stateP);
+      final ret = appManager.getAppState(_handle, pState);
       if (ret != 0) {
         throw PlatformException(
-          message: 'Failed to excute app_context_get_app_state',
-          code: _getErrorCode(ret),
+          code: ret.toString(),
+          message: getErrorMessage(ret).toDartString(),
         );
       }
-      return stateP.value;
+      return pState.value;
     } finally {
-      malloc.free(stateP);
+      malloc.free(pState);
     }
   }
 
@@ -227,8 +204,8 @@ class AppContext {
     final ret = appManager.terminateApp(_handle);
     if (ret != 0) {
       throw PlatformException(
-        message: 'Failed to excute app_manager_terminate_app',
-        code: _getErrorCode(ret),
+        code: ret.toString(),
+        message: getErrorMessage(ret).toDartString(),
       );
     }
   }
@@ -238,8 +215,8 @@ class AppContext {
     final ret = appManager.resumeApp(_handle);
     if (ret != 0) {
       throw PlatformException(
-        message: 'Failed to excute app_manager_resume_app',
-        code: _getErrorCode(ret),
+        code: ret.toString(),
+        message: getErrorMessage(ret).toDartString(),
       );
     }
   }

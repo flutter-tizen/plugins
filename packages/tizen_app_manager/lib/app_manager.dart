@@ -135,7 +135,7 @@ class AppInfo {
   final String executablePath;
 
   /// The path of shared resource.
-  final String? sharedResourcePath;
+  final String sharedResourcePath;
 
   /// The value of app icon is displayed.
   final bool isNoDisplay;
@@ -152,7 +152,7 @@ class AppInfo {
       appType: map['type'] as String,
       iconPath: map['iconPath'] as String?,
       executablePath: map['executablePath'] as String,
-      sharedResourcePath: map['sharedResourcePath'] as String?,
+      sharedResourcePath: map['sharedResourcePath'] as String,
       isNoDisplay: map['isNoDisplay'] as bool,
       metadata: map['metadata'] as Map<dynamic, dynamic>,
     );
@@ -185,8 +185,8 @@ class AppRunningContext {
 
   /// Creates an instance of [AppRunningContext] with map.
   static AppRunningContext fromMap(dynamic map) {
-    final String appId = map['appId'] as String? ?? '';
-    final int handle = map['handle'] as int? ?? 0;
+    final String appId = map['appId'] as String;
+    final int handle = map['handle'] as int;
     return AppRunningContext(appId: appId, handleAddress: handle);
   }
 
