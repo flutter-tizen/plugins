@@ -37,6 +37,8 @@
   - packages/share_plus/**/*
 'p: tizen_app_control':
   - packages/tizen_app_control/**/*
+'p: tizen_audio_manager':
+  - packages/tizen_audio_manager/**/*
 'p: tizen_log':
   - packages/tizen_log/**/*
 'p: url_launcher':
