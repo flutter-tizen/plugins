@@ -114,6 +114,8 @@ void TizenAppManagerPlugin::UnregisterObserver() {
     app_manager_unset_app_context_event_cb();
     m_registered_event_cb = false;
   }
+  m_launch_events = nullptr;
+  m_terminate_events = nullptr;
 }
 
 void TizenAppManagerPlugin::GetCurrentId(MethodResultPtr result) {
