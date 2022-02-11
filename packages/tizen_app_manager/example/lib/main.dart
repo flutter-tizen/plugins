@@ -261,8 +261,8 @@ class _AppsEventScreen extends StatefulWidget {
 
 class _AppsEventScreenState extends State<_AppsEventScreen> {
   final List<_AppEventContext> _events = <_AppEventContext>[];
-  final List<StreamSubscription<dynamic>> _subscriptions =
-      <StreamSubscription<dynamic>>[];
+  final List<StreamSubscription<AppRunningContext>> _subscriptions =
+      <StreamSubscription<AppRunningContext>>[];
   String _appId = settingAppId;
 
   @override
