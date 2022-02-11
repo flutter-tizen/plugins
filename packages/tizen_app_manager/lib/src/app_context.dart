@@ -1,8 +1,8 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: always_specify_types, public_member_api_docs
+// ignore_for_file: public_member_api_docs
 
 import 'dart:ffi';
 
@@ -25,21 +25,19 @@ typedef _AppContextDestroy = Int32 Function(Pointer<_ContextHandle>);
 class _ContextHandle extends Opaque {}
 
 typedef _GetErrorMessageNative = Pointer<Utf8> Function(Int32);
-typedef _GetErrorMessage = Pointer<Utf8> Function(int);
-
 final DynamicLibrary _libBaseCommon =
     DynamicLibrary.open('libcapi-base-common.so.0');
 
-final _GetErrorMessage getErrorMessage =
-    _libBaseCommon.lookupFunction<_GetErrorMessageNative, _GetErrorMessage>(
-        'get_error_message');
+final Pointer<Utf8> Function(int) getErrorMessage = _libBaseCommon
+    .lookup<NativeFunction<_GetErrorMessageNative>>('get_error_message')
+    .asFunction();
 
 _AppManager? _appManagerInstance;
 _AppManager get appManager => _appManagerInstance ??= _AppManager();
 
 class _AppManager {
   _AppManager() {
-    final libAppMananger =
+    final DynamicLibrary libAppMananger =
         DynamicLibrary.open('libcapi-appfw-app-manager.so.0');
     getAppContext = libAppMananger
         .lookup<NativeFunction<_AppManagerGetAppContext>>(
@@ -84,17 +82,16 @@ class _AppManager {
 }
 
 class AppContext {
-  AppContext(String appId, int handleAddress) {
+  AppContext(String appId, int handleAddress) : _appId = appId {
     if (appId.isEmpty) {
       throw ArgumentError('Must not be empty', 'appId');
     }
 
-    _appId = appId;
     if (handleAddress == 0) {
       final Pointer<Pointer<_ContextHandle>> pHandle = malloc();
-      final pAppId = appId.toNativeUtf8();
+      final Pointer<Utf8> pAppId = appId.toNativeUtf8();
       try {
-        final ret = appManager.getAppContext(pAppId, pHandle);
+        final int ret = appManager.getAppContext(pAppId, pHandle);
         if (ret != 0) {
           throw PlatformException(
             code: ret.toString(),
@@ -108,16 +105,16 @@ class AppContext {
       }
     } else {
       // if have app_context_h
-      _handle = Pointer.fromAddress(handleAddress);
+      _handle = Pointer<_ContextHandle>.fromAddress(handleAddress);
     }
   }
 
-  Pointer<_ContextHandle> _handle = nullptr;
-  late String _appId;
+  late Pointer<_ContextHandle> _handle;
+  final String _appId;
 
   void destroy() {
     if (_handle != nullptr) {
-      final ret = appManager.destroyContext(_handle);
+      final int ret = appManager.destroyContext(_handle);
       _handle = nullptr;
       if (ret != 0) {
         throw PlatformException(
@@ -129,10 +126,10 @@ class AppContext {
   }
 
   bool isAppRunning() {
-    final Pointer<Int8> out = malloc();
-    final pAppId = _appId.toNativeUtf8();
+    final Pointer<Int8> pOut = malloc();
+    final Pointer<Utf8> pAppId = _appId.toNativeUtf8();
     try {
-      final ret = appManager.appIsRunning(pAppId, out);
+      final int ret = appManager.appIsRunning(pAppId, pOut);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -140,10 +137,10 @@ class AppContext {
         );
       }
 
-      return out.value != 0;
+      return pOut.value != 0;
     } finally {
       malloc.free(pAppId);
-      malloc.free(out);
+      malloc.free(pOut);
     }
   }
 
@@ -151,7 +148,7 @@ class AppContext {
     final Pointer<Pointer<Utf8>> pPackageId = malloc();
     try {
       _checkHandle();
-      final ret = appManager.getPackageId(_handle, pPackageId);
+      final int ret = appManager.getPackageId(_handle, pPackageId);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -169,7 +166,7 @@ class AppContext {
     final Pointer<Int32> pProcessId = malloc();
     try {
       _checkHandle();
-      final ret = appManager.getProcessId(_handle, pProcessId);
+      final int ret = appManager.getProcessId(_handle, pProcessId);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -186,7 +183,7 @@ class AppContext {
     final Pointer<Int32> pState = malloc();
     try {
       _checkHandle();
-      final ret = appManager.getAppState(_handle, pState);
+      final int ret = appManager.getAppState(_handle, pState);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -201,7 +198,7 @@ class AppContext {
 
   void terminate() {
     _checkHandle();
-    final ret = appManager.terminateApp(_handle);
+    final int ret = appManager.terminateApp(_handle);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -212,7 +209,7 @@ class AppContext {
 
   void resume() {
     _checkHandle();
-    final ret = appManager.resumeApp(_handle);
+    final int ret = appManager.resumeApp(_handle);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),

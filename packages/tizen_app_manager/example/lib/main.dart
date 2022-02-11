@@ -1,4 +1,4 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -10,13 +10,13 @@ import 'package:flutter/services.dart';
 import 'package:tizen_app_control/app_control.dart';
 import 'package:tizen_app_manager/app_manager.dart';
 
-/// The settings app ID
+/// The settings app ID.
 const String settingAppId = 'org.tizen.setting';
 
-/// The wearable emulator settings app ID
+/// The wearable emulator settings app ID.
 const String wearbleSettingAppId = 'org.tizen.watch-setting';
 
-/// The tv emulator volume setting app ID
+/// The tv emulator volume setting app ID.
 const String tvVolumeSettingAppId = 'org.tizen.volume-setting';
 
 /// The main entry point for the UI app.
@@ -164,9 +164,7 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Current application info'),
-      ),
+      appBar: AppBar(title: const Text('Current application info')),
       body: ListView(
         children: <Widget>[
           _infoTile('App ID', _appId),
@@ -198,9 +196,7 @@ class _AppsListScreenState extends State<_AppsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Applications list'),
-      ),
+      appBar: AppBar(title: const Text('Applications list')),
       body: _AppsListScreenContent(key: GlobalKey()),
     );
   }
@@ -230,9 +226,7 @@ class _AppsListScreenContent extends StatelessWidget {
                       subtitle: Text('Package Id: ${app.packageId}\n'
                           'App type: ${app.appType}\n'),
                     ),
-                    const Divider(
-                      height: 1.0,
-                    )
+                    const Divider(height: 1.0)
                   ],
                 );
               },
@@ -275,7 +269,7 @@ class _AppsEventScreenState extends State<_AppsEventScreen> {
   void initState() {
     super.initState();
 
-    _getDeviceInfos();
+    _getDeviceInfo();
 
     _subscriptions
         .add(AppManager.onAppLaunched.listen((AppRunningContext event) {
@@ -305,60 +299,60 @@ class _AppsEventScreenState extends State<_AppsEventScreen> {
   Widget build(BuildContext context) {
     final PageController controller = PageController(initialPage: 0);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('application context events'),
-      ),
+      appBar: AppBar(title: const Text('application context events')),
       body: PageView(
-          scrollDirection: Axis.horizontal,
-          controller: controller,
-          children: <Widget>[
-            Center(
-              child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      final AppControl appControl = AppControl(appId: _appId);
-                      await appControl.sendLaunchRequest();
-                    } catch (e) {
-                      // ignore: avoid_print
-                      print('$_appId launch request failed : $e');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10))),
-                  child: Text('launch $_appId'),
+        scrollDirection: Axis.horizontal,
+        controller: controller,
+        children: <Widget>[
+          Center(
+            child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    final AppControl appControl = AppControl(appId: _appId);
+                    await appControl.sendLaunchRequest();
+                  } catch (e) {
+                    // ignore: avoid_print
+                    print('$_appId launch request failed : $e');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
-              ]),
-            ),
-            Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                Visibility(
-                  visible: _events.isNotEmpty,
-                  child: _EventsList(events: _events),
-                ),
-                Visibility(
-                  visible: _events.isEmpty,
-                  child: const _EmptyList(),
-                )
-              ],
-            ),
-          ]),
+                child: Text('launch $_appId'),
+              ),
+            ]),
+          ),
+          Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              Visibility(
+                visible: _events.isNotEmpty,
+                child: _EventsList(events: _events),
+              ),
+              Visibility(
+                visible: _events.isEmpty,
+                child: const _EmptyList(),
+              )
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   @override
   void dispose() {
-    // ignore: always_specify_types
-    for (final StreamSubscription s in _subscriptions) {
-      s.cancel();
+    for (final StreamSubscription<AppRunningContext> subscription
+        in _subscriptions) {
+      subscription.cancel();
     }
     _subscriptions.clear();
     super.dispose();
   }
 
-  Future<void> _getDeviceInfos() async {
+  Future<void> _getDeviceInfo() async {
     final DeviceInfoPluginTizen deviceInfo = DeviceInfoPluginTizen();
     final TizenDeviceInfo tizenInfo = await deviceInfo.tizenInfo;
     setState(() {
@@ -384,9 +378,7 @@ class _EventsList extends StatelessWidget {
         itemBuilder: (BuildContext context, int position) {
           return KeyedSubtree(
               key: Key('$position'),
-              child: _AppContext(
-                appEventContext: _events.elementAt(position),
-              ));
+              child: _AppContext(appEventContext: _events.elementAt(position)));
         },
         itemCount: _events.length,
       ),

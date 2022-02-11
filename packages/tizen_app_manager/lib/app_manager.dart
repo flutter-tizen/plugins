@@ -31,7 +31,7 @@ enum AppState {
 /// application ID and [AppInfo] instance of the specific application and
 /// the event of an application launched and terminated.
 ///
-/// For detail information on Tizen's application manager, see:
+/// For detailed information on Tizen's application manager, see:
 /// https://docs.tizen.org/application/dotnet/guides/app-management/app-manager/
 class AppManager {
   AppManager._();
@@ -44,14 +44,14 @@ class AppManager {
   static const EventChannel _terminateEventChannel =
       EventChannel('tizen/app_manager/terminate_event');
 
-  /// Gets the app id of current running app.
+  /// The app ID of the currently running app.
   static Future<String> get currentAppId async {
     final String appId =
         await _channel.invokeMethod<String>('getCurrentAppId') ?? '';
     return appId;
   }
 
-  /// Gets the information of current running app.
+  /// Gets the information of app specified by the [appId].
   static Future<AppInfo> getAppInfo(String appId) async {
     if (appId.isEmpty) {
       throw ArgumentError('Must not be empty', 'appId');
@@ -64,7 +64,7 @@ class AppManager {
     return AppInfo.fromMap(map);
   }
 
-  /// Gets the information of all app installed on a device.
+  /// Gets the information of all apps installed on a device.
   static Future<List<AppInfo>> getInstalledApps() async {
     final List<dynamic>? apps =
         await _channel.invokeMethod<List<dynamic>>('getInstalledApps');
@@ -101,7 +101,7 @@ class AppManager {
       .map((dynamic map) => AppRunningContext.fromMap(map));
 }
 
-/// Represents a information of specific application.
+/// Represents general information on an installed application.
 class AppInfo {
   /// Creates an instance of [AppInfo] with the given parameters.
   AppInfo({
@@ -131,13 +131,13 @@ class AppInfo {
   /// The path of the icon image.
   final String? iconPath;
 
-  /// The path of application executable.
+  /// The path to the application executable directory.
   final String executablePath;
 
-  /// The path of shared resource.
+  /// The path to the shared resource directory.
   final String sharedResourcePath;
 
-  /// The value of app icon is displayed.
+  /// Whether the app icon is displayed in the app tray.
   final bool isNoDisplay;
 
   /// The metadata of the application.
@@ -190,9 +190,10 @@ class AppRunningContext {
     return AppRunningContext(appId: appId, handleAddress: handle);
   }
 
-  /// Release all resource used by the AppRunningContext class.
+  /// Releases all resources associated with this object.
   ///
-  /// Note that dispose() must be called if AppRunningContext doesn't use longer.
+  /// Note that [dispose] must be called on an instance of [AppRunningContext]
+  /// after use.
   void dispose() {
     _context.destroy();
   }

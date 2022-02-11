@@ -55,15 +55,15 @@ void initState() {
 
   subscriptions.add(AppManager.onAppLaunched
       .listen((AppRunningContext event) {
-      // Handle the launched app context object and dispose it.
+      // Handle the launched event.
       ...
-      context.dispose();
+      event.dispose();
   }));
   subscriptions.add(AppManager.onAppTerminated
       .listen((AppRunningContext event) {
-      // Handle the terminated app context object and dispose it.
+      // Handle the terminated event.
       ...
-      context.dispose();
+      event.dispose();
   }));
 }
 
@@ -78,7 +78,7 @@ void dispose() {
 
 ## Required privileges
 
-Privileges be required to perform `resume()` in `AppRunningContext` class. Add required privileges in `tizen-manifest.xml` of your application.
+The following privilege is required to invoke `AppRunningContext.resume()`. Add required privileges in `tizen-manifest.xml` of your application.
 
 ```xml
 <privileges>
