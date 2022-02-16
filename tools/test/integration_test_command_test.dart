@@ -40,13 +40,13 @@ void main() {
   });
 
   group('conflicting options: ', () {
-    test('does not allow --platforms with --recipe', () async {
+    test('does not allow --profiles with --recipe', () async {
       Error? commandError;
       final List<String> output = await runCapturingPrint(
         commandRunner,
         <String>[
           command.name,
-          '--platforms',
+          '--profiles',
           'tv-6.0',
           '--recipe',
           'recipe.yaml',
@@ -60,12 +60,12 @@ void main() {
       expect(
         output,
         containsAllInOrder(
-          <Matcher>[contains('Cannot specify both --platforms and --recipe.')],
+          <Matcher>[contains('Cannot specify both --profiles and --recipe.')],
         ),
       );
     });
 
-    test('--generate-emulators requires either --platforms or --recipe',
+    test('--generate-emulators requires either --profiles or --recipe',
         () async {
       Error? commandError;
       final List<String> output = await runCapturingPrint(
@@ -83,7 +83,7 @@ void main() {
       expect(
         output,
         containsAllInOrder(<Matcher>[
-          contains('Either --platforms or --recipe must be '
+          contains('Either --profiles or --recipe must be '
               'provided with --generate-emulators.')
         ]),
       );
