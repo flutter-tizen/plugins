@@ -2,20 +2,18 @@ name: package_info_plus_tizen
 description: Tizen implementation of the package_info_plus plugin
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/package_info_plus
-version: 1.0.1
+version: 1.0.2
 
 flutter:
   plugin:
     platforms:
       tizen:
-        dartPluginClass: PackageInfoPlugin
         pluginClass: PackageInfoPlusTizenPlugin
         fileName: package_info_plus_tizen_plugin.h
 
 dependencies:
   flutter:
     sdk: flutter
-  package_info_plus: ^1.3.0
   package_info_plus_platform_interface: ^1.0.2
 
 dev_dependencies:
