@@ -128,7 +128,7 @@ class AppInfo {
   /// The type of the application, such as `capp`, `dotnet`.
   final String appType;
 
-  /// The path of the icon image.
+  /// The path to the icon image.
   final String? iconPath;
 
   /// The path to the application executable directory.

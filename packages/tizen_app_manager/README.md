@@ -47,19 +47,20 @@ var appContext = AppRunningContext(appId: appId);
 You can listen for app state change by subscribing to the stream.
 
 ```dart
-final List<StreamSubscription<dynamic>> subscriptions = [];
+final List<StreamSubscription<AppRunningContext>> _subscriptions =
+      <StreamSubscription<AppRunningContext>>[];
 
 @override
 void initState() {
   super.initState();
 
-  subscriptions.add(AppManager.onAppLaunched
+  _subscriptions.add(AppManager.onAppLaunched
       .listen((AppRunningContext event) {
       // Handle the launched event.
       ...
       event.dispose();
   }));
-  subscriptions.add(AppManager.onAppTerminated
+  _subscriptions.add(AppManager.onAppTerminated
       .listen((AppRunningContext event) {
       // Handle the terminated event.
       ...
@@ -71,8 +72,8 @@ void initState() {
 void dispose() {
   super.dispose();
 
-  subscriptions.forEach((StreamSubscription s) => s.cancel());
-  subscriptions.clear();
+  _subscriptions.forEach((StreamSubscription subscription) => subscription.cancel());
+  _subscriptions.clear();
 }
 ```
 
