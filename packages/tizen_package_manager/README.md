@@ -24,7 +24,7 @@ var packageInfo = await PackageManager.getPackageInfo(packageId);
 
 ### Retriving all package info
 
-To retrive all package info for installed packages on a Tizen device, use `getInstalledApps` method.
+To retrieve information of all packages installed on a Tizen device, use `getPackagesInfo` method.
 
 ```dart
 var packageList = await PackageManager.getPackagesInfo();
@@ -72,10 +72,12 @@ void dispose() {
 
 ## Required privileges
 
-To enable your application to use the package manager functionality. Add required privileges in tizen-manifest.xml of your application.
+Privileges are required to use the package manager functionality. Add required privileges in tizen-manifest.xml of your application.
 
 ```xml
 <privileges>
   <privilege>http://tizen.org/privilege/packagemanager.info</privilege>
+  <!-- The below is optional for install/uninstall and platform privilge -->
+  <privilege>http://tizen.org/privilege/packagemanager.admin</privilege>
 </privileges>
 ```
