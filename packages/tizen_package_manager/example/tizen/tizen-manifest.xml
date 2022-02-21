@@ -9,6 +9,5 @@
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <privileges>
         <privilege>http://tizen.org/privilege/packagemanager.info</privilege>
-        <privilege>http://tizen.org/privilege/packagemanager.admin</privilege>
     </privileges>
 </manifest>

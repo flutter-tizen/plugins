@@ -1,5 +1,6 @@
 name: tizen_package_manager_example
 description: Demonstrates how to use the tizen_package_manager plugin.
+version: 1.0.0
 publish_to: 'none' 
 
 environment:
