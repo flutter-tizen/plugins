@@ -8,7 +8,7 @@ dependencies:
   image_picker: ^0.8.4+3
   image_picker_tizen:
     path: ../../image_picker/
-  share_plus: ^3.0.4
+  share_plus: ^3.0.5
   share_plus_tizen:
     path: ../
 

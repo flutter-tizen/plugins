@@ -10,8 +10,8 @@ To use this plugin, add `share_plus` and `share_plus_tizen` as [dependencies in 
 
 ```yaml
 dependencies:
-  share_plus: ^3.0.4
-  share_plus_tizen: ^1.1.0
+  share_plus: ^3.0.5
+  share_plus_tizen: ^1.1.1
 ```
 
 Then you can import `share_plus` in your Dart code.

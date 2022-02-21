@@ -4,7 +4,6 @@
 
 import 'dart:ui';
 
-import 'package:share_plus/share_plus.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:tizen_app_control/app_control.dart';
 
@@ -12,11 +11,6 @@ import 'package:tizen_app_control/app_control.dart';
 class SharePlugin extends SharePlatform {
   /// Registers this class as the default instance of [SharePlatform].
   static void register() {
-    // Remove this line once https://github.com/fluttercommunity/plus_plugins/pull/574
-    // is released.
-    // ignore: invalid_use_of_visible_for_testing_member
-    Share.disableSharePlatformOverride = true;
-
     SharePlatform.instance = SharePlugin();
   }
 
