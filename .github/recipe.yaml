@@ -14,6 +14,7 @@ plugins:
   sqflite: ["wearable-5.5", "tv-6.0"]
   tizen_app_manager: ["wearable-5.5", "tv-6.0"]
   tizen_audio_manager: ["wearable-5.5", "tv-6.0"]
+  tizen_package_manager: ["wearable-5.5", "tv-6.0"]
   wakelock: ["wearable-5.5"]
 
   # Not supported by emulators.

@@ -8,8 +8,7 @@ import 'package:flutter/services.dart';
 
 /// Enumeration for the package type.
 enum PackageType {
-  /// A special meaning type to represent the Tizen application package
-  /// which is installed using the RPM spec.
+  /// A special application package installed using the RPM spec.
   /// Only some preloaded packages can have this type.
   rpm,
 
@@ -97,8 +96,8 @@ class PackageManager {
 
     final List<PackageInfo> list = <PackageInfo>[];
     if (packages != null) {
-      for (final dynamic pkg in packages) {
-        list.add(PackageInfo.fromMap(pkg));
+      for (final dynamic package in packages) {
+        list.add(PackageInfo.fromMap(package));
       }
     }
     return list;
@@ -155,7 +154,7 @@ class PackageManager {
       .map((dynamic event) => PackageEvent.fromMap(event));
 }
 
-/// Represents a information of specific package.
+/// Represents information of specific package.
 class PackageInfo {
   /// Creates an instance of [PackageInfo] with the given parameters.
   PackageInfo({
