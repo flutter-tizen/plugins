@@ -15,7 +15,7 @@ dependencies:
 
 ### Retrieving specific package info
 
-To retrieve information of a specific package, use the `getPackageInfo` method which returns an instance of  `PackageInfo`.
+To retrieve information of a specific package, use the `getPackageInfo` method which returns an instance of `PackageInfo`.
 
 ```dart
 var packageId = 'org.tizen.settings';
