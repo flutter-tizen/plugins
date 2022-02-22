@@ -42,13 +42,13 @@ enum PackageEventType {
 
 /// Enumeration for the package manager event state.
 enum PackageEventState {
-  ///	Processing started.
+  /// Processing started.
   started,
 
   /// Processing state.
   processing,
 
-  ///	Processing completed.
+  /// Processing completed.
   completed,
 
   /// Processing failed.
@@ -59,7 +59,7 @@ enum PackageEventState {
 /// This information includes the pacakge name, label, path of icon, version,
 /// type and installed storage.
 ///
-/// For detailed information on Tizen's application manager, see:
+/// For detailed information on Tizen's Package Manager, see:
 /// https://docs.tizen.org/application/dotnet/guides/app-management/package-manager/
 class PackageManager {
   PackageManager._();

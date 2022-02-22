@@ -15,14 +15,14 @@ dependencies:
 
 ### Retrieving specific package info
 
-To retrieve information for the specific package,  get `PackageInfo` with `getPackageInfo` method.
+To retrieve information of a specific package, use the `getPackageInfo` method which returns an instance of  `PackageInfo`.
 
 ```dart
 var packageId = 'org.tizen.settings';
 var packageInfo = await PackageManager.getPackageInfo(packageId);
 ```
 
-### Retriving all package info
+### Retrieving all packages' info
 
 To retrieve information of all packages installed on a Tizen device, use `getPackagesInfo` method.
 
@@ -35,39 +35,15 @@ for (var package  in packageList) {
 
 ### Monitoring package events
 
-You can listen for package events by subscribing to the stream.
+You can listen for package events using `PackageManager.onInstallProgressChanged`, `PackageManager.onUninstallProgressChanged`, and `PackageManager.onUpdateProgressChanged`.
 
 ```dart
-  final List<StreamSubscription<PackageEvent>> _subscriptions =
-      <StreamSubscription<PackageEvent>>[];
+_subscription = PackageManager.onInstallProgressChanged
+    .listen((PackageEvent event) {
+      // A package is being installed.
+});
 
-@override
-void initState() {
-  super.initState();
-
-  _subscriptions.add(PackageManager.onInstallProgressChanged
-      .listen((PackageEvent event) {
-      // Got a installed package event.
-  }));
-  _subscriptions.add(PackageManager.onUninstallProgressChanged
-      .listen((PackageEvent event) {
-      // Got a uninstalled package event.
-  }));
-  _subscriptions.add(PackageManager.onUpdateProgressChanged
-      .listen((PackageEvent event) {
-      // Got a updated package event.
-  }));
-}
-
-@override
-void dispose() {
-  for (final StreamSubscription<PackageEvent> subscription
-      in _subscriptions) {
-    subscription.cancel();
-  }
-  _subscriptions.clear();
-  super.dispose();
-}
+_subscription.cancel();
 ```
 
 ## Required privileges

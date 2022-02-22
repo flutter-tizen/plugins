@@ -98,20 +98,14 @@ class _CurrentPackageInfoScreenState extends State<_CurrentPackageInfoScreen> {
   @override
   void initState() {
     super.initState();
-    _initApplicationsInfo();
-  }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> _initApplicationsInfo() async {
-    PackageInfo? packageInfo;
-
-    packageInfo = await PackageManager.getPackageInfo(currentPackageId);
-
-    setState(() {
-      if (packageInfo != null) {
-        _packageInfo = packageInfo;
-      }
-    });
+    PackageManager.getPackageInfo(currentPackageId).then(
+      (PackageInfo packageInfo) {
+        setState(() {
+          _packageInfo = packageInfo;
+        });
+      },
+    );
   }
 
   Widget _infoTile(String title, String subtitle) {
@@ -150,7 +144,7 @@ class _PackagesListScreenState extends State<_PackagesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(' Packages list')),
+      appBar: AppBar(title: const Text(' Package list')),
       body: _PackagesListScreenContent(key: GlobalKey()),
     );
   }
