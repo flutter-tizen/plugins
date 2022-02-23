@@ -93,8 +93,8 @@ int GetPackageData(package_info_h package_info, flutter::EncodableMap &value) {
       flutter::EncodableValue(std::string(pkg_name));
   value[flutter::EncodableValue("label")] =
       flutter::EncodableValue(std::string(label));
-  value[flutter::EncodableValue("label")] =
-      flutter::EncodableValue(std::string(label));
+  value[flutter::EncodableValue("type")] =
+      flutter::EncodableValue(std::string(type));
   value[flutter::EncodableValue("version")] =
       flutter::EncodableValue(std::string(version));
   value[flutter::EncodableValue("installedStorageType")] =
@@ -105,7 +105,7 @@ int GetPackageData(package_info_h package_info, flutter::EncodableMap &value) {
       flutter::EncodableValue(is_preloaded);
   value[flutter::EncodableValue("isRemovable")] =
       flutter::EncodableValue(is_removable);
-  if (icon_path != nullptr) {
+  if (icon_path) {
     value[flutter::EncodableValue("iconPath")] =
         flutter::EncodableValue(std::string(icon_path));
   }

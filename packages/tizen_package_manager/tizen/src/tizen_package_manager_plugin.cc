@@ -12,7 +12,7 @@ const char kPackageTypeTpk[] = "tpk";
 const char kPackageTypeWgt[] = "wgt";
 
 static bool PackageInfoCB(package_info_h package_info, void *user_data) {
-  if (package_info != nullptr) {
+  if (package_info) {
     TizenPackageManagerPlugin *plugin = (TizenPackageManagerPlugin *)user_data;
     flutter::EncodableMap value;
     int ret = package_manager_utils::GetPackageData(package_info, value);
@@ -49,13 +49,13 @@ static void PackageEventCB(const char *type, const char *package,
   msg[flutter::EncodableValue("progress")] = flutter::EncodableValue(progress);
 
   if (event_type == PACKAGE_MANAGER_EVENT_TYPE_INSTALL &&
-      plugin->install_events_ != nullptr) {
+      plugin->install_events_) {
     plugin->install_events_->Success(flutter::EncodableValue(msg));
   } else if (event_type == PACKAGE_MANAGER_EVENT_TYPE_UNINSTALL &&
-             plugin->uninstall_events_ != nullptr) {
+             plugin->uninstall_events_) {
     plugin->uninstall_events_->Success(flutter::EncodableValue(msg));
   } else if (event_type == PACKAGE_MANAGER_EVENT_TYPE_UPDATE &&
-             plugin->update_events_ != nullptr) {
+             plugin->update_events_) {
     plugin->update_events_->Success(flutter::EncodableValue(msg));
   }
 }
