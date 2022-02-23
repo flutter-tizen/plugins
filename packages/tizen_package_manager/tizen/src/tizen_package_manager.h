@@ -20,13 +20,11 @@ class TizenPackageManagerPlugin : public flutter::Plugin {
 
   virtual ~TizenPackageManagerPlugin();
 
-  flutter::EncodableList m_packages;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_install_events;
+  flutter::EncodableList packages_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> install_events_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
-      m_uninstall_events;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_update_events;
-  bool m_registered_event_cb;
-  int m_registered_cnt;
+      uninstall_events_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> update_events_;
 
  private:
   void HandleMethodCall(
@@ -44,7 +42,9 @@ class TizenPackageManagerPlugin : public flutter::Plugin {
                  MethodResultPtr result);
   void SetupChannels(flutter::PluginRegistrar *registrar);
 
-  package_manager_h m_package_manager_h;
+  bool is_event_callback_registered_;
+  int registered_cnt_;
+  package_manager_h package_manager_h_;
 };
 
 #endif

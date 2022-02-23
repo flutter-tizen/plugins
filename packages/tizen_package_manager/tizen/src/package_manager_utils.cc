@@ -89,27 +89,26 @@ int GetPackageData(package_info_h package_info, flutter::EncodableMap &value) {
     goto cleanup;
   }
 
-  value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "packageId", std::string(pkg_name)));
-  value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "label", std::string(label)));
-  value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "type", std::string(type)));
+  value[flutter::EncodableValue("packageId")] =
+      flutter::EncodableValue(std::string(pkg_name));
+  value[flutter::EncodableValue("label")] =
+      flutter::EncodableValue(std::string(label));
+  value[flutter::EncodableValue("label")] =
+      flutter::EncodableValue(std::string(label));
+  value[flutter::EncodableValue("version")] =
+      flutter::EncodableValue(std::string(version));
+  value[flutter::EncodableValue("installedStorageType")] =
+      flutter::EncodableValue(StorageTypeToString(installed_storage_type));
+  value[flutter::EncodableValue("isSystem")] =
+      flutter::EncodableValue(is_system);
+  value[flutter::EncodableValue("isPreloaded")] =
+      flutter::EncodableValue(is_preloaded);
+  value[flutter::EncodableValue("isRemovable")] =
+      flutter::EncodableValue(is_removable);
   if (icon_path != nullptr) {
-    value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "iconPath", std::string(icon_path)));
+    value[flutter::EncodableValue("iconPath")] =
+        flutter::EncodableValue(std::string(icon_path));
   }
-  value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "version", std::string(version)));
-  value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "installedStorageType",
-      std::string(StorageTypeToString(installed_storage_type))));
-  value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "isSystem", is_system));
-  value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "isPreloaded", is_preloaded));
-  value.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "isRemovable", is_removable));
 
 cleanup:
   if (pkg_name) {

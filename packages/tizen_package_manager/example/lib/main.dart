@@ -142,7 +142,7 @@ class _PackagesListScreenState extends State<_PackagesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(' Package list')),
+      appBar: AppBar(title: const Text('Package list')),
       body: _PackagesListScreenContent(key: GlobalKey()),
     );
   }

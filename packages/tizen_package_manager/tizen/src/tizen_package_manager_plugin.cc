@@ -17,7 +17,7 @@ static bool PackageInfoCB(package_info_h package_info, void *user_data) {
     flutter::EncodableMap value;
     int ret = package_manager_utils::GetPackageData(package_info, value);
     if (ret == PACKAGE_MANAGER_ERROR_NONE) {
-      plugin->m_packages.push_back(flutter::EncodableValue(value));
+      plugin->packages_.push_back(flutter::EncodableValue(value));
     }
     return true;
   }
@@ -38,36 +38,32 @@ static void PackageEventCB(const char *type, const char *package,
 
   TizenPackageManagerPlugin *plugin = (TizenPackageManagerPlugin *)user_data;
   flutter::EncodableMap msg;
-
-  msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "packageId", std::string(package)));
-  msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "type", std::string(type)));
-  msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "eventType",
-      package_manager_utils::PacakgeEventTypeToString(event_type)));
-  msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "eventState",
-      package_manager_utils::PacakgeEventStateToString(event_state)));
-  msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "progress", progress));
+  msg[flutter::EncodableValue("packageId")] =
+      flutter::EncodableValue(std::string(package));
+  msg[flutter::EncodableValue("type")] =
+      flutter::EncodableValue(std::string(type));
+  msg[flutter::EncodableValue("eventType")] = flutter::EncodableValue(
+      package_manager_utils::PacakgeEventTypeToString(event_type));
+  msg[flutter::EncodableValue("eventState")] = flutter::EncodableValue(
+      package_manager_utils::PacakgeEventStateToString(event_state));
+  msg[flutter::EncodableValue("progress")] = flutter::EncodableValue(progress);
 
   if (event_type == PACKAGE_MANAGER_EVENT_TYPE_INSTALL &&
-      plugin->m_install_events != nullptr) {
-    plugin->m_install_events->Success(flutter::EncodableValue(msg));
+      plugin->install_events_ != nullptr) {
+    plugin->install_events_->Success(flutter::EncodableValue(msg));
   } else if (event_type == PACKAGE_MANAGER_EVENT_TYPE_UNINSTALL &&
-             plugin->m_uninstall_events != nullptr) {
-    plugin->m_uninstall_events->Success(flutter::EncodableValue(msg));
+             plugin->uninstall_events_ != nullptr) {
+    plugin->uninstall_events_->Success(flutter::EncodableValue(msg));
   } else if (event_type == PACKAGE_MANAGER_EVENT_TYPE_UPDATE &&
-             plugin->m_update_events != nullptr) {
-    plugin->m_update_events->Success(flutter::EncodableValue(msg));
+             plugin->update_events_ != nullptr) {
+    plugin->update_events_->Success(flutter::EncodableValue(msg));
   }
 }
 
 TizenPackageManagerPlugin::TizenPackageManagerPlugin()
-    : m_registered_event_cb(false),
-      m_registered_cnt(0),
-      m_package_manager_h(nullptr) {}
+    : is_event_callback_registered_(false),
+      registered_cnt_(0),
+      package_manager_h_(nullptr) {}
 
 TizenPackageManagerPlugin::~TizenPackageManagerPlugin() {
   UnregisterObserver();
@@ -103,8 +99,8 @@ void TizenPackageManagerPlugin::RegisterObserver(
   int ret = PACKAGE_MANAGER_ERROR_NONE;
   LOG_INFO("RegisterObserver");
 
-  if (m_package_manager_h == nullptr) {
-    ret = package_manager_create(&m_package_manager_h);
+  if (package_manager_h_ == nullptr) {
+    ret = package_manager_create(&package_manager_h_);
     if (ret != PACKAGE_MANAGER_ERROR_NONE) {
       char *err_msg = get_error_message(ret);
       LOG_ERROR("Failed package_manager_create : %s", err_msg);
@@ -114,11 +110,11 @@ void TizenPackageManagerPlugin::RegisterObserver(
     }
   }
 
-  package_manager_set_event_status(m_package_manager_h,
+  package_manager_set_event_status(package_manager_h_,
                                    PACKAGE_MANAGER_STATUS_TYPE_INSTALL |
                                        PACKAGE_MANAGER_STATUS_TYPE_UNINSTALL |
                                        PACKAGE_MANAGER_STATUS_TYPE_UPGRADE);
-  ret = package_manager_set_event_cb(m_package_manager_h, PackageEventCB,
+  ret = package_manager_set_event_cb(package_manager_h_, PackageEventCB,
                                      (void *)this);
   if (ret != PACKAGE_MANAGER_ERROR_NONE) {
     char *err_msg = get_error_message(ret);
@@ -126,25 +122,25 @@ void TizenPackageManagerPlugin::RegisterObserver(
     events->Error("Failed to add callback", std::string(err_msg));
     return;
   }
-  m_registered_event_cb = true;
+  is_event_callback_registered_ = true;
 }
 
 void TizenPackageManagerPlugin::UnregisterObserver() {
   LOG_INFO("UnregisterObserver");
-  if (m_registered_event_cb == true && m_package_manager_h != nullptr) {
-    int ret = package_manager_unset_event_cb(m_package_manager_h);
+  if (is_event_callback_registered_ && package_manager_h_) {
+    int ret = package_manager_unset_event_cb(package_manager_h_);
     if (ret != PACKAGE_MANAGER_ERROR_NONE) {
       LOG_ERROR("Failed package_manager_unset_event_cb : %s",
                 get_error_message(ret));
     }
 
-    package_manager_destroy(m_package_manager_h);
-    m_package_manager_h = nullptr;
-    m_registered_event_cb = false;
+    package_manager_destroy(package_manager_h_);
+    package_manager_h_ = nullptr;
+    is_event_callback_registered_ = false;
   }
-  m_install_events = nullptr;
-  m_uninstall_events = nullptr;
-  m_update_events = nullptr;
+  install_events_ = nullptr;
+  uninstall_events_ = nullptr;
+  update_events_ = nullptr;
 }
 
 void TizenPackageManagerPlugin::SetupChannels(
@@ -158,17 +154,17 @@ void TizenPackageManagerPlugin::SetupChannels(
     this->HandleMethodCall(call, std::move(result));
   });
 
-  auto m_install_event_channel =
+  auto install_event_channel =
       std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
           registrar->messenger(), "tizen/package_manager/install_event",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto m_uninstall_event_channel =
+  auto uninstall_event_channel =
       std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
           registrar->messenger(), "tizen/package_manager/uninstall_event",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto m_update_event_channel =
+  auto update_event_channel =
       std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
           registrar->messenger(), "tizen/package_manager/update_event",
           &flutter::StandardMethodCodec::GetInstance());
@@ -179,21 +175,21 @@ void TizenPackageManagerPlugin::SetupChannels(
                  std::unique_ptr<flutter::EventSink<>> &&events)
               -> std::unique_ptr<flutter::StreamHandlerError<>> {
             LOG_INFO("OnListen install");
-            m_install_events = std::move(events);
-            if (m_registered_cnt == 0) {
+            install_events_ = std::move(events);
+            if (registered_cnt_ == 0) {
               this->RegisterObserver(std::move(events));
             }
-            m_registered_cnt++;
+            registered_cnt_++;
             return nullptr;
           },
           [this](const flutter::EncodableValue *arguments)
               -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            m_registered_cnt--;
+            registered_cnt_--;
             LOG_INFO("OnCancel install");
-            if (m_registered_cnt == 0) {
+            if (registered_cnt_ == 0) {
               this->UnregisterObserver();
             }
-            m_install_events = nullptr;
+            install_events_ = nullptr;
             return nullptr;
           });
 
@@ -203,21 +199,21 @@ void TizenPackageManagerPlugin::SetupChannels(
                  std::unique_ptr<flutter::EventSink<>> &&events)
               -> std::unique_ptr<flutter::StreamHandlerError<>> {
             LOG_INFO("OnListen uninstall");
-            m_uninstall_events = std::move(events);
-            if (m_registered_cnt == 0) {
+            uninstall_events_ = std::move(events);
+            if (registered_cnt_ == 0) {
               this->RegisterObserver(std::move(events));
             }
-            m_registered_cnt++;
+            registered_cnt_++;
             return nullptr;
           },
           [this](const flutter::EncodableValue *arguments)
               -> std::unique_ptr<flutter::StreamHandlerError<>> {
             LOG_INFO("OnCancel uninstall");
-            m_registered_cnt--;
-            if (m_registered_cnt == 0) {
+            registered_cnt_--;
+            if (registered_cnt_ == 0) {
               this->UnregisterObserver();
             }
-            m_uninstall_events = nullptr;
+            uninstall_events_ = nullptr;
             return nullptr;
           });
 
@@ -227,29 +223,29 @@ void TizenPackageManagerPlugin::SetupChannels(
                  std::unique_ptr<flutter::EventSink<>> &&events)
               -> std::unique_ptr<flutter::StreamHandlerError<>> {
             LOG_INFO("OnListen update");
-            m_update_events = std::move(events);
-            if (m_registered_cnt == 0) {
+            update_events_ = std::move(events);
+            if (registered_cnt_ == 0) {
               this->RegisterObserver(std::move(events));
             }
-            m_registered_cnt++;
+            registered_cnt_++;
             return nullptr;
           },
           [this](const flutter::EncodableValue *arguments)
               -> std::unique_ptr<flutter::StreamHandlerError<>> {
             LOG_INFO("OnCancel update");
-            m_registered_cnt--;
-            if (m_registered_cnt == 0) {
+            registered_cnt_--;
+            if (registered_cnt_ == 0) {
               this->UnregisterObserver();
             }
-            m_update_events = nullptr;
+            update_events_ = nullptr;
             return nullptr;
           });
 
-  m_install_event_channel->SetStreamHandler(
+  install_event_channel->SetStreamHandler(
       std::move(install_event_channel_handler));
-  m_uninstall_event_channel->SetStreamHandler(
+  uninstall_event_channel->SetStreamHandler(
       std::move(uninstall_event_channel_handler));
-  m_update_event_channel->SetStreamHandler(
+  update_event_channel->SetStreamHandler(
       std::move(update_event_channel_handler));
 }
 
@@ -294,7 +290,7 @@ cleanup:
 
 void TizenPackageManagerPlugin::GetAllPackagesInfo(MethodResultPtr result) {
   LOG_INFO("GetAllPackagesInfo()");
-  m_packages.erase(m_packages.begin(), m_packages.end());
+  packages_.erase(packages_.begin(), packages_.end());
   int ret = package_manager_foreach_package_info(PackageInfoCB, (void *)this);
   if (ret != PACKAGE_MANAGER_ERROR_NONE) {
     char *err_msg = get_error_message(ret);
@@ -303,7 +299,7 @@ void TizenPackageManagerPlugin::GetAllPackagesInfo(MethodResultPtr result) {
                   "package_manager_foreach_package_info error.",
                   flutter::EncodableValue(std::string(err_msg)));
   }
-  result->Success(flutter::EncodableValue(m_packages));
+  result->Success(flutter::EncodableValue(packages_));
 }
 
 void TizenPackageManagerPlugin::Install(

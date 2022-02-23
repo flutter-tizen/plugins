@@ -35,14 +35,13 @@ for (var package in packageList) {
 
 ### Monitoring package events
 
-You can listen for package events using `PackageManager.onInstallProgressChanged`, `PackageManager.onUninstallProgressChanged`, and `PackageManager.onUpdateProgressChanged`.
+You can listen for package events using `onInstallProgressChanged`, `onUninstallProgressChanged`, and `onUpdateProgressChanged`.
 
 ```dart
-_subscription = PackageManager.onInstallProgressChanged
-    .listen((PackageEvent event) {
-      // A package is being installed.
+_subscription = PackageManager.onInstallProgressChanged.listen((event) {
+  // A package is being installed.
 });
-
+...
 _subscription.cancel();
 ```
 
