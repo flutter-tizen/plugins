@@ -28,7 +28,7 @@ To retrieve information of all packages installed on a Tizen device, use `getPac
 
 ```dart
 var packageList = await PackageManager.getPackagesInfo();
-for (var package  in packageList) {
+for (var package in packageList) {
   // Handle each package's info.
 }
 ```
