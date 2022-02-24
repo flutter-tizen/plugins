@@ -9,8 +9,9 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
+import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 
-import 'syncable_process_runner.dart';
+import 'process_runner_apis.dart';
 import 'tizen_sdk.dart';
 
 export 'package:flutter_plugin_tools/src/common/package_looping_command.dart'
@@ -27,7 +28,7 @@ class Device {
     this.name,
     this.profile, {
     required TizenSdk tizenSdk,
-    SyncableProcessRunner processRunner = const SyncableProcessRunner(),
+    ProcessRunner processRunner = const ProcessRunner(),
   })  : _tizenSdk = tizenSdk,
         _processRunner = processRunner;
 
@@ -38,7 +39,7 @@ class Device {
     String name,
     Profile profile, {
     required TizenSdk tizenSdk,
-    SyncableProcessRunner processRunner = const SyncableProcessRunner(),
+    ProcessRunner processRunner = const ProcessRunner(),
   }) {
     final Device device = Device._(
       name,
@@ -61,7 +62,7 @@ class Device {
     String name,
     Profile profile, {
     required TizenSdk tizenSdk,
-    SyncableProcessRunner processRunner = const SyncableProcessRunner(),
+    ProcessRunner processRunner = const ProcessRunner(),
   }) {
     return EmulatorDevice(
       name,
@@ -81,7 +82,7 @@ class Device {
 
   String? _id;
 
-  final SyncableProcessRunner _processRunner;
+  final ProcessRunner _processRunner;
 
   /// The unqiue identifier assigned to a connected device.
   String? get id => _id;
@@ -196,7 +197,7 @@ class EmulatorDevice extends Device {
     String name,
     Profile profile, {
     required TizenSdk tizenSdk,
-    SyncableProcessRunner processRunner = const SyncableProcessRunner(),
+    ProcessRunner processRunner = const ProcessRunner(),
   }) {
     final EmulatorDevice emulatorDevice = EmulatorDevice._(
       name,
@@ -213,7 +214,7 @@ class EmulatorDevice extends Device {
     String name,
     Profile profile, {
     required TizenSdk tizenSdk,
-    SyncableProcessRunner processRunner = const SyncableProcessRunner(),
+    ProcessRunner processRunner = const ProcessRunner(),
   }) : super._(
           name,
           profile,

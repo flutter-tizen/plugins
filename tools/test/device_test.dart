@@ -8,13 +8,13 @@ import 'dart:io';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
+import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:flutter_tizen_plugin_tools/src/device.dart';
-import 'package:flutter_tizen_plugin_tools/src/syncable_process_runner.dart';
 import 'package:flutter_tizen_plugin_tools/src/tizen_sdk.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-class MockProcessRunner extends Mock implements SyncableProcessRunner {}
+class MockProcessRunner extends Mock implements ProcessRunner {}
 
 class MockProcess extends Mock implements Process {}
 
@@ -22,7 +22,7 @@ class MockTizenSdk extends Mock implements TizenSdk {}
 
 void main() {
   group('log test:', () {
-    late SyncableProcessRunner processRunner;
+    late ProcessRunner processRunner;
     late Device device;
     late FileSystem fileSystem;
     late Process process;

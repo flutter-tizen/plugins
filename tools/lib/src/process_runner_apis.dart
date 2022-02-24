@@ -1,23 +1,14 @@
-// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
+
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 
-/// A class used to run processes synchronously.
-///
-/// We extend [ProcessRunner] to stub behaviors in tests.
-class SyncableProcessRunner extends ProcessRunner {
-  /// Creates a new syncable process runner.
-  const SyncableProcessRunner();
-
-  /// Run the [executable] with [args].
+/// An extension method of [ProcessRunner] to supports synchronous operations.
+extension Synchronizable on ProcessRunner {
+  /// Runs the [executable] with [args].
   ///
   /// This is synchronous version of [run].
   ///

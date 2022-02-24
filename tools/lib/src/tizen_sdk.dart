@@ -8,9 +8,10 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
+import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import 'syncable_process_runner.dart';
+import 'process_runner_apis.dart';
 
 /// A data type that holds information such as id and status of
 /// a connected device.
@@ -138,14 +139,14 @@ class Profile {
 class TizenSdk {
   TizenSdk._(
     this._sdkRoot, {
-    SyncableProcessRunner processRunner = const SyncableProcessRunner(),
+    ProcessRunner processRunner = const ProcessRunner(),
   }) : _processRunner = processRunner;
 
   /// Finds the Tizen sdk's installed directory and
   /// returns an instance of [TizenSdk].
   static TizenSdk locateTizenSdk({
     FileSystem fileSystem = const LocalFileSystem(),
-    SyncableProcessRunner processRunner = const SyncableProcessRunner(),
+    ProcessRunner processRunner = const ProcessRunner(),
   }) {
     Directory? tizenHomeDir;
     final Map<String, String> environment = io.Platform.environment;
@@ -176,7 +177,7 @@ class TizenSdk {
 
   static const String _kTizenSdk = 'TIZEN_SDK';
 
-  final SyncableProcessRunner _processRunner;
+  final ProcessRunner _processRunner;
 
   final Directory _sdkRoot;
 
@@ -252,7 +253,7 @@ class TizenSdk {
 ///
 /// Returns `null` if emulator [name] is not running.
 String? findEmulatorPid(String name) {
-  const SyncableProcessRunner processRunner = SyncableProcessRunner();
+  const ProcessRunner processRunner = ProcessRunner();
   // TODO(HakkyuKim): Support Windows.
   final io.ProcessResult result = processRunner.runSync('ps', <String>['aux']);
 
