@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:file/file.dart';
@@ -84,19 +85,29 @@ class Profile {
   ///
   /// To see all supported device types, see [DeviceType].
   static Profile fromString(String value) {
-    final RegExp regExp = RegExp(DeviceType.values.join('|'));
-    final RegExpMatch? match = regExp.firstMatch(value);
-    if (match == null) {
+    if (value.isEmpty) {
+      throw ArgumentError('The given profile string is empty.', 'value');
+    }
+    final List<String> segments = value.split('-');
+    final String typeString = segments[0].toLowerCase();
+    final String versionString = segments[1];
+
+    DeviceType? matchingDeviceType;
+    for (final DeviceType deviceType in DeviceType.values) {
+      if (typeString == deviceType.toString()) {
+        matchingDeviceType = deviceType;
+        break;
+      }
+    }
+    if (matchingDeviceType == null) {
       throw ArgumentError(
           'Profile string must start with one of ${DeviceType.values}.',
           'value');
     }
-    final DeviceType deviceType =
-        DeviceType.fromString(value.substring(match.start, match.end));
     Version? version;
-    if (value.length >= match.end && value[match.end] == '-') {
+    if (versionString.isNotEmpty) {
       try {
-        final List<String> segments = value.substring(match.end + 1).split('.');
+        final List<String> segments = versionString.split('.');
         while (segments.length < 3) {
           segments.add('0');
         }
@@ -107,7 +118,7 @@ class Profile {
             'value');
       }
     }
-    return Profile(deviceType, version);
+    return Profile(matchingDeviceType, version);
   }
 
   /// Tizen device type.
@@ -117,9 +128,10 @@ class Profile {
   final Version? version;
 
   @override
-  String toString() =>
-      deviceType.toString() +
-      (version == null ? '' : '-${version.toString().substring(0, 3)}');
+  String toString() {
+    return deviceType.toString() +
+        (version == null ? '' : '-${version.toString().substring(0, 3)}');
+  }
 }
 
 /// A class that provides some of Tizen SDK's functionalities.
@@ -191,15 +203,25 @@ class TizenSdk {
 
     final List<SdbDeviceInfo> deviceInfos = <SdbDeviceInfo>[];
     final List<String> lines =
-        (result.stdout as String).trim().split('\n').sublist(1);
+        LineSplitter.split((result.stdout as String).trim()).toList();
+
     for (final String line in lines) {
-      final List<String> tokens = line.split(RegExp(r'\s+'));
+      if (line.startsWith('List of devices')) {
+        continue;
+      }
+
+      final List<String> tokens = line.split(RegExp(r'\s{2,}|\t'));
+      if (tokens.length != 3) {
+        continue;
+      }
+
       deviceInfos.add(SdbDeviceInfo(
         id: tokens[0],
         status: tokens[1],
         name: tokens[2],
       ));
     }
+
     return deviceInfos;
   }
 
@@ -213,7 +235,8 @@ class TizenSdk {
     }
 
     final Map<String, String> capabilities = <String, String>{};
-    final List<String> lines = (result.stdout as String).trim().split('\n');
+    final List<String> lines =
+        LineSplitter.split((result.stdout as String).trim()).toList();
     for (final String line in lines) {
       final int index = line.indexOf(':');
       final String key = line.substring(0, index).trim();
@@ -225,7 +248,7 @@ class TizenSdk {
   }
 }
 
-/// Returns the pid(process id) of a running emulator instance [name].
+/// Returns the pid (process id) of a running emulator instance [name].
 ///
 /// Returns `null` if emulator [name] is not running.
 String? findEmulatorPid(String name) {
@@ -237,11 +260,10 @@ String? findEmulatorPid(String name) {
     throw ToolExit(1);
   }
 
-  final List<String> lines = (result.stdout as String)
-      .trim()
-      .split('\n')
-      .map((String line) => line.trim())
-      .toList();
+  final List<String> lines =
+      LineSplitter.split((result.stdout as String).trim())
+          .map((String line) => line.trim())
+          .toList();
 
   for (final String line in lines) {
     if (line.contains('emulator-x86_64') && line.contains(name)) {

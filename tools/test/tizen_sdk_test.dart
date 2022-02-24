@@ -23,8 +23,8 @@ void main() {
   });
 
   test('throws argument exception on invalid profile string.', () {
+    expect(() => Profile.fromString(''), throwsArgumentError);
     expect(() => Profile.fromString('wear'), throwsArgumentError);
-    expect(() => Profile.fromString('wearable-'), throwsArgumentError);
     expect(() => Profile.fromString('tv-3xx'), throwsArgumentError);
   });
 }

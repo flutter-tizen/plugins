@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 
+import 'package:args/args.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
@@ -33,20 +34,20 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     argParser.addMultiOption(
       _profilesArg,
       help: 'Profiles to run integration test on. (ex: wearable-5.5)\n'
-          'The command will select devices that match given profiles and they '
-          'will be used to test all plugins. If you wish to run different '
-          'profiles for each plugin, use $_recipeArg instead.',
+          'The command will select all matching profile devices for each '
+          'plugin. If you wish to set profiles individually for each plugin, '
+          'use --$_recipeArg instead.',
       valueHelp: 'device_type-platform_version',
     );
     argParser.addOption(
       _recipeArg,
-      help: 'The recipe file path. A recipe refers to a yaml file that defines '
+      help: 'The recipe file path. A recipe refers to a YAML file that defines '
           'a list of profiles to test for each plugin.\n'
           'Pass this file if you want to select specific profiles to test '
           'for different plugins. Every package listed in the recipe file '
           'will be recognized by the tool(same as $_packagesArg option) '
           'and those that specify an empty list will be explicitly excluded'
-          '(same as $_excludeArg option). If $_recipeArg is used, '
+          '(same as $_excludeArg option). If --$_recipeArg is used, '
           '$_packagesArg and $_excludeArg options will be ignored.\n\n'
           'plugins:\n'
           '  a: [wearable-5.5, tv-6.0]\n'
@@ -92,22 +93,25 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   // object that subclasses [PackageLoopingCommand].
   @override
   Future<PackageResult> runForPackage(RepositoryPackage package) async {
-    if (argResults!.wasParsed(_profilesArg) &&
-        argResults!.wasParsed(_recipeArg)) {
-      print('Cannot specify both --$_profilesArg and --$_recipeArg.');
-      throw ToolExit(exitInvalidArguments);
+    // Copied to local variable to enable non-nullable type promotion.
+    final ArgResults? args = argResults;
+    if (args != null) {
+      if (args.wasParsed(_profilesArg) && args.wasParsed(_recipeArg)) {
+        print('Cannot specify both --$_profilesArg and --$_recipeArg.');
+        throw ToolExit(exitInvalidArguments);
+      }
+
+      if (args.wasParsed(_generateEmulatorsArg) &&
+          !args.wasParsed(_profilesArg) &&
+          !args.wasParsed(_recipeArg)) {
+        print('Either --$_profilesArg or --$_recipeArg must be '
+            'provided with --$_generateEmulatorsArg.');
+        throw ToolExit(exitInvalidArguments);
+      }
     }
 
-    if (argResults!.wasParsed(_generateEmulatorsArg) &&
-        !argResults!.wasParsed(_profilesArg) &&
-        !argResults!.wasParsed(_recipeArg)) {
-      print('Either --$_profilesArg or --$_recipeArg must be '
-          'provided with --$_generateEmulatorsArg.');
-      throw ToolExit(exitInvalidArguments);
-    }
-
-    final int? seconds = int.tryParse(getStringArg(_timeoutArg));
-    if (seconds == null) {
+    final int? timeoutInSeconds = int.tryParse(getStringArg(_timeoutArg));
+    if (timeoutInSeconds == null) {
       print('Must specify an integer value for --$_timeoutArg.');
       throw ToolExit(exitCommandFoundErrors);
     }
@@ -137,7 +141,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
               'Skipped by recipe: ${package.displayName}.');
         }
       } on YamlException {
-        print('Invalid yaml file.');
+        print('Invalid YAML file.');
         throw ToolExit(exitCommandFoundErrors);
       }
     }
@@ -188,7 +192,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       for (final Device device in devices) {
         final PackageResult packageResult = await device.runIntegrationTest(
           example.directory,
-          Duration(seconds: seconds),
+          Duration(seconds: timeoutInSeconds),
         );
         if (packageResult.state == RunState.failed) {
           errors.addAll(packageResult.details);

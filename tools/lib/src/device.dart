@@ -48,7 +48,7 @@ class Device {
     );
     device._id = device._findId();
     if (device._id == null) {
-      throw Exception('$name($profile)\'s id is null.'
+      throw Exception('$name($profile)\'s id is null. '
           'Physical device references must be connected to host PC.');
     }
     return device;
@@ -62,18 +62,19 @@ class Device {
     Profile profile, {
     required TizenSdk tizenSdk,
     SyncableProcessRunner processRunner = const SyncableProcessRunner(),
-  }) =>
-      EmulatorDevice(
-        name,
-        profile,
-        tizenSdk: tizenSdk,
-        processRunner: processRunner,
-      );
+  }) {
+    return EmulatorDevice(
+      name,
+      profile,
+      tizenSdk: tizenSdk,
+      processRunner: processRunner,
+    );
+  }
 
   /// The name of the device.
   final String name;
 
-  /// A profile of the device.
+  /// The profile of the device.
   final Profile profile;
 
   final TizenSdk _tizenSdk;
@@ -240,10 +241,11 @@ class EmulatorDevice extends Device {
     if (result.exitCode != 0) {
       throw ToolExit(result.exitCode);
     }
-    final List<String> emulatorNames = (result.stdout as String)
-        .split('\n')
-        .map((String name) => name.trim())
-        .toList();
+
+    final List<String> emulatorNames =
+        LineSplitter.split((result.stdout as String).trim())
+            .map((String name) => name.trim())
+            .toList();
     return emulatorNames.contains(name);
   }
 
@@ -263,14 +265,18 @@ class EmulatorDevice extends Device {
         break;
     }
     await _processRunner.runAndStream(
-        _tizenSdk.emCli.path, <String>['create', '-n', name, '-p', platform],
-        exitOnError: true);
+      _tizenSdk.emCli.path,
+      <String>['create', '-n', name, '-p', platform],
+      exitOnError: true,
+    );
   }
 
   /// Deletes this emulator.
   Future<void> delete() async => await _processRunner.runAndStream(
-      _tizenSdk.emCli.path, <String>['delete', '-n', name],
-      exitOnError: true);
+        _tizenSdk.emCli.path,
+        <String>['delete', '-n', name],
+        exitOnError: true,
+      );
 
   /// Launches this emualtor.
   Future<void> launch() async {
@@ -279,8 +285,10 @@ class EmulatorDevice extends Device {
       return;
     }
     await _processRunner.runAndStream(
-        _tizenSdk.emCli.path, <String>['launch', '-n', name],
-        exitOnError: true);
+      _tizenSdk.emCli.path,
+      <String>['launch', '-n', name],
+      exitOnError: true,
+    );
 
     await _poll(() {
       final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
@@ -308,7 +316,11 @@ class EmulatorDevice extends Device {
       return;
     }
     // TODO(HakkyuKim): Support Windows.
-    await _processRunner.run('kill', <String>['-9', _pid!], exitOnError: true);
+    await _processRunner.run(
+      'kill',
+      <String>['-9', _pid!],
+      exitOnError: true,
+    );
 
     await _poll(() {
       final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
@@ -326,7 +338,7 @@ class EmulatorDevice extends Device {
   Future<void> _poll(
     FutureOr<bool> Function() function, {
     Duration interval = const Duration(seconds: 1),
-    Duration timeout = const Duration(seconds: 1000),
+    Duration timeout = const Duration(minutes: 10),
   }) async {
     final DateTime start = DateTime.now();
     while (DateTime.now().difference(start) <= timeout) {

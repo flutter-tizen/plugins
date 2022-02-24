@@ -32,12 +32,15 @@ class SyncableProcessRunner extends ProcessRunner {
   /// Defaults to `false`
   ///
   /// Returns the [io.ProcessResult] of the [executable].
-  io.ProcessResult runSync(String executable, List<String> args,
-      {Directory? workingDir,
-      bool exitOnError = false,
-      bool logOnError = false,
-      Encoding stdoutEncoding = io.systemEncoding,
-      Encoding stderrEncoding = io.systemEncoding}) {
+  io.ProcessResult runSync(
+    String executable,
+    List<String> args, {
+    Directory? workingDir,
+    bool exitOnError = false,
+    bool logOnError = false,
+    Encoding stdoutEncoding = io.systemEncoding,
+    Encoding stderrEncoding = io.systemEncoding,
+  }) {
     final io.ProcessResult result = io.Process.runSync(executable, args,
         workingDirectory: workingDir?.path,
         stdoutEncoding: stdoutEncoding,

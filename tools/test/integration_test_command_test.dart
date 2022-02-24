@@ -139,7 +139,7 @@ plugins:
       expect(
         output,
         containsAllInOrder(
-          <Matcher>[contains('Invalid yaml file.')],
+          <Matcher>[contains('Invalid YAML file.')],
         ),
       );
     });
