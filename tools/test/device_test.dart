@@ -26,7 +26,8 @@ void main() {
     late Device device;
     late FileSystem fileSystem;
     late Process process;
-    late StreamController<List<int>> controller;
+    late StreamController<String> controller;
+    late Completer<int> completer;
     late TizenSdk tizenSdk;
 
     const Duration timeoutLimit = Duration(seconds: 3);
@@ -35,9 +36,11 @@ void main() {
       processRunner = MockProcessRunner();
       fileSystem = MemoryFileSystem();
       process = MockProcess();
-      controller = StreamController<List<int>>();
-      when(() => process.stdout).thenAnswer((_) => controller.stream);
-      when(() => process.kill()).thenReturn(true);
+      controller = StreamController<String>();
+      completer = Completer<int>();
+      when(() => process.stdout).thenAnswer((_) =>
+          controller.stream.map<List<int>>((String event) => event.codeUnits));
+      when(() => process.exitCode).thenAnswer((_) => completer.future);
       when(() => processRunner.start(any(), any(),
               workingDirectory: any(named: 'workingDirectory')))
           .thenAnswer((_) => Future<Process>(() => process));
@@ -69,7 +72,7 @@ void main() {
     test('timeout when stdout doesn\'t finish.', () async {
       final Timer timer = Timer.periodic(
         const Duration(seconds: 1),
-        (Timer timer) => controller.add('some log'.codeUnits),
+        (Timer timer) => controller.add('some log'),
       );
       final PackageResult result = await device.runIntegrationTest(
         fileSystem.systemTempDirectory,
@@ -81,11 +84,12 @@ void main() {
     });
 
     test('correctly parses log \'No tests ran\'', () async {
-      Timer(
+      Future<void>.delayed(
         const Duration(seconds: 1),
         () {
-          controller.add('No tests ran'.codeUnits);
+          controller.add('No tests ran');
           controller.close();
+          completer.complete(0);
         },
       );
       final PackageResult result = await device.runIntegrationTest(
@@ -97,11 +101,12 @@ void main() {
     });
 
     test('correctly parses log \'No devices found\'', () async {
-      Timer(
+      Future<void>.delayed(
         const Duration(seconds: 1),
         () {
-          controller.add('No devices found'.codeUnits);
+          controller.add('No devices found');
           controller.close();
+          completer.complete(0);
         },
       );
       final PackageResult result = await device.runIntegrationTest(
@@ -115,11 +120,12 @@ void main() {
     });
 
     test('correctly parses log \'All tests passed!\'', () async {
-      Timer(
+      Future<void>.delayed(
         const Duration(seconds: 1),
         () {
-          controller.add('00:00 +0: All tests passed!'.codeUnits);
+          controller.add('00:00 +0: All tests passed!');
           controller.close();
+          completer.complete(0);
         },
       );
       final PackageResult result = await device.runIntegrationTest(
@@ -130,11 +136,12 @@ void main() {
     });
 
     test('correctly parses log \'Some tests failed\'', () async {
-      Timer(
+      Future<void>.delayed(
         const Duration(seconds: 1),
         () {
-          controller.add('00:00 +0 -1: Some tests failed'.codeUnits);
+          controller.add('00:00 +0 -1: Some tests failed');
           controller.close();
+          completer.complete(0);
         },
       );
       final PackageResult result = await device.runIntegrationTest(

@@ -138,6 +138,7 @@ class Device {
     );
 
     bool timedOut = false;
+    String lastLine = '';
     final Stream<String> streamLines = process.stdout
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
@@ -149,16 +150,14 @@ class Device {
       },
     );
 
-    String lastLine = '';
-    final DateTime start = DateTime.now();
+    await process.exitCode.timeout(timeout, onTimeout: () {
+      timedOut = true;
+      return 1;
+    });
+
     await for (final String line in streamLines) {
       lastLine = line;
-      io.stdout.add('$line\n'.codeUnits);
-      if (DateTime.now().difference(start) > timeout) {
-        process.kill();
-        timedOut = true;
-        break;
-      }
+      print(line);
     }
 
     final List<String> errors = <String>[];
