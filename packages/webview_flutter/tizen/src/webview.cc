@@ -4,8 +4,10 @@
 
 #include "webview.h"
 
+#include <app_common.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_texture_registrar.h>
+#include <system_info.h>
 #include <tbm_surface.h>
 
 #include <stdexcept>
@@ -135,6 +137,23 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
     }
   }
   return false;
+}
+
+bool needsSWBackend(void) {
+  bool result = false;
+  char* value;
+  int ret;
+  ret = system_info_get_platform_string("http://tizen.org/system/model_name",
+                                        &value);
+  if (ret == SYSTEM_INFO_ERROR_NONE) {
+    if (strcmp(value, "Emulator") == 0) {
+      result = true;
+    }
+  }
+  if (value) {
+    free(value);
+  }
+  return result;
 }
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
@@ -788,7 +807,8 @@ void WebView::InitWebView() {
           working_surface_ = nullptr;
         }
       },
-      false);
+      needsSWBackend());
+
 #ifndef TV_PROFILE
   auto settings = webview_instance_->GetSettings();
   settings.SetUserAgentString(
@@ -916,6 +936,47 @@ void WebView::HandleMethodCall(
     result->Success(flutter::EncodableValue(webview_instance_->GetScrollX()));
   } else if (method_name.compare("getScrollY") == 0) {
     result->Success(flutter::EncodableValue(webview_instance_->GetScrollY()));
+  } else if (method_name.compare("loadFlutterAsset") == 0) {
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string key = std::get<std::string>(arguments);
+      std::string path;
+      char* resPath = app_get_resource_path();
+      if (resPath) {
+        path = std::string("file://") + resPath + "flutter_assets/" + key;
+        free(resPath);
+        webview_instance_->LoadURL(path);
+        result->Success();
+        return;
+      }
+    }
+    result->Error("InvalidArguments", "Please set 'key' properly");
+  } else if (method_name.compare("loadHtmlString") == 0) {
+    std::string html;
+    std::string baseUrl;
+    if (!GetValueFromEncodableMap(arguments, "html", &html)) {
+      result->Error("InvalidArguments", "Please set 'html' properly");
+      return;
+    }
+    if (GetValueFromEncodableMap(arguments, "baseUrl", &baseUrl)) {
+      LOG_DEBUG(
+          "loadHtmlString : baseUrl is not yet supported. It will be "
+          "ignored.\n ");
+    }
+    webview_instance_->LoadData(html);
+    result->Success();
+  } else if (method_name.compare("loadFile") == 0) {
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string absoluteFilePath =
+          std::string("file://") + std::get<std::string>(arguments);
+      webview_instance_->LoadURL(absoluteFilePath);
+      result->Success();
+      return;
+    }
+    result->Error("InvalidArguments", "Please set 'absoluteFilePath' properly");
+  } else if (method_name.compare("loadRequest") == 0) {
+    result->NotImplemented();
+  } else if (method_name.compare("setCookie") == 0) {
+    result->NotImplemented();
   } else {
     result->NotImplemented();
   }
