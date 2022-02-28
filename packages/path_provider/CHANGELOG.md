@@ -1,17 +1,15 @@
-## 1.0.0
+## 2.0.2
 
-* Initial release.
+* Update path_provider to 2.0.7.
+* Unsupport `getDownloadsDirectory`.
+* Unskip skipped integration tests.
 
-## 1.0.1
+## 2.0.1
 
-* Update path_provider to 1.6.27.
-* Update path_provider_platform_interface to 1.0.4.
-* Remove permission_handler_tizen dependency temporarily.
-* Migrate to Tizen 4.0.
-
-## 1.0.2
-
-* Use `PlatformException` instead of a plugin-specific exception type.
+* Update path_provider to 2.0.2.
+* Remove permission_handler dependency.
+* Comment out integration tests that depend on permission_handler.
+* Migrate integration_test to null safety.
 
 ## 2.0.0
 
@@ -24,15 +22,17 @@
 * Migrate to ffi 1.0.0.
 * Migrate to null safety.
 
-## 2.0.1
+## 1.0.2
 
-* Update path_provider to 2.0.2.
-* Remove permission_handler dependency.
-* Comment out integration tests that depend on permission_handler.
-* Migrate integration_test to null safety.
+* Use `PlatformException` instead of a plugin-specific exception type.
 
-## 2.0.2
+## 1.0.1
 
-* Update path_provider to 2.0.7.
-* Unsupport `getDownloadsDirectory`.
-* Unskip skipped integration tests.
+* Update path_provider to 1.6.27.
+* Update path_provider_platform_interface to 1.0.4.
+* Remove permission_handler_tizen dependency temporarily.
+* Migrate to Tizen 4.0.
+
+## 1.0.0
+
+* Initial release.

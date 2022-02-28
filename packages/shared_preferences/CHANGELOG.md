@@ -1,12 +1,12 @@
-## 1.0.0
+## 2.0.2
 
-* Initial release.
+* Update shared_preferences to 2.0.9.
+* Switch to new analysis options.
+* Update integration_test.
 
-## 1.0.1
+## 2.0.1
 
-* Update shared_preferences to 0.5.12+4.
-* Update shared_preferences_platform_interface to 1.0.4.
-* Migrate to Tizen 4.0.
+* Fix memory leaks.
 
 ## 2.0.0
 
@@ -19,12 +19,12 @@
 * Migrate to null safety.
 * Remove unused `PreferenceIsExisiting` from the implementation.
 
-## 2.0.1
+## 1.0.1
 
-* Fix memory leaks.
+* Update shared_preferences to 0.5.12+4.
+* Update shared_preferences_platform_interface to 1.0.4.
+* Migrate to Tizen 4.0.
 
-## 2.0.2
+## 1.0.0
 
-* Update shared_preferences to 2.0.9.
-* Switch to new analysis options.
-* Update integration_test.
+* Initial release.
