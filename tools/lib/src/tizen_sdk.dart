@@ -23,11 +23,19 @@ class SdbDeviceInfo {
     required this.name,
   });
 
-  /// A unique string that identifies a running device.
+  /// The unique string that identifies a running device.
   final String id;
 
-  // TODO(HakkyuKim): Document possible values of [status].
-  /// Current connection state of the device.
+  /// The current connection state of the device.
+  ///
+  /// The most common states are:
+  ///   - device: The device is not connected to the sdb server.
+  ///   - offline: The device is not connected to sdb or is not responding.
+  ///   - unauthorized: USB debugging authorization is not granted.
+  ///   - unknown: Typically shown just before offline state when booting.
+  ///
+  /// All possible values are listed in the following link (internal Github):
+  /// https://github.sec.samsung.net/RS-TizenStudio/sdb/blob/e70c66edf390550a0c80dc98a3bc19550b832887/src/sdb_constants.c#L309
   final String status;
 
   /// The name of the device.
@@ -91,7 +99,8 @@ class Profile {
     }
     final List<String> segments = value.split('-');
     final String typeString = segments[0].toLowerCase();
-    final String versionString = segments[1];
+    final String? versionString =
+        segments.length >= 2 ? segments[1].trim() : null;
 
     DeviceType? matchingDeviceType;
     for (final DeviceType deviceType in DeviceType.values) {
@@ -106,7 +115,7 @@ class Profile {
           'value');
     }
     Version? version;
-    if (versionString.isNotEmpty) {
+    if (versionString != null && versionString.isNotEmpty) {
       try {
         final List<String> segments = versionString.split('.');
         while (segments.length < 3) {
@@ -130,8 +139,10 @@ class Profile {
 
   @override
   String toString() {
-    return deviceType.toString() +
-        (version == null ? '' : '-${version.toString().substring(0, 3)}');
+    if (version == null) {
+      return '$deviceType';
+    }
+    return '$deviceType-${version.toString().substring(0, 3)}';
   }
 }
 
@@ -261,10 +272,9 @@ String? findEmulatorPid(String name) {
     throw ToolExit(1);
   }
 
-  final List<String> lines =
-      LineSplitter.split((result.stdout as String).trim())
-          .map((String line) => line.trim())
-          .toList();
+  final List<String> lines = LineSplitter.split(result.stdout as String)
+      .map((String line) => line.trim())
+      .toList();
 
   for (final String line in lines) {
     if (line.contains('emulator-x86_64') && line.contains(name)) {

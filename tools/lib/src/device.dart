@@ -17,7 +17,7 @@ import 'tizen_sdk.dart';
 export 'package:flutter_plugin_tools/src/common/package_looping_command.dart'
     show PackageResult, RunState;
 
-/// A reference to a Tizen device(either physical or emulator) that can run
+/// A reference to a Tizen device (either physical or emulator) that can run
 /// Flutter applications.
 ///
 /// Physical devices are connected when they're connected to host PC either
@@ -138,27 +138,30 @@ class Device {
     );
 
     bool timedOut = false;
-    String lastLine = '';
     final Stream<String> streamLines = process.stdout
         .transform(const Utf8Decoder())
-        .transform(const LineSplitter())
-        .timeout(
+        .transform(const LineSplitter());
+
+    final Future<int> timedExitCode = process.exitCode.timeout(
       timeout,
-      onTimeout: (EventSink<String> sink) {
+      onTimeout: () {
         timedOut = true;
-        sink.close();
+        return 1;
       },
     );
 
-    await process.exitCode.timeout(timeout, onTimeout: () {
-      timedOut = true;
-      return 1;
-    });
-
-    await for (final String line in streamLines) {
-      lastLine = line;
-      print(line);
-    }
+    String lastLine = '';
+    final Completer<int> completer = Completer<int>();
+    streamLines.listen(
+      (String line) {
+        lastLine = line;
+        print(line);
+      },
+      onDone: () async => completer.complete(await timedExitCode),
+    );
+    // Waits for the done event as finishing `Process.exitCode` future does not 
+    // guarantee that all buffered outputs of the process have returned.
+    await completer.future;
 
     final List<String> errors = <String>[];
     if (timedOut) {
@@ -243,7 +246,7 @@ class EmulatorDevice extends Device {
     }
 
     final List<String> emulatorNames =
-        LineSplitter.split((result.stdout as String).trim())
+        LineSplitter.split(result.stdout as String)
             .map((String name) => name.trim())
             .toList();
     return emulatorNames.contains(name);

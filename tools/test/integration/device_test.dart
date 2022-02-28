@@ -21,20 +21,18 @@ Future<void> _checkSystemRequirements(String emulatorName) async {
   io.ProcessResult result = await io.Process.run(
       tizenSdk.emCli.absolute.path, <String>['list-platform']);
 
-  final List<String> platforms =
-      LineSplitter.split((result.stdout as String).trim())
-          .map((String token) => token.trim())
-          .toList();
+  final List<String> platforms = LineSplitter.split(result.stdout as String)
+      .map((String token) => token.trim())
+      .toList();
   if (!platforms.contains('wearable-5.5-circle-x86')) {
     throw Exception('Tizen wearable-5.5 emulator package is not installed.');
   }
 
   result =
       await io.Process.run(tizenSdk.emCli.absolute.path, <String>['list-vm']);
-  final List<String> names =
-      LineSplitter.split((result.stdout as String).trim())
-          .map((String token) => token.trim())
-          .toList();
+  final List<String> names = LineSplitter.split(result.stdout as String)
+      .map((String token) => token.trim())
+      .toList();
   if (names.contains(emulatorName)) {
     throw Exception('Emulator name used for test already exists: $emulatorName.'
         'Emulator name is randomly generated each test, rerun test to'
@@ -119,10 +117,9 @@ void main() {
 
     final io.ProcessResult result =
         await io.Process.run(tizenSdk.emCli.absolute.path, <String>['list-vm']);
-    final List<String> names =
-        LineSplitter.split((result.stdout as String).trim())
-            .map((String token) => token.trim())
-            .toList();
+    final List<String> names = LineSplitter.split(result.stdout as String)
+        .map((String token) => token.trim())
+        .toList();
     for (final String name in names) {
       if (name == device.name) {
         await io.Process.run(tizenSdk.emCli.absolute.path,

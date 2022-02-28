@@ -60,25 +60,17 @@ void main() {
       );
     });
 
-    test('timeout when stdout is silent.', () async {
+    test('fails when integration test takes longer than timeout.', () async {
+      // Simulates closing the stdout stream of a child process when it exits
+      // from [Process.exitCode].
+      // TODO(HakkyuKim): Properly handle this from a mock class. 
+      Future<void>.delayed(Duration(seconds: timeoutLimit.inSeconds + 1), () {
+        controller.close();
+      });
       final PackageResult result = await device.runIntegrationTest(
         fileSystem.systemTempDirectory,
         timeoutLimit,
       );
-      expect(result.state, RunState.failed);
-      expect(result.details.first.contains('Timeout expired'), true);
-    });
-
-    test('timeout when stdout doesn\'t finish.', () async {
-      final Timer timer = Timer.periodic(
-        const Duration(seconds: 1),
-        (Timer timer) => controller.add('some log'),
-      );
-      final PackageResult result = await device.runIntegrationTest(
-        fileSystem.systemTempDirectory,
-        timeoutLimit,
-      );
-      timer.cancel();
       expect(result.state, RunState.failed);
       expect(result.details.first.contains('Timeout expired'), true);
     });
@@ -88,8 +80,8 @@ void main() {
         const Duration(seconds: 1),
         () {
           controller.add('No tests ran');
-          controller.close();
           completer.complete(0);
+          controller.close();
         },
       );
       final PackageResult result = await device.runIntegrationTest(
@@ -105,8 +97,8 @@ void main() {
         const Duration(seconds: 1),
         () {
           controller.add('No devices found');
-          controller.close();
           completer.complete(0);
+          controller.close();
         },
       );
       final PackageResult result = await device.runIntegrationTest(
@@ -124,8 +116,8 @@ void main() {
         const Duration(seconds: 1),
         () {
           controller.add('00:00 +0: All tests passed!');
-          controller.close();
           completer.complete(0);
+          controller.close();
         },
       );
       final PackageResult result = await device.runIntegrationTest(
@@ -140,8 +132,8 @@ void main() {
         const Duration(seconds: 1),
         () {
           controller.add('00:00 +0 -1: Some tests failed');
-          controller.close();
           completer.complete(0);
+          controller.close();
         },
       );
       final PackageResult result = await device.runIntegrationTest(

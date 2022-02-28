@@ -7,7 +7,7 @@ import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 
 /// An extension method of [ProcessRunner] to supports synchronous operations.
-extension Synchronizable on ProcessRunner {
+extension Synchronous on ProcessRunner {
   /// Runs the [executable] with [args].
   ///
   /// This is synchronous version of [run].

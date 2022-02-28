@@ -93,21 +93,18 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   // object that subclasses [PackageLoopingCommand].
   @override
   Future<PackageResult> runForPackage(RepositoryPackage package) async {
-    // Copied to local variable to enable non-nullable type promotion.
-    final ArgResults? args = argResults;
-    if (args != null) {
-      if (args.wasParsed(_profilesArg) && args.wasParsed(_recipeArg)) {
-        print('Cannot specify both --$_profilesArg and --$_recipeArg.');
-        throw ToolExit(exitInvalidArguments);
-      }
+    final ArgResults args = argResults!;
+    if (args.wasParsed(_profilesArg) && args.wasParsed(_recipeArg)) {
+      print('Cannot specify both --$_profilesArg and --$_recipeArg.');
+      throw ToolExit(exitInvalidArguments);
+    }
 
-      if (args.wasParsed(_generateEmulatorsArg) &&
-          !args.wasParsed(_profilesArg) &&
-          !args.wasParsed(_recipeArg)) {
-        print('Either --$_profilesArg or --$_recipeArg must be '
-            'provided with --$_generateEmulatorsArg.');
-        throw ToolExit(exitInvalidArguments);
-      }
+    if (args.wasParsed(_generateEmulatorsArg) &&
+        !args.wasParsed(_profilesArg) &&
+        !args.wasParsed(_recipeArg)) {
+      print('Either --$_profilesArg or --$_recipeArg must be '
+          'provided with --$_generateEmulatorsArg.');
+      throw ToolExit(exitInvalidArguments);
     }
 
     final int? timeoutInSeconds = int.tryParse(getStringArg(_timeoutArg));
