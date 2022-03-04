@@ -1,10 +1,8 @@
-## 1.0.0
+## 1.0.3
 
-* Initial release.
-
-## 1.0.1
-
-* Fix a bug with EventChannel.
+* Update battery_plus to 2.0.2.
+* Update battery_plus_platform_interface to 1.1.1.
+* Remove obsolete `battery_plus_tizen.dart`.
 
 ## 1.0.2
 
@@ -13,8 +11,10 @@
 * Update the example app and integration_test.
 * Minor code cleanups.
 
-## 1.0.3
+## 1.0.1
 
-* Update battery_plus to 2.0.2.
-* Update battery_plus_platform_interface to 1.1.1.
-* Remove obsolete `battery_plus_tizen.dart`.
+* Fix a bug with EventChannel.
+
+## 1.0.0
+
+* Initial release.

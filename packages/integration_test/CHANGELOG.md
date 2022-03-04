@@ -1,11 +1,6 @@
-## 1.0.0
+## 2.0.1
 
-* Initial release.
-
-## 1.0.1
-
-* Update integration_test to 1.0.1.
-* Migrate to Tizen 4.0.
+* Change the project type to `staticLib`.
 
 ## 2.0.0
 
@@ -15,6 +10,11 @@
 * Remove unnecessary test files for web.
 * Organize dev_dependencies.
 
-## 2.0.1
+## 1.0.1
 
-* Change the project type to `staticLib`.
+* Update integration_test to 1.0.1.
+* Migrate to Tizen 4.0.
+
+## 1.0.0
+
+* Initial release.
