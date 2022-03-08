@@ -4,9 +4,11 @@
 
 #include "webview_flutter_tizen_plugin.h"
 
+#include <flutter/plugin_registrar.h>
+#include <flutter_tizen.h>
+
 #include <memory>
 
-#include "flutter_tizen.h"
 #include "webview_factory.h"
 
 static constexpr char kViewType[] = "plugins.flutter.io/webview";
