@@ -9,6 +9,7 @@
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
+#include <flutter/standard_message_codec.h>
 #include <flutter/texture_registrar.h>
 #include <flutter_platform_view.h>
 
