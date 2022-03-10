@@ -1,3 +1,7 @@
+## 0.3.11
+
+* Organize includes.
+
 ## 0.3.10
 
 * Apply `PlatformView` and `PlatformViewFactory` API changes.

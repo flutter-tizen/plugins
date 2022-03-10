@@ -5,20 +5,13 @@
 #include "webview_factory.h"
 
 #include <app_common.h>
-#include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
-#include <flutter/standard_message_codec.h>
-#include <flutter/standard_method_codec.h>
-#include <flutter_platform_view.h>
+#include <flutter/encodable_value.h>
 
-#include <map>
-#include <memory>
-#include <sstream>
 #include <string>
+#include <variant>
 
 #include "log.h"
 #include "lwe/LWEWebView.h"
-#include "webview_flutter_tizen_plugin.h"
 
 WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
                                flutter::TextureRegistrar* texture_registrar,
