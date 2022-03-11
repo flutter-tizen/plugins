@@ -42,7 +42,6 @@ class VideoPlayer {
   void sendBufferingEnd();
   FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
   void Destruct(void *buffer);
-  bool IsValidMediaPacket(media_packet_h media_packet);
 
   static void onPrepared(void *data);
   static void onBuffering(int percent, void *data);
@@ -63,7 +62,6 @@ class VideoPlayer {
   std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
   std::mutex mutex_;
   SeekCompletedCb on_seek_completed_;
-  media_packet_h prepared_media_packet_ = nullptr;
   media_packet_h current_media_packet_ = nullptr;
 };
 
