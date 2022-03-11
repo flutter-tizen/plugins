@@ -26,7 +26,7 @@ class Log {
   static final _Dlog _dlogPrint =
       _library.lookup<NativeFunction<_DlogNative>>('dlog_print').asFunction();
   static final RegExp _stackTraceRegExp =
-      RegExp(r'^#(\d+)\s+(.+)\((.+):(\d+):(\d+)\)$', multiLine: true);
+      RegExp(r'^#(\d+)\s+(.+)\((.+\.dart):(\d+)(:\d+)?\)$', multiLine: true);
 
   /// Indicates whether debug mode is enabled.
   ///
@@ -135,7 +135,7 @@ class Log {
       final Iterable<RegExpMatch> matches =
           _stackTraceRegExp.allMatches(StackTrace.current.toString());
       for (final RegExpMatch match in matches) {
-        final List<String?> groups = match.groups(<int>[1, 2, 3, 4, 5]);
+        final List<String?> groups = match.groups(<int>[1, 2, 3, 4]);
         if (groups.any((String? group) => group == null) == false) {
           final int frameIndex = int.parse(groups[0]!);
           if (frameIndex == index) {
@@ -147,7 +147,6 @@ class Log {
               funcParts.last,
               pathParts.last,
               int.parse(groups[3]!),
-              int.parse(groups[4]!),
             );
           }
         }
@@ -173,11 +172,10 @@ class _LogPriority {
 }
 
 class _StackFrame {
-  _StackFrame(this.index, this.function, this.file, this.line, this.column);
+  _StackFrame(this.index, this.function, this.file, this.line);
 
   final int index;
   final String function;
   final String file;
   final int line;
-  final int column;
 }
