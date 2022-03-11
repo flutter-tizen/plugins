@@ -31,12 +31,11 @@ class Log {
   /// Indicates whether debug mode is enabled.
   ///
   /// If debug mode is enabled, logs will contain file name, function name and
-  /// line number. To enable debug mode use --dart-define=DEBUG_MODE=debug
+  /// line number. To enable debug mode use --dart-define=DEBUG_MODE=true
   /// flag at build time:
   ///
-  /// flutter-tizen run --dart-define=DEBUG_MODE=debug
-  static bool get isDebugEnabled =>
-      const String.fromEnvironment('DEBUG_MODE').toUpperCase() == 'DEBUG';
+  /// flutter-tizen run --dart-define=DEBUG_MODE=true
+  static bool get isDebugEnabled => const bool.fromEnvironment('DEBUG_MODE');
 
   /// Sends log with VERBOSE priority and tag.
   ///
