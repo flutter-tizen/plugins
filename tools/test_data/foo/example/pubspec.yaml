@@ -1,0 +1,21 @@
+name: foo_example
+description: Demonstrates how to use the foo plugin.
+publish_to: "none"
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  foo:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen: ^2.0.1
+   
