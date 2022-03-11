@@ -5,15 +5,18 @@
 #ifndef FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
 #define FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_
 
+#include <Ecore_IMF.h>
+#include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_message_codec.h>
-#include <flutter/standard_method_codec.h>
+#include <flutter/texture_registrar.h>
 #include <flutter_platform_view.h>
-#include <tbm_surface.h>
 
+#include <cstddef>
+#include <memory>
 #include <mutex>
-#include <stack>
+#include <string>
 
 namespace LWE {
 class WebContainer;

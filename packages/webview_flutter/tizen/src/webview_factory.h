@@ -5,7 +5,16 @@
 #ifndef FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_FACTORY_H_
 #define FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_FACTORY_H_
 
+#include <flutter/plugin_registrar.h>
+#include <flutter/standard_message_codec.h>
+#include <flutter/texture_registrar.h>
+#include <flutter_platform_view.h>
+
+#include <cstdint>
+#include <vector>
+
 #include "webview.h"
+
 class WebViewFactory : public PlatformViewFactory {
  public:
   WebViewFactory(flutter::PluginRegistrar* registrar,

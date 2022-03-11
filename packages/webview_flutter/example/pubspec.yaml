@@ -8,7 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^2.1.1
+  webview_flutter: ^2.3.0
   webview_flutter_tizen:
     path: ../
 
