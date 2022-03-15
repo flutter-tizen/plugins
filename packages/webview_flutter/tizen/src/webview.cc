@@ -144,10 +144,8 @@ bool needsSwBackend(void) {
   char* value = nullptr;
   int ret = system_info_get_platform_string(
       "http://tizen.org/system/model_name", &value);
-  if (ret == SYSTEM_INFO_ERROR_NONE) {
-    if (strcmp(value, "Emulator") == 0) {
-      result = true;
-    }
+  if ((SYSTEM_INFO_ERROR_NONE == ret) && (0 == strcmp(value, "Emulator"))) {
+    result = true;
   }
   if (value) {
     free(value);
