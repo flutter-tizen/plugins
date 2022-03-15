@@ -41,7 +41,7 @@ class VideoPlayer {
   void sendBufferingUpdate(int position);  // milliseconds
   void sendBufferingEnd();
   FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
-  void Destruct(void *buffer);
+  static void ReleaseMediaPacket(void *packet);
 
   static void onPrepared(void *data);
   static void onBuffering(int percent, void *data);

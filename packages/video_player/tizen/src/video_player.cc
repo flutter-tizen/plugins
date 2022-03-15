@@ -49,6 +49,15 @@ static std::string StateToString(player_state_e state) {
   return ret;
 }
 
+void VideoPlayer::ReleaseMediaPacket(void *data) {
+  VideoPlayer *player = (VideoPlayer *)data;
+  std::lock_guard<std::mutex> lock(player->mutex_);
+  if (player->current_media_packet_) {
+    media_packet_destroy(player->current_media_packet_);
+    player->current_media_packet_ = nullptr;
+  }
+}
+
 FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
                                                       size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -65,15 +74,9 @@ FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
   flutter_desktop_gpu_buffer_->buffer = surface;
   flutter_desktop_gpu_buffer_->width = width;
   flutter_desktop_gpu_buffer_->height = height;
+  flutter_desktop_gpu_buffer_->release_context = this;
+  flutter_desktop_gpu_buffer_->release_callback = ReleaseMediaPacket;
   return flutter_desktop_gpu_buffer_.get();
-}
-
-void VideoPlayer::Destruct(void *buffer) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  if (current_media_packet_) {
-    media_packet_destroy(current_media_packet_);
-    current_media_packet_ = nullptr;
-  }
 }
 
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
@@ -87,8 +90,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
           [this](size_t width,
                  size_t height) -> const FlutterDesktopGpuBuffer * {
             return this->ObtainGpuBuffer(width, height);
-          },
-          [this](void *buffer) -> void { this->Destruct(buffer); }));
+          }));
   flutter_desktop_gpu_buffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
 
   LOG_INFO("[VideoPlayer] register texture");
