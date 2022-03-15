@@ -139,12 +139,11 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
   return false;
 }
 
-bool needsSWBackend(void) {
+bool needsSwBackend(void) {
   bool result = false;
-  char* value;
-  int ret;
-  ret = system_info_get_platform_string("http://tizen.org/system/model_name",
-                                        &value);
+  char* value = nullptr;
+  int ret = system_info_get_platform_string(
+      "http://tizen.org/system/model_name", &value);
   if (ret == SYSTEM_INFO_ERROR_NONE) {
     if (strcmp(value, "Emulator") == 0) {
       result = true;
@@ -807,7 +806,7 @@ void WebView::InitWebView() {
           working_surface_ = nullptr;
         }
       },
-      needsSWBackend());
+      needsSwBackend());
 
 #ifndef TV_PROFILE
   auto settings = webview_instance_->GetSettings();
