@@ -1,3 +1,9 @@
+## 0.4.0
+
+* Support emulator.
+* Update LWE binary (b22fd0c4e50cde2b9203150d80e9d0bd1a1b0602).
+* Update webivew_flutter to 3.0.1.
+
 ## 0.3.11
 
 * Organize includes.

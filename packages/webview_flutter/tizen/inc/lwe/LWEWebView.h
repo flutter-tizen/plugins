@@ -75,6 +75,7 @@ class LWE_EXPORT Settings {
   std::string GetProxyURL() const;
   int GetCacheMode() const;
   TTSMode GetTTSMode() const;
+  std::string GetTTSLanguage() const;
   WebSecurityMode GetWebSecurityMode() const;
   IdleModeJob GetIdleModeJob() const;
   uint32_t GetIdleModeCheckIntervalInMS() const;
@@ -92,6 +93,7 @@ class LWE_EXPORT Settings {
   void SetProxyURL(const std::string& proxyURL);
   void setDefaultFontSize(int size);
   void SetTTSMode(TTSMode value);
+  void SetTTSLanguage(const std::string& language);
   void SetBaseBackgroundColor(unsigned char r, unsigned char g, unsigned char b,
                               unsigned char a);
   void SetBaseForegroundColor(unsigned char r, unsigned char g, unsigned char b,
@@ -113,6 +115,7 @@ class LWE_EXPORT Settings {
   int m_cacheMode;
   uint32_t m_defaultFontSize;
   TTSMode m_ttsMode;
+  std::string m_ttsLanguage;
   unsigned char m_bgR, m_bgG, m_bgB, m_bgA;
   unsigned char m_fgR, m_fgG, m_fgB, m_fgA;
   WebSecurityMode m_webSecurityMode;
@@ -283,6 +286,13 @@ class LWE_EXPORT WebContainer {
       std::function<long int(void* handle)> fileLengthCallback,
       std::function<void(void* handle)> fileCloseCallback);
 
+  void RegisterDebuggerShouldInitHandler(
+      const std::function<void(const std::string& url, int port,
+                               bool& shouldInit)>& cb);
+  void RegisterDebuggerShouldContinueWaitingHandler(
+      const std::function<void(const std::string& url, int port,
+                               bool& shouldWait)>& cb);
+
   void CallHandler(const std::string& handler, void* param);
 
   void SetUserAgentString(const std::string& userAgent);
@@ -391,6 +401,13 @@ class LWE_EXPORT WebView {
           fileReadCallback,
       std::function<long int(void* handle)> fileLengthCallback,
       std::function<void(void* handle)> fileCloseCallback);
+
+  void RegisterDebuggerShouldInitHandler(
+      const std::function<void(const std::string& url, int port,
+                               bool& shouldInit)>& cb);
+  void RegisterDebuggerShouldContinueWaitingHandler(
+      const std::function<void(const std::string& url, int port,
+                               bool& shouldWait)>& cb);
 
   void SetUserData(const std::string& key, void* data);
   void* GetUserData(const std::string& key);
