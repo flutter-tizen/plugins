@@ -6,8 +6,6 @@
 
 #include "log.h"
 
-#define BUFFER_POOL_SIZE 5
-
 BufferUnit::BufferUnit(int index, int width, int height)
     : isUsed_(false),
       index_(index),
@@ -73,8 +71,8 @@ void BufferUnit::Reset(int width, int height) {
   gpu_buffer_->buffer = tbm_surface_;
 }
 
-BufferPool::BufferPool(int width, int height) : last_index_(0) {
-  for (int idx = 0; idx < BUFFER_POOL_SIZE; idx++) {
+BufferPool::BufferPool(int width, int height, int pool_size) : last_index_(0) {
+  for (int idx = 0; idx < pool_size; idx++) {
     pool_.emplace_back(new BufferUnit(idx, width, height));
   }
   Prepare(width, height);
@@ -116,6 +114,18 @@ void BufferPool::Prepare(int width, int height) {
     BufferUnit* buffer = pool_[idx].get();
     buffer->Reset(width, height);
   }
+}
+
+SingleBufferPool::SingleBufferPool(int width, int height)
+    : BufferPool(width, height, 1) {}
+
+BufferUnit* SingleBufferPool::GetAvailableBuffer() {
+  pool_[0].get()->MarkInUse();
+  return pool_[0].get();
+}
+
+BufferUnit* SingleBufferPool::Find(tbm_surface_h surface) {
+  return pool_[0].get();
 }
 
 #ifndef NDEBUG

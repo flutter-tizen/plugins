@@ -19,6 +19,7 @@
 #include "lwe/PlatformIntegrationData.h"
 #include "webview_factory.h"
 
+#define BUFFER_POOL_SIZE 5
 #define LWE_EXPORT
 extern "C" size_t LWE_EXPORT createWebViewInstance(
     unsigned x, unsigned y, unsigned width, unsigned height,
@@ -164,14 +165,20 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       height_(height),
       working_surface_(nullptr),
       candidate_surface_(nullptr),
-      rendered_surface_(nullptr),
       is_mouse_lbutton_down_(false),
+      rendered_surface_(nullptr),
       has_navigation_delegate_(false),
       has_progress_tracking_(false),
       context_(nullptr),
       texture_variant_(nullptr),
       platform_window_(platform_window) {
-  tbm_pool_ = std::make_unique<BufferPool>(width, height);
+  use_sw_backend_ = needsSwBackend();
+  if (use_sw_backend_) {
+    tbm_pool_ = new SingleBufferPool(width, height);
+  } else {
+    tbm_pool_ = new BufferPool(width, height, BUFFER_POOL_SIZE);
+  }
+
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
       [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
         return this->ObtainGpuBuffer(width, height);
@@ -398,6 +405,11 @@ void WebView::Dispose() {
   if (texture_variant_) {
     delete texture_variant_;
     texture_variant_ = nullptr;
+  }
+
+  if (tbm_pool_) {
+    delete tbm_pool_;
+    tbm_pool_ = nullptr;
   }
 }
 
@@ -804,7 +816,7 @@ void WebView::InitWebView() {
           working_surface_ = nullptr;
         }
       },
-      needsSwBackend());
+      use_sw_backend_);
 
 #ifndef TV_PROFILE
   auto settings = webview_instance_->GetSettings();
