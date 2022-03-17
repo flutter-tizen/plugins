@@ -140,7 +140,7 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
   return false;
 }
 
-bool needsSwBackend(void) {
+bool NeedsSwBackend(void) {
   bool result = false;
   char* value = nullptr;
   int ret = system_info_get_platform_string(
@@ -172,7 +172,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       context_(nullptr),
       texture_variant_(nullptr),
       platform_window_(platform_window) {
-  use_sw_backend_ = needsSwBackend();
+  use_sw_backend_ = NeedsSwBackend();
   if (use_sw_backend_) {
     tbm_pool_ = new SingleBufferPool(width, height);
   } else {
