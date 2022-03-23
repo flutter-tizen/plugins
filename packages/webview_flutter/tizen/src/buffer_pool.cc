@@ -119,6 +119,8 @@ void BufferPool::Prepare(int width, int height) {
 SingleBufferPool::SingleBufferPool(int width, int height)
     : BufferPool(width, height, 1) {}
 
+SingleBufferPool::~SingleBufferPool() {}
+
 BufferUnit* SingleBufferPool::GetAvailableBuffer() {
   pool_[0].get()->MarkInUse();
   return pool_[0].get();

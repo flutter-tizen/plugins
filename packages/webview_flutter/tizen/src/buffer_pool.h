@@ -57,6 +57,7 @@ class BufferPool {
 class SingleBufferPool : public BufferPool {
  public:
   explicit SingleBufferPool(int width, int height);
+  ~SingleBufferPool();
 
   virtual BufferUnit* GetAvailableBuffer();
   virtual BufferUnit* Find(tbm_surface_h surface);

@@ -83,7 +83,7 @@ class WebView : public PlatformView {
   Ecore_IMF_Context* context_;
   flutter::TextureVariant* texture_variant_;
   std::mutex mutex_;
-  BufferPool* tbm_pool_;
+  std::unique_ptr<BufferPool> tbm_pool_;
   void* platform_window_;
   bool use_sw_backend_;
 };

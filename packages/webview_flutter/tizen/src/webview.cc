@@ -174,9 +174,9 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       platform_window_(platform_window) {
   use_sw_backend_ = NeedsSwBackend();
   if (use_sw_backend_) {
-    tbm_pool_ = new SingleBufferPool(width, height);
+    tbm_pool_ = std::make_unique<SingleBufferPool>(width, height);
   } else {
-    tbm_pool_ = new BufferPool(width, height, BUFFER_POOL_SIZE);
+    tbm_pool_ = std::make_unique<BufferPool>(width, height, BUFFER_POOL_SIZE);
   }
 
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
@@ -405,11 +405,6 @@ void WebView::Dispose() {
   if (texture_variant_) {
     delete texture_variant_;
     texture_variant_ = nullptr;
-  }
-
-  if (tbm_pool_) {
-    delete tbm_pool_;
-    tbm_pool_ = nullptr;
   }
 }
 
