@@ -47,9 +47,9 @@ class Device {
       tizenSdk: tizenSdk,
       processRunner: processRunner,
     );
-    device._id = device._findId();
-    if (device._id == null) {
-      throw Exception('$name($profile)\'s id is null. '
+    device._serial = device._findSerial();
+    if (device._serial == null) {
+      throw Exception('$name($profile)\'s serial is null. '
           'Physical device references must be connected to host PC.');
     }
     return device;
@@ -80,30 +80,33 @@ class Device {
 
   final TizenSdk _tizenSdk;
 
-  String? _id;
+  String? _serial;
 
   final ProcessRunner _processRunner;
 
   /// The unqiue identifier assigned to a connected device.
-  String? get id => _id;
+  /// 
+  /// Physical devices have baked in serial numbers while emulators
+  /// are assigned with a port number when they're launched.
+  String? get serial => _serial;
 
   /// Whether this device is an emulator.
   bool get isEmulator => false;
 
   /// Whether this device is connected to host PC.
   bool get isConnected {
-    _id = _findId();
-    return _id != null;
+    _serial = _findSerial();
+    return _serial != null;
   }
 
   static final RegExp _logPattern =
       RegExp(r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)');
 
-  String? _findId() {
+  String? _findSerial() {
     final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
     for (final SdbDeviceInfo deviceInfo in deviceInfos) {
       if (deviceInfo.name == name) {
-        return deviceInfo.id;
+        return deviceInfo.serial;
       }
     }
     return null;
@@ -133,7 +136,7 @@ class Device {
 
     final io.Process process = await _processRunner.start(
       'flutter-tizen',
-      <String>['-d', id!, 'test', 'integration_test'],
+      <String>['-d', serial!, 'test', 'integration_test'],
       workingDirectory: workingDir,
     );
 
@@ -207,7 +210,7 @@ class EmulatorDevice extends Device {
       tizenSdk: tizenSdk,
       processRunner: processRunner,
     );
-    emulatorDevice._id = emulatorDevice._findId();
+    emulatorDevice._serial = emulatorDevice._findSerial();
     emulatorDevice._pid = findEmulatorPid(name);
     return emulatorDevice;
   }
@@ -228,9 +231,9 @@ class EmulatorDevice extends Device {
 
   @override
   bool get isConnected {
-    _id = _findId();
+    _serial = _findSerial();
     _pid = findEmulatorPid(name);
-    return _id != null && _pid != null;
+    return _serial != null && _pid != null;
   }
 
   @override
@@ -309,7 +312,7 @@ class EmulatorDevice extends Device {
       }
       return false;
     });
-    _id = _findId();
+    _serial = _findSerial();
   }
 
   /// Closes this emulator.
@@ -335,7 +338,7 @@ class EmulatorDevice extends Device {
       return true;
     });
     _pid = null;
-    _id = null;
+    _serial = null;
   }
 
   Future<void> _poll(
