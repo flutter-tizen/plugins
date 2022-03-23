@@ -69,6 +69,11 @@ void BufferUnit::Reset(int width, int height) {
   gpu_buffer_->width = width_;
   gpu_buffer_->height = height_;
   gpu_buffer_->buffer = tbm_surface_;
+  gpu_buffer_->release_callback = [](void* release_context) {
+    BufferUnit* bu = (BufferUnit*)release_context;
+    bu->UnmarkInUse();
+  };
+  gpu_buffer_->release_context = this;
 }
 
 BufferPool::BufferPool(int width, int height, int pool_size) : last_index_(0) {
@@ -79,16 +84,6 @@ BufferPool::BufferPool(int width, int height, int pool_size) : last_index_(0) {
 }
 
 BufferPool::~BufferPool() {}
-
-BufferUnit* BufferPool::Find(tbm_surface_h surface) {
-  for (int idx = 0; idx < pool_.size(); idx++) {
-    BufferUnit* buffer = pool_[idx].get();
-    if (buffer->Surface() == surface) {
-      return buffer;
-    }
-  }
-  return nullptr;
-}
 
 BufferUnit* BufferPool::GetAvailableBuffer() {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -126,9 +121,7 @@ BufferUnit* SingleBufferPool::GetAvailableBuffer() {
   return pool_[0].get();
 }
 
-BufferUnit* SingleBufferPool::Find(tbm_surface_h surface) {
-  return pool_[0].get();
-}
+void SingleBufferPool::Release(BufferUnit* unit) {}
 
 #ifndef NDEBUG
 #include <cairo.h>

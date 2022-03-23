@@ -42,8 +42,7 @@ class BufferPool {
   ~BufferPool();
 
   virtual BufferUnit* GetAvailableBuffer();
-  virtual BufferUnit* Find(tbm_surface_h surface);
-  void Release(BufferUnit* unit);
+  virtual void Release(BufferUnit* unit);
   void Prepare(int with, int height);
 
  protected:
@@ -60,7 +59,7 @@ class SingleBufferPool : public BufferPool {
   ~SingleBufferPool();
 
   virtual BufferUnit* GetAvailableBuffer();
-  virtual BufferUnit* Find(tbm_surface_h surface);
+  virtual void Release(BufferUnit* unit);
 };
 
 #endif

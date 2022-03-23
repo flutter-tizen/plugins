@@ -1,3 +1,7 @@
+## 0.4.1
+
+* Apply texture api change.
+
 ## 0.4.0
 
 * Support emulator.
