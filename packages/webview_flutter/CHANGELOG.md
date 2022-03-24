@@ -1,3 +1,8 @@
+## 0.4.1
+
+* Add dependent binary to support tizen 7.0.
+* Update LWE binary (b37a968bfbe7fd4c0b0fcf045ea55041f23f22e1).
+
 ## 0.4.0
 
 * Support emulator.
