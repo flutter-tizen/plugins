@@ -13,18 +13,18 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'process_runner_apis.dart';
 
-/// A data type that holds information such as id and status of
+/// A data type that holds information such as serial and status of
 /// a connected device.
 class SdbDeviceInfo {
   /// Creates a [SdbDeviceInfo] instance.
   const SdbDeviceInfo({
-    required this.id,
+    required this.serial,
     required this.status,
     required this.name,
   });
 
   /// The unique string that identifies a running device.
-  final String id;
+  final String serial;
 
   /// The current connection state of the device.
   ///
@@ -228,7 +228,7 @@ class TizenSdk {
       }
 
       deviceInfos.add(SdbDeviceInfo(
-        id: tokens[0],
+        serial: tokens[0],
         status: tokens[1],
         name: tokens[2],
       ));
@@ -238,11 +238,11 @@ class TizenSdk {
   }
 
   /// Returns the result of running sdb capability as a map of key-value pairs.
-  Map<String, String> sdbCapability(String id) {
+  Map<String, String> sdbCapability(String serial) {
     final io.ProcessResult result =
-        _processRunner.runSync(sdb.path, <String>['-s', id, 'capability']);
+        _processRunner.runSync(sdb.path, <String>['-s', serial, 'capability']);
     if (result.exitCode != 0) {
-      print('Error: running command `sdb -s $id capability` failed.');
+      print('Error: running command `sdb -s $serial capability` failed.');
       throw ToolExit(result.exitCode);
     }
 

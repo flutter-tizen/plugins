@@ -38,18 +38,29 @@ class BufferUnit {
 
 class BufferPool {
  public:
-  explicit BufferPool(int width, int height);
+  explicit BufferPool(int width, int height, int pool_size);
   ~BufferPool();
 
-  BufferUnit* GetAvailableBuffer();
-  BufferUnit* Find(tbm_surface_h surface);
+  virtual BufferUnit* GetAvailableBuffer();
+  virtual BufferUnit* Find(tbm_surface_h surface);
   void Release(BufferUnit* unit);
   void Prepare(int with, int height);
+
+ protected:
+  std::vector<std::unique_ptr<BufferUnit>> pool_;
 
  private:
   int last_index_;
   std::mutex mutex_;
-  std::vector<std::unique_ptr<BufferUnit>> pool_;
+};
+
+class SingleBufferPool : public BufferPool {
+ public:
+  explicit SingleBufferPool(int width, int height);
+  ~SingleBufferPool();
+
+  virtual BufferUnit* GetAvailableBuffer();
+  virtual BufferUnit* Find(tbm_surface_h surface);
 };
 
 #endif

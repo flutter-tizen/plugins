@@ -24,6 +24,7 @@ class WebContainer;
 
 class TextInputChannel;
 class BufferPool;
+class SingleBufferPool;
 class BufferUnit;
 
 class WebView : public PlatformView {
@@ -84,6 +85,7 @@ class WebView : public PlatformView {
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;
   void* platform_window_;
+  bool use_sw_backend_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEVIEW_H_

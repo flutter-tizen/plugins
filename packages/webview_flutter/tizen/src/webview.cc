@@ -4,8 +4,10 @@
 
 #include "webview.h"
 
+#include <app_common.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_texture_registrar.h>
+#include <system_info.h>
 #include <tbm_surface.h>
 
 #include <stdexcept>
@@ -17,6 +19,7 @@
 #include "lwe/PlatformIntegrationData.h"
 #include "webview_factory.h"
 
+#define BUFFER_POOL_SIZE 5
 #define LWE_EXPORT
 extern "C" size_t LWE_EXPORT createWebViewInstance(
     unsigned x, unsigned y, unsigned width, unsigned height,
@@ -137,6 +140,20 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
   return false;
 }
 
+bool NeedsSwBackend(void) {
+  bool result = false;
+  char* value = nullptr;
+  int ret = system_info_get_platform_string(
+      "http://tizen.org/system/model_name", &value);
+  if ((SYSTEM_INFO_ERROR_NONE == ret) && (0 == strcmp(value, "Emulator"))) {
+    result = true;
+  }
+  if (value) {
+    free(value);
+  }
+  return result;
+}
+
 WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
                  flutter::TextureRegistrar* texture_registrar, double width,
                  double height, flutter::EncodableMap& params,
@@ -148,14 +165,20 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       height_(height),
       working_surface_(nullptr),
       candidate_surface_(nullptr),
-      rendered_surface_(nullptr),
       is_mouse_lbutton_down_(false),
+      rendered_surface_(nullptr),
       has_navigation_delegate_(false),
       has_progress_tracking_(false),
       context_(nullptr),
       texture_variant_(nullptr),
       platform_window_(platform_window) {
-  tbm_pool_ = std::make_unique<BufferPool>(width, height);
+  use_sw_backend_ = NeedsSwBackend();
+  if (use_sw_backend_) {
+    tbm_pool_ = std::make_unique<SingleBufferPool>(width, height);
+  } else {
+    tbm_pool_ = std::make_unique<BufferPool>(width, height, BUFFER_POOL_SIZE);
+  }
+
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
       [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
         return this->ObtainGpuBuffer(width, height);
@@ -788,7 +811,8 @@ void WebView::InitWebView() {
           working_surface_ = nullptr;
         }
       },
-      false);
+      use_sw_backend_);
+
 #ifndef TV_PROFILE
   auto settings = webview_instance_->GetSettings();
   settings.SetUserAgentString(
@@ -916,6 +940,47 @@ void WebView::HandleMethodCall(
     result->Success(flutter::EncodableValue(webview_instance_->GetScrollX()));
   } else if (method_name.compare("getScrollY") == 0) {
     result->Success(flutter::EncodableValue(webview_instance_->GetScrollY()));
+  } else if (method_name.compare("loadFlutterAsset") == 0) {
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string key = std::get<std::string>(arguments);
+      std::string path;
+      char* resPath = app_get_resource_path();
+      if (resPath) {
+        path = std::string("file://") + resPath + "flutter_assets/" + key;
+        free(resPath);
+        webview_instance_->LoadURL(path);
+        result->Success();
+        return;
+      }
+    }
+    result->Error("InvalidArguments", "Please set 'key' properly");
+  } else if (method_name.compare("loadHtmlString") == 0) {
+    std::string html;
+    std::string baseUrl;
+    if (!GetValueFromEncodableMap(arguments, "html", &html)) {
+      result->Error("InvalidArguments", "Please set 'html' properly");
+      return;
+    }
+    if (GetValueFromEncodableMap(arguments, "baseUrl", &baseUrl)) {
+      LOG_DEBUG(
+          "loadHtmlString : baseUrl is not yet supported. It will be "
+          "ignored.\n ");
+    }
+    webview_instance_->LoadData(html);
+    result->Success();
+  } else if (method_name.compare("loadFile") == 0) {
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string absoluteFilePath =
+          std::string("file://") + std::get<std::string>(arguments);
+      webview_instance_->LoadURL(absoluteFilePath);
+      result->Success();
+      return;
+    }
+    result->Error("InvalidArguments", "Please set 'absoluteFilePath' properly");
+  } else if (method_name.compare("loadRequest") == 0) {
+    result->NotImplemented();
+  } else if (method_name.compare("setCookie") == 0) {
+    result->NotImplemented();
   } else {
     result->NotImplemented();
   }

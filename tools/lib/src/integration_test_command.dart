@@ -235,14 +235,14 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
     for (final SdbDeviceInfo deviceInfo in deviceInfos) {
       final Map<String, String> capability =
-          _tizenSdk.sdbCapability(deviceInfo.id);
+          _tizenSdk.sdbCapability(deviceInfo.serial);
       final String? deviceType = capability['profile_name'];
       final String? version = capability['platform_version'];
       final String? cpuArch = capability['cpu_arch'];
       if (deviceType == null || version == null || cpuArch == null) {
         throw Exception(
             'Cannot extract profile, Tizen version, or cpu arch from '
-            'target ${deviceInfo.id}.\n'
+            'target ${deviceInfo.serial}.\n'
             'profile: $deviceType\n'
             'Tizen version: $version\n'
             'cpu arch: $cpuArch');

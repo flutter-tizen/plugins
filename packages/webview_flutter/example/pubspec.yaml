@@ -8,11 +8,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^2.3.0
+  path_provider: ^2.0.7
+  path_provider_tizen: ^2.0.2
+  webview_flutter: ^3.0.1
   webview_flutter_tizen:
     path: ../
 
 dev_dependencies:
+  espresso: ^0.1.0+2
   flutter_driver:
     sdk: flutter
   flutter_test:
@@ -25,3 +28,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/sample_audio.ogg
+    - assets/sample_video.mp4
+    - assets/www/index.html
+    - assets/www/styles/style.css

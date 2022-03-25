@@ -63,5 +63,64 @@ class TizenWebView implements WebViewPlatform {
   }
 
   @override
+  Future<bool> clearCookies() {
+    if (WebViewCookieManagerPlatform.instance == null) {
+      throw Exception(
+          'Could not clear cookies as no implementation for WebViewCookieManagerPlatform has been registered.');
+    }
+    return WebViewCookieManagerPlatform.instance!.clearCookies();
+  }
+}
+
+/// Handles all cookie operations for the current platform.
+class WebViewTizenCookieManager extends WebViewCookieManagerPlatform {
+  @override
   Future<bool> clearCookies() => MethodChannelWebViewPlatform.clearCookies();
+
+  @override
+  Future<void> setCookie(WebViewCookie cookie) async {
+    if (!_isValidPath(cookie.path)) {
+      throw ArgumentError(
+          'The path property for the provided cookie was not given a legal value.');
+    }
+    return MethodChannelWebViewPlatform.setCookie(cookie);
+  }
+
+  bool _isValidPath(String path) {
+    // Permitted ranges based on RFC6265bis: https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-02#section-4.1.1
+    for (final int char in path.codeUnits) {
+      if ((char < 0x20 || char > 0x3A) && (char < 0x3C || char > 0x7E)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+/// Manages cookies pertaining to all [WebView]s.
+class CookieManagerTizen {
+  /// Creates a [CookieManager] -- returns the instance if it's already been called.
+  factory CookieManagerTizen() {
+    return _instance ??= CookieManagerTizen._();
+  }
+
+  CookieManagerTizen._() {
+    if (WebViewCookieManagerPlatform.instance == null) {
+      WebViewCookieManagerPlatform.instance = WebViewTizenCookieManager();
+    }
+  }
+
+  static CookieManagerTizen? _instance;
+
+  /// Clears all cookies for all [WebView] instances.
+  ///
+  /// Returns true if cookies were present before clearing, else false.
+  Future<bool> clearCookies() =>
+      WebViewCookieManagerPlatform.instance!.clearCookies();
+
+  /// Sets a cookie for all [WebView] instances.
+  ///
+  /// This is a no op on iOS versions below 11.
+  Future<void> setCookie(WebViewCookie cookie) =>
+      WebViewCookieManagerPlatform.instance!.setCookie(cookie);
 }
