@@ -1,3 +1,7 @@
+## 2.3.2
+
+* Apply texture common release callback.
+
 ## 2.3.1
 
 * Show first frame after player is prepared.
