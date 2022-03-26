@@ -1,3 +1,7 @@
+## 0.3.1
+
+* Apply texture api change.
+
 ## 0.3.0
 
 * Update camera to 0.9.4.

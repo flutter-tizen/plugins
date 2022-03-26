@@ -26,7 +26,7 @@ This package is not an _endorsed_ implementation of `camera`. Therefore, you hav
 ```yaml
 dependencies:
   camera: ^0.9.4
-  camera_tizen: ^0.3.0
+  camera_tizen: ^0.3.1
 ```
 
 Then you can import `camera` in your Dart code:
