@@ -1,0 +1,5 @@
+src/flutterblue.pb.cc
+inc/flutterblue.pb.h
+include/.*
+#event_sink.h does not include std::string for some reason
+include/StateHandler.h 
