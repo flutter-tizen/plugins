@@ -7,19 +7,24 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
-#include <net_connection.h>
+#include <tizen.h>
 #include <wifi-manager.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
-#include "log.h"
+namespace {
 
 class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
  public:
-  enum WifiInfoType { ESSID, BSSID, IPV4, IPV6, SUBNET_MASK, GATEWAY_ADDR };
+  enum class WifiInfoType {
+    kESSID,
+    kBSSID,
+    kIPv4Address,
+    kIPv6Address,
+    kSubnetMask,
+    kGatewayAddress
+  };
 
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
@@ -37,117 +42,108 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  NetworkInfoPlusTizenPlugin() : wifi_manager_(nullptr) {
-    EnsureConnectionHandle();
-  }
+  NetworkInfoPlusTizenPlugin() {}
 
-  virtual ~NetworkInfoPlusTizenPlugin() {
-    if (wifi_manager_ != nullptr) {
-      wifi_manager_deinitialize(wifi_manager_);
-      wifi_manager_ = nullptr;
-    }
-  }
+  virtual ~NetworkInfoPlusTizenPlugin() {}
 
  private:
   std::string GetWifiInfo(WifiInfoType type) {
-    std::string result;
-    wifi_manager_ap_h current_ap = nullptr;
-    char *name = nullptr;
-    int errorcode;
-
-    errorcode = wifi_manager_get_connected_ap(wifi_manager_, &current_ap);
-    if (errorcode == WIFI_MANAGER_ERROR_NONE && current_ap != nullptr) {
-      if (type == WifiInfoType::ESSID) {
-        errorcode = wifi_manager_ap_get_essid(current_ap, &name);
-      } else if (type == WifiInfoType::BSSID) {
-        errorcode = wifi_manager_ap_get_bssid(current_ap, &name);
-      } else if (type == WifiInfoType::IPV4) {
-        errorcode = wifi_manager_ap_get_ip_address(
-            current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &name);
-      } else if (type == WifiInfoType::IPV6) {
-        errorcode = wifi_manager_ap_get_ip_address(
-            current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV6, &name);
-      } else if (type == WifiInfoType::SUBNET_MASK) {
-        errorcode = wifi_manager_ap_get_subnet_mask(
-            current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &name);
-      } else {  // WifiInfoType::GATEWAY_ADDR
-        // The requested gateway address is implicitly ipv4.
-        // https://github.com/fluttercommunity/plus_plugins/blob/bd0262e5f4627358bfb42481a84122f60921d98b/packages/network_info_plus/network_info_plus/android/src/main/java/dev/fluttercommunity/plus/network_info/NetworkInfo.java#L108
-        errorcode = wifi_manager_ap_get_gateway_address(
-            current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &name);
-      }
-      if (errorcode == WIFI_MANAGER_ERROR_NONE) {
-        result = name;
-        free(name);
-      }
-      wifi_manager_ap_destroy(current_ap);
+    wifi_manager_h wifi_manager = nullptr;
+    int ret = wifi_manager_initialize(&wifi_manager);
+    if (ret != WIFI_MANAGER_ERROR_NONE) {
+      return std::string();
     }
+
+    wifi_manager_ap_h current_ap = nullptr;
+    ret = wifi_manager_get_connected_ap(wifi_manager, &current_ap);
+    if (ret != WIFI_MANAGER_ERROR_NONE) {
+      wifi_manager_deinitialize(wifi_manager);
+      return std::string();
+    }
+
+    char *value = nullptr;
+    if (type == WifiInfoType::kESSID) {
+      ret = wifi_manager_ap_get_essid(current_ap, &value);
+    } else if (type == WifiInfoType::kBSSID) {
+      ret = wifi_manager_ap_get_bssid(current_ap, &value);
+    } else if (type == WifiInfoType::kIPv4Address) {
+      ret = wifi_manager_ap_get_ip_address(
+          current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &value);
+    } else if (type == WifiInfoType::kIPv6Address) {
+      ret = wifi_manager_ap_get_ip_address(
+          current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV6, &value);
+    } else if (type == WifiInfoType::kSubnetMask) {
+      ret = wifi_manager_ap_get_subnet_mask(
+          current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &value);
+    } else if (type == WifiInfoType::kGatewayAddress) {
+      // The requested gateway address is implicitly IPv4.
+      ret = wifi_manager_ap_get_gateway_address(
+          current_ap, WIFI_MANAGER_ADDRESS_FAMILY_IPV4, &value);
+    }
+
+    std::string result;
+    if (value && ret == WIFI_MANAGER_ERROR_NONE) {
+      result = value;
+      free(value);
+    }
+
+    wifi_manager_ap_destroy(current_ap);
+    wifi_manager_deinitialize(wifi_manager);
+
     return result;
   }
 
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    if (!EnsureConnectionHandle()) {
-      result->Error("-1", "Initialization failed");
-      return;
-    }
-    std::string reply;
-    if (method_call.method_name().compare("wifiName") == 0) {
-      reply = GetWifiInfo(WifiInfoType::ESSID);
-    } else if (method_call.method_name().compare("wifiBSSID") == 0) {
-      reply = GetWifiInfo(WifiInfoType::BSSID);
-    } else if (method_call.method_name().compare("wifiIPAddress") == 0) {
-      reply = GetWifiInfo(WifiInfoType::IPV4);
-    } else if (method_call.method_name().compare("wifiIPv6Address") == 0) {
-      reply = GetWifiInfo(WifiInfoType::IPV6);
-    } else if (method_call.method_name().compare("wifiSubmask") == 0) {
-      reply = GetWifiInfo(WifiInfoType::SUBNET_MASK);
-    } else if (method_call.method_name().compare("wifiGatewayAddress") == 0) {
-      reply = GetWifiInfo(WifiInfoType::GATEWAY_ADDR);
-    } else if (method_call.method_name().compare("wifiBroadcast") == 0) {
-      std::string ipv4 = GetWifiInfo(WifiInfoType::IPV4);
-      std::string subnet_mask = GetWifiInfo(WifiInfoType::SUBNET_MASK);
+    const auto &method_name = method_call.method_name();
+
+    std::string value;
+    if (method_name == "wifiName") {
+      value = GetWifiInfo(WifiInfoType::kESSID);
+    } else if (method_name == "wifiBSSID") {
+      value = GetWifiInfo(WifiInfoType::kBSSID);
+    } else if (method_name == "wifiIPAddress") {
+      value = GetWifiInfo(WifiInfoType::kIPv4Address);
+    } else if (method_name == "wifiIPv6Address") {
+      value = GetWifiInfo(WifiInfoType::kIPv6Address);
+    } else if (method_name == "wifiSubmask") {
+      value = GetWifiInfo(WifiInfoType::kSubnetMask);
+    } else if (method_name == "wifiGatewayAddress") {
+      value = GetWifiInfo(WifiInfoType::kGatewayAddress);
+    } else if (method_name == "wifiBroadcast") {
+      std::string ipv4 = GetWifiInfo(WifiInfoType::kIPv4Address);
+      std::string subnet_mask = GetWifiInfo(WifiInfoType::kSubnetMask);
       if (!ipv4.empty() && !subnet_mask.empty()) {
-        reply = IntegerToDottedDecimal(DottedDecimalToInteger(ipv4) |
+        value = IntegerToDottedDecimal(DottedDecimalToInteger(ipv4) |
                                        ~DottedDecimalToInteger(subnet_mask));
       }
     } else {
       result->NotImplemented();
       return;
     }
-    if (reply.length() == 0) {
-      result->Error("-1", "Not valid result");
-      LOG_ERROR("Could not retrieve %s.", method_call.method_name().c_str());
+
+    if (value.empty()) {
+      result->Error(std::to_string(get_last_result()),
+                    get_error_message(get_last_result()));
       return;
     }
-    flutter::EncodableValue msg(reply);
-    result->Success(msg);
+    result->Success(flutter::EncodableValue(value));
   }
 
-  bool EnsureConnectionHandle() {
-    if (wifi_manager_ == nullptr) {
-      if (wifi_manager_initialize(&wifi_manager_) != WIFI_MANAGER_ERROR_NONE) {
-        wifi_manager_ = nullptr;
-        return false;
-      }
-    }
-    return true;
-  }
-
-  unsigned int DottedDecimalToInteger(std::string dottedDecimal) {
+  unsigned int DottedDecimalToInteger(std::string dotted_decimal) {
     size_t pos = 0;
-    size_t len = dottedDecimal.size();
+    size_t len = dotted_decimal.size();
     std::string token;
     unsigned int value = 0U;
     unsigned int base = 1U << 24U;
     while (pos < len) {
-      if (dottedDecimal[pos] == '.') {
+      if (dotted_decimal[pos] == '.') {
         value += std::stoul(token) * base;
         base >>= 8U;
         token.clear();
       } else {
-        token.push_back(dottedDecimal[pos]);
+        token.push_back(dotted_decimal[pos]);
       }
       pos++;
     }
@@ -160,9 +156,9 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
            std::to_string((value >> 8U) % 256U) + "." +
            std::to_string(value % 256U);
   }
-
-  wifi_manager_h wifi_manager_;
 };
+
+}  // namespace
 
 void NetworkInfoPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
