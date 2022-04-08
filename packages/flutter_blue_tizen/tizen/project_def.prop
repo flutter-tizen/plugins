@@ -8,6 +8,7 @@ profile = common-4.0
 # Source files
 USER_SRCS += src/*.cc
 USER_SRCS += src/GATT/*.cc
+USER_SRCS += src/clang-format-excluded/*.cc
 
 # User defines
 USER_DEFS =
@@ -20,6 +21,6 @@ USER_CFLAGS_MISC =
 USER_CPPFLAGS_MISC =
 
 # User includes
-USER_INC_DIRS = inc src include
+USER_INC_DIRS = inc inc/clang-format-excluded src include
 USER_INC_FILES =
 USER_CPP_INC_FILES = lib
