@@ -69,6 +69,8 @@ FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
   int ret = media_packet_get_tbm_surface(current_media_packet_, &surface);
   if (ret != MEDIA_PACKET_ERROR_NONE || surface == nullptr) {
     LOG_ERROR("get tbm surface failed, error: %d", ret);
+    media_packet_destroy(current_media_packet_);
+    current_media_packet_ = nullptr;
     return nullptr;
   }
   flutter_desktop_gpu_buffer_->buffer = surface;
