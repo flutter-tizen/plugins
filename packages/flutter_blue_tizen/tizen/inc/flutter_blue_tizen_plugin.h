@@ -20,5 +20,4 @@ FLUTTER_PLUGIN_EXPORT void FlutterBlueTizenPluginRegisterWithRegistrar(
 }  // extern "C"
 #endif
 
-
 #endif  // FLUTTER_PLUGIN_FLUTTER_BLUE_TIZEN_PLUGIN_H_
