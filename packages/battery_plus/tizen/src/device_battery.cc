@@ -22,6 +22,7 @@ bool DeviceBattery::StartListen(BatteryStatusCallback callback) {
                                 OnBatteryStatusChanged, this);
   if (ret != DEVICE_ERROR_NONE) {
     LOG_ERROR("Failed to add callback: %s", get_error_message(ret));
+    last_error_ = ret;
     return false;
   }
 
@@ -29,6 +30,7 @@ bool DeviceBattery::StartListen(BatteryStatusCallback callback) {
                             OnBatteryStatusChanged, this);
   if (ret != DEVICE_ERROR_NONE) {
     LOG_ERROR("Failed to add callback: %s", get_error_message(ret));
+    last_error_ = ret;
     return false;
   }
 
@@ -41,12 +43,14 @@ void DeviceBattery::StopListen() {
                                    OnBatteryStatusChanged);
   if (ret != DEVICE_ERROR_NONE) {
     LOG_ERROR("Failed to remove callback: %s", get_error_message(ret));
+    last_error_ = ret;
   }
 
   ret = device_remove_callback(DEVICE_CALLBACK_BATTERY_LEVEL,
                                OnBatteryStatusChanged);
   if (ret != DEVICE_ERROR_NONE) {
     LOG_ERROR("Failed to remove callback: %s", get_error_message(ret));
+    last_error_ = ret;
   }
 }
 
@@ -55,6 +59,7 @@ int32_t DeviceBattery::GetLevel() {
   int ret = device_battery_get_percent(&level);
   if (ret != DEVICE_ERROR_NONE) {
     LOG_ERROR("Failed to get battery level: %s", get_error_message(ret));
+    last_error_ = ret;
     return -1;
   }
   return level;
@@ -65,6 +70,7 @@ BatteryStatus DeviceBattery::GetStatus() {
   int ret = device_battery_get_status(&status);
   if (ret != DEVICE_ERROR_NONE) {
     LOG_ERROR("Failed to get battery status: %s", get_error_message(ret));
+    last_error_ = ret;
     return BatteryStatus::kError;
   }
 

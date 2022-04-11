@@ -20,9 +20,9 @@ class DeviceBattery {
   DeviceBattery() {}
   ~DeviceBattery() {}
 
-  int GetLastError() { return get_last_result(); }
+  int GetLastError() { return last_error_; }
 
-  std::string GetLastErrorString() { return get_error_message(GetLastError()); }
+  std::string GetLastErrorString() { return get_error_message(last_error_); }
 
   bool StartListen(BatteryStatusCallback callback);
 
@@ -36,6 +36,7 @@ class DeviceBattery {
   static void OnBatteryStatusChanged(device_callback_e type, void *value,
                                      void *user_data);
 
+  int last_error_ = TIZEN_ERROR_NONE;
   BatteryStatusCallback callback_ = nullptr;
   bool is_full_ = false;
 };
