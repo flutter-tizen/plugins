@@ -1,17 +1,8 @@
-/**
- * event_stream_handler.h does not include std::string, therefore it must be
- * included before the #include <flutter/event_stream_handler.h> clang format
- * complains in such case, so I had to put this file in clang-format excluded
- * directory with other generated files.
- */
 #ifndef STATE_HANDLER_H
 #define STATE_HANDLER_H
 
-#include <string>
-#include <functional>
-#include <memory>
+#include <BluetoothManager.h>
 #include <flutter/event_stream_handler.h>
-
 
 namespace btu {
 
