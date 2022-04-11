@@ -1,4 +1,3 @@
-#include <LogLevel.h>
 #include <Logger.h>
 
 namespace btlog {

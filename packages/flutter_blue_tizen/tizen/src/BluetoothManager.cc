@@ -3,7 +3,6 @@
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothDescriptor.h>
 #include <GATT/BluetoothService.h>
-#include <LogLevel.h>
 #include <Logger.h>
 #include <bluetooth.h>
 #include <system_info.h>
