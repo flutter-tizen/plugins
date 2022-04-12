@@ -51,6 +51,7 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     wifi_manager_h wifi_manager = nullptr;
     int ret = wifi_manager_initialize(&wifi_manager);
     if (ret != WIFI_MANAGER_ERROR_NONE) {
+      last_error_ = ret;
       return std::string();
     }
 
@@ -58,6 +59,7 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     ret = wifi_manager_get_connected_ap(wifi_manager, &current_ap);
     if (ret != WIFI_MANAGER_ERROR_NONE) {
       wifi_manager_deinitialize(wifi_manager);
+      last_error_ = ret;
       return std::string();
     }
 
@@ -82,9 +84,11 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     }
 
     std::string result;
-    if (value && ret == WIFI_MANAGER_ERROR_NONE) {
+    if (ret == WIFI_MANAGER_ERROR_NONE && value) {
       result = value;
       free(value);
+    } else {
+      last_error_ = ret;
     }
 
     wifi_manager_ap_destroy(current_ap);
@@ -124,8 +128,8 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
     }
 
     if (value.empty()) {
-      result->Error(std::to_string(get_last_result()),
-                    get_error_message(get_last_result()));
+      result->Error(std::to_string(last_error_),
+                    get_error_message(last_error_));
       return;
     }
     result->Success(flutter::EncodableValue(value));
@@ -156,6 +160,8 @@ class NetworkInfoPlusTizenPlugin : public flutter::Plugin {
            std::to_string((value >> 8U) % 256U) + "." +
            std::to_string(value % 256U);
   }
+
+  int last_error_ = TIZEN_ERROR_NONE;
 };
 
 }  // namespace
