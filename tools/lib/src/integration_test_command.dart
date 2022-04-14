@@ -125,11 +125,15 @@ class IntegrationTestCommand extends PackageLoopingCommand {
         throw ToolExit(exitCommandFoundErrors);
       }
       try {
-        final YamlMap recipe =
-            loadYaml(recipeFile.readAsStringSync()) as YamlMap;
-        profiles = (recipe['plugins'][package.displayName] as YamlList)
-            .cast<String>()
-            .map((String profile) => Profile.fromString(profile))
+        final Map<String, YamlList> recipe =
+            (loadYaml(recipeFile.readAsStringSync())['plugins'] as YamlMap)
+                .cast<String, YamlList>();
+        if (!recipe.containsKey(package.displayName)) {
+          return PackageResult.skip(
+              'Skipped by recipe: ${package.displayName}.');
+        }
+        profiles = recipe[package.displayName]!
+            .map((dynamic profile) => Profile.fromString(profile as String))
             .toList();
         if (profiles.isEmpty) {
           // TODO(HakkyuKim): Return [PackageResult.exclude()] after subclassing
