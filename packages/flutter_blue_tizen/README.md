@@ -1,6 +1,3 @@
-[![pub package](https://img.shields.io/pub/v/flutter_blue.svg)](https://pub.dartlang.org/packages/flutter_blue)
-[![Chat](https://img.shields.io/discord/634853295160033301.svg?style=flat-square&colorB=758ED3)](https://discord.gg/Yk5Efra)
-
 <br>
 <p align="center">
 <img alt="FlutterBlue" src="https://github.com/pauldemarco/flutter_blue/blob/master/site/flutterblue.png?raw=true" />
@@ -21,7 +18,7 @@ This library is actively developed alongside production apps, and the API will e
 Having trouble adapting to the latest API?   I'd love to hear your use-case, please contact me.
 
 ## Cross-Platform Bluetooth LE
-FlutterBlue aims to offer the most from both platforms (iOS and Android).
+FlutterBlue aims to offer the most from both platforms (iOS, Android and Tizen).
 
 Using the FlutterBlue instance, you can scan for and connect to nearby devices ([BluetoothDevice](#bluetoothdevice-api)).
 Once connected to a device, the BluetoothDevice object can discover services ([BluetoothService](lib/src/bluetooth_service.dart)), characteristics ([BluetoothCharacteristic](lib/src/bluetooth_characteristic.dart)), and descriptors ([BluetoothDescriptor](lib/src/bluetooth_descriptor.dart)).
@@ -104,92 +101,53 @@ characteristic.value.listen((value) {
 ### Read the MTU and request larger size
 ```dart
 final mtu = await device.mtu.first;
-await device.requestMtu(512);
+await device.requestMtu(123);
 ```
-Note that iOS will not allow requests of MTU size, and will always try to negotiate the highest possible MTU (iOS supports up to MTU size 185)
 
 ## Getting Started
-### Change the minSdkVersion for Android
-
-Flutter_blue is compatible only from version 19 of Android SDK so you should change this in **android/app/build.gradle**:
-```dart
-Android {
-  defaultConfig {
-     minSdkVersion: 19
-```
-### Add permissions for Bluetooth
-We need to add the permission to use Bluetooth and access location:
-
-#### **Android**
-In the **android/app/src/main/AndroidManifest.xml** let’s add:
-
-```xml 
-	 <uses-permission android:name="android.permission.BLUETOOTH" />  
-	 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />  
-	 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>  
- <application
-```
-#### **IOS**
-In the **ios/Runner/Info.plist** let’s add:
-
-```dart 
-	<dict>  
-	    <key>NSBluetoothAlwaysUsageDescription</key>  
-	    <string>Need BLE permission</string>  
-	    <key>NSBluetoothPeripheralUsageDescription</key>  
-	    <string>Need BLE permission</string>  
-	    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>  
-	    <string>Need Location permission</string>  
-	    <key>NSLocationAlwaysUsageDescription</key>  
-	    <string>Need Location permission</string>  
-	    <key>NSLocationWhenInUseUsageDescription</key>  
-	    <string>Need Location permission</string>
-```
-For location permissions on iOS see more at: [https://developer.apple.com/documentation/corelocation/requesting_authorization_for_location_services](https://developer.apple.com/documentation/corelocation/requesting_authorization_for_location_services)
-
 ### **Tizen**
 In the **tizen-manifest.xml** let's add
 ```xml
-    <privileges>
-        <privilege>http://tizen.org/privilege/bluetooth</privilege>
-    </privileges>
+<privileges>
+    <privilege>http://tizen.org/privilege/bluetooth</privilege>
+</privileges>
 ```
 
 
 
 ## Reference
 ### FlutterBlue API
-|                  |      Android       |         iOS          |         Tizen          |             Description            |
-| :--------------- | :----------------: | :------------------: | :------------------: |  :-------------------------------- |
-| scan             | :white_check_mark: |  :white_check_mark:  |  :white_check_mark:  | Starts a scan for Bluetooth Low Energy devices. |
-| state            | :white_check_mark: |  :white_check_mark:  |  :white_check_mark:  | Stream of state changes for the Bluetooth Adapter. |
-| isAvailable      | :white_check_mark: |  :white_check_mark:  |  :white_check_mark:  | Checks whether the device supports Bluetooth. |
-| isOn             | :white_check_mark: |  :white_check_mark:  |  :white_check_mark:  | Checks if Bluetooth functionality is turned on. |
+|                  |         Tizen          |             Description            |
+| :--------------- | :------------------: |  :-------------------------------- |
+| scan             |  :white_check_mark:  | Starts a scan for Bluetooth Low Energy devices. |
+| state            |  :white_check_mark:  | Stream of state changes for the Bluetooth Adapter. |
+| isAvailable      |  :white_check_mark:  | Checks whether the device supports Bluetooth. |
+| isOn             |  :white_check_mark:  | Checks if Bluetooth functionality is turned on. |
 
 ### BluetoothDevice API
-|                             |       Android        |         iOS          |         Tizen        |             Description            |
-| :-------------------------- | :------------------: | :------------------: | :------------------: |  :-------------------------------- |
-| connect                     |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Establishes a connection to the device. |
-| disconnect                  |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Cancels an active or pending connection to the device. |
-| discoverServices            |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Discovers services offered by the remote device as well as their characteristics and descriptors. |
-| services                    |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Gets a list of services. Requires that discoverServices() has completed. |
-| state                       |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Stream of state changes for the Bluetooth Device. |
-| mtu                         |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Stream of mtu size changes. |
-| requestMtu                  |  :white_check_mark:  |                      |  :white_check_mark:  | Request to change the MTU for the device. |
+|                             |         Tizen        |             Description            |
+| :-------------------------- | :------------------: |  :-------------------------------- |
+| connect                     |  :white_check_mark:  | Establishes a connection to the device. |
+| disconnect                  |  :white_check_mark:  | Cancels an active or pending connection to the device. |
+| discoverServices            |  :white_check_mark:  | Discovers services offered by the remote device as well as their characteristics and descriptors. |
+| services                    |  :white_check_mark:  | Gets a list of services. Requires that discoverServices() has completed. |
+| state                       |  :white_check_mark:  | Stream of state changes for the Bluetooth Device. |
+| mtu                         |  :white_check_mark:  | Stream of mtu size changes. |
+| requestMtu                  |  :white_check_mark:  | Request to change the MTU for the device. |
 
 ### BluetoothCharacteristic API
-|                             |       Android        |         iOS          |         Tizen        |             Description            |
-| :-------------------------- | :------------------: | :------------------: | :------------------: |  :-------------------------------- |
-| read                        |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Retrieves the value of the characteristic.  |
-| write                       |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Writes the value of the characteristic. |
-| setNotifyValue              |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Sets notifications or indications on the characteristic. |
-| value                       |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Stream of characteristic's value when changed. |
+|                             |         Tizen        |             Description            |
+| :-------------------------- | :------------------: |  :-------------------------------- |
+| read                        |  :white_check_mark:  | Retrieves the value of the characteristic.  |
+| write                       |  :white_check_mark:  | Writes the value of the characteristic. |
+| setNotifyValue              |  :white_check_mark:  | Sets notifications or indications on the characteristic. |
+| value                       |  :white_check_mark:  | Stream of characteristic's value when changed. |
 
 ### BluetoothDescriptor API
-|                             |       Android        |         iOS          |         Tizen        |             Description            |
-| :-------------------------- | :------------------: | :------------------: | :------------------: |  :-------------------------------- |
-| read                        |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Retrieves the value of the descriptor.  |
-| write                       |  :white_check_mark:  |  :white_check_mark:  |  :white_check_mark:  | Writes the value of the descriptor. |
+|                             |         Tizen        |             Description            |
+| :-------------------------- | :------------------: |  :-------------------------------- |
+| read                        |  :white_check_mark:  | Retrieves the value of the descriptor.  |
+| write                       |  :white_check_mark:  | Writes the value of the descriptor. |
 
 ## Troubleshooting
 ### When I scan using a service UUID filter, it doesn't find any devices.
