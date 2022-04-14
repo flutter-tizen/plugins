@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "audio_player_options.h"
+enum class ReleaseMode { kRelease, kLoop, kStop };
 
 using PreparedListener =
     std::function<void(const std::string &player_id, int duration)>;
@@ -42,17 +42,16 @@ class AudioPlayer {
   void SetReleaseMode(ReleaseMode mode);
   int GetDuration();
   int GetCurrentPosition();
-  std::string GetPlayerId() const;
+  std::string GetPlayerId() const { return player_id_; }
   bool IsPlaying();
 
  private:
-  // the player state should be none before call this function
+  // The player state should be none before calling this function.
   void CreatePlayer();
-  // the player state should be idle before call this function
+  // The player state should be idle before calling this function.
   void PreparePlayer();
   void ResetPlayer();
   player_state_e GetPlayerState();
-  void HandleResult(const std::string &func_name, int result);
 
   static void OnPrepared(void *data);
   static void OnSeekCompleted(void *data);
@@ -65,10 +64,10 @@ class AudioPlayer {
   bool low_latency_;
   std::string url_;
   std::vector<uint8_t> audio_data_;
-  double volume_;
-  double playback_rate_;
-  ReleaseMode release_mode_;
-  int should_seek_to_;
+  double volume_ = 1.0;
+  double playback_rate_ = 1.0;
+  ReleaseMode release_mode_ = ReleaseMode::kRelease;
+  int should_seek_to_ = -1;
   bool preparing_ = false;
   bool seeking_ = false;
   bool should_play_ = false;
