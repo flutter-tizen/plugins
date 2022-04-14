@@ -198,7 +198,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
       for (int i = 0; i < count; i++) {
         std::string source_path = values[i];
         std::string dest_path;
-        if (self->image_resize_.Resize(source_path, dest_path)) {
+        if (self->image_resize_.Resize(source_path, &dest_path)) {
           paths.push_back(flutter::EncodableValue(dest_path));
         } else {
           paths.push_back(flutter::EncodableValue(source_path));
@@ -209,7 +209,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
     } else {
       std::string source_path = values[0];
       std::string dest_path;
-      if (self->image_resize_.Resize(source_path, dest_path)) {
+      if (self->image_resize_.Resize(source_path, &dest_path)) {
         self->SendResult(flutter::EncodableValue(dest_path));
       } else {
         self->SendResult(flutter::EncodableValue(source_path));

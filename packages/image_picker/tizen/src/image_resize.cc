@@ -169,7 +169,7 @@ bool ImageResize::EncodeImage(image_util_image_h image,
 }
 
 bool ImageResize::Resize(const std::string& source_path,
-                         std::string& dest_path) {
+                         std::string* dest_path) {
   bool should_scale = max_width_ != 0 || max_height_ != 0 || IsValidQuality();
   if (!should_scale) {
     return false;
@@ -188,18 +188,18 @@ bool ImageResize::Resize(const std::string& source_path,
   image_util_destroy_image(source_image);
 
   char* base_dir = app_get_cache_path();
-  dest_path = std::string(base_dir);
+  *dest_path = std::string(base_dir);
   free(base_dir);
 
   size_t pos = source_path.rfind("/");
   if (pos != std::string::npos) {
-    dest_path += "scaled_" + source_path.substr(pos + 1);
+    *dest_path += "scaled_" + source_path.substr(pos + 1);
   } else {
     image_util_destroy_image(image);
     return false;
   }
 
-  if (!EncodeImage(image, dest_path)) {
+  if (!EncodeImage(image, *dest_path)) {
     image_util_destroy_image(image);
     return false;
   }

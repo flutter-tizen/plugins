@@ -16,7 +16,7 @@ class ImageResize {
     quality_ = quality;
   }
 
-  bool Resize(const std::string& input_path, std::string& output_path);
+  bool Resize(const std::string& input_path, std::string* output_path);
 
  private:
   bool IsValidQuality() { return quality_ > 0 && quality_ < 100; }
