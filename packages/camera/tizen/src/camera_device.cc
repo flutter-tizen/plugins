@@ -40,15 +40,6 @@ std::string CreateTempFileName(const std::string &prefix,
   return file_name;
 }
 
-bool IsValidMediaPacket(media_packet_h media_packet) {
-  tbm_surface_h surface = nullptr;
-  int ret = media_packet_get_tbm_surface(media_packet, &surface);
-  if (ret != MEDIA_PACKET_ERROR_NONE) {
-    return false;
-  }
-  return true;
-}
-
 ExifTagOrientation ChooseExifTagOrientatoin(OrientationType device_orientation,
                                             bool is_front_lens_facing) {
   ExifTagOrientation orientation = ExifTagOrientation::kTopLeft;
@@ -350,6 +341,7 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
             int ret = media_packet_get_tbm_surface(current_packet_, &surface);
             if (ret != MEDIA_PACKET_ERROR_NONE) {
               LOG_ERROR("media_packet_get_tbm_surface failed, error: %d", ret);
+              media_packet_destroy(current_packet_);
               current_packet_ = nullptr;
               return nullptr;
             }
