@@ -49,10 +49,10 @@ bool ImageResize::TransformImage(image_util_image_h input,
     return false;
   }
 
-  uint32_t orig_width;
-  uint32_t orig_height;
-  ret = image_util_get_image(input, &orig_width, &orig_height, nullptr, nullptr,
-                             nullptr);
+  uint32_t original_width;
+  uint32_t original_height;
+  ret = image_util_get_image(input, &original_width, &original_height, nullptr,
+                             nullptr, nullptr);
   if (ret != IMAGE_UTIL_ERROR_NONE) {
     LOG_ERROR("Failed to get image size: %s", get_error_message(ret));
     image_util_transform_destroy(handle);
@@ -63,16 +63,19 @@ bool ImageResize::TransformImage(image_util_image_h input,
   bool has_max_height = max_height_ != 0;
 
   uint32_t width =
-      has_max_width ? std::min(orig_width, max_width_) : orig_width;
+      has_max_width ? std::min(original_width, max_width_) : original_width;
   uint32_t height =
-      has_max_height ? std::min(orig_height, max_height_) : orig_height;
+      has_max_height ? std::min(original_height, max_height_) : original_height;
 
-  bool should_downscale_width = has_max_width && max_width_ < orig_width;
-  bool should_downscale_height = has_max_height && max_height_ < orig_height;
+  bool should_downscale_width = has_max_width && max_width_ < original_width;
+  bool should_downscale_height =
+      has_max_height && max_height_ < original_height;
 
   if (should_downscale_width || should_downscale_height) {
-    uint32_t downscaled_width = (height / (float)orig_height) * orig_width;
-    uint32_t downscaled_height = (width / (float)orig_width) * orig_height;
+    uint32_t downscaled_width =
+        (height / static_cast<float>(original_height)) * original_width;
+    uint32_t downscaled_height =
+        (width / static_cast<float>(original_width)) * original_height;
 
     if (width < height) {
       if (!has_max_width) {
@@ -87,9 +90,9 @@ bool ImageResize::TransformImage(image_util_image_h input,
         width = downscaled_width;
       }
     } else {
-      if (orig_width < orig_height) {
+      if (original_width < original_height) {
         width = downscaled_width;
-      } else if (orig_height < orig_width) {
+      } else if (original_height < original_width) {
         height = downscaled_height;
       }
     }
