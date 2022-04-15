@@ -1,21 +1,12 @@
 name: flutter_blue_tizen
-description: A new flutter plugin project.
-version: 0.0.1
-homepage:
+description: Tizen implementation of flutter_blue plugin
+version: 1.0.0
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_blue
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
   flutter: ">=1.20.0"
-
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_blue: ^0.8.0
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^1.0.0
 
 flutter:
   plugin:
