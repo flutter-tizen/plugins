@@ -14,6 +14,7 @@ import 'package:flutter_plugin_tools/src/common/repository_package.dart';
 import 'package:yaml/yaml.dart';
 
 import 'device.dart';
+import 'recipe.dart';
 import 'tizen_sdk.dart';
 
 /// A command that runs integration test of plugin examples.
@@ -60,7 +61,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       _timeoutArg,
       help: 'Timeout limit of each integration test in seconds.',
       valueHelp: 'seconds',
-      defaultsTo: '120',
+      defaultsTo: _timeout.inSeconds.toString(),
     );
   }
 
@@ -81,6 +82,10 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   // Tizen SDK installed on the system.
   late final TizenSdk _tizenSdk = TizenSdk.locateTizenSdk();
 
+  Duration _timeout = const Duration(seconds: 120);
+
+  Recipe? _recipe;
+
   @override
   String get description =>
       'Runs integration tests for plugin example apps.\n\n'
@@ -89,10 +94,8 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   @override
   String get name => 'integration-test';
 
-  // TODO(HakkyuKim): Consider validating command-line arguments in a parent
-  // object that subclasses [PackageLoopingCommand].
   @override
-  Future<PackageResult> runForPackage(RepositoryPackage package) async {
+  Future<void> initializeRun() async {
     final ArgResults args = argResults!;
     if (args.wasParsed(_profilesArg) && args.wasParsed(_recipeArg)) {
       print('Cannot specify both --$_profilesArg and --$_recipeArg.');
@@ -112,39 +115,44 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       print('Must specify an integer value for --$_timeoutArg.');
       throw ToolExit(exitCommandFoundErrors);
     }
+    _timeout = Duration(seconds: timeoutInSeconds);
 
-    List<Profile> profiles = <Profile>[];
-    if (argResults!.wasParsed(_profilesArg)) {
-      profiles = getStringListArg(_profilesArg)
-          .map((String profile) => Profile.fromString(profile))
-          .toList();
-    } else if (argResults!.wasParsed(_recipeArg)) {
+    if (args.wasParsed(_recipeArg)) {
       final File recipeFile = _fileSystem.file(getStringArg(_recipeArg));
       if (!recipeFile.existsSync()) {
         print('Recipe file doesn\'t exist: ${recipeFile.absolute.path}');
         throw ToolExit(exitCommandFoundErrors);
       }
       try {
-        final Map<String, YamlList> recipe =
-            (loadYaml(recipeFile.readAsStringSync())['plugins'] as YamlMap)
-                .cast<String, YamlList>();
-        if (!recipe.containsKey(package.displayName)) {
-          return PackageResult.skip(
-              'Skipped by recipe: ${package.displayName}.');
-        }
-        profiles = recipe[package.displayName]!
-            .map((dynamic profile) => Profile.fromString(profile as String))
-            .toList();
-        if (profiles.isEmpty) {
-          // TODO(HakkyuKim): Return [PackageResult.exclude()] after subclassing
-          // [PackageLoopingCommand].
-          return PackageResult.skip(
-              'Skipped by recipe: ${package.displayName}.');
-        }
+        final YamlMap yamlMap =
+            loadYaml(recipeFile.readAsStringSync()) as YamlMap;
+        _recipe = Recipe.fromYaml(yamlMap);
       } on YamlException {
         print('Invalid YAML file.');
         throw ToolExit(exitCommandFoundErrors);
       }
+    }
+  }
+
+  @override
+  Future<PackageResult> runForPackage(RepositoryPackage package) async {
+    List<Profile> profiles = <Profile>[];
+    if (argResults!.wasParsed(_profilesArg)) {
+      profiles = getStringListArg(_profilesArg)
+          .map((String profile) => Profile.fromString(profile))
+          .toList();
+    } else if (_recipe != null) {
+      final Recipe recipe = _recipe!;
+      // TODO(HakkyuKim): Return [PackageResult.exclude()] by overriding
+      // [PackageLoopingCommand.getTargetPackages].
+      if (!recipe.isRecognized(package.displayName)) {
+        return PackageResult.skip('Skipped by recipe: ${package.displayName}.');
+      }
+      if (recipe.isExcluded(package.displayName)) {
+        return PackageResult.skip(
+            'Excluded by recipe: ${package.displayName}.');
+      }
+      profiles = recipe.getProfiles(package.displayName);
     }
 
     final List<Device> devices = getBoolArg(_generateEmulatorsArg)
@@ -193,7 +201,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       for (final Device device in devices) {
         final PackageResult packageResult = await device.runIntegrationTest(
           example.directory,
-          Duration(seconds: timeoutInSeconds),
+          _timeout,
         );
         if (packageResult.state == RunState.failed) {
           errors.addAll(packageResult.details);
