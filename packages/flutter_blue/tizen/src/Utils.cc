@@ -7,13 +7,15 @@ namespace btu {
 using btlog::Logger;
 using btlog::LogLevel;
 
-std::vector<u_int8_t> messageToVector(google::protobuf::MessageLite const& messageLite) noexcept{
+std::vector<u_int8_t> messageToVector(
+    google::protobuf::MessageLite const& messageLite) noexcept {
   std::vector<u_int8_t> encoded(messageLite.ByteSizeLong());
   messageLite.SerializeToArray(encoded.data(), messageLite.ByteSizeLong());
   return encoded;
 }
 
-proto::gen::CharacteristicProperties  getProtoCharacteristicProperties(int properties){
+proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
+    int properties) {
   proto::gen::CharacteristicProperties p;
   p.set_broadcast((properties & 0x01) != 0);
   p.set_read((properties & 0x02) != 0);
@@ -55,7 +57,7 @@ std::string getGattValue(bt_gatt_h handle) {
  * @param handle
  * @return std::string
  */
-std::string getGattUUID(bt_gatt_h handle){
+std::string getGattUUID(bt_gatt_h handle) {
   std::string result;
   char* uuid = nullptr;
   int res = bt_gatt_get_uuid(handle, &uuid);
@@ -67,7 +69,7 @@ std::string getGattUUID(bt_gatt_h handle){
   return result;
 }
 
-std::string getGattClientAddress(bt_gatt_client_h handle){
+std::string getGattClientAddress(bt_gatt_client_h handle) {
   std::string result;
   char* address = nullptr;
   int res = bt_gatt_client_get_remote_address(handle, &address);
@@ -80,7 +82,7 @@ std::string getGattClientAddress(bt_gatt_client_h handle){
 }
 proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
     BluetoothDeviceController const& device,
-    std::vector<btGatt::PrimaryService*> const& services){
+    std::vector<btGatt::PrimaryService*> const& services) {
   proto::gen::DiscoverServicesResult res;
   for (const auto& s : services) {
     *res.add_services() = s->toProtoService();
@@ -89,7 +91,7 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
   return res;
 }
 
-bt_gatt_h  getGattService(bt_gatt_client_h handle, const std::string& uuid){
+bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid) {
   bt_gatt_h result;
   int res = bt_gatt_client_get_service(handle, uuid.c_str(), &result);
   Logger::showResultError("bt_gatt_client_get_service", res);

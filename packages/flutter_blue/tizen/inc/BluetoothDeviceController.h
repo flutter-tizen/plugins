@@ -4,7 +4,6 @@
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
 
-
 namespace btGatt {
 class PrimaryService;
 class SecondaryService;
@@ -64,7 +63,8 @@ class BluetoothDeviceController {
   const std::string& cAddress() const noexcept;
   State state() const noexcept;
   std::vector<proto::gen::BluetoothDevice>& protoBluetoothDevices() noexcept;
-  const std::vector<proto::gen::BluetoothDevice>& cProtoBluetoothDevices() const noexcept;
+  const std::vector<proto::gen::BluetoothDevice>& cProtoBluetoothDevices()
+      const noexcept;
 
   void connect(bool autoConnect);
   void disconnect();
@@ -74,7 +74,8 @@ class BluetoothDeviceController {
                                       void* user_data) noexcept;
   static bt_gatt_client_h getGattClient(const std::string& address);
   static void destroyGattClientIfExists(const std::string& address) noexcept;
-  static proto::gen::DeviceStateResponse_BluetoothDeviceState localToProtoDeviceState(const BluetoothDeviceController::State& s);
+  static proto::gen::DeviceStateResponse_BluetoothDeviceState
+  localToProtoDeviceState(const BluetoothDeviceController::State& s);
 
   void discoverServices();
 

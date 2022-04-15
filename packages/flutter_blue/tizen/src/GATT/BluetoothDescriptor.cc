@@ -16,7 +16,8 @@ BluetoothDescriptor::BluetoothDescriptor(
   _activeDescriptors.var[UUID()] = this;
 }
 
-proto::gen::BluetoothDescriptor BluetoothDescriptor::toProtoDescriptor() const noexcept{
+proto::gen::BluetoothDescriptor BluetoothDescriptor::toProtoDescriptor()
+    const noexcept {
   proto::gen::BluetoothDescriptor proto;
   proto.set_remote_id(_characteristic.cService().cDevice().cAddress());
   proto.set_serviceuuid(_characteristic.cService().UUID());
@@ -24,14 +25,14 @@ proto::gen::BluetoothDescriptor BluetoothDescriptor::toProtoDescriptor() const n
   proto.set_uuid(UUID());
   return proto;
 }
-std::string BluetoothDescriptor::UUID() const noexcept{
+std::string BluetoothDescriptor::UUID() const noexcept {
   return btu::getGattUUID(_handle);
 }
-std::string BluetoothDescriptor::value() const noexcept{
+std::string BluetoothDescriptor::value() const noexcept {
   return btu::getGattValue(_handle);
 }
 void BluetoothDescriptor::read(
-    const std::function<void(const BluetoothDescriptor&)>& func){
+    const std::function<void(const BluetoothDescriptor&)>& func) {
   struct Scope {
     std::function<void(const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
@@ -60,7 +61,7 @@ void BluetoothDescriptor::read(
 void BluetoothDescriptor::write(
     const std::string value,
     const std::function<void(bool success, const BluetoothDescriptor&)>&
-        callback){
+        callback) {
   struct Scope {
     std::function<void(bool success, const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
@@ -98,7 +99,8 @@ void BluetoothDescriptor::write(
 
   if (res) throw BTException("could not write value to remote");
 }
-BluetoothCharacteristic const& BluetoothDescriptor::cCharacteristic() const noexcept{
+BluetoothCharacteristic const& BluetoothDescriptor::cCharacteristic()
+    const noexcept {
   return _characteristic;
 }
 BluetoothDescriptor::~BluetoothDescriptor() {

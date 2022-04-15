@@ -37,13 +37,13 @@ void Logger::log(LogLevel messLevel, const std::string& mess) noexcept {
     dlog_print(p, logTag.c_str(), mess.c_str(), "");
   }
 }
-void Logger::setLogLevel(LogLevel _logLevel) noexcept{
+void Logger::setLogLevel(LogLevel _logLevel) noexcept {
   std::scoped_lock lock(logLevel.mut);
   logLevel.var = _logLevel;
   log(LogLevel::DEBUG,
       "set log level to =  " + std::to_string(static_cast<int>(logLevel.var)));
 }
-void Logger::showResultError(std::string componentName, int res){
+void Logger::showResultError(std::string componentName, int res) {
   if (res) {
     std::string err = get_error_message(res);
     Logger::log(LogLevel::ERROR, "[" + componentName + "] failed with " + err);

@@ -34,7 +34,8 @@ BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
   _activeCharacteristics.var[UUID()] = this;
 }
 
-proto::gen::BluetoothCharacteristic BluetoothCharacteristic::toProtoCharacteristic() const noexcept{
+proto::gen::BluetoothCharacteristic
+BluetoothCharacteristic::toProtoCharacteristic() const noexcept {
   proto::gen::BluetoothCharacteristic proto;
   proto.set_remote_id(_service.cDevice().cAddress());
   proto.set_uuid(UUID());
@@ -56,19 +57,20 @@ proto::gen::BluetoothCharacteristic BluetoothCharacteristic::toProtoCharacterist
 BluetoothService const& BluetoothCharacteristic::cService() const noexcept {
   return _service;
 }
-std::string BluetoothCharacteristic::UUID() const noexcept{
+std::string BluetoothCharacteristic::UUID() const noexcept {
   return btu::getGattUUID(_handle);
 }
 std::string BluetoothCharacteristic::value() const noexcept {
   return btu::getGattValue(_handle);
 }
-BluetoothDescriptor* BluetoothCharacteristic::getDescriptor(const std::string& uuid) {
+BluetoothDescriptor* BluetoothCharacteristic::getDescriptor(
+    const std::string& uuid) {
   for (auto& s : _descriptors)
     if (s->UUID() == uuid) return s.get();
   return nullptr;
 }
 void BluetoothCharacteristic::read(
-    const std::function<void(const BluetoothCharacteristic&)>& func){
+    const std::function<void(const BluetoothCharacteristic&)>& func) {
   struct Scope {
     std::function<void(const BluetoothCharacteristic&)> func;
     const std::string characteristic_uuid;
@@ -100,7 +102,7 @@ void BluetoothCharacteristic::read(
 void BluetoothCharacteristic::write(
     const std::string value, bool withoutResponse,
     const std::function<void(bool success, const BluetoothCharacteristic&)>&
-        callback){
+        callback) {
   struct Scope {
     std::function<void(bool success, const BluetoothCharacteristic&)> func;
     const std::string characteristic_uuid;
@@ -145,14 +147,15 @@ void BluetoothCharacteristic::write(
   if (res) throw BTException("could not write value to remote");
 }
 
-int BluetoothCharacteristic::properties() const noexcept{
+int BluetoothCharacteristic::properties() const noexcept {
   auto prop = 0;
   auto res = bt_gatt_characteristic_get_properties(_handle, &prop);
   Logger::showResultError("bt_gatt_characteristic_get_properties", res);
   return prop;
 }
 
-void BluetoothCharacteristic::setNotifyCallback(const NotifyCallback& callback){
+void BluetoothCharacteristic::setNotifyCallback(
+    const NotifyCallback& callback) {
   auto p = properties();
   if (!(p & 0x30))
     throw BTException("cannot set callback! notify=0 && indicate=0");

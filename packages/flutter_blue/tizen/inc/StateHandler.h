@@ -12,10 +12,14 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
 
   std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink;
 
-  virtual std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>> OnListenInternal(const flutter::EncodableValue* arguments,
-                                std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events) override;
+  virtual std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
+  OnListenInternal(
+      const flutter::EncodableValue* arguments,
+      std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
+      override;
 
-  virtual std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>> OnCancelInternal(const flutter::EncodableValue* arguments) override;
+  virtual std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
+  OnCancelInternal(const flutter::EncodableValue* arguments) override;
 };
 
 }  // namespace btu

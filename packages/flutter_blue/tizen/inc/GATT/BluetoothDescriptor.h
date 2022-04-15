@@ -4,9 +4,9 @@
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
 
-#include <string>
 #include <map>
 #include <memory>
+#include <string>
 
 namespace btGatt {
 class BluetoothCharacteristic;

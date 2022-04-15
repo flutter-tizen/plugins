@@ -62,7 +62,8 @@ ServiceType PrimaryService::getType() const noexcept {
   return ServiceType::PRIMARY;
 }
 
-btu::BluetoothDeviceController const& SecondaryService::cDevice() const noexcept {
+btu::BluetoothDeviceController const& SecondaryService::cDevice()
+    const noexcept {
   return _primaryService.cDevice();
 }
 PrimaryService const& SecondaryService::cPrimary() const noexcept {
@@ -88,13 +89,15 @@ std::string SecondaryService::primaryUUID() noexcept {
 std::string BluetoothService::UUID() const noexcept {
   return btu::getGattUUID(_handle);
 }
-BluetoothCharacteristic* BluetoothService::getCharacteristic(const std::string& uuid) {
+BluetoothCharacteristic* BluetoothService::getCharacteristic(
+    const std::string& uuid) {
   for (auto& c : _characteristics) {
     if (c->UUID() == uuid) return c.get();
   }
   return nullptr;
 }
-SecondaryService* PrimaryService::getSecondary(const std::string& uuid) noexcept {
+SecondaryService* PrimaryService::getSecondary(
+    const std::string& uuid) noexcept {
   for (auto& s : _secondaryServices) {
     if (s->UUID() == uuid) return s.get();
   }

@@ -21,7 +21,9 @@ class BluetoothManager {
   /**
    * @brief key - MAC address of the device
    */
-  using DevicesContainer=SafeType<std::unordered_map<std::string, std::shared_ptr<BluetoothDeviceController>>>;
+  using DevicesContainer =
+      SafeType<std::unordered_map<std::string,
+                                  std::shared_ptr<BluetoothDeviceController>>>;
   DevicesContainer _bluetoothDevices;
 
   NotificationsHandler& _notificationsHandler;
@@ -37,7 +39,8 @@ class BluetoothManager {
   void connect(const proto::gen::ConnectRequest& connRequest);
   void disconnect(const std::string& deviceID);
   proto::gen::BluetoothState bluetoothState() const noexcept;
-  std::vector<proto::gen::BluetoothDevice> getConnectedProtoBluetoothDevices() noexcept;
+  std::vector<proto::gen::BluetoothDevice>
+  getConnectedProtoBluetoothDevices() noexcept;
   DevicesContainer& bluetoothDevices() noexcept;
   void readCharacteristic(const proto::gen::ReadCharacteristicRequest& request);
   void readDescriptor(const proto::gen::ReadDescriptorRequest& request);
@@ -47,16 +50,14 @@ class BluetoothManager {
   void setNotification(const proto::gen::SetNotificationRequest& request);
   u_int32_t getMtu(const std::string& deviceID);
   void requestMtu(const proto::gen::MtuSizeRequest& request);
-  btGatt::BluetoothCharacteristic* locateCharacteristic(const std::string& remoteID,
-                            const std::string& primaryUUID,
-                            const std::string& secondaryUUID,
-                            const std::string& characteristicUUID);
+  btGatt::BluetoothCharacteristic* locateCharacteristic(
+      const std::string& remoteID, const std::string& primaryUUID,
+      const std::string& secondaryUUID, const std::string& characteristicUUID);
 
-  btGatt::BluetoothDescriptor* locateDescriptor(const std::string& remoteID,
-                        const std::string& primaryUUID,
-                        const std::string& secondaryUUID,
-                        const std::string& characteristicUUID,
-                        const std::string& descriptorUUID);
+  btGatt::BluetoothDescriptor* locateDescriptor(
+      const std::string& remoteID, const std::string& primaryUUID,
+      const std::string& secondaryUUID, const std::string& characteristicUUID,
+      const std::string& descriptorUUID);
 
   static bool isBLEAvailable();
   static void scanCallback(

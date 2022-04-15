@@ -39,7 +39,8 @@ class BTException : public std::exception {
   const char* what() const noexcept override { return _m.c_str(); };
 };
 
-std::vector<u_int8_t> messageToVector(google::protobuf::MessageLite const& messageLite) noexcept;
+std::vector<u_int8_t> messageToVector(
+    google::protobuf::MessageLite const& messageLite) noexcept;
 
 std::string getGattValue(bt_gatt_h handle);
 std::string getGattUUID(bt_gatt_h handle);
@@ -49,6 +50,7 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
     BluetoothDeviceController const& device,
     std::vector<btGatt::PrimaryService*> const& services);
 
-proto::gen::CharacteristicProperties getProtoCharacteristicProperties(int properties);
+proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
+    int properties);
 }  // namespace btu
 #endif  // UTILS_H
