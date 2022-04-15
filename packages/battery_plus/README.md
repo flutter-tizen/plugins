@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `battery_plus`. Therefore, y
 
 ```yaml
 dependencies:
-  battery_plus: ^2.0.2
-  battery_plus_tizen: ^1.0.3
+  battery_plus: ^2.1.3
+  battery_plus_tizen: ^1.1.0
 ```
 
 Then you can import `battery_plus` in your Dart code:
@@ -26,6 +26,7 @@ For detailed usage, see https://pub.dev/packages/battery_plus#usage.
 
 - [x] `Battery.batteryLevel`
 - [ ] `Battery.isInBatterySaveMode`
+- [x] `Battery.batteryState`
 - [x] `Battery.onBatteryStateChanged`
 
 ## Supported devices

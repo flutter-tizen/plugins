@@ -121,6 +121,15 @@ class BatteryPlusTizenPlugin : public flutter::Plugin {
         result->Error(std::to_string(battery.GetLastError()),
                       battery.GetLastErrorString());
       }
+    } else if (method_name == "getBatteryState") {
+      DeviceBattery battery;
+      BatteryStatus status = battery.GetStatus();
+      if (status != BatteryStatus::kError) {
+        result->Success(flutter::EncodableValue(BatteryStatusToString(status)));
+      } else {
+        result->Error(std::to_string(battery.GetLastError()),
+                      battery.GetLastErrorString());
+      }
     } else {
       result->NotImplemented();
     }
