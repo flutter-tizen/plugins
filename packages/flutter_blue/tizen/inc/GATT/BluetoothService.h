@@ -29,13 +29,11 @@ class BluetoothService {
   virtual ~BluetoothService();
 
  public:
-  virtual auto toProtoService() const noexcept
-      -> proto::gen::BluetoothService = 0;
-  virtual auto cDevice() const noexcept
-      -> const btu::BluetoothDeviceController& = 0;
-  virtual auto getType() const noexcept -> ServiceType = 0;
-  auto UUID() const noexcept -> std::string;
-  auto getCharacteristic(const std::string& uuid) -> BluetoothCharacteristic*;
+  virtual proto::gen::BluetoothService toProtoService() const noexcept = 0;
+  virtual btu::BluetoothDeviceController const& cDevice() const noexcept = 0;
+  virtual ServiceType getType() const noexcept = 0;
+  std::string UUID() const noexcept;
+  BluetoothCharacteristic* getCharacteristic(const std::string& uuid);
 };
 
 ///////PRIMARY///////
@@ -47,11 +45,10 @@ class PrimaryService : public BluetoothService {
   PrimaryService(bt_gatt_h handle, btu::BluetoothDeviceController& device);
   PrimaryService(const PrimaryService&) = default;
   ~PrimaryService();
-  auto cDevice() const noexcept
-      -> const btu::BluetoothDeviceController& override;
-  auto toProtoService() const noexcept -> proto::gen::BluetoothService override;
-  auto getType() const noexcept -> ServiceType override;
-  auto getSecondary(const std::string& uuid) noexcept -> SecondaryService*;
+  btu::BluetoothDeviceController const& cDevice() const noexcept override;
+  proto::gen::BluetoothService toProtoService() const noexcept override;
+  ServiceType getType() const noexcept override;
+  SecondaryService* getSecondary(const std::string& uuid) noexcept;
 };
 
 ///////SECONDARY///////
@@ -62,12 +59,11 @@ class SecondaryService : public BluetoothService {
   SecondaryService(bt_gatt_h service_handle, PrimaryService& primaryService);
   SecondaryService(const SecondaryService&) = default;
   ~SecondaryService();
-  auto cDevice() const noexcept
-      -> const btu::BluetoothDeviceController& override;
-  auto cPrimary() const noexcept -> const PrimaryService&;
-  auto toProtoService() const noexcept -> proto::gen::BluetoothService override;
-  auto getType() const noexcept -> ServiceType override;
-  auto primaryUUID() noexcept -> std::string;
+  btu::BluetoothDeviceController const& cDevice() const noexcept override;
+  PrimaryService const& cPrimary() const noexcept;
+  proto::gen::BluetoothService toProtoService() const noexcept override;
+  ServiceType getType() const noexcept override;
+  std::string primaryUUID() noexcept;
 };
 }  // namespace btGatt
 #endif  // BLEUTOOTH_SERVICE_H

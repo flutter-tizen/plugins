@@ -16,8 +16,7 @@ BluetoothDescriptor::BluetoothDescriptor(
   _activeDescriptors.var[UUID()] = this;
 }
 
-auto BluetoothDescriptor::toProtoDescriptor() const noexcept
-    -> proto::gen::BluetoothDescriptor {
+proto::gen::BluetoothDescriptor BluetoothDescriptor::toProtoDescriptor() const noexcept{
   proto::gen::BluetoothDescriptor proto;
   proto.set_remote_id(_characteristic.cService().cDevice().cAddress());
   proto.set_serviceuuid(_characteristic.cService().UUID());
@@ -25,14 +24,14 @@ auto BluetoothDescriptor::toProtoDescriptor() const noexcept
   proto.set_uuid(UUID());
   return proto;
 }
-auto BluetoothDescriptor::UUID() const noexcept -> std::string {
+std::string BluetoothDescriptor::UUID() const noexcept{
   return btu::getGattUUID(_handle);
 }
-auto BluetoothDescriptor::value() const noexcept -> std::string {
+std::string BluetoothDescriptor::value() const noexcept{
   return btu::getGattValue(_handle);
 }
-auto BluetoothDescriptor::read(
-    const std::function<void(const BluetoothDescriptor&)>& func) -> void {
+void BluetoothDescriptor::read(
+    const std::function<void(const BluetoothDescriptor&)>& func){
   struct Scope {
     std::function<void(const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
@@ -58,10 +57,10 @@ auto BluetoothDescriptor::read(
   Logger::showResultError("bt_gatt_client_read_value", res);
   if (res) throw BTException("could not read descriptor");
 }
-auto BluetoothDescriptor::write(
+void BluetoothDescriptor::write(
     const std::string value,
     const std::function<void(bool success, const BluetoothDescriptor&)>&
-        callback) -> void {
+        callback){
   struct Scope {
     std::function<void(bool success, const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
@@ -99,8 +98,7 @@ auto BluetoothDescriptor::write(
 
   if (res) throw BTException("could not write value to remote");
 }
-auto BluetoothDescriptor::cCharacteristic() const noexcept
-    -> const BluetoothCharacteristic& {
+BluetoothCharacteristic const& BluetoothDescriptor::cCharacteristic() const noexcept{
   return _characteristic;
 }
 BluetoothDescriptor::~BluetoothDescriptor() {

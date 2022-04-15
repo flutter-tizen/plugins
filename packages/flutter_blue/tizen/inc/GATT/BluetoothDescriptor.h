@@ -25,16 +25,14 @@ class BluetoothDescriptor {
   BluetoothDescriptor(bt_gatt_h handle,
                       BluetoothCharacteristic& characteristic);
   ~BluetoothDescriptor();
-  auto toProtoDescriptor() const noexcept -> proto::gen::BluetoothDescriptor;
-  auto UUID() const noexcept -> std::string;
-  auto value() const noexcept -> std::string;
-  auto read(const std::function<void(const BluetoothDescriptor&)>& callback)
-      -> void;
-  auto write(const std::string value,
+  proto::gen::BluetoothDescriptor toProtoDescriptor() const noexcept;
+  std::string UUID() const noexcept;
+  std::string value() const noexcept;
+  void read(const std::function<void(const BluetoothDescriptor&)>& callback);
+  void write(const std::string value,
              const std::function<void(bool success,
-                                      const BluetoothDescriptor&)>& callback)
-      -> void;
-  auto cCharacteristic() const noexcept -> const BluetoothCharacteristic&;
+                                      const BluetoothDescriptor&)>& callback);
+  BluetoothCharacteristic const& cCharacteristic() const noexcept;
 };
 }  // namespace btGatt
 #endif  // BLUETOOTH_DESCRIPTOR_H
