@@ -11,7 +11,14 @@
 #include <functional>
 #include <string>
 
-enum class ConnectionType { kNone, kEthernet, kWiFi, kMobile, kError };
+enum class ConnectionType {
+  kNone,
+  kEthernet,
+  kWiFi,
+  kMobile,
+  kBluetooth,
+  kError
+};
 
 typedef std::function<void(ConnectionType)> ConnectionTypeCallback;
 

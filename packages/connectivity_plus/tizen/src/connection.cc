@@ -14,6 +14,8 @@ static ConnectionType ToConnectionType(connection_type_e type) {
       return ConnectionType::kMobile;
     case CONNECTION_TYPE_ETHERNET:
       return ConnectionType::kEthernet;
+    case CONNECTION_TYPE_BT:
+      return ConnectionType::kBluetooth;
     case CONNECTION_TYPE_DISCONNECTED:
     default:
       return ConnectionType::kNone;
