@@ -237,7 +237,7 @@ void BluetoothDeviceController::notifyDeviceState() const{
 }
 
 proto::gen::DeviceStateResponse_BluetoothDeviceState BluetoothDeviceController::localToProtoDeviceState(
-    const BluetoothDeviceController::State& s){
+    BluetoothDeviceController::State const& s){
   using State = btu::BluetoothDeviceController::State;
   switch (s) {
     case State::CONNECTED:

@@ -6,8 +6,8 @@ NotificationsHandler::NotificationsHandler(
     : _methodChannel(methodChannel) {}
 
 auto NotificationsHandler::notifyUIThread(
-    const std::string& method,
-    const google::protobuf::MessageLite& mess) const noexcept -> void {
+    std::string const& method,
+    google::protobuf::MessageLite const& mess) const noexcept -> void {
   std::vector<uint8_t> encodable(mess.ByteSizeLong());
   mess.SerializeToArray(encodable.data(), mess.ByteSizeLong());
   _methodChannel->InvokeMethod(

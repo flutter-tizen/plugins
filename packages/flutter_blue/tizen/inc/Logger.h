@@ -23,9 +23,9 @@ class Logger {
   inline static std::mutex m;
 
  public:
-  static auto setLogLevel(LogLevel _logLevel) noexcept -> void;
-  static auto log(LogLevel level, const std::string& mess) noexcept -> void;
-  static auto showResultError(std::string componentName, int res) -> void;
+  static void setLogLevel(LogLevel _logLevel) noexcept;
+  static void log(LogLevel level, const std::string& mess) noexcept;
+  static void showResultError(std::string componentName, int res);
 };
 }  // namespace btlog
 

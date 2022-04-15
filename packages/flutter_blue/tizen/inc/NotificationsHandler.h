@@ -10,9 +10,9 @@ class NotificationsHandler {
 
  public:
   NotificationsHandler(std::shared_ptr<MethodChannel> methodChannel);
-  auto notifyUIThread(
-      const std::string& method,
-      const google::protobuf::MessageLite& encodable) const noexcept -> void;
+  void notifyUIThread(
+      std::string const& method,
+      google::protobuf::MessageLite const& encodable) const noexcept;
 };
 };  // namespace btu
 

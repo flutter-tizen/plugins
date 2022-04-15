@@ -21,9 +21,8 @@ class BluetoothManager {
   /**
    * @brief key - MAC address of the device
    */
-  SafeType<std::unordered_map<std::string,
-                              std::shared_ptr<BluetoothDeviceController>>>
-      _bluetoothDevices;
+  using DevicesContainer=SafeType<std::unordered_map<std::string, std::shared_ptr<BluetoothDeviceController>>>;
+  DevicesContainer _bluetoothDevices;
 
   NotificationsHandler& _notificationsHandler;
   std::atomic<bool> _scanAllowDuplicates;
@@ -33,51 +32,41 @@ class BluetoothManager {
   virtual ~BluetoothManager() noexcept = default;
   BluetoothManager(const BluetoothManager& bluetoothManager) = delete;
 
-  auto startBluetoothDeviceScanLE(const proto::gen::ScanSettings& scanSettings)
-      -> void;
-  auto stopBluetoothDeviceScanLE() -> void;
-  auto connect(const proto::gen::ConnectRequest& connRequest) -> void;
-  auto disconnect(const std::string& deviceID) -> void;
-  auto bluetoothState() const noexcept -> proto::gen::BluetoothState;
-  auto getConnectedProtoBluetoothDevices() noexcept
-      -> std::vector<proto::gen::BluetoothDevice>;
-  auto bluetoothDevices() noexcept -> decltype(_bluetoothDevices)&;
-  auto readCharacteristic(const proto::gen::ReadCharacteristicRequest& request)
-      -> void;
-  auto readDescriptor(const proto::gen::ReadDescriptorRequest& request) -> void;
-  auto writeCharacteristic(
-      const proto::gen::WriteCharacteristicRequest& request) -> void;
-  auto writeDescriptor(const proto::gen::WriteDescriptorRequest& request)
-      -> void;
-
-  auto setNotification(const proto::gen::SetNotificationRequest& request)
-      -> void;
-
-  auto getMtu(const std::string& deviceID) -> u_int32_t;
-  auto requestMtu(const proto::gen::MtuSizeRequest& request) -> void;
-
-  auto locateCharacteristic(const std::string& remoteID,
+  void startBluetoothDeviceScanLE(const proto::gen::ScanSettings& scanSettings);
+  void stopBluetoothDeviceScanLE();
+  void connect(const proto::gen::ConnectRequest& connRequest);
+  void disconnect(const std::string& deviceID);
+  proto::gen::BluetoothState bluetoothState() const noexcept;
+  std::vector<proto::gen::BluetoothDevice> getConnectedProtoBluetoothDevices() noexcept;
+  DevicesContainer& bluetoothDevices() noexcept;
+  void readCharacteristic(const proto::gen::ReadCharacteristicRequest& request);
+  void readDescriptor(const proto::gen::ReadDescriptorRequest& request);
+  void writeCharacteristic(
+      proto::gen::WriteCharacteristicRequest const& request);
+  void writeDescriptor(const proto::gen::WriteDescriptorRequest& request);
+  void setNotification(const proto::gen::SetNotificationRequest& request);
+  u_int32_t getMtu(const std::string& deviceID);
+  void requestMtu(const proto::gen::MtuSizeRequest& request);
+  btGatt::BluetoothCharacteristic* locateCharacteristic(const std::string& remoteID,
                             const std::string& primaryUUID,
                             const std::string& secondaryUUID,
-                            const std::string& characteristicUUID)
-      -> btGatt::BluetoothCharacteristic*;
+                            const std::string& characteristicUUID);
 
-  auto locateDescriptor(const std::string& remoteID,
+  btGatt::BluetoothDescriptor* locateDescriptor(const std::string& remoteID,
                         const std::string& primaryUUID,
                         const std::string& secondaryUUID,
                         const std::string& characteristicUUID,
-                        const std::string& descriptorUUID)
-      -> btGatt::BluetoothDescriptor*;
+                        const std::string& descriptorUUID);
 
-  static auto isBLEAvailable() -> bool;
-  static auto scanCallback(
+  static bool isBLEAvailable();
+  static void scanCallback(
       int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
-      void* user_data) noexcept -> void;
+      void* user_data) noexcept;
 };
 
-auto decodeAdvertisementData(const char* packetsData,
+void decodeAdvertisementData(const char* packetsData,
                              proto::gen::AdvertisementData& adv,
-                             int dataLen) noexcept -> void;
+                             int dataLen) noexcept;
 }  // namespace btu
 
 #endif  // BLUETOOTH_MANAGER_H
