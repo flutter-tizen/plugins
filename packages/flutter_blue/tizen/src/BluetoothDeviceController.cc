@@ -8,8 +8,10 @@
 #include <unordered_set>
 
 namespace btu {
-using namespace btlog;
-using namespace btGatt;
+using btlog::Logger;
+using btlog::LogLevel;
+using btu::BTException;
+using btu::NotificationsHandler;
 
 BluetoothDeviceController::BluetoothDeviceController(
     const std::string& address,
@@ -149,7 +151,7 @@ auto BluetoothDeviceController::getServices() noexcept
 }
 
 auto BluetoothDeviceController::getService(const std::string& uuid) noexcept
-    -> PrimaryService* {
+    -> btGatt::PrimaryService* {
   for (auto& s : _services) {
     if (s->UUID() == uuid) return s.get();
   }

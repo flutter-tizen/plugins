@@ -7,13 +7,13 @@
 #include <bluetooth.h>
 #include <system_info.h>
 #include <tizen.h>
+#include <mutex>
 
 namespace btu {
-using LogLevel = btlog::LogLevel;
-using Logger = btlog::Logger;
-auto decodeAdvertisementData(char* packetsData,
-                             proto::gen::AdvertisementData& adv,
-                             int dataLen) noexcept -> void;
+using btlog::Logger;
+using btlog::LogLevel;
+using State = BluetoothDeviceController::State;
+
 
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     : _notificationsHandler(notificationsHandler) {
@@ -292,7 +292,6 @@ auto BluetoothManager::getConnectedProtoBluetoothDevices() noexcept
     -> std::vector<proto::gen::BluetoothDevice> {
   std::vector<proto::gen::BluetoothDevice> protoBD;
   std::scoped_lock lock(_bluetoothDevices.mut);
-  using State = BluetoothDeviceController::State;
   for (const auto& e : _bluetoothDevices.var) {
     if (e.second->state() == State::CONNECTED) {
       auto& vec = e.second->cProtoBluetoothDevices();
@@ -309,7 +308,6 @@ auto BluetoothManager::bluetoothDevices() noexcept
 
 auto BluetoothManager::readCharacteristic(
     const proto::gen::ReadCharacteristicRequest& request) -> void {
-  using namespace btGatt;
   std::scoped_lock lock(_bluetoothDevices.mut);
   auto characteristic = locateCharacteristic(
       request.remote_id(), request.service_uuid(),
@@ -334,7 +332,6 @@ auto BluetoothManager::readCharacteristic(
 
 auto BluetoothManager::readDescriptor(
     const proto::gen::ReadDescriptorRequest& request) -> void {
-  using namespace btGatt;
   std::scoped_lock lock(_bluetoothDevices.mut);
   auto descriptor = locateDescriptor(
       request.remote_id(), request.service_uuid(),
@@ -373,7 +370,6 @@ auto BluetoothManager::readDescriptor(
 
 auto BluetoothManager::writeCharacteristic(
     const proto::gen::WriteCharacteristicRequest& request) -> void {
-  using namespace btGatt;
   std::scoped_lock lock(_bluetoothDevices.mut);
   auto characteristic = locateCharacteristic(
       request.remote_id(), request.service_uuid(),
@@ -453,7 +449,7 @@ auto BluetoothManager::writeDescriptor(
       });
 }
 
-auto decodeAdvertisementData(char* packetsData,
+auto decodeAdvertisementData(const char* packetsData,
                              proto::gen::AdvertisementData& adv,
                              int dataLen) noexcept -> void {
   using byte = char;
@@ -463,7 +459,7 @@ auto decodeAdvertisementData(char* packetsData,
     byte ad_len = packetsData[start] & 0xFFu;
     byte type = packetsData[start + 1] & 0xFFu;
 
-    byte* packet = packetsData + start + 2;
+    const byte* packet = packetsData + start + 2;
     switch (type) {
       case 0x09:
       case 0x08: {

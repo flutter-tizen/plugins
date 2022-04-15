@@ -4,6 +4,8 @@
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
 
+#include <string>
+#include <map>
 #include <memory>
 
 namespace btGatt {

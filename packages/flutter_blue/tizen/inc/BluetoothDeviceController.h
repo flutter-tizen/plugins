@@ -4,7 +4,6 @@
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
 
-#include <condition_variable>
 
 namespace btGatt {
 class PrimaryService;
@@ -32,7 +31,6 @@ class BluetoothDeviceController {
   std::string _address;
   std::atomic<bool> isConnecting = false;
   std::atomic<bool> isDisconnecting = false;
-  std::condition_variable connection_state_cv;
 
   NotificationsHandler& _notificationsHandler;
 

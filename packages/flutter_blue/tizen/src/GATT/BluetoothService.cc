@@ -5,8 +5,9 @@
 #include <bluetooth.h>
 
 namespace btGatt {
-using namespace btu;
-using namespace btlog;
+using btlog::Logger;
+using btlog::LogLevel;
+using btu::BTException;
 
 BluetoothService::BluetoothService(bt_gatt_h handle) : _handle(handle) {
   int res = bt_gatt_service_foreach_characteristics(
@@ -23,7 +24,7 @@ BluetoothService::BluetoothService(bt_gatt_h handle) : _handle(handle) {
 }
 
 PrimaryService::PrimaryService(bt_gatt_h handle,
-                               BluetoothDeviceController& device)
+                               btu::BluetoothDeviceController& device)
     : BluetoothService(handle), _device(device) {
   int res = bt_gatt_service_foreach_included_services(
       handle,
@@ -89,7 +90,7 @@ auto SecondaryService::primaryUUID() noexcept -> std::string {
   return _primaryService.UUID();
 }
 auto BluetoothService::UUID() const noexcept -> std::string {
-  return getGattUUID(_handle);
+  return btu::getGattUUID(_handle);
 }
 auto BluetoothService::getCharacteristic(const std::string& uuid)
     -> BluetoothCharacteristic* {

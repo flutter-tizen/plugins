@@ -10,8 +10,10 @@
 #include <exception>
 
 namespace btGatt {
-using namespace btu;
-using namespace btlog;
+using btlog::Logger;
+using btlog::LogLevel;
+using btu::BTException;
+
 BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
                                                  BluetoothService& service)
     : _handle(handle), _service(service) {
@@ -38,7 +40,7 @@ auto BluetoothCharacteristic::toProtoCharacteristic() const noexcept
   proto.set_remote_id(_service.cDevice().cAddress());
   proto.set_uuid(UUID());
   proto.set_allocated_properties(new proto::gen::CharacteristicProperties(
-      getProtoCharacteristicProperties(properties())));
+      btu::getProtoCharacteristicProperties(properties())));
   proto.set_value(value());
   if (_service.getType() == ServiceType::PRIMARY)
     proto.set_serviceuuid(_service.UUID());
@@ -57,10 +59,10 @@ auto BluetoothCharacteristic::cService() const noexcept
   return _service;
 }
 auto BluetoothCharacteristic::UUID() const noexcept -> std::string {
-  return getGattUUID(_handle);
+  return btu::getGattUUID(_handle);
 }
 auto BluetoothCharacteristic::value() const noexcept -> std::string {
-  return getGattValue(_handle);
+  return btu::getGattValue(_handle);
 }
 auto BluetoothCharacteristic::getDescriptor(const std::string& uuid)
     -> BluetoothDescriptor* {

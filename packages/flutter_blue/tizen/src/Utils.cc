@@ -4,7 +4,8 @@
 #include <Utils.h>
 
 namespace btu {
-using namespace btlog;
+using btlog::Logger;
+using btlog::LogLevel;
 
 auto messageToVector(const google::protobuf::MessageLite& messageLite) noexcept
     -> std::vector<u_int8_t> {

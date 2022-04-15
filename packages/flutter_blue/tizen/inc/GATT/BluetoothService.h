@@ -5,8 +5,6 @@
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
 
-#include <memory>
-#include <unordered_map>
 #include <vector>
 
 namespace btu {

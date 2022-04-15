@@ -6,8 +6,9 @@
 #include <Utils.h>
 
 namespace btGatt {
-using namespace btu;
-using namespace btlog;
+using btlog::Logger;
+using btlog::LogLevel;
+using btu::BTException;
 BluetoothDescriptor::BluetoothDescriptor(
     bt_gatt_h handle, BluetoothCharacteristic& characteristic)
     : _handle(handle), _characteristic(characteristic) {
@@ -25,10 +26,10 @@ auto BluetoothDescriptor::toProtoDescriptor() const noexcept
   return proto;
 }
 auto BluetoothDescriptor::UUID() const noexcept -> std::string {
-  return getGattUUID(_handle);
+  return btu::getGattUUID(_handle);
 }
 auto BluetoothDescriptor::value() const noexcept -> std::string {
-  return getGattValue(_handle);
+  return btu::getGattValue(_handle);
 }
 auto BluetoothDescriptor::read(
     const std::function<void(const BluetoothDescriptor&)>& func) -> void {

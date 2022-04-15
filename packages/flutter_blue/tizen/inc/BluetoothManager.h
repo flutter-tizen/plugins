@@ -5,10 +5,9 @@
 #include <Utils.h>
 #include <bluetooth.h>
 
-#include <condition_variable>
+#include <atomic>
 #include <memory>
-#include <mutex>
-#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
 namespace btGatt {
@@ -75,6 +74,10 @@ class BluetoothManager {
       int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
       void* user_data) noexcept -> void;
 };
+
+auto decodeAdvertisementData(const char* packetsData,
+                             proto::gen::AdvertisementData& adv,
+                             int dataLen) noexcept -> void;
 }  // namespace btu
 
 #endif  // BLUETOOTH_MANAGER_H
