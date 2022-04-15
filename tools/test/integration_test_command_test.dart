@@ -164,7 +164,7 @@ plugins:
       expect(
         output,
         containsAllInOrder(
-          <Matcher>[contains('Excluded by recipe: a')],
+          <Matcher>[contains('Not running for a; excluded')],
         ),
       );
     });

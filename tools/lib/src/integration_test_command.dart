@@ -134,6 +134,30 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     }
   }
 
+  /// See: [PluginCommand.getTargetPackages].
+  @override
+  Stream<PackageEnumerationEntry> getTargetPackages(
+      {bool filterExcluded = true}) async* {
+    if (_recipe == null) {
+      yield* super.getTargetPackages(filterExcluded: filterExcluded);
+    }
+    final Recipe recipe = _recipe!;
+
+    final List<PackageEnumerationEntry> plugins =
+        await super.getTargetPackages(filterExcluded: filterExcluded).toList();
+    for (final PackageEnumerationEntry plugin in plugins) {
+      final String pluginName = plugin.package.displayName;
+      if (!recipe.isRecognized(pluginName)) {
+        continue;
+      }
+      if (!(filterExcluded && plugin.excluded)) {
+        yield recipe.isExcluded(pluginName)
+            ? PackageEnumerationEntry(plugin.package, excluded: true)
+            : plugin;
+      }
+    }
+  }
+
   @override
   Future<PackageResult> runForPackage(RepositoryPackage package) async {
     List<Profile> profiles = <Profile>[];
@@ -142,17 +166,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
           .map((String profile) => Profile.fromString(profile))
           .toList();
     } else if (_recipe != null) {
-      final Recipe recipe = _recipe!;
-      // TODO(HakkyuKim): Return [PackageResult.exclude()] by overriding
-      // [PackageLoopingCommand.getTargetPackages].
-      if (!recipe.isRecognized(package.displayName)) {
-        return PackageResult.skip('Skipped by recipe: ${package.displayName}.');
-      }
-      if (recipe.isExcluded(package.displayName)) {
-        return PackageResult.skip(
-            'Excluded by recipe: ${package.displayName}.');
-      }
-      profiles = recipe.getProfiles(package.displayName);
+      profiles = _recipe!.getProfiles(package.displayName);
     }
 
     final List<Device> devices = getBoolArg(_generateEmulatorsArg)
