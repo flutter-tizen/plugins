@@ -5,19 +5,19 @@
 #include "image_picker_tizen_plugin.h"
 
 #include <app_control.h>
-#include <assert.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
-#ifndef TV_PROFILE
-#include <privacy_privilege_manager.h>
-#endif
 
+#include <cassert>
 #include <memory>
 #include <string>
+#include <variant>
 
 #include "image_resize.h"
-#include "log.h"
+#include "permission_manager.h"
+
+namespace {
 
 enum class ImageSource {
   // Opens up the device camera, letting the user to take a new picture.
@@ -25,6 +25,19 @@ enum class ImageSource {
   // Opens the user's photo gallery.
   kGallery,
 };
+
+template <typename T>
+static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
+                                     const char *key, T &out) {
+  auto iter = map->find(flutter::EncodableValue(key));
+  if (iter != map->end() && !iter->second.IsNull()) {
+    if (auto *value = std::get_if<T>(&iter->second)) {
+      out = *value;
+      return true;
+    }
+  }
+  return false;
+}
 
 class ImagePickerTizenPlugin : public flutter::Plugin {
  public:
@@ -53,75 +66,55 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     const auto &method_name = method_call.method_name();
-    const auto &arguments = *method_call.arguments();
 
     if (result_) {
-      SendResultWithError("Already active", "Cancelled by a second request.");
+      SendErrorResult("Already active", "Cancelled by a second request.");
       return;
     }
     result_ = std::move(result);
-    multi_image_ = method_name == "pickMultiImage";
 
-    ImageSource source = ImageSource::kGallery;
     if (method_name == "pickImage" || method_name == "pickMultiImage") {
-      double width = 0.0, height = 0.0;
-      int32_t quality = 0;
-      if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-        flutter::EncodableMap values =
-            std::get<flutter::EncodableMap>(arguments);
-        auto s = values[flutter::EncodableValue("source")];
-        if (std::holds_alternative<int32_t>(s)) {
-          source = (ImageSource)std::get<int32_t>(s);
-        }
-        auto w = values[flutter::EncodableValue("maxWidth")];
-        if (std::holds_alternative<double>(w)) {
-          width = std::get<double>(w);
-        }
-        auto h = values[flutter::EncodableValue("maxHeight")];
-        if (std::holds_alternative<double>(h)) {
-          height = std::get<double>(h);
-        }
-        auto q = values[flutter::EncodableValue("imageQuality")];
-        if (std::holds_alternative<int32_t>(q)) {
-          quality = std::get<int32_t>(q);
-        }
-        image_resize_.SetSize((unsigned int)width, (unsigned int)height,
-                              quality);
-      } else {
-        SendResultWithError("Invalid arguments");
-        return;
-      }
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
+      assert(arguments);
 
+      int source_index = static_cast<int>(ImageSource::kGallery);
+      double max_width = 0.0, max_height = 0.0;
+      int32_t quality = 0;
+      GetValueFromEncodableMap(arguments, "source", source_index);
+      GetValueFromEncodableMap(arguments, "maxWidth", max_width);
+      GetValueFromEncodableMap(arguments, "maxHeight", max_height);
+      GetValueFromEncodableMap(arguments, "imageQuality", quality);
+
+      image_resize_.SetSize(static_cast<uint32_t>(max_width),
+                            static_cast<uint32_t>(max_height), quality);
+
+      ImageSource source = ImageSource(source_index);
       if (source == ImageSource::kCamera) {
         // TODO: we need to check this feature after webcam is prepared
-        SendResultWithError("Not supported on this device");
+        SendErrorResult("Not supported", "Not supported on this device.");
       } else if (source == ImageSource::kGallery) {
-        SetContentMimeType("image");
-        CheckPermissionAndPickContent();
+        multi_image_ = method_name == "pickMultiImage";
+        PickContent("image/*");
       } else {
-        SendResultWithError("Invalid image source");
+        SendErrorResult("Invalid arguments", "Invalid image source.");
       }
     } else if (method_name == "pickVideo") {
-      if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-        flutter::EncodableMap values =
-            std::get<flutter::EncodableMap>(arguments);
-        auto s = values[flutter::EncodableValue("source")];
-        if (std::holds_alternative<int32_t>(s)) {
-          source = (ImageSource)std::get<int32_t>(s);
-        }
-      } else {
-        SendResultWithError("Invalid arguments");
-        return;
-      }
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
+      assert(arguments);
 
+      int source_index = static_cast<int>(ImageSource::kGallery);
+      GetValueFromEncodableMap(arguments, "source", source_index);
+
+      ImageSource source = ImageSource(source_index);
       if (source == ImageSource::kCamera) {
         // TODO: we need to check this feature after webcam is prepared
-        SendResultWithError("Not supported on this device");
+        SendErrorResult("Not supported", "Not supported on this device.");
       } else if (source == ImageSource::kGallery) {
-        SetContentMimeType("video");
-        CheckPermissionAndPickContent();
+        PickContent("video/*");
       } else {
-        SendResultWithError("Invalid video source");
+        SendErrorResult("Invalid arguments", "Invalid video source.");
       }
     } else {
       result_->NotImplemented();
@@ -129,100 +122,63 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void CheckPermissionAndPickContent() {
-#ifndef TV_PROFILE
-    const char *privilege = "http://tizen.org/privilege/mediastorage";
+  bool CheckPermission() {
+    PermissionManager manager;
+    PermissionResult result =
+        manager.RequestPermssion("http://tizen.org/privilege/mediastorage");
 
-    ppm_check_result_e permission;
-    int ret = ppm_check_permission(privilege, &permission);
-    if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-      LOG_ERROR("ppm_check_permission fail! [%d]", ret);
-    } else {
-      switch (permission) {
-        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
-          LOG_INFO("ppm_check_permission success!");
-          PickContent();
-          return;
-        case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
-          ret = ppm_request_permission(
-              privilege,
-              [](ppm_call_cause_e cause, ppm_request_result_e result,
-                 const char *privilege, void *data) -> void {
-                auto *plugin = (ImagePickerTizenPlugin *)data;
-                assert(plugin);
-
-                if (cause == PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ERROR) {
-                  LOG_ERROR("ppm_request_permission error! [%d]", result);
-                  plugin->SendResultWithError("Permission denied");
-                  return;
-                }
-                if (result !=
-                    PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER) {
-                  LOG_ERROR("ppm_request_permission deny! [%d]", result);
-                  plugin->SendResultWithError("Permission denied");
-                  return;
-                }
-
-                plugin->PickContent();
-              },
-              this);
-          if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-            LOG_ERROR("ppm_request_permission fail! [%d]", ret);
-            break;
-          }
-          return;
-        default:
-          LOG_ERROR("ppm_check_permission deny!");
-          break;
-      }
+    if (result == PermissionResult::kDenyForever ||
+        result == PermissionResult::kDenyOnce) {
+      SendErrorResult("Permission denied", "Permission denied by user.");
+      return false;
+    } else if (result == PermissionResult::kError) {
+      SendErrorResult("Operation failed", "Failed to request permission.");
+      return false;
     }
-    SendResultWithError("Permission denied");
-#else
-    PickContent();
-#endif
+    return true;
   }
 
-  void PickContent() {
+  void PickContent(std::string mime_type) {
+    if (!CheckPermission()) {
+      return;
+    }
+
     app_control_h handle = nullptr;
-#define RET_IF_ERROR(ret)                                             \
-  if (ret != APP_CONTROL_ERROR_NONE) {                                \
-    SendResultWithError(std::to_string(ret), get_error_message(ret)); \
-    if (handle) {                                                     \
-      app_control_destroy(handle);                                    \
-    }                                                                 \
-    return;                                                           \
+#define RETURN_IF_ERROR(ret)                                      \
+  if (ret != APP_CONTROL_ERROR_NONE) {                            \
+    SendErrorResult(std::to_string(ret), get_error_message(ret)); \
+    if (handle) {                                                 \
+      app_control_destroy(handle);                                \
+    }                                                             \
+    return;                                                       \
   }
     int ret = app_control_create(&handle);
-    RET_IF_ERROR(ret);
+    RETURN_IF_ERROR(ret);
 
     ret = app_control_set_operation(handle, APP_CONTROL_OPERATION_PICK);
-    RET_IF_ERROR(ret);
+    RETURN_IF_ERROR(ret);
 
     ret = app_control_add_extra_data(handle, APP_CONTROL_DATA_SELECTION_MODE,
                                      multi_image_ ? "multiple" : "single");
-    RET_IF_ERROR(ret);
+    RETURN_IF_ERROR(ret);
 
-    ret = app_control_set_mime(handle, mime_type_.c_str());
-    RET_IF_ERROR(ret);
+    ret = app_control_set_mime(handle, mime_type.c_str());
+    RETURN_IF_ERROR(ret);
 
-    ret = app_control_send_launch_request(handle, PickImageReplyCallback, this);
-    RET_IF_ERROR(ret);
-#undef RET_IF_ERROR
+    ret = app_control_send_launch_request(handle, ReplyCallback, this);
+    RETURN_IF_ERROR(ret);
+#undef RETURN_IF_ERROR
 
     app_control_destroy(handle);
   }
 
-  static void PickImageReplyCallback(app_control_h request, app_control_h reply,
-                                     app_control_result_e result,
-                                     void *user_data) {
-    LOG_INFO("PickImageReplyCallback called: %d", (int)result);
-
-    auto *plugin = (ImagePickerTizenPlugin *)user_data;
-    assert(plugin != nullptr);
-    assert(plugin->result_ != nullptr);
+  static void ReplyCallback(app_control_h request, app_control_h reply,
+                            app_control_result_e result, void *user_data) {
+    auto *self = static_cast<ImagePickerTizenPlugin *>(user_data);
+    assert(self->result_);
 
     if (result != APP_CONTROL_RESULT_SUCCEEDED) {
-      plugin->SendResultWithError("Operation failed");
+      self->SendErrorResult("Operation failed", "Received an error response.");
       return;
     }
 
@@ -231,32 +187,32 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
     int ret = app_control_get_extra_data_array(reply, APP_CONTROL_DATA_SELECTED,
                                                &values, &count);
     if (ret != APP_CONTROL_ERROR_NONE) {
-      plugin->SendResultWithError(std::to_string(ret), get_error_message(ret));
+      self->SendErrorResult(std::to_string(ret), get_error_message(ret));
       return;
     }
 
     if (count == 0) {
-      plugin->SendResultWithError("No file selected");
-    } else if (plugin->multi_image_) {
+      self->SendErrorResult("Operation cancelled", "No file selected.");
+    } else if (self->multi_image_) {
       flutter::EncodableList paths;
       for (int i = 0; i < count; i++) {
         std::string source_path = values[i];
         std::string dest_path;
-        if (plugin->image_resize_.Resize(source_path, dest_path)) {
+        if (self->image_resize_.Resize(source_path, &dest_path)) {
           paths.push_back(flutter::EncodableValue(dest_path));
         } else {
           paths.push_back(flutter::EncodableValue(source_path));
         }
         free(values[i]);
       }
-      plugin->SendResultWithSuccess(flutter::EncodableValue(paths));
+      self->SendResult(flutter::EncodableValue(paths));
     } else {
       std::string source_path = values[0];
       std::string dest_path;
-      if (plugin->image_resize_.Resize(source_path, dest_path)) {
-        plugin->SendResultWithSuccess(flutter::EncodableValue(dest_path));
+      if (self->image_resize_.Resize(source_path, &dest_path)) {
+        self->SendResult(flutter::EncodableValue(dest_path));
       } else {
-        plugin->SendResultWithSuccess(flutter::EncodableValue(source_path));
+        self->SendResult(flutter::EncodableValue(source_path));
       }
       free(values[0]);
     }
@@ -266,32 +222,29 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void SendResultWithSuccess(const flutter::EncodableValue &result) {
-    if (result_ == nullptr) {
+  void SendResult(const flutter::EncodableValue &result) {
+    if (!result_) {
       return;
     }
     result_->Success(result);
     result_ = nullptr;
   }
 
-  void SendResultWithError(const std::string &error_code,
-                           const std::string &error_message = "") {
-    if (result_ == nullptr) {
+  void SendErrorResult(const std::string &error_code,
+                       const std::string &error_message) {
+    if (!result_) {
       return;
     }
     result_->Error(error_code, error_message);
     result_ = nullptr;
   }
 
-  void SetContentMimeType(const std::string &mime_type) {
-    mime_type_ = mime_type + "/*";
-  }
-
-  ImageResize image_resize_;
   std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result_;
-  std::string mime_type_;
+  ImageResize image_resize_;
   bool multi_image_ = false;
 };
+
+}  // namespace
 
 void ImagePickerTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
