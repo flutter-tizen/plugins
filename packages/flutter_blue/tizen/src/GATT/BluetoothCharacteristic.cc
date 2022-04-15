@@ -34,8 +34,7 @@ BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
   _activeCharacteristics.var[UUID()] = this;
 }
 
-auto BluetoothCharacteristic::toProtoCharacteristic() const noexcept
-    -> proto::gen::BluetoothCharacteristic {
+proto::gen::BluetoothCharacteristic BluetoothCharacteristic::toProtoCharacteristic() const noexcept{
   proto::gen::BluetoothCharacteristic proto;
   proto.set_remote_id(_service.cDevice().cAddress());
   proto.set_uuid(UUID());
@@ -54,25 +53,22 @@ auto BluetoothCharacteristic::toProtoCharacteristic() const noexcept
   }
   return proto;
 }
-auto BluetoothCharacteristic::cService() const noexcept
-    -> const BluetoothService& {
+BluetoothService const& BluetoothCharacteristic::cService() const noexcept {
   return _service;
 }
-auto BluetoothCharacteristic::UUID() const noexcept -> std::string {
+std::string BluetoothCharacteristic::UUID() const noexcept{
   return btu::getGattUUID(_handle);
 }
-auto BluetoothCharacteristic::value() const noexcept -> std::string {
+std::string BluetoothCharacteristic::value() const noexcept {
   return btu::getGattValue(_handle);
 }
-auto BluetoothCharacteristic::getDescriptor(const std::string& uuid)
-    -> BluetoothDescriptor* {
-  for (auto& s : _descriptors) {
+BluetoothDescriptor* BluetoothCharacteristic::getDescriptor(const std::string& uuid) {
+  for (auto& s : _descriptors)
     if (s->UUID() == uuid) return s.get();
-  }
   return nullptr;
 }
-auto BluetoothCharacteristic::read(
-    const std::function<void(const BluetoothCharacteristic&)>& func) -> void {
+void BluetoothCharacteristic::read(
+    const std::function<void(const BluetoothCharacteristic&)>& func){
   struct Scope {
     std::function<void(const BluetoothCharacteristic&)> func;
     const std::string characteristic_uuid;
@@ -101,10 +97,10 @@ auto BluetoothCharacteristic::read(
   if (res) throw BTException(res, "could not read characteristic");
 }
 
-auto BluetoothCharacteristic::write(
+void BluetoothCharacteristic::write(
     const std::string value, bool withoutResponse,
     const std::function<void(bool success, const BluetoothCharacteristic&)>&
-        callback) -> void {
+        callback){
   struct Scope {
     std::function<void(bool success, const BluetoothCharacteristic&)> func;
     const std::string characteristic_uuid;
@@ -149,15 +145,14 @@ auto BluetoothCharacteristic::write(
   if (res) throw BTException("could not write value to remote");
 }
 
-auto BluetoothCharacteristic::properties() const noexcept -> int {
+int BluetoothCharacteristic::properties() const noexcept{
   auto prop = 0;
   auto res = bt_gatt_characteristic_get_properties(_handle, &prop);
   Logger::showResultError("bt_gatt_characteristic_get_properties", res);
   return prop;
 }
 
-auto BluetoothCharacteristic::setNotifyCallback(const NotifyCallback& callback)
-    -> void {
+void BluetoothCharacteristic::setNotifyCallback(const NotifyCallback& callback){
   auto p = properties();
   if (!(p & 0x30))
     throw BTException("cannot set callback! notify=0 && indicate=0");

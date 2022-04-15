@@ -61,37 +61,33 @@ class BluetoothDeviceController {
   BluetoothDeviceController() = delete;
   BluetoothDeviceController(const BluetoothDeviceController& address) = delete;
 
-  auto cAddress() const noexcept -> const std::string&;
-  auto state() const noexcept -> State;
-  auto protoBluetoothDevices() noexcept
-      -> std::vector<proto::gen::BluetoothDevice>&;
-  auto cProtoBluetoothDevices() const noexcept
-      -> const std::vector<proto::gen::BluetoothDevice>&;
+  const std::string& cAddress() const noexcept;
+  State state() const noexcept;
+  std::vector<proto::gen::BluetoothDevice>& protoBluetoothDevices() noexcept;
+  const std::vector<proto::gen::BluetoothDevice>& cProtoBluetoothDevices() const noexcept;
 
-  auto connect(bool autoConnect) -> void;
-  auto disconnect() -> void;
+  void connect(bool autoConnect);
+  void disconnect();
 
-  static auto connectionStateCallback(int result, bool connected,
+  static void connectionStateCallback(int result, bool connected,
                                       const char* remote_address,
-                                      void* user_data) noexcept -> void;
-  static auto getGattClient(const std::string& address) -> bt_gatt_client_h;
-  static auto destroyGattClientIfExists(const std::string& address) noexcept
-      -> void;
-  static auto localToProtoDeviceState(const BluetoothDeviceController::State& s)
-      -> proto::gen::DeviceStateResponse_BluetoothDeviceState;
+                                      void* user_data) noexcept;
+  static bt_gatt_client_h getGattClient(const std::string& address);
+  static void destroyGattClientIfExists(const std::string& address) noexcept;
+  static proto::gen::DeviceStateResponse_BluetoothDeviceState localToProtoDeviceState(const BluetoothDeviceController::State& s);
 
-  auto discoverServices() -> void;
+  void discoverServices();
 
-  auto getServices() noexcept -> std::vector<btGatt::PrimaryService*>;
+  std::vector<btGatt::PrimaryService*> getServices() noexcept;
 
-  auto getService(const std::string& uuid) noexcept -> btGatt::PrimaryService*;
+  btGatt::PrimaryService* getService(const std::string& uuid) noexcept;
 
-  auto getMtu() const -> u_int32_t;
+  u_int32_t getMtu() const;
 
-  auto requestMtu(u_int32_t mtu, const requestMtuCallback& callback) -> void;
+  void requestMtu(u_int32_t mtu, const requestMtuCallback& callback);
 
-  auto notifyDeviceState() const -> void;
-  auto cNotificationsHandler() const noexcept -> const NotificationsHandler&;
+  void notifyDeviceState() const;
+  const NotificationsHandler& cNotificationsHandler() const noexcept;
 };
 };      // namespace btu
 #endif  // BLUETOOTH_DEVICE_CONTROLLER_H

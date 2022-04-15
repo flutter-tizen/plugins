@@ -12,6 +12,7 @@ using btlog::Logger;
 using btlog::LogLevel;
 using btu::BTException;
 using btu::NotificationsHandler;
+using State = BluetoothDeviceController::State;
 
 BluetoothDeviceController::BluetoothDeviceController(
     const std::string& address,
@@ -33,11 +34,10 @@ BluetoothDeviceController::~BluetoothDeviceController() noexcept {
   Logger::log(LogLevel::DEBUG, "reporting destroy!");
 }
 
-auto BluetoothDeviceController::cAddress() const noexcept
-    -> const std::string& {
+const std::string& BluetoothDeviceController::cAddress() const noexcept {
   return _address;
 }
-auto BluetoothDeviceController::state() const noexcept -> State {
+State BluetoothDeviceController::state() const noexcept {
   if (isConnecting ^ isDisconnecting) {
     return (isConnecting ? State::CONNECTING : State::DISCONNECTING);
   } else {
@@ -48,15 +48,13 @@ auto BluetoothDeviceController::state() const noexcept -> State {
     return (isConnected ? State::CONNECTED : State::DISCONNECTED);
   }
 }
-auto BluetoothDeviceController::protoBluetoothDevices() noexcept
-    -> std::vector<proto::gen::BluetoothDevice>& {
+std::vector<proto::gen::BluetoothDevice>& BluetoothDeviceController::protoBluetoothDevices() noexcept {
   return _protoBluetoothDevices;
 }
-auto BluetoothDeviceController::cProtoBluetoothDevices() const noexcept
-    -> const std::vector<proto::gen::BluetoothDevice>& {
+std::vector<proto::gen::BluetoothDevice> const& BluetoothDeviceController::cProtoBluetoothDevices() const noexcept {
   return _protoBluetoothDevices;
 }
-auto BluetoothDeviceController::connect(bool autoConnect) -> void {
+void BluetoothDeviceController::connect(bool autoConnect){
   std::unique_lock lock(operationM);
   autoConnect = false;  // TODO - fix. API fails when autoconnect==true
   Logger::log(LogLevel::DEBUG, "connecting...");
@@ -72,7 +70,7 @@ auto BluetoothDeviceController::connect(bool autoConnect) -> void {
     throw BTException(mes);
   }
 }
-auto BluetoothDeviceController::disconnect() -> void {
+void BluetoothDeviceController::disconnect(){
   std::scoped_lock lock(operationM);
   auto st = state();
   if (st == State::CONNECTED) {
@@ -84,8 +82,7 @@ auto BluetoothDeviceController::disconnect() -> void {
   }
 }
 
-auto BluetoothDeviceController::getGattClient(const std::string& address)
-    -> bt_gatt_client_h {
+ bt_gatt_client_h BluetoothDeviceController::getGattClient(std::string const& address){
   std::scoped_lock lock(gatt_clients.mut);
 
   auto it = gatt_clients.var.find(address);
@@ -106,8 +103,8 @@ auto BluetoothDeviceController::getGattClient(const std::string& address)
   }
   return client;
 }
-auto BluetoothDeviceController::destroyGattClientIfExists(
-    const std::string& address) noexcept -> void {
+void BluetoothDeviceController::destroyGattClientIfExists(
+    std::string const& address) noexcept {
   std::scoped_lock lock(gatt_clients.mut);
   auto it = gatt_clients.var.find(address);
   if (it != gatt_clients.var.end()) {
@@ -118,7 +115,7 @@ auto BluetoothDeviceController::destroyGattClientIfExists(
   }
 }
 
-auto BluetoothDeviceController::discoverServices() -> void {
+void BluetoothDeviceController::discoverServices(){
   std::scoped_lock lock(operationM);
 
   struct Scope {
@@ -143,28 +140,25 @@ auto BluetoothDeviceController::discoverServices() -> void {
   Logger::showResultError("bt_gatt_client_foreach_services", res);
 }
 
-auto BluetoothDeviceController::getServices() noexcept
-    -> std::vector<btGatt::PrimaryService*> {
+std::vector<btGatt::PrimaryService*> BluetoothDeviceController::getServices() noexcept{
   auto result = std::vector<btGatt::PrimaryService*>();
   for (auto& s : _services) result.emplace_back(s.get());
   return result;
 }
 
-auto BluetoothDeviceController::getService(const std::string& uuid) noexcept
-    -> btGatt::PrimaryService* {
+btGatt::PrimaryService* BluetoothDeviceController::getService(std::string const& uuid) noexcept{
   for (auto& s : _services) {
     if (s->UUID() == uuid) return s.get();
   }
   return nullptr;
 }
-auto BluetoothDeviceController::cNotificationsHandler() const noexcept
-    -> const NotificationsHandler& {
+NotificationsHandler const& BluetoothDeviceController::cNotificationsHandler() const noexcept{
   return _notificationsHandler;
 }
 
-auto BluetoothDeviceController::connectionStateCallback(
+void BluetoothDeviceController::connectionStateCallback(
     int res, bool connected, const char* remote_address,
-    void* user_data) noexcept -> void {
+    void* user_data) noexcept{
   std::string err = get_error_message(res);
   Logger::log(LogLevel::DEBUG, "callback called for device " +
                                    std::string(remote_address) +
@@ -195,7 +189,7 @@ auto BluetoothDeviceController::connectionStateCallback(
     destroyGattClientIfExists(remote_address);
   }
 }
-auto BluetoothDeviceController::getMtu() const -> u_int32_t {
+u_int32_t BluetoothDeviceController::getMtu() const{
   u_int32_t mtu = -1;
   auto res = bt_gatt_client_get_att_mtu(getGattClient(_address), &mtu);
   Logger::showResultError("bt_gatt_client_get_att_mtu", res);
@@ -203,9 +197,8 @@ auto BluetoothDeviceController::getMtu() const -> u_int32_t {
   Logger::log(LogLevel::DEBUG, "fetched mtu size successfully");
   return mtu;
 }
-auto BluetoothDeviceController::requestMtu(u_int32_t mtu,
-                                           const requestMtuCallback& callback)
-    -> void {
+void BluetoothDeviceController::requestMtu(u_int32_t mtu,
+                                           const requestMtuCallback& callback){
   struct Scope {
     const std::string device_address;
     requestMtuCallback callback;
@@ -236,16 +229,15 @@ auto BluetoothDeviceController::requestMtu(u_int32_t mtu,
   Logger::showResultError("bt_gatt_client_request_att_mtu_change", res);
   if (res) throw BTException(res, "bt_gatt_client_request_att_mtu_change");
 }
-auto BluetoothDeviceController::notifyDeviceState() const -> void {
+void BluetoothDeviceController::notifyDeviceState() const{
   proto::gen::DeviceStateResponse devState;
   devState.set_remote_id(cAddress());
   devState.set_state(localToProtoDeviceState(state()));
   _notificationsHandler.notifyUIThread("DeviceState", devState);
 }
 
-auto BluetoothDeviceController::localToProtoDeviceState(
-    const BluetoothDeviceController::State& s)
-    -> proto::gen::DeviceStateResponse_BluetoothDeviceState {
+proto::gen::DeviceStateResponse_BluetoothDeviceState BluetoothDeviceController::localToProtoDeviceState(
+    const BluetoothDeviceController::State& s){
   using State = btu::BluetoothDeviceController::State;
   switch (s) {
     case State::CONNECTED:
