@@ -170,7 +170,7 @@ auto BluetoothManager::startBluetoothDeviceScanLE(
   int uuidCount = scanSettings.service_uuids_size();
   std::vector<bt_scan_filter_h> filters(uuidCount);
 
-  for (int i = 0; i < uuidCount; i++) {
+  for (int i = 0; i < uuidCount; ++i) {
     const std::string& uuid = scanSettings.service_uuids()[i];
     res = bt_adapter_le_scan_filter_create(&filters[i]);
     Logger::showResultError("bt_adapter_le_scan_filter_create", res);
