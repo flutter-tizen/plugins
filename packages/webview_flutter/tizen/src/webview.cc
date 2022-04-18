@@ -182,8 +182,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
   texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
       [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
         return this->ObtainGpuBuffer(width, height);
-      },
-      [this](void* buffer) -> void { this->DestructBuffer(buffer); }));
+      }));
   SetTextureId(texture_registrar_->RegisterTexture(texture_variant_));
   InitWebView();
 
@@ -804,11 +803,10 @@ void WebView::InitWebView() {
           if (candidate_surface_) {
             tbm_pool_->Release(candidate_surface_);
             candidate_surface_ = nullptr;
-          } else {
-            texture_registrar_->MarkTextureFrameAvailable(GetTextureId());
           }
           candidate_surface_ = working_surface_;
           working_surface_ = nullptr;
+          texture_registrar_->MarkTextureFrameAvailable(GetTextureId());
         }
       },
       use_sw_backend_);
@@ -1021,14 +1019,4 @@ FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
   rendered_surface_ = candidate_surface_;
   candidate_surface_ = nullptr;
   return rendered_surface_->GpuBuffer();
-}
-
-void WebView::DestructBuffer(void* buffer) {
-  if (buffer) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    BufferUnit* unit = tbm_pool_->Find((tbm_surface_h)buffer);
-    if (unit && unit != rendered_surface_) {
-      tbm_pool_->Release(unit);
-    }
-  }
 }
