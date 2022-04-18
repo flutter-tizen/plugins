@@ -12,10 +12,10 @@
 #include <string>
 #include <vector>
 
-enum class SensorType { kNone, kAccelerometer, kGyroscope, kUserAccel };
+enum class SensorType { kAccelerometer, kGyroscope, kUserAccel };
 
 typedef std::vector<double> SensorEvent;
-typedef std::function<void(SensorEvent)> SensorEventReceivedCallback;
+typedef std::function<void(SensorEvent)> SensorEventCallback;
 
 class DeviceSensor {
  public:
@@ -26,17 +26,17 @@ class DeviceSensor {
 
   std::string GetLastErrorString() { return get_error_message(last_error_); }
 
-  bool StartListen(SensorEventReceivedCallback callback);
+  bool StartListen(SensorEventCallback callback);
 
   void StopListen();
 
  private:
-  SensorType sensor_type_ = SensorType::kNone;
+  SensorType sensor_type_ = SensorType::kAccelerometer;
   sensor_listener_h listener_ = nullptr;
   bool is_listening_ = false;
   int last_error_ = TIZEN_ERROR_NONE;
 
-  SensorEventReceivedCallback callback_ = nullptr;
+  SensorEventCallback callback_ = nullptr;
 };
 
 #endif  // FLUTTER_PLUGIN_DEVICE_SENSOR_H_

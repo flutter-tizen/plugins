@@ -21,7 +21,6 @@ bool ToTizenSensorType(const SensorType &sensor_type,
     case SensorType::kUserAccel:
       *tizen_sensor_type = SENSOR_LINEAR_ACCELERATION;
       break;
-    case SensorType::kNone:
     default:
       ret = false;
       break;
@@ -45,7 +44,7 @@ DeviceSensor::~DeviceSensor() {
   }
 }
 
-bool DeviceSensor::StartListen(SensorEventReceivedCallback callback) {
+bool DeviceSensor::StartListen(SensorEventCallback callback) {
   if (is_listening_) {
     LOG_WARN("Already listening.");
     last_error_ = SENSOR_ERROR_OPERATION_FAILED;
@@ -62,14 +61,14 @@ bool DeviceSensor::StartListen(SensorEventReceivedCallback callback) {
   sensor_h sensor;
   int ret = sensor_get_default_sensor(tizen_sensor_type, &sensor);
   if (ret != SENSOR_ERROR_NONE) {
-    LOG_ERROR("Failed to get default sensor %s", get_error_message(ret));
+    LOG_ERROR("Failed to get default sensor: %s", get_error_message(ret));
     last_error_ = ret;
     return false;
   }
 
   ret = sensor_create_listener(sensor, &listener_);
   if (ret != SENSOR_ERROR_NONE) {
-    LOG_ERROR("Failed to create listener %s", get_error_message(ret));
+    LOG_ERROR("Failed to create listener: %s", get_error_message(ret));
     last_error_ = ret;
     return false;
   }
@@ -86,14 +85,14 @@ bool DeviceSensor::StartListen(SensorEventReceivedCallback callback) {
       },
       this);
   if (ret != SENSOR_ERROR_NONE) {
-    LOG_ERROR("Failed to set event callback%s", get_error_message(ret));
+    LOG_ERROR("Failed to set event callback: %s", get_error_message(ret));
     last_error_ = ret;
     return false;
   }
 
   ret = sensor_listener_start(listener_);
   if (ret != SENSOR_ERROR_NONE) {
-    LOG_ERROR("Failed to start listener%s", get_error_message(ret));
+    LOG_ERROR("Failed to start listener: %s", get_error_message(ret));
     last_error_ = ret;
     return false;
   }
@@ -112,7 +111,7 @@ void DeviceSensor::StopListen() {
 
   int ret = sensor_listener_stop(listener_);
   if (ret != SENSOR_ERROR_NONE) {
-    LOG_ERROR("%s", get_error_message(ret));
+    LOG_ERROR("Failed to stop listener: %s", get_error_message(ret));
     last_error_ = ret;
     return;
   }
@@ -121,7 +120,7 @@ void DeviceSensor::StopListen() {
 
   ret = sensor_listener_unset_event_cb(listener_);
   if (ret != SENSOR_ERROR_NONE) {
-    LOG_ERROR("%s", get_error_message(ret));
+    LOG_ERROR("Failed to unset event callback: %s", get_error_message(ret));
     last_error_ = ret;
     return;
   }

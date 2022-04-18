@@ -24,8 +24,7 @@ class DeviceSensorStreamHandler : public FlStreamHandler {
       std::unique_ptr<FlEventSink> &&events) override {
     events_ = std::move(events);
 
-    SensorEventReceivedCallback callback =
-        [this](SensorEvent sensor_event) -> void {
+    SensorEventCallback callback = [this](SensorEvent sensor_event) -> void {
       events_->Success(flutter::EncodableValue(sensor_event));
     };
     if (!sensor_.StartListen(callback)) {
