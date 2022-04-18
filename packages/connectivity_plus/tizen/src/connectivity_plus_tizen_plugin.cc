@@ -95,10 +95,10 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
           plugin_pointer->HandleMethodCall(call, std::move(result));
         });
 
-    auto event_channel = std::make_unique<FlEventChannel>(
+    plugin->event_channel_ = std::make_unique<FlEventChannel>(
         registrar->messenger(), "dev.fluttercommunity.plus/connectivity_status",
         &flutter::StandardMethodCodec::GetInstance());
-    event_channel->SetStreamHandler(
+    plugin->event_channel_->SetStreamHandler(
         std::make_unique<ConnectivityStreamHandler>());
 
     registrar->AddPlugin(std::move(plugin));
@@ -126,6 +126,8 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
       result->NotImplemented();
     }
   }
+
+  std::unique_ptr<FlEventChannel> event_channel_;
 };
 
 }  // namespace
