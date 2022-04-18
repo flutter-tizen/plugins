@@ -8,24 +8,16 @@
 
 namespace {
 
-bool ToTizenSensorType(const SensorType &sensor_type,
-                       sensor_type_e *tizen_sensor_type) {
-  bool ret = true;
+sensor_type_e ToTizenSensorType(const SensorType &sensor_type) {
   switch (sensor_type) {
     case SensorType::kAccelerometer:
-      *tizen_sensor_type = SENSOR_ACCELEROMETER;
-      break;
+      return SENSOR_ACCELEROMETER;
     case SensorType::kGyroscope:
-      *tizen_sensor_type = SENSOR_GYROSCOPE;
-      break;
+      return SENSOR_GYROSCOPE;
     case SensorType::kUserAccel:
-      *tizen_sensor_type = SENSOR_LINEAR_ACCELERATION;
-      break;
     default:
-      ret = false;
-      break;
+      return SENSOR_LINEAR_ACCELERATION;
   }
-  return ret;
 }
 
 }  // namespace
@@ -51,15 +43,8 @@ bool DeviceSensor::StartListen(SensorEventCallback callback) {
     return false;
   }
 
-  sensor_type_e tizen_sensor_type;
-  if (!ToTizenSensorType(sensor_type_, &tizen_sensor_type)) {
-    LOG_ERROR("Unsupported sensor type.");
-    last_error_ = SENSOR_ERROR_NOT_SUPPORTED;
-    return false;
-  }
-
   sensor_h sensor;
-  int ret = sensor_get_default_sensor(tizen_sensor_type, &sensor);
+  int ret = sensor_get_default_sensor(ToTizenSensorType(sensor_type_), &sensor);
   if (ret != SENSOR_ERROR_NONE) {
     LOG_ERROR("Failed to get default sensor: %s", get_error_message(ret));
     last_error_ = ret;
