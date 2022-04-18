@@ -253,6 +253,8 @@ class CameraDevice {
   void PausePreview() { is_preview_paused_ = true; }
   void ResumePreview() { is_preview_paused_ = false; }
 
+  void ReleaseMediaPacket();
+
  private:
   bool CreateCamera();
   bool ClearCameraAutoFocusArea();
@@ -329,7 +331,6 @@ class CameraDevice {
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
   media_packet_h current_packet_{nullptr};
-  media_packet_h prepared_packet_{nullptr};
 
   std::mutex mutex_;
 

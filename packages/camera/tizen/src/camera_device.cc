@@ -40,15 +40,6 @@ std::string CreateTempFileName(const std::string &prefix,
   return file_name;
 }
 
-bool IsValidMediaPacket(media_packet_h media_packet) {
-  tbm_surface_h surface = nullptr;
-  int ret = media_packet_get_tbm_surface(media_packet, &surface);
-  if (ret != MEDIA_PACKET_ERROR_NONE) {
-    return false;
-  }
-  return true;
-}
-
 ExifTagOrientation ChooseExifTagOrientatoin(OrientationType device_orientation,
                                             bool is_front_lens_facing) {
   ExifTagOrientation orientation = ExifTagOrientation::kTopLeft;
@@ -343,22 +334,9 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
           [this](size_t width,
                  size_t height) -> const FlutterDesktopGpuBuffer * {
             std::lock_guard<std::mutex> lock(mutex_);
-            if (prepared_packet_ && !IsValidMediaPacket(prepared_packet_)) {
-              media_packet_destroy(prepared_packet_);
-              prepared_packet_ = nullptr;
-            }
-            if (current_packet_ && !IsValidMediaPacket(current_packet_)) {
-              media_packet_destroy(current_packet_);
-              current_packet_ = nullptr;
-            }
-            if (!prepared_packet_ && !current_packet_) {
+            if (!current_packet_) {
               return nullptr;
             }
-            if (prepared_packet_ && !current_packet_) {
-              current_packet_ = prepared_packet_;
-              prepared_packet_ = nullptr;
-            }
-
             tbm_surface_h surface = nullptr;
             int ret = media_packet_get_tbm_surface(current_packet_, &surface);
             if (ret != MEDIA_PACKET_ERROR_NONE) {
@@ -370,14 +348,13 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
             flutter_desktop_gpu_buffer_->buffer = surface;
             flutter_desktop_gpu_buffer_->width = width;
             flutter_desktop_gpu_buffer_->height = height;
+            flutter_desktop_gpu_buffer_->release_callback =
+                [](void *release_context) {
+                  CameraDevice *cd = (CameraDevice *)release_context;
+                  cd->ReleaseMediaPacket();
+                };
+            flutter_desktop_gpu_buffer_->release_context = this;
             return flutter_desktop_gpu_buffer_.get();
-          },
-          [this](void *buffer) -> void {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (current_packet_) {
-              media_packet_destroy(current_packet_);
-              current_packet_ = nullptr;
-            }
           }));
   texture_id_ =
       registrar_->texture_registrar()->RegisterTexture(texture_variant_.get());
@@ -400,6 +377,14 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
 }
 
 CameraDevice::~CameraDevice() { Dispose(); }
+
+void CameraDevice::ReleaseMediaPacket() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (current_packet_) {
+    media_packet_destroy(current_packet_);
+    current_packet_ = nullptr;
+  }
+}
 
 bool CameraDevice::CreateCamera() {
   int error = camera_create((camera_device_e)type_, &camera_);
@@ -460,11 +445,6 @@ void CameraDevice::Dispose() {
   if (current_packet_) {
     media_packet_destroy(current_packet_);
     current_packet_ = nullptr;
-  }
-
-  if (prepared_packet_) {
-    media_packet_destroy(prepared_packet_);
-    prepared_packet_ = nullptr;
   }
 }
 
@@ -988,17 +968,17 @@ void CameraDevice::Open(
   if (!SetCameraMediaPacketPreviewCb([](media_packet_h packet, void *data) {
         auto self = static_cast<CameraDevice *>(data);
         std::lock_guard<std::mutex> lock(self->mutex_);
-        if (self->prepared_packet_) {
-          media_packet_destroy(self->prepared_packet_);
-          self->prepared_packet_ = packet;
+        if (self->current_packet_) {
+          media_packet_destroy(self->current_packet_);
+          self->current_packet_ = packet;
           return;
         }
         if (self->is_preview_paused_) {
           media_packet_destroy(packet);
-          self->prepared_packet_ = nullptr;
+          self->current_packet_ = nullptr;
           return;
         }
-        self->prepared_packet_ = packet;
+        self->current_packet_ = packet;
         self->registrar_->texture_registrar()->MarkTextureFrameAvailable(
             self->texture_id_);
       })) {
