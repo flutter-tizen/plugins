@@ -1,6 +1,6 @@
 #include <NotificationsHandler.h>
 
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btu {
 NotificationsHandler::NotificationsHandler(
     std::shared_ptr<MethodChannel> methodChannel)
@@ -15,4 +15,4 @@ auto NotificationsHandler::notifyUIThread(
       method, std::make_unique<flutter::EncodableValue>(encodable));
 }
 }  // namespace btu
-}
+}  // namespace flutter_blue_tizen

@@ -7,7 +7,7 @@
 
 #include <vector>
 
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btu {
 class BluetoothDeviceController;
 };
@@ -67,5 +67,5 @@ class SecondaryService : public BluetoothService {
   std::string primaryUUID() noexcept;
 };
 }  // namespace btGatt
-}
+}  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_SERVICE_H

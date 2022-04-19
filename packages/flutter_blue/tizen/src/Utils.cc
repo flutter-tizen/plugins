@@ -3,7 +3,7 @@
 #include <Logger.h>
 #include <Utils.h>
 
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btu {
 using btlog::Logger;
 using btlog::LogLevel;
@@ -100,4 +100,4 @@ bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid) {
   return result;
 }
 }  // namespace btu
-}
+}  // namespace flutter_blue_tizen

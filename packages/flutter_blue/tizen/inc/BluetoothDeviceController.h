@@ -3,7 +3,7 @@
 #include <Utils.h>
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btGatt {
 class PrimaryService;
 class SecondaryService;
@@ -90,6 +90,6 @@ class BluetoothDeviceController {
   void notifyDeviceState() const;
   const NotificationsHandler& cNotificationsHandler() const noexcept;
 };
-};      // namespace btu
-}
+};  // namespace btu
+}  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H

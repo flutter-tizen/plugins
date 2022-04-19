@@ -5,7 +5,7 @@
 #include <Logger.h>
 #include <Utils.h>
 
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btGatt {
 using btlog::Logger;
 using btlog::LogLevel;
@@ -109,4 +109,4 @@ BluetoothDescriptor::~BluetoothDescriptor() {
   _activeDescriptors.var.erase(UUID());
 }
 }  // namespace btGatt
-}
+}  // namespace flutter_blue_tizen

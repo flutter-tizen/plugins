@@ -3,7 +3,7 @@
 
 #include <BluetoothManager.h>
 #include <flutter/event_stream_handler.h>
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btu {
 class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
   using Base = flutter::StreamHandler<flutter::EncodableValue>;
@@ -21,5 +21,5 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
   OnCancelInternal(const flutter::EncodableValue* arguments) override;
 };
 }  // namespace btu
-}
+}  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_STATE_HANDLER_H

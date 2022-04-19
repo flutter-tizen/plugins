@@ -4,7 +4,7 @@
 #include <Logger.h>
 #include <bluetooth.h>
 
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btGatt {
 using btlog::Logger;
 using btlog::LogLevel;
@@ -118,4 +118,4 @@ BluetoothService::~BluetoothService() {
 PrimaryService::~PrimaryService() { _characteristics.clear(); }
 SecondaryService::~SecondaryService() { _characteristics.clear(); }
 }  // namespace btGatt
-}
+}  // namespace flutter_blue_tizen

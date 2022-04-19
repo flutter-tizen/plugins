@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btGatt {
 class BluetoothDescriptor;
 class BluetoothCharacteristic;
@@ -70,5 +70,5 @@ void decodeAdvertisementData(const char* packetsData,
                              proto::gen::AdvertisementData& adv,
                              int dataLen) noexcept;
 }  // namespace btu
-}
+}  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H

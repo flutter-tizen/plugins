@@ -10,7 +10,7 @@
 
 #include <mutex>
 
-namespace flutter_blue_tizen{
+namespace flutter_blue_tizen {
 namespace btu {
 using btlog::Logger;
 using btlog::LogLevel;
@@ -480,4 +480,4 @@ void decodeAdvertisementData(const char* packetsData,
 }
 
 }  // namespace btu
-}
+}  // namespace flutter_blue_tizen
