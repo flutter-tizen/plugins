@@ -1,5 +1,5 @@
-#ifndef STATE_HANDLER_H
-#define STATE_HANDLER_H
+#ifndef FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
+#define FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
 
 #include <BluetoothManager.h>
 #include <flutter/event_stream_handler.h>
@@ -23,4 +23,4 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
 };
 
 }  // namespace btu
-#endif  // STATE_HANDLER_H
+#endif  // FLUTTER_BLUE_TIZEN_STATE_HANDLER_H

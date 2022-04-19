@@ -1,5 +1,5 @@
-#ifndef BLUETOOTH_DESCRIPTOR_H
-#define BLUETOOTH_DESCRIPTOR_H
+#ifndef FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
+#define FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
 
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
@@ -35,4 +35,4 @@ class BluetoothDescriptor {
   BluetoothCharacteristic const& cCharacteristic() const noexcept;
 };
 }  // namespace btGatt
-#endif  // BLUETOOTH_DESCRIPTOR_H
+#endif  // FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H

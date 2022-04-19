@@ -1,5 +1,5 @@
-#ifndef FLUTTER_PLUGIN_FLUTTER_BLUE_TIZEN_PLUGIN_H_
-#define FLUTTER_PLUGIN_FLUTTER_BLUE_TIZEN_PLUGIN_H_
+#ifndef FLUTTER_BLUE_TIZEN__PLUGIN_H_
+#define FLUTTER_BLUE_TIZEN__PLUGIN_H_
 
 #include <flutter_plugin_registrar.h>
 
@@ -20,4 +20,4 @@ FLUTTER_PLUGIN_EXPORT void FlutterBlueTizenPluginRegisterWithRegistrar(
 }  // extern "C"
 #endif
 
-#endif  // FLUTTER_PLUGIN_FLUTTER_BLUE_TIZEN_PLUGIN_H_
+#endif  // FLUTTER_BLUE_TIZEN_PLUGIN_H_

@@ -1,5 +1,5 @@
-#ifndef BLUETOOTH_DEVICE_CONTROLLER_H
-#define BLUETOOTH_DEVICE_CONTROLLER_H
+#ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
+#define FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 #include <Utils.h>
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
@@ -91,4 +91,4 @@ class BluetoothDeviceController {
   const NotificationsHandler& cNotificationsHandler() const noexcept;
 };
 };      // namespace btu
-#endif  // BLUETOOTH_DEVICE_CONTROLLER_H
+#endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H

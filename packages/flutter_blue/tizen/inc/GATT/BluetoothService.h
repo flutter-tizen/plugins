@@ -1,5 +1,5 @@
-#ifndef BLEUTOOTH_SERVICE_H
-#define BLEUTOOTH_SERVICE_H
+#ifndef FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_SERVICE_H
+#define FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_SERVICE_H
 
 #include <GATT/BluetoothCharacteristic.h>
 #include <bluetooth.h>
@@ -66,4 +66,4 @@ class SecondaryService : public BluetoothService {
   std::string primaryUUID() noexcept;
 };
 }  // namespace btGatt
-#endif  // BLEUTOOTH_SERVICE_H
+#endif  // FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_SERVICE_H

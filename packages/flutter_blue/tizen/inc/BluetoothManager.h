@@ -1,5 +1,5 @@
-#ifndef BLUETOOTH_MANAGER_H
-#define BLUETOOTH_MANAGER_H
+#ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
+#define FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
 
 #include <NotificationsHandler.h>
 #include <Utils.h>
@@ -70,4 +70,4 @@ void decodeAdvertisementData(const char* packetsData,
                              int dataLen) noexcept;
 }  // namespace btu
 
-#endif  // BLUETOOTH_MANAGER_H
+#endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H

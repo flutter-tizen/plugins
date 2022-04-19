@@ -1,5 +1,5 @@
-#ifndef BLEUTOOTH_CHARACTERISTIC_H
-#define BLEUTOOTH_CHARACTERISTIC_H
+#ifndef FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H
+#define FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H
 #include <Utils.h>
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
@@ -48,4 +48,4 @@ class BluetoothCharacteristic {
   void unsetNotifyCallback();
 };
 }  // namespace btGatt
-#endif  // BLEUTOOTH_CHARACTERISTIC_H
+#endif  // FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H

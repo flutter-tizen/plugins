@@ -1,5 +1,5 @@
-#ifndef NOTIFICATIONS_HANDLER_H
-#define NOTIFICATIONS_HANDLER_H
+#ifndef FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
+#define FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
 #include <Utils.h>
 
 #include <memory>
@@ -16,4 +16,4 @@ class NotificationsHandler {
 };
 };  // namespace btu
 
-#endif  // NOTIFICATIONS_HANDLER_H
+#endif  // FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H

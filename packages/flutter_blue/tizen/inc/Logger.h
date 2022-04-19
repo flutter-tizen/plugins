@@ -1,5 +1,5 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef FLUTTER_BLUE_TIZEN_LOGGER_H
+#define FLUTTER_BLUE_TIZEN_LOGGER_H
 
 #include <Utils.h>
 #include <dlog.h>
@@ -29,4 +29,4 @@ class Logger {
 };
 }  // namespace btlog
 
-#endif  // LOGGER_H
+#endif  // FLUTTER_BLUE_TIZEN_LOGGER_H

@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef FLUTTER_BLUE_TIZEN_UTILS_H
+#define FLUTTER_BLUE_TIZEN_UTILS_H
 
 #include <bluetooth.h>
 #include <flutter/encodable_value.h>
@@ -53,4 +53,4 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
 proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
     int properties);
 }  // namespace btu
-#endif  // UTILS_H
+#endif  // FLUTTER_BLUE_TIZEN_UTILS_H
