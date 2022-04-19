@@ -7,6 +7,7 @@
 #include <mutex>
 #include <unordered_set>
 
+namespace flutter_blue_tizen{
 namespace btu {
 using btlog::Logger;
 using btlog::LogLevel;
@@ -260,3 +261,4 @@ BluetoothDeviceController::localToProtoDeviceState(
   }
 }
 }  // namespace btu
+}

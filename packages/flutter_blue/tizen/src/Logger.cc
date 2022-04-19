@@ -1,5 +1,6 @@
 #include <Logger.h>
 
+namespace flutter_blue_tizen{
 namespace btlog {
 void Logger::log(LogLevel messLevel, const std::string& mess) noexcept {
   if (messLevel <= logLevel.var) {
@@ -51,3 +52,4 @@ void Logger::showResultError(std::string componentName, int res) {
 }
 
 }  // namespace btlog
+}

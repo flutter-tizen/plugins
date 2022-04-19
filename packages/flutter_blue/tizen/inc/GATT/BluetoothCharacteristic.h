@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+namespace flutter_blue_tizen{
 namespace btGatt {
 class BluetoothService;
 class BluetoothDescriptor;
@@ -48,4 +49,5 @@ class BluetoothCharacteristic {
   void unsetNotifyCallback();
 };
 }  // namespace btGatt
+}
 #endif  // FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H

@@ -3,7 +3,7 @@
 #include <Utils.h>
 
 #include <memory>
-
+namespace flutter_blue_tizen{
 namespace btu {
 class NotificationsHandler {
   std::shared_ptr<MethodChannel> _methodChannel;
@@ -15,5 +15,5 @@ class NotificationsHandler {
       google::protobuf::MessageLite const& encodable) const noexcept;
 };
 };  // namespace btu
-
+}
 #endif  // FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H

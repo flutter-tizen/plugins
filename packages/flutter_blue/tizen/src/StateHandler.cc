@@ -1,5 +1,6 @@
 #include <StateHandler.h>
 
+namespace flutter_blue_tizen{
 namespace btu {
 std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
 StateHandler::OnListenInternal(
@@ -15,3 +16,4 @@ StateHandler::OnCancelInternal(const flutter::EncodableValue* arguments) {
   return nullptr;
 }
 }  // namespace btu
+}

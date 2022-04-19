@@ -8,7 +8,7 @@
 #include <Utils.h>
 
 #include <exception>
-
+namespace flutter_blue_tizen{
 namespace btGatt {
 using btlog::Logger;
 using btlog::LogLevel;
@@ -209,3 +209,4 @@ BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
   Logger::log(LogLevel::DEBUG, "Called destructor for characteristic.");
 }
 }  // namespace btGatt
+}

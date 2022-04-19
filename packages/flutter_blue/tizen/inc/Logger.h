@@ -5,7 +5,7 @@
 #include <dlog.h>
 
 #include <string>
-
+namespace flutter_blue_tizen{
 namespace btlog {
 enum class LogLevel {
   EMERGENCY,
@@ -28,5 +28,5 @@ class Logger {
   static void showResultError(std::string componentName, int res);
 };
 }  // namespace btlog
-
+}
 #endif  // FLUTTER_BLUE_TIZEN_LOGGER_H

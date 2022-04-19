@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 
+namespace flutter_blue_tizen{
 namespace btGatt {
 class BluetoothCharacteristic;
 class BluetoothDescriptor {
@@ -35,4 +36,5 @@ class BluetoothDescriptor {
   BluetoothCharacteristic const& cCharacteristic() const noexcept;
 };
 }  // namespace btGatt
+}
 #endif  // FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H

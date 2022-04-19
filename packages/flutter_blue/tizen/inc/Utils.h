@@ -8,7 +8,7 @@
 
 #include <exception>
 #include <mutex>
-
+namespace flutter_blue_tizen{
 namespace btGatt {
 class PrimaryService;
 class SecondaryService;
@@ -53,4 +53,5 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
 proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
     int properties);
 }  // namespace btu
+}
 #endif  // FLUTTER_BLUE_TIZEN_UTILS_H
