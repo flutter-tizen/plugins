@@ -9,6 +9,7 @@ option java_outer_classname = "Protos";
 option objc_class_prefix = "Protos";
 option optimize_for = LITE_RUNTIME;
 package proto.gen;
+
 // Wrapper message for `int32`.
 //
 // Allows for nullability of fields in messages
