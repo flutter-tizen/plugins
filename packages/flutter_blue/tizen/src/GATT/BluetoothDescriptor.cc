@@ -2,13 +2,11 @@
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothDescriptor.h>
 #include <GATT/BluetoothService.h>
-#include <Logger.h>
+#include <log.h>
 #include <Utils.h>
 
 namespace flutter_blue_tizen {
 namespace btGatt {
-using btlog::Logger;
-using btlog::LogLevel;
 using btu::BTException;
 BluetoothDescriptor::BluetoothDescriptor(
     bt_gatt_h handle, BluetoothCharacteristic& characteristic)
@@ -42,7 +40,6 @@ void BluetoothDescriptor::read(
   int res = bt_gatt_client_read_value(
       _handle,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
-        Logger::log(LogLevel::DEBUG, "called native descriptor read cb");
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(_activeDescriptors.mut);
         auto it = _activeDescriptors.var.find(scope->descriptor_uuid);
@@ -51,12 +48,11 @@ void BluetoothDescriptor::read(
           auto& descriptor = *it->second;
           scope->func(descriptor);
         }
-        Logger::showResultError("bt_gatt_client_request_completed_cb", result);
-
+        LOG_ERROR("bt_gatt_client_request_completed_cb", get_error_message(result));
         delete scope;
       },
       scope);
-  Logger::showResultError("bt_gatt_client_read_value", res);
+  LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
   if (res) throw BTException("could not read descriptor");
 }
 void BluetoothDescriptor::write(
@@ -67,11 +63,9 @@ void BluetoothDescriptor::write(
     std::function<void(bool success, const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
   };
-  Logger::log(LogLevel::DEBUG,
-              "setting descriptor to value=" + value +
-                  ", with size=" + std::to_string(value.size()));
+
   int res = bt_gatt_set_value(_handle, value.c_str(), value.size());
-  Logger::showResultError("bt_gatt_set_value", res);
+  LOG_ERROR("bt_gatt_set_value", get_error_message(res));
 
   if (res) throw BTException("could not set value");
 
@@ -81,8 +75,7 @@ void BluetoothDescriptor::write(
   res = bt_gatt_client_write_value(
       _handle,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
-        Logger::showResultError("bt_gatt_client_request_completed_cb", result);
-        Logger::log(LogLevel::DEBUG, "descriptor native write cb native");
+        LOG_ERROR("bt_gatt_client_request_completed_cb", get_error_message(result));
 
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(_activeDescriptors.mut);
@@ -96,7 +89,7 @@ void BluetoothDescriptor::write(
         delete scope;
       },
       scope);
-  Logger::showResultError("bt_gatt_client_write_value", res);
+  LOG_ERROR("bt_gatt_client_write_value", get_error_message(res));
 
   if (res) throw BTException("could not write value to remote");
 }

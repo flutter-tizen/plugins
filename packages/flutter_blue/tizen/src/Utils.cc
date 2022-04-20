@@ -1,13 +1,10 @@
 #include <BluetoothDeviceController.h>
 #include <GATT/BluetoothService.h>
-#include <Logger.h>
+#include <log.h>
 #include <Utils.h>
 
 namespace flutter_blue_tizen {
 namespace btu {
-using btlog::Logger;
-using btlog::LogLevel;
-
 std::vector<u_int8_t> messageToVector(
     google::protobuf::MessageLite const& messageLite) noexcept {
   std::vector<u_int8_t> encoded(messageLite.ByteSizeLong());
@@ -43,7 +40,7 @@ std::string getGattValue(bt_gatt_h handle) {
   int length = 0;
 
   int res = bt_gatt_get_value(handle, &value, &length);
-  Logger::showResultError("bt_gatt_get_value", res);
+  LOG_ERROR("bt_gatt_get_value", get_error_message(res));
   if (!res && value) {
     result = std::string(value, length);
     free(value);
@@ -62,7 +59,7 @@ std::string getGattUUID(bt_gatt_h handle) {
   std::string result;
   char* uuid = nullptr;
   int res = bt_gatt_get_uuid(handle, &uuid);
-  Logger::showResultError("bt_gatt_get_uuid", res);
+  LOG_ERROR("bt_gatt_get_uuid", get_error_message(res));
   if (!res && uuid) {
     result = std::string(uuid);
     free(uuid);
@@ -74,7 +71,7 @@ std::string getGattClientAddress(bt_gatt_client_h handle) {
   std::string result;
   char* address = nullptr;
   int res = bt_gatt_client_get_remote_address(handle, &address);
-  Logger::showResultError("bt_gatt_client_get_remote_address", res);
+  LOG_ERROR("bt_gatt_client_get_remote_address", get_error_message(res));
   if (!res && address) {
     result = std::string(address);
     free(address);
@@ -95,7 +92,7 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
 bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid) {
   bt_gatt_h result;
   int res = bt_gatt_client_get_service(handle, uuid.c_str(), &result);
-  Logger::showResultError("bt_gatt_client_get_service", res);
+  LOG_ERROR("bt_gatt_client_get_service", get_error_message(res));
 
   return result;
 }

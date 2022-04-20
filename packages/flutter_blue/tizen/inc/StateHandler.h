@@ -3,6 +3,7 @@
 
 #include <BluetoothManager.h>
 #include <flutter/event_stream_handler.h>
+
 namespace flutter_blue_tizen {
 namespace btu {
 class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {

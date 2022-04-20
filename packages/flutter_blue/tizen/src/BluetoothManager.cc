@@ -3,7 +3,7 @@
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothDescriptor.h>
 #include <GATT/BluetoothService.h>
-#include <Logger.h>
+#include <log.h>
 #include <bluetooth.h>
 #include <system_info.h>
 #include <tizen.h>
@@ -12,26 +12,25 @@
 
 namespace flutter_blue_tizen {
 namespace btu {
-using btlog::Logger;
-using btlog::LogLevel;
 using State = BluetoothDeviceController::State;
 
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     : _notificationsHandler(notificationsHandler) {
-  if (!isBLEAvailable()) {
-    Logger::log(LogLevel::ERROR, "Bluetooth is not available on this device!");
+  int res;
+  if (!(res=isBLEAvailable())) {
+    LOG_ERROR("Bluetooth is not available on this device!", get_error_message(res));
     return;
   }
-  if (bt_initialize()) {
-    Logger::log(LogLevel::ERROR, "[bt_initialize] failed");
+  if (res=bt_initialize()) {
+    LOG_ERROR("[bt_initialize]", get_error_message(res));
     return;
   }
-  if (bt_gatt_set_connection_state_changed_cb(
+  if (res=bt_gatt_set_connection_state_changed_cb(
           &BluetoothDeviceController::connectionStateCallback, this)) {
-    Logger::log(LogLevel::ERROR, "[bt_device_set_bond_destroyed_cb] failed");
+    LOG_ERROR("[bt_gatt_set_connection_state_changed_cb]", get_error_message(res));
     return;
   }
-  Logger::log(LogLevel::DEBUG, "All callbacks successfully initialized.");
+  LOG_DEBUG("All callbacks successfully initialized.");
 }
 
 void BluetoothManager::setNotification(
@@ -44,10 +43,6 @@ void BluetoothManager::setNotification(
 
   if (request.enable())
     characteristic->setNotifyCallback([](auto& characteristic) {
-      Logger::log(LogLevel::DEBUG, "notification from characteristic of uuid=" +
-                                       characteristic.UUID() +
-                                       " to value=" + characteristic.value());
-
       proto::gen::SetNotificationResponse response;
       response.set_remote_id(characteristic.cService().cDevice().cAddress());
       response.set_allocated_characteristic(
@@ -57,8 +52,7 @@ void BluetoothManager::setNotification(
           .cDevice()
           .cNotificationsHandler()
           .notifyUIThread("SetNotificationResponse", response);
-      Logger::log(LogLevel::DEBUG,
-                  "notified UI thread - characteristic written by remote");
+      LOG_DEBUG("notified UI thread - characteristic written by remote");
     });
   else
     characteristic->unsetNotifyCallback();
@@ -80,16 +74,15 @@ void BluetoothManager::requestMtu(const proto::gen::MtuSizeRequest& request) {
                            request.remote_id());
 
   device->requestMtu(request.mtu(), [](auto status, auto& bluetoothDevice) {
-    Logger::log(LogLevel::DEBUG, "called request mtu cb");
     proto::gen::MtuSizeResponse res;
     res.set_remote_id(bluetoothDevice.cAddress());
     try {
       res.set_mtu(bluetoothDevice.getMtu());
     } catch (std::exception const& e) {
-      Logger::log(LogLevel::ERROR, e.what());
+      // LOG_ERROR(e.what());
     }
     bluetoothDevice.cNotificationsHandler().notifyUIThread("MtuSize", res);
-    Logger::log(LogLevel::DEBUG, "mtu request callback sent response!");
+    LOG_DEBUG("mtu request callback sent response!");
   });
 }
 
@@ -156,11 +149,8 @@ void BluetoothManager::startBluetoothDeviceScanLE(
   std::scoped_lock l(_bluetoothDevices.mut);
   _bluetoothDevices.var.clear();
   _scanAllowDuplicates = scanSettings.allow_duplicates();
-  Logger::log(LogLevel::DEBUG,
-              "allowDuplicates=" + std::to_string(_scanAllowDuplicates));
+  auto res = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);  LOG_ERROR("bt_adapter_le_set_scan_mode", get_error_message(res));
 
-  auto res = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
-  Logger::showResultError("bt_adapter_le_set_scan_mode", res);
   if (res) throw BTException(res, "bt_adapter_le_set_scan_mode");
 
   int uuidCount = scanSettings.service_uuids_size();
@@ -169,21 +159,22 @@ void BluetoothManager::startBluetoothDeviceScanLE(
   for (int i = 0; i < uuidCount; ++i) {
     const std::string& uuid = scanSettings.service_uuids()[i];
     res = bt_adapter_le_scan_filter_create(&filters[i]);
-    Logger::showResultError("bt_adapter_le_scan_filter_create", res);
+    
+    LOG_ERROR("bt_adapter_le_scan_filter_create", get_error_message(res));
     if (res) throw BTException(res, "bt_adapter_le_scan_filter_create");
 
     res =
         bt_adapter_le_scan_filter_set_device_address(filters[i], uuid.c_str());
-    Logger::showResultError("bt_adapter_le_scan_filter_set_device_address",
-                            res);
+        
+    LOG_ERROR("bt_adapter_le_scan_filter_set_device_address", get_error_message(res));
+
     if (res)
       throw BTException(res, "bt_adapter_le_scan_filter_set_device_address");
   }
 
   if (!res) {
-    btlog::Logger::log(btlog::LogLevel::DEBUG, "starting scan...");
     res = bt_adapter_le_start_scan(&BluetoothManager::scanCallback, this);
-    Logger::showResultError("bt_adapter_le_start_scan", res);
+    LOG_ERROR("bt_adapter_le_start_scan", get_error_message(res));
     if (res) throw BTException(res, "bt_adapter_le_start_scan");
   } else {
     throw BTException(res, "cannot start scan");
@@ -191,7 +182,8 @@ void BluetoothManager::startBluetoothDeviceScanLE(
 
   for (auto& f : filters) {
     res = bt_adapter_le_scan_filter_destroy(&f);
-    Logger::showResultError("bt_adapter_le_scan_filter_destroy", res);
+    LOG_ERROR("bt_adapter_le_scan_filter_destroy", get_error_message(res));
+
     if (res) throw BTException(res, "bt_adapter_le_scan_filter_destroy");
   }
 }
@@ -201,8 +193,6 @@ void BluetoothManager::scanCallback(
     void* user_data) noexcept {
   BluetoothManager& bluetoothManager =
       *static_cast<BluetoothManager*>(user_data);
-  Logger::log(LogLevel::DEBUG,
-              "scan callback with result=" + std::to_string(result));
   if (!result) {
     std::string macAddress = discovery_info->remote_address;
     std::scoped_lock lock(bluetoothManager._bluetoothDevices.mut);
@@ -258,10 +248,10 @@ void BluetoothManager::stopBluetoothDeviceScanLE() {
     auto res = bt_adapter_le_is_discovering(&isDiscovering);
     if (!res && isDiscovering) {
       res = bt_adapter_le_stop_scan();
-      if (!res) btlog::Logger::log(btlog::LogLevel::DEBUG, "scan stopped.");
-      Logger::showResultError("bt_adapter_le_stop_scan", res);
+      LOG_ERROR("bt_adapter_le_stop_scan", res);
     }
-    Logger::showResultError("bt_adapter_le_is_discovering", res);
+    
+    LOG_ERROR("bt_adapter_le_is_discovering", res);
   }
 }
 
@@ -309,20 +299,15 @@ void BluetoothManager::readCharacteristic(
       request.secondary_service_uuid(), request.characteristic_uuid());
 
   characteristic->read([](auto& characteristic) -> void {
-    Logger::log(LogLevel::DEBUG, "cb called characteristic");
     proto::gen::ReadCharacteristicResponse res;
     res.set_remote_id(characteristic.cService().cDevice().cAddress());
     res.set_allocated_characteristic(new proto::gen::BluetoothCharacteristic(
         characteristic.toProtoCharacteristic()));
 
-    Logger::log(LogLevel::DEBUG,
-                "read value of characteristic=" + characteristic.value());
-
     characteristic.cService().cDevice().cNotificationsHandler().notifyUIThread(
         "ReadCharacteristicResponse", res);
-    Logger::log(LogLevel::DEBUG, "finished characteristic read cb");
+    LOG_DEBUG("finished characteristic read cb");
   });
-  Logger::log(LogLevel::DEBUG, "read call!");
 }
 
 void BluetoothManager::readDescriptor(
@@ -334,7 +319,6 @@ void BluetoothManager::readDescriptor(
       request.descriptor_uuid());
 
   descriptor->read([](auto& descriptor) -> void {
-    Logger::log(LogLevel::DEBUG, "descriptor read cb");
     proto::gen::ReadDescriptorRequest* request =
         new proto::gen::ReadDescriptorRequest();
     request->set_remote_id(
@@ -370,13 +354,9 @@ void BluetoothManager::writeCharacteristic(
       request.remote_id(), request.service_uuid(),
       request.secondary_service_uuid(), request.characteristic_uuid());
 
-  Logger::log(
-      LogLevel::DEBUG,
-      "writing to " + characteristic->cService().cDevice().cAddress() + "...");
   characteristic->write(
       request.value(), request.write_type(),
       [](bool success, auto& characteristic) {
-        Logger::log(LogLevel::DEBUG, "characteristic write callback!");
         proto::gen::WriteCharacteristicResponse res;
         proto::gen::WriteCharacteristicRequest* request =
             new proto::gen::WriteCharacteristicRequest();
@@ -398,9 +378,8 @@ void BluetoothManager::writeCharacteristic(
             .cDevice()
             .cNotificationsHandler()
             .notifyUIThread("WriteCharacteristicResponse", res);
-        Logger::log(LogLevel::DEBUG, "finished characteristic write cb");
+        LOG_DEBUG("finished characteristic write cb");
       });
-  Logger::log(LogLevel::DEBUG, "called async write...");
 }
 
 void BluetoothManager::writeDescriptor(
@@ -413,7 +392,6 @@ void BluetoothManager::writeDescriptor(
 
   descriptor->write(
       request.value(), [](auto success, auto& descriptor) -> void {
-        Logger::log(LogLevel::DEBUG, "descriptor write callback!");
         proto::gen::WriteDescriptorRequest* request =
             new proto::gen::WriteDescriptorRequest();
 

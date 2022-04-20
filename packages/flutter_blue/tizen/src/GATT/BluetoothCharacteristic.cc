@@ -3,15 +3,13 @@
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothDescriptor.h>
 #include <GATT/BluetoothService.h>
-#include <Logger.h>
+#include <log.h>
 #include <NotificationsHandler.h>
 #include <Utils.h>
 
 #include <exception>
 namespace flutter_blue_tizen {
 namespace btGatt {
-using btlog::Logger;
-using btlog::LogLevel;
 using btu::BTException;
 
 BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
@@ -80,22 +78,20 @@ void BluetoothCharacteristic::read(
   int res = bt_gatt_client_read_value(
       _handle,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
-        Logger::log(LogLevel::DEBUG, "called characteristic read native cb");
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(_activeCharacteristics.mut);
         auto it = _activeCharacteristics.var.find(scope->characteristic_uuid);
         if (it != _activeCharacteristics.var.end()) {
           auto& characteristic = *it->second;
           scope->func(characteristic);
-          Logger::showResultError("bt_gatt_client_request_completed_cb",
-                                  result);
+          LOG_ERROR("bt_gatt_client_request_completed_cb", get_error_message(result));
         }
 
         delete scope;
       },
       scope);
 
-  Logger::showResultError("bt_gatt_client_read_value", res);
+  LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
   if (res) throw BTException(res, "could not read characteristic");
 }
 
@@ -111,14 +107,14 @@ void BluetoothCharacteristic::write(
   int res = bt_gatt_characteristic_set_write_type(
       _handle, withoutResponse ? BT_GATT_WRITE_TYPE_WRITE_NO_RESPONSE
                                : BT_GATT_WRITE_TYPE_WRITE);
-  Logger::showResultError("bt_gatt_characteristic_set_write_type", res);
+  LOG_ERROR("bt_gatt_characteristic_set_write_type", get_error_message(res));
 
   if (res)
     throw BTException(res,
                       "could not set write type to characteristic " + UUID());
 
   res = bt_gatt_set_value(_handle, value.c_str(), value.size());
-  Logger::showResultError("bt_gatt_set_value", res);
+  LOG_ERROR("bt_gatt_set_value", get_error_message(res));
 
   if (res) throw BTException(res, "could not set value");
 
@@ -127,8 +123,7 @@ void BluetoothCharacteristic::write(
   res = bt_gatt_client_write_value(
       _handle,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
-        Logger::log(LogLevel::DEBUG, "characteristic write cb native");
-        Logger::showResultError("bt_gatt_client_request_completed_cb", result);
+        LOG_ERROR("bt_gatt_client_request_completed_cb", get_error_message(result));
 
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(_activeCharacteristics.mut);
@@ -142,7 +137,7 @@ void BluetoothCharacteristic::write(
         delete scope;
       },
       scope);
-  Logger::showResultError("bt_gatt_client_write_value", res);
+  LOG_ERROR("bt_gatt_client_write_value", get_error_message(res));
 
   if (res) throw BTException("could not write value to remote");
 }
@@ -150,7 +145,7 @@ void BluetoothCharacteristic::write(
 int BluetoothCharacteristic::properties() const noexcept {
   auto prop = 0;
   auto res = bt_gatt_characteristic_get_properties(_handle, &prop);
-  Logger::showResultError("bt_gatt_characteristic_get_properties", res);
+  LOG_ERROR("bt_gatt_characteristic_get_properties", get_error_message(res));
   return prop;
 }
 
@@ -181,23 +176,18 @@ void BluetoothCharacteristic::setNotifyCallback(
         delete uuid;
       },
       uuid);
-  Logger::showResultError("bt_gatt_client_set_characteristic_value_changed_cb",
-                          res);
+  LOG_ERROR("bt_gatt_client_set_characteristic_value_changed_cb", get_error_message(res));
   if (res)
     throw BTException(res,
                       "bt_gatt_client_set_characteristic_value_changed_cb");
-  Logger::log(LogLevel::DEBUG, "notifications were set successfully.");
 }
 
 void BluetoothCharacteristic::unsetNotifyCallback() {
   if (cService().cDevice().state() ==
           btu::BluetoothDeviceController::State::CONNECTED &&
       _notifyCallback) {
-    Logger::log(LogLevel::DEBUG,
-                "unsubscribing from characteristic notifications...");
     auto res = bt_gatt_client_unset_characteristic_value_changed_cb(_handle);
-    Logger::showResultError(
-        "bt_gatt_client_unset_characteristic_value_changed_cb", res);
+    LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb", get_error_message(res));
   }
   _notifyCallback = nullptr;
 }
@@ -206,7 +196,6 @@ BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
   _activeCharacteristics.var.erase(UUID());
   unsetNotifyCallback();
   _descriptors.clear();
-  Logger::log(LogLevel::DEBUG, "Called destructor for characteristic.");
 }
 }  // namespace btGatt
 }  // namespace flutter_blue_tizen

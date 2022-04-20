@@ -1,13 +1,11 @@
 #include <BluetoothDeviceController.h>
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothService.h>
-#include <Logger.h>
+#include <log.h>
 #include <bluetooth.h>
 
 namespace flutter_blue_tizen {
 namespace btGatt {
-using btlog::Logger;
-using btlog::LogLevel;
 using btu::BTException;
 
 BluetoothService::BluetoothService(bt_gatt_h handle) : _handle(handle) {
@@ -21,7 +19,7 @@ BluetoothService::BluetoothService(bt_gatt_h handle) : _handle(handle) {
       },
       this);
 
-  Logger::showResultError("bt_gatt_service_foreach_characteristics", res);
+  LOG_ERROR("bt_gatt_service_foreach_characteristics", get_error_message(res));
 }
 
 PrimaryService::PrimaryService(bt_gatt_h handle,
@@ -36,7 +34,7 @@ PrimaryService::PrimaryService(bt_gatt_h handle,
         return true;
       },
       this);
-  Logger::showResultError("bt_gatt_service_foreach_included_services", res);
+  LOG_ERROR("bt_gatt_service_foreach_included_services", get_error_message(res));
 }
 
 SecondaryService::SecondaryService(bt_gatt_h service_handle,
@@ -106,8 +104,6 @@ SecondaryService* PrimaryService::getSecondary(
 }
 
 BluetoothService::~BluetoothService() {
-  btlog::Logger::log(btlog::LogLevel::DEBUG,
-                     "calling destroy for bluetoothService!");
 }
 
 /**

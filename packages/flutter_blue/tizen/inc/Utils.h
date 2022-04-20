@@ -8,6 +8,7 @@
 
 #include <exception>
 #include <mutex>
+
 namespace flutter_blue_tizen {
 namespace btGatt {
 class PrimaryService;
@@ -30,7 +31,7 @@ class BTException : public std::exception {
   std::string _m;
 
  public:
-  BTException(const std::string& m) : _m(m) {}
+  BTException(std::string const& m) : _m(m) {}
   BTException(const int tizen_error, std::string const& m)
       : _m(std::string(get_error_message(tizen_error)) + ": " + m) {}
 

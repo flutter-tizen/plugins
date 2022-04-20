@@ -2,7 +2,7 @@
 
 #include <BluetoothDeviceController.h>
 #include <BluetoothManager.h>
-#include <Logger.h>
+#include <log.h>
 #include <NotificationsHandler.h>
 #include <StateHandler.h>
 #include <app_control.h>
@@ -21,9 +21,6 @@
 
 namespace {
 class FlutterBlueTizenPlugin : public flutter::Plugin {
-  using Logger = flutter_blue_tizen::btlog::Logger;
-  using LogLevel = flutter_blue_tizen::btlog::LogLevel;
-
  public:
   const static inline std::string channel_name =
       "plugins.pauldemarco.com/flutter_blue/";
@@ -69,9 +66,8 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     bluetoothManager = nullptr;
     google::protobuf::ShutdownProtobufLibrary();
 
-    Logger::log(LogLevel::DEBUG, "calling bt_deinitialize..");
     auto res = bt_deinitialize();
-    Logger::showResultError("bt_adapter_le_is_discovering", res);
+    LOG_ERROR("bt_adapter_le_is_discovering", get_error_message(res));
   }
 
  private:
@@ -86,10 +82,11 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       } catch (std::exception const& e) {
         result->Error(e.what());
       }
-    } else if (method_call.method_name() == "setLogLevel" &&
-               std::holds_alternative<int>(args)) {
-      LogLevel logLevel = static_cast<LogLevel>(std::get<int>(args));
-      Logger::setLogLevel(logLevel);
+    } else if (method_call.method_name() == "setLogLevel"){
+      /**
+       * @brief plugin should log everything despite the log level.
+       * 
+       */
       result->Success(flutter::EncodableValue(NULL));
     } else if (method_call.method_name() == "state") {
       result->Success(
@@ -147,8 +144,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     } else if (method_call.method_name() == "deviceState") {
       std::string deviceID = std::get<std::string>(args);
       std::scoped_lock lock(bluetoothManager->bluetoothDevices().mut);
-      // btlog::Logger::log(btlog::LogLevel::DEBUG, "sent request for device
-      // state.");
       auto it = bluetoothManager->bluetoothDevices().var.find(deviceID);
       if (it != bluetoothManager->bluetoothDevices().var.end()) {
         auto& device = it->second;
@@ -163,7 +158,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       } else
         result->Error("device not available");
     } else if (method_call.method_name() == "discoverServices") {
-      Logger::log(LogLevel::DEBUG, "sent request for discoverServices.");
       std::string deviceID = std::get<std::string>(args);
       std::scoped_lock lock(bluetoothManager->bluetoothDevices().mut);
       auto it = bluetoothManager->bluetoothDevices().var.find(deviceID);
@@ -173,7 +167,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
         device->discoverServices();
         auto services = device->getServices();
-        Logger::log(LogLevel::DEBUG, "notifying UI about services list...");
         notificationsHandler.notifyUIThread(
             "DiscoverServicesResult",
             flutter_blue_tizen::btu::getProtoServiceDiscoveryResult(*device,
