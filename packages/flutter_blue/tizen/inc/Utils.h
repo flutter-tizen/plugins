@@ -28,16 +28,15 @@ struct SafeType {
   SafeType() : var(T()) {}
 };
 class BTException : public std::exception {
-  std::string _m;
+  std::string _mess;
 
  public:
-  BTException(std::string const& m) : _m(m) {}
-  BTException(const int tizen_error, std::string const& m)
-      : _m(std::string(get_error_message(tizen_error)) + ": " + m) {}
+  BTException(std::string const& mess);
+  BTException(const int tizen_error, std::string const& m);
 
-  BTException(const int tizen_error) : _m(get_error_message(tizen_error)) {}
+  BTException(const int tizen_error);
 
-  const char* what() const noexcept override { return _m.c_str(); };
+  const char* what() const noexcept override;
 };
 
 std::vector<u_int8_t> messageToVector(

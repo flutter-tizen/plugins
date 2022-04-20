@@ -96,5 +96,13 @@ bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid) {
 
   return result;
 }
+BTException::BTException(std::string const& m) : _mess(m) {}
+BTException::BTException(const int tizen_error, std::string const& m)
+    : _mess(std::string(get_error_message(tizen_error)) + ": " + m) {}
+
+BTException::BTException(const int tizen_error) : _mess(get_error_message(tizen_error)) {}
+
+const char* BTException::what() const noexcept { return _mess.c_str(); }
+
 }  // namespace btu
 }  // namespace flutter_blue_tizen
