@@ -1,3 +1,7 @@
+## 0.4.2
+
+* Support background color.
+
 ## 0.4.1
 
 * Apply texture api change.
