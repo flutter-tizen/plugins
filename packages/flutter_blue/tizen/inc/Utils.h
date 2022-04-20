@@ -37,7 +37,7 @@ class BTException : public std::exception {
 
  public:
   BTException(std::string const& mess);
-  BTException(const int tizen_error, std::string const& m);
+  BTException(const int tizen_error, std::string const& mess);
 
   BTException(const int tizen_error);
 

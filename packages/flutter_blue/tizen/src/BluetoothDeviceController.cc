@@ -167,10 +167,10 @@ void BluetoothDeviceController::connectionStateCallback(
 
   auto& bluetoothManager = *static_cast<BluetoothManager*>(user_data);
   std::scoped_lock lock(bluetoothManager.bluetoothDevices().mut);
-  auto ptr = bluetoothManager.bluetoothDevices().var.find(remote_address);
+  auto it = bluetoothManager.bluetoothDevices().var.find(remote_address);
 
-  if (ptr != bluetoothManager.bluetoothDevices().var.end()) {
-    auto device = ptr->second;
+  if (it != bluetoothManager.bluetoothDevices().var.end()) {
+    auto device = it->second;
     std::scoped_lock devLock(device->operationM);
     device->isConnecting = false;
     device->isDisconnecting = false;
