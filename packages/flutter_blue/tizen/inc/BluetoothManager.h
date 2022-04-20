@@ -48,7 +48,7 @@ class BluetoothManager {
   void disconnect(const std::string& deviceID);
 
   proto::gen::BluetoothState bluetoothState() const noexcept;
-  
+
   std::vector<proto::gen::BluetoothDevice>
   getConnectedProtoBluetoothDevices() noexcept;
 
@@ -68,7 +68,7 @@ class BluetoothManager {
   u_int32_t getMtu(const std::string& deviceID);
 
   void requestMtu(const proto::gen::MtuSizeRequest& request);
-  
+
   btGatt::BluetoothCharacteristic* locateCharacteristic(
       const std::string& remoteID, const std::string& primaryUUID,
       const std::string& secondaryUUID, const std::string& characteristicUUID);
@@ -79,7 +79,7 @@ class BluetoothManager {
       const std::string& descriptorUUID);
 
   static bool isBLEAvailable();
-  
+
   static void scanCallback(
       int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
       void* user_data) noexcept;

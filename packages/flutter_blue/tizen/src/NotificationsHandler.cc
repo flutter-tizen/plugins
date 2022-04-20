@@ -2,7 +2,7 @@
 
 namespace flutter_blue_tizen {
 namespace btu {
-    
+
 NotificationsHandler::NotificationsHandler(
     std::shared_ptr<MethodChannel> methodChannel)
     : _methodChannel(methodChannel) {}

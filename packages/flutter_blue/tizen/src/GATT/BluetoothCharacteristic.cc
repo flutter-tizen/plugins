@@ -3,9 +3,9 @@
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothDescriptor.h>
 #include <GATT/BluetoothService.h>
-#include <log.h>
 #include <NotificationsHandler.h>
 #include <Utils.h>
+#include <log.h>
 
 #include <exception>
 namespace flutter_blue_tizen {
@@ -89,7 +89,8 @@ void BluetoothCharacteristic::read(
         if (it != _activeCharacteristics.var.end()) {
           auto& characteristic = *it->second;
           scope->func(characteristic);
-          LOG_ERROR("bt_gatt_client_request_completed_cb", get_error_message(result));
+          LOG_ERROR("bt_gatt_client_request_completed_cb",
+                    get_error_message(result));
         }
 
         delete scope;
@@ -128,7 +129,8 @@ void BluetoothCharacteristic::write(
   res = bt_gatt_client_write_value(
       _handle,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
-        LOG_ERROR("bt_gatt_client_request_completed_cb", get_error_message(result));
+        LOG_ERROR("bt_gatt_client_request_completed_cb",
+                  get_error_message(result));
 
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(_activeCharacteristics.mut);
@@ -181,7 +183,8 @@ void BluetoothCharacteristic::setNotifyCallback(
         delete uuid;
       },
       uuid);
-  LOG_ERROR("bt_gatt_client_set_characteristic_value_changed_cb", get_error_message(res));
+  LOG_ERROR("bt_gatt_client_set_characteristic_value_changed_cb",
+            get_error_message(res));
   if (res)
     throw BTException(res,
                       "bt_gatt_client_set_characteristic_value_changed_cb");
@@ -192,7 +195,8 @@ void BluetoothCharacteristic::unsetNotifyCallback() {
           btu::BluetoothDeviceController::State::CONNECTED &&
       _notifyCallback) {
     auto res = bt_gatt_client_unset_characteristic_value_changed_cb(_handle);
-    LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb", get_error_message(res));
+    LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb",
+              get_error_message(res));
   }
   _notifyCallback = nullptr;
 }

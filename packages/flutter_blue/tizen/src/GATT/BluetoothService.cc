@@ -1,8 +1,8 @@
 #include <BluetoothDeviceController.h>
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothService.h>
-#include <log.h>
 #include <bluetooth.h>
+#include <log.h>
 
 namespace flutter_blue_tizen {
 namespace btGatt {
@@ -34,7 +34,8 @@ PrimaryService::PrimaryService(bt_gatt_h handle,
         return true;
       },
       this);
-  LOG_ERROR("bt_gatt_service_foreach_included_services", get_error_message(res));
+  LOG_ERROR("bt_gatt_service_foreach_included_services",
+            get_error_message(res));
 }
 
 SecondaryService::SecondaryService(bt_gatt_h service_handle,
@@ -111,8 +112,7 @@ SecondaryService* PrimaryService::getSecondary(
   return nullptr;
 }
 
-BluetoothService::~BluetoothService() {
-}
+BluetoothService::~BluetoothService() {}
 
 /**
  * these must not be in a virtual destructor. Characteristic references abstract

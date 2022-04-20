@@ -1,7 +1,7 @@
 #include <BluetoothDeviceController.h>
 #include <GATT/BluetoothService.h>
-#include <log.h>
 #include <Utils.h>
+#include <log.h>
 
 namespace flutter_blue_tizen {
 namespace btu {
@@ -100,7 +100,8 @@ BTException::BTException(std::string const& mess) : _mess(mess) {}
 BTException::BTException(const int tizen_error, std::string const& mess)
     : _mess(std::string(get_error_message(tizen_error)) + ": " + mess) {}
 
-BTException::BTException(const int tizen_error) : _mess(get_error_message(tizen_error)) {}
+BTException::BTException(const int tizen_error)
+    : _mess(get_error_message(tizen_error)) {}
 
 const char* BTException::what() const noexcept { return _mess.c_str(); }
 

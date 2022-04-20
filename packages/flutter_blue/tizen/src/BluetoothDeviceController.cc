@@ -1,8 +1,8 @@
 #include <BluetoothDeviceController.h>
 #include <BluetoothManager.h>
 #include <GATT/BluetoothService.h>
-#include <log.h>
 #include <NotificationsHandler.h>
+#include <log.h>
 
 #include <mutex>
 #include <unordered_set>
@@ -93,11 +93,11 @@ bt_gatt_client_h BluetoothDeviceController::getGattClient(
   if (it == gatt_clients.var.end()) {
     int res = bt_gatt_client_create(address.c_str(), &client);
     LOG_ERROR("bt_gatt_client_create", get_error_message(res));
-    
+
     if ((res == BT_ERROR_NONE || res == BT_ERROR_ALREADY_DONE) && client) {
       gatt_clients.var.emplace(address, client);
     } else
-        throw BTException(res, "bt_gatt_client_create");
+      throw BTException(res, "bt_gatt_client_create");
   } else {
     client = it->second;
   }
@@ -177,7 +177,8 @@ void BluetoothDeviceController::connectionStateCallback(
     if (!connected) {
       device->_services.clear();
     } else if (!res) {
-      getGattClient(device->cAddress());  // this function creates gatt client if it does not exists.
+      getGattClient(device->cAddress());  // this function creates gatt client
+                                          // if it does not exists.
     }
     device->notifyDeviceState();
   }
@@ -224,7 +225,7 @@ void BluetoothDeviceController::requestMtu(u_int32_t mtu,
   res = bt_gatt_client_request_att_mtu_change(getGattClient(_address), mtu);
 
   LOG_ERROR("bt_gatt_client_request_att_mtu_change", get_error_message(res));
-  
+
   if (res) throw BTException(res, "bt_gatt_client_request_att_mtu_change");
 }
 void BluetoothDeviceController::notifyDeviceState() const {

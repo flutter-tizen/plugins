@@ -2,8 +2,8 @@
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothDescriptor.h>
 #include <GATT/BluetoothService.h>
-#include <log.h>
 #include <Utils.h>
+#include <log.h>
 
 namespace flutter_blue_tizen {
 namespace btGatt {
@@ -53,7 +53,8 @@ void BluetoothDescriptor::read(
           auto& descriptor = *it->second;
           scope->func(descriptor);
         }
-        LOG_ERROR("bt_gatt_client_request_completed_cb", get_error_message(result));
+        LOG_ERROR("bt_gatt_client_request_completed_cb",
+                  get_error_message(result));
         delete scope;
       },
       scope);
@@ -81,7 +82,8 @@ void BluetoothDescriptor::write(
   res = bt_gatt_client_write_value(
       _handle,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
-        LOG_ERROR("bt_gatt_client_request_completed_cb", get_error_message(result));
+        LOG_ERROR("bt_gatt_client_request_completed_cb",
+                  get_error_message(result));
 
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(_activeDescriptors.mut);

@@ -2,7 +2,6 @@
 
 #include <BluetoothDeviceController.h>
 #include <BluetoothManager.h>
-#include <log.h>
 #include <NotificationsHandler.h>
 #include <StateHandler.h>
 #include <app_control.h>
@@ -12,6 +11,7 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 #include <flutterblue.pb.h>
+#include <log.h>
 #include <system_info.h>
 
 #include <map>
@@ -82,10 +82,10 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       } catch (std::exception const& e) {
         result->Error(e.what());
       }
-    } else if (method_call.method_name() == "setLogLevel"){
+    } else if (method_call.method_name() == "setLogLevel") {
       /**
        * @brief plugin should log everything despite the log level.
-       * 
+       *
        */
       result->Success(flutter::EncodableValue(NULL));
     } else if (method_call.method_name() == "state") {

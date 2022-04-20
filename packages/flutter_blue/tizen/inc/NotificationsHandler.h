@@ -5,7 +5,6 @@
 
 #include <memory>
 
-
 namespace flutter_blue_tizen {
 namespace btu {
 

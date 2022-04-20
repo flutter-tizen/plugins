@@ -3,8 +3,8 @@
 #include <GATT/BluetoothCharacteristic.h>
 #include <GATT/BluetoothDescriptor.h>
 #include <GATT/BluetoothService.h>
-#include <log.h>
 #include <bluetooth.h>
+#include <log.h>
 #include <system_info.h>
 #include <tizen.h>
 
@@ -17,17 +17,19 @@ using State = BluetoothDeviceController::State;
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     : _notificationsHandler(notificationsHandler) {
   int res;
-  if (!(res=isBLEAvailable())) {
-    LOG_ERROR("Bluetooth is not available on this device!", get_error_message(res));
+  if (!(res = isBLEAvailable())) {
+    LOG_ERROR("Bluetooth is not available on this device!",
+              get_error_message(res));
     return;
   }
-  if (res=bt_initialize()) {
+  if (res = bt_initialize()) {
     LOG_ERROR("[bt_initialize]", get_error_message(res));
     return;
   }
-  if (res=bt_gatt_set_connection_state_changed_cb(
+  if (res = bt_gatt_set_connection_state_changed_cb(
           &BluetoothDeviceController::connectionStateCallback, this)) {
-    LOG_ERROR("[bt_gatt_set_connection_state_changed_cb]", get_error_message(res));
+    LOG_ERROR("[bt_gatt_set_connection_state_changed_cb]",
+              get_error_message(res));
     return;
   }
   LOG_DEBUG("All callbacks successfully initialized.");
@@ -150,7 +152,8 @@ void BluetoothManager::startBluetoothDeviceScanLE(
   std::scoped_lock l(_bluetoothDevices.mut);
   _bluetoothDevices.var.clear();
   _scanAllowDuplicates = scanSettings.allow_duplicates();
-  auto res = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);  LOG_ERROR("bt_adapter_le_set_scan_mode", get_error_message(res));
+  auto res = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
+  LOG_ERROR("bt_adapter_le_set_scan_mode", get_error_message(res));
 
   if (res) throw BTException(res, "bt_adapter_le_set_scan_mode");
 
@@ -160,14 +163,15 @@ void BluetoothManager::startBluetoothDeviceScanLE(
   for (int i = 0; i < uuidCount; ++i) {
     const std::string& uuid = scanSettings.service_uuids()[i];
     res = bt_adapter_le_scan_filter_create(&filters[i]);
-    
+
     LOG_ERROR("bt_adapter_le_scan_filter_create", get_error_message(res));
     if (res) throw BTException(res, "bt_adapter_le_scan_filter_create");
 
     res =
         bt_adapter_le_scan_filter_set_device_address(filters[i], uuid.c_str());
-        
-    LOG_ERROR("bt_adapter_le_scan_filter_set_device_address", get_error_message(res));
+
+    LOG_ERROR("bt_adapter_le_scan_filter_set_device_address",
+              get_error_message(res));
 
     if (res)
       throw BTException(res, "bt_adapter_le_scan_filter_set_device_address");
@@ -251,7 +255,7 @@ void BluetoothManager::stopBluetoothDeviceScanLE() {
       res = bt_adapter_le_stop_scan();
       LOG_ERROR("bt_adapter_le_stop_scan", res);
     }
-    
+
     LOG_ERROR("bt_adapter_le_is_discovering", res);
   }
 }

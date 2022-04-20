@@ -40,7 +40,7 @@ class BluetoothService {
   virtual ServiceType getType() const noexcept = 0;
 
   std::string UUID() const noexcept;
-  
+
   BluetoothCharacteristic* getCharacteristic(const std::string& uuid);
 };
 

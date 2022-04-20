@@ -33,7 +33,6 @@ class BluetoothCharacteristic {
       _activeCharacteristics;
 
  public:
-
   BluetoothCharacteristic(bt_gatt_h handle, BluetoothService& service);
 
   ~BluetoothCharacteristic() noexcept;
@@ -59,7 +58,7 @@ class BluetoothCharacteristic {
   int properties() const noexcept;
 
   void setNotifyCallback(const NotifyCallback& callback);
-  
+
   void unsetNotifyCallback();
 };
 }  // namespace btGatt
