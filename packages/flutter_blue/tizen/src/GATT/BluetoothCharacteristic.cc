@@ -52,21 +52,26 @@ BluetoothCharacteristic::toProtoCharacteristic() const noexcept {
   }
   return proto;
 }
+
 BluetoothService const& BluetoothCharacteristic::cService() const noexcept {
   return _service;
 }
+
 std::string BluetoothCharacteristic::UUID() const noexcept {
   return btu::getGattUUID(_handle);
 }
+
 std::string BluetoothCharacteristic::value() const noexcept {
   return btu::getGattValue(_handle);
 }
+
 BluetoothDescriptor* BluetoothCharacteristic::getDescriptor(
     const std::string& uuid) {
   for (auto& s : _descriptors)
     if (s->UUID() == uuid) return s.get();
   return nullptr;
 }
+
 void BluetoothCharacteristic::read(
     const std::function<void(const BluetoothCharacteristic&)>& func) {
   struct Scope {
@@ -191,6 +196,7 @@ void BluetoothCharacteristic::unsetNotifyCallback() {
   }
   _notifyCallback = nullptr;
 }
+
 BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
   std::scoped_lock lock(_activeCharacteristics.mut);
   _activeCharacteristics.var.erase(UUID());

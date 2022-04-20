@@ -2,6 +2,7 @@
 
 namespace flutter_blue_tizen {
 namespace btu {
+  
 std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
 StateHandler::OnListenInternal(
     const flutter::EncodableValue* arguments,

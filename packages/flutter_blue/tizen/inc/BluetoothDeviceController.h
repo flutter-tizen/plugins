@@ -4,7 +4,6 @@
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
 
-
 namespace flutter_blue_tizen {
 namespace btGatt {
 class PrimaryService;
@@ -15,13 +14,8 @@ namespace btu {
 class NotificationsHandler;
 class BluetoothService;
 class BluetoothDeviceController {
- public:
-  enum class State;
-
- private:
   /**
    * @brief all attributes are depentent on this mutex
-   *
    */
   std::mutex operationM;
 
@@ -30,7 +24,9 @@ class BluetoothDeviceController {
   std::vector<std::unique_ptr<btGatt::PrimaryService>> _services;
 
   std::string _address;
+
   std::atomic<bool> isConnecting = false;
+
   std::atomic<bool> isDisconnecting = false;
 
   NotificationsHandler& _notificationsHandler;
@@ -45,6 +41,7 @@ class BluetoothDeviceController {
       gatt_clients;
 
  public:
+ 
   enum class State {
     CONNECTED,
     CONNECTING,
@@ -55,27 +52,37 @@ class BluetoothDeviceController {
   BluetoothDeviceController(
       const std::string& address,
       NotificationsHandler& notificationsHandler) noexcept;
+
   BluetoothDeviceController(
       const char* address, NotificationsHandler& notificationsHandler) noexcept;
+
   ~BluetoothDeviceController() noexcept;
 
   BluetoothDeviceController() = delete;
-  BluetoothDeviceController(const BluetoothDeviceController& address) = delete;
+
+  BluetoothDeviceController( BluetoothDeviceController const& address) = delete;
 
   const std::string& cAddress() const noexcept;
+
   State state() const noexcept;
+
   std::vector<proto::gen::BluetoothDevice>& protoBluetoothDevices() noexcept;
+
   const std::vector<proto::gen::BluetoothDevice>& cProtoBluetoothDevices()
       const noexcept;
 
   void connect(bool autoConnect);
+
   void disconnect();
 
   static void connectionStateCallback(int result, bool connected,
                                       const char* remote_address,
                                       void* user_data) noexcept;
+
   static bt_gatt_client_h getGattClient(const std::string& address);
+
   static void destroyGattClientIfExists(const std::string& address) noexcept;
+  
   static proto::gen::DeviceStateResponse_BluetoothDeviceState
   localToProtoDeviceState(const BluetoothDeviceController::State& s);
 
@@ -90,6 +97,7 @@ class BluetoothDeviceController {
   void requestMtu(u_int32_t mtu, const requestMtuCallback& callback);
 
   void notifyDeviceState() const;
+  
   const NotificationsHandler& cNotificationsHandler() const noexcept;
 };
 };  // namespace btu

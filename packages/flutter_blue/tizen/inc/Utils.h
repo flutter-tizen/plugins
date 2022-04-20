@@ -16,17 +16,22 @@ class SecondaryService;
 }  // namespace btGatt
 namespace btu {
 class BluetoothDeviceController;
+
 using MethodChannel = flutter::MethodChannel<flutter::EncodableValue>;
 
 template <typename T>
 struct SafeType {
   T var;
+
   std::mutex mut;
 
-  SafeType(const T& t) : var(t) {}
+  SafeType(T const& t) : var(t) {}
+
   SafeType(T&& t) : var(std::move(t)) {}
+
   SafeType() : var(T()) {}
 };
+
 class BTException : public std::exception {
   std::string _mess;
 
@@ -43,9 +48,13 @@ std::vector<u_int8_t> messageToVector(
     google::protobuf::MessageLite const& messageLite) noexcept;
 
 std::string getGattValue(bt_gatt_h handle);
+
 std::string getGattUUID(bt_gatt_h handle);
+
 bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid);
+
 std::string getGattClientAddress(bt_gatt_client_h handle);
+
 proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
     BluetoothDeviceController const& device,
     std::vector<btGatt::PrimaryService*> const& services);

@@ -104,6 +104,7 @@ btGatt::BluetoothCharacteristic* BluetoothManager::locateCharacteristic(
   }
   throw BTException("could not locate characteristic " + characteristicUUID);
 }
+
 btGatt::BluetoothDescriptor* BluetoothManager::locateDescriptor(
     const std::string& remoteID, const std::string& primaryUUID,
     const std::string& secondaryUUID, const std::string& characteristicUUID,

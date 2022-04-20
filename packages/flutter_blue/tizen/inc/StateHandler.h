@@ -6,6 +6,7 @@
 
 namespace flutter_blue_tizen {
 namespace btu {
+
 class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
   using Base = flutter::StreamHandler<flutter::EncodableValue>;
   using err_type = flutter::StreamHandlerError<flutter::EncodableValue>;

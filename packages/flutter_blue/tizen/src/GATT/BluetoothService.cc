@@ -44,6 +44,7 @@ SecondaryService::SecondaryService(bt_gatt_h service_handle,
 btu::BluetoothDeviceController const& PrimaryService::cDevice() const noexcept {
   return _device;
 }
+
 proto::gen::BluetoothService PrimaryService::toProtoService() const noexcept {
   proto::gen::BluetoothService proto;
   proto.set_remote_id(_device.cAddress());
@@ -57,6 +58,7 @@ proto::gen::BluetoothService PrimaryService::toProtoService() const noexcept {
   }
   return proto;
 }
+
 ServiceType PrimaryService::getType() const noexcept {
   return ServiceType::PRIMARY;
 }
@@ -65,9 +67,11 @@ btu::BluetoothDeviceController const& SecondaryService::cDevice()
     const noexcept {
   return _primaryService.cDevice();
 }
+
 PrimaryService const& SecondaryService::cPrimary() const noexcept {
   return _primaryService;
 }
+
 proto::gen::BluetoothService SecondaryService::toProtoService() const noexcept {
   proto::gen::BluetoothService proto;
   proto.set_remote_id(_primaryService.cDevice().cAddress());
@@ -82,12 +86,15 @@ proto::gen::BluetoothService SecondaryService::toProtoService() const noexcept {
 ServiceType SecondaryService::getType() const noexcept {
   return ServiceType::SECONDARY;
 }
+
 std::string SecondaryService::primaryUUID() noexcept {
   return _primaryService.UUID();
 }
+
 std::string BluetoothService::UUID() const noexcept {
   return btu::getGattUUID(_handle);
 }
+
 BluetoothCharacteristic* BluetoothService::getCharacteristic(
     const std::string& uuid) {
   for (auto& c : _characteristics) {
@@ -95,6 +102,7 @@ BluetoothCharacteristic* BluetoothService::getCharacteristic(
   }
   return nullptr;
 }
+
 SecondaryService* PrimaryService::getSecondary(
     const std::string& uuid) noexcept {
   for (auto& s : _secondaryServices) {

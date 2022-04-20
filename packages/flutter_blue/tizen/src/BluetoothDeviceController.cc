@@ -34,6 +34,7 @@ BluetoothDeviceController::~BluetoothDeviceController() noexcept {
 const std::string& BluetoothDeviceController::cAddress() const noexcept {
   return _address;
 }
+
 State BluetoothDeviceController::state() const noexcept {
   if (isConnecting ^ isDisconnecting) {
     return (isConnecting ? State::CONNECTING : State::DISCONNECTING);
@@ -45,14 +46,17 @@ State BluetoothDeviceController::state() const noexcept {
     return (isConnected ? State::CONNECTED : State::DISCONNECTED);
   }
 }
+
 std::vector<proto::gen::BluetoothDevice>&
 BluetoothDeviceController::protoBluetoothDevices() noexcept {
   return _protoBluetoothDevices;
 }
+
 std::vector<proto::gen::BluetoothDevice> const&
 BluetoothDeviceController::cProtoBluetoothDevices() const noexcept {
   return _protoBluetoothDevices;
 }
+
 void BluetoothDeviceController::connect(bool autoConnect) {
   std::unique_lock lock(operationM);
   autoConnect = false;  // TODO - fix. API fails when autoconnect==true
@@ -67,6 +71,7 @@ void BluetoothDeviceController::connect(bool autoConnect) {
     throw BTException(mes);
   }
 }
+
 void BluetoothDeviceController::disconnect() {
   std::scoped_lock lock(operationM);
   auto st = state();
@@ -98,6 +103,7 @@ bt_gatt_client_h BluetoothDeviceController::getGattClient(
   }
   return client;
 }
+
 void BluetoothDeviceController::destroyGattClientIfExists(
     std::string const& address) noexcept {
   std::scoped_lock lock(gatt_clients.mut);
@@ -148,6 +154,7 @@ btGatt::PrimaryService* BluetoothDeviceController::getService(
   }
   return nullptr;
 }
+
 NotificationsHandler const& BluetoothDeviceController::cNotificationsHandler()
     const noexcept {
   return _notificationsHandler;
@@ -178,6 +185,7 @@ void BluetoothDeviceController::connectionStateCallback(
     destroyGattClientIfExists(remote_address);
   }
 }
+
 u_int32_t BluetoothDeviceController::getMtu() const {
   u_int32_t mtu = -1;
   auto res = bt_gatt_client_get_att_mtu(getGattClient(_address), &mtu);
@@ -186,6 +194,7 @@ u_int32_t BluetoothDeviceController::getMtu() const {
   if (res) throw BTException(res, "could not get mtu of the device!");
   return mtu;
 }
+
 void BluetoothDeviceController::requestMtu(u_int32_t mtu,
                                            const requestMtuCallback& callback) {
   struct Scope {
