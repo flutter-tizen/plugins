@@ -13,7 +13,6 @@ namespace btGatt {
 
 
 
-
 class BluetoothCharacteristic;
 
 

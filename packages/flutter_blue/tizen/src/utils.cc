@@ -6,6 +6,7 @@
 namespace flutter_blue_tizen {
 
 
+
 std::vector<u_int8_t> messageToVector(
     google::protobuf::MessageLite const& messageLite) noexcept {
   std::vector<u_int8_t> encoded(messageLite.ByteSizeLong());

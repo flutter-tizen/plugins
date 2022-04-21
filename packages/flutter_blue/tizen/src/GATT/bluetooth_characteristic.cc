@@ -169,6 +169,7 @@ int BluetoothCharacteristic::properties() const noexcept {
 
 void BluetoothCharacteristic::setNotifyCallback(
     const NotifyCallback& callback) {
+      
   auto p = properties();
   if (!(p & 0x30))
     throw BTException("cannot set callback! notify=0 && indicate=0");

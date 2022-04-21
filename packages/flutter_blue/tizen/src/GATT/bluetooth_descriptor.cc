@@ -43,10 +43,12 @@ std::string BluetoothDescriptor::value() const noexcept {
 
 void BluetoothDescriptor::read(
     const std::function<void(const BluetoothDescriptor&)>& func) {
+      
   struct Scope {
     std::function<void(const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
   };
+  
   auto scope = new Scope{func, UUID()};  // unfortunately it requires raw ptr
   int res = bt_gatt_client_read_value(
       _handle,
@@ -64,8 +66,10 @@ void BluetoothDescriptor::read(
         delete scope;
       },
       scope);
+
   LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
   if (res) throw BTException("could not read descriptor");
+
 }
 
 
@@ -73,6 +77,7 @@ void BluetoothDescriptor::write(
     const std::string value,
     const std::function<void(bool success, const BluetoothDescriptor&)>&
         callback) {
+
   struct Scope {
     std::function<void(bool success, const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
@@ -104,9 +109,11 @@ void BluetoothDescriptor::write(
         delete scope;
       },
       scope);
+
   LOG_ERROR("bt_gatt_client_write_value", get_error_message(res));
 
   if (res) throw BTException("could not write value to remote");
+
 }
 
 
@@ -123,5 +130,4 @@ BluetoothDescriptor::~BluetoothDescriptor() {
 
 
 }  // namespace btGatt
-
 }  // namespace flutter_blue_tizen
