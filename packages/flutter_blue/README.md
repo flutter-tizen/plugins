@@ -154,4 +154,4 @@ In the **tizen-manifest.xml** let's add
 Make sure the device is advertising which service UUID's it supports.  This is found in the advertisement
 packet as **UUID 16 bit complete list** or **UUID 128 bit complete list**.
 
-Plugin was tested on Tizen 6.5 iot-headed(armv7l, aarch64)
+Plugin is supported on Tizen 6.5 iot-headed armv7l, aarch64 (RPI4, RB5)
