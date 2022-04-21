@@ -15,6 +15,8 @@
 
 #include "log.h"
 
+namespace {
+
 class PackageInfoPlusTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
@@ -41,88 +43,79 @@ class PackageInfoPlusTizenPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_INFO("method : %s", method_call.method_name().data());
-    std::string replay = "";
+    const auto &method_name = method_call.method_name();
 
-    if (method_call.method_name().compare("getAll") != 0) {
-      result->Error("-1", "Not supported method");
+    if (method_name != "getAll") {
+      result->NotImplemented();
       return;
     }
 
-    char *app_id = nullptr;
-    char *pkg_name = nullptr;
-    char *version = nullptr;
-    char *label = nullptr;
+    flutter::EncodableMap map;
+
+    char *id = nullptr;
+    int ret = app_get_id(&id);
+    if (ret != APP_ERROR_NONE) {
+      result->Error(std::to_string(ret), "Failed to get find the app ID.",
+                    flutter::EncodableValue(get_error_message(ret)));
+      return;
+    }
+    auto app_id = std::string(id);
+    free(id);
+
     package_info_h package_info = nullptr;
-    flutter::EncodableMap msg;
-
-    int ret = app_get_id(&app_id);
-    if (ret != APP_ERROR_NONE || app_id == nullptr) {
-      result->Error(std::to_string(ret), "Failed to get app_id",
+    ret = package_info_create(app_id.c_str(), &package_info);
+    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
+      result->Error(std::to_string(ret),
+                    "Failed to create a package_info handle.",
                     flutter::EncodableValue(get_error_message(ret)));
-      goto cleanup;
-    }
-    LOG_INFO("app id : %s\n", app_id);
-
-    ret = package_info_create(app_id, &package_info);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || package_info == nullptr) {
-      result->Error(std::to_string(ret), "Failed to create package_info",
-                    flutter::EncodableValue(get_error_message(ret)));
-      goto cleanup;
+      return;
     }
 
+    char *label = nullptr;
     ret = package_info_get_label(package_info, &label);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || label == nullptr) {
-      result->Error(std::to_string(ret), "Failed to get app name",
+    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
+      result->Error(std::to_string(ret), "Failed to get the app label.",
                     flutter::EncodableValue(get_error_message(ret)));
-      goto cleanup;
-    }
-    LOG_INFO("package label : %s\n", label);
-
-    ret = package_info_get_package(package_info, &pkg_name);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || pkg_name == nullptr) {
-      result->Error(std::to_string(ret), "Failed to get package name",
-                    flutter::EncodableValue(get_error_message(ret)));
-      goto cleanup;
-    }
-    LOG_INFO("package name : %s\n", pkg_name);
-
-    ret = package_info_get_version(package_info, &version);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || version == nullptr) {
-      result->Error(std::to_string(ret), "Failed to get version",
-                    flutter::EncodableValue(get_error_message(ret)));
-      goto cleanup;
-    }
-    LOG_INFO("package version : %s\n", version);
-
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "appName", std::string(label)));
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "packageName", std::string(pkg_name)));
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "version", std::string(version)));
-    msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "buildNumber", "Not supported property"));
-    result->Success(flutter::EncodableValue(msg));
-
-  cleanup:
-    if (app_id) {
-      free(app_id);
-    }
-    if (label) {
-      free(label);
-    }
-    if (pkg_name) {
-      free(pkg_name);
-    }
-    if (version) {
-      free(version);
-    }
-    if (package_info) {
       package_info_destroy(package_info);
+      return;
     }
+    map[flutter::EncodableValue("appName")] =
+        flutter::EncodableValue(std::string(label));
+    free(label);
+
+    char *package_name = nullptr;
+    ret = package_info_get_package(package_info, &package_name);
+    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
+      result->Error(std::to_string(ret), "Failed to get the package name.",
+                    flutter::EncodableValue(get_error_message(ret)));
+      package_info_destroy(package_info);
+      return;
+    }
+    map[flutter::EncodableValue("packageName")] =
+        flutter::EncodableValue(std::string(package_name));
+    free(package_name);
+
+    char *version = nullptr;
+    ret = package_info_get_version(package_info, &version);
+    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
+      result->Error(std::to_string(ret), "Failed to get the package version.",
+                    flutter::EncodableValue(get_error_message(ret)));
+      package_info_destroy(package_info);
+      return;
+    }
+    map[flutter::EncodableValue("version")] =
+        flutter::EncodableValue(std::string(version));
+    free(version);
+    package_info_destroy(package_info);
+
+    map[flutter::EncodableValue("buildNumber")] =
+        flutter::EncodableValue("Not supported property");
+
+    result->Success(flutter::EncodableValue(map));
   }
 };
+
+}  // namespace
 
 void PackageInfoPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
