@@ -10,9 +10,13 @@
 
 #include <mutex>
 
+
+
 namespace flutter_blue_tizen {
-namespace btu {
+
+
 using State = BluetoothDeviceController::State;
+
 
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     : _notificationsHandler(notificationsHandler) {
@@ -34,6 +38,7 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
   }
   LOG_DEBUG("All callbacks successfully initialized.");
 }
+
 
 void BluetoothManager::setNotification(
     proto::gen::SetNotificationRequest const& request) {
@@ -60,19 +65,21 @@ void BluetoothManager::setNotification(
     characteristic->unsetNotifyCallback();
 }
 
+
 u_int32_t BluetoothManager::getMtu(const std::string& deviceID) {
   std::scoped_lock lock(_bluetoothDevices.mut);
   auto device = _bluetoothDevices.var.find(deviceID)->second;
   if (!device)
-    throw btu::BTException("could not find device of id=" + deviceID);
+    throw BTException("could not find device of id=" + deviceID);
 
   return device->getMtu();
 }
 
+
 void BluetoothManager::requestMtu(const proto::gen::MtuSizeRequest& request) {
   auto device = _bluetoothDevices.var.find(request.remote_id())->second;
   if (!device)
-    throw btu::BTException("could not find device of id=" +
+    throw BTException("could not find device of id=" +
                            request.remote_id());
 
   device->requestMtu(request.mtu(), [](auto status, auto& bluetoothDevice) {
@@ -87,6 +94,7 @@ void BluetoothManager::requestMtu(const proto::gen::MtuSizeRequest& request) {
     LOG_DEBUG("mtu request callback sent response!");
   });
 }
+
 
 btGatt::BluetoothCharacteristic* BluetoothManager::locateCharacteristic(
     std::string const& remoteID, std::string const& primaryUUID,
@@ -107,6 +115,7 @@ btGatt::BluetoothCharacteristic* BluetoothManager::locateCharacteristic(
   throw BTException("could not locate characteristic " + characteristicUUID);
 }
 
+
 btGatt::BluetoothDescriptor* BluetoothManager::locateDescriptor(
     const std::string& remoteID, const std::string& primaryUUID,
     const std::string& secondaryUUID, const std::string& characteristicUUID,
@@ -119,6 +128,7 @@ btGatt::BluetoothDescriptor* BluetoothManager::locateDescriptor(
   throw BTException("could not locate descriptor " + descriptorUUID);
 }
 
+
 bool BluetoothManager::isBLEAvailable() {
   bool state = false;
   auto res = system_info_get_platform_bool(
@@ -127,6 +137,7 @@ bool BluetoothManager::isBLEAvailable() {
 
   return state;
 }
+
 
 proto::gen::BluetoothState BluetoothManager::bluetoothState() const noexcept {
   /* Checks whether the Bluetooth adapter is enabled */
@@ -145,6 +156,7 @@ proto::gen::BluetoothState BluetoothManager::bluetoothState() const noexcept {
 
   return bts;
 }
+
 
 void BluetoothManager::startBluetoothDeviceScanLE(
     proto::gen::ScanSettings const& scanSettings) {
@@ -192,6 +204,7 @@ void BluetoothManager::startBluetoothDeviceScanLE(
     if (res) throw BTException(res, "bt_adapter_le_scan_filter_destroy");
   }
 }
+
 
 void BluetoothManager::scanCallback(
     int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
@@ -244,6 +257,7 @@ void BluetoothManager::scanCallback(
   }
 }
 
+
 void BluetoothManager::stopBluetoothDeviceScanLE() {
   static std::mutex m;
   std::scoped_lock lock(m);
@@ -260,6 +274,7 @@ void BluetoothManager::stopBluetoothDeviceScanLE() {
   }
 }
 
+
 void BluetoothManager::connect(const proto::gen::ConnectRequest& connRequest) {
   std::unique_lock lock(_bluetoothDevices.mut);
   auto device = _bluetoothDevices.var.find(connRequest.remote_id())->second;
@@ -269,6 +284,7 @@ void BluetoothManager::connect(const proto::gen::ConnectRequest& connRequest) {
     throw BTException("device not found!");
 }
 
+
 void BluetoothManager::disconnect(const std::string& deviceID) {
   std::unique_lock lock(_bluetoothDevices.mut);
   auto device = _bluetoothDevices.var.find(deviceID)->second;
@@ -277,6 +293,7 @@ void BluetoothManager::disconnect(const std::string& deviceID) {
   else
     throw BTException("device not found!");
 }
+
 
 std::vector<proto::gen::BluetoothDevice>
 BluetoothManager::getConnectedProtoBluetoothDevices() noexcept {
@@ -291,10 +308,12 @@ BluetoothManager::getConnectedProtoBluetoothDevices() noexcept {
   return protoBD;
 }
 
+
 BluetoothManager::DevicesContainer&
 BluetoothManager::bluetoothDevices() noexcept {
   return _bluetoothDevices;
 }
+
 
 void BluetoothManager::readCharacteristic(
     proto::gen::ReadCharacteristicRequest const& request) {
@@ -314,6 +333,7 @@ void BluetoothManager::readCharacteristic(
     LOG_DEBUG("finished characteristic read cb");
   });
 }
+
 
 void BluetoothManager::readDescriptor(
     proto::gen::ReadDescriptorRequest const& request) {
@@ -352,6 +372,7 @@ void BluetoothManager::readDescriptor(
   });
 }
 
+
 void BluetoothManager::writeCharacteristic(
     proto::gen::WriteCharacteristicRequest const& request) {
   std::scoped_lock lock(_bluetoothDevices.mut);
@@ -386,6 +407,8 @@ void BluetoothManager::writeCharacteristic(
         LOG_DEBUG("finished characteristic write cb");
       });
 }
+
+
 
 void BluetoothManager::writeDescriptor(
     proto::gen::WriteDescriptorRequest const& request) {
@@ -427,6 +450,7 @@ void BluetoothManager::writeDescriptor(
       });
 }
 
+
 void decodeAdvertisementData(const char* packetsData,
                              proto::gen::AdvertisementData& adv,
                              int dataLen) noexcept {
@@ -462,5 +486,4 @@ void decodeAdvertisementData(const char* packetsData,
   }
 }
 
-}  // namespace btu
 }  // namespace flutter_blue_tizen

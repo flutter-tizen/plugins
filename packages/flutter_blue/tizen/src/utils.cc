@@ -4,7 +4,6 @@
 #include <utils.h>
 
 namespace flutter_blue_tizen {
-namespace btu {
 std::vector<u_int8_t> messageToVector(
     google::protobuf::MessageLite const& messageLite) noexcept {
   std::vector<u_int8_t> encoded(messageLite.ByteSizeLong());
@@ -104,6 +103,4 @@ BTException::BTException(const int tizen_error)
     : _mess(get_error_message(tizen_error)) {}
 
 const char* BTException::what() const noexcept { return _mess.c_str(); }
-
-}  // namespace btu
 }  // namespace flutter_blue_tizen

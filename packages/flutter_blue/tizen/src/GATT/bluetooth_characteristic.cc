@@ -8,9 +8,13 @@
 #include <utils.h>
 
 #include <exception>
+
+
 namespace flutter_blue_tizen {
+
+
 namespace btGatt {
-using btu::BTException;
+
 
 BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
                                                  BluetoothService& service)
@@ -38,7 +42,7 @@ BluetoothCharacteristic::toProtoCharacteristic() const noexcept {
   proto.set_remote_id(_service.cDevice().cAddress());
   proto.set_uuid(UUID());
   proto.set_allocated_properties(new proto::gen::CharacteristicProperties(
-      btu::getProtoCharacteristicProperties(properties())));
+      getProtoCharacteristicProperties(properties())));
   proto.set_value(value());
   if (_service.getType() == ServiceType::PRIMARY)
     proto.set_serviceuuid(_service.UUID());
@@ -53,17 +57,21 @@ BluetoothCharacteristic::toProtoCharacteristic() const noexcept {
   return proto;
 }
 
+
 BluetoothService const& BluetoothCharacteristic::cService() const noexcept {
   return _service;
 }
 
+
 std::string BluetoothCharacteristic::UUID() const noexcept {
-  return btu::getGattUUID(_handle);
+  return getGattUUID(_handle);
 }
 
+
 std::string BluetoothCharacteristic::value() const noexcept {
-  return btu::getGattValue(_handle);
+  return getGattValue(_handle);
 }
+
 
 BluetoothDescriptor* BluetoothCharacteristic::getDescriptor(
     const std::string& uuid) {
@@ -71,6 +79,7 @@ BluetoothDescriptor* BluetoothCharacteristic::getDescriptor(
     if (s->UUID() == uuid) return s.get();
   return nullptr;
 }
+
 
 void BluetoothCharacteristic::read(
     const std::function<void(const BluetoothCharacteristic&)>& func) {
@@ -100,6 +109,7 @@ void BluetoothCharacteristic::read(
   LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
   if (res) throw BTException(res, "could not read characteristic");
 }
+
 
 void BluetoothCharacteristic::write(
     const std::string value, bool withoutResponse,
@@ -149,12 +159,14 @@ void BluetoothCharacteristic::write(
   if (res) throw BTException("could not write value to remote");
 }
 
+
 int BluetoothCharacteristic::properties() const noexcept {
   auto prop = 0;
   auto res = bt_gatt_characteristic_get_properties(_handle, &prop);
   LOG_ERROR("bt_gatt_characteristic_get_properties", get_error_message(res));
   return prop;
 }
+
 
 void BluetoothCharacteristic::setNotifyCallback(
     const NotifyCallback& callback) {
@@ -190,9 +202,10 @@ void BluetoothCharacteristic::setNotifyCallback(
                       "bt_gatt_client_set_characteristic_value_changed_cb");
 }
 
+
 void BluetoothCharacteristic::unsetNotifyCallback() {
   if (cService().cDevice().state() ==
-          btu::BluetoothDeviceController::State::CONNECTED &&
+          BluetoothDeviceController::State::CONNECTED &&
       _notifyCallback) {
     auto res = bt_gatt_client_unset_characteristic_value_changed_cb(_handle);
     LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb",
@@ -201,11 +214,15 @@ void BluetoothCharacteristic::unsetNotifyCallback() {
   _notifyCallback = nullptr;
 }
 
+
 BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
   std::scoped_lock lock(_activeCharacteristics.mut);
   _activeCharacteristics.var.erase(UUID());
   unsetNotifyCallback();
   _descriptors.clear();
 }
+
+
 }  // namespace btGatt
+
 }  // namespace flutter_blue_tizen

@@ -4,9 +4,10 @@
 #include <bluetooth_device_controller.h>
 #include <log.h>
 
+
 namespace flutter_blue_tizen {
+
 namespace btGatt {
-using btu::BTException;
 
 BluetoothService::BluetoothService(bt_gatt_h handle) : _handle(handle) {
   int res = bt_gatt_service_foreach_characteristics(
@@ -22,8 +23,9 @@ BluetoothService::BluetoothService(bt_gatt_h handle) : _handle(handle) {
   LOG_ERROR("bt_gatt_service_foreach_characteristics", get_error_message(res));
 }
 
+
 PrimaryService::PrimaryService(bt_gatt_h handle,
-                               btu::BluetoothDeviceController& device)
+                               BluetoothDeviceController& device)
     : BluetoothService(handle), _device(device) {
   int res = bt_gatt_service_foreach_included_services(
       handle,
@@ -38,13 +40,17 @@ PrimaryService::PrimaryService(bt_gatt_h handle,
             get_error_message(res));
 }
 
+
 SecondaryService::SecondaryService(bt_gatt_h service_handle,
                                    PrimaryService& primaryService)
     : BluetoothService(service_handle), _primaryService(primaryService) {}
 
-btu::BluetoothDeviceController const& PrimaryService::cDevice() const noexcept {
+
+
+BluetoothDeviceController const& PrimaryService::cDevice() const noexcept {
   return _device;
 }
+
 
 proto::gen::BluetoothService PrimaryService::toProtoService() const noexcept {
   proto::gen::BluetoothService proto;
@@ -60,18 +66,22 @@ proto::gen::BluetoothService PrimaryService::toProtoService() const noexcept {
   return proto;
 }
 
+
 ServiceType PrimaryService::getType() const noexcept {
   return ServiceType::PRIMARY;
 }
 
-btu::BluetoothDeviceController const& SecondaryService::cDevice()
+
+BluetoothDeviceController const& SecondaryService::cDevice()
     const noexcept {
   return _primaryService.cDevice();
 }
 
+
 PrimaryService const& SecondaryService::cPrimary() const noexcept {
   return _primaryService;
 }
+
 
 proto::gen::BluetoothService SecondaryService::toProtoService() const noexcept {
   proto::gen::BluetoothService proto;
@@ -84,17 +94,21 @@ proto::gen::BluetoothService SecondaryService::toProtoService() const noexcept {
   return proto;
 }
 
+
 ServiceType SecondaryService::getType() const noexcept {
   return ServiceType::SECONDARY;
 }
+
 
 std::string SecondaryService::primaryUUID() noexcept {
   return _primaryService.UUID();
 }
 
+
 std::string BluetoothService::UUID() const noexcept {
-  return btu::getGattUUID(_handle);
+  return getGattUUID(_handle);
 }
+
 
 BluetoothCharacteristic* BluetoothService::getCharacteristic(
     const std::string& uuid) {
@@ -104,6 +118,7 @@ BluetoothCharacteristic* BluetoothService::getCharacteristic(
   return nullptr;
 }
 
+
 SecondaryService* PrimaryService::getSecondary(
     const std::string& uuid) noexcept {
   for (auto& s : _secondaryServices) {
@@ -112,14 +127,23 @@ SecondaryService* PrimaryService::getSecondary(
   return nullptr;
 }
 
+
 BluetoothService::~BluetoothService() {}
 
+
 /**
+ * 
  * these must not be in a virtual destructor. Characteristic references abstract
  * method, when derived objects are already destroyed otherwise.
  *
  */
 PrimaryService::~PrimaryService() { _characteristics.clear(); }
+
+
 SecondaryService::~SecondaryService() { _characteristics.clear(); }
+
+
 }  // namespace btGatt
+
+
 }  // namespace flutter_blue_tizen

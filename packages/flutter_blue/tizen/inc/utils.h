@@ -10,14 +10,21 @@
 #include <mutex>
 
 namespace flutter_blue_tizen {
+
 namespace btGatt {
+
+
 class PrimaryService;
 class SecondaryService;
+
+
 }  // namespace btGatt
-namespace btu {
+
+
 class BluetoothDeviceController;
 
 using MethodChannel = flutter::MethodChannel<flutter::EncodableValue>;
+
 
 template <typename T>
 struct SafeType {
@@ -32,6 +39,7 @@ struct SafeType {
   SafeType() : var(T()) {}
 };
 
+
 class BTException : public std::exception {
   std::string _mess;
 
@@ -44,23 +52,33 @@ class BTException : public std::exception {
   const char* what() const noexcept override;
 };
 
+
 std::vector<u_int8_t> messageToVector(
     google::protobuf::MessageLite const& messageLite) noexcept;
 
+
 std::string getGattValue(bt_gatt_h handle);
+
 
 std::string getGattUUID(bt_gatt_h handle);
 
+
 bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid);
 
+
 std::string getGattClientAddress(bt_gatt_client_h handle);
+
 
 proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
     BluetoothDeviceController const& device,
     std::vector<btGatt::PrimaryService*> const& services);
 
+
 proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
     int properties);
-}  // namespace btu
+
+    
 }  // namespace flutter_blue_tizen
+
+
 #endif  // FLUTTER_BLUE_TIZEN_UTILS_H
