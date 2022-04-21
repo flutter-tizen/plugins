@@ -17,7 +17,6 @@ class BluetoothService;
 class BluetoothDescriptor;
 
 class BluetoothCharacteristic {
-    
   using NotifyCallback = std::function<void(const BluetoothCharacteristic&)>;
 
   bt_gatt_h _handle;
