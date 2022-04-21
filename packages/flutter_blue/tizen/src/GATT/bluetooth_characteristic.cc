@@ -1,11 +1,11 @@
-#include <bluetooth_device_controller.h>
-#include <bluetooth_manager.h>
 #include <GATT/bluetooth_characteristic.h>
 #include <GATT/bluetooth_descriptor.h>
 #include <GATT/bluetooth_service.h>
+#include <bluetooth_device_controller.h>
+#include <bluetooth_manager.h>
+#include <log.h>
 #include <notifications_handler.h>
 #include <utils.h>
-#include <log.h>
 
 #include <exception>
 namespace flutter_blue_tizen {

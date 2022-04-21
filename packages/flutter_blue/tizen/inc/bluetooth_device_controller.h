@@ -1,8 +1,8 @@
 #ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 #define FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
-#include <utils.h>
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
+#include <utils.h>
 
 namespace flutter_blue_tizen {
 namespace btGatt {

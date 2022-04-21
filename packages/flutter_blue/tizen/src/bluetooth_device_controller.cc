@@ -1,8 +1,8 @@
+#include <GATT/bluetooth_service.h>
 #include <bluetooth_device_controller.h>
 #include <bluetooth_manager.h>
-#include <GATT/bluetooth_service.h>
-#include <notifications_handler.h>
 #include <log.h>
+#include <notifications_handler.h>
 
 #include <mutex>
 #include <unordered_set>

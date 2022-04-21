@@ -1,7 +1,7 @@
-#include <bluetooth_device_controller.h>
 #include <GATT/bluetooth_service.h>
-#include <utils.h>
+#include <bluetooth_device_controller.h>
 #include <log.h>
+#include <utils.h>
 
 namespace flutter_blue_tizen {
 namespace btu {

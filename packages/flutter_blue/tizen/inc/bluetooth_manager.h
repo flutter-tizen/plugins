@@ -1,9 +1,9 @@
 #ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
 #define FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
 
+#include <bluetooth.h>
 #include <notifications_handler.h>
 #include <utils.h>
-#include <bluetooth.h>
 
 #include <atomic>
 #include <memory>
