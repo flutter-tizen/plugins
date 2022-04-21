@@ -1,3 +1,11 @@
+## 1.1.0
+
+* Update battery_plus to 2.1.3.
+* Update battery_plus_platform_interface to 1.2.1.
+* Support `Battery.batteryState`.
+* Update the example app.
+* Code refactoring.
+
 ## 1.0.3
 
 * Update battery_plus to 2.0.2.
