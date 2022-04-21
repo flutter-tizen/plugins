@@ -1,9 +1,9 @@
 #include "flutter_blue_tizen_plugin.h"
 
-#include <BluetoothDeviceController.h>
-#include <BluetoothManager.h>
-#include <NotificationsHandler.h>
-#include <StateHandler.h>
+#include <bluetooth_device_controller.h>
+#include <bluetooth_manager.h>
+#include <notifications_handler.h>
+#include <state_handler.h>
 #include <app_control.h>
 #include <bluetooth.h>
 #include <flutter/event_channel.h>

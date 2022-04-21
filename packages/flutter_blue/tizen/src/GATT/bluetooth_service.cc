@@ -1,6 +1,6 @@
-#include <BluetoothDeviceController.h>
-#include <GATT/BluetoothCharacteristic.h>
-#include <GATT/BluetoothService.h>
+#include <bluetooth_device_controller.h>
+#include <GATT/bluetooth_characteristic.h>
+#include <GATT/bluetooth_service.h>
 #include <bluetooth.h>
 #include <log.h>
 

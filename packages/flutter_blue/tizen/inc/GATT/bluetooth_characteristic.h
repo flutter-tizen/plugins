@@ -1,7 +1,7 @@
 #ifndef FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H
 #define FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H
 
-#include <Utils.h>
+#include <utils.h>
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
 
