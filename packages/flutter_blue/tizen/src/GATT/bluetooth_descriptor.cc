@@ -5,12 +5,8 @@
 #include <log.h>
 #include <utils.h>
 
-
-
 namespace flutter_blue_tizen {
 namespace btGatt {
-
-
 
 BluetoothDescriptor::BluetoothDescriptor(
     bt_gatt_h handle, BluetoothCharacteristic& characteristic)
@@ -18,7 +14,6 @@ BluetoothDescriptor::BluetoothDescriptor(
   std::scoped_lock lock(_activeDescriptors.mut);
   _activeDescriptors.var[UUID()] = this;
 }
-
 
 proto::gen::BluetoothDescriptor BluetoothDescriptor::toProtoDescriptor()
     const noexcept {
@@ -30,25 +25,21 @@ proto::gen::BluetoothDescriptor BluetoothDescriptor::toProtoDescriptor()
   return proto;
 }
 
-
 std::string BluetoothDescriptor::UUID() const noexcept {
   return getGattUUID(_handle);
 }
-
 
 std::string BluetoothDescriptor::value() const noexcept {
   return getGattValue(_handle);
 }
 
-
 void BluetoothDescriptor::read(
     const std::function<void(const BluetoothDescriptor&)>& func) {
-      
   struct Scope {
     std::function<void(const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
   };
-  
+
   auto scope = new Scope{func, UUID()};  // unfortunately it requires raw ptr
   int res = bt_gatt_client_read_value(
       _handle,
@@ -69,15 +60,12 @@ void BluetoothDescriptor::read(
 
   LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
   if (res) throw BTException("could not read descriptor");
-
 }
-
 
 void BluetoothDescriptor::write(
     const std::string value,
     const std::function<void(bool success, const BluetoothDescriptor&)>&
         callback) {
-
   struct Scope {
     std::function<void(bool success, const BluetoothDescriptor&)> func;
     const std::string descriptor_uuid;
@@ -113,21 +101,17 @@ void BluetoothDescriptor::write(
   LOG_ERROR("bt_gatt_client_write_value", get_error_message(res));
 
   if (res) throw BTException("could not write value to remote");
-
 }
-
 
 BluetoothCharacteristic const& BluetoothDescriptor::cCharacteristic()
     const noexcept {
   return _characteristic;
 }
 
-
 BluetoothDescriptor::~BluetoothDescriptor() {
   std::scoped_lock lock(_activeDescriptors.mut);
   _activeDescriptors.var.erase(UUID());
 }
-
 
 }  // namespace btGatt
 }  // namespace flutter_blue_tizen

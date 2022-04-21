@@ -2,8 +2,6 @@
 
 namespace flutter_blue_tizen {
 
-    
-
 NotificationsHandler::NotificationsHandler(
     std::shared_ptr<MethodChannel> methodChannel)
     : _methodChannel(methodChannel) {}
@@ -16,6 +14,5 @@ auto NotificationsHandler::notifyUIThread(
   _methodChannel->InvokeMethod(
       method, std::make_unique<flutter::EncodableValue>(encodable));
 }
-
 
 }  // namespace flutter_blue_tizen

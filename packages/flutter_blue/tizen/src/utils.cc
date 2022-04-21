@@ -5,15 +5,12 @@
 
 namespace flutter_blue_tizen {
 
-
-
 std::vector<u_int8_t> messageToVector(
     google::protobuf::MessageLite const& messageLite) noexcept {
   std::vector<u_int8_t> encoded(messageLite.ByteSizeLong());
   messageLite.SerializeToArray(encoded.data(), messageLite.ByteSizeLong());
   return encoded;
 }
-
 
 proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
     int properties) {
@@ -30,7 +27,6 @@ proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
   // p.set_indicate_encryption_required((properties & 512) != 0);
   return p;
 }
-
 
 /**
  * @brief Get the value of Gatt descriptor, characteristic
@@ -53,7 +49,6 @@ std::string getGattValue(bt_gatt_h handle) {
   return result;
 }
 
-
 /**
  * @brief Get the uuid of Gatt descriptor, characteristic or service
  *
@@ -72,7 +67,6 @@ std::string getGattUUID(bt_gatt_h handle) {
   return result;
 }
 
-
 std::string getGattClientAddress(bt_gatt_client_h handle) {
   std::string result;
   char* address = nullptr;
@@ -85,7 +79,6 @@ std::string getGattClientAddress(bt_gatt_client_h handle) {
   return result;
 }
 
-
 proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
     BluetoothDeviceController const& device,
     std::vector<btGatt::PrimaryService*> const& services) {
@@ -97,7 +90,6 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
   return res;
 }
 
-
 bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid) {
   bt_gatt_h result;
   int res = bt_gatt_client_get_service(handle, uuid.c_str(), &result);
@@ -106,19 +98,14 @@ bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid) {
   return result;
 }
 
-
 BTException::BTException(std::string const& mess) : _mess(mess) {}
-
 
 BTException::BTException(const int tizen_error, std::string const& mess)
     : _mess(std::string(get_error_message(tizen_error)) + ": " + mess) {}
 
-
 BTException::BTException(const int tizen_error)
     : _mess(get_error_message(tizen_error)) {}
 
-
 const char* BTException::what() const noexcept { return _mess.c_str(); }
-
 
 }  // namespace flutter_blue_tizen

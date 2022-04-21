@@ -2,8 +2,6 @@
 
 namespace flutter_blue_tizen {
 
-
-
 std::unique_ptr<flutter::StreamHandlerError<flutter::EncodableValue>>
 StateHandler::OnListenInternal(
     const flutter::EncodableValue* arguments,
@@ -17,6 +15,5 @@ StateHandler::OnCancelInternal(const flutter::EncodableValue* arguments) {
   sink = nullptr;
   return nullptr;
 }
-
 
 }  // namespace flutter_blue_tizen

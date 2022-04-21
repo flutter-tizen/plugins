@@ -21,23 +21,16 @@
 
 namespace {
 
-
 class FlutterBlueTizenPlugin : public flutter::Plugin {
-
  public:
-
-
   const static inline std::string channel_name =
       "plugins.pauldemarco.com/flutter_blue/";
-
 
   static inline std::shared_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       methodChannel;
 
-
   static inline std::shared_ptr<flutter::EventChannel<flutter::EncodableValue>>
       stateChannel;
-
 
   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
     methodChannel =
@@ -63,74 +56,59 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-
   flutter_blue_tizen::NotificationsHandler notificationsHandler;
-
 
   std::unique_ptr<flutter_blue_tizen::BluetoothManager> bluetoothManager;
 
-
   FlutterBlueTizenPlugin()
       : notificationsHandler(methodChannel),
-        bluetoothManager(
-            std::make_unique<flutter_blue_tizen::BluetoothManager>(
-                notificationsHandler)) {}
-
+        bluetoothManager(std::make_unique<flutter_blue_tizen::BluetoothManager>(
+            notificationsHandler)) {}
 
   virtual ~FlutterBlueTizenPlugin() {
-    
     bluetoothManager = nullptr;
 
     google::protobuf::ShutdownProtobufLibrary();
 
     auto res = bt_deinitialize();
-  
+
     LOG_ERROR("bt_adapter_le_is_discovering", get_error_message(res));
   }
 
  private:
-
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-
-
     const flutter::EncodableValue& args = *method_call.arguments();
 
     if (method_call.method_name() == "isAvailable") {
-
       try {
         result->Success(
             flutter::EncodableValue(bluetoothManager->isBLEAvailable()));
 
       } catch (std::exception const& e) {
-        
         result->Error(e.what());
-
       }
 
-    }else if (method_call.method_name() == "setLogLevel") {
+    } else if (method_call.method_name() == "setLogLevel") {
       /**
        * @brief plugin should log everything despite the log level.
        *
        */
 
       result->Success(flutter::EncodableValue(NULL));
-      
-    } else if (method_call.method_name() == "state") {
 
+    } else if (method_call.method_name() == "state") {
       result->Success(
           flutter::EncodableValue(flutter_blue_tizen::messageToVector(
               bluetoothManager->bluetoothState())));
 
     } else if (method_call.method_name() == "isOn") {
-
       result->Success(flutter::EncodableValue(
           (bluetoothManager->bluetoothState().state() ==
            proto::gen::BluetoothState_State::BluetoothState_State_ON)));
 
     } else if (method_call.method_name() == "startScan") {
-
       proto::gen::ScanSettings scanSettings;
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
 
@@ -143,7 +121,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       }
 
     } else if (method_call.method_name() == "stopScan") {
-
       try {
         bluetoothManager->stopBluetoothDeviceScanLE();
         result->Success(flutter::EncodableValue(NULL));
@@ -152,7 +129,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       }
 
     } else if (method_call.method_name() == "getConnectedDevices") {
-
       proto::gen::ConnectedDevicesResponse response;
       auto p = bluetoothManager->getConnectedProtoBluetoothDevices();
 
@@ -164,7 +140,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
           flutter_blue_tizen::messageToVector(response)));
 
     } else if (method_call.method_name() == "connect") {
-
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
       proto::gen::ConnectRequest connectRequest;
 
@@ -177,7 +152,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       }
 
     } else if (method_call.method_name() == "disconnect") {
-
       std::string deviceID = std::get<std::string>(args);
       try {
         bluetoothManager->disconnect(deviceID);
@@ -187,7 +161,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       }
 
     } else if (method_call.method_name() == "deviceState") {
-
       std::string deviceID = std::get<std::string>(args);
       std::scoped_lock lock(bluetoothManager->bluetoothDevices().mut);
       auto it = bluetoothManager->bluetoothDevices().var.find(deviceID);
@@ -200,17 +173,16 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         res.set_state(flutter_blue_tizen::BluetoothDeviceController::
                           localToProtoDeviceState(device->state()));
 
-        result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::messageToVector(res)));
+        result->Success(
+            flutter::EncodableValue(flutter_blue_tizen::messageToVector(res)));
       } else
         result->Error("device not available");
 
     } else if (method_call.method_name() == "discoverServices") {
-
       std::string deviceID = std::get<std::string>(args);
       std::scoped_lock lock(bluetoothManager->bluetoothDevices().mut);
       auto it = bluetoothManager->bluetoothDevices().var.find(deviceID);
-      
+
       if (it != bluetoothManager->bluetoothDevices().var.end()) {
         auto& device = it->second;
         result->Success(flutter::EncodableValue(NULL));
@@ -220,12 +192,11 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         notificationsHandler.notifyUIThread(
             "DiscoverServicesResult",
             flutter_blue_tizen::getProtoServiceDiscoveryResult(*device,
-                                                                    services));
+                                                               services));
       } else
         result->Error("device not available");
 
     } else if (method_call.method_name() == "services") {
-
       std::string deviceID = std::get<std::string>(args);
       std::scoped_lock lock(bluetoothManager->bluetoothDevices().mut);
 
@@ -234,9 +205,8 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       if (it != bluetoothManager->bluetoothDevices().var.end()) {
         auto& device = it->second;
 
-        auto protoServices =
-            flutter_blue_tizen::getProtoServiceDiscoveryResult(
-                *device, device->getServices());
+        auto protoServices = flutter_blue_tizen::getProtoServiceDiscoveryResult(
+            *device, device->getServices());
         result->Success(flutter::EncodableValue(
             flutter_blue_tizen::messageToVector(protoServices)));
       } else
@@ -266,7 +236,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       }
 
     } else if (method_call.method_name() == "writeCharacteristic") {
-
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
       proto::gen::WriteCharacteristicRequest request;
 
@@ -290,7 +259,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       }
 
     } else if (method_call.method_name() == "setNotification") {
-
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
       proto::gen::SetNotificationRequest request;
 
@@ -303,21 +271,19 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       }
 
     } else if (method_call.method_name() == "mtu") {
-
       std::string deviceID = std::get<std::string>(args);
 
       try {
         proto::gen::MtuSizeResponse res;
         res.set_remote_id(deviceID);
         res.set_mtu(bluetoothManager->getMtu(deviceID));
-        result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::messageToVector(res)));
+        result->Success(
+            flutter::EncodableValue(flutter_blue_tizen::messageToVector(res)));
       } catch (const std::exception& e) {
         result->Error(e.what());
       }
 
     } else if (method_call.method_name() == "requestMtu") {
-
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
       proto::gen::MtuSizeRequest req;
 
@@ -328,13 +294,12 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       } catch (const std::exception& e) {
         result->Error(e.what());
       }
-      
+
     } else {
       result->NotImplemented();
     }
   }
 };
-
 
 }  // namespace
 
