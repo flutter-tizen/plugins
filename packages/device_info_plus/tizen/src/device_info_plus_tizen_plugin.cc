@@ -9,10 +9,13 @@
 #include <flutter/standard_method_codec.h>
 #include <system_info.h>
 
+#include <map>
 #include <memory>
 #include <string>
 
 #include "log.h"
+
+namespace {
 
 class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
  public:
@@ -43,13 +46,11 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
     const auto &method_name = method_call.method_name();
 
     if (method_name == "getTizenDeviceInfo") {
-      char *value = nullptr;
       flutter::EncodableMap map;
 
-      for (auto &request : requests_) {
-        const auto &map_key = request.first;
-        const auto &tizen_key = request.second;
+      for (const auto &[key, tizen_key] : tizen_keys_) {
         auto response = flutter::EncodableValue();
+        char *value = nullptr;
         int ret = system_info_get_platform_string(tizen_key.c_str(), &value);
         if (ret == SYSTEM_INFO_ERROR_NONE) {
           response = std::string(value);
@@ -58,7 +59,7 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
           LOG_ERROR("Failed to get %s from the system: %s", tizen_key.c_str(),
                     get_error_message(ret));
         }
-        map[flutter::EncodableValue(map_key)] = response;
+        map[flutter::EncodableValue(key)] = response;
       }
 
       result->Success(flutter::EncodableValue(map));
@@ -67,7 +68,7 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
     }
   }
 
-  const std::vector<std::pair<std::string, std::string>> requests_ = {
+  const std::map<std::string, std::string> tizen_keys_ = {
       {"modelName", "http://tizen.org/system/model_name"},
       {"cpuArch", "http://tizen.org/feature/platform.core.cpu.arch"},
       {"nativeApiVersion",
@@ -89,6 +90,8 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
       {"tizenId", "http://tizen.org/system/tizenid"},
   };
 };
+
+}  // namespace
 
 void DeviceInfoPlusTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
