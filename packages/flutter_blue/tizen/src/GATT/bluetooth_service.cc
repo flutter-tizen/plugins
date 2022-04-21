@@ -6,8 +6,9 @@
 
 
 namespace flutter_blue_tizen {
-
 namespace btGatt {
+
+
 
 BluetoothService::BluetoothService(bt_gatt_h handle) : _handle(handle) {
   int res = bt_gatt_service_foreach_characteristics(

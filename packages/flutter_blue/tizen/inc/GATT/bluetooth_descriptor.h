@@ -9,7 +9,6 @@
 #include <string>
 
 namespace flutter_blue_tizen {
-
 namespace btGatt {
 
 

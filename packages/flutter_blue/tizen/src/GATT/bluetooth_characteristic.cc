@@ -11,9 +11,8 @@
 
 
 namespace flutter_blue_tizen {
-
-
 namespace btGatt {
+
 
 
 BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
@@ -223,6 +222,6 @@ BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
 }
 
 
-}  // namespace btGatt
 
+}  // namespace btGatt
 }  // namespace flutter_blue_tizen

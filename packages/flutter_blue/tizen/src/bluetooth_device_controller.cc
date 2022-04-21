@@ -12,7 +12,9 @@
 namespace flutter_blue_tizen {
 
 
+
 using State = BluetoothDeviceController::State;
+
 
 
 BluetoothDeviceController::BluetoothDeviceController(
@@ -274,7 +276,7 @@ BluetoothDeviceController::localToProtoDeviceState(
       return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTED;
   }
 
-  
+
 }
 
 

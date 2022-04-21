@@ -334,6 +334,8 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     }
   }
 };
+
+
 }  // namespace
 
 void FlutterBlueTizenPluginRegisterWithRegistrar(

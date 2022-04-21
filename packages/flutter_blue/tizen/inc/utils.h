@@ -11,12 +11,11 @@
 
 namespace flutter_blue_tizen {
 
-namespace btGatt {
 
+namespace btGatt {
 
 class PrimaryService;
 class SecondaryService;
-
 
 }  // namespace btGatt
 
@@ -53,6 +52,7 @@ class BTException : public std::exception {
 };
 
 
+
 std::vector<u_int8_t> messageToVector(
     google::protobuf::MessageLite const& messageLite) noexcept;
 
@@ -77,7 +77,7 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
 proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
     int properties);
 
-    
+
 }  // namespace flutter_blue_tizen
 
 

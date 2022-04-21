@@ -10,7 +10,6 @@
 #include <vector>
 
 namespace flutter_blue_tizen {
-
 namespace btGatt {
 
 
@@ -95,7 +94,5 @@ class BluetoothCharacteristic {
 
 
 }  // namespace btGatt
-
-
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H

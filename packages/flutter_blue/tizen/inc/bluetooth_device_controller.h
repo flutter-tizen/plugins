@@ -5,8 +5,6 @@
 #include <utils.h>
 
 namespace flutter_blue_tizen {
-
-
 namespace btGatt {
 
 

@@ -11,8 +11,6 @@
 #include <vector>
 
 namespace flutter_blue_tizen {
-
-
 namespace btGatt {
 
 

@@ -8,9 +8,9 @@
 
 
 namespace flutter_blue_tizen {
-
-
 namespace btGatt {
+
+
 
 BluetoothDescriptor::BluetoothDescriptor(
     bt_gatt_h handle, BluetoothCharacteristic& characteristic)
