@@ -9,44 +9,33 @@
 #include "video_player_error.h"
 
 static std::string RotationToString(player_display_rotation_e rotation) {
-  std::string ret;
   switch (rotation) {
     case PLAYER_DISPLAY_ROTATION_NONE:
-      ret = "PLAYER_DISPLAY_ROTATION_NONE";
-      break;
+      return "PLAYER_DISPLAY_ROTATION_NONE";
     case PLAYER_DISPLAY_ROTATION_90:
-      ret = "PLAYER_DISPLAY_ROTATION_90";
-      break;
+      return "PLAYER_DISPLAY_ROTATION_90";
     case PLAYER_DISPLAY_ROTATION_180:
-      ret = "PLAYER_DISPLAY_ROTATION_180";
-      break;
+      return "PLAYER_DISPLAY_ROTATION_180";
     case PLAYER_DISPLAY_ROTATION_270:
-      ret = "PLAYER_DISPLAY_ROTATION_270";
-      break;
+      return "PLAYER_DISPLAY_ROTATION_270";
   }
-  return ret;
+  return std::string();
 }
 
 static std::string StateToString(player_state_e state) {
-  std::string ret;
   switch (state) {
     case PLAYER_STATE_NONE:
-      ret = "PLAYER_STATE_NONE";
-      break;
+      return "PLAYER_STATE_NONE";
     case PLAYER_STATE_IDLE:
-      ret = "PLAYER_STATE_IDLE";
-      break;
+      return "PLAYER_STATE_IDLE";
     case PLAYER_STATE_READY:
-      ret = "PLAYER_STATE_READY";
-      break;
+      return "PLAYER_STATE_READY";
     case PLAYER_STATE_PLAYING:
-      ret = "PLAYER_STATE_PLAYING";
-      break;
+      return "PLAYER_STATE_PLAYING";
     case PLAYER_STATE_PAUSED:
-      ret = "PLAYER_STATE_PAUSED";
-      break;
+      return "PLAYER_STATE_PAUSED";
   }
-  return ret;
+  return std::string();
 }
 
 void VideoPlayer::ReleaseMediaPacket(void *data) {
@@ -197,8 +186,6 @@ VideoPlayer::~VideoPlayer() {
   LOG_INFO("[VideoPlayer] destructor");
   Dispose();
 }
-
-int64_t VideoPlayer::GetTextureId() { return texture_id_; }
 
 void VideoPlayer::Play() {
   LOG_DEBUG("[VideoPlayer.Play] start player");

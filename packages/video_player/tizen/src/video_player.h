@@ -22,7 +22,8 @@ class VideoPlayer {
               const std::string &uri, VideoPlayerOptions &options);
   ~VideoPlayer();
 
-  int64_t GetTextureId();
+  int64_t GetTextureId() { return texture_id_; }
+
   void Play();
   void Pause();
   void SetLooping(bool is_looping);
