@@ -17,14 +17,16 @@
 #include "video_player_error.h"
 #include "video_player_options.h"
 
+namespace {
+
 class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
  public:
   static void RegisterWithRegistrar(
-      flutter::PluginRegistrar *pluginRegistrar,
-      flutter::TextureRegistrar *textureRegistrar);
+      flutter::PluginRegistrar *plugin_registrar,
+      flutter::TextureRegistrar *texture_registrar);
   // Creates a plugin that communicates on the given channel.
-  VideoPlayerTizenPlugin(flutter::PluginRegistrar *pluginRegistrar,
-                         flutter::TextureRegistrar *textureRegistrar);
+  VideoPlayerTizenPlugin(flutter::PluginRegistrar *plugin_registrar,
+                         flutter::TextureRegistrar *texture_registrar);
   virtual ~VideoPlayerTizenPlugin();
 
   virtual void initialize() override;
@@ -42,46 +44,46 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
       const MixWithOthersMessage &mixWithOthersMsg) override;
 
  private:
-  void disposeAllPlayers();
+  void DisposeAllPlayers();
 
-  flutter::PluginRegistrar *pluginRegistrar_;
-  flutter::TextureRegistrar *textureRegistrar_;
+  flutter::PluginRegistrar *plugin_registrar_;
+  flutter::TextureRegistrar *texture_registrar_;
   VideoPlayerOptions options_;
-  std::map<long, std::unique_ptr<VideoPlayer>> videoPlayers_;
+  std::map<long, std::unique_ptr<VideoPlayer>> players_;
 };
 
 // static
 void VideoPlayerTizenPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrar *pluginRegistrar,
-    flutter::TextureRegistrar *textureRegistrar) {
-  auto plugin = std::make_unique<VideoPlayerTizenPlugin>(pluginRegistrar,
-                                                         textureRegistrar);
-  pluginRegistrar->AddPlugin(std::move(plugin));
+    flutter::PluginRegistrar *plugin_registrar,
+    flutter::TextureRegistrar *texture_registrar) {
+  auto plugin = std::make_unique<VideoPlayerTizenPlugin>(plugin_registrar,
+                                                         texture_registrar);
+  plugin_registrar->AddPlugin(std::move(plugin));
 }
 
 VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
-    flutter::PluginRegistrar *pluginRegistrar,
-    flutter::TextureRegistrar *textureRegistrar)
-    : pluginRegistrar_(pluginRegistrar), textureRegistrar_(textureRegistrar) {
-  VideoPlayerApi::setup(pluginRegistrar->messenger(), this);
+    flutter::PluginRegistrar *plugin_registrar,
+    flutter::TextureRegistrar *texture_registrar)
+    : plugin_registrar_(plugin_registrar), texture_registrar_(texture_registrar) {
+  VideoPlayerApi::setup(plugin_registrar->messenger(), this);
 }
 
-VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { disposeAllPlayers(); }
+VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
 
-void VideoPlayerTizenPlugin::disposeAllPlayers() {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.disposeAllPlayers] player count: %d",
-            videoPlayers_.size());
-  auto iter = videoPlayers_.begin();
-  while (iter != videoPlayers_.end()) {
+void VideoPlayerTizenPlugin::DisposeAllPlayers() {
+  LOG_DEBUG("[VideoPlayerTizenPlugin.DisposeAllPlayers] player count: %d",
+            players_.size());
+  auto iter = players_.begin();
+  while (iter != players_.end()) {
     iter->second->dispose();
     iter++;
   }
-  videoPlayers_.clear();
+  players_.clear();
 }
 
 void VideoPlayerTizenPlugin::initialize() {
   LOG_DEBUG("[VideoPlayerTizenPlugin.initialize] init ");
-  disposeAllPlayers();
+  DisposeAllPlayers();
 }
 
 TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
@@ -112,10 +114,10 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.create] uri of video player: %s",
             uri.c_str());
 
-  auto player = std::make_unique<VideoPlayer>(pluginRegistrar_,
-                                              textureRegistrar_, uri, options_);
+  auto player = std::make_unique<VideoPlayer>(plugin_registrar_,
+                                              texture_registrar_, uri, options_);
   long textureId = player->getTextureId();
-  videoPlayers_[textureId] = std::move(player);
+  players_[textureId] = std::move(player);
 
   TextureMessage result;
   result.setTextureId(textureId);
@@ -126,10 +128,10 @@ void VideoPlayerTizenPlugin::dispose(const TextureMessage &textureMsg) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.dispose] textureId: %ld",
             textureMsg.getTextureId());
 
-  auto iter = videoPlayers_.find(textureMsg.getTextureId());
-  if (iter != videoPlayers_.end()) {
+  auto iter = players_.find(textureMsg.getTextureId());
+  if (iter != players_.end()) {
     iter->second->dispose();
-    videoPlayers_.erase(iter);
+    players_.erase(iter);
   }
 }
 
@@ -139,8 +141,8 @@ void VideoPlayerTizenPlugin::setLooping(const LoopingMessage &loopingMsg) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.setLooping] isLooping: %d",
             loopingMsg.getIsLooping());
 
-  auto iter = videoPlayers_.find(loopingMsg.getTextureId());
-  if (iter != videoPlayers_.end()) {
+  auto iter = players_.find(loopingMsg.getTextureId());
+  if (iter != players_.end()) {
     iter->second->setLooping(loopingMsg.getIsLooping());
   }
 }
@@ -151,8 +153,8 @@ void VideoPlayerTizenPlugin::setVolume(const VolumeMessage &volumeMsg) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.setVolume] volume: %f",
             volumeMsg.getVolume());
 
-  auto iter = videoPlayers_.find(volumeMsg.getTextureId());
-  if (iter != videoPlayers_.end()) {
+  auto iter = players_.find(volumeMsg.getTextureId());
+  if (iter != players_.end()) {
     iter->second->setVolume(volumeMsg.getVolume());
   }
 }
@@ -164,8 +166,8 @@ void VideoPlayerTizenPlugin::setPlaybackSpeed(
   LOG_DEBUG("[VideoPlayerTizenPlugin.setPlaybackSpeed] speed: %f",
             speedMsg.getSpeed());
 
-  auto iter = videoPlayers_.find(speedMsg.getTextureId());
-  if (iter != videoPlayers_.end()) {
+  auto iter = players_.find(speedMsg.getTextureId());
+  if (iter != players_.end()) {
     iter->second->setPlaybackSpeed(speedMsg.getSpeed());
   }
 }
@@ -174,8 +176,8 @@ void VideoPlayerTizenPlugin::play(const TextureMessage &textureMsg) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.play] textureId: %ld",
             textureMsg.getTextureId());
 
-  auto iter = videoPlayers_.find(textureMsg.getTextureId());
-  if (iter != videoPlayers_.end()) {
+  auto iter = players_.find(textureMsg.getTextureId());
+  if (iter != players_.end()) {
     iter->second->play();
   }
 }
@@ -184,8 +186,8 @@ void VideoPlayerTizenPlugin::pause(const TextureMessage &textureMsg) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.pause] textureId: %ld",
             textureMsg.getTextureId());
 
-  auto iter = videoPlayers_.find(textureMsg.getTextureId());
-  if (iter != videoPlayers_.end()) {
+  auto iter = players_.find(textureMsg.getTextureId());
+  if (iter != players_.end()) {
     iter->second->pause();
   }
 }
@@ -196,8 +198,8 @@ PositionMessage VideoPlayerTizenPlugin::position(
             textureMsg.getTextureId());
 
   PositionMessage result;
-  auto iter = videoPlayers_.find(textureMsg.getTextureId());
-  if (iter != videoPlayers_.end()) {
+  auto iter = players_.find(textureMsg.getTextureId());
+  if (iter != players_.end()) {
     result.setTextureId(textureMsg.getTextureId());
     result.setPosition(iter->second->getPosition());
   }
@@ -211,8 +213,8 @@ void VideoPlayerTizenPlugin::seekTo(const PositionMessage &positionMsg,
   LOG_DEBUG("[VideoPlayerTizenPlugin.seekTo] position: %ld",
             positionMsg.getPosition());
 
-  auto iter = videoPlayers_.find(positionMsg.getTextureId());
-  if (iter != videoPlayers_.end()) {
+  auto iter = players_.find(positionMsg.getTextureId());
+  if (iter != players_.end()) {
     iter->second->seekTo(positionMsg.getPosition(), onSeekCompleted);
   }
 }
@@ -222,6 +224,8 @@ void VideoPlayerTizenPlugin::setMixWithOthers(
   LOG_DEBUG("[VideoPlayerTizenPlugin.setMixWithOthers] mixWithOthers: %d",
             mixWithOthersMsg.getMixWithOthers());
   options_.setMixWithOthers(mixWithOthersMsg.getMixWithOthers());
+}
+
 }
 
 void VideoPlayerTizenPluginRegisterWithRegistrar(
