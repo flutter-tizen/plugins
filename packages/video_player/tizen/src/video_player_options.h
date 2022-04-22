@@ -3,17 +3,19 @@
 
 class VideoPlayerOptions {
  public:
-  VideoPlayerOptions() : mixWithOthers_(true) {}
+  VideoPlayerOptions() {}
   ~VideoPlayerOptions() = default;
 
   VideoPlayerOptions(const VideoPlayerOptions &other) = default;
   VideoPlayerOptions &operator=(const VideoPlayerOptions &other) = default;
 
-  void setMixWithOthers(bool mixWithOthers) { mixWithOthers_ = mixWithOthers; }
-  bool getMixWithOthers() const { return mixWithOthers_; }
+  void setMixWithOthers(bool mix_with_others) {
+    mix_with_others_ = mix_with_others;
+  }
+  bool getMixWithOthers() const { return mix_with_others_; }
 
  private:
-  bool mixWithOthers_;
+  bool mix_with_others_ = true;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_OPTIONS_H_
