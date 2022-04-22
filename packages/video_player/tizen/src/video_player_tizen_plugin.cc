@@ -172,7 +172,7 @@ void VideoPlayerTizenPlugin::play(const TextureMessage &textureMsg) {
 
   auto iter = players_.find(textureMsg.getTextureId());
   if (iter != players_.end()) {
-    iter->second->play();
+    iter->second->Play();
   }
 }
 
@@ -182,7 +182,7 @@ void VideoPlayerTizenPlugin::pause(const TextureMessage &textureMsg) {
 
   auto iter = players_.find(textureMsg.getTextureId());
   if (iter != players_.end()) {
-    iter->second->pause();
+    iter->second->Pause();
   }
 }
 

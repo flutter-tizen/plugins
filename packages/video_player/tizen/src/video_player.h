@@ -13,43 +13,43 @@
 
 #include "video_player_options.h"
 
-using SeekCompletedCallback = std::function<void()>;
-
 class VideoPlayer {
  public:
+  using SeekCompletedCallback = std::function<void()>;
+
   VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
               flutter::TextureRegistrar *texture_registrar,
               const std::string &uri, VideoPlayerOptions &options);
   ~VideoPlayer();
 
-  int64_t getTextureId();
-  void play();
-  void pause();
-  void setLooping(bool is_looping);
-  void setVolume(double volume);
-  void setPlaybackSpeed(double speed);
-  void seekTo(int position,  // milliseconds
+  int64_t GetTextureId();
+  void Play();
+  void Pause();
+  void SetLooping(bool is_looping);
+  void SetVolume(double volume);
+  void SetPlaybackSpeed(double speed);
+  void SeekTo(int position,  // milliseconds
               const SeekCompletedCallback &seek_completed_cb);
-  int getPosition();  // milliseconds
-  void dispose();
+  int GetPosition();  // milliseconds
+  void Dispose();
 
  private:
-  void initialize();
-  void setupEventChannel(flutter::BinaryMessenger *messenger);
-  void sendInitialized();
-  void sendBufferingStart();
-  void sendBufferingUpdate(int position);  // milliseconds
-  void sendBufferingEnd();
+  void Initialize();
+  void SetupEventChannel(flutter::BinaryMessenger *messenger);
+  void SendInitialized();
+  void SendBufferingStart();
+  void SendBufferingUpdate(int position);  // milliseconds
+  void SendBufferingEnd();
   FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
   static void ReleaseMediaPacket(void *packet);
 
-  static void onPrepared(void *data);
-  static void onBuffering(int percent, void *data);
-  static void onSeekCompleted(void *data);
-  static void onPlayCompleted(void *data);
-  static void onInterrupted(player_interrupted_code_e code, void *data);
-  static void onErrorOccurred(int code, void *data);
-  static void onVideoFrameDecoded(media_packet_h packet, void *data);
+  static void OnPrepared(void *data);
+  static void OnBuffering(int percent, void *data);
+  static void OnSeekCompleted(void *data);
+  static void OnPlayCompleted(void *data);
+  static void OnInterrupted(player_interrupted_code_e code, void *data);
+  static void OnErrorOccurred(int code, void *data);
+  static void OnVideoFrameDecoded(media_packet_h packet, void *data);
 
   bool is_initialized_;
   player_h player_;
