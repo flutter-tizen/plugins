@@ -67,29 +67,26 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
 
 void VideoPlayerTizenPlugin::DisposeAllPlayers() {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.DisposeAllPlayers] player count: %d",
-            players_.size());
+  LOG_DEBUG("[VideoPlayerTizenPlugin] player count: %d", players_.size());
 
   for (const auto &[id, player] : players_) {
-    player->dispose();
+    player->Dispose();
   }
   players_.clear();
 }
 
 void VideoPlayerTizenPlugin::initialize() {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.initialize] initialize");
+  LOG_DEBUG("[VideoPlayerTizenPlugin] initialize");
 
   DisposeAllPlayers();
 }
 
 TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.create] asset: %s",
-            createMsg.getAsset().c_str());
-  LOG_DEBUG("[VideoPlayerTizenPlugin.create] uri: %s",
-            createMsg.getUri().c_str());
-  LOG_DEBUG("[VideoPlayerTizenPlugin.create] packageName: %s",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] asset: %s", createMsg.getAsset().c_str());
+  LOG_DEBUG("[VideoPlayerTizenPlugin] uri: %s", createMsg.getUri().c_str());
+  LOG_DEBUG("[VideoPlayerTizenPlugin] packageName: %s",
             createMsg.getPackageName().c_str());
-  LOG_DEBUG("[VideoPlayerTizenPlugin.create] formatHint: %s",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] formatHint: %s",
             createMsg.getFormatHint().c_str());
 
   std::string uri;
@@ -101,16 +98,15 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
       uri = uri + res_path + "flutter_assets/" + createMsg.getAsset();
       free(res_path);
     } else {
-      LOG_DEBUG(
-          "[VideoPlayerTizenPlugin.create] Failed to get app resource path.");
+      LOG_ERROR("[VideoPlayerTizenPlugin] Failed to get app resource path.");
       throw VideoPlayerError("Internal error", "Failed to get resource path.");
     }
   }
-  LOG_DEBUG("[VideoPlayerTizenPlugin.create] player uri: %s", uri.c_str());
+  LOG_DEBUG("[VideoPlayerTizenPlugin] player uri: %s", uri.c_str());
 
   auto player = std::make_unique<VideoPlayer>(
       plugin_registrar_, texture_registrar_, uri, options_);
-  int64_t texture_id = player->getTextureId();
+  int64_t texture_id = player->GetTextureId();
   players_[texture_id] = std::move(player);
 
   TextureMessage result;
@@ -119,55 +115,52 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
 }
 
 void VideoPlayerTizenPlugin::dispose(const TextureMessage &textureMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.dispose] textureId: %ld",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld",
             textureMsg.getTextureId());
 
   auto iter = players_.find(textureMsg.getTextureId());
   if (iter != players_.end()) {
-    iter->second->dispose();
+    iter->second->Dispose();
     players_.erase(iter);
   }
 }
 
 void VideoPlayerTizenPlugin::setLooping(const LoopingMessage &loopingMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.setLooping] textureId: %ld",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld",
             loopingMsg.getTextureId());
-  LOG_DEBUG("[VideoPlayerTizenPlugin.setLooping] isLooping: %d",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] isLooping: %d",
             loopingMsg.getIsLooping());
 
   auto iter = players_.find(loopingMsg.getTextureId());
   if (iter != players_.end()) {
-    iter->second->setLooping(loopingMsg.getIsLooping());
+    iter->second->SetLooping(loopingMsg.getIsLooping());
   }
 }
 
 void VideoPlayerTizenPlugin::setVolume(const VolumeMessage &volumeMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.setVolume] textureId: %ld",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld",
             volumeMsg.getTextureId());
-  LOG_DEBUG("[VideoPlayerTizenPlugin.setVolume] volume: %f",
-            volumeMsg.getVolume());
+  LOG_DEBUG("[VideoPlayerTizenPlugin] volume: %f", volumeMsg.getVolume());
 
   auto iter = players_.find(volumeMsg.getTextureId());
   if (iter != players_.end()) {
-    iter->second->setVolume(volumeMsg.getVolume());
+    iter->second->SetVolume(volumeMsg.getVolume());
   }
 }
 
 void VideoPlayerTizenPlugin::setPlaybackSpeed(
     const PlaybackSpeedMessage &speedMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.setPlaybackSpeed] textureId: %ld",
-            speedMsg.getTextureId());
-  LOG_DEBUG("[VideoPlayerTizenPlugin.setPlaybackSpeed] speed: %f",
-            speedMsg.getSpeed());
+  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", speedMsg.getTextureId());
+  LOG_DEBUG("[VideoPlayerTizenPlugin] speed: %f", speedMsg.getSpeed());
 
   auto iter = players_.find(speedMsg.getTextureId());
   if (iter != players_.end()) {
-    iter->second->setPlaybackSpeed(speedMsg.getSpeed());
+    iter->second->SetPlaybackSpeed(speedMsg.getSpeed());
   }
 }
 
 void VideoPlayerTizenPlugin::play(const TextureMessage &textureMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.play] textureId: %ld",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld",
             textureMsg.getTextureId());
 
   auto iter = players_.find(textureMsg.getTextureId());
@@ -177,7 +170,7 @@ void VideoPlayerTizenPlugin::play(const TextureMessage &textureMsg) {
 }
 
 void VideoPlayerTizenPlugin::pause(const TextureMessage &textureMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.pause] textureId: %ld",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld",
             textureMsg.getTextureId());
 
   auto iter = players_.find(textureMsg.getTextureId());
@@ -188,14 +181,14 @@ void VideoPlayerTizenPlugin::pause(const TextureMessage &textureMsg) {
 
 PositionMessage VideoPlayerTizenPlugin::position(
     const TextureMessage &textureMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.position] textureId: %ld",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld",
             textureMsg.getTextureId());
 
   PositionMessage result;
   auto iter = players_.find(textureMsg.getTextureId());
   if (iter != players_.end()) {
     result.setTextureId(textureMsg.getTextureId());
-    result.setPosition(iter->second->getPosition());
+    result.setPosition(iter->second->GetPosition());
   }
   return result;
 }
@@ -203,20 +196,20 @@ PositionMessage VideoPlayerTizenPlugin::position(
 void VideoPlayerTizenPlugin::seekTo(
     const PositionMessage &positionMsg,
     const SeekCompletedCallback &onSeekCompleted) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.seekTo] textureId: %ld",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld",
             positionMsg.getTextureId());
-  LOG_DEBUG("[VideoPlayerTizenPlugin.seekTo] position: %ld",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] position: %ld",
             positionMsg.getPosition());
 
   auto iter = players_.find(positionMsg.getTextureId());
   if (iter != players_.end()) {
-    iter->second->seekTo(positionMsg.getPosition(), onSeekCompleted);
+    iter->second->SeekTo(positionMsg.getPosition(), onSeekCompleted);
   }
 }
 
 void VideoPlayerTizenPlugin::setMixWithOthers(
     const MixWithOthersMessage &mixWithOthersMsg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.setMixWithOthers] mixWithOthers: %d",
+  LOG_DEBUG("[VideoPlayerTizenPlugin] mixWithOthers: %d",
             mixWithOthersMsg.getMixWithOthers());
 
   options_.setMixWithOthers(mixWithOthersMsg.getMixWithOthers());
