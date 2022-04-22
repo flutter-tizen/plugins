@@ -1,5 +1,5 @@
-#ifndef VIDEO_PLAYER_MESSAGE_H_
-#define VIDEO_PLAYER_MESSAGE_H_
+#ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_MESSAGE_H_
+#define FLUTTER_PLUGIN_VIDEO_PLAYER_MESSAGE_H_
 
 #include <flutter/binary_messenger.h>
 #include <flutter/encodable_value.h>
@@ -164,4 +164,4 @@ class VideoPlayerApi {
   static flutter::EncodableValue WrapError(const VideoPlayerError &error);
 };
 
-#endif  // VIDEO_PLAYER_MESSAGE_H_
+#endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_MESSAGE_H_

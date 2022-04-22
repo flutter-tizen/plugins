@@ -1,5 +1,5 @@
-#ifndef VIDEO_PLAYER_H_
-#define VIDEO_PLAYER_H_
+#ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
+#define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
@@ -65,4 +65,4 @@ class VideoPlayer {
   media_packet_h current_media_packet_ = nullptr;
 };
 
-#endif  // VIDEO_PLAYER_H_
+#endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_

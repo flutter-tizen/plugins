@@ -1,5 +1,5 @@
-#ifndef VIDEO_PLAYER_OPTIONS_H_
-#define VIDEO_PLAYER_OPTIONS_H_
+#ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_OPTIONS_H_
+#define FLUTTER_PLUGIN_VIDEO_PLAYER_OPTIONS_H_
 
 class VideoPlayerOptions {
  public:
@@ -16,4 +16,4 @@ class VideoPlayerOptions {
   bool mixWithOthers_;
 };
 
-#endif  // VIDEO_PLAYER_OPTIONS_H_
+#endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_OPTIONS_H_

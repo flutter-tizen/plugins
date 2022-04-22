@@ -1,5 +1,5 @@
-#ifndef VIDEO_PLAYER_ERROR_H_
-#define VIDEO_PLAYER_ERROR_H_
+#ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_ERROR_H_
+#define FLUTTER_PLUGIN_VIDEO_PLAYER_ERROR_H_
 
 #include <string>
 
@@ -27,4 +27,4 @@ class VideoPlayerError {
   std::string message_;
 };
 
-#endif  // VIDEO_PLAYER_ERROR_H_
+#endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_ERROR_H_
