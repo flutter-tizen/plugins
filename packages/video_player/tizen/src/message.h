@@ -142,10 +142,10 @@ class MixWithOthersMessage {
   bool mixWithOthers_;
 };
 
-using SeekCompletedCb = std::function<void()>;
-
 class VideoPlayerApi {
  public:
+  using SeekCompletedCallback = std::function<void()>;
+
   virtual void initialize() = 0;
   virtual TextureMessage create(const CreateMessage &createMsg) = 0;
   virtual void dispose(const TextureMessage &textureMsg) = 0;
@@ -156,7 +156,7 @@ class VideoPlayerApi {
   virtual void pause(const TextureMessage &textureMsg) = 0;
   virtual PositionMessage position(const TextureMessage &textureMsg) = 0;
   virtual void seekTo(const PositionMessage &positionMsg,
-                      const SeekCompletedCb &onSeekCompleted) = 0;
+                      const SeekCompletedCallback &onSeekCompleted) = 0;
   virtual void setMixWithOthers(
       const MixWithOthersMessage &mixWithOthersMsg) = 0;
 

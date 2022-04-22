@@ -13,7 +13,7 @@
 
 #include "video_player_options.h"
 
-using SeekCompletedCb = std::function<void()>;
+using SeekCompletedCallback = std::function<void()>;
 
 class VideoPlayer {
  public:
@@ -28,9 +28,9 @@ class VideoPlayer {
   void setLooping(bool is_looping);
   void setVolume(double volume);
   void setPlaybackSpeed(double speed);
-  void seekTo(int position,
-              const SeekCompletedCb &seek_completed_cb);  // milliseconds
-  int getPosition();                                      // milliseconds
+  void seekTo(int position,  // milliseconds
+              const SeekCompletedCallback &seek_completed_cb);
+  int getPosition();  // milliseconds
   void dispose();
 
  private:
@@ -61,7 +61,7 @@ class VideoPlayer {
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
   std::mutex mutex_;
-  SeekCompletedCb on_seek_completed_;
+  SeekCompletedCallback on_seek_completed_;
   media_packet_h current_media_packet_ = nullptr;
 };
 
