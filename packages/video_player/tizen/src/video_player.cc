@@ -367,37 +367,6 @@ void VideoPlayer::SendInitialized() {
   }
 }
 
-void VideoPlayer::SendBufferingStart() {
-  if (event_sink_) {
-    flutter::EncodableMap result = {
-        {flutter::EncodableValue("event"),
-         flutter::EncodableValue("bufferingStart")}};
-    event_sink_->Success(flutter::EncodableValue(result));
-  }
-}
-
-void VideoPlayer::SendBufferingUpdate(int position) {
-  if (event_sink_) {
-    flutter::EncodableList range = {flutter::EncodableValue(0),
-                                    flutter::EncodableValue(position)};
-    flutter::EncodableList rangeList = {flutter::EncodableValue(range)};
-    flutter::EncodableMap result = {
-        {flutter::EncodableValue("event"),
-         flutter::EncodableValue("bufferingUpdate")},
-        {flutter::EncodableValue("values"),
-         flutter::EncodableValue(rangeList)}};
-    event_sink_->Success(flutter::EncodableValue(result));
-  }
-}
-
-void VideoPlayer::SendBufferingEnd() {
-  if (event_sink_) {
-    flutter::EncodableMap result = {{flutter::EncodableValue("event"),
-                                     flutter::EncodableValue("bufferingEnd")}};
-    event_sink_->Success(flutter::EncodableValue(result));
-  }
-}
-
 void VideoPlayer::OnPrepared(void *data) {
   VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_DEBUG("[VideoPlayer] player prepared");
