@@ -160,9 +160,8 @@ class VideoPlayerApi {
   virtual void setMixWithOthers(
       const MixWithOthersMessage &mixWithOthersMsg) = 0;
 
-  static void setup(flutter::BinaryMessenger *binaryMessenger,
-                    VideoPlayerApi *api);
-  static flutter::EncodableValue wrapError(const VideoPlayerError &error);
+  static void SetUp(flutter::BinaryMessenger *messenger, VideoPlayerApi *api);
+  static flutter::EncodableValue WrapError(const VideoPlayerError &error);
 };
 
 #endif  // VIDEO_PLAYER_MESSAGE_H_

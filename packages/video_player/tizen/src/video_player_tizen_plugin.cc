@@ -61,7 +61,7 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
     : plugin_registrar_(registrar) {
   texture_registrar_ = registrar->texture_registrar();
 
-  VideoPlayerApi::setup(registrar->messenger(), this);
+  VideoPlayerApi::SetUp(registrar->messenger(), this);
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
