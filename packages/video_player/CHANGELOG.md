@@ -1,3 +1,7 @@
+## NEXT
+
+* Code cleanups.
+
 ## 2.3.2
 
 * Apply texture common release callback.

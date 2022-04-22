@@ -3,7 +3,7 @@
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/standard_method_codec.h>
 
-#include <functional>
+#include <algorithm>
 
 #include "log.h"
 #include "video_player_error.h"
@@ -39,7 +39,8 @@ static std::string StateToString(player_state_e state) {
 }
 
 void VideoPlayer::ReleaseMediaPacket(void *data) {
-  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
+  auto *player = reinterpret_cast<VideoPlayer *>(data);
+
   std::lock_guard<std::mutex> lock(player->mutex_);
   if (player->current_media_packet_) {
     media_packet_destroy(player->current_media_packet_);
@@ -51,12 +52,12 @@ FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
                                                       size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!current_media_packet_) {
-    LOG_ERROR("[VideoPlayer] No vaild media packet.");
+    LOG_ERROR("[VideoPlayer] No valid media packet.");
     return nullptr;
   }
   tbm_surface_h surface;
   int ret = media_packet_get_tbm_surface(current_media_packet_, &surface);
-  if (ret != MEDIA_PACKET_ERROR_NONE || surface == nullptr) {
+  if (ret != MEDIA_PACKET_ERROR_NONE || !surface) {
     LOG_ERROR("[VideoPlayer] Failed to get a TBM surface, error: %d", ret);
     media_packet_destroy(current_media_packet_);
     current_media_packet_ = nullptr;
@@ -147,7 +148,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                            get_error_message(ret));
   }
 
-  SetupEventChannel(plugin_registrar->messenger());
+  SetUpEventChannel(plugin_registrar->messenger());
 }
 
 VideoPlayer::~VideoPlayer() { Dispose(); }
@@ -271,8 +272,8 @@ void VideoPlayer::Dispose() {
   }
 }
 
-void VideoPlayer::SetupEventChannel(flutter::BinaryMessenger *messenger) {
-  LOG_DEBUG("[VideoPlayer] setup event channel");
+void VideoPlayer::SetUpEventChannel(flutter::BinaryMessenger *messenger) {
+  LOG_DEBUG("[VideoPlayer] set up event channel");
 
   std::string name =
       "flutter.io/videoPlayer/videoEvents" + std::to_string(texture_id_);
@@ -284,18 +285,16 @@ void VideoPlayer::SetupEventChannel(flutter::BinaryMessenger *messenger) {
   auto handler = std::make_unique<
       flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
       [&](const flutter::EncodableValue *arguments,
-          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events)
-          -> std::unique_ptr<
-              flutter::StreamHandlerError<flutter::EncodableValue>> {
-        LOG_DEBUG("[VideoPlayer] call listen of StreamHandler");
+          std::unique_ptr<flutter::EventSink<>> &&events)
+          -> std::unique_ptr<flutter::StreamHandlerError<>> {
+        LOG_DEBUG("[VideoPlayer] listening on %s", name.c_str());
         event_sink_ = std::move(events);
         Initialize();
         return nullptr;
       },
       [&](const flutter::EncodableValue *arguments)
-          -> std::unique_ptr<
-              flutter::StreamHandlerError<flutter::EncodableValue>> {
-        LOG_DEBUG("[VideoPlayer] call cancel of StreamHandler");
+          -> std::unique_ptr<flutter::StreamHandlerError<>> {
+        LOG_DEBUG("[VideoPlayer] cancel listening");
         event_sink_ = nullptr;
         return nullptr;
       });
@@ -319,7 +318,7 @@ void VideoPlayer::Initialize() {
 }
 
 void VideoPlayer::SendInitialized() {
-  if (!is_initialized_ && event_sink_ != nullptr) {
+  if (!is_initialized_ && event_sink_) {
     int duration;
     int ret = player_get_duration(player_, &duration);
     if (ret != PLAYER_ERROR_NONE) {
@@ -349,9 +348,7 @@ void VideoPlayer::SendInitialized() {
                 RotationToString(rotation).c_str());
       if (rotation == PLAYER_DISPLAY_ROTATION_90 ||
           rotation == PLAYER_DISPLAY_ROTATION_270) {
-        int tmp = width;
-        width = height;
-        height = tmp;
+        std::swap(width, height);
       }
     }
 
@@ -368,7 +365,7 @@ void VideoPlayer::SendInitialized() {
 }
 
 void VideoPlayer::OnPrepared(void *data) {
-  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
+  auto *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_DEBUG("[VideoPlayer] player prepared");
 
   if (!player->is_initialized_) {
@@ -377,11 +374,11 @@ void VideoPlayer::OnPrepared(void *data) {
 }
 
 void VideoPlayer::OnBuffering(int percent, void *data) {
-  LOG_DEBUG("[VideoPlayer] buffering status: %d", percent);
+  LOG_DEBUG("[VideoPlayer] percent: %d", percent);
 }
 
 void VideoPlayer::OnSeekCompleted(void *data) {
-  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
+  auto *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_DEBUG("[VideoPlayer] seek completed");
 
   if (player->on_seek_completed_) {
@@ -391,7 +388,7 @@ void VideoPlayer::OnSeekCompleted(void *data) {
 }
 
 void VideoPlayer::OnPlayCompleted(void *data) {
-  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
+  auto *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_DEBUG("[VideoPlayer] play completed");
 
   if (player->event_sink_) {
@@ -404,7 +401,7 @@ void VideoPlayer::OnPlayCompleted(void *data) {
 }
 
 void VideoPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
-  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
+  auto *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_DEBUG("[VideoPlayer] interrupt code: %d", code);
 
   if (player->event_sink_) {
@@ -414,7 +411,7 @@ void VideoPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
 }
 
 void VideoPlayer::OnErrorOccurred(int code, void *data) {
-  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
+  auto *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_DEBUG("[VideoPlayer] error code: %d", code);
 
   if (player->event_sink_) {
@@ -423,7 +420,7 @@ void VideoPlayer::OnErrorOccurred(int code, void *data) {
 }
 
 void VideoPlayer::OnVideoFrameDecoded(media_packet_h packet, void *data) {
-  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
+  auto *player = reinterpret_cast<VideoPlayer *>(data);
 
   std::lock_guard<std::mutex> lock(player->mutex_);
   if (player->current_media_packet_) {
