@@ -3,14 +3,11 @@
 #include <flutter/basic_message_channel.h>
 #include <flutter/standard_message_codec.h>
 
-#include "log.h"
-
 int64_t TextureMessage::getTextureId() const { return textureId_; }
 
 void TextureMessage::setTextureId(int64_t textureId) { textureId_ = textureId; }
 
 flutter::EncodableValue TextureMessage::toMap() {
-  LOG_DEBUG("[TextureMessage.toMap] textureId: %ld", textureId_);
   flutter::EncodableMap toMapResult = {{flutter::EncodableValue("textureId"),
                                         flutter::EncodableValue(textureId_)}};
   return flutter::EncodableValue(toMapResult);
@@ -25,8 +22,6 @@ TextureMessage TextureMessage::fromMap(const flutter::EncodableValue &value) {
     if (std::holds_alternative<int32_t>(textureId) ||
         std::holds_alternative<int64_t>(textureId)) {
       fromMapResult.setTextureId(textureId.LongValue());
-      LOG_DEBUG("[TextureMessage.fromMap] textureId: %ld",
-                fromMapResult.getTextureId());
     }
   }
   return fromMapResult;
@@ -53,11 +48,6 @@ void CreateMessage::setFormatHint(const std::string &formatHint) {
 }
 
 flutter::EncodableValue CreateMessage::toMap() {
-  LOG_DEBUG("[CreateMessage.toMap] asset: %s", asset_.c_str());
-  LOG_DEBUG("[CreateMessage.toMap] uri: %s", uri_.c_str());
-  LOG_DEBUG("[CreateMessage.toMap] packageName: %s", packageName_.c_str());
-  LOG_DEBUG("[CreateMessage.toMap] formatHint: %s", formatHint_.c_str());
-
   flutter::EncodableMap toMapResult = {
       {flutter::EncodableValue("asset"), flutter::EncodableValue(asset_)},
       {flutter::EncodableValue("uri"), flutter::EncodableValue(uri_)},
@@ -65,7 +55,6 @@ flutter::EncodableValue CreateMessage::toMap() {
        flutter::EncodableValue(packageName_)},
       {flutter::EncodableValue("formatHint"),
        flutter::EncodableValue(formatHint_)}};
-
   return flutter::EncodableValue(toMapResult);
 }
 
@@ -76,34 +65,25 @@ CreateMessage CreateMessage::fromMap(const flutter::EncodableValue &value) {
     flutter::EncodableValue &asset = emap[flutter::EncodableValue("asset")];
     if (std::holds_alternative<std::string>(asset)) {
       fromMapResult.setAsset(std::get<std::string>(asset));
-      LOG_DEBUG("[CreateMessage.fromMap] asset: %s",
-                fromMapResult.getAsset().c_str());
     }
 
     flutter::EncodableValue &uri = emap[flutter::EncodableValue("uri")];
     if (std::holds_alternative<std::string>(uri)) {
       fromMapResult.setUri(std::get<std::string>(uri));
-      LOG_DEBUG("[CreateMessage.fromMap] uri: %s",
-                fromMapResult.getUri().c_str());
     }
 
     flutter::EncodableValue &packageName =
         emap[flutter::EncodableValue("packageName")];
     if (std::holds_alternative<std::string>(packageName)) {
       fromMapResult.setPackageName(std::get<std::string>(uri));
-      LOG_DEBUG("[CreateMessage.fromMap] packageName: %s",
-                fromMapResult.getPackageName().c_str());
     }
 
     flutter::EncodableValue &formatHint =
         emap[flutter::EncodableValue("formatHint")];
     if (std::holds_alternative<std::string>(formatHint)) {
       fromMapResult.setFormatHint(std::get<std::string>(formatHint));
-      LOG_DEBUG("[CreateMessage.fromMap] formatHint: %s",
-                fromMapResult.getFormatHint().c_str());
     }
   }
-
   return fromMapResult;
 }
 
@@ -116,14 +96,10 @@ bool LoopingMessage::getIsLooping() const { return isLooping_; }
 void LoopingMessage::setIsLooping(bool isLooping) { isLooping_ = isLooping; }
 
 flutter::EncodableValue LoopingMessage::toMap() {
-  LOG_DEBUG("[LoopingMessage.toMap] textureId: %ld", textureId_);
-  LOG_DEBUG("[LoopingMessage.toMap] isLooping: %d", isLooping_);
-
   flutter::EncodableMap toMapResult = {{flutter::EncodableValue("textureId"),
                                         flutter::EncodableValue(textureId_)},
                                        {flutter::EncodableValue("isLooping"),
                                         flutter::EncodableValue(isLooping_)}};
-
   return flutter::EncodableValue(toMapResult);
 }
 
@@ -136,19 +112,14 @@ LoopingMessage LoopingMessage::fromMap(const flutter::EncodableValue &value) {
     if (std::holds_alternative<int32_t>(textureId) ||
         std::holds_alternative<int64_t>(textureId)) {
       fromMapResult.setTextureId(textureId.LongValue());
-      LOG_DEBUG("[LoopingMessage.fromMap] textureId: %ld",
-                fromMapResult.getTextureId());
     }
 
     flutter::EncodableValue &isLooping =
         emap[flutter::EncodableValue("isLooping")];
     if (std::holds_alternative<bool>(isLooping)) {
       fromMapResult.setIsLooping(std::get<bool>(isLooping));
-      LOG_DEBUG("[LoopingMessage.fromMap] isLooping: %d",
-                fromMapResult.getIsLooping());
     }
   }
-
   return fromMapResult;
 }
 
@@ -161,14 +132,10 @@ double VolumeMessage::getVolume() const { return volume_; }
 void VolumeMessage::setVolume(double volume) { volume_ = volume; }
 
 flutter::EncodableValue VolumeMessage::toMap() {
-  LOG_DEBUG("[VolumeMessage.toMap] textureId: %ld", textureId_);
-  LOG_DEBUG("[VolumeMessage.toMap] volume: %f", volume_);
-
   flutter::EncodableMap toMapResult = {
       {flutter::EncodableValue("textureId"),
        flutter::EncodableValue(textureId_)},
       {flutter::EncodableValue("volume"), flutter::EncodableValue(volume_)}};
-
   return flutter::EncodableValue(toMapResult);
 }
 
@@ -181,18 +148,13 @@ VolumeMessage VolumeMessage::fromMap(const flutter::EncodableValue &value) {
     if (std::holds_alternative<int32_t>(textureId) ||
         std::holds_alternative<int64_t>(textureId)) {
       fromMapResult.setTextureId(textureId.LongValue());
-      LOG_DEBUG("[VolumeMessage.fromMap] textureId: %ld",
-                fromMapResult.getTextureId());
     }
 
     flutter::EncodableValue &volume = emap[flutter::EncodableValue("volume")];
     if (std::holds_alternative<double>(volume)) {
       fromMapResult.setVolume(std::get<double>(volume));
-      LOG_DEBUG("[VolumeMessage.fromMap] volume: %f",
-                fromMapResult.getVolume());
     }
   }
-
   return fromMapResult;
 }
 
@@ -207,14 +169,10 @@ double PlaybackSpeedMessage::getSpeed() const { return speed_; }
 void PlaybackSpeedMessage::setSpeed(double speed) { speed_ = speed; }
 
 flutter::EncodableValue PlaybackSpeedMessage::toMap() {
-  LOG_DEBUG("[PlaybackSpeedMessage.toMap] textureId: %ld", textureId_);
-  LOG_DEBUG("[PlaybackSpeedMessage.toMap] speed: %f", speed_);
-
   flutter::EncodableMap toMapResult = {
       {flutter::EncodableValue("textureId"),
        flutter::EncodableValue(textureId_)},
       {flutter::EncodableValue("speed"), flutter::EncodableValue(speed_)}};
-
   return flutter::EncodableValue(toMapResult);
 }
 
@@ -228,17 +186,13 @@ PlaybackSpeedMessage PlaybackSpeedMessage::fromMap(
     if (std::holds_alternative<int32_t>(textureId) ||
         std::holds_alternative<int64_t>(textureId)) {
       fromMapResult.setTextureId(textureId.LongValue());
-      LOG_DEBUG("[VolumeMessage.fromMap] textureId: %ld",
-                fromMapResult.getTextureId());
     }
 
     flutter::EncodableValue &speed = emap[flutter::EncodableValue("speed")];
     if (std::holds_alternative<double>(speed)) {
       fromMapResult.setSpeed(std::get<double>(speed));
-      LOG_DEBUG("[VolumeMessage.fromMap] speed: %f", fromMapResult.getSpeed());
     }
   }
-
   return fromMapResult;
 }
 
@@ -253,14 +207,10 @@ int64_t PositionMessage::getPosition() const { return position_; }
 void PositionMessage::setPosition(int64_t position) { position_ = position; }
 
 flutter::EncodableValue PositionMessage::toMap() {
-  LOG_DEBUG("[PositionMessage.toMap] textureId: %ld", textureId_);
-  LOG_DEBUG("[PositionMessage.toMap] position: %ld", position_);
-
   flutter::EncodableMap toMapResult = {{flutter::EncodableValue("textureId"),
                                         flutter::EncodableValue(textureId_)},
                                        {flutter::EncodableValue("position"),
                                         flutter::EncodableValue(position_)}};
-
   return flutter::EncodableValue(toMapResult);
 }
 
@@ -273,8 +223,6 @@ PositionMessage PositionMessage::fromMap(const flutter::EncodableValue &value) {
     if (std::holds_alternative<int32_t>(textureId) ||
         std::holds_alternative<int64_t>(textureId)) {
       fromMapResult.setTextureId(textureId.LongValue());
-      LOG_DEBUG("[PositionMessage.fromMap] textureId: %ld",
-                fromMapResult.getTextureId());
     }
 
     flutter::EncodableValue &position =
@@ -282,11 +230,8 @@ PositionMessage PositionMessage::fromMap(const flutter::EncodableValue &value) {
     if (std::holds_alternative<int32_t>(position) ||
         std::holds_alternative<int64_t>(position)) {
       fromMapResult.setPosition(position.LongValue());
-      LOG_DEBUG("[PositionMessage.fromMap] position: %ld",
-                fromMapResult.getPosition());
     }
   }
-
   return fromMapResult;
 }
 
@@ -297,12 +242,9 @@ void MixWithOthersMessage::setMixWithOthers(bool mixWithOthers) {
 }
 
 flutter::EncodableValue MixWithOthersMessage::toMap() {
-  LOG_DEBUG("[MixWithOthersMessage.toMap] mixWithOthers: %d", mixWithOthers_);
-
   flutter::EncodableMap toMapResult = {
       {flutter::EncodableValue("mixWithOthers"),
        flutter::EncodableValue(mixWithOthers_)}};
-
   return flutter::EncodableValue(toMapResult);
 }
 
@@ -315,17 +257,13 @@ MixWithOthersMessage MixWithOthersMessage::fromMap(
         emap[flutter::EncodableValue("mixWithOthers")];
     if (std::holds_alternative<bool>(mixWithOthers)) {
       fromMapResult.setMixWithOthers(std::get<bool>(mixWithOthers));
-      LOG_DEBUG("[MixWithOthersMessage.fromMap] mixWithOthers: %d",
-                fromMapResult.getMixWithOthers());
     }
   }
-
   return fromMapResult;
 }
 
 void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
                            VideoPlayerApi *api) {
-  LOG_DEBUG("[VideoPlayerApi.setup] setup initialize channel");
   auto initChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.initialize",
@@ -347,7 +285,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup create channel");
   auto createChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.create",
@@ -369,7 +306,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup dispose channel");
   auto disposeChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.dispose",
@@ -392,7 +328,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup setLooping channel");
   auto loopingChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.setLooping",
@@ -415,7 +350,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup setVolume channel");
   auto volumeChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.setVolume",
@@ -438,7 +372,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup setPlaybackSpeed channel");
   auto speedChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.setPlaybackSpeed",
@@ -461,7 +394,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup play channel");
   auto playChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.play",
@@ -484,7 +416,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup position channel");
   auto positionChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.position",
@@ -506,7 +437,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup seekTo channel");
   auto seekToChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.seekTo",
@@ -531,7 +461,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup pause channel");
   auto pauseChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.pause",
@@ -554,7 +483,6 @@ void VideoPlayerApi::setup(flutter::BinaryMessenger *binaryMessenger,
         });
   }
 
-  LOG_DEBUG("[VideoPlayerApi.setup] setup setMixWithOthers channel");
   auto mixChannel =
       std::make_unique<flutter::BasicMessageChannel<flutter::EncodableValue>>(
           binaryMessenger, "dev.flutter.pigeon.VideoPlayerApi.setMixWithOthers",
