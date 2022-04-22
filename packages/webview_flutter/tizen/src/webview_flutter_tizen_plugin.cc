@@ -30,7 +30,7 @@ void WebviewFlutterTizenPluginRegisterWithRegistrar(
           ->GetRegistrar<flutter::PluginRegistrar>(registrar);
   auto factory = std::make_unique<WebViewFactory>(
       core_registrar, core_registrar->texture_registrar(),
-      FlutterDesktopGetWindow(registrar));
+      FlutterDesktopPluginRegistrarGetNativeWindow(registrar));
   FlutterDesktopRegisterViewFactory(registrar, kViewType, std::move(factory));
   WebviewFlutterTizenPlugin::RegisterWithRegistrar(core_registrar);
 }
