@@ -21,12 +21,10 @@ namespace {
 
 class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
  public:
-  static void RegisterWithRegistrar(
-      flutter::PluginRegistrar *plugin_registrar,
-      flutter::TextureRegistrar *texture_registrar);
+  static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
+
   // Creates a plugin that communicates on the given channel.
-  VideoPlayerTizenPlugin(flutter::PluginRegistrar *plugin_registrar,
-                         flutter::TextureRegistrar *texture_registrar);
+  VideoPlayerTizenPlugin(flutter::PluginRegistrar *registrar);
   virtual ~VideoPlayerTizenPlugin();
 
   virtual void initialize() override;
@@ -52,20 +50,19 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   std::map<long, std::unique_ptr<VideoPlayer>> players_;
 };
 
-// static
 void VideoPlayerTizenPlugin::RegisterWithRegistrar(
-    flutter::PluginRegistrar *plugin_registrar,
-    flutter::TextureRegistrar *texture_registrar) {
-  auto plugin = std::make_unique<VideoPlayerTizenPlugin>(plugin_registrar,
-                                                         texture_registrar);
-  plugin_registrar->AddPlugin(std::move(plugin));
+    flutter::PluginRegistrar *registrar) {
+  auto plugin = std::make_unique<VideoPlayerTizenPlugin>(registrar);
+
+  registrar->AddPlugin(std::move(plugin));
 }
 
 VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
-    flutter::PluginRegistrar *plugin_registrar,
-    flutter::TextureRegistrar *texture_registrar)
-    : plugin_registrar_(plugin_registrar), texture_registrar_(texture_registrar) {
-  VideoPlayerApi::setup(plugin_registrar->messenger(), this);
+    flutter::PluginRegistrar *registrar)
+    : plugin_registrar_(registrar) {
+  texture_registrar_ = registrar->texture_registrar();
+
+  VideoPlayerApi::setup(registrar->messenger(), this);
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
@@ -114,8 +111,8 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.create] uri of video player: %s",
             uri.c_str());
 
-  auto player = std::make_unique<VideoPlayer>(plugin_registrar_,
-                                              texture_registrar_, uri, options_);
+  auto player = std::make_unique<VideoPlayer>(
+      plugin_registrar_, texture_registrar_, uri, options_);
   long textureId = player->getTextureId();
   players_[textureId] = std::move(player);
 
@@ -226,14 +223,11 @@ void VideoPlayerTizenPlugin::setMixWithOthers(
   options_.setMixWithOthers(mixWithOthersMsg.getMixWithOthers());
 }
 
-}
+}  // namespace
 
 void VideoPlayerTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
   VideoPlayerTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar),
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar)
-          ->texture_registrar());
+          ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }
