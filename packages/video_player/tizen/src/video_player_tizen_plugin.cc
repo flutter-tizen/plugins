@@ -47,7 +47,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   flutter::PluginRegistrar *plugin_registrar_;
   flutter::TextureRegistrar *texture_registrar_;
   VideoPlayerOptions options_;
-  std::map<long, std::unique_ptr<VideoPlayer>> players_;
+  std::map<int64_t, std::unique_ptr<VideoPlayer>> players_;
 };
 
 void VideoPlayerTizenPlugin::RegisterWithRegistrar(
@@ -110,7 +110,7 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
 
   auto player = std::make_unique<VideoPlayer>(
       plugin_registrar_, texture_registrar_, uri, options_);
-  long texture_id = player->getTextureId();
+  int64_t texture_id = player->getTextureId();
   players_[texture_id] = std::move(player);
 
   TextureMessage result;

@@ -5,15 +5,14 @@
 
 #include "log.h"
 
-long TextureMessage::getTextureId() const { return textureId_; }
+int64_t TextureMessage::getTextureId() const { return textureId_; }
 
-void TextureMessage::setTextureId(long textureId) { textureId_ = textureId; }
+void TextureMessage::setTextureId(int64_t textureId) { textureId_ = textureId; }
 
 flutter::EncodableValue TextureMessage::toMap() {
   LOG_DEBUG("[TextureMessage.toMap] textureId: %ld", textureId_);
-  flutter::EncodableMap toMapResult = {
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue((int64_t)textureId_)}};
+  flutter::EncodableMap toMapResult = {{flutter::EncodableValue("textureId"),
+                                        flutter::EncodableValue(textureId_)}};
   return flutter::EncodableValue(toMapResult);
 }
 
@@ -108,9 +107,9 @@ CreateMessage CreateMessage::fromMap(const flutter::EncodableValue &value) {
   return fromMapResult;
 }
 
-long LoopingMessage::getTextureId() const { return textureId_; }
+int64_t LoopingMessage::getTextureId() const { return textureId_; }
 
-void LoopingMessage::setTextureId(long textureId) { textureId_ = textureId; }
+void LoopingMessage::setTextureId(int64_t textureId) { textureId_ = textureId; }
 
 bool LoopingMessage::getIsLooping() const { return isLooping_; }
 
@@ -120,11 +119,10 @@ flutter::EncodableValue LoopingMessage::toMap() {
   LOG_DEBUG("[LoopingMessage.toMap] textureId: %ld", textureId_);
   LOG_DEBUG("[LoopingMessage.toMap] isLooping: %d", isLooping_);
 
-  flutter::EncodableMap toMapResult = {
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue((int64_t)textureId_)},
-      {flutter::EncodableValue("isLooping"),
-       flutter::EncodableValue(isLooping_)}};
+  flutter::EncodableMap toMapResult = {{flutter::EncodableValue("textureId"),
+                                        flutter::EncodableValue(textureId_)},
+                                       {flutter::EncodableValue("isLooping"),
+                                        flutter::EncodableValue(isLooping_)}};
 
   return flutter::EncodableValue(toMapResult);
 }
@@ -154,9 +152,9 @@ LoopingMessage LoopingMessage::fromMap(const flutter::EncodableValue &value) {
   return fromMapResult;
 }
 
-long VolumeMessage::getTextureId() const { return textureId_; }
+int64_t VolumeMessage::getTextureId() const { return textureId_; }
 
-void VolumeMessage::setTextureId(long textureId) { textureId_ = textureId; }
+void VolumeMessage::setTextureId(int64_t textureId) { textureId_ = textureId; }
 
 double VolumeMessage::getVolume() const { return volume_; }
 
@@ -168,7 +166,7 @@ flutter::EncodableValue VolumeMessage::toMap() {
 
   flutter::EncodableMap toMapResult = {
       {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue((int64_t)textureId_)},
+       flutter::EncodableValue(textureId_)},
       {flutter::EncodableValue("volume"), flutter::EncodableValue(volume_)}};
 
   return flutter::EncodableValue(toMapResult);
@@ -198,9 +196,9 @@ VolumeMessage VolumeMessage::fromMap(const flutter::EncodableValue &value) {
   return fromMapResult;
 }
 
-long PlaybackSpeedMessage::getTextureId() const { return textureId_; }
+int64_t PlaybackSpeedMessage::getTextureId() const { return textureId_; }
 
-void PlaybackSpeedMessage::setTextureId(long textureId) {
+void PlaybackSpeedMessage::setTextureId(int64_t textureId) {
   textureId_ = textureId;
 }
 
@@ -214,7 +212,7 @@ flutter::EncodableValue PlaybackSpeedMessage::toMap() {
 
   flutter::EncodableMap toMapResult = {
       {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue((int64_t)textureId_)},
+       flutter::EncodableValue(textureId_)},
       {flutter::EncodableValue("speed"), flutter::EncodableValue(speed_)}};
 
   return flutter::EncodableValue(toMapResult);
@@ -244,23 +242,24 @@ PlaybackSpeedMessage PlaybackSpeedMessage::fromMap(
   return fromMapResult;
 }
 
-long PositionMessage::getTextureId() const { return textureId_; }
+int64_t PositionMessage::getTextureId() const { return textureId_; }
 
-void PositionMessage::setTextureId(long textureId) { textureId_ = textureId; }
+void PositionMessage::setTextureId(int64_t textureId) {
+  textureId_ = textureId;
+}
 
-long PositionMessage::getPosition() const { return position_; }
+int64_t PositionMessage::getPosition() const { return position_; }
 
-void PositionMessage::setPosition(long position) { position_ = position; }
+void PositionMessage::setPosition(int64_t position) { position_ = position; }
 
 flutter::EncodableValue PositionMessage::toMap() {
   LOG_DEBUG("[PositionMessage.toMap] textureId: %ld", textureId_);
   LOG_DEBUG("[PositionMessage.toMap] position: %ld", position_);
 
-  flutter::EncodableMap toMapResult = {
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue((int64_t)textureId_)},
-      {flutter::EncodableValue("position"),
-       flutter::EncodableValue((int64_t)position_)}};
+  flutter::EncodableMap toMapResult = {{flutter::EncodableValue("textureId"),
+                                        flutter::EncodableValue(textureId_)},
+                                       {flutter::EncodableValue("position"),
+                                        flutter::EncodableValue(position_)}};
 
   return flutter::EncodableValue(toMapResult);
 }

@@ -198,7 +198,7 @@ VideoPlayer::~VideoPlayer() {
   dispose();
 }
 
-long VideoPlayer::getTextureId() { return texture_id_; }
+int64_t VideoPlayer::getTextureId() { return texture_id_; }
 
 void VideoPlayer::play() {
   LOG_DEBUG("[VideoPlayer.play] start player");

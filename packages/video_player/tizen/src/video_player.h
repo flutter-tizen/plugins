@@ -22,7 +22,7 @@ class VideoPlayer {
               const std::string &uri, VideoPlayerOptions &options);
   ~VideoPlayer();
 
-  long getTextureId();
+  int64_t getTextureId();
   void play();
   void pause();
   void setLooping(bool is_looping);
@@ -56,7 +56,7 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
-  long texture_id_;
+  int64_t texture_id_;
   flutter::TextureRegistrar *texture_registrar_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
