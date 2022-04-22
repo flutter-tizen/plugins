@@ -53,7 +53,6 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
 void VideoPlayerTizenPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar *registrar) {
   auto plugin = std::make_unique<VideoPlayerTizenPlugin>(registrar);
-
   registrar->AddPlugin(std::move(plugin));
 }
 
@@ -70,16 +69,16 @@ VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
 void VideoPlayerTizenPlugin::DisposeAllPlayers() {
   LOG_DEBUG("[VideoPlayerTizenPlugin.DisposeAllPlayers] player count: %d",
             players_.size());
-  auto iter = players_.begin();
-  while (iter != players_.end()) {
-    iter->second->dispose();
-    iter++;
+
+  for (const auto &[id, player] : players_) {
+    player->dispose();
   }
   players_.clear();
 }
 
 void VideoPlayerTizenPlugin::initialize() {
-  LOG_DEBUG("[VideoPlayerTizenPlugin.initialize] init ");
+  LOG_DEBUG("[VideoPlayerTizenPlugin.initialize] initialize");
+
   DisposeAllPlayers();
 }
 
@@ -97,27 +96,25 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
   if (createMsg.getAsset().empty()) {
     uri = createMsg.getUri();
   } else {
-    char *resPath = app_get_resource_path();
-    if (resPath) {
-      uri = uri + resPath + "flutter_assets/" + createMsg.getAsset();
-      free(resPath);
+    char *res_path = app_get_resource_path();
+    if (res_path) {
+      uri = uri + res_path + "flutter_assets/" + createMsg.getAsset();
+      free(res_path);
     } else {
       LOG_DEBUG(
-          "[VideoPlayerTizenPlugin.create] failed to get resource path "
-          "of package");
+          "[VideoPlayerTizenPlugin.create] Failed to get app resource path.");
       throw VideoPlayerError("Internal error", "Failed to get resource path.");
     }
   }
-  LOG_DEBUG("[VideoPlayerTizenPlugin.create] uri of video player: %s",
-            uri.c_str());
+  LOG_DEBUG("[VideoPlayerTizenPlugin.create] player uri: %s", uri.c_str());
 
   auto player = std::make_unique<VideoPlayer>(
       plugin_registrar_, texture_registrar_, uri, options_);
-  long textureId = player->getTextureId();
-  players_[textureId] = std::move(player);
+  long texture_id = player->getTextureId();
+  players_[texture_id] = std::move(player);
 
   TextureMessage result;
-  result.setTextureId(textureId);
+  result.setTextureId(texture_id);
   return result;
 }
 
@@ -220,6 +217,7 @@ void VideoPlayerTizenPlugin::setMixWithOthers(
     const MixWithOthersMessage &mixWithOthersMsg) {
   LOG_DEBUG("[VideoPlayerTizenPlugin.setMixWithOthers] mixWithOthers: %d",
             mixWithOthersMsg.getMixWithOthers());
+
   options_.setMixWithOthers(mixWithOthersMsg.getMixWithOthers());
 }
 
