@@ -98,7 +98,6 @@ TextureMessage VideoPlayerTizenPlugin::create(const CreateMessage &createMsg) {
       uri = uri + res_path + "flutter_assets/" + createMsg.getAsset();
       free(res_path);
     } else {
-      LOG_ERROR("[VideoPlayerTizenPlugin] Failed to get app resource path.");
       throw VideoPlayerError("Internal error", "Failed to get resource path.");
     }
   }
