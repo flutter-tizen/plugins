@@ -8,45 +8,38 @@ import 'tizen_sdk.dart';
 
 /// A class that holds data parsed from recipe file.
 class Recipe {
-  Recipe._(Map<String, List<Profile>> profilesPerPackages,
-      {List<String> excluded = const <String>[]})
-      : _profilesPerPackage = profilesPerPackages,
-        _excluded = excluded;
+  Recipe._(Map<String, List<Profile>> profilesPerPackage)
+      : _profilesPerPackage = profilesPerPackage;
 
   /// Creates a [Recipe] instance by parsing [yamlMap].
   factory Recipe.fromYaml(YamlMap yamlMap) {
     final Map<String, YamlList> plugins =
         (yamlMap['plugins'] as YamlMap).cast<String, YamlList>();
-    final List<String> excluded = <String>[];
     final Map<String, List<Profile>> profilesPerPackage =
         <String, List<Profile>>{};
     for (final MapEntry<String, YamlList> plugin in plugins.entries) {
-      if (plugin.value.isEmpty) {
-        excluded.add(plugin.key);
-      } else {
-        profilesPerPackage[plugin.key] = plugin.value
-            .map((dynamic profile) => Profile.fromString(profile as String))
-            .toList();
-      }
+      profilesPerPackage[plugin.key] = plugin.value
+          .map((dynamic profile) => Profile.fromString(profile as String))
+          .toList();
     }
-    return Recipe._(
-      profilesPerPackage,
-      excluded: excluded,
-    );
+    return Recipe._(profilesPerPackage);
   }
 
-  final List<String> _excluded;
   final Map<String, List<Profile>> _profilesPerPackage;
 
   /// Returns `true` if [plugin] was specified in the recipe file but
   /// with an empty profile list.
-  bool isExcluded(String plugin) => _excluded.contains(plugin);
+  bool isExcluded(String plugin) =>
+      contains(plugin) && _profilesPerPackage[plugin]!.isEmpty;
 
   /// Returns `true` if [plugin] was specified in the recipe file.
-  bool isRecognized(String plugin) =>
-      _profilesPerPackage.containsKey(plugin) || _excluded.contains(plugin);
+  bool contains(String plugin) => _profilesPerPackage.containsKey(plugin);
 
   /// Returns a list of profiles to test on for [plugin].
-  List<Profile> getProfiles(String plugin) =>
-      _profilesPerPackage[plugin] ?? <Profile>[];
+  List<Profile> getProfiles(String plugin) {
+    if (!contains(plugin)) {
+      throw ArgumentError('Package $plugin is not included in recipe.');
+    }
+    return _profilesPerPackage[plugin]!;
+  }
 }

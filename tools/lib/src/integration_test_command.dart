@@ -136,8 +136,9 @@ class IntegrationTestCommand extends PackageLoopingCommand {
 
   /// See: [PluginCommand.getTargetPackages].
   @override
-  Stream<PackageEnumerationEntry> getTargetPackages(
-      {bool filterExcluded = true}) async* {
+  Stream<PackageEnumerationEntry> getTargetPackages({
+    bool filterExcluded = true,
+  }) async* {
     if (_recipe == null) {
       yield* super.getTargetPackages(filterExcluded: filterExcluded);
     }
@@ -147,7 +148,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
         await super.getTargetPackages(filterExcluded: filterExcluded).toList();
     for (final PackageEnumerationEntry plugin in plugins) {
       final String pluginName = plugin.package.displayName;
-      if (!recipe.isRecognized(pluginName)) {
+      if (!recipe.contains(pluginName)) {
         continue;
       }
       if (!(filterExcluded && plugin.excluded)) {

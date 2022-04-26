@@ -22,8 +22,11 @@ plugins:
   test('correctly parses recipe', () {
     final Recipe recipe = Recipe.fromYaml(loadYaml(yamlString) as YamlMap);
 
-    expect(recipe.isRecognized('c'), true);
+    expect(recipe.contains('c'), true);
     expect(recipe.isExcluded('c'), true);
+
+    expect(recipe.contains('d'), false);
+    expect(recipe.isExcluded('d'), false);
 
     expect(recipe.getProfiles('a').first.toString(), 'wearable-5.5');
     expect(recipe.getProfiles('b').map((Profile profile) => profile.toString()),
