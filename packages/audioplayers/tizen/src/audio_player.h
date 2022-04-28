@@ -1,6 +1,7 @@
 #ifndef AUDIO_PLAYER_H_
 #define AUDIO_PLAYER_H_
 
+#include <Ecore.h>
 #include <player.h>
 
 #include <functional>
@@ -11,7 +12,8 @@ enum class ReleaseMode { kRelease, kLoop, kStop };
 
 using PreparedListener =
     std::function<void(const std::string &player_id, int duration)>;
-using StartPlayingListener = std::function<void(const std::string &player_id)>;
+using StartPlayingListener = std::function<void(
+    const std::string &player_id, const int duration, const int position)>;
 using SeekCompletedListener = std::function<void(const std::string &player_id)>;
 using PlayCompletedListener = std::function<void(const std::string &player_id)>;
 using ErrorListener = std::function<void(const std::string &player_id,
@@ -51,6 +53,7 @@ class AudioPlayer {
   // The player state should be idle before calling this function.
   void PreparePlayer();
   void ResetPlayer();
+  void EmitPositionUpdates();
   player_state_e GetPlayerState();
 
   static void OnPrepared(void *data);
@@ -58,6 +61,8 @@ class AudioPlayer {
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnErrorOccurred(int code, void *data);
+  static void StartPositionUpdates(void *data);
+  static Eina_Bool OnPositionUpdate(void *data);
 
   player_h player_ = nullptr;
   std::string player_id_;
@@ -71,6 +76,7 @@ class AudioPlayer {
   bool preparing_ = false;
   bool seeking_ = false;
   bool should_play_ = false;
+  Ecore_Timer *timer_ = nullptr;
   PreparedListener prepared_listener_;
   StartPlayingListener start_playing_listener_;
   SeekCompletedListener seek_completed_listener_;

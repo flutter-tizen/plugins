@@ -60,7 +60,7 @@ void AudioPlayer::Play() {
       ret = player_start(player_);
       HandleResult("player_start", ret);
       should_play_ = false;
-      start_playing_listener_(player_id_);
+      EmitPositionUpdates();
       break;
     default:
       // "player is already playing audio.
@@ -97,6 +97,10 @@ void AudioPlayer::Release() {
     player_unset_error_cb(player_);
     player_destroy(player_);
     player_ = nullptr;
+  }
+  if (timer_) {
+    ecore_timer_del(timer_);
+    timer_ = nullptr;
   }
 }
 
@@ -236,6 +240,10 @@ void AudioPlayer::PreparePlayer() {
   seeking_ = false;
 }
 
+void AudioPlayer::EmitPositionUpdates() {
+  ecore_main_loop_thread_safe_call_async(StartPositionUpdates, (void *)this);
+}
+
 void AudioPlayer::ResetPlayer() {
   int ret;
   player_state_e state = GetPlayerState();
@@ -287,7 +295,7 @@ void AudioPlayer::OnPrepared(void *data) {
   if (player->should_play_) {
     ret = player_start(player->player_);
     if (ret == PLAYER_ERROR_NONE) {
-      player->start_playing_listener_(player->player_id_);
+      player->EmitPositionUpdates();
     }
     player->should_play_ = false;
   }
@@ -329,4 +337,32 @@ void AudioPlayer::OnErrorOccurred(int code, void *data) {
   LOG_ERROR("error occurred: %s", error.c_str());
   AudioPlayer *player = (AudioPlayer *)data;
   player->error_listener_(player->player_id_, "error occurred: " + error);
+}
+
+void AudioPlayer::StartPositionUpdates(void *data) {
+  AudioPlayer *player = (AudioPlayer *)data;
+  if (!player->timer_) {
+    const double kTimeInterval = 0.2;
+    player->timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, data);
+    if (player->timer_ == nullptr) {
+      LOG_ERROR("failed to add timer for UpdatePosition");
+    }
+  }
+}
+
+Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
+  AudioPlayer *player = (AudioPlayer *)data;
+  std::string player_id = player->GetPlayerId();
+  try {
+    if (player->IsPlaying()) {
+      int duration = player->GetDuration();
+      int position = player->GetCurrentPosition();
+      player->start_playing_listener_(player_id, duration, position);
+      return ECORE_CALLBACK_RENEW;
+    }
+  } catch (...) {
+    LOG_ERROR("failed to update position for player %s", player_id.c_str());
+  }
+  player->timer_ = nullptr;
+  return ECORE_CALLBACK_CANCEL;
 }

@@ -1,6 +1,5 @@
 #include "audioplayers_tizen_plugin.h"
 
-#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -14,8 +13,6 @@
 #include "log.h"
 
 namespace {
-
-const double kTimeInterval = 0.2;
 
 template <typename T>
 static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
@@ -51,12 +48,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
   AudioplayersTizenPlugin() {}
 
-  virtual ~AudioplayersTizenPlugin() {
-    if (timer_) {
-      ecore_timer_del(timer_);
-      timer_ = nullptr;
-    }
-  }
+  virtual ~AudioplayersTizenPlugin() {}
 
  private:
   void HandleMethodCall(
@@ -208,9 +200,25 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         };
 
     StartPlayingListener start_playing_listener =
-        [plugin = this](const std::string &player_id) {
-          ecore_main_loop_thread_safe_call_async(StartPositionUpdates,
-                                                 (void *)plugin);
+        [channel = channel_.get()](const std::string &player_id,
+                                   const int duration, const int position) {
+          flutter::EncodableMap durationWrapped = {
+              {flutter::EncodableValue("playerId"),
+               flutter::EncodableValue(player_id)},
+              {flutter::EncodableValue("value"),
+               flutter::EncodableValue(duration)}};
+          channel->InvokeMethod(
+              "audio.onDuration",
+              std::make_unique<flutter::EncodableValue>(durationWrapped));
+
+          flutter::EncodableMap positionWrapped = {
+              {flutter::EncodableValue("playerId"),
+               flutter::EncodableValue(player_id)},
+              {flutter::EncodableValue("value"),
+               flutter::EncodableValue(position)}};
+          channel->InvokeMethod(
+              "audio.onCurrentPosition",
+              std::make_unique<flutter::EncodableValue>(positionWrapped));
         };
 
     PlayCompletedListener play_completed_listener =
@@ -242,59 +250,6 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     return audio_players_[player_id].get();
   }
 
-  static void StartPositionUpdates(void *data) {
-    AudioplayersTizenPlugin *plugin = (AudioplayersTizenPlugin *)data;
-    if (!plugin->timer_) {
-      plugin->timer_ = ecore_timer_add(kTimeInterval, UpdatePosition, data);
-      if (plugin->timer_ == nullptr) {
-        LOG_ERROR("failed to add timer for UpdatePosition");
-      }
-    }
-  }
-
-  static Eina_Bool UpdatePosition(void *data) {
-    AudioplayersTizenPlugin *plugin = (AudioplayersTizenPlugin *)data;
-    bool none_playing = true;
-    auto iter = plugin->audio_players_.begin();
-    while (iter != plugin->audio_players_.end()) {
-      try {
-        std::string player_id = iter->second->GetPlayerId();
-        if (iter->second->IsPlaying()) {
-          none_playing = false;
-          flutter::EncodableMap duration = {
-              {flutter::EncodableValue("playerId"),
-               flutter::EncodableValue(player_id)},
-              {flutter::EncodableValue("value"),
-               flutter::EncodableValue(iter->second->GetDuration())}};
-          plugin->channel_->InvokeMethod(
-              "audio.onDuration",
-              std::make_unique<flutter::EncodableValue>(duration));
-
-          flutter::EncodableMap position = {
-              {flutter::EncodableValue("playerId"),
-               flutter::EncodableValue(player_id)},
-              {flutter::EncodableValue("value"),
-               flutter::EncodableValue(iter->second->GetCurrentPosition())}};
-          plugin->channel_->InvokeMethod(
-              "audio.onCurrentPosition",
-              std::make_unique<flutter::EncodableValue>(position));
-        }
-        iter++;
-      } catch (...) {
-        LOG_ERROR("failed to update position for player %s",
-                  iter->second->GetPlayerId().c_str());
-      }
-    }
-
-    if (none_playing) {
-      plugin->timer_ = nullptr;
-      return ECORE_CALLBACK_CANCEL;
-    } else {
-      return ECORE_CALLBACK_RENEW;
-    }
-  }
-
-  Ecore_Timer *timer_ = nullptr;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   std::map<std::string, std::unique_ptr<AudioPlayer>> audio_players_;
 };
