@@ -1,5 +1,5 @@
-#ifndef AUDIO_PLAYER_H_
-#define AUDIO_PLAYER_H_
+#ifndef FLUTTER_PLUGIN_AUDIO_PLAYER_H_
+#define FLUTTER_PLUGIN_AUDIO_PLAYER_H_
 
 #include <Ecore.h>
 #include <player.h>
@@ -84,4 +84,4 @@ class AudioPlayer {
   ErrorListener error_listener_;
 };
 
-#endif  // AUDIO_PLAYER_H_
+#endif  // FLUTTER_PLUGIN_AUDIO_PLAYER_H_

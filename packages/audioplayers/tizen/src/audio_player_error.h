@@ -1,5 +1,5 @@
-#ifndef AUDIO_PLAYER_ERROR_H_
-#define AUDIO_PLAYER_ERROR_H_
+#ifndef FLUTTER_PLUGIN_AUDIO_PLAYER_ERROR_H_
+#define FLUTTER_PLUGIN_AUDIO_PLAYER_ERROR_H_
 
 #include <string>
 
@@ -27,4 +27,4 @@ class AudioPlayerError {
   std::string message_;
 };
 
-#endif  // AUDIO_PLAYER_ERROR_H_
+#endif  // FLUTTER_PLUGIN_AUDIO_PLAYER_ERROR_H_

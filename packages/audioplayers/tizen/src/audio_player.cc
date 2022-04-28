@@ -16,22 +16,21 @@ AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
                          StartPlayingListener start_playing_listener,
                          SeekCompletedListener seek_completed_listener,
                          PlayCompletedListener play_completed_listener,
-                         ErrorListener error_listener) {
-  player_id_ = player_id;
-  low_latency_ = low_latency;
-  prepared_listener_ = prepared_listener;
-  start_playing_listener_ = start_playing_listener;
-  seek_completed_listener_ = seek_completed_listener;
-  play_completed_listener_ = play_completed_listener;
-  error_listener_ = error_listener;
-}
+                         ErrorListener error_listener)
+    : player_id_(player_id),
+      low_latency_(low_latency),
+      prepared_listener_(prepared_listener),
+      start_playing_listener_(start_playing_listener),
+      seek_completed_listener_(seek_completed_listener),
+      play_completed_listener_(play_completed_listener),
+      error_listener_(error_listener) {}
 
 AudioPlayer::~AudioPlayer() { Release(); }
 
 void AudioPlayer::Play() {
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_IDLE && preparing_) {
-    // player is preparing, play will be called in prepared callback.;
+    // Player is preparing, play will be called in prepared callback.
     should_play_ = true;
     return;
   }
@@ -63,7 +62,7 @@ void AudioPlayer::Play() {
       EmitPositionUpdates();
       break;
     default:
-      // "player is already playing audio.
+      // Player is already playing audio.
       break;
   }
 }
@@ -122,7 +121,7 @@ void AudioPlayer::Seek(int position) {
       throw AudioPlayerError(error, "player_set_play_position failed");
     }
   } else {
-    // player is unprepared, do seek in prepared callback.
+    // Player is unprepared, do seek in prepared callback.
     should_seek_to_ = position;
   }
 }
@@ -233,7 +232,6 @@ void AudioPlayer::PreparePlayer() {
   ret = player_set_looping(player_, (release_mode_ == ReleaseMode::kLoop));
   HandleResult("player_set_looping", ret);
 
-  LOG_DEBUG("prepare audio player asynchronously");
   ret = player_prepare_async(player_, OnPrepared, (void *)this);
   HandleResult("player_prepare_async", ret);
   preparing_ = true;
