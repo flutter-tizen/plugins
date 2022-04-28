@@ -1,0 +1,35 @@
+name: video_player_example
+description: Demonstrates how to use the video_player_tizen plugin.
+publish_to: "none"
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=1.12.13+hotfix.5"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  video_player_plus:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_driver:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  path_provider: ^2.0.2
+  path_provider_tizen: ^2.0.1
+  pedantic: ^1.10.0
+  test: any
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/flutter-mark-square-64.png
+    - assets/Butterfly-209.mp4
+    - assets/Butterfly-209.webm
+    - assets/bumble_bee_captions.srt
+    - assets/bumble_bee_captions.vtt
+    - assets/Audio.mp3
