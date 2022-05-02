@@ -12,7 +12,6 @@
 
 #include "audio_player.h"
 #include "audio_player_error.h"
-#include "log.h"
 
 namespace {
 

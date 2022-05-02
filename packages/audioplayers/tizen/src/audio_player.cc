@@ -1,7 +1,6 @@
 #include "audio_player.h"
 
 #include "audio_player_error.h"
-#include "log.h"
 
 AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
                          PreparedListener prepared_listener,
@@ -80,20 +79,20 @@ void AudioPlayer::Pause() {
 }
 
 void AudioPlayer::Stop() {
-  if (release_mode_ == ReleaseMode::kRelease) {
-    Release();
-  } else {
-    player_state_e state = GetPlayerState();
-    if (state == PLAYER_STATE_PLAYING || state == PLAYER_STATE_PAUSED) {
-      int ret = player_stop(player_);
-      if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_stop failed", get_error_message(ret));
-      }
+  player_state_e state = GetPlayerState();
+  if (state == PLAYER_STATE_PLAYING || state == PLAYER_STATE_PAUSED) {
+    int ret = player_stop(player_);
+    if (ret != PLAYER_ERROR_NONE) {
+      throw AudioPlayerError("player_stop failed", get_error_message(ret));
     }
   }
 
   should_play_ = false;
   seeking_ = false;
+
+  if (release_mode_ == ReleaseMode::kRelease) {
+    Release();
+  }
 }
 
 void AudioPlayer::Release() {
