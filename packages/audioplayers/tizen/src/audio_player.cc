@@ -58,7 +58,7 @@ void AudioPlayer::Play() {
         throw AudioPlayerError("player_start failed", get_error_message(ret));
       }
       should_play_ = false;
-      EmitPositionUpdates();
+      StartPositionUpdates();
       break;
     }
     default:
@@ -284,10 +284,6 @@ void AudioPlayer::PreparePlayer() {
   seeking_ = false;
 }
 
-void AudioPlayer::EmitPositionUpdates() {
-  ecore_main_loop_thread_safe_call_async(StartPositionUpdates, this);
-}
-
 void AudioPlayer::ResetPlayer() {
   player_state_e state = GetPlayerState();
   switch (state) {
@@ -340,7 +336,7 @@ void AudioPlayer::OnPrepared(void *data) {
     if (ret != PLAYER_ERROR_NONE) {
       throw AudioPlayerError("player_start failed", get_error_message(ret));
     }
-    player->EmitPositionUpdates();
+    player->StartPositionUpdates();
     player->should_play_ = false;
   }
 
@@ -381,16 +377,14 @@ void AudioPlayer::OnError(int code, void *data) {
   player->error_listener_(player->player_id_, "Player error: " + error);
 }
 
-void AudioPlayer::StartPositionUpdates(void *data) {
-  auto *player = reinterpret_cast<AudioPlayer *>(data);
-  if (!player->timer_) {
+void AudioPlayer::StartPositionUpdates() {
+  if (!timer_) {
     // The audioplayers app facing package expects position
     // update events to fire roughly every 200 milliseconds.
     const double kTimeInterval = 0.2;
-    player->timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, data);
-    if (!player->timer_) {
-      player->error_listener_(player->GetPlayerId(),
-                              "Failed to add postion update timer.");
+    timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, this);
+    if (!timer_) {
+      error_listener_(player_id_, "Failed to add postion update timer.");
     }
   }
 }
