@@ -47,7 +47,7 @@ void main() {
       tizenSdk = MockTizenSdk();
       when(() => tizenSdk.sdbDevices()).thenReturn(<SdbDeviceInfo>[
         const SdbDeviceInfo(
-          id: 'some_id',
+          serial: 'some_id',
           status: 'device',
           name: 'some_name',
         )
@@ -63,7 +63,7 @@ void main() {
     test('fails when integration test takes longer than timeout.', () async {
       // Simulates closing the stdout stream of a child process when it exits
       // from [Process.exitCode].
-      // TODO(HakkyuKim): Properly handle this from a mock class. 
+      // TODO(HakkyuKim): Properly handle this from a mock class.
       Future<void>.delayed(Duration(seconds: timeoutLimit.inSeconds + 1), () {
         controller.close();
       });
