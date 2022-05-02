@@ -19,8 +19,8 @@ namespace {
 const char *kInvalidArgument = "Invalid argument";
 
 template <typename T>
-static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
-                                     const char *key, T &out) {
+bool GetValueFromEncodableMap(const flutter::EncodableMap *map, const char *key,
+                              T &out) {
   auto iter = map->find(flutter::EncodableValue(key));
   if (iter != map->end() && !iter->second.IsNull()) {
     if (auto *value = std::get_if<T>(&iter->second)) {
@@ -29,6 +29,28 @@ static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
     }
   }
   return false;
+}
+
+template <typename T>
+T GetRequiredArg(const flutter::EncodableMap *arguments, const char *key) {
+  T value;
+  if (GetValueFromEncodableMap(arguments, key, value)) {
+    return value;
+  }
+  std::string message =
+      "No " + std::string(key) + " provided or is invalid type or value.";
+  throw std::invalid_argument(message);
+}
+
+ReleaseMode StringToReleaseMode(std::string release_mode) {
+  if (release_mode == "ReleaseMode.RELEASE") {
+    return ReleaseMode::kRelease;
+  } else if (release_mode == "ReleaseMode.LOOP") {
+    return ReleaseMode::kLoop;
+  } else if (release_mode == "ReleaseMode.STOP") {
+    return ReleaseMode::kStop;
+  }
+  throw std::invalid_argument("Invalid release mode.");
 }
 
 class AudioplayersTizenPlugin : public flutter::Plugin {
@@ -74,8 +96,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
     AudioPlayer *player = GetAudioPlayer(player_id, mode);
 
-    const auto &method_name = method_call.method_name();
     try {
+      const auto &method_name = method_call.method_name();
       if (method_name == "play") {
         double volume = 0.0;
         std::string url;
@@ -90,6 +112,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         if (GetValueFromEncodableMap(arguments, "position", position)) {
           player->Seek(position);
         }
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "playBytes") {
         double volume = 0.0;
         std::vector<uint8_t> bytes;
@@ -104,77 +127,46 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         if (GetValueFromEncodableMap(arguments, "position", position)) {
           player->Seek(position);
         }
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "resume") {
         player->Play();
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "pause") {
         player->Pause();
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "stop") {
         player->Stop();
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "release") {
         player->Release();
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "seek") {
-        int32_t position = 0;
-        if (GetValueFromEncodableMap(arguments, "position", position)) {
-          player->Seek(position);
-        } else {
-          result->Error(kInvalidArgument,
-                        "No position provided or is invalid value.");
-          return;
-        }
+        player->Seek(GetRequiredArg<int32_t>(arguments, "position"));
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "setVolume") {
-        double volume = 0.0;
-        if (GetValueFromEncodableMap(arguments, "volume", volume)) {
-          player->SetVolume(volume);
-        } else {
-          result->Error(kInvalidArgument,
-                        "No volume provided or is invalid value.");
-          return;
-        }
+        player->SetVolume(GetRequiredArg<double>(arguments, "volume"));
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "setUrl") {
-        std::string url;
-        if (GetValueFromEncodableMap(arguments, "url", url)) {
-          player->SetUrl(url);
-        } else {
-          result->Error(kInvalidArgument,
-                        "No url provided or is invalid value.");
-          return;
-        }
+        player->SetUrl(GetRequiredArg<std::string>(arguments, "url"));
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "setPlaybackRate") {
-        double playback_rate = 0.0;
-        if (GetValueFromEncodableMap(arguments, "playbackRate",
-                                     playback_rate)) {
-          player->SetPlaybackRate(playback_rate);
-        } else {
-          result->Error(kInvalidArgument,
-                        "No playbackRate provided or is invalid value.");
-          return;
-        }
+        player->SetPlaybackRate(
+            GetRequiredArg<double>(arguments, "playbackRate"));
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "setReleaseMode") {
-        std::string release_mode;
-        if (GetValueFromEncodableMap(arguments, "releaseMode", release_mode)) {
-          if (release_mode == "ReleaseMode.RELEASE") {
-            player->SetReleaseMode(ReleaseMode::kRelease);
-          } else if (release_mode == "ReleaseMode.LOOP") {
-            player->SetReleaseMode(ReleaseMode::kLoop);
-          } else if (release_mode == "ReleaseMode.STOP") {
-            player->SetReleaseMode(ReleaseMode::kStop);
-          }
-        } else {
-          result->Error(kInvalidArgument,
-                        "No realeaseMode provided or is invalid value.");
-          return;
-        }
+        std::string release_mode =
+            GetRequiredArg<std::string>(arguments, "releaseMode");
+        player->SetReleaseMode(StringToReleaseMode(release_mode));
+        result->Success(flutter::EncodableValue(1));
       } else if (method_name == "getDuration") {
         result->Success(flutter::EncodableValue(player->GetDuration()));
-        return;
       } else if (method_name == "getCurrentPosition") {
         result->Success(flutter::EncodableValue(player->GetCurrentPosition()));
-        return;
       } else {
         result->NotImplemented();
-        return;
       }
-      result->Success(flutter::EncodableValue(1));
+    } catch (const std::invalid_argument &error) {
+      result->Error(kInvalidArgument, error.what());
     } catch (const AudioPlayerError &error) {
       result->Error(error.GetCode(), error.GetMessage());
     }
