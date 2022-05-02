@@ -12,7 +12,7 @@ enum class ReleaseMode { kRelease, kLoop, kStop };
 
 using PreparedListener =
     std::function<void(const std::string &player_id, int duration)>;
-using StartPlayingListener = std::function<void(
+using UpdatePositionListener = std::function<void(
     const std::string &player_id, const int duration, const int position)>;
 using SeekCompletedListener = std::function<void(const std::string &player_id)>;
 using PlayCompletedListener = std::function<void(const std::string &player_id)>;
@@ -23,7 +23,7 @@ class AudioPlayer {
  public:
   AudioPlayer(const std::string &player_id, bool low_latency,
               PreparedListener prepared_listener,
-              StartPlayingListener start_playing_listener,
+              UpdatePositionListener update_position_listener,
               SeekCompletedListener seek_completed_listener,
               PlayCompletedListener play_completed_listener,
               ErrorListener error_listener);
@@ -78,7 +78,7 @@ class AudioPlayer {
   bool should_play_ = false;
   Ecore_Timer *timer_ = nullptr;
   PreparedListener prepared_listener_;
-  StartPlayingListener start_playing_listener_;
+  UpdatePositionListener update_position_listener_;
   SeekCompletedListener seek_completed_listener_;
   PlayCompletedListener play_completed_listener_;
   ErrorListener error_listener_;

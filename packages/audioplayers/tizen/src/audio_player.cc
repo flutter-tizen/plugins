@@ -5,14 +5,14 @@
 
 AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
                          PreparedListener prepared_listener,
-                         StartPlayingListener start_playing_listener,
+                         UpdatePositionListener update_position_listener,
                          SeekCompletedListener seek_completed_listener,
                          PlayCompletedListener play_completed_listener,
                          ErrorListener error_listener)
     : player_id_(player_id),
       low_latency_(low_latency),
       prepared_listener_(prepared_listener),
-      start_playing_listener_(start_playing_listener),
+      update_position_listener_(update_position_listener),
       seek_completed_listener_(seek_completed_listener),
       play_completed_listener_(play_completed_listener),
       error_listener_(error_listener) {}
@@ -385,10 +385,13 @@ void AudioPlayer::OnError(int code, void *data) {
 void AudioPlayer::StartPositionUpdates(void *data) {
   auto *player = reinterpret_cast<AudioPlayer *>(data);
   if (!player->timer_) {
+    // The audioplayers app facing package expects position
+    // update events to fire roughly every 200 milliseconds.
     const double kTimeInterval = 0.2;
     player->timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, data);
     if (!player->timer_) {
-      LOG_ERROR("Failed to add timer for UpdatePosition.");
+      player->error_listener_(player->GetPlayerId(),
+                              "Failed to add postion update timer.");
     }
   }
 }
@@ -400,11 +403,11 @@ Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
     if (player->IsPlaying()) {
       int duration = player->GetDuration();
       int position = player->GetCurrentPosition();
-      player->start_playing_listener_(player_id, duration, position);
+      player->update_position_listener_(player_id, duration, position);
       return ECORE_CALLBACK_RENEW;
     }
-  } catch (...) {
-    LOG_ERROR("Failed to update position for player %s.", player_id.c_str());
+  } catch (const AudioPlayerError &error) {
+    player->error_listener_(player_id, "Failed to update position.");
   }
   player->timer_ = nullptr;
   return ECORE_CALLBACK_CANCEL;

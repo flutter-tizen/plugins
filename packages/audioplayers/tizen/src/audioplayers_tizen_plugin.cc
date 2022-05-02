@@ -207,7 +207,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
           channel->InvokeMethod("audio.onSeekComplete", std::move(arguments));
         };
 
-    StartPlayingListener start_playing_listener =
+    UpdatePositionListener update_position_listener =
         [channel = channel_.get()](const std::string &player_id,
                                    const int duration, const int position) {
           flutter::EncodableMap durationWrapped = {
@@ -252,7 +252,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
     bool low_latency = mode == "PlayerMode.LOW_LATENCY";
     auto player = std::make_unique<AudioPlayer>(
-        player_id, low_latency, prepared_listener, start_playing_listener,
+        player_id, low_latency, prepared_listener, update_position_listener,
         seek_completed_listener, play_completed_listener, error_listener);
     audio_players_[player_id] = std::move(player);
 
