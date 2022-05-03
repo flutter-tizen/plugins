@@ -117,13 +117,14 @@ void AudioPlayer::Seek(int position) {
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
       state == PLAYER_STATE_PAUSED) {
+    seeking_ = true;
     int ret = player_set_play_position(player_, position, true, OnSeekCompleted,
                                        this);
     if (ret != PLAYER_ERROR_NONE) {
+      seeking_ = false;
       throw AudioPlayerError("player_set_play_position failed",
                              get_error_message(ret));
     }
-    seeking_ = true;
   } else {
     // Player is unprepared, do seek in prepared callback.
     should_seek_to_ = position;
@@ -341,13 +342,14 @@ void AudioPlayer::OnPrepared(void *data) {
   }
 
   if (player->should_seek_to_ > 0) {
+    player->seeking_ = true;
     int ret = player_set_play_position(player->player_, player->should_seek_to_,
                                        true, OnSeekCompleted, data);
     if (ret != PLAYER_ERROR_NONE) {
+      player->seeking_ = false;
       throw AudioPlayerError("player_set_play_position failed",
                              get_error_message(ret));
     }
-    player->seeking_ = true;
     player->should_seek_to_ = -1;
   }
 }
