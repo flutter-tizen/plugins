@@ -2,7 +2,7 @@
 
 namespace Runner
 {
-    public class App : FlutterServiceApplication
+    public class App : FlutterApplication
     {
         protected override void OnCreate()
         {

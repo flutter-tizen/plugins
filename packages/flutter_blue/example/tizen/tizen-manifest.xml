@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="org.tizen.flutter_blue_tizen_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
-    <profile name="common"/>
-    <service-application appid="org.tizen.flutter_blue_tizen_example" exec="Runner.dll" type="dotnet" multiple="false" nodisplay="true" taskmanage="false" api-version="4" auto-restart="false">
-        <label>example</label>
+    <profile name="wearable"/>
+    <ui-application appid="org.tizen.flutter_blue_tizen_example" exec="Runner.dll" type="dotnet" multiple="false" taskmanage="true" nodisplay="false" api-version="4">
+        <label>flutter_blue_tizen_example</label>
         <icon>ic_launcher.png</icon>
-        <background-category value="media"/>
         <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true"/>
-    </service-application>
-    <tv-info api-version="8.8.0">
-        <infolink>T-INFOLINK2021-1000</infolink>
-    </tv-info>
+    </ui-application>
     <feature name="http://tizen.org/feature/screen.size.all"/>
+    <privileges>
+        <privilege>http://tizen.org/privilege/application.launch</privilege>
+        <privilege>http://tizen.org/privilege/bluetooth</privilege>
+    </privileges>
 </manifest>
