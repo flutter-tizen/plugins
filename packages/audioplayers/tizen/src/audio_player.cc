@@ -1,7 +1,5 @@
 #include "audio_player.h"
 
-#include "audio_player_error.h"
-
 AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
                          PreparedListener prepared_listener,
                          UpdatePositionListener update_position_listener,
@@ -18,44 +16,50 @@ AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
 
 AudioPlayer::~AudioPlayer() { Release(); }
 
-void AudioPlayer::Play() {
-  player_state_e state = GetPlayerState();
+TizenResult AudioPlayer::Play() {
+  player_state_e state;
+  auto result = GetPlayerState(state);
+  if (!result) {
+    return result;
+  }
   if (state == PLAYER_STATE_IDLE && preparing_) {
     // Player is preparing, play will be called in prepared callback.
     should_play_ = true;
-    return;
-  }
-
-  if (state == PLAYER_STATE_NONE) {
-    CreatePlayer();
+    return TizenResult();
   }
 
   switch (state) {
-    case PLAYER_STATE_NONE:
+    case PLAYER_STATE_NONE: {
+      auto result = CreatePlayer();
+      if (!result) {
+        return result;
+      }
+    }
     case PLAYER_STATE_IDLE: {
       if (audio_data_.size() > 0) {
         int ret = player_set_memory_buffer(player_, audio_data_.data(),
                                            audio_data_.size());
         if (ret != PLAYER_ERROR_NONE) {
-          throw AudioPlayerError("player_set_memory_buffer failed",
-                                 get_error_message(ret));
+          return TizenResult(ret, "player_set_memory_buffer failed");
         }
       } else {
         int ret = player_set_uri(player_, url_.c_str());
         if (ret != PLAYER_ERROR_NONE) {
-          throw AudioPlayerError("player_set_uri failed",
-                                 get_error_message(ret));
+          return TizenResult(ret, "player_set_uri failed");
         }
       }
       should_play_ = true;
-      PreparePlayer();
+      auto result = PreparePlayer();
+      if (!result) {
+        return result;
+      }
       break;
     }
     case PLAYER_STATE_READY:
     case PLAYER_STATE_PAUSED: {
       int ret = player_start(player_);
       if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_start failed", get_error_message(ret));
+        return TizenResult(ret, "player_start failed");
       }
       should_play_ = false;
       StartPositionUpdates();
@@ -65,25 +69,39 @@ void AudioPlayer::Play() {
       // Player is already playing audio.
       break;
   }
+
+  return TizenResult();
 }
 
-void AudioPlayer::Pause() {
-  if (GetPlayerState() == PLAYER_STATE_PLAYING) {
+TizenResult AudioPlayer::Pause() {
+  player_state_e state;
+  auto result = GetPlayerState(state);
+  if (!result) {
+    return result;
+  }
+
+  if (state == PLAYER_STATE_PLAYING) {
     int ret = player_pause(player_);
     if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_pause failed", get_error_message(ret));
+      return TizenResult(ret, "player_pause failed");
     }
   }
 
   should_play_ = false;
+
+  return TizenResult();
 }
 
-void AudioPlayer::Stop() {
-  player_state_e state = GetPlayerState();
+TizenResult AudioPlayer::Stop() {
+  player_state_e state;
+  auto result = GetPlayerState(state);
+  if (!result) {
+    return result;
+  }
   if (state == PLAYER_STATE_PLAYING || state == PLAYER_STATE_PAUSED) {
     int ret = player_stop(player_);
     if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_stop failed", get_error_message(ret));
+      return TizenResult(ret, "player_stop failed");
     }
   }
 
@@ -93,6 +111,8 @@ void AudioPlayer::Stop() {
   if (release_mode_ == ReleaseMode::kRelease) {
     Release();
   }
+
+  return TizenResult();
 }
 
 void AudioPlayer::Release() {
@@ -109,12 +129,16 @@ void AudioPlayer::Release() {
   }
 }
 
-void AudioPlayer::Seek(int position) {
+TizenResult AudioPlayer::Seek(int position) {
   if (seeking_) {
-    return;
+    return TizenResult();
   }
 
-  player_state_e state = GetPlayerState();
+  player_state_e state;
+  auto result = GetPlayerState(state);
+  if (!result) {
+    return result;
+  }
   if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
       state == PLAYER_STATE_PAUSED) {
     seeking_ = true;
@@ -122,182 +146,223 @@ void AudioPlayer::Seek(int position) {
                                        this);
     if (ret != PLAYER_ERROR_NONE) {
       seeking_ = false;
-      throw AudioPlayerError("player_set_play_position failed",
-                             get_error_message(ret));
+      return TizenResult(ret, "player_set_play_position failed");
     }
   } else {
     // Player is unprepared, do seek in prepared callback.
     should_seek_to_ = position;
   }
+  return TizenResult();
 }
 
-void AudioPlayer::SetUrl(const std::string &url) {
+TizenResult AudioPlayer::SetUrl(const std::string &url) {
   if (url != url_) {
     url_ = url;
-    ResetPlayer();
+
+    auto reset_result = ResetPlayer();
+    if (!reset_result) {
+      return reset_result;
+    }
 
     int ret = player_set_uri(player_, url.c_str());
     if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_set_uri failed", get_error_message(ret));
+      return TizenResult(ret, "player_set_uri failed");
     }
 
-    PreparePlayer();
+    auto prepare_result = PreparePlayer();
+    if (!prepare_result) {
+      return prepare_result;
+    }
   }
+
   audio_data_.clear();
+
+  return TizenResult();
 }
 
-void AudioPlayer::SetDataSource(std::vector<uint8_t> &data) {
+TizenResult AudioPlayer::SetDataSource(std::vector<uint8_t> &data) {
   if (data != audio_data_) {
     audio_data_.swap(data);
-    ResetPlayer();
+
+    auto reset_result = ResetPlayer();
+    if (!reset_result) {
+      return reset_result;
+    }
 
     int ret = player_set_memory_buffer(player_, audio_data_.data(),
                                        audio_data_.size());
     if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_set_memory_buffer failed",
-                             get_error_message(ret));
+      return TizenResult(ret, "player_set_memory_buffer failed");
     }
 
-    PreparePlayer();
+    auto prepare_result = PreparePlayer();
+    if (!prepare_result) {
+      return prepare_result;
+    }
   }
+
+  return TizenResult();
 }
 
-void AudioPlayer::SetVolume(double volume) {
+TizenResult AudioPlayer::SetVolume(double volume) {
   if (volume_ != volume) {
     volume_ = volume;
-    if (GetPlayerState() != PLAYER_STATE_NONE) {
+    player_state_e state;
+    auto result = GetPlayerState(state);
+    if (!result) {
+      return result;
+    }
+    if (state != PLAYER_STATE_NONE) {
       int ret = player_set_volume(player_, volume_, volume_);
       if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_set_volume failed",
-                               get_error_message(ret));
+        return TizenResult(ret, "player_set_volume failed");
       }
     }
   }
+  return TizenResult();
 }
 
-void AudioPlayer::SetPlaybackRate(double rate) {
+TizenResult AudioPlayer::SetPlaybackRate(double rate) {
   if (playback_rate_ != rate) {
     playback_rate_ = rate;
-    player_state_e state = GetPlayerState();
+    player_state_e state;
+    auto result = GetPlayerState(state);
+    if (!result) {
+      return result;
+    }
     if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
         state == PLAYER_STATE_PAUSED) {
       int ret = player_set_playback_rate(player_, rate);
       if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_set_playback_rate failed",
-                               get_error_message(ret));
+        return TizenResult(ret, "player_set_playback_rate failed");
       }
     }
   }
+  return TizenResult();
 }
 
-void AudioPlayer::SetReleaseMode(ReleaseMode mode) {
+TizenResult AudioPlayer::SetReleaseMode(ReleaseMode mode) {
   if (release_mode_ != mode) {
     release_mode_ = mode;
-    if (GetPlayerState() != PLAYER_STATE_NONE) {
+    player_state_e state;
+    auto result = GetPlayerState(state);
+    if (!result) {
+      return result;
+    }
+    if (state != PLAYER_STATE_NONE) {
       int ret =
           player_set_looping(player_, (release_mode_ == ReleaseMode::kLoop));
       if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_set_looping failed",
-                               get_error_message(ret));
+        return TizenResult(ret, "player_set_looping failed");
       }
     }
   }
+  return TizenResult();
 }
 
-int AudioPlayer::GetDuration() {
-  int duration;
-  int ret = player_get_duration(player_, &duration);
+TizenResult AudioPlayer::GetDuration(int &out) {
+  int ret = player_get_duration(player_, &out);
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_get_duration failed",
-                           get_error_message(ret));
+    return TizenResult(ret, "player_get_duration failed");
   }
-  return duration;
+  return TizenResult();
 }
 
-int AudioPlayer::GetCurrentPosition() {
-  int position;
-  int ret = player_get_play_position(player_, &position);
+TizenResult AudioPlayer::GetCurrentPosition(int &out) {
+  int ret = player_get_play_position(player_, &out);
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_get_play_position failed",
-                           get_error_message(ret));
+    return TizenResult(ret, "player_get_play_position failed");
   }
-  return position;
+  return TizenResult();
 }
 
-bool AudioPlayer::IsPlaying() {
-  return (GetPlayerState() == PLAYER_STATE_PLAYING);
+TizenResult AudioPlayer::IsPlaying(bool &out) {
+  player_state_e state;
+  auto result = GetPlayerState(state);
+  if (!result) {
+    return result;
+  }
+  out = (state == PLAYER_STATE_PLAYING);
+  return TizenResult();
 }
 
-void AudioPlayer::CreatePlayer() {
+TizenResult AudioPlayer::CreatePlayer() {
   should_play_ = false;
   preparing_ = false;
 
   int ret = player_create(&player_);
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_create failed", get_error_message(ret));
+    return TizenResult(ret, "player_create failed");
   }
 
   if (low_latency_) {
     ret = player_set_audio_latency_mode(player_, AUDIO_LATENCY_MODE_LOW);
     if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_set_audio_latency_mode failed",
-                             get_error_message(ret));
+      return TizenResult(ret, "player_set_audio_latency_mode failed");
     }
   }
 
   ret = player_set_completed_cb(player_, OnPlayCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_set_completed_cb failed",
-                           get_error_message(ret));
+    return TizenResult(ret, "player_set_completed_cb failed");
   }
 
   ret = player_set_interrupted_cb(player_, OnInterrupted, this);
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_set_interrupted_cb failed",
-                           get_error_message(ret));
+    return TizenResult(ret, "player_set_interrupted_cb failed");
   }
 
   ret = player_set_error_cb(player_, OnError, this);
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_set_error_cb failed",
-                           get_error_message(ret));
+    return TizenResult(ret, "player_set_error_cb failed");
   }
+
+  return TizenResult();
 }
 
-void AudioPlayer::PreparePlayer() {
+TizenResult AudioPlayer::PreparePlayer() {
   int ret = player_set_volume(player_, volume_, volume_);
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_set_volume failed", get_error_message(ret));
+    return TizenResult(ret, "player_set_volume failed");
   }
 
   ret = player_set_looping(player_, (release_mode_ == ReleaseMode::kLoop));
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_set_looping failed", get_error_message(ret));
+    return TizenResult(ret, "player_set_looping failed");
   }
 
   ret = player_prepare_async(player_, OnPrepared, this);
   if (ret != PLAYER_ERROR_NONE) {
-    throw AudioPlayerError("player_prepare_async failed",
-                           get_error_message(ret));
+    return TizenResult(ret, "player_prepare_async failed");
   }
 
   preparing_ = true;
   seeking_ = false;
+
+  return TizenResult();
 }
 
-void AudioPlayer::ResetPlayer() {
-  player_state_e state = GetPlayerState();
+TizenResult AudioPlayer::ResetPlayer() {
+  player_state_e state;
+  auto result = GetPlayerState(state);
+  if (!result) {
+    return result;
+  }
+
   switch (state) {
-    case PLAYER_STATE_NONE:
-      CreatePlayer();
+    case PLAYER_STATE_NONE: {
+      auto result = CreatePlayer();
+      if (!result) {
+        return result;
+      }
       break;
+    }
     case PLAYER_STATE_IDLE:
       if (preparing_) {
         // Cancel preparing if it's already preparing.
         int ret = player_unprepare(player_);
         if (ret != PLAYER_ERROR_NONE) {
-          throw AudioPlayerError("player_unprepare failed",
-                                 get_error_message(ret));
+          return TizenResult(ret, "player_unprepare failed");
         }
         preparing_ = false;
       }
@@ -307,35 +372,46 @@ void AudioPlayer::ResetPlayer() {
     case PLAYER_STATE_PAUSED:
       int ret = player_unprepare(player_);
       if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_unprepare failed",
-                               get_error_message(ret));
+        return TizenResult(ret, "player_unprepare failed");
       }
       break;
   }
+
+  return TizenResult();
 }
 
-player_state_e AudioPlayer::GetPlayerState() {
-  player_state_e state = PLAYER_STATE_NONE;
+TizenResult AudioPlayer::GetPlayerState(player_state_e &out) {
+  out = PLAYER_STATE_NONE;
   if (player_) {
-    int ret = player_get_state(player_, &state);
+    int ret = player_get_state(player_, &out);
     if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_get_state failed", get_error_message(ret));
+      return TizenResult(ret, "player_get_state failed");
     }
   }
-  return state;
+  return TizenResult();
 }
 
 void AudioPlayer::OnPrepared(void *data) {
   auto *player = reinterpret_cast<AudioPlayer *>(data);
   player->preparing_ = false;
 
-  player->prepared_listener_(player->player_id_, player->GetDuration());
+  int duration;
+  auto result = player->GetDuration(duration);
+  if (!result) {
+    player->error_listener_(player->GetPlayerId(), result.Message());
+    return;
+  }
+
+  player->prepared_listener_(player->player_id_, duration);
   player_set_playback_rate(player->player_, player->playback_rate_);
 
   if (player->should_play_) {
     int ret = player_start(player->player_);
     if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_start failed", get_error_message(ret));
+      player->error_listener_(
+          player->GetPlayerId(),
+          TizenResult(ret, "player_start failed").Message());
+      return;
     }
     player->StartPositionUpdates();
     player->should_play_ = false;
@@ -347,8 +423,10 @@ void AudioPlayer::OnPrepared(void *data) {
                                        true, OnSeekCompleted, data);
     if (ret != PLAYER_ERROR_NONE) {
       player->seeking_ = false;
-      throw AudioPlayerError("player_set_play_position failed",
-                             get_error_message(ret));
+      player->error_listener_(
+          player->GetPlayerId(),
+          TizenResult(ret, "player_set_play_position failed").Message());
+      return;
     }
     player->should_seek_to_ = -1;
   }
@@ -394,16 +472,31 @@ void AudioPlayer::StartPositionUpdates() {
 Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
   auto *player = reinterpret_cast<AudioPlayer *>(data);
   std::string player_id = player->GetPlayerId();
-  try {
-    if (player->IsPlaying()) {
-      int duration = player->GetDuration();
-      int position = player->GetCurrentPosition();
-      player->update_position_listener_(player_id, duration, position);
-      return ECORE_CALLBACK_RENEW;
-    }
-  } catch (const AudioPlayerError &error) {
-    player->error_listener_(player_id, "Failed to update position.");
+
+  bool is_playing;
+  auto playing_result = player->IsPlaying(is_playing);
+  if (!playing_result) {
+    player->error_listener_(player_id, playing_result.Message());
+    player->timer_ = nullptr;
+    return ECORE_CALLBACK_CANCEL;
   }
-  player->timer_ = nullptr;
-  return ECORE_CALLBACK_CANCEL;
+
+  int duration;
+  auto duration_result = player->GetDuration(duration);
+  if (!duration_result) {
+    player->error_listener_(player_id, duration_result.Message());
+    player->timer_ = nullptr;
+    return ECORE_CALLBACK_CANCEL;
+  }
+
+  int position;
+  auto position_result = player->GetCurrentPosition(position);
+  if (!position_result) {
+    player->error_listener_(player_id, position_result.Message());
+    player->timer_ = nullptr;
+    return ECORE_CALLBACK_CANCEL;
+  }
+
+  player->update_position_listener_(player_id, duration, position);
+  return ECORE_CALLBACK_RENEW;
 }
