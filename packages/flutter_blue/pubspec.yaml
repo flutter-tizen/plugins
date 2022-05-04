@@ -1,8 +1,8 @@
 name: flutter_blue_tizen
 description: Tizen implementation of flutter_blue plugin
-version: 1.0.0
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_blue
+version: 1.0.0
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
