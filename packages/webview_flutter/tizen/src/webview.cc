@@ -212,6 +212,15 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
     url = "about:blank";
   }
 
+  auto backgroundColor = params[flutter::EncodableValue("backgroundColor")];
+  if (std::holds_alternative<int>(backgroundColor)) {
+    auto color = std::get<int>(backgroundColor);
+    auto settings = webview_instance_->GetSettings();
+    settings.SetBaseBackgroundColor(color >> 16 & 0xff, color >> 8 & 0xff,
+                                    color & 0xff, color >> 24 & 0xff);
+    webview_instance_->SetSettings(settings);
+  }
+
   auto settings = params[flutter::EncodableValue("settings")];
   if (std::holds_alternative<flutter::EncodableMap>(settings)) {
     auto settingList = std::get<flutter::EncodableMap>(settings);
