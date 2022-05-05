@@ -831,7 +831,7 @@ void WebView::InitWebView() {
 void WebView::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (!webview_instance_) {
+  if (!webview_instance_ || !method_call.arguments()) {
     return;
   }
   const auto method_name = method_call.method_name();
