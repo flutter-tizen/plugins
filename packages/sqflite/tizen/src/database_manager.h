@@ -27,7 +27,8 @@ class DatabaseManager {
       : path_(path),
         database_id_(database_id),
         single_instance_(single_instance),
-        log_level_(log_level){};
+        log_level_(log_level),
+        database_(nullptr){};
   virtual ~DatabaseManager();
 
   inline const std::string path() { return path_; };
