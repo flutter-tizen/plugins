@@ -1,15 +1,13 @@
-<br>
-<h1 align="left"> flutter_blue_tizen </h1>
-<br>
+# flutter_blue_tizen
 
 [![pub package](https://img.shields.io/pub/v/flutter_blue_tizen.svg)](https://pub.dev/packages/flutter_blue_tizen)
 
-The Tizen implementation of <a href="https://github.com/pauldemarco/flutter_blue">flutter_blue</a>.
+The Tizen implementation of [flutter_blue](https://github.com/pauldemarco/flutter_blue).
 
 
 ## Usage
 
-This package is not an endorsed implementation of `flutter_blue`. Therefore, you have to include `flutter_blue_tizen` alongside flutter_blue as dependencies in your `pubspec.yaml` file.
+This package is not an _endorsed_ implementation of `flutter_blue`. Therefore, you have to include `flutter_blue_tizen` alongside flutter_blue as dependencies in your `pubspec.yaml` file.
 
 ```
 dependencies:
