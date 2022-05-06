@@ -36,8 +36,6 @@ struct SafeType {
 };
 
 class BTException : public std::exception {
-  std::string _mess;
-
  public:
   BTException(std::string const& mess);
   BTException(const int tizen_error, std::string const& mess);
@@ -45,6 +43,10 @@ class BTException : public std::exception {
   BTException(const int tizen_error);
 
   const char* what() const noexcept override;
+
+private:
+
+  std::string _message;
 };
 
 std::vector<u_int8_t> messageToVector(

@@ -14,18 +14,8 @@ namespace btGatt {
 class BluetoothCharacteristic;
 
 class BluetoothDescriptor {
-  bt_gatt_h _handle;
-
-  BluetoothCharacteristic& _characteristic;
-
-  /**
-   * @brief used to validate whether the descriptor still exists in async
-   * callback. key-uuid value-pointer of descriptor
-   */
-  static inline SafeType<std::map<std::string, BluetoothDescriptor*>>
-      _activeDescriptors;
-
  public:
+
   BluetoothDescriptor(bt_gatt_h handle,
                       BluetoothCharacteristic& characteristic);
 
@@ -44,6 +34,20 @@ class BluetoothDescriptor {
                                       const BluetoothDescriptor&)>& callback);
 
   BluetoothCharacteristic const& cCharacteristic() const noexcept;
+
+private:
+
+  bt_gatt_h _handle;
+
+  BluetoothCharacteristic& _characteristic;
+
+  /**
+   * @brief used to validate whether the descriptor still exists in async
+   * callback. key-uuid value-pointer of descriptor
+   */
+  static inline SafeType<std::map<std::string, BluetoothDescriptor*>>
+      _activeDescriptors;
+
 };
 
 }  // namespace btGatt

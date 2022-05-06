@@ -29,13 +29,8 @@ class BluetoothManager {
       SafeType<std::unordered_map<std::string,
                                   std::shared_ptr<BluetoothDeviceController>>>;
 
-  DevicesContainer _bluetoothDevices;
-
-  NotificationsHandler& _notificationsHandler;
-
-  std::atomic<bool> _scanAllowDuplicates;
-
  public:
+ 
   BluetoothManager(NotificationsHandler& notificationsHandler);
 
   virtual ~BluetoothManager() noexcept = default;
@@ -86,6 +81,14 @@ class BluetoothManager {
   static void scanCallback(
       int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
       void* user_data) noexcept;
+
+private:
+
+  DevicesContainer _bluetoothDevices;
+
+  NotificationsHandler& _notificationsHandler;
+
+  std::atomic<bool> _scanAllowDuplicates;
 };
 
 void decodeAdvertisementData(const char* packetsData,

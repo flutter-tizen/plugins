@@ -17,24 +17,11 @@ class BluetoothService;
 class BluetoothDescriptor;
 
 class BluetoothCharacteristic {
+
+public:
+ 
   using NotifyCallback = std::function<void(const BluetoothCharacteristic&)>;
 
-  bt_gatt_h _handle;
-
-  BluetoothService& _service;
-
-  std::vector<std::unique_ptr<BluetoothDescriptor>> _descriptors;
-
-  std::unique_ptr<NotifyCallback> _notifyCallback;
-
-  /**
-   * @brief used to validate whether the characteristic still exists in async
-   * callback. key-uuid value-pointer of characteristic
-   */
-  static inline SafeType<std::map<std::string, BluetoothCharacteristic*>>
-      _activeCharacteristics;
-
- public:
   BluetoothCharacteristic(bt_gatt_h handle, BluetoothService& service);
 
   ~BluetoothCharacteristic() noexcept;
@@ -62,6 +49,24 @@ class BluetoothCharacteristic {
   void setNotifyCallback(const NotifyCallback& callback);
 
   void unsetNotifyCallback();
+
+private:
+
+  bt_gatt_h _handle;
+
+  BluetoothService& _service;
+
+  std::vector<std::unique_ptr<BluetoothDescriptor>> _descriptors;
+
+  std::unique_ptr<NotifyCallback> _notifyCallback;
+
+  /**
+   * @brief used to validate whether the characteristic still exists in async
+   * callback. key-uuid value-pointer of characteristic
+   */
+  static inline SafeType<std::map<std::string, BluetoothCharacteristic*>>
+      _activeCharacteristics;
+
 };
 
 }  // namespace btGatt

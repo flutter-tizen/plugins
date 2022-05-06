@@ -21,18 +21,9 @@ enum class ServiceType {
 class SecondaryService;
 
 class BluetoothService {
- protected:
-  bt_gatt_h _handle;
-
-  std::vector<std::unique_ptr<BluetoothCharacteristic>> _characteristics;
-
-  BluetoothService(bt_gatt_h handle);
-
-  BluetoothService(const BluetoothService&) = default;
-
-  virtual ~BluetoothService();
 
  public:
+
   virtual proto::gen::BluetoothService toProtoService() const noexcept = 0;
 
   virtual BluetoothDeviceController const& cDevice() const noexcept = 0;
@@ -42,14 +33,25 @@ class BluetoothService {
   std::string UUID() const noexcept;
 
   BluetoothCharacteristic* getCharacteristic(const std::string& uuid);
+
+ protected:
+
+  bt_gatt_h _handle;
+
+  std::vector<std::unique_ptr<BluetoothCharacteristic>> _characteristics;
+
+  BluetoothService(bt_gatt_h handle);
+
+  BluetoothService(const BluetoothService&) = default;
+
+  virtual ~BluetoothService();
 };
 
+
 class PrimaryService : public BluetoothService {
-  BluetoothDeviceController& _device;
 
-  std::vector<std::unique_ptr<SecondaryService>> _secondaryServices;
+public:
 
- public:
   PrimaryService(bt_gatt_h handle, BluetoothDeviceController& device);
 
   PrimaryService(const PrimaryService&) = default;
@@ -63,12 +65,17 @@ class PrimaryService : public BluetoothService {
   ServiceType getType() const noexcept override;
 
   SecondaryService* getSecondary(const std::string& uuid) noexcept;
+
+private:
+
+  BluetoothDeviceController& _device;
+
+  std::vector<std::unique_ptr<SecondaryService>> _secondaryServices;
 };
 
 class SecondaryService : public BluetoothService {
-  PrimaryService& _primaryService;
 
- public:
+public:
   SecondaryService(bt_gatt_h service_handle, PrimaryService& primaryService);
 
   SecondaryService(const SecondaryService&) = default;
@@ -84,6 +91,10 @@ class SecondaryService : public BluetoothService {
   ServiceType getType() const noexcept override;
 
   std::string primaryUUID() noexcept;
+  
+private:
+
+  PrimaryService& _primaryService;
 };
 
 }  // namespace btGatt

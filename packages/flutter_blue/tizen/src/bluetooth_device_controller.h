@@ -20,40 +20,18 @@ class NotificationsHandler;
 class BluetoothService;
 
 class BluetoothDeviceController {
-  /**
-   * @brief all attributes are depentent on this mutex
-   */
-
-  std::mutex operationM;
-
-  std::vector<proto::gen::BluetoothDevice> _protoBluetoothDevices;
-
-  std::vector<std::unique_ptr<btGatt::PrimaryService>> _services;
-
-  std::string _address;
-
-  std::atomic<bool> isConnecting = false;
-
-  std::atomic<bool> isDisconnecting = false;
-
-  NotificationsHandler& _notificationsHandler;
-
-  using requestMtuCallback =
-      std::function<void(bool, const BluetoothDeviceController&)>;
-
-  static inline SafeType<std::map<std::string, BluetoothDeviceController*>>
-      _activeDevices;
-
-  static inline SafeType<std::unordered_map<std::string, bt_gatt_client_h>>
-      gatt_clients;
 
  public:
+
   enum class State {
     CONNECTED,
     CONNECTING,
     DISCONNECTED,
     DISCONNECTING,
   };
+
+  using requestMtuCallback =
+      std::function<void(bool, const BluetoothDeviceController&)>;
 
   BluetoothDeviceController(
       const std::string& address,
@@ -105,6 +83,33 @@ class BluetoothDeviceController {
   void notifyDeviceState() const;
 
   const NotificationsHandler& cNotificationsHandler() const noexcept;
+
+
+private:
+
+  /**
+   * @brief all attributes are depentent on this mutex
+   */
+
+  std::mutex operationM;
+
+  std::vector<proto::gen::BluetoothDevice> _protoBluetoothDevices;
+
+  std::vector<std::unique_ptr<btGatt::PrimaryService>> _services;
+
+  std::string _address;
+
+  std::atomic<bool> isConnecting = false;
+
+  std::atomic<bool> isDisconnecting = false;
+
+  NotificationsHandler& _notificationsHandler;
+
+  static inline SafeType<std::map<std::string, BluetoothDeviceController*>>
+      _activeDevices;
+
+  static inline SafeType<std::unordered_map<std::string, bt_gatt_client_h>>
+      gatt_clients;
 };
 
 }  // namespace flutter_blue_tizen
