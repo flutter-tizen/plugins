@@ -7,7 +7,7 @@
 
 class VideoPlayerOptions {
  public:
-  VideoPlayerOptions()  {}
+  VideoPlayerOptions() {}
   ~VideoPlayerOptions() = default;
 
   VideoPlayerOptions(const VideoPlayerOptions &other) = default;

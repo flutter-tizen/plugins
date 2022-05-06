@@ -339,7 +339,7 @@ class PlusplayerWrapperProxy {
   bool Prepare(PlusplayerRef player);
 
   bool PrepareAsync(PlusplayerRef player);
-  
+
   bool Start(PlusplayerRef player);
 
   bool Stop(PlusplayerRef player);
