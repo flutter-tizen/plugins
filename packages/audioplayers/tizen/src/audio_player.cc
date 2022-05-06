@@ -62,7 +62,7 @@ TizenResult AudioPlayer::Play() {
         return TizenResult(ret, "player_start failed");
       }
       should_play_ = false;
-      StartPositionUpdates();
+      EmitPositionUpdates();
       break;
     }
     default:
@@ -342,6 +342,10 @@ TizenResult AudioPlayer::PreparePlayer() {
   return TizenResult();
 }
 
+void AudioPlayer::EmitPositionUpdates() {
+  ecore_main_loop_thread_safe_call_async(StartPositionUpdates, this);
+}
+
 TizenResult AudioPlayer::ResetPlayer() {
   player_state_e state;
   auto result = GetPlayerState(state);
@@ -413,7 +417,7 @@ void AudioPlayer::OnPrepared(void *data) {
           TizenResult(ret, "player_start failed").Message());
       return;
     }
-    player->StartPositionUpdates();
+    player->EmitPositionUpdates();
     player->should_play_ = false;
   }
 
@@ -457,14 +461,16 @@ void AudioPlayer::OnError(int code, void *data) {
   player->error_listener_(player->player_id_, "Player error: " + error);
 }
 
-void AudioPlayer::StartPositionUpdates() {
-  if (!timer_) {
+void AudioPlayer::StartPositionUpdates(void *data) {
+  auto *player = reinterpret_cast<AudioPlayer *>(data);
+  if (!player->timer_) {
     // The audioplayers app facing package expects position
     // update events to fire roughly every 200 milliseconds.
     const double kTimeInterval = 0.2;
-    timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, this);
-    if (!timer_) {
-      error_listener_(player_id_, "Failed to add postion update timer.");
+    player->timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, data);
+    if (!player->timer_) {
+      player->error_listener_(player->GetPlayerId(),
+                              "Failed to add postion update timer.");
     }
   }
 }

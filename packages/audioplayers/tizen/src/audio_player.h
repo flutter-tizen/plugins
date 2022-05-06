@@ -55,7 +55,7 @@ class AudioPlayer {
   // The player state should be idle before calling this function.
   TizenResult PreparePlayer();
   TizenResult ResetPlayer();
-  void StartPositionUpdates();
+  void EmitPositionUpdates();
   TizenResult GetPlayerState(player_state_e &out);
 
   static void OnPrepared(void *data);
@@ -63,6 +63,7 @@ class AudioPlayer {
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
+  static void StartPositionUpdates(void *data);
   static Eina_Bool OnPositionUpdate(void *data);
 
   player_h player_ = nullptr;
