@@ -49,22 +49,22 @@ private:
   std::string message_;
 };
 
-std::vector<u_int8_t> messageToVector(
+std::vector<u_int8_t> MessageToVector(
     const google::protobuf::MessageLite& message_lite) noexcept;
 
-std::string getGattValue(bt_gatt_h handle);
+std::string GetGattValue(bt_gatt_h handle);
 
-std::string getGattUUID(bt_gatt_h handle);
+std::string GetGattUUID(bt_gatt_h handle);
 
-bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid);
+bt_gatt_h GetGattService(bt_gatt_client_h handle, const std::string& uuid);
 
-std::string getGattClientAddress(bt_gatt_client_h handle);
+std::string GetGattClientAddress(bt_gatt_client_h handle);
 
-proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
+proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
     const BluetoothDeviceController& device,
     const std::vector<btGatt::PrimaryService*>& services);
 
-proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
+proto::gen::CharacteristicProperties GetProtoCharacteristicProperties(
     int properties);
 
 }  // namespace flutter_blue_tizen

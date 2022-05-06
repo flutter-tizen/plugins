@@ -37,48 +37,48 @@ class BluetoothManager {
 
   BluetoothManager(const BluetoothManager& bluetooth_manager) = delete;
 
-  void startBluetoothDeviceScanLE(const proto::gen::ScanSettings& scan_settings);
+  void StartBluetoothDeviceScanLE(const proto::gen::ScanSettings& scan_settings);
 
-  void stopBluetoothDeviceScanLE();
+  void StopBluetoothDeviceScanLE();
 
-  void connect(const proto::gen::ConnectRequest& conn_request);
+  void Connect(const proto::gen::ConnectRequest& conn_request);
 
-  void disconnect(const std::string& device_id);
+  void Disconnect(const std::string& device_id);
 
-  proto::gen::BluetoothState bluetoothState() const noexcept;
+  proto::gen::BluetoothState BluetoothState() const noexcept;
 
   std::vector<proto::gen::BluetoothDevice>
-  getConnectedProtoBluetoothDevices() noexcept;
+  GetConnectedProtoBluetoothDevices() noexcept;
 
   DevicesContainer& bluetoothDevices() noexcept;
 
-  void readCharacteristic(const proto::gen::ReadCharacteristicRequest& request);
+  void ReadCharacteristic(const proto::gen::ReadCharacteristicRequest& request);
 
-  void readDescriptor(const proto::gen::ReadDescriptorRequest& request);
+  void ReadDescriptor(const proto::gen::ReadDescriptorRequest& request);
 
-  void writeCharacteristic(
+  void WriteCharacteristic(
       const proto::gen::WriteCharacteristicRequest& request);
 
   void writeDescriptor(const proto::gen::WriteDescriptorRequest& request);
 
-  void setNotification(const proto::gen::SetNotificationRequest& request);
+  void SetNotification(const proto::gen::SetNotificationRequest& request);
 
-  u_int32_t getMtu(const std::string& device_id);
+  u_int32_t GetMtu(const std::string& device_id);
 
-  void requestMtu(const proto::gen::MtuSizeRequest& request);
+  void RequestMtu(const proto::gen::MtuSizeRequest& request);
 
-  btGatt::BluetoothCharacteristic* locateCharacteristic(
+  btGatt::BluetoothCharacteristic* LocateCharacteristic(
       const std::string& remote_id, const std::string& primary_uuid,
       const std::string& secondary_uuid, const std::string& characteristic_uuid);
 
-  btGatt::BluetoothDescriptor* locateDescriptor(
+  btGatt::BluetoothDescriptor* LocateDescriptor(
       const std::string& remote_id, const std::string& primary_uuid,
       const std::string& secondary_uuid, const std::string& characteristic_uuid,
       const std::string& descriptor_uuid);
 
-  static bool isBLEAvailable();
+  static bool IsBLEAvailable();
 
-  static void scanCallback(
+  static void ScanCallback(
       int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
       void* user_data) noexcept;
 
@@ -91,9 +91,9 @@ private:
   std::atomic<bool> scan_allow_duplicates_;
 };
 
-void decodeAdvertisementData(const char* packetsData,
-                             proto::gen::AdvertisementData& adv,
-                             int dataLen) noexcept;
+void DecodeAdvertisementData(const char* packetsData,
+                             proto::gen::AdvertisementData& advertisement,
+                             int data_len) noexcept;
 
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H

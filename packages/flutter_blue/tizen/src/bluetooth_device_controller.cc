@@ -33,7 +33,7 @@ const std::string& BluetoothDeviceController::cAddress() const noexcept {
   return address_;
 }
 
-State BluetoothDeviceController::state() const noexcept {
+State BluetoothDeviceController::GetState() const noexcept {
   if (is_connecting_ ^ is_disconnecting_) {
     return (is_connecting_ ? State::CONNECTING : State::DISCONNECTING);
   } else {
@@ -58,21 +58,21 @@ BluetoothDeviceController::cProtoBluetoothDevices() const noexcept {
 void BluetoothDeviceController::Connect(bool autoConnect) {
   std::unique_lock lock(operation_mutex_);
   autoConnect = false;  // TODO - fix. API fails when autoconnect==true
-  if (state() == State::DISCONNECTED) {
+  if (State() == State::DISCONNECTED) {
     is_connecting_ = true;
     int res = bt_gatt_connect(address_.c_str(), autoConnect);
     LOG_ERROR("bt_gatt_connect", get_error_message(res));
   } else {
     std::string mes =
-        "trying to connect to a device with state!=DISCONNECTED " +
-        std::to_string((int)state());
+        "trying to connect to a device with State!=DISCONNECTED " +
+        std::to_string((int)State());
     throw BTException(mes);
   }
 }
 
 void BluetoothDeviceController::Disconnect() {
   std::scoped_lock lock(operation_mutex_);
-  auto st = state();
+  auto st = State();
   if (st == State::CONNECTED) {
     services_.clear();
     is_disconnecting_ = true;
@@ -230,8 +230,8 @@ void BluetoothDeviceController::RequestMtu(u_int32_t mtu,
 void BluetoothDeviceController::NotifyDeviceState() const {
   proto::gen::DeviceStateResponse devState;
   devState.set_remote_id(cAddress());
-  devState.set_state(LocalToProtoDeviceState(state()));
-  notifications_handler_.notifyUIThread("DeviceState", devState);
+  devState.set_state(LocalToProtoDeviceState(State()));
+  notifications_handler_.NotifyUIThread("DeviceState", devState);
 }
 
 proto::gen::DeviceStateResponse_BluetoothDeviceState

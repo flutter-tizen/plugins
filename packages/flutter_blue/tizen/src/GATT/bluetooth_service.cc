@@ -91,7 +91,7 @@ std::string SecondaryService::PrimaryUuid() noexcept {
 }
 
 std::string BluetoothService::Uuid() const noexcept {
-  return getGattUUID(handle_);
+  return GetGattUUID(handle_);
 }
 
 BluetoothCharacteristic* BluetoothService::GetCharacteristic(

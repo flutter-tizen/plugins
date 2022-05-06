@@ -44,7 +44,7 @@ public:
       const std::function<void(bool success, const BluetoothCharacteristic&)>&
           callback);
 
-  int properties() const noexcept;
+  int Properties() const noexcept;
 
   void SetNotifyCallback(const NotifyCallback& callback);
 

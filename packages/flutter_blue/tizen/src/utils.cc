@@ -5,14 +5,14 @@
 
 namespace flutter_blue_tizen {
 
-std::vector<u_int8_t> messageToVector(
+std::vector<u_int8_t> MessageToVector(
     const google::protobuf::MessageLite& messageLite) noexcept {
   std::vector<u_int8_t> encoded(messageLite.ByteSizeLong());
   messageLite.SerializeToArray(encoded.data(), messageLite.ByteSizeLong());
   return encoded;
 }
 
-proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
+proto::gen::CharacteristicProperties GetProtoCharacteristicProperties(
     int properties) {
   proto::gen::CharacteristicProperties p;
   p.set_broadcast((properties & 0x01) != 0);
@@ -34,7 +34,7 @@ proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
  * @param handle
  * @return std::string
  */
-std::string getGattValue(bt_gatt_h handle) {
+std::string GetGattValue(bt_gatt_h handle) {
   std::string result = "";
   char* value = nullptr;
   int length = 0;
@@ -55,7 +55,7 @@ std::string getGattValue(bt_gatt_h handle) {
  * @param handle
  * @return std::string
  */
-std::string getGattUUID(bt_gatt_h handle) {
+std::string GetGattUUID(bt_gatt_h handle) {
   std::string result;
   char* uuid = nullptr;
   int res = bt_gatt_get_uuid(handle, &uuid);
@@ -67,7 +67,7 @@ std::string getGattUUID(bt_gatt_h handle) {
   return result;
 }
 
-std::string getGattClientAddress(bt_gatt_client_h handle) {
+std::string GetGattClientAddress(bt_gatt_client_h handle) {
   std::string result;
   char* address = nullptr;
   int res = bt_gatt_client_get_remote_address(handle, &address);
@@ -79,7 +79,7 @@ std::string getGattClientAddress(bt_gatt_client_h handle) {
   return result;
 }
 
-proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
+proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
     const BluetoothDeviceController& device,
     const std::vector<btGatt::PrimaryService*>& services) {
   proto::gen::DiscoverServicesResult res;
@@ -90,7 +90,7 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
   return res;
 }
 
-bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid) {
+bt_gatt_h GetGattService(bt_gatt_client_h handle, const std::string& uuid) {
   bt_gatt_h result;
   int res = bt_gatt_client_get_service(handle, uuid.c_str(), &result);
   LOG_ERROR("bt_gatt_client_get_service", get_error_message(res));

@@ -48,7 +48,7 @@ class BluetoothDeviceController {
 
   const std::string& cAddress() const noexcept;
 
-  State state() const noexcept;
+  State GetState() const noexcept;
 
   std::vector<proto::gen::BluetoothDevice>& ProtoBluetoothDevices() noexcept;
 

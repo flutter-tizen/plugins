@@ -38,7 +38,7 @@ BluetoothCharacteristic::ToProtoCharacteristic() const noexcept {
   proto.set_remote_id(service_.cDevice().cAddress());
   proto.set_uuid(Uuid());
   proto.set_allocated_properties(new proto::gen::CharacteristicProperties(
-      getProtoCharacteristicProperties(properties())));
+      GetProtoCharacteristicProperties(Properties())));
   proto.set_value(value());
   if (service_.GetType() == ServiceType::PRIMARY)
     proto.set_serviceuuid(service_.Uuid());
@@ -58,11 +58,11 @@ const BluetoothService& BluetoothCharacteristic::cService() const noexcept {
 }
 
 std::string BluetoothCharacteristic::Uuid() const noexcept {
-  return getGattUUID(handle_);
+  return GetGattUUID(handle_);
 }
 
 std::string BluetoothCharacteristic::value() const noexcept {
-  return getGattValue(handle_);
+  return GetGattValue(handle_);
 }
 
 BluetoothDescriptor* BluetoothCharacteristic::GetDescriptor(
@@ -149,7 +149,7 @@ void BluetoothCharacteristic::Write(
   if (res) throw BTException("could not write value to remote");
 }
 
-int BluetoothCharacteristic::properties() const noexcept {
+int BluetoothCharacteristic::Properties() const noexcept {
   auto prop = 0;
   auto res = bt_gatt_characteristic_get_properties(handle_, &prop);
   LOG_ERROR("bt_gatt_characteristic_get_properties", get_error_message(res));
@@ -158,7 +158,7 @@ int BluetoothCharacteristic::properties() const noexcept {
 
 void BluetoothCharacteristic::SetNotifyCallback(
     const NotifyCallback& callback) {
-  auto p = properties();
+  auto p = Properties();
   if (!(p & 0x30))
     throw BTException("cannot set callback! notify=0 && indicate=0");
 
@@ -191,7 +191,7 @@ void BluetoothCharacteristic::SetNotifyCallback(
 }
 
 void BluetoothCharacteristic::UnsetNotifyCallback() {
-  if (cService().cDevice().state() ==
+  if (cService().cDevice().GetState() ==
           BluetoothDeviceController::State::CONNECTED &&
       notify_callback_) {
     auto res = bt_gatt_client_unset_characteristic_value_changed_cb(handle_);

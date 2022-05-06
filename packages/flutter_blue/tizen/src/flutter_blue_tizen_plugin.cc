@@ -84,7 +84,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     if (method_call.method_name() == "isAvailable") {
       try {
         result->Success(
-            flutter::EncodableValue(bluetoothManager->isBLEAvailable()));
+            flutter::EncodableValue(bluetoothManager->IsBLEAvailable()));
 
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -100,12 +100,12 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "state") {
       result->Success(
-          flutter::EncodableValue(flutter_blue_tizen::messageToVector(
-              bluetoothManager->bluetoothState())));
+          flutter::EncodableValue(flutter_blue_tizen::MessageToVector(
+              bluetoothManager->BluetoothState())));
 
     } else if (method_call.method_name() == "isOn") {
       result->Success(flutter::EncodableValue(
-          (bluetoothManager->bluetoothState().state() ==
+          (bluetoothManager->BluetoothState().state() ==
            proto::gen::BluetoothState_State::BluetoothState_State_ON)));
 
     } else if (method_call.method_name() == "startScan") {
@@ -114,7 +114,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
       try {
         scanSettings.ParseFromArray(encoded.data(), encoded.size());
-        bluetoothManager->startBluetoothDeviceScanLE(scanSettings);
+        bluetoothManager->StartBluetoothDeviceScanLE(scanSettings);
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -122,7 +122,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "stopScan") {
       try {
-        bluetoothManager->stopBluetoothDeviceScanLE();
+        bluetoothManager->StopBluetoothDeviceScanLE();
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -130,14 +130,14 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "getConnectedDevices") {
       proto::gen::ConnectedDevicesResponse response;
-      auto p = bluetoothManager->getConnectedProtoBluetoothDevices();
+      auto p = bluetoothManager->GetConnectedProtoBluetoothDevices();
 
       for (auto& dev : p) {
         *response.add_devices() = std::move(dev);
       }
 
       result->Success(flutter::EncodableValue(
-          flutter_blue_tizen::messageToVector(response)));
+          flutter_blue_tizen::MessageToVector(response)));
 
     } else if (method_call.method_name() == "connect") {
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
@@ -145,7 +145,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
       try {
         connectRequest.ParseFromArray(encoded.data(), encoded.size());
-        bluetoothManager->connect(connectRequest);
+        bluetoothManager->Connect(connectRequest);
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -154,7 +154,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     } else if (method_call.method_name() == "disconnect") {
       std::string deviceID = std::get<std::string>(args);
       try {
-        bluetoothManager->disconnect(deviceID);
+        bluetoothManager->Disconnect(deviceID);
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -171,10 +171,10 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         proto::gen::DeviceStateResponse res;
         res.set_remote_id(device->cAddress());
         res.set_state(flutter_blue_tizen::BluetoothDeviceController::
-                          LocalToProtoDeviceState(device->state()));
+                          LocalToProtoDeviceState(device->GetState()));
 
         result->Success(
-            flutter::EncodableValue(flutter_blue_tizen::messageToVector(res)));
+            flutter::EncodableValue(flutter_blue_tizen::MessageToVector(res)));
       } else
         result->Error("device not available");
 
@@ -189,9 +189,9 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
         device->DiscoverServices();
         auto services = device->GetServices();
-        notificationsHandler.notifyUIThread(
+        notificationsHandler.NotifyUIThread(
             "DiscoverServicesResult",
-            flutter_blue_tizen::getProtoServiceDiscoveryResult(*device,
+            flutter_blue_tizen::GetProtoServiceDiscoveryResult(*device,
                                                                services));
       } else
         result->Error("device not available");
@@ -205,10 +205,10 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       if (it != bluetoothManager->bluetoothDevices().var_.end()) {
         auto& device = it->second;
 
-        auto protoServices = flutter_blue_tizen::getProtoServiceDiscoveryResult(
+        auto protoServices = flutter_blue_tizen::GetProtoServiceDiscoveryResult(
             *device, device->GetServices());
         result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::messageToVector(protoServices)));
+            flutter_blue_tizen::MessageToVector(protoServices)));
       } else
         result->Error("device not available");
 
@@ -217,7 +217,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       proto::gen::ReadCharacteristicRequest request;
       try {
         request.ParseFromArray(encoded.data(), encoded.size());
-        bluetoothManager->readCharacteristic(request);
+        bluetoothManager->ReadCharacteristic(request);
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -229,7 +229,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
       try {
         request.ParseFromArray(encoded.data(), encoded.size());
-        bluetoothManager->readDescriptor(request);
+        bluetoothManager->ReadDescriptor(request);
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -241,7 +241,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
       try {
         request.ParseFromArray(encoded.data(), encoded.size());
-        bluetoothManager->writeCharacteristic(request);
+        bluetoothManager->WriteCharacteristic(request);
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -264,7 +264,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
       try {
         request.ParseFromArray(encoded.data(), encoded.size());
-        bluetoothManager->setNotification(request);
+        bluetoothManager->SetNotification(request);
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -276,9 +276,9 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       try {
         proto::gen::MtuSizeResponse res;
         res.set_remote_id(deviceID);
-        res.set_mtu(bluetoothManager->getMtu(deviceID));
+        res.set_mtu(bluetoothManager->GetMtu(deviceID));
         result->Success(
-            flutter::EncodableValue(flutter_blue_tizen::messageToVector(res)));
+            flutter::EncodableValue(flutter_blue_tizen::MessageToVector(res)));
       } catch (const std::exception& e) {
         result->Error(e.what());
       }
@@ -289,7 +289,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
       try {
         req.ParseFromArray(encoded.data(), encoded.size());
-        bluetoothManager->requestMtu(req);
+        bluetoothManager->RequestMtu(req);
         result->Success(flutter::EncodableValue(NULL));
       } catch (const std::exception& e) {
         result->Error(e.what());

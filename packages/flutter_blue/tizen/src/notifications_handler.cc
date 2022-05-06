@@ -6,7 +6,7 @@ NotificationsHandler::NotificationsHandler(
     std::shared_ptr<MethodChannel> methodChannel)
     : method_channel_(methodChannel) {}
 
-auto NotificationsHandler::notifyUIThread(
+auto NotificationsHandler::NotifyUIThread(
     const std::string& method,
     const google::protobuf::MessageLite& mess) const noexcept -> void {
   std::vector<uint8_t> encodable(mess.ByteSizeLong());
