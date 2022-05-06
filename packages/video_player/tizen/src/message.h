@@ -1,5 +1,5 @@
-#ifndef VIDEO_PLAYER_MESSAGE_H_
-#define VIDEO_PLAYER_MESSAGE_H_
+#ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_MESSAGE_H_
+#define FLUTTER_PLUGIN_VIDEO_PLAYER_MESSAGE_H_
 
 #include <flutter/binary_messenger.h>
 #include <flutter/encodable_value.h>
@@ -16,13 +16,13 @@ class TextureMessage {
   TextureMessage(TextureMessage const &) = default;
   TextureMessage &operator=(TextureMessage const &) = default;
 
-  long getTextureId() const;
-  void setTextureId(long textureId);
+  int64_t getTextureId() const;
+  void setTextureId(int64_t textureId);
   flutter::EncodableValue toMap();
   static TextureMessage fromMap(const flutter::EncodableValue &value);
 
  private:
-  long textureId_;
+  int64_t textureId_;
 };
 
 class CreateMessage {
@@ -57,15 +57,15 @@ class LoopingMessage {
   LoopingMessage(LoopingMessage const &) = default;
   LoopingMessage &operator=(LoopingMessage const &) = default;
 
-  long getTextureId() const;
-  void setTextureId(long textureId);
+  int64_t getTextureId() const;
+  void setTextureId(int64_t textureId);
   bool getIsLooping() const;
   void setIsLooping(bool isLooping);
   flutter::EncodableValue toMap();
   static LoopingMessage fromMap(const flutter::EncodableValue &value);
 
  private:
-  long textureId_;
+  int64_t textureId_;
   bool isLooping_;
 };
 
@@ -76,15 +76,15 @@ class VolumeMessage {
   VolumeMessage(VolumeMessage const &) = default;
   VolumeMessage &operator=(VolumeMessage const &) = default;
 
-  long getTextureId() const;
-  void setTextureId(long textureId);
+  int64_t getTextureId() const;
+  void setTextureId(int64_t textureId);
   double getVolume() const;
   void setVolume(double volume);
   flutter::EncodableValue toMap();
   static VolumeMessage fromMap(const flutter::EncodableValue &value);
 
  private:
-  long textureId_;
+  int64_t textureId_;
   double volume_;
 };
 
@@ -95,15 +95,15 @@ class PlaybackSpeedMessage {
   PlaybackSpeedMessage(PlaybackSpeedMessage const &) = default;
   PlaybackSpeedMessage &operator=(PlaybackSpeedMessage const &) = default;
 
-  long getTextureId() const;
-  void setTextureId(long textureId);
+  int64_t getTextureId() const;
+  void setTextureId(int64_t textureId);
   double getSpeed() const;
   void setSpeed(double speed);
   flutter::EncodableValue toMap();
   static PlaybackSpeedMessage fromMap(const flutter::EncodableValue &value);
 
  private:
-  long textureId_;
+  int64_t textureId_;
   double speed_;
 };
 
@@ -114,16 +114,16 @@ class PositionMessage {
   PositionMessage(PositionMessage const &) = default;
   PositionMessage &operator=(PositionMessage const &) = default;
 
-  long getTextureId() const;
-  void setTextureId(long textureId);
-  long getPosition() const;
-  void setPosition(long position);
+  int64_t getTextureId() const;
+  void setTextureId(int64_t textureId);
+  int64_t getPosition() const;
+  void setPosition(int64_t position);
   flutter::EncodableValue toMap();
   static PositionMessage fromMap(const flutter::EncodableValue &value);
 
  private:
-  long textureId_;
-  long position_;
+  int64_t textureId_;
+  int64_t position_;
 };
 
 class MixWithOthersMessage {
@@ -142,10 +142,10 @@ class MixWithOthersMessage {
   bool mixWithOthers_;
 };
 
-using SeekCompletedCb = std::function<void()>;
-
 class VideoPlayerApi {
  public:
+  using SeekCompletedCallback = std::function<void()>;
+
   virtual void initialize() = 0;
   virtual TextureMessage create(const CreateMessage &createMsg) = 0;
   virtual void dispose(const TextureMessage &textureMsg) = 0;
@@ -156,13 +156,12 @@ class VideoPlayerApi {
   virtual void pause(const TextureMessage &textureMsg) = 0;
   virtual PositionMessage position(const TextureMessage &textureMsg) = 0;
   virtual void seekTo(const PositionMessage &positionMsg,
-                      const SeekCompletedCb &onSeekCompleted) = 0;
+                      const SeekCompletedCallback &onSeekCompleted) = 0;
   virtual void setMixWithOthers(
       const MixWithOthersMessage &mixWithOthersMsg) = 0;
 
-  static void setup(flutter::BinaryMessenger *binaryMessenger,
-                    VideoPlayerApi *api);
-  static flutter::EncodableValue wrapError(const VideoPlayerError &error);
+  static void SetUp(flutter::BinaryMessenger *messenger, VideoPlayerApi *api);
+  static flutter::EncodableValue WrapError(const VideoPlayerError &error);
 };
 
-#endif  // VIDEO_PLAYER_MESSAGE_H_
+#endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_MESSAGE_H_

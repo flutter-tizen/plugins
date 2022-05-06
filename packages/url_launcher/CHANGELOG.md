@@ -1,3 +1,9 @@
+## 2.1.1
+
+* Update url_launcher to 6.1.0.
+* Update url_launcher_platform_interface to 2.0.5.
+* Update the example app and integration_test.
+
 ## 2.1.0
 
 * Update url_launcher to 6.0.17.
