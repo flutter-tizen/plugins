@@ -60,10 +60,10 @@ void BluetoothManager::SetNotification(
     characteristic->UnsetNotifyCallback();
 }
 
-u_int32_t BluetoothManager::GetMtu(const std::string& deviceID) {
+uint32_t BluetoothManager::GetMtu(const std::string& deviceID) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   auto device = bluetooth_devices_.var_.find(deviceID)->second;
-  if (!device) throw BTException("could not find device of id=" + deviceID);
+  if (!device) throw BtException("could not find device of id=" + deviceID);
 
   return device->GetMtu();
 }
@@ -71,7 +71,7 @@ u_int32_t BluetoothManager::GetMtu(const std::string& deviceID) {
 void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
   auto device = bluetooth_devices_.var_.find(request.remote_id())->second;
   if (!device)
-    throw BTException("could not find device of id=" + request.remote_id());
+    throw BtException("could not find device of id=" + request.remote_id());
 
   device->RequestMtu(request.mtu(), [](auto status, auto& bluetoothDevice) {
     proto::gen::MtuSizeResponse res;
@@ -102,7 +102,7 @@ btGatt::BluetoothCharacteristic* BluetoothManager::LocateCharacteristic(
       return service->GetCharacteristic(characteristicUUID);
     }
   }
-  throw BTException("could not locate characteristic " + characteristicUUID);
+  throw BtException("could not locate characteristic " + characteristicUUID);
 }
 
 btGatt::BluetoothDescriptor* BluetoothManager::LocateDescriptor(
@@ -114,14 +114,14 @@ btGatt::BluetoothDescriptor* BluetoothManager::LocateDescriptor(
                         ->GetDescriptor(descriptorUUID);
   if (descriptor) return descriptor;
 
-  throw BTException("could not locate descriptor " + descriptorUUID);
+  throw BtException("could not locate descriptor " + descriptorUUID);
 }
 
 bool BluetoothManager::IsBLEAvailable() {
   bool state = false;
   auto res = system_info_get_platform_bool(
       "http://tizen.org/feature/network.bluetooth.le", &state);
-  if (res) throw BTException(res, "system_info_get_platform_bool");
+  if (res) throw BtException(res, "system_info_get_platform_bool");
 
   return state;
 }
@@ -153,7 +153,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
   auto res = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
   LOG_ERROR("bt_adapter_le_set_scan_mode", get_error_message(res));
 
-  if (res) throw BTException(res, "bt_adapter_le_set_scan_mode");
+  if (res) throw BtException(res, "bt_adapter_le_set_scan_mode");
 
   int uuidCount = scanSettings.service_uuids_size();
   std::vector<bt_scan_filter_h> filters(uuidCount);
@@ -163,7 +163,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
     res = bt_adapter_le_scan_filter_create(&filters[i]);
 
     LOG_ERROR("bt_adapter_le_scan_filter_create", get_error_message(res));
-    if (res) throw BTException(res, "bt_adapter_le_scan_filter_create");
+    if (res) throw BtException(res, "bt_adapter_le_scan_filter_create");
 
     res =
         bt_adapter_le_scan_filter_set_device_address(filters[i], uuid.c_str());
@@ -172,22 +172,22 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
               get_error_message(res));
 
     if (res)
-      throw BTException(res, "bt_adapter_le_scan_filter_set_device_address");
+      throw BtException(res, "bt_adapter_le_scan_filter_set_device_address");
   }
 
   if (!res) {
     res = bt_adapter_le_start_scan(&BluetoothManager::ScanCallback, this);
     LOG_ERROR("bt_adapter_le_start_scan", get_error_message(res));
-    if (res) throw BTException(res, "bt_adapter_le_start_scan");
+    if (res) throw BtException(res, "bt_adapter_le_start_scan");
   } else {
-    throw BTException(res, "cannot start scan");
+    throw BtException(res, "cannot start scan");
   }
 
   for (auto& f : filters) {
     res = bt_adapter_le_scan_filter_destroy(&f);
     LOG_ERROR("bt_adapter_le_scan_filter_destroy", get_error_message(res));
 
-    if (res) throw BTException(res, "bt_adapter_le_scan_filter_destroy");
+    if (res) throw BtException(res, "bt_adapter_le_scan_filter_destroy");
   }
 }
 
@@ -264,7 +264,7 @@ void BluetoothManager::Connect(const proto::gen::ConnectRequest& connRequest) {
   if (device)
     device->Connect(connRequest.android_auto_connect());
   else
-    throw BTException("device not found!");
+    throw BtException("device not found!");
 }
 
 void BluetoothManager::Disconnect(const std::string& deviceID) {
@@ -273,7 +273,7 @@ void BluetoothManager::Disconnect(const std::string& deviceID) {
   if (device)
     device->Disconnect();
   else
-    throw BTException("device not found!");
+    throw BtException("device not found!");
 }
 
 std::vector<proto::gen::BluetoothDevice>

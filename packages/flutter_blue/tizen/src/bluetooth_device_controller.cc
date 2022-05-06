@@ -66,7 +66,7 @@ void BluetoothDeviceController::Connect(bool autoConnect) {
     std::string mes =
         "trying to connect to a device with State!=DISCONNECTED " +
         std::to_string((int)State());
-    throw BTException(mes);
+    throw BtException(mes);
   }
 }
 
@@ -95,7 +95,7 @@ bt_gatt_client_h BluetoothDeviceController::GetGattClient(
     if ((res == BT_ERROR_NONE || res == BT_ERROR_ALREADY_DONE) && client) {
       gatt_clients_.var_.emplace(address, client);
     } else
-      throw BTException(res, "bt_gatt_client_create");
+      throw BtException(res, "bt_gatt_client_create");
   } else {
     client = it->second;
   }
@@ -185,16 +185,16 @@ void BluetoothDeviceController::ConnectionStateCallback(
   }
 }
 
-u_int32_t BluetoothDeviceController::GetMtu() const {
-  u_int32_t mtu = -1;
+uint32_t BluetoothDeviceController::GetMtu() const {
+  uint32_t mtu = -1;
   auto res = bt_gatt_client_get_att_mtu(GetGattClient(address_), &mtu);
   LOG_ERROR("bt_gatt_client_get_att_mtu", get_error_message(res));
 
-  if (res) throw BTException(res, "could not get mtu of the device!");
+  if (res) throw BtException(res, "could not get mtu of the device!");
   return mtu;
 }
 
-void BluetoothDeviceController::RequestMtu(u_int32_t mtu,
+void BluetoothDeviceController::RequestMtu(uint32_t mtu,
                                            const requestMtuCallback& callback) {
   struct Scope {
     const std::string device_address;
@@ -218,13 +218,13 @@ void BluetoothDeviceController::RequestMtu(u_int32_t mtu,
 
   LOG_ERROR("bt_gatt_client_set_att_mtu_changed_cb", get_error_message(res));
 
-  if (res) throw BTException(res, "bt_gatt_client_set_att_mtu_changed_cb");
+  if (res) throw BtException(res, "bt_gatt_client_set_att_mtu_changed_cb");
 
   res = bt_gatt_client_request_att_mtu_change(GetGattClient(address_), mtu);
 
   LOG_ERROR("bt_gatt_client_request_att_mtu_change", get_error_message(res));
 
-  if (res) throw BTException(res, "bt_gatt_client_request_att_mtu_change");
+  if (res) throw BtException(res, "bt_gatt_client_request_att_mtu_change");
 }
 
 void BluetoothDeviceController::NotifyDeviceState() const {

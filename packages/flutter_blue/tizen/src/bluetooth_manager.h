@@ -63,7 +63,7 @@ class BluetoothManager {
 
   void SetNotification(const proto::gen::SetNotificationRequest& request);
 
-  u_int32_t GetMtu(const std::string& device_id);
+  uint32_t GetMtu(const std::string& device_id);
 
   void RequestMtu(const proto::gen::MtuSizeRequest& request);
 

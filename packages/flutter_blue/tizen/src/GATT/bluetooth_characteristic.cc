@@ -27,7 +27,7 @@ BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
         return true;
       },
       this);
-  if (res) throw BTException(res, "bt_gatt_characteristic_foreach_descriptors");
+  if (res) throw BtException(res, "bt_gatt_characteristic_foreach_descriptors");
   std::scoped_lock lock(active_characteristics_.mutex_);
   active_characteristics_.var_[Uuid()] = this;
 }
@@ -98,7 +98,7 @@ void BluetoothCharacteristic::Read(
       scope);
 
   LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
-  if (res) throw BTException(res, "could not read characteristic");
+  if (res) throw BtException(res, "could not read characteristic");
 }
 
 void BluetoothCharacteristic::Write(
@@ -116,13 +116,13 @@ void BluetoothCharacteristic::Write(
   LOG_ERROR("bt_gatt_characteristic_set_write_type", get_error_message(res));
 
   if (res)
-    throw BTException(res,
+    throw BtException(res,
                       "could not set write type to characteristic " + Uuid());
 
   res = bt_gatt_set_value(handle_, value.c_str(), value.size());
   LOG_ERROR("bt_gatt_set_value", get_error_message(res));
 
-  if (res) throw BTException(res, "could not set value");
+  if (res) throw BtException(res, "could not set value");
 
   Scope* scope = new Scope{callback, Uuid()};
 
@@ -146,7 +146,7 @@ void BluetoothCharacteristic::Write(
       scope);
   LOG_ERROR("bt_gatt_client_write_value", get_error_message(res));
 
-  if (res) throw BTException("could not write value to remote");
+  if (res) throw BtException("could not write value to remote");
 }
 
 int BluetoothCharacteristic::Properties() const noexcept {
@@ -160,7 +160,7 @@ void BluetoothCharacteristic::SetNotifyCallback(
     const NotifyCallback& callback) {
   auto p = Properties();
   if (!(p & 0x30))
-    throw BTException("cannot set callback! notify=0 && indicate=0");
+    throw BtException("cannot set callback! notify=0 && indicate=0");
 
   UnsetNotifyCallback();
   notify_callback_ = std::make_unique<NotifyCallback>(callback);
@@ -186,7 +186,7 @@ void BluetoothCharacteristic::SetNotifyCallback(
   LOG_ERROR("bt_gatt_client_set_characteristic_value_changed_cb",
             get_error_message(res));
   if (res)
-    throw BTException(res,
+    throw BtException(res,
                       "bt_gatt_client_set_characteristic_value_changed_cb");
 }
 

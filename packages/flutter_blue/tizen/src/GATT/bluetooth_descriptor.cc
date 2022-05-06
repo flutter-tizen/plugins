@@ -59,7 +59,7 @@ void BluetoothDescriptor::Read(
       scope);
 
   LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
-  if (res) throw BTException("could not read descriptor");
+  if (res) throw BtException("could not read descriptor");
 }
 
 void BluetoothDescriptor::Write(
@@ -74,7 +74,7 @@ void BluetoothDescriptor::Write(
   int res = bt_gatt_set_value(handle_, value.c_str(), value.size());
   LOG_ERROR("bt_gatt_set_value", get_error_message(res));
 
-  if (res) throw BTException("could not set value");
+  if (res) throw BtException("could not set value");
 
   auto scope = new Scope{callback, Uuid()};  // unfortunately it requires raw
                                              // ptr
@@ -100,7 +100,7 @@ void BluetoothDescriptor::Write(
 
   LOG_ERROR("bt_gatt_client_write_value", get_error_message(res));
 
-  if (res) throw BTException("could not write value to remote");
+  if (res) throw BtException("could not write value to remote");
 }
 
 const BluetoothCharacteristic& BluetoothDescriptor::cCharacteristic()

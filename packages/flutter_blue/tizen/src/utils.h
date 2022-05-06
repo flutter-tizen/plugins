@@ -35,12 +35,12 @@ struct SafeType {
   SafeType() : var_(T()) {}
 };
 
-class BTException : public std::exception {
+class BtException : public std::exception {
  public:
-  BTException(const std::string& message);
-  BTException(const int tizen_error, const std::string& message);
+  BtException(const std::string& message);
+  BtException(const int tizen_error, const std::string& message);
 
-  BTException(const int tizen_error);
+  BtException(const int tizen_error);
 
   const char* what() const noexcept override;
 
@@ -49,7 +49,7 @@ private:
   std::string message_;
 };
 
-std::vector<u_int8_t> MessageToVector(
+std::vector<uint8_t> MessageToVector(
     const google::protobuf::MessageLite& message_lite) noexcept;
 
 std::string GetGattValue(bt_gatt_h handle);

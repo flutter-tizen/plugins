@@ -5,9 +5,9 @@
 
 namespace flutter_blue_tizen {
 
-std::vector<u_int8_t> MessageToVector(
+std::vector<uint8_t> MessageToVector(
     const google::protobuf::MessageLite& messageLite) noexcept {
-  std::vector<u_int8_t> encoded(messageLite.ByteSizeLong());
+  std::vector<uint8_t> encoded(messageLite.ByteSizeLong());
   messageLite.SerializeToArray(encoded.data(), messageLite.ByteSizeLong());
   return encoded;
 }
@@ -98,14 +98,14 @@ bt_gatt_h GetGattService(bt_gatt_client_h handle, const std::string& uuid) {
   return result;
 }
 
-BTException::BTException(const std::string& mess) : message_(mess) {}
+BtException::BtException(const std::string& mess) : message_(mess) {}
 
-BTException::BTException(const int tizen_error, const std::string& mess)
+BtException::BtException(const int tizen_error, const std::string& mess)
     : message_(std::string(get_error_message(tizen_error)) + ": " + mess) {}
 
-BTException::BTException(const int tizen_error)
+BtException::BtException(const int tizen_error)
     : message_(get_error_message(tizen_error)) {}
 
-const char* BTException::what() const noexcept { return message_.c_str(); }
+const char* BtException::what() const noexcept { return message_.c_str(); }
 
 }  // namespace flutter_blue_tizen

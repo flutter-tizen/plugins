@@ -76,9 +76,9 @@ class BluetoothDeviceController {
 
   btGatt::PrimaryService* GetService(const std::string& uuid) noexcept;
 
-  u_int32_t GetMtu() const;
+  uint32_t GetMtu() const;
 
-  void RequestMtu(u_int32_t mtu, const requestMtuCallback& callback);
+  void RequestMtu(uint32_t mtu, const requestMtuCallback& callback);
 
   void NotifyDeviceState() const;
 
