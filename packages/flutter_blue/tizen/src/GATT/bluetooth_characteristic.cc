@@ -53,7 +53,7 @@ BluetoothCharacteristic::toProtoCharacteristic() const noexcept {
   return proto;
 }
 
-BluetoothService const& BluetoothCharacteristic::cService() const noexcept {
+const BluetoothService& BluetoothCharacteristic::cService() const noexcept {
   return service_;
 }
 

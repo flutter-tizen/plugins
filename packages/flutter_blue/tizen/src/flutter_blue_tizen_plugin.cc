@@ -86,7 +86,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         result->Success(
             flutter::EncodableValue(bluetoothManager->isBLEAvailable()));
 
-      } catch (std::exception const& e) {
+      } catch (const std::exception& e) {
         result->Error(e.what());
       }
 
@@ -116,7 +116,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         scanSettings.ParseFromArray(encoded.data(), encoded.size());
         bluetoothManager->startBluetoothDeviceScanLE(scanSettings);
         result->Success(flutter::EncodableValue(NULL));
-      } catch (std::exception const& e) {
+      } catch (const std::exception& e) {
         result->Error(e.what());
       }
 
@@ -124,7 +124,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       try {
         bluetoothManager->stopBluetoothDeviceScanLE();
         result->Success(flutter::EncodableValue(NULL));
-      } catch (std::exception const& e) {
+      } catch (const std::exception& e) {
         result->Error(e.what());
       }
 

@@ -26,7 +26,7 @@ class BluetoothService {
 
   virtual proto::gen::BluetoothService toProtoService() const noexcept = 0;
 
-  virtual BluetoothDeviceController const& cDevice() const noexcept = 0;
+  virtual const BluetoothDeviceController& cDevice() const noexcept = 0;
 
   virtual ServiceType getType() const noexcept = 0;
 
@@ -58,7 +58,7 @@ public:
 
   ~PrimaryService();
 
-  BluetoothDeviceController const& cDevice() const noexcept override;
+  const BluetoothDeviceController& cDevice() const noexcept override;
 
   proto::gen::BluetoothService toProtoService() const noexcept override;
 
@@ -82,9 +82,9 @@ public:
 
   ~SecondaryService();
 
-  BluetoothDeviceController const& cDevice() const noexcept override;
+  const BluetoothDeviceController& cDevice() const noexcept override;
 
-  PrimaryService const& cPrimary() const noexcept;
+  const PrimaryService& cPrimary() const noexcept;
 
   proto::gen::BluetoothService toProtoService() const noexcept override;
 

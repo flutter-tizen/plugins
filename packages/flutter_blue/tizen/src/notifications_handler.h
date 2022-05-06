@@ -13,8 +13,8 @@ class NotificationsHandler {
   NotificationsHandler(std::shared_ptr<MethodChannel> method_channel);
 
   void notifyUIThread(
-      std::string const& method,
-      google::protobuf::MessageLite const& encodable) const noexcept;
+      const std::string& method,
+      const google::protobuf::MessageLite& encodable) const noexcept;
 
 private:
 

@@ -50,7 +50,7 @@ BluetoothDeviceController::protoBluetoothDevices() noexcept {
   return proto_bluetoothDevices_;
 }
 
-std::vector<proto::gen::BluetoothDevice> const&
+const std::vector<proto::gen::BluetoothDevice>&
 BluetoothDeviceController::cProtoBluetoothDevices() const noexcept {
   return proto_bluetoothDevices_;
 }
@@ -82,7 +82,7 @@ void BluetoothDeviceController::disconnect() {
 }
 
 bt_gatt_client_h BluetoothDeviceController::getGattClient(
-    std::string const& address) {
+    const std::string& address) {
   std::scoped_lock lock(gatt_clients_.mutex_);
 
   auto it = gatt_clients_.var_.find(address);
@@ -103,7 +103,7 @@ bt_gatt_client_h BluetoothDeviceController::getGattClient(
 }
 
 void BluetoothDeviceController::destroyGattClientIfExists(
-    std::string const& address) noexcept {
+    const std::string& address) noexcept {
   std::scoped_lock lock(gatt_clients_.mutex_);
   auto it = gatt_clients_.var_.find(address);
   if (it != gatt_clients_.var_.end()) {
@@ -146,14 +146,14 @@ BluetoothDeviceController::getServices() noexcept {
 }
 
 btGatt::PrimaryService* BluetoothDeviceController::getService(
-    std::string const& uuid) noexcept {
+    const std::string& uuid) noexcept {
   for (auto& s : services_) {
     if (s->UUID() == uuid) return s.get();
   }
   return nullptr;
 }
 
-NotificationsHandler const& BluetoothDeviceController::cNotificationsHandler()
+const NotificationsHandler& BluetoothDeviceController::cNotificationsHandler()
     const noexcept {
   return notifications_handler_;
 }
@@ -236,7 +236,7 @@ void BluetoothDeviceController::notifyDeviceState() const {
 
 proto::gen::DeviceStateResponse_BluetoothDeviceState
 BluetoothDeviceController::localToProtoDeviceState(
-    BluetoothDeviceController::State const& s) {
+    const BluetoothDeviceController::State s) {
   using State = BluetoothDeviceController::State;
   switch (s) {
     case State::CONNECTED:

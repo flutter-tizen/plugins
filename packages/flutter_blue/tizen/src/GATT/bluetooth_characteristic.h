@@ -28,13 +28,13 @@ public:
 
   proto::gen::BluetoothCharacteristic toProtoCharacteristic() const noexcept;
 
-  BluetoothService const& cService() const noexcept;
+  const BluetoothService& cService() const noexcept;
 
   std::string UUID() const noexcept;
 
   std::string value() const noexcept;
 
-  BluetoothDescriptor* getDescriptor(std::string const& uuid);
+  BluetoothDescriptor* getDescriptor(const std::string& uuid);
 
   void read(
       const std::function<void(const BluetoothCharacteristic&)>& callback);

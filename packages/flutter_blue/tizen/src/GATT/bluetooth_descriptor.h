@@ -33,7 +33,7 @@ class BluetoothDescriptor {
              const std::function<void(bool success,
                                       const BluetoothDescriptor&)>& callback);
 
-  BluetoothCharacteristic const& cCharacteristic() const noexcept;
+  const BluetoothCharacteristic& cCharacteristic() const noexcept;
 
 private:
 

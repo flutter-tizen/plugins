@@ -57,7 +57,7 @@ class BluetoothManager {
   void readDescriptor(const proto::gen::ReadDescriptorRequest& request);
 
   void writeCharacteristic(
-      proto::gen::WriteCharacteristicRequest const& request);
+      const proto::gen::WriteCharacteristicRequest& request);
 
   void writeDescriptor(const proto::gen::WriteDescriptorRequest& request);
 

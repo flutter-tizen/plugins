@@ -28,7 +28,7 @@ struct SafeType {
 
   std::mutex mutex_;
 
-  SafeType(T const& t) : var_(t) {}
+  SafeType(const T& t) : var_(t) {}
 
   SafeType(T&& t) : var_(std::move(t)) {}
 
@@ -37,8 +37,8 @@ struct SafeType {
 
 class BTException : public std::exception {
  public:
-  BTException(std::string const& message);
-  BTException(const int tizen_error, std::string const& message);
+  BTException(const std::string& message);
+  BTException(const int tizen_error, const std::string& message);
 
   BTException(const int tizen_error);
 
@@ -50,7 +50,7 @@ private:
 };
 
 std::vector<u_int8_t> messageToVector(
-    google::protobuf::MessageLite const& message_lite) noexcept;
+    const google::protobuf::MessageLite& message_lite) noexcept;
 
 std::string getGattValue(bt_gatt_h handle);
 
@@ -61,8 +61,8 @@ bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid);
 std::string getGattClientAddress(bt_gatt_client_h handle);
 
 proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
-    BluetoothDeviceController const& device,
-    std::vector<btGatt::PrimaryService*> const& services);
+    const BluetoothDeviceController& device,
+    const std::vector<btGatt::PrimaryService*>& services);
 
 proto::gen::CharacteristicProperties getProtoCharacteristicProperties(
     int properties);

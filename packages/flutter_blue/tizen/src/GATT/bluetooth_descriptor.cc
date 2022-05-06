@@ -103,7 +103,7 @@ void BluetoothDescriptor::write(
   if (res) throw BTException("could not write value to remote");
 }
 
-BluetoothCharacteristic const& BluetoothDescriptor::cCharacteristic()
+const BluetoothCharacteristic& BluetoothDescriptor::cCharacteristic()
     const noexcept {
   return characteristic_;
 }

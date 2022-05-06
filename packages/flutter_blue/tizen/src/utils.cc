@@ -6,7 +6,7 @@
 namespace flutter_blue_tizen {
 
 std::vector<u_int8_t> messageToVector(
-    google::protobuf::MessageLite const& messageLite) noexcept {
+    const google::protobuf::MessageLite& messageLite) noexcept {
   std::vector<u_int8_t> encoded(messageLite.ByteSizeLong());
   messageLite.SerializeToArray(encoded.data(), messageLite.ByteSizeLong());
   return encoded;
@@ -80,8 +80,8 @@ std::string getGattClientAddress(bt_gatt_client_h handle) {
 }
 
 proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
-    BluetoothDeviceController const& device,
-    std::vector<btGatt::PrimaryService*> const& services) {
+    const BluetoothDeviceController& device,
+    const std::vector<btGatt::PrimaryService*>& services) {
   proto::gen::DiscoverServicesResult res;
   for (const auto& s : services) {
     *res.add_services() = s->toProtoService();
@@ -98,9 +98,9 @@ bt_gatt_h getGattService(bt_gatt_client_h handle, const std::string& uuid) {
   return result;
 }
 
-BTException::BTException(std::string const& mess) : message_(mess) {}
+BTException::BTException(const std::string& mess) : message_(mess) {}
 
-BTException::BTException(const int tizen_error, std::string const& mess)
+BTException::BTException(const int tizen_error, const std::string& mess)
     : message_(std::string(get_error_message(tizen_error)) + ": " + mess) {}
 
 BTException::BTException(const int tizen_error)

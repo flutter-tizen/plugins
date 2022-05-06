@@ -41,7 +41,7 @@ SecondaryService::SecondaryService(bt_gatt_h service_handle,
                                    PrimaryService& primaryService)
     : BluetoothService(service_handle), primaryService_(primaryService) {}
 
-BluetoothDeviceController const& PrimaryService::cDevice() const noexcept {
+const BluetoothDeviceController& PrimaryService::cDevice() const noexcept {
   return device_;
 }
 
@@ -63,11 +63,11 @@ ServiceType PrimaryService::getType() const noexcept {
   return ServiceType::PRIMARY;
 }
 
-BluetoothDeviceController const& SecondaryService::cDevice() const noexcept {
+const BluetoothDeviceController& SecondaryService::cDevice() const noexcept {
   return primaryService_.cDevice();
 }
 
-PrimaryService const& SecondaryService::cPrimary() const noexcept {
+const PrimaryService& SecondaryService::cPrimary() const noexcept {
   return primaryService_;
 }
 
