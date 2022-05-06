@@ -8,9 +8,9 @@ NotificationsHandler::NotificationsHandler(
 
 auto NotificationsHandler::NotifyUIThread(
     const std::string& method,
-    const google::protobuf::MessageLite& mess) const noexcept -> void {
-  std::vector<uint8_t> encodable(mess.ByteSizeLong());
-  mess.SerializeToArray(encodable.data(), mess.ByteSizeLong());
+    const google::protobuf::MessageLite& message) const noexcept -> void {
+  std::vector<uint8_t> encodable(message.ByteSizeLong());
+  message.SerializeToArray(encodable.data(), message.ByteSizeLong());
   method_channel_->InvokeMethod(
       method, std::make_unique<flutter::EncodableValue>(encodable));
 }

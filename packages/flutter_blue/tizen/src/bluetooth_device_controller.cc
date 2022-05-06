@@ -63,10 +63,10 @@ void BluetoothDeviceController::Connect(bool autoConnect) {
     int res = bt_gatt_connect(address_.c_str(), autoConnect);
     LOG_ERROR("bt_gatt_connect", get_error_message(res));
   } else {
-    std::string mes =
+    std::string message =
         "trying to connect to a device with State!=DISCONNECTED " +
         std::to_string((int)State());
-    throw BtException(mes);
+    throw BtException(message);
   }
 }
 
@@ -141,14 +141,14 @@ void BluetoothDeviceController::DiscoverServices() {
 std::vector<btGatt::PrimaryService*>
 BluetoothDeviceController::GetServices() noexcept {
   auto result = std::vector<btGatt::PrimaryService*>();
-  for (auto& s : services_) result.emplace_back(s.get());
+  for (auto& service : services_) result.emplace_back(service.get());
   return result;
 }
 
 btGatt::PrimaryService* BluetoothDeviceController::GetService(
     const std::string& uuid) noexcept {
-  for (auto& s : services_) {
-    if (s->Uuid() == uuid) return s.get();
+  for (auto& service : services_) {
+    if (service->Uuid() == uuid) return service.get();
   }
   return nullptr;
 }
@@ -236,9 +236,9 @@ void BluetoothDeviceController::NotifyDeviceState() const {
 
 proto::gen::DeviceStateResponse_BluetoothDeviceState
 BluetoothDeviceController::LocalToProtoDeviceState(
-    const BluetoothDeviceController::State s) {
+    const BluetoothDeviceController::State state) {
   using State = BluetoothDeviceController::State;
-  switch (s) {
+  switch (state) {
     case State::CONNECTED:
       return proto::gen::DeviceStateResponse_BluetoothDeviceState_CONNECTED;
     case State::CONNECTING:

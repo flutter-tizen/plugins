@@ -17,9 +17,7 @@ class BluetoothService;
 class BluetoothDescriptor;
 
 class BluetoothCharacteristic {
-
-public:
- 
+ public:
   using NotifyCallback = std::function<void(const BluetoothCharacteristic&)>;
 
   BluetoothCharacteristic(bt_gatt_h handle, BluetoothService& service);
@@ -32,7 +30,7 @@ public:
 
   std::string Uuid() const noexcept;
 
-  std::string value() const noexcept;
+  std::string Value() const noexcept;
 
   BluetoothDescriptor* GetDescriptor(const std::string& uuid);
 
@@ -50,8 +48,7 @@ public:
 
   void UnsetNotifyCallback();
 
-private:
-
+ private:
   bt_gatt_h handle_;
 
   BluetoothService& service_;
@@ -66,7 +63,6 @@ private:
    */
   static inline SafeType<std::map<std::string, BluetoothCharacteristic*>>
       active_characteristics_;
-
 };
 
 }  // namespace btGatt

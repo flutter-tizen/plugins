@@ -44,8 +44,7 @@ class BtException : public std::exception {
 
   const char* what() const noexcept override;
 
-private:
-
+ private:
   std::string message_;
 };
 

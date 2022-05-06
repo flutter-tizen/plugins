@@ -30,14 +30,14 @@ class BluetoothManager {
                                   std::shared_ptr<BluetoothDeviceController>>>;
 
  public:
-
   BluetoothManager(NotificationsHandler& notifications_handler);
 
   virtual ~BluetoothManager() noexcept = default;
 
   BluetoothManager(const BluetoothManager& bluetooth_manager) = delete;
 
-  void StartBluetoothDeviceScanLE(const proto::gen::ScanSettings& scan_settings);
+  void StartBluetoothDeviceScanLE(
+      const proto::gen::ScanSettings& scan_settings);
 
   void StopBluetoothDeviceScanLE();
 
@@ -59,7 +59,7 @@ class BluetoothManager {
   void WriteCharacteristic(
       const proto::gen::WriteCharacteristicRequest& request);
 
-  void writeDescriptor(const proto::gen::WriteDescriptorRequest& request);
+  void WriteDescriptor(const proto::gen::WriteDescriptorRequest& request);
 
   void SetNotification(const proto::gen::SetNotificationRequest& request);
 
@@ -69,7 +69,8 @@ class BluetoothManager {
 
   btGatt::BluetoothCharacteristic* LocateCharacteristic(
       const std::string& remote_id, const std::string& primary_uuid,
-      const std::string& secondary_uuid, const std::string& characteristic_uuid);
+      const std::string& secondary_uuid,
+      const std::string& characteristic_uuid);
 
   btGatt::BluetoothDescriptor* LocateDescriptor(
       const std::string& remote_id, const std::string& primary_uuid,
@@ -82,8 +83,7 @@ class BluetoothManager {
       int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
       void* user_data) noexcept;
 
-private:
-
+ private:
   DevicesContainer bluetooth_devices_;
 
   NotificationsHandler& notifications_handler_;

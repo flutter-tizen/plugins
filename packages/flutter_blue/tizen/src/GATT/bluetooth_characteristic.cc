@@ -39,7 +39,7 @@ BluetoothCharacteristic::ToProtoCharacteristic() const noexcept {
   proto.set_uuid(Uuid());
   proto.set_allocated_properties(new proto::gen::CharacteristicProperties(
       GetProtoCharacteristicProperties(Properties())));
-  proto.set_value(value());
+  proto.set_value(Value());
   if (service_.GetType() == ServiceType::PRIMARY)
     proto.set_serviceuuid(service_.Uuid());
   else {
@@ -61,25 +61,25 @@ std::string BluetoothCharacteristic::Uuid() const noexcept {
   return GetGattUUID(handle_);
 }
 
-std::string BluetoothCharacteristic::value() const noexcept {
+std::string BluetoothCharacteristic::Value() const noexcept {
   return GetGattValue(handle_);
 }
 
 BluetoothDescriptor* BluetoothCharacteristic::GetDescriptor(
     const std::string& uuid) {
-  for (auto& s : descriptors_)
-    if (s->Uuid() == uuid) return s.get();
+  for (auto& service : descriptors_)
+    if (service->Uuid() == uuid) return service.get();
   return nullptr;
 }
 
 void BluetoothCharacteristic::Read(
-    const std::function<void(const BluetoothCharacteristic&)>& func) {
+    const std::function<void(const BluetoothCharacteristic&)>& callback) {
   struct Scope {
-    std::function<void(const BluetoothCharacteristic&)> func;
+    std::function<void(const BluetoothCharacteristic&)> callback;
     const std::string characteristic_uuid;
   };
 
-  Scope* scope = new Scope{func, Uuid()};
+  Scope* scope = new Scope{callback, Uuid()};
   int res = bt_gatt_client_read_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
@@ -88,7 +88,7 @@ void BluetoothCharacteristic::Read(
         auto it = active_characteristics_.var_.find(scope->characteristic_uuid);
         if (it != active_characteristics_.var_.end()) {
           auto& characteristic = *it->second;
-          scope->func(characteristic);
+          scope->callback(characteristic);
           LOG_ERROR("bt_gatt_client_request_completed_cb",
                     get_error_message(result));
         }
@@ -102,17 +102,17 @@ void BluetoothCharacteristic::Read(
 }
 
 void BluetoothCharacteristic::Write(
-    const std::string value, bool withoutResponse,
+    const std::string value, bool without_response,
     const std::function<void(bool success, const BluetoothCharacteristic&)>&
         callback) {
   struct Scope {
-    std::function<void(bool success, const BluetoothCharacteristic&)> func;
+    std::function<void(bool success, const BluetoothCharacteristic&)> callback;
     const std::string characteristic_uuid;
   };
 
   int res = bt_gatt_characteristic_set_write_type(
-      handle_, withoutResponse ? BT_GATT_WRITE_TYPE_WRITE_NO_RESPONSE
-                               : BT_GATT_WRITE_TYPE_WRITE);
+      handle_, without_response ? BT_GATT_WRITE_TYPE_WRITE_NO_RESPONSE
+                                : BT_GATT_WRITE_TYPE_WRITE);
   LOG_ERROR("bt_gatt_characteristic_set_write_type", get_error_message(res));
 
   if (res)
@@ -138,7 +138,7 @@ void BluetoothCharacteristic::Write(
 
         if (it != active_characteristics_.var_.end()) {
           auto& characteristic = *it->second;
-          scope->func(!result, characteristic);
+          scope->callback(!result, characteristic);
         }
 
         delete scope;
@@ -150,16 +150,16 @@ void BluetoothCharacteristic::Write(
 }
 
 int BluetoothCharacteristic::Properties() const noexcept {
-  auto prop = 0;
-  auto res = bt_gatt_characteristic_get_properties(handle_, &prop);
+  auto properties = 0;
+  auto res = bt_gatt_characteristic_get_properties(handle_, &properties);
   LOG_ERROR("bt_gatt_characteristic_get_properties", get_error_message(res));
-  return prop;
+  return properties;
 }
 
 void BluetoothCharacteristic::SetNotifyCallback(
     const NotifyCallback& callback) {
-  auto p = Properties();
-  if (!(p & 0x30))
+  auto properties = Properties();
+  if ((properties & 0x30) == 0)
     throw BtException("cannot set callback! notify=0 && indicate=0");
 
   UnsetNotifyCallback();
@@ -169,7 +169,8 @@ void BluetoothCharacteristic::SetNotifyCallback(
 
   auto res = bt_gatt_client_set_characteristic_value_changed_cb(
       handle_,
-      [](bt_gatt_h ch_handle, char* value, int len, void* scope_ptr) {
+      [](bt_gatt_h characteristics_handle, char* value, int length,
+         void* scope_ptr) {
         std::string* uuid = static_cast<std::string*>(scope_ptr);
 
         std::scoped_lock lock(active_characteristics_.mutex_);

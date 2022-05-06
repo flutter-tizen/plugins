@@ -16,18 +16,20 @@ using State = BluetoothDeviceController::State;
 
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     : notifications_handler_(notificationsHandler) {
-  int res;
-  if (!(res = IsBLEAvailable())) {
+  int res = IsBLEAvailable();
+  if (res == 0) {
     LOG_ERROR("Bluetooth is not available on this device!",
               get_error_message(res));
     return;
   }
-  if (res = bt_initialize()) {
+  res = bt_initialize();
+  if (res != 0) {
     LOG_ERROR("[bt_initialize]", get_error_message(res));
     return;
   }
-  if (res = bt_gatt_set_connection_state_changed_cb(
-          &BluetoothDeviceController::ConnectionStateCallback, this)) {
+  res = bt_gatt_set_connection_state_changed_cb(
+      &BluetoothDeviceController::ConnectionStateCallback, this);
+  if (res != 0) {
     LOG_ERROR("[bt_gatt_set_connection_state_changed_cb]",
               get_error_message(res));
     return;
@@ -129,25 +131,25 @@ bool BluetoothManager::IsBLEAvailable() {
 proto::gen::BluetoothState BluetoothManager::BluetoothState() const noexcept {
   /* Checks whether the Bluetooth adapter is enabled */
   bt_adapter_state_e adapter_state;
-  int ret = bt_adapter_get_state(&adapter_state);
-  proto::gen::BluetoothState bts;
-  if (ret == BT_ERROR_NONE) {
+  int res = bt_adapter_get_state(&adapter_state);
+  proto::gen::BluetoothState state;
+  if (res == BT_ERROR_NONE) {
     if (adapter_state == BT_ADAPTER_ENABLED)
-      bts.set_state(proto::gen::BluetoothState_State_ON);
+      state.set_state(proto::gen::BluetoothState_State_ON);
     else
-      bts.set_state(proto::gen::BluetoothState_State_OFF);
-  } else if (ret == BT_ERROR_NOT_INITIALIZED)
-    bts.set_state(proto::gen::BluetoothState_State_UNAVAILABLE);
+      state.set_state(proto::gen::BluetoothState_State_OFF);
+  } else if (res == BT_ERROR_NOT_INITIALIZED)
+    state.set_state(proto::gen::BluetoothState_State_UNAVAILABLE);
   else
-    bts.set_state(proto::gen::BluetoothState_State_UNKNOWN);
+    state.set_state(proto::gen::BluetoothState_State_UNKNOWN);
 
-  return bts;
+  return state;
 }
 
 void BluetoothManager::StartBluetoothDeviceScanLE(
     const proto::gen::ScanSettings& scanSettings) {
   StopBluetoothDeviceScanLE();
-  std::scoped_lock l(bluetooth_devices_.mutex_);
+  std::scoped_lock lock(bluetooth_devices_.mutex_);
   bluetooth_devices_.var_.clear();
   scan_allow_duplicates_ = scanSettings.allow_duplicates();
   auto res = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
@@ -183,8 +185,8 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
     throw BtException(res, "cannot start scan");
   }
 
-  for (auto& f : filters) {
-    res = bt_adapter_le_scan_filter_destroy(&f);
+  for (auto& filter : filters) {
+    res = bt_adapter_le_scan_filter_destroy(&filter);
     LOG_ERROR("bt_adapter_le_scan_filter_destroy", get_error_message(res));
 
     if (res) throw BtException(res, "bt_adapter_le_scan_filter_destroy");
@@ -202,28 +204,29 @@ void BluetoothManager::ScanCallback(
     std::shared_ptr<BluetoothDeviceController> device;
     if (bluetoothManager.bluetooth_devices_.var_.find(macAddress) ==
         bluetoothManager.bluetooth_devices_.var_.end())
-      device =
-          bluetoothManager.bluetooth_devices_.var_
-              .insert({macAddress,
-                       std::make_shared<BluetoothDeviceController>(
-                           macAddress, bluetoothManager.notifications_handler_)})
-              .first->second;
+      device = bluetoothManager.bluetooth_devices_.var_
+                   .insert({macAddress,
+                            std::make_shared<BluetoothDeviceController>(
+                                macAddress,
+                                bluetoothManager.notifications_handler_)})
+                   .first->second;
     else
-      device = bluetoothManager.bluetooth_devices_.var_.find(macAddress)->second;
+      device =
+          bluetoothManager.bluetooth_devices_.var_.find(macAddress)->second;
 
     if (bluetoothManager.scan_allow_duplicates_ ||
         device->cProtoBluetoothDevices().empty()) {
       device->ProtoBluetoothDevices().emplace_back();
 
-      auto& protoDev = device->ProtoBluetoothDevices().back();
+      auto& proto_device = device->ProtoBluetoothDevices().back();
       char* name;
       result = bt_adapter_le_get_scan_result_device_name(
           discovery_info, BT_ADAPTER_LE_PACKET_SCAN_RESPONSE, &name);
       if (!result) {
-        protoDev.set_name(name);
+        proto_device.set_name(name);
         free(name);
       }
-      protoDev.set_remote_id(macAddress);
+      proto_device.set_remote_id(macAddress);
 
       proto::gen::ScanResult scanResult;
       scanResult.set_rssi(discovery_info->rssi);
@@ -234,17 +237,17 @@ void BluetoothManager::ScanCallback(
 
       scanResult.set_allocated_advertisement_data(advertisement_data);
       scanResult.set_allocated_device(
-          new proto::gen::BluetoothDevice(protoDev));
+          new proto::gen::BluetoothDevice(proto_device));
 
       bluetoothManager.notifications_handler_.NotifyUIThread("ScanResult",
-                                                            scanResult);
+                                                             scanResult);
     }
   }
 }
 
 void BluetoothManager::StopBluetoothDeviceScanLE() {
-  static std::mutex m;
-  std::scoped_lock lock(m);
+  static std::mutex mutex;
+  std::scoped_lock lock(mutex);
   auto btState = BluetoothState().state();
   if (btState == proto::gen::BluetoothState_State_ON) {
     bool isDiscovering;
@@ -341,7 +344,7 @@ void BluetoothManager::ReadDescriptor(
 
     proto::gen::ReadDescriptorResponse res;
     res.set_allocated_request(request);
-    res.set_allocated_value(new std::string(descriptor.value()));
+    res.set_allocated_value(new std::string(descriptor.Value()));
     descriptor.cCharacteristic()
         .cService()
         .cDevice()
@@ -385,7 +388,7 @@ void BluetoothManager::WriteCharacteristic(
       });
 }
 
-void BluetoothManager::writeDescriptor(
+void BluetoothManager::WriteDescriptor(
     const proto::gen::WriteDescriptorRequest& request) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   auto descriptor = LocateDescriptor(

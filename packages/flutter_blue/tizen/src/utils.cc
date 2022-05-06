@@ -6,26 +6,26 @@
 namespace flutter_blue_tizen {
 
 std::vector<uint8_t> MessageToVector(
-    const google::protobuf::MessageLite& messageLite) noexcept {
-  std::vector<uint8_t> encoded(messageLite.ByteSizeLong());
-  messageLite.SerializeToArray(encoded.data(), messageLite.ByteSizeLong());
+    const google::protobuf::MessageLite& message_lite) noexcept {
+  std::vector<uint8_t> encoded(message_lite.ByteSizeLong());
+  message_lite.SerializeToArray(encoded.data(), message_lite.ByteSizeLong());
   return encoded;
 }
 
 proto::gen::CharacteristicProperties GetProtoCharacteristicProperties(
     int properties) {
-  proto::gen::CharacteristicProperties p;
-  p.set_broadcast((properties & 0x01) != 0);
-  p.set_read((properties & 0x02) != 0);
-  p.set_write_without_response((properties & 0x04) != 0);
-  p.set_write((properties & 0x08) != 0);
-  p.set_notify((properties & 0x10) != 0);
-  p.set_indicate((properties & 0x20) != 0);
-  p.set_authenticated_signed_writes((properties & 0x40) != 0);
-  p.set_extended_properties((properties & 0x80) != 0);
+  proto::gen::CharacteristicProperties proto_properties;
+  proto_properties.set_broadcast((properties & 0x01) != 0);
+  proto_properties.set_read((properties & 0x02) != 0);
+  proto_properties.set_write_without_response((properties & 0x04) != 0);
+  proto_properties.set_write((properties & 0x08) != 0);
+  proto_properties.set_notify((properties & 0x10) != 0);
+  proto_properties.set_indicate((properties & 0x20) != 0);
+  proto_properties.set_authenticated_signed_writes((properties & 0x40) != 0);
+  proto_properties.set_extended_properties((properties & 0x80) != 0);
   // p.set_notify_encryption_required((properties & 256) != 0);
   // p.set_indicate_encryption_required((properties & 512) != 0);
-  return p;
+  return proto_properties;
 }
 
 /**
@@ -83,8 +83,8 @@ proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
     const BluetoothDeviceController& device,
     const std::vector<btGatt::PrimaryService*>& services) {
   proto::gen::DiscoverServicesResult res;
-  for (const auto& s : services) {
-    *res.add_services() = s->ToProtoService();
+  for (const auto& service : services) {
+    *res.add_services() = service->ToProtoService();
   }
   res.set_remote_id(device.cAddress());
   return res;
@@ -98,10 +98,10 @@ bt_gatt_h GetGattService(bt_gatt_client_h handle, const std::string& uuid) {
   return result;
 }
 
-BtException::BtException(const std::string& mess) : message_(mess) {}
+BtException::BtException(const std::string& message) : message_(message) {}
 
-BtException::BtException(const int tizen_error, const std::string& mess)
-    : message_(std::string(get_error_message(tizen_error)) + ": " + mess) {}
+BtException::BtException(const int tizen_error, const std::string& message)
+    : message_(std::string(get_error_message(tizen_error)) + ": " + message) {}
 
 BtException::BtException(const int tizen_error)
     : message_(get_error_message(tizen_error)) {}

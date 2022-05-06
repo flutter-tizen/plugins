@@ -96,16 +96,16 @@ std::string BluetoothService::Uuid() const noexcept {
 
 BluetoothCharacteristic* BluetoothService::GetCharacteristic(
     const std::string& uuid) {
-  for (auto& c : characteristics_) {
-    if (c->Uuid() == uuid) return c.get();
+  for (auto& characteristic : characteristics_) {
+    if (characteristic->Uuid() == uuid) return characteristic.get();
   }
   return nullptr;
 }
 
 SecondaryService* PrimaryService::GetSecondary(
     const std::string& uuid) noexcept {
-  for (auto& s : secondary_services_) {
-    if (s->Uuid() == uuid) return s.get();
+  for (auto& service : secondary_services_) {
+    if (service->Uuid() == uuid) return service.get();
   }
   return nullptr;
 }

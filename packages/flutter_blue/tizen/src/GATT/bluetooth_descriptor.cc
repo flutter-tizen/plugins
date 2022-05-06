@@ -29,18 +29,19 @@ std::string BluetoothDescriptor::Uuid() const noexcept {
   return GetGattUUID(handle_);
 }
 
-std::string BluetoothDescriptor::value() const noexcept {
+std::string BluetoothDescriptor::Value() const noexcept {
   return GetGattValue(handle_);
 }
 
 void BluetoothDescriptor::Read(
-    const std::function<void(const BluetoothDescriptor&)>& func) {
+    const std::function<void(const BluetoothDescriptor&)>& callback) {
   struct Scope {
-    std::function<void(const BluetoothDescriptor&)> func;
+    std::function<void(const BluetoothDescriptor&)> callback;
     const std::string descriptor_uuid;
   };
 
-  auto scope = new Scope{func, Uuid()};  // unfortunately it requires raw ptr
+  auto scope =
+      new Scope{callback, Uuid()};  // unfortunately it requires raw ptr
   int res = bt_gatt_client_read_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
@@ -50,7 +51,7 @@ void BluetoothDescriptor::Read(
 
         if (it != active_descriptors_.var_.end() && !result) {
           auto& descriptor = *it->second;
-          scope->func(descriptor);
+          scope->callback(descriptor);
         }
         LOG_ERROR("bt_gatt_client_request_completed_cb",
                   get_error_message(result));
@@ -67,7 +68,7 @@ void BluetoothDescriptor::Write(
     const std::function<void(bool success, const BluetoothDescriptor&)>&
         callback) {
   struct Scope {
-    std::function<void(bool success, const BluetoothDescriptor&)> func;
+    std::function<void(bool success, const BluetoothDescriptor&)> callback;
     const std::string descriptor_uuid;
   };
 
@@ -91,7 +92,7 @@ void BluetoothDescriptor::Write(
 
         if (it != active_descriptors_.var_.end()) {
           auto& descriptor = *it->second;
-          scope->func(!result, descriptor);
+          scope->callback(!result, descriptor);
         }
 
         delete scope;

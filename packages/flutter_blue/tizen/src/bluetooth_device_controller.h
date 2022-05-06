@@ -20,9 +20,7 @@ class NotificationsHandler;
 class BluetoothService;
 
 class BluetoothDeviceController {
-
  public:
-
   enum class State {
     CONNECTED,
     CONNECTING,
@@ -38,7 +36,8 @@ class BluetoothDeviceController {
       NotificationsHandler& notifications_handler) noexcept;
 
   BluetoothDeviceController(
-      const char* address, NotificationsHandler& notifications_handler) noexcept;
+      const char* address,
+      NotificationsHandler& notifications_handler) noexcept;
 
   ~BluetoothDeviceController() noexcept;
 
@@ -68,7 +67,7 @@ class BluetoothDeviceController {
   static void DestroyGattClientIfExists(const std::string& address) noexcept;
 
   static proto::gen::DeviceStateResponse_BluetoothDeviceState
-  LocalToProtoDeviceState(const BluetoothDeviceController::State s);
+  LocalToProtoDeviceState(const BluetoothDeviceController::State state);
 
   void DiscoverServices();
 
@@ -84,9 +83,7 @@ class BluetoothDeviceController {
 
   const NotificationsHandler& cNotificationsHandler() const noexcept;
 
-
-private:
-
+ private:
   /**
    * @brief all attributes are depentent on this mutex
    */

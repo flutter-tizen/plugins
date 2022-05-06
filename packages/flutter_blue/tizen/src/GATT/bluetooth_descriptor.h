@@ -15,7 +15,6 @@ class BluetoothCharacteristic;
 
 class BluetoothDescriptor {
  public:
-
   BluetoothDescriptor(bt_gatt_h handle,
                       BluetoothCharacteristic& characteristic);
 
@@ -25,7 +24,7 @@ class BluetoothDescriptor {
 
   std::string Uuid() const noexcept;
 
-  std::string value() const noexcept;
+  std::string Value() const noexcept;
 
   void Read(const std::function<void(const BluetoothDescriptor&)>& callback);
 
@@ -35,8 +34,7 @@ class BluetoothDescriptor {
 
   const BluetoothCharacteristic& cCharacteristic() const noexcept;
 
-private:
-
+ private:
   bt_gatt_h handle_;
 
   BluetoothCharacteristic& characteristic_;
@@ -47,7 +45,6 @@ private:
    */
   static inline SafeType<std::map<std::string, BluetoothDescriptor*>>
       active_descriptors_;
-
 };
 
 }  // namespace btGatt
