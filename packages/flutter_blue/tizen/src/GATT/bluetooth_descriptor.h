@@ -46,7 +46,7 @@ private:
    * callback. key-uuid value-pointer of descriptor
    */
   static inline SafeType<std::map<std::string, BluetoothDescriptor*>>
-      activeDescriptors_;
+      active_descriptors_;
 
 };
 

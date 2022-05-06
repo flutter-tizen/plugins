@@ -31,19 +31,19 @@ class BluetoothManager {
 
  public:
 
-  BluetoothManager(NotificationsHandler& notificationsHandler);
+  BluetoothManager(NotificationsHandler& notifications_handler);
 
   virtual ~BluetoothManager() noexcept = default;
 
-  BluetoothManager(const BluetoothManager& bluetoothManager) = delete;
+  BluetoothManager(const BluetoothManager& bluetooth_manager) = delete;
 
-  void startBluetoothDeviceScanLE(const proto::gen::ScanSettings& scanSettings);
+  void startBluetoothDeviceScanLE(const proto::gen::ScanSettings& scan_settings);
 
   void stopBluetoothDeviceScanLE();
 
-  void connect(const proto::gen::ConnectRequest& connRequest);
+  void connect(const proto::gen::ConnectRequest& conn_request);
 
-  void disconnect(const std::string& deviceID);
+  void disconnect(const std::string& device_id);
 
   proto::gen::BluetoothState bluetoothState() const noexcept;
 
@@ -63,18 +63,18 @@ class BluetoothManager {
 
   void setNotification(const proto::gen::SetNotificationRequest& request);
 
-  u_int32_t getMtu(const std::string& deviceID);
+  u_int32_t getMtu(const std::string& device_id);
 
   void requestMtu(const proto::gen::MtuSizeRequest& request);
 
   btGatt::BluetoothCharacteristic* locateCharacteristic(
-      const std::string& remoteID, const std::string& primaryUUID,
-      const std::string& secondaryUUID, const std::string& characteristicUUID);
+      const std::string& remote_id, const std::string& primary_uuid,
+      const std::string& secondary_uuid, const std::string& characteristic_uuid);
 
   btGatt::BluetoothDescriptor* locateDescriptor(
-      const std::string& remoteID, const std::string& primaryUUID,
-      const std::string& secondaryUUID, const std::string& characteristicUUID,
-      const std::string& descriptorUUID);
+      const std::string& remote_id, const std::string& primary_uuid,
+      const std::string& secondary_uuid, const std::string& characteristic_uuid,
+      const std::string& descriptor_uuid);
 
   static bool isBLEAvailable();
 

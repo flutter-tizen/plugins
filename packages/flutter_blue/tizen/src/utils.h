@@ -24,21 +24,21 @@ using MethodChannel = flutter::MethodChannel<flutter::EncodableValue>;
 
 template <typename T>
 struct SafeType {
-  T var;
+  T var_;
 
-  std::mutex mut;
+  std::mutex mutex_;
 
-  SafeType(T const& t) : var(t) {}
+  SafeType(T const& t) : var_(t) {}
 
-  SafeType(T&& t) : var(std::move(t)) {}
+  SafeType(T&& t) : var_(std::move(t)) {}
 
-  SafeType() : var(T()) {}
+  SafeType() : var_(T()) {}
 };
 
 class BTException : public std::exception {
  public:
-  BTException(std::string const& mess);
-  BTException(const int tizen_error, std::string const& mess);
+  BTException(std::string const& message);
+  BTException(const int tizen_error, std::string const& message);
 
   BTException(const int tizen_error);
 
@@ -46,11 +46,11 @@ class BTException : public std::exception {
 
 private:
 
-  std::string _message;
+  std::string message_;
 };
 
 std::vector<u_int8_t> messageToVector(
-    google::protobuf::MessageLite const& messageLite) noexcept;
+    google::protobuf::MessageLite const& message_lite) noexcept;
 
 std::string getGattValue(bt_gatt_h handle);
 

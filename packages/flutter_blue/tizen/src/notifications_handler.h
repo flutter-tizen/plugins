@@ -10,7 +10,7 @@ namespace flutter_blue_tizen {
 class NotificationsHandler {
 
  public:
-  NotificationsHandler(std::shared_ptr<MethodChannel> methodChannel);
+  NotificationsHandler(std::shared_ptr<MethodChannel> method_channel);
 
   void notifyUIThread(
       std::string const& method,

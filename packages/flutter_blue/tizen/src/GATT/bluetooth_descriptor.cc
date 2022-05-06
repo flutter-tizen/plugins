@@ -11,8 +11,8 @@ namespace btGatt {
 BluetoothDescriptor::BluetoothDescriptor(
     bt_gatt_h handle, BluetoothCharacteristic& characteristic)
     : handle_(handle), characteristic_(characteristic) {
-  std::scoped_lock lock(activeDescriptors_.mut);
-  activeDescriptors_.var[UUID()] = this;
+  std::scoped_lock lock(active_descriptors_.mutex_);
+  active_descriptors_.var_[UUID()] = this;
 }
 
 proto::gen::BluetoothDescriptor BluetoothDescriptor::toProtoDescriptor()
@@ -45,10 +45,10 @@ void BluetoothDescriptor::read(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
-        std::scoped_lock lock(activeDescriptors_.mut);
-        auto it = activeDescriptors_.var.find(scope->descriptor_uuid);
+        std::scoped_lock lock(active_descriptors_.mutex_);
+        auto it = active_descriptors_.var_.find(scope->descriptor_uuid);
 
-        if (it != activeDescriptors_.var.end() && !result) {
+        if (it != active_descriptors_.var_.end() && !result) {
           auto& descriptor = *it->second;
           scope->func(descriptor);
         }
@@ -86,10 +86,10 @@ void BluetoothDescriptor::write(
                   get_error_message(result));
 
         auto scope = static_cast<Scope*>(scope_ptr);
-        std::scoped_lock lock(activeDescriptors_.mut);
-        auto it = activeDescriptors_.var.find(scope->descriptor_uuid);
+        std::scoped_lock lock(active_descriptors_.mutex_);
+        auto it = active_descriptors_.var_.find(scope->descriptor_uuid);
 
-        if (it != activeDescriptors_.var.end()) {
+        if (it != active_descriptors_.var_.end()) {
           auto& descriptor = *it->second;
           scope->func(!result, descriptor);
         }
@@ -109,8 +109,8 @@ BluetoothCharacteristic const& BluetoothDescriptor::cCharacteristic()
 }
 
 BluetoothDescriptor::~BluetoothDescriptor() {
-  std::scoped_lock lock(activeDescriptors_.mut);
-  activeDescriptors_.var.erase(UUID());
+  std::scoped_lock lock(active_descriptors_.mutex_);
+  active_descriptors_.var_.erase(UUID());
 }
 
 }  // namespace btGatt

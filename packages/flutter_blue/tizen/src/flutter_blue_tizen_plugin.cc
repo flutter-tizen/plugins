@@ -162,10 +162,10 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "deviceState") {
       std::string deviceID = std::get<std::string>(args);
-      std::scoped_lock lock(bluetoothManager->bluetoothDevices().mut);
-      auto it = bluetoothManager->bluetoothDevices().var.find(deviceID);
+      std::scoped_lock lock(bluetoothManager->bluetoothDevices().mutex_);
+      auto it = bluetoothManager->bluetoothDevices().var_.find(deviceID);
 
-      if (it != bluetoothManager->bluetoothDevices().var.end()) {
+      if (it != bluetoothManager->bluetoothDevices().var_.end()) {
         auto& device = it->second;
 
         proto::gen::DeviceStateResponse res;
@@ -180,10 +180,10 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "discoverServices") {
       std::string deviceID = std::get<std::string>(args);
-      std::scoped_lock lock(bluetoothManager->bluetoothDevices().mut);
-      auto it = bluetoothManager->bluetoothDevices().var.find(deviceID);
+      std::scoped_lock lock(bluetoothManager->bluetoothDevices().mutex_);
+      auto it = bluetoothManager->bluetoothDevices().var_.find(deviceID);
 
-      if (it != bluetoothManager->bluetoothDevices().var.end()) {
+      if (it != bluetoothManager->bluetoothDevices().var_.end()) {
         auto& device = it->second;
         result->Success(flutter::EncodableValue(NULL));
 
@@ -198,11 +198,11 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "services") {
       std::string deviceID = std::get<std::string>(args);
-      std::scoped_lock lock(bluetoothManager->bluetoothDevices().mut);
+      std::scoped_lock lock(bluetoothManager->bluetoothDevices().mutex_);
 
-      auto it = bluetoothManager->bluetoothDevices().var.find(deviceID);
+      auto it = bluetoothManager->bluetoothDevices().var_.find(deviceID);
 
-      if (it != bluetoothManager->bluetoothDevices().var.end()) {
+      if (it != bluetoothManager->bluetoothDevices().var_.end()) {
         auto& device = it->second;
 
         auto protoServices = flutter_blue_tizen::getProtoServiceDiscoveryResult(

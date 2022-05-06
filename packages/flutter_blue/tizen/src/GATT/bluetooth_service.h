@@ -38,7 +38,7 @@ class BluetoothService {
 
   bt_gatt_h handle_;
 
-  std::vector<std::unique_ptr<BluetoothCharacteristic>> _characteristics;
+  std::vector<std::unique_ptr<BluetoothCharacteristic>> characteristics_;
 
   BluetoothService(bt_gatt_h handle);
 
@@ -70,13 +70,13 @@ private:
 
   BluetoothDeviceController& device_;
 
-  std::vector<std::unique_ptr<SecondaryService>> secondaryServices_;
+  std::vector<std::unique_ptr<SecondaryService>> secondary_services_;
 };
 
 class SecondaryService : public BluetoothService {
 
 public:
-  SecondaryService(bt_gatt_h service_handle, PrimaryService& primaryService);
+  SecondaryService(bt_gatt_h service_handle, PrimaryService& primary_service);
 
   SecondaryService(const SecondaryService&) = default;
 

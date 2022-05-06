@@ -28,8 +28,8 @@ BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
       },
       this);
   if (res) throw BTException(res, "bt_gatt_characteristic_foreach_descriptors");
-  std::scoped_lock lock(_activeCharacteristics.mut);
-  _activeCharacteristics.var[UUID()] = this;
+  std::scoped_lock lock(active_characteristics_.mutex_);
+  active_characteristics_.var_[UUID()] = this;
 }
 
 proto::gen::BluetoothCharacteristic
@@ -84,9 +84,9 @@ void BluetoothCharacteristic::read(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
-        std::scoped_lock lock(_activeCharacteristics.mut);
-        auto it = _activeCharacteristics.var.find(scope->characteristic_uuid);
-        if (it != _activeCharacteristics.var.end()) {
+        std::scoped_lock lock(active_characteristics_.mutex_);
+        auto it = active_characteristics_.var_.find(scope->characteristic_uuid);
+        if (it != active_characteristics_.var_.end()) {
           auto& characteristic = *it->second;
           scope->func(characteristic);
           LOG_ERROR("bt_gatt_client_request_completed_cb",
@@ -133,10 +133,10 @@ void BluetoothCharacteristic::write(
                   get_error_message(result));
 
         auto scope = static_cast<Scope*>(scope_ptr);
-        std::scoped_lock lock(_activeCharacteristics.mut);
-        auto it = _activeCharacteristics.var.find(scope->characteristic_uuid);
+        std::scoped_lock lock(active_characteristics_.mutex_);
+        auto it = active_characteristics_.var_.find(scope->characteristic_uuid);
 
-        if (it != _activeCharacteristics.var.end()) {
+        if (it != active_characteristics_.var_.end()) {
           auto& characteristic = *it->second;
           scope->func(!result, characteristic);
         }
@@ -172,10 +172,10 @@ void BluetoothCharacteristic::setNotifyCallback(
       [](bt_gatt_h ch_handle, char* value, int len, void* scope_ptr) {
         std::string* uuid = static_cast<std::string*>(scope_ptr);
 
-        std::scoped_lock lock(_activeCharacteristics.mut);
-        auto it = _activeCharacteristics.var.find(*uuid);
+        std::scoped_lock lock(active_characteristics_.mutex_);
+        auto it = active_characteristics_.var_.find(*uuid);
 
-        if (it != _activeCharacteristics.var.end()) {
+        if (it != active_characteristics_.var_.end()) {
           auto& characteristic = *it->second;
           characteristic.notify_callback_->operator()(characteristic);
         }
@@ -202,8 +202,8 @@ void BluetoothCharacteristic::unsetNotifyCallback() {
 }
 
 BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
-  std::scoped_lock lock(_activeCharacteristics.mut);
-  _activeCharacteristics.var.erase(UUID());
+  std::scoped_lock lock(active_characteristics_.mutex_);
+  active_characteristics_.var_.erase(UUID());
   unsetNotifyCallback();
   descriptors_.clear();
 }

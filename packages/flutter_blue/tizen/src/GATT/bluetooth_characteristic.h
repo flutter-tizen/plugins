@@ -40,7 +40,7 @@ public:
       const std::function<void(const BluetoothCharacteristic&)>& callback);
 
   void write(
-      const std::string value, bool withoutResponse,
+      const std::string value, bool without_response,
       const std::function<void(bool success, const BluetoothCharacteristic&)>&
           callback);
 
@@ -65,7 +65,7 @@ private:
    * callback. key-uuid value-pointer of characteristic
    */
   static inline SafeType<std::map<std::string, BluetoothCharacteristic*>>
-      _activeCharacteristics;
+      active_characteristics_;
 
 };
 

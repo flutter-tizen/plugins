@@ -15,8 +15,8 @@ BluetoothDeviceController::BluetoothDeviceController(
     const std::string& address,
     NotificationsHandler& notificationsHandler) noexcept
     : BluetoothDeviceController(address.c_str(), notificationsHandler) {
-  std::scoped_lock lock(activeDevices_.mut);
-  activeDevices_.var.insert({address, this});
+  std::scoped_lock lock(activeDevices_.mutex_);
+  activeDevices_.var_.insert({address, this});
 }
 
 BluetoothDeviceController::BluetoothDeviceController(
@@ -24,8 +24,8 @@ BluetoothDeviceController::BluetoothDeviceController(
     : address_(address), notifications_handler_(notificationsHandler) {}
 
 BluetoothDeviceController::~BluetoothDeviceController() noexcept {
-  std::scoped_lock lock(activeDevices_.mut);
-  activeDevices_.var.erase(cAddress());
+  std::scoped_lock lock(activeDevices_.mutex_);
+  activeDevices_.var_.erase(cAddress());
   disconnect();
 }
 
@@ -83,17 +83,17 @@ void BluetoothDeviceController::disconnect() {
 
 bt_gatt_client_h BluetoothDeviceController::getGattClient(
     std::string const& address) {
-  std::scoped_lock lock(gatt_clients_.mut);
+  std::scoped_lock lock(gatt_clients_.mutex_);
 
-  auto it = gatt_clients_.var.find(address);
+  auto it = gatt_clients_.var_.find(address);
   bt_gatt_client_h client = nullptr;
 
-  if (it == gatt_clients_.var.end()) {
+  if (it == gatt_clients_.var_.end()) {
     int res = bt_gatt_client_create(address.c_str(), &client);
     LOG_ERROR("bt_gatt_client_create", get_error_message(res));
 
     if ((res == BT_ERROR_NONE || res == BT_ERROR_ALREADY_DONE) && client) {
-      gatt_clients_.var.emplace(address, client);
+      gatt_clients_.var_.emplace(address, client);
     } else
       throw BTException(res, "bt_gatt_client_create");
   } else {
@@ -104,11 +104,11 @@ bt_gatt_client_h BluetoothDeviceController::getGattClient(
 
 void BluetoothDeviceController::destroyGattClientIfExists(
     std::string const& address) noexcept {
-  std::scoped_lock lock(gatt_clients_.mut);
-  auto it = gatt_clients_.var.find(address);
-  if (it != gatt_clients_.var.end()) {
+  std::scoped_lock lock(gatt_clients_.mutex_);
+  auto it = gatt_clients_.var_.find(address);
+  if (it != gatt_clients_.var_.end()) {
     auto res = bt_gatt_client_destroy(it->second);
-    if (!res) gatt_clients_.var.erase(address);
+    if (!res) gatt_clients_.var_.erase(address);
     LOG_ERROR("bt_gatt_client_destroy", get_error_message(res));
   }
 }
@@ -164,10 +164,10 @@ void BluetoothDeviceController::connectionStateCallback(
   LOG_ERROR("bt_gatt_connection_state_changed_cb", get_error_message(res));
 
   auto& bluetoothManager = *static_cast<BluetoothManager*>(user_data);
-  std::scoped_lock lock(bluetoothManager.bluetoothDevices().mut);
-  auto it = bluetoothManager.bluetoothDevices().var.find(remote_address);
+  std::scoped_lock lock(bluetoothManager.bluetoothDevices().mutex_);
+  auto it = bluetoothManager.bluetoothDevices().var_.find(remote_address);
 
-  if (it != bluetoothManager.bluetoothDevices().var.end()) {
+  if (it != bluetoothManager.bluetoothDevices().var_.end()) {
     auto device = it->second;
     std::scoped_lock devLock(device->operation_mutex_);
     device->is_connecting_ = false;
@@ -207,9 +207,9 @@ void BluetoothDeviceController::requestMtu(u_int32_t mtu,
       [](bt_gatt_client_h client, const bt_gatt_client_att_mtu_info_s* mtu_info,
          void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
-        std::scoped_lock lock(activeDevices_.mut);
-        auto it = activeDevices_.var.find(scope->device_address);
-        if (it != activeDevices_.var.end()) {
+        std::scoped_lock lock(activeDevices_.mutex_);
+        auto it = activeDevices_.var_.find(scope->device_address);
+        if (it != activeDevices_.var_.end()) {
           scope->callback(mtu_info->status == 0, *it->second);
         }
         delete scope;

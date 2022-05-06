@@ -31,14 +31,14 @@ class BluetoothDeviceController {
   };
 
   using requestMtuCallback =
-      std::function<void(bool, const BluetoothDeviceController&)>;
+      std::function<void(bool, BluetoothDeviceController const&)>;
 
   BluetoothDeviceController(
       const std::string& address,
-      NotificationsHandler& notificationsHandler) noexcept;
+      NotificationsHandler& notifications_handler) noexcept;
 
   BluetoothDeviceController(
-      const char* address, NotificationsHandler& notificationsHandler) noexcept;
+      const char* address, NotificationsHandler& notifications_handler) noexcept;
 
   ~BluetoothDeviceController() noexcept;
 
@@ -55,7 +55,7 @@ class BluetoothDeviceController {
   const std::vector<proto::gen::BluetoothDevice>& cProtoBluetoothDevices()
       const noexcept;
 
-  void connect(bool autoConnect);
+  void connect(bool auto_connect);
 
   void disconnect();
 
@@ -63,9 +63,9 @@ class BluetoothDeviceController {
                                       const char* remote_address,
                                       void* user_data) noexcept;
 
-  static bt_gatt_client_h getGattClient(const std::string& address);
+  static bt_gatt_client_h getGattClient(std::string const& address);
 
-  static void destroyGattClientIfExists(const std::string& address) noexcept;
+  static void destroyGattClientIfExists(std::string const& address) noexcept;
 
   static proto::gen::DeviceStateResponse_BluetoothDeviceState
   localToProtoDeviceState(const BluetoothDeviceController::State& s);
