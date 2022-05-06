@@ -178,12 +178,4 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
     VideoFormat.dash: 'dash',
     VideoFormat.other: 'other',
   };
-
-  DurationRange _toDurationRange(dynamic value) {
-    final List<dynamic> pair = value as List<dynamic>;
-    return DurationRange(
-      Duration(milliseconds: pair[0]! as int),
-      Duration(milliseconds: pair[1]! as int),
-    );
-  }
 }
