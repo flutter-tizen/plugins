@@ -37,16 +37,16 @@ class BluetoothDescriptor {
 
 private:
 
-  bt_gatt_h _handle;
+  bt_gatt_h handle_;
 
-  BluetoothCharacteristic& _characteristic;
+  BluetoothCharacteristic& characteristic_;
 
   /**
    * @brief used to validate whether the descriptor still exists in async
    * callback. key-uuid value-pointer of descriptor
    */
   static inline SafeType<std::map<std::string, BluetoothDescriptor*>>
-      _activeDescriptors;
+      activeDescriptors_;
 
 };
 

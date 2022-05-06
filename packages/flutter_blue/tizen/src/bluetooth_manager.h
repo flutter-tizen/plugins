@@ -30,7 +30,7 @@ class BluetoothManager {
                                   std::shared_ptr<BluetoothDeviceController>>>;
 
  public:
- 
+
   BluetoothManager(NotificationsHandler& notificationsHandler);
 
   virtual ~BluetoothManager() noexcept = default;
@@ -84,11 +84,11 @@ class BluetoothManager {
 
 private:
 
-  DevicesContainer _bluetoothDevices;
+  DevicesContainer bluetooth_devices_;
 
-  NotificationsHandler& _notificationsHandler;
+  NotificationsHandler& notifications_handler_;
 
-  std::atomic<bool> _scanAllowDuplicates;
+  std::atomic<bool> scan_allow_duplicates_;
 };
 
 void decodeAdvertisementData(const char* packetsData,

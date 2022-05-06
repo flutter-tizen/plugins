@@ -91,25 +91,25 @@ private:
    * @brief all attributes are depentent on this mutex
    */
 
-  std::mutex operationM;
+  std::mutex operation_mutex_;
 
-  std::vector<proto::gen::BluetoothDevice> _protoBluetoothDevices;
+  std::vector<proto::gen::BluetoothDevice> proto_bluetoothDevices_;
 
-  std::vector<std::unique_ptr<btGatt::PrimaryService>> _services;
+  std::vector<std::unique_ptr<btGatt::PrimaryService>> services_;
 
-  std::string _address;
+  std::string address_;
 
-  std::atomic<bool> isConnecting = false;
+  std::atomic<bool> is_connecting_ = false;
 
-  std::atomic<bool> isDisconnecting = false;
+  std::atomic<bool> is_disconnecting_ = false;
 
-  NotificationsHandler& _notificationsHandler;
+  NotificationsHandler& notifications_handler_;
 
   static inline SafeType<std::map<std::string, BluetoothDeviceController*>>
-      _activeDevices;
+      activeDevices_;
 
   static inline SafeType<std::unordered_map<std::string, bt_gatt_client_h>>
-      gatt_clients;
+      gatt_clients_;
 };
 
 }  // namespace flutter_blue_tizen

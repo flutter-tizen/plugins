@@ -18,7 +18,7 @@ class NotificationsHandler {
 
 private:
 
-  std::shared_ptr<MethodChannel> _methodChannel;
+  std::shared_ptr<MethodChannel> method_channel_;
 };
 
 }  // namespace flutter_blue_tizen

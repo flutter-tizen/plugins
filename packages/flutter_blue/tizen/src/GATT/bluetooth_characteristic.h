@@ -52,13 +52,13 @@ public:
 
 private:
 
-  bt_gatt_h _handle;
+  bt_gatt_h handle_;
 
-  BluetoothService& _service;
+  BluetoothService& service_;
 
-  std::vector<std::unique_ptr<BluetoothDescriptor>> _descriptors;
+  std::vector<std::unique_ptr<BluetoothDescriptor>> descriptors_;
 
-  std::unique_ptr<NotifyCallback> _notifyCallback;
+  std::unique_ptr<NotifyCallback> notify_callback_;
 
   /**
    * @brief used to validate whether the characteristic still exists in async

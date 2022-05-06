@@ -36,7 +36,7 @@ class BluetoothService {
 
  protected:
 
-  bt_gatt_h _handle;
+  bt_gatt_h handle_;
 
   std::vector<std::unique_ptr<BluetoothCharacteristic>> _characteristics;
 
@@ -68,9 +68,9 @@ public:
 
 private:
 
-  BluetoothDeviceController& _device;
+  BluetoothDeviceController& device_;
 
-  std::vector<std::unique_ptr<SecondaryService>> _secondaryServices;
+  std::vector<std::unique_ptr<SecondaryService>> secondaryServices_;
 };
 
 class SecondaryService : public BluetoothService {
@@ -94,7 +94,7 @@ public:
   
 private:
 
-  PrimaryService& _primaryService;
+  PrimaryService& primaryService_;
 };
 
 }  // namespace btGatt
