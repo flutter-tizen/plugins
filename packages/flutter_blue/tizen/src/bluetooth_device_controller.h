@@ -1,23 +1,13 @@
 #ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 #define FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 
+#include <GATT/bluetooth_service.h>
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
+#include <notifications_handler.h>
 #include <utils.h>
 
 namespace flutter_blue_tizen {
-
-namespace btGatt {
-
-class PrimaryService;
-
-class SecondaryService;
-
-}  // namespace btGatt
-
-class NotificationsHandler;
-
-class BluetoothService;
 
 class BluetoothDeviceController {
  public:
