@@ -171,7 +171,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         proto::gen::DeviceStateResponse res;
         res.set_remote_id(device->cAddress());
         res.set_state(flutter_blue_tizen::BluetoothDeviceController::
-                          localToProtoDeviceState(device->state()));
+                          LocalToProtoDeviceState(device->state()));
 
         result->Success(
             flutter::EncodableValue(flutter_blue_tizen::messageToVector(res)));
@@ -187,8 +187,8 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         auto& device = it->second;
         result->Success(flutter::EncodableValue(NULL));
 
-        device->discoverServices();
-        auto services = device->getServices();
+        device->DiscoverServices();
+        auto services = device->GetServices();
         notificationsHandler.notifyUIThread(
             "DiscoverServicesResult",
             flutter_blue_tizen::getProtoServiceDiscoveryResult(*device,
@@ -206,7 +206,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         auto& device = it->second;
 
         auto protoServices = flutter_blue_tizen::getProtoServiceDiscoveryResult(
-            *device, device->getServices());
+            *device, device->GetServices());
         result->Success(flutter::EncodableValue(
             flutter_blue_tizen::messageToVector(protoServices)));
       } else

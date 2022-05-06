@@ -21,15 +21,15 @@ class BluetoothDescriptor {
 
   ~BluetoothDescriptor();
 
-  proto::gen::BluetoothDescriptor toProtoDescriptor() const noexcept;
+  proto::gen::BluetoothDescriptor ToProtoDescriptor() const noexcept;
 
-  std::string UUID() const noexcept;
+  std::string Uuid() const noexcept;
 
   std::string value() const noexcept;
 
-  void read(const std::function<void(const BluetoothDescriptor&)>& callback);
+  void Read(const std::function<void(const BluetoothDescriptor&)>& callback);
 
-  void write(const std::string value,
+  void Write(const std::string value,
              const std::function<void(bool success,
                                       const BluetoothDescriptor&)>& callback);
 

@@ -84,7 +84,7 @@ proto::gen::DiscoverServicesResult getProtoServiceDiscoveryResult(
     const std::vector<btGatt::PrimaryService*>& services) {
   proto::gen::DiscoverServicesResult res;
   for (const auto& s : services) {
-    *res.add_services() = s->toProtoService();
+    *res.add_services() = s->ToProtoService();
   }
   res.set_remote_id(device.cAddress());
   return res;

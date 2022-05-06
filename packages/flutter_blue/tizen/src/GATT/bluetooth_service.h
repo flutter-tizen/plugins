@@ -24,15 +24,15 @@ class BluetoothService {
 
  public:
 
-  virtual proto::gen::BluetoothService toProtoService() const noexcept = 0;
+  virtual proto::gen::BluetoothService ToProtoService() const noexcept = 0;
 
   virtual const BluetoothDeviceController& cDevice() const noexcept = 0;
 
-  virtual ServiceType getType() const noexcept = 0;
+  virtual ServiceType GetType() const noexcept = 0;
 
-  std::string UUID() const noexcept;
+  std::string Uuid() const noexcept;
 
-  BluetoothCharacteristic* getCharacteristic(const std::string& uuid);
+  BluetoothCharacteristic* GetCharacteristic(const std::string& uuid);
 
  protected:
 
@@ -60,11 +60,11 @@ public:
 
   const BluetoothDeviceController& cDevice() const noexcept override;
 
-  proto::gen::BluetoothService toProtoService() const noexcept override;
+  proto::gen::BluetoothService ToProtoService() const noexcept override;
 
-  ServiceType getType() const noexcept override;
+  ServiceType GetType() const noexcept override;
 
-  SecondaryService* getSecondary(const std::string& uuid) noexcept;
+  SecondaryService* GetSecondary(const std::string& uuid) noexcept;
 
 private:
 
@@ -86,11 +86,11 @@ public:
 
   const PrimaryService& cPrimary() const noexcept;
 
-  proto::gen::BluetoothService toProtoService() const noexcept override;
+  proto::gen::BluetoothService ToProtoService() const noexcept override;
 
-  ServiceType getType() const noexcept override;
+  ServiceType GetType() const noexcept override;
 
-  std::string primaryUUID() noexcept;
+  std::string PrimaryUuid() noexcept;
   
 private:
 

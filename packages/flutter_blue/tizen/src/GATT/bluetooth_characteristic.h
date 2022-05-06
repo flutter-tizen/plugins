@@ -26,29 +26,29 @@ public:
 
   ~BluetoothCharacteristic() noexcept;
 
-  proto::gen::BluetoothCharacteristic toProtoCharacteristic() const noexcept;
+  proto::gen::BluetoothCharacteristic ToProtoCharacteristic() const noexcept;
 
   const BluetoothService& cService() const noexcept;
 
-  std::string UUID() const noexcept;
+  std::string Uuid() const noexcept;
 
   std::string value() const noexcept;
 
-  BluetoothDescriptor* getDescriptor(const std::string& uuid);
+  BluetoothDescriptor* GetDescriptor(const std::string& uuid);
 
-  void read(
+  void Read(
       const std::function<void(const BluetoothCharacteristic&)>& callback);
 
-  void write(
+  void Write(
       const std::string value, bool without_response,
       const std::function<void(bool success, const BluetoothCharacteristic&)>&
           callback);
 
   int properties() const noexcept;
 
-  void setNotifyCallback(const NotifyCallback& callback);
+  void SetNotifyCallback(const NotifyCallback& callback);
 
-  void unsetNotifyCallback();
+  void UnsetNotifyCallback();
 
 private:
 

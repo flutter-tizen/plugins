@@ -50,37 +50,37 @@ class BluetoothDeviceController {
 
   State state() const noexcept;
 
-  std::vector<proto::gen::BluetoothDevice>& protoBluetoothDevices() noexcept;
+  std::vector<proto::gen::BluetoothDevice>& ProtoBluetoothDevices() noexcept;
 
   const std::vector<proto::gen::BluetoothDevice>& cProtoBluetoothDevices()
       const noexcept;
 
-  void connect(bool auto_connect);
+  void Connect(bool auto_connect);
 
-  void disconnect();
+  void Disconnect();
 
-  static void connectionStateCallback(int result, bool connected,
+  static void ConnectionStateCallback(int result, bool connected,
                                       const char* remote_address,
                                       void* user_data) noexcept;
 
-  static bt_gatt_client_h getGattClient(const std::string& address);
+  static bt_gatt_client_h GetGattClient(const std::string& address);
 
-  static void destroyGattClientIfExists(const std::string& address) noexcept;
+  static void DestroyGattClientIfExists(const std::string& address) noexcept;
 
   static proto::gen::DeviceStateResponse_BluetoothDeviceState
-  localToProtoDeviceState(const BluetoothDeviceController::State s);
+  LocalToProtoDeviceState(const BluetoothDeviceController::State s);
 
-  void discoverServices();
+  void DiscoverServices();
 
-  std::vector<btGatt::PrimaryService*> getServices() noexcept;
+  std::vector<btGatt::PrimaryService*> GetServices() noexcept;
 
-  btGatt::PrimaryService* getService(const std::string& uuid) noexcept;
+  btGatt::PrimaryService* GetService(const std::string& uuid) noexcept;
 
-  u_int32_t getMtu() const;
+  u_int32_t GetMtu() const;
 
-  void requestMtu(u_int32_t mtu, const requestMtuCallback& callback);
+  void RequestMtu(u_int32_t mtu, const requestMtuCallback& callback);
 
-  void notifyDeviceState() const;
+  void NotifyDeviceState() const;
 
   const NotificationsHandler& cNotificationsHandler() const noexcept;
 
