@@ -37,7 +37,7 @@ T GetRequiredArg(const flutter::EncodableMap *arguments, const char *key) {
     return value;
   }
   std::string message =
-      "No " + std::string(key) + " provided or is invalid type or value.";
+      "No " + std::string(key) + " provided or has invalid type or value.";
   throw std::invalid_argument(message);
 }
 
@@ -167,7 +167,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     } catch (const std::invalid_argument &error) {
       result->Error(kInvalidArgument, error.what());
     } catch (const AudioPlayerError &error) {
-      result->Error(error.GetCode(), error.GetMessage());
+      result->Error(error.code(), error.message());
     }
   }
 
