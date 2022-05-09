@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "tizen_result.h"
-
 enum class ReleaseMode { kRelease, kLoop, kStop };
 
 using PreparedListener =
@@ -31,32 +29,32 @@ class AudioPlayer {
               ErrorListener error_listener);
   ~AudioPlayer();
 
-  TizenResult Play();
-  TizenResult Pause();
-  TizenResult Stop();
+  void Play();
+  void Pause();
+  void Stop();
   void Release();
-  TizenResult Seek(int position);  // milliseconds
+  void Seek(int position);  // milliseconds
 
   // If you use HTTP or RTSP, URI must start with "http://" or "rtsp://".
   // The default protocol is "file://".
-  TizenResult SetUrl(const std::string &url);
-  TizenResult SetDataSource(std::vector<uint8_t> &data);
-  TizenResult SetVolume(double volume);
-  TizenResult SetPlaybackRate(double rate);
-  TizenResult SetReleaseMode(ReleaseMode mode);
-  TizenResult GetDuration(int &out);
-  TizenResult GetCurrentPosition(int &out);
+  void SetUrl(const std::string &url);
+  void SetDataSource(std::vector<uint8_t> &data);
+  void SetVolume(double volume);
+  void SetPlaybackRate(double rate);
+  void SetReleaseMode(ReleaseMode mode);
+  int GetDuration();
+  int GetCurrentPosition();
   std::string GetPlayerId() const { return player_id_; }
-  TizenResult IsPlaying(bool &out);
+  bool IsPlaying();
 
  private:
   // The player state should be none before calling this function.
-  TizenResult CreatePlayer();
+  void CreatePlayer();
   // The player state should be idle before calling this function.
-  TizenResult PreparePlayer();
-  TizenResult ResetPlayer();
+  void PreparePlayer();
+  void ResetPlayer();
   void EmitPositionUpdates();
-  TizenResult GetPlayerState(player_state_e &out);
+  player_state_e GetPlayerState();
 
   static void OnPrepared(void *data);
   static void OnSeekCompleted(void *data);
