@@ -109,7 +109,7 @@ void AudioPlayer::Release() {
   }
 }
 
-void AudioPlayer::Seek(int position) {
+void AudioPlayer::Seek(int32_t position) {
   if (seeking_) {
     return;
   }
@@ -205,7 +205,7 @@ void AudioPlayer::SetReleaseMode(ReleaseMode mode) {
 }
 
 int AudioPlayer::GetDuration() {
-  int duration;
+  int32_t duration;
   int ret = player_get_duration(player_, &duration);
   if (ret != PLAYER_ERROR_NONE) {
     throw AudioPlayerError("player_get_duration failed",
@@ -215,7 +215,7 @@ int AudioPlayer::GetDuration() {
 }
 
 int AudioPlayer::GetCurrentPosition() {
-  int position;
+  int32_t position;
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
     throw AudioPlayerError("player_get_play_position failed",
@@ -411,8 +411,8 @@ Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
   auto *player = reinterpret_cast<AudioPlayer *>(data);
   try {
     if (player->IsPlaying()) {
-      int duration = player->GetDuration();
-      int position = player->GetCurrentPosition();
+      int32_t duration = player->GetDuration();
+      int32_t position = player->GetCurrentPosition();
       player->update_position_listener_(player->player_id_, duration, position);
       return ECORE_CALLBACK_RENEW;
     }

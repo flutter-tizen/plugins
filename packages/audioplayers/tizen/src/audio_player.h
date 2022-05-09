@@ -11,9 +11,10 @@
 enum class ReleaseMode { kRelease, kLoop, kStop };
 
 using PreparedListener =
-    std::function<void(const std::string &player_id, int duration)>;
-using UpdatePositionListener = std::function<void(
-    const std::string &player_id, const int duration, const int position)>;
+    std::function<void(const std::string &player_id, int32_t duration)>;
+using UpdatePositionListener =
+    std::function<void(const std::string &player_id, const int32_t duration,
+                       const int32_t position)>;
 using SeekCompletedListener = std::function<void(const std::string &player_id)>;
 using PlayCompletedListener = std::function<void(const std::string &player_id)>;
 using ErrorListener = std::function<void(const std::string &player_id,
@@ -33,7 +34,7 @@ class AudioPlayer {
   void Pause();
   void Stop();
   void Release();
-  void Seek(int position);  // milliseconds
+  void Seek(int32_t position);  // milliseconds
 
   // If you use HTTP or RTSP, URI must start with "http://" or "rtsp://".
   // The default protocol is "file://".
@@ -42,8 +43,8 @@ class AudioPlayer {
   void SetVolume(double volume);
   void SetPlaybackRate(double rate);
   void SetReleaseMode(ReleaseMode mode);
-  int GetDuration();
-  int GetCurrentPosition();
+  int32_t GetDuration();
+  int32_t GetCurrentPosition();
   std::string GetPlayerId() const { return player_id_; }
   bool IsPlaying();
 

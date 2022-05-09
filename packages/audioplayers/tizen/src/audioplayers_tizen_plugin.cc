@@ -96,36 +96,44 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     AudioPlayer *player = GetAudioPlayer(player_id, mode);
 
     try {
-      const auto &method_name = method_call.method_name();
+      const std::string &method_name = method_call.method_name();
       if (method_name == "play") {
         double volume = 0.0;
-        std::string url;
-        int32_t position = 0;
         if (GetValueFromEncodableMap(arguments, "volume", volume)) {
           player->SetVolume(volume);
         }
+
+        std::string url;
         if (GetValueFromEncodableMap(arguments, "url", url)) {
           player->SetUrl(url);
         }
+
         player->Play();
+
+        int32_t position = 0;
         if (GetValueFromEncodableMap(arguments, "position", position)) {
           player->Seek(position);
         }
+
         result->Success(flutter::EncodableValue(1));
       } else if (method_name == "playBytes") {
         double volume = 0.0;
-        std::vector<uint8_t> bytes;
-        int32_t position = 0;
         if (GetValueFromEncodableMap(arguments, "volume", volume)) {
           player->SetVolume(volume);
         }
+
+        std::vector<uint8_t> bytes;
         if (GetValueFromEncodableMap(arguments, "bytes", bytes)) {
           player->SetDataSource(bytes);
         }
+
         player->Play();
+
+        int32_t position = 0;
         if (GetValueFromEncodableMap(arguments, "position", position)) {
           player->Seek(position);
         }
+
         result->Success(flutter::EncodableValue(1));
       } else if (method_name == "resume") {
         player->Play();
@@ -178,15 +186,16 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       return iter->second.get();
     }
 
-    PreparedListener prepared_listener =
-        [channel = channel_.get()](const std::string &player_id, int duration) {
-          flutter::EncodableMap wrapped = {{flutter::EncodableValue("playerId"),
-                                            flutter::EncodableValue(player_id)},
-                                           {flutter::EncodableValue("value"),
-                                            flutter::EncodableValue(duration)}};
-          auto arguments = std::make_unique<flutter::EncodableValue>(wrapped);
-          channel->InvokeMethod("audio.onDuration", std::move(arguments));
-        };
+    PreparedListener prepared_listener = [channel = channel_.get()](
+                                             const std::string &player_id,
+                                             int32_t duration) {
+      flutter::EncodableMap wrapped = {{flutter::EncodableValue("playerId"),
+                                        flutter::EncodableValue(player_id)},
+                                       {flutter::EncodableValue("value"),
+                                        flutter::EncodableValue(duration)}};
+      auto arguments = std::make_unique<flutter::EncodableValue>(wrapped);
+      channel->InvokeMethod("audio.onDuration", std::move(arguments));
+    };
 
     SeekCompletedListener seek_completed_listener =
         [channel = channel_.get()](const std::string &player_id) {
@@ -200,24 +209,25 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
     UpdatePositionListener update_position_listener =
         [channel = channel_.get()](const std::string &player_id,
-                                   const int duration, const int position) {
-          flutter::EncodableMap durationWrapped = {
+                                   const int32_t duration,
+                                   const int32_t position) {
+          flutter::EncodableMap duration_wrapped = {
               {flutter::EncodableValue("playerId"),
                flutter::EncodableValue(player_id)},
               {flutter::EncodableValue("value"),
                flutter::EncodableValue(duration)}};
           channel->InvokeMethod(
               "audio.onDuration",
-              std::make_unique<flutter::EncodableValue>(durationWrapped));
+              std::make_unique<flutter::EncodableValue>(duration_wrapped));
 
-          flutter::EncodableMap positionWrapped = {
+          flutter::EncodableMap position_wrapped = {
               {flutter::EncodableValue("playerId"),
                flutter::EncodableValue(player_id)},
               {flutter::EncodableValue("value"),
                flutter::EncodableValue(position)}};
           channel->InvokeMethod(
               "audio.onCurrentPosition",
-              std::make_unique<flutter::EncodableValue>(positionWrapped));
+              std::make_unique<flutter::EncodableValue>(position_wrapped));
         };
 
     PlayCompletedListener play_completed_listener =
