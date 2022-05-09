@@ -1,126 +1,86 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "app_settings_manager.h"
 
 #include <app_common.h>
 #include <app_control.h>
 #include <package_manager.h>
 
+#include <string>
+
 #include "log.h"
 
 namespace {
-constexpr char kPackageID[] = "pkgId";
-constexpr char kSettingAppID[] = "com.samsung.clocksetting.apps";
 
-class AppPermissions {
- public:
-  AppPermissions() { Init(); }
+constexpr char kSettingAppId[] = "com.samsung.clocksetting.apps";
 
-  ~AppPermissions() { Deinit(); }
-
-  bool Launch(const std::string& package_name) {
-    if (package_name.length() == 0) {
-      return false;
-    }
-
-    int ret = app_control_add_extra_data(app_control_, kPackageID,
-                                         package_name.c_str());
-    if (ret != APP_CONTROL_ERROR_NONE) {
-      LOG_ERROR("Failed to add key[%s]:value[%s]", kPackageID,
-                package_name.c_str());
-      return false;
-    }
-
-    ret = app_control_send_launch_request(app_control_, nullptr, nullptr);
-    if (ret != APP_CONTROL_ERROR_NONE) {
-      LOG_ERROR("Failed to send launch request setting");
-      return false;
-    }
-    return true;
+std::string GetPackageName() {
+  char* app_id;
+  int ret = app_get_id(&app_id);
+  if (ret != APP_ERROR_NONE) {
+    LOG_ERROR("The app ID is not found.");
+    return "";
   }
 
- private:
-  void Init() {
-    int ret = app_control_create(&app_control_);
-    if (ret != APP_CONTROL_ERROR_NONE) {
-      LOG_ERROR("Failed to create app control handle");
-    }
-
-    ret = app_control_set_app_id(app_control_, kSettingAppID);
-    if (ret != APP_CONTROL_ERROR_NONE) {
-      LOG_ERROR("Failed to set app id[%s]", kSettingAppID);
-    }
+  package_info_h package_info;
+  ret = package_info_create(app_id, &package_info);
+  free(app_id);
+  if (ret != PACKAGE_MANAGER_ERROR_NONE) {
+    LOG_ERROR("Failed to create a package info handle.");
+    return "";
   }
 
-  void Deinit() {
-    if (app_control_) {
-      app_control_destroy(app_control_);
-      app_control_ = nullptr;
-    }
+  char* package_name;
+  ret = package_info_get_package(package_info, &package_name);
+  package_info_destroy(package_info);
+  if (ret != PACKAGE_MANAGER_ERROR_NONE) {
+    LOG_ERROR("Failed to get the package name.");
+    return "";
   }
 
-  app_control_h app_control_{nullptr};
-};
+  std::string result = std::string(package_name);
+  free(package_name);
 
-class PackageName {
- public:
-  PackageName() { Init(); }
-
-  ~PackageName() { Deinit(); }
-
-  char* Get() { return package_name_; }
-
- private:
-  void Init() {
-    int ret = app_get_id(&app_id_);
-    if (ret != APP_ERROR_NONE || app_id_ == nullptr) {
-      LOG_ERROR("Failed to get app id");
-      return;
-    }
-
-    ret = package_info_create(app_id_, &package_info_);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || package_info_ == nullptr) {
-      LOG_ERROR("Failed to create package info handle");
-    }
-    ret = package_info_get_package(package_info_, &package_name_);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || package_name_ == nullptr) {
-      LOG_ERROR("Failed to get package name");
-    }
-  }
-
-  void Deinit() {
-    if (app_id_) {
-      free(app_id_);
-      app_id_ = nullptr;
-    }
-
-    if (package_info_) {
-      package_info_destroy(package_info_);
-      package_info_ = nullptr;
-    }
-
-    if (package_name_) {
-      free(package_name_);
-      package_name_ = nullptr;
-    }
-  }
-
-  char* app_id_{nullptr};
-  package_info_h package_info_{nullptr};
-  char* package_name_{nullptr};
-};
-}  // namespace
-
-AppSettingsManager::AppSettingsManager() {
-  app_permissions_ = std::make_unique<AppPermissions>();
-  PackageName pkg_name;
-  char* name = pkg_name.Get();
-  if (name == nullptr) {
-    return;
-  }
-  package_name_ = std::string(name);
+  return result;
 }
 
-AppSettingsManager::~AppSettingsManager() {}
+}  // namespace
 
 bool AppSettingsManager::OpenAppSettings() {
-  return app_permissions_->Launch(package_name_);
+  std::string package_name = GetPackageName();
+  if (package_name.empty()) {
+    return false;
+  }
+
+  app_control_h app_control;
+  int ret = app_control_create(&app_control);
+  if (ret != APP_CONTROL_ERROR_NONE) {
+    LOG_ERROR("Failed to create an app control handle.");
+    return false;
+  }
+
+  ret = app_control_set_app_id(app_control, kSettingAppId);
+  if (ret != APP_CONTROL_ERROR_NONE) {
+    LOG_ERROR("Failed to set an app ID.");
+    app_control_destroy(app_control);
+    return false;
+  }
+
+  ret = app_control_add_extra_data(app_control, "pkgId", package_name.c_str());
+  if (ret != APP_CONTROL_ERROR_NONE) {
+    LOG_ERROR("Failed to add extra data.");
+    app_control_destroy(app_control);
+    return false;
+  }
+
+  ret = app_control_send_launch_request(app_control, nullptr, nullptr);
+  app_control_destroy(app_control);
+  if (ret != APP_CONTROL_ERROR_NONE) {
+    LOG_ERROR("Failed to send a launch request.");
+    return false;
+  }
+
+  return true;
 }

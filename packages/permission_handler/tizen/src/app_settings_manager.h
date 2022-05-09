@@ -1,24 +1,16 @@
-#ifndef APP_SETTINGS_MANAGER_H_
-#define APP_SETTINGS_MANAGER_H_
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-#include <functional>
-#include <memory>
-#include <string>
-
-namespace {
-class AppPermissions;
-}
+#ifndef FLUTTER_PLUGIN_APP_SETTINGS_MANAGER_H_
+#define FLUTTER_PLUGIN_APP_SETTINGS_MANAGER_H_
 
 class AppSettingsManager {
  public:
-  AppSettingsManager();
-  ~AppSettingsManager();
+  AppSettingsManager() {}
+  ~AppSettingsManager() {}
 
   bool OpenAppSettings();
-
- private:
-  std::unique_ptr<AppPermissions> app_permissions_;
-  std::string package_name_;
 };
 
-#endif  // APP_SETTINGS_MANAGER_H_
+#endif  // FLUTTER_PLUGIN_APP_SETTINGS_MANAGER_H_

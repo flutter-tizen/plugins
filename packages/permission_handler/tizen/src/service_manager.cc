@@ -1,20 +1,15 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "service_manager.h"
 
 #include <locations.h>
 
-#include "log.h"
-#include "type.h"
-
-ServiceManager::ServiceManager() {}
-
-ServiceManager::~ServiceManager() {}
-
-void ServiceManager::CheckServiceStatus(PermissionGroup permission,
-                                        OnServiceChecked success_callback,
-                                        OnServiceError error_callback) {
-  if (permission == PermissionGroup::kLocation ||
-      permission == PermissionGroup::kLocationAlways ||
-      permission == PermissionGroup::kLocationWhenInUse) {
+ServiceStatus ServiceManager::CheckServiceStatus(Permission permission) {
+  if (permission == Permission::kLocation ||
+      permission == Permission::kLocationAlways ||
+      permission == Permission::kLocationWhenInUse) {
     bool gps_enabled, wps_enabled;
     if (location_manager_is_enabled_method(
             LOCATIONS_METHOD_GPS, &gps_enabled) != LOCATIONS_ERROR_NONE) {
@@ -26,12 +21,10 @@ void ServiceManager::CheckServiceStatus(PermissionGroup permission,
     }
 
     if (gps_enabled || wps_enabled) {
-      success_callback(ServiceStatus::kEnabled);
+      return ServiceStatus::kEnabled;
     } else {
-      success_callback(ServiceStatus::kDisabled);
+      return ServiceStatus::kDisabled;
     }
-    return;
   }
-
-  success_callback(ServiceStatus::kNotApplicable);
+  return ServiceStatus::kNotApplicable;
 }

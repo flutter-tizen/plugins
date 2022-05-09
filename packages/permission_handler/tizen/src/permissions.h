@@ -1,9 +1,14 @@
-#ifndef PERMISSION_HANDLER_TYPE_H_
-#define PERMISSION_HANDLER_TYPE_H_
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-// Keep in sync with the values defined in:
-// https://github.com/Baseflow/flutter-permission-handler/blob/master/permission_handler_platform_interface/lib/src/permissions.dart
-enum class PermissionGroup {
+#ifndef FLUTTER_PLUGIN_PERMISSIONS_H_
+#define FLUTTER_PLUGIN_PERMISSIONS_H_
+
+// Permissions that can be checked and requested.
+//
+// Originally defined in permissions.dart of the platform interface package.
+enum class Permission {
   kCalendar = 0,
   kCamera = 1,
   kContacts = 2,
@@ -37,16 +42,4 @@ enum class PermissionGroup {
   kBluetoothConnect = 30
 };
 
-// permission status
-enum class PermissionStatus {
-  kDenied = 0,
-  kGranted,
-  kRestricted,
-  kLimited,
-  kPermanentlyDenied
-};
-
-// service status
-enum class ServiceStatus { kDisabled = 0, kEnabled, kNotApplicable };
-
-#endif  // PERMISSION_HANDLER_TYPE_H_
+#endif  // FLUTTER_PLUGIN_PERMISSIONS_H_
