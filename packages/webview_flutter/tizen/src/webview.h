@@ -31,7 +31,7 @@ class WebView : public PlatformView {
  public:
   WebView(flutter::PluginRegistrar* registrar, int viewId,
           flutter::TextureRegistrar* textureRegistrar, double width,
-          double height, flutter::EncodableMap& params, void* platform_window);
+          double height, flutter::EncodableMap& params);
   ~WebView();
   virtual void Dispose() override;
   virtual void Resize(double width, double height) override;
@@ -83,7 +83,6 @@ class WebView : public PlatformView {
   flutter::TextureVariant* texture_variant_;
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;
-  void* platform_window_;
   bool use_sw_backend_;
 };
 

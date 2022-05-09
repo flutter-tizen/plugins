@@ -1,3 +1,8 @@
+## 0.4.3
+
+* Remove unused things.
+* Fix build warnings.
+
 ## 0.4.2
 
 * Support background color.

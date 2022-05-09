@@ -39,7 +39,7 @@ class BufferUnit {
 class BufferPool {
  public:
   explicit BufferPool(int width, int height, int pool_size);
-  ~BufferPool();
+  virtual ~BufferPool();
 
   virtual BufferUnit* GetAvailableBuffer();
   virtual void Release(BufferUnit* unit);
