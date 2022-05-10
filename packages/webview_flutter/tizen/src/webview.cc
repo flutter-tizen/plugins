@@ -20,7 +20,7 @@
 #include "webview_factory.h"
 
 #define BUFFER_POOL_SIZE 5
-#define LWE_EXPORT
+
 extern "C" size_t LWE_EXPORT createWebViewInstance(
     unsigned x, unsigned y, unsigned width, unsigned height,
     float devicePixelRatio, const char* defaultFontName, const char* locale,
@@ -156,22 +156,20 @@ bool NeedsSwBackend(void) {
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
                  flutter::TextureRegistrar* texture_registrar, double width,
-                 double height, flutter::EncodableMap& params,
-                 void* platform_window)
-    : PlatformView(registrar, viewId, platform_window),
+                 double height, flutter::EncodableMap& params)
+    : PlatformView(registrar, viewId, nullptr),
       texture_registrar_(texture_registrar),
       webview_instance_(nullptr),
       width_(width),
       height_(height),
       working_surface_(nullptr),
       candidate_surface_(nullptr),
-      is_mouse_lbutton_down_(false),
       rendered_surface_(nullptr),
+      is_mouse_lbutton_down_(false),
       has_navigation_delegate_(false),
       has_progress_tracking_(false),
       context_(nullptr),
-      texture_variant_(nullptr),
-      platform_window_(platform_window) {
+      texture_variant_(nullptr) {
   use_sw_backend_ = NeedsSwBackend();
   if (use_sw_backend_) {
     tbm_pool_ = std::make_unique<SingleBufferPool>(width, height);
