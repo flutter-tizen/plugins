@@ -402,7 +402,7 @@ void AudioPlayer::StartPositionUpdates(void *data) {
     player->timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, data);
     if (!player->timer_) {
       player->error_listener_(player->player_id_,
-                              "Failed to add postion update timer.");
+                              "Failed to add a position update timer.");
     }
   }
 }
