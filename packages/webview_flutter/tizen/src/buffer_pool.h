@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEBVIEW_BUFFER_POOL_H_
-#define FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEBVIEW_BUFFER_POOL_H_
+#ifndef FLUTTER_PLUGIN_BUFFER_POOL_H_
+#define FLUTTER_PLUGIN_BUFFER_POOL_H_
 
 #include <flutter_texture_registrar.h>
 #include <tbm_surface.h>
@@ -16,24 +16,30 @@ class BufferUnit {
  public:
   explicit BufferUnit(int index, int width, int height);
   ~BufferUnit();
+
   void Reset(int width, int height);
+
   bool MarkInUse();
   void UnmarkInUse();
-  int Index();
-  bool IsUsed();
+
+  bool IsUsed() { return is_used_ && tbm_surface_; }
+
   tbm_surface_h Surface();
-  FlutterDesktopGpuBuffer* GpuBuffer();
+
+  FlutterDesktopGpuBuffer* GpuBuffer() { return gpu_buffer_; }
+
 #ifndef NDEBUG
+  // TODO: Unused code.
   void DumpToPng(int file_name);
 #endif
 
  private:
-  bool isUsed_;
+  bool is_used_ = false;
   int index_;
-  int width_;
-  int height_;
-  tbm_surface_h tbm_surface_;
-  FlutterDesktopGpuBuffer* gpu_buffer_;
+  int width_ = 0;
+  int height_ = 0;
+  tbm_surface_h tbm_surface_ = nullptr;
+  FlutterDesktopGpuBuffer* gpu_buffer_ = nullptr;
 };
 
 class BufferPool {
@@ -42,7 +48,8 @@ class BufferPool {
   virtual ~BufferPool();
 
   virtual BufferUnit* GetAvailableBuffer();
-  virtual void Release(BufferUnit* unit);
+  virtual void Release(BufferUnit* buffer);
+
   void Prepare(int with, int height);
 
  protected:
@@ -58,8 +65,8 @@ class SingleBufferPool : public BufferPool {
   explicit SingleBufferPool(int width, int height);
   ~SingleBufferPool();
 
-  virtual BufferUnit* GetAvailableBuffer();
-  virtual void Release(BufferUnit* unit);
+  virtual BufferUnit* GetAvailableBuffer() override;
+  virtual void Release(BufferUnit* buffer) override;
 };
 
-#endif
+#endif  // FLUTTER_PLUGIN_BUFFER_POOL_H_

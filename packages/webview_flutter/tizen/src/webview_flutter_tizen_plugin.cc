@@ -11,7 +11,9 @@
 
 #include "webview_factory.h"
 
-static constexpr char kViewType[] = "plugins.flutter.io/webview";
+namespace {
+
+constexpr char kViewType[] = "plugins.flutter.io/webview";
 
 class WebviewFlutterTizenPlugin : public flutter::Plugin {
  public:
@@ -19,17 +21,20 @@ class WebviewFlutterTizenPlugin : public flutter::Plugin {
     auto plugin = std::make_unique<WebviewFlutterTizenPlugin>();
     registrar->AddPlugin(std::move(plugin));
   }
+
   WebviewFlutterTizenPlugin() {}
+
   virtual ~WebviewFlutterTizenPlugin() {}
 };
 
+}  // namespace
+
 void WebviewFlutterTizenPluginRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar) {
-  flutter::PluginRegistrar* core_registrar =
+    FlutterDesktopPluginRegistrarRef core_registrar) {
+  flutter::PluginRegistrar* registrar =
       flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar);
-  auto factory = std::make_unique<WebViewFactory>(
-      core_registrar, core_registrar->texture_registrar());
-  FlutterDesktopRegisterViewFactory(registrar, kViewType, std::move(factory));
-  WebviewFlutterTizenPlugin::RegisterWithRegistrar(core_registrar);
+          ->GetRegistrar<flutter::PluginRegistrar>(core_registrar);
+  FlutterDesktopRegisterViewFactory(
+      core_registrar, kViewType, std::make_unique<WebViewFactory>(registrar));
+  WebviewFlutterTizenPlugin::RegisterWithRegistrar(registrar);
 }
