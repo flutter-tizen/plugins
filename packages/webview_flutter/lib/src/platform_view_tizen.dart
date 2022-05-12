@@ -591,6 +591,7 @@ class _TizenPlatformTextureView extends LeafRenderObjectWidget {
     required this.controller,
     required this.hitTestBehavior,
     required this.gestureRecognizers,
+    // ignore: unused_element
     this.clipBehavior = Clip.hardEdge,
   })  : assert(controller != null),
         assert(hitTestBehavior != null),

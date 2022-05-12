@@ -18,6 +18,7 @@ import 'package:integration_test_example/main.dart' as app;
 
 void main() {
   final IntegrationTestWidgetsFlutterBinding binding =
+      // ignore: unnecessary_cast
       IntegrationTestWidgetsFlutterBinding.ensureInitialized()
           as IntegrationTestWidgetsFlutterBinding;
   testWidgets('verify text', (WidgetTester tester) async {

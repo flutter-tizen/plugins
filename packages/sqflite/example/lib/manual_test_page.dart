@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide MenuItem;
 import 'package:sqflite/sqflite.dart';
 // ignore: implementation_imports
 import 'package:sqflite/src/factory_mixin.dart' as impl;
@@ -17,6 +17,7 @@ class ManualTestPage extends StatefulWidget {
   const ManualTestPage({Key? key}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _ManualTestPageState createState() => _ManualTestPageState();
 }
 
@@ -185,6 +186,7 @@ class SimpleDbTestPage extends StatefulWidget {
   final String dbName;
 
   @override
+  // ignore: library_private_types_in_public_api
   _SimpleDbTestPageState createState() => _SimpleDbTestPageState();
 }
 
@@ -233,11 +235,12 @@ class _SimpleDbTestPageState extends State<SimpleDbTestPage> {
               final result =
                   firstIntValue(await db.query('test', columns: ['COUNT(*)']));
               // Temp for nnbd successfull lint
-              // ignore: deprecated_member_use
-              Scaffold.of(context).showSnackBar(SnackBar(
-                content: Text('$result records'),
-                duration: const Duration(milliseconds: 700),
-              ));
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('$result records'),
+                  duration: const Duration(milliseconds: 700),
+                ));
+              }
             }
 
             final items = <Widget>[
