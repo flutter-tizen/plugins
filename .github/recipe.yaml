@@ -1,21 +1,21 @@
 plugins:
   audioplayers: ["wearable-5.5"]
   battery_plus: ["wearable-5.5"]
-  connectivity_plus: ["wearable-5.5", "tv-6.0"]
-  device_info_plus: ["wearable-5.5", "tv-6.0"]
-  flutter_tts: ["wearable-5.5", "tv-6.0"]
-  integration_test: ["wearable-5.5", "tv-6.0"]
-  messageport: ["wearable-5.5", "tv-6.0"]
-  package_info_plus: ["wearable-5.5", "tv-6.0"]
-  path_provider: ["tv-6.0"]
+  connectivity_plus: ["wearable-5.5", "tv-6.5"]
+  device_info_plus: ["wearable-5.5", "tv-6.5"]
+  flutter_tts: ["wearable-5.5", "tv-6.5"]
+  integration_test: ["wearable-5.5", "tv-6.5"]
+  messageport: ["wearable-5.5", "tv-6.5"]
+  package_info_plus: ["wearable-5.5", "tv-6.5"]
+  path_provider: ["tv-6.5"]
   sensors_plus: ["wearable-5.5"]
   share_plus: ["wearable-5.5"]
-  shared_preferences: ["wearable-5.5", "tv-6.0"]
-  sqflite: ["wearable-5.5", "tv-6.0"]
-  tizen_app_manager: ["wearable-5.5", "tv-6.0"]
-  tizen_audio_manager: ["wearable-5.5", "tv-6.0"]
-  tizen_package_manager: ["wearable-5.5", "tv-6.0"]
-  url_launcher: ["wearable-5.5", "tv-6.0"]
+  shared_preferences: ["wearable-5.5", "tv-6.5"]
+  sqflite: ["wearable-5.5", "tv-6.5"]
+  tizen_app_manager: ["wearable-5.5", "tv-6.5"]
+  tizen_audio_manager: ["wearable-5.5", "tv-6.5"]
+  tizen_package_manager: ["wearable-5.5", "tv-6.5"]
+  url_launcher: ["wearable-5.5", "tv-6.5"]
   wakelock: ["wearable-5.5"]
 
   # Not supported by emulators.
@@ -33,7 +33,7 @@ plugins:
   # Permission cannot be granted without manual interaction.
   geolocator: []
   permission_handler: []
-  
+
   # Only testable with the drive command: https://github.com/flutter-tizen/plugins/issues/272
   tizen_app_control: []
 
