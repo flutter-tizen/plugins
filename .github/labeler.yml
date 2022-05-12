@@ -29,10 +29,12 @@
   - packages/path_provider/**/*
 'p: permission_handler':
   - packages/permission_handler/**/*
-'p: sensors_plus':
-  - packages/sensors_plus/**/*
 'p: shared_preferences':
   - packages/shared_preferences/**/*
+'p: sensors_plus':
+  - packages/sensors_plus/**/*
+'p: sqflite':
+  - packages/sqflite/**/*
 'p: share_plus':
   - packages/share_plus/**/*
 'p: tizen_app_control':
