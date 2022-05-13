@@ -60,10 +60,10 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**image_picker_tizen**](packages/image_picker) | ⚠️ | ❌ | ❌ | ❌ | No camera<br>No file manager app |
 | [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**messageport_tizen**](packages/messageport) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**network_info_plus_tizen**](packages/network_info_plus) | ✔️ | ❌ | ✔️ | ❌ | API unsupported by emulators |
+| [**network_info_plus_tizen**](packages/network_info_plus) | ✔️ | ❌ | ✔️ | ❌ | API not supported on emulator |
 | [**package_info_plus_tizen**](packages/package_info_plus) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**path_provider_tizen**](packages/path_provider) | ⚠️ | ⚠️ | ⚠️ | ⚠️ | No external storage |
-| [**permission_handler_tizen**](packages/permission_handler) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
+| [**path_provider_tizen**](packages/path_provider) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**permission_handler_tizen**](packages/permission_handler) | ✔️ | ✔️ | ⚠️ | ⚠️ | Not applicable for TV |
 | [**sensors_plus_tizen**](packages/sensors_plus) | ✔️ | ✔️ | ❌ | ❌ | No sensor hardware |
 | [**share_plus_tizen**](packages/share_plus) | ⚠️ | ⚠️ | ❌ | ❌ | No SMS or e-mail app |
 | [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ | ✔️ |
