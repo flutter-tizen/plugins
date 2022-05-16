@@ -23,8 +23,8 @@ using OnSuccess = std::function<void(PermissionStatus)>;
 using OnFailure = std::function<void(TizenResult)>;
 class PermissionManager {
  public:
-  PermissionManager() {};
-  ~PermissionManager() {};
+  PermissionManager(){};
+  ~PermissionManager(){};
 
   TizenResult CheckPermissionStatus(PermissionStatus *permission_status);
 

@@ -14,4 +14,4 @@ TizenResult LaunchLocationSetting();
 
 };  // namespace Setting
 
-#endif // FLUTTER_PLUGIN_SETTING_H_
+#endif  // FLUTTER_PLUGIN_SETTING_H_

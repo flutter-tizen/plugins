@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "location_manager.h"
+
 #include "log.h"
 
 LocationManager::LocationManager() {

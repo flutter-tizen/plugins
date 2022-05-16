@@ -9,8 +9,8 @@
 #include <package_manager.h>
 
 namespace {
-  constexpr char kSettingAppId[] = "com.samsung.clocksetting.apps";
-  constexpr char kLocationSettingAppId[] = "com.samsung.setting-location";
+constexpr char kSettingAppId[] = "com.samsung.clocksetting.apps";
+constexpr char kLocationSettingAppId[] = "com.samsung.setting-location";
 
 class AppControl {
  public:

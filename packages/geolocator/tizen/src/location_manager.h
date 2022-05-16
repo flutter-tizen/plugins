@@ -6,6 +6,7 @@
 #define FLUTTER_PLUGIN_LOCATION_MANAGER_H_
 
 #include <locations.h>
+
 #include <functional>
 
 #include "location.h"
