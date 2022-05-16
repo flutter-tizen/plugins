@@ -7,8 +7,6 @@
 #include <Ecore.h>
 #include <privacy_privilege_manager.h>
 
-#include <vector>
-
 #include "log.h"
 
 namespace {
@@ -22,9 +20,6 @@ struct PermissionResponse {
 };
 
 }  // namespace
-
-PermissionManager::PermissionManager() {}
-PermissionManager::~PermissionManager() {}
 
 TizenResult PermissionManager::CheckPermissionStatus(
     PermissionStatus *permission_status) {

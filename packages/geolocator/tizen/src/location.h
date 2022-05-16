@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#ifndef FLUTTER_PLUGIN_LOCATION_H_
+#define FLUTTER_PLUGIN_LOCATION_H_
+
 #include <flutter/encodable_value.h>
 #include <time.h>
-
 #include <optional>
 
 // Defined in:
@@ -50,3 +52,5 @@ struct Location {
   std::optional<double> speed;
   std::optional<double> speedAccuracy;
 };
+
+#endif  // FLUTTER_PLUGIN_LOCATION_H_

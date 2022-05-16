@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef TIZEN_RESULT_H_
-#define TIZEN_RESULT_H_
+#ifndef FLUTTER_PLUGIN_TIZEN_RESULT_H_
+#define FLUTTER_PLUGIN_TIZEN_RESULT_H_
 
 #include <tizen.h>
 
@@ -21,4 +21,4 @@ struct TizenResult {
   int error_code = TIZEN_ERROR_NONE;
 };
 
-#endif  // TIZEN_RESULT_H_
+#endif  // FLUTTER_PLUGIN_TIZEN_RESULT_H_

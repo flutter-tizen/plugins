@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SETTING_H_
-#define SETTING_H_
+#ifndef FLUTTER_PLUGIN_SETTING_H_
+#define FLUTTER_PLUGIN_SETTING_H_
 
 #include "tizen_result.h"
 
@@ -14,4 +14,4 @@ TizenResult LaunchLocationSetting();
 
 };  // namespace Setting
 
-#endif
+#endif // FLUTTER_PLUGIN_SETTING_H_

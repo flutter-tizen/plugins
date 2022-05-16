@@ -9,6 +9,8 @@
 #include <package_manager.h>
 
 namespace {
+  constexpr char kSettingAppId[] = "com.samsung.clocksetting.apps";
+  constexpr char kLocationSettingAppId[] = "com.samsung.setting-location";
 
 class AppControl {
  public:
@@ -79,7 +81,7 @@ TizenResult Setting::LaunchAppSetting() {
   PackageName name;
   AppControl app_ctrl;
 
-  app_ctrl.SetAppId("com.samsung.clocksetting.apps");
+  app_ctrl.SetAppId(kSettingAppId);
   app_ctrl.AddExtraData("pkgId", name);
 
   return app_ctrl.SendLauchRequest();
@@ -88,7 +90,7 @@ TizenResult Setting::LaunchAppSetting() {
 TizenResult Setting::LaunchLocationSetting() {
   AppControl app_ctrl;
 
-  app_ctrl.SetAppId("com.samsung.setting-location");
+  app_ctrl.SetAppId(kLocationSettingAppId);
   app_ctrl.SetOperation(
       "http://tizen.org/appcontrol/operation/configure/location");
 

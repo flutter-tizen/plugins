@@ -1,12 +1,11 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef LOCATON_MANAGER_H_
-#define LOCATON_MANAGER_H_
+#ifndef FLUTTER_PLUGIN_LOCATION_MANAGER_H_
+#define FLUTTER_PLUGIN_LOCATION_MANAGER_H_
 
 #include <locations.h>
-
 #include <functional>
 
 #include "location.h"
@@ -30,7 +29,7 @@ class LocationManager {
   TizenResult RequestCurrentLocationOnce(OnLocationUpdated on_success,
                                          OnError on_error);
 
-  TizenResult GetLastKnownLocation(Location* locaton);
+  TizenResult GetLastKnownLocation(Location* LOCATION);
 
   TizenResult SetOnServiceStateChanged(
       OnServiceStateChanged on_service_state_changed);
@@ -57,4 +56,4 @@ class LocationManager {
   OnServiceStateChanged on_service_state_changed_;
   OnLocationUpdated on_location_updated_;
 };
-#endif  // LOCATON_MANAGER_H_
+#endif  // FLUTTER_PLUGIN_LOCATION_MANAGER_H_
