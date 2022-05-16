@@ -90,7 +90,6 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     geolocator_updates_channel_->SetStreamHandler(std::move(handler));
   }
 
-
   void HandleMethodCall(const FlMethodCall &method_call,
                         std::unique_ptr<FlMethodResult> result) {
     std::string method_name = method_call.method_name();
@@ -127,8 +126,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       return;
     }
     LOG_INFO("permission_status is %d", permission_status);
-    SendResult(
-        flutter::EncodableValue(static_cast<int>(permission_status)));
+    SendResult(flutter::EncodableValue(static_cast<int>(permission_status)));
   }
 
   void OnIsLocationServiceEnabled() {
@@ -176,7 +174,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
         [result_ptr](TizenResult error) {
           result_ptr->Error(
               error.message(),
-               "An error occurred while requesting current location.");
+              "An error occurred while requesting current location.");
         });
 
     if (!tizen_result) {
