@@ -3,6 +3,7 @@
 
 #include <bluetooth.h>
 #include <flutterblue.pb.h>
+#include <utils.h>
 
 #include <map>
 #include <memory>
