@@ -1,3 +1,7 @@
+## 1.0.3
+
+* Refactor the C++ code
+
 ## 1.0.2
 
 * Update geolocator to 8.0.0
