@@ -1,6 +1,6 @@
 ## 1.0.3
 
-* Refactor the C++ code
+* Refactor the C++ code.
 
 ## 1.0.2
 

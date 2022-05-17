@@ -24,6 +24,18 @@ typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 
+constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
+
+// Keep in sync with the enum values implemented in:
+// https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_platform_interface/lib/src/enums/location_permission.dart
+// https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_android/android/src/main/java/com/baseflow/geolocator/permission/LocationPermission.java
+enum class LocationPermission {
+  kDenied = 0,
+  kDeniedForever = 1,
+  kWhileInUse = 2,
+  kAlways = 3,
+};
+
 class GeolocatorTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
@@ -37,8 +49,8 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     plugin->SetupGeolocatorUpdatesChannel(registrar->messenger());
 
     channel->SetMethodCallHandler(
-        [plugin_ptr = plugin.get()](const auto &call, auto result) {
-          plugin_ptr->HandleMethodCall(call, std::move(result));
+        [plugin_pointer = plugin.get()](const auto &call, auto result) {
+          plugin_pointer->HandleMethodCall(call, std::move(result));
         });
 
     registrar->AddPlugin(std::move(plugin));
@@ -118,15 +130,32 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   }
 
   void OnCheckPermission() {
-    PermissionStatus permission_status;
-    TizenResult ret =
-        permission_manager_->CheckPermissionStatus(&permission_status);
-    if (!ret) {
-      SendErrorResult(ret.message(), "Failed to check permssion status.");
+    PermissionStatus result =
+        permission_manager_->CheckPermission(kPrivilegeLocation);
+
+    if (result == PermissionStatus::kDeny) {
+      SendErrorResult("Permission denied", "Permission denied by user.");
+      return;
+    } else if (result == PermissionStatus::kError) {
+      SendErrorResult("Operation failed", "Failed to request permission.");
       return;
     }
-    LOG_INFO("permission_status is %d", permission_status);
-    SendResult(flutter::EncodableValue(static_cast<int>(permission_status)));
+    LOG_INFO("permission_status is %d", result);
+    LocationPermission location_permission =
+        ChangePermissionStatustoLocationPermission(result);
+    SendResult(flutter::EncodableValue(static_cast<int>(location_permission)));
+  }
+
+  LocationPermission ChangePermissionStatustoLocationPermission(
+      PermissionStatus permission) {
+    switch (permission) {
+      case PermissionStatus::kDeny:
+      case PermissionStatus::kAsk:
+        return LocationPermission::kDenied;
+      case PermissionStatus::kAllow:
+      default:
+        return LocationPermission::kAlways;
+    }
   }
 
   void OnIsLocationServiceEnabled() {
@@ -141,16 +170,31 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   }
 
   void OnRequestPermission() {
-    auto result_ptr = result_.get();
-    permission_manager_->RequestPermssion(
-        [result_ptr](PermissionStatus permission_status) {
-          result_ptr->Success(
-              flutter::EncodableValue(static_cast<int>(permission_status)));
-        },
-        [result_ptr](TizenResult tizen_result) {
-          result_ptr->Error(tizen_result.message(),
-                            "Failed to request permssion.");
-        });
+    PermissionResult result =
+        permission_manager_->RequestPermssion(kPrivilegeLocation);
+    if (result == PermissionResult::kDenyForever ||
+        result == PermissionResult::kDenyOnce) {
+      SendErrorResult("Permission denied", "Permission denied by user.");
+    } else if (result == PermissionResult::kError) {
+      SendErrorResult("Operation failed", "Failed to request permission.");
+      return;
+    }
+    LocationPermission location_permission =
+        ChangePermissionResulttoLocationPermission(result);
+    SendResult(flutter::EncodableValue(static_cast<int>(location_permission)));
+  }
+
+  LocationPermission ChangePermissionResulttoLocationPermission(
+      PermissionResult permission) {
+    switch (permission) {
+      case PermissionResult::kDenyOnce:
+        return LocationPermission::kDenied;
+      case PermissionResult::kDenyForever:
+        return LocationPermission::kDeniedForever;
+      case PermissionResult::kAllowForever:
+      default:
+        return LocationPermission::kAlways;
+    }
   }
 
   void OnGetLastKnownPosition() {
