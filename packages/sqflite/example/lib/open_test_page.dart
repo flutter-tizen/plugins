@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/src/database_mixin.dart' // ignore: implementation_imports
     show
@@ -142,7 +141,7 @@ class OpenTestPage extends TestPage {
     test('Databases path', () async {
       final databasesPath = await factory.getDatabasesPath();
       // On Android we know it is current a 'databases' folder in the package folder
-      print('databasesPath: ' + databasesPath);
+      print('databasesPath: $databasesPath');
       if (Platform.isAndroid) {
         expect(basename(databasesPath), 'databases');
       } else if (Platform.isIOS) {

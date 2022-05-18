@@ -18,8 +18,7 @@ import 'package:integration_test_example/main.dart' as app;
 
 void main() {
   final IntegrationTestWidgetsFlutterBinding binding =
-      IntegrationTestWidgetsFlutterBinding.ensureInitialized()
-          as IntegrationTestWidgetsFlutterBinding;
+      IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets('verify text', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     app.main();

@@ -5,9 +5,10 @@ import 'package:sqflite/sqflite.dart';
 // ignore: implementation_imports
 import 'package:sqflite/src/factory_mixin.dart' as impl;
 import 'package:sqflite/utils/utils.dart';
-import 'package:sqflite_tizen_example/model/item.dart';
 import 'package:sqflite_tizen_example/src/item_widget.dart';
 import 'package:sqflite_tizen_example/utils.dart';
+
+import 'model/item.dart';
 
 // ignore_for_file: avoid_print
 
@@ -17,6 +18,7 @@ class ManualTestPage extends StatefulWidget {
   const ManualTestPage({Key? key}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _ManualTestPageState createState() => _ManualTestPageState();
 }
 
@@ -43,7 +45,7 @@ class _ManualTestPageState extends State<ManualTestPage> {
     await database?.setVersion(version + 1);
   }
 
-  late List<MenuItem> items;
+  late List<SqfMenuItem> items;
   late List<ItemWidget> itemWidgets;
 
   Future<bool> pop() async {
@@ -53,53 +55,53 @@ class _ManualTestPageState extends State<ManualTestPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    items = <MenuItem>[
-      MenuItem('openDatabase', () async {
+    items = <SqfMenuItem>[
+      SqfMenuItem('openDatabase', () async {
         await _openDatabase();
       }, summary: 'Open the database'),
-      MenuItem('BEGIN EXCLUSIVE', () async {
+      SqfMenuItem('BEGIN EXCLUSIVE', () async {
         final db = await _openDatabase();
         await db.execute('BEGIN EXCLUSIVE');
       },
           summary:
               'Execute than exit or hot-restart the application. Open the database if needed'),
-      MenuItem('close', () async {
+      SqfMenuItem('close', () async {
         await _closeDatabase();
       },
           summary:
               'Execute after starting then exit the app using the back button on Android and restart from the launcher.'),
-      MenuItem('delete', () async {
+      SqfMenuItem('delete', () async {
         await _deleteDatabase();
       },
           summary:
               'Try open (then optionally) delete, exit or hot-restart then delete then open'),
-      MenuItem('log level: none', () async {
+      SqfMenuItem('log level: none', () async {
         // ignore: deprecated_member_use
         await Sqflite.devSetOptions(
             // ignore: deprecated_member_use
             SqfliteOptions(logLevel: sqfliteLogLevelNone));
       }, summary: 'No logs'),
-      MenuItem('log level: sql', () async {
+      SqfMenuItem('log level: sql', () async {
         // ignore: deprecated_member_use
         await Sqflite.devSetOptions(
             // ignore: deprecated_member_use
             SqfliteOptions(logLevel: sqfliteLogLevelSql));
       }, summary: 'Log sql command and basic database operation'),
-      MenuItem('log level: verbose', () async {
+      SqfMenuItem('log level: verbose', () async {
         // ignore: deprecated_member_use
         await Sqflite.devSetOptions(
             // ignore: deprecated_member_use
             SqfliteOptions(logLevel: sqfliteLogLevelVerbose));
       }, summary: 'Verbose logs, for debugging'),
-      MenuItem('Get info', () async {
+      SqfMenuItem('Get info', () async {
         final factory = databaseFactory as impl.SqfliteDatabaseFactoryMixin;
         final info = await factory.getDebugInfo();
         print(info.toString());
       }, summary: 'Implementation info (dev only)'),
-      MenuItem('Increment version', () async {
+      SqfMenuItem('Increment version', () async {
         await _incrementVersion();
       }, summary: 'Implementation info (dev only)'),
-      MenuItem('Multiple db', () async {
+      SqfMenuItem('Multiple db', () async {
         await Navigator.of(context).push(MaterialPageRoute(builder: (_) {
           return const MultipleDbTestPage();
         }));
@@ -114,7 +116,7 @@ class _ManualTestPageState extends State<ManualTestPage> {
               item,
               (item) async {
                 final stopwatch = Stopwatch()..start();
-                final future = (item as MenuItem).run();
+                final future = (item as SqfMenuItem).run();
                 setState(() {});
                 await future;
                 // always add a small delay
@@ -185,6 +187,7 @@ class SimpleDbTestPage extends StatefulWidget {
   final String dbName;
 
   @override
+  // ignore: library_private_types_in_public_api
   _SimpleDbTestPageState createState() => _SimpleDbTestPageState();
 }
 
@@ -233,11 +236,12 @@ class _SimpleDbTestPageState extends State<SimpleDbTestPage> {
               final result =
                   firstIntValue(await db.query('test', columns: ['COUNT(*)']));
               // Temp for nnbd successfull lint
-              // ignore: deprecated_member_use
-              Scaffold.of(context).showSnackBar(SnackBar(
-                content: Text('$result records'),
-                duration: const Duration(milliseconds: 700),
-              ));
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('$result records'),
+                  duration: const Duration(milliseconds: 700),
+                ));
+              }
             }
 
             final items = <Widget>[
