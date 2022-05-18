@@ -14,7 +14,7 @@
 #include "location_manager.h"
 #include "log.h"
 #include "permission_manager.h"
-#include "setting.h"
+#include "app_settings_manager.h"
 
 namespace {
 
@@ -65,7 +65,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
  private:
   void SetupGeolocatorServiceUpdatesChannel(
       flutter::BinaryMessenger *messenger) {
-    geolocator_service_updates_channel_ = std::make_unique<FlEventChannel>(
+    service_updates_channel_ = std::make_unique<FlEventChannel>(
         messenger, "flutter.baseflow.com/geolocator_service_updates",
         &flutter::StandardMethodCodec::GetInstance());
     auto handler = std::make_unique<flutter::StreamHandlerFunctions<>>(
@@ -80,11 +80,11 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
           OnCancelGeolocatorServiceUpdates();
           return nullptr;
         });
-    geolocator_service_updates_channel_->SetStreamHandler(std::move(handler));
+    service_updates_channel_->SetStreamHandler(std::move(handler));
   }
 
   void SetupGeolocatorUpdatesChannel(flutter::BinaryMessenger *messenger) {
-    geolocator_updates_channel_ = std::make_unique<FlEventChannel>(
+    updates_channel_ = std::make_unique<FlEventChannel>(
         messenger, "flutter.baseflow.com/geolocator_updates",
         &flutter::StandardMethodCodec::GetInstance());
     auto handler = std::make_unique<flutter::StreamHandlerFunctions<>>(
@@ -99,7 +99,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
           OnCancelGeolocatorUpdates();
           return nullptr;
         });
-    geolocator_updates_channel_->SetStreamHandler(std::move(handler));
+    updates_channel_->SetStreamHandler(std::move(handler));
   }
 
   void HandleMethodCall(const FlMethodCall &method_call,
@@ -119,11 +119,11 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     } else if (method_name == "getCurrentPosition") {
       OnGetCurrentPosition();
     } else if (method_name == "openAppSettings") {
-      TizenResult ret = Setting::LaunchAppSetting();
-      SendResult(flutter::EncodableValue(static_cast<bool>(ret)));
+      bool ret = app_settings_manager_->OpenAppSettings();
+      result->Success(flutter::EncodableValue(ret));
     } else if (method_name == "openLocationSettings") {
-      TizenResult ret = Setting::LaunchLocationSetting();
-      SendResult(flutter::EncodableValue(static_cast<bool>(ret)));
+      bool ret = app_settings_manager_->OpenLocationSetting();
+      result->Success(flutter::EncodableValue(ret));
     } else {
       result->NotImplemented();
     }
@@ -229,39 +229,39 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
 
   void OnListenGeolocatorServiceUpdates(
       std::unique_ptr<FlEventSink> &&event_sink) {
-    geolocator_service_updates_event_sink_ = std::move(event_sink);
+    service_updates_event_sink_ = std::move(event_sink);
     TizenResult tizen_result = location_manager_->SetOnServiceStateChanged(
         [this](ServiceState service_state) {
           flutter::EncodableValue value(static_cast<int>(service_state));
-          geolocator_service_updates_event_sink_->Success(value);
+          service_updates_event_sink_->Success(value);
         });
     if (!tizen_result) {
       LOG_ERROR("Failed to set OnServiceStateChanged, %s.",
                 tizen_result.message().c_str());
-      geolocator_service_updates_event_sink_ = nullptr;
+      service_updates_event_sink_ = nullptr;
     }
   }
 
   void OnCancelGeolocatorServiceUpdates() {
-    geolocator_service_updates_event_sink_ = nullptr;
+    service_updates_event_sink_ = nullptr;
     location_manager_->UnsetOnServiceStateChanged();
   }
 
   void OnListenGeolocatorUpdates(std::unique_ptr<FlEventSink> &&event_sink) {
-    geolocator_updates_event_sink_ = std::move(event_sink);
+    updates_event_sink_ = std::move(event_sink);
     TizenResult tizen_result =
         location_manager_->SetOnLocationUpdated([this](Location location) {
-          geolocator_updates_event_sink_->Success(location.ToEncodableValue());
+          updates_event_sink_->Success(location.ToEncodableValue());
         });
     if (!tizen_result) {
       LOG_ERROR("Failed to set OnLocationUpdated, %s.",
                 tizen_result.message().c_str());
-      geolocator_updates_event_sink_ = nullptr;
+      updates_event_sink_ = nullptr;
     }
   }
 
   void OnCancelGeolocatorUpdates() {
-    geolocator_updates_event_sink_ = nullptr;
+    updates_event_sink_ = nullptr;
     location_manager_->UnsetOnLocationUpdated();
   }
 
@@ -285,10 +285,11 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   std::unique_ptr<FlMethodResult> result_;
   std::unique_ptr<PermissionManager> permission_manager_;
   std::unique_ptr<LocationManager> location_manager_;
-  std::unique_ptr<FlEventChannel> geolocator_service_updates_channel_;
-  std::unique_ptr<FlEventSink> geolocator_service_updates_event_sink_;
-  std::unique_ptr<FlEventChannel> geolocator_updates_channel_;
-  std::unique_ptr<FlEventSink> geolocator_updates_event_sink_;
+  std::unique_ptr<AppSettingsManager> app_settings_manager_;
+  std::unique_ptr<FlEventChannel> service_updates_channel_;
+  std::unique_ptr<FlEventSink> service_updates_event_sink_;
+  std::unique_ptr<FlEventChannel> updates_channel_;
+  std::unique_ptr<FlEventSink> updates_event_sink_;
 };
 
 }  // namespace
