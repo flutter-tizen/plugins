@@ -11,10 +11,10 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include "app_settings_manager.h"
 #include "location_manager.h"
 #include "log.h"
 #include "permission_manager.h"
-#include "app_settings_manager.h"
 
 namespace {
 
@@ -164,7 +164,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
 
     // TODO : add location service listener
     if (!ret) {
-      SendErrorResult(ret.message(), "Failed to check service enabled.");
+      SendErrorResult("Operation failed", ret.message());
     }
     SendResult(flutter::EncodableValue(is_enabled));
   }
@@ -202,8 +202,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     TizenResult tizen_result =
         location_manager_->GetLastKnownLocation(&location);
     if (!tizen_result) {
-      SendErrorResult(tizen_result.message(),
-                      "Failed to get last known position.");
+      SendErrorResult("Operation failed", tizen_result.message());
       return;
     }
     SendResult(location.ToEncodableValue());
@@ -216,14 +215,11 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
           result_ptr->Success(location.ToEncodableValue());
         },
         [result_ptr](TizenResult error) {
-          result_ptr->Error(
-              error.message(),
-              "An error occurred while requesting current location.");
+          result_ptr->Error("Operation failed", error.message());
         });
 
     if (!tizen_result) {
-      SendErrorResult(tizen_result.message(),
-                      "Failed to call RequestCurrentLocationOnce.");
+      SendErrorResult("Operation failed", tizen_result.message());
     }
   }
 
