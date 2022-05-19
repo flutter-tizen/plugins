@@ -27,7 +27,7 @@ class PermissionManager {
 
   PermissionStatus CheckPermission(const std::string &privilege);
 
-  PermissionStatus RequestPermssion(const std::string &privilege);
+  PermissionStatus RequestPermission(const std::string &privilege);
 };
 
 #endif  // FLUTTER_PLUGIN_PERMISSION_MANAGER_H_

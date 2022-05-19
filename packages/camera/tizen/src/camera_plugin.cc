@@ -91,17 +91,17 @@ class CameraPlugin : public flutter::Plugin {
             };
 
         auto plugin = this;
-        // Request a camera permssion
-        pmm_.RequestPermssion(
+        // Request a camera permission
+        pmm_.RequestPermission(
             Permission::kCamera,
             [plugin, p_result, camera_name, resolution_preset, enable_audio,
              on_failure]() {
-              // Request a recorder permssion as asynchronous callchain
-              plugin->pmm_.RequestPermssion(
+              // Request a recorder permission as asynchronous callchain
+              plugin->pmm_.RequestPermission(
                   Permission::kRecorder,
                   [plugin, p_result, camera_name, resolution_preset,
                    enable_audio]() {
-                    LOG_DEBUG("All RequestPermssion success!");
+                    LOG_DEBUG("All RequestPermission success!");
                     flutter::EncodableValue reply =
                         plugin->InitializeCameraDevice(
                             camera_name, resolution_preset, enable_audio);
@@ -109,7 +109,7 @@ class CameraPlugin : public flutter::Plugin {
                     delete p_result;
                   },
                   on_failure);
-              LOG_DEBUG("Request a recorder permssion");
+              LOG_DEBUG("Request a recorder permission");
             },
             on_failure);
       }

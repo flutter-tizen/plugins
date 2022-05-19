@@ -36,7 +36,7 @@ PermissionStatus PermissionManager::CheckPermission(
 #endif
 }
 
-PermissionStatus PermissionManager::RequestPermssion(
+PermissionStatus PermissionManager::RequestPermission(
     const std::string &privilege) {
 #ifdef TV_PROFILE
   return PermissionStatus::kGranted;

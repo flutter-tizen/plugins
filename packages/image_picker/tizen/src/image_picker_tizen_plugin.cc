@@ -125,7 +125,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
   bool CheckPermission() {
     PermissionManager manager;
     PermissionResult result =
-        manager.RequestPermssion("http://tizen.org/privilege/mediastorage");
+        manager.RequestPermission("http://tizen.org/privilege/mediastorage");
 
     if (result == PermissionResult::kDenyForever ||
         result == PermissionResult::kDenyOnce) {

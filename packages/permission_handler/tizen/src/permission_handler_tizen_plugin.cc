@@ -118,7 +118,7 @@ class PermissionHandlerTizenPlugin : public flutter::Plugin {
           if (privilege.empty()) {
             status = PermissionStatus::kGranted;
           } else {
-            status = permission_manager_.RequestPermssion(privilege);
+            status = permission_manager_.RequestPermission(privilege);
           }
 
           if (status != PermissionStatus::kError) {
