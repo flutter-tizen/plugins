@@ -7,11 +7,16 @@
 
 #include <string>
 
-// The result of permission check.
-enum class PermissionStatus { kAllow, kDeny, kAsk, kError };
-
-// The result of permission request.
-enum class PermissionResult { kAllowForever, kDenyForever, kDenyOnce, kError };
+// Keep in sync with the enum values implemented in:
+// https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_platform_interface/lib/src/enums/location_permission.dart
+// https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_android/android/src/main/java/com/baseflow/geolocator/permission/LocationPermission.java
+enum class PermissionStatus {
+  kDenied = 0,
+  kDeniedForever = 1,
+  kWhileInUse = 2,
+  kAlways = 3,
+  kError = 4, // Only use in geolocator_tizen 
+};
 
 class PermissionManager {
  public:
@@ -20,7 +25,7 @@ class PermissionManager {
 
   PermissionStatus CheckPermission(const std::string &privilege);
 
-  PermissionResult RequestPermssion(const std::string &privilege);
+  PermissionStatus RequestPermssion(const std::string &privilege);
 };
 
 #endif  // FLUTTER_PLUGIN_PERMISSION_MANAGER_H_

@@ -15,7 +15,7 @@
 PermissionStatus PermissionManager::CheckPermission(
     const std::string &privilege) {
 #ifdef TV_PROFILE
-  return PermissionStatus::kAllow;
+  return PermissionStatus::kAlways;
 #else
   ppm_check_result_e result;
   int ret = ppm_check_permission(privilege.c_str(), &result);
@@ -26,21 +26,20 @@ PermissionStatus PermissionManager::CheckPermission(
   }
 
   switch (result) {
-    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
-      return PermissionStatus::kAllow;
-    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
-      return PermissionStatus::kAsk;
     case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
+    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
+      return PermissionStatus::kDenied;
+    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
     default:
-      return PermissionStatus::kDeny;
+      return PermissionStatus::kAlways;
   }
 #endif
 }
 
-PermissionResult PermissionManager::RequestPermssion(
+PermissionStatus PermissionManager::RequestPermssion(
     const std::string &privilege) {
 #ifdef TV_PROFILE
-  return PermissionResult::kAllowForever;
+  return PermissionStatus::kAlways;
 #else
   struct Response {
     bool received = false;
@@ -61,7 +60,7 @@ PermissionResult PermissionManager::RequestPermssion(
   if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
     LOG_ERROR("Permission request failed [%s]: %s", privilege.c_str(),
               get_error_message(ret));
-    return PermissionResult::kError;
+    return PermissionStatus::kError;
   }
 
   // Wait until ppm_request_permission() completes with a response.
@@ -71,17 +70,18 @@ PermissionResult PermissionManager::RequestPermssion(
 
   if (response.cause == PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ERROR) {
     LOG_ERROR("Received an error response [%s].", privilege.c_str());
-    return PermissionResult::kError;
+    return PermissionStatus::kError;
   }
 
   switch (response.result) {
-    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
-      return PermissionResult::kAllowForever;
     case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
-      return PermissionResult::kDenyForever;
+      return PermissionStatus::kDeniedForever;
     case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
+      return PermissionStatus::kDenied;
+    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
+      return PermissionStatus::kAlways;
     default:
-      return PermissionResult::kDenyOnce;
+      return PermissionStatus::kError;
   }
 #endif  // TV_PROFILE
 }
