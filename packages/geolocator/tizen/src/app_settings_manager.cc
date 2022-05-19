@@ -54,102 +54,69 @@ bool AppSettingsManager::OpenAppSettings() {
     return false;
   }
 
-  if (!CreateAppControl()) {
-    DestroyAppControl();
-    return false;
-  }
-
-  if (!SetAppId(kSettingAppId)) {
-    DestroyAppControl();
-    return false;
-  }
-
-  if (!AddExtraData(package_name)) {
-    DestroyAppControl();
-    return false;
-  }
-
-  if (!SendLauchRequest()) {
-    DestroyAppControl();
-    return false;
-  }
-
-  DestroyAppControl();
-  return true;
-}
-
-bool AppSettingsManager::OpenLocationSetting() {
-  if (!CreateAppControl()) {
-    DestroyAppControl();
-    return false;
-  }
-
-  if (!SetAppId(kLocationSettingAppId)) {
-    DestroyAppControl();
-    return false;
-  }
-
-  if (!SetOperation(kLocationSettingOperationId)) {
-    DestroyAppControl();
-    return false;
-  }
-
-  if (!SendLauchRequest()) {
-    DestroyAppControl();
-    return false;
-  }
-
-  DestroyAppControl();
-  return true;
-}
-
-bool AppSettingsManager::CreateAppControl() {
-  int ret = app_control_create(&app_control_);
+  app_control_h app_control;
+  int ret = app_control_create(&app_control);
   if (ret != APP_CONTROL_ERROR_NONE) {
-    LOG_ERROR("Failed to create an app control handle. (%s)",
-              get_error_message(ret));
+    LOG_ERROR("Failed to create an app control handle.");
     return false;
   }
-  return true;
-}
 
-bool AppSettingsManager::SetAppId(const char* app_id) {
-  int ret = app_control_set_app_id(app_control_, app_id);
+  ret = app_control_set_app_id(app_control, kSettingAppId);
   if (ret != APP_CONTROL_ERROR_NONE) {
-    LOG_ERROR("Failed to set an app ID. (%s)", get_error_message(ret));
+    LOG_ERROR("Failed to set an app ID.");
+    app_control_destroy(app_control);
     return false;
   }
+
+  ret = app_control_add_extra_data(app_control, "pkgId", package_name.c_str());
+  if (ret != APP_CONTROL_ERROR_NONE) {
+    LOG_ERROR("Failed to add extra data.");
+    app_control_destroy(app_control);
+    return false;
+  }
+
+  ret = app_control_send_launch_request(app_control, nullptr, nullptr);
+  app_control_destroy(app_control);
+  if (ret != APP_CONTROL_ERROR_NONE) {
+    LOG_ERROR("Failed to send a launch request.");
+    return false;
+  }
+
   return true;
 }
 
-bool AppSettingsManager::SetOperation(const char* operation) {
-  int ret = app_control_set_operation(app_control_, operation);
+bool AppSettingsManager::OpenLocationSettings() {
+  std::string package_name = GetPackageName();
+  if (package_name.empty()) {
+    return false;
+  }
+
+  app_control_h app_control;
+  int ret = app_control_create(&app_control);
+  if (ret != APP_CONTROL_ERROR_NONE) {
+    LOG_ERROR("Failed to create an app control handle.");
+    return false;
+  }
+
+  ret = app_control_set_app_id(app_control, kLocationSettingAppId);
+  if (ret != APP_CONTROL_ERROR_NONE) {
+    LOG_ERROR("Failed to set an app ID.");
+    app_control_destroy(app_control);
+    return false;
+  }
+
+  ret = app_control_set_operation(app_control, kLocationSettingOperationId);
   if (ret != APP_CONTROL_ERROR_NONE) {
     LOG_ERROR("Failed to set operation. (%s)", get_error_message(ret));
     return false;
   }
-  return true;
-}
 
-bool AppSettingsManager::AddExtraData(std::string package_name) {
-  int ret =
-      app_control_add_extra_data(app_control_, "pkgId", package_name.c_str());
+  ret = app_control_send_launch_request(app_control, nullptr, nullptr);
+  app_control_destroy(app_control);
   if (ret != APP_CONTROL_ERROR_NONE) {
-    LOG_ERROR("Failed to add extra data. (%s)", get_error_message(ret));
+    LOG_ERROR("Failed to send a launch request.");
     return false;
   }
-  return true;
-}
 
-bool AppSettingsManager::SendLauchRequest() {
-  int ret = app_control_send_launch_request(app_control_, nullptr, nullptr);
-  if (ret != APP_CONTROL_ERROR_NONE) {
-    LOG_ERROR("Failed to send a launch request. (%s)", get_error_message(ret));
-    return false;
-  }
   return true;
-}
-
-void AppSettingsManager::DestroyAppControl() {
-  app_control_destroy(app_control_);
 }
