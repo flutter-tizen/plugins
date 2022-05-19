@@ -28,9 +28,9 @@ const char* PermissionToString(Permission permission) {
   }
 }
 
-void PermissionManager::RequestPermssion(Permission permission,
-                                         const OnSuccess& on_success,
-                                         const OnFailure& on_failure) {
+void PermissionManager::RequestPermission(Permission permission,
+                                          const OnSuccess& on_success,
+                                          const OnFailure& on_failure) {
   LOG_DEBUG("enter");
 
   ppm_check_result_e result;
@@ -73,7 +73,7 @@ void PermissionManager::RequestPermssion(Permission permission,
         }
       } break;
       default:
-        on_failure("unknwon", "RequestPermssion fail");
+        on_failure("unknwon", "RequestPermission fail");
         break;
     }
   }
