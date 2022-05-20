@@ -63,7 +63,3 @@
 # Tools
 'tools':
   - tools/**/*
-
-# Publishing
-'needs-publishing':
-  - packages/**/pubspec.yaml
