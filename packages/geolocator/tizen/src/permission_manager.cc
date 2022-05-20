@@ -22,7 +22,7 @@ PermissionStatus PermissionManager::CheckPermission(
   if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
     LOG_ERROR("Permission check failed [%s]: %s", privilege.c_str(),
               get_error_message(ret));
-    return PermissionStatus::kError;
+    throw PermissionManagerError(ret);
   }
 
   switch (result) {
@@ -57,10 +57,11 @@ PermissionStatus PermissionManager::RequestPermission(
         response->result = result;
       },
       &response);
+
   if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
     LOG_ERROR("Permission request failed [%s]: %s", privilege.c_str(),
               get_error_message(ret));
-    return PermissionStatus::kError;
+    throw PermissionManagerError(ret);
   }
 
   // Wait until ppm_request_permission() completes with a response.
@@ -70,7 +71,7 @@ PermissionStatus PermissionManager::RequestPermission(
 
   if (response.cause == PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ERROR) {
     LOG_ERROR("Received an error response [%s].", privilege.c_str());
-    return PermissionStatus::kError;
+    throw PermissionManagerError("Received an error response");
   }
 
   switch (response.result) {
@@ -81,7 +82,7 @@ PermissionStatus PermissionManager::RequestPermission(
     case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
       return PermissionStatus::kAlways;
     default:
-      return PermissionStatus::kError;
+      throw PermissionManagerError("Failed to request permission.");
   }
 #endif  // TV_PROFILE
 }

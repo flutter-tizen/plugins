@@ -5,6 +5,8 @@
 #ifndef FLUTTER_PLUGIN_PERMISSION_MANAGER_H_
 #define FLUTTER_PLUGIN_PERMISSION_MANAGER_H_
 
+#include <tizen_error.h>
+
 #include <string>
 
 // Keep in sync with the enum values implemented in:
@@ -15,7 +17,18 @@ enum class PermissionStatus {
   kDeniedForever = 1,
   kWhileInUse = 2,
   kAlways = 3,
-  kError = 4, // Only use in geolocator_tizen 
+};
+
+class PermissionManagerError {
+ public:
+  PermissionManagerError(std::string error_message)
+      : error_message_(error_message) {}
+  PermissionManagerError(int error_code)
+      : error_message_(get_error_message(error_code)) {}
+  std::string GetErrorString() const { return error_message_; }
+
+ private:
+  std::string error_message_;
 };
 
 class PermissionManager {

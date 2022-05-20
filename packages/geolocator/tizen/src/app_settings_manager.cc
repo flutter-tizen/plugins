@@ -108,6 +108,7 @@ bool AppSettingsManager::OpenLocationSettings() {
   ret = app_control_set_operation(app_control, kLocationSettingOperationId);
   if (ret != APP_CONTROL_ERROR_NONE) {
     LOG_ERROR("Failed to set operation. (%s)", get_error_message(ret));
+    app_control_destroy(app_control);
     return false;
   }
 
