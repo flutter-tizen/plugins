@@ -11,6 +11,7 @@ import 'package:file/local.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/format_command.dart';
 import 'package:flutter_plugin_tools/src/list_command.dart';
+import 'package:flutter_tizen_plugin_tools/src/publish_plugin_command.dart';
 
 import 'build_examples_command.dart';
 import 'integration_test_command.dart';
@@ -36,7 +37,8 @@ void main(List<String> args) {
     ..addCommand(BuildExamplesCommand(packagesDir))
     ..addCommand(FormatCommand(packagesDir))
     ..addCommand(IntegrationTestCommand(packagesDir))
-    ..addCommand(ListCommand(packagesDir));
+    ..addCommand(ListCommand(packagesDir))
+    ..addCommand(PublishPluginCommand(packagesDir));
 
   commandRunner.run(args).catchError((Object e) {
     final ToolExit toolExit = e as ToolExit;
