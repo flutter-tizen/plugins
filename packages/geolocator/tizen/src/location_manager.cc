@@ -7,68 +7,34 @@
 #include "log.h"
 
 LocationManager::LocationManager() {
-  CreateLocationManager(&manager_);
-  CreateLocationManager(&manager_for_current_location_);
+  location_manager_create(LOCATIONS_METHOD_HYBRID, &manager_);
+  location_manager_create(LOCATIONS_METHOD_HYBRID,
+                          &manager_for_current_location_);
 }
 
 LocationManager::~LocationManager() {
-  DestroyLocationManager(manager_);
-  DestroyLocationManager(manager_for_current_location_);
+  location_manager_destroy(manager_);
+  location_manager_destroy(manager_for_current_location_);
 }
 
-TizenResult LocationManager::IsLocationServiceEnabled(bool *is_enabled) {
+bool LocationManager::IsLocationServiceEnabled() {
   bool gps_enabled = false;
   int ret_gps =
       location_manager_is_enabled_method(LOCATIONS_METHOD_GPS, &gps_enabled);
-  if (ret_gps != LOCATIONS_ERROR_NONE) {
-    return TizenResult(ret_gps);
+  if (LOCATIONS_ERROR_NONE != ret_gps) {
+    throw LocationManagerError(ret_gps);
   }
 
   bool wps_enabled = false;
   int ret_wps =
       location_manager_is_enabled_method(LOCATIONS_METHOD_WPS, &wps_enabled);
-  if (ret_wps != LOCATIONS_ERROR_NONE) {
-    return TizenResult(ret_wps);
+  if (LOCATIONS_ERROR_NONE != ret_wps) {
+    throw LocationManagerError(ret_wps);
   }
-
-  *is_enabled = gps_enabled || wps_enabled;
-
-  return TizenResult();
+  return gps_enabled || wps_enabled;
 }
 
-TizenResult LocationManager::RequestCurrentLocationOnce(
-    OnLocationUpdated on_success, OnError on_error) {
-  on_success_ = on_success;
-  on_error_ = on_error;
-  TizenResult ret = location_manager_request_single_location(
-      manager_for_current_location_, 5,
-      [](location_error_e error, double latitude, double longitude,
-         double altitude, time_t timestamp, double speed, double direction,
-         double climb, void *user_data) {
-        LocationManager *self = static_cast<LocationManager *>(user_data);
-
-        if (error != LOCATIONS_ERROR_NONE && self->on_error_) {
-          self->on_error_(error);
-        } else if (self->on_success_) {
-          Location location;
-          location.latitude = latitude;
-          location.longitude = longitude;
-          location.altitude = altitude;
-          location.timestamp = timestamp;
-          location.speed = speed;
-          location.heading = direction;
-
-          self->on_success_(location);
-        }
-
-        self->on_error_ = nullptr;
-        self->on_success_ = nullptr;
-      },
-      this);
-  return ret;
-}
-
-TizenResult LocationManager::GetLastKnownLocation(Location *location) {
+Position LocationManager::GetLastKnownPosition() {
   double altitude = 0.0;
   double latitude = 0.0;
   double longitude = 0.0;
@@ -80,81 +46,133 @@ TizenResult LocationManager::GetLastKnownLocation(Location *location) {
   location_accuracy_level_e level = LOCATIONS_ACCURACY_NONE;
   time_t timestamp = 0;
 
-  TizenResult ret = location_manager_get_last_location(
+  int ret = location_manager_get_last_location(
       manager_, &altitude, &latitude, &longitude, &climb, &direction, &speed,
       &level, &horizontal, &vertical, &timestamp);
-  if (!ret) {
-    return ret;
+  if (LOCATIONS_ERROR_NONE != ret) {
+    throw LocationManagerError(ret);
   }
+  Position position;
+  position.longitude = longitude;
+  position.latitude = latitude;
+  position.timestamp = timestamp;
+  position.accuracy = horizontal;
+  position.altitude = altitude;
+  position.heading = direction;
+  position.speed = speed;
 
-  location->longitude = longitude;
-  location->latitude = latitude;
-  location->timestamp = timestamp;
-  location->accuracy = horizontal;
-  location->altitude = altitude;
-  location->heading = direction;
-  location->speed = speed;
-
-  return ret;
+  return position;
 }
 
-TizenResult LocationManager::SetOnServiceStateChanged(
-    OnServiceStateChanged on_service_state_changed) {
-  on_service_state_changed_ = on_service_state_changed;
-  return location_manager_set_service_state_changed_cb(
+void LocationManager::GetCurrentPosition(
+    LocationCallback location_callback,
+    LocationErrorListener location_error_listener) {
+  location_callback_ = location_callback;
+  location_error_listener_ = location_error_listener;
+  int ret = location_manager_request_single_location(
+      manager_for_current_location_, 5,
+      [](location_error_e error, double latitude, double longitude,
+         double altitude, time_t timestamp, double speed, double direction,
+         double climb, void *user_data) {
+        LocationManager *self = static_cast<LocationManager *>(user_data);
+
+        if (error != LOCATIONS_ERROR_NONE && self->location_error_listener_) {
+          self->location_error_listener_(LocationManagerError(error));
+        } else if (self->location_callback_) {
+          Position position;
+          position.latitude = latitude;
+          position.longitude = longitude;
+          position.altitude = altitude;
+          position.timestamp = timestamp;
+          position.speed = speed;
+          position.heading = direction;
+
+          self->location_callback_(position);
+        }
+
+        self->location_callback_ = nullptr;
+        self->location_error_listener_ = nullptr;
+      },
+      this);
+  if (LOCATIONS_ERROR_NONE != ret) {
+    throw LocationManagerError(ret);
+  }
+}
+
+bool LocationManager::StartServiceUpdatedListen(
+    ServiceStatusCallback service_status_updated_callback) {
+  service_status_updated_callback_ = service_status_updated_callback;
+  int ret = location_manager_set_service_state_changed_cb(
       manager_,
       [](location_service_state_e state, void *user_data) {
         LocationManager *self = static_cast<LocationManager *>(user_data);
-        if (self->on_service_state_changed_) {
-          ServiceState service_state = ServiceState::kDisabled;
+        if (self->service_status_updated_callback_) {
+          ServiceStatus service_status = ServiceStatus::kDisabled;
           if (state == LOCATIONS_SERVICE_ENABLED) {
-            service_state = ServiceState::kEnabled;
+            service_status = ServiceStatus::kEnabled;
           }
-          self->on_service_state_changed_(service_state);
+          self->service_status_updated_callback_(service_status);
         }
       },
       this);
+  if (LOCATIONS_ERROR_NONE != ret) {
+    last_error_ = ret;
+    return false;
+  }
+  return true;
 }
 
-TizenResult LocationManager::UnsetOnServiceStateChanged() {
-  return location_manager_unset_service_state_changed_cb(manager_);
+bool LocationManager::StopServiceUpdatedListen() {
+  int ret = location_manager_unset_service_state_changed_cb(manager_);
+  if (LOCATIONS_ERROR_NONE != ret) {
+    last_error_ = ret;
+    return false;
+  }
+  return true;
 }
 
-TizenResult LocationManager::SetOnLocationUpdated(
-    OnLocationUpdated on_location_updated) {
-  on_location_updated_ = on_location_updated;
-  TizenResult result = location_manager_set_position_updated_cb(
+bool LocationManager::StartLocationUpdatesListen(
+    LocationCallback location_updated_callback) {
+  location_updated_callback_ = location_updated_callback;
+
+  int ret = location_manager_set_position_updated_cb(
       manager_,
       [](double latitude, double longitude, double altitude, time_t timestamp,
          void *user_data) {
         LocationManager *self = static_cast<LocationManager *>(user_data);
-        if (self->on_location_updated_) {
-          Location location;
-          location.longitude = longitude;
-          location.latitude = latitude;
-          location.timestamp = timestamp;
-          location.altitude = altitude;
-          self->on_location_updated_(location);
+        if (self->location_updated_callback_) {
+          Position position;
+          position.longitude = longitude;
+          position.latitude = latitude;
+          position.timestamp = timestamp;
+          position.altitude = altitude;
+          self->location_updated_callback_(position);
         }
       },
       2, this);
-  if (!result) {
-    return result;
+  if (LOCATIONS_ERROR_NONE != ret) {
+    last_error_ = ret;
+    return false;
   }
-  return location_manager_start(manager_);
+
+  ret = location_manager_start(manager_);
+  if (LOCATIONS_ERROR_NONE != ret) {
+    last_error_ = ret;
+    return false;
+  }
+  return true;
 }
 
-TizenResult LocationManager::UnsetOnLocationUpdated() {
-  location_manager_unset_position_updated_cb(manager_);
-  return location_manager_stop(manager_);
-}
-
-TizenResult LocationManager::CreateLocationManager(
-    location_manager_h *manager) {
-  return location_manager_create(LOCATIONS_METHOD_HYBRID, manager);
-}
-
-TizenResult LocationManager::DestroyLocationManager(
-    location_manager_h manager) {
-  return location_manager_destroy(manager);
+bool LocationManager::StopLocationUpdatesListen() {
+  int ret = location_manager_unset_position_updated_cb(manager_);
+  if (LOCATIONS_ERROR_NONE != ret) {
+    last_error_ = ret;
+    return false;
+  }
+  ret = location_manager_stop(manager_);
+  if (LOCATIONS_ERROR_NONE != ret) {
+    last_error_ = ret;
+    return false;
+  }
+  return true;
 }

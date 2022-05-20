@@ -23,8 +23,88 @@ typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
 typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
+typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
+typedef flutter::StreamHandlerError<flutter::EncodableValue>
+    FlStreamHandlerError;
 
 constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
+
+class LocationUpdatesStreamHandler : public FlStreamHandler {
+ protected:
+  std::unique_ptr<FlStreamHandlerError> OnListenInternal(
+      const flutter::EncodableValue *arguments,
+      std::unique_ptr<FlEventSink> &&events) override {
+    events_ = std::move(events);
+    LocationCallback callback = [this](Position position) -> void {
+      events_->Success(position.ToEncodableValue());
+    };
+    if (!location_manager_.StartLocationUpdatesListen(callback)) {
+      return std::make_unique<FlStreamHandlerError>(
+          std::to_string(location_manager_.GetLastError()),
+          location_manager_.GetLastErrorString(), nullptr);
+    }
+    return nullptr;
+  }
+
+  std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
+      const flutter::EncodableValue *arguments) override {
+    if (!location_manager_.StopLocationUpdatesListen()) {
+      return std::make_unique<FlStreamHandlerError>(
+          std::to_string(location_manager_.GetLastError()),
+          location_manager_.GetLastErrorString(), nullptr);
+    }
+    events_.reset();
+    return nullptr;
+  }
+
+ private:
+  LocationManager location_manager_;
+  std::unique_ptr<FlEventSink> events_;
+};
+
+std::string ServiceStatusToString(ServiceStatus status) {
+  switch (status) {
+    case ServiceStatus::kEnabled:
+      return "enabled";
+    case ServiceStatus::kDisabled:
+      return "disabled";
+    default:
+      return "unknown";
+  }
+}
+
+class ServiceUpdatesStreamHandler : public FlStreamHandler {
+ protected:
+  std::unique_ptr<FlStreamHandlerError> OnListenInternal(
+      const flutter::EncodableValue *arguments,
+      std::unique_ptr<FlEventSink> &&events) override {
+    events_ = std::move(events);
+    ServiceStatusCallback callback = [this](ServiceStatus status) -> void {
+      events_->Success(flutter::EncodableValue(ServiceStatusToString(status)));
+    };
+    if (!location_manager_.StartServiceUpdatedListen(callback)) {
+      return std::make_unique<FlStreamHandlerError>(
+          std::to_string(location_manager_.GetLastError()),
+          location_manager_.GetLastErrorString(), nullptr);
+    }
+    return nullptr;
+  }
+
+  std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
+      const flutter::EncodableValue *arguments) override {
+    if (!location_manager_.StopServiceUpdatedListen()) {
+      return std::make_unique<FlStreamHandlerError>(
+          std::to_string(location_manager_.GetLastError()),
+          location_manager_.GetLastErrorString(), nullptr);
+    }
+    events_.reset();
+    return nullptr;
+  }
+
+ private:
+  LocationManager location_manager_;
+  std::unique_ptr<FlEventSink> events_;
+};
 
 class GeolocatorTizenPlugin : public flutter::Plugin {
  public:
@@ -35,8 +115,18 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
 
     auto plugin = std::make_unique<GeolocatorTizenPlugin>();
 
-    plugin->SetupGeolocatorServiceUpdatesChannel(registrar->messenger());
-    plugin->SetupGeolocatorUpdatesChannel(registrar->messenger());
+    plugin->service_updates_channel_ = std::make_unique<FlEventChannel>(
+        registrar->messenger(),
+        "flutter.baseflow.com/geolocator_service_updates",
+        &flutter::StandardMethodCodec::GetInstance());
+    plugin->service_updates_channel_->SetStreamHandler(
+        std::make_unique<ServiceUpdatesStreamHandler>());
+
+    plugin->updates_channel_ = std::make_unique<FlEventChannel>(
+        registrar->messenger(), "flutter.baseflow.com/geolocator_updates",
+        &flutter::StandardMethodCodec::GetInstance());
+    plugin->updates_channel_->SetStreamHandler(
+        std::make_unique<LocationUpdatesStreamHandler>());
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -53,45 +143,6 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   virtual ~GeolocatorTizenPlugin() {}
 
  private:
-  void SetupGeolocatorServiceUpdatesChannel(
-      flutter::BinaryMessenger *messenger) {
-    service_updates_channel_ = std::make_unique<FlEventChannel>(
-        messenger, "flutter.baseflow.com/geolocator_service_updates",
-        &flutter::StandardMethodCodec::GetInstance());
-    auto handler = std::make_unique<flutter::StreamHandlerFunctions<>>(
-        [this](const flutter::EncodableValue *arguments,
-               std::unique_ptr<flutter::EventSink<>> &&events)
-            -> std::unique_ptr<flutter::StreamHandlerError<>> {
-          OnListenGeolocatorServiceUpdates(std::move(events));
-          return nullptr;
-        },
-        [this](const flutter::EncodableValue *arguments)
-            -> std::unique_ptr<flutter::StreamHandlerError<>> {
-          OnCancelGeolocatorServiceUpdates();
-          return nullptr;
-        });
-    service_updates_channel_->SetStreamHandler(std::move(handler));
-  }
-
-  void SetupGeolocatorUpdatesChannel(flutter::BinaryMessenger *messenger) {
-    updates_channel_ = std::make_unique<FlEventChannel>(
-        messenger, "flutter.baseflow.com/geolocator_updates",
-        &flutter::StandardMethodCodec::GetInstance());
-    auto handler = std::make_unique<flutter::StreamHandlerFunctions<>>(
-        [this](const flutter::EncodableValue *arguments,
-               std::unique_ptr<flutter::EventSink<>> &&events)
-            -> std::unique_ptr<flutter::StreamHandlerError<>> {
-          OnListenGeolocatorUpdates(std::move(events));
-          return nullptr;
-        },
-        [this](const flutter::EncodableValue *arguments)
-            -> std::unique_ptr<flutter::StreamHandlerError<>> {
-          OnCancelGeolocatorUpdates();
-          return nullptr;
-        });
-    updates_channel_->SetStreamHandler(std::move(handler));
-  }
-
   void HandleMethodCall(const FlMethodCall &method_call,
                         std::unique_ptr<FlMethodResult> result) {
     std::string method_name = method_call.method_name();
@@ -131,14 +182,13 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   }
 
   void OnIsLocationServiceEnabled() {
-    bool is_enabled = false;
-    TizenResult ret = location_manager_->IsLocationServiceEnabled(&is_enabled);
-
-    // TODO : add location service listener
-    if (!ret) {
-      SendErrorResult("Operation failed", ret.message());
+    try {
+      bool is_enabled = location_manager_->IsLocationServiceEnabled();
+      SendResult(flutter::EncodableValue(is_enabled));
+    } catch (const LocationManagerError &error) {
+      // TODO : add location service listener
+      SendErrorResult("Operation failed", error.GetErrorString());
     }
-    SendResult(flutter::EncodableValue(is_enabled));
   }
 
   void OnRequestPermission() {
@@ -156,67 +206,27 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   }
 
   void OnGetLastKnownPosition() {
-    Location location;
-    TizenResult tizen_result =
-        location_manager_->GetLastKnownLocation(&location);
-    if (!tizen_result) {
-      SendErrorResult("Operation failed", tizen_result.message());
-      return;
+    try {
+      Position position = location_manager_->GetLastKnownPosition();
+      SendResult(position.ToEncodableValue());
+    } catch (const LocationManagerError &error) {
+      SendErrorResult("Operation failed", error.GetErrorString());
     }
-    SendResult(location.ToEncodableValue());
   }
 
   void OnGetCurrentPosition() {
     auto result_ptr = result_.get();
-    TizenResult tizen_result = location_manager_->RequestCurrentLocationOnce(
-        [result_ptr](Location location) {
-          result_ptr->Success(location.ToEncodableValue());
-        },
-        [result_ptr](TizenResult error) {
-          result_ptr->Error("Operation failed", error.message());
-        });
-
-    if (!tizen_result) {
-      SendErrorResult("Operation failed", tizen_result.message());
+    try {
+      location_manager_->GetCurrentPosition(
+          [result_ptr](Position position) {
+            result_ptr->Success(position.ToEncodableValue());
+          },
+          [result_ptr](LocationManagerError error) {
+            result_ptr->Error("Operation failed", error.GetErrorString());
+          });
+    } catch (const LocationManagerError &error) {
+      SendErrorResult("Operation failed", error.GetErrorString());
     }
-  }
-
-  void OnListenGeolocatorServiceUpdates(
-      std::unique_ptr<FlEventSink> &&event_sink) {
-    service_updates_event_sink_ = std::move(event_sink);
-    TizenResult tizen_result = location_manager_->SetOnServiceStateChanged(
-        [this](ServiceState service_state) {
-          flutter::EncodableValue value(static_cast<int>(service_state));
-          service_updates_event_sink_->Success(value);
-        });
-    if (!tizen_result) {
-      LOG_ERROR("Failed to set OnServiceStateChanged, %s.",
-                tizen_result.message().c_str());
-      service_updates_event_sink_ = nullptr;
-    }
-  }
-
-  void OnCancelGeolocatorServiceUpdates() {
-    service_updates_event_sink_ = nullptr;
-    location_manager_->UnsetOnServiceStateChanged();
-  }
-
-  void OnListenGeolocatorUpdates(std::unique_ptr<FlEventSink> &&event_sink) {
-    updates_event_sink_ = std::move(event_sink);
-    TizenResult tizen_result =
-        location_manager_->SetOnLocationUpdated([this](Location location) {
-          updates_event_sink_->Success(location.ToEncodableValue());
-        });
-    if (!tizen_result) {
-      LOG_ERROR("Failed to set OnLocationUpdated, %s.",
-                tizen_result.message().c_str());
-      updates_event_sink_ = nullptr;
-    }
-  }
-
-  void OnCancelGeolocatorUpdates() {
-    updates_event_sink_ = nullptr;
-    location_manager_->UnsetOnLocationUpdated();
   }
 
   void SendResult(const flutter::EncodableValue &result) {

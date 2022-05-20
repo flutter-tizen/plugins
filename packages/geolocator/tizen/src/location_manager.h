@@ -9,52 +9,60 @@
 
 #include <functional>
 
-#include "location.h"
-#include "tizen_result.h"
+#include "position.h"
 
 // Defined in:
 // https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_platform_interface/lib/src/enums/location_service.dart
-enum class ServiceState { kDisabled, kEnabled };
+enum class ServiceStatus { kDisabled, kEnabled };
 
-using OnLocationUpdated = std::function<void(Location)>;
-using OnError = std::function<void(TizenResult)>;
-using OnServiceStateChanged = std::function<void(ServiceState)>;
+class LocationManagerError {
+ public:
+  LocationManagerError(int error_code) : error_code_(error_code) {}
+  std::string GetErrorString() const { return get_error_message(error_code_); }
+
+ private:
+  int error_code_;
+};
+
+typedef std::function<void(Position)> LocationCallback;
+typedef std::function<void(ServiceStatus)> ServiceStatusCallback;
+typedef std::function<void(LocationManagerError)> LocationErrorListener;
 
 class LocationManager {
  public:
   LocationManager();
   ~LocationManager();
 
-  TizenResult IsLocationServiceEnabled(bool* is_enabled);
+  bool IsLocationServiceEnabled();
 
-  TizenResult RequestCurrentLocationOnce(OnLocationUpdated on_success,
-                                         OnError on_error);
+  Position GetLastKnownPosition();
 
-  TizenResult GetLastKnownLocation(Location* LOCATION);
+  void GetCurrentPosition(LocationCallback location_updated_callback,
+                          LocationErrorListener location_error_listener);
 
-  TizenResult SetOnServiceStateChanged(
-      OnServiceStateChanged on_service_state_changed);
+  bool StartServiceUpdatedListen(
+      ServiceStatusCallback service_status_updated_callback);
 
-  TizenResult UnsetOnServiceStateChanged();
+  bool StopServiceUpdatedListen();
 
-  TizenResult SetOnLocationUpdated(OnLocationUpdated on_location_updated);
+  bool StartLocationUpdatesListen(LocationCallback location_updated_callback);
 
-  TizenResult UnsetOnLocationUpdated();
+  bool StopLocationUpdatesListen();
+
+  int GetLastError() { return last_error_; }
+
+  std::string GetLastErrorString() { return get_error_message(last_error_); }
 
  private:
-  TizenResult CreateLocationManager(location_manager_h* manager);
-
-  TizenResult DestroyLocationManager(location_manager_h manager);
-
-  location_manager_h manager_ = nullptr;
-
   // According to the document, the handler to request current location once
   // must not be the same as a handler to listen position updated.
   location_manager_h manager_for_current_location_ = nullptr;
+  location_manager_h manager_ = nullptr;
 
-  OnLocationUpdated on_success_;
-  OnError on_error_;
-  OnServiceStateChanged on_service_state_changed_;
-  OnLocationUpdated on_location_updated_;
+  int last_error_ = TIZEN_ERROR_NONE;
+  ServiceStatusCallback service_status_updated_callback_;
+  LocationCallback location_updated_callback_;
+  LocationCallback location_callback_;
+  LocationErrorListener location_error_listener_;
 };
 #endif  // FLUTTER_PLUGIN_LOCATION_MANAGER_H_
