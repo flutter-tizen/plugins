@@ -193,7 +193,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
 
   void OnRequestPermission() {
     PermissionStatus result =
-        permission_manager_->RequestPermssion(kPrivilegeLocation);
+        permission_manager_->RequestPermission(kPrivilegeLocation);
     if (result == PermissionStatus::kDeniedForever ||
         result == PermissionStatus::kDenied) {
       SendErrorResult("Permission denied", "Permission denied by user.");
