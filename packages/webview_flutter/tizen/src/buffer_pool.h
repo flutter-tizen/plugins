@@ -14,10 +14,10 @@
 
 class BufferUnit {
  public:
-  explicit BufferUnit(int index, int width, int height);
+  explicit BufferUnit(size_t index, int32_t width, int32_t height);
   ~BufferUnit();
 
-  void Reset(int width, int height);
+  void Reset(int32_t width, int32_t height);
 
   bool MarkInUse();
   void UnmarkInUse();
@@ -35,34 +35,34 @@ class BufferUnit {
 
  private:
   bool is_used_ = false;
-  int index_;
-  int width_ = 0;
-  int height_ = 0;
+  size_t index_;
+  int32_t width_ = 0;
+  int32_t height_ = 0;
   tbm_surface_h tbm_surface_ = nullptr;
   FlutterDesktopGpuBuffer* gpu_buffer_ = nullptr;
 };
 
 class BufferPool {
  public:
-  explicit BufferPool(int width, int height, int pool_size);
+  explicit BufferPool(int32_t width, int32_t height, size_t pool_size);
   virtual ~BufferPool();
 
   virtual BufferUnit* GetAvailableBuffer();
   virtual void Release(BufferUnit* buffer);
 
-  void Prepare(int with, int height);
+  void Prepare(int32_t with, int32_t height);
 
  protected:
   std::vector<std::unique_ptr<BufferUnit>> pool_;
 
  private:
-  int last_index_;
+  size_t last_index_ = 0;
   std::mutex mutex_;
 };
 
 class SingleBufferPool : public BufferPool {
  public:
-  explicit SingleBufferPool(int width, int height);
+  explicit SingleBufferPool(int32_t width, int32_t height);
   ~SingleBufferPool();
 
   virtual BufferUnit* GetAvailableBuffer() override;

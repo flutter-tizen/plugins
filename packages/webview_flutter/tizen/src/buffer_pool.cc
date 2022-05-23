@@ -6,7 +6,8 @@
 
 #include "log.h"
 
-BufferUnit::BufferUnit(int index, int width, int height) : index_(index) {
+BufferUnit::BufferUnit(size_t index, int32_t width, int32_t height)
+    : index_(index) {
   Reset(width, height);
 }
 
@@ -38,7 +39,7 @@ tbm_surface_h BufferUnit::Surface() {
   return nullptr;
 }
 
-void BufferUnit::Reset(int width, int height) {
+void BufferUnit::Reset(int32_t width, int32_t height) {
   if (width_ == width && height_ == height) {
     return;
   }
@@ -66,9 +67,9 @@ void BufferUnit::Reset(int width, int height) {
   gpu_buffer_->release_context = this;
 }
 
-BufferPool::BufferPool(int width, int height, int pool_size) : last_index_(0) {
-  for (int idx = 0; idx < pool_size; idx++) {
-    pool_.emplace_back(new BufferUnit(idx, width, height));
+BufferPool::BufferPool(int32_t width, int32_t height, size_t pool_size) {
+  for (size_t index = 0; index < pool_size; index++) {
+    pool_.emplace_back(std::make_unique<BufferUnit>(index, width, height));
   }
   Prepare(width, height);
 }
@@ -77,8 +78,8 @@ BufferPool::~BufferPool() {}
 
 BufferUnit* BufferPool::GetAvailableBuffer() {
   std::lock_guard<std::mutex> lock(mutex_);
-  for (int idx = 0; idx < pool_.size(); idx++) {
-    int current = (idx + last_index_) % pool_.size();
+  for (size_t index = 0; index < pool_.size(); index++) {
+    size_t current = (index + last_index_) % pool_.size();
     BufferUnit* buffer = pool_[current].get();
     if (buffer->MarkInUse()) {
       last_index_ = current;
@@ -93,15 +94,15 @@ void BufferPool::Release(BufferUnit* buffer) {
   buffer->UnmarkInUse();
 }
 
-void BufferPool::Prepare(int width, int height) {
+void BufferPool::Prepare(int32_t width, int32_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
-  for (int idx = 0; idx < pool_.size(); idx++) {
-    BufferUnit* buffer = pool_[idx].get();
+  for (size_t index = 0; index < pool_.size(); index++) {
+    BufferUnit* buffer = pool_[index].get();
     buffer->Reset(width, height);
   }
 }
 
-SingleBufferPool::SingleBufferPool(int width, int height)
+SingleBufferPool::SingleBufferPool(int32_t width, int32_t height)
     : BufferPool(width, height, 1) {}
 
 SingleBufferPool::~SingleBufferPool() {}
