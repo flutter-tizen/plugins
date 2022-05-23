@@ -6,10 +6,7 @@
 
 #include "log.h"
 
-BufferUnit::BufferUnit(size_t index, int32_t width, int32_t height)
-    : index_(index) {
-  Reset(width, height);
-}
+BufferUnit::BufferUnit(int32_t width, int32_t height) { Reset(width, height); }
 
 BufferUnit::~BufferUnit() {
   if (tbm_surface_) {
@@ -69,7 +66,7 @@ void BufferUnit::Reset(int32_t width, int32_t height) {
 
 BufferPool::BufferPool(int32_t width, int32_t height, size_t pool_size) {
   for (size_t index = 0; index < pool_size; index++) {
-    pool_.emplace_back(std::make_unique<BufferUnit>(index, width, height));
+    pool_.emplace_back(std::make_unique<BufferUnit>(width, height));
   }
   Prepare(width, height);
 }

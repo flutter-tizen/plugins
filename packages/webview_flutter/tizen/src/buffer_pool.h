@@ -14,7 +14,7 @@
 
 class BufferUnit {
  public:
-  explicit BufferUnit(size_t index, int32_t width, int32_t height);
+  explicit BufferUnit(int32_t width, int32_t height);
   ~BufferUnit();
 
   void Reset(int32_t width, int32_t height);
@@ -35,7 +35,6 @@ class BufferUnit {
 
  private:
   bool is_used_ = false;
-  size_t index_;
   int32_t width_ = 0;
   int32_t height_ = 0;
   tbm_surface_h tbm_surface_ = nullptr;
