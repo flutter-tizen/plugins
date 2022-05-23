@@ -216,16 +216,26 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   }
 
   void OnGetCurrentPosition() {
+    auto result_ptr = result_.release();
     try {
       location_manager_->GetCurrentPosition(
-          [this](Position position) {
-            SendResult(position.ToEncodableValue());
+          [result_ptr](Position position) {
+            if (result_ptr) {
+              result_ptr->Success(position.ToEncodableValue());
+              delete result_ptr;
+            }
           },
-          [this](LocationManagerError error) {
-            SendErrorResult("Operation failed", error.GetErrorString());
+          [result_ptr](LocationManagerError error) {
+            if (result_ptr) {
+              result_ptr->Error("Operation failed", error.GetErrorString());
+              delete result_ptr;
+            }
           });
     } catch (const LocationManagerError &error) {
-      SendErrorResult("Operation failed", error.GetErrorString());
+      if (result_ptr) {
+        result_ptr->Error("Operation failed", error.GetErrorString());
+        delete result_ptr;
+      }
     }
   }
 
