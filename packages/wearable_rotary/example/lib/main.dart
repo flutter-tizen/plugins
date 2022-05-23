@@ -5,15 +5,14 @@ import 'package:flutter/material.dart';
 import 'custom_page_view.dart';
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     title: 'Rotary example app',
     home: MyApp(),
   ));
 }
 
 class MyApp extends StatelessWidget {
-  final Widget _horizontalPageView = const CustomPageView(Axis.horizontal);
-  final Widget _verticalPageView = const CustomPageView(Axis.vertical);
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +28,9 @@ class MyApp extends StatelessWidget {
                 Navigator.push<dynamic>(
                   context,
                   MaterialPageRoute<dynamic>(
-                      builder: (BuildContext context) => _horizontalPageView),
+                    builder: (BuildContext context) =>
+                        const CustomPageView(Axis.horizontal),
+                  ),
                 );
               },
             ),
@@ -40,7 +41,9 @@ class MyApp extends StatelessWidget {
                 Navigator.push<dynamic>(
                   context,
                   MaterialPageRoute<dynamic>(
-                      builder: (BuildContext context) => _verticalPageView),
+                    builder: (BuildContext context) =>
+                        const CustomPageView(Axis.vertical),
+                  ),
                 );
               },
             ),
