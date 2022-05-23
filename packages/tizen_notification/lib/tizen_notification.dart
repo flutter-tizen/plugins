@@ -12,12 +12,11 @@ export 'package:tizen_app_control/app_control.dart';
 export 'src/enums.dart';
 export 'src/types.dart';
 
-// ignore: public_member_api_docs
+/// Contains detailed information about a notification being sent.
 class TizenNotificationDetails {
-  /// [TizenNotificationDetails] contains detail information about the notification
-  /// being sent.
+  /// Constructs a [TizenNotificationDetails] from the given properties.
   ///
-  /// [images] only supports type [List<NotificationImage>] and [NotificationImage].
+  /// The properties are all optional.
   const TizenNotificationDetails({
     this.image,
     this.appControl,
