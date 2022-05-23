@@ -10,16 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'flutter-tizen' }}
     steps:
-      # Run flutter-tizen to fetch dart command in flutter repo.
-    - name: Install flutter-tizen
-      run: |
-        cd $HOME
-        git clone https://github.com/flutter-tizen/flutter-tizen.git --depth 1 -b master _flutter-tizen
-        $HOME/_flutter-tizen/bin/flutter-tizen
-        echo "$HOME/_flutter-tizen/flutter/bin" >> $GITHUB_PATH
-        cd $GITHUB_WORKSPACE
-    - name: Check out code
-      uses: actions/checkout@v2
+    - uses: subosito/flutter-action@v1
+      with:
+        channel: stable
+    - uses: actions/checkout@v2
       with:
           fetch-depth: 2
     - name: Set up tools
