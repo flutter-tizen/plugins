@@ -26,12 +26,14 @@ Future<String?> _showErrorDialog(BuildContext context, String message) {
 }
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -49,6 +51,7 @@ class _MyAppState extends State<MyApp> {
 
   Widget _textButton(String text, Function onPressed, bool enabled) {
     return Container(
+      margin: const EdgeInsets.all(5),
       child: ElevatedButton(
         onPressed: enabled
             ? () {
@@ -58,7 +61,6 @@ class _MyAppState extends State<MyApp> {
             : null,
         child: Text(text),
       ),
-      margin: const EdgeInsets.all(5),
     );
   }
 
@@ -122,8 +124,7 @@ class _MyAppState extends State<MyApp> {
             () async {
               try {
                 final bool status = await _remotePort!.check();
-                _log(
-                    'Status of remote port: ' + (status ? 'opened' : 'closed'));
+                _log('Status of remote port: ${status ? 'opened' : 'closed'}');
                 setState(() {});
               } catch (e) {
                 _showErrorDialog(context, e.toString());
@@ -216,6 +217,11 @@ class _MyAppState extends State<MyApp> {
   Widget _logger(BuildContext context) {
     return Expanded(
       child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(width: 1),
+          borderRadius: const BorderRadius.all(Radius.circular(3)),
+        ),
+        margin: const EdgeInsets.all(5),
         child: GestureDetector(
           onLongPress: () {
             setState(() {
@@ -232,11 +238,6 @@ class _MyAppState extends State<MyApp> {
             },
           ),
         ),
-        decoration: BoxDecoration(
-          border: Border.all(width: 1),
-          borderRadius: const BorderRadius.all(Radius.circular(3)),
-        ),
-        margin: const EdgeInsets.all(5),
       ),
     );
   }
