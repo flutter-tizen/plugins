@@ -19,7 +19,7 @@
 #include "lwe/PlatformIntegrationData.h"
 #include "webview_factory.h"
 
-static const size_t kBufferPoolSize = 5;
+static constexpr size_t kBufferPoolSize = 5;
 
 extern "C" size_t LWE_EXPORT createWebViewInstance(
     unsigned x, unsigned y, unsigned width, unsigned height,
@@ -65,7 +65,7 @@ class NavigationRequestResult
   WebView* webview_;
 };
 
-enum ResourceErrorType {
+enum class ResourceErrorType {
   NoError,
   UnknownError,
   HostLookupError,
@@ -85,7 +85,7 @@ enum ResourceErrorType {
 };
 
 static std::string ErrorCodeToString(int error_code) {
-  switch (error_code) {
+  switch (ResourceErrorType(error_code)) {
     case ResourceErrorType::AuthenticationError:
       return "authentication";
     case ResourceErrorType::BadURLError:
