@@ -8,8 +8,8 @@ import 'dart:ffi';
 
 import 'types.dart';
 
-class _PreferenceBindings {
-  _PreferenceBindings() {
+class PreferenceBindings {
+  PreferenceBindings() {
     final DynamicLibrary lib =
         DynamicLibrary.open('libcapi-appfw-preference.so.0');
 
@@ -58,5 +58,5 @@ class _PreferenceBindings {
   late PreferenceForeachItem foreachItem;
 }
 
-_PreferenceBindings? _cachedBindings;
-_PreferenceBindings get bindings => _cachedBindings ??= _PreferenceBindings();
+PreferenceBindings? _cachedBindings;
+PreferenceBindings get bindings => _cachedBindings ??= PreferenceBindings();
