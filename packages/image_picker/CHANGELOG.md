@@ -1,3 +1,9 @@
+## NEXT
+
+* Update the example app.
+* Migrate to new analysis options.
+* Remove obsolete dependency on pedantic.
+
 ## 2.1.0
 
 * Update image_picker to 0.8.4.
