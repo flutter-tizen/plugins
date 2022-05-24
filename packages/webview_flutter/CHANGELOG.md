@@ -1,3 +1,7 @@
+## NEXT
+
+* Code refactoring.
+
 ## 0.4.4
 
 * Update LWE binary (645719ed084d899ec7d53de1758db71a8974e446).

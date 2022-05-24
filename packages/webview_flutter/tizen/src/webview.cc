@@ -19,7 +19,7 @@
 #include "lwe/PlatformIntegrationData.h"
 #include "webview_factory.h"
 
-#define BUFFER_POOL_SIZE 5
+static constexpr size_t kBufferPoolSize = 5;
 
 extern "C" size_t LWE_EXPORT createWebViewInstance(
     unsigned x, unsigned y, unsigned width, unsigned height,
@@ -30,13 +30,13 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
     const std::function<void(::LWE::WebContainer*, bool needsFlush)>& flushCb,
     bool useSWBackend);
 
-template <typename T = flutter::EncodableValue>
-class NavigationRequestResult : public flutter::MethodResult<T> {
+class NavigationRequestResult
+    : public flutter::MethodResult<flutter::EncodableValue> {
  public:
   NavigationRequestResult(std::string url, WebView* webview)
       : url_(url), webview_(webview) {}
 
-  void SuccessInternal(const T* should_load) override {
+  void SuccessInternal(const flutter::EncodableValue* should_load) override {
     if (std::holds_alternative<bool>(*should_load)) {
       if (std::get<bool>(*should_load)) {
         LoadUrl();
@@ -46,14 +46,12 @@ class NavigationRequestResult : public flutter::MethodResult<T> {
 
   void ErrorInternal(const std::string& error_code,
                      const std::string& error_message,
-                     const T* error_details) override {
-    throw std::invalid_argument("navigationRequest calls must succeed [code:" +
-                                error_code + "][msg:" + error_message + "]");
+                     const flutter::EncodableValue* error_details) override {
+    LOG_ERROR("The request unexpectedly completed with an error.");
   }
 
   void NotImplementedInternal() override {
-    throw std::invalid_argument(
-        "navigationRequest must be implemented by the webview method channel");
+    LOG_ERROR("The target method was unexpectedly unimplemented.");
   }
 
  private:
@@ -67,7 +65,7 @@ class NavigationRequestResult : public flutter::MethodResult<T> {
   WebView* webview_;
 };
 
-enum RequestErrorType {
+enum class ResourceErrorType {
   NoError,
   UnknownError,
   HostLookupError,
@@ -87,52 +85,51 @@ enum RequestErrorType {
 };
 
 static std::string ErrorCodeToString(int error_code) {
-  switch (error_code) {
-    case RequestErrorType::AuthenticationError:
+  switch (ResourceErrorType(error_code)) {
+    case ResourceErrorType::AuthenticationError:
       return "authentication";
-    case RequestErrorType::BadURLError:
+    case ResourceErrorType::BadURLError:
       return "badUrl";
-    case RequestErrorType::ConnectError:
+    case ResourceErrorType::ConnectError:
       return "connect";
-    case RequestErrorType::FailedSSLHandshakeError:
+    case ResourceErrorType::FailedSSLHandshakeError:
       return "failedSslHandshake";
-    case RequestErrorType::FileError:
+    case ResourceErrorType::FileError:
       return "file";
-    case RequestErrorType::FileNotFoundError:
+    case ResourceErrorType::FileNotFoundError:
       return "fileNotFound";
-    case RequestErrorType::HostLookupError:
+    case ResourceErrorType::HostLookupError:
       return "hostLookup";
-    case RequestErrorType::IOError:
+    case ResourceErrorType::IOError:
       return "io";
-    case RequestErrorType::ProxyAuthenticationError:
+    case ResourceErrorType::ProxyAuthenticationError:
       return "proxyAuthentication";
-    case RequestErrorType::RedirectLoopError:
+    case ResourceErrorType::RedirectLoopError:
       return "redirectLoop";
-    case RequestErrorType::TimeoutError:
+    case ResourceErrorType::TimeoutError:
       return "timeout";
-    case RequestErrorType::TooManyRequestError:
+    case ResourceErrorType::TooManyRequestError:
       return "tooManyRequests";
-    case RequestErrorType::UnknownError:
+    case ResourceErrorType::UnknownError:
       return "unknown";
-    case RequestErrorType::UnsupportedAuthSchemeError:
+    case ResourceErrorType::UnsupportedAuthSchemeError:
       return "unsupportedAuthScheme";
-    case RequestErrorType::UnsupportedSchemeError:
+    case ResourceErrorType::UnsupportedSchemeError:
       return "unsupportedScheme";
+    default:
+      LOG_ERROR("Unknown error type: %d", error_code);
+      return std::to_string(error_code);
   }
-
-  std::string message =
-      "Could not find a string for errorCode: " + std::to_string(error_code);
-  throw std::invalid_argument(message);
 }
 
 template <typename T>
-bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
-                              std::string key, T* out) {
-  if (auto pmap = std::get_if<flutter::EncodableMap>(&arguments)) {
-    auto iter = pmap->find(flutter::EncodableValue(key));
-    if (iter != pmap->end() && !iter->second.IsNull()) {
-      if (auto pval = std::get_if<T>(&iter->second)) {
-        *out = *pval;
+static bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
+                                     std::string key, T* out) {
+  if (auto* map = std::get_if<flutter::EncodableMap>(arguments)) {
+    auto iter = map->find(flutter::EncodableValue(key));
+    if (iter != map->end() && !iter->second.IsNull()) {
+      if (auto* value = std::get_if<T>(&iter->second)) {
+        *out = *value;
         return true;
       }
     }
@@ -140,12 +137,12 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue& arguments,
   return false;
 }
 
-bool NeedsSwBackend(void) {
+static bool IsRunningOnEmulator() {
   bool result = false;
   char* value = nullptr;
   int ret = system_info_get_platform_string(
       "http://tizen.org/system/model_name", &value);
-  if ((SYSTEM_INFO_ERROR_NONE == ret) && (0 == strcmp(value, "Emulator"))) {
+  if (ret == SYSTEM_INFO_ERROR_NONE && strcmp(value, "Emulator") == 0) {
     result = true;
   }
   if (value) {
@@ -154,34 +151,28 @@ bool NeedsSwBackend(void) {
   return result;
 }
 
-WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
+WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
                  flutter::TextureRegistrar* texture_registrar, double width,
-                 double height, flutter::EncodableMap& params)
-    : PlatformView(registrar, viewId, nullptr),
+                 double height, const flutter::EncodableValue& params)
+    : PlatformView(registrar, view_id, nullptr),
       texture_registrar_(texture_registrar),
-      webview_instance_(nullptr),
       width_(width),
-      height_(height),
-      working_surface_(nullptr),
-      candidate_surface_(nullptr),
-      rendered_surface_(nullptr),
-      is_mouse_lbutton_down_(false),
-      has_navigation_delegate_(false),
-      has_progress_tracking_(false),
-      context_(nullptr),
-      texture_variant_(nullptr) {
-  use_sw_backend_ = NeedsSwBackend();
+      height_(height) {
+  use_sw_backend_ = IsRunningOnEmulator();
   if (use_sw_backend_) {
     tbm_pool_ = std::make_unique<SingleBufferPool>(width, height);
   } else {
-    tbm_pool_ = std::make_unique<BufferPool>(width, height, BUFFER_POOL_SIZE);
+    tbm_pool_ = std::make_unique<BufferPool>(width, height, kBufferPoolSize);
   }
 
-  texture_variant_ = new flutter::TextureVariant(flutter::GpuBufferTexture(
-      [this](size_t width, size_t height) -> const FlutterDesktopGpuBuffer* {
-        return this->ObtainGpuBuffer(width, height);
-      }));
-  SetTextureId(texture_registrar_->RegisterTexture(texture_variant_));
+  texture_variant_ =
+      std::make_unique<flutter::TextureVariant>(flutter::GpuBufferTexture(
+          [this](size_t width,
+                 size_t height) -> const FlutterDesktopGpuBuffer* {
+            return ObtainGpuBuffer(width, height);
+          }));
+  SetTextureId(texture_registrar_->RegisterTexture(texture_variant_.get()));
+
   InitWebView();
 
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
@@ -203,164 +194,130 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int viewId,
       });
 
   std::string url;
-  auto initial_url = params[flutter::EncodableValue("initialUrl")];
-  if (std::holds_alternative<std::string>(initial_url)) {
-    url = std::get<std::string>(initial_url);
-  } else {
+  if (!GetValueFromEncodableMap(&params, "initialUrl", &url)) {
     url = "about:blank";
   }
 
-  auto backgroundColor = params[flutter::EncodableValue("backgroundColor")];
-  if (std::holds_alternative<int>(backgroundColor)) {
-    auto color = std::get<int>(backgroundColor);
-    auto settings = webview_instance_->GetSettings();
+  int color;
+  if (GetValueFromEncodableMap(&params, "backgroundColor", &color)) {
+    LWE::Settings settings = webview_instance_->GetSettings();
     settings.SetBaseBackgroundColor(color >> 16 & 0xff, color >> 8 & 0xff,
                                     color & 0xff, color >> 24 & 0xff);
     webview_instance_->SetSettings(settings);
   }
 
-  auto settings = params[flutter::EncodableValue("settings")];
-  if (std::holds_alternative<flutter::EncodableMap>(settings)) {
-    auto settingList = std::get<flutter::EncodableMap>(settings);
-    if (settingList.size() > 0) {
-      ApplySettings(settingList);
-    }
+  flutter::EncodableMap settings;
+  if (GetValueFromEncodableMap(&params, "settings", &settings)) {
+    ApplySettings(settings);
   }
 
-  auto names = params[flutter::EncodableValue("javascriptChannelNames")];
-  if (std::holds_alternative<flutter::EncodableList>(names)) {
-    auto name_list = std::get<flutter::EncodableList>(names);
-    for (size_t i = 0; i < name_list.size(); i++) {
-      if (std::holds_alternative<std::string>(name_list[i])) {
-        RegisterJavaScriptChannelName(std::get<std::string>(name_list[i]));
+  flutter::EncodableList names;
+  if (GetValueFromEncodableMap(&params, "javascriptChannelNames", &names)) {
+    for (flutter::EncodableValue name : names) {
+      if (std::holds_alternative<std::string>(name)) {
+        RegisterJavaScriptChannelName(std::get<std::string>(name));
       }
     }
   }
 
-  // TODO: Not implemented
-  // auto media = params[flutter::EncodableValue("autoMediaPlaybackPolicy")];
+  // TODO: Implement autoMediaPlaybackPolicy.
 
-  auto user_agent = params[flutter::EncodableValue("userAgent")];
-  if (std::holds_alternative<std::string>(user_agent)) {
-    auto settings = webview_instance_->GetSettings();
-    settings.SetUserAgentString(std::get<std::string>(user_agent));
+  std::string user_agent;
+  if (GetValueFromEncodableMap(&params, "userAgent", &user_agent)) {
+    LWE::Settings settings = webview_instance_->GetSettings();
+    settings.SetUserAgentString(user_agent);
     webview_instance_->SetSettings(settings);
   }
 
   webview_instance_->RegisterOnPageStartedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
-        LOG_DEBUG("RegisterOnPageStartedHandler(url: %s)\n", url.c_str());
-        flutter::EncodableMap map;
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("url"), flutter::EncodableValue(url)));
-        auto args = std::make_unique<flutter::EncodableValue>(map);
-        channel_->InvokeMethod("onPageStarted", std::move(args));
+        flutter::EncodableMap args = {
+            {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
+        channel_->InvokeMethod("onPageStarted",
+                               std::make_unique<flutter::EncodableValue>(args));
       });
   webview_instance_->RegisterOnPageLoadedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
-        LOG_DEBUG("RegisterOnPageLoadedHandler(url: %s)(title:%s)\n",
-                  url.c_str(), container->GetTitle().c_str());
-        flutter::EncodableMap map;
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("url"), flutter::EncodableValue(url)));
-        auto args = std::make_unique<flutter::EncodableValue>(map);
-        channel_->InvokeMethod("onPageFinished", std::move(args));
+        flutter::EncodableMap args = {
+            {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
+        channel_->InvokeMethod("onPageFinished",
+                               std::make_unique<flutter::EncodableValue>(args));
       });
   webview_instance_->RegisterOnProgressChangedHandler(
       [this](LWE::WebContainer* container, int progress) {
-        LOG_DEBUG("RegisterOnProgressChangedHandler(progress:%d)\n", progress);
         if (!has_progress_tracking_) {
           return;
         }
-        flutter::EncodableMap map;
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("progress"),
-                flutter::EncodableValue(progress)));
-        auto args = std::make_unique<flutter::EncodableValue>(map);
-        channel_->InvokeMethod("onProgress", std::move(args));
+        flutter::EncodableMap args = {{flutter::EncodableValue("progress"),
+                                       flutter::EncodableValue(progress)}};
+        channel_->InvokeMethod("onProgress",
+                               std::make_unique<flutter::EncodableValue>(args));
       });
   webview_instance_->RegisterOnReceivedErrorHandler(
-      [this](LWE::WebContainer* container, LWE::ResourceError e) {
-        flutter::EncodableMap map;
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("errorCode"),
-                flutter::EncodableValue(e.GetErrorCode())));
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("description"),
-                flutter::EncodableValue(e.GetDescription())));
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("errorType"),
-                flutter::EncodableValue(ErrorCodeToString(e.GetErrorCode()))));
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("failingUrl"),
-                flutter::EncodableValue(e.GetUrl())));
-        auto args = std::make_unique<flutter::EncodableValue>(map);
-        channel_->InvokeMethod("onWebResourceError", std::move(args));
+      [this](LWE::WebContainer* container, LWE::ResourceError error) {
+        flutter::EncodableMap args = {
+            {flutter::EncodableValue("errorCode"),
+             flutter::EncodableValue(error.GetErrorCode())},
+            {flutter::EncodableValue("description"),
+             flutter::EncodableValue(error.GetDescription())},
+            {flutter::EncodableValue("errorType"),
+             flutter::EncodableValue(ErrorCodeToString(error.GetErrorCode()))},
+            {flutter::EncodableValue("failingUrl"),
+             flutter::EncodableValue(error.GetUrl())},
+        };
+        channel_->InvokeMethod("onWebResourceError",
+                               std::make_unique<flutter::EncodableValue>(args));
       });
-
   webview_instance_->RegisterShouldOverrideUrlLoadingHandler(
       [this](LWE::WebContainer* view, const std::string& url) -> bool {
         if (!has_navigation_delegate_) {
           return false;
         }
-        flutter::EncodableMap map;
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("url"), flutter::EncodableValue(url)));
-        map.insert(
-            std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-                flutter::EncodableValue("isForMainFrame"),
-                flutter::EncodableValue(true)));
-        auto args = std::make_unique<flutter::EncodableValue>(map);
-        auto on_result =
-            std::make_unique<NavigationRequestResult<flutter::EncodableValue>>(
-                url, this);
-        channel_->InvokeMethod("navigationRequest", std::move(args),
-                               std::move(on_result));
-
+        flutter::EncodableMap args = {
+            {flutter::EncodableValue("url"), flutter::EncodableValue(url)},
+            {flutter::EncodableValue("isForMainFrame"),
+             flutter::EncodableValue(true)},
+        };
+        auto result = std::make_unique<NavigationRequestResult>(url, this);
+        channel_->InvokeMethod("navigationRequest",
+                               std::make_unique<flutter::EncodableValue>(args),
+                               std::move(result));
         return true;
       });
 
   webview_instance_->LoadURL(url);
 }
 
-void WebView::ApplySettings(flutter::EncodableMap settings) {
-  for (auto const& [key, val] : settings) {
+void WebView::ApplySettings(const flutter::EncodableMap& settings) {
+  for (const auto& [key, value] : settings) {
     if (std::holds_alternative<std::string>(key)) {
-      std::string k = std::get<std::string>(key);
-      if ("jsMode" == k) {
-        // NOTE: Not supported by Lightweight Web Engine (LWE) on Tizen.
-      } else if ("hasNavigationDelegate" == k) {
-        if (std::holds_alternative<bool>(val)) {
-          has_navigation_delegate_ = std::get<bool>(val);
-        }
-      } else if ("hasProgressTracking" == k) {
-        if (std::holds_alternative<bool>(val)) {
-          has_progress_tracking_ = std::get<bool>(val);
-        }
-      } else if ("debuggingEnabled" == k) {
+      std::string string_key = std::get<std::string>(key);
+      if (string_key == "jsMode") {
         // NOTE: Not supported by LWE on Tizen.
-      } else if ("gestureNavigationEnabled" == k) {
+      } else if (string_key == "hasNavigationDelegate") {
+        if (std::holds_alternative<bool>(value)) {
+          has_navigation_delegate_ = std::get<bool>(value);
+        }
+      } else if (string_key == "hasProgressTracking") {
+        if (std::holds_alternative<bool>(value)) {
+          has_progress_tracking_ = std::get<bool>(value);
+        }
+      } else if (string_key == "debuggingEnabled") {
         // NOTE: Not supported by LWE on Tizen.
-      } else if ("allowsInlineMediaPlayback" == k) {
+      } else if (string_key == "gestureNavigationEnabled") {
+        // NOTE: Not supported by LWE on Tizen.
+      } else if (string_key == "allowsInlineMediaPlayback") {
         // no-op inline media playback is always allowed on Tizen.
-      } else if ("userAgent" == k) {
-        if (std::holds_alternative<std::string>(val)) {
-          auto settings = webview_instance_->GetSettings();
-          settings.SetUserAgentString(std::get<std::string>(val));
+      } else if (string_key == "userAgent") {
+        if (std::holds_alternative<std::string>(value)) {
+          LWE::Settings settings = webview_instance_->GetSettings();
+          settings.SetUserAgentString(std::get<std::string>(value));
           webview_instance_->SetSettings(settings);
         }
-      } else if ("zoomEnabled" == k) {
+      } else if (string_key == "zoomEnabled") {
         // NOTE: Not supported by LWE on Tizen.
       } else {
-        throw std::invalid_argument("Unknown WebView setting: " + k);
+        LOG_WARN("Unknown settings key: %s", string_key.c_str());
       }
     }
   }
@@ -374,24 +331,19 @@ void WebView::ApplySettings(flutter::EncodableMap settings) {
  * message over a method channel to the Dart code.
  */
 void WebView::RegisterJavaScriptChannelName(const std::string& name) {
-  LOG_DEBUG("RegisterJavaScriptChannelName(channelName: %s)\n", name.c_str());
+  LOG_DEBUG("Register a JavaScript channel: %s", name.c_str());
 
-  std::function<std::string(const std::string&)> cb =
-      [this, name](const std::string& message) -> std::string {
-    LOG_DEBUG("Invoke JavaScriptChannel(message: %s)\n", message.c_str());
-    flutter::EncodableMap map;
-    map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-        flutter::EncodableValue("channel"), flutter::EncodableValue(name)));
-    map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-        flutter::EncodableValue("message"), flutter::EncodableValue(message)));
-
-    std::unique_ptr<flutter::EncodableValue> args =
-        std::make_unique<flutter::EncodableValue>(map);
-    channel_->InvokeMethod("javascriptChannelMessage", std::move(args));
+  auto on_message = [this, name](const std::string& message) -> std::string {
+    LOG_DEBUG("JavaScript channel message: %s", message.c_str());
+    flutter::EncodableMap args = {
+        {flutter::EncodableValue("channel"), flutter::EncodableValue(name)},
+        {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
+    };
+    channel_->InvokeMethod("javascriptChannelMessage",
+                           std::make_unique<flutter::EncodableValue>(args));
     return "success";
   };
-
-  webview_instance_->AddJavaScriptInterface(name, "postMessage", cb);
+  webview_instance_->AddJavaScriptInterface(name, "postMessage", on_message);
 }
 
 WebView::~WebView() { Dispose(); }
@@ -407,21 +359,16 @@ void WebView::Dispose() {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
   }
-
-  if (texture_variant_) {
-    delete texture_variant_;
-    texture_variant_ = nullptr;
-  }
 }
 
 void WebView::Resize(double width, double height) {
-  LOG_DEBUG("WebView::Resize width: %f height: %f \n", width, height);
   width_ = width;
   height_ = height;
 
   if (candidate_surface_) {
     candidate_surface_ = nullptr;
   }
+
   tbm_pool_->Prepare(width_, height_);
   webview_instance_->ResizeTo(width_, height_);
 }
@@ -446,90 +393,92 @@ void WebView::Touch(int type, int button, double x, double y, double dx,
         x, y);
     is_mouse_lbutton_down_ = false;
   } else {
-    // TODO: Not implemented
+    LOG_WARN("Unknown touch event type: %d", type);
   }
 }
 
-static LWE::KeyValue EcoreEventKeyToKeyValue(const char* ecore_key_string,
-                                             bool is_shift_pressed) {
-  if (strcmp("Left", ecore_key_string) == 0) {
+static LWE::KeyValue KeyNameToKeyValue(const std::string& ecore_key,
+                                       bool is_shift_pressed) {
+  if (ecore_key == "Left") {
     return LWE::KeyValue::ArrowLeftKey;
-  } else if (strcmp("Right", ecore_key_string) == 0) {
+  } else if (ecore_key == "Right") {
     return LWE::KeyValue::ArrowRightKey;
-  } else if (strcmp("Up", ecore_key_string) == 0) {
+  } else if (ecore_key == "Up") {
     return LWE::KeyValue::ArrowUpKey;
-  } else if (strcmp("Down", ecore_key_string) == 0) {
+  } else if (ecore_key == "Down") {
     return LWE::KeyValue::ArrowDownKey;
-  } else if (strcmp("space", ecore_key_string) == 0) {
+  } else if (ecore_key == "space") {
     return LWE::KeyValue::SpaceKey;
-  } else if (strcmp("Return", ecore_key_string) == 0) {
+  } else if (ecore_key == "Select") {
     return LWE::KeyValue::EnterKey;
-  } else if (strcmp("Tab", ecore_key_string) == 0) {
+  } else if (ecore_key == "Return") {
+    return LWE::KeyValue::EnterKey;
+  } else if (ecore_key == "Tab") {
     return LWE::KeyValue::TabKey;
-  } else if (strcmp("BackSpace", ecore_key_string) == 0) {
+  } else if (ecore_key == "BackSpace") {
     return LWE::KeyValue::BackspaceKey;
-  } else if (strcmp("Escape", ecore_key_string) == 0) {
+  } else if (ecore_key == "Escape") {
     return LWE::KeyValue::EscapeKey;
-  } else if (strcmp("Delete", ecore_key_string) == 0) {
+  } else if (ecore_key == "Delete") {
     return LWE::KeyValue::DeleteKey;
-  } else if (strcmp("at", ecore_key_string) == 0) {
+  } else if (ecore_key == "at") {
     return LWE::KeyValue::AtMarkKey;
-  } else if (strcmp("minus", ecore_key_string) == 0) {
+  } else if (ecore_key == "minus") {
     if (is_shift_pressed) {
       return LWE::KeyValue::UnderScoreMarkKey;
     } else {
       return LWE::KeyValue::MinusMarkKey;
     }
-  } else if (strcmp("equal", ecore_key_string) == 0) {
+  } else if (ecore_key == "equal") {
     if (is_shift_pressed) {
       return LWE::KeyValue::PlusMarkKey;
     } else {
       return LWE::KeyValue::EqualitySignKey;
     }
-  } else if (strcmp("bracketleft", ecore_key_string) == 0) {
+  } else if (ecore_key == "bracketleft") {
     if (is_shift_pressed) {
       return LWE::KeyValue::LeftCurlyBracketMarkKey;
     } else {
       return LWE::KeyValue::LeftSquareBracketKey;
     }
-  } else if (strcmp("bracketright", ecore_key_string) == 0) {
+  } else if (ecore_key == "bracketright") {
     if (is_shift_pressed) {
       return LWE::KeyValue::RightCurlyBracketMarkKey;
     } else {
       return LWE::KeyValue::RightSquareBracketKey;
     }
-  } else if (strcmp("semicolon", ecore_key_string) == 0) {
+  } else if (ecore_key == "semicolon") {
     if (is_shift_pressed) {
       return LWE::KeyValue::ColonMarkKey;
     } else {
       return LWE::KeyValue::SemiColonMarkKey;
     }
-  } else if (strcmp("apostrophe", ecore_key_string) == 0) {
+  } else if (ecore_key == "apostrophe") {
     if (is_shift_pressed) {
       return LWE::KeyValue::DoubleQuoteMarkKey;
     } else {
       return LWE::KeyValue::SingleQuoteMarkKey;
     }
-  } else if (strcmp("comma", ecore_key_string) == 0) {
+  } else if (ecore_key == "comma") {
     if (is_shift_pressed) {
       return LWE::KeyValue::LessThanMarkKey;
     } else {
       return LWE::KeyValue::CommaMarkKey;
     }
-  } else if (strcmp("period", ecore_key_string) == 0) {
+  } else if (ecore_key == "period") {
     if (is_shift_pressed) {
       return LWE::KeyValue::GreaterThanSignKey;
     } else {
       return LWE::KeyValue::PeriodKey;
     }
-  } else if (strcmp("slash", ecore_key_string) == 0) {
+  } else if (ecore_key == "slash") {
     if (is_shift_pressed) {
       return LWE::KeyValue::QuestionMarkKey;
     } else {
       return LWE::KeyValue::SlashKey;
     }
-  } else if (strlen(ecore_key_string) == 1) {
-    char ch = ecore_key_string[0];
+  } else if (ecore_key.length() == 1) {
+    const char ch = ecore_key.at(0);
     if (ch >= '0' && ch <= '9') {
       if (is_shift_pressed) {
         switch (ch) {
@@ -555,271 +504,189 @@ static LWE::KeyValue EcoreEventKeyToKeyValue(const char* ecore_key_string,
             return LWE::KeyValue::RightParenthesisMarkKey;
         }
       }
-      return (LWE::KeyValue)(LWE::KeyValue::Digit0Key + ch - '0');
+      return LWE::KeyValue(LWE::KeyValue::Digit0Key + ch - '0');
     } else if (ch >= 'a' && ch <= 'z') {
       if (is_shift_pressed) {
-        return (LWE::KeyValue)(LWE::KeyValue::LowerAKey + ch - 'a' - 32);
+        return LWE::KeyValue(LWE::KeyValue::LowerAKey + ch - 'a' - 32);
       } else {
-        return (LWE::KeyValue)(LWE::KeyValue::LowerAKey + ch - 'a');
+        return LWE::KeyValue(LWE::KeyValue::LowerAKey + ch - 'a');
       }
     } else if (ch >= 'A' && ch <= 'Z') {
       if (is_shift_pressed) {
-        return (LWE::KeyValue)(LWE::KeyValue::AKey + ch - 'A' + 32);
+        return LWE::KeyValue(LWE::KeyValue::AKey + ch - 'A' + 32);
       } else {
-        return (LWE::KeyValue)(LWE::KeyValue::AKey + ch - 'A');
+        return LWE::KeyValue(LWE::KeyValue::AKey + ch - 'A');
       }
     }
-  } else if (strcmp("XF86AudioRaiseVolume", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioRaiseVolume") {
     return LWE::KeyValue::TVVolumeUpKey;
-  } else if (strcmp("XF86AudioLowerVolume", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioLowerVolume") {
     return LWE::KeyValue::TVVolumeDownKey;
-  } else if (strcmp("XF86AudioMute", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioMute") {
     return LWE::KeyValue::TVMuteKey;
-  } else if (strcmp("XF86RaiseChannel", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86RaiseChannel") {
     return LWE::KeyValue::TVChannelUpKey;
-  } else if (strcmp("XF86LowerChannel", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86LowerChannel") {
     return LWE::KeyValue::TVChannelDownKey;
-  } else if (strcmp("XF86AudioRewind", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioRewind") {
     return LWE::KeyValue::MediaTrackPreviousKey;
-  } else if (strcmp("XF86AudioNext", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioNext") {
     return LWE::KeyValue::MediaTrackNextKey;
-  } else if (strcmp("XF86AudioPause", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioPause") {
     return LWE::KeyValue::MediaPauseKey;
-  } else if (strcmp("XF86AudioRecord", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioRecord") {
     return LWE::KeyValue::MediaRecordKey;
-  } else if (strcmp("XF86AudioPlay", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioPlay") {
     return LWE::KeyValue::MediaPlayKey;
-  } else if (strcmp("XF86AudioStop", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86AudioStop") {
     return LWE::KeyValue::MediaStopKey;
-  } else if (strcmp("XF86Info", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Info") {
     return LWE::KeyValue::TVInfoKey;
-  } else if (strcmp("XF86Back", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Back") {
     return LWE::KeyValue::TVReturnKey;
-  } else if (strcmp("XF86Red", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Red") {
     return LWE::KeyValue::TVRedKey;
-  } else if (strcmp("XF86Green", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Green") {
     return LWE::KeyValue::TVGreenKey;
-  } else if (strcmp("XF86Yellow", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Yellow") {
     return LWE::KeyValue::TVYellowKey;
-  } else if (strcmp("XF86Blue", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Blue") {
     return LWE::KeyValue::TVBlueKey;
-  } else if (strcmp("XF86SysMenu", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86SysMenu") {
     return LWE::KeyValue::TVMenuKey;
-  } else if (strcmp("XF86Home", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Home") {
     return LWE::KeyValue::TVHomeKey;
-  } else if (strcmp("XF86Exit", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Exit") {
     return LWE::KeyValue::TVExitKey;
-  } else if (strcmp("XF86PreviousChannel", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86PreviousChannel") {
     return LWE::KeyValue::TVPreviousChannel;
-  } else if (strcmp("XF86ChannelList", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86ChannelList") {
     return LWE::KeyValue::TVChannelList;
-  } else if (strcmp("XF86ChannelGuide", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86ChannelGuide") {
     return LWE::KeyValue::TVChannelGuide;
-  } else if (strcmp("XF86SimpleMenu", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86SimpleMenu") {
     return LWE::KeyValue::TVSimpleMenu;
-  } else if (strcmp("XF86EManual", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86EManual") {
     return LWE::KeyValue::TVEManual;
-  } else if (strcmp("XF86ExtraApp", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86ExtraApp") {
     return LWE::KeyValue::TVExtraApp;
-  } else if (strcmp("XF86Search", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Search") {
     return LWE::KeyValue::TVSearch;
-  } else if (strcmp("XF86PictureSize", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86PictureSize") {
     return LWE::KeyValue::TVPictureSize;
-  } else if (strcmp("XF86Sleep", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Sleep") {
     return LWE::KeyValue::TVSleep;
-  } else if (strcmp("XF86Caption", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Caption") {
     return LWE::KeyValue::TVCaption;
-  } else if (strcmp("XF86More", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86More") {
     return LWE::KeyValue::TVMore;
-  } else if (strcmp("XF86BTVoice", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86BTVoice") {
     return LWE::KeyValue::TVBTVoice;
-  } else if (strcmp("XF86Color", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86Color") {
     return LWE::KeyValue::TVColor;
-  } else if (strcmp("XF86PlayBack", ecore_key_string) == 0) {
+  } else if (ecore_key == "XF86PlayBack") {
     return LWE::KeyValue::TVPlayBack;
   }
-
-  LOG_DEBUG("WebViewEFL - unimplemented key %s\n", ecore_key_string);
+  LOG_WARN("Unknown key name: %s", ecore_key.c_str());
   return LWE::KeyValue::UnidentifiedKey;
 }
 
 void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
-  std::string key_name = key_event->keyname;
-  LOG_DEBUG("ECORE_EVENT_KEY_DOWN [%s, %d]\n", key_name.c_str(),
-            (key_event->modifiers & 1) || (key_event->modifiers & 2));
-
   if (!IsFocused()) {
-    LOG_DEBUG("ignore keydown because we dont have focus");
     return;
   }
 
-  if ((strcmp(key_name.c_str(), "XF86Exit") == 0) ||
-      (strcmp(key_name.c_str(), "Select") == 0) ||
-      (strcmp(key_name.c_str(), "Cancel") == 0)) {
-    if (strcmp(key_name.c_str(), "Select") == 0) {
-      webview_instance_->AddIdleCallback(
-          [](void* data) {
-            WebView* view = (WebView*)data;
-            LWE::WebContainer* self = view->GetWebViewInstance();
-            LWE::KeyValue kv = LWE::KeyValue::EnterKey;
-            self->DispatchKeyDownEvent(kv);
-            self->DispatchKeyPressEvent(kv);
-            self->DispatchKeyUpEvent(kv);
-            view->HidePanel();
-          },
-          this);
-    } else {
-      webview_instance_->AddIdleCallback(
-          [](void* data) {
-            WebView* view = (WebView*)data;
-            view->HidePanel();
-          },
-          this);
-    }
-  }
+  std::string key_name = key_event->keyname;
+  bool is_shift_pressed = key_event->modifiers & 1;
 
   struct Param {
     LWE::WebContainer* webview_instance;
     LWE::KeyValue key_value;
   };
-  Param* p = new Param();
-  p->webview_instance = webview_instance_;
-  p->key_value =
-      EcoreEventKeyToKeyValue(key_name.c_str(), (key_event->modifiers & 1));
+  Param* param = new Param();
+  param->webview_instance = webview_instance_;
+  param->key_value = KeyNameToKeyValue(key_name, is_shift_pressed);
 
   webview_instance_->AddIdleCallback(
       [](void* data) {
-        Param* p = (Param*)data;
-        p->webview_instance->DispatchKeyDownEvent(p->key_value);
-        p->webview_instance->DispatchKeyPressEvent(p->key_value);
-        delete p;
+        Param* param = reinterpret_cast<Param*>(data);
+        param->webview_instance->DispatchKeyDownEvent(param->key_value);
+        param->webview_instance->DispatchKeyPressEvent(param->key_value);
+        delete param;
       },
-      p);
+      param);
 }
 
 void WebView::DispatchKeyUpEvent(Ecore_Event_Key* key_event) {
-  std::string key_name = key_event->keyname;
-  LOG_DEBUG("ECORE_EVENT_KEY_UP [%s, %d]\n", key_name.c_str(),
-            (key_event->modifiers & 1) || (key_event->modifiers & 2));
-
   if (!IsFocused()) {
-    LOG_DEBUG("ignore keyup because we dont have focus");
     return;
   }
+
+  std::string key_name = key_event->keyname;
+  bool is_shift_pressed = key_event->modifiers & 1;
 
   struct Param {
     LWE::WebContainer* webview_instance;
     LWE::KeyValue key_value;
   };
-  Param* p = new Param();
-  p->webview_instance = webview_instance_;
-  p->key_value =
-      EcoreEventKeyToKeyValue(key_name.c_str(), (key_event->modifiers & 1));
+  Param* param = new Param();
+  param->webview_instance = webview_instance_;
+  param->key_value = KeyNameToKeyValue(key_name, is_shift_pressed);
 
   webview_instance_->AddIdleCallback(
       [](void* data) {
-        Param* p = (Param*)data;
-        p->webview_instance->DispatchKeyUpEvent(p->key_value);
-        delete p;
+        Param* param = reinterpret_cast<Param*>(data);
+        param->webview_instance->DispatchKeyUpEvent(param->key_value);
+        delete param;
       },
-      p);
-}
-
-void WebView::DispatchCompositionUpdateEvent(const char* str, int size) {
-  if (str) {
-    LOG_DEBUG("WebView::DispatchCompositionUpdateEvent [%s]", str);
-    webview_instance_->DispatchCompositionUpdateEvent(std::string(str, size));
-  }
-}
-
-void WebView::DispatchCompositionEndEvent(const char* str, int size) {
-  if (str) {
-    LOG_DEBUG("WebView::DispatchCompositionEndEvent [%s]", str);
-    webview_instance_->DispatchCompositionEndEvent(std::string(str, size));
-  }
-}
-
-void WebView::ShowPanel() {
-  LOG_DEBUG("WebView::ShowPanel()");
-  if (!context_) {
-    LOG_ERROR("Ecore_IMF_Context nullptr");
-    return;
-  }
-  ecore_imf_context_input_panel_show(context_);
-  ecore_imf_context_focus_in(context_);
-}
-
-void WebView::HidePanel() {
-  LOG_DEBUG("WebView::HidePanel()");
-  if (!context_) {
-    LOG_ERROR("Ecore_IMF_Context nullptr");
-    return;
-  }
-  ecore_imf_context_reset(context_);
-  ecore_imf_context_focus_out(context_);
-  ecore_imf_context_input_panel_hide(context_);
-}
-
-void WebView::SetSoftwareKeyboardContext(Ecore_IMF_Context* context) {
-  context_ = context;
-
-  webview_instance_->RegisterOnShowSoftwareKeyboardIfPossibleHandler(
-      [this](LWE::WebContainer* v) { ShowPanel(); });
-
-  webview_instance_->RegisterOnHideSoftwareKeyboardIfPossibleHandler(
-      [this](LWE::WebContainer*) { HidePanel(); });
-}
-
-void WebView::ClearFocus() {
-  LOG_DEBUG("WebView::ClearFocus()");
-  HidePanel();
+      param);
 }
 
 void WebView::SetDirection(int direction) {
-  LOG_DEBUG("WebView::SetDirection direction: %d\n", direction);
-  // TODO: implement this if necessary
+  // TODO: Implement if necessary.
 }
 
 void WebView::InitWebView() {
-  if (webview_instance_ != nullptr) {
+  if (webview_instance_) {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
   }
 
-  float scale_factor = 1;
+  float pixel_ratio = 1.0;
 
-  webview_instance_ = (LWE::WebContainer*)createWebViewInstance(
-      0, 0, width_, height_, scale_factor, "SamsungOneUI", "ko-KR",
-      "Asia/Seoul",
-      [this]() -> LWE::WebContainer::ExternalImageInfo {
-        std::lock_guard<std::mutex> lock(mutex_);
-        LWE::WebContainer::ExternalImageInfo result;
-        if (!working_surface_) {
-          working_surface_ = tbm_pool_->GetAvailableBuffer();
-        }
-        if (working_surface_) {
-          result.imageAddress = static_cast<void*>(working_surface_->Surface());
-        } else {
-          result.imageAddress = nullptr;
-        }
-        return result;
-      },
-      [this](LWE::WebContainer* c, bool isRendered) {
-        if (isRendered) {
-          std::lock_guard<std::mutex> lock(mutex_);
-          if (candidate_surface_) {
-            tbm_pool_->Release(candidate_surface_);
-            candidate_surface_ = nullptr;
-          }
-          candidate_surface_ = working_surface_;
-          working_surface_ = nullptr;
-          texture_registrar_->MarkTextureFrameAvailable(GetTextureId());
-        }
-      },
-      use_sw_backend_);
+  auto on_prepare_image = [this]() -> LWE::WebContainer::ExternalImageInfo {
+    std::lock_guard<std::mutex> lock(mutex_);
+    LWE::WebContainer::ExternalImageInfo result;
+    if (!working_surface_) {
+      working_surface_ = tbm_pool_->GetAvailableBuffer();
+    }
+    if (working_surface_) {
+      result.imageAddress = working_surface_->Surface();
+    } else {
+      result.imageAddress = nullptr;
+    }
+    return result;
+  };
+  auto on_flush = [this](LWE::WebContainer* container, bool is_rendered) {
+    if (is_rendered) {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (candidate_surface_) {
+        tbm_pool_->Release(candidate_surface_);
+        candidate_surface_ = nullptr;
+      }
+      candidate_surface_ = working_surface_;
+      working_surface_ = nullptr;
+      texture_registrar_->MarkTextureFrameAvailable(GetTextureId());
+    }
+  };
+
+  webview_instance_ =
+      reinterpret_cast<LWE::WebContainer*>(createWebViewInstance(
+          0, 0, width_, height_, pixel_ratio, "SamsungOneUI", "ko-KR",
+          "Asia/Seoul", on_prepare_image, on_flush, use_sw_backend_));
 
 #ifndef TV_PROFILE
-  auto settings = webview_instance_->GetSettings();
+  LWE::Settings settings = webview_instance_->GetSettings();
   settings.SetUserAgentString(
       "Mozilla/5.0 (like Gecko/54.0 Firefox/54.0) Mobile");
   webview_instance_->SetSettings(settings);
@@ -829,162 +696,156 @@ void WebView::InitWebView() {
 void WebView::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (!webview_instance_ || !method_call.arguments()) {
+  if (!webview_instance_) {
+    result->Error("Invalid operation",
+                  "The webview instance has not been initialized.");
     return;
   }
-  const auto method_name = method_call.method_name();
-  const auto& arguments = *method_call.arguments();
 
-  LOG_DEBUG("WebView::HandleMethodCall : %s \n ", method_name.c_str());
+  const std::string& method_name = method_call.method_name();
+  const flutter::EncodableValue* arguments = method_call.arguments();
 
-  if (method_name.compare("loadUrl") == 0) {
+  LOG_DEBUG("Handle a method call: %s", method_name.c_str());
+
+  if (method_name == "loadUrl") {
     std::string url;
     if (GetValueFromEncodableMap(arguments, "url", &url)) {
       webview_instance_->LoadURL(url);
       result->Success();
-      return;
+    } else {
+      result->Error("Invalid argument", "No url provided.");
     }
-    result->Error("InvalidArguments", "Please set 'url' properly");
-  } else if (method_name.compare("updateSettings") == 0) {
-    if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-      auto settings = std::get<flutter::EncodableMap>(arguments);
-      if (settings.size() > 0) {
-        try {
-          ApplySettings(settings);
-        } catch (const std::invalid_argument& ex) {
-          LOG_ERROR("[Exception] %s\n", ex.what());
-          result->Error(ex.what());
-          return;
-        }
-      }
+  } else if (method_name == "updateSettings") {
+    const auto* settings = std::get_if<flutter::EncodableMap>(arguments);
+    if (settings) {
+      ApplySettings(*settings);
     }
     result->Success();
-  } else if (method_name.compare("canGoBack") == 0) {
+  } else if (method_name == "canGoBack") {
     result->Success(flutter::EncodableValue(webview_instance_->CanGoBack()));
-  } else if (method_name.compare("canGoForward") == 0) {
+  } else if (method_name == "canGoForward") {
     result->Success(flutter::EncodableValue(webview_instance_->CanGoForward()));
-  } else if (method_name.compare("goBack") == 0) {
+  } else if (method_name == "goBack") {
     webview_instance_->GoBack();
     result->Success();
-  } else if (method_name.compare("goForward") == 0) {
+  } else if (method_name == "goForward") {
     webview_instance_->GoForward();
     result->Success();
-  } else if (method_name.compare("reload") == 0) {
+  } else if (method_name == "reload") {
     webview_instance_->Reload();
     result->Success();
-  } else if (method_name.compare("currentUrl") == 0) {
+  } else if (method_name == "currentUrl") {
     result->Success(flutter::EncodableValue(webview_instance_->GetURL()));
-  } else if (method_name.compare("evaluateJavascript") == 0 ||
-             method_name.compare("runJavascriptReturningResult") == 0 ||
-             method_name.compare("runJavascript") == 0) {
-    if (std::holds_alternative<std::string>(arguments)) {
-      std::string js_string = std::get<std::string>(arguments);
-      bool returns_value =
-          method_name.compare("runJavascript") == 0 ? false : true;
-      webview_instance_->EvaluateJavaScript(
-          js_string,
-          [res = result.release(), returns_value](std::string value) {
-            LOG_DEBUG("value: %s\n", value.c_str());
-            if (res) {
-              if (returns_value) {
-                res->Success(flutter::EncodableValue(value));
-              } else {
-                res->Success();
-              }
-              delete res;
-            }
-          });
+  } else if (method_name == "evaluateJavascript" ||
+             method_name == "runJavascriptReturningResult" ||
+             method_name == "runJavascript") {
+    const auto* javascript = std::get_if<std::string>(arguments);
+    if (javascript) {
+      bool should_return = method_name != "runJavascript";
+      auto on_result = [result = result.release(),
+                        should_return](std::string value) {
+        LOG_DEBUG("JavaScript evaluation result: %s", value.c_str());
+        if (result) {
+          if (should_return) {
+            result->Success(flutter::EncodableValue(value));
+          } else {
+            result->Success();
+          }
+          delete result;
+        }
+      };
+      webview_instance_->EvaluateJavaScript(*javascript, on_result);
     } else {
-      result->Error("InvalidArguments", "Please set javascript string");
+      result->Error("Invalid argument", "The argument must be a string.");
     }
-  } else if (method_name.compare("addJavascriptChannels") == 0) {
-    if (std::holds_alternative<flutter::EncodableList>(arguments)) {
-      auto name_list = std::get<flutter::EncodableList>(arguments);
-      for (size_t i = 0; i < name_list.size(); i++) {
-        if (std::holds_alternative<std::string>(name_list[i])) {
-          RegisterJavaScriptChannelName(std::get<std::string>(name_list[i]));
+  } else if (method_name == "addJavascriptChannels") {
+    const auto* channels = std::get_if<flutter::EncodableList>(arguments);
+    if (channels) {
+      for (flutter::EncodableValue channel : *channels) {
+        if (std::holds_alternative<std::string>(channel)) {
+          RegisterJavaScriptChannelName(std::get<std::string>(channel));
         }
       }
     }
     result->Success();
-  } else if (method_name.compare("removeJavascriptChannels") == 0) {
-    if (std::holds_alternative<flutter::EncodableList>(arguments)) {
-      auto name_list = std::get<flutter::EncodableList>(arguments);
-      for (size_t i = 0; i < name_list.size(); i++) {
-        if (std::holds_alternative<std::string>(name_list[i])) {
+  } else if (method_name == "removeJavascriptChannels") {
+    const auto* channels = std::get_if<flutter::EncodableList>(arguments);
+    if (channels) {
+      for (flutter::EncodableValue channel : *channels) {
+        if (std::holds_alternative<std::string>(channel)) {
           webview_instance_->RemoveJavascriptInterface(
-              std::get<std::string>(name_list[i]), "postMessage");
+              std::get<std::string>(channel), "postMessage");
         }
       }
     }
     result->Success();
-  } else if (method_name.compare("clearCache") == 0) {
+  } else if (method_name == "clearCache") {
     webview_instance_->ClearCache();
     result->Success();
-  } else if (method_name.compare("getTitle") == 0) {
+  } else if (method_name == "getTitle") {
     result->Success(flutter::EncodableValue(webview_instance_->GetTitle()));
-  } else if (method_name.compare("scrollTo") == 0) {
+  } else if (method_name == "scrollTo") {
     int x = 0, y = 0;
     if (GetValueFromEncodableMap(arguments, "x", &x) &&
         GetValueFromEncodableMap(arguments, "y", &y)) {
       webview_instance_->ScrollTo(x, y);
       result->Success();
-      return;
+    } else {
+      result->Error("Invalid argument", "No x or y provided.");
     }
-    result->Error("InvalidArguments", "Please set 'x' or 'y' properly");
-  } else if (method_name.compare("scrollBy") == 0) {
+  } else if (method_name == "scrollBy") {
     int x = 0, y = 0;
     if (GetValueFromEncodableMap(arguments, "x", &x) &&
         GetValueFromEncodableMap(arguments, "y", &y)) {
       webview_instance_->ScrollBy(x, y);
       result->Success();
-      return;
+    } else {
+      result->Error("Invalid argument", "No x or y provided.");
     }
-    result->Error("InvalidArguments", "Please set 'x' or 'y' properly");
-  } else if (method_name.compare("getScrollX") == 0) {
+  } else if (method_name == "getScrollX") {
     result->Success(flutter::EncodableValue(webview_instance_->GetScrollX()));
-  } else if (method_name.compare("getScrollY") == 0) {
+  } else if (method_name == "getScrollY") {
     result->Success(flutter::EncodableValue(webview_instance_->GetScrollY()));
-  } else if (method_name.compare("loadFlutterAsset") == 0) {
-    if (std::holds_alternative<std::string>(arguments)) {
-      std::string key = std::get<std::string>(arguments);
-      std::string path;
-      char* resPath = app_get_resource_path();
-      if (resPath) {
-        path = std::string("file://") + resPath + "flutter_assets/" + key;
-        free(resPath);
-        webview_instance_->LoadURL(path);
+  } else if (method_name == "loadFlutterAsset") {
+    const auto* key = std::get_if<std::string>(arguments);
+    if (key) {
+      char* res_path = app_get_resource_path();
+      if (res_path) {
+        std::string url =
+            std::string("file://") + res_path + "flutter_assets/" + *key;
+        free(res_path);
+        webview_instance_->LoadURL(url);
         result->Success();
-        return;
+      } else {
+        result->Error("Operation failed",
+                      "Could not get the flutter_assets path.");
       }
+    } else {
+      result->Error("Invalid argument", "The argument must be a string.");
     }
-    result->Error("InvalidArguments", "Please set 'key' properly");
-  } else if (method_name.compare("loadHtmlString") == 0) {
-    std::string html;
-    std::string baseUrl;
+  } else if (method_name == "loadHtmlString") {
+    std::string html, base_url;
     if (!GetValueFromEncodableMap(arguments, "html", &html)) {
-      result->Error("InvalidArguments", "Please set 'html' properly");
+      result->Error("Invalid argument", "No html provided.");
       return;
     }
-    if (GetValueFromEncodableMap(arguments, "baseUrl", &baseUrl)) {
-      LOG_DEBUG(
-          "loadHtmlString : baseUrl is not yet supported. It will be "
-          "ignored.\n ");
+    if (GetValueFromEncodableMap(arguments, "baseUrl", &base_url)) {
+      LOG_WARN("loadHtmlString: baseUrl is not supported and will be ignored.");
     }
     webview_instance_->LoadData(html);
     result->Success();
-  } else if (method_name.compare("loadFile") == 0) {
-    if (std::holds_alternative<std::string>(arguments)) {
-      std::string absoluteFilePath =
-          std::string("file://") + std::get<std::string>(arguments);
-      webview_instance_->LoadURL(absoluteFilePath);
+  } else if (method_name == "loadFile") {
+    const auto* file_path = std::get_if<std::string>(arguments);
+    if (file_path) {
+      std::string url = std::string("file://") + *file_path;
+      webview_instance_->LoadURL(url);
       result->Success();
-      return;
+    } else {
+      result->Error("Invalid argument", "The argument must be a string.");
     }
-    result->Error("InvalidArguments", "Please set 'absoluteFilePath' properly");
-  } else if (method_name.compare("loadRequest") == 0) {
+  } else if (method_name == "loadRequest") {
     result->NotImplemented();
-  } else if (method_name.compare("setCookie") == 0) {
+  } else if (method_name == "setCookie") {
     result->NotImplemented();
   } else {
     result->NotImplemented();
@@ -994,16 +855,15 @@ void WebView::HandleMethodCall(
 void WebView::HandleCookieMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (webview_instance_ == nullptr) {
-    result->Error("Not Webview created");
+  if (!webview_instance_) {
+    result->Error("Invalid operation",
+                  "The webview instance has not been initialized.");
     return;
   }
 
-  const auto method_name = method_call.method_name();
+  const std::string& method_name = method_call.method_name();
 
-  LOG_DEBUG("WebView::HandleMethodCall : %s \n ", method_name.c_str());
-
-  if (method_name.compare("clearCookies") == 0) {
+  if (method_name == "clearCookies") {
     LWE::CookieManager* cookie = LWE::CookieManager::GetInstance();
     cookie->ClearCookies();
     result->Success(flutter::EncodableValue(true));
