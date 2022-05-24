@@ -125,7 +125,7 @@ static std::string ErrorCodeToString(int error_code) {
 template <typename T>
 static bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
                                      std::string key, T* out) {
-  if (auto map = std::get_if<flutter::EncodableMap>(arguments)) {
+  if (auto* map = std::get_if<flutter::EncodableMap>(arguments)) {
     auto iter = map->find(flutter::EncodableValue(key));
     if (iter != map->end() && !iter->second.IsNull()) {
       if (auto* value = std::get_if<T>(&iter->second)) {
