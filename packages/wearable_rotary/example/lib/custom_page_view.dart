@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:wearable_rotary/wearable_rotary.dart';
 
 class CustomPageView extends StatefulWidget {
-  const CustomPageView(this.scrollDirection);
+  const CustomPageView(this.scrollDirection, {Key? key}) : super(key: key);
 
   final Axis scrollDirection;
 
   @override
-  _CustomPageViewState createState() => _CustomPageViewState();
+  State<CustomPageView> createState() => _CustomPageViewState();
 }
 
 class _CustomPageViewState extends State<CustomPageView> {

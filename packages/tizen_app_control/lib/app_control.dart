@@ -219,7 +219,7 @@ class AppControl {
       'uri': uri,
       'mime': mime,
       'category': category,
-      'launchMode': enumToString(launchMode),
+      'launchMode': launchMode.name,
       'extraData': extraData,
     };
     await _methodChannel.invokeMethod<void>('setAppControlData', args);
@@ -252,7 +252,7 @@ class ReceivedAppControl extends AppControl {
     final Map<String, dynamic> args = <String, dynamic>{
       'id': _id,
       'replyId': reply._id,
-      'result': enumToString(result),
+      'result': result.name,
     };
     await AppControl._methodChannel.invokeMethod<void>('reply', args);
   }

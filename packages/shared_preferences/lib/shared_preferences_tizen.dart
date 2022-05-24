@@ -122,7 +122,7 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
                 .toNativeUtf8(allocator: arena),
           );
         default:
-          print('Not implemented : valueType[' + valueType + ']');
+          print('Not implemented: valueType[$valueType]');
           return -1;
       }
     });

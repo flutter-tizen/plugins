@@ -12,7 +12,7 @@ import 'package:ffi/ffi.dart';
 typedef _InitializeDartApiNative = IntPtr Function(Pointer<Void>);
 typedef _InitializeDartApi = int Function(Pointer<Void>);
 typedef _CreateAppControlNative = Uint32 Function(Handle);
-typedef _CreateAppControl = int Function(Object);
+typedef CreateAppControl = int Function(Object);
 typedef _AttachAppControlNative = Int8 Function(Int32, Handle);
 typedef _AttachAppControl = int Function(int, Object);
 
@@ -46,8 +46,8 @@ DynamicLibrary get _libEmbedder {
   return _libEmbedderCache!;
 }
 
-final _CreateAppControl nativeCreateAppControl =
-    _libEmbedder.lookupFunction<_CreateAppControlNative, _CreateAppControl>(
+final CreateAppControl nativeCreateAppControl =
+    _libEmbedder.lookupFunction<_CreateAppControlNative, CreateAppControl>(
         'NativeCreateAppControl');
 final _AttachAppControl _nativeAttachAppControl =
     _libEmbedder.lookupFunction<_AttachAppControlNative, _AttachAppControl>(
@@ -62,44 +62,44 @@ class _AppContext extends Opaque {}
 typedef AppContextHandle = Pointer<_AppContext>;
 
 typedef _AppContextDestroyNative = Int32 Function(AppContextHandle);
-typedef _AppContextDestroy = int Function(AppContextHandle);
+typedef AppContextDestroy = int Function(AppContextHandle);
 
 typedef _AppManagerGetAppContextNative = Int32 Function(
     Pointer<Utf8>, Pointer<AppContextHandle>);
-typedef _AppManagerGetAppContext = int Function(
+typedef AppManagerGetAppContext = int Function(
     Pointer<Utf8>, Pointer<AppContextHandle>);
 typedef _AppManagerIsRunningNative = Int32 Function(
     Pointer<Utf8>, Pointer<Uint8>);
-typedef _AppManagerIsRunning = int Function(Pointer<Utf8>, Pointer<Uint8>);
+typedef AppManagerIsRunning = int Function(Pointer<Utf8>, Pointer<Uint8>);
 typedef _AppManagerRequestTerminateBgAppNative = Int32 Function(
     AppContextHandle);
-typedef _AppManagerRequestTerminateBgApp = int Function(AppContextHandle);
+typedef AppManagerRequestTerminateBgApp = int Function(AppContextHandle);
 
 final DynamicLibrary _libAppManager =
     DynamicLibrary.open('libcapi-appfw-app-manager.so.0');
 
-final _AppManagerGetAppContext appManagerGetAppContext = _libAppManager
-    .lookupFunction<_AppManagerGetAppContextNative, _AppManagerGetAppContext>(
+final AppManagerGetAppContext appManagerGetAppContext = _libAppManager
+    .lookupFunction<_AppManagerGetAppContextNative, AppManagerGetAppContext>(
         'app_manager_get_app_context');
 
-final _AppContextDestroy appContextDestroy =
-    _libAppManager.lookupFunction<_AppContextDestroyNative, _AppContextDestroy>(
+final AppContextDestroy appContextDestroy =
+    _libAppManager.lookupFunction<_AppContextDestroyNative, AppContextDestroy>(
         'app_context_destroy');
 
-final _AppManagerRequestTerminateBgApp appManagerRequestTerminateBgApp =
+final AppManagerRequestTerminateBgApp appManagerRequestTerminateBgApp =
     _libAppManager.lookupFunction<_AppManagerRequestTerminateBgAppNative,
-            _AppManagerRequestTerminateBgApp>(
+            AppManagerRequestTerminateBgApp>(
         'app_manager_request_terminate_bg_app');
 
-final _AppManagerIsRunning appManagerIsRunning = _libAppManager.lookupFunction<
-    _AppManagerIsRunningNative, _AppManagerIsRunning>('app_manager_is_running');
+final AppManagerIsRunning appManagerIsRunning = _libAppManager.lookupFunction<
+    _AppManagerIsRunningNative, AppManagerIsRunning>('app_manager_is_running');
 
 typedef _GetErrorMessageNative = Pointer<Utf8> Function(Int32);
-typedef _GetErrorMessage = Pointer<Utf8> Function(int);
+typedef GetErrorMessage = Pointer<Utf8> Function(int);
 
 final DynamicLibrary _libBaseCommon =
     DynamicLibrary.open('libcapi-base-common.so.0');
 
-final _GetErrorMessage getErrorMessage =
-    _libBaseCommon.lookupFunction<_GetErrorMessageNative, _GetErrorMessage>(
+final GetErrorMessage getErrorMessage =
+    _libBaseCommon.lookupFunction<_GetErrorMessageNative, GetErrorMessage>(
         'get_error_message');

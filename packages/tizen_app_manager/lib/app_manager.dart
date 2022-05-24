@@ -23,7 +23,7 @@ enum AppState {
   service,
 
   /// The service application is terminated.
-  terminated
+  terminated,
 }
 
 /// The application manager provides information about installed and running

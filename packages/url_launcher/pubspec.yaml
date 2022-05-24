@@ -16,9 +16,6 @@ dependencies:
   tizen_app_control: ^0.1.1
   url_launcher_platform_interface: ^2.0.5
 
-dev_dependencies:
-  pedantic: ^1.10.0
-
 environment:
   sdk: '>=2.13.0 <3.0.0'
   flutter: ">=2.2.0"

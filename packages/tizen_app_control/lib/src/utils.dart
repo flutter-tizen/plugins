@@ -9,10 +9,6 @@ import 'package:flutter/services.dart';
 
 import 'ffi.dart';
 
-String enumToString<E>(E enumValue) {
-  return enumValue.toString().split('.').last;
-}
-
 E enumFromString<E>(
   List<E> enumValues,
   String stringValue, [
