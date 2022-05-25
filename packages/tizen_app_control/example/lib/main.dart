@@ -7,8 +7,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:messageport_tizen/messageport_tizen.dart';
-import 'package:tizen_app_control/app_control.dart';
-import 'package:tizen_app_control/app_manager.dart';
+import 'package:tizen_app_control/tizen_app_control.dart';
+import 'package:tizen_app_manager/tizen_app_manager.dart';
 
 const String _kAppId = 'org.tizen.tizen_app_control_example';
 const String _kServiceAppId = 'org.tizen.tizen_app_control_example_service';
@@ -163,9 +163,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _terminateService() async {
-    AppManager.terminateBackgroundApplication(_kServiceAppId);
+    final AppRunningContext context = AppRunningContext(appId: _kServiceAppId);
+    context.terminate(background: true);
+    context.dispose();
     setState(() {
-      _isServiceStarted = AppManager.isRunning(_kServiceAppId);
+      _isServiceStarted = false;
     });
   }
 

@@ -2,16 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: always_specify_types
-
-library tizen_app_control;
-
-import 'dart:ffi';
-
-import 'package:ffi/ffi.dart';
-
-import 'src/ffi.dart';
-import 'src/utils.dart';
+import 'package:tizen_app_manager/tizen_app_manager.dart';
 
 /// Provides information about installed and running applications.
 class AppManager {
@@ -19,13 +10,14 @@ class AppManager {
 
   /// Returns true if an application with the given [appId] is running,
   /// otherwise false.
+  @Deprecated("Use tizen_app_manager's `AppManager.isRunning` instead")
   static bool isRunning(String appId) {
-    return using((Arena arena) {
-      final Pointer<Uint8> running = arena();
-      throwOnError(
-          appManagerIsRunning(appId.toNativeUtf8(allocator: arena), running));
-      return running.value > 0;
-    });
+    final AppRunningContext context = AppRunningContext(appId: appId);
+    try {
+      return !context.isTerminated;
+    } finally {
+      context.dispose();
+    }
   }
 
   /// Sends a terminate request to an application with the given [appId].
@@ -34,13 +26,13 @@ class AppManager {
   ///
   /// The `http://tizen.org/privilege/appmanager.kill.bgapp` privilege is
   /// required to use this API.
+  @Deprecated("Use tizen_app_manager's `AppRunningContext.terminate` instead")
   static void terminateBackgroundApplication(String appId) {
-    using((Arena arena) {
-      final Pointer<AppContextHandle> appContext = arena();
-      throwOnError(appManagerGetAppContext(
-          appId.toNativeUtf8(allocator: arena), appContext));
-      throwOnError(appManagerRequestTerminateBgApp(appContext.value));
-      throwOnError(appContextDestroy(appContext.value));
-    });
+    final AppRunningContext context = AppRunningContext(appId: appId);
+    try {
+      context.terminate(background: true);
+    } finally {
+      context.dispose();
+    }
   }
 }

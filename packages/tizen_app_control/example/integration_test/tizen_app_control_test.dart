@@ -6,8 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:tizen_app_control/app_control.dart';
-import 'package:tizen_app_control/app_manager.dart';
+import 'package:tizen_app_control/tizen_app_control.dart';
 
 const String kAppId = 'org.tizen.tizen_app_control_example';
 const String kServiceAppId = 'org.tizen.tizen_app_control_example_service';
@@ -103,19 +102,6 @@ void main() {
       request2.sendLaunchRequest,
       throwsA(isInstanceOf<PlatformException>()),
     );
-  }, timeout: kTimeout);
-
-  testWidgets('Can terminate service application', (WidgetTester _) async {
-    expect(AppManager.isRunning(kServiceAppId), isFalse);
-
-    final AppControl request = AppControl(appId: kServiceAppId);
-    await request.sendLaunchRequest();
-    await Future<void>.delayed(const Duration(seconds: 1));
-    expect(AppManager.isRunning(kServiceAppId), isTrue);
-
-    AppManager.terminateBackgroundApplication(kServiceAppId);
-    await Future<void>.delayed(const Duration(seconds: 1));
-    expect(AppManager.isRunning(kServiceAppId), isFalse);
   }, timeout: kTimeout);
 }
 

@@ -5,9 +5,11 @@ publish_to: "none"
 dependencies:
   flutter:
     sdk: flutter
-  messageport_tizen: ^0.2.0
+  messageport_tizen:
+    path: ../../messageport/
   tizen_app_control:
     path: ../
+  tizen_app_manager:
 
 dev_dependencies:
   flutter_driver:
