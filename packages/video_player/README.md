@@ -28,8 +28,8 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 
 ```yaml
 dependencies:
-  video_player: ^2.2.6
-  video_player_tizen: ^2.3.2
+  video_player: ^2.4.2
+  video_player_tizen: ^2.4.0
 ```
 
 Then you can import `video_player` in your Dart code:
@@ -42,7 +42,11 @@ For detailed usage, see https://pub.dev/packages/video_player#example.
 
 ## Limitations
 
-The `httpHeaders` option of `VideoPlayerController.network` and the `mixWithOthers` option of `VideoPlayerOptions` will be silently ignored in Tizen platform.
+The following options are not supported on Tizen.
+
+- The `httpHeaders` option of `VideoPlayerController.network`
+- `VideoPlayerOptions.allowBackgroundPlayback`
+- `VideoPlayerOptions.mixWithOthers`
 
 This plugin has some limitations on TV devices.
 

@@ -138,7 +138,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                            get_error_message(ret));
   }
 
-  ret = player_set_error_cb(player_, OnErrorOccurred, this);
+  ret = player_set_error_cb(player_, OnError, this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     throw VideoPlayerError("player_set_error_cb failed",
@@ -291,14 +291,12 @@ void VideoPlayer::SetUpEventChannel(flutter::BinaryMessenger *messenger) {
       [&](const flutter::EncodableValue *arguments,
           std::unique_ptr<flutter::EventSink<>> &&events)
           -> std::unique_ptr<flutter::StreamHandlerError<>> {
-        LOG_DEBUG("[VideoPlayer] listening on %s", name.c_str());
         event_sink_ = std::move(events);
         Initialize();
         return nullptr;
       },
       [&](const flutter::EncodableValue *arguments)
           -> std::unique_ptr<flutter::StreamHandlerError<>> {
-        LOG_DEBUG("[VideoPlayer] cancel listening");
         event_sink_ = nullptr;
         return nullptr;
       });
@@ -414,7 +412,7 @@ void VideoPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
   }
 }
 
-void VideoPlayer::OnErrorOccurred(int code, void *data) {
+void VideoPlayer::OnError(int code, void *data) {
   auto *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_DEBUG("[VideoPlayer] error code: %d", code);
 

@@ -50,7 +50,7 @@ class VideoPlayer {
   static void OnSeekCompleted(void *data);
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
-  static void OnErrorOccurred(int code, void *data);
+  static void OnError(int code, void *data);
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
 
   bool is_initialized_;

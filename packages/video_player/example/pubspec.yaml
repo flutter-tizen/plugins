@@ -5,7 +5,7 @@ publish_to: "none"
 dependencies:
   flutter:
     sdk: flutter
-  video_player: ^2.2.6
+  video_player: ^2.4.2
   video_player_tizen:
     path: ../
 
@@ -18,15 +18,19 @@ dev_dependencies:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
-  pedantic: ^1.10.0
+  path_provider: ^2.0.6
+  path_provider_tizen:
+    path: ../../path_provider/
   test: any
 
 flutter:
   assets:
     - assets/flutter-mark-square-64.png
     - assets/Butterfly-209.mp4
+    - assets/Butterfly-209.webm
     - assets/bumble_bee_captions.srt
     - assets/bumble_bee_captions.vtt
+    - assets/Audio.mp3
   uses-material-design: true
 
 environment:
