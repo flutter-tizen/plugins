@@ -11,10 +11,10 @@ import 'package:file/local.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/format_command.dart';
 import 'package:flutter_plugin_tools/src/list_command.dart';
-import 'package:flutter_tizen_plugin_tools/src/publish_plugin_command.dart';
 
 import 'build_examples_command.dart';
 import 'integration_test_command.dart';
+import 'publish_plugin_command.dart';
 
 void main(List<String> args) {
   const FileSystem fileSystem = LocalFileSystem();

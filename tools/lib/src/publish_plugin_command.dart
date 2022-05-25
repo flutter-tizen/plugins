@@ -60,7 +60,7 @@ class PublishPluginCommand extends PackageLoopingCommand {
     argParser.addFlag(
       _dryRunFlag,
       help:
-          'Skips the real `pub publish` and `git tag` commands and assumes both commands are successful.\n'
+          'Skips the real `pub publish` command and assumes the command is successful.\n'
           'This does not run `pub publish --dry-run`.\n'
           'If you want to run the command with `pub publish --dry-run`, use `pub-publish-flags=--dry-run`',
       defaultsTo: false,
