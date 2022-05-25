@@ -13,19 +13,19 @@ using State = BluetoothDeviceController::State;
 
 BluetoothDeviceController::BluetoothDeviceController(
     const std::string& address,
-    NotificationsHandler& notificationsHandler) noexcept
-    : BluetoothDeviceController(address.c_str(), notificationsHandler) {
-  std::scoped_lock lock(activeDevices_.mutex_);
-  activeDevices_.var_.insert({address, this});
+    NotificationsHandler& notifications_handler) noexcept
+    : BluetoothDeviceController(address.c_str(), notifications_handler) {
+  std::scoped_lock lock(active_devices_.mutex_);
+  active_devices_.var_.insert({address, this});
 }
 
 BluetoothDeviceController::BluetoothDeviceController(
-    const char* address, NotificationsHandler& notificationsHandler) noexcept
-    : address_(address), notifications_handler_(notificationsHandler) {}
+    const char* address, NotificationsHandler& notifications_handler) noexcept
+    : address_(address), notifications_handler_(notifications_handler) {}
 
 BluetoothDeviceController::~BluetoothDeviceController() noexcept {
-  std::scoped_lock lock(activeDevices_.mutex_);
-  activeDevices_.var_.erase(cAddress());
+  std::scoped_lock lock(active_devices_.mutex_);
+  active_devices_.var_.erase(cAddress());
   Disconnect();
 }
 
@@ -35,32 +35,32 @@ const std::string& BluetoothDeviceController::cAddress() const noexcept {
 
 State BluetoothDeviceController::GetState() const noexcept {
   if (is_connecting_ ^ is_disconnecting_) {
-    return (is_connecting_ ? State::CONNECTING : State::DISCONNECTING);
+    return (is_connecting_ ? State::kConnecting : State::kDisconnecting);
   } else {
-    bool isConnected = false;
+    bool is_connected = false;
     int res = bt_device_is_profile_connected(address_.c_str(), BT_PROFILE_GATT,
-                                             &isConnected);
+                                             &is_connected);
     LOG_ERROR("bt_device_is_profile_connected", get_error_message(res));
-    return (isConnected ? State::CONNECTED : State::DISCONNECTED);
+    return (is_connected ? State::kConnected : State::kDisconnected);
   }
 }
 
 std::vector<proto::gen::BluetoothDevice>&
 BluetoothDeviceController::ProtoBluetoothDevices() noexcept {
-  return proto_bluetoothDevices_;
+  return proto_bluetooth_devices_;
 }
 
 const std::vector<proto::gen::BluetoothDevice>&
 BluetoothDeviceController::cProtoBluetoothDevices() const noexcept {
-  return proto_bluetoothDevices_;
+  return proto_bluetooth_devices_;
 }
 
-void BluetoothDeviceController::Connect(bool autoConnect) {
+void BluetoothDeviceController::Connect(bool auto_connect) {
   std::unique_lock lock(operation_mutex_);
-  autoConnect = false;  // TODO - fix. API fails when autoconnect==true
-  if (State() == State::DISCONNECTED) {
+  auto_connect = false;  // TODO - fix. API fails when autoconnect==true
+  if (State() == State::kDisconnected) {
     is_connecting_ = true;
-    int res = bt_gatt_connect(address_.c_str(), autoConnect);
+    int res = bt_gatt_connect(address_.c_str(), auto_connect);
     LOG_ERROR("bt_gatt_connect", get_error_message(res));
   } else {
     std::string message =
@@ -73,7 +73,7 @@ void BluetoothDeviceController::Connect(bool autoConnect) {
 void BluetoothDeviceController::Disconnect() {
   std::scoped_lock lock(operation_mutex_);
   auto st = State();
-  if (st == State::CONNECTED) {
+  if (st == State::kConnected) {
     services_.clear();
     is_disconnecting_ = true;
     int res = bt_gatt_disconnect(address_.c_str());
@@ -163,11 +163,11 @@ void BluetoothDeviceController::ConnectionStateCallback(
     void* user_data) noexcept {
   LOG_ERROR("bt_gatt_connection_state_changed_cb", get_error_message(res));
 
-  auto& bluetoothManager = *static_cast<BluetoothManager*>(user_data);
-  std::scoped_lock lock(bluetoothManager.bluetoothDevices().mutex_);
-  auto it = bluetoothManager.bluetoothDevices().var_.find(remote_address);
+  auto& bluetooth_manager = *static_cast<BluetoothManager*>(user_data);
+  std::scoped_lock lock(bluetooth_manager.bluetoothDevices().mutex_);
+  auto it = bluetooth_manager.bluetoothDevices().var_.find(remote_address);
 
-  if (it != bluetoothManager.bluetoothDevices().var_.end()) {
+  if (it != bluetooth_manager.bluetoothDevices().var_.end()) {
     auto device = it->second;
     std::scoped_lock devLock(device->operation_mutex_);
     device->is_connecting_ = false;
@@ -207,9 +207,9 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
       [](bt_gatt_client_h client, const bt_gatt_client_att_mtu_info_s* mtu_info,
          void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
-        std::scoped_lock lock(activeDevices_.mutex_);
-        auto it = activeDevices_.var_.find(scope->device_address);
-        if (it != activeDevices_.var_.end()) {
+        std::scoped_lock lock(active_devices_.mutex_);
+        auto it = active_devices_.var_.find(scope->device_address);
+        if (it != active_devices_.var_.end()) {
           scope->callback(mtu_info->status == 0, *it->second);
         }
         delete scope;
@@ -228,10 +228,10 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
 }
 
 void BluetoothDeviceController::NotifyDeviceState() const {
-  proto::gen::DeviceStateResponse devState;
-  devState.set_remote_id(cAddress());
-  devState.set_state(LocalToProtoDeviceState(State()));
-  notifications_handler_.NotifyUIThread("DeviceState", devState);
+  proto::gen::DeviceStateResponse device_state;
+  device_state.set_remote_id(cAddress());
+  device_state.set_state(LocalToProtoDeviceState(State()));
+  notifications_handler_.NotifyUIThread("DeviceState", device_state);
 }
 
 proto::gen::DeviceStateResponse_BluetoothDeviceState
@@ -239,13 +239,13 @@ BluetoothDeviceController::LocalToProtoDeviceState(
     const BluetoothDeviceController::State state) {
   using State = BluetoothDeviceController::State;
   switch (state) {
-    case State::CONNECTED:
+    case State::kConnected:
       return proto::gen::DeviceStateResponse_BluetoothDeviceState_CONNECTED;
-    case State::CONNECTING:
+    case State::kConnecting:
       return proto::gen::DeviceStateResponse_BluetoothDeviceState_CONNECTING;
-    case State::DISCONNECTED:
+    case State::kDisconnected:
       return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTED;
-    case State::DISCONNECTING:
+    case State::kDisconnecting:
       return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTING;
     default:
       return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTED;

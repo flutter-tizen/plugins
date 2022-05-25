@@ -62,10 +62,10 @@ void BluetoothManager::SetNotification(
     characteristic->UnsetNotifyCallback();
 }
 
-uint32_t BluetoothManager::GetMtu(const std::string& deviceID) {
+uint32_t BluetoothManager::GetMtu(const std::string& device_id) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
-  auto device = bluetooth_devices_.var_.find(deviceID)->second;
-  if (!device) throw BtException("could not find device of id=" + deviceID);
+  auto device = bluetooth_devices_.var_.find(device_id)->second;
+  if (!device) throw BtException("could not find device of id=" + device_id);
 
   return device->GetMtu();
 }
@@ -75,48 +75,48 @@ void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
   if (!device)
     throw BtException("could not find device of id=" + request.remote_id());
 
-  device->RequestMtu(request.mtu(), [](auto status, auto& bluetoothDevice) {
+  device->RequestMtu(request.mtu(), [](auto status, auto& bluetooth_device) {
     proto::gen::MtuSizeResponse res;
-    res.set_remote_id(bluetoothDevice.cAddress());
+    res.set_remote_id(bluetooth_device.cAddress());
     try {
-      res.set_mtu(bluetoothDevice.GetMtu());
+      res.set_mtu(bluetooth_device.GetMtu());
     } catch (const std::exception& e) {
       // LOG_ERROR(e.what());
     }
-    bluetoothDevice.cNotificationsHandler().NotifyUIThread("MtuSize", res);
+    bluetooth_device.cNotificationsHandler().NotifyUIThread("MtuSize", res);
     LOG_DEBUG("mtu request callback sent response!");
   });
 }
 
 btGatt::BluetoothCharacteristic* BluetoothManager::LocateCharacteristic(
-    const std::string& remoteID, const std::string& primaryUUID,
-    const std::string& secondaryUUID, const std::string& characteristicUUID) {
-  auto it = bluetooth_devices_.var_.find(remoteID);
+    const std::string& remote_id, const std::string& primary_uuid,
+    const std::string& secondary_uuid, const std::string& characteristic_uuid) {
+  auto it = bluetooth_devices_.var_.find(remote_id);
 
   if (it != bluetooth_devices_.var_.end()) {
     auto device = it->second;
-    auto primary = device->GetService(primaryUUID);
+    auto primary = device->GetService(primary_uuid);
     btGatt::BluetoothService* service = primary;
-    if (primary && !secondaryUUID.empty()) {
-      service = primary->GetSecondary(secondaryUUID);
+    if (primary && !secondary_uuid.empty()) {
+      service = primary->GetSecondary(secondary_uuid);
     }
     if (service) {
-      return service->GetCharacteristic(characteristicUUID);
+      return service->GetCharacteristic(characteristic_uuid);
     }
   }
-  throw BtException("could not locate characteristic " + characteristicUUID);
+  throw BtException("could not locate characteristic " + characteristic_uuid);
 }
 
 btGatt::BluetoothDescriptor* BluetoothManager::LocateDescriptor(
-    const std::string& remoteID, const std::string& primaryUUID,
-    const std::string& secondaryUUID, const std::string& characteristicUUID,
-    const std::string& descriptorUUID) {
-  auto descriptor = LocateCharacteristic(remoteID, primaryUUID, secondaryUUID,
-                                         characteristicUUID)
-                        ->GetDescriptor(descriptorUUID);
+    const std::string& remote_id, const std::string& primary_uuid,
+    const std::string& secondary_uuid, const std::string& characteristic_uuid,
+    const std::string& descriptor_uuid) {
+  auto descriptor = LocateCharacteristic(remote_id, primary_uuid,
+                                         secondary_uuid, characteristic_uuid)
+                        ->GetDescriptor(descriptor_uuid);
   if (descriptor) return descriptor;
 
-  throw BtException("could not locate descriptor " + descriptorUUID);
+  throw BtException("could not locate descriptor " + descriptor_uuid);
 }
 
 bool BluetoothManager::IsBLEAvailable() {
@@ -147,21 +147,21 @@ proto::gen::BluetoothState BluetoothManager::BluetoothState() const noexcept {
 }
 
 void BluetoothManager::StartBluetoothDeviceScanLE(
-    const proto::gen::ScanSettings& scanSettings) {
+    const proto::gen::ScanSettings& scan_settings) {
   StopBluetoothDeviceScanLE();
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   bluetooth_devices_.var_.clear();
-  scan_allow_duplicates_ = scanSettings.allow_duplicates();
+  scan_allow_duplicates_ = scan_settings.allow_duplicates();
   auto res = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
   LOG_ERROR("bt_adapter_le_set_scan_mode", get_error_message(res));
 
   if (res) throw BtException(res, "bt_adapter_le_set_scan_mode");
 
-  int uuidCount = scanSettings.service_uuids_size();
-  std::vector<bt_scan_filter_h> filters(uuidCount);
+  int uuid_count = scan_settings.service_uuids_size();
+  std::vector<bt_scan_filter_h> filters(uuid_count);
 
-  for (int i = 0; i < uuidCount; ++i) {
-    const std::string& uuid = scanSettings.service_uuids()[i];
+  for (int i = 0; i < uuid_count; ++i) {
+    const std::string& uuid = scan_settings.service_uuids()[i];
     res = bt_adapter_le_scan_filter_create(&filters[i]);
 
     LOG_ERROR("bt_adapter_le_scan_filter_create", get_error_message(res));
@@ -196,25 +196,25 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
 void BluetoothManager::ScanCallback(
     int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
     void* user_data) noexcept {
-  BluetoothManager& bluetoothManager =
+  BluetoothManager& bluetooth_manager =
       *static_cast<BluetoothManager*>(user_data);
   if (!result) {
-    std::string macAddress = discovery_info->remote_address;
-    std::scoped_lock lock(bluetoothManager.bluetooth_devices_.mutex_);
+    std::string mac_address = discovery_info->remote_address;
+    std::scoped_lock lock(bluetooth_manager.bluetooth_devices_.mutex_);
     std::shared_ptr<BluetoothDeviceController> device;
-    if (bluetoothManager.bluetooth_devices_.var_.find(macAddress) ==
-        bluetoothManager.bluetooth_devices_.var_.end())
-      device = bluetoothManager.bluetooth_devices_.var_
-                   .insert({macAddress,
+    if (bluetooth_manager.bluetooth_devices_.var_.find(mac_address) ==
+        bluetooth_manager.bluetooth_devices_.var_.end())
+      device = bluetooth_manager.bluetooth_devices_.var_
+                   .insert({mac_address,
                             std::make_shared<BluetoothDeviceController>(
-                                macAddress,
-                                bluetoothManager.notifications_handler_)})
+                                mac_address,
+                                bluetooth_manager.notifications_handler_)})
                    .first->second;
     else
       device =
-          bluetoothManager.bluetooth_devices_.var_.find(macAddress)->second;
+          bluetooth_manager.bluetooth_devices_.var_.find(mac_address)->second;
 
-    if (bluetoothManager.scan_allow_duplicates_ ||
+    if (bluetooth_manager.scan_allow_duplicates_ ||
         device->cProtoBluetoothDevices().empty()) {
       device->ProtoBluetoothDevices().emplace_back();
 
@@ -226,21 +226,21 @@ void BluetoothManager::ScanCallback(
         proto_device.set_name(name);
         free(name);
       }
-      proto_device.set_remote_id(macAddress);
+      proto_device.set_remote_id(mac_address);
 
-      proto::gen::ScanResult scanResult;
-      scanResult.set_rssi(discovery_info->rssi);
+      proto::gen::ScanResult scan_result;
+      scan_result.set_rssi(discovery_info->rssi);
       proto::gen::AdvertisementData* advertisement_data =
           new proto::gen::AdvertisementData();
       DecodeAdvertisementData(discovery_info->adv_data, *advertisement_data,
                               discovery_info->adv_data_len);
 
-      scanResult.set_allocated_advertisement_data(advertisement_data);
-      scanResult.set_allocated_device(
+      scan_result.set_allocated_advertisement_data(advertisement_data);
+      scan_result.set_allocated_device(
           new proto::gen::BluetoothDevice(proto_device));
 
-      bluetoothManager.notifications_handler_.NotifyUIThread("ScanResult",
-                                                             scanResult);
+      bluetooth_manager.notifications_handler_.NotifyUIThread("ScanResult",
+                                                              scan_result);
     }
   }
 }
@@ -248,11 +248,11 @@ void BluetoothManager::ScanCallback(
 void BluetoothManager::StopBluetoothDeviceScanLE() {
   static std::mutex mutex;
   std::scoped_lock lock(mutex);
-  auto btState = BluetoothState().state();
-  if (btState == proto::gen::BluetoothState_State_ON) {
-    bool isDiscovering;
-    auto res = bt_adapter_le_is_discovering(&isDiscovering);
-    if (!res && isDiscovering) {
+  auto bt_state = BluetoothState().state();
+  if (bt_state == proto::gen::BluetoothState_State_ON) {
+    bool is_discovering;
+    auto res = bt_adapter_le_is_discovering(&is_discovering);
+    if (!res && is_discovering) {
       res = bt_adapter_le_stop_scan();
       LOG_ERROR("bt_adapter_le_stop_scan", res);
     }
@@ -261,18 +261,18 @@ void BluetoothManager::StopBluetoothDeviceScanLE() {
   }
 }
 
-void BluetoothManager::Connect(const proto::gen::ConnectRequest& connRequest) {
+void BluetoothManager::Connect(const proto::gen::ConnectRequest& conn_request) {
   std::unique_lock lock(bluetooth_devices_.mutex_);
-  auto device = bluetooth_devices_.var_.find(connRequest.remote_id())->second;
+  auto device = bluetooth_devices_.var_.find(conn_request.remote_id())->second;
   if (device)
-    device->Connect(connRequest.android_auto_connect());
+    device->Connect(conn_request.android_auto_connect());
   else
     throw BtException("device not found!");
 }
 
-void BluetoothManager::Disconnect(const std::string& deviceID) {
+void BluetoothManager::Disconnect(const std::string& device_id) {
   std::unique_lock lock(bluetooth_devices_.mutex_);
-  auto device = bluetooth_devices_.var_.find(deviceID)->second;
+  auto device = bluetooth_devices_.var_.find(device_id)->second;
   if (device)
     device->Disconnect();
   else
@@ -281,15 +281,16 @@ void BluetoothManager::Disconnect(const std::string& deviceID) {
 
 std::vector<proto::gen::BluetoothDevice>
 BluetoothManager::GetConnectedProtoBluetoothDevices() noexcept {
-  std::vector<proto::gen::BluetoothDevice> protoBD;
+  std::vector<proto::gen::BluetoothDevice> proto_bluetooth_device;
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   for (const auto& e : bluetooth_devices_.var_) {
-    if (e.second->GetState() == State::CONNECTED) {
+    if (e.second->GetState() == State::kConnected) {
       auto& vec = e.second->cProtoBluetoothDevices();
-      protoBD.insert(protoBD.end(), vec.cbegin(), vec.cend());
+      proto_bluetooth_device.insert(proto_bluetooth_device.end(), vec.cbegin(),
+                                    vec.cend());
     }
   }
-  return protoBD;
+  return proto_bluetooth_device;
 }
 
 BluetoothManager::DevicesContainer&
@@ -333,7 +334,7 @@ void BluetoothManager::ReadDescriptor(
     request->set_descriptor_uuid(descriptor.Uuid());
 
     if (descriptor.cCharacteristic().cService().GetType() ==
-        btGatt::ServiceType::PRIMARY) {
+        btGatt::ServiceType::kPrimary) {
       request->set_service_uuid(descriptor.cCharacteristic().cService().Uuid());
     } else {
       auto& secondary = dynamic_cast<const btGatt::SecondaryService&>(
@@ -370,7 +371,7 @@ void BluetoothManager::WriteCharacteristic(
         request->set_characteristic_uuid(characteristic.Uuid());
 
         if (characteristic.cService().GetType() ==
-            btGatt::ServiceType::PRIMARY) {
+            btGatt::ServiceType::kPrimary) {
           request->set_service_uuid(characteristic.cService().Uuid());
         } else {
           auto& secondary = dynamic_cast<const btGatt::SecondaryService&>(
@@ -402,7 +403,7 @@ void BluetoothManager::WriteDescriptor(
             new proto::gen::WriteDescriptorRequest();
 
         if (descriptor.cCharacteristic().cService().GetType() ==
-            btGatt::ServiceType::PRIMARY) {
+            btGatt::ServiceType::kPrimary) {
           request->set_service_uuid(
               descriptor.cCharacteristic().cService().Uuid());
         } else {
@@ -428,29 +429,29 @@ void BluetoothManager::WriteDescriptor(
       });
 }
 
-void DecodeAdvertisementData(const char* packetsData,
-                             proto::gen::AdvertisementData& adv,
+void DecodeAdvertisementData(const char* packets_data,
+                             proto::gen::AdvertisementData& advertisement_data,
                              int dataLen) noexcept {
   using byte = char;
   int start = 0;
-  bool longNameSet = false;
+  bool long_name_set = false;
   while (start < dataLen) {
-    byte ad_len = packetsData[start] & 0xFFu;
-    byte type = packetsData[start + 1] & 0xFFu;
+    byte advertisement_data_len = packets_data[start] & 0xFFu;
+    byte type = packets_data[start + 1] & 0xFFu;
 
-    const byte* packet = packetsData + start + 2;
+    const byte* packet = packets_data + start + 2;
     switch (type) {
       case 0x09:
       case 0x08: {
-        if (!longNameSet) {
-          adv.set_local_name(packet, ad_len - 1);
+        if (!long_name_set) {
+          advertisement_data.set_local_name(packet, advertisement_data_len - 1);
         }
 
-        if (type == 0x09) longNameSet = true;
+        if (type == 0x09) long_name_set = true;
         break;
       }
       case 0x01: {
-        adv.set_connectable(*packet & 0x3);
+        advertisement_data.set_connectable(*packet & 0x3);
         break;
       }
       case 0xFF: {
@@ -459,7 +460,7 @@ void DecodeAdvertisementData(const char* packetsData,
       default:
         break;
     }
-    start += ad_len + 1;
+    start += advertisement_data_len + 1;
   }
 }
 

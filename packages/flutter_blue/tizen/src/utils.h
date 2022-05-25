@@ -53,7 +53,7 @@ std::vector<uint8_t> MessageToVector(
 
 std::string GetGattValue(bt_gatt_h handle);
 
-std::string GetGattUUID(bt_gatt_h handle);
+std::string GetGattUuid(bt_gatt_h handle);
 
 bt_gatt_h GetGattService(bt_gatt_client_h handle, const std::string& uuid);
 

@@ -3,8 +3,8 @@
 namespace flutter_blue_tizen {
 
 NotificationsHandler::NotificationsHandler(
-    std::shared_ptr<MethodChannel> methodChannel)
-    : method_channel_(methodChannel) {}
+    std::shared_ptr<MethodChannel> method_channel)
+    : method_channel_(method_channel) {}
 
 auto NotificationsHandler::NotifyUIThread(
     const std::string& method,

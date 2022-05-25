@@ -85,7 +85,7 @@ class BluetoothManager {
   std::atomic<bool> scan_allow_duplicates_;
 };
 
-void DecodeAdvertisementData(const char* packetsData,
+void DecodeAdvertisementData(const char* packets_data,
                              proto::gen::AdvertisementData& advertisement,
                              int data_len) noexcept;
 

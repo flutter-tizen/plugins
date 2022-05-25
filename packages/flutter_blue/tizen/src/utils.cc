@@ -55,7 +55,7 @@ std::string GetGattValue(bt_gatt_h handle) {
  * @param handle
  * @return std::string
  */
-std::string GetGattUUID(bt_gatt_h handle) {
+std::string GetGattUuid(bt_gatt_h handle) {
   std::string result;
   char* uuid = nullptr;
   int res = bt_gatt_get_uuid(handle, &uuid);

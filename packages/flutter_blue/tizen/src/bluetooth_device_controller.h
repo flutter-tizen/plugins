@@ -12,10 +12,10 @@ namespace flutter_blue_tizen {
 class BluetoothDeviceController {
  public:
   enum class State {
-    CONNECTED,
-    CONNECTING,
-    DISCONNECTED,
-    DISCONNECTING,
+    kConnected,
+    kConnecting,
+    kDisconnected,
+    kDisconnecting,
   };
 
   using requestMtuCallback =
@@ -80,7 +80,7 @@ class BluetoothDeviceController {
 
   std::mutex operation_mutex_;
 
-  std::vector<proto::gen::BluetoothDevice> proto_bluetoothDevices_;
+  std::vector<proto::gen::BluetoothDevice> proto_bluetooth_devices_;
 
   std::vector<std::unique_ptr<btGatt::PrimaryService>> services_;
 
@@ -93,7 +93,7 @@ class BluetoothDeviceController {
   NotificationsHandler& notifications_handler_;
 
   static inline SafeType<std::map<std::string, BluetoothDeviceController*>>
-      activeDevices_;
+      active_devices_;
 
   static inline SafeType<std::unordered_map<std::string, bt_gatt_client_h>>
       gatt_clients_;

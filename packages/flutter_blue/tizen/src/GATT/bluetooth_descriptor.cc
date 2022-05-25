@@ -26,7 +26,7 @@ proto::gen::BluetoothDescriptor BluetoothDescriptor::ToProtoDescriptor()
 }
 
 std::string BluetoothDescriptor::Uuid() const noexcept {
-  return GetGattUUID(handle_);
+  return GetGattUuid(handle_);
 }
 
 std::string BluetoothDescriptor::Value() const noexcept {

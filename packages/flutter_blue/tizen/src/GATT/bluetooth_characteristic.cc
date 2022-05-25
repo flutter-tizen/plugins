@@ -40,7 +40,7 @@ BluetoothCharacteristic::ToProtoCharacteristic() const noexcept {
   proto.set_allocated_properties(new proto::gen::CharacteristicProperties(
       GetProtoCharacteristicProperties(Properties())));
   proto.set_value(Value());
-  if (service_.GetType() == ServiceType::PRIMARY)
+  if (service_.GetType() == ServiceType::kPrimary)
     proto.set_serviceuuid(service_.Uuid());
   else {
     SecondaryService& sec = dynamic_cast<SecondaryService&>(service_);
@@ -58,7 +58,7 @@ const BluetoothService& BluetoothCharacteristic::cService() const noexcept {
 }
 
 std::string BluetoothCharacteristic::Uuid() const noexcept {
-  return GetGattUUID(handle_);
+  return GetGattUuid(handle_);
 }
 
 std::string BluetoothCharacteristic::Value() const noexcept {
@@ -193,7 +193,7 @@ void BluetoothCharacteristic::SetNotifyCallback(
 
 void BluetoothCharacteristic::UnsetNotifyCallback() {
   if (cService().cDevice().GetState() ==
-          BluetoothDeviceController::State::CONNECTED &&
+          BluetoothDeviceController::State::kConnected &&
       notify_callback_) {
     auto res = bt_gatt_client_unset_characteristic_value_changed_cb(handle_);
     LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb",

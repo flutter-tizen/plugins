@@ -14,8 +14,8 @@ class BluetoothDeviceController;
 namespace btGatt {
 
 enum class ServiceType {
-  PRIMARY,
-  SECONDARY,
+  kPrimary,
+  kSecondary,
 };
 
 class SecondaryService;
@@ -85,7 +85,7 @@ class SecondaryService : public BluetoothService {
   std::string PrimaryUuid() noexcept;
 
  private:
-  PrimaryService& primaryService_;
+  PrimaryService& primary_service_;
 };
 
 }  // namespace btGatt
