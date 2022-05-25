@@ -10,7 +10,7 @@ To use this package, add `tizen_app_manager` as a dependency in your `pubspec.ya
 
 ```yaml
 dependencies:
-  tizen_app_manager: ^0.1.0
+  tizen_app_manager: ^0.1.1
 ```
 
 ### Retrieving current app info
@@ -79,10 +79,16 @@ void dispose() {
 
 ## Required privileges
 
-The following privilege is required to invoke `AppRunningContext.resume()`. Add required privileges in `tizen-manifest.xml` of your application.
+The following privileges may be required to use this plugin. Add required privileges to `tizen-manifest.xml` of your application.
 
 ```xml
 <privileges>
   <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
+  <privilege>http://tizen.org/privilege/appmanager.kill.bgapp</privilege>
+  <privilege>http://tizen.org/privilege/appmanager.kill</privilege>
 </privileges>
 ```
+
+- The `http://tizen.org/privilege/appmanager.launch` privilege is required by `AppRunningContext.resume()`.
+- The `http://tizen.org/privilege/appmanager.kill.bgapp` privilege is required by `AppRunningContext.terminate(background: true)`.
+- The `http://tizen.org/privilege/appmanager.kill` privilege is required by `AppRunningContext.terminate(background: false)`. Note that this is a platform level privilege and cannot be granted to third-party applications.
