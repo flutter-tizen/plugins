@@ -3,7 +3,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// github.com:flutter/flutter.git@02c026b03cd31dd3f867e5faeb7e104cce174c5f
+// github.com:flutter/flutter.git@57a688c1f04d56eaa40beeb9f44e549eaf0ce54d
 // packages/flutter/lib/src/rendering/platform_view.dart
 // packages/flutter/lib/src/widgets/platform_view.dart
 // packages/flutter/lib/src/services/platform_views.dart
@@ -217,36 +217,66 @@ class TizenViewController extends PlatformViewController {
 
   int? get textureId => _textureId;
 
-  late Size _size;
+  /// The current offset of the platform view.
+  Offset _off = Offset.zero;
 
-  Future<void> setSize(Size size) async {
+  Future<Size> setSize(Size size) async {
     assert(_state != _TizenViewState.disposed,
-        'trying to size a disposed Tizen View. View id: $viewId');
-
+        'Tizen view is disposed. View id: $viewId');
+    assert(_state != _TizenViewState.waitingForSize,
+        'Tizen view must have an initial size. View id: $viewId');
     assert(size != null);
     assert(!size.isEmpty);
 
-    if (_state == _TizenViewState.waitingForSize) {
-      _size = size;
-      return create();
-    }
-    await SystemChannels.platform_views
-        .invokeMethod<void>('resize', <String, dynamic>{
-      'id': viewId,
-      'width': size.width,
-      'height': size.height,
-    });
+    final Map<Object?, Object?>? meta =
+        await SystemChannels.platform_views.invokeMapMethod<Object?, Object?>(
+      'resize',
+      <String, dynamic>{
+        'id': viewId,
+        'width': size.width,
+        'height': size.height,
+      },
+    );
+    assert(meta != null);
+    assert(meta!.containsKey('width'));
+    assert(meta!.containsKey('height'));
+    return Size(meta!['width']! as double, meta['height']! as double);
   }
 
-  Future<void> _sendCreateMessage() async {
-    assert(!_size.isEmpty,
+  Future<void> setOffset(Offset off) async {
+    if (off == _off) {
+      return;
+    }
+
+    if (_state != _TizenViewState.created) {
+      return;
+    }
+
+    _off = off;
+
+    await SystemChannels.platform_views.invokeMethod<void>(
+      'offset',
+      <String, dynamic>{
+        'id': viewId,
+        'top': off.dy,
+        'left': off.dx,
+      },
+    );
+  }
+
+  Future<void> _sendCreateMessage({Size? size}) async {
+    if (size == null) {
+      return;
+    }
+
+    assert(!size.isEmpty,
         'trying to create $TizenViewController without setting a valid size.');
 
     final Map<String, dynamic> args = <String, dynamic>{
       'id': viewId,
       'viewType': _viewType,
-      'width': _size.width,
-      'height': _size.height,
+      'width': size.width,
+      'height': size.height,
       'direction': _layoutDirection == TextDirection.ltr ? 0 : 1,
     };
     if (_creationParams != null) {
@@ -270,24 +300,16 @@ class TizenViewController extends PlatformViewController {
     });
   }
 
-  Future<void> create() async {
+  Future<void> create({Size? size}) async {
     assert(_state != _TizenViewState.disposed,
         'trying to create a disposed Tizen view');
-    await _sendCreateMessage();
+    await _sendCreateMessage(size: size);
 
     _state = _TizenViewState.created;
     for (final PlatformViewCreatedCallback callback
         in _platformViewCreatedCallbacks) {
       callback(viewId);
     }
-  }
-
-  @Deprecated('Call `controller.viewId` instead. '
-      'This feature was deprecated after v1.20.0-2.0.pre.')
-  int get id => viewId;
-
-  set pointTransformer(PointTransformer transformer) {
-    assert(transformer != null);
   }
 
   bool get isCreated => _state == _TizenViewState.created;
@@ -447,7 +469,6 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
         assert(gestureRecognizers != null),
         _viewController = viewController,
         _clipBehavior = clipBehavior {
-    _viewController.pointTransformer = (Offset offset) => globalToLocal(offset);
     updateGestureRecognizers(gestureRecognizers);
     _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
     this.hitTestBehavior = hitTestBehavior;
@@ -455,13 +476,15 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
 
   _PlatformViewState _state = _PlatformViewState.uninitialized;
 
-  TizenViewController get viewcontroller => _viewController;
+  Size? _currentTextureSize;
+
+  TizenViewController get controller => _viewController;
   TizenViewController _viewController;
 
   /// Sets a new Tizen view controller.
   ///
   /// `viewController` must not be null.
-  set viewController(TizenViewController viewController) {
+  set controller(TizenViewController viewController) {
     assert(_viewController != null);
     assert(viewController != null);
     if (_viewController == viewController) {
@@ -494,20 +517,6 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
     markNeedsSemanticsUpdate();
   }
 
-  /// {@template flutter.rendering.RenderTizenView.updateGestureRecognizers}
-  /// Updates which gestures should be forwarded to the platform view.
-  ///
-  /// Gesture recognizers created by factories in this set participate in the gesture arena for each
-  /// pointer that was put down on the render box. If any of the recognizers on this list wins the
-  /// gesture arena, the entire pointer event sequence starting from the pointer down event
-  /// will be dispatched to the Tizen.
-  ///
-  /// The `gestureRecognizers` property must not contain more than one factory with the same [Factory.type].
-  ///
-  /// Setting a new set of gesture recognizer factories with the same [Factory.type]s as the current
-  /// set has no effect, because the factories' constructors would have already been called with the previous set.
-  /// {@endtemplate}
-  ///
   void updateGestureRecognizers(
       Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers) {
     _updateGestureRecognizersWithCallBack(
@@ -524,25 +533,33 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
   bool get isRepaintBoundary => true;
 
   @override
-  void performResize() {
-    size = constraints.biggest;
-    _sizePlatformView();
+  Size computeDryLayout(BoxConstraints constraints) {
+    return constraints.biggest;
   }
 
-  late Size _currentTizenViewSize;
+  @override
+  void performResize() {
+    super.performResize();
+    _sizePlatformView();
+  }
 
   Future<void> _sizePlatformView() async {
     if (_state == _PlatformViewState.resizing || size.isEmpty) {
       return;
     }
+
     _state = _PlatformViewState.resizing;
     markNeedsPaint();
 
     Size targetSize;
     do {
       targetSize = size;
-      await _viewController.setSize(targetSize);
-      _currentTizenViewSize = targetSize;
+      if (_viewController.isCreated) {
+        _currentTextureSize = await _viewController.setSize(targetSize);
+      } else {
+        await _viewController.create(size: targetSize);
+        _currentTextureSize = targetSize;
+      }
     } while (size != targetSize);
 
     _state = _PlatformViewState.ready;
@@ -551,28 +568,44 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    if (_viewController.textureId == null) {
+    if (_viewController.textureId == null || _currentTextureSize == null)
+      return;
+
+    final bool isTextureLargerThanWidget =
+        _currentTextureSize!.width > size.width ||
+            _currentTextureSize!.height > size.height;
+    if (isTextureLargerThanWidget && clipBehavior != Clip.none) {
+      _clipRectLayer.layer = context.pushClipRect(
+        true,
+        offset,
+        offset & size,
+        _paintTexture,
+        clipBehavior: clipBehavior,
+        oldLayer: _clipRectLayer.layer,
+      );
       return;
     }
-    if ((size.width < _currentTizenViewSize.width ||
-            size.height < _currentTizenViewSize.height) &&
-        clipBehavior != Clip.none) {
-      _clipRectLayer = context.pushClipRect(
-          true, offset, offset & size, _paintTexture,
-          clipBehavior: clipBehavior, oldLayer: _clipRectLayer);
-      return;
-    }
-    _clipRectLayer = null;
+    _clipRectLayer.layer = null;
     _paintTexture(context, offset);
   }
 
-  ClipRectLayer? _clipRectLayer;
+  final LayerHandle<ClipRectLayer> _clipRectLayer =
+      LayerHandle<ClipRectLayer>();
+
+  @override
+  void dispose() {
+    _clipRectLayer.layer = null;
+    super.dispose();
+  }
 
   void _paintTexture(PaintingContext context, Offset offset) {
+    if (_currentTextureSize == null) {
+      return;
+    }
+
     context.addLayer(TextureLayer(
-      rect: offset & _currentTizenViewSize,
+      rect: offset & _currentTextureSize!,
       textureId: _viewController.textureId!,
-      freeze: _state == _PlatformViewState.resizing,
     ));
   }
 
@@ -615,7 +648,7 @@ class _TizenPlatformTextureView extends LeafRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, RenderTizenView renderObject) {
-    renderObject.viewController = controller;
+    renderObject.controller = controller;
     renderObject.hitTestBehavior = hitTestBehavior;
     renderObject.updateGestureRecognizers(gestureRecognizers);
     renderObject.clipBehavior = clipBehavior;

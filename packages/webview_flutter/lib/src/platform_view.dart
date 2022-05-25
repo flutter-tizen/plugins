@@ -3,7 +3,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// github.com:flutter/flutter.git@02c026b03cd31dd3f867e5faeb7e104cce174c5f
+// github.com:flutter/flutter.git@57a688c1f04d56eaa40beeb9f44e549eaf0ce54d
 // packages/flutter/lib/src/rendering/platform_view.dart
 // Imported from above file, the content has not been modified.
 
@@ -39,10 +39,7 @@ typedef _HandlePointerEvent = Future<void> Function(PointerEvent event);
 // sets itself to a "forwarding mode" where it will forward any new pointer event to `_handlePointerEvent`.
 class _PlatformViewGestureRecognizer extends OneSequenceGestureRecognizer {
   _PlatformViewGestureRecognizer(
-    _HandlePointerEvent handlePointerEvent,
-    this.gestureRecognizerFactories, {
-    Set<PointerDeviceKind>? supportedDevices,
-  }) : super(supportedDevices: supportedDevices) {
+      _HandlePointerEvent handlePointerEvent, this.gestureRecognizerFactories) {
     team = GestureArenaTeam()..captain = this;
     _gestureRecognizers = gestureRecognizerFactories.map(
       (Factory<OneSequenceGestureRecognizer> recognizerFactory) {
@@ -85,7 +82,7 @@ class _PlatformViewGestureRecognizer extends OneSequenceGestureRecognizer {
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
-    startTrackingPointer(event.pointer, event.transform);
+    super.addAllowedPointer(event);
     for (final OneSequenceGestureRecognizer recognizer in _gestureRecognizers) {
       recognizer.addPointer(event);
     }
@@ -152,7 +149,9 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
   set hitTestBehavior(PlatformViewHitTestBehavior value) {
     if (value != _hitTestBehavior) {
       _hitTestBehavior = value;
-      if (owner != null) markNeedsPaint();
+      if (owner != null) {
+        markNeedsPaint();
+      }
     }
   }
 
@@ -160,6 +159,8 @@ mixin _PlatformViewGestureMixin on RenderBox implements MouseTrackerAnnotation {
 
   _HandlePointerEvent? _handlePointerEvent;
 
+  /// {@macro  flutter.rendering.RenderAndroidView.updateGestureRecognizers}
+  ///
   /// Any active gesture arena the `PlatformView` participates in is rejected when the
   /// set of gesture recognizers is changed.
   void _updateGestureRecognizersWithCallBack(

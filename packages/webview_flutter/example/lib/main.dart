@@ -41,8 +41,8 @@ const String kLocalExamplePage = '''
 
 <h1>Local demo page</h1>
 <p>
-  This is an example page used to demonstrate how to load a local file or HTML 
-  string using the <a href="https://pub.dev/packages/webview_flutter">Flutter 
+  This is an example page used to demonstrate how to load a local file or HTML
+  string using the <a href="https://pub.dev/packages/webview_flutter">Flutter
   webview</a> plugin.
 </p>
 
@@ -72,12 +72,12 @@ const String kTransparentBackgroundPage = '''
 ''';
 
 class WebViewExample extends StatefulWidget {
-  const WebViewExample({this.cookieManager});
+  const WebViewExample({Key? key, this.cookieManager}) : super(key: key);
 
   final CookieManager? cookieManager;
 
   @override
-  _WebViewExampleState createState() => _WebViewExampleState();
+  State<WebViewExample> createState() => _WebViewExampleState();
 }
 
 class _WebViewExampleState extends State<WebViewExample> {
@@ -153,7 +153,7 @@ class _WebViewExampleState extends State<WebViewExample> {
             onPressed: () async {
               String? url;
               if (controller.hasData) {
-                url = (await controller.data!.currentUrl())!;
+                url = await controller.data!.currentUrl();
               }
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -188,11 +188,12 @@ enum MenuOptions {
 }
 
 class SampleMenu extends StatelessWidget {
-  SampleMenu(this.controller, CookieManager? cookieManager)
-      : cookieManager = CookieManagerTizen();
+  SampleMenu(this.controller, CookieManager? cookieManager, {Key? key})
+      : cookieManager = cookieManager ?? CookieManagerTizen(),
+        super(key: key);
 
   final Future<WebViewController> controller;
-  late final CookieManagerTizen cookieManager;
+  late final CookieManager cookieManager;
 
   @override
   Widget build(BuildContext context) {
@@ -248,8 +249,8 @@ class SampleMenu extends StatelessWidget {
           itemBuilder: (BuildContext context) => <PopupMenuItem<MenuOptions>>[
             PopupMenuItem<MenuOptions>(
               value: MenuOptions.showUserAgent,
-              child: const Text('Show user agent'),
               enabled: controller.hasData,
+              child: const Text('Show user agent'),
             ),
             const PopupMenuItem<MenuOptions>(
               value: MenuOptions.listCookies,
@@ -342,6 +343,7 @@ class SampleMenu extends StatelessWidget {
   Future<void> _onListCache(
       WebViewController controller, BuildContext context) async {
     await controller.runJavascript('caches.keys()'
+        // ignore: missing_whitespace_between_adjacent_strings
         '.then((cacheKeys) => JSON.stringify({"cacheKeys" : cacheKeys, "localStorage" : localStorage}))'
         '.then((caches) => Toaster.postMessage(caches))');
   }
@@ -441,8 +443,9 @@ class SampleMenu extends StatelessWidget {
 }
 
 class NavigationControls extends StatelessWidget {
-  const NavigationControls(this._webViewControllerFuture)
-      : assert(_webViewControllerFuture != null);
+  const NavigationControls(this._webViewControllerFuture, {Key? key})
+      : assert(_webViewControllerFuture != null),
+        super(key: key);
 
   final Future<WebViewController> _webViewControllerFuture;
 

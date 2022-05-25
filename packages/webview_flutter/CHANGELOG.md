@@ -1,6 +1,8 @@
 ## NEXT
 
 * Code refactoring.
+* Update the example app.
+* Migrate to new analysis options.
 
 ## 0.4.4
 
