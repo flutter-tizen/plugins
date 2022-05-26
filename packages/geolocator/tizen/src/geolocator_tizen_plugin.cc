@@ -69,17 +69,6 @@ class LocationStreamHandler : public FlStreamHandler {
   std::unique_ptr<FlEventSink> events_;
 };
 
-std::string ServiceStatusToString(ServiceStatus status) {
-  switch (status) {
-    case ServiceStatus::kEnabled:
-      return "enabled";
-    case ServiceStatus::kDisabled:
-      return "disabled";
-    default:
-      return "unknown";
-  }
-}
-
 class ServiceStatusStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
@@ -87,7 +76,7 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
       std::unique_ptr<FlEventSink> &&events) override {
     events_ = std::move(events);
     ServiceStatusCallback callback = [this](ServiceStatus status) -> void {
-      events_->Success(flutter::EncodableValue(ServiceStatusToString(status)));
+      events_->Success(flutter::EncodableValue(static_cast<int>(status)));
     };
     try {
       location_manager_.StartListenServiceStatusUpdate(callback);
