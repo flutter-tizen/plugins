@@ -7,6 +7,8 @@
 #include <app_common.h>
 #include <package_manager.h>
 
+#include <string>
+
 #include "log.h"
 
 namespace {

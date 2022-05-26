@@ -6,8 +6,10 @@
 #define FLUTTER_PLUGIN_LOCATION_MANAGER_H_
 
 #include <locations.h>
+#include <tizen_error.h>
 
 #include <functional>
+#include <string>
 
 #include "position.h"
 
@@ -18,6 +20,9 @@ enum class ServiceStatus { kDisabled, kEnabled };
 class LocationManagerError {
  public:
   LocationManagerError(int error_code) : error_code_(error_code) {}
+
+  int GetErrorCode() const { return error_code_; }
+
   std::string GetErrorString() const { return get_error_message(error_code_); }
 
  private:
@@ -26,7 +31,7 @@ class LocationManagerError {
 
 typedef std::function<void(Position)> LocationCallback;
 typedef std::function<void(ServiceStatus)> ServiceStatusCallback;
-typedef std::function<void(LocationManagerError)> LocationErrorListener;
+typedef std::function<void(LocationManagerError)> LocationErrorCallback;
 
 class LocationManager {
  public:
@@ -37,32 +42,27 @@ class LocationManager {
 
   Position GetLastKnownPosition();
 
-  void GetCurrentPosition(LocationCallback location_updated_callback,
-                          LocationErrorListener location_error_listener);
+  void GetCurrentPosition(LocationCallback on_location_callback,
+                          LocationErrorCallback on_error_callback);
 
-  bool StartServiceUpdatedListen(
-      ServiceStatusCallback service_status_updated_callback);
+  void StartListenServiceStatusUpdate(ServiceStatusCallback callback);
 
-  bool StopServiceUpdatedListen();
+  void StopListenServiceStatusUpdate();
 
-  bool StartLocationUpdatesListen(LocationCallback location_updated_callback);
+  void StartListenLocationUpdate(LocationCallback callback);
 
-  bool StopLocationUpdatesListen();
-
-  int GetLastError() { return last_error_; }
-
-  std::string GetLastErrorString() { return get_error_message(last_error_); }
+  void StopListenLocationUpdate();
 
  private:
   // According to the document, the handler to request current location once
-  // must not be the same as a handler to listen position updated.
+  // must not be the same as a handler to listen position updates.
   location_manager_h manager_for_current_location_ = nullptr;
   location_manager_h manager_ = nullptr;
 
-  int last_error_ = TIZEN_ERROR_NONE;
-  ServiceStatusCallback service_status_updated_callback_;
-  LocationCallback location_updated_callback_;
-  LocationCallback location_callback_;
-  LocationErrorListener location_error_listener_;
+  ServiceStatusCallback on_service_status_updated_callback_;
+  LocationCallback on_location_updated_callback_;
+  LocationCallback on_location_callback_;
+  LocationErrorCallback on_error_callback_;
 };
+
 #endif  // FLUTTER_PLUGIN_LOCATION_MANAGER_H_

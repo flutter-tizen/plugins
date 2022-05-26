@@ -7,8 +7,6 @@
 
 #include <app_control.h>
 
-#include <string>
-
 class AppSettingsManager {
  public:
   AppSettingsManager() {}

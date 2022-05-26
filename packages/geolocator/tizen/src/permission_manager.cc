@@ -9,6 +9,9 @@
 #include <privacy_privilege_manager.h>
 #include <tizen.h>
 #endif
+#include <tizen_error.h>
+
+#include <string>
 
 #include "log.h"
 
@@ -22,7 +25,7 @@ PermissionStatus PermissionManager::CheckPermission(
   if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
     LOG_ERROR("Permission check failed [%s]: %s", privilege.c_str(),
               get_error_message(ret));
-    throw PermissionManagerError(ret);
+    return PermissionStatus::kError;
   }
 
   switch (result) {
@@ -59,9 +62,8 @@ PermissionStatus PermissionManager::RequestPermission(
       &response);
 
   if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    LOG_ERROR("Permission request failed [%s]: %s", privilege.c_str(),
-              get_error_message(ret));
-    throw PermissionManagerError(ret);
+    LOG_ERROR("c[%s]: %s", privilege.c_str(), get_error_message(ret));
+    return PermissionStatus::kError;
   }
 
   // Wait until ppm_request_permission() completes with a response.
@@ -71,7 +73,7 @@ PermissionStatus PermissionManager::RequestPermission(
 
   if (response.cause == PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ERROR) {
     LOG_ERROR("Received an error response [%s].", privilege.c_str());
-    throw PermissionManagerError("Received an error response");
+    return PermissionStatus::kError;
   }
 
   switch (response.result) {
@@ -82,7 +84,7 @@ PermissionStatus PermissionManager::RequestPermission(
     case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
       return PermissionStatus::kAlways;
     default:
-      throw PermissionManagerError("Failed to request permission.");
+      return PermissionStatus::kError;
   }
 #endif  // TV_PROFILE
 }

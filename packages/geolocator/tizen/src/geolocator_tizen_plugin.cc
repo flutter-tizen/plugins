@@ -11,6 +11,9 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include <memory>
+#include <string>
+
 #include "app_settings_manager.h"
 #include "location_manager.h"
 #include "log.h"
@@ -29,7 +32,7 @@ typedef flutter::StreamHandlerError<flutter::EncodableValue>
 
 constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
 
-class LocationUpdatesStreamHandler : public FlStreamHandler {
+class LocationStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
       const flutter::EncodableValue *arguments,
@@ -38,20 +41,24 @@ class LocationUpdatesStreamHandler : public FlStreamHandler {
     LocationCallback callback = [this](Position position) -> void {
       events_->Success(position.ToEncodableValue());
     };
-    if (!location_manager_.StartLocationUpdatesListen(callback)) {
+    try {
+      location_manager_.StartListenLocationUpdate(callback);
+    } catch (const LocationManagerError &error) {
       return std::make_unique<FlStreamHandlerError>(
-          std::to_string(location_manager_.GetLastError()),
-          location_manager_.GetLastErrorString(), nullptr);
+          std::to_string(error.GetErrorCode()), error.GetErrorString(),
+          nullptr);
     }
     return nullptr;
   }
 
   std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
       const flutter::EncodableValue *arguments) override {
-    if (!location_manager_.StopLocationUpdatesListen()) {
+    try {
+      location_manager_.StopListenLocationUpdate();
+    } catch (const LocationManagerError &error) {
       return std::make_unique<FlStreamHandlerError>(
-          std::to_string(location_manager_.GetLastError()),
-          location_manager_.GetLastErrorString(), nullptr);
+          std::to_string(error.GetErrorCode()), error.GetErrorString(),
+          nullptr);
     }
     events_.reset();
     return nullptr;
@@ -73,7 +80,7 @@ std::string ServiceStatusToString(ServiceStatus status) {
   }
 }
 
-class ServiceUpdatesStreamHandler : public FlStreamHandler {
+class ServiceStatusStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
       const flutter::EncodableValue *arguments,
@@ -82,20 +89,24 @@ class ServiceUpdatesStreamHandler : public FlStreamHandler {
     ServiceStatusCallback callback = [this](ServiceStatus status) -> void {
       events_->Success(flutter::EncodableValue(ServiceStatusToString(status)));
     };
-    if (!location_manager_.StartServiceUpdatedListen(callback)) {
+    try {
+      location_manager_.StartListenServiceStatusUpdate(callback);
+    } catch (const LocationManagerError &error) {
       return std::make_unique<FlStreamHandlerError>(
-          std::to_string(location_manager_.GetLastError()),
-          location_manager_.GetLastErrorString(), nullptr);
+          std::to_string(error.GetErrorCode()), error.GetErrorString(),
+          nullptr);
     }
     return nullptr;
   }
 
   std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
       const flutter::EncodableValue *arguments) override {
-    if (!location_manager_.StopServiceUpdatedListen()) {
+    try {
+      location_manager_.StopListenServiceStatusUpdate();
+    } catch (const LocationManagerError &error) {
       return std::make_unique<FlStreamHandlerError>(
-          std::to_string(location_manager_.GetLastError()),
-          location_manager_.GetLastErrorString(), nullptr);
+          std::to_string(error.GetErrorCode()), error.GetErrorString(),
+          nullptr);
     }
     events_.reset();
     return nullptr;
@@ -120,13 +131,13 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
         "flutter.baseflow.com/geolocator_service_updates",
         &flutter::StandardMethodCodec::GetInstance());
     plugin->service_updates_channel_->SetStreamHandler(
-        std::make_unique<ServiceUpdatesStreamHandler>());
+        std::make_unique<ServiceStatusStreamHandler>());
 
     plugin->updates_channel_ = std::make_unique<FlEventChannel>(
         registrar->messenger(), "flutter.baseflow.com/geolocator_updates",
         &flutter::StandardMethodCodec::GetInstance());
     plugin->updates_channel_->SetStreamHandler(
-        std::make_unique<LocationUpdatesStreamHandler>());
+        std::make_unique<LocationStreamHandler>());
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -160,25 +171,25 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     } else if (method_name == "getCurrentPosition") {
       OnGetCurrentPosition();
     } else if (method_name == "openAppSettings") {
-      bool ret = app_settings_manager_->OpenAppSettings();
-      result->Success(flutter::EncodableValue(ret));
+      bool opened = app_settings_manager_->OpenAppSettings();
+      SendResult(flutter::EncodableValue(opened));
     } else if (method_name == "openLocationSettings") {
-      bool ret = app_settings_manager_->OpenLocationSettings();
-      result->Success(flutter::EncodableValue(ret));
+      bool opened = app_settings_manager_->OpenLocationSettings();
+      SendResult(flutter::EncodableValue(opened));
     } else {
       result->NotImplemented();
     }
   }
 
   void OnCheckPermission() {
-    try {
-      PermissionStatus result =
-          permission_manager_->CheckPermission(kPrivilegeLocation);
-      LOG_INFO("permission_status is %d", result);
-      SendResult(flutter::EncodableValue(static_cast<int>(result)));
-    } catch (const LocationManagerError &error) {
-      SendErrorResult("Operation failed", error.GetErrorString());
+    PermissionStatus result =
+        permission_manager_->CheckPermission(kPrivilegeLocation);
+    if (result == PermissionStatus::kError) {
+      SendErrorResult("Operation failed", "Permission request failed.");
+      return;
     }
+    LOG_INFO("permission_status is %d", result);
+    SendResult(flutter::EncodableValue(static_cast<int>(result)));
   }
 
   void OnIsLocationServiceEnabled() {
@@ -191,19 +202,18 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   }
 
   void OnRequestPermission() {
-    try {
-      PermissionStatus result =
-          permission_manager_->RequestPermission(kPrivilegeLocation);
-      if (result == PermissionStatus::kDeniedForever ||
-          result == PermissionStatus::kDenied) {
-        SendErrorResult("Permission denied", "Permission denied by user.");
-        return;
-      }
-      SendResult(flutter::EncodableValue(static_cast<int>(result)));
-    } catch (const PermissionManagerError &error) {
-      SendErrorResult("Operation failed", error.GetErrorString());
+    PermissionStatus result =
+        permission_manager_->RequestPermission(kPrivilegeLocation);
+
+    if (result == PermissionStatus::kError) {
+      SendErrorResult("Operation failed", "Permission request failed.");
+      return;
+    } else if (result == PermissionStatus::kDeniedForever ||
+               result == PermissionStatus::kDenied) {
+      SendErrorResult("Permission denied", "Permission denied by user.");
       return;
     }
+    SendResult(flutter::EncodableValue(static_cast<int>(result)));
   }
 
   void OnGetLastKnownPosition() {
