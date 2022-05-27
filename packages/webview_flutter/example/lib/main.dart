@@ -12,7 +12,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_tizen/webview_flutter_tizen.dart';
 
 void main() => runApp(const MaterialApp(home: WebViewExample()));
 
@@ -189,7 +188,7 @@ enum MenuOptions {
 
 class SampleMenu extends StatelessWidget {
   SampleMenu(this.controller, CookieManager? cookieManager, {Key? key})
-      : cookieManager = cookieManager ?? CookieManagerTizen(),
+      : cookieManager = cookieManager ?? CookieManager(),
         super(key: key);
 
   final Future<WebViewController> controller;

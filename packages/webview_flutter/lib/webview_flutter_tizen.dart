@@ -26,6 +26,7 @@ class TizenWebView implements WebViewPlatform {
   /// Sets a tizen [WebViewPlatform].
   static void register() {
     WebView.platform = TizenWebView();
+    WebViewCookieManagerPlatform.instance = WebViewTizenCookieManager();
   }
 
   @override
@@ -95,30 +96,4 @@ class WebViewTizenCookieManager extends WebViewCookieManagerPlatform {
     }
     return true;
   }
-}
-
-/// Manages cookies pertaining to [WebView]s.
-class CookieManagerTizen implements CookieManager {
-  /// Creates a [CookieManagerTizen] -- returns the instance if it's already been called.
-  factory CookieManagerTizen() {
-    return _instance ??= CookieManagerTizen._();
-  }
-
-  CookieManagerTizen._() {
-    WebViewCookieManagerPlatform.instance ??= WebViewTizenCookieManager();
-  }
-
-  static CookieManagerTizen? _instance;
-
-  /// Clears all cookies for all [WebView] instances.
-  ///
-  /// Returns true if cookies were present before clearing, else false.
-  @override
-  Future<bool> clearCookies() =>
-      WebViewCookieManagerPlatform.instance!.clearCookies();
-
-  /// Sets a cookie for all [WebView] instances.
-  @override
-  Future<void> setCookie(WebViewCookie cookie) =>
-      WebViewCookieManagerPlatform.instance!.setCookie(cookie);
 }
