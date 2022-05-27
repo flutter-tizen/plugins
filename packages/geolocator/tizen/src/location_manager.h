@@ -45,11 +45,12 @@ class LocationManager {
   void GetCurrentPosition(LocationCallback on_location_callback,
                           LocationErrorCallback on_error_callback);
 
-  void StartListenServiceStatusUpdate(ServiceStatusCallback callback);
+  void StartListenServiceStatusUpdate(
+      ServiceStatusCallback on_service_status_update);
 
   void StopListenServiceStatusUpdate();
 
-  void StartListenLocationUpdate(LocationCallback callback);
+  void StartListenLocationUpdate(LocationCallback on_location_update);
 
   void StopListenLocationUpdate();
 
@@ -59,10 +60,10 @@ class LocationManager {
   location_manager_h manager_for_current_location_ = nullptr;
   location_manager_h manager_ = nullptr;
 
-  ServiceStatusCallback on_service_status_updated_callback_;
-  LocationCallback on_location_updated_callback_;
-  LocationCallback on_location_callback_;
-  LocationErrorCallback on_error_callback_;
+  ServiceStatusCallback service_status_update_callback_;
+  LocationCallback location_update_callback_;
+  LocationCallback location_callback_;
+  LocationErrorCallback error_callback_;
 };
 
 #endif  // FLUTTER_PLUGIN_LOCATION_MANAGER_H_

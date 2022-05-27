@@ -9,9 +9,6 @@
 #include <privacy_privilege_manager.h>
 #include <tizen.h>
 #endif
-#include <tizen_error.h>
-
-#include <string>
 
 #include "log.h"
 
@@ -29,12 +26,12 @@ PermissionStatus PermissionManager::CheckPermission(
   }
 
   switch (result) {
-    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
-    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
-      return PermissionStatus::kDenied;
     case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
-    default:
       return PermissionStatus::kAlways;
+    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
+    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
+    default:
+      return PermissionStatus::kDenied;
   }
 #endif
 }
@@ -62,7 +59,8 @@ PermissionStatus PermissionManager::RequestPermission(
       &response);
 
   if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    LOG_ERROR("c[%s]: %s", privilege.c_str(), get_error_message(ret));
+    LOG_ERROR("Permission request failed [%s]: %s", privilege.c_str(),
+              get_error_message(ret));
     return PermissionStatus::kError;
   }
 
@@ -77,14 +75,13 @@ PermissionStatus PermissionManager::RequestPermission(
   }
 
   switch (response.result) {
+    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
+      return PermissionStatus::kAlways;
     case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
       return PermissionStatus::kDeniedForever;
     case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
-      return PermissionStatus::kDenied;
-    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
-      return PermissionStatus::kAlways;
     default:
-      return PermissionStatus::kError;
+      return PermissionStatus::kDenied;
   }
 #endif  // TV_PROFILE
 }

@@ -5,6 +5,7 @@
 #include "app_settings_manager.h"
 
 #include <app_common.h>
+#include <app_control.h>
 #include <package_manager.h>
 
 #include <string>

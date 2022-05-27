@@ -174,10 +174,9 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
     PermissionStatus result =
         permission_manager_->CheckPermission(kPrivilegeLocation);
     if (result == PermissionStatus::kError) {
-      SendErrorResult("Operation failed", "Permission request failed.");
+      SendErrorResult("Operation failed", "Permission check failed.");
       return;
     }
-    LOG_INFO("permission_status is %d", result);
     SendResult(flutter::EncodableValue(static_cast<int>(result)));
   }
 
@@ -216,26 +215,19 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
 
   void OnGetCurrentPosition() {
     auto result_ptr = result_.release();
-    try {
-      location_manager_->GetCurrentPosition(
-          [result_ptr](Position position) {
-            if (result_ptr) {
-              result_ptr->Success(position.ToEncodableValue());
-              delete result_ptr;
-            }
-          },
-          [result_ptr](LocationManagerError error) {
-            if (result_ptr) {
-              result_ptr->Error("Operation failed", error.GetErrorString());
-              delete result_ptr;
-            }
-          });
-    } catch (const LocationManagerError &error) {
-      if (result_ptr) {
-        result_ptr->Error("Operation failed", error.GetErrorString());
-        delete result_ptr;
-      }
-    }
+    location_manager_->GetCurrentPosition(
+        [result_ptr](Position position) {
+          if (result_ptr) {
+            result_ptr->Success(position.ToEncodableValue());
+            delete result_ptr;
+          }
+        },
+        [result_ptr](LocationManagerError error) {
+          if (result_ptr) {
+            result_ptr->Error("Operation failed", error.GetErrorString());
+            delete result_ptr;
+          }
+        });
   }
 
   void SendResult(const flutter::EncodableValue &result) {

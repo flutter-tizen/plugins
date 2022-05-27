@@ -5,8 +5,6 @@
 #ifndef FLUTTER_PLUGIN_APP_SETTINGS_MANAGER_H_
 #define FLUTTER_PLUGIN_APP_SETTINGS_MANAGER_H_
 
-#include <app_control.h>
-
 class AppSettingsManager {
  public:
   AppSettingsManager() {}

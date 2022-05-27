@@ -63,11 +63,10 @@ Position LocationManager::GetLastKnownPosition() {
   return position;
 }
 
-void LocationManager::GetCurrentPosition(
-    LocationCallback on_location_callback,
-    LocationErrorCallback on_error_callback) {
-  on_location_callback_ = on_location_callback;
-  on_error_callback_ = on_error_callback;
+void LocationManager::GetCurrentPosition(LocationCallback on_location,
+                                         LocationErrorCallback on_error) {
+  location_callback_ = on_location;
+  error_callback_ = on_error;
   int ret = location_manager_request_single_location(
       manager_for_current_location_, 5,
       [](location_error_e error, double latitude, double longitude,
@@ -75,9 +74,9 @@ void LocationManager::GetCurrentPosition(
          double climb, void *user_data) {
         LocationManager *self = static_cast<LocationManager *>(user_data);
 
-        if (error != LOCATIONS_ERROR_NONE && self->on_error_callback_) {
-          self->on_error_callback_(LocationManagerError(error));
-        } else if (self->on_location_callback_) {
+        if (error != LOCATIONS_ERROR_NONE && self->error_callback_) {
+          self->error_callback_(LocationManagerError(error));
+        } else if (self->location_callback_) {
           Position position;
           position.latitude = latitude;
           position.longitude = longitude;
@@ -86,30 +85,31 @@ void LocationManager::GetCurrentPosition(
           position.speed = speed;
           position.heading = direction;
 
-          self->on_location_callback_(position);
+          self->location_callback_(position);
         }
-        self->on_location_callback_ = nullptr;
-        self->on_error_callback_ = nullptr;
+        self->location_callback_ = nullptr;
+        self->error_callback_ = nullptr;
       },
       this);
   if (LOCATIONS_ERROR_NONE != ret) {
-    throw LocationManagerError(ret);
+    error_callback_(LocationManagerError(ret));
+    error_callback_ = nullptr;
   }
 }
 
 void LocationManager::StartListenServiceStatusUpdate(
-    ServiceStatusCallback callback) {
-  on_service_status_updated_callback_ = callback;
+    ServiceStatusCallback on_service_status_update) {
+  service_status_update_callback_ = on_service_status_update;
   int ret = location_manager_set_service_state_changed_cb(
       manager_,
       [](location_service_state_e state, void *user_data) {
         LocationManager *self = static_cast<LocationManager *>(user_data);
-        if (self->on_service_status_updated_callback_) {
+        if (self->service_status_update_callback_) {
           ServiceStatus service_status = ServiceStatus::kDisabled;
           if (state == LOCATIONS_SERVICE_ENABLED) {
             service_status = ServiceStatus::kEnabled;
           }
-          self->on_service_status_updated_callback_(service_status);
+          self->service_status_update_callback_(service_status);
         }
       },
       this);
@@ -125,21 +125,22 @@ void LocationManager::StopListenServiceStatusUpdate() {
   }
 }
 
-void LocationManager::StartListenLocationUpdate(LocationCallback callback) {
-  on_location_updated_callback_ = callback;
+void LocationManager::StartListenLocationUpdate(
+    LocationCallback on_location_update) {
+  location_update_callback_ = on_location_update;
 
   int ret = location_manager_set_position_updated_cb(
       manager_,
       [](double latitude, double longitude, double altitude, time_t timestamp,
          void *user_data) {
         LocationManager *self = static_cast<LocationManager *>(user_data);
-        if (self->on_location_updated_callback_) {
+        if (self->location_update_callback_) {
           Position position;
           position.longitude = longitude;
           position.latitude = latitude;
           position.timestamp = timestamp;
           position.altitude = altitude;
-          self->on_location_updated_callback_(position);
+          self->location_update_callback_(position);
         }
       },
       2, this);
