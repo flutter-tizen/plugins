@@ -4,8 +4,6 @@
 
 #include "location_manager.h"
 
-#include "log.h"
-
 LocationManager::LocationManager() {
   location_manager_create(LOCATIONS_METHOD_HYBRID, &manager_);
   location_manager_create(LOCATIONS_METHOD_HYBRID,

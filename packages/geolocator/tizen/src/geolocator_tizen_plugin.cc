@@ -16,7 +16,6 @@
 
 #include "app_settings_manager.h"
 #include "location_manager.h"
-#include "log.h"
 #include "permission_manager.h"
 
 namespace {
@@ -44,9 +43,11 @@ class LocationStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StartListenLocationUpdate(callback);
     } catch (const LocationManagerError &error) {
-      return std::make_unique<FlStreamHandlerError>(
-          std::to_string(error.GetErrorCode()), error.GetErrorString(),
-          nullptr);
+      // Issue: https://github.com/flutter/flutter/issues/101682
+      error_code_ = std::to_string(error.GetErrorCode());
+      error_message_ = error.GetErrorString();
+      return std::make_unique<FlStreamHandlerError>(error_code_, error_message_,
+                                                    nullptr);
     }
     return nullptr;
   }
@@ -56,9 +57,10 @@ class LocationStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StopListenLocationUpdate();
     } catch (const LocationManagerError &error) {
-      return std::make_unique<FlStreamHandlerError>(
-          std::to_string(error.GetErrorCode()), error.GetErrorString(),
-          nullptr);
+      error_code_ = std::to_string(error.GetErrorCode());
+      error_message_ = error.GetErrorString();
+      return std::make_unique<FlStreamHandlerError>(error_code_, error_message_,
+                                                    nullptr);
     }
     events_.reset();
     return nullptr;
@@ -67,6 +69,9 @@ class LocationStreamHandler : public FlStreamHandler {
  private:
   LocationManager location_manager_;
   std::unique_ptr<FlEventSink> events_;
+
+  std::string error_code_;
+  std::string error_message_;
 };
 
 class ServiceStatusStreamHandler : public FlStreamHandler {
@@ -81,9 +86,11 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StartListenServiceStatusUpdate(callback);
     } catch (const LocationManagerError &error) {
-      return std::make_unique<FlStreamHandlerError>(
-          std::to_string(error.GetErrorCode()), error.GetErrorString(),
-          nullptr);
+      // Issue: https://github.com/flutter/flutter/issues/101682
+      error_code_ = std::to_string(error.GetErrorCode());
+      error_message_ = error.GetErrorString();
+      return std::make_unique<FlStreamHandlerError>(error_code_, error_message_,
+                                                    nullptr);
     }
     return nullptr;
   }
@@ -93,9 +100,10 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StopListenServiceStatusUpdate();
     } catch (const LocationManagerError &error) {
-      return std::make_unique<FlStreamHandlerError>(
-          std::to_string(error.GetErrorCode()), error.GetErrorString(),
-          nullptr);
+      error_code_ = std::to_string(error.GetErrorCode());
+      error_message_ = error.GetErrorString();
+      return std::make_unique<FlStreamHandlerError>(error_code_, error_message_,
+                                                    nullptr);
     }
     events_.reset();
     return nullptr;
@@ -104,6 +112,9 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
  private:
   LocationManager location_manager_;
   std::unique_ptr<FlEventSink> events_;
+
+  std::string error_code_;
+  std::string error_message_;
 };
 
 class GeolocatorTizenPlugin : public flutter::Plugin {
@@ -252,9 +263,7 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
   std::unique_ptr<LocationManager> location_manager_;
   std::unique_ptr<AppSettingsManager> app_settings_manager_;
   std::unique_ptr<FlEventChannel> service_updates_channel_;
-  std::unique_ptr<FlEventSink> service_updates_event_sink_;
   std::unique_ptr<FlEventChannel> updates_channel_;
-  std::unique_ptr<FlEventSink> updates_event_sink_;
 };
 
 }  // namespace

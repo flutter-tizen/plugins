@@ -42,8 +42,8 @@ class LocationManager {
 
   Position GetLastKnownPosition();
 
-  void GetCurrentPosition(LocationCallback on_location_callback,
-                          LocationErrorCallback on_error_callback);
+  void GetCurrentPosition(LocationCallback on_location,
+                          LocationErrorCallback on_error);
 
   void StartListenServiceStatusUpdate(
       ServiceStatusCallback on_service_status_update);
