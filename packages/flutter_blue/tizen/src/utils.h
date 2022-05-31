@@ -13,8 +13,11 @@ namespace flutter_blue_tizen {
 
 namespace btGatt {
 
+class BluetoothService;
 class PrimaryService;
 class SecondaryService;
+class BluetoothCharacteristic;
+class BluetoothDescriptor;
 
 }  // namespace btGatt
 
@@ -65,6 +68,17 @@ proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
 
 proto::gen::CharacteristicProperties GetProtoCharacteristicProperties(
     int properties);
+
+proto::gen::BluetoothCharacteristic ToProtoCharacteristic(
+    const BluetoothDeviceController& device,
+    const btGatt::BluetoothService& service,
+    const btGatt::BluetoothCharacteristic& characteristic) noexcept;
+
+proto::gen::BluetoothDescriptor ToProtoDescriptor(
+    const BluetoothDeviceController& device,
+    const btGatt::BluetoothService& service,
+    const btGatt::BluetoothCharacteristic& characteristic,
+    const btGatt::BluetoothDescriptor& descriptor) noexcept;
 
 }  // namespace flutter_blue_tizen
 

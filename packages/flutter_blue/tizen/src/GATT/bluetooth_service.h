@@ -82,7 +82,7 @@ class SecondaryService : public BluetoothService {
 
   ServiceType GetType() const noexcept override;
 
-  std::string PrimaryUuid() noexcept;
+  std::string PrimaryUuid() const noexcept;
 
  private:
   PrimaryService& primary_service_;

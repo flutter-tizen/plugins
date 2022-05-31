@@ -90,13 +90,32 @@ void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
   });
 }
 
+BluetoothDeviceController* BluetoothManager::LocateDevice(
+    const std::string& remote_id) {
+  auto it = bluetooth_devices_.var_.find(remote_id);
+  return (it == bluetooth_devices_.var_.end() ? nullptr : it->second.get());
+}
+
+btGatt::PrimaryService* BluetoothManager::LocatePrimaryService(
+    const std::string& remote_id, const std::string& primary_uuid) {
+  auto device = LocateDevice(remote_id);
+  return device->GetService(primary_uuid);
+}
+
+btGatt::SecondaryService* BluetoothManager::LocateSecondaryService(
+    const std::string& remote_id, const std::string& primary_uuid,
+    const std::string& secondary_uuid) {
+  auto device = LocateDevice(remote_id);
+  auto primary = device->GetService(primary_uuid);
+  return primary->GetSecondary(secondary_uuid);
+}
+
 btGatt::BluetoothCharacteristic* BluetoothManager::LocateCharacteristic(
     const std::string& remote_id, const std::string& primary_uuid,
     const std::string& secondary_uuid, const std::string& characteristic_uuid) {
-  auto it = bluetooth_devices_.var_.find(remote_id);
+  auto device = LocateDevice(remote_id);
 
-  if (it != bluetooth_devices_.var_.end()) {
-    auto device = it->second;
+  if (device) {
     auto primary = device->GetService(primary_uuid);
     btGatt::BluetoothService* service = primary;
     if (primary && !secondary_uuid.empty()) {

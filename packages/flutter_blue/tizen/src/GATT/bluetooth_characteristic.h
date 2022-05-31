@@ -31,7 +31,9 @@ class BluetoothCharacteristic {
 
   std::string Value() const noexcept;
 
-  BluetoothDescriptor* GetDescriptor(const std::string& uuid);
+  BluetoothDescriptor* GetDescriptor(const std::string& uuid) const;
+
+  std::vector<BluetoothDescriptor*> GetDescriptors() const;
 
   void Read(
       const std::function<void(const BluetoothCharacteristic&)>& callback);

@@ -1,3 +1,4 @@
+#include <GATT/bluetooth_characteristic.h>
 #include <GATT/bluetooth_service.h>
 #include <bluetooth_device_controller.h>
 #include <log.h>
@@ -107,5 +108,41 @@ BtException::BtException(const int tizen_error)
     : message_(get_error_message(tizen_error)) {}
 
 const char* BtException::what() const noexcept { return message_.c_str(); }
+
+proto::gen::BluetoothCharacteristic ToProtoCharacteristic(
+    const BluetoothDeviceController& device,
+    const btGatt::BluetoothService& service,
+    const btGatt::BluetoothCharacteristic& characteristic) noexcept {
+  proto::gen::BluetoothCharacteristic proto;
+  proto.set_remote_id(device.cAddress());
+  proto.set_uuid(characteristic.Uuid());
+  proto.set_allocated_properties(new proto::gen::CharacteristicProperties(
+      GetProtoCharacteristicProperties(characteristic.Properties())));
+  proto.set_value(characteristic.Value());
+  if (service.GetType() == btGatt::ServiceType::kPrimary) {
+    proto.set_serviceuuid(service.Uuid());
+  } else {
+    auto& secondary = dynamic_cast<const btGatt::SecondaryService&>(service);
+    proto.set_serviceuuid(secondary.PrimaryUuid());
+    proto.set_secondaryserviceuuid(secondary.Uuid());
+  }
+  for (const auto descriptor : characteristic.GetDescriptors()) {
+    *proto.add_descriptors() = descriptor->ToProtoDescriptor();
+  }
+  return proto;
+}
+
+proto::gen::BluetoothDescriptor ToProtoDescriptor(
+    const BluetoothDeviceController& device,
+    const btGatt::BluetoothService& service,
+    const btGatt::BluetoothCharacteristic& characteristic,
+    const btGatt::BluetoothDescriptor& descriptor) noexcept {
+  proto::gen::BluetoothDescriptor proto;
+  proto.set_remote_id(device.cAddress());
+  proto.set_serviceuuid(service.Uuid());
+  proto.set_characteristicuuid(characteristic.Uuid());
+  proto.set_uuid(descriptor.Uuid());
+  return proto;
+}
 
 }  // namespace flutter_blue_tizen

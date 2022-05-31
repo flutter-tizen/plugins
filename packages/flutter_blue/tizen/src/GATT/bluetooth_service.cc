@@ -86,7 +86,7 @@ ServiceType SecondaryService::GetType() const noexcept {
   return ServiceType::kSecondary;
 }
 
-std::string SecondaryService::PrimaryUuid() noexcept {
+std::string SecondaryService::PrimaryUuid() const noexcept {
   return primary_service_.Uuid();
 }
 

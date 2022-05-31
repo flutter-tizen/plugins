@@ -8,6 +8,7 @@
 #include <utils.h>
 
 #include <exception>
+#include <vector>
 
 namespace flutter_blue_tizen {
 namespace btGatt {
@@ -66,10 +67,22 @@ std::string BluetoothCharacteristic::Value() const noexcept {
 }
 
 BluetoothDescriptor* BluetoothCharacteristic::GetDescriptor(
-    const std::string& uuid) {
+    const std::string& uuid) const {
   for (auto& service : descriptors_)
     if (service->Uuid() == uuid) return service.get();
   return nullptr;
+}
+
+std::vector<BluetoothDescriptor*> BluetoothCharacteristic::GetDescriptors()
+    const {
+  std::vector<BluetoothDescriptor*> descriptors;
+  std::transform(descriptors_.begin(), descriptors_.end(),
+                 std::back_inserter(descriptors),
+                 [](auto& descriptor) -> BluetoothDescriptor* {
+                   return descriptor.get();
+                 });
+
+  return descriptors;
 }
 
 void BluetoothCharacteristic::Read(
