@@ -92,11 +92,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       }
 
     } else if (method_call.method_name() == "setLogLevel") {
-      /**
-       * @brief plugin should log everything despite the log level.
-       *
-       */
-
       result->Success(flutter::EncodableValue(NULL));
 
     } else if (method_call.method_name() == "state") {
@@ -177,8 +172,9 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
         result->Success(
             flutter::EncodableValue(flutter_blue_tizen::MessageToVector(res)));
-      } else
+      } else {
         result->Error("device not available");
+      }
 
     } else if (method_call.method_name() == "discoverServices") {
       std::string device_id = std::get<std::string>(args);
@@ -195,8 +191,9 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
             "DiscoverServicesResult",
             flutter_blue_tizen::GetProtoServiceDiscoveryResult(*device,
                                                                services));
-      } else
+      } else {
         result->Error("device not available");
+      }
 
     } else if (method_call.method_name() == "services") {
       std::string device_id = std::get<std::string>(args);
@@ -212,8 +209,9 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
                 *device, device->GetServices());
         result->Success(flutter::EncodableValue(
             flutter_blue_tizen::MessageToVector(proto_services)));
-      } else
+      } else {
         result->Error("device not available");
+      }
 
     } else if (method_call.method_name() == "readCharacteristic") {
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);

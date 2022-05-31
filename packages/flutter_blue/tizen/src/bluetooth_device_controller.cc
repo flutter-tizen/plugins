@@ -94,8 +94,9 @@ bt_gatt_client_h BluetoothDeviceController::GetGattClient(
 
     if ((res == BT_ERROR_NONE || res == BT_ERROR_ALREADY_DONE) && client) {
       gatt_clients_.var_.emplace(address, client);
-    } else
+    } else {
       throw BtException(res, "bt_gatt_client_create");
+    }
   } else {
     client = it->second;
   }
@@ -209,9 +210,8 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(active_devices_.mutex_);
         auto it = active_devices_.var_.find(scope->device_address);
-        if (it != active_devices_.var_.end()) {
+        if (it != active_devices_.var_.end())
           scope->callback(mtu_info->status == 0, *it->second);
-        }
         delete scope;
       },
       scope);

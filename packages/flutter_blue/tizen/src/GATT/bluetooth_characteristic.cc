@@ -40,9 +40,9 @@ BluetoothCharacteristic::ToProtoCharacteristic() const noexcept {
   proto.set_allocated_properties(new proto::gen::CharacteristicProperties(
       GetProtoCharacteristicProperties(Properties())));
   proto.set_value(Value());
-  if (service_.GetType() == ServiceType::kPrimary)
+  if (service_.GetType() == ServiceType::kPrimary) {
     proto.set_serviceuuid(service_.Uuid());
-  else {
+  } else {
     SecondaryService& sec = dynamic_cast<SecondaryService&>(service_);
     proto.set_serviceuuid(sec.Uuid());
     proto.set_secondaryserviceuuid(sec.PrimaryUuid());
