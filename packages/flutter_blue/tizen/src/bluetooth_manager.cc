@@ -16,22 +16,22 @@ using State = BluetoothDeviceController::State;
 
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     : notifications_handler_(notificationsHandler) {
-  int res = IsBLEAvailable();
-  if (res == 0) {
+  int ret = IsBLEAvailable();
+  if (ret == 0) {
     LOG_ERROR("Bluetooth is not available on this device!",
-              get_error_message(res));
+              get_error_message(ret));
     return;
   }
-  res = bt_initialize();
-  if (res != 0) {
-    LOG_ERROR("[bt_initialize]", get_error_message(res));
+  ret = bt_initialize();
+  if (ret != 0) {
+    LOG_ERROR("[bt_initialize]", get_error_message(ret));
     return;
   }
-  res = bt_gatt_set_connection_state_changed_cb(
+  ret = bt_gatt_set_connection_state_changed_cb(
       &BluetoothDeviceController::ConnectionStateCallback, this);
-  if (res != 0) {
+  if (ret != 0) {
     LOG_ERROR("[bt_gatt_set_connection_state_changed_cb]",
-              get_error_message(res));
+              get_error_message(ret));
     return;
   }
   LOG_DEBUG("All callbacks successfully initialized.");
@@ -77,14 +77,15 @@ void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
     throw BtException("could not find device of id=" + request.remote_id());
 
   device->RequestMtu(request.mtu(), [](auto status, auto& bluetooth_device) {
-    proto::gen::MtuSizeResponse res;
-    res.set_remote_id(bluetooth_device.cAddress());
+    proto::gen::MtuSizeResponse mtu_size_response;
+    mtu_size_response.set_remote_id(bluetooth_device.cAddress());
     try {
-      res.set_mtu(bluetooth_device.GetMtu());
+      mtu_size_response.set_mtu(bluetooth_device.GetMtu());
     } catch (const std::exception& e) {
       // LOG_ERROR(e.what());
     }
-    bluetooth_device.cNotificationsHandler().NotifyUIThread("MtuSize", res);
+    bluetooth_device.cNotificationsHandler().NotifyUIThread("MtuSize",
+                                                            mtu_size_response);
     LOG_DEBUG("mtu request callback sent response!");
   });
 }
@@ -122,9 +123,9 @@ btGatt::BluetoothDescriptor* BluetoothManager::LocateDescriptor(
 
 bool BluetoothManager::IsBLEAvailable() {
   bool state = false;
-  auto res = system_info_get_platform_bool(
+  auto ret = system_info_get_platform_bool(
       "http://tizen.org/feature/network.bluetooth.le", &state);
-  if (res) throw BtException(res, "system_info_get_platform_bool");
+  if (ret) throw BtException(ret, "system_info_get_platform_bool");
 
   return state;
 }
@@ -132,15 +133,15 @@ bool BluetoothManager::IsBLEAvailable() {
 proto::gen::BluetoothState BluetoothManager::BluetoothState() const noexcept {
   /* Checks whether the Bluetooth adapter is enabled */
   bt_adapter_state_e adapter_state;
-  int res = bt_adapter_get_state(&adapter_state);
+  int ret = bt_adapter_get_state(&adapter_state);
   proto::gen::BluetoothState state;
-  if (res == BT_ERROR_NONE) {
+  if (ret == BT_ERROR_NONE) {
     if (adapter_state == BT_ADAPTER_ENABLED) {
       state.set_state(proto::gen::BluetoothState_State_ON);
     } else {
       state.set_state(proto::gen::BluetoothState_State_OFF);
     }
-  } else if (res == BT_ERROR_NOT_INITIALIZED) {
+  } else if (ret == BT_ERROR_NOT_INITIALIZED) {
     state.set_state(proto::gen::BluetoothState_State_UNAVAILABLE);
   } else {
     state.set_state(proto::gen::BluetoothState_State_UNKNOWN);
@@ -155,44 +156,44 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   bluetooth_devices_.var_.clear();
   scan_allow_duplicates_ = scan_settings.allow_duplicates();
-  auto res = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
-  LOG_ERROR("bt_adapter_le_set_scan_mode", get_error_message(res));
+  auto ret = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
+  LOG_ERROR("bt_adapter_le_set_scan_mode", get_error_message(ret));
 
-  if (res) throw BtException(res, "bt_adapter_le_set_scan_mode");
+  if (ret) throw BtException(ret, "bt_adapter_le_set_scan_mode");
 
   int uuid_count = scan_settings.service_uuids_size();
   std::vector<bt_scan_filter_h> filters(uuid_count);
 
   for (int i = 0; i < uuid_count; ++i) {
     const std::string& uuid = scan_settings.service_uuids()[i];
-    res = bt_adapter_le_scan_filter_create(&filters[i]);
+    ret = bt_adapter_le_scan_filter_create(&filters[i]);
 
-    LOG_ERROR("bt_adapter_le_scan_filter_create", get_error_message(res));
-    if (res) throw BtException(res, "bt_adapter_le_scan_filter_create");
+    LOG_ERROR("bt_adapter_le_scan_filter_create", get_error_message(ret));
+    if (ret) throw BtException(ret, "bt_adapter_le_scan_filter_create");
 
-    res =
+    ret =
         bt_adapter_le_scan_filter_set_device_address(filters[i], uuid.c_str());
 
     LOG_ERROR("bt_adapter_le_scan_filter_set_device_address",
-              get_error_message(res));
+              get_error_message(ret));
 
-    if (res)
-      throw BtException(res, "bt_adapter_le_scan_filter_set_device_address");
+    if (ret)
+      throw BtException(ret, "bt_adapter_le_scan_filter_set_device_address");
   }
 
-  if (!res) {
-    res = bt_adapter_le_start_scan(&BluetoothManager::ScanCallback, this);
-    LOG_ERROR("bt_adapter_le_start_scan", get_error_message(res));
-    if (res) throw BtException(res, "bt_adapter_le_start_scan");
+  if (!ret) {
+    ret = bt_adapter_le_start_scan(&BluetoothManager::ScanCallback, this);
+    LOG_ERROR("bt_adapter_le_start_scan", get_error_message(ret));
+    if (ret) throw BtException(ret, "bt_adapter_le_start_scan");
   } else {
-    throw BtException(res, "cannot start scan");
+    throw BtException(ret, "cannot start scan");
   }
 
   for (auto& filter : filters) {
-    res = bt_adapter_le_scan_filter_destroy(&filter);
-    LOG_ERROR("bt_adapter_le_scan_filter_destroy", get_error_message(res));
+    ret = bt_adapter_le_scan_filter_destroy(&filter);
+    LOG_ERROR("bt_adapter_le_scan_filter_destroy", get_error_message(ret));
 
-    if (res) throw BtException(res, "bt_adapter_le_scan_filter_destroy");
+    if (ret) throw BtException(ret, "bt_adapter_le_scan_filter_destroy");
   }
 }
 
@@ -255,13 +256,13 @@ void BluetoothManager::StopBluetoothDeviceScanLE() {
   auto bt_state = BluetoothState().state();
   if (bt_state == proto::gen::BluetoothState_State_ON) {
     bool is_discovering;
-    auto res = bt_adapter_le_is_discovering(&is_discovering);
-    if (!res && is_discovering) {
-      res = bt_adapter_le_stop_scan();
-      LOG_ERROR("bt_adapter_le_stop_scan", res);
+    auto ret = bt_adapter_le_is_discovering(&is_discovering);
+    if (!ret && is_discovering) {
+      ret = bt_adapter_le_stop_scan();
+      LOG_ERROR("bt_adapter_le_stop_scan", ret);
     }
 
-    LOG_ERROR("bt_adapter_le_is_discovering", res);
+    LOG_ERROR("bt_adapter_le_is_discovering", ret);
   }
 }
 
@@ -312,13 +313,15 @@ void BluetoothManager::ReadCharacteristic(
       request.secondary_service_uuid(), request.characteristic_uuid());
 
   characteristic->Read([](auto& characteristic) -> void {
-    proto::gen::ReadCharacteristicResponse res;
-    res.set_remote_id(characteristic.cService().cDevice().cAddress());
-    res.set_allocated_characteristic(new proto::gen::BluetoothCharacteristic(
-        characteristic.ToProtoCharacteristic()));
+    proto::gen::ReadCharacteristicResponse read_characteristic_result;
+    read_characteristic_result.set_remote_id(
+        characteristic.cService().cDevice().cAddress());
+    read_characteristic_result.set_allocated_characteristic(
+        new proto::gen::BluetoothCharacteristic(
+            characteristic.ToProtoCharacteristic()));
 
     characteristic.cService().cDevice().cNotificationsHandler().NotifyUIThread(
-        "ReadCharacteristicResponse", res);
+        "ReadCharacteristicResponse", read_characteristic_result);
     LOG_DEBUG("finished characteristic read cb");
   });
 }
@@ -349,14 +352,15 @@ void BluetoothManager::ReadDescriptor(
       request->set_secondary_service_uuid(secondary.Uuid());
     }
 
-    proto::gen::ReadDescriptorResponse res;
-    res.set_allocated_request(request);
-    res.set_allocated_value(new std::string(descriptor.Value()));
+    proto::gen::ReadDescriptorResponse read_descriptor_response;
+    read_descriptor_response.set_allocated_request(request);
+    read_descriptor_response.set_allocated_value(
+        new std::string(descriptor.Value()));
     descriptor.cCharacteristic()
         .cService()
         .cDevice()
         .cNotificationsHandler()
-        .NotifyUIThread("ReadDescriptorResponse", res);
+        .NotifyUIThread("ReadDescriptorResponse", read_descriptor_response);
   });
 }
 
@@ -370,27 +374,34 @@ void BluetoothManager::WriteCharacteristic(
   characteristic->Write(
       request.value(), request.write_type(),
       [](bool success, auto& characteristic) {
-        proto::gen::WriteCharacteristicResponse res;
-        proto::gen::WriteCharacteristicRequest* request =
+        proto::gen::WriteCharacteristicResponse write_characteristic_response;
+        proto::gen::WriteCharacteristicRequest* write_characteristic_request =
             new proto::gen::WriteCharacteristicRequest();
-        request->set_remote_id(characteristic.cService().cDevice().cAddress());
-        request->set_characteristic_uuid(characteristic.Uuid());
+        write_characteristic_request->set_remote_id(
+            characteristic.cService().cDevice().cAddress());
+        write_characteristic_request->set_characteristic_uuid(
+            characteristic.Uuid());
 
         if (characteristic.cService().GetType() ==
             btGatt::ServiceType::kPrimary) {
-          request->set_service_uuid(characteristic.cService().Uuid());
+          write_characteristic_request->set_service_uuid(
+              characteristic.cService().Uuid());
         } else {
           auto& secondary = dynamic_cast<const btGatt::SecondaryService&>(
               characteristic.cService());
-          request->set_service_uuid(secondary.cPrimary().Uuid());
-          request->set_secondary_service_uuid(secondary.Uuid());
+          write_characteristic_request->set_service_uuid(
+              secondary.cPrimary().Uuid());
+          write_characteristic_request->set_secondary_service_uuid(
+              secondary.Uuid());
         }
-        res.set_success(success);
-        res.set_allocated_request(request);
+        write_characteristic_response.set_success(success);
+        write_characteristic_response.set_allocated_request(
+            write_characteristic_request);
         characteristic.cService()
             .cDevice()
             .cNotificationsHandler()
-            .NotifyUIThread("WriteCharacteristicResponse", res);
+            .NotifyUIThread("WriteCharacteristicResponse",
+                            write_characteristic_response);
         LOG_DEBUG("finished characteristic write cb");
       });
 }
@@ -423,15 +434,16 @@ void BluetoothManager::WriteDescriptor(
             descriptor.cCharacteristic().cService().cDevice().cAddress());
         request->set_characteristic_uuid(descriptor.cCharacteristic().Uuid());
 
-        proto::gen::WriteDescriptorResponse res;
-        res.set_success(success);
-        res.set_allocated_request(request);
+        proto::gen::WriteDescriptorResponse write_descriptor_response;
+        write_descriptor_response.set_success(success);
+        write_descriptor_response.set_allocated_request(request);
 
         descriptor.cCharacteristic()
             .cService()
             .cDevice()
             .cNotificationsHandler()
-            .NotifyUIThread("WriteDescriptorResponse", res);
+            .NotifyUIThread("WriteDescriptorResponse",
+                            write_descriptor_response);
       });
 }
 

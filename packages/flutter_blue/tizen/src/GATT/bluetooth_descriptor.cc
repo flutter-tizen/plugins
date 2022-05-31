@@ -42,7 +42,7 @@ void BluetoothDescriptor::Read(
 
   auto scope =
       new Scope{callback, Uuid()};  // unfortunately it requires raw ptr
-  int res = bt_gatt_client_read_value(
+  int ret = bt_gatt_client_read_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
@@ -59,8 +59,8 @@ void BluetoothDescriptor::Read(
       },
       scope);
 
-  LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
-  if (res) throw BtException("could not read descriptor");
+  LOG_ERROR("bt_gatt_client_read_value", get_error_message(ret));
+  if (ret) throw BtException("could not read descriptor");
 }
 
 void BluetoothDescriptor::Write(
@@ -72,15 +72,15 @@ void BluetoothDescriptor::Write(
     const std::string descriptor_uuid;
   };
 
-  int res = bt_gatt_set_value(handle_, value.c_str(), value.size());
-  LOG_ERROR("bt_gatt_set_value", get_error_message(res));
+  int ret = bt_gatt_set_value(handle_, value.c_str(), value.size());
+  LOG_ERROR("bt_gatt_set_value", get_error_message(ret));
 
-  if (res) throw BtException("could not set value");
+  if (ret) throw BtException("could not set value");
 
   auto scope = new Scope{callback, Uuid()};  // unfortunately it requires raw
                                              // ptr
 
-  res = bt_gatt_client_write_value(
+  ret = bt_gatt_client_write_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         LOG_ERROR("bt_gatt_client_request_completed_cb",
@@ -99,9 +99,9 @@ void BluetoothDescriptor::Write(
       },
       scope);
 
-  LOG_ERROR("bt_gatt_client_write_value", get_error_message(res));
+  LOG_ERROR("bt_gatt_client_write_value", get_error_message(ret));
 
-  if (res) throw BtException("could not write value to remote");
+  if (ret) throw BtException("could not write value to remote");
 }
 
 const BluetoothCharacteristic& BluetoothDescriptor::cCharacteristic()

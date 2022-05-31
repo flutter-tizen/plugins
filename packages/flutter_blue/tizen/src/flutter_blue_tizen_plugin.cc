@@ -71,9 +71,9 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     google::protobuf::ShutdownProtobufLibrary();
 
-    auto res = bt_deinitialize();
+    auto ret = bt_deinitialize();
 
-    LOG_ERROR("bt_adapter_le_is_discovering", get_error_message(res));
+    LOG_ERROR("bt_adapter_le_is_discovering", get_error_message(ret));
   }
 
  private:
@@ -165,13 +165,14 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       if (it != bluetooth_manager_->bluetoothDevices().var_.end()) {
         auto& device = it->second;
 
-        proto::gen::DeviceStateResponse res;
-        res.set_remote_id(device->cAddress());
-        res.set_state(flutter_blue_tizen::BluetoothDeviceController::
-                          LocalToProtoDeviceState(device->GetState()));
+        proto::gen::DeviceStateResponse device_state_response;
+        device_state_response.set_remote_id(device->cAddress());
+        device_state_response.set_state(
+            flutter_blue_tizen::BluetoothDeviceController::
+                LocalToProtoDeviceState(device->GetState()));
 
-        result->Success(
-            flutter::EncodableValue(flutter_blue_tizen::MessageToVector(res)));
+        result->Success(flutter::EncodableValue(
+            flutter_blue_tizen::MessageToVector(device_state_response)));
       } else {
         result->Error("device not available");
       }

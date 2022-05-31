@@ -15,7 +15,7 @@ namespace btGatt {
 BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
                                                  BluetoothService& service)
     : handle_(handle), service_(service) {
-  int res = bt_gatt_characteristic_foreach_descriptors(
+  int ret = bt_gatt_characteristic_foreach_descriptors(
       handle,
       [](int total, int index, bt_gatt_h descriptor_handle,
          void* scope_ptr) -> bool {
@@ -27,7 +27,7 @@ BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle,
         return true;
       },
       this);
-  if (res) throw BtException(res, "bt_gatt_characteristic_foreach_descriptors");
+  if (ret) throw BtException(ret, "bt_gatt_characteristic_foreach_descriptors");
   std::scoped_lock lock(active_characteristics_.mutex_);
   active_characteristics_.var_[Uuid()] = this;
 }
@@ -80,7 +80,7 @@ void BluetoothCharacteristic::Read(
   };
 
   Scope* scope = new Scope{callback, Uuid()};
-  int res = bt_gatt_client_read_value(
+  int ret = bt_gatt_client_read_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
@@ -97,8 +97,8 @@ void BluetoothCharacteristic::Read(
       },
       scope);
 
-  LOG_ERROR("bt_gatt_client_read_value", get_error_message(res));
-  if (res) throw BtException(res, "could not read characteristic");
+  LOG_ERROR("bt_gatt_client_read_value", get_error_message(ret));
+  if (ret) throw BtException(ret, "could not read characteristic");
 }
 
 void BluetoothCharacteristic::Write(
@@ -110,23 +110,23 @@ void BluetoothCharacteristic::Write(
     const std::string characteristic_uuid;
   };
 
-  int res = bt_gatt_characteristic_set_write_type(
+  int ret = bt_gatt_characteristic_set_write_type(
       handle_, without_response ? BT_GATT_WRITE_TYPE_WRITE_NO_RESPONSE
                                 : BT_GATT_WRITE_TYPE_WRITE);
-  LOG_ERROR("bt_gatt_characteristic_set_write_type", get_error_message(res));
+  LOG_ERROR("bt_gatt_characteristic_set_write_type", get_error_message(ret));
 
-  if (res)
-    throw BtException(res,
+  if (ret)
+    throw BtException(ret,
                       "could not set write type to characteristic " + Uuid());
 
-  res = bt_gatt_set_value(handle_, value.c_str(), value.size());
-  LOG_ERROR("bt_gatt_set_value", get_error_message(res));
+  ret = bt_gatt_set_value(handle_, value.c_str(), value.size());
+  LOG_ERROR("bt_gatt_set_value", get_error_message(ret));
 
-  if (res) throw BtException(res, "could not set value");
+  if (ret) throw BtException(ret, "could not set value");
 
   Scope* scope = new Scope{callback, Uuid()};
 
-  res = bt_gatt_client_write_value(
+  ret = bt_gatt_client_write_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         LOG_ERROR("bt_gatt_client_request_completed_cb",
@@ -144,15 +144,15 @@ void BluetoothCharacteristic::Write(
         delete scope;
       },
       scope);
-  LOG_ERROR("bt_gatt_client_write_value", get_error_message(res));
+  LOG_ERROR("bt_gatt_client_write_value", get_error_message(ret));
 
-  if (res) throw BtException("could not write value to remote");
+  if (ret) throw BtException("could not write value to remote");
 }
 
 int BluetoothCharacteristic::Properties() const noexcept {
   auto properties = 0;
-  auto res = bt_gatt_characteristic_get_properties(handle_, &properties);
-  LOG_ERROR("bt_gatt_characteristic_get_properties", get_error_message(res));
+  auto ret = bt_gatt_characteristic_get_properties(handle_, &properties);
+  LOG_ERROR("bt_gatt_characteristic_get_properties", get_error_message(ret));
   return properties;
 }
 
@@ -167,7 +167,7 @@ void BluetoothCharacteristic::SetNotifyCallback(
 
   std::string* uuid = new std::string(Uuid());
 
-  auto res = bt_gatt_client_set_characteristic_value_changed_cb(
+  auto ret = bt_gatt_client_set_characteristic_value_changed_cb(
       handle_,
       [](bt_gatt_h characteristics_handle, char* value, int length,
          void* scope_ptr) {
@@ -185,9 +185,9 @@ void BluetoothCharacteristic::SetNotifyCallback(
       },
       uuid);
   LOG_ERROR("bt_gatt_client_set_characteristic_value_changed_cb",
-            get_error_message(res));
-  if (res)
-    throw BtException(res,
+            get_error_message(ret));
+  if (ret)
+    throw BtException(ret,
                       "bt_gatt_client_set_characteristic_value_changed_cb");
 }
 
@@ -195,9 +195,9 @@ void BluetoothCharacteristic::UnsetNotifyCallback() {
   if (cService().cDevice().GetState() ==
           BluetoothDeviceController::State::kConnected &&
       notify_callback_) {
-    auto res = bt_gatt_client_unset_characteristic_value_changed_cb(handle_);
+    auto ret = bt_gatt_client_unset_characteristic_value_changed_cb(handle_);
     LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb",
-              get_error_message(res));
+              get_error_message(ret));
   }
   notify_callback_ = nullptr;
 }

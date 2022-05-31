@@ -8,7 +8,7 @@ namespace flutter_blue_tizen {
 namespace btGatt {
 
 BluetoothService::BluetoothService(bt_gatt_h handle) : handle_(handle) {
-  int res = bt_gatt_service_foreach_characteristics(
+  int ret = bt_gatt_service_foreach_characteristics(
       handle,
       [](int total, int index, bt_gatt_h handle, void* scope_ptr) -> bool {
         auto& service = *static_cast<BluetoothService*>(scope_ptr);
@@ -18,13 +18,13 @@ BluetoothService::BluetoothService(bt_gatt_h handle) : handle_(handle) {
       },
       this);
 
-  LOG_ERROR("bt_gatt_service_foreach_characteristics", get_error_message(res));
+  LOG_ERROR("bt_gatt_service_foreach_characteristics", get_error_message(ret));
 }
 
 PrimaryService::PrimaryService(bt_gatt_h handle,
                                BluetoothDeviceController& device)
     : BluetoothService(handle), device_(device) {
-  int res = bt_gatt_service_foreach_included_services(
+  int ret = bt_gatt_service_foreach_included_services(
       handle,
       [](int total, int index, bt_gatt_h handle, void* scope_ptr) -> bool {
         auto& service = *static_cast<PrimaryService*>(scope_ptr);
@@ -34,7 +34,7 @@ PrimaryService::PrimaryService(bt_gatt_h handle,
       },
       this);
   LOG_ERROR("bt_gatt_service_foreach_included_services",
-            get_error_message(res));
+            get_error_message(ret));
 }
 
 SecondaryService::SecondaryService(bt_gatt_h service_handle,
