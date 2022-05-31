@@ -9,8 +9,6 @@
 
 namespace flutter_blue_tizen {
 
-class BluetoothDeviceController;
-
 namespace btGatt {
 
 enum class ServiceType {
@@ -22,15 +20,13 @@ class SecondaryService;
 
 class BluetoothService {
  public:
-  virtual proto::gen::BluetoothService ToProtoService() const noexcept = 0;
-
-  virtual const BluetoothDeviceController& cDevice() const noexcept = 0;
-
   virtual ServiceType GetType() const noexcept = 0;
 
   std::string Uuid() const noexcept;
 
-  BluetoothCharacteristic* GetCharacteristic(const std::string& uuid);
+  std::vector<BluetoothCharacteristic*> GetCharacteristics() const;
+
+  BluetoothCharacteristic* GetCharacteristic(const std::string& uuid) const;
 
  protected:
   bt_gatt_h handle_;
@@ -41,28 +37,24 @@ class BluetoothService {
 
   BluetoothService(const BluetoothService&) = default;
 
-  virtual ~BluetoothService();
+  virtual ~BluetoothService() = default;
 };
 
 class PrimaryService : public BluetoothService {
  public:
-  PrimaryService(bt_gatt_h handle, BluetoothDeviceController& device);
+  PrimaryService(bt_gatt_h handle);
 
   PrimaryService(const PrimaryService&) = default;
 
   ~PrimaryService();
 
-  const BluetoothDeviceController& cDevice() const noexcept override;
-
-  proto::gen::BluetoothService ToProtoService() const noexcept override;
-
   ServiceType GetType() const noexcept override;
 
-  SecondaryService* GetSecondary(const std::string& uuid) noexcept;
+  SecondaryService* GetSecondary(const std::string& uuid) const noexcept;
+
+  std::vector<SecondaryService*> getSecondaryServices() const noexcept;
 
  private:
-  BluetoothDeviceController& device_;
-
   std::vector<std::unique_ptr<SecondaryService>> secondary_services_;
 };
 
@@ -74,11 +66,7 @@ class SecondaryService : public BluetoothService {
 
   ~SecondaryService();
 
-  const BluetoothDeviceController& cDevice() const noexcept override;
-
   const PrimaryService& cPrimary() const noexcept;
-
-  proto::gen::BluetoothService ToProtoService() const noexcept override;
 
   ServiceType GetType() const noexcept override;
 

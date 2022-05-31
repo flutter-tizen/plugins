@@ -70,6 +70,10 @@ class BluetoothManager {
       const std::string& remote_id, const std::string& primary_uuid,
       const std::string& secondary_uuid);
 
+  btGatt::BluetoothService* LocateService(const std::string& remote_id,
+                                          const std::string& primary_uuid,
+                                          const std::string& secondary_uuid);
+
   btGatt::BluetoothCharacteristic* LocateCharacteristic(
       const std::string& remote_id, const std::string& primary_uuid,
       const std::string& secondary_uuid,

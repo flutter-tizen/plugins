@@ -41,21 +41,25 @@ void BluetoothManager::SetNotification(
     const proto::gen::SetNotificationRequest& request) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
 
+  auto device = LocateDevice(request.remote_id());
+
+  auto service = LocateService(request.remote_id(), request.service_uuid(),
+                               request.secondary_service_uuid());
+
   auto characteristic = LocateCharacteristic(
       request.remote_id(), request.service_uuid(),
       request.secondary_service_uuid(), request.characteristic_uuid());
 
   if (request.enable()) {
-    characteristic->SetNotifyCallback([](auto& characteristic) {
+    characteristic->SetNotifyCallback([device, service](auto& characteristic) {
       proto::gen::SetNotificationResponse response;
-      response.set_remote_id(characteristic.cService().cDevice().cAddress());
+      response.set_remote_id(device->cAddress());
       response.set_allocated_characteristic(
           new proto::gen::BluetoothCharacteristic(
-              characteristic.ToProtoCharacteristic()));
-      characteristic.cService()
-          .cDevice()
-          .cNotificationsHandler()
-          .NotifyUIThread("SetNotificationResponse", response);
+              ToProtoCharacteristic(*device, *service, characteristic)));
+
+      device->cNotificationsHandler().NotifyUIThread("SetNotificationResponse",
+                                                     response);
       LOG_DEBUG("notified UI thread - characteristic written by remote");
     });
   } else {
@@ -106,7 +110,8 @@ btGatt::PrimaryService* BluetoothManager::LocatePrimaryService(
 
   auto primary = device->GetService(primary_uuid);
 
-  if (!primary) throw BtException("could not locate service " + primary_uuid);
+  if (!primary)
+    throw BtException("could not locate primary service " + primary_uuid);
 
   return primary;
 }
@@ -119,26 +124,30 @@ btGatt::SecondaryService* BluetoothManager::LocateSecondaryService(
   auto secondary = primary->GetSecondary(secondary_uuid);
 
   if (!secondary)
-    throw BtException("could not locate service " + secondary_uuid);
+    throw BtException("could not locate secondary service " + secondary_uuid);
   return secondary;
+}
+
+btGatt::BluetoothService* BluetoothManager::LocateService(
+    const std::string& remote_id, const std::string& primary_uuid,
+    const std::string& secondary_uuid) {
+  if (secondary_uuid.empty())
+    return LocatePrimaryService(remote_id, primary_uuid);
+
+  return LocateSecondaryService(remote_id, primary_uuid, secondary_uuid);
 }
 
 btGatt::BluetoothCharacteristic* BluetoothManager::LocateCharacteristic(
     const std::string& remote_id, const std::string& primary_uuid,
     const std::string& secondary_uuid, const std::string& characteristic_uuid) {
-  auto device = LocateDevice(remote_id);
+  auto service = LocateService(remote_id, primary_uuid, secondary_uuid);
 
-  if (device) {
-    auto primary = device->GetService(primary_uuid);
-    btGatt::BluetoothService* service = primary;
-    if (primary && !secondary_uuid.empty()) {
-      service = primary->GetSecondary(secondary_uuid);
-    }
-    if (service) {
-      return service->GetCharacteristic(characteristic_uuid);
-    }
-  }
-  throw BtException("could not locate characteristic " + characteristic_uuid);
+  auto characteristic = service->GetCharacteristic(characteristic_uuid);
+
+  if (!characteristic)
+    throw BtException("could not locate characteristic " + characteristic_uuid);
+
+  return characteristic;
 }
 
 btGatt::BluetoothDescriptor* BluetoothManager::LocateDescriptor(
@@ -340,21 +349,25 @@ BluetoothManager::bluetoothDevices() noexcept {
 void BluetoothManager::ReadCharacteristic(
     const proto::gen::ReadCharacteristicRequest& request) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
+
+  auto device = LocateDevice(request.remote_id());
+
   auto characteristic = LocateCharacteristic(
       request.remote_id(), request.service_uuid(),
       request.secondary_service_uuid(), request.characteristic_uuid());
 
-  auto device = LocateDevice(request.remote_id());
+  auto service = LocateService(request.remote_id(), request.service_uuid(),
+                               request.secondary_service_uuid());
 
-  characteristic->Read([device](auto& characteristic) -> void {
+  characteristic->Read([device, service](auto& characteristic) -> void {
     proto::gen::ReadCharacteristicResponse read_characteristic_result;
     read_characteristic_result.set_remote_id(device->cAddress());
     read_characteristic_result.set_allocated_characteristic(
         new proto::gen::BluetoothCharacteristic(
-            characteristic.ToProtoCharacteristic()));
+            ToProtoCharacteristic(*device, *service, characteristic)));
 
-    characteristic.cService().cDevice().cNotificationsHandler().NotifyUIThread(
-        "ReadCharacteristicResponse", read_characteristic_result);
+    device->cNotificationsHandler().NotifyUIThread("ReadCharacteristicResponse",
+                                                   read_characteristic_result);
     LOG_DEBUG("finished characteristic read cb");
   });
 }
@@ -370,40 +383,37 @@ void BluetoothManager::ReadDescriptor(
       request.secondary_service_uuid(), request.characteristic_uuid(),
       request.descriptor_uuid());
 
-  descriptor->Read([request](auto& descriptor) -> void {
+  descriptor->Read([device, request](auto& descriptor) -> void {
     proto::gen::ReadDescriptorResponse read_descriptor_response;
     read_descriptor_response.set_allocated_request(
         new proto::gen::ReadDescriptorRequest(request));
     read_descriptor_response.set_allocated_value(
         new std::string(descriptor.Value()));
-    descriptor.cCharacteristic()
-        .cService()
-        .cDevice()
-        .cNotificationsHandler()
-        .NotifyUIThread("ReadDescriptorResponse", read_descriptor_response);
+    device->cNotificationsHandler().NotifyUIThread("ReadDescriptorResponse",
+                                                   read_descriptor_response);
   });
 }
 
 void BluetoothManager::WriteCharacteristic(
     const proto::gen::WriteCharacteristicRequest& request) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
+
+  auto device = LocateDevice(request.remote_id());
+
   auto characteristic = LocateCharacteristic(
       request.remote_id(), request.service_uuid(),
       request.secondary_service_uuid(), request.characteristic_uuid());
 
   characteristic->Write(
       request.value(), request.write_type(),
-      [request](bool success, auto& characteristic) {
+      [device, request](bool success, auto& characteristic) {
         proto::gen::WriteCharacteristicResponse write_characteristic_response;
 
         write_characteristic_response.set_success(success);
         write_characteristic_response.set_allocated_request(
             new proto::gen::WriteCharacteristicRequest(request));
-        characteristic.cService()
-            .cDevice()
-            .cNotificationsHandler()
-            .NotifyUIThread("WriteCharacteristicResponse",
-                            write_characteristic_response);
+        device->cNotificationsHandler().NotifyUIThread(
+            "WriteCharacteristicResponse", write_characteristic_response);
         LOG_DEBUG("finished characteristic write cb");
       });
 }
@@ -411,24 +421,24 @@ void BluetoothManager::WriteCharacteristic(
 void BluetoothManager::WriteDescriptor(
     const proto::gen::WriteDescriptorRequest& request) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
+
+  auto device = LocateDevice(request.remote_id());
+
   auto descriptor = LocateDescriptor(
       request.remote_id(), request.service_uuid(),
       request.secondary_service_uuid(), request.characteristic_uuid(),
       request.descriptor_uuid());
 
   descriptor->Write(
-      request.value(), [request](auto success, auto& descriptor) -> void {
+      request.value(),
+      [device, request](auto success, auto& descriptor) -> void {
         proto::gen::WriteDescriptorResponse write_descriptor_response;
         write_descriptor_response.set_success(success);
         write_descriptor_response.set_allocated_request(
             new proto::gen::WriteDescriptorRequest(request));
 
-        descriptor.cCharacteristic()
-            .cService()
-            .cDevice()
-            .cNotificationsHandler()
-            .NotifyUIThread("WriteDescriptorResponse",
-                            write_descriptor_response);
+        device->cNotificationsHandler().NotifyUIThread(
+            "WriteDescriptorResponse", write_descriptor_response);
       });
 }
 

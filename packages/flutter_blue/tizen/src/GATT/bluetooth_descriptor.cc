@@ -8,21 +8,9 @@
 namespace flutter_blue_tizen {
 namespace btGatt {
 
-BluetoothDescriptor::BluetoothDescriptor(
-    bt_gatt_h handle, BluetoothCharacteristic& characteristic)
-    : handle_(handle), characteristic_(characteristic) {
+BluetoothDescriptor::BluetoothDescriptor(bt_gatt_h handle) : handle_(handle) {
   std::scoped_lock lock(active_descriptors_.mutex_);
   active_descriptors_.var_[Uuid()] = this;
-}
-
-proto::gen::BluetoothDescriptor BluetoothDescriptor::ToProtoDescriptor()
-    const noexcept {
-  proto::gen::BluetoothDescriptor proto;
-  proto.set_remote_id(characteristic_.cService().cDevice().cAddress());
-  proto.set_serviceuuid(characteristic_.cService().Uuid());
-  proto.set_characteristicuuid(characteristic_.Uuid());
-  proto.set_uuid(Uuid());
-  return proto;
 }
 
 std::string BluetoothDescriptor::Uuid() const noexcept {
@@ -102,11 +90,6 @@ void BluetoothDescriptor::Write(
   LOG_ERROR("bt_gatt_client_write_value", get_error_message(ret));
 
   if (ret) throw BtException("could not write value to remote");
-}
-
-const BluetoothCharacteristic& BluetoothDescriptor::cCharacteristic()
-    const noexcept {
-  return characteristic_;
 }
 
 BluetoothDescriptor::~BluetoothDescriptor() {

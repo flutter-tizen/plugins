@@ -12,16 +12,11 @@
 namespace flutter_blue_tizen {
 namespace btGatt {
 
-class BluetoothCharacteristic;
-
 class BluetoothDescriptor {
  public:
-  BluetoothDescriptor(bt_gatt_h handle,
-                      BluetoothCharacteristic& characteristic);
+  BluetoothDescriptor(bt_gatt_h handle);
 
   ~BluetoothDescriptor();
-
-  proto::gen::BluetoothDescriptor ToProtoDescriptor() const noexcept;
 
   std::string Uuid() const noexcept;
 
@@ -33,12 +28,8 @@ class BluetoothDescriptor {
              const std::function<void(bool success,
                                       const BluetoothDescriptor&)>& callback);
 
-  const BluetoothCharacteristic& cCharacteristic() const noexcept;
-
  private:
   bt_gatt_h handle_;
-
-  BluetoothCharacteristic& characteristic_;
 
   /**
    * @brief used to validate whether the descriptor still exists in async

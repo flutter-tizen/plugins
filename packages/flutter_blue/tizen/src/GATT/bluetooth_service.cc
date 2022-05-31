@@ -13,7 +13,7 @@ BluetoothService::BluetoothService(bt_gatt_h handle) : handle_(handle) {
       [](int total, int index, bt_gatt_h handle, void* scope_ptr) -> bool {
         auto& service = *static_cast<BluetoothService*>(scope_ptr);
         service.characteristics_.emplace_back(
-            std::make_unique<BluetoothCharacteristic>(handle, service));
+            std::make_unique<BluetoothCharacteristic>(handle));
         return true;
       },
       this);
@@ -21,9 +21,7 @@ BluetoothService::BluetoothService(bt_gatt_h handle) : handle_(handle) {
   LOG_ERROR("bt_gatt_service_foreach_characteristics", get_error_message(ret));
 }
 
-PrimaryService::PrimaryService(bt_gatt_h handle,
-                               BluetoothDeviceController& device)
-    : BluetoothService(handle), device_(device) {
+PrimaryService::PrimaryService(bt_gatt_h handle) : BluetoothService(handle) {
   int ret = bt_gatt_service_foreach_included_services(
       handle,
       [](int total, int index, bt_gatt_h handle, void* scope_ptr) -> bool {
@@ -41,45 +39,12 @@ SecondaryService::SecondaryService(bt_gatt_h service_handle,
                                    PrimaryService& primary_service)
     : BluetoothService(service_handle), primary_service_(primary_service) {}
 
-const BluetoothDeviceController& PrimaryService::cDevice() const noexcept {
-  return device_;
-}
-
-proto::gen::BluetoothService PrimaryService::ToProtoService() const noexcept {
-  proto::gen::BluetoothService proto;
-  proto.set_remote_id(device_.cAddress());
-  proto.set_uuid(Uuid());
-  proto.set_is_primary(true);
-  for (const auto& characteristic : characteristics_) {
-    *proto.add_characteristics() = characteristic->ToProtoCharacteristic();
-  }
-  for (const auto& secondary : secondary_services_) {
-    *proto.add_included_services() = secondary->ToProtoService();
-  }
-  return proto;
-}
-
 ServiceType PrimaryService::GetType() const noexcept {
   return ServiceType::kPrimary;
 }
 
-const BluetoothDeviceController& SecondaryService::cDevice() const noexcept {
-  return primary_service_.cDevice();
-}
-
 const PrimaryService& SecondaryService::cPrimary() const noexcept {
   return primary_service_;
-}
-
-proto::gen::BluetoothService SecondaryService::ToProtoService() const noexcept {
-  proto::gen::BluetoothService proto;
-  proto.set_remote_id(primary_service_.cDevice().cAddress());
-  proto.set_uuid(Uuid());
-  proto.set_is_primary(false);
-  for (const auto& characteristic : characteristics_) {
-    *proto.add_characteristics() = characteristic->ToProtoCharacteristic();
-  }
-  return proto;
 }
 
 ServiceType SecondaryService::GetType() const noexcept {
@@ -95,22 +60,44 @@ std::string BluetoothService::Uuid() const noexcept {
 }
 
 BluetoothCharacteristic* BluetoothService::GetCharacteristic(
-    const std::string& uuid) {
-  for (auto& characteristic : characteristics_) {
-    if (characteristic->Uuid() == uuid) return characteristic.get();
-  }
-  return nullptr;
+    const std::string& uuid) const {
+  auto it = std::find_if(characteristics_.begin(), characteristics_.end(),
+                         [&uuid](const auto& characteristic) -> bool {
+                           return characteristic->Uuid() == uuid;
+                         });
+  return (it != characteristics_.end() ? it->get() : nullptr);
+}
+
+std::vector<BluetoothCharacteristic*> BluetoothService::GetCharacteristics()
+    const {
+  std::vector<BluetoothCharacteristic*> characteristics;
+  std::transform(characteristics_.begin(), characteristics_.end(),
+                 std::back_inserter(characteristics),
+                 [](auto& characteristic) -> BluetoothCharacteristic* {
+                   return characteristic.get();
+                 });
+
+  return characteristics;
 }
 
 SecondaryService* PrimaryService::GetSecondary(
-    const std::string& uuid) noexcept {
-  for (auto& service : secondary_services_) {
-    if (service->Uuid() == uuid) return service.get();
-  }
-  return nullptr;
+    const std::string& uuid) const noexcept {
+  auto it = std::find_if(
+      secondary_services_.begin(), secondary_services_.end(),
+      [&uuid](const auto& service) -> bool { return service->Uuid() == uuid; });
+  return (it != secondary_services_.end() ? it->get() : nullptr);
 }
 
-BluetoothService::~BluetoothService() {}
+std::vector<SecondaryService*> PrimaryService::getSecondaryServices()
+    const noexcept {
+  std::vector<SecondaryService*> services;
+  std::transform(
+      secondary_services_.begin(), secondary_services_.end(),
+      std::back_inserter(services),
+      [](auto& service) -> SecondaryService* { return service.get(); });
+
+  return services;
+}
 
 /**
  *

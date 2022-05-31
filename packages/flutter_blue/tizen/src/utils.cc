@@ -84,9 +84,11 @@ proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
     const BluetoothDeviceController& device,
     const std::vector<btGatt::PrimaryService*>& services) {
   proto::gen::DiscoverServicesResult discovery_result;
-  for (const auto& service : services) {
-    *discovery_result.add_services() = service->ToProtoService();
+
+  for (const auto service : services) {
+    *discovery_result.add_services() = ToProtoService(device, *service);
   }
+
   discovery_result.set_remote_id(device.cAddress());
   return discovery_result;
 }
@@ -127,7 +129,8 @@ proto::gen::BluetoothCharacteristic ToProtoCharacteristic(
     proto.set_secondaryserviceuuid(secondary.Uuid());
   }
   for (const auto descriptor : characteristic.GetDescriptors()) {
-    *proto.add_descriptors() = descriptor->ToProtoDescriptor();
+    *proto.add_descriptors() =
+        ToProtoDescriptor(device, service, characteristic, *descriptor);
   }
   return proto;
 }
@@ -142,6 +145,35 @@ proto::gen::BluetoothDescriptor ToProtoDescriptor(
   proto.set_serviceuuid(service.Uuid());
   proto.set_characteristicuuid(characteristic.Uuid());
   proto.set_uuid(descriptor.Uuid());
+  return proto;
+}
+
+proto::gen::BluetoothService ToProtoService(
+    const BluetoothDeviceController& device,
+    const btGatt::BluetoothService& service) noexcept {
+  proto::gen::BluetoothService proto;
+
+  proto.set_uuid(service.Uuid());
+  proto.set_remote_id(device.cAddress());
+
+  for (const auto characteristic : service.GetCharacteristics()) {
+    *proto.add_characteristics() =
+        ToProtoCharacteristic(device, service, *characteristic);
+  }
+
+  if (service.GetType() == btGatt::ServiceType::kPrimary) {
+    proto.set_is_primary(true);
+
+    for (const auto secondary :
+         dynamic_cast<const btGatt::PrimaryService&>(service)
+             .getSecondaryServices()) {
+      *proto.add_included_services() = ToProtoService(device, *secondary);
+    }
+
+  } else {
+    proto.set_is_primary(false);
+  }
+
   return proto;
 }
 

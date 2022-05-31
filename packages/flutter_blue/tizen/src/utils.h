@@ -69,6 +69,10 @@ proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
 proto::gen::CharacteristicProperties GetProtoCharacteristicProperties(
     int properties);
 
+proto::gen::BluetoothService ToProtoService(
+    const BluetoothDeviceController& device,
+    const btGatt::BluetoothService& service) noexcept;
+
 proto::gen::BluetoothCharacteristic ToProtoCharacteristic(
     const BluetoothDeviceController& device,
     const btGatt::BluetoothService& service,

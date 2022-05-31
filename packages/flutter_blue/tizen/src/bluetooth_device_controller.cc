@@ -129,8 +129,8 @@ void BluetoothDeviceController::DiscoverServices() {
          void* scope_ptr) -> bool {
         auto& scope = *static_cast<Scope*>(scope_ptr);
 
-        scope.services.emplace_back(std::make_unique<btGatt::PrimaryService>(
-            service_handle, scope.device));
+        scope.services.emplace_back(
+            std::make_unique<btGatt::PrimaryService>(service_handle));
 
         return true;
       },

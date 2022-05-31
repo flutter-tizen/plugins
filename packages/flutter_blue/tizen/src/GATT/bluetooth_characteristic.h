@@ -13,19 +13,13 @@
 namespace flutter_blue_tizen {
 namespace btGatt {
 
-class BluetoothService;
-
 class BluetoothCharacteristic {
  public:
   using NotifyCallback = std::function<void(const BluetoothCharacteristic&)>;
 
-  BluetoothCharacteristic(bt_gatt_h handle, BluetoothService& service);
+  BluetoothCharacteristic(bt_gatt_h handle);
 
   ~BluetoothCharacteristic() noexcept;
-
-  proto::gen::BluetoothCharacteristic ToProtoCharacteristic() const noexcept;
-
-  const BluetoothService& cService() const noexcept;
 
   std::string Uuid() const noexcept;
 
@@ -51,8 +45,6 @@ class BluetoothCharacteristic {
 
  private:
   bt_gatt_h handle_;
-
-  BluetoothService& service_;
 
   std::vector<std::unique_ptr<BluetoothDescriptor>> descriptors_;
 
