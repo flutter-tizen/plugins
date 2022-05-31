@@ -1,7 +1,8 @@
-## NEXT
+## 0.5.0
 
 * Code refactoring.
-* Update the example app.
+* Update the example app and integration_test.
+* Sync with the latest framework code.
 * Migrate to new analysis options.
 
 ## 0.4.4

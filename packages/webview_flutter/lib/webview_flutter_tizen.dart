@@ -15,7 +15,6 @@ import 'package:flutter/widgets.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-part 'src/platform_view.dart';
 part 'src/platform_view_tizen.dart';
 
 /// Builds an Tizen webview.

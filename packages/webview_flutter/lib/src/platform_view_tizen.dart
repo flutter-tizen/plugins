@@ -14,9 +14,15 @@
 
 part of '../webview_flutter_tizen.dart';
 
+enum _PlatformViewState {
+  uninitialized,
+  resizing,
+  ready,
+}
+
 class TizenView extends StatefulWidget {
   const TizenView({
-    Key? key,
+    super.key,
     required this.viewType,
     this.onPlatformViewCreated,
     this.hitTestBehavior = PlatformViewHitTestBehavior.opaque,
@@ -27,8 +33,7 @@ class TizenView extends StatefulWidget {
     this.clipBehavior = Clip.hardEdge,
   })  : assert(viewType != null),
         assert(hitTestBehavior != null),
-        assert(creationParams == null || creationParamsCodec != null),
-        super(key: key);
+        assert(creationParams == null || creationParamsCodec != null);
 
   final String viewType;
   final PlatformViewCreatedCallback? onPlatformViewCreated;
@@ -144,7 +149,6 @@ class _TizenWebViewState extends State<TizenView> {
     if (!_controller.isCreated) {
       return;
     }
-
     if (!isFocused) {
       _controller.clearFocus().catchError((dynamic e) {
         if (e is MissingPluginException) {
@@ -153,12 +157,10 @@ class _TizenWebViewState extends State<TizenView> {
       });
       return;
     }
-    SystemChannels.textInput
-        .invokeMethod<void>(
+    SystemChannels.textInput.invokeMethod<void>(
       'TextInput.setPlatformViewClient',
-      _id,
-    )
-        .catchError((dynamic e) {
+      <String, dynamic>{'platformViewId': _id},
+    ).catchError((dynamic e) {
       if (e is MissingPluginException) {
         return;
       }
@@ -457,7 +459,7 @@ class PlatformViewsServiceTizen {
 /// See also:
 ///
 ///  * [PlatformViewsService] which is a service for controlling platform views.
-class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
+class RenderTizenView extends PlatformViewRenderBox {
   /// Creates a render object for an Tizen view.
   RenderTizenView({
     required TizenViewController viewController,
@@ -467,8 +469,13 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
   })  : assert(viewController != null),
         assert(hitTestBehavior != null),
         assert(gestureRecognizers != null),
+        assert(clipBehavior != null),
         _viewController = viewController,
-        _clipBehavior = clipBehavior {
+        _clipBehavior = clipBehavior,
+        super(
+            controller: viewController,
+            hitTestBehavior: hitTestBehavior,
+            gestureRecognizers: gestureRecognizers) {
     updateGestureRecognizers(gestureRecognizers);
     _viewController.addOnPlatformViewCreatedListener(_onPlatformViewCreated);
     this.hitTestBehavior = hitTestBehavior;
@@ -478,12 +485,15 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
 
   Size? _currentTextureSize;
 
+  @override
   TizenViewController get controller => _viewController;
+
   TizenViewController _viewController;
 
   /// Sets a new Tizen view controller.
   ///
   /// `viewController` must not be null.
+  @override
   set controller(TizenViewController viewController) {
     assert(_viewController != null);
     assert(viewController != null);
@@ -515,12 +525,6 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
 
   void _onPlatformViewCreated(int id) {
     markNeedsSemanticsUpdate();
-  }
-
-  void updateGestureRecognizers(
-      Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers) {
-    _updateGestureRecognizersWithCallBack(
-        gestureRecognizers, _viewController.dispatchPointerEvent);
   }
 
   @override
@@ -623,15 +627,13 @@ class RenderTizenView extends RenderBox with _PlatformViewGestureMixin {
 
 class _TizenPlatformTextureView extends LeafRenderObjectWidget {
   const _TizenPlatformTextureView({
-    Key? key,
     required this.controller,
     required this.hitTestBehavior,
     required this.gestureRecognizers,
     this.clipBehavior = Clip.hardEdge,
   })  : assert(controller != null),
         assert(hitTestBehavior != null),
-        assert(gestureRecognizers != null),
-        super(key: key);
+        assert(gestureRecognizers != null);
 
   final TizenViewController controller;
   final PlatformViewHitTestBehavior hitTestBehavior;
