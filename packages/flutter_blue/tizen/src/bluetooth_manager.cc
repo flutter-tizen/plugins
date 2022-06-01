@@ -69,17 +69,14 @@ void BluetoothManager::SetNotification(
 
 uint32_t BluetoothManager::GetMtu(const std::string& device_id) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
-  auto device = bluetooth_devices_.var_.find(device_id)->second;
-  if (!device) throw BtException("could not find device of id=" + device_id);
+
+  auto device = LocateDevice(device_id);
 
   return device->GetMtu();
 }
 
 void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
-  auto device = bluetooth_devices_.var_.find(request.remote_id())->second;
-  if (!device)
-    throw BtException("could not find device of id=" + request.remote_id());
-
+  auto device = LocateDevice(request.remote_id());
   device->RequestMtu(request.mtu(), [](auto status, auto& bluetooth_device) {
     proto::gen::MtuSizeResponse mtu_size_response;
     mtu_size_response.set_remote_id(bluetooth_device.cAddress());
@@ -309,7 +306,7 @@ void BluetoothManager::StopBluetoothDeviceScanLE() {
 
 void BluetoothManager::Connect(const proto::gen::ConnectRequest& conn_request) {
   std::unique_lock lock(bluetooth_devices_.mutex_);
-  auto device = bluetooth_devices_.var_.find(conn_request.remote_id())->second;
+  auto device = LocateDevice(conn_request.remote_id());
   if (device) {
     device->Connect(conn_request.android_auto_connect());
   } else {
@@ -319,7 +316,7 @@ void BluetoothManager::Connect(const proto::gen::ConnectRequest& conn_request) {
 
 void BluetoothManager::Disconnect(const std::string& device_id) {
   std::unique_lock lock(bluetooth_devices_.mutex_);
-  auto device = bluetooth_devices_.var_.find(device_id)->second;
+  auto device = LocateDevice(device_id);
   if (device) {
     device->Disconnect();
   } else {

@@ -160,59 +160,43 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     } else if (method_call.method_name() == "deviceState") {
       std::string device_id = std::get<std::string>(args);
       std::scoped_lock lock(bluetooth_manager_->bluetoothDevices().mutex_);
-      auto it = bluetooth_manager_->bluetoothDevices().var_.find(device_id);
 
-      if (it != bluetooth_manager_->bluetoothDevices().var_.end()) {
-        auto& device = it->second;
+      auto device = bluetooth_manager_->LocateDevice(device_id);
 
-        proto::gen::DeviceStateResponse device_state_response;
-        device_state_response.set_remote_id(device->cAddress());
-        device_state_response.set_state(
-            flutter_blue_tizen::BluetoothDeviceController::
-                LocalToProtoDeviceState(device->GetState()));
+      proto::gen::DeviceStateResponse device_state_response;
+      device_state_response.set_remote_id(device->cAddress());
+      device_state_response.set_state(
+          flutter_blue_tizen::BluetoothDeviceController::
+              LocalToProtoDeviceState(device->GetState()));
 
-        result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::MessageToVector(device_state_response)));
-      } else {
-        result->Error("device not available");
-      }
+      result->Success(flutter::EncodableValue(
+          flutter_blue_tizen::MessageToVector(device_state_response)));
 
     } else if (method_call.method_name() == "discoverServices") {
       std::string device_id = std::get<std::string>(args);
       std::scoped_lock lock(bluetooth_manager_->bluetoothDevices().mutex_);
-      auto it = bluetooth_manager_->bluetoothDevices().var_.find(device_id);
 
-      if (it != bluetooth_manager_->bluetoothDevices().var_.end()) {
-        auto& device = it->second;
-        result->Success(flutter::EncodableValue(NULL));
+      auto device = bluetooth_manager_->LocateDevice(device_id);
 
-        device->DiscoverServices();
-        auto services = device->GetServices();
-        notifications_handler_.NotifyUIThread(
-            "DiscoverServicesResult",
-            flutter_blue_tizen::GetProtoServiceDiscoveryResult(*device,
-                                                               services));
-      } else {
-        result->Error("device not available");
-      }
+      result->Success(flutter::EncodableValue(NULL));
+
+      device->DiscoverServices();
+      auto services = device->GetServices();
+      notifications_handler_.NotifyUIThread(
+          "DiscoverServicesResult",
+          flutter_blue_tizen::GetProtoServiceDiscoveryResult(*device,
+                                                             services));
 
     } else if (method_call.method_name() == "services") {
       std::string device_id = std::get<std::string>(args);
       std::scoped_lock lock(bluetooth_manager_->bluetoothDevices().mutex_);
 
-      auto it = bluetooth_manager_->bluetoothDevices().var_.find(device_id);
+      auto device = bluetooth_manager_->LocateDevice(device_id);
 
-      if (it != bluetooth_manager_->bluetoothDevices().var_.end()) {
-        auto& device = it->second;
-
-        auto proto_services =
-            flutter_blue_tizen::GetProtoServiceDiscoveryResult(
-                *device, device->GetServices());
-        result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::MessageToVector(proto_services)));
-      } else {
-        result->Error("device not available");
-      }
+      auto proto_services = flutter_blue_tizen::GetProtoServiceDiscoveryResult(
+          *device, device->GetServices());
+      result->Success(flutter::EncodableValue(
+          flutter_blue_tizen::MessageToVector(proto_services)));
 
     } else if (method_call.method_name() == "readCharacteristic") {
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
