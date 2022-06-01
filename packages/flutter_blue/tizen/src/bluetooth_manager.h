@@ -1,17 +1,17 @@
 #ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
 #define FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
 
-#include <GATT/bluetooth_characteristic.h>
-#include <GATT/bluetooth_descriptor.h>
-#include <bluetooth.h>
-#include <bluetooth_device_controller.h>
-#include <notifications_handler.h>
-#include <utils.h>
-
 #include <atomic>
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
+#include "GATT/bluetooth_characteristic.h"
+#include "GATT/bluetooth_descriptor.h"
+#include "bluetooth.h"
+#include "bluetooth_device_controller.h"
+#include "notifications_handler.h"
+#include "utils.h"
 
 namespace flutter_blue_tizen {
 

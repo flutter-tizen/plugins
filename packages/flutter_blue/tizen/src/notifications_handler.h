@@ -1,9 +1,9 @@
 #ifndef FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
 #define FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
 
-#include <utils.h>
-
 #include <memory>
+
+#include "utils.h"
 
 namespace flutter_blue_tizen {
 

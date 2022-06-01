@@ -4,10 +4,11 @@
 #include <bluetooth.h>
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
-#include <flutterblue.pb.h>
 
 #include <exception>
 #include <mutex>
+
+#include "flutterblue.pb.h"
 
 namespace flutter_blue_tizen {
 

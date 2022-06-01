@@ -1,14 +1,14 @@
 #ifndef FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H
 #define FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_CHARACTERISTIC_H
 
-#include <GATT/bluetooth_descriptor.h>
-#include <bluetooth.h>
-#include <flutterblue.pb.h>
-#include <utils.h>
-
 #include <map>
 #include <memory>
 #include <vector>
+
+#include "GATT/bluetooth_descriptor.h"
+#include "bluetooth.h"
+#include "flutterblue.pb.h"
+#include "utils.h"
 
 namespace flutter_blue_tizen {
 namespace btGatt {

@@ -1,8 +1,9 @@
 #ifndef FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
 #define FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
 
-#include <bluetooth_manager.h>
 #include <flutter/event_stream_handler.h>
+
+#include "bluetooth_manager.h"
 
 namespace flutter_blue_tizen {
 

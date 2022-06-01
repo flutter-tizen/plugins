@@ -1,13 +1,14 @@
-#include <GATT/bluetooth_characteristic.h>
-#include <GATT/bluetooth_descriptor.h>
-#include <bluetooth_device_controller.h>
-#include <bluetooth_manager.h>
-#include <log.h>
-#include <notifications_handler.h>
-#include <utils.h>
+#include "GATT/bluetooth_characteristic.h"
 
 #include <exception>
 #include <vector>
+
+#include "GATT/bluetooth_descriptor.h"
+#include "bluetooth_device_controller.h"
+#include "bluetooth_manager.h"
+#include "log.h"
+#include "notifications_handler.h"
+#include "utils.h"
 
 namespace flutter_blue_tizen {
 namespace btGatt {
