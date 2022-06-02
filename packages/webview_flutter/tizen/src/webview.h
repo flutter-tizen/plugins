@@ -40,8 +40,9 @@ class WebView : public PlatformView {
 
   virtual void ClearFocus() override {}
 
-  virtual void DispatchKeyDownEvent(Ecore_Event_Key* key) override;
-  virtual void DispatchKeyUpEvent(Ecore_Event_Key* key) override;
+  virtual void SendKey(const char* key, const char* string, const char* compose,
+                       uint32_t modifiers, uint32_t scan_code,
+                       bool is_down) override;
 
   LWE::WebContainer* GetWebViewInstance() { return webview_instance_; }
 
