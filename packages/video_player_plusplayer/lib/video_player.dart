@@ -748,7 +748,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback(_afterFrameLayout);
+    WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
     _textureId = widget.controller.textureId;
     // Need to listen for initialization events since the actual texture ID
     // becomes available after asynchronous initialization finishes.
@@ -761,12 +761,12 @@ class _VideoPlayerState extends State<VideoPlayer> {
       widget.controller._setDisplayRoi(
           _textureId, _geometry.x, _geometry.y, _geometry.w, _geometry.h);
     }
-    WidgetsBinding.instance!.addPostFrameCallback(_afterFrameLayout);
+    WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
 
   bool checkPositionChange() {
     var devicePixelRatio =
-        MediaQueryData.fromWindow(WidgetsBinding.instance!.window)
+        MediaQueryData.fromWindow(WidgetsBinding.instance.window)
             .devicePixelRatio;
     RenderObject? renderObject = videoBoxKey.currentContext?.findRenderObject();
     if (renderObject == null) {
@@ -790,7 +790,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   void updateGeometry() {
     var devicePixelRatio =
-        MediaQueryData.fromWindow(WidgetsBinding.instance!.window)
+        MediaQueryData.fromWindow(WidgetsBinding.instance.window)
             .devicePixelRatio;
     RenderObject? renderObject = videoBoxKey.currentContext?.findRenderObject();
     if (renderObject == null) {

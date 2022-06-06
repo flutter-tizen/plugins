@@ -101,8 +101,9 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
   }
   return instance.SetDisplay(
       plusplayer_, plusplayer::DisplayType::kOverlay,
-      instance.GetSurfaceId(plusplayer_,
-                            FlutterDesktopGetWindow(registrar_ref)),
+      instance.GetSurfaceId(
+          plusplayer_,
+          FlutterDesktopPluginRegistrarGetNativeWindow(registrar_ref)),
       0, 0, w, h);
 }
 
