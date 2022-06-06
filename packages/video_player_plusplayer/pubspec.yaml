@@ -1,5 +1,7 @@
 name: video_player_plusplayer
 description: Flutter plugin for displaying inline video.
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/video_player_plusplayer
 version: 1.0.0
 
 environment:
