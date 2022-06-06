@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:video_player_plus/video_player.dart';
-import 'package:video_player_plus/video_player_platform_interface.dart';
+import 'package:video_player_plusplayer/video_player.dart';
+import 'package:video_player_plusplayer/video_player_platform_interface.dart';
 
 import 'video_player_test.dart' show FakeVideoPlayerPlatform;
 
