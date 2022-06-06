@@ -1,14 +1,11 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef PERMISSION_MANAGER_H_
-#define PERMISSION_MANAGER_H_
+#ifndef FLUTTER_PLUGIN_PERMISSION_MANAGER_H_
+#define FLUTTER_PLUGIN_PERMISSION_MANAGER_H_
 
-#include <functional>
 #include <string>
-
-#include "tizen_result.h"
 
 // Keep in sync with the enum values implemented in:
 // https://github.com/Baseflow/flutter-geolocator/blob/master/geolocator_platform_interface/lib/src/enums/location_permission.dart
@@ -18,19 +15,17 @@ enum class PermissionStatus {
   kDeniedForever = 1,
   kWhileInUse = 2,
   kAlways = 3,
+  kError = 4  // tizen only.
 };
 
-using OnSuccess = std::function<void(PermissionStatus)>;
-using OnFailure = std::function<void(TizenResult)>;
 class PermissionManager {
  public:
-  PermissionManager();
-  ~PermissionManager();
+  PermissionManager() {}
+  ~PermissionManager() {}
 
-  TizenResult CheckPermissionStatus(PermissionStatus *permission_status);
+  PermissionStatus CheckPermission(const std::string &privilege);
 
-  void RequestPermssion(const OnSuccess &on_success,
-                        const OnFailure &on_failure);
+  PermissionStatus RequestPermission(const std::string &privilege);
 };
 
-#endif  // PERMISSION_MANAGER_H_
+#endif  // FLUTTER_PLUGIN_PERMISSION_MANAGER_H_

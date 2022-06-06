@@ -24,6 +24,7 @@ class TizenView extends StatefulWidget {
     this.gestureRecognizers,
     this.creationParams,
     this.creationParamsCodec,
+    this.clipBehavior = Clip.hardEdge,
   })  : assert(viewType != null),
         assert(hitTestBehavior != null),
         assert(creationParams == null || creationParamsCodec != null),
@@ -36,6 +37,7 @@ class TizenView extends StatefulWidget {
   final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
   final dynamic creationParams;
   final MessageCodec<dynamic>? creationParamsCodec;
+  final Clip clipBehavior;
 
   @override
   State<TizenView> createState() => _TizenWebViewState();
@@ -57,10 +59,11 @@ class _TizenWebViewState extends State<TizenView> {
       focusNode: _focusNode,
       onFocusChange: _onFocusChange,
       child: _TizenPlatformTextureView(
-          controller: _controller,
-          hitTestBehavior: widget.hitTestBehavior,
-          gestureRecognizers:
-              widget.gestureRecognizers ?? _emptyRecognizersSet),
+        controller: _controller,
+        hitTestBehavior: widget.hitTestBehavior,
+        gestureRecognizers: widget.gestureRecognizers ?? _emptyRecognizersSet,
+        clipBehavior: widget.clipBehavior,
+      ),
     );
   }
 
@@ -615,5 +618,6 @@ class _TizenPlatformTextureView extends LeafRenderObjectWidget {
     renderObject.viewController = controller;
     renderObject.hitTestBehavior = hitTestBehavior;
     renderObject.updateGestureRecognizers(gestureRecognizers);
+    renderObject.clipBehavior = clipBehavior;
   }
 }

@@ -37,7 +37,7 @@ PermissionStatus PermissionManager::CheckPermission(
 #endif
 }
 
-PermissionResult PermissionManager::RequestPermssion(
+PermissionResult PermissionManager::RequestPermission(
     const std::string &privilege) {
 #ifdef TV_PROFILE
   return PermissionResult::kAllowForever;

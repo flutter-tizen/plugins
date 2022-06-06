@@ -1,3 +1,16 @@
+## NEXT
+
+* Code refactoring.
+
+## 0.4.4
+
+* Update LWE binary (645719ed084d899ec7d53de1758db71a8974e446).
+
+## 0.4.3
+
+* Remove unused things.
+* Fix build warnings.
+
 ## 0.4.2
 
 * Support background color.

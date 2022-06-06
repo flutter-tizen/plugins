@@ -1,39 +1,33 @@
-#ifndef PERMISSION_MANAGER_H_
-#define PERMISSION_MANAGER_H_
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-#include <privacy_privilege_manager.h>
+#ifndef FLUTTER_PLUGIN_PERMISSION_MANAGER_H_
+#define FLUTTER_PLUGIN_PERMISSION_MANAGER_H_
 
-#include <functional>
-#include <map>
-#include <memory>
-#include <vector>
+#include <string>
 
-#include "type.h"
-
-using OnPermissionChecked = std::function<void(PermissionStatus status)>;
-using OnPermissionRequested = std::function<void(
-    const std::map<PermissionGroup, PermissionStatus> &results)>;
-using OnPermissionError =
-    std::function<void(const std::string &code, const std::string &message)>;
+// The result of permission check and request.
+//
+// Originally defined in permission_status.dart of the platform interface
+// package.
+enum class PermissionStatus {
+  kDenied = 0,
+  kGranted = 1,
+  kRestricted = 2,
+  kLimited = 3,
+  kPermanentlyDenied = 4,
+  kError = 5,
+};
 
 class PermissionManager {
  public:
-  PermissionManager();
-  ~PermissionManager();
+  PermissionManager() {}
+  ~PermissionManager() {}
 
-  void CheckPermissionStatus(PermissionGroup permission,
-                             OnPermissionChecked success_callback,
-                             OnPermissionError error_callback);
-  void RequestPermissions(std::vector<PermissionGroup> permissions,
-                          OnPermissionRequested success_callback,
-                          OnPermissionError error_callback);
-  inline std::map<PermissionGroup, PermissionStatus> &RequestResults() {
-    return request_results_;
-  }
+  PermissionStatus CheckPermission(const std::string &privilege);
 
- private:
-  bool on_going_;
-  std::map<PermissionGroup, PermissionStatus> request_results_;
+  PermissionStatus RequestPermission(const std::string &privilege);
 };
 
-#endif  // PERMISSION_MANAGER_H_
+#endif  // FLUTTER_PLUGIN_PERMISSION_MANAGER_H_

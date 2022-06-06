@@ -1,23 +1,27 @@
-#ifndef SERVICE_MANAGER_H_
-#define SERVICE_MANAGER_H_
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-#include <functional>
-#include <memory>
+#ifndef FLUTTER_PLUGIN_SERVICE_MANAGER_H_
+#define FLUTTER_PLUGIN_SERVICE_MANAGER_H_
 
-#include "type.h"
+#include "permissions.h"
 
-using OnServiceChecked = std::function<void(ServiceStatus status)>;
-using OnServiceError =
-    std::function<void(const std::string &code, const std::string &message)>;
+// The status of a service associated with a specific permission.
+//
+// Originally defined in service_status.dart of the platform interface pacakge.
+enum class ServiceStatus {
+  kDisabled = 0,
+  kEnabled = 1,
+  kNotApplicable = 2,
+};
 
 class ServiceManager {
  public:
-  ServiceManager();
-  ~ServiceManager();
+  ServiceManager() {}
+  ~ServiceManager() {}
 
-  void CheckServiceStatus(PermissionGroup permission,
-                          OnServiceChecked success_callback,
-                          OnServiceError error_callback);
+  ServiceStatus CheckServiceStatus(Permission permission);
 };
 
-#endif  // SERVICE_MANAGER_H_
+#endif  // FLUTTER_PLUGIN_SERVICE_MANAGER_H_

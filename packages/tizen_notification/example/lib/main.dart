@@ -1,13 +1,19 @@
+// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // ignore_for_file: public_member_api_docs
 
 import 'package:flutter/material.dart';
 import 'package:tizen_notification/tizen_notification.dart';
 
 void main() {
-  runApp(NotificationTest());
+  runApp(MyApp());
 }
 
-class NotificationTest extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  MyApp({Key? key}) : super(key: key);
+
   final TizenNotificationPlugin _tizenNotificationPlugin =
       TizenNotificationPlugin();
   final int notificationId = 1;
@@ -44,16 +50,16 @@ class NotificationTest extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               ElevatedButton(
-                child: const Text('Show notification'),
                 onPressed: _showNotification,
+                child: const Text('Show notification'),
               ),
               ElevatedButton(
-                child: const Text('Cancel notification'),
                 onPressed: _cancelNotification,
+                child: const Text('Cancel notification'),
               ),
               ElevatedButton(
-                child: const Text('Cancel all notifications'),
                 onPressed: _cancelAllNotifications,
+                child: const Text('Cancel all notifications'),
               ),
             ],
           ),

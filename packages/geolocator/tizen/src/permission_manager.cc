@@ -1,97 +1,87 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #include "permission_manager.h"
 
+#ifndef TV_PROFILE
 #include <Ecore.h>
 #include <privacy_privilege_manager.h>
-
-#include <vector>
+#include <tizen.h>
+#endif
 
 #include "log.h"
 
-namespace {
-
-constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
-
-struct PermissionResponse {
-  ppm_call_cause_e cause;
-  ppm_request_result_e result;
-  bool received = false;
-};
-
-}  // namespace
-
-PermissionManager::PermissionManager() {}
-PermissionManager::~PermissionManager() {}
-
-TizenResult PermissionManager::CheckPermissionStatus(
-    PermissionStatus *permission_status) {
-  ppm_check_result_e check_result;
-
-  int result = ppm_check_permission(kPrivilegeLocation, &check_result);
-  if (result != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    return TizenResult(result);
+PermissionStatus PermissionManager::CheckPermission(
+    const std::string &privilege) {
+#ifdef TV_PROFILE
+  return PermissionStatus::kAlways;
+#else
+  ppm_check_result_e result;
+  int ret = ppm_check_permission(privilege.c_str(), &result);
+  if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
+    LOG_ERROR("Permission check failed [%s]: %s", privilege.c_str(),
+              get_error_message(ret));
+    return PermissionStatus::kError;
   }
 
-  switch (check_result) {
-    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
-    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
-      *permission_status = PermissionStatus::kDenied;
-      break;
+  switch (result) {
     case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ALLOW:
+      return PermissionStatus::kAlways;
+    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_ASK:
+    case PRIVACY_PRIVILEGE_MANAGER_CHECK_RESULT_DENY:
     default:
-      *permission_status = PermissionStatus::kAlways;
-      break;
+      return PermissionStatus::kDenied;
   }
-  return TizenResult();
+#endif
 }
 
-void PermissionManager::RequestPermssion(const OnSuccess &on_success,
-                                         const OnFailure &on_failure) {
-  const char *permission = kPrivilegeLocation;
-  PermissionResponse response;
+PermissionStatus PermissionManager::RequestPermission(
+    const std::string &privilege) {
+#ifdef TV_PROFILE
+  return PermissionStatus::kAlways;
+#else
+  struct Response {
+    bool received = false;
+    ppm_call_cause_e cause;
+    ppm_request_result_e result;
+  } response;
+
   int ret = ppm_request_permission(
-      permission,
+      privilege.c_str(),
       [](ppm_call_cause_e cause, ppm_request_result_e result,
-         const char *privilege, void *data) {
-        PermissionResponse *response = static_cast<PermissionResponse *>(data);
+         const char *privilege, void *user_data) {
+        auto *response = static_cast<Response *>(user_data);
+        response->received = true;
         response->cause = cause;
         response->result = result;
-        response->received = true;
       },
       &response);
+
   if (ret != PRIVACY_PRIVILEGE_MANAGER_ERROR_NONE) {
-    LOG_ERROR("Failed to call ppm_request_permission with [%s].", permission);
-    on_failure(TizenResult(ret));
-    return;
+    LOG_ERROR("Permission request failed [%s]: %s", privilege.c_str(),
+              get_error_message(ret));
+    return PermissionStatus::kError;
   }
 
-  // Wait until ppm_request_permission is done.
+  // Wait until ppm_request_permission() completes with a response.
   while (!response.received) {
     ecore_main_loop_iterate();
   }
 
-  if (response.cause != PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ANSWER) {
-    LOG_ERROR("permission[%s] request failed with an error.", permission);
-    on_failure(TizenResult(ret));
-    return;
+  if (response.cause == PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ERROR) {
+    LOG_ERROR("Received an error response [%s].", privilege.c_str());
+    return PermissionStatus::kError;
   }
 
   switch (response.result) {
     case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_ALLOW_FOREVER:
-      on_success(PermissionStatus::kAlways);
-      break;
-    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
-      on_success(PermissionStatus::kDenied);
-      break;
+      return PermissionStatus::kAlways;
     case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_FOREVER:
-      on_success(PermissionStatus::kDeniedForever);
-      break;
+      return PermissionStatus::kDeniedForever;
+    case PRIVACY_PRIVILEGE_MANAGER_REQUEST_RESULT_DENY_ONCE:
     default:
-      LOG_ERROR("Unknown ppm_request_result_e.");
-      on_failure(TizenResult(ret));
-      break;
+      return PermissionStatus::kDenied;
   }
+#endif  // TV_PROFILE
 }

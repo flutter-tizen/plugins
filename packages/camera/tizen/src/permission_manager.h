@@ -22,8 +22,8 @@ class PermissionManager {
   using OnFailure =
       std::function<void(const std::string &code, const std::string &message)>;
 
-  void RequestPermssion(Permission permission, const OnSuccess &on_success,
-                        const OnFailure &on_failure);
+  void RequestPermission(Permission permission, const OnSuccess &on_success,
+                         const OnFailure &on_failure);
 };
 
 #endif

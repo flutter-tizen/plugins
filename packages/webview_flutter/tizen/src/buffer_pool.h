@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEBVIEW_BUFFER_POOL_H_
-#define FLUTTER_PLUGIN_WEBVIEW_FLUTTER_TIZEN_WEBVIEW_BUFFER_POOL_H_
+#ifndef FLUTTER_PLUGIN_BUFFER_POOL_H_
+#define FLUTTER_PLUGIN_BUFFER_POOL_H_
 
 #include <flutter_texture_registrar.h>
 #include <tbm_surface.h>
@@ -14,52 +14,58 @@
 
 class BufferUnit {
  public:
-  explicit BufferUnit(int index, int width, int height);
+  explicit BufferUnit(int32_t width, int32_t height);
   ~BufferUnit();
-  void Reset(int width, int height);
+
+  void Reset(int32_t width, int32_t height);
+
   bool MarkInUse();
   void UnmarkInUse();
-  int Index();
-  bool IsUsed();
+
+  bool IsUsed() { return is_used_ && tbm_surface_; }
+
   tbm_surface_h Surface();
-  FlutterDesktopGpuBuffer* GpuBuffer();
+
+  FlutterDesktopGpuBuffer* GpuBuffer() { return gpu_buffer_; }
+
 #ifndef NDEBUG
+  // TODO: Unused code.
   void DumpToPng(int file_name);
 #endif
 
  private:
-  bool isUsed_;
-  int index_;
-  int width_;
-  int height_;
-  tbm_surface_h tbm_surface_;
-  FlutterDesktopGpuBuffer* gpu_buffer_;
+  bool is_used_ = false;
+  int32_t width_ = 0;
+  int32_t height_ = 0;
+  tbm_surface_h tbm_surface_ = nullptr;
+  FlutterDesktopGpuBuffer* gpu_buffer_ = nullptr;
 };
 
 class BufferPool {
  public:
-  explicit BufferPool(int width, int height, int pool_size);
-  ~BufferPool();
+  explicit BufferPool(int32_t width, int32_t height, size_t pool_size);
+  virtual ~BufferPool();
 
   virtual BufferUnit* GetAvailableBuffer();
-  virtual void Release(BufferUnit* unit);
-  void Prepare(int with, int height);
+  virtual void Release(BufferUnit* buffer);
+
+  void Prepare(int32_t with, int32_t height);
 
  protected:
   std::vector<std::unique_ptr<BufferUnit>> pool_;
 
  private:
-  int last_index_;
+  size_t last_index_ = 0;
   std::mutex mutex_;
 };
 
 class SingleBufferPool : public BufferPool {
  public:
-  explicit SingleBufferPool(int width, int height);
+  explicit SingleBufferPool(int32_t width, int32_t height);
   ~SingleBufferPool();
 
-  virtual BufferUnit* GetAvailableBuffer();
-  virtual void Release(BufferUnit* unit);
+  virtual BufferUnit* GetAvailableBuffer() override;
+  virtual void Release(BufferUnit* buffer) override;
 };
 
-#endif
+#endif  // FLUTTER_PLUGIN_BUFFER_POOL_H_

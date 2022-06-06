@@ -132,6 +132,15 @@ class IntegrationTestCommand extends PackageLoopingCommand {
         throw ToolExit(exitCommandFoundErrors);
       }
     }
+
+    final io.ProcessResult processResult = await processRunner.run(
+      'flutter-tizen',
+      <String>['precache', '--tizen'],
+    );
+    if (processResult.exitCode != 0) {
+      print('Cannot cache tizen artifacts used for integration-test.');
+      throw ToolExit(exitCommandFoundErrors);
+    }
   }
 
   /// See: [PluginCommand.getTargetPackages].
@@ -141,20 +150,22 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   }) async* {
     if (_recipe == null) {
       yield* super.getTargetPackages(filterExcluded: filterExcluded);
-    }
-    final Recipe recipe = _recipe!;
+    } else {
+      final Recipe recipe = _recipe!;
+      final List<PackageEnumerationEntry> plugins = await super
+          .getTargetPackages(filterExcluded: filterExcluded)
+          .toList();
 
-    final List<PackageEnumerationEntry> plugins =
-        await super.getTargetPackages(filterExcluded: filterExcluded).toList();
-    for (final PackageEnumerationEntry plugin in plugins) {
-      final String pluginName = plugin.package.displayName;
-      if (!recipe.contains(pluginName)) {
-        continue;
-      }
-      if (!(filterExcluded && plugin.excluded)) {
-        yield recipe.isExcluded(pluginName)
-            ? PackageEnumerationEntry(plugin.package, excluded: true)
-            : plugin;
+      for (final PackageEnumerationEntry plugin in plugins) {
+        final String pluginName = plugin.package.displayName;
+        if (!recipe.contains(pluginName)) {
+          continue;
+        }
+        if (!(filterExcluded && plugin.excluded)) {
+          yield recipe.isExcluded(pluginName)
+              ? PackageEnumerationEntry(plugin.package, excluded: true)
+              : plugin;
+        }
       }
     }
   }

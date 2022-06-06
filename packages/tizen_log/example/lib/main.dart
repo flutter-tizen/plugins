@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: public_member_api_docs
+
 import 'package:flutter/material.dart';
 import 'package:tizen_log/tizen_log.dart';
 
@@ -9,9 +11,7 @@ void main() {
   runApp(const MyApp());
 }
 
-/// The main UI app widget.
 class MyApp extends StatelessWidget {
-  /// The main UI app widget.
   const MyApp({Key? key}) : super(key: key);
 
   static const String _logTag = 'tizen_log_example';

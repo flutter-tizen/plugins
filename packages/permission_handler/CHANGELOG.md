@@ -1,3 +1,7 @@
+## NEXT
+
+* Code refactoring.
+
 ## 1.2.0
 
 * Update permission_handler to 8.3.0.

@@ -6,11 +6,17 @@ environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
+  path: any
+  collection: any
   flutter:
     sdk: flutter
   sqflite: ^2.0.0
+  sqflite_common:
   sqflite_tizen:
     path: ../
+  synchronized:
+  matcher:
+  meta:
 
 dev_dependencies:
   pedantic: ^1.11.0
@@ -24,7 +30,6 @@ dev_dependencies:
   integration_test_tizen:
     path: ../../integration_test/
   test:
-  matcher: '>=0.12.10-nullsafety.3 <2.0.0'
   process_run: '>=0.11.0+2'
 
 flutter:

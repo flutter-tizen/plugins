@@ -3,7 +3,7 @@ description: Flutter plugin for displaying inline video with other Flutter
   widgets on Tizen.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/video_player
-version: 2.3.2
+version: 2.4.0
 
 flutter:
   plugin:
@@ -15,10 +15,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  video_player_platform_interface: ^4.2.0
-
-dev_dependencies:
-  pedantic: ^1.10.0
+  video_player_platform_interface: ^5.1.2
 
 environment:
   flutter: ">=2.0.0"
