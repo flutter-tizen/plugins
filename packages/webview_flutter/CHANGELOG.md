@@ -4,6 +4,7 @@
 * Update the example app and integration_test.
 * Sync with the latest framework code.
 * Migrate to new analysis options.
+* Update LWE binary (f0ca15ee41d2fc96b59fd57b63b6c32cf6c1906b).
 
 ## 0.4.4
 
