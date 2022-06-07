@@ -123,6 +123,11 @@ void BluetoothDeviceController::DiscoverServices() {
     std::vector<std::unique_ptr<btGatt::PrimaryService>>& services;
   };
   services_.clear();
+
+  /**
+   * bt_gatt_client_foreach_services is executed synchronously.
+   * There's no need to allocate Scope on heap.
+   */
   Scope scope{*this, services_};
   int ret = bt_gatt_client_foreach_services(
       GetGattClient(address_),
