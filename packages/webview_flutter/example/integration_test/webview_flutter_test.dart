@@ -215,7 +215,6 @@ Future<void> main() async {
     final String customUserAgent2 = await _getUserAgent(controller1);
     expect(customUserAgent2, 'Custom_User_Agent2');
   });
-  // TODO(bparrishMines): skipped due to https://github.com/flutter/flutter/issues/86757
 
   testWidgets('getTitle', (WidgetTester tester) async {
     const String getTitleTest = '''
