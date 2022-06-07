@@ -1,9 +1,15 @@
 #ifndef FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
 #define FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
 
-#include <flutter/event_stream_handler.h>
+#include <memory>
+#include <string>
 
-#include "bluetooth_manager.h"
+/**
+ * it is included with non angle brackets in order to avoid sorting in
+ * clang-format. This include is lacking <memory> and <string> and they have to
+ * be included before it.
+ */
+#include "flutter/event_stream_handler.h"
 
 namespace flutter_blue_tizen {
 
