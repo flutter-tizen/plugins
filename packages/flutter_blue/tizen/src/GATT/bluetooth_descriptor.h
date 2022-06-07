@@ -1,11 +1,12 @@
 #ifndef FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
 #define FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
 
+#include <bluetooth.h>
+
 #include <map>
 #include <memory>
 #include <string>
 
-#include "bluetooth.h"
 #include "flutterblue.pb.h"
 #include "utils.h"
 
