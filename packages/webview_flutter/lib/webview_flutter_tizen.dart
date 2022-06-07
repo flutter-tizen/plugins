@@ -8,14 +8,13 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/rendering.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-part 'src/platform_view.dart';
 part 'src/platform_view_tizen.dart';
 
 /// Builds an Tizen webview.
@@ -26,6 +25,7 @@ class TizenWebView implements WebViewPlatform {
   /// Sets a tizen [WebViewPlatform].
   static void register() {
     WebView.platform = TizenWebView();
+    WebViewCookieManagerPlatform.instance = WebViewTizenCookieManager();
   }
 
   @override
@@ -95,32 +95,4 @@ class WebViewTizenCookieManager extends WebViewCookieManagerPlatform {
     }
     return true;
   }
-}
-
-/// Manages cookies pertaining to all [WebView]s.
-class CookieManagerTizen {
-  /// Creates a [CookieManager] -- returns the instance if it's already been called.
-  factory CookieManagerTizen() {
-    return _instance ??= CookieManagerTizen._();
-  }
-
-  CookieManagerTizen._() {
-    if (WebViewCookieManagerPlatform.instance == null) {
-      WebViewCookieManagerPlatform.instance = WebViewTizenCookieManager();
-    }
-  }
-
-  static CookieManagerTizen? _instance;
-
-  /// Clears all cookies for all [WebView] instances.
-  ///
-  /// Returns true if cookies were present before clearing, else false.
-  Future<bool> clearCookies() =>
-      WebViewCookieManagerPlatform.instance!.clearCookies();
-
-  /// Sets a cookie for all [WebView] instances.
-  ///
-  /// This is a no op on iOS versions below 11.
-  Future<void> setCookie(WebViewCookie cookie) =>
-      WebViewCookieManagerPlatform.instance!.setCookie(cookie);
 }
