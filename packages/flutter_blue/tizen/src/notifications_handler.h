@@ -1,11 +1,16 @@
 #ifndef FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
 #define FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
 
+#include <flutter/encodable_value.h>
+#include <flutter/method_channel.h>
+
 #include <memory>
 
-#include "utils.h"
+#include "flutterblue.pb.h"
 
 namespace flutter_blue_tizen {
+
+using MethodChannel = flutter::MethodChannel<flutter::EncodableValue>;
 
 class NotificationsHandler {
  public:

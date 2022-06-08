@@ -19,6 +19,7 @@
 #include "bluetooth_device_controller.h"
 #include "bluetooth_manager.h"
 #include "notifications_handler.h"
+#include "proto_helper.h"
 
 namespace {
 

@@ -11,6 +11,7 @@
 #include "GATT/bluetooth_service.h"
 #include "bluetooth_device_controller.h"
 #include "log.h"
+#include "proto_helper.h"
 
 namespace flutter_blue_tizen {
 
