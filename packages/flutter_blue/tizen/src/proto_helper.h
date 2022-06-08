@@ -35,5 +35,8 @@ proto::gen::BluetoothDescriptor ToProtoDescriptor(
 std::vector<uint8_t> MessageToVector(
     const google::protobuf::MessageLite& message_lite) noexcept;
 
+proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
+    const BluetoothDeviceController::State state);
+
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_PROTO_HELPER_H

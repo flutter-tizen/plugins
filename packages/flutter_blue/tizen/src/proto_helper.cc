@@ -104,4 +104,21 @@ proto::gen::BluetoothService ToProtoService(
   return proto;
 }
 
+proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
+    const BluetoothDeviceController::State state) {
+  using State = BluetoothDeviceController::State;
+  switch (state) {
+    case State::kConnected:
+      return proto::gen::DeviceStateResponse_BluetoothDeviceState_CONNECTED;
+    case State::kConnecting:
+      return proto::gen::DeviceStateResponse_BluetoothDeviceState_CONNECTING;
+    case State::kDisconnected:
+      return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTED;
+    case State::kDisconnecting:
+      return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTING;
+    default:
+      return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTED;
+  }
+}
+
 }  // namespace flutter_blue_tizen

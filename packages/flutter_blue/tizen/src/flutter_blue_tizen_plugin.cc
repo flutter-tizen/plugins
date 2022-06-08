@@ -168,8 +168,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       proto::gen::DeviceStateResponse device_state_response;
       device_state_response.set_remote_id(device->cAddress());
       device_state_response.set_state(
-          flutter_blue_tizen::BluetoothDeviceController::
-              LocalToProtoDeviceState(device->GetState()));
+          flutter_blue_tizen::ToProtoDeviceState(device->GetState()));
 
       result->Success(flutter::EncodableValue(
           flutter_blue_tizen::MessageToVector(device_state_response)));

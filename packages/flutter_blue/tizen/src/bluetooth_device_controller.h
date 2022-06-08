@@ -1,9 +1,17 @@
 #ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 #define FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 
+#include <bluetooth.h>
+
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "GATT/bluetooth_service.h"
-#include "bluetooth.h"
-#include "flutterblue.pb.h"
 #include "notifications_handler.h"
 #include "utils.h"
 
@@ -23,10 +31,6 @@ class BluetoothDeviceController {
 
   BluetoothDeviceController(
       const std::string& address,
-      NotificationsHandler& notifications_handler) noexcept;
-
-  BluetoothDeviceController(
-      const char* address,
       NotificationsHandler& notifications_handler) noexcept;
 
   ~BluetoothDeviceController() noexcept;
@@ -55,9 +59,6 @@ class BluetoothDeviceController {
   static bt_gatt_client_h GetGattClient(const std::string& address);
 
   static void DestroyGattClientIfExists(const std::string& address) noexcept;
-
-  static proto::gen::DeviceStateResponse_BluetoothDeviceState
-  LocalToProtoDeviceState(const BluetoothDeviceController::State state);
 
   void DiscoverServices();
 

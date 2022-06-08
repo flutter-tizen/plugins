@@ -3,11 +3,10 @@
 
 #include <bluetooth.h>
 
+#include <functional>
 #include <map>
-#include <memory>
 #include <string>
 
-#include "flutterblue.pb.h"
 #include "utils.h"
 
 namespace flutter_blue_tizen {

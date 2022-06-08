@@ -1,12 +1,8 @@
 #include "bluetooth_device_controller.h"
 
-#include <mutex>
-#include <unordered_set>
-
-#include "GATT/bluetooth_service.h"
 #include "bluetooth_manager.h"
 #include "log.h"
-#include "notifications_handler.h"
+#include "proto_helper.h"
 
 namespace flutter_blue_tizen {
 
@@ -15,14 +11,10 @@ using State = BluetoothDeviceController::State;
 BluetoothDeviceController::BluetoothDeviceController(
     const std::string& address,
     NotificationsHandler& notifications_handler) noexcept
-    : BluetoothDeviceController(address.c_str(), notifications_handler) {
+    : address_(address), notifications_handler_(notifications_handler) {
   std::scoped_lock lock(active_devices_.mutex_);
   active_devices_.var_.insert({address, this});
 }
-
-BluetoothDeviceController::BluetoothDeviceController(
-    const char* address, NotificationsHandler& notifications_handler) noexcept
-    : address_(address), notifications_handler_(notifications_handler) {}
 
 BluetoothDeviceController::~BluetoothDeviceController() noexcept {
   std::scoped_lock lock(active_devices_.mutex_);
@@ -73,8 +65,7 @@ void BluetoothDeviceController::Connect(bool auto_connect) {
 
 void BluetoothDeviceController::Disconnect() {
   std::scoped_lock lock(operation_mutex_);
-  auto st = GetState();
-  if (st == State::kConnected) {
+  if (GetState() == State::kConnected) {
     services_.clear();
     is_disconnecting_ = true;
     int ret = bt_gatt_disconnect(address_.c_str());
@@ -236,26 +227,8 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
 void BluetoothDeviceController::NotifyDeviceState() const {
   proto::gen::DeviceStateResponse device_state;
   device_state.set_remote_id(cAddress());
-  device_state.set_state(LocalToProtoDeviceState(GetState()));
+  device_state.set_state(ToProtoDeviceState(GetState()));
   notifications_handler_.NotifyUIThread("DeviceState", device_state);
-}
-
-proto::gen::DeviceStateResponse_BluetoothDeviceState
-BluetoothDeviceController::LocalToProtoDeviceState(
-    const BluetoothDeviceController::State state) {
-  using State = BluetoothDeviceController::State;
-  switch (state) {
-    case State::kConnected:
-      return proto::gen::DeviceStateResponse_BluetoothDeviceState_CONNECTED;
-    case State::kConnecting:
-      return proto::gen::DeviceStateResponse_BluetoothDeviceState_CONNECTING;
-    case State::kDisconnected:
-      return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTED;
-    case State::kDisconnecting:
-      return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTING;
-    default:
-      return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTED;
-  }
 }
 
 }  // namespace flutter_blue_tizen
