@@ -14,7 +14,7 @@
 #include <string>
 
 #include "drm_manager.h"
-#include "message.h"
+#include "messages.h"
 #include "plus_player_proxy.h"
 #include "video_player_options.h"
 
