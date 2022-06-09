@@ -1,19 +1,14 @@
 #include "bluetooth_device_controller.h"
 
-#include "bluetooth_manager.h"
 #include "log.h"
-#include "proto_helper.h"
 
 namespace flutter_blue_tizen {
 
 using State = BluetoothDeviceController::State;
 
 BluetoothDeviceController::BluetoothDeviceController(
-    const std::string& name, const std::string& address,
-    NotificationsHandler& notifications_handler) noexcept
-    : name_(name),
-      address_(address),
-      notifications_handler_(notifications_handler) {
+    const std::string& name, const std::string& address) noexcept
+    : name_(name), address_(address) {
   std::scoped_lock lock(active_devices_.mutex_);
   active_devices_.var_.insert({address, this});
 }
@@ -147,11 +142,6 @@ btGatt::PrimaryService* BluetoothDeviceController::GetService(
   return nullptr;
 }
 
-const NotificationsHandler& BluetoothDeviceController::cNotificationsHandler()
-    const noexcept {
-  return notifications_handler_;
-}
-
 uint32_t BluetoothDeviceController::GetMtu() const {
   uint32_t mtu = -1;
   auto ret = bt_gatt_client_get_att_mtu(GetGattClient(address_), &mtu);
@@ -207,7 +197,7 @@ void BluetoothDeviceController::OnConnectionStateChanged(
 
         if (it != active_devices_.var_.end()) {
           auto device = it->second;
-          std::scoped_lock devLock(device->operation_mutex_);
+          std::scoped_lock operation_lock(device->operation_mutex_);
           device->is_connecting_ = false;
           device->is_disconnecting_ = false;
           if (!connected) {

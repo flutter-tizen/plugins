@@ -3,6 +3,7 @@
 
 #include <bluetooth.h>
 
+#include <atomic>
 #include <functional>
 #include <map>
 #include <memory>
@@ -12,7 +13,6 @@
 #include <vector>
 
 #include "GATT/bluetooth_service.h"
-#include "notifications_handler.h"
 #include "utils.h"
 
 namespace flutter_blue_tizen {
@@ -29,9 +29,8 @@ class BluetoothDeviceController {
   using requestMtuCallback =
       std::function<void(bool, const BluetoothDeviceController&)>;
 
-  BluetoothDeviceController(
-      const std::string& name, const std::string& address,
-      NotificationsHandler& notifications_handler) noexcept;
+  BluetoothDeviceController(const std::string& name,
+                            const std::string& address) noexcept;
 
   ~BluetoothDeviceController() noexcept;
 
@@ -63,11 +62,8 @@ class BluetoothDeviceController {
 
   void RequestMtu(uint32_t mtu, const requestMtuCallback& callback);
 
-  const NotificationsHandler& cNotificationsHandler() const noexcept;
-
   static void OnConnectionStateChanged(
-      std::function<void(State state,
-                         const BluetoothDeviceController* device)>
+      std::function<void(State state, const BluetoothDeviceController* device)>
           connection_changed_callback);
 
  private:
@@ -86,8 +82,6 @@ class BluetoothDeviceController {
   std::atomic<bool> is_connecting_ = false;
 
   std::atomic<bool> is_disconnecting_ = false;
-
-  NotificationsHandler& notifications_handler_;
 
   static inline std::function<void(State state,
                                    const BluetoothDeviceController* device)>

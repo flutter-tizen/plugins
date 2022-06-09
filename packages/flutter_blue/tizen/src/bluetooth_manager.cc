@@ -6,10 +6,6 @@
 
 #include <mutex>
 
-#include "GATT/bluetooth_characteristic.h"
-#include "GATT/bluetooth_descriptor.h"
-#include "GATT/bluetooth_service.h"
-#include "bluetooth_device_controller.h"
 #include "log.h"
 #include "proto_helper.h"
 
@@ -56,17 +52,19 @@ void BluetoothManager::SetNotification(
       request.secondary_service_uuid(), request.characteristic_uuid());
 
   if (request.enable()) {
-    characteristic->SetNotifyCallback([device, service](auto& characteristic) {
-      proto::gen::SetNotificationResponse response;
-      response.set_remote_id(device->cAddress());
-      response.set_allocated_characteristic(
-          new proto::gen::BluetoothCharacteristic(
-              ToProtoCharacteristic(*device, *service, characteristic)));
+    characteristic->SetNotifyCallback(
+        [device, service, &notifications_handler = notifications_handler_](
+            auto& characteristic) {
+          proto::gen::SetNotificationResponse response;
+          response.set_remote_id(device->cAddress());
+          response.set_allocated_characteristic(
+              new proto::gen::BluetoothCharacteristic(
+                  ToProtoCharacteristic(*device, *service, characteristic)));
 
-      device->cNotificationsHandler().NotifyUIThread("SetNotificationResponse",
-                                                     response);
-      LOG_DEBUG("notified UI thread - characteristic written by remote");
-    });
+          notifications_handler.NotifyUIThread("SetNotificationResponse",
+                                               response);
+          LOG_DEBUG("notified UI thread - characteristic written by remote");
+        });
   } else {
     characteristic->UnsetNotifyCallback();
   }
@@ -80,18 +78,19 @@ uint32_t BluetoothManager::GetMtu(const std::string& device_id) {
 
 void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
   auto device = LocateDevice(request.remote_id());
-  device->RequestMtu(request.mtu(), [](auto status, auto& bluetooth_device) {
-    proto::gen::MtuSizeResponse mtu_size_response;
-    mtu_size_response.set_remote_id(bluetooth_device.cAddress());
-    try {
-      mtu_size_response.set_mtu(bluetooth_device.GetMtu());
-    } catch (const std::exception& e) {
-      // LOG_ERROR(e.what());
-    }
-    bluetooth_device.cNotificationsHandler().NotifyUIThread("MtuSize",
-                                                            mtu_size_response);
-    LOG_DEBUG("mtu request callback sent response!");
-  });
+  device->RequestMtu(
+      request.mtu(), [&notifications_handler = notifications_handler_](
+                         auto status, auto& bluetooth_device) {
+        proto::gen::MtuSizeResponse mtu_size_response;
+        mtu_size_response.set_remote_id(bluetooth_device.cAddress());
+        try {
+          mtu_size_response.set_mtu(bluetooth_device.GetMtu());
+        } catch (const std::exception& e) {
+          // LOG_ERROR(e.what());
+        }
+        notifications_handler.NotifyUIThread("MtuSize", mtu_size_response);
+        LOG_DEBUG("mtu request callback sent response!");
+      });
 }
 
 BluetoothDeviceController* BluetoothManager::LocateDevice(
@@ -266,12 +265,11 @@ void BluetoothManager::ScanCallback(
         free(name_cstr);
       }
 
-      device = bluetooth_manager.bluetooth_devices_.var_
-                   .insert({mac_address,
-                            std::make_unique<BluetoothDeviceController>(
-                                name, mac_address,
-                                bluetooth_manager.notifications_handler_)})
-                   .first->second.get();
+      device =
+          bluetooth_manager.bluetooth_devices_.var_
+              .insert({mac_address, std::make_unique<BluetoothDeviceController>(
+                                        name, mac_address)})
+              .first->second.get();
     }
     proto::gen::ScanResult scan_result;
     scan_result.set_rssi(discovery_info->rssi);
@@ -346,65 +344,63 @@ void BluetoothManager::ReadCharacteristic(
   auto service = LocateService(request.remote_id(), request.service_uuid(),
                                request.secondary_service_uuid());
 
-  characteristic->Read([device, service](auto& characteristic) -> void {
-    proto::gen::ReadCharacteristicResponse read_characteristic_result;
-    read_characteristic_result.set_remote_id(device->cAddress());
-    read_characteristic_result.set_allocated_characteristic(
-        new proto::gen::BluetoothCharacteristic(
-            ToProtoCharacteristic(*device, *service, characteristic)));
+  characteristic->Read(
+      [device, service, &notifications_handler = notifications_handler_](
+          auto& characteristic) -> void {
+        proto::gen::ReadCharacteristicResponse read_characteristic_result;
+        read_characteristic_result.set_remote_id(device->cAddress());
+        read_characteristic_result.set_allocated_characteristic(
+            new proto::gen::BluetoothCharacteristic(
+                ToProtoCharacteristic(*device, *service, characteristic)));
 
-    device->cNotificationsHandler().NotifyUIThread("ReadCharacteristicResponse",
-                                                   read_characteristic_result);
-    LOG_DEBUG("finished characteristic read cb");
-  });
+        notifications_handler.NotifyUIThread("ReadCharacteristicResponse",
+                                             read_characteristic_result);
+        LOG_DEBUG("finished characteristic read cb");
+      });
 }
 
 void BluetoothManager::ReadDescriptor(
     const proto::gen::ReadDescriptorRequest& request) {
-  auto device = LocateDevice(request.remote_id());
-
   auto descriptor = LocateDescriptor(
       request.remote_id(), request.service_uuid(),
       request.secondary_service_uuid(), request.characteristic_uuid(),
       request.descriptor_uuid());
 
-  descriptor->Read([device, request](auto& descriptor) -> void {
+  descriptor->Read([request, &notifications_handler = notifications_handler_](
+                       auto& descriptor) -> void {
     proto::gen::ReadDescriptorResponse read_descriptor_response;
     read_descriptor_response.set_allocated_request(
         new proto::gen::ReadDescriptorRequest(request));
     read_descriptor_response.set_allocated_value(
         new std::string(descriptor.Value()));
-    device->cNotificationsHandler().NotifyUIThread("ReadDescriptorResponse",
-                                                   read_descriptor_response);
+    notifications_handler.NotifyUIThread("ReadDescriptorResponse",
+                                         read_descriptor_response);
   });
 }
 
 void BluetoothManager::WriteCharacteristic(
     const proto::gen::WriteCharacteristicRequest& request) {
-  auto device = LocateDevice(request.remote_id());
-
   auto characteristic = LocateCharacteristic(
       request.remote_id(), request.service_uuid(),
       request.secondary_service_uuid(), request.characteristic_uuid());
 
   characteristic->Write(
       request.value(), request.write_type(),
-      [device, request](bool success, auto& characteristic) {
+      [request, &notifications_handler = notifications_handler_](
+          bool success, auto& characteristic) {
         proto::gen::WriteCharacteristicResponse write_characteristic_response;
 
         write_characteristic_response.set_success(success);
         write_characteristic_response.set_allocated_request(
             new proto::gen::WriteCharacteristicRequest(request));
-        device->cNotificationsHandler().NotifyUIThread(
-            "WriteCharacteristicResponse", write_characteristic_response);
+        notifications_handler.NotifyUIThread("WriteCharacteristicResponse",
+                                             write_characteristic_response);
         LOG_DEBUG("finished characteristic write cb");
       });
 }
 
 void BluetoothManager::WriteDescriptor(
     const proto::gen::WriteDescriptorRequest& request) {
-  auto device = LocateDevice(request.remote_id());
-
   auto descriptor = LocateDescriptor(
       request.remote_id(), request.service_uuid(),
       request.secondary_service_uuid(), request.characteristic_uuid(),
@@ -412,14 +408,15 @@ void BluetoothManager::WriteDescriptor(
 
   descriptor->Write(
       request.value(),
-      [device, request](auto success, auto& descriptor) -> void {
+      [request, &notifications_handler = notifications_handler_](
+          auto success, auto& descriptor) -> void {
         proto::gen::WriteDescriptorResponse write_descriptor_response;
         write_descriptor_response.set_success(success);
         write_descriptor_response.set_allocated_request(
             new proto::gen::WriteDescriptorRequest(request));
 
-        device->cNotificationsHandler().NotifyUIThread(
-            "WriteDescriptorResponse", write_descriptor_response);
+        notifications_handler.NotifyUIThread("WriteDescriptorResponse",
+                                             write_descriptor_response);
       });
 }
 
