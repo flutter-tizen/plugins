@@ -9,9 +9,11 @@ namespace flutter_blue_tizen {
 using State = BluetoothDeviceController::State;
 
 BluetoothDeviceController::BluetoothDeviceController(
-    const std::string& address,
+    const std::string& name, const std::string& address,
     NotificationsHandler& notifications_handler) noexcept
-    : address_(address), notifications_handler_(notifications_handler) {
+    : name_(name),
+      address_(address),
+      notifications_handler_(notifications_handler) {
   std::scoped_lock lock(active_devices_.mutex_);
   active_devices_.var_.insert({address, this});
 }
@@ -20,6 +22,10 @@ BluetoothDeviceController::~BluetoothDeviceController() noexcept {
   std::scoped_lock lock(active_devices_.mutex_);
   active_devices_.var_.erase(cAddress());
   Disconnect();
+}
+
+const std::string& BluetoothDeviceController::cName() const noexcept {
+  return name_;
 }
 
 const std::string& BluetoothDeviceController::cAddress() const noexcept {
@@ -36,16 +42,6 @@ State BluetoothDeviceController::GetState() const noexcept {
     LOG_ERROR("bt_device_is_profile_connected", get_error_message(ret));
     return (is_connected ? State::kConnected : State::kDisconnected);
   }
-}
-
-std::vector<proto::gen::BluetoothDevice>&
-BluetoothDeviceController::ProtoBluetoothDevices() noexcept {
-  return proto_bluetooth_devices_;
-}
-
-const std::vector<proto::gen::BluetoothDevice>&
-BluetoothDeviceController::cProtoBluetoothDevices() const noexcept {
-  return proto_bluetooth_devices_;
 }
 
 void BluetoothDeviceController::Connect(bool auto_connect) {

@@ -38,6 +38,14 @@ proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
   return discovery_result;
 }
 
+proto::gen::BluetoothDevice ToProtoDevice(
+    const BluetoothDeviceController& device) noexcept {
+  proto::gen::BluetoothDevice proto;
+  proto.set_name(device.cName());
+  proto.set_remote_id(device.cAddress());
+  return proto;
+}
+
 proto::gen::BluetoothCharacteristic ToProtoCharacteristic(
     const BluetoothDeviceController& device,
     const btGatt::BluetoothService& service,

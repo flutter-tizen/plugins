@@ -247,47 +247,44 @@ void BluetoothManager::ScanCallback(
     std::string mac_address = discovery_info->remote_address;
     std::scoped_lock lock(bluetooth_manager.bluetooth_devices_.mutex_);
     std::shared_ptr<BluetoothDeviceController> device;
-    if (bluetooth_manager.bluetooth_devices_.var_.find(mac_address) ==
-        bluetooth_manager.bluetooth_devices_.var_.end()) {
+    auto it = bluetooth_manager.bluetooth_devices_.var_.find(mac_address);
+
+    // Already scanned.
+    if (it != bluetooth_manager.bluetooth_devices_.var_.end()) {
+      if (!bluetooth_manager.scan_allow_duplicates_) {
+        return;
+      }
+      device = it->second;
+    } else {
+      char* name_cstr;
+      int ret = bt_adapter_le_get_scan_result_device_name(
+          discovery_info, BT_ADAPTER_LE_PACKET_SCAN_RESPONSE, &name_cstr);
+      std::string name;
+      if (!ret) {
+        name = std::string(name_cstr);
+        free(name_cstr);
+      }
+
       device = bluetooth_manager.bluetooth_devices_.var_
                    .insert({mac_address,
                             std::make_shared<BluetoothDeviceController>(
-                                mac_address,
+                                name, mac_address,
                                 bluetooth_manager.notifications_handler_)})
                    .first->second;
-    } else {
-      device =
-          bluetooth_manager.bluetooth_devices_.var_.find(mac_address)->second;
     }
+    proto::gen::ScanResult scan_result;
+    scan_result.set_rssi(discovery_info->rssi);
+    proto::gen::AdvertisementData* advertisement_data =
+        new proto::gen::AdvertisementData();
+    DecodeAdvertisementData(discovery_info->adv_data, *advertisement_data,
+                            discovery_info->adv_data_len);
 
-    if (bluetooth_manager.scan_allow_duplicates_ ||
-        device->cProtoBluetoothDevices().empty()) {
-      device->ProtoBluetoothDevices().emplace_back();
+    scan_result.set_allocated_advertisement_data(advertisement_data);
+    scan_result.set_allocated_device(
+        new proto::gen::BluetoothDevice(ToProtoDevice(*device)));
 
-      auto& proto_device = device->ProtoBluetoothDevices().back();
-      char* name;
-      result = bt_adapter_le_get_scan_result_device_name(
-          discovery_info, BT_ADAPTER_LE_PACKET_SCAN_RESPONSE, &name);
-      if (!result) {
-        proto_device.set_name(name);
-        free(name);
-      }
-      proto_device.set_remote_id(mac_address);
-
-      proto::gen::ScanResult scan_result;
-      scan_result.set_rssi(discovery_info->rssi);
-      proto::gen::AdvertisementData* advertisement_data =
-          new proto::gen::AdvertisementData();
-      DecodeAdvertisementData(discovery_info->adv_data, *advertisement_data,
-                              discovery_info->adv_data_len);
-
-      scan_result.set_allocated_advertisement_data(advertisement_data);
-      scan_result.set_allocated_device(
-          new proto::gen::BluetoothDevice(proto_device));
-
-      bluetooth_manager.notifications_handler_.NotifyUIThread("ScanResult",
-                                                              scan_result);
-    }
+    bluetooth_manager.notifications_handler_.NotifyUIThread("ScanResult",
+                                                            scan_result);
   }
 }
 
@@ -333,9 +330,7 @@ BluetoothManager::GetConnectedProtoBluetoothDevices() noexcept {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   for (const auto& e : bluetooth_devices_.var_) {
     if (e.second->GetState() == State::kConnected) {
-      auto& vec = e.second->cProtoBluetoothDevices();
-      proto_bluetooth_device.insert(proto_bluetooth_device.end(), vec.cbegin(),
-                                    vec.cend());
+      proto_bluetooth_device.push_back(ToProtoDevice(*e.second));
     }
   }
   return proto_bluetooth_device;

@@ -30,7 +30,7 @@ class BluetoothDeviceController {
       std::function<void(bool, const BluetoothDeviceController&)>;
 
   BluetoothDeviceController(
-      const std::string& address,
+      const std::string& name, const std::string& address,
       NotificationsHandler& notifications_handler) noexcept;
 
   ~BluetoothDeviceController() noexcept;
@@ -39,14 +39,11 @@ class BluetoothDeviceController {
 
   BluetoothDeviceController(const BluetoothDeviceController& address) = delete;
 
+  const std::string& cName() const noexcept;
+
   const std::string& cAddress() const noexcept;
 
   State GetState() const noexcept;
-
-  std::vector<proto::gen::BluetoothDevice>& ProtoBluetoothDevices() noexcept;
-
-  const std::vector<proto::gen::BluetoothDevice>& cProtoBluetoothDevices()
-      const noexcept;
 
   void Connect(bool auto_connect);
 
@@ -81,9 +78,9 @@ class BluetoothDeviceController {
 
   std::mutex operation_mutex_;
 
-  std::vector<proto::gen::BluetoothDevice> proto_bluetooth_devices_;
-
   std::vector<std::unique_ptr<btGatt::PrimaryService>> services_;
+
+  std::string name_;
 
   std::string address_;
 
