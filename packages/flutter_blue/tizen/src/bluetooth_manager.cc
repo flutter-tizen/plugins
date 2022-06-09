@@ -27,7 +27,7 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     return;
   }
 
-  BluetoothDeviceController::OnConnectionStateChanged(
+  BluetoothDeviceController::SetConnectionStateChangedCallback(
       [&notifications_handler = notifications_handler_](
           BluetoothDeviceController::State state,
           const BluetoothDeviceController* device) {

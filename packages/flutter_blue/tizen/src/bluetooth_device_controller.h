@@ -58,7 +58,7 @@ class BluetoothDeviceController {
 
   void RequestMtu(uint32_t mtu, const requestMtuCallback& callback);
 
-  static void OnConnectionStateChanged(
+  static void SetConnectionStateChangedCallback(
       std::function<void(State state, const BluetoothDeviceController* device)>
           connection_changed_callback);
 

@@ -183,7 +183,7 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
   if (ret) throw BtException(ret, "bt_gatt_client_request_att_mtu_change");
 }
 
-void BluetoothDeviceController::OnConnectionStateChanged(
+void BluetoothDeviceController::SetConnectionStateChangedCallback(
     std::function<void(State state, const BluetoothDeviceController* device)>
         connection_changed_callback) {
   connection_changed_callback_ = connection_changed_callback;
