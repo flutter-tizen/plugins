@@ -33,7 +33,7 @@ const std::string& BluetoothDeviceController::cAddress() const noexcept {
 }
 
 State BluetoothDeviceController::GetState() const noexcept {
-  if (is_connecting_ ^ is_disconnecting_) {
+  if (is_connecting_ || is_disconnecting_) {
     return (is_connecting_ ? State::kConnecting : State::kDisconnecting);
   } else {
     bool is_connected = false;
