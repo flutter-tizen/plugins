@@ -41,10 +41,6 @@ std::string GetGattValue(bt_gatt_h handle);
 
 std::string GetGattUuid(bt_gatt_h handle);
 
-bt_gatt_h GetGattService(bt_gatt_client_h handle, const std::string& uuid);
-
-std::string GetGattClientAddress(bt_gatt_client_h handle);
-
 }  // namespace flutter_blue_tizen
 
 #endif  // FLUTTER_BLUE_TIZEN_UTILS_H
