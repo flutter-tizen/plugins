@@ -243,7 +243,7 @@ void BluetoothManager::ScanCallback(
   if (!result) {
     std::string mac_address = discovery_info->remote_address;
     std::scoped_lock lock(bluetooth_manager.bluetooth_devices_.mutex_);
-    std::shared_ptr<BluetoothDeviceController> device;
+    BluetoothDeviceController* device;
     auto it = bluetooth_manager.bluetooth_devices_.var_.find(mac_address);
 
     // Already scanned.
@@ -251,7 +251,7 @@ void BluetoothManager::ScanCallback(
       if (!bluetooth_manager.scan_allow_duplicates_) {
         return;
       }
-      device = it->second;
+      device = it->second.get();
     } else {
       char* name_cstr;
       int ret = bt_adapter_le_get_scan_result_device_name(
@@ -264,10 +264,10 @@ void BluetoothManager::ScanCallback(
 
       device = bluetooth_manager.bluetooth_devices_.var_
                    .insert({mac_address,
-                            std::make_shared<BluetoothDeviceController>(
+                            std::make_unique<BluetoothDeviceController>(
                                 name, mac_address,
                                 bluetooth_manager.notifications_handler_)})
-                   .first->second;
+                   .first->second.get();
     }
     proto::gen::ScanResult scan_result;
     scan_result.set_rssi(discovery_info->rssi);

@@ -16,13 +16,6 @@
 namespace flutter_blue_tizen {
 
 class BluetoothManager {
-  /**
-   * @brief key - MAC address of the device
-   */
-  using DevicesContainer =
-      SafeType<std::unordered_map<std::string,
-                                  std::shared_ptr<BluetoothDeviceController>>>;
-
  public:
   BluetoothManager(NotificationsHandler& notifications_handler);
 
@@ -89,7 +82,10 @@ class BluetoothManager {
       void* user_data) noexcept;
 
  private:
-  DevicesContainer bluetooth_devices_;
+  // Map key is device's mac address.
+  SafeType<std::unordered_map<std::string,
+                              std::unique_ptr<BluetoothDeviceController>>>
+      bluetooth_devices_;
 
   NotificationsHandler& notifications_handler_;
 
