@@ -49,10 +49,6 @@ class BluetoothDeviceController {
 
   void Disconnect();
 
-  static void ConnectionStateCallback(int result, bool connected,
-                                      const char* remote_address,
-                                      void* user_data) noexcept;
-
   static bt_gatt_client_h GetGattClient(const std::string& address);
 
   static void DestroyGattClientIfExists(const std::string& address) noexcept;
@@ -67,9 +63,12 @@ class BluetoothDeviceController {
 
   void RequestMtu(uint32_t mtu, const requestMtuCallback& callback);
 
-  void NotifyDeviceState() const;
-
   const NotificationsHandler& cNotificationsHandler() const noexcept;
+
+  static void OnConnectionStateChanged(
+      std::function<void(State state,
+                         const BluetoothDeviceController* device)>
+          connection_changed_callback);
 
  private:
   /**
@@ -89,6 +88,10 @@ class BluetoothDeviceController {
   std::atomic<bool> is_disconnecting_ = false;
 
   NotificationsHandler& notifications_handler_;
+
+  static inline std::function<void(State state,
+                                   const BluetoothDeviceController* device)>
+      connection_changed_callback_;
 
   static inline SafeType<std::map<std::string, BluetoothDeviceController*>>
       active_devices_;

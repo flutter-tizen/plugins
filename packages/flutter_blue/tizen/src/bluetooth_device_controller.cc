@@ -152,33 +152,6 @@ const NotificationsHandler& BluetoothDeviceController::cNotificationsHandler()
   return notifications_handler_;
 }
 
-void BluetoothDeviceController::ConnectionStateCallback(
-    int ret, bool connected, const char* remote_address,
-    void* user_data) noexcept {
-  LOG_ERROR("bt_gatt_connection_state_changed_cb", get_error_message(ret));
-
-  auto& bluetooth_manager = *static_cast<BluetoothManager*>(user_data);
-  std::scoped_lock lock(active_devices_.mutex_);
-  auto it = active_devices_.var_.find(remote_address);
-
-  if (it != active_devices_.var_.end()) {
-    auto device = it->second;
-    std::scoped_lock devLock(device->operation_mutex_);
-    device->is_connecting_ = false;
-    device->is_disconnecting_ = false;
-    if (!connected) {
-      device->services_.clear();
-    } else if (!ret) {
-      GetGattClient(device->cAddress());  // this function creates gatt client
-                                          // if it does not exists.
-    }
-    device->NotifyDeviceState();
-  }
-  if (!connected) {
-    DestroyGattClientIfExists(remote_address);
-  }
-}
-
 uint32_t BluetoothDeviceController::GetMtu() const {
   uint32_t mtu = -1;
   auto ret = bt_gatt_client_get_att_mtu(GetGattClient(address_), &mtu);
@@ -220,11 +193,43 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
   if (ret) throw BtException(ret, "bt_gatt_client_request_att_mtu_change");
 }
 
-void BluetoothDeviceController::NotifyDeviceState() const {
-  proto::gen::DeviceStateResponse device_state;
-  device_state.set_remote_id(cAddress());
-  device_state.set_state(ToProtoDeviceState(GetState()));
-  notifications_handler_.NotifyUIThread("DeviceState", device_state);
+void BluetoothDeviceController::OnConnectionStateChanged(
+    std::function<void(State state, const BluetoothDeviceController* device)>
+        connection_changed_callback) {
+  connection_changed_callback_ = connection_changed_callback;
+
+  int ret = bt_gatt_set_connection_state_changed_cb(
+      [](int ret, bool connected, const char* remote_address, void* user_data) {
+        LOG_ERROR("bt_gatt_connection_state_changed_cb",
+                  get_error_message(ret));
+        std::scoped_lock lock(active_devices_.mutex_);
+        auto it = active_devices_.var_.find(remote_address);
+
+        if (it != active_devices_.var_.end()) {
+          auto device = it->second;
+          std::scoped_lock devLock(device->operation_mutex_);
+          device->is_connecting_ = false;
+          device->is_disconnecting_ = false;
+          if (!connected) {
+            device->services_.clear();
+          } else if (!ret) {
+            // Creates gatt client if it does not exists.
+            GetGattClient(device->cAddress());
+          }
+          connection_changed_callback_(
+              connected ? State::kConnected : State::kDisconnected, device);
+        }
+        if (!connected) {
+          DestroyGattClientIfExists(remote_address);
+        }
+      },
+      nullptr);
+
+  if (ret != 0) {
+    LOG_ERROR("[bt_gatt_set_connection_state_changed_cb]",
+              get_error_message(ret));
+    return;
+  }
 }
 
 }  // namespace flutter_blue_tizen

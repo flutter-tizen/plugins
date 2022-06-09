@@ -30,13 +30,17 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     LOG_ERROR("[bt_initialize]", get_error_message(ret));
     return;
   }
-  ret = bt_gatt_set_connection_state_changed_cb(
-      &BluetoothDeviceController::ConnectionStateCallback, this);
-  if (ret != 0) {
-    LOG_ERROR("[bt_gatt_set_connection_state_changed_cb]",
-              get_error_message(ret));
-    return;
-  }
+
+  BluetoothDeviceController::OnConnectionStateChanged(
+      [&notifications_handler = notifications_handler_](
+          BluetoothDeviceController::State state,
+          const BluetoothDeviceController* device) {
+        proto::gen::DeviceStateResponse device_state;
+        device_state.set_remote_id(device->cAddress());
+        device_state.set_state(ToProtoDeviceState(state));
+        notifications_handler.NotifyUIThread("DeviceState", device_state);
+      });
+
   LOG_DEBUG("All callbacks successfully initialized.");
 }
 
