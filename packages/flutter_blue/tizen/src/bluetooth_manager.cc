@@ -42,8 +42,6 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
 
 void BluetoothManager::SetNotification(
     const proto::gen::SetNotificationRequest& request) {
-  std::scoped_lock lock(bluetooth_devices_.mutex_);
-
   auto device = LocateDevice(request.remote_id());
 
   auto service = LocateService(request.remote_id(), request.service_uuid(),
@@ -71,8 +69,6 @@ void BluetoothManager::SetNotification(
 }
 
 uint32_t BluetoothManager::GetMtu(const std::string& device_id) {
-  std::scoped_lock lock(bluetooth_devices_.mutex_);
-
   auto device = LocateDevice(device_id);
 
   return device->GetMtu();
@@ -96,6 +92,7 @@ void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
 
 BluetoothDeviceController* BluetoothManager::LocateDevice(
     const std::string& remote_id) {
+  std::scoped_lock lock(bluetooth_devices_.mutex_);
   auto it = bluetooth_devices_.var_.find(remote_id);
 
   if (it == bluetooth_devices_.var_.end())
@@ -305,7 +302,6 @@ void BluetoothManager::StopBluetoothDeviceScanLE() {
 }
 
 void BluetoothManager::Connect(const proto::gen::ConnectRequest& conn_request) {
-  std::unique_lock lock(bluetooth_devices_.mutex_);
   auto device = LocateDevice(conn_request.remote_id());
   if (device) {
     device->Connect(conn_request.android_auto_connect());
@@ -315,7 +311,6 @@ void BluetoothManager::Connect(const proto::gen::ConnectRequest& conn_request) {
 }
 
 void BluetoothManager::Disconnect(const std::string& device_id) {
-  std::unique_lock lock(bluetooth_devices_.mutex_);
   auto device = LocateDevice(device_id);
   if (device) {
     device->Disconnect();
@@ -336,15 +331,8 @@ BluetoothManager::GetConnectedProtoBluetoothDevices() noexcept {
   return proto_bluetooth_device;
 }
 
-BluetoothManager::DevicesContainer&
-BluetoothManager::bluetoothDevices() noexcept {
-  return bluetooth_devices_;
-}
-
 void BluetoothManager::ReadCharacteristic(
     const proto::gen::ReadCharacteristicRequest& request) {
-  std::scoped_lock lock(bluetooth_devices_.mutex_);
-
   auto device = LocateDevice(request.remote_id());
 
   auto characteristic = LocateCharacteristic(
@@ -369,8 +357,6 @@ void BluetoothManager::ReadCharacteristic(
 
 void BluetoothManager::ReadDescriptor(
     const proto::gen::ReadDescriptorRequest& request) {
-  std::scoped_lock lock(bluetooth_devices_.mutex_);
-
   auto device = LocateDevice(request.remote_id());
 
   auto descriptor = LocateDescriptor(
@@ -391,8 +377,6 @@ void BluetoothManager::ReadDescriptor(
 
 void BluetoothManager::WriteCharacteristic(
     const proto::gen::WriteCharacteristicRequest& request) {
-  std::scoped_lock lock(bluetooth_devices_.mutex_);
-
   auto device = LocateDevice(request.remote_id());
 
   auto characteristic = LocateCharacteristic(
@@ -415,8 +399,6 @@ void BluetoothManager::WriteCharacteristic(
 
 void BluetoothManager::WriteDescriptor(
     const proto::gen::WriteDescriptorRequest& request) {
-  std::scoped_lock lock(bluetooth_devices_.mutex_);
-
   auto device = LocateDevice(request.remote_id());
 
   auto descriptor = LocateDescriptor(

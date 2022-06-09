@@ -161,7 +161,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "deviceState") {
       std::string device_id = std::get<std::string>(args);
-      std::scoped_lock lock(bluetooth_manager_->bluetoothDevices().mutex_);
 
       auto device = bluetooth_manager_->LocateDevice(device_id);
 
@@ -175,7 +174,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "discoverServices") {
       std::string device_id = std::get<std::string>(args);
-      std::scoped_lock lock(bluetooth_manager_->bluetoothDevices().mutex_);
 
       auto device = bluetooth_manager_->LocateDevice(device_id);
 
@@ -190,7 +188,6 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_call.method_name() == "services") {
       std::string device_id = std::get<std::string>(args);
-      std::scoped_lock lock(bluetooth_manager_->bluetoothDevices().mutex_);
 
       auto device = bluetooth_manager_->LocateDevice(device_id);
 

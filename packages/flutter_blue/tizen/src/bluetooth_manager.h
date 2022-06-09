@@ -44,8 +44,6 @@ class BluetoothManager {
   std::vector<proto::gen::BluetoothDevice>
   GetConnectedProtoBluetoothDevices() noexcept;
 
-  DevicesContainer& bluetoothDevices() noexcept;
-
   void ReadCharacteristic(const proto::gen::ReadCharacteristicRequest& request);
 
   void ReadDescriptor(const proto::gen::ReadDescriptorRequest& request);

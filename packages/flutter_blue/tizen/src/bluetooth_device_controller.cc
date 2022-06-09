@@ -158,10 +158,10 @@ void BluetoothDeviceController::ConnectionStateCallback(
   LOG_ERROR("bt_gatt_connection_state_changed_cb", get_error_message(ret));
 
   auto& bluetooth_manager = *static_cast<BluetoothManager*>(user_data);
-  std::scoped_lock lock(bluetooth_manager.bluetoothDevices().mutex_);
-  auto it = bluetooth_manager.bluetoothDevices().var_.find(remote_address);
+  std::scoped_lock lock(active_devices_.mutex_);
+  auto it = active_devices_.var_.find(remote_address);
 
-  if (it != bluetooth_manager.bluetoothDevices().var_.end()) {
+  if (it != active_devices_.var_.end()) {
     auto device = it->second;
     std::scoped_lock devLock(device->operation_mutex_);
     device->is_connecting_ = false;
