@@ -1,6 +1,5 @@
 #include "GATT/bluetooth_service.h"
 
-#include "GATT/bluetooth_characteristic.h"
 #include "log.h"
 
 namespace flutter_blue_tizen {

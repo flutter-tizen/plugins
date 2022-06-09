@@ -37,16 +37,12 @@ class BluetoothService {
 
   BluetoothService(bt_gatt_h handle);
 
-  BluetoothService(const BluetoothService&) = default;
-
   virtual ~BluetoothService() = default;
 };
 
 class PrimaryService : public BluetoothService {
  public:
   PrimaryService(bt_gatt_h handle);
-
-  PrimaryService(const PrimaryService&) = default;
 
   ~PrimaryService();
 
@@ -63,8 +59,6 @@ class PrimaryService : public BluetoothService {
 class SecondaryService : public BluetoothService {
  public:
   SecondaryService(bt_gatt_h service_handle, PrimaryService& primary_service);
-
-  SecondaryService(const SecondaryService&) = default;
 
   ~SecondaryService();
 

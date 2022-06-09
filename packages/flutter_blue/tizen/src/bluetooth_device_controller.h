@@ -34,10 +34,6 @@ class BluetoothDeviceController {
 
   ~BluetoothDeviceController() noexcept;
 
-  BluetoothDeviceController() = delete;
-
-  BluetoothDeviceController(const BluetoothDeviceController& address) = delete;
-
   const std::string& cName() const noexcept;
 
   const std::string& cAddress() const noexcept;
@@ -67,10 +63,6 @@ class BluetoothDeviceController {
           connection_changed_callback);
 
  private:
-  /**
-   * @brief all attributes are depentent on this mutex
-   */
-
   std::mutex operation_mutex_;
 
   std::vector<std::unique_ptr<btGatt::PrimaryService>> services_;
