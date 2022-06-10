@@ -1,10 +1,6 @@
 #include "bluetooth_manager.h"
 
-#include <bluetooth.h>
 #include <system_info.h>
-#include <tizen.h>
-
-#include <mutex>
 
 #include "log.h"
 #include "proto_helper.h"
@@ -32,7 +28,7 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
           BluetoothDeviceController::State state,
           const BluetoothDeviceController* device) {
         proto::gen::DeviceStateResponse device_state;
-        device_state.set_remote_id(device->cAddress());
+        device_state.set_remote_id(device->address());
         device_state.set_state(ToProtoDeviceState(state));
         notifications_handler.NotifyUIThread("DeviceState", device_state);
       });
@@ -56,7 +52,7 @@ void BluetoothManager::SetNotification(
         [device, service, &notifications_handler = notifications_handler_](
             auto& characteristic) {
           proto::gen::SetNotificationResponse response;
-          response.set_remote_id(device->cAddress());
+          response.set_remote_id(device->address());
           response.set_allocated_characteristic(
               new proto::gen::BluetoothCharacteristic(
                   ToProtoCharacteristic(*device, *service, characteristic)));
@@ -82,7 +78,7 @@ void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
       request.mtu(), [&notifications_handler = notifications_handler_](
                          auto status, auto& bluetooth_device) {
         proto::gen::MtuSizeResponse mtu_size_response;
-        mtu_size_response.set_remote_id(bluetooth_device.cAddress());
+        mtu_size_response.set_remote_id(bluetooth_device.address());
         try {
           mtu_size_response.set_mtu(bluetooth_device.GetMtu());
         } catch (const std::exception& e) {
@@ -327,7 +323,7 @@ BluetoothManager::GetConnectedProtoBluetoothDevices() noexcept {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   for (const auto& e : bluetooth_devices_.var_) {
     if (e.second->GetState() == State::kConnected) {
-      proto_bluetooth_device.push_back(ToProtoDevice(*e.second));
+      proto_bluetooth_device.emplace_back(ToProtoDevice(*e.second));
     }
   }
   return proto_bluetooth_device;
@@ -348,7 +344,7 @@ void BluetoothManager::ReadCharacteristic(
       [device, service, &notifications_handler = notifications_handler_](
           auto& characteristic) -> void {
         proto::gen::ReadCharacteristicResponse read_characteristic_result;
-        read_characteristic_result.set_remote_id(device->cAddress());
+        read_characteristic_result.set_remote_id(device->address());
         read_characteristic_result.set_allocated_characteristic(
             new proto::gen::BluetoothCharacteristic(
                 ToProtoCharacteristic(*device, *service, characteristic)));

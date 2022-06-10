@@ -5,7 +5,6 @@
 #include "GATT/bluetooth_descriptor.h"
 #include "GATT/bluetooth_service.h"
 #include "bluetooth_device_controller.h"
-#include "bluetooth_manager.h"
 #include "flutterblue.pb.h"
 
 namespace flutter_blue_tizen {

@@ -10,9 +10,8 @@ BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle)
   int ret = bt_gatt_characteristic_foreach_descriptors(
       handle,
       [](int total, int index, bt_gatt_h descriptor_handle,
-         void* scope_ptr) -> bool {
-        auto& characteristic =
-            *static_cast<BluetoothCharacteristic*>(scope_ptr);
+         void* data) -> bool {
+        auto& characteristic = *static_cast<BluetoothCharacteristic*>(data);
         characteristic.descriptors_.emplace_back(
             std::make_unique<BluetoothDescriptor>(descriptor_handle));
         return true;
@@ -21,6 +20,13 @@ BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle)
   if (ret) throw BtException(ret, "bt_gatt_characteristic_foreach_descriptors");
   std::scoped_lock lock(active_characteristics_.mutex_);
   active_characteristics_.var_[Uuid()] = this;
+}
+
+BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
+  std::scoped_lock lock(active_characteristics_.mutex_);
+  UnsetNotifyCallback();
+  descriptors_.clear();
+  active_characteristics_.var_.erase(Uuid());
 }
 
 std::string BluetoothCharacteristic::Uuid() const noexcept {
@@ -33,7 +39,7 @@ std::string BluetoothCharacteristic::Value() const noexcept {
 
 BluetoothDescriptor* BluetoothCharacteristic::GetDescriptor(
     const std::string& uuid) const {
-  for (auto& descriptor : descriptors_)
+  for (const auto& descriptor : descriptors_)
     if (descriptor->Uuid() == uuid) return descriptor.get();
   return nullptr;
 }
@@ -41,12 +47,9 @@ BluetoothDescriptor* BluetoothCharacteristic::GetDescriptor(
 std::vector<BluetoothDescriptor*> BluetoothCharacteristic::GetDescriptors()
     const {
   std::vector<BluetoothDescriptor*> descriptors;
-  std::transform(descriptors_.begin(), descriptors_.end(),
-                 std::back_inserter(descriptors),
-                 [](auto& descriptor) -> BluetoothDescriptor* {
-                   return descriptor.get();
-                 });
-
+  for (const auto& descriptor : descriptors_) {
+    descriptors.emplace_back(descriptor.get());
+  }
   return descriptors;
 }
 
@@ -54,16 +57,17 @@ void BluetoothCharacteristic::Read(
     const std::function<void(const BluetoothCharacteristic&)>& callback) {
   struct Scope {
     std::function<void(const BluetoothCharacteristic&)> callback;
-    const std::string characteristic_uuid;
+    const std::string uuid;
   };
 
+  // Requires raw pointer to be passed to bt_gatt_client_read_value.
   Scope* scope = new Scope{callback, Uuid()};
   int ret = bt_gatt_client_read_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(active_characteristics_.mutex_);
-        auto it = active_characteristics_.var_.find(scope->characteristic_uuid);
+        auto it = active_characteristics_.var_.find(scope->uuid);
         if (it != active_characteristics_.var_.end()) {
           auto& characteristic = *it->second;
           scope->callback(characteristic);
@@ -85,7 +89,7 @@ void BluetoothCharacteristic::Write(
         callback) {
   struct Scope {
     std::function<void(bool success, const BluetoothCharacteristic&)> callback;
-    const std::string characteristic_uuid;
+    const std::string uuid;
   };
 
   int ret = bt_gatt_characteristic_set_write_type(
@@ -102,8 +106,8 @@ void BluetoothCharacteristic::Write(
 
   if (ret) throw BtException(ret, "could not set value");
 
+  // Requires raw pointer to be passed to bt_gatt_client_write_value.
   Scope* scope = new Scope{callback, Uuid()};
-
   ret = bt_gatt_client_write_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
@@ -112,7 +116,7 @@ void BluetoothCharacteristic::Write(
 
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(active_characteristics_.mutex_);
-        auto it = active_characteristics_.var_.find(scope->characteristic_uuid);
+        auto it = active_characteristics_.var_.find(scope->uuid);
 
         if (it != active_characteristics_.var_.end()) {
           auto& characteristic = *it->second;
@@ -128,7 +132,7 @@ void BluetoothCharacteristic::Write(
 }
 
 int BluetoothCharacteristic::Properties() const noexcept {
-  auto properties = 0;
+  int properties = 0;
   auto ret = bt_gatt_characteristic_get_properties(handle_, &properties);
   LOG_ERROR("bt_gatt_characteristic_get_properties", get_error_message(ret));
   return properties;
@@ -170,21 +174,12 @@ void BluetoothCharacteristic::SetNotifyCallback(
 }
 
 void BluetoothCharacteristic::UnsetNotifyCallback() {
-  if (/*cService().cDevice().GetState() ==
-          BluetoothDeviceController::State::kConnected && */
-      notify_callback_) {
-    auto ret = bt_gatt_client_unset_characteristic_value_changed_cb(handle_);
+  if (notify_callback_) {
+    int ret = bt_gatt_client_unset_characteristic_value_changed_cb(handle_);
     LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb",
               get_error_message(ret));
   }
   notify_callback_ = nullptr;
-}
-
-BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
-  std::scoped_lock lock(active_characteristics_.mutex_);
-  active_characteristics_.var_.erase(Uuid());
-  UnsetNotifyCallback();
-  descriptors_.clear();
 }
 
 }  // namespace btGatt

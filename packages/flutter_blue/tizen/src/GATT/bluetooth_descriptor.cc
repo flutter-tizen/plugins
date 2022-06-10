@@ -10,6 +10,11 @@ BluetoothDescriptor::BluetoothDescriptor(bt_gatt_h handle) : handle_(handle) {
   active_descriptors_.var_[Uuid()] = this;
 }
 
+BluetoothDescriptor::~BluetoothDescriptor() {
+  std::scoped_lock lock(active_descriptors_.mutex_);
+  active_descriptors_.var_.erase(Uuid());
+}
+
 std::string BluetoothDescriptor::Uuid() const noexcept {
   return GetGattUuid(handle_);
 }
@@ -25,8 +30,8 @@ void BluetoothDescriptor::Read(
     const std::string descriptor_uuid;
   };
 
-  auto scope =
-      new Scope{callback, Uuid()};  // unfortunately it requires raw ptr
+  // Requires raw pointer to be passed to bt_gatt_client_read_value.
+  auto scope = new Scope{callback, Uuid()};
   int ret = bt_gatt_client_read_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
@@ -62,9 +67,8 @@ void BluetoothDescriptor::Write(
 
   if (ret) throw BtException("could not set value");
 
-  auto scope = new Scope{callback, Uuid()};  // unfortunately it requires raw
-                                             // ptr
-
+  // Requires raw pointer to be passed to bt_gatt_client_write_value.
+  auto scope = new Scope{callback, Uuid()};
   ret = bt_gatt_client_write_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
@@ -87,11 +91,6 @@ void BluetoothDescriptor::Write(
   LOG_ERROR("bt_gatt_client_write_value", get_error_message(ret));
 
   if (ret) throw BtException("could not write value to remote");
-}
-
-BluetoothDescriptor::~BluetoothDescriptor() {
-  std::scoped_lock lock(active_descriptors_.mutex_);
-  active_descriptors_.var_.erase(Uuid());
 }
 
 }  // namespace btGatt

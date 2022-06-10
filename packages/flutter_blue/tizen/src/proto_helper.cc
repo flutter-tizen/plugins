@@ -34,15 +34,15 @@ proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
     *discovery_result.add_services() = ToProtoService(device, *service);
   }
 
-  discovery_result.set_remote_id(device.cAddress());
+  discovery_result.set_remote_id(device.address());
   return discovery_result;
 }
 
 proto::gen::BluetoothDevice ToProtoDevice(
     const BluetoothDeviceController& device) noexcept {
   proto::gen::BluetoothDevice proto;
-  proto.set_name(device.cName());
-  proto.set_remote_id(device.cAddress());
+  proto.set_name(device.name());
+  proto.set_remote_id(device.address());
   return proto;
 }
 
@@ -51,12 +51,12 @@ proto::gen::BluetoothCharacteristic ToProtoCharacteristic(
     const btGatt::BluetoothService& service,
     const btGatt::BluetoothCharacteristic& characteristic) noexcept {
   proto::gen::BluetoothCharacteristic proto;
-  proto.set_remote_id(device.cAddress());
+  proto.set_remote_id(device.address());
   proto.set_uuid(characteristic.Uuid());
   proto.set_allocated_properties(new proto::gen::CharacteristicProperties(
       GetProtoCharacteristicProperties(characteristic.Properties())));
   proto.set_value(characteristic.Value());
-  if (service.GetType() == btGatt::ServiceType::kPrimary) {
+  if (service.IsPrimary()) {
     proto.set_serviceuuid(service.Uuid());
   } else {
     auto& secondary = dynamic_cast<const btGatt::SecondaryService&>(service);
@@ -76,7 +76,7 @@ proto::gen::BluetoothDescriptor ToProtoDescriptor(
     const btGatt::BluetoothCharacteristic& characteristic,
     const btGatt::BluetoothDescriptor& descriptor) noexcept {
   proto::gen::BluetoothDescriptor proto;
-  proto.set_remote_id(device.cAddress());
+  proto.set_remote_id(device.address());
   proto.set_serviceuuid(service.Uuid());
   proto.set_characteristicuuid(characteristic.Uuid());
   proto.set_uuid(descriptor.Uuid());
@@ -89,14 +89,14 @@ proto::gen::BluetoothService ToProtoService(
   proto::gen::BluetoothService proto;
 
   proto.set_uuid(service.Uuid());
-  proto.set_remote_id(device.cAddress());
+  proto.set_remote_id(device.address());
 
   for (const auto characteristic : service.GetCharacteristics()) {
     *proto.add_characteristics() =
         ToProtoCharacteristic(device, service, *characteristic);
   }
 
-  if (service.GetType() == btGatt::ServiceType::kPrimary) {
+  if (service.IsPrimary()) {
     proto.set_is_primary(true);
 
     for (const auto secondary :

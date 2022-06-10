@@ -12,6 +12,7 @@
 #include "GATT/bluetooth_descriptor.h"
 #include "GATT/bluetooth_service.h"
 #include "bluetooth_device_controller.h"
+#include "flutterblue.pb.h"
 #include "notifications_handler.h"
 #include "utils.h"
 

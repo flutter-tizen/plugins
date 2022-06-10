@@ -4,12 +4,8 @@
 
 namespace flutter_blue_tizen {
 
-/**
- * @brief Get the value of Gatt descriptor, characteristic
- *
- * @param handle
- * @return std::string
- */
+
+// Gets the value of descriptor or characteristic.
 std::string GetGattValue(bt_gatt_h handle) {
   std::string result = "";
   char* value = nullptr;
@@ -25,12 +21,8 @@ std::string GetGattValue(bt_gatt_h handle) {
   return result;
 }
 
-/**
- * @brief Get the uuid of Gatt descriptor, characteristic or service
- *
- * @param handle
- * @return std::string
- */
+
+// Gets the uuid of descriptor, characteristic or service.
 std::string GetGattUuid(bt_gatt_h handle) {
   std::string result;
   char* uuid = nullptr;

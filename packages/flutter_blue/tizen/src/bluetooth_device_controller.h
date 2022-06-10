@@ -26,7 +26,7 @@ class BluetoothDeviceController {
     kDisconnecting,
   };
 
-  using requestMtuCallback =
+  using RequestMtuCallback =
       std::function<void(bool, const BluetoothDeviceController&)>;
 
   BluetoothDeviceController(const std::string& name,
@@ -34,19 +34,15 @@ class BluetoothDeviceController {
 
   ~BluetoothDeviceController() noexcept;
 
-  const std::string& cName() const noexcept;
+  std::string name() const noexcept;
 
-  const std::string& cAddress() const noexcept;
+  std::string address() const noexcept;
 
   State GetState() const noexcept;
 
   void Connect(bool auto_connect);
 
   void Disconnect();
-
-  static bt_gatt_client_h GetGattClient(const std::string& address);
-
-  static void DestroyGattClientIfExists(const std::string& address) noexcept;
 
   void DiscoverServices();
 
@@ -56,7 +52,7 @@ class BluetoothDeviceController {
 
   uint32_t GetMtu() const;
 
-  void RequestMtu(uint32_t mtu, const requestMtuCallback& callback);
+  void RequestMtu(uint32_t mtu, const RequestMtuCallback& callback);
 
   static void SetConnectionStateChangedCallback(
       std::function<void(State state, const BluetoothDeviceController* device)>
@@ -84,6 +80,10 @@ class BluetoothDeviceController {
 
   static inline SafeType<std::unordered_map<std::string, bt_gatt_client_h>>
       gatt_clients_;
+
+  static bt_gatt_client_h GetGattClient(const std::string& address);
+
+  static void DestroyGattClientIfExists(const std::string& address) noexcept;
 };
 
 }  // namespace flutter_blue_tizen
