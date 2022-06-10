@@ -1,3 +1,7 @@
+## 1.2.1
+
+* Refactor the C++ code.
+
 ## 1.2.0
 
 * Fix a bug where `setLanguage()` wasn't invoked due to typo in `setLanguage`.

@@ -8,14 +8,17 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <vector>
 
 #include "log.h"
 #include "text_to_speech.h"
+
+namespace {
+
+typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
+typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 
 class FlutterTtsTizenPlugin : public flutter::Plugin {
  public:
@@ -25,15 +28,25 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   FlutterTtsTizenPlugin(flutter::PluginRegistrar *registrar) {
-    channel_ =
-        std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "flutter_tts",
-            &flutter::StandardMethodCodec::GetInstance());
+    channel_ = std::make_unique<FlMethodChannel>(
+        registrar->messenger(), "flutter_tts",
+        &flutter::StandardMethodCodec::GetInstance());
     channel_->SetMethodCallHandler([this](const auto &call, auto result) {
       this->HandleMethodCall(call, std::move(result));
     });
 
     tts_ = std::make_unique<TextToSpeech>();
+    try {
+      tts_->Initialize();
+    } catch (const TextToSpeechError &error) {
+      // TODO : Handle initialization failure cases
+      // Rarely, initializing TextToSpeech can fail. we should consider catching
+      // the exception and propagating it to the flutter side. however, I think
+      // this is optional because flutter side is not expecting any errors.
+      LOG_ERROR("Operation failed : %s", error.GetErrorString().c_str());
+      tts_ = nullptr;
+      return;
+    }
     tts_->SetOnStateChanagedCallback(
         [this](tts_state_e previous, tts_state_e current) -> void {
           std::unique_ptr<flutter::EncodableValue> value =
@@ -76,108 +89,177 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    const auto method_name = method_call.method_name();
+    const auto &arguments = *method_call.arguments();
+
+    result_ = std::move(result);
+
+    if (!tts_) {
+      result_->Error("Operation failed", "TTS is invalid.");
+      return;
+    }
+
+    if (method_name == "awaitSpeakCompletion") {
+      OnAwaitSpeakCompletion(arguments);
+    } else if (method_name == "speak") {
+      OnSpeak(arguments);
+    } else if (method_name == "stop") {
+      OnStop();
+    } else if (method_name == "pause") {
+      OnPause();
+    } else if (method_name == "getSpeechRateValidRange") {
+      OnGetSpeechRateValidRange();
+    } else if (method_name == "setSpeechRate") {
+      OnSetSpeechRate(arguments);
+    } else if (method_name == "setLanguage") {
+      OnSetLanguage(arguments);
+    } else if (method_name == "getLanguages") {
+      OnGetLanguage();
+    } else if (method_name == "setVolume") {
+      OnSetVolume(arguments);
+    } else {
+      result_->NotImplemented();
+    }
+  }
+
+  void OnAwaitSpeakCompletion(const flutter::EncodableValue &arguments) {
+    if (std::holds_alternative<bool>(arguments)) {
+      await_speak_completion_ = std::get<bool>(arguments);
+      SendResult(flutter::EncodableValue(1));
+      return;
+    }
+    SendErrorResult("Invalid argument", "Argument is invaild.");
+  }
+
+  void OnSpeak(const flutter::EncodableValue &arguments) {
+    try {
+      if (tts_->GetState() == TtsState::kPlaying) {
+        SendErrorResult("Operation cancelled",
+                        "You cannot speak again while speaking.");
+        return;
+      }
+
+      if (std::holds_alternative<std::string>(arguments)) {
+        std::string text = std::get<std::string>(arguments);
+        tts_->AddText(text);
+      }
+
+      tts_->Speak();
+
+    } catch (const TextToSpeechError &error) {
+      SendErrorResult("Operation failed", error.GetErrorString());
+    }
+
+    if (await_speak_completion_ && !result_for_await_speak_completion_) {
+      LOG_DEBUG("Store result ptr for await speak completion");
+      result_for_await_speak_completion_ = std::move(result_);
+    } else {
+      SendResult(flutter::EncodableValue(1));
+    }
+  }
+
+  void OnStop() {
+    try {
+      tts_->Stop();
+    } catch (const TextToSpeechError &error) {
+      SendErrorResult("Operation failed", error.GetErrorString());
+    }
+    SendResult(flutter::EncodableValue(1));
+  }
+
+  void OnPause() {
+    try {
+      tts_->Pause();
+    } catch (const TextToSpeechError &error) {
+      SendErrorResult("Operation failed", error.GetErrorString());
+    }
+    SendResult(flutter::EncodableValue(1));
+  }
+
+  void OnGetSpeechRateValidRange() {
+    int min = 0, normal = 0, max = 0;
+    try {
+      tts_->GetSpeedRange(&min, &normal, &max);
+    } catch (const TextToSpeechError &error) {
+      SendErrorResult("Operation failed", error.GetErrorString());
+      return;
+    }
+    flutter::EncodableMap map;
+    map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+        "min", min));
+    map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+        "normal", normal));
+    map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+        "max", max));
+    map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+        "platform", "tizen"));
+    SendResult(flutter::EncodableValue(std::move(map)));
+  }
+
+  void OnSetSpeechRate(const flutter::EncodableValue &arguments) {
+    if (std::holds_alternative<double>(arguments)) {
+      int speed = (int)std::get<double>(arguments);
+      tts_->SetTtsSpeed(speed);
+      SendResult(flutter::EncodableValue(1));
+      return;
+    }
+    SendErrorResult("Invalid argument", "SpeechRate is invaild.");
+  }
+
+  void OnSetLanguage(const flutter::EncodableValue &arguments) {
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string language = std::move(std::get<std::string>(arguments));
+      tts_->SetDefaultLanguage(language);
+      SendResult(flutter::EncodableValue(1));
+      return;
+    }
+    SendErrorResult("Invalid argument", "Language is invaild.");
+  }
+
+  void OnGetLanguage() {
+    flutter::EncodableList list;
+    for (auto language : tts_->GetSupportedLanaguages()) {
+      list.push_back(flutter::EncodableValue(language));
+    }
+    SendResult(flutter::EncodableValue(list));
+  }
+
+  void OnSetVolume(const flutter::EncodableValue &arguments) {
+    if (std::holds_alternative<double>(arguments)) {
+      double volume = std::get<double>(arguments);
+      try {
+        tts_->SetVolume(volume);
+      } catch (const TextToSpeechError &error) {
+        SendErrorResult("Operation failed", error.GetErrorString());
+        return;
+      }
+    }
+    SendErrorResult("Invalid argument", "Volume is invaild.");
+  }
+
+  void SendResult(const flutter::EncodableValue &result) {
+    if (!result_) {
+      return;
+    }
+    result_->Success(result);
+    result_ = nullptr;
+  }
+
+  void SendErrorResult(const std::string &error_code,
+                       const std::string &error_message) {
     // Keep in sync with the return values implemented in:
     // https://github.com/dlutton/flutter_tts/blob/master/android/src/main/java/com/tundralabs/fluttertts/FlutterTtsPlugin.java.
     // In principle, MethodResult was designed to call MethodResult.Error() to
     // notify the dart code of any method call failures from the host platform.
     // However, in the case of flutter_tts, it expects a return value 0 on
     // failure(and value 1 on success). Therefore in the scope of this plugin,
-    // we call result->Success(flutter::EncodableValue(0)) to notify errors.
-
-    const auto method_name = method_call.method_name();
-    const auto &arguments = *method_call.arguments();
-
-    if (method_name.compare("awaitSpeakCompletion") == 0) {
-      if (std::holds_alternative<bool>(arguments)) {
-        await_speak_completion_ = std::get<bool>(arguments);
-        result->Success(flutter::EncodableValue(1));
-        return;
-      }
-      result->Success(flutter::EncodableValue(0));
-    } else if (method_name.compare("speak") == 0) {
-      if (tts_->GetState() == TTS_STATE_PLAYING) {
-        LOG_ERROR("[TTS] : You cannot speak again while speaking.");
-        result->Success(flutter::EncodableValue(0));
-        return;
-      }
-
-      if (std::holds_alternative<std::string>(arguments)) {
-        std::string text = std::get<std::string>(arguments);
-        if (!tts_->AddText(text)) {
-          result->Success(flutter::EncodableValue(0));
-          return;
-        }
-      }
-
-      if (tts_->Speak()) {
-        if (await_speak_completion_ && !result_for_await_speak_completion_) {
-          LOG_DEBUG("Store result ptr for await speak completion");
-          result_for_await_speak_completion_ = std::move(result);
-        } else {
-          result->Success(flutter::EncodableValue(1));
-        }
-      } else {
-        result->Success(flutter::EncodableValue(0));
-      }
-    } else if (method_name.compare("stop") == 0) {
-      if (tts_->Stop()) {
-        result->Success(flutter::EncodableValue(1));
-      } else {
-        result->Success(flutter::EncodableValue(0));
-      }
-    } else if (method_name.compare("pause") == 0) {
-      if (tts_->Pause()) {
-        result->Success(flutter::EncodableValue(1));
-      } else {
-        result->Success(flutter::EncodableValue(0));
-      }
-    } else if (method_name.compare("getSpeechRateValidRange") == 0) {
-      int min = 0, normal = 0, max = 0;
-      tts_->GetSpeedRange(&min, &normal, &max);
-      flutter::EncodableMap map;
-      map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-          "min", min));
-      map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-          "normal", normal));
-      map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-          "max", max));
-      map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-          "platform", "tizen"));
-      result->Success(flutter::EncodableValue(std::move(map)));
-    } else if (method_name.compare("setSpeechRate") == 0) {
-      if (std::holds_alternative<double>(arguments)) {
-        int speed = (int)std::get<double>(arguments);
-        tts_->SetTtsSpeed(speed);
-        result->Success(flutter::EncodableValue(1));
-        return;
-      }
-      result->Success(flutter::EncodableValue(0));
-    } else if (method_name.compare("setLanguage") == 0) {
-      if (std::holds_alternative<std::string>(arguments)) {
-        std::string language = std::move(std::get<std::string>(arguments));
-        tts_->SetDefaultLanguage(language);
-        result->Success(flutter::EncodableValue(1));
-        return;
-      }
-      result->Success(flutter::EncodableValue(0));
-    } else if (method_name.compare("getLanguages") == 0) {
-      flutter::EncodableList list;
-      for (auto language : tts_->GetSupportedLanaguages()) {
-        list.push_back(flutter::EncodableValue(language));
-      }
-      result->Success(flutter::EncodableValue(list));
-    } else if (method_name.compare("setVolume") == 0) {
-      if (std::holds_alternative<double>(arguments)) {
-        double rate = std::get<double>(arguments);
-        if (tts_->SetVolume(rate)) {
-          result->Success(flutter::EncodableValue(1));
-          return;
-        }
-      }
-      result->Success(flutter::EncodableValue(0));
-    } else {
-      result->Error("-1", "Not supported method");
+    // we call result_->Success(flutter::EncodableValue(0)) to notify errors.
+    if (!result_) {
+      return;
     }
+    LOG_ERROR("%s", std::string(error_code + " : " + error_message).c_str());
+    result_->Success(flutter::EncodableValue(0));
+    result_ = nullptr;
   }
 
   void HandleAwaitSpeakCompletion(int value) {
@@ -190,12 +272,14 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   std::unique_ptr<TextToSpeech> tts_;
-  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
-
   bool await_speak_completion_ = false;
-  std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
-      result_for_await_speak_completion_;
+
+  std::unique_ptr<FlMethodResult> result_for_await_speak_completion_;
+  std::unique_ptr<FlMethodResult> result_;
+  std::unique_ptr<FlMethodChannel> channel_;
 };
+
+}  // namespace
 
 void FlutterTtsTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {

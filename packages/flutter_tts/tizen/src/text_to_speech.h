@@ -11,6 +11,27 @@
 #include <string>
 #include <vector>
 
+enum class TtsState { kCreated, kReady, kPlaying, kPaused };
+
+class TextToSpeechError {
+ public:
+  TextToSpeechError(int error_code) : error_code_(error_code) {}
+  TextToSpeechError(std::string error_message, int error_code)
+      : error_message_(error_message), error_code_(error_code) {}
+
+  int GetErrorCode() const { return error_code_; }
+
+  std::string GetErrorString() const {
+    return error_message_.empty()
+               ? get_error_message(error_code_)
+               : error_message_ + " - " + get_error_message(error_code_);
+  }
+
+ private:
+  int error_code_;
+  std::string error_message_;
+};
+
 using OnStateChangedCallback =
     std::function<void(tts_state_e previous, tts_state_e current)>;
 using OnUtteranceCompletedCallback = std::function<void(int utt_id)>;
@@ -18,22 +39,14 @@ using OnErrorCallback = std::function<void(int utt_id, tts_error_e reason)>;
 
 class TextToSpeech {
  public:
-  TextToSpeech() {
-    // TODO : Handle initialization failure cases
-    // Rarely, initializing TextToSpeech can fail. IMO, in this case,
-    // we should throw an exception which means that the TextToSpeech instance
-    // creation failed. In addition, we should consider catching the exception
-    // and propagating it to the flutter side. however, I think this is optional
-    // because flutter side is not expecting any errors.
-    Init();
-    RegisterTtsCallback();
-    Prepare();
-  }
+  TextToSpeech() = default;
 
   ~TextToSpeech() {
     UnregisterTtsCallback();
-    Deinit();
+    TtsDestroy();
   }
+
+  void Initialize();
 
   void SetOnStateChanagedCallback(OnStateChangedCallback callback) {
     on_state_changed_ = callback;
@@ -62,27 +75,27 @@ class TextToSpeech {
 
   std::vector<std::string> &GetSupportedLanaguages();
 
-  tts_state_e GetState();
+  TtsState GetState();
 
-  bool AddText(std::string text);
+  void AddText(std::string text);
 
-  bool Speak();
+  void Speak();
 
-  bool Stop();
+  void Stop();
 
-  bool Pause();
+  void Pause();
 
-  bool SetVolume(double volume_rate);
+  void SetVolume(double volume_rate);
 
-  bool GetSpeedRange(int *min, int *normal, int *max);
+  void GetSpeedRange(int *min, int *normal, int *max);
 
   void SetTtsSpeed(int speed) { tts_speed_ = speed; }
 
   int GetUttId() { return utt_id_; }
 
  private:
-  void Init();
-  void Deinit();
+  void TtsCreate();
+  void TtsDestroy();
   void Prepare();
   void RegisterTtsCallback();
   void UnregisterTtsCallback();
@@ -90,7 +103,7 @@ class TextToSpeech {
   void ClearUttId() { utt_id_ = 0; }
 
   void SwitchVolumeOnStateChange(tts_state_e previous, tts_state_e current);
-  bool SetSpeechVolumeInternal(int volume);
+  void SetSpeechVolumeInternal(int volume);
   int GetSpeechVolumeInternal();
 
   tts_h tts_ = nullptr;

@@ -30,15 +30,21 @@ void OnError(tts_h tts, int utt_id, tts_error_e reason, void *user_data) {
 
 }  // namespace
 
-void TextToSpeech::Init() {
+void TextToSpeech::Initialize() {
+  TtsCreate();
+  RegisterTtsCallback();
+  Prepare();
+}
+
+void TextToSpeech::TtsCreate() {
   int ret = tts_create(&tts_);
   if (ret != TTS_ERROR_NONE) {
     tts_ = nullptr;
-    LOG_ERROR("[TTS] tts_create failed: %s", get_error_message(ret));
+    throw TextToSpeechError("tts_create", ret);
   }
 }
 
-void TextToSpeech::Deinit() {
+void TextToSpeech::TtsDestroy() {
   if (tts_) {
     tts_destroy(tts_);
     tts_ = nullptr;
@@ -56,15 +62,14 @@ void TextToSpeech::Prepare() {
   }
   ret = sound_manager_get_max_volume(SOUND_TYPE_VOICE, &system_max_volume_);
   if (ret != SOUND_MANAGER_ERROR_NONE) {
-    LOG_ERROR("[SOUNDMANAGER] sound_manager_get_max_volume failed: %s",
-              get_error_message(ret));
+    throw TextToSpeechError("sound_manager_get_max_volume", ret);
   }
   system_volume_ = GetSpeechVolumeInternal();
   tts_volume_ = system_volume_;
 
   ret = tts_prepare(tts_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_prepare failed: %s", get_error_message(ret));
+    throw TextToSpeechError("tts_prepare", ret);
   }
 }
 
@@ -109,70 +114,67 @@ std::vector<std::string> &TextToSpeech::GetSupportedLanaguages() {
   return supported_lanaguages_;
 }
 
-tts_state_e TextToSpeech::GetState() {
+TtsState TextToSpeech::GetState() {
   tts_state_e state;
   int ret = tts_get_state(tts_, &state);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_prepare failed: %s", get_error_message(ret));
+    throw TextToSpeechError(ret);
   }
-  return state;
+  switch (state) {
+    case TTS_STATE_CREATED:
+      return TtsState::kCreated;
+    case TTS_STATE_READY:
+    default:
+      return TtsState::kReady;
+    case TTS_STATE_PLAYING:
+      return TtsState::kPlaying;
+    case TTS_STATE_PAUSED:
+      return TtsState::kPaused;
+  }
 }
 
-bool TextToSpeech::AddText(std::string text) {
+void TextToSpeech::AddText(std::string text) {
   int ret = tts_add_text(tts_, text.c_str(), default_language_.c_str(),
                          default_voice_type_, tts_speed_, &utt_id_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_add_text failed: %s", get_error_message(ret));
-    return false;
+    throw TextToSpeechError("tts_add_text", ret);
   }
-  return true;
 }
 
-bool TextToSpeech::Speak() {
+void TextToSpeech::Speak() {
   int ret = tts_play(tts_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_play failed: %s", get_error_message(ret));
-    return false;
+    throw TextToSpeechError("tts_play", ret);
   }
-  return true;
 }
 
-bool TextToSpeech::Stop() {
+void TextToSpeech::Stop() {
   int ret = tts_stop(tts_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_stop failed: %s", get_error_message(ret));
-    return false;
+    throw TextToSpeechError("tts_stop", ret);
   }
-  return true;
 }
 
-bool TextToSpeech::Pause() {
+void TextToSpeech::Pause() {
   int ret = tts_pause(tts_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_pause failed: %s", get_error_message(ret));
-    return false;
+    throw TextToSpeechError("tts_pause", ret);
   }
-  return true;
 }
 
-bool TextToSpeech::SetVolume(double volume_rate) {
+void TextToSpeech::SetVolume(double volume_rate) {
   tts_volume_ = static_cast<int>(system_max_volume_ * volume_rate);
   // Change volume instantly when tts is playing.
-  if (GetState() == TTS_STATE_PLAYING) {
-    if (!SetSpeechVolumeInternal(tts_volume_)) {
-      return false;
-    }
+  if (GetState() == TtsState::kPlaying) {
+    SetSpeechVolumeInternal(tts_volume_);
   }
-  return true;
 }
 
-bool TextToSpeech::GetSpeedRange(int *min, int *normal, int *max) {
+void TextToSpeech::GetSpeedRange(int *min, int *normal, int *max) {
   int ret = tts_get_speed_range(tts_, min, normal, max);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_get_speed_range failed: %s", get_error_message(ret));
-    return false;
+    throw TextToSpeechError(ret);
   }
-  return true;
 }
 
 void TextToSpeech::SwitchVolumeOnStateChange(tts_state_e previous,
@@ -194,19 +196,14 @@ int TextToSpeech::GetSpeechVolumeInternal() {
   int volume;
   int ret = sound_manager_get_volume(SOUND_TYPE_VOICE, &volume);
   if (ret != SOUND_MANAGER_ERROR_NONE) {
-    LOG_ERROR("[SOUNDMANAGER] sound_manager_get_volume failed: %s",
-              get_error_message(ret));
-    volume = 0;
+    throw TextToSpeechError("sound_manager_get_volume", ret);
   }
   return volume;
 }
 
-bool TextToSpeech::SetSpeechVolumeInternal(int volume) {
+void TextToSpeech::SetSpeechVolumeInternal(int volume) {
   int ret = sound_manager_set_volume(SOUND_TYPE_VOICE, volume);
   if (ret != SOUND_MANAGER_ERROR_NONE) {
-    LOG_ERROR("[SOUNDMANAGER] sound_manager_set_volume failed: %s",
-              get_error_message(ret));
-    return false;
+    throw TextToSpeechError("sound_manager_set_volume", ret);
   }
-  return true;
 }
