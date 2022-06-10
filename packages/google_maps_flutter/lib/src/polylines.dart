@@ -9,7 +9,7 @@ part of google_maps_flutter_tizen;
 class PolylinesController extends GeometryController {
   /// Initializes the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
   PolylinesController({
-    required StreamController<MapEvent> stream,
+    required StreamController<MapEvent<Object?>> stream,
   })  : _streamController = stream,
         _polylineIdToController = <PolylineId, PolylineController>{},
         _idToPolylineId = <int, PolylineId>{};
@@ -19,7 +19,7 @@ class PolylinesController extends GeometryController {
   final Map<int, PolylineId> _idToPolylineId;
 
   // The stream over which polylines broadcast their events
-  final StreamController<MapEvent> _streamController;
+  final StreamController<MapEvent<Object?>> _streamController;
 
   /// Adds a set of [Polyline] objects to the cache.
   ///

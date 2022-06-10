@@ -10,6 +10,8 @@ class GoogleMapsController {
   // The internal ID of the map. Used to broadcast events, DOM IDs and everything where a unique ID is needed.
   final int _mapId;
 
+  bool _isFirst = false;
+
   final CameraPosition _initialCameraPosition;
   final Set<Marker> _markers;
   final Set<Polygon> _polygons;
@@ -95,6 +97,7 @@ class GoogleMapsController {
       javascriptChannels: <JavascriptChannel>{
         _onBoundsChanged(),
         _onIdle(),
+        _onTilesloaded(),
         _onClick(),
         _onRightClick(),
         _onMarkerClick(),
@@ -118,6 +121,7 @@ class GoogleMapsController {
       map.addListener('idle', Idle.postMessage);
       map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
       map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
+      map.addListener('tilesloaded', Tilesloaded.postMessage);
     ''';
     await (await controller).runJavascript(command);
   }
@@ -138,10 +142,10 @@ class GoogleMapsController {
   }
 
   // The StreamController used by this controller and the geometry ones.
-  final StreamController<MapEvent> _streamController;
+  final StreamController<MapEvent<Object?>> _streamController;
 
   /// The Stream over which this controller broadcasts events.
-  Stream<MapEvent> get events => _streamController.stream;
+  Stream<MapEvent<Object?>> get events => _streamController.stream;
 
   // // Geometry controllers, for different features of the map.
   CirclesController? _circlesController;
@@ -157,15 +161,12 @@ class GoogleMapsController {
   /// Initializes the GoogleMapsController.
   GoogleMapsController({
     required int mapId,
-    required StreamController<MapEvent> streamController,
+    required StreamController<MapEvent<Object?>> streamController,
     required CameraPosition initialCameraPosition,
     Set<Marker> markers = const <Marker>{},
     Set<Polygon> polygons = const <Polygon>{},
     Set<Polyline> polylines = const <Polyline>{},
     Set<Circle> circles = const <Circle>{},
-    Set<TileOverlay> tileOverlays = const <TileOverlay>{},
-    Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers =
-        const <Factory<OneSequenceGestureRecognizer>>{},
     Map<String, dynamic> mapOptions = const <String, dynamic>{},
   })  : _mapId = mapId,
         _streamController = streamController,
@@ -190,13 +191,18 @@ class GoogleMapsController {
           }
           final LatLng center = await getCenter();
           final double zoom = await getZoomLevel();
-          if (!_mapIsMoving) {
-            _mapIsMoving = true;
-            _streamController.add(CameraMoveStartedEvent(_mapId));
+
+          if (!_streamController.isClosed) {
+            if (!_mapIsMoving) {
+              _mapIsMoving = true;
+              _streamController.add(CameraMoveStartedEvent(_mapId));
+            }
+
+            _streamController.add(
+              CameraMoveEvent(
+                  _mapId, CameraPosition(target: center, zoom: zoom)),
+            );
           }
-          _streamController.add(
-            CameraMoveEvent(_mapId, CameraPosition(target: center, zoom: zoom)),
-          );
         });
   }
 
@@ -209,6 +215,22 @@ class GoogleMapsController {
           }
           _mapIsMoving = false;
           _streamController.add(CameraIdleEvent(_mapId));
+        });
+  }
+
+  JavascriptChannel _onTilesloaded() {
+    return JavascriptChannel(
+        name: 'Tilesloaded',
+        onMessageReceived: (JavascriptMessage message) async {
+          if (_widget == null || _streamController == null || _isFirst) {
+            return;
+          }
+          try {
+            _streamController.add(MapReadyEvent(_mapId));
+            _isFirst = true;
+          } catch (e) {
+            print('Javascript Error: $e');
+          }
         });
   }
 
@@ -424,10 +446,10 @@ class GoogleMapsController {
 
   // Renders the initial sets of geometry.
   void _renderInitialGeometry({
-    Set<Marker> markers = const {},
-    Set<Circle> circles = const {},
-    Set<Polygon> polygons = const {},
-    Set<Polyline> polylines = const {},
+    Set<Marker> markers = const <Marker>{},
+    Set<Circle> circles = const <Circle>{},
+    Set<Polygon> polygons = const <Polygon>{},
+    Set<Polyline> polylines = const <Polyline>{},
   }) {
     assert(
         _controllersBoundToMap,
@@ -728,4 +750,10 @@ class GoogleMapsController {
     _markersController = null;
     _streamController.close();
   }
+}
+
+/// A MapEvent event fired when a [mapId] on web is interactive.
+class MapReadyEvent extends MapEvent<Object?> {
+  /// Build a WebMapReady Event for the map represented by `mapId`.
+  MapReadyEvent(int mapId) : super(mapId, null);
 }

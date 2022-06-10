@@ -9,7 +9,7 @@ part of google_maps_flutter_tizen;
 class CirclesController extends GeometryController {
   /// Initialize the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
   CirclesController({
-    required StreamController<MapEvent> stream,
+    required StreamController<MapEvent<Object?>> stream,
   })  : _streamController = stream,
         _circleIdToController = <CircleId, CircleController>{},
         _idToCircleId = <int, CircleId>{};
@@ -19,7 +19,7 @@ class CirclesController extends GeometryController {
   final Map<int, CircleId> _idToCircleId;
 
   // The stream over which circles broadcast their events
-  final StreamController<MapEvent> _streamController;
+  final StreamController<MapEvent<Object?>> _streamController;
 
   /// Adds a set of [Circle] objects to the cache.
   ///
@@ -53,7 +53,8 @@ class CirclesController extends GeometryController {
   }
 
   void _changeCircle(Circle circle) {
-    final circleController = _circleIdToController[circle.circleId];
+    final CircleController? circleController =
+        _circleIdToController[circle.circleId];
     circleController?.update(_circleOptionsFromCircle(circle));
   }
 
@@ -62,6 +63,7 @@ class CirclesController extends GeometryController {
     circleIdsToRemove.forEach(_removeCircle);
   }
 
+  // Removes a circle and its controller by its [CircleId].
   void _removeCircle(CircleId circleId) {
     final CircleController? circleController = _circleIdToController[circleId];
     circleController?.remove();

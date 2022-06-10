@@ -6,7 +6,7 @@
 part of google_maps_flutter_tizen;
 
 // Indices in the plugin side don't match with the ones
-Map<int, String> _mapTypeToMapTypeId = {
+Map<int, String> _mapTypeToMapTypeId = <int, String>{
   0: 'roadmap', // None
   1: 'roadmap',
   2: 'satellite',
@@ -19,7 +19,7 @@ String? _getCameraBounds(dynamic option) {
     return null;
   }
 
-  final List<Object> bound = option[0] as List<Object>;
+  final List<Object> bound = option[0]! as List<Object>;
   final LatLng? southwest = LatLng.fromJson(bound[0]);
   final LatLng? northeast = LatLng.fromJson(bound[1]);
 
@@ -50,7 +50,7 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
       'mapTypeControl: false, fullscreenControl: false, streetViewControl: false';
 
   if (_mapTypeToMapTypeId.containsKey(rawOptions['mapType'])) {
-    options += ', mapTypeId: \'${_mapTypeToMapTypeId[rawOptions['mapType']]}\'';
+    options += ", mapTypeId: '${_mapTypeToMapTypeId[rawOptions['mapType']]}'";
   }
 
   if (rawOptions['minMaxZoomPreference'] != null) {
@@ -79,9 +79,9 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
 
   if (rawOptions['scrollGesturesEnabled'] == false ||
       rawOptions['zoomGesturesEnabled'] == false) {
-    options += ', gestureHandling: \'none\'';
+    options += ", gestureHandling: 'none'";
   } else {
-    options += ', gestureHandling: \'auto\'';
+    options += ", gestureHandling: 'auto'";
   }
 
   return options;
@@ -91,10 +91,12 @@ String _applyInitialPosition(
   CameraPosition initialPosition,
   String options,
 ) {
-  options += ', zoom: ${initialPosition.zoom}';
-  options +=
-      ', center: {lat: ${initialPosition.target.latitude} ,lng: ${initialPosition.target.longitude}}';
-
+  // Adjust the initial position, if passed...
+  if (initialPosition != null) {
+    options += ', zoom: ${initialPosition.zoom}';
+    options +=
+        ', center: {lat: ${initialPosition.target.latitude} ,lng: ${initialPosition.target.longitude}}';
+  }
   return options;
 }
 

@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:integration_test/integration_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_flutter_tizen/google_maps_flutter_tizen.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:google_maps_flutter_tizen/google_maps_flutter_tizen.dart';
+import 'package:integration_test/integration_test.dart';
 
 const LatLng _kInitialMapCenter = LatLng(0, 0);
 const double _kInitialZoomLevel = 5;
@@ -33,14 +33,17 @@ void main() {
         key: key,
         initialCameraPosition: _kInitialCameraPosition,
         minMaxZoomPreference: initialZoomLevel,
-        onMapCreated: (GoogleMapController c) async {
+        onMapCreated: (GoogleMapController c) {
           mapId = c.mapId;
         },
       ),
     ));
 
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
-    GoogleMapsController? map = plugin.debugGetMapById(mapId);
+    final GoogleMapsController? map = plugin.debugGetMapById(mapId);
     expect(map, isNotNull);
 
     MinMaxZoomPreference zoomLevel = await map!.getMinMaxZoomLevels();
@@ -53,7 +56,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         minMaxZoomPreference: finalZoomLevel,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -78,6 +81,9 @@ void main() {
         },
       ),
     ));
+
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
     GoogleMapsController? map = plugin.debugGetMapById(mapId);
@@ -118,6 +124,9 @@ void main() {
       ),
     ));
 
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
     GoogleMapsController? map = plugin.debugGetMapById(mapId);
     expect(map, isNotNull);
@@ -157,6 +166,9 @@ void main() {
         },
       ),
     ));
+
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
     final GoogleMapsController? map = plugin.debugGetMapById(mapId);
@@ -305,6 +317,9 @@ void main() {
         },
       ),
     ));
+
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
     GoogleMapsController? map = plugin.debugGetMapById(mapId);
@@ -525,7 +540,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
 
     // Simple call to make sure that the app hasn't crashed.
     final LatLngBounds bounds1 = await controller.getVisibleRegion();

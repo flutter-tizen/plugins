@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Fix variouse bugs.
+
 ## 0.1.1
 
 * Update webview_flutter_tizen to 0.3.8.
