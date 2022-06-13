@@ -41,8 +41,8 @@ class MarkerController {
   LatLngCallback? dragEndEvent;
 
   Future<void> _addMarkerEvent(Future<WebViewController>? _controller) async {
-    final String command =
-        '''$marker.addListener("click", (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));
+    final String command = '''
+        $marker.addListener("click", (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));
         $marker.addListener("dragend", (event) => MarkerDragEnd.postMessage(JSON.stringify({id:${marker?.id}, event:event})));''';
     await (await _controller!).runJavascript(command);
   }

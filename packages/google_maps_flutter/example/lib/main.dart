@@ -18,19 +18,23 @@ import 'place_polygon.dart';
 import 'place_polyline.dart';
 
 final List<GoogleMapExampleAppPage> _allPages = <GoogleMapExampleAppPage>[
-  MapUiPage(),
-  MapCoordinatesPage(),
-  MapClickPage(),
-  AnimateCameraPage(),
-  MoveCameraPage(),
-  PlaceMarkerPage(),
-  MarkerIconsPage(),
-  PlacePolylinePage(),
-  PlacePolygonPage(),
-  PlaceCirclePage(),
+  const MapUiPage(),
+  const MapCoordinatesPage(),
+  const MapClickPage(),
+  const AnimateCameraPage(),
+  const MoveCameraPage(),
+  const PlaceMarkerPage(),
+  const MarkerIconsPage(),
+  const PlacePolylinePage(),
+  const PlacePolygonPage(),
+  const PlaceCirclePage(),
 ];
 
+/// MapsDemo is the Main Application.
 class MapsDemo extends StatelessWidget {
+  /// Default Constructor
+  const MapsDemo({Key? key}) : super(key: key);
+
   void _pushPage(BuildContext context, GoogleMapExampleAppPage page) {
     Navigator.of(context).push(MaterialPageRoute<void>(
         builder: (_) => Scaffold(
@@ -56,5 +60,5 @@ class MapsDemo extends StatelessWidget {
 }
 
 void main() {
-  runApp(MaterialApp(home: MapsDemo()));
+  runApp(const MaterialApp(home: MapsDemo()));
 }

@@ -7,6 +7,30 @@ part of google_maps_flutter_tizen;
 
 /// This class implements a Map Controller and its events
 class GoogleMapsController {
+  /// Initializes the GoogleMapsController.
+  GoogleMapsController({
+    required int mapId,
+    required StreamController<MapEvent<Object?>> streamController,
+    required CameraPosition initialCameraPosition,
+    Set<Marker> markers = const <Marker>{},
+    Set<Polygon> polygons = const <Polygon>{},
+    Set<Polyline> polylines = const <Polyline>{},
+    Set<Circle> circles = const <Circle>{},
+    Map<String, dynamic> mapOptions = const <String, dynamic>{},
+  })  : _mapId = mapId,
+        _streamController = streamController,
+        _initialCameraPosition = initialCameraPosition,
+        _markers = markers,
+        _polygons = polygons,
+        _polylines = polylines,
+        _circles = circles,
+        _rawMapOptions = mapOptions {
+    _circlesController = CirclesController(stream: _streamController);
+    _polygonsController = PolygonsController(stream: _streamController);
+    _polylinesController = PolylinesController(stream: _streamController);
+    _markersController = MarkersController(stream: _streamController);
+  }
+
   // The internal ID of the map. Used to broadcast events, DOM IDs and everything where a unique ID is needed.
   final int _mapId;
 
@@ -157,30 +181,6 @@ class GoogleMapsController {
   bool _controllersBoundToMap = false;
   // Keeps track if the map is moving or not.
   bool _mapIsMoving = false;
-
-  /// Initializes the GoogleMapsController.
-  GoogleMapsController({
-    required int mapId,
-    required StreamController<MapEvent<Object?>> streamController,
-    required CameraPosition initialCameraPosition,
-    Set<Marker> markers = const <Marker>{},
-    Set<Polygon> polygons = const <Polygon>{},
-    Set<Polyline> polylines = const <Polyline>{},
-    Set<Circle> circles = const <Circle>{},
-    Map<String, dynamic> mapOptions = const <String, dynamic>{},
-  })  : _mapId = mapId,
-        _streamController = streamController,
-        _initialCameraPosition = initialCameraPosition,
-        _markers = markers,
-        _polygons = polygons,
-        _polylines = polylines,
-        _circles = circles,
-        _rawMapOptions = mapOptions {
-    _circlesController = CirclesController(stream: _streamController);
-    _polygonsController = PolygonsController(stream: _streamController);
-    _polylinesController = PolylinesController(stream: _streamController);
-    _markersController = MarkersController(stream: _streamController);
-  }
 
   JavascriptChannel _onBoundsChanged() {
     return JavascriptChannel(
@@ -490,12 +490,12 @@ class GoogleMapsController {
 
   Future<void> _setOptions(String options) async {
     if (_controller.isCompleted) {
-      await _callMethod(await controller, 'setOptions', [options]);
+      await _callMethod(await controller, 'setOptions', <String>[options]);
     }
   }
 
   Future<void> _setZoom(String options) async {
-    await _callMethod(await controller, 'setZoom', [options]);
+    await _callMethod(await controller, 'setZoom', <String>[options]);
   }
 
   // Attaches/detaches a Traffic Layer on the `map` if `attach` is true/false.
@@ -517,19 +517,19 @@ class GoogleMapsController {
   }
 
   Future<void> _setMoveCamera(String options) async {
-    await _callMethod(await controller, 'moveCamera', [options]);
+    await _callMethod(await controller, 'moveCamera', <String>[options]);
   }
 
   Future<void> _setPanTo(String options) async {
-    await _callMethod(await controller, 'panTo', [options]);
+    await _callMethod(await controller, 'panTo', <String>[options]);
   }
 
   Future<void> _setPanBy(String options) async {
-    await _callMethod(await controller, 'panBy', [options]);
+    await _callMethod(await controller, 'panBy', <String>[options]);
   }
 
   Future<void> _setFitBounds(String options) async {
-    await _callMethod(await controller, 'fitBounds', [options]);
+    await _callMethod(await controller, 'fitBounds', <String>[options]);
   }
 
   Future<String> _callMethod(
@@ -540,7 +540,7 @@ class GoogleMapsController {
 
   Future<double> _getZoom(WebViewController c) async {
     try {
-      return double.parse(await _callMethod(c, 'getZoom', []));
+      return double.parse(await _callMethod(c, 'getZoom', <String>[]));
     } catch (e) {
       print('Javascript Error: $e');
       return 0.0;
@@ -550,13 +550,13 @@ class GoogleMapsController {
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
     return _convertToBounds(
-        await _callMethod(await controller, 'getBounds', []));
+        await _callMethod(await controller, 'getBounds', <String>[]));
   }
 
   /// Returns the [LatLng] at the center of the map.
   Future<LatLng> getCenter() async {
     return _convertToLatLng(
-        await _callMethod(await controller, 'getCenter', []));
+        await _callMethod(await controller, 'getCenter', <String>[]));
   }
 
   /// Returns the [ScreenCoordinate] for a given viewport [LatLng].
@@ -614,7 +614,7 @@ class GoogleMapsController {
             focusLatLng = await _pixelToLatLng(
                 json[2][0] as double, json[2][1] as double);
           } catch (e) {
-            print('Error computing focus LatLng. JS Error: ' + e.toString());
+            print('Error computing focus LatLng. JS Error: ${e.toString()}');
           }
         }
         await _setZoom('${(await getZoomLevel()) + newZoomDelta}');

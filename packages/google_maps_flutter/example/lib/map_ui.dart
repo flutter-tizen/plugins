@@ -16,7 +16,8 @@ final LatLngBounds sydneyBounds = LatLngBounds(
 );
 
 class MapUiPage extends GoogleMapExampleAppPage {
-  MapUiPage() : super(const Icon(Icons.map), 'User interface');
+  const MapUiPage({Key? key})
+      : super(const Icon(Icons.map), 'User interface', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,7 @@ class MapUiPage extends GoogleMapExampleAppPage {
 }
 
 class MapUiBody extends StatefulWidget {
-  const MapUiBody();
+  const MapUiBody({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => MapUiBodyState();
@@ -34,28 +35,28 @@ class MapUiBody extends StatefulWidget {
 class MapUiBodyState extends State<MapUiBody> {
   MapUiBodyState();
 
-  static final CameraPosition _kInitialPosition = const CameraPosition(
+  static const CameraPosition _kInitialPosition = CameraPosition(
     target: LatLng(-33.852, 151.211),
     zoom: 11.0,
   );
 
   CameraPosition _position = _kInitialPosition;
   bool _isMapCreated = false;
-  bool _isMoving = false;
-  bool _compassEnabled = true;
-  bool _mapToolbarEnabled = true;
+  final bool _isMoving = false;
+  final bool _compassEnabled = true;
+  final bool _mapToolbarEnabled = true;
   CameraTargetBounds _cameraTargetBounds = CameraTargetBounds.unbounded;
   MinMaxZoomPreference _minMaxZoomPreference = MinMaxZoomPreference.unbounded;
   MapType _mapType = MapType.normal;
-  bool _rotateGesturesEnabled = true;
+  final bool _rotateGesturesEnabled = true;
   bool _scrollGesturesEnabled = true;
-  bool _tiltGesturesEnabled = true;
+  final bool _tiltGesturesEnabled = true;
   bool _zoomControlsEnabled = false;
   bool _zoomGesturesEnabled = true;
-  bool _indoorViewEnabled = true;
-  bool _myLocationEnabled = true;
+  final bool _indoorViewEnabled = true;
+  final bool _myLocationEnabled = true;
   bool _myTrafficEnabled = false;
-  bool _myLocationButtonEnabled = true;
+  final bool _myLocationButtonEnabled = true;
   late GoogleMapController _controller;
   bool _nightMode = false;
 

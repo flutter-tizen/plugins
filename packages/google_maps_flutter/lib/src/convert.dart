@@ -116,7 +116,7 @@ final Set<String> _mapStyleKeys = <String>{
 };
 
 // Checks if the passed in Map contains some of the _mapStyleKeys.
-bool _isJsonMapStyle(Map value) {
+bool _isJsonMapStyle(Map<String, Object?> value) {
   return _mapStyleKeys.intersection(value.keys.toSet()).isNotEmpty;
 }
 
@@ -136,12 +136,13 @@ String _mapStyles(String? mapStyleJson) {
   if (mapStyleJson != null) {
     try {
       json
-          .decode(mapStyleJson, reviver: (key, value) {
-            if (value is Map && _isJsonMapStyle(value)) {
+          .decode(mapStyleJson, reviver: (Object? key, Object? value) {
+            if (value is Map &&
+                _isJsonMapStyle(value as Map<String, Object?>)) {
               return MapTypeStyle()
                 ..elementType = value['elementType'] as String?
                 ..featureType = value['featureType'] as String?
-                ..stylers = (value['stylers'] as List<dynamic>)
+                ..stylers = (value['stylers']! as List<dynamic>)
                     .map<dynamic>((dynamic e) => e)
                     .toList();
             }
@@ -232,7 +233,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
     buffer.write(markerSnippet);
     buffer.write('</div>');
   }
-  buffer.write('</div>\'');
+  buffer.write("</div>'");
 
   // Need to add Click Event to infoWindow's content
   return util.GInfoWindowOptions()
@@ -247,7 +248,7 @@ util.GMarkerOptions _markerOptionsFromMarker(
   Marker marker,
   util.GMarker? currentMarker,
 ) {
-  final iconConfig = marker.icon.toJson() as List;
+  final List<Object?> iconConfig = marker.icon.toJson() as List<Object?>;
   util.GIcon? icon;
 
   if (iconConfig.isNotEmpty) {
@@ -259,8 +260,9 @@ util.GMarkerOptions _markerOptionsFromMarker(
 
       // iconConfig[3] may contain the [width, height] of the image, if passed!
       if (iconConfig.length >= 4 && iconConfig[3] != null) {
+        final List<Object?> rawIconSize = iconConfig[3]! as List<Object?>;
         final util.GSize size =
-            util.GSize(iconConfig[3][0] as num, iconConfig[3][1] as num);
+            util.GSize(rawIconSize[0] as num?, rawIconSize[1] as num?);
         icon
           ..size = size
           ..scaledSize = size;
@@ -291,7 +293,7 @@ util.GMarkerOptions _markerOptionsFromMarker(
 
 // Converts a [Color] into a valid CSS value #RRGGBB.
 String _getCssColor(Color color) {
-  return '#' + color.value.toRadixString(16).padLeft(8, '0').substring(2);
+  return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
 }
 
 // Extracts the opacity from a [Color].
@@ -315,10 +317,11 @@ util.GPolylineOptions _polylineOptionsFromPolyline(Polyline polyline) {
 util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
   final List<LatLng> path = polygon.points;
   final bool polygonDirection = _isPolygonClockwise(path);
-  final List<List<LatLng>> paths = [path];
+  final List<List<LatLng>> paths = <List<LatLng>>[path];
   int holeIndex = 0;
-  polygon.holes.forEach((List<LatLng> hole) {
-    List<LatLng> holePath = hole;
+
+  for (int i = 0; i < polygon.holes.length; i++) {
+    List<LatLng> holePath = polygon.holes[i];
     if (_isPolygonClockwise(holePath) == polygonDirection) {
       holePath = holePath.reversed.toList();
       if (kDebugMode) {
@@ -330,7 +333,8 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
     }
     paths.add(holePath);
     holeIndex++;
-  });
+  }
+
   return util.GPolygonOptions()
     ..paths = paths
     ..strokeColor = _getCssColor(polygon.strokeColor)

@@ -9,7 +9,7 @@ part of google_maps_flutter_tizen;
 class MarkersController extends GeometryController {
   /// Initialize the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
   MarkersController({
-    required StreamController<MapEvent> stream,
+    required StreamController<MapEvent<Object?>> stream,
   })  : _streamController = stream,
         _idToMarkerId = <int, MarkerId>{},
         _markerIdToController = <MarkerId, MarkerController>{};
@@ -19,7 +19,7 @@ class MarkersController extends GeometryController {
   final Map<int, MarkerId> _idToMarkerId;
 
   // The stream over which markers broadcast their events
-  final StreamController<MapEvent> _streamController;
+  final StreamController<MapEvent<Object?>> _streamController;
 
   /// Adds a set of [Marker] objects to the cache.
   ///
@@ -142,8 +142,10 @@ class MarkersController extends GeometryController {
 
   void _hideAllMarkerInfoWindow() {
     _markerIdToController.values
-        .where((controller) =>
-            controller == null ? false : controller.infoWindowShown)
-        .forEach((controller) => controller.hideInfoWindow());
+        .where((MarkerController? controller) =>
+            controller?.infoWindowShown ?? false)
+        .forEach((MarkerController controller) {
+      controller.hideInfoWindow();
+    });
   }
 }
