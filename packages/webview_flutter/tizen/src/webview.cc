@@ -591,10 +591,10 @@ static LWE::KeyValue KeyToKeyValue(const std::string& key,
   return LWE::KeyValue::UnidentifiedKey;
 }
 
-void WebView::SendKey(const char* key, const char* string, const char* compose,
+bool WebView::SendKey(const char* key, const char* string, const char* compose,
                       uint32_t modifiers, uint32_t scan_code, bool is_down) {
   if (!IsFocused()) {
-    return;
+    return false;
   }
 
   bool is_shift_pressed = modifiers & 1;
@@ -622,6 +622,8 @@ void WebView::SendKey(const char* key, const char* string, const char* compose,
         delete param;
       },
       param);
+
+  return false;
 }
 
 void WebView::SetDirection(int direction) {

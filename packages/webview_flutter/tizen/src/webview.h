@@ -40,7 +40,7 @@ class WebView : public PlatformView {
 
   virtual void ClearFocus() override {}
 
-  virtual void SendKey(const char* key, const char* string, const char* compose,
+  virtual bool SendKey(const char* key, const char* string, const char* compose,
                        uint32_t modifiers, uint32_t scan_code,
                        bool is_down) override;
 
