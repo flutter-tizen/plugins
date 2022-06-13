@@ -208,14 +208,22 @@ class AppRunningContext {
     }
   }
 
-  /// Sends a terminate request to the application if it is running in foreground
-  /// or in a paused state.
+  /// Sends a terminate request to the application.
   ///
-  /// The `http://tizen.org/privilege/appmanager.kill` partner privilege is required
-  /// to use this API.
-  void terminate() {
+  /// Set [background] to true if the application is running in background or
+  /// is a service application.
+  ///
+  /// The `http://tizen.org/privilege/appmanager.kill.bgapp` privilege is
+  /// required if [background] is true. Otherwise, the
+  /// `http://tizen.org/privilege/appmanager.kill` platform privilege is
+  /// required.
+  void terminate({bool background = false}) {
     if (!isTerminated) {
-      _context.terminate();
+      if (background) {
+        _context.requestTerminateBgApp();
+      } else {
+        _context.terminate();
+      }
     }
   }
 }

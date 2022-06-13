@@ -19,6 +19,8 @@ typedef _AppContextGetPid = Int32 Function(
 typedef _AppContextGetAppState = Int32 Function(
     Pointer<_ContextHandle>, Pointer<Int32>);
 typedef _AppManagerTerminate = Int32 Function(Pointer<_ContextHandle>);
+typedef _AppManagerRequestTerminateBgApp = Int32 Function(
+    Pointer<_ContextHandle>);
 typedef _AppManagerResumeApp = Int32 Function(Pointer<_ContextHandle>);
 typedef _AppContextDestroy = Int32 Function(Pointer<_ContextHandle>);
 
@@ -61,6 +63,10 @@ class _AppManager {
         .lookup<NativeFunction<_AppManagerTerminate>>(
             'app_manager_terminate_app')
         .asFunction();
+    requestTerminateBgApp = libAppMananger
+        .lookup<NativeFunction<_AppManagerRequestTerminateBgApp>>(
+            'app_manager_request_terminate_bg_app')
+        .asFunction();
     resumeApp = libAppMananger
         .lookup<NativeFunction<_AppManagerResumeApp>>('app_manager_resume_app')
         .asFunction();
@@ -77,6 +83,7 @@ class _AppManager {
   late int Function(Pointer<_ContextHandle>, Pointer<Int32>) getProcessId;
   late int Function(Pointer<_ContextHandle>, Pointer<Int32>) getAppState;
   late int Function(Pointer<_ContextHandle>) terminateApp;
+  late int Function(Pointer<_ContextHandle>) requestTerminateBgApp;
   late int Function(Pointer<_ContextHandle>) resumeApp;
   late int Function(Pointer<_ContextHandle>) destroyContext;
 }
@@ -199,6 +206,17 @@ class AppContext {
   void terminate() {
     _checkHandle();
     final int ret = _appManager.terminateApp(_handle);
+    if (ret != 0) {
+      throw PlatformException(
+        code: ret.toString(),
+        message: getErrorMessage(ret).toDartString(),
+      );
+    }
+  }
+
+  void requestTerminateBgApp() {
+    _checkHandle();
+    final int ret = _appManager.requestTerminateBgApp(_handle);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),

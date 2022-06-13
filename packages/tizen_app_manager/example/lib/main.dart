@@ -10,7 +10,7 @@ import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tizen_app_control/app_control.dart';
-import 'package:tizen_app_manager/app_manager.dart';
+import 'package:tizen_app_manager/tizen_app_manager.dart';
 
 /// The settings app ID.
 const String settingAppId = 'org.tizen.setting';
