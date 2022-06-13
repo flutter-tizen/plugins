@@ -1,3 +1,7 @@
+## 0.5.1
+* Apply PlatformView API change.
+* Code refactoring.
+
 ## 0.5.0
 
 * Code refactoring.

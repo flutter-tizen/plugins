@@ -397,88 +397,88 @@ void WebView::Touch(int type, int button, double x, double y, double dx,
   }
 }
 
-static LWE::KeyValue KeyNameToKeyValue(const std::string& ecore_key,
-                                       bool is_shift_pressed) {
-  if (ecore_key == "Left") {
+static LWE::KeyValue KeyToKeyValue(const std::string& key,
+                                   bool is_shift_pressed) {
+  if (key == "Left") {
     return LWE::KeyValue::ArrowLeftKey;
-  } else if (ecore_key == "Right") {
+  } else if (key == "Right") {
     return LWE::KeyValue::ArrowRightKey;
-  } else if (ecore_key == "Up") {
+  } else if (key == "Up") {
     return LWE::KeyValue::ArrowUpKey;
-  } else if (ecore_key == "Down") {
+  } else if (key == "Down") {
     return LWE::KeyValue::ArrowDownKey;
-  } else if (ecore_key == "space") {
+  } else if (key == "space") {
     return LWE::KeyValue::SpaceKey;
-  } else if (ecore_key == "Select") {
+  } else if (key == "Select") {
     return LWE::KeyValue::EnterKey;
-  } else if (ecore_key == "Return") {
+  } else if (key == "Return") {
     return LWE::KeyValue::EnterKey;
-  } else if (ecore_key == "Tab") {
+  } else if (key == "Tab") {
     return LWE::KeyValue::TabKey;
-  } else if (ecore_key == "BackSpace") {
+  } else if (key == "BackSpace") {
     return LWE::KeyValue::BackspaceKey;
-  } else if (ecore_key == "Escape") {
+  } else if (key == "Escape") {
     return LWE::KeyValue::EscapeKey;
-  } else if (ecore_key == "Delete") {
+  } else if (key == "Delete") {
     return LWE::KeyValue::DeleteKey;
-  } else if (ecore_key == "at") {
+  } else if (key == "at") {
     return LWE::KeyValue::AtMarkKey;
-  } else if (ecore_key == "minus") {
+  } else if (key == "minus") {
     if (is_shift_pressed) {
       return LWE::KeyValue::UnderScoreMarkKey;
     } else {
       return LWE::KeyValue::MinusMarkKey;
     }
-  } else if (ecore_key == "equal") {
+  } else if (key == "equal") {
     if (is_shift_pressed) {
       return LWE::KeyValue::PlusMarkKey;
     } else {
       return LWE::KeyValue::EqualitySignKey;
     }
-  } else if (ecore_key == "bracketleft") {
+  } else if (key == "bracketleft") {
     if (is_shift_pressed) {
       return LWE::KeyValue::LeftCurlyBracketMarkKey;
     } else {
       return LWE::KeyValue::LeftSquareBracketKey;
     }
-  } else if (ecore_key == "bracketright") {
+  } else if (key == "bracketright") {
     if (is_shift_pressed) {
       return LWE::KeyValue::RightCurlyBracketMarkKey;
     } else {
       return LWE::KeyValue::RightSquareBracketKey;
     }
-  } else if (ecore_key == "semicolon") {
+  } else if (key == "semicolon") {
     if (is_shift_pressed) {
       return LWE::KeyValue::ColonMarkKey;
     } else {
       return LWE::KeyValue::SemiColonMarkKey;
     }
-  } else if (ecore_key == "apostrophe") {
+  } else if (key == "apostrophe") {
     if (is_shift_pressed) {
       return LWE::KeyValue::DoubleQuoteMarkKey;
     } else {
       return LWE::KeyValue::SingleQuoteMarkKey;
     }
-  } else if (ecore_key == "comma") {
+  } else if (key == "comma") {
     if (is_shift_pressed) {
       return LWE::KeyValue::LessThanMarkKey;
     } else {
       return LWE::KeyValue::CommaMarkKey;
     }
-  } else if (ecore_key == "period") {
+  } else if (key == "period") {
     if (is_shift_pressed) {
       return LWE::KeyValue::GreaterThanSignKey;
     } else {
       return LWE::KeyValue::PeriodKey;
     }
-  } else if (ecore_key == "slash") {
+  } else if (key == "slash") {
     if (is_shift_pressed) {
       return LWE::KeyValue::QuestionMarkKey;
     } else {
       return LWE::KeyValue::SlashKey;
     }
-  } else if (ecore_key.length() == 1) {
-    const char ch = ecore_key.at(0);
+  } else if (key.length() == 1) {
+    const char ch = key.at(0);
     if (ch >= '0' && ch <= '9') {
       if (is_shift_pressed) {
         switch (ch) {
@@ -518,128 +518,112 @@ static LWE::KeyValue KeyNameToKeyValue(const std::string& ecore_key,
         return LWE::KeyValue(LWE::KeyValue::AKey + ch - 'A');
       }
     }
-  } else if (ecore_key == "XF86AudioRaiseVolume") {
+  } else if (key == "XF86AudioRaiseVolume") {
     return LWE::KeyValue::TVVolumeUpKey;
-  } else if (ecore_key == "XF86AudioLowerVolume") {
+  } else if (key == "XF86AudioLowerVolume") {
     return LWE::KeyValue::TVVolumeDownKey;
-  } else if (ecore_key == "XF86AudioMute") {
+  } else if (key == "XF86AudioMute") {
     return LWE::KeyValue::TVMuteKey;
-  } else if (ecore_key == "XF86RaiseChannel") {
+  } else if (key == "XF86RaiseChannel") {
     return LWE::KeyValue::TVChannelUpKey;
-  } else if (ecore_key == "XF86LowerChannel") {
+  } else if (key == "XF86LowerChannel") {
     return LWE::KeyValue::TVChannelDownKey;
-  } else if (ecore_key == "XF86AudioRewind") {
+  } else if (key == "XF86AudioRewind") {
     return LWE::KeyValue::MediaTrackPreviousKey;
-  } else if (ecore_key == "XF86AudioNext") {
+  } else if (key == "XF86AudioNext") {
     return LWE::KeyValue::MediaTrackNextKey;
-  } else if (ecore_key == "XF86AudioPause") {
+  } else if (key == "XF86AudioPause") {
     return LWE::KeyValue::MediaPauseKey;
-  } else if (ecore_key == "XF86AudioRecord") {
+  } else if (key == "XF86AudioRecord") {
     return LWE::KeyValue::MediaRecordKey;
-  } else if (ecore_key == "XF86AudioPlay") {
+  } else if (key == "XF86AudioPlay") {
     return LWE::KeyValue::MediaPlayKey;
-  } else if (ecore_key == "XF86AudioStop") {
+  } else if (key == "XF86AudioStop") {
     return LWE::KeyValue::MediaStopKey;
-  } else if (ecore_key == "XF86Info") {
+  } else if (key == "XF86Info") {
     return LWE::KeyValue::TVInfoKey;
-  } else if (ecore_key == "XF86Back") {
+  } else if (key == "XF86Back") {
     return LWE::KeyValue::TVReturnKey;
-  } else if (ecore_key == "XF86Red") {
+  } else if (key == "XF86Red") {
     return LWE::KeyValue::TVRedKey;
-  } else if (ecore_key == "XF86Green") {
+  } else if (key == "XF86Green") {
     return LWE::KeyValue::TVGreenKey;
-  } else if (ecore_key == "XF86Yellow") {
+  } else if (key == "XF86Yellow") {
     return LWE::KeyValue::TVYellowKey;
-  } else if (ecore_key == "XF86Blue") {
+  } else if (key == "XF86Blue") {
     return LWE::KeyValue::TVBlueKey;
-  } else if (ecore_key == "XF86SysMenu") {
+  } else if (key == "XF86SysMenu") {
     return LWE::KeyValue::TVMenuKey;
-  } else if (ecore_key == "XF86Home") {
+  } else if (key == "XF86Home") {
     return LWE::KeyValue::TVHomeKey;
-  } else if (ecore_key == "XF86Exit") {
+  } else if (key == "XF86Exit") {
     return LWE::KeyValue::TVExitKey;
-  } else if (ecore_key == "XF86PreviousChannel") {
+  } else if (key == "XF86PreviousChannel") {
     return LWE::KeyValue::TVPreviousChannel;
-  } else if (ecore_key == "XF86ChannelList") {
+  } else if (key == "XF86ChannelList") {
     return LWE::KeyValue::TVChannelList;
-  } else if (ecore_key == "XF86ChannelGuide") {
+  } else if (key == "XF86ChannelGuide") {
     return LWE::KeyValue::TVChannelGuide;
-  } else if (ecore_key == "XF86SimpleMenu") {
+  } else if (key == "XF86SimpleMenu") {
     return LWE::KeyValue::TVSimpleMenu;
-  } else if (ecore_key == "XF86EManual") {
+  } else if (key == "XF86EManual") {
     return LWE::KeyValue::TVEManual;
-  } else if (ecore_key == "XF86ExtraApp") {
+  } else if (key == "XF86ExtraApp") {
     return LWE::KeyValue::TVExtraApp;
-  } else if (ecore_key == "XF86Search") {
+  } else if (key == "XF86Search") {
     return LWE::KeyValue::TVSearch;
-  } else if (ecore_key == "XF86PictureSize") {
+  } else if (key == "XF86PictureSize") {
     return LWE::KeyValue::TVPictureSize;
-  } else if (ecore_key == "XF86Sleep") {
+  } else if (key == "XF86Sleep") {
     return LWE::KeyValue::TVSleep;
-  } else if (ecore_key == "XF86Caption") {
+  } else if (key == "XF86Caption") {
     return LWE::KeyValue::TVCaption;
-  } else if (ecore_key == "XF86More") {
+  } else if (key == "XF86More") {
     return LWE::KeyValue::TVMore;
-  } else if (ecore_key == "XF86BTVoice") {
+  } else if (key == "XF86BTVoice") {
     return LWE::KeyValue::TVBTVoice;
-  } else if (ecore_key == "XF86Color") {
+  } else if (key == "XF86Color") {
     return LWE::KeyValue::TVColor;
-  } else if (ecore_key == "XF86PlayBack") {
+  } else if (key == "XF86PlayBack") {
     return LWE::KeyValue::TVPlayBack;
   }
-  LOG_WARN("Unknown key name: %s", ecore_key.c_str());
+  LOG_WARN("Unknown key name: %s", key.c_str());
   return LWE::KeyValue::UnidentifiedKey;
 }
 
-void WebView::DispatchKeyDownEvent(Ecore_Event_Key* key_event) {
+bool WebView::SendKey(const char* key, const char* string, const char* compose,
+                      uint32_t modifiers, uint32_t scan_code, bool is_down) {
   if (!IsFocused()) {
-    return;
+    return false;
   }
 
-  std::string key_name = key_event->keyname;
-  bool is_shift_pressed = key_event->modifiers & 1;
+  bool is_shift_pressed = modifiers & 1;
 
   struct Param {
     LWE::WebContainer* webview_instance;
     LWE::KeyValue key_value;
+    bool is_down;
   };
+
   Param* param = new Param();
   param->webview_instance = webview_instance_;
-  param->key_value = KeyNameToKeyValue(key_name, is_shift_pressed);
+  param->key_value = KeyToKeyValue(key, is_shift_pressed);
+  param->is_down = is_down;
 
   webview_instance_->AddIdleCallback(
       [](void* data) {
         Param* param = reinterpret_cast<Param*>(data);
-        param->webview_instance->DispatchKeyDownEvent(param->key_value);
-        param->webview_instance->DispatchKeyPressEvent(param->key_value);
+        if (param->is_down) {
+          param->webview_instance->DispatchKeyDownEvent(param->key_value);
+          param->webview_instance->DispatchKeyPressEvent(param->key_value);
+        } else {
+          param->webview_instance->DispatchKeyUpEvent(param->key_value);
+        }
         delete param;
       },
       param);
-}
 
-void WebView::DispatchKeyUpEvent(Ecore_Event_Key* key_event) {
-  if (!IsFocused()) {
-    return;
-  }
-
-  std::string key_name = key_event->keyname;
-  bool is_shift_pressed = key_event->modifiers & 1;
-
-  struct Param {
-    LWE::WebContainer* webview_instance;
-    LWE::KeyValue key_value;
-  };
-  Param* param = new Param();
-  param->webview_instance = webview_instance_;
-  param->key_value = KeyNameToKeyValue(key_name, is_shift_pressed);
-
-  webview_instance_->AddIdleCallback(
-      [](void* data) {
-        Param* param = reinterpret_cast<Param*>(data);
-        param->webview_instance->DispatchKeyUpEvent(param->key_value);
-        delete param;
-      },
-      param);
+  return false;
 }
 
 void WebView::SetDirection(int direction) {
