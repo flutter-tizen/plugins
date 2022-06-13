@@ -174,10 +174,9 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
           _infoTile('Execuatable path', _appInfo.executablePath),
           _infoTile('Shared res path', _appInfo.sharedResourcePath),
           _infoTile('App meta data', _appInfo.metadata.toString()),
-          _infoTile(
-              'App is terminated', _currentAppContext.isTerminated.toString()),
-          _infoTile('process id', _currentAppContext.processId.toString()),
-          _infoTile('state', _currentAppContext.appState.toString()),
+          _infoTile('Terminated', _currentAppContext.isTerminated.toString()),
+          _infoTile('Process ID', _currentAppContext.processId.toString()),
+          _infoTile('App state', _currentAppContext.appState.toString()),
         ],
       ),
     );
@@ -279,7 +278,6 @@ class _AppsEventScreenState extends State<_AppsEventScreen> {
           appId: event.appId,
           processId: event.processId,
         ));
-        event.dispose();
       });
     }));
     _subscriptions
@@ -290,7 +288,6 @@ class _AppsEventScreenState extends State<_AppsEventScreen> {
           appId: event.appId,
           processId: event.processId,
         ));
-        event.dispose();
       });
     }));
   }
