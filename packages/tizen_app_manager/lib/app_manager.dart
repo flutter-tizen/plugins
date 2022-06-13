@@ -164,9 +164,14 @@ class AppRunningContext {
   /// Creates an instance of [AppRunningContext] with application ID and handle address.
   AppRunningContext({required this.appId, int handleAddress = 0}) {
     _context = AppContext(appId, handleAddress);
+
+    _finalizer.attach(this, _context, detach: this);
   }
 
   late AppContext _context;
+
+  static final Finalizer<AppContext> _finalizer =
+      Finalizer<AppContext>((AppContext context) => context.destroy());
 
   /// The ID of the application.
   final String appId;
@@ -191,11 +196,11 @@ class AppRunningContext {
   }
 
   /// Releases all resources associated with this object.
-  ///
-  /// Note that [dispose] must be called on an instance of [AppRunningContext]
-  /// after use.
+  @Deprecated('Automatically disposed on GC')
   void dispose() {
     _context.destroy();
+
+    _finalizer.detach(this);
   }
 
   /// Sends a resume request to the application if it is not running.
