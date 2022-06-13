@@ -147,25 +147,21 @@ void BluetoothCharacteristic::SetNotifyCallback(
   UnsetNotifyCallback();
   notify_callback_ = std::make_unique<NotifyCallback>(callback);
 
-  std::string* uuid = new std::string(Uuid());
-
   auto ret = bt_gatt_client_set_characteristic_value_changed_cb(
       handle_,
       [](bt_gatt_h characteristics_handle, char* value, int length,
-         void* scope_ptr) {
-        std::string* uuid = static_cast<std::string*>(scope_ptr);
+         void* data) {
+        BluetoothCharacteristic* characteristic =
+            static_cast<BluetoothCharacteristic*>(data);
 
         std::scoped_lock lock(active_characteristics_.mutex_);
-        auto it = active_characteristics_.var_.find(*uuid);
-
+        auto it = active_characteristics_.var_.find(characteristic->Uuid());
         if (it != active_characteristics_.var_.end()) {
-          auto& characteristic = *it->second;
-          characteristic.notify_callback_->operator()(characteristic);
+          characteristic->notify_callback_->operator()(characteristic);
         }
-
-        delete uuid;
       },
-      uuid);
+      this);
+
   LOG_ERROR("bt_gatt_client_set_characteristic_value_changed_cb",
             get_error_message(ret));
   if (ret)
