@@ -173,10 +173,10 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
           _infoTile('Application type', _appInfo.appType),
           _infoTile('Execuatable path', _appInfo.executablePath),
           _infoTile('Shared res path', _appInfo.sharedResourcePath),
-          _infoTile('App meta data', _appInfo.metadata.toString()),
+          _infoTile('Metadata', _appInfo.metadata.toString()),
           _infoTile('Terminated', _currentAppContext.isTerminated.toString()),
           _infoTile('Process ID', _currentAppContext.processId.toString()),
-          _infoTile('App state', _currentAppContext.appState.toString()),
+          _infoTile('State', _currentAppContext.appState.toString()),
         ],
       ),
     );
