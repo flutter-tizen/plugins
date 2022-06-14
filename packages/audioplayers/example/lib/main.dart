@@ -1,11 +1,11 @@
 import 'package:audioplayers/audioplayers.dart';
-import 'package:audioplayers_example/components/tabs.dart';
-import 'package:audioplayers_example/components/tgl.dart';
-import 'package:audioplayers_example/tabs/audio_context.dart';
-import 'package:audioplayers_example/tabs/controls.dart';
-import 'package:audioplayers_example/tabs/logger.dart';
-import 'package:audioplayers_example/tabs/sources.dart';
-import 'package:audioplayers_example/tabs/streams.dart';
+import 'package:audioplayers_tizen_example/components/tabs.dart';
+import 'package:audioplayers_tizen_example/components/tgl.dart';
+import 'package:audioplayers_tizen_example/tabs/audio_context.dart';
+import 'package:audioplayers_tizen_example/tabs/controls.dart';
+import 'package:audioplayers_tizen_example/tabs/logger.dart';
+import 'package:audioplayers_tizen_example/tabs/sources.dart';
+import 'package:audioplayers_tizen_example/tabs/streams.dart';
 import 'package:flutter/material.dart';
 
 typedef OnError = void Function(Exception exception);

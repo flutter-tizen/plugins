@@ -1,4 +1,4 @@
-import 'package:audioplayers_example/components/btn.dart';
+import 'package:audioplayers_tizen_example/components/btn.dart';
 import 'package:flutter/material.dart';
 
 class SimpleDlg extends StatelessWidget {

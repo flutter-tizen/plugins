@@ -1,4 +1,4 @@
-import 'package:audioplayers_example/components/dlg.dart';
+import 'package:audioplayers_tizen_example/components/dlg.dart';
 import 'package:flutter/material.dart';
 
 extension StateExt<T extends StatefulWidget> on State<T> {
