@@ -151,13 +151,13 @@ void BluetoothCharacteristic::SetNotifyCallback(
       handle_,
       [](bt_gatt_h characteristics_handle, char* value, int length,
          void* data) {
-        BluetoothCharacteristic* characteristic =
-            static_cast<BluetoothCharacteristic*>(data);
+        BluetoothCharacteristic& characteristic =
+            *static_cast<BluetoothCharacteristic*>(data);
 
         std::scoped_lock lock(active_characteristics_.mutex_);
-        auto it = active_characteristics_.var_.find(characteristic->Uuid());
+        auto it = active_characteristics_.var_.find(characteristic.Uuid());
         if (it != active_characteristics_.var_.end()) {
-          characteristic->notify_callback_->operator()(characteristic);
+          characteristic.notify_callback_->operator()(characteristic);
         }
       },
       this);
