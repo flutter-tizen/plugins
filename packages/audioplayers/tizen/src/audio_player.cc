@@ -208,6 +208,15 @@ void AudioPlayer::SetReleaseMode(ReleaseMode mode) {
   }
 }
 
+void AudioPlayer::SetLatencyMode(bool low_latency) {
+  int ret = player_set_audio_latency_mode(
+      player_, low_latency ? AUDIO_LATENCY_MODE_LOW : AUDIO_LATENCY_MODE_MID);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw AudioPlayerError("player_set_audio_latency_mode failed",
+                           get_error_message(ret));
+  }
+}
+
 int AudioPlayer::GetDuration() {
   int32_t duration;
   int ret = player_get_duration(player_, &duration);

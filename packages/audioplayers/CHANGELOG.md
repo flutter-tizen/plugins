@@ -1,3 +1,9 @@
+## 2.0.0
+
+* Add audioplayers_platform_interface dependency and update method calls.
+* Update minimal sdk version to 2.14.0.
+* Update minimal flutter version to 2.5.0.
+
 ## 1.1.0
 
 * Update README and analysis_options.

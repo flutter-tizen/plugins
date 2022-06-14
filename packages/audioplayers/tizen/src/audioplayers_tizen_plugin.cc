@@ -46,11 +46,11 @@ T GetRequiredArg(const flutter::EncodableMap *arguments, const char *key) {
 }
 
 ReleaseMode StringToReleaseMode(std::string release_mode) {
-  if (release_mode == "ReleaseMode.RELEASE") {
+  if (release_mode == "ReleaseMode.release") {
     return ReleaseMode::kRelease;
-  } else if (release_mode == "ReleaseMode.LOOP") {
+  } else if (release_mode == "ReleaseMode.loop") {
     return ReleaseMode::kLoop;
-  } else if (release_mode == "ReleaseMode.STOP") {
+  } else if (release_mode == "ReleaseMode.stop") {
     return ReleaseMode::kStop;
   }
   throw std::invalid_argument("Invalid release mode.");
@@ -101,43 +101,10 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
     try {
       const std::string &method_name = method_call.method_name();
-      if (method_name == "play") {
-        double volume = 0.0;
-        if (GetValueFromEncodableMap(arguments, "volume", volume)) {
-          player->SetVolume(volume);
-        }
-
-        std::string url;
-        if (GetValueFromEncodableMap(arguments, "url", url)) {
-          player->SetUrl(url);
-        }
-
-        player->Play();
-
-        int32_t position = 0;
-        if (GetValueFromEncodableMap(arguments, "position", position)) {
-          player->Seek(position);
-        }
-
-        result->Success(flutter::EncodableValue(1));
-      } else if (method_name == "playBytes") {
-        double volume = 0.0;
-        if (GetValueFromEncodableMap(arguments, "volume", volume)) {
-          player->SetVolume(volume);
-        }
-
-        std::vector<uint8_t> bytes;
-        if (GetValueFromEncodableMap(arguments, "bytes", bytes)) {
-          player->SetDataSource(bytes);
-        }
-
-        player->Play();
-
-        int32_t position = 0;
-        if (GetValueFromEncodableMap(arguments, "position", position)) {
-          player->Seek(position);
-        }
-
+      if (method_name == "setSourceBytes") {
+        std::vector<uint8_t> bytes =
+            GetRequiredArg<std::vector<uint8_t>>(arguments, "bytes");
+        player->SetDataSource(bytes);
         result->Success(flutter::EncodableValue(1));
       } else if (method_name == "resume") {
         player->Play();
@@ -157,8 +124,16 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       } else if (method_name == "setVolume") {
         player->SetVolume(GetRequiredArg<double>(arguments, "volume"));
         result->Success(flutter::EncodableValue(1));
-      } else if (method_name == "setUrl") {
-        player->SetUrl(GetRequiredArg<std::string>(arguments, "url"));
+      } else if (method_name == "setSourceUrl") {
+        bool isLocal = false;
+        GetValueFromEncodableMap(arguments, "playerId", isLocal);
+
+        std::string url = GetRequiredArg<std::string>(arguments, "url");
+        const std::string file_protocol_prefix = "file://";
+        if (isLocal && url.find_first_of(file_protocol_prefix) == 0) {
+          url = url.substr(file_protocol_prefix.length());
+        }
+        player->SetUrl(url);
         result->Success(flutter::EncodableValue(1));
       } else if (method_name == "setPlaybackRate") {
         player->SetPlaybackRate(
@@ -173,6 +148,12 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         result->Success(flutter::EncodableValue(player->GetDuration()));
       } else if (method_name == "getCurrentPosition") {
         result->Success(flutter::EncodableValue(player->GetCurrentPosition()));
+      } else if (method_name == "setPlayerMode") {
+        bool low_latency =
+            GetRequiredArg<std::string>(arguments, "playerMode") ==
+            "PlayerMode.lowLatency";
+        player->SetLatencyMode(low_latency);
+        result->Success(flutter::EncodableValue(1));
       } else {
         result->NotImplemented();
       }
@@ -203,10 +184,9 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
     SeekCompletedListener seek_completed_listener =
         [channel = channel_.get()](const std::string &player_id) {
-          flutter::EncodableMap wrapped = {{flutter::EncodableValue("playerId"),
-                                            flutter::EncodableValue(player_id)},
-                                           {flutter::EncodableValue("value"),
-                                            flutter::EncodableValue(true)}};
+          flutter::EncodableMap wrapped = {
+              {flutter::EncodableValue("playerId"),
+               flutter::EncodableValue(player_id)}};
           auto arguments = std::make_unique<flutter::EncodableValue>(wrapped);
           channel->InvokeMethod("audio.onSeekComplete", std::move(arguments));
         };
@@ -236,10 +216,9 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
     PlayCompletedListener play_completed_listener =
         [channel = channel_.get()](const std::string &player_id) {
-          flutter::EncodableMap wrapped = {{flutter::EncodableValue("playerId"),
-                                            flutter::EncodableValue(player_id)},
-                                           {flutter::EncodableValue("value"),
-                                            flutter::EncodableValue(true)}};
+          flutter::EncodableMap wrapped = {
+              {flutter::EncodableValue("playerId"),
+               flutter::EncodableValue(player_id)}};
           auto arguments = std::make_unique<flutter::EncodableValue>(wrapped);
           channel->InvokeMethod("audio.onComplete", std::move(arguments));
         };
@@ -255,7 +234,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       channel->InvokeMethod("audio.onError", std::move(arguments));
     };
 
-    bool low_latency = mode == "PlayerMode.LOW_LATENCY";
+    bool low_latency = mode == "PlayerMode.lowLatency";
     auto player = std::make_unique<AudioPlayer>(
         player_id, low_latency, prepared_listener, update_position_listener,
         seek_completed_listener, play_completed_listener, error_listener);

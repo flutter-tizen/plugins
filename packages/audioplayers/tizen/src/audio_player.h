@@ -47,6 +47,7 @@ class AudioPlayer {
   void SetVolume(double volume);
   void SetPlaybackRate(double rate);
   void SetReleaseMode(ReleaseMode mode);
+  void SetLatencyMode(bool low_latency);
   int32_t GetDuration();
   int32_t GetCurrentPosition();
   std::string GetPlayerId() const { return player_id_; }
