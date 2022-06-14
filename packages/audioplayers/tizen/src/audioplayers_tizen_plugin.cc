@@ -90,14 +90,12 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       return;
     }
 
-    std::string player_id, mode;
+    std::string player_id;
     if (!GetValueFromEncodableMap(arguments, "playerId", player_id)) {
       result->Error(kInvalidArgument, "No playerId provided.");
       return;
     }
-    GetValueFromEncodableMap(arguments, "mode", mode);
-
-    AudioPlayer *player = GetAudioPlayer(player_id, mode);
+    AudioPlayer *player = GetAudioPlayer(player_id);
 
     try {
       const std::string &method_name = method_call.method_name();
@@ -164,8 +162,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     }
   }
 
-  AudioPlayer *GetAudioPlayer(const std::string &player_id,
-                              const std::string &mode) {
+  AudioPlayer *GetAudioPlayer(const std::string &player_id) {
     auto iter = audio_players_.find(player_id);
     if (iter != audio_players_.end()) {
       return iter->second.get();
@@ -234,9 +231,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       channel->InvokeMethod("audio.onError", std::move(arguments));
     };
 
-    bool low_latency = mode == "PlayerMode.lowLatency";
     auto player = std::make_unique<AudioPlayer>(
-        player_id, low_latency, prepared_listener, update_position_listener,
+        player_id, prepared_listener, update_position_listener,
         seek_completed_listener, play_completed_listener, error_listener);
     audio_players_[player_id] = std::move(player);
 

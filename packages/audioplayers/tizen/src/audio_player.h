@@ -26,8 +26,7 @@ using ErrorListener = std::function<void(const std::string &player_id,
 
 class AudioPlayer {
  public:
-  AudioPlayer(const std::string &player_id, bool low_latency,
-              PreparedListener prepared_listener,
+  AudioPlayer(const std::string &player_id, PreparedListener prepared_listener,
               UpdatePositionListener update_position_listener,
               SeekCompletedListener seek_completed_listener,
               PlayCompletedListener play_completed_listener,
@@ -72,7 +71,6 @@ class AudioPlayer {
 
   player_h player_ = nullptr;
   std::string player_id_;
-  bool low_latency_;
   std::string url_;
   std::vector<uint8_t> audio_data_;
   double volume_ = 1.0;

@@ -6,14 +6,13 @@
 
 #include "audio_player_error.h"
 
-AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
+AudioPlayer::AudioPlayer(const std::string &player_id,
                          PreparedListener prepared_listener,
                          UpdatePositionListener update_position_listener,
                          SeekCompletedListener seek_completed_listener,
                          PlayCompletedListener play_completed_listener,
                          ErrorListener error_listener)
     : player_id_(player_id),
-      low_latency_(low_latency),
       prepared_listener_(prepared_listener),
       update_position_listener_(update_position_listener),
       seek_completed_listener_(seek_completed_listener),
@@ -248,14 +247,6 @@ void AudioPlayer::CreatePlayer() {
   int ret = player_create(&player_);
   if (ret != PLAYER_ERROR_NONE) {
     throw AudioPlayerError("player_create failed", get_error_message(ret));
-  }
-
-  if (low_latency_) {
-    ret = player_set_audio_latency_mode(player_, AUDIO_LATENCY_MODE_LOW);
-    if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_set_audio_latency_mode failed",
-                             get_error_message(ret));
-    }
   }
 
   ret = player_set_completed_cb(player_, OnPlayCompleted, this);
