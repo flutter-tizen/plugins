@@ -1,6 +1,9 @@
 ## 2.0.0
 
 * Add audioplayers_platform_interface dependency and update method calls.
+* Add flame_lint dependency and update analysis_options.
+* Update audioplayers to 1.0.0.
+* Update example app and integration_test.
 * Update minimal sdk version to 2.14.0.
 * Update minimal flutter version to 2.5.0.
 

@@ -16,17 +16,17 @@ void main() {
       player.onDurationChanged
           .listen((Duration duration) => initialized.complete());
 
-      final audioCache = AudioCache();
-      final uri = await audioCache.load('audio2.mp3');
-      await player.setUrl(uri.toString());
+      await player.setSourceAsset('audio2.mp3');
       await initialized.future;
-      expect(player.state, PlayerState.STOPPED);
+      expect(player.state, PlayerState.stopped);
 
       final duration = await player.getDuration();
-      expect(duration, greaterThan(0));
+      expect(duration, isNotNull);
+      expect(duration!.inMilliseconds, greaterThan(0));
 
       final position = await player.getCurrentPosition();
-      expect(position, 0);
+      expect(duration, isNotNull);
+      expect(position!.inMilliseconds, 0);
 
       await player.dispose();
     });
@@ -34,22 +34,22 @@ void main() {
     testWidgets('can be played', (WidgetTester tester) async {
       final player = AudioPlayer();
       final started = Completer<void>();
-      player.onAudioPositionChanged.listen((position) {
+      player.onPositionChanged.listen((position) {
         if (!started.isCompleted) {
           started.complete();
         }
       });
 
-      final audioCache = AudioCache();
-      final uri = await audioCache.load('audio2.mp3');
-      await player.play(uri.toString());
+      await player.play(AssetSource('audio2.mp3'));
       await started.future;
-      expect(player.state, PlayerState.PLAYING);
+      expect(player.state, PlayerState.playing);
 
       final position = await player.getCurrentPosition();
       await Future<void>.delayed(_kPlayDuration);
       final currentPosition = await player.getCurrentPosition();
-      expect(currentPosition, greaterThan(position));
+      expect(position, isNotNull);
+      expect(currentPosition, isNotNull);
+      expect(position! < currentPosition!, true);
 
       await player.dispose();
     });
@@ -59,16 +59,15 @@ void main() {
       final seek = Completer<void>();
       player.onSeekComplete.listen((event) => seek.complete());
 
-      final audioCache = AudioCache();
-      final uri = await audioCache.load('audio2.mp3');
-      await player.setUrl(uri.toString());
+      await player.setSourceAsset('audio2.mp3');
       const seekToPosition = Duration(seconds: 1);
       await player.seek(seekToPosition);
       await seek.future;
-      expect(player.state, PlayerState.STOPPED);
+      expect(player.state, PlayerState.stopped);
 
       final position = await player.getCurrentPosition();
-      expect(position, seekToPosition.inMilliseconds);
+      expect(position, isNotNull);
+      expect(position!.inMilliseconds, seekToPosition.inMilliseconds);
 
       await player.dispose();
     });
@@ -76,17 +75,15 @@ void main() {
     testWidgets('can be paused', (WidgetTester tester) async {
       final player = AudioPlayer();
       final started = Completer<void>();
-      player.onAudioPositionChanged.listen((position) {
+      player.onPositionChanged.listen((position) {
         if (!started.isCompleted) {
           started.complete();
         }
       });
 
-      final audioCache = AudioCache();
-      final uri = await audioCache.load('audio2.mp3');
-      await player.play(uri.toString());
+      await player.play(AssetSource('audio2.mp3'));
       await started.future;
-      expect(player.state, PlayerState.PLAYING);
+      expect(player.state, PlayerState.playing);
 
       await Future<void>.delayed(_kPlayDuration);
       await player.pause();
@@ -94,7 +91,7 @@ void main() {
       await Future<void>.delayed(_kPlayDuration);
       final currentPosition = await player.getCurrentPosition();
 
-      expect(player.state, PlayerState.PAUSED);
+      expect(player.state, PlayerState.paused);
       expect(currentPosition, pausedPosition);
 
       await player.dispose();
@@ -112,18 +109,16 @@ void main() {
       });
       player.onSeekComplete.listen((event) => seek.complete());
 
-      final audioCache = AudioCache();
-      final uri = await audioCache.load('audio2.mp3');
-      await player.setUrl(uri.toString());
+      await player.setSourceAsset('audio2.mp3');
       await initialized.future;
       final duration = await player.getDuration();
-      await player.seek(
-          Duration(milliseconds: duration) - const Duration(milliseconds: 500));
+      expect(duration, isNotNull);
+      await player.seek(duration! - const Duration(milliseconds: 500));
       await seek.future;
 
       await player.resume();
       await Future<void>.delayed(_kPlayDuration);
-      expect(player.state, PlayerState.COMPLETED);
+      expect(player.state, PlayerState.completed);
 
       await player.dispose();
     });
