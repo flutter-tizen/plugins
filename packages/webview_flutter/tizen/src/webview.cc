@@ -610,6 +610,12 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
   param->key_value = KeyToKeyValue(key, is_shift_pressed);
   param->is_down = is_down;
 
+  if (param->key_value == LWE::KeyValue::TVReturnKey &&
+      webview_instance_->CanGoBack()) {
+    webview_instance_->GoBack();
+    return true;
+  }
+
   webview_instance_->AddIdleCallback(
       [](void* data) {
         Param* param = reinterpret_cast<Param*>(data);
