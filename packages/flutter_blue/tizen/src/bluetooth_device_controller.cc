@@ -32,7 +32,6 @@ State BluetoothDeviceController::GetState() const noexcept {
     bool is_connected = false;
     int ret = bt_device_is_profile_connected(address_.c_str(), BT_PROFILE_GATT,
                                              &is_connected);
-    LOG_ERROR("bt_device_is_profile_connected", get_error_message(ret));
     return (is_connected ? State::kConnected : State::kDisconnected);
   }
 }
