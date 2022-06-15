@@ -3,13 +3,12 @@ description: Tizen application control APIs. Used for launching and terminating
   applications on a Tizen device.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_app_control
-version: 0.1.2
+version: 0.2.0
 
 dependencies:
   ffi: ^1.1.2
   flutter:
     sdk: flutter
-  tizen_app_manager: ^0.1.1
 
 environment:
   sdk: ">=2.13.0 <3.0.0"

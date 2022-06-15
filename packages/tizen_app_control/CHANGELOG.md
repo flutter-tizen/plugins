@@ -1,3 +1,9 @@
+## 0.2.0
+
+* Remove the deprecated API `AppManager`.
+* Remove unnecessary dependency on tizen_app_manager.
+* Move `app_control.dart` into the implementation directory.
+
 ## 0.1.2
 
 * Add the main exporter file `tizen_app_control.dart`.

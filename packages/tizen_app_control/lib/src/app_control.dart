@@ -5,10 +5,9 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:tizen_app_manager/tizen_app_manager.dart';
 
-import 'src/ffi.dart';
-import 'src/utils.dart';
+import 'ffi.dart';
+import 'utils.dart';
 
 /// Enumeration for the application control launch mode.
 ///
