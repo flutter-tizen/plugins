@@ -2,7 +2,7 @@
 
  [![pub package](https://img.shields.io/pub/v/tizen_app_manager.svg)](https://pub.dev/packages/tizen_app_manager)
 
-Tizen application manager API. Used for getting installed app info and getting running context info of specific app.
+Tizen application manager APIs. Used for getting app info and getting app running context on a Tizen device.
 
 ## Usage
 
@@ -10,41 +10,43 @@ To use this package, add `tizen_app_manager` as a dependency in your `pubspec.ya
 
 ```yaml
 dependencies:
-  tizen_app_manager: ^0.1.1
+  tizen_app_manager: ^0.1.2
 ```
 
 ### Retrieving current app info
 
-To retrieve information of the current app, get app ID with `currentAppId` and then get `AppInfo` with `getAppInfo` method.
+To retrieve information of the current app, get app ID with `AppManager.currentAppId` and then get `AppInfo` with `AppManager.getAppInfo`.
 
 ```dart
-var appId = await AppManager.currentAppId;
-var appInfo = await AppManager.getAppInfo(appId);
+import 'package:tizen_app_manager/tizen_app_manager.dart';
+
+String appId = await AppManager.currentAppId;
+AppInfo appInfo = await AppManager.getAppInfo(appId);
 ```
 
 ### Retrieving all apps info
 
-To retrieve information of all apps installed on a Tizen device, use `getInstalledApps` method.
+To retrieve information of all installed apps, use `AppManager.getInstalledApps`.
 
 ```dart
-var apps = await AppManager.getInstalledApps();
-for (var app in apps) {
+List<AppInfo> apps = await AppManager.getInstalledApps();
+for (AppInfo app in apps) {
   // Handle each app's info.
 }
 ```
 
 ### Getting app running context
 
-To get specific app running context, create `AppRunningContext` instance.
+To get a specific app's running context, create an `AppRunningContext` instance with the target app ID.
 
 ```dart
-var appId = await AppManager.currentAppId;
-var appContext = AppRunningContext(appId: appId);
+String appId = await AppManager.currentAppId;
+AppRunningContext appContext = AppRunningContext(appId: appId);
 ```
 
 ### Monitoring app events
 
-You can listen for app state change by subscribing to the stream.
+You can listen for app state changes by subscribing to `AppManager.onAppLaunched` and `AppManager.onAppTerminated`.
 
 ```dart
 final List<StreamSubscription<AppRunningContext>> _subscriptions =
@@ -54,17 +56,13 @@ final List<StreamSubscription<AppRunningContext>> _subscriptions =
 void initState() {
   super.initState();
 
-  _subscriptions.add(AppManager.onAppLaunched
-      .listen((AppRunningContext event) {
-      // Handle the launched event.
-      ...
-      event.dispose();
+  _subscriptions
+      .add(AppManager.onAppLaunched.listen((AppRunningContext context) {
+    ...
   }));
-  _subscriptions.add(AppManager.onAppTerminated
-      .listen((AppRunningContext event) {
-      // Handle the terminated event.
-      ...
-      event.dispose();
+  _subscriptions
+      .add(AppManager.onAppTerminated.listen((AppRunningContext context) {
+    ...
   }));
 }
 
@@ -72,7 +70,8 @@ void initState() {
 void dispose() {
   super.dispose();
 
-  _subscriptions.forEach((StreamSubscription subscription) => subscription.cancel());
+  _subscriptions
+      .forEach((StreamSubscription subscription) => subscription.cancel());
   _subscriptions.clear();
 }
 ```
