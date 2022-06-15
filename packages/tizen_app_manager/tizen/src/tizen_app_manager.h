@@ -21,12 +21,12 @@ class TizenAppManagerPlugin : public flutter::Plugin {
 
   virtual ~TizenAppManagerPlugin();
 
-  flutter::EncodableList m_applications;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> m_launch_events;
+  flutter::EncodableList applications_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> launch_events_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
-      m_terminate_events;
-  bool m_registered_event_cb;
-  int m_registered_cnt;
+      terminate_events_;
+  bool registered_event_cb_;
+  int registered_cnt_;
 
  private:
   void HandleMethodCall(
