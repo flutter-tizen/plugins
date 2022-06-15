@@ -1,3 +1,6 @@
+## 0.5.2
+* Add a back key handling.
+
 ## 0.5.1
 * Apply PlatformView API change.
 * Code refactoring.
