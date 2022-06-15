@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:tizen_app_control/app_control.dart';
+import 'package:tizen_app_control/tizen_app_control.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 

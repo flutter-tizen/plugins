@@ -5,7 +5,7 @@
 import 'dart:ui';
 
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
-import 'package:tizen_app_control/app_control.dart';
+import 'package:tizen_app_control/tizen_app_control.dart';
 
 /// The Tizen implementation of [SharePlatform].
 class SharePlugin extends SharePlatform {

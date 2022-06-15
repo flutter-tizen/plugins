@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 import 'package:flutter/services.dart';
-import 'package:tizen_app_control/app_control.dart';
+import 'package:tizen_app_control/tizen_app_control.dart';
 
 import 'src/types.dart';
 
-export 'package:tizen_app_control/app_control.dart';
+export 'package:tizen_app_control/tizen_app_control.dart';
 
 export 'src/enums.dart';
 export 'src/types.dart';
