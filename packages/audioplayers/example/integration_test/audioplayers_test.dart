@@ -116,9 +116,13 @@ void main() {
       await player.seek(duration! - const Duration(milliseconds: 500));
       await seek.future;
 
+      var isComplete = false;
+      player.onPlayerComplete.listen((event) {
+        isComplete = true;
+      });
       await player.resume();
       await Future<void>.delayed(_kPlayDuration);
-      expect(player.state, PlayerState.completed);
+      expect(isComplete, true);
 
       await player.dispose();
     });
