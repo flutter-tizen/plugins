@@ -1,7 +1,13 @@
+## 0.1.2
+
+* Add the main exporter file `tizen_app_control.dart`.
+* Add dependency on tizen_app_manager and reimplement `AppManager`.
+* Deprecate `AppManager` in favor of tizen_app_manager's `AppManager`.
+* Update the example app and integration_test based on the changes.
+
 ## 0.1.1
 
-* Update messageport_tizen to 0.2.0 in example.
-* Replace deprecated members in example app.
+* Update messageport_tizen to 0.2.0 and replace deprecated members in the example app.
 
 ## 0.1.0
 

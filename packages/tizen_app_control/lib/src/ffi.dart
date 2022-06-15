@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 // ignore_for_file: public_member_api_docs
-// ignore_for_file: always_specify_types
 
 import 'dart:ffi';
 
@@ -68,12 +67,6 @@ typedef _AppManagerGetAppContextNative = Int32 Function(
     Pointer<Utf8>, Pointer<AppContextHandle>);
 typedef AppManagerGetAppContext = int Function(
     Pointer<Utf8>, Pointer<AppContextHandle>);
-typedef _AppManagerIsRunningNative = Int32 Function(
-    Pointer<Utf8>, Pointer<Uint8>);
-typedef AppManagerIsRunning = int Function(Pointer<Utf8>, Pointer<Uint8>);
-typedef _AppManagerRequestTerminateBgAppNative = Int32 Function(
-    AppContextHandle);
-typedef AppManagerRequestTerminateBgApp = int Function(AppContextHandle);
 
 final DynamicLibrary _libAppManager =
     DynamicLibrary.open('libcapi-appfw-app-manager.so.0');
@@ -85,14 +78,6 @@ final AppManagerGetAppContext appManagerGetAppContext = _libAppManager
 final AppContextDestroy appContextDestroy =
     _libAppManager.lookupFunction<_AppContextDestroyNative, AppContextDestroy>(
         'app_context_destroy');
-
-final AppManagerRequestTerminateBgApp appManagerRequestTerminateBgApp =
-    _libAppManager.lookupFunction<_AppManagerRequestTerminateBgAppNative,
-            AppManagerRequestTerminateBgApp>(
-        'app_manager_request_terminate_bg_app');
-
-final AppManagerIsRunning appManagerIsRunning = _libAppManager.lookupFunction<
-    _AppManagerIsRunningNative, AppManagerIsRunning>('app_manager_is_running');
 
 typedef _GetErrorMessageNative = Pointer<Utf8> Function(Int32);
 typedef GetErrorMessage = Pointer<Utf8> Function(int);

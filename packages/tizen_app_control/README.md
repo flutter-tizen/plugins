@@ -10,7 +10,7 @@ To use this package, add `tizen_app_control` as a dependency in your `pubspec.ya
 
 ```yaml
 dependencies:
-  tizen_app_control: ^0.1.1
+  tizen_app_control: ^0.1.2
 ```
 
 ### Sending a launch request
@@ -18,7 +18,7 @@ dependencies:
 To send an explicit launch request, create an `AppControl` instance with an application ID as an argument.
 
 ```dart
-import 'package:tizen_app_control/app_control.dart';
+import 'package:tizen_app_control/tizen_app_control.dart';
 
 var request = AppControl(appId: 'com.example.app_id');
 await request.sendLaunchRequest();
@@ -27,7 +27,7 @@ await request.sendLaunchRequest();
 To send an implicit launch request, create an `AppControl` instance and specify necessary conditions, such as operation, URI, and MIME type. For example, if you want to open an image file with an image viewer app on your device,
 
 ```dart
-import 'package:tizen_app_control/app_control.dart';
+import 'package:tizen_app_control/tizen_app_control.dart';
 
 var request = AppControl(
   operation: 'http://tizen.org/appcontrol/operation/view',
@@ -44,7 +44,7 @@ For detailed information on Tizen application controls, see [Tizen Docs: Applica
 You can subscribe to incoming application controls using `AppControl.onAppControl`.
 
 ```dart
-import 'package:tizen_app_control/app_control.dart';
+import 'package:tizen_app_control/tizen_app_control.dart';
 
 var subscription = AppControl.onAppControl.listen((request) async {
   if (request.shouldReply) {
@@ -64,7 +64,6 @@ Privileges may be required to perform operations requested by your app. Add requ
 <privileges>
   <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
   <!-- The below are optional. -->
-  <privilege>http://tizen.org/privilege/appmanager.kill.bgapp</privilege>
   <privilege>http://tizen.org/privilege/call</privilege>
   <privilege>http://tizen.org/privilege/download</privilege>
 </privileges>
