@@ -1,5 +1,6 @@
 name: permission_handler_example
 description: Demonstrates how to use the permission_handler_tizen plugin.
+publish_to: "none"
 
 dependencies:
   baseflow_plugin_template:
