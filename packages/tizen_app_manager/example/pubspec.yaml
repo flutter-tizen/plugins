@@ -6,12 +6,10 @@ environment:
   sdk: ">=2.14.1 <3.0.0"
 
 dependencies:
-  device_info_plus_tizen:
-    path: ../../device_info_plus/
+  device_info_plus_tizen: ^1.1.0
   flutter:
     sdk: flutter
-  tizen_app_control:
-    path: ../../tizen_app_control/
+  tizen_app_control: ^0.2.0
   tizen_app_manager:
     path: ../
 

@@ -10,8 +10,7 @@ dependencies:
     sdk: flutter
   http: ^0.13.1
   path_provider: ^2.0.1
-  path_provider_tizen:
-    path: ../../path_provider/
+  path_provider_tizen: ^2.0.1
   provider: ^5.0.0
 
 dev_dependencies:

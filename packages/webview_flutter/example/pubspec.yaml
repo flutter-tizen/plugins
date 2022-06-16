@@ -10,8 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.0.7
-  path_provider_tizen:
-    path: ../../path_provider/
+  path_provider_tizen: ^2.0.2
   webview_flutter: ^3.0.4
   webview_flutter_tizen:
     path: ../

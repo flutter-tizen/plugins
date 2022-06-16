@@ -19,8 +19,7 @@ dev_dependencies:
   integration_test_tizen:
     path: ../../integration_test/
   path_provider: ^2.0.6
-  path_provider_tizen:
-    path: ../../path_provider/
+  path_provider_tizen: ^2.0.2
   test: any
 
 flutter:
