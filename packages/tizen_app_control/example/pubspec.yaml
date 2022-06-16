@@ -10,6 +10,7 @@ dependencies:
   tizen_app_control:
     path: ../
   tizen_app_manager:
+    path: ../../tizen_app_manager/
 
 dev_dependencies:
   flutter_driver:

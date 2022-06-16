@@ -165,7 +165,6 @@ class _MyAppState extends State<MyApp> {
   Future<void> _terminateService() async {
     final AppRunningContext context = AppRunningContext(appId: _kServiceAppId);
     context.terminate(background: true);
-    context.dispose();
     setState(() {
       _isServiceStarted = false;
     });
