@@ -9,9 +9,11 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.0.0
-  path_provider_tizen: ^2.0.2
+  path_provider_tizen:
+    path: ../../path_provider
   video_player: ^2.1.4
-  video_player_tizen: ^2.4.0
+  video_player_tizen:
+    path: ../../video_player
 
 dev_dependencies:
   flutter_test:

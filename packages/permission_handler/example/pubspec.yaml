@@ -12,7 +12,8 @@ dependencies:
   permission_handler_tizen:
     path: ../
   url_launcher: ^6.0.12
-  url_launcher_tizen: ^2.0.1
+  url_launcher_tizen:
+    path: ../../url_launcher/
 
 dev_dependencies:
   flutter_driver:

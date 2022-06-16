@@ -16,7 +16,8 @@ dependencies:
   geolocator: ^8.0.0
   geolocator_tizen:
     path: ../
-  url_launcher_tizen: ^2.1.1
+  url_launcher_tizen:
+    path: ../../url_launcher
 
 dev_dependencies:
   flutter_lints: ^1.0.4
