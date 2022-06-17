@@ -126,5 +126,25 @@ void main() {
 
       await player.dispose();
     });
+
+    testWidgets('receives position updates regularly',
+        (WidgetTester tester) async {
+      final player = AudioPlayer();
+      final started = Completer<void>();
+      var count = 0;
+      player.onPositionChanged.listen((position) {
+        if (!started.isCompleted) {
+          started.complete();
+        }
+        count += 1;
+      });
+
+      await player.play(AssetSource('audio2.mp3'));
+      await started.future;
+      await Future<void>.delayed(_kPlayDuration);
+      expect(count, greaterThanOrEqualTo(5));
+
+      await player.dispose();
+    });
   });
 }

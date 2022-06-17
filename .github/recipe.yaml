@@ -1,5 +1,5 @@
 plugins:
-  audioplayers: ["wearable-5.5"]
+  audioplayers: ["wearable-5.5", "tv-6.5"]
   battery_plus: ["wearable-5.5"]
   connectivity_plus: ["wearable-5.5", "tv-6.5"]
   device_info_plus: ["wearable-5.5", "tv-6.5"]

@@ -58,7 +58,7 @@ class AudioPlayer {
   // The player state should be idle before calling this function.
   void PreparePlayer();
   void ResetPlayer();
-  void EmitPositionUpdates();
+  void StartPositionUpdates();
   player_state_e GetPlayerState();
 
   static void OnPrepared(void *data);
@@ -66,11 +66,10 @@ class AudioPlayer {
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
-  static void StartPositionUpdates(void *data);
   static Eina_Bool OnPositionUpdate(void *data);
 
   player_h player_ = nullptr;
-  std::string player_id_;
+  const std::string player_id_;
   std::string url_;
   std::vector<uint8_t> audio_data_;
   double volume_ = 1.0;
