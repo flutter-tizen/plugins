@@ -4,6 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+const String assetAudio = 'nasa_on_a_mission.mp3';
 const Duration _kPlayDuration = Duration(seconds: 1);
 
 void main() {
@@ -16,7 +17,7 @@ void main() {
       player.onDurationChanged
           .listen((Duration duration) => initialized.complete());
 
-      await player.setSourceAsset('audio2.mp3');
+      await player.setSourceAsset(assetAudio);
       await initialized.future;
       expect(player.state, PlayerState.stopped);
 
@@ -40,7 +41,7 @@ void main() {
         }
       });
 
-      await player.play(AssetSource('audio2.mp3'));
+      await player.play(AssetSource(assetAudio));
       await started.future;
       expect(player.state, PlayerState.playing);
 
@@ -59,7 +60,7 @@ void main() {
       final seek = Completer<void>();
       player.onSeekComplete.listen((event) => seek.complete());
 
-      await player.setSourceAsset('audio2.mp3');
+      await player.setSourceAsset(assetAudio);
       const seekToPosition = Duration(seconds: 1);
       await player.seek(seekToPosition);
       await seek.future;
@@ -81,7 +82,7 @@ void main() {
         }
       });
 
-      await player.play(AssetSource('audio2.mp3'));
+      await player.play(AssetSource(assetAudio));
       await started.future;
       expect(player.state, PlayerState.playing);
 
@@ -109,7 +110,7 @@ void main() {
       });
       player.onSeekComplete.listen((event) => seek.complete());
 
-      await player.setSourceAsset('audio2.mp3');
+      await player.setSourceAsset(assetAudio);
       await initialized.future;
       final duration = await player.getDuration();
       expect(duration, isNotNull);
@@ -139,7 +140,7 @@ void main() {
         count += 1;
       });
 
-      await player.play(AssetSource('audio2.mp3'));
+      await player.play(AssetSource(assetAudio));
       await started.future;
       await Future<void>.delayed(_kPlayDuration);
       expect(count, greaterThanOrEqualTo(5));
