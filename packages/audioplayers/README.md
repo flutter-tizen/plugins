@@ -85,8 +85,5 @@ Future<int> playBytes(
 
 ## Limitations
 
-This plugin has some limitations on TV devices.
-
-- The `setPlaybackRate` method will fail if triggered within last 3 seconds.
-- The playback rate will reset to 1.0 when audio is replayed in loop mode.
-- The `seek` method works only when playback rate is 1.0, and it sets audio position to the nearest key frame which may differ from the passed argument.
+- `onPlayerComplete` event will not be fired when `ReleaseMode` is set to loop which differs from the behavior specified in the [documentation](https://github.com/bluefireteam/audioplayers/blob/e6532371a3372c0f208abb24f13e1e82a9c1e040/packages/audioplayers/lib/src/audioplayer.dart#L64). And playback rate will reset to 1.0 when audio is replayed.
+- `setVolume` will have no effect on TV devices.

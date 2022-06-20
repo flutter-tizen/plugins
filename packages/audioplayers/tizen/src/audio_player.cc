@@ -166,29 +166,25 @@ void AudioPlayer::SetDataSource(std::vector<uint8_t> &data) {
 }
 
 void AudioPlayer::SetVolume(double volume) {
-  if (volume_ != volume) {
-    volume_ = volume;
-    if (GetPlayerState() != PLAYER_STATE_NONE) {
-      int ret = player_set_volume(player_, volume_, volume_);
-      if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_set_volume failed",
-                               get_error_message(ret));
-      }
+  volume_ = volume;
+  if (GetPlayerState() != PLAYER_STATE_NONE) {
+    int ret = player_set_volume(player_, volume_, volume_);
+    if (ret != PLAYER_ERROR_NONE) {
+      throw AudioPlayerError("player_set_volume failed",
+                             get_error_message(ret));
     }
   }
 }
 
 void AudioPlayer::SetPlaybackRate(double rate) {
-  if (playback_rate_ != rate) {
-    playback_rate_ = rate;
-    player_state_e state = GetPlayerState();
-    if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
-        state == PLAYER_STATE_PAUSED) {
-      int ret = player_set_playback_rate(player_, rate);
-      if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_set_playback_rate failed",
-                               get_error_message(ret));
-      }
+  playback_rate_ = rate;
+  player_state_e state = GetPlayerState();
+  if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
+      state == PLAYER_STATE_PAUSED) {
+    int ret = player_set_playback_rate(player_, rate);
+    if (ret != PLAYER_ERROR_NONE) {
+      throw AudioPlayerError("player_set_playback_rate failed",
+                             get_error_message(ret));
     }
   }
 }
@@ -394,9 +390,7 @@ void AudioPlayer::OnPlayCompleted(void *data) {
       [](void *data) {
         auto *player = reinterpret_cast<AudioPlayer *>(data);
         try {
-          if (player->release_mode_ != ReleaseMode::kLoop) {
-            player->Stop();
-          }
+          player->Stop();
           player->play_completed_listener_(player->player_id_);
         } catch (const AudioPlayerError &error) {
           player->error_listener_(player->player_id_, error.code());

@@ -73,6 +73,35 @@ void main() {
       await player.dispose();
     });
 
+    testWidgets('can seek with different playrate',
+        (WidgetTester tester) async {
+      final player = AudioPlayer();
+      final started = Completer<void>();
+      player.onPositionChanged.listen((position) {
+        if (!started.isCompleted) {
+          started.complete();
+        }
+      });
+
+      final seek = Completer<void>();
+      player.onSeekComplete.listen((event) => seek.complete());
+
+      await player.play(AssetSource(assetAudio));
+      await player.setPlaybackRate(2.0);
+      await started.future;
+
+      const seekToPosition = Duration(seconds: 10);
+      await player.seek(seekToPosition);
+      await seek.future;
+      await player.pause();
+
+      final position = await player.getCurrentPosition();
+      expect(position, isNotNull);
+      expect(position, greaterThanOrEqualTo(seekToPosition));
+
+      await player.dispose();
+    });
+
     testWidgets('can be paused', (WidgetTester tester) async {
       final player = AudioPlayer();
       final started = Completer<void>();

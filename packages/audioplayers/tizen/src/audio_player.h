@@ -63,6 +63,8 @@ class AudioPlayer {
 
   static void OnPrepared(void *data);
   static void OnSeekCompleted(void *data);
+  // Callback invoked when the currently playing audio completes.
+  // This will only be called when ReleaseMode isn't ReleaseMode::kLoop.
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
