@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 
 ```yaml
 dependencies:
-  audioplayers: ^0.20.1
-  audioplayers_tizen: ^1.1.0
+  audioplayers: ^1.0.1
+  audioplayers_tizen: ^2.0.0
 
 ```
 
@@ -43,8 +43,9 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 ## Supported APIs
 
-- [x] `AudioPlayer.play` (supported arguments: `url`, `volume`, `position`)
-- [x] `AudioPlayer.playBytes` (supported arguments: `bytes`, `volume`, `position`)
+- [x] `AudioPlayer.play` (`AudioContext` not supported)
+- [ ] `AudioPlayer.setAudioContext` (not supported)
+- [x] `AudioPlayer.setPlayerMode`
 - [x] `AudioPlayer.pause`
 - [x] `AudioPlayer.stop`
 - [x] `AudioPlayer.resume`
@@ -53,35 +54,16 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 - [x] `AudioPlayer.setVolume`
 - [x] `AudioPlayer.setReleaseMode`
 - [x] `AudioPlayer.setPlaybackRate`
-- [x] `AudioPlayer.setUrl` (supported arguments: `url`)
+- [x] `AudioPlayer.setSource`
+- [x] `AudioPlayer.setSourceUrl`
+- [x] `AudioPlayer.setSourceDeviceFile`
+- [x] `AudioPlayer.setSourceAsset`
+- [x] `AudioPlayer.setSourceBytes`
 - [x] `AudioPlayer.getDuration`
 - [x] `AudioPlayer.getCurrentPosition`
 - [x] `AudioPlayer.dispose`
-- [ ] `AudioPlayer.earpieceOrSpeakersToggle` (not supported by Tizen)
-- [ ] `Logger.changeLogLevel` (not implemented)
-- [ ] `NotificationService` (iOS-only)
-
-Note: In order to use the `AudioPlayer.playBytes` method, you need to manually modify the source code (`audioplayers.dart`) of your cached audioplayers package.
-
-```dart
-Future<int> playBytes(
-  Uint8List bytes, {
-  ...
-}) async {
-  // Delete or comment out the following lines.
-  // if (!_isAndroid()) {
-  //   throw PlatformException(
-  //     code: 'Not supported',
-  //     message: 'Only Android is currently supported',
-  //   );
-  // }
-
-  final result = await _invokeMethod(
-    'playBytes',
-    <String, dynamic>{
-  ...
-}
-```
+- [ ] `AudioPlayer.global.changeLogLevel` (not supported)
+- [ ] `AudioPlayer.global.setGlobalAudioContext` (not supported)
 
 ## Limitations
 
