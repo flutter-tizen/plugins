@@ -11,26 +11,7 @@
 #include <string>
 #include <vector>
 
-enum class TtsState { kCreated, kReady, kPlaying, kPaused };
-
-class TextToSpeechError {
- public:
-  TextToSpeechError(int error_code) : error_code_(error_code) {}
-  TextToSpeechError(std::string error_message, int error_code)
-      : error_message_(error_message), error_code_(error_code) {}
-
-  int GetErrorCode() const { return error_code_; }
-
-  std::string GetErrorString() const {
-    return error_message_.empty()
-               ? get_error_message(error_code_)
-               : error_message_ + " - " + get_error_message(error_code_);
-  }
-
- private:
-  int error_code_;
-  std::string error_message_;
-};
+enum class TtsState { kCreated, kReady, kPlaying, kPaused, kError };
 
 using OnStateChangedCallback =
     std::function<void(tts_state_e previous, tts_state_e current)>;
@@ -46,7 +27,7 @@ class TextToSpeech {
     TtsDestroy();
   }
 
-  void Initialize();
+  bool Initialize();
 
   void SetOnStateChanagedCallback(OnStateChangedCallback callback) {
     on_state_changed_ = callback;
@@ -77,24 +58,24 @@ class TextToSpeech {
 
   TtsState GetState();
 
-  void AddText(std::string text);
+  bool AddText(std::string text);
 
-  void Speak();
+  bool Speak();
 
-  void Stop();
+  bool Stop();
 
-  void Pause();
+  bool Pause();
 
-  void SetVolume(double volume_rate);
+  bool SetVolume(double volume_rate);
 
-  void GetSpeedRange(int *min, int *normal, int *max);
+  bool GetSpeedRange(int *min, int *normal, int *max);
 
   void SetTtsSpeed(int speed) { tts_speed_ = speed; }
 
   int GetUttId() { return utt_id_; }
 
  private:
-  void TtsCreate();
+  bool TtsCreate();
   void TtsDestroy();
   void Prepare();
   void RegisterTtsCallback();
@@ -103,7 +84,7 @@ class TextToSpeech {
   void ClearUttId() { utt_id_ = 0; }
 
   void SwitchVolumeOnStateChange(tts_state_e previous, tts_state_e current);
-  void SetSpeechVolumeInternal(int volume);
+  bool SetSpeechVolumeInternal(int volume);
   int GetSpeechVolumeInternal();
 
   tts_h tts_ = nullptr;

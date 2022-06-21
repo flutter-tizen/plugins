@@ -36,14 +36,11 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     });
 
     tts_ = std::make_unique<TextToSpeech>();
-    try {
-      tts_->Initialize();
-    } catch (const TextToSpeechError &error) {
+    if (!tts_->Initialize()) {
       // TODO : Handle initialization failure cases
       // Rarely, initializing TextToSpeech can fail. we should consider catching
       // the exception and propagating it to the flutter side. however, I think
       // this is optional because flutter side is not expecting any errors.
-      LOG_ERROR("Operation failed : %s", error.GetErrorString().c_str());
       tts_ = nullptr;
       return;
     }
@@ -89,6 +86,13 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    // Keep in sync with the return values implemented in:
+    // https://github.com/dlutton/flutter_tts/blob/master/android/src/main/java/com/tundralabs/fluttertts/FlutterTtsPlugin.java.
+    // In principle, MethodResult was designed to call MethodResult.Error() to
+    // notify the dart code of any method call failures from the host platform.
+    // However, in the case of flutter_tts, it expects a return value 0 on
+    // failure(and value 1 on success). Therefore in the scope of this plugin,
+    // we call SendResult(flutter::EncodableValue(0)); to notify errors.
     const auto method_name = method_call.method_name();
     const auto &arguments = *method_call.arguments();
 
@@ -128,62 +132,58 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       SendResult(flutter::EncodableValue(1));
       return;
     }
-    SendErrorResult("Invalid argument", "Argument is invaild.");
+    SendResult(flutter::EncodableValue(0));
   }
 
   void OnSpeak(const flutter::EncodableValue &arguments) {
-    try {
-      if (tts_->GetState() == TtsState::kPlaying) {
-        SendErrorResult("Operation cancelled",
-                        "You cannot speak again while speaking.");
-        return;
+    TtsState state = tts_->GetState();
+    if (state == TtsState::kPlaying || state == TtsState::kError) {
+      if (state == TtsState::kPlaying) {
+        LOG_ERROR("[TTS] : You cannot speak again while speaking.");
       }
-
-      if (std::holds_alternative<std::string>(arguments)) {
-        std::string text = std::get<std::string>(arguments);
-        tts_->AddText(text);
-      }
-
-      tts_->Speak();
-
-    } catch (const TextToSpeechError &error) {
-      SendErrorResult("Operation failed", error.GetErrorString());
+      SendResult(flutter::EncodableValue(0));
+      return;
     }
 
-    if (await_speak_completion_ && !result_for_await_speak_completion_) {
-      LOG_DEBUG("Store result ptr for await speak completion");
-      result_for_await_speak_completion_ = std::move(result_);
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string text = std::get<std::string>(arguments);
+      if (!tts_->AddText(text)) {
+        SendResult(flutter::EncodableValue(0));
+        return;
+      }
+    }
+
+    if (tts_->Speak()) {
+      if (await_speak_completion_ && !result_for_await_speak_completion_) {
+        LOG_DEBUG("Store result ptr for await speak completion");
+        result_for_await_speak_completion_ = std::move(result_);
+      } else {
+        SendResult(flutter::EncodableValue(1));
+      }
     } else {
-      SendResult(flutter::EncodableValue(1));
+      SendResult(flutter::EncodableValue(0));
     }
   }
 
   void OnStop() {
-    try {
-      tts_->Stop();
-    } catch (const TextToSpeechError &error) {
-      SendErrorResult("Operation failed", error.GetErrorString());
+    if (tts_->Stop()) {
+      SendResult(flutter::EncodableValue(1));
+    } else {
+      SendResult(flutter::EncodableValue(0));
     }
-    SendResult(flutter::EncodableValue(1));
   }
 
   void OnPause() {
-    try {
-      tts_->Pause();
-    } catch (const TextToSpeechError &error) {
-      SendErrorResult("Operation failed", error.GetErrorString());
+    if (tts_->Pause()) {
+      SendResult(flutter::EncodableValue(1));
+    } else {
+      SendResult(flutter::EncodableValue(0));
     }
-    SendResult(flutter::EncodableValue(1));
   }
 
   void OnGetSpeechRateValidRange() {
     int min = 0, normal = 0, max = 0;
-    try {
-      tts_->GetSpeedRange(&min, &normal, &max);
-    } catch (const TextToSpeechError &error) {
-      SendErrorResult("Operation failed", error.GetErrorString());
-      return;
-    }
+    tts_->GetSpeedRange(&min, &normal, &max);
     flutter::EncodableMap map;
     map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
         "min", min));
@@ -203,7 +203,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       SendResult(flutter::EncodableValue(1));
       return;
     }
-    SendErrorResult("Invalid argument", "SpeechRate is invaild.");
+    SendResult(flutter::EncodableValue(0));
   }
 
   void OnSetLanguage(const flutter::EncodableValue &arguments) {
@@ -213,7 +213,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       SendResult(flutter::EncodableValue(1));
       return;
     }
-    SendErrorResult("Invalid argument", "Language is invaild.");
+    SendResult(flutter::EncodableValue(0));
   }
 
   void OnGetLanguage() {
@@ -226,15 +226,13 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
   void OnSetVolume(const flutter::EncodableValue &arguments) {
     if (std::holds_alternative<double>(arguments)) {
-      double volume = std::get<double>(arguments);
-      try {
-        tts_->SetVolume(volume);
-      } catch (const TextToSpeechError &error) {
-        SendErrorResult("Operation failed", error.GetErrorString());
+      double rate = std::get<double>(arguments);
+      if (tts_->SetVolume(rate)) {
+        SendResult(flutter::EncodableValue(1));
         return;
       }
     }
-    SendErrorResult("Invalid argument", "Volume is invaild.");
+    SendResult(flutter::EncodableValue(0));
   }
 
   void SendResult(const flutter::EncodableValue &result) {
@@ -242,23 +240,6 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       return;
     }
     result_->Success(result);
-    result_ = nullptr;
-  }
-
-  void SendErrorResult(const std::string &error_code,
-                       const std::string &error_message) {
-    // Keep in sync with the return values implemented in:
-    // https://github.com/dlutton/flutter_tts/blob/master/android/src/main/java/com/tundralabs/fluttertts/FlutterTtsPlugin.java.
-    // In principle, MethodResult was designed to call MethodResult.Error() to
-    // notify the dart code of any method call failures from the host platform.
-    // However, in the case of flutter_tts, it expects a return value 0 on
-    // failure(and value 1 on success). Therefore in the scope of this plugin,
-    // we call result_->Success(flutter::EncodableValue(0)) to notify errors.
-    if (!result_) {
-      return;
-    }
-    LOG_ERROR("%s", std::string(error_code + " : " + error_message).c_str());
-    result_->Success(flutter::EncodableValue(0));
     result_ = nullptr;
   }
 
