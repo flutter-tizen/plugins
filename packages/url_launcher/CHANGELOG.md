@@ -1,3 +1,7 @@
+## NEXT
+
+* Update tizen_app_control to 0.2.0.
+
 ## 2.1.1
 
 * Update url_launcher to 6.1.0.
