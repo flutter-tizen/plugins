@@ -4,35 +4,8 @@
 
 #include "application_utils.h"
 
-namespace application_utils {
-
-bool ExtractValueFromMap(const flutter::EncodableValue &arguments,
-                         const char *key, std::string &out_value) {
-  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
-    flutter::EncodableMap map = std::get<flutter::EncodableMap>(arguments);
-    auto iter = map.find(flutter::EncodableValue(key));
-    if (iter != map.end() && !iter->second.IsNull()) {
-      if (auto pval = std::get_if<std::string>(&iter->second)) {
-        out_value = *pval;
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool AppMetaDataCB(const char *key, const char *value, void *user_data) {
-  if (key != nullptr) {
-    flutter::EncodableMap *metadata = (flutter::EncodableMap *)user_data;
-    metadata->insert(
-        std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-            std::string(key), std::string(value)));
-    LOG_INFO("AppMetaDataCB key: %s, value: %s", key, value);
-  }
-  return true;
-}
-
-static char *GetAppId(app_info_h app_info, flutter::EncodableMap &value) {
+namespace {
+char *GetAppId(app_info_h app_info, flutter::EncodableMap &value) {
   char *app_id = nullptr;
 
   int ret = app_info_get_app_id(app_info, &app_id);
@@ -48,7 +21,7 @@ static char *GetAppId(app_info_h app_info, flutter::EncodableMap &value) {
   return app_id;
 }
 
-static void GetPkgId(app_info_h app_info, flutter::EncodableMap &value) {
+void GetPkgId(app_info_h app_info, flutter::EncodableMap &value) {
   char *pkg_id = nullptr;
 
   int ret = app_info_get_package(app_info, &pkg_id);
@@ -64,7 +37,7 @@ static void GetPkgId(app_info_h app_info, flutter::EncodableMap &value) {
   free(pkg_id);
 }
 
-static void GetLabel(app_info_h app_info, flutter::EncodableMap &value) {
+void GetLabel(app_info_h app_info, flutter::EncodableMap &value) {
   char *label = nullptr;
 
   int ret = app_info_get_label(app_info, &label);
@@ -80,7 +53,7 @@ static void GetLabel(app_info_h app_info, flutter::EncodableMap &value) {
   free(label);
 }
 
-static void GetType(app_info_h app_info, flutter::EncodableMap &value) {
+void GetType(app_info_h app_info, flutter::EncodableMap &value) {
   char *type = nullptr;
 
   int ret = app_info_get_type(app_info, &type);
@@ -96,7 +69,7 @@ static void GetType(app_info_h app_info, flutter::EncodableMap &value) {
   free(type);
 }
 
-static void GetIconPath(app_info_h app_info, flutter::EncodableMap &value) {
+void GetIconPath(app_info_h app_info, flutter::EncodableMap &value) {
   char *icon_path = nullptr;
 
   int ret = app_info_get_icon(app_info, &icon_path);
@@ -114,8 +87,7 @@ static void GetIconPath(app_info_h app_info, flutter::EncodableMap &value) {
   }
 }
 
-static void GetExecutablePath(app_info_h app_info,
-                              flutter::EncodableMap &value) {
+void GetExecutablePath(app_info_h app_info, flutter::EncodableMap &value) {
   char *exec_path = nullptr;
 
   int ret = app_info_get_exec(app_info, &exec_path);
@@ -131,7 +103,7 @@ static void GetExecutablePath(app_info_h app_info,
   free(exec_path);
 }
 
-static void GetSharedResourcePath(char *app_id, flutter::EncodableMap &value) {
+void GetSharedResourcePath(char *app_id, flutter::EncodableMap &value) {
   char *shared_res_path = nullptr;
 
   int ret = app_manager_get_shared_resource_path(app_id, &shared_res_path);
@@ -147,7 +119,7 @@ static void GetSharedResourcePath(char *app_id, flutter::EncodableMap &value) {
   free(shared_res_path);
 }
 
-static void GetIsNoDisplay(app_info_h app_info, flutter::EncodableMap &value) {
+void GetIsNoDisplay(app_info_h app_info, flutter::EncodableMap &value) {
   bool no_display = false;
 
   int ret = app_info_is_nodisplay(app_info, &no_display);
@@ -159,18 +131,46 @@ static void GetIsNoDisplay(app_info_h app_info, flutter::EncodableMap &value) {
       "isNoDisplay", no_display));
 }
 
-static void GetForEachMetadata(app_info_h app_info,
-                               flutter::EncodableMap &value) {
+void GetForEachMetadata(app_info_h app_info, flutter::EncodableMap &value) {
   flutter::EncodableMap metadata;
 
-  int ret =
-      app_info_foreach_metadata(app_info, AppMetaDataCB, (void *)&metadata);
+  int ret = app_info_foreach_metadata(
+      app_info,
+      [](const char *key, const char *value, void *user_data) {
+        if (key != nullptr) {
+          flutter::EncodableMap *metadata =
+              static_cast<flutter::EncodableMap *>(user_data);
+          metadata->insert(
+              std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+                  std::string(key), std::string(value)));
+          LOG_INFO("AppMetaDataCB key: %s, value: %s", key, value);
+        }
+        return true;
+      },
+      (void *)&metadata);
   if (ret != APP_MANAGER_ERROR_NONE) {
     LOG_ERROR("app_info_foreach_metadata error! : %s", get_error_message(ret));
     throw ret;
   }
   value.insert(std::pair<flutter::EncodableValue, flutter::EncodableMap>(
       "metadata", metadata));
+}
+}  // namespace
+
+namespace application_utils {
+bool ExtractValueFromMap(const flutter::EncodableValue &arguments,
+                         const char *key, std::string &out_value) {
+  if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
+    flutter::EncodableMap map = std::get<flutter::EncodableMap>(arguments);
+    auto iter = map.find(flutter::EncodableValue(key));
+    if (iter != map.end() && !iter->second.IsNull()) {
+      if (auto pval = std::get_if<std::string>(&iter->second)) {
+        out_value = *pval;
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 int GetAppData(app_info_h app_info, flutter::EncodableMap &value) {

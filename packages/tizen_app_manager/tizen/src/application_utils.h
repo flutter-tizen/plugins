@@ -20,7 +20,6 @@
 namespace application_utils {
 bool ExtractValueFromMap(const flutter::EncodableValue &arguments,
                          const char *key, std::string &out_value);
-bool AppMetaDataCB(const char *key, const char *value, void *user_data);
 int GetAppData(app_info_h app_info, flutter::EncodableMap &value);
 }  // namespace application_utils
 

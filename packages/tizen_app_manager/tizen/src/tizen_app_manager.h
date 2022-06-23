@@ -16,17 +16,14 @@ class TizenAppManagerPlugin : public flutter::Plugin {
   using MethodResultPtr =
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>;
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
+  flutter::EncodableList &Applications();
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> launch_events_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
+      terminate_events_;
 
   TizenAppManagerPlugin();
 
   virtual ~TizenAppManagerPlugin();
-
-  flutter::EncodableList applications_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> launch_events_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
-      terminate_events_;
-  bool registered_event_cb_;
-  int registered_cnt_;
 
  private:
   void HandleMethodCall(
@@ -42,6 +39,10 @@ class TizenAppManagerPlugin : public flutter::Plugin {
   void ApplicationIsRunning(const flutter::EncodableValue &arguments,
                             MethodResultPtr result);
   void SetupChannels(flutter::PluginRegistrar *registrar);
+
+  flutter::EncodableList applications_;
+  bool has_registered_event_;
+  int registered_cnt_;
 };
 
 #endif

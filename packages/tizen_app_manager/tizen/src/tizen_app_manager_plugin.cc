@@ -6,65 +6,10 @@
 
 #include "tizen_app_manager.h"
 
-static bool AppInfoCB(app_info_h app_info, void *user_data) {
-  if (app_info == nullptr) {
-    return false;
-  }
-  TizenAppManagerPlugin *plugin = (TizenAppManagerPlugin *)user_data;
-  flutter::EncodableMap value;
-  int ret = application_utils::GetAppData(app_info, value);
-  if (ret == APP_MANAGER_ERROR_NONE) {
-    plugin->applications_.push_back(flutter::EncodableValue(value));
-    return true;
-  }
-  return false;
-}
-
-static void ContextEventCB(app_context_h app_context, app_context_event_e event,
-                           void *user_data) {
-  if (app_context == nullptr) {
-    return;
-  }
-  char *app_id = nullptr;
-  app_context_h clone_context;
-  int ret = app_context_get_app_id(app_context, &app_id);
-  if (ret != APP_MANAGER_ERROR_NONE || app_id == nullptr) {
-    LOG_ERROR("get app Id error! : %s", get_error_message(ret));
-    if (app_id) {
-      free(app_id);
-    }
-    return;
-  }
-
-  ret = app_context_clone(&clone_context, app_context);
-  if (ret != APP_MANAGER_ERROR_NONE || clone_context == nullptr) {
-    LOG_ERROR("clone context error! : %s", get_error_message(ret));
-    free(app_id);
-    return;
-  }
-  int int_address = std::intptr_t(clone_context);
-  LOG_INFO("event: %d, app_id: %s", event, app_id);
-  LOG_INFO("app_context: %p, clone_context: %p, int_addr: %p", app_context,
-           clone_context, int_address);
-  TizenAppManagerPlugin *plugin = (TizenAppManagerPlugin *)user_data;
-  flutter::EncodableMap msg;
-  msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "appId", std::string(app_id)));
-  msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-      "handle", int_address));
-  if (event == APP_CONTEXT_EVENT_LAUNCHED &&
-      plugin->launch_events_ != nullptr) {
-    plugin->launch_events_->Success(flutter::EncodableValue(msg));
-  } else if (event == APP_CONTEXT_EVENT_TERMINATED &&
-             plugin->terminate_events_ != nullptr) {
-    plugin->terminate_events_->Success(flutter::EncodableValue(msg));
-  }
-
-  free(app_id);
-}
-
 TizenAppManagerPlugin::TizenAppManagerPlugin() {
-  registered_event_cb_ = false;
+  launch_events_ = nullptr;
+  terminate_events_ = nullptr;
+  has_registered_event_ = false;
   registered_cnt_ = 0;
 }
 
@@ -76,6 +21,10 @@ void TizenAppManagerPlugin::RegisterWithRegistrar(
   auto plugin = std::make_unique<TizenAppManagerPlugin>();
   plugin->SetupChannels(registrar);
   registrar->AddPlugin(std::move(plugin));
+}
+
+flutter::EncodableList &TizenAppManagerPlugin::Applications() {
+  return this->applications_;
 }
 
 void TizenAppManagerPlugin::HandleMethodCall(
@@ -100,21 +49,65 @@ void TizenAppManagerPlugin::HandleMethodCall(
 void TizenAppManagerPlugin::RegisterObserver(
     std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
   LOG_DEBUG("RegisterObserver");
-  int ret = app_manager_set_app_context_event_cb(ContextEventCB, (void *)this);
+  int ret = app_manager_set_app_context_event_cb(
+      [](app_context_h app_context, app_context_event_e event,
+         void *user_data) {
+        if (app_context == nullptr) {
+          return;
+        }
+        char *app_id = nullptr;
+        app_context_h clone_context = nullptr;
+        int ret = app_context_get_app_id(app_context, &app_id);
+        if (ret != APP_MANAGER_ERROR_NONE || app_id == nullptr) {
+          LOG_ERROR("get app Id error! : %s", get_error_message(ret));
+          if (app_id) {
+            free(app_id);
+          }
+          return;
+        }
+
+        ret = app_context_clone(&clone_context, app_context);
+        if (ret != APP_MANAGER_ERROR_NONE || clone_context == nullptr) {
+          LOG_ERROR("clone context error! : %s", get_error_message(ret));
+          free(app_id);
+          return;
+        }
+        int int_address = std::intptr_t(clone_context);
+        LOG_INFO("event: %d, app_id: %s", event, app_id);
+        LOG_INFO("app_context: %p, clone_context: %p, int_addr: %p",
+                 app_context, clone_context, int_address);
+        TizenAppManagerPlugin *plugin =
+            static_cast<TizenAppManagerPlugin *>(user_data);
+        flutter::EncodableMap msg;
+        msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+            "appId", std::string(app_id)));
+        msg.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+            "handle", int_address));
+        if (event == APP_CONTEXT_EVENT_LAUNCHED &&
+            plugin->launch_events_ != nullptr) {
+          plugin->launch_events_->Success(flutter::EncodableValue(msg));
+        } else if (event == APP_CONTEXT_EVENT_TERMINATED &&
+                   plugin->terminate_events_ != nullptr) {
+          plugin->terminate_events_->Success(flutter::EncodableValue(msg));
+        }
+
+        free(app_id);
+      },
+      (void *)this);
   if (ret != APP_MANAGER_ERROR_NONE) {
     char *err_msg = get_error_message(ret);
     LOG_ERROR("Failed app_manager_set_app_context_event_cb : %s", err_msg);
     events->Error("Failed to add callback", std::string(err_msg));
     return;
   }
-  registered_event_cb_ = true;
+  has_registered_event_ = true;
 }
 
 void TizenAppManagerPlugin::UnregisterObserver() {
   LOG_DEBUG("UnregisterObserver");
-  if (registered_event_cb_ == true) {
+  if (has_registered_event_ == true) {
     app_manager_unset_app_context_event_cb();
-    registered_event_cb_ = false;
+    has_registered_event_ = false;
   }
   launch_events_ = nullptr;
   terminate_events_ = nullptr;
@@ -141,16 +134,14 @@ void TizenAppManagerPlugin::GetCurrentId(MethodResultPtr result) {
 void TizenAppManagerPlugin::GetApplicationInfo(
     const flutter::EncodableValue &arguments, MethodResultPtr result) {
   std::string id = "";
-  const char *app_id;
-  char *err_msg;
+  char *err_msg = nullptr;
   app_info_h app_info = nullptr;
-  flutter::EncodableMap value;
 
   if (!application_utils::ExtractValueFromMap(arguments, "appId", id)) {
     result->Error("InvalidArguments", "Please check appId");
     return;
   }
-  app_id = id.c_str();
+  const char *app_id = id.c_str();
   LOG_INFO("GetApplicationInfo() app_id : %s", app_id);
 
   int ret = app_manager_get_app_info(app_id, &app_info);
@@ -165,6 +156,7 @@ void TizenAppManagerPlugin::GetApplicationInfo(
     return;
   }
 
+  flutter::EncodableMap value;
   ret = application_utils::GetAppData(app_info, value);
   app_info_destroy(app_info);
   if (ret != APP_MANAGER_ERROR_NONE) {
@@ -180,15 +172,13 @@ void TizenAppManagerPlugin::GetApplicationInfo(
 void TizenAppManagerPlugin::ApplicationIsRunning(
     const flutter::EncodableValue &arguments, MethodResultPtr result) {
   std::string id = "";
-  const char *app_id;
-  bool running;
+  bool running = false;
 
   if (!application_utils::ExtractValueFromMap(arguments, "appId", id)) {
     result->Error("InvalidArguments", "Please check appId");
     return;
   }
-  app_id = id.c_str();
-
+  const char *app_id = id.c_str();
   int ret = app_manager_is_running(app_id, &running);
   if (ret != APP_MANAGER_ERROR_NONE) {
     char *err_msg = get_error_message(ret);
@@ -207,7 +197,22 @@ void TizenAppManagerPlugin::GetInstalledApplicationsInfo(
   LOG_INFO("GetInstalledApplicationsInfo()");
 
   applications_.erase(applications_.begin(), applications_.end());
-  ret = app_manager_foreach_app_info(AppInfoCB, (void *)this);
+  ret = app_manager_foreach_app_info(
+      [](app_info_h app_info, void *user_data) {
+        if (app_info == nullptr) {
+          return false;
+        }
+        TizenAppManagerPlugin *plugin =
+            static_cast<TizenAppManagerPlugin *>(user_data);
+        flutter::EncodableMap value;
+        int ret = application_utils::GetAppData(app_info, value);
+        if (ret == APP_MANAGER_ERROR_NONE) {
+          plugin->Applications().push_back(flutter::EncodableValue(value));
+          return true;
+        }
+        return false;
+      },
+      (void *)this);
   if (ret != APP_MANAGER_ERROR_NONE) {
     char *err_msg = get_error_message(ret);
     LOG_ERROR("app_manager_foreach_app_info error, %s", err_msg);
