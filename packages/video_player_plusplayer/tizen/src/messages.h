@@ -15,29 +15,28 @@
 #include <optional>
 #include <string>
 
-
 /* Generated class from Pigeon. */
 
 class FlutterError {
  public:
   FlutterError();
-  FlutterError(const std::string& arg_code)
-    : code(arg_code) {};
+  FlutterError(const std::string& arg_code) : code(arg_code){};
   FlutterError(const std::string& arg_code, const std::string& arg_message)
-    : code(arg_code), message(arg_message) {};
-  FlutterError(const std::string& arg_code, const std::string& arg_message, const flutter::EncodableValue& arg_details)
-    : code(arg_code), message(arg_message), details(arg_details) {};
+      : code(arg_code), message(arg_message){};
+  FlutterError(const std::string& arg_code, const std::string& arg_message,
+               const flutter::EncodableValue& arg_details)
+      : code(arg_code), message(arg_message), details(arg_details){};
   std::string code;
   std::string message;
   flutter::EncodableValue details;
 };
-template<class T> class ErrorOr {
+template <class T>
+class ErrorOr {
   std::variant<std::unique_ptr<T>, T, FlutterError> v;
+
  public:
-  ErrorOr(const T& rhs) { new(&v) T(rhs); }
-  ErrorOr(const FlutterError& rhs) {
-    new(&v) FlutterError(rhs);
-  }
+  ErrorOr(const T& rhs) { new (&v) T(rhs); }
+  ErrorOr(const FlutterError& rhs) { new (&v) FlutterError(rhs); }
   static ErrorOr<std::unique_ptr<T>> MakeWithUniquePtr(std::unique_ptr<T> rhs) {
     ErrorOr<std::unique_ptr<T>> ret = ErrorOr<std::unique_ptr<T>>();
     ret.v = std::move(rhs);
@@ -46,11 +45,12 @@ template<class T> class ErrorOr {
   bool hasError() const { return std::holds_alternative<FlutterError>(v); }
   const T& value() const { return std::get<T>(v); };
   const FlutterError& error() const { return std::get<FlutterError>(v); };
+
  private:
   ErrorOr() = default;
-  template<typename U> friend class ErrorOr;
+  template <typename U>
+  friend class ErrorOr;
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class TextureMessage {
@@ -59,16 +59,13 @@ class TextureMessage {
   int64_t texture_id() const;
   void set_texture_id(int64_t value_arg);
 
-
  private:
   TextureMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
   friend class VideoPlayerApi;
   friend class VideoPlayerApiCodecSerializer;
   int64_t texture_id_;
-
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class LoopingMessage {
@@ -80,7 +77,6 @@ class LoopingMessage {
   bool is_looping() const;
   void set_is_looping(bool value_arg);
 
-
  private:
   LoopingMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
@@ -88,9 +84,7 @@ class LoopingMessage {
   friend class VideoPlayerApiCodecSerializer;
   int64_t texture_id_;
   bool is_looping_;
-
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class VolumeMessage {
@@ -102,7 +96,6 @@ class VolumeMessage {
   double volume() const;
   void set_volume(double value_arg);
 
-
  private:
   VolumeMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
@@ -110,9 +103,7 @@ class VolumeMessage {
   friend class VideoPlayerApiCodecSerializer;
   int64_t texture_id_;
   double volume_;
-
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class PlaybackSpeedMessage {
@@ -124,7 +115,6 @@ class PlaybackSpeedMessage {
   double speed() const;
   void set_speed(double value_arg);
 
-
  private:
   PlaybackSpeedMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
@@ -132,9 +122,7 @@ class PlaybackSpeedMessage {
   friend class VideoPlayerApiCodecSerializer;
   int64_t texture_id_;
   double speed_;
-
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class PositionMessage {
@@ -146,7 +134,6 @@ class PositionMessage {
   int64_t position() const;
   void set_position(int64_t value_arg);
 
-
  private:
   PositionMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
@@ -154,9 +141,7 @@ class PositionMessage {
   friend class VideoPlayerApiCodecSerializer;
   int64_t texture_id_;
   int64_t position_;
-
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class CreateMessage {
@@ -186,7 +171,6 @@ class CreateMessage {
   void set_drm_configs(const flutter::EncodableMap* value_arg);
   void set_drm_configs(const flutter::EncodableMap& value_arg);
 
-
  private:
   CreateMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
@@ -198,9 +182,7 @@ class CreateMessage {
   std::optional<std::string> format_hint_;
   std::optional<flutter::EncodableMap> http_headers_;
   std::optional<flutter::EncodableMap> drm_configs_;
-
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class MixWithOthersMessage {
@@ -209,16 +191,13 @@ class MixWithOthersMessage {
   bool mix_with_others() const;
   void set_mix_with_others(bool value_arg);
 
-
  private:
   MixWithOthersMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
   friend class VideoPlayerApi;
   friend class VideoPlayerApiCodecSerializer;
   bool mix_with_others_;
-
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class GeometryMessage {
@@ -239,7 +218,6 @@ class GeometryMessage {
   int64_t h() const;
   void set_h(int64_t value_arg);
 
-
  private:
   GeometryMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
@@ -250,9 +228,7 @@ class GeometryMessage {
   int64_t y_;
   int64_t w_;
   int64_t h_;
-
 };
-
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class BufferingConfigMessage {
@@ -267,7 +243,6 @@ class BufferingConfigMessage {
   int64_t amount() const;
   void set_amount(int64_t value_arg);
 
-
  private:
   BufferingConfigMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
@@ -276,12 +251,10 @@ class BufferingConfigMessage {
   int64_t texture_id_;
   std::string buffer_option_;
   int64_t amount_;
-
 };
 
 class VideoPlayerApiCodecSerializer : public flutter::StandardCodecSerializer {
  public:
-
   inline static VideoPlayerApiCodecSerializer& GetInstance() {
     static VideoPlayerApiCodecSerializer sInstance;
     return sInstance;
@@ -290,42 +263,51 @@ class VideoPlayerApiCodecSerializer : public flutter::StandardCodecSerializer {
   VideoPlayerApiCodecSerializer();
 
  public:
-  void WriteValue(const flutter::EncodableValue& value, flutter::ByteStreamWriter* stream) const override;
+  void WriteValue(const flutter::EncodableValue& value,
+                  flutter::ByteStreamWriter* stream) const override;
 
  protected:
-  flutter::EncodableValue ReadValueOfType(uint8_t type, flutter::ByteStreamReader* stream) const override;
-
+  flutter::EncodableValue ReadValueOfType(
+      uint8_t type, flutter::ByteStreamReader* stream) const override;
 };
 
-/* Generated class from Pigeon that represents a handler of messages from Flutter. */
+/* Generated class from Pigeon that represents a handler of messages from
+ * Flutter. */
 class VideoPlayerApi {
  public:
   VideoPlayerApi(const VideoPlayerApi&) = delete;
   VideoPlayerApi& operator=(const VideoPlayerApi&) = delete;
-  virtual ~VideoPlayerApi() { };
+  virtual ~VideoPlayerApi(){};
   virtual std::optional<FlutterError> Initialize() = 0;
-  virtual ErrorOr<std::unique_ptr<TextureMessage>> Create(const CreateMessage& msg) = 0;
+  virtual ErrorOr<std::unique_ptr<TextureMessage>> Create(
+      const CreateMessage& msg) = 0;
   virtual std::optional<FlutterError> Dispose(const TextureMessage& msg) = 0;
   virtual std::optional<FlutterError> SetLooping(const LoopingMessage& msg) = 0;
   virtual std::optional<FlutterError> SetVolume(const VolumeMessage& msg) = 0;
-  virtual std::optional<FlutterError> SetPlaybackSpeed(const PlaybackSpeedMessage& msg) = 0;
+  virtual std::optional<FlutterError> SetPlaybackSpeed(
+      const PlaybackSpeedMessage& msg) = 0;
   virtual std::optional<FlutterError> Play(const TextureMessage& msg) = 0;
-  virtual ErrorOr<std::unique_ptr<PositionMessage>> Position(const TextureMessage& msg) = 0;
+  virtual ErrorOr<std::unique_ptr<PositionMessage>> Position(
+      const TextureMessage& msg) = 0;
   virtual std::optional<FlutterError> SeekTo(const PositionMessage& msg) = 0;
   virtual std::optional<FlutterError> Pause(const TextureMessage& msg) = 0;
-  virtual std::optional<FlutterError> SetMixWithOthers(const MixWithOthersMessage& msg) = 0;
-  virtual std::optional<FlutterError> SetDisplayRoi(const GeometryMessage& arg) = 0;
-  virtual ErrorOr<bool> SetBufferingConfig(const BufferingConfigMessage& arg) = 0;
+  virtual std::optional<FlutterError> SetMixWithOthers(
+      const MixWithOthersMessage& msg) = 0;
+  virtual std::optional<FlutterError> SetDisplayRoi(
+      const GeometryMessage& arg) = 0;
+  virtual ErrorOr<bool> SetBufferingConfig(
+      const BufferingConfigMessage& arg) = 0;
 
   /** The codec used by VideoPlayerApi. */
   static const flutter::StandardMessageCodec& GetCodec();
-  /** Sets up an instance of `VideoPlayerApi` to handle messages through the `binary_messenger`. */
-  static void SetUp(flutter::BinaryMessenger* binary_messenger, VideoPlayerApi* api);
+  /** Sets up an instance of `VideoPlayerApi` to handle messages through the
+   * `binary_messenger`. */
+  static void SetUp(flutter::BinaryMessenger* binary_messenger,
+                    VideoPlayerApi* api);
   static flutter::EncodableMap WrapError(std::string_view error_message);
   static flutter::EncodableMap WrapError(const FlutterError& error);
 
  protected:
   VideoPlayerApi() = default;
-
 };
 #endif  // PIGEON_MESSAGES_H_
