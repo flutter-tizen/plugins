@@ -4,8 +4,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:tizen_app_manager/app_manager.dart';
-
+import 'package:tizen_app_manager/tizen_app_manager.dart';
 import 'package:tizen_app_manager_example/main.dart';
 
 void main() {

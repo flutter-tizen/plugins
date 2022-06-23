@@ -1,3 +1,7 @@
+## NEXT
+
+* Update tizen_app_control to 0.2.0.
+
 ## 1.1.1
 
 * Update share_plus to 3.0.5.

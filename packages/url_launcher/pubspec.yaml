@@ -13,7 +13,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  tizen_app_control: ^0.1.1
+  tizen_app_control: ^0.2.0
   url_launcher_platform_interface: ^2.0.5
 
 environment:
