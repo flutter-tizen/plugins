@@ -15,7 +15,6 @@
 #include "log.h"
 #include "messages.h"
 #include "video_player.h"
-#include "video_player_error.h"
 #include "video_player_options.h"
 
 class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {

@@ -7,8 +7,8 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/src/messages.dart',
   dartTestOut: 'test/test_api.dart',
-  cppHeaderOut: 'tizen/src/messages.h',
-  cppSourceOut: 'tizen/src/messages.cc',
+  //cppHeaderOut: 'tizen/src/messages.h',
+  //cppSourceOut: 'tizen/src/messages.cc',
   copyrightHeader: 'pigeons/copyright.txt'
 ))
 

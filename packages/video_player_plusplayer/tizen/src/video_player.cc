@@ -15,7 +15,6 @@
 #include <functional>
 
 #include "log.h"
-#include "video_player_error.h"
 
 static int64_t gPlayerIndex = 1;
 
@@ -110,10 +109,10 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
 int64_t VideoPlayer::Create() {
   PlusplayerWrapperProxy &instance = PlusplayerWrapperProxy::GetInstance();
   if (uri_.empty()) {
-    throw VideoPlayerError("PlusPlayer", "uri is empty");
+    throw FlutterError("PlusPlayer", "uri is empty");
   }
   if (!Open(uri_)) {
-    throw VideoPlayerError("PlusPlayer", "Open failed");
+    throw FlutterError("PlusPlayer", "Open failed");
   }
   RegisterListener();
   if (drm_type_ != DRM_TYPE_NONE && !license_url_.empty()) {
@@ -122,11 +121,11 @@ int64_t VideoPlayer::Create() {
     drm_manager_->InitializeDrmSession(uri_);
   }
   if (!SetDisplay(registrar_ref_)) {
-    throw VideoPlayerError("PlusPlayer", "Fail to set display");
+    throw FlutterError("PlusPlayer", "Fail to set display");
   }
   SetDisplayRoi(0, 0, 1, 1);
   if (!instance.PrepareAsync(plusplayer_)) {
-    throw VideoPlayerError("PlusPlayer", "Fail to prepare");
+    throw FlutterError("PlusPlayer", "Fail to prepare");
   }
   player_id_ = gPlayerIndex++;
   flutter::PluginRegistrar *plugin_registrar =
@@ -140,7 +139,7 @@ void VideoPlayer::SetDisplayRoi(int x, int y, int w, int h) {
   LOG_DEBUG("setDisplayRoi x : %d, y : %d, w : %d, h : %d", x, y, w, h);
   PlusplayerWrapperProxy &instance = PlusplayerWrapperProxy::GetInstance();
   if (!instance.SetDisplayMode(plusplayer_, plusplayer::DisplayMode::kDstRoi)) {
-    throw VideoPlayerError("PlusPlayer", "Fail to set display mode");
+    throw FlutterError("PlusPlayer", "Fail to set display mode");
   }
   plusplayer::Geometry roi;
   roi.x = x;
@@ -148,14 +147,14 @@ void VideoPlayer::SetDisplayRoi(int x, int y, int w, int h) {
   roi.w = w;
   roi.h = h;
   if (!instance.SetDisplayRoi(plusplayer_, roi)) {
-    throw VideoPlayerError("PlusPlayer", "SetDisplayRoi failed");
+    throw FlutterError("PlusPlayer", "SetDisplayRoi failed");
   }
 }
 
 bool VideoPlayer::SetBufferingConfig(const std::string &option, int amount) {
   if (plusplayer_ == nullptr) {
     LOG_ERROR("Plusplayer isn't created");
-    throw VideoPlayerError("PlusPlayer", "Not created");
+    throw FlutterError("PlusPlayer", "Not created");
   }
   LOG_DEBUG("Plusplayer SetBufferingConfig option : %s, amount : %d",
             option.c_str(), amount);
@@ -173,16 +172,16 @@ VideoPlayer::~VideoPlayer() {
 void VideoPlayer::Play() {
   PlusplayerWrapperProxy &instance = PlusplayerWrapperProxy::GetInstance();
   if (instance.GetState(plusplayer_) < plusplayer::State::kReady) {
-    throw VideoPlayerError("PlusPlayer", "Invalid state for play operation");
+    throw FlutterError("PlusPlayer", "Invalid state for play operation");
   }
 
   if (instance.GetState(plusplayer_) == plusplayer::State::kReady) {
     if (!instance.Start(plusplayer_)) {
-      throw VideoPlayerError("PlusPlayer", "Start operation failed");
+      throw FlutterError("PlusPlayer", "Start operation failed");
     }
   } else if (instance.GetState(plusplayer_) == plusplayer::State::kPaused) {
     if (!instance.Resume(plusplayer_)) {
-      throw VideoPlayerError("PlusPlayer", "Resume operation failed");
+      throw FlutterError("PlusPlayer", "Resume operation failed");
     }
   }
 }
@@ -190,12 +189,12 @@ void VideoPlayer::Play() {
 void VideoPlayer::Pause() {
   PlusplayerWrapperProxy &instance = PlusplayerWrapperProxy::GetInstance();
   if (instance.GetState(plusplayer_) <= plusplayer::State::kReady) {
-    throw VideoPlayerError("PlusPlayer", "Invalid state for pause operation");
+    throw FlutterError("PlusPlayer", "Invalid state for pause operation");
   }
 
   if (instance.GetState(plusplayer_) == plusplayer::State::kPlaying) {
     if (!instance.Pause(plusplayer_)) {
-      throw VideoPlayerError("PlusPlayer", "Pause operation failed");
+      throw FlutterError("PlusPlayer", "Pause operation failed");
     }
   }
 }
@@ -212,7 +211,7 @@ void VideoPlayer::SetPlaybackSpeed(double speed) {
   LOG_INFO("set playback speed: %f", speed);
   PlusplayerWrapperProxy &instance = PlusplayerWrapperProxy::GetInstance();
   if (!instance.SetPlaybackRate(plusplayer_, speed)) {
-    throw VideoPlayerError("PlusPlayer", "SetPlaybackRate operation failed");
+    throw FlutterError("PlusPlayer", "SetPlaybackRate operation failed");
   }
 }
 
@@ -222,7 +221,7 @@ void VideoPlayer::SeekTo(int position,
   PlusplayerWrapperProxy &instance = PlusplayerWrapperProxy::GetInstance();
   if (!instance.Seek(plusplayer_, position)) {
     on_seek_completed_ = nullptr;
-    throw VideoPlayerError("PlusPlayer", "Seek operation failed");
+    throw FlutterError("PlusPlayer", "Seek operation failed");
   }
 }
 
@@ -235,8 +234,8 @@ int VideoPlayer::GetPosition() {
     instance.GetPlayingTime(plusplayer_, &position);
     return static_cast<int>(position);
   } else {
-    throw VideoPlayerError("PlusPlayer",
-                           "Invalid state for GetPlayingTime operation");
+    throw FlutterError("PlusPlayer",
+                       "Invalid state for GetPlayingTime operation");
   }
 }
 
