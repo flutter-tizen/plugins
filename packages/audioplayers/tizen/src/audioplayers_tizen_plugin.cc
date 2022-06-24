@@ -128,7 +128,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
         std::string url = GetRequiredArg<std::string>(arguments, "url");
         const std::string file_protocol_prefix = "file://";
-        if (is_local && url.find_first_of(file_protocol_prefix) == 0) {
+        if (is_local && url.find(file_protocol_prefix) == 0) {
           url = url.substr(file_protocol_prefix.length());
         }
         player->SetUrl(url);
