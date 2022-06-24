@@ -121,12 +121,12 @@ std::vector<std::string> &TextToSpeech::GetSupportedLanaguages() {
   return supported_lanaguages_;
 }
 
-TtsState TextToSpeech::GetState() {
+std::optional<TtsState> TextToSpeech::GetState() {
   tts_state_e state;
   int ret = tts_get_state(tts_, &state);
   if (ret != TTS_ERROR_NONE) {
     LOG_ERROR("[TTS] tts_get_state failed: %s", get_error_message(ret));
-    return TtsState::kError;
+    return std::nullopt;
   }
   switch (state) {
     case TTS_STATE_CREATED:
@@ -138,7 +138,7 @@ TtsState TextToSpeech::GetState() {
     case TTS_STATE_PAUSED:
       return TtsState::kPaused;
     default:
-      return TtsState::kError;
+      return std::nullopt;
   }
 }
 

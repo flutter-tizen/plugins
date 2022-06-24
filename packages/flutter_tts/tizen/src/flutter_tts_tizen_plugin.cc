@@ -9,6 +9,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -136,9 +137,9 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   void OnSpeak(const flutter::EncodableValue &arguments) {
-    TtsState state = tts_->GetState();
-    if (state == TtsState::kPlaying || state == TtsState::kError) {
-      if (state == TtsState::kPlaying) {
+    std::optional<TtsState> state = tts_->GetState();
+    if (!state.has_value() || state == TtsState::kPlaying) {
+      if (state.has_value() && state == TtsState::kPlaying) {
         LOG_ERROR("[TTS] : You cannot speak again while speaking.");
       }
       SendResult(flutter::EncodableValue(0));

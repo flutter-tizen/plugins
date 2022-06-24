@@ -8,10 +8,11 @@
 #include <tts.h>
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
-enum class TtsState { kCreated, kReady, kPlaying, kPaused, kError };
+enum class TtsState { kCreated, kReady, kPlaying, kPaused };
 
 using OnStateChangedCallback =
     std::function<void(tts_state_e previous, tts_state_e current)>;
@@ -56,7 +57,7 @@ class TextToSpeech {
 
   std::vector<std::string> &GetSupportedLanaguages();
 
-  TtsState GetState();
+  std::optional<TtsState> GetState();
 
   bool AddText(std::string text);
 
