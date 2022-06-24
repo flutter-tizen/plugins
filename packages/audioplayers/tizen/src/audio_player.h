@@ -44,7 +44,7 @@ class AudioPlayer {
   void SetUrl(const std::string &url);
   void SetDataSource(std::vector<uint8_t> &data);
   void SetVolume(double volume);
-  void SetPlaybackRate(double rate);
+  void SetPlaybackRate(double playback_rate);
   void SetReleaseMode(ReleaseMode mode);
   void SetLatencyMode(bool low_latency);
   int32_t GetDuration();

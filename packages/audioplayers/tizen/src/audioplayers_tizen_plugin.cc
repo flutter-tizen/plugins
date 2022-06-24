@@ -123,12 +123,12 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         player->SetVolume(GetRequiredArg<double>(arguments, "volume"));
         result->Success();
       } else if (method_name == "setSourceUrl") {
-        bool isLocal = false;
-        GetValueFromEncodableMap(arguments, "playerId", isLocal);
+        bool is_local = false;
+        GetValueFromEncodableMap(arguments, "isLocal", is_local);
 
         std::string url = GetRequiredArg<std::string>(arguments, "url");
         const std::string file_protocol_prefix = "file://";
-        if (isLocal && url.find_first_of(file_protocol_prefix) == 0) {
+        if (is_local && url.find_first_of(file_protocol_prefix) == 0) {
           url = url.substr(file_protocol_prefix.length());
         }
         player->SetUrl(url);

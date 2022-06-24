@@ -67,5 +67,5 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 ## Limitations
 
-- `onPlayerComplete` event will not be fired when `ReleaseMode` is set to loop which differs from the behavior specified in the [documentation](https://github.com/bluefireteam/audioplayers/blob/e6532371a3372c0f208abb24f13e1e82a9c1e040/packages/audioplayers/lib/src/audioplayer.dart#L64). And playback rate will reset to 1.0 when audio is replayed.
+- `onPlayerComplete` event will not be fired when `ReleaseMode` is set to loop which differs from the behavior specified in the [documentation](https://pub.dev/documentation/audioplayers/latest/audioplayers/AudioPlayer/onPlayerComplete.html). And playback rate will reset to 1.0 when audio is replayed.
 - `setVolume` will have no effect on TV devices.

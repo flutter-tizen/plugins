@@ -176,12 +176,12 @@ void AudioPlayer::SetVolume(double volume) {
   }
 }
 
-void AudioPlayer::SetPlaybackRate(double rate) {
-  playback_rate_ = rate;
+void AudioPlayer::SetPlaybackRate(double playback_rate) {
+  playback_rate_ = playback_rate;
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
       state == PLAYER_STATE_PAUSED) {
-    int ret = player_set_playback_rate(player_, rate);
+    int ret = player_set_playback_rate(player_, playback_rate);
     if (ret != PLAYER_ERROR_NONE) {
       throw AudioPlayerError("player_set_playback_rate failed",
                              get_error_message(ret));
@@ -328,7 +328,7 @@ player_state_e AudioPlayer::GetPlayerState() {
 void AudioPlayer::OnPrepared(void *data) {
   // On TV devices, callbacks are not executed on the main loop. Therefore
   // we explicitly transfer the callback to the main loop to avoid any race
-  // conditions and to allow creating timer objects in EmitPositionUpdates.
+  // conditions and to allow creating timer objects in StartPositionUpdates.
   ecore_main_loop_thread_safe_call_async(
       [](void *data) {
         auto *player = reinterpret_cast<AudioPlayer *>(data);
