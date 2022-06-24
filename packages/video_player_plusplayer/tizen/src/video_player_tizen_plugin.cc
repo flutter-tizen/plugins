@@ -85,7 +85,7 @@ void VideoPlayerTizenPlugin::DisposeAllPlayers() {
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
   DisposeAllPlayers();
-  return std::optional<FlutterError>();
+  return {};
 }
 
 ErrorOr<std::unique_ptr<TextureMessage>> VideoPlayerTizenPlugin::Create(
@@ -107,7 +107,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
     iter->second->Dispose();
     players_.erase(iter);
   }
-  return std::optional<FlutterError>();
+  return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
@@ -116,7 +116,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
   if (iter != players_.end()) {
     iter->second->SetLooping(loopingMsg.is_looping());
   }
-  return std::optional<FlutterError>();
+  return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
@@ -125,7 +125,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
   if (iter != players_.end()) {
     iter->second->SetVolume(volumeMsg.volume());
   }
-  return std::optional<FlutterError>();
+  return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
@@ -134,7 +134,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
   if (iter != players_.end()) {
     iter->second->SetPlaybackSpeed(speedMsg.speed());
   }
-  return std::optional<FlutterError>();
+  return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
@@ -143,7 +143,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
   if (iter != players_.end()) {
     iter->second->Play();
   }
-  return std::optional<FlutterError>();
+  return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
@@ -152,7 +152,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
   if (iter != players_.end()) {
     iter->second->Pause();
   }
-  return std::optional<FlutterError>();
+  return {};
 }
 
 ErrorOr<std::unique_ptr<PositionMessage>> VideoPlayerTizenPlugin::Position(
@@ -172,7 +172,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
   if (iter != players_.end()) {
     iter->second->SeekTo(positionMsg.position(), nullptr);
   }
-  return std::optional<FlutterError>();
+  return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayRoi(
@@ -182,7 +182,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayRoi(
     iter->second->SetDisplayRoi(geometryMsg.x(), geometryMsg.y(),
                                 geometryMsg.w(), geometryMsg.h());
   }
-  return std::optional<FlutterError>();
+  return {};
 }
 
 ErrorOr<bool> VideoPlayerTizenPlugin::SetBufferingConfig(
@@ -198,7 +198,7 @@ ErrorOr<bool> VideoPlayerTizenPlugin::SetBufferingConfig(
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &mixWithOthersMsg) {
   options_.SetMixWithOthers(mixWithOthersMsg.mix_with_others());
-  return std::optional<FlutterError>();
+  return {};
 }
 
 void VideoPlayerTizenPluginRegisterWithRegistrar(

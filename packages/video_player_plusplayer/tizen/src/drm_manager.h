@@ -6,9 +6,7 @@
 #define FLUTTER_PLUGIN_DRM_MANAGER_H_
 
 #include <glib.h>
-
 #include <string>
-
 #include "drm_manager_service_proxy.h"
 #include "plus_player_proxy.h"
 

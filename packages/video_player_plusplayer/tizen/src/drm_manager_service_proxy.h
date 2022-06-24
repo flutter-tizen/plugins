@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H
 #define FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H
 
@@ -108,5 +112,6 @@ DRMSessionHandle_t DMGRCreateDRMSession(void* handle, dm_type_e drm_type,
                                         const char* drm_sub_type);
 bool DMGRSecurityInitCompleteCB(void* handle, int* drm_handle, unsigned int len,
                                 unsigned char* pssh_data, void* user_data);
+
 int DMGRReleaseDRMSession(void* handle, DRMSessionHandle_t drm_session);
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H

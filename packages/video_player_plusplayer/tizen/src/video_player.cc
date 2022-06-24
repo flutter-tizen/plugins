@@ -20,7 +20,7 @@ static int64_t gPlayerIndex = 1;
 
 std::string VideoPlayer::GetApplicationId() {
   char *app_id = nullptr;
-  long pid = getpid();
+  pid_t pid = getpid();
   int ret = app_manager_get_app_id(pid, &app_id);
   if (ret != APP_MANAGER_ERROR_NONE) return {};
 
@@ -425,10 +425,12 @@ void VideoPlayer::OnPlayCompleted(void *data) {
 }
 
 void VideoPlayer::OnPlaying(void *data) {}
+
 void VideoPlayer::OnError(const plusplayer::ErrorType &error_code,
                           void *user_data) {
   LOG_ERROR("ErrorType : %d", error_code);
 }
+
 void VideoPlayer::OnErrorMessage(const plusplayer::ErrorType &error_code,
                                  const char *error_msg, void *user_data) {
   LOG_ERROR("ErrorType : %d, error_msg : %s", error_code, error_msg);

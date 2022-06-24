@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "drm_licence.h"
 
 #include <stdio.h>
@@ -177,8 +181,7 @@ struct curl_slist* g_CurlSlistAppend(struct curl_slist* aList,
   }
 
   struct curl_slist* newList = curl_slist_append(aList, aString);
-  if (!newList)  // allocation failed
-  {
+  if (!newList) {
     curl_slist_free_all(aList);
   }
 
@@ -518,10 +521,7 @@ DRM_RESULT g_HttpStartTransaction(
     curl_easy_getinfo(pCurl, CURLINFO_RESPONSE_CODE, (long*)&hSession->resCode);
     INFO(" after curl_easy_perform : hSession->resCode(%ld)",
          hSession->resCode);
-  }
-
-  // Secure Clock Petition Server returns wrong size ..
-  else if (fRes == CURLE_PARTIAL_FILE) {
+  } else if (fRes == CURLE_PARTIAL_FILE) {
     INFO(" after curl_easy_perform : fRes(%d)", fRes);
     curl_easy_getinfo(pCurl, CURLINFO_RESPONSE_CODE, (long*)&hSession->resCode);
     INFO(" after curl_easy_perform : hSession->resCode(%ld)",
