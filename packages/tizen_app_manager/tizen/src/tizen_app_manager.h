@@ -9,28 +9,25 @@
 #include <flutter/event_sink.h>
 #include <flutter/event_stream_handler_functions.h>
 
-#include "application_utils.h"
+#include "tizen_app_info.h"
+
+typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
+typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
+typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 
 class TizenAppManagerPlugin : public flutter::Plugin {
  public:
-  using MethodResultPtr =
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>;
+  using MethodResultPtr = std::unique_ptr<FlMethodResult>;
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
-  flutter::EncodableList &Applications();
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> launch_events_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
-      terminate_events_;
 
   TizenAppManagerPlugin();
 
   virtual ~TizenAppManagerPlugin();
 
  private:
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      MethodResultPtr result);
-  void RegisterObserver(
-      std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events);
+  void HandleMethodCall(const FlMethodCall &method_call,
+                        MethodResultPtr result);
+  void RegisterObserver(std::unique_ptr<FlEventSink> &&events);
   void UnregisterObserver();
   void GetCurrentId(MethodResultPtr result);
   void GetApplicationInfo(const flutter::EncodableValue &arguments,
@@ -39,9 +36,13 @@ class TizenAppManagerPlugin : public flutter::Plugin {
   void ApplicationIsRunning(const flutter::EncodableValue &arguments,
                             MethodResultPtr result);
   void SetupChannels(flutter::PluginRegistrar *registrar);
+  bool ExtractValueFromMap(const flutter::EncodableValue &arguments,
+                           const char *key, std::string &out_value);
 
+  std::unique_ptr<FlEventSink> launch_events_;
+  std::unique_ptr<FlEventSink> terminate_events_;
   flutter::EncodableList applications_;
-  bool has_registered_event_;
+  bool has_registered_observer_;
   int registered_cnt_;
 };
 
