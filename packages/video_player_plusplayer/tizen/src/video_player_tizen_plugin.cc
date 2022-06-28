@@ -170,7 +170,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
     const PositionMessage &positionMsg) {
   auto iter = players_.find(positionMsg.texture_id());
   if (iter != players_.end()) {
-    iter->second->SeekTo(positionMsg.position(), nullptr);
+    iter->second->SeekTo(positionMsg.position());
   }
   return {};
 }

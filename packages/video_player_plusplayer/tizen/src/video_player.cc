@@ -152,6 +152,10 @@ void VideoPlayer::SetDisplayRoi(int x, int y, int w, int h) {
 }
 
 bool VideoPlayer::SetBufferingConfig(const std::string &option, int amount) {
+  if (drm_manager_) {
+    LOG_INFO("Do not set buffering config when playing drm");
+    return false;
+  }
   if (plusplayer_ == nullptr) {
     LOG_ERROR("Plusplayer isn't created");
     throw FlutterError("PlusPlayer", "Not created");
@@ -215,12 +219,11 @@ void VideoPlayer::SetPlaybackSpeed(double speed) {
   }
 }
 
-void VideoPlayer::SeekTo(int position,
-                         const SeekCompletedCb &seek_completed_cb) {
-  on_seek_completed_ = seek_completed_cb;
+void VideoPlayer::SeekTo(int position) {
+  // on_seek_completed_ = seek_completed_cb;
   PlusplayerWrapperProxy &instance = PlusplayerWrapperProxy::GetInstance();
   if (!instance.Seek(plusplayer_, position)) {
-    on_seek_completed_ = nullptr;
+    // on_seek_completed_ = nullptr;
     throw FlutterError("PlusPlayer", "Seek operation failed");
   }
 }
@@ -404,11 +407,12 @@ void VideoPlayer::OnBuffering(int percent, void *data) {
 void VideoPlayer::OnSeekCompleted(void *data) {
   VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_DEBUG("[VideoPlayer.onSeekCompleted] completed to seek");
-
-  if (player->on_seek_completed_) {
-    player->on_seek_completed_();
-    player->on_seek_completed_ = nullptr;
-  }
+  /*
+    if (player->on_seek_completed_) {
+      player->on_seek_completed_();
+      player->on_seek_completed_ = nullptr;
+    }
+  */
 }
 
 void VideoPlayer::OnPlayCompleted(void *data) {
