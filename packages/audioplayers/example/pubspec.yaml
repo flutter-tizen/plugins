@@ -3,7 +3,7 @@ description: Demonstrates how to use the audioplayers plugin.
 publish_to: "none"
 
 dependencies:
-  audioplayers: ^0.20.1
+  audioplayers: ^1.0.1
   audioplayers_tizen:
     path: ../
   flutter:
@@ -15,6 +15,7 @@ dependencies:
   provider: ^5.0.0
 
 dev_dependencies:
+  flame_lint: ^0.1.0
   flutter_driver:
     sdk: flutter
   flutter_test:
@@ -27,10 +28,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/audio.mp3
-    - assets/audio2.mp3
-    - assets/messenger.mp3
+    - assets/
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.0"
+  sdk: ">=2.14.0 <3.0.0"
+  flutter: ">=2.5.0"

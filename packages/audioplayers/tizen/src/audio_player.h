@@ -26,8 +26,7 @@ using ErrorListener = std::function<void(const std::string &player_id,
 
 class AudioPlayer {
  public:
-  AudioPlayer(const std::string &player_id, bool low_latency,
-              PreparedListener prepared_listener,
+  AudioPlayer(const std::string &player_id, PreparedListener prepared_listener,
               UpdatePositionListener update_position_listener,
               SeekCompletedListener seek_completed_listener,
               PlayCompletedListener play_completed_listener,
@@ -45,8 +44,9 @@ class AudioPlayer {
   void SetUrl(const std::string &url);
   void SetDataSource(std::vector<uint8_t> &data);
   void SetVolume(double volume);
-  void SetPlaybackRate(double rate);
+  void SetPlaybackRate(double playback_rate);
   void SetReleaseMode(ReleaseMode mode);
+  void SetLatencyMode(bool low_latency);
   int32_t GetDuration();
   int32_t GetCurrentPosition();
   std::string GetPlayerId() const { return player_id_; }
@@ -58,20 +58,20 @@ class AudioPlayer {
   // The player state should be idle before calling this function.
   void PreparePlayer();
   void ResetPlayer();
-  void EmitPositionUpdates();
+  void StartPositionUpdates();
   player_state_e GetPlayerState();
 
   static void OnPrepared(void *data);
   static void OnSeekCompleted(void *data);
+  // Callback invoked when the currently playing audio completes.
+  // This will only be called when ReleaseMode isn't ReleaseMode::kLoop.
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
-  static void StartPositionUpdates(void *data);
   static Eina_Bool OnPositionUpdate(void *data);
 
   player_h player_ = nullptr;
-  std::string player_id_;
-  bool low_latency_;
+  const std::string player_id_;
   std::string url_;
   std::vector<uint8_t> audio_data_;
   double volume_ = 1.0;

@@ -1,3 +1,16 @@
+## 2.0.0
+
+* Add audioplayers_platform_interface dependency and update method calls.
+* Add flame_lint dependency and update analysis_options.
+* Update audioplayers to 1.0.1.
+* Update example app and integration_test.
+* Update minimal sdk version to 2.14.0.
+* Update minimal flutter version to 2.5.0.
+* Update README.
+* (TV device) Fix seek to work on different playrates.
+* (TV device) Fix changing playrates at anytime during audio play.
+* (TV device) Fix not returning complete event when audio play finishes.
+
 ## 1.1.0
 
 * Update README and analysis_options.

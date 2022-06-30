@@ -6,14 +6,13 @@
 
 #include "audio_player_error.h"
 
-AudioPlayer::AudioPlayer(const std::string &player_id, bool low_latency,
+AudioPlayer::AudioPlayer(const std::string &player_id,
                          PreparedListener prepared_listener,
                          UpdatePositionListener update_position_listener,
                          SeekCompletedListener seek_completed_listener,
                          PlayCompletedListener play_completed_listener,
                          ErrorListener error_listener)
     : player_id_(player_id),
-      low_latency_(low_latency),
       prepared_listener_(prepared_listener),
       update_position_listener_(update_position_listener),
       seek_completed_listener_(seek_completed_listener),
@@ -62,7 +61,7 @@ void AudioPlayer::Play() {
         throw AudioPlayerError("player_start failed", get_error_message(ret));
       }
       should_play_ = false;
-      EmitPositionUpdates();
+      StartPositionUpdates();
       break;
     }
     default:
@@ -167,29 +166,25 @@ void AudioPlayer::SetDataSource(std::vector<uint8_t> &data) {
 }
 
 void AudioPlayer::SetVolume(double volume) {
-  if (volume_ != volume) {
-    volume_ = volume;
-    if (GetPlayerState() != PLAYER_STATE_NONE) {
-      int ret = player_set_volume(player_, volume_, volume_);
-      if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_set_volume failed",
-                               get_error_message(ret));
-      }
+  volume_ = volume;
+  if (GetPlayerState() != PLAYER_STATE_NONE) {
+    int ret = player_set_volume(player_, volume_, volume_);
+    if (ret != PLAYER_ERROR_NONE) {
+      throw AudioPlayerError("player_set_volume failed",
+                             get_error_message(ret));
     }
   }
 }
 
-void AudioPlayer::SetPlaybackRate(double rate) {
-  if (playback_rate_ != rate) {
-    playback_rate_ = rate;
-    player_state_e state = GetPlayerState();
-    if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
-        state == PLAYER_STATE_PAUSED) {
-      int ret = player_set_playback_rate(player_, rate);
-      if (ret != PLAYER_ERROR_NONE) {
-        throw AudioPlayerError("player_set_playback_rate failed",
-                               get_error_message(ret));
-      }
+void AudioPlayer::SetPlaybackRate(double playback_rate) {
+  playback_rate_ = playback_rate;
+  player_state_e state = GetPlayerState();
+  if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
+      state == PLAYER_STATE_PAUSED) {
+    int ret = player_set_playback_rate(player_, playback_rate);
+    if (ret != PLAYER_ERROR_NONE) {
+      throw AudioPlayerError("player_set_playback_rate failed",
+                             get_error_message(ret));
     }
   }
 }
@@ -205,6 +200,15 @@ void AudioPlayer::SetReleaseMode(ReleaseMode mode) {
                                get_error_message(ret));
       }
     }
+  }
+}
+
+void AudioPlayer::SetLatencyMode(bool low_latency) {
+  int ret = player_set_audio_latency_mode(
+      player_, low_latency ? AUDIO_LATENCY_MODE_LOW : AUDIO_LATENCY_MODE_MID);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw AudioPlayerError("player_set_audio_latency_mode failed",
+                           get_error_message(ret));
   }
 }
 
@@ -239,14 +243,6 @@ void AudioPlayer::CreatePlayer() {
   int ret = player_create(&player_);
   if (ret != PLAYER_ERROR_NONE) {
     throw AudioPlayerError("player_create failed", get_error_message(ret));
-  }
-
-  if (low_latency_) {
-    ret = player_set_audio_latency_mode(player_, AUDIO_LATENCY_MODE_LOW);
-    if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_set_audio_latency_mode failed",
-                             get_error_message(ret));
-    }
   }
 
   ret = player_set_completed_cb(player_, OnPlayCompleted, this);
@@ -287,10 +283,6 @@ void AudioPlayer::PreparePlayer() {
 
   preparing_ = true;
   seeking_ = false;
-}
-
-void AudioPlayer::EmitPositionUpdates() {
-  ecore_main_loop_thread_safe_call_async(StartPositionUpdates, this);
 }
 
 void AudioPlayer::ResetPlayer() {
@@ -334,79 +326,101 @@ player_state_e AudioPlayer::GetPlayerState() {
 }
 
 void AudioPlayer::OnPrepared(void *data) {
-  auto *player = reinterpret_cast<AudioPlayer *>(data);
-  player->preparing_ = false;
+  // On TV devices, callbacks are not executed on the main loop. Therefore
+  // we explicitly transfer the callback to the main loop to avoid any race
+  // conditions and to allow creating timer objects in StartPositionUpdates.
+  ecore_main_loop_thread_safe_call_async(
+      [](void *data) {
+        auto *player = reinterpret_cast<AudioPlayer *>(data);
+        player->preparing_ = false;
 
-  try {
-    player->prepared_listener_(player->player_id_, player->GetDuration());
-  } catch (const AudioPlayerError &error) {
-    player->error_listener_(player->player_id_, error.code());
-    return;
-  }
-  player_set_playback_rate(player->player_, player->playback_rate_);
+        try {
+          player->prepared_listener_(player->player_id_, player->GetDuration());
+        } catch (const AudioPlayerError &error) {
+          player->error_listener_(player->player_id_, error.code());
+          return;
+        }
+        player_set_playback_rate(player->player_, player->playback_rate_);
 
-  if (player->should_play_) {
-    int ret = player_start(player->player_);
-    if (ret != PLAYER_ERROR_NONE) {
-      player->error_listener_(player->player_id_, "player_start failed.");
-      return;
-    }
-    player->EmitPositionUpdates();
-    player->should_play_ = false;
-  }
+        if (player->should_play_) {
+          int ret = player_start(player->player_);
+          if (ret != PLAYER_ERROR_NONE) {
+            player->error_listener_(player->player_id_, "player_start failed.");
+            return;
+          }
+          player->StartPositionUpdates();
+          player->should_play_ = false;
+        }
 
-  if (player->should_seek_to_ > 0) {
-    player->seeking_ = true;
-    int ret = player_set_play_position(player->player_, player->should_seek_to_,
+        if (player->should_seek_to_ > 0) {
+          player->seeking_ = true;
+          int ret =
+              player_set_play_position(player->player_, player->should_seek_to_,
                                        true, OnSeekCompleted, data);
-    if (ret != PLAYER_ERROR_NONE) {
-      player->seeking_ = false;
-      player->error_listener_(player->player_id_,
-                              "player_set_play_position failed.");
-      return;
-    }
-    player->should_seek_to_ = -1;
-  }
+          if (ret != PLAYER_ERROR_NONE) {
+            player->seeking_ = false;
+            player->error_listener_(player->player_id_,
+                                    "player_set_play_position failed.");
+            return;
+          }
+          player->should_seek_to_ = -1;
+        }
+      },
+      data);
 }
 
 void AudioPlayer::OnSeekCompleted(void *data) {
-  auto *player = reinterpret_cast<AudioPlayer *>(data);
-  player->seek_completed_listener_(player->player_id_);
-  player->seeking_ = false;
+  // On TV devices, callbacks are not executed on the main loop. Therefore
+  // we explicitly transfer the callback to the main loop to avoid any race
+  // conditions.
+  ecore_main_loop_thread_safe_call_async(
+      [](void *data) {
+        auto *player = reinterpret_cast<AudioPlayer *>(data);
+        player->seek_completed_listener_(player->player_id_);
+        player->seeking_ = false;
+      },
+      data);
 }
 
 void AudioPlayer::OnPlayCompleted(void *data) {
-  auto *player = reinterpret_cast<AudioPlayer *>(data);
-  try {
-    if (player->release_mode_ != ReleaseMode::kLoop) {
-      player->Stop();
-    }
-    player->play_completed_listener_(player->player_id_);
-  } catch (const AudioPlayerError &error) {
-    player->error_listener_(player->player_id_, error.code());
-  }
+  // On TV devices, callbacks are not executed on the main loop. Therefore
+  // we explicitly transfer the callback to the main loop to avoid any race
+  // conditions.
+  ecore_main_loop_thread_safe_call_async(
+      [](void *data) {
+        auto *player = reinterpret_cast<AudioPlayer *>(data);
+        try {
+          player->Stop();
+          player->play_completed_listener_(player->player_id_);
+        } catch (const AudioPlayerError &error) {
+          player->error_listener_(player->player_id_, error.code());
+        }
+      },
+      data);
 }
 
 void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
-  auto *player = reinterpret_cast<AudioPlayer *>(data);
+  // On TV devices, callbacks are not executed on the main loop.
+  // However, race condition will not occur as player_id_ is read-only.
+  const auto *player = reinterpret_cast<AudioPlayer *>(data);
   player->error_listener_(player->player_id_, "Player interrupted.");
 }
 
 void AudioPlayer::OnError(int code, void *data) {
-  auto *player = reinterpret_cast<AudioPlayer *>(data);
+  // On TV devices, callbacks are not executed on the main loop.
+  // However, race condition will not occur as player_id_ is read-only.
+  const auto *player = reinterpret_cast<AudioPlayer *>(data);
   player->error_listener_(player->player_id_, get_error_message(code));
 }
 
-void AudioPlayer::StartPositionUpdates(void *data) {
-  auto *player = reinterpret_cast<AudioPlayer *>(data);
-  if (!player->timer_) {
+void AudioPlayer::StartPositionUpdates() {
+  if (!timer_) {
     // The audioplayers app facing package expects position
     // update events to fire roughly every 200 milliseconds.
     const double kTimeInterval = 0.2;
-    player->timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, data);
-    if (!player->timer_) {
-      player->error_listener_(player->player_id_,
-                              "Failed to add a position update timer.");
+    timer_ = ecore_timer_add(kTimeInterval, OnPositionUpdate, this);
+    if (!timer_) {
+      error_listener_(player_id_, "Failed to add a position update timer.");
     }
   }
 }
