@@ -43,8 +43,8 @@ class VideoPlayer {
   void SetDisplayRoi(int x, int y, int w, int h);
   void SetLooping(bool is_looping);
   void SetPlaybackSpeed(double speed);
-  void SeekTo(int position);  // milliseconds
-  void SetVolume(double volume);                          // milliseconds
+  void SeekTo(int position);      // milliseconds
+  void SetVolume(double volume);  // milliseconds
 
  private:
   void Initialize();
@@ -78,7 +78,6 @@ class VideoPlayer {
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
   PlusplayerRef plusplayer_{nullptr};
-  //SeekCompletedCb on_seek_completed_;
   PlusplayerListener listener_;
   FlutterDesktopPluginRegistrarRef registrar_ref_{nullptr};
   std::unique_ptr<DrmManager> drm_manager_;
