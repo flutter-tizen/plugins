@@ -40,6 +40,7 @@ void TextToSpeech::Prepare() {
     default_voice_type_ = voice_type;
     free(language);
   }
+
   ret = sound_manager_get_max_volume(SOUND_TYPE_VOICE, &system_max_volume_);
   if (ret != SOUND_MANAGER_ERROR_NONE) {
     LOG_ERROR("sound_manager_get_max_volume failed: %s",
@@ -170,8 +171,8 @@ bool TextToSpeech::Pause() {
   return true;
 }
 
-bool TextToSpeech::SetVolume(double volume_rate) {
-  tts_volume_ = static_cast<int32_t>(system_max_volume_ * volume_rate);
+bool TextToSpeech::SetVolume(double volume) {
+  tts_volume_ = static_cast<int32_t>(system_max_volume_ * volume);
   // Change volume instantly when tts is playing.
   if (GetState() == TtsState::kPlaying) {
     if (!SetSpeechVolumeInternal(tts_volume_)) {

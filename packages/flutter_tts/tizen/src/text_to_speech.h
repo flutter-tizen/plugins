@@ -69,7 +69,7 @@ class TextToSpeech {
 
   bool Pause();
 
-  bool SetVolume(double volume_rate);
+  bool SetVolume(double volume);
 
   bool GetSpeedRange(int32_t *min, int32_t *normal, int32_t *max);
 

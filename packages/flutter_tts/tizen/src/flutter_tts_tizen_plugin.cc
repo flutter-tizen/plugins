@@ -222,8 +222,8 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
   void OnSetVolume(const flutter::EncodableValue &arguments) {
     if (std::holds_alternative<double>(arguments)) {
-      double rate = std::get<double>(arguments);
-      if (tts_->SetVolume(rate)) {
+      double volume = std::get<double>(arguments);
+      if (tts_->SetVolume(volume)) {
         SendResult(flutter::EncodableValue(1));
         return;
       }
