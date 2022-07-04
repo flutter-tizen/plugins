@@ -183,11 +183,15 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   void OnGetSpeechRateValidRange() {
     int32_t min = 0, normal = 0, max = 0;
     tts_->GetSpeedRange(&min, &normal, &max);
+    // FIXME: The value of "platform" is temporarily set to "android" instead of
+    // "tizen". Because it is not declared in TextToSpeechPlatform of
+    // TextToSpeech example.
     flutter::EncodableMap map = {
         {flutter::EncodableValue("min"), flutter::EncodableValue(min)},
         {flutter::EncodableValue("normal"), flutter::EncodableValue(normal)},
         {flutter::EncodableValue("max"), flutter::EncodableValue(max)},
-        {flutter::EncodableValue("platform"), flutter::EncodableValue("tizen")},
+        {flutter::EncodableValue("platform"),
+         flutter::EncodableValue("android")},
     };
     SendResult(flutter::EncodableValue(map));
   }
