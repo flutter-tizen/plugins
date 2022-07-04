@@ -1,3 +1,9 @@
+## 0.3.2
+
+* Update the example app and integration_test.
+* Migrate to new analysis options.
+* Remove obsolete dependency on pedantic.
+
 ## 0.3.1
 
 * Apply texture api change.
