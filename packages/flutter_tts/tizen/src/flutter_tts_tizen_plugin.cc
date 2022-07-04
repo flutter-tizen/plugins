@@ -45,7 +45,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       tts_ = nullptr;
       return;
     }
-    tts_->SetOnStateChanagedCallback(
+    tts_->SetStateChanagedCallback(
         [this](tts_state_e previous, tts_state_e current) -> void {
           std::unique_ptr<flutter::EncodableValue> value =
               std::make_unique<flutter::EncodableValue>(true);
@@ -68,15 +68,14 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
           }
         });
 
-    tts_->SetOnUtteranceCompletedCallback([this](int utt_id) -> void {
-      LOG_INFO("[TTS] Utterance (%d) is completed", utt_id);
+    tts_->SetUtteranceCompletedCallback([this](int32_t utt_id) -> void {
       std::unique_ptr<flutter::EncodableValue> args =
           std::make_unique<flutter::EncodableValue>(true);
       channel_->InvokeMethod("speak.onComplete", std::move(args));
       HandleAwaitSpeakCompletion(1);
     });
 
-    tts_->SetErrorCallback([](int utt_id, tts_error_e reason) -> void {
+    tts_->SetErrorCallback([](int32_t utt_id, tts_error_e reason) -> void {
       // It seems unnecessary for now.
     });
   }
@@ -140,7 +139,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     std::optional<TtsState> state = tts_->GetState();
     if (!state.has_value() || state == TtsState::kPlaying) {
       if (state.has_value() && state == TtsState::kPlaying) {
-        LOG_ERROR("[TTS] : You cannot speak again while speaking.");
+        LOG_ERROR("You cannot speak again while speaking.");
       }
       SendResult(flutter::EncodableValue(0));
       return;
@@ -156,7 +155,6 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
     if (tts_->Speak()) {
       if (await_speak_completion_ && !result_for_await_speak_completion_) {
-        LOG_DEBUG("Store result ptr for await speak completion");
         result_for_await_speak_completion_ = std::move(result_);
       } else {
         SendResult(flutter::EncodableValue(1));
@@ -183,23 +181,20 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   void OnGetSpeechRateValidRange() {
-    int min = 0, normal = 0, max = 0;
+    int32_t min = 0, normal = 0, max = 0;
     tts_->GetSpeedRange(&min, &normal, &max);
-    flutter::EncodableMap map;
-    map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "min", min));
-    map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "normal", normal));
-    map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "max", max));
-    map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-        "platform", "tizen"));
-    SendResult(flutter::EncodableValue(std::move(map)));
+    flutter::EncodableMap map = {
+        {flutter::EncodableValue("min"), flutter::EncodableValue(min)},
+        {flutter::EncodableValue("normal"), flutter::EncodableValue(normal)},
+        {flutter::EncodableValue("max"), flutter::EncodableValue(max)},
+        {flutter::EncodableValue("platform"), flutter::EncodableValue("tizen")},
+    };
+    SendResult(flutter::EncodableValue(map));
   }
 
   void OnSetSpeechRate(const flutter::EncodableValue &arguments) {
     if (std::holds_alternative<double>(arguments)) {
-      int speed = (int)std::get<double>(arguments);
+      int32_t speed = std::get<double>(arguments);
       tts_->SetTtsSpeed(speed);
       SendResult(flutter::EncodableValue(1));
       return;
@@ -244,9 +239,8 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     result_ = nullptr;
   }
 
-  void HandleAwaitSpeakCompletion(int value) {
+  void HandleAwaitSpeakCompletion(int32_t value) {
     if (await_speak_completion_) {
-      LOG_DEBUG("Send result for await speak completion[%d]", value);
       result_for_await_speak_completion_->Success(
           flutter::EncodableValue(value));
       result_for_await_speak_completion_ = nullptr;

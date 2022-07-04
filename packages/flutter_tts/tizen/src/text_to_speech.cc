@@ -8,58 +8,32 @@
 
 #include "log.h"
 
-namespace {
+TextToSpeech::~TextToSpeech() {
+  UnregisterCallbacks();
 
-void OnStateChanged(tts_h tts, tts_state_e previous, tts_state_e current,
-                    void *user_data) {
-  TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
-  self->OnStateChanged(previous, current);
-}
-
-void OnUtteranceCompleted(tts_h tts, int utt_id, void *user_data) {
-  TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
-  self->OnUtteranceCompleted(utt_id);
-  // Explicitly call stop method to change the tts state to ready.
-  self->Stop();
-}
-
-void OnError(tts_h tts, int utt_id, tts_error_e reason, void *user_data) {
-  TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
-  self->OnError(utt_id, reason);
-}
-
-}  // namespace
-
-bool TextToSpeech::Initialize() {
-  if (!TtsCreate()) {
-    return false;
-  }
-  RegisterTtsCallback();
-  Prepare();
-
-  return true;
-}
-
-bool TextToSpeech::TtsCreate() {
-  int ret = tts_create(&tts_);
-  if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_create failed: %s", get_error_message(ret));
-    tts_ = nullptr;
-    return false;
-  }
-  return true;
-}
-
-void TextToSpeech::TtsDestroy() {
   if (tts_) {
     tts_destroy(tts_);
     tts_ = nullptr;
   }
 }
 
+bool TextToSpeech::Initialize() {
+  int ret = tts_create(&tts_);
+  if (ret != TTS_ERROR_NONE) {
+    LOG_ERROR("tts_create failed: %s", get_error_message(ret));
+    tts_ = nullptr;
+    return false;
+  }
+
+  RegisterCallbacks();
+  Prepare();
+
+  return true;
+}
+
 void TextToSpeech::Prepare() {
   char *language = nullptr;
-  int voice_type = 0;
+  int32_t voice_type = 0;
   int ret = tts_get_default_voice(tts_, &language, &voice_type);
   if (ret == TTS_ERROR_NONE) {
     default_language_ = language;
@@ -68,7 +42,7 @@ void TextToSpeech::Prepare() {
   }
   ret = sound_manager_get_max_volume(SOUND_TYPE_VOICE, &system_max_volume_);
   if (ret != SOUND_MANAGER_ERROR_NONE) {
-    LOG_ERROR("[SOUNDMANAGER] sound_manager_get_max_volume failed: %s",
+    LOG_ERROR("sound_manager_get_max_volume failed: %s",
               get_error_message(ret));
   }
   system_volume_ = GetSpeechVolumeInternal();
@@ -76,43 +50,60 @@ void TextToSpeech::Prepare() {
 
   ret = tts_prepare(tts_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_prepare failed: %s", get_error_message(ret));
+    LOG_ERROR("tts_prepare failed: %s", get_error_message(ret));
   }
 }
 
-void TextToSpeech::RegisterTtsCallback() {
-  tts_set_state_changed_cb(tts_, ::OnStateChanged, (void *)this);
-  tts_set_utterance_completed_cb(tts_, ::OnUtteranceCompleted, (void *)this);
-  tts_set_error_cb(tts_, ::OnError, (void *)this);
+void TextToSpeech::RegisterCallbacks() {
+  tts_set_state_changed_cb(
+      tts_,
+      [](tts_h tts, tts_state_e previous, tts_state_e current,
+         void *user_data) {
+        TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
+        self->OnStateChanged(previous, current);
+      },
+      this);
+
+  tts_set_utterance_completed_cb(
+      tts_,
+      [](tts_h tts, int32_t utt_id, void *user_data) {
+        TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
+        self->OnUtteranceCompleted(utt_id);
+        // Explicitly call stop method to change the tts state to ready.
+        self->Stop();
+      },
+      this);
+  tts_set_error_cb(
+      tts_,
+      [](tts_h tts, int32_t utt_id, tts_error_e reason, void *user_data) {
+        TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
+        self->OnError(utt_id, reason);
+      },
+      this);
 }
 
-void TextToSpeech::UnregisterTtsCallback() {
+void TextToSpeech::UnregisterCallbacks() {
   tts_unset_state_changed_cb(tts_);
   tts_unset_utterance_completed_cb(tts_);
   tts_unset_error_cb(tts_);
-}
-
-void TextToSpeech::OnStateChanged(tts_state_e previous, tts_state_e current) {
-  SwitchVolumeOnStateChange(previous, current);
-  on_state_changed_(previous, current);
 }
 
 std::vector<std::string> &TextToSpeech::GetSupportedLanaguages() {
   if (supported_lanaguages_.size() == 0) {
     tts_foreach_supported_voices(
         tts_,
-        [](tts_h tts, const char *language, int voice_type,
+        [](tts_h tts, const char *language, int32_t voice_type,
            void *user_data) -> bool {
           if (language == nullptr) {
             return false;
           }
           TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
           self->supported_lanaguages_.push_back(std::string(language));
-          LOG_INFO("[TTS] Supported Voices - Language(%s), Type(%d)", language,
+          LOG_INFO("Supported Voices - Language(%s), Type(%d)", language,
                    voice_type);
           return true;
         },
-        (void *)this);
+        this);
 
     supported_lanaguages_.erase(
         unique(supported_lanaguages_.begin(), supported_lanaguages_.end()),
@@ -125,7 +116,7 @@ std::optional<TtsState> TextToSpeech::GetState() {
   tts_state_e state;
   int ret = tts_get_state(tts_, &state);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_get_state failed: %s", get_error_message(ret));
+    LOG_ERROR("tts_get_state failed: %s", get_error_message(ret));
     return std::nullopt;
   }
   switch (state) {
@@ -146,7 +137,7 @@ bool TextToSpeech::AddText(std::string text) {
   int ret = tts_add_text(tts_, text.c_str(), default_language_.c_str(),
                          default_voice_type_, tts_speed_, &utt_id_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_add_text failed: %s", get_error_message(ret));
+    LOG_ERROR("tts_add_text failed: %s", get_error_message(ret));
     return false;
   }
   return true;
@@ -155,7 +146,7 @@ bool TextToSpeech::AddText(std::string text) {
 bool TextToSpeech::Speak() {
   int ret = tts_play(tts_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_play failed: %s", get_error_message(ret));
+    LOG_ERROR("tts_play failed: %s", get_error_message(ret));
     return false;
   }
   return true;
@@ -164,7 +155,7 @@ bool TextToSpeech::Speak() {
 bool TextToSpeech::Stop() {
   int ret = tts_stop(tts_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_stop failed: %s", get_error_message(ret));
+    LOG_ERROR("tts_stop failed: %s", get_error_message(ret));
     return false;
   }
   return true;
@@ -173,14 +164,14 @@ bool TextToSpeech::Stop() {
 bool TextToSpeech::Pause() {
   int ret = tts_pause(tts_);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_pause failed: %s", get_error_message(ret));
+    LOG_ERROR("tts_pause failed: %s", get_error_message(ret));
     return false;
   }
   return true;
 }
 
 bool TextToSpeech::SetVolume(double volume_rate) {
-  tts_volume_ = static_cast<int>(system_max_volume_ * volume_rate);
+  tts_volume_ = static_cast<int32_t>(system_max_volume_ * volume_rate);
   // Change volume instantly when tts is playing.
   if (GetState() == TtsState::kPlaying) {
     if (!SetSpeechVolumeInternal(tts_volume_)) {
@@ -190,10 +181,10 @@ bool TextToSpeech::SetVolume(double volume_rate) {
   return true;
 }
 
-bool TextToSpeech::GetSpeedRange(int *min, int *normal, int *max) {
+bool TextToSpeech::GetSpeedRange(int32_t *min, int32_t *normal, int32_t *max) {
   int ret = tts_get_speed_range(tts_, min, normal, max);
   if (ret != TTS_ERROR_NONE) {
-    LOG_ERROR("[TTS] tts_get_speed_range failed: %s", get_error_message(ret));
+    LOG_ERROR("tts_get_speed_range failed: %s", get_error_message(ret));
     return false;
   }
   return true;
@@ -214,22 +205,20 @@ void TextToSpeech::SwitchVolumeOnStateChange(tts_state_e previous,
   }
 }
 
-int TextToSpeech::GetSpeechVolumeInternal() {
-  int volume;
+int32_t TextToSpeech::GetSpeechVolumeInternal() {
+  int32_t volume;
   int ret = sound_manager_get_volume(SOUND_TYPE_VOICE, &volume);
   if (ret != SOUND_MANAGER_ERROR_NONE) {
-    LOG_ERROR("[SOUNDMANAGER] sound_manager_get_volume failed: %s",
-              get_error_message(ret));
+    LOG_ERROR("sound_manager_get_volume failed: %s", get_error_message(ret));
     volume = 0;
   }
   return volume;
 }
 
-bool TextToSpeech::SetSpeechVolumeInternal(int volume) {
+bool TextToSpeech::SetSpeechVolumeInternal(int32_t volume) {
   int ret = sound_manager_set_volume(SOUND_TYPE_VOICE, volume);
   if (ret != SOUND_MANAGER_ERROR_NONE) {
-    LOG_ERROR("[SOUNDMANAGER] sound_manager_set_volume failed: %s",
-              get_error_message(ret));
+    LOG_ERROR("sound_manager_set_volume failed: %s", get_error_message(ret));
     return false;
   }
   return true;

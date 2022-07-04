@@ -14,40 +14,42 @@
 
 enum class TtsState { kCreated, kReady, kPlaying, kPaused };
 
-using OnStateChangedCallback =
+using StateChangedCallback =
     std::function<void(tts_state_e previous, tts_state_e current)>;
-using OnUtteranceCompletedCallback = std::function<void(int utt_id)>;
-using OnErrorCallback = std::function<void(int utt_id, tts_error_e reason)>;
+using UtteranceCompletedCallback = std::function<void(int32_t utt_id)>;
+using ErrorCallback = std::function<void(int32_t utt_id, tts_error_e reason)>;
 
 class TextToSpeech {
  public:
   TextToSpeech() = default;
 
-  ~TextToSpeech() {
-    UnregisterTtsCallback();
-    TtsDestroy();
-  }
+  ~TextToSpeech();
 
   bool Initialize();
 
-  void SetOnStateChanagedCallback(OnStateChangedCallback callback) {
-    on_state_changed_ = callback;
+  void SetStateChanagedCallback(StateChangedCallback callback) {
+    state_changed_callback_ = callback;
   }
 
-  void SetOnUtteranceCompletedCallback(OnUtteranceCompletedCallback callback) {
-    on_utterance_completed_ = callback;
+  void SetUtteranceCompletedCallback(UtteranceCompletedCallback callback) {
+    utterance_completed_callback_ = callback;
   }
 
-  void SetErrorCallback(OnErrorCallback callback) { on_error_ = callback; }
+  void SetErrorCallback(ErrorCallback callback) { error_callback_ = callback; }
 
-  void OnStateChanged(tts_state_e previous, tts_state_e current);
+  void OnStateChanged(tts_state_e previous, tts_state_e current) {
+    SwitchVolumeOnStateChange(previous, current);
+    state_changed_callback_(previous, current);
+  }
 
-  void OnUtteranceCompleted(int utt_id) {
-    on_utterance_completed_(utt_id);
+  void OnUtteranceCompleted(int32_t utt_id) {
+    utterance_completed_callback_(utt_id);
     ClearUttId();
   }
 
-  void OnError(int utt_id, tts_error_e reason) { on_error_(utt_id, reason); }
+  void OnError(int32_t utt_id, tts_error_e reason) {
+    error_callback_(utt_id, reason);
+  }
 
   std::string GetDefaultLanguage() { return default_language_; }
 
@@ -69,38 +71,36 @@ class TextToSpeech {
 
   bool SetVolume(double volume_rate);
 
-  bool GetSpeedRange(int *min, int *normal, int *max);
+  bool GetSpeedRange(int32_t *min, int32_t *normal, int32_t *max);
 
-  void SetTtsSpeed(int speed) { tts_speed_ = speed; }
+  void SetTtsSpeed(int32_t speed) { tts_speed_ = speed; }
 
-  int GetUttId() { return utt_id_; }
+  int32_t GetUttId() { return utt_id_; }
 
  private:
-  bool TtsCreate();
-  void TtsDestroy();
   void Prepare();
-  void RegisterTtsCallback();
-  void UnregisterTtsCallback();
+  void RegisterCallbacks();
+  void UnregisterCallbacks();
   void HandleAwaitSpeakCompletion(tts_state_e previous, tts_state_e current);
   void ClearUttId() { utt_id_ = 0; }
 
   void SwitchVolumeOnStateChange(tts_state_e previous, tts_state_e current);
-  bool SetSpeechVolumeInternal(int volume);
-  int GetSpeechVolumeInternal();
+  bool SetSpeechVolumeInternal(int32_t volume);
+  int32_t GetSpeechVolumeInternal();
 
   tts_h tts_ = nullptr;
   std::string default_language_;
-  int default_voice_type_ = TTS_VOICE_TYPE_AUTO;
-  int tts_speed_ = TTS_SPEED_AUTO;
-  int utt_id_ = 0;
-  int tts_volume_ = 0;
-  int system_volume_ = 0;
-  int system_max_volume_ = 0;
+  int32_t default_voice_type_ = TTS_VOICE_TYPE_AUTO;
+  int32_t tts_speed_ = TTS_SPEED_AUTO;
+  int32_t utt_id_ = 0;
+  int32_t tts_volume_ = 0;
+  int32_t system_volume_ = 0;
+  int32_t system_max_volume_ = 0;
   std::vector<std::string> supported_lanaguages_;
 
-  OnStateChangedCallback on_state_changed_;
-  OnUtteranceCompletedCallback on_utterance_completed_;
-  OnErrorCallback on_error_;
+  StateChangedCallback state_changed_callback_;
+  UtteranceCompletedCallback utterance_completed_callback_;
+  ErrorCallback error_callback_;
 };
 
 #endif  // FLUTTER_PLUGIN_TEXT_TO_SPEACH_H_
