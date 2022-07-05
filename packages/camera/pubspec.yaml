@@ -2,15 +2,12 @@ name: camera_tizen
 description: Tizen implementation of the camera plugin
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/camera
-version: 0.3.1
+version: 0.3.2
 
 dependencies:
   camera_platform_interface: ^2.1.1
   flutter:
     sdk: flutter
-
-dev_dependencies:
-  pedantic: ^1.10.0
 
 flutter:
   plugin:
