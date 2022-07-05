@@ -270,6 +270,20 @@ typedef void (*OnPlayerDrmInitData)(int* drmhandle, unsigned int len,
                                     unsigned char* psshdata,
                                     plusplayer::TrackType type,
                                     void* user_data);
+typedef void (*OnPlayerClosedCaptionData)(std::unique_ptr<char[]> data,
+                                          const int size, void* user_data);
+typedef void (*OnPlayerCueEvent_65)(const char* CueData, void* userdata);
+typedef void (*OnPlayerCueEvent_60)(const char* msgType,
+                                    const uint64_t timestamp,
+                                    unsigned int duration, void* userdata);
+typedef void (*OnPlayerDateRangeEvent)(const char* DateRangeData,
+                                       void* user_data);
+typedef void (*OnPlayerStopReachEvent)(bool StopReach, void* user_data);
+typedef void (*OnPlayerCueOutContEvent)(const char* CueOutContData,
+                                        void* user_data);
+typedef void (*OnPlayerChangeSourceDone)(bool ret, void* user_data);
+typedef void (*OnPlayerStateChangedToPlaying)(void* user_data);
+typedef void (*OnPlayerDrmType)(plusplayer::drm::Type drmtype, void* user_data);
 
 struct PlusplayerListener {
   OnPlayerPrepared prepared_callback{nullptr};
@@ -282,6 +296,15 @@ struct PlusplayerListener {
   OnPlayerErrorMessage error_message_callback{nullptr};
   OnPlayerAdaptiveStreamingControl adaptive_streaming_control_callback{nullptr};
   OnPlayerDrmInitData drm_init_data_callback{nullptr};
+  OnPlayerClosedCaptionData closed_caption_data_callback{nullptr};
+  OnPlayerCueEvent_65 cue_event_callback_65{nullptr};
+  OnPlayerCueEvent_60 cue_event_callback_60{nullptr};
+  OnPlayerDateRangeEvent data_range_event_callback{nullptr};
+  OnPlayerStopReachEvent stop_reach_event_callback{nullptr};
+  OnPlayerCueOutContEvent cue_out_cont_event_callback{nullptr};
+  OnPlayerChangeSourceDone change_source_done_callback{nullptr};
+  OnPlayerStateChangedToPlaying state_changed_to_playing_callback{nullptr};
+  OnPlayerDrmType drm_type_callback{nullptr};
 };
 
 class PlusplayerWrapperProxy {

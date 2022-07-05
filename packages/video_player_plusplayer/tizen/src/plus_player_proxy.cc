@@ -5,6 +5,7 @@
 #include "plus_player_proxy.h"
 
 #include <dlfcn.h>
+#include <system_info.h>
 
 #include "log.h"
 
@@ -70,12 +71,32 @@ typedef std::vector<plusplayer::Track> (*PlusplayerGetActiveTrackInfo)(
 typedef std::vector<plusplayer::Track> (*PlusplayerGetTrackInfo)(
     PlusplayerRef player);
 
+std::string GetPlatformVersion() {
+  char* version = nullptr;
+  std::string value;
+  const char* key = "http://tizen.org/feature/platform.version";
+  int ret = system_info_get_platform_string(key, &version);
+  if (ret == SYSTEM_INFO_ERROR_NONE) {
+    value = std::string(version);
+    free(version);
+  }
+  return value;
+}
+
 PlusplayerWrapperProxy::PlusplayerWrapperProxy() {
-  plus_player_hander_ = dlopen("libplus_player_wrapper.so", RTLD_LAZY);
+  std::string version = GetPlatformVersion();
+  if (version == "6.0") {
+    plus_player_hander_ =
+        dlopen("libplus_player_wrapper_six_zero.so", RTLD_LAZY);
+  } else {
+    plus_player_hander_ =
+        dlopen("libplus_player_wrapper_six_five.so", RTLD_LAZY);
+  }
   if (!plus_player_hander_) {
     LOG_ERROR("dlopen failed %s: ", dlerror());
   }
 }
+
 PlusplayerWrapperProxy::~PlusplayerWrapperProxy() {
   if (plus_player_hander_) {
     dlclose(plus_player_hander_);
