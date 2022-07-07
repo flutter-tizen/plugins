@@ -5,38 +5,32 @@
 #ifndef FLUTTER_PLUGIN_TIZEN_APP_INFO_H_
 #define FLUTTER_PLUGIN_TIZEN_APP_INFO_H_
 
-#include <app_common.h>
 #include <app_manager.h>
-#include <flutter/encodable_value.h>
-#include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
-#include <flutter/standard_method_codec.h>
 
 #include <map>
 #include <string>
 
-#include "log.h"
-
 class TizenAppInfo {
  public:
-  void GetAppInfo(flutter::EncodableMap &value);
-  int GetLastError();
+  int GetLastError() { return last_error_; }
+
+  std::string GetLastErrorString() { return get_error_message(last_error_); }
 
   TizenAppInfo(app_info_h app_info) : app_info_(app_info) {}
 
   ~TizenAppInfo();
 
- private:
-  bool GetAppId(flutter::EncodableMap &value);
-  bool GetPackageId(flutter::EncodableMap &value);
-  bool GetLabel(flutter::EncodableMap &value);
-  bool GetType(flutter::EncodableMap &value);
-  void GetIconPath(flutter::EncodableMap &value);
-  bool GetExecutablePath(flutter::EncodableMap &value);
-  bool GetSharedResourcePath(flutter::EncodableMap &value);
-  bool GetIsNoDisplay(flutter::EncodableMap &value);
-  bool GetForEachMetadata(flutter::EncodableMap &value);
+  std::string GetAppId();
+  std::string GetPackageId();
+  std::string GetLabel();
+  std::string GetType();
+  std::string GetIconPath();
+  std::string GetExecutablePath();
+  std::string GetSharedResourcePath();
+  bool GetIsNoDisplay();
+  void GetForEachMetadata(app_info_metadata_cb callback, void *user_data);
 
+ private:
   app_info_h app_info_ = nullptr;
   char *app_id_ = nullptr;
   int last_error_ = APP_MANAGER_ERROR_NONE;

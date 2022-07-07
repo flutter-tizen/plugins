@@ -1,7 +1,3 @@
-## 0.1.3
-
-* Refactoring the C++ code.
-
 ## 0.1.2
 
 * Implement a Dart finalizer for `AppRunningContext`.
