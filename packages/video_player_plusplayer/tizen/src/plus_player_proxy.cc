@@ -4,6 +4,7 @@
 
 #include "plus_player_proxy.h"
 
+#include <app_common.h>
 #include <dlfcn.h>
 #include <system_info.h>
 
@@ -85,12 +86,17 @@ std::string GetPlatformVersion() {
 
 PlusplayerWrapperProxy::PlusplayerWrapperProxy() {
   std::string version = GetPlatformVersion();
-  if (version == "6.0") {
-    plus_player_hander_ =
-        dlopen("libplus_player_wrapper_six_zero.so", RTLD_LAZY);
-  } else {
-    plus_player_hander_ =
-        dlopen("libplus_player_wrapper_six_five.so", RTLD_LAZY);
+  char* app_res_path = app_get_resource_path();
+  if (app_res_path != nullptr) {
+    std::string lib_path = app_res_path;
+    if (version == "6.0") {
+      lib_path += "/video_player_plusplayer/libplus_player_wrapper_60.so";
+    } else {
+      lib_path += "/video_player_plusplayer/libplus_player_wrapper_65.so";
+    }
+    LOG_ERROR("lib_path %s: ", lib_path.c_str());
+    plus_player_hander_ = dlopen(lib_path.c_str(), RTLD_LAZY);
+    free(app_res_path);
   }
   if (!plus_player_hander_) {
     LOG_ERROR("dlopen failed %s: ", dlerror());
