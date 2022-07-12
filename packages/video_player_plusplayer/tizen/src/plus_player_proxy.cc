@@ -94,7 +94,6 @@ PlusplayerWrapperProxy::PlusplayerWrapperProxy() {
     } else {
       lib_path += "/video_player_plusplayer/libplus_player_wrapper_65.so";
     }
-    LOG_ERROR("lib_path %s: ", lib_path.c_str());
     plus_player_hander_ = dlopen(lib_path.c_str(), RTLD_LAZY);
     free(app_res_path);
   }

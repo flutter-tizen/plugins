@@ -311,7 +311,7 @@ void VideoPlayer::SendInitialized() {
     }
     LOG_INFO("[VideoPlayer.sendInitialized] video duration: %lld", duration);
 
-    int width, height = 0;
+    int width = 0, height = 0;
     std::vector<plusplayer::Track> tracks =
         instance.GetActiveTrackInfo(plusplayer_);
     for (auto track : tracks) {
