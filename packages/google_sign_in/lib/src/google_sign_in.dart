@@ -23,20 +23,20 @@ class GoogleUser {
     this.userId,
     this.profile,
     required this.authentication,
-    List<String>? scopes,
-  }) : grantedScopes = scopes ?? <String>[];
+    List<String>? scope,
+  }) : grantedScope = scope ?? <String>[];
 
   /// The Google user ID.
   final String? userId;
 
-  ///
+  /// The basic profile data for the user.
   final ProfileData? profile;
 
   /// The authentication info for the user.
   final Authentication authentication;
 
-  ///
-  final List<String> grantedScopes;
+  /// The API scopes granted to the app.
+  final List<String> grantedScope;
 }
 
 /// The class that represents OAuth 2.0 entities needed for sign-in.
@@ -91,6 +91,27 @@ class ProfileData {
 
   /// The Google user's family name.
   final String? familyName;
+
+  /// Creates a [ProfileData] from json object.
+  static ProfileData fromJson(Map<String, dynamic> json) {
+    _checkFormat<String>(
+      <String>['email', 'name', 'given_name', 'family_name'],
+      json,
+    );
+
+    final String? givenName =
+        json['given_name'] != null ? json['given_name'] as String : null;
+
+    final String? familyName =
+        json['family_name'] != null ? json['family_name'] as String : null;
+
+    return ProfileData(
+      email: json['email'] as String,
+      name: json['name'] as String,
+      givenName: givenName,
+      familyName: familyName,
+    );
+  }
 }
 
 /// The class that represents successful device authorization response.
@@ -212,7 +233,7 @@ class _TokenResponse {
   final String idToken;
 }
 
-/// A class that handles OAuth 2.0 Device Authorization Grant flow for Google SignIn.
+/// The class that handles OAuth 2.0 Device Authorization Grant flow for Google SignIn.
 ///
 /// See:
 ///  - [Google SignIn guide for limited input devices](https://developers.google.com/identity/gsi/web/guides/devices)
@@ -224,7 +245,7 @@ class GoogleSignIn {
 
   List<String> _scopes = <String>[];
 
-  String? _clientId;
+  late String _clientId;
 
   /// The currently signed in user.
   GoogleUser? _user;
@@ -237,6 +258,9 @@ class GoogleSignIn {
   /// `null` if no user is signed in.
   Authentication? get authentication => _user?.authentication;
 
+  /// Initializes the instance with [clientId] and [scopes].
+  ///
+  /// This method should be called at least once before calling [signIn].
   Future<void> init(String clientId, List<String> scopes) async {
     _clientId = clientId;
     _scopes = scopes;
@@ -244,8 +268,13 @@ class GoogleSignIn {
 
   /// Starts the interactive sign-in flow.
   ///
-  /// Returns the currently signed in user if already signed in.
+  /// Returns the currently signed in user if already signed in, `null` if
+  /// sign-in was cancelled.
   Future<GoogleUser?> signIn() async {
+    if (_clientId == null) {
+      throw Exception('GoogleSignIn instance is not initialized.');
+    }
+
     if (_user != null) {
       return _user;
     }
@@ -268,6 +297,8 @@ class GoogleSignIn {
         // The authorization request is still pending as the end user hasn't
         // yet completed the user-interaction steps.
         if (e.error != 'authorization_pending') {
+          timer.cancel();
+          completer.complete();
           rethrow;
         }
       }
@@ -283,33 +314,29 @@ class GoogleSignIn {
       },
     );
 
+    // Waits until user inputs 'user code' or cancels sign-in flow.
     await completer.future;
     if (tokenResponse == null) {
       return null;
     }
-
-    final Map<String, dynamic> userProfile = _decodeJWT(tokenResponse!.idToken);
-
-    final ProfileData profile = ProfileData(
-      email: userProfile['email'] as String,
-      name: userProfile['name'] as String,
-      givenName: userProfile['given_name'] as String,
-      familyName: userProfile['family_name'] as String,
-    );
+    final _TokenResponse response = tokenResponse!;
+    final Map<String, dynamic> jsonProfile = _decodeJWT(response.idToken);
+    final ProfileData profile = ProfileData.fromJson(jsonProfile);
 
     final Authentication authentication = Authentication(
-      clientId: _clientId!,
-      accessToken: tokenResponse!.accessToken,
-      accessTokenExpirationDate: DateTime.now().add(tokenResponse!.expiresIn),
-      refreshToken: tokenResponse!.refreshToken,
-      idToken: tokenResponse!.idToken,
+      clientId: _clientId,
+      accessToken: response.accessToken,
+      accessTokenExpirationDate: DateTime.now().add(response.expiresIn),
+      refreshToken: response.refreshToken,
+      idToken: response.idToken,
     );
 
+    _checkFormat<String>(<String>['sub'], jsonProfile);
     _user = GoogleUser(
-      userId: userProfile['sub'] as String,
+      userId: jsonProfile['sub'] as String,
       profile: profile,
       authentication: authentication,
-      scopes: tokenResponse!.scope,
+      scope: response.scope,
     );
 
     return _user;
@@ -346,7 +373,7 @@ class GoogleSignIn {
 
   Future<_AuthorizationResponse> _requestUserCode() async {
     final Map<String, String> body = <String, String>{
-      'client_id': _clientId!,
+      'client_id': _clientId,
     };
     body['scope'] = _scopes.join(' ');
 
@@ -364,7 +391,7 @@ class GoogleSignIn {
   Future<_TokenResponse> _requestDeviceCodeInput(String deviceCode) async {
     final Map<String, String> body = <String, String>{
       'grant_type': 'http://oauth.net/grant_type/device/1.0',
-      'client_id': _clientId!,
+      'client_id': _clientId,
       'client_secret': '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',
       'code': deviceCode,
     };
@@ -381,11 +408,15 @@ class GoogleSignIn {
   }
 
   void _handleErrorResponse(Map<String, dynamic> jsonResponse) {
+    _checkFormat<String>(
+      <String>['error', 'error_description', 'error_uri'],
+      jsonResponse,
+    );
     final String error = jsonResponse['error'] as String;
-    final String? description = jsonResponse['error_description'] is String
+    final String? description = jsonResponse['error_description'] != null
         ? jsonResponse['error_description'] as String
         : null;
-    final String? uriString = jsonResponse['error_uri'] is String
+    final String? uriString = jsonResponse['error_uri'] != null
         ? jsonResponse['error_uri'] as String
         : null;
     final Uri? uri = uriString == null ? null : Uri.parse(uriString);
@@ -395,13 +426,15 @@ class GoogleSignIn {
   Map<String, dynamic> _decodeJWT(String token) {
     final List<String> splitTokens = token.split('.');
     if (splitTokens.length != 3) {
-      throw const FormatException('Invalid token');
+      throw const FormatException('Invalid token.');
     }
     final String normalizedPayload = convert.base64.normalize(splitTokens[1]);
     final String payloadString =
         convert.utf8.decode(convert.base64.decode(normalizedPayload));
     return convert.jsonDecode(payloadString) as Map<String, dynamic>;
   }
+}
+
 void _checkFormat<T>(List<String> names, Map<String, dynamic> parameters) {
   for (final String name in names) {
     final dynamic value = parameters[name];
