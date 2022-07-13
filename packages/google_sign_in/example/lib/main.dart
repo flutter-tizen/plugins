@@ -9,28 +9,30 @@ import 'dart:convert' show json;
 
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_tizen/google_sign_in_tizen.dart';
 import 'package:http/http.dart' as http;
 
 GoogleSignIn _googleSignIn = GoogleSignIn(
-  // Optional clientId
-  // clientId: '479882132969-9i9aqik3jfjd7qhci1nqf0bm2g71rm1u.apps.googleusercontent.com',
+  clientId:
+      '935253641063-r4h5ve50vcpu7b2t0olt0e713qs3t3n7.apps.googleusercontent.com',
   scopes: <String>[
     'email',
-    'https://www.googleapis.com/auth/contacts.readonly',
+    'profile',
   ],
 );
 
 void main() {
   runApp(
-    const MaterialApp(
+    MaterialApp(
       title: 'Google Sign In',
-      home: SignInDemo(),
+      navigatorKey: getGoogleSignInTizenNavigatorKey(),
+      home: const SignInDemo(),
     ),
   );
 }
 
 class SignInDemo extends StatefulWidget {
-  const SignInDemo({Key? key}) : super(key: key);
+  const SignInDemo({super.key});
 
   @override
   State createState() => SignInDemoState();
