@@ -46,7 +46,7 @@ class Authentication {
     required this.clientId,
     required this.accessToken,
     required this.accessTokenExpirationDate,
-    required this.refreshToken,
+    this.refreshToken,
     this.idToken,
     this.idTokenExpirationDate,
   });
@@ -61,7 +61,7 @@ class Authentication {
   final DateTime accessTokenExpirationDate;
 
   /// The OAuth2 refresh token to exchange for new access tokens.
-  final String refreshToken;
+  final String? refreshToken;
 
   /// The OpenID Connect ID token that identifies the user.
   final String? idToken;
@@ -93,67 +93,122 @@ class ProfileData {
   final String? familyName;
 }
 
+/// The class that represents successful device authorization response.
+/// See: https://datatracker.ietf.org/doc/html/rfc8628#section-3.2
 class _AuthorizationResponse {
   _AuthorizationResponse._({
     required this.deviceCode,
     required this.userCode,
     required this.verificationUrl,
     required this.expiresIn,
-    required this.interval,
-  });
+    Duration? interval,
+  }) : interval = interval ?? const Duration(seconds: 5);
 
   static _AuthorizationResponse fromJson(Map<String, dynamic> json) {
+    _checkFormat<String>(
+      <String>['device_code', 'user_code', 'verification_url'],
+      json,
+    );
+    _checkFormat<int>(
+      <String>['expires_in', 'interval'],
+      json,
+    );
+
+    final Duration? interval = json['interval'] != null
+        ? Duration(seconds: json['interval'] as int)
+        : null;
+
     return _AuthorizationResponse._(
       deviceCode: json['device_code'] as String,
       userCode: json['user_code'] as String,
       verificationUrl: Uri.parse(json['verification_url'] as String),
       expiresIn: Duration(seconds: json['expires_in'] as int),
-      interval: Duration(seconds: json['interval'] as int),
+      interval: interval,
     );
   }
 
+  /// The device verification code.
   final String deviceCode;
 
+  /// The end-user verification code.
   final String userCode;
 
+  /// The end-user verification URI on the authorization server.
   final Uri verificationUrl;
 
+  /// The lifetime of the [deviceCode] and [userCode].
   final Duration expiresIn;
 
+  /// The minimum amount of time that the client should wait between polling
+  /// requests to the token endpoint.
   final Duration interval;
 }
 
+/// The class that represents successful token response.
+/// See:
+///  - [OAuth2 spec](https://datatracker.ietf.org/doc/html/rfc6749#section-5.1)
+///  - [OpenID Connect spec](https://openid.net/specs/openid-connect-core-1_0.html#TokenResponse)
 class _TokenResponse {
   _TokenResponse._({
     required this.accessToken,
     required this.tokenType,
     required this.expiresIn,
-    required this.refreshToken,
-    required this.scope,
+    this.refreshToken,
+    List<String>? scope,
     required this.idToken,
-  });
+  }) : scope = scope ?? <String>[];
 
   static _TokenResponse fromJson(Map<String, dynamic> json) {
+    _checkFormat<String>(
+      <String>[
+        'access_token',
+        'refresh_token',
+        'scope',
+        'token_type',
+        'id_token',
+      ],
+      json,
+    );
+    _checkFormat<int>(
+      <String>['expires_in'],
+      json,
+    );
+
+    final String? refreshToken =
+        json['refresh_token'] != null ? json['refresh_token'] as String : null;
+    final List<String>? scope = json['scope'] != null
+        ? (json['scope'] as String).split(' ').toList()
+        : null;
+
     return _TokenResponse._(
       accessToken: json['access_token'] as String,
-      expiresIn: Duration(seconds: json['expires_in'] as int),
-      refreshToken: json['refresh_token'] as String,
-      scope: (json['scope'] as String).split(' ').toList(),
       tokenType: json['token_type'] as String,
+      expiresIn: Duration(seconds: json['expires_in'] as int),
+      refreshToken: refreshToken,
+      scope: scope,
       idToken: json['id_token'] as String,
     );
   }
 
+  /// The access token issued by the authorization server.
   final String accessToken;
 
-  final Duration expiresIn;
-
-  final String refreshToken;
-
-  final List<String> scope;
-
+  /// The type of the token issued.
+  ///
+  /// In the context of Google sign-in, this type is always 'Bearer'.
   final String tokenType;
 
+  /// The lifetime of the [accessToken].
+  final Duration expiresIn;
+
+  /// The token that can be used to obtain new access tokens when they are expired.
+  final String? refreshToken;
+
+  /// The API scope of the access token.
+  final List<String> scope;
+
+  /// The token issued by the Google authorization server that holds Google
+  /// account information.
   final String idToken;
 }
 
@@ -346,5 +401,12 @@ class GoogleSignIn {
     final String payloadString =
         convert.utf8.decode(convert.base64.decode(normalizedPayload));
     return convert.jsonDecode(payloadString) as Map<String, dynamic>;
+  }
+void _checkFormat<T>(List<String> names, Map<String, dynamic> parameters) {
+  for (final String name in names) {
+    final dynamic value = parameters[name];
+    if (value != null && value is! T) {
+      throw FormatException('parameter "$name" is not a $T, is "$value".');
+    }
   }
 }
