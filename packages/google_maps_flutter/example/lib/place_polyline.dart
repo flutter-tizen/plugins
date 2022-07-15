@@ -4,14 +4,14 @@
 
 // ignore_for_file: public_member_api_docs
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'page.dart';
 
 class PlacePolylinePage extends GoogleMapExampleAppPage {
-  PlacePolylinePage() : super(const Icon(Icons.linear_scale), 'Place polyline');
+  const PlacePolylinePage({Key? key})
+      : super(const Icon(Icons.linear_scale), 'Place polyline', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class PlacePolylinePage extends GoogleMapExampleAppPage {
 }
 
 class PlacePolylineBody extends StatefulWidget {
-  const PlacePolylineBody();
+  const PlacePolylineBody({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => PlacePolylineBodyState();
@@ -76,6 +76,7 @@ class PlacePolylineBodyState extends State<PlacePolylineBody> {
     <PatternItem>[PatternItem.dot, PatternItem.gap(10.0)],
   ];
 
+  // ignore: use_setters_to_change_properties
   void _onMapCreated(GoogleMapController controller) {
     this.controller = controller;
   }
@@ -163,46 +164,8 @@ class PlacePolylineBodyState extends State<PlacePolylineBody> {
     });
   }
 
-  void _changeJointType(PolylineId polylineId) {
-    final Polyline polyline = polylines[polylineId]!;
-    setState(() {
-      polylines[polylineId] = polyline.copyWith(
-        jointTypeParam: jointTypes[++jointTypesIndex % jointTypes.length],
-      );
-    });
-  }
-
-  void _changeEndCap(PolylineId polylineId) {
-    final Polyline polyline = polylines[polylineId]!;
-    setState(() {
-      polylines[polylineId] = polyline.copyWith(
-        endCapParam: endCaps[++endCapsIndex % endCaps.length],
-      );
-    });
-  }
-
-  void _changeStartCap(PolylineId polylineId) {
-    final Polyline polyline = polylines[polylineId]!;
-    setState(() {
-      polylines[polylineId] = polyline.copyWith(
-        startCapParam: startCaps[++startCapsIndex % startCaps.length],
-      );
-    });
-  }
-
-  void _changePattern(PolylineId polylineId) {
-    final Polyline polyline = polylines[polylineId]!;
-    setState(() {
-      polylines[polylineId] = polyline.copyWith(
-        patternsParam: patterns[++patternsIndex % patterns.length],
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final bool isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-
     final PolylineId? selectedId = selectedPolyline;
 
     return Column(
@@ -233,66 +196,42 @@ class PlacePolylineBodyState extends State<PlacePolylineBody> {
                     Column(
                       children: <Widget>[
                         TextButton(
-                          child: const Text('add'),
                           onPressed: _add,
+                          child: const Text('add'),
                         ),
                         TextButton(
-                          child: const Text('remove'),
                           onPressed: (selectedId == null)
                               ? null
                               : () => _remove(selectedId),
+                          child: const Text('remove'),
                         ),
                         TextButton(
-                          child: const Text('toggle visible'),
                           onPressed: (selectedId == null)
                               ? null
                               : () => _toggleVisible(selectedId),
+                          child: const Text('toggle visible'),
                         ),
                         TextButton(
-                          child: const Text('toggle geodesic'),
                           onPressed: (selectedId == null)
                               ? null
                               : () => _toggleGeodesic(selectedId),
+                          child: const Text('toggle geodesic'),
                         ),
                       ],
                     ),
                     Column(
                       children: <Widget>[
                         TextButton(
-                          child: const Text('change width'),
                           onPressed: (selectedId == null)
                               ? null
                               : () => _changeWidth(selectedId),
+                          child: const Text('change width'),
                         ),
                         TextButton(
-                          child: const Text('change color'),
                           onPressed: (selectedId == null)
                               ? null
                               : () => _changeColor(selectedId),
-                        ),
-                        TextButton(
-                          child: const Text('change start cap [Android only]'),
-                          onPressed: isIOS || (selectedId == null)
-                              ? null
-                              : () => _changeStartCap(selectedId),
-                        ),
-                        TextButton(
-                          child: const Text('change end cap [Android only]'),
-                          onPressed: isIOS || (selectedId == null)
-                              ? null
-                              : () => _changeEndCap(selectedId),
-                        ),
-                        TextButton(
-                          child: const Text('change joint type [Android only]'),
-                          onPressed: isIOS || (selectedId == null)
-                              ? null
-                              : () => _changeJointType(selectedId),
-                        ),
-                        TextButton(
-                          child: const Text('change pattern [Android only]'),
-                          onPressed: isIOS || (selectedId == null)
-                              ? null
-                              : () => _changePattern(selectedId),
+                          child: const Text('change color'),
                         ),
                       ],
                     )

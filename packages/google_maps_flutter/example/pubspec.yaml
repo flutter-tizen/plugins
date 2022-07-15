@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_maps_flutter: ^2.0.8
+  google_maps_flutter: ^2.1.7
   google_maps_flutter_tizen:
     path: ../
 

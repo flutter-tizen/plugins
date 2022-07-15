@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:integration_test/integration_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_flutter_tizen/google_maps_flutter_tizen.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:google_maps_flutter_tizen/google_maps_flutter_tizen.dart';
+import 'package:integration_test/integration_test.dart';
 
 const LatLng _kInitialMapCenter = LatLng(0, 0);
 const double _kInitialZoomLevel = 5;
@@ -33,14 +33,17 @@ void main() {
         key: key,
         initialCameraPosition: _kInitialCameraPosition,
         minMaxZoomPreference: initialZoomLevel,
-        onMapCreated: (GoogleMapController c) async {
+        onMapCreated: (GoogleMapController c) {
           mapId = c.mapId;
         },
       ),
     ));
 
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
-    GoogleMapsController? map = plugin.debugGetMapById(mapId);
+    final GoogleMapsController? map = plugin.debugGetMapById(mapId);
     expect(map, isNotNull);
 
     MinMaxZoomPreference zoomLevel = await map!.getMinMaxZoomLevels();
@@ -53,7 +56,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         minMaxZoomPreference: finalZoomLevel,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -79,8 +82,11 @@ void main() {
       ),
     ));
 
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
-    GoogleMapsController? map = plugin.debugGetMapById(mapId);
+    final GoogleMapsController? map = plugin.debugGetMapById(mapId);
     expect(map, isNotNull);
 
     bool? zoomGesturesEnabled = await map!.isZoomGesturesEnabled();
@@ -93,7 +99,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         zoomGesturesEnabled: true,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -118,8 +124,11 @@ void main() {
       ),
     ));
 
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
-    GoogleMapsController? map = plugin.debugGetMapById(mapId);
+    final GoogleMapsController? map = plugin.debugGetMapById(mapId);
     expect(map, isNotNull);
 
     bool? zoomControlsEnabled = await map!.isZoomControlsEnabled();
@@ -132,7 +141,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         zoomControlsEnabled: false,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -157,6 +166,9 @@ void main() {
         },
       ),
     ));
+
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
     final GoogleMapsController? map = plugin.debugGetMapById(mapId);
@@ -206,11 +218,11 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
-    ScreenCoordinate coordinate =
+    final ScreenCoordinate coordinate =
         await mapController.getScreenCoordinate(_kInitialCameraPosition.target);
-    Rect rect = tester.getRect(find.byKey(key));
+    final Rect rect = tester.getRect(find.byKey(key));
 
     // On Tizen, the coordinate value from the GoogleMapSdk doesn't include the devicePixelRatio`.
     // So we don't need to do the conversion like we did below for other platforms.
@@ -272,7 +284,7 @@ void main() {
 
     // TODO(iskakaushik): non-zero padding is needed for some device configurations
     // https://github.com/flutter/flutter/issues/30575
-    final double padding = 0;
+    const double padding = 0;
     await mapController
         .moveCamera(CameraUpdate.newLatLngBounds(latLngBounds, padding));
     // await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -306,8 +318,11 @@ void main() {
       ),
     ));
 
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
     plugin = GoogleMapsFlutterPlatform.instance as GoogleMapsPlugin;
-    GoogleMapsController? map = plugin.debugGetMapById(mapId);
+    final GoogleMapsController? map = plugin.debugGetMapById(mapId);
     expect(map, isNotNull);
 
     bool? isTrafficEnabled = await map!.isTrafficEnabled();
@@ -320,7 +335,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         trafficEnabled: false,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -420,7 +435,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
 
     final LatLngBounds visibleRegion = await controller.getVisibleRegion();
     final LatLng topLeft =
@@ -455,7 +470,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
 
     double zoom = await controller.getZoomLevel();
     expect(zoom, _kInitialZoomLevel);
@@ -487,7 +502,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
 
     final LatLngBounds visibleRegion = await controller.getVisibleRegion();
     final LatLng northWest = LatLng(
@@ -525,7 +540,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
 
     // Simple call to make sure that the app hasn't crashed.
     final LatLngBounds bounds1 = await controller.getVisibleRegion();
@@ -539,7 +554,7 @@ void main() {
         infoWindow: InfoWindow(title: 'InfoWindow'));
     final Set<Marker> markers = <Marker>{marker};
 
-    Completer<GoogleMapController> controllerCompleter =
+    final Completer<GoogleMapController> controllerCompleter =
         Completer<GoogleMapController>();
 
     await tester.pumpWidget(Directionality(
@@ -568,9 +583,9 @@ void main() {
     expect(iwVisibleStatus, false);
   });
 
-  testWidgets("fromAssetImage", (WidgetTester tester) async {
-    double pixelRatio = 2;
-    final ImageConfiguration imageConfiguration =
+  testWidgets('fromAssetImage', (WidgetTester tester) async {
+    const double pixelRatio = 2;
+    const ImageConfiguration imageConfiguration =
         ImageConfiguration(devicePixelRatio: pixelRatio);
     final BitmapDescriptor mip = await BitmapDescriptor.fromAssetImage(
         imageConfiguration, 'red_square.png');

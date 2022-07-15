@@ -3,6 +3,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: avoid_setters_without_getters
+
 //part of google_maps_flutter_tizen;
 import 'dart:async';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -198,7 +200,7 @@ class GInfoWindow {
   set pixelOffset(GSize? size) => _setPixelOffset(size);
 
   void _setContent(Object? /*String?|Node?*/ content) {
-    callMethod(this, 'setContent', [content]);
+    callMethod(this, 'setContent', <Object?>[content]);
   }
 
   void _setPixelOffset(GSize? size) {
@@ -247,15 +249,15 @@ class GMarker {
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await callMethod(this, 'setMap', [map]);
+    await callMethod(this, 'setMap', <Object?>[map]);
   }
 
   Future<void> _setOptions(GMarkerOptions? options) async {
-    await callMethod(this, 'setOptions', [options]);
+    await callMethod(this, 'setOptions', <GMarkerOptions?>[options]);
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await callMethod(this, 'setVisible', [visible]);
+    await callMethod(this, 'setVisible', <bool?>[visible]);
   }
 }
 
@@ -294,15 +296,15 @@ class GPolyline {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await callMethod(this, 'setVisible', [visible]);
+    await callMethod(this, 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await callMethod(this, 'setMap', [map]);
+    await callMethod(this, 'setMap', <Object?>[map]);
   }
 
   Future<void> _setOptions(GPolylineOptions? options) async {
-    await callMethod(this, 'setOptions', [options]);
+    await callMethod(this, 'setOptions', <GPolylineOptions?>[options]);
   }
 }
 
@@ -388,15 +390,15 @@ class GPolygon {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await callMethod(this, 'setVisible', [visible]);
+    await callMethod(this, 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await callMethod(this, 'setMap', [map]);
+    await callMethod(this, 'setMap', <Object?>[map]);
   }
 
   Future<void> _setOptions(GPolygonOptions? options) async {
-    await callMethod(this, 'setOptions', [options]);
+    await callMethod(this, 'setOptions', <GPolygonOptions?>[options]);
   }
 }
 
@@ -495,19 +497,19 @@ class GCircle {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await callMethod(this, 'setVisible', [visible]);
+    await callMethod(this, 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setRadius(num? radius) async {
-    await callMethod(this, 'setRadius', [radius]);
+    await callMethod(this, 'setRadius', <num?>[radius]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await callMethod(this, 'setMap', [map]);
+    await callMethod(this, 'setMap', <Object?>[map]);
   }
 
   Future<void> _setOptions(GCircleOptions? options) async {
-    await callMethod(this, 'setOptions', [options]);
+    await callMethod(this, 'setOptions', <GCircleOptions?>[options]);
   }
 }
 
@@ -561,7 +563,7 @@ Future<WebViewController>? webController;
 /// Returns the property value of the object.
 Future<String> getProperty(Object o, String property) async {
   assert(webController != null, 'mapController is null!!');
-  final String command = 'JSON.stringify(${o.toString()}[\'$property\'])';
+  final String command = "JSON.stringify(${o.toString()}['$property'])";
   return await (await webController!).runJavascriptReturningResult(command);
 }
 
@@ -569,7 +571,7 @@ Future<String> getProperty(Object o, String property) async {
 Future<String> setProperty(Object o, String property, Object? value) async {
   assert(webController != null, 'mapController is null!!');
   final String command =
-      'JSON.stringify(${o.toString()}[\'$property\'] = $value)';
+      "JSON.stringify(${o.toString()}['$property'] = $value)";
   return await (await webController!).runJavascriptReturningResult(command);
 }
 

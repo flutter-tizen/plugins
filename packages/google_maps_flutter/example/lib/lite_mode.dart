@@ -12,7 +12,8 @@ const CameraPosition _kInitialPosition =
     CameraPosition(target: LatLng(-33.852, 151.211), zoom: 11.0);
 
 class LiteModePage extends GoogleMapExampleAppPage {
-  LiteModePage() : super(const Icon(Icons.map), 'Lite mode');
+  const LiteModePage({Key? key})
+      : super(const Icon(Icons.map), 'Lite mode', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +26,9 @@ class _LiteModeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 30.0),
+        padding: EdgeInsets.symmetric(vertical: 30.0),
         child: Center(
           child: SizedBox(
             width: 300.0,
