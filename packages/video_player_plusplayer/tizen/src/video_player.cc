@@ -321,9 +321,6 @@ void VideoPlayer::SendInitialized() {
       }
     }
     LOG_INFO("video widht: %d, video height: %d", width, height);
-    if (width == 0 || height == 0) {
-      event_sink_->Error("PlusPlayer", "Fail to get video size");
-    }
 
     plusplayer::DisplayRotation rotate;
     if (!instance.GetDisplayRotate(plusplayer_, &rotate)) {
