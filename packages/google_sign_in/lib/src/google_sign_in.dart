@@ -392,7 +392,7 @@ class GoogleSignIn {
     final Map<String, String> body = <String, String>{
       'grant_type': 'http://oauth.net/grant_type/device/1.0',
       'client_id': _clientId,
-      'client_secret': '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',
+      'client_secret': '',
       'code': deviceCode,
     };
 

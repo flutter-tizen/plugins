@@ -13,8 +13,8 @@ import 'package:google_sign_in_tizen/google_sign_in_tizen.dart';
 import 'package:http/http.dart' as http;
 
 GoogleSignIn _googleSignIn = GoogleSignIn(
-  clientId:
-      '935253641063-r4h5ve50vcpu7b2t0olt0e713qs3t3n7.apps.googleusercontent.com',
+  // Optional clientId
+  // clientId: '479882132969-9i9aqik3jfjd7qhci1nqf0bm2g71rm1u.apps.googleusercontent.com',
   scopes: <String>[
     'email',
     'profile',
