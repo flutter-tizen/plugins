@@ -6,10 +6,12 @@ import 'package:flutter/widgets.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:google_sign_in_tizen/src/google_sign_in.dart';
 
+// TODO(HakkyuKim): Add documentation.
 void setGoogleSignInTizenNavigatorKey(GlobalKey<NavigatorState> key) {
   (GoogleSignInPlatform.instance as GoogleSignInTizen).navigatorKey = key;
 }
 
+// TODO(HakkyuKim): Add documentation.
 GlobalKey<NavigatorState> getGoogleSignInTizenNavigatorKey() {
   return (GoogleSignInPlatform.instance as GoogleSignInTizen).navigatorKey;
 }
@@ -23,8 +25,12 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
+  Configuration? _configuration;
+
+  // TODO(HakkyuKim): Add documentation.
   GlobalKey<NavigatorState> get navigatorKey => _googleSignIn.navigatorKey;
 
+  // TODO(HakkyuKim): Add documentation.
   set navigatorKey(GlobalKey<NavigatorState> key) {
     _googleSignIn.navigatorKey = key;
   }
@@ -35,8 +41,23 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     SignInOption signInOption = SignInOption.standard,
     String? hostedDomain,
     String? clientId,
-  }) =>
-      _googleSignIn.init(clientId!, scopes);
+  }) async {
+    // TODO(HakkyuKim): Check if navigator has been set.
+
+    // TODO(HakkyuKim): Parse client id and client secret from configuration file.
+    //
+    // Read "client id" and "client secret" from configuration file, such as
+    // google-services.json for Android or GoogleService-Info.plist for iOS.
+    //
+    String clientIdentifier = ''; // readClientId(configurationFile);
+    String clientSecret = ''; // readClientSecret(configurationFile);
+
+    _configuration = Configuration(
+      clientId: clientIdentifier,
+      clientSecret: clientSecret,
+      scope: scopes,
+    );
+  }
 
   @override
   Future<GoogleSignInUserData?> signInSilently() {
@@ -45,12 +66,16 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   @override
   Future<GoogleSignInUserData?> signIn() async {
-    final GoogleUser? user = await _googleSignIn.signIn();
+    if (_configuration == null) {
+      throw Exception('GoogleSignIn Tizen has not been initialized.');
+    }
+
+    final GoogleUser? user = await _googleSignIn.signIn(_configuration!);
     if (user != null) {
       return GoogleSignInUserData(
-        email: user.profile!.email,
-        id: user.userId!,
-        displayName: user.profile!.name,
+        email: user.profile.email,
+        id: user.userId,
+        displayName: user.profile.name,
         idToken: user.authentication.idToken,
       );
     }
@@ -60,13 +85,14 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   @override
   Future<GoogleSignInTokenData> getTokens(
       {required String email, bool? shouldRecoverAuth = true}) async {
-    if (_googleSignIn.authentication == null) {
-      return GoogleSignInTokenData();
+    final Authentication? authentication = _googleSignIn.authentication;
+    if (authentication != null) {
+      return GoogleSignInTokenData(
+        accessToken: authentication.accessToken,
+        idToken: authentication.idToken,
+      );
     }
-    return GoogleSignInTokenData(
-      accessToken: _googleSignIn.authentication!.accessToken,
-      idToken: _googleSignIn.authentication!.idToken,
-    );
+    return GoogleSignInTokenData();
   }
 
   @override

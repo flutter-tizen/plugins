@@ -20,23 +20,44 @@ final Uri _revokeEndPoint = Uri.parse('htpps://oauth2.googleapis.com/revoke');
 class GoogleUser {
   /// Creates an instance of [GoogleUser].
   GoogleUser({
-    this.userId,
-    this.profile,
+    required this.userId,
+    required this.profile,
     required this.authentication,
     List<String>? scope,
   }) : grantedScope = scope ?? <String>[];
 
   /// The Google user ID.
-  final String? userId;
+  final String userId;
 
   /// The basic profile data for the user.
-  final ProfileData? profile;
+  final ProfileData profile;
 
   /// The authentication info for the user.
   final Authentication authentication;
 
   /// The API scopes granted to the app.
   final List<String> grantedScope;
+}
+
+/// The class that holds parameters for OAuth request.
+class Configuration {
+  /// Creates an instance of [Configuration].
+  const Configuration({
+    required this.clientId,
+    required this.clientSecret,
+    this.scope = const <String>[],
+  });
+
+  /// The unique public identifier for apps that is issued by the authorization
+  /// server. It's analogous to a login id.
+  final String clientId;
+
+  /// The secret credential knwon only to the application and the authorization
+  /// server. It's analogous to a password.
+  final String clientSecret;
+
+  /// The amount of resources to access on behalf of the user.
+  final List<String> scope;
 }
 
 /// The class that represents OAuth 2.0 entities needed for sign-in.
@@ -241,11 +262,8 @@ class _TokenResponse {
 ///  - [OAuth 2.0 Device Authorization Grant spec](https://datatracker.ietf.org/doc/html/rfc8628)
 ///  - [OpenID Connect spec](https://openid.net/specs/openid-connect-core-1_0.html)
 class GoogleSignIn {
+  // TODO(HakkyuKim): Consider moving the field to `user_display_widget.dart`.
   GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-  List<String> _scopes = <String>[];
-
-  late String _clientId;
 
   /// The currently signed in user.
   GoogleUser? _user;
@@ -258,29 +276,17 @@ class GoogleSignIn {
   /// `null` if no user is signed in.
   Authentication? get authentication => _user?.authentication;
 
-  /// Initializes the instance with [clientId] and [scopes].
-  ///
-  /// This method should be called at least once before calling [signIn].
-  Future<void> init(String clientId, List<String> scopes) async {
-    _clientId = clientId;
-    _scopes = scopes;
-  }
-
   /// Starts the interactive sign-in flow.
   ///
   /// Returns the currently signed in user if already signed in, `null` if
   /// sign-in was cancelled.
-  Future<GoogleUser?> signIn() async {
-    if (_clientId == null) {
-      throw Exception('GoogleSignIn instance is not initialized.');
-    }
-
+  Future<GoogleUser?> signIn(Configuration configuration) async {
     if (_user != null) {
       return _user;
     }
 
     final _AuthorizationResponse authorizationResponse =
-        await _requestUserCode();
+        await _requestUserCode(configuration);
 
     // Polls for user response.
     final Completer<void> completer = Completer<void>();
@@ -288,8 +294,10 @@ class GoogleSignIn {
     final Timer timer =
         Timer.periodic(authorizationResponse.interval, (Timer timer) async {
       try {
-        tokenResponse =
-            await _requestDeviceCodeInput(authorizationResponse.deviceCode);
+        tokenResponse = await _requestDeviceCodeInput(
+          deviceCode: authorizationResponse.deviceCode,
+          configuration: configuration,
+        );
         timer.cancel();
         closeUserCodeDialog(navigatorKey);
         completer.complete();
@@ -324,7 +332,7 @@ class GoogleSignIn {
     final ProfileData profile = ProfileData.fromJson(jsonProfile);
 
     final Authentication authentication = Authentication(
-      clientId: _clientId,
+      clientId: configuration.clientId,
       accessToken: response.accessToken,
       accessTokenExpirationDate: DateTime.now().add(response.expiresIn),
       refreshToken: response.refreshToken,
@@ -371,11 +379,12 @@ class GoogleSignIn {
   /// Returns `true` if there is a signed in user, otherwise returns `false`.
   Future<bool> isSignedIn() async => _user != null;
 
-  Future<_AuthorizationResponse> _requestUserCode() async {
+  Future<_AuthorizationResponse> _requestUserCode(
+      Configuration configuration) async {
     final Map<String, String> body = <String, String>{
-      'client_id': _clientId,
+      'client_id': configuration.clientId,
     };
-    body['scope'] = _scopes.join(' ');
+    body['scope'] = configuration.scope.join(' ');
 
     final http.Response response =
         await http.post(_authorizationEndPoint, body: body);
@@ -388,11 +397,14 @@ class GoogleSignIn {
     return _AuthorizationResponse.fromJson(jsonResponse);
   }
 
-  Future<_TokenResponse> _requestDeviceCodeInput(String deviceCode) async {
+  Future<_TokenResponse> _requestDeviceCodeInput({
+    required String deviceCode,
+    required Configuration configuration,
+  }) async {
     final Map<String, String> body = <String, String>{
       'grant_type': 'http://oauth.net/grant_type/device/1.0',
-      'client_id': _clientId,
-      'client_secret': '',
+      'client_id': configuration.clientId,
+      'client_secret': configuration.clientSecret,
       'code': deviceCode,
     };
 
