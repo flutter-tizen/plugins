@@ -302,6 +302,9 @@ class GoogleSignIn {
         closeUserCodeDialog(navigatorKey);
         completer.complete();
       } on AuthorizationException catch (e) {
+        // TODO(HakkyuKim): Handle 'slow_down' error.
+        // See: https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
+
         // The authorization request is still pending as the end user hasn't
         // yet completed the user-interaction steps.
         if (e.error != 'authorization_pending') {

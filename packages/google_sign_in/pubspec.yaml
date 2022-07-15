@@ -15,6 +15,8 @@ dependencies:
     sdk: flutter
   google_sign_in_platform_interface: ^2.2.0
   http: ^0.13.4
+  path_provider: ^2.0.7
+  path_provider_tizen: ^2.0.2
 
 dev_dependencies:
   flutter_test:
@@ -26,4 +28,5 @@ environment:
 
 # The example deliberately includes limited-use secrets.
 false_secrets:
+  - /example/tizen/data/google-services.json
   - /example/lib/main.dart
