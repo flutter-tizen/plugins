@@ -4,7 +4,7 @@
 
 syntax = "proto3";
 
-option java_package = "com.pauldemarco.flutter_blue";
+option java_package = "com.boskokg.flutter_blue_plus";
 option java_outer_classname = "Protos";
 option objc_class_prefix = "Protos";
 option optimize_for = LITE_RUNTIME;
@@ -213,4 +213,9 @@ message MtuSizeRequest {
 message MtuSizeResponse {
   string remote_id = 1;
   uint32 mtu = 2;
+}
+
+message ReadRssiResult {
+  string remote_id = 1;
+  int32 rssi = 2;
 }

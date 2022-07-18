@@ -48,7 +48,7 @@ struct TableStruct_flutterblue_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[29]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[30]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -119,6 +119,9 @@ extern ReadDescriptorRequestDefaultTypeInternal _ReadDescriptorRequest_default_i
 class ReadDescriptorResponse;
 class ReadDescriptorResponseDefaultTypeInternal;
 extern ReadDescriptorResponseDefaultTypeInternal _ReadDescriptorResponse_default_instance_;
+class ReadRssiResult;
+class ReadRssiResultDefaultTypeInternal;
+extern ReadRssiResultDefaultTypeInternal _ReadRssiResult_default_instance_;
 class ScanResult;
 class ScanResultDefaultTypeInternal;
 extern ScanResultDefaultTypeInternal _ScanResult_default_instance_;
@@ -167,6 +170,7 @@ template<> ::proto::gen::ReadCharacteristicRequest* Arena::CreateMaybeMessage<::
 template<> ::proto::gen::ReadCharacteristicResponse* Arena::CreateMaybeMessage<::proto::gen::ReadCharacteristicResponse>(Arena*);
 template<> ::proto::gen::ReadDescriptorRequest* Arena::CreateMaybeMessage<::proto::gen::ReadDescriptorRequest>(Arena*);
 template<> ::proto::gen::ReadDescriptorResponse* Arena::CreateMaybeMessage<::proto::gen::ReadDescriptorResponse>(Arena*);
+template<> ::proto::gen::ReadRssiResult* Arena::CreateMaybeMessage<::proto::gen::ReadRssiResult>(Arena*);
 template<> ::proto::gen::ScanResult* Arena::CreateMaybeMessage<::proto::gen::ScanResult>(Arena*);
 template<> ::proto::gen::ScanSettings* Arena::CreateMaybeMessage<::proto::gen::ScanSettings>(Arena*);
 template<> ::proto::gen::SetNotificationRequest* Arena::CreateMaybeMessage<::proto::gen::SetNotificationRequest>(Arena*);
@@ -4961,6 +4965,145 @@ class MtuSizeResponse PROTOBUF_FINAL :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr remote_id_;
   ::PROTOBUF_NAMESPACE_ID::uint32 mtu_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_flutterblue_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ReadRssiResult PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::MessageLite /* @@protoc_insertion_point(class_definition:proto.gen.ReadRssiResult) */ {
+ public:
+  inline ReadRssiResult() : ReadRssiResult(nullptr) {}
+  virtual ~ReadRssiResult();
+
+  ReadRssiResult(const ReadRssiResult& from);
+  ReadRssiResult(ReadRssiResult&& from) noexcept
+    : ReadRssiResult() {
+    *this = ::std::move(from);
+  }
+
+  inline ReadRssiResult& operator=(const ReadRssiResult& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ReadRssiResult& operator=(ReadRssiResult&& from) noexcept {
+    if (GetArena() == from.GetArena()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ReadRssiResult& default_instance();
+
+  static inline const ReadRssiResult* internal_default_instance() {
+    return reinterpret_cast<const ReadRssiResult*>(
+               &_ReadRssiResult_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    29;
+
+  friend void swap(ReadRssiResult& a, ReadRssiResult& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ReadRssiResult* other) {
+    if (other == this) return;
+    if (GetArena() == other->GetArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ReadRssiResult* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline ReadRssiResult* New() const final {
+    return CreateMaybeMessage<ReadRssiResult>(nullptr);
+  }
+
+  ReadRssiResult* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<ReadRssiResult>(arena);
+  }
+  void CheckTypeAndMergeFrom(const ::PROTOBUF_NAMESPACE_ID::MessageLite& from)
+    final;
+  void CopyFrom(const ReadRssiResult& from);
+  void MergeFrom(const ReadRssiResult& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  void DiscardUnknownFields();
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const;
+  void InternalSwap(ReadRssiResult* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proto.gen.ReadRssiResult";
+  }
+  protected:
+  explicit ReadRssiResult(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  std::string GetTypeName() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kRemoteIdFieldNumber = 1,
+    kRssiFieldNumber = 2,
+  };
+  // string remote_id = 1;
+  void clear_remote_id();
+  const std::string& remote_id() const;
+  void set_remote_id(const std::string& value);
+  void set_remote_id(std::string&& value);
+  void set_remote_id(const char* value);
+  void set_remote_id(const char* value, size_t size);
+  std::string* mutable_remote_id();
+  std::string* release_remote_id();
+  void set_allocated_remote_id(std::string* remote_id);
+  private:
+  const std::string& _internal_remote_id() const;
+  void _internal_set_remote_id(const std::string& value);
+  std::string* _internal_mutable_remote_id();
+  public:
+
+  // int32 rssi = 2;
+  void clear_rssi();
+  ::PROTOBUF_NAMESPACE_ID::int32 rssi() const;
+  void set_rssi(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_rssi() const;
+  void _internal_set_rssi(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proto.gen.ReadRssiResult)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr remote_id_;
+  ::PROTOBUF_NAMESPACE_ID::int32 rssi_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_flutterblue_2eproto;
 };
@@ -9782,9 +9925,96 @@ inline void MtuSizeResponse::set_mtu(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   // @@protoc_insertion_point(field_set:proto.gen.MtuSizeResponse.mtu)
 }
 
+// -------------------------------------------------------------------
+
+// ReadRssiResult
+
+// string remote_id = 1;
+inline void ReadRssiResult::clear_remote_id() {
+  remote_id_.ClearToEmpty();
+}
+inline const std::string& ReadRssiResult::remote_id() const {
+  // @@protoc_insertion_point(field_get:proto.gen.ReadRssiResult.remote_id)
+  return _internal_remote_id();
+}
+inline void ReadRssiResult::set_remote_id(const std::string& value) {
+  _internal_set_remote_id(value);
+  // @@protoc_insertion_point(field_set:proto.gen.ReadRssiResult.remote_id)
+}
+inline std::string* ReadRssiResult::mutable_remote_id() {
+  // @@protoc_insertion_point(field_mutable:proto.gen.ReadRssiResult.remote_id)
+  return _internal_mutable_remote_id();
+}
+inline const std::string& ReadRssiResult::_internal_remote_id() const {
+  return remote_id_.Get();
+}
+inline void ReadRssiResult::_internal_set_remote_id(const std::string& value) {
+  
+  remote_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void ReadRssiResult::set_remote_id(std::string&& value) {
+  
+  remote_id_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:proto.gen.ReadRssiResult.remote_id)
+}
+inline void ReadRssiResult::set_remote_id(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  remote_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:proto.gen.ReadRssiResult.remote_id)
+}
+inline void ReadRssiResult::set_remote_id(const char* value,
+    size_t size) {
+  
+  remote_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:proto.gen.ReadRssiResult.remote_id)
+}
+inline std::string* ReadRssiResult::_internal_mutable_remote_id() {
+  
+  return remote_id_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* ReadRssiResult::release_remote_id() {
+  // @@protoc_insertion_point(field_release:proto.gen.ReadRssiResult.remote_id)
+  return remote_id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void ReadRssiResult::set_allocated_remote_id(std::string* remote_id) {
+  if (remote_id != nullptr) {
+    
+  } else {
+    
+  }
+  remote_id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), remote_id,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:proto.gen.ReadRssiResult.remote_id)
+}
+
+// int32 rssi = 2;
+inline void ReadRssiResult::clear_rssi() {
+  rssi_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ReadRssiResult::_internal_rssi() const {
+  return rssi_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 ReadRssiResult::rssi() const {
+  // @@protoc_insertion_point(field_get:proto.gen.ReadRssiResult.rssi)
+  return _internal_rssi();
+}
+inline void ReadRssiResult::_internal_set_rssi(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  rssi_ = value;
+}
+inline void ReadRssiResult::set_rssi(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_rssi(value);
+  // @@protoc_insertion_point(field_set:proto.gen.ReadRssiResult.rssi)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -141,6 +141,10 @@ class MtuSizeResponseDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<MtuSizeResponse> _instance;
 } _MtuSizeResponse_default_instance_;
+class ReadRssiResultDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<ReadRssiResult> _instance;
+} _ReadRssiResult_default_instance_;
 }  // namespace gen
 }  // namespace proto
 static void InitDefaultsscc_info_AdvertisementData_flutterblue_2eproto() {
@@ -424,6 +428,19 @@ static void InitDefaultsscc_info_ReadDescriptorResponse_flutterblue_2eproto() {
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_ReadDescriptorResponse_flutterblue_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_ReadDescriptorResponse_flutterblue_2eproto}, {
       &scc_info_ReadDescriptorRequest_flutterblue_2eproto.base,}};
+
+static void InitDefaultsscc_info_ReadRssiResult_flutterblue_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::proto::gen::_ReadRssiResult_default_instance_;
+    new (ptr) ::proto::gen::ReadRssiResult();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_ReadRssiResult_flutterblue_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_ReadRssiResult_flutterblue_2eproto}, {}};
 
 static void InitDefaultsscc_info_ScanResult_flutterblue_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -8192,6 +8209,222 @@ std::string MtuSizeResponse::GetTypeName() const {
 }
 
 
+// ===================================================================
+
+class ReadRssiResult::_Internal {
+ public:
+};
+
+ReadRssiResult::ReadRssiResult(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::MessageLite(arena) {
+  SharedCtor();
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:proto.gen.ReadRssiResult)
+}
+ReadRssiResult::ReadRssiResult(const ReadRssiResult& from)
+  : ::PROTOBUF_NAMESPACE_ID::MessageLite() {
+  _internal_metadata_.MergeFrom<std::string>(from._internal_metadata_);
+  remote_id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_remote_id().empty()) {
+    remote_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_remote_id(), 
+      GetArena());
+  }
+  rssi_ = from.rssi_;
+  // @@protoc_insertion_point(copy_constructor:proto.gen.ReadRssiResult)
+}
+
+void ReadRssiResult::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_ReadRssiResult_flutterblue_2eproto.base);
+  remote_id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  rssi_ = 0;
+}
+
+ReadRssiResult::~ReadRssiResult() {
+  // @@protoc_insertion_point(destructor:proto.gen.ReadRssiResult)
+  SharedDtor();
+  _internal_metadata_.Delete<std::string>();
+}
+
+void ReadRssiResult::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
+  remote_id_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+}
+
+void ReadRssiResult::ArenaDtor(void* object) {
+  ReadRssiResult* _this = reinterpret_cast< ReadRssiResult* >(object);
+  (void)_this;
+}
+void ReadRssiResult::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void ReadRssiResult::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const ReadRssiResult& ReadRssiResult::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_ReadRssiResult_flutterblue_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void ReadRssiResult::Clear() {
+// @@protoc_insertion_point(message_clear_start:proto.gen.ReadRssiResult)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  remote_id_.ClearToEmpty();
+  rssi_ = 0;
+  _internal_metadata_.Clear<std::string>();
+}
+
+const char* ReadRssiResult::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // string remote_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          auto str = _internal_mutable_remote_id();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, nullptr));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // int32 rssi = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
+          rssi_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<std::string>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* ReadRssiResult::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proto.gen.ReadRssiResult)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string remote_id = 1;
+  if (this->remote_id().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_remote_id().data(), static_cast<int>(this->_internal_remote_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proto.gen.ReadRssiResult.remote_id");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_remote_id(), target);
+  }
+
+  // int32 rssi = 2;
+  if (this->rssi() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(2, this->_internal_rssi(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = stream->WriteRaw(_internal_metadata_.unknown_fields<std::string>(::PROTOBUF_NAMESPACE_ID::internal::GetEmptyString).data(),
+        static_cast<int>(_internal_metadata_.unknown_fields<std::string>(::PROTOBUF_NAMESPACE_ID::internal::GetEmptyString).size()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proto.gen.ReadRssiResult)
+  return target;
+}
+
+size_t ReadRssiResult::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proto.gen.ReadRssiResult)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string remote_id = 1;
+  if (this->remote_id().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_remote_id());
+  }
+
+  // int32 rssi = 2;
+  if (this->rssi() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+        this->_internal_rssi());
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    total_size += _internal_metadata_.unknown_fields<std::string>(::PROTOBUF_NAMESPACE_ID::internal::GetEmptyString).size();
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void ReadRssiResult::CheckTypeAndMergeFrom(
+    const ::PROTOBUF_NAMESPACE_ID::MessageLite& from) {
+  MergeFrom(*::PROTOBUF_NAMESPACE_ID::internal::DownCast<const ReadRssiResult*>(
+      &from));
+}
+
+void ReadRssiResult::MergeFrom(const ReadRssiResult& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:proto.gen.ReadRssiResult)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<std::string>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.remote_id().size() > 0) {
+    _internal_set_remote_id(from._internal_remote_id());
+  }
+  if (from.rssi() != 0) {
+    _internal_set_rssi(from._internal_rssi());
+  }
+}
+
+void ReadRssiResult::CopyFrom(const ReadRssiResult& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proto.gen.ReadRssiResult)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ReadRssiResult::IsInitialized() const {
+  return true;
+}
+
+void ReadRssiResult::InternalSwap(ReadRssiResult* other) {
+  using std::swap;
+  _internal_metadata_.Swap<std::string>(&other->_internal_metadata_);
+  remote_id_.Swap(&other->remote_id_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  swap(rssi_, other->rssi_);
+}
+
+std::string ReadRssiResult::GetTypeName() const {
+  return "proto.gen.ReadRssiResult";
+}
+
+
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace gen
 }  // namespace proto
@@ -8282,6 +8515,9 @@ template<> PROTOBUF_NOINLINE ::proto::gen::MtuSizeRequest* Arena::CreateMaybeMes
 }
 template<> PROTOBUF_NOINLINE ::proto::gen::MtuSizeResponse* Arena::CreateMaybeMessage< ::proto::gen::MtuSizeResponse >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proto::gen::MtuSizeResponse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proto::gen::ReadRssiResult* Arena::CreateMaybeMessage< ::proto::gen::ReadRssiResult >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proto::gen::ReadRssiResult >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 
