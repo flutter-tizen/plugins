@@ -14,10 +14,37 @@ dependencies:
   google_sign_in_tizen: ^1.0.0
 ```
 
-Then you can import `google_sign_in` in your Dart code:
+For detailed usage on how to use `google_sign_in`, see https://pub.dev/packages/google_sign_in#usage.
+
+## Tizen integration
+
+To access Google Sign-In for Tizen, you'll need to make sure to [register your application for TVs and limited input devices](https://developers.google.com/identity/gsi/web/guides/devices).
+
+### Additional code requirements
+
+`google_sign_in_tizen` uses [OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628) (device flow) which has a different authorization flow than [Authorization Code Grant with PKCE](https://datatracker.ietf.org/doc/html/rfc7636) used for endorsed platforms (Android, iOS, and web). One of the key differences is requiring *client secret* parameter during token request, therefore it must be made available to the plugin before calling `google_sign_in`'s API.
 
 ```dart
-import 'package:google_sign_in/google_sign_in.dart';
+import `package:google_sign_in_tizen/google_sign_in_tizen.dart as tizen`
+
+tizen.setCredentials(
+  clientId: 'YOUR_CLIENT_ID',
+  clientSecret: 'YOUR_CLIENT_SECRET',
+);
 ```
 
-For detailed usage, see https://pub.dev/packages/google_sign_in#usage.
+Storing client secret in code is considered bad practice as it exposes [security vulnerabilites](https://datatracker.ietf.org/doc/html/rfc8628#section-5.6). Therefore Google allows a [limited set of scopes](https://developers.google.com/identity/protocols/oauth2/limited-input-device#allowedscopes) that can be requested for device flow. Nevertheless, you can perform extra steps to protect your credentials better.
+
+1. Do not upload credentials to public repositories.
+
+Anyone who has access to your credentials can impersonate your client app. Make sure to not upload your production credentials in any source code repositories. See the [example app](/example/) for a simple demonstration.
+
+2. Obfuscate code in production.
+
+Client secrets can still be extracted from binary with reverse engineering, but it can be made challenging with [code obfuscation](https://en.wikipedia.org/wiki/Obfuscation_(software)).
+
+```bash
+flutter-tizen build tpk --obfuscate --split-debug-info=/<project-name>/<directory>
+```
+
+See [Obfuscating Dart code](https://docs.flutter.dev/deployment/obfuscate) for more information.

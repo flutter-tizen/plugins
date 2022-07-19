@@ -9,12 +9,12 @@ import 'dart:convert' show json;
 
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:google_sign_in_tizen/google_sign_in_tizen.dart';
+import 'package:google_sign_in_tizen/google_sign_in_tizen.dart' as tizen;
 import 'package:http/http.dart' as http;
 
+import 'credentials.dart' as credentials;
+
 GoogleSignIn _googleSignIn = GoogleSignIn(
-  // Optional clientId
-  // clientId: '479882132969-9i9aqik3jfjd7qhci1nqf0bm2g71rm1u.apps.googleusercontent.com',
   scopes: <String>[
     'email',
     'profile',
@@ -22,10 +22,14 @@ GoogleSignIn _googleSignIn = GoogleSignIn(
 );
 
 void main() {
+  tizen.setCredentials(
+    clientId: credentials.cliendId,
+    clientSecret: credentials.clientSecret,
+  );
   runApp(
     MaterialApp(
       title: 'Google Sign In',
-      navigatorKey: getGoogleSignInTizenNavigatorKey(),
+      navigatorKey: tizen.getGoogleSignInTizenNavigatorKey(),
       home: const SignInDemo(),
     ),
   );
