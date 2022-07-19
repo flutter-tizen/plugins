@@ -8,7 +8,7 @@ import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 
 import 'authorization_exception.dart';
-import 'usercode_display_widget.dart';
+import 'device_flow_widget.dart';
 
 final Uri _authorizationEndPoint =
     Uri.parse('https://oauth2.googleapis.com/device/code');
