@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 
-import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 
 import 'authorization_exception.dart';
@@ -262,9 +261,6 @@ class _TokenResponse {
 ///  - [OAuth 2.0 Device Authorization Grant spec](https://datatracker.ietf.org/doc/html/rfc8628)
 ///  - [OpenID Connect spec](https://openid.net/specs/openid-connect-core-1_0.html)
 class GoogleSignIn {
-  // TODO(HakkyuKim): Consider moving the field to `user_display_widget.dart`.
-  GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
   /// The currently signed in user.
   GoogleUser? _user;
 
@@ -299,7 +295,7 @@ class GoogleSignIn {
           configuration: configuration,
         );
         timer.cancel();
-        closeUserCodeDialog(navigatorKey);
+        closeDeviceFlowWidget();
         completer.complete();
       } on AuthorizationException catch (e) {
         // TODO(HakkyuKim): Handle 'slow_down' error.
@@ -315,10 +311,9 @@ class GoogleSignIn {
       }
     });
 
-    displayUserCodeDialog(
+    showDeviceFlowWidget(
       authorizationResponse.userCode,
       authorizationResponse.verificationUrl,
-      navigatorKey,
       () {
         timer.cancel();
         completer.complete();

@@ -5,22 +5,21 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
-import 'package:google_sign_in_tizen/src/google_sign_in.dart';
+
+import 'src/google_sign_in.dart';
+import 'src/usercode_display_widget.dart' as device_flow;
 
 /// Sets a custom [GlobalKey\<NavigatorState>] object used for pushing a Flutter
 /// widget that displays "user_code" and "verification_uri".
-void setNavigatorKey(GlobalKey<NavigatorState> key) {
-  (GoogleSignInPlatform.instance as GoogleSignInTizen)._navigatorKey = key;
-}
+void setNavigatorKey(GlobalKey<NavigatorState> key) =>
+    device_flow.navigatorKey = key;
 
 /// Returns a [GlobalKey\<NavigatorState>] object currently used for pushing a
 /// Flutter widget that displays "user_code" and "verification_uri".
 ///
 /// A default key used by the plugin will be returned unless a custom key was
 /// provided with [setNavigatorKey].
-GlobalKey<NavigatorState> getNavigatorKey() {
-  return (GoogleSignInPlatform.instance as GoogleSignInTizen)._navigatorKey;
-}
+GlobalKey<NavigatorState> getNavigatorKey() => device_flow.navigatorKey;
 
 /// Sets [clientId] and [clientSecret] to be used for GoogleSignIn authentication.
 ///
@@ -44,12 +43,6 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   Configuration? _configuration;
 
-  GlobalKey<NavigatorState> get _navigatorKey => _googleSignIn.navigatorKey;
-
-  set _navigatorKey(GlobalKey<NavigatorState> key) {
-    _googleSignIn.navigatorKey = key;
-  }
-
   void _setCredentials({
     required String clientId,
     required String clientSecret,
@@ -67,7 +60,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
             "in google_sign_in_tizen.dart before calling GoogleSignIn's signIn API.",
       );
     }
-    if (_navigatorKey.currentContext == null) {
+    if (device_flow.navigatorKey.currentContext == null) {
       throw PlatformException(
         code: 'navigatorkey-unassigned',
         message: 'Cannot initialize GoogleSignInTizen: a default or custom '
