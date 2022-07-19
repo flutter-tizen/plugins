@@ -2,18 +2,24 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:google_sign_in_tizen/src/google_sign_in.dart';
 
-// TODO(HakkyuKim): Add documentation.
-void setGoogleSignInTizenNavigatorKey(GlobalKey<NavigatorState> key) {
-  (GoogleSignInPlatform.instance as GoogleSignInTizen).navigatorKey = key;
+/// Sets a custom [GlobalKey\<NavigatorState>] object used for pushing a Flutter
+/// widget that displays "user_code" and "verification_uri".
+void setNavigatorKey(GlobalKey<NavigatorState> key) {
+  (GoogleSignInPlatform.instance as GoogleSignInTizen)._navigatorKey = key;
 }
 
-// TODO(HakkyuKim): Add documentation.
-GlobalKey<NavigatorState> getGoogleSignInTizenNavigatorKey() {
-  return (GoogleSignInPlatform.instance as GoogleSignInTizen).navigatorKey;
+/// Returns a [GlobalKey\<NavigatorState>] object currently used for pushing a
+/// Flutter widget that displays "user_code" and "verification_uri".
+///
+/// A default key used by the plugin will be returned unless a custom key was
+/// provided with [setNavigatorKey].
+GlobalKey<NavigatorState> getNavigatorKey() {
+  return (GoogleSignInPlatform.instance as GoogleSignInTizen)._navigatorKey;
 }
 
 /// Sets [clientId] and [clientSecret] to be used for GoogleSignIn authentication.
@@ -38,11 +44,9 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   Configuration? _configuration;
 
-  // TODO(HakkyuKim): Add documentation.
-  GlobalKey<NavigatorState> get navigatorKey => _googleSignIn.navigatorKey;
+  GlobalKey<NavigatorState> get _navigatorKey => _googleSignIn.navigatorKey;
 
-  // TODO(HakkyuKim): Add documentation.
-  set navigatorKey(GlobalKey<NavigatorState> key) {
+  set _navigatorKey(GlobalKey<NavigatorState> key) {
     _googleSignIn.navigatorKey = key;
   }
 
@@ -54,6 +58,27 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
         Configuration(clientId: clientId, clientSecret: clientSecret);
   }
 
+  void _ensureInitialized() {
+    if (_configuration == null) {
+      throw PlatformException(
+        code: 'credentials-missing',
+        message: 'Cannot initialize GoogleSignInTizen: ClientID and '
+            'ClientSecret has not been set, first call `setCredentials` '
+            "in google_sign_in_tizen.dart before calling GoogleSignIn's signIn API.",
+      );
+    }
+    if (_navigatorKey.currentContext == null) {
+      throw PlatformException(
+        code: 'navigatorkey-unassigned',
+        message: 'Cannot initialize GoogleSignInTizen: a default or custom '
+            'navigator key must be assigned to `navigatorKey` parameter in '
+            '`MaterialApp` or `CupertinoApp`. To get a default navigator key, '
+            'call getNavigatorKey, to provide a custom one, call setNavigatorKey '
+            'in google_sign_in_tizen.dart.',
+      );
+    }
+  }
+
   @override
   Future<void> init({
     List<String> scopes = const <String>[],
@@ -61,17 +86,23 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     String? hostedDomain,
     String? clientId,
   }) async {
-    // TODO(HakkyuKim): Throw if navigator has not been set.
-
-    assert(
-        clientId == null,
-        'ClientID cannot be set when initializing GoogleSignIn for Tizen. '
-        'Instead call `setCredentials` in google_sign_in_tizen.dart.');
-
-    if (_configuration == null) {
-      throw Exception('ClientID and ClientSecret has not been set. '
-          'Call `setCredentials` in google_sign_in_tizen.dart.');
+    if (signInOption == SignInOption.games) {
+      throw PlatformException(
+        code: 'unsupported-options',
+        message: 'Games sign in is not supported on Tizen.',
+      );
     }
+
+    if (clientId != null) {
+      throw PlatformException(
+        code: 'invalid-parameter',
+        message:
+            'ClientID cannot be set when initializing GoogleSignIn for Tizen, '
+            'instead call `setCredentials` in google_sign_in_tizen.dart.',
+      );
+    }
+
+    _ensureInitialized();
 
     _configuration = Configuration(
       clientId: _configuration!.clientId,
@@ -87,9 +118,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   @override
   Future<GoogleSignInUserData?> signIn() async {
-    if (_configuration == null) {
-      throw Exception('GoogleSignInTizen has not been initialized.');
-    }
+    _ensureInitialized();
 
     final GoogleUser? user = await _googleSignIn.signIn(_configuration!);
     if (user != null) {
