@@ -4,26 +4,32 @@
 
 #include "tizen_app_info.h"
 
-#include <map>
-
 #include "log.h"
 
+TizenAppInfo::~TizenAppInfo() {
+  if (app_info_) {
+    app_info_destroy(app_info_);
+  }
+}
+
 std::string TizenAppInfo::GetAppId() {
-  int ret = app_info_get_app_id(app_info_, &app_id_);
+  char *app_id = nullptr;
+  int ret = app_info_get_app_id(app_info_, &app_id);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("get app Id error ! : %s", get_error_message(ret));
+    LOG_ERROR("Failed to get app ID: %s", get_error_message(ret));
     last_error_ = ret;
     return std::string();
   }
-  return std::string(app_id_);
+  std::string result = std::string(app_id);
+  free(app_id);
+  return result;
 }
 
 std::string TizenAppInfo::GetPackageId() {
   char *package_id = nullptr;
-
   int ret = app_info_get_package(app_info_, &package_id);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("get package Id error! : %s", get_error_message(ret));
+    LOG_ERROR("Failed to get package ID: %s", get_error_message(ret));
     last_error_ = ret;
     return std::string();
   }
@@ -34,10 +40,9 @@ std::string TizenAppInfo::GetPackageId() {
 
 std::string TizenAppInfo::GetLabel() {
   char *label = nullptr;
-
   int ret = app_info_get_label(app_info_, &label);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("get application label error! : %s", get_error_message(ret));
+    LOG_ERROR("Failed to get app label: %s", get_error_message(ret));
     last_error_ = ret;
     return std::string();
   }
@@ -48,10 +53,9 @@ std::string TizenAppInfo::GetLabel() {
 
 std::string TizenAppInfo::GetType() {
   char *type = nullptr;
-
   int ret = app_info_get_type(app_info_, &type);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("get application type error! : %s", get_error_message(ret));
+    LOG_ERROR("Failed to get app type: %s", get_error_message(ret));
     last_error_ = ret;
     return std::string();
   }
@@ -61,72 +65,55 @@ std::string TizenAppInfo::GetType() {
 }
 
 std::string TizenAppInfo::GetIconPath() {
-  char *icon_path = nullptr;
-
-  int ret = app_info_get_icon(app_info_, &icon_path);
+  char *path = nullptr;
+  int ret = app_info_get_icon(app_info_, &path);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("get icon path error! : %s", get_error_message(ret));
-    // because some system app and service app don't have icon,
-    // just print error log, and pass it
+    // Some system apps and service apps may not have icons.
+    LOG_INFO("Failed to get icon path: %s", get_error_message(ret));
     return std::string();
   }
-  std::string result = std::string(icon_path);
-  free(icon_path);
+  std::string result = std::string(path);
+  free(path);
   return result;
 }
 
 std::string TizenAppInfo::GetExecutablePath() {
-  char *executable_path = nullptr;
-
-  int ret = app_info_get_exec(app_info_, &executable_path);
+  char *path = nullptr;
+  int ret = app_info_get_exec(app_info_, &path);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("get exec path error! : %s", get_error_message(ret));
+    LOG_ERROR("Failed to get app executable path: %s", get_error_message(ret));
     last_error_ = ret;
     return std::string();
   }
-  std::string result = std::string(executable_path);
-  free(executable_path);
+  std::string result = std::string(path);
+  free(path);
   return result;
 }
 
-std::string TizenAppInfo::GetSharedResourcePath() {
-  char *shared_res_path = nullptr;
-
-  int ret = app_manager_get_shared_resource_path(app_id_, &shared_res_path);
+bool TizenAppInfo::IsNoDisplay() {
+  bool value = false;
+  int ret = app_info_is_nodisplay(app_info_, &value);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("get shared resource path error! : %s", get_error_message(ret));
-    last_error_ = ret;
-    return std::string();
-  }
-  std::string result = std::string(shared_res_path);
-  free(shared_res_path);
-  return result;
-}
-
-bool TizenAppInfo::GetIsNoDisplay() {
-  bool is_no_display = false;
-
-  int ret = app_info_is_nodisplay(app_info_, &is_no_display);
-  if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("app_info_is_nodisplay error! : %s", get_error_message(ret));
+    LOG_ERROR("Failed to get nodisplay info: %s", get_error_message(ret));
     last_error_ = ret;
   }
-  return is_no_display;
+  return value;
 }
 
-void TizenAppInfo::GetForEachMetadata(app_info_metadata_cb callback,
-                                      void *user_data) {
-  int ret = app_info_foreach_metadata(app_info_, callback, user_data);
+std::map<std::string, std::string> TizenAppInfo::GetMetadata() {
+  std::map<std::string, std::string> map;
+  int ret = app_info_foreach_metadata(
+      app_info_,
+      [](const char *key, const char *value, void *user_data) -> bool {
+        auto *map =
+            static_cast<std::map<std::string, std::string> *>(user_data);
+        map->insert(std::pair<std::string, std::string>(key, value));
+        return true;
+      },
+      &map);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("app_info_foreach_metadata error! : %s", get_error_message(ret));
+    LOG_ERROR("Failed to get app metadata: %s", get_error_message(ret));
     last_error_ = ret;
-    return;
   }
-  return;
-}
-
-TizenAppInfo::~TizenAppInfo() {
-  if (app_id_) {
-    free(app_id_);
-  }
+  return map;
 }
