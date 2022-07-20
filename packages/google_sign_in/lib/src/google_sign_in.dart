@@ -312,9 +312,14 @@ class GoogleSignIn {
     });
 
     showDeviceFlowWidget(
-      authorizationResponse.userCode,
-      authorizationResponse.verificationUrl,
-      () {
+      code: authorizationResponse.userCode,
+      verificationUrl: authorizationResponse.verificationUrl,
+      expiresIn: authorizationResponse.expiresIn,
+      onExpired: () {
+        timer.cancel();
+        completer.complete();
+      },
+      onCancelled: () {
         timer.cancel();
         completer.complete();
       },
