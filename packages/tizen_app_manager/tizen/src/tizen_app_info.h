@@ -8,6 +8,7 @@
 #include <app_manager.h>
 
 #include <map>
+#include <optional>
 #include <string>
 
 class TizenAppInfo {
@@ -16,19 +17,19 @@ class TizenAppInfo {
 
   ~TizenAppInfo();
 
-  std::string GetAppId();
+  std::optional<std::string> GetAppId();
 
-  std::string GetPackageId();
+  std::optional<std::string> GetPackageId();
 
-  std::string GetLabel();
+  std::optional<std::string> GetLabel();
 
-  std::string GetType();
+  std::optional<std::string> GetType();
 
-  std::string GetIconPath();
+  std::optional<std::string> GetIconPath();
 
-  std::string GetExecutablePath();
+  std::optional<std::string> GetExecutablePath();
 
-  bool IsNoDisplay();
+  std::optional<bool> IsNoDisplay();
 
   std::map<std::string, std::string> GetMetadata();
 

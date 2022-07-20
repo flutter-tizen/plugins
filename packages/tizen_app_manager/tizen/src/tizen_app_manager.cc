@@ -81,13 +81,14 @@ std::vector<std::unique_ptr<TizenAppInfo>> TizenAppManager::GetAllAppsInfo() {
   return list;
 }
 
-std::string TizenAppManager::GetSharedResourcePath(const std::string &app_id) {
+std::optional<std::string> TizenAppManager::GetSharedResourcePath(
+    const std::string &app_id) {
   char *path = nullptr;
   int ret = app_manager_get_shared_resource_path(app_id.c_str(), &path);
   if (ret != APP_MANAGER_ERROR_NONE) {
     LOG_ERROR("Failed to get shared resource path: %s", get_error_message(ret));
     last_error_ = ret;
-    return std::string();
+    return std::nullopt;
   }
   std::string result = std::string(path);
   free(path);

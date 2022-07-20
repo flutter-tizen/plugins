@@ -11,6 +11,9 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include <optional>
+#include <string>
+
 #include "log.h"
 #include "tizen_app_info.h"
 #include "tizen_app_manager.h"
@@ -150,46 +153,47 @@ class TizenAppManagerPlugin : public flutter::Plugin {
       TizenAppInfo *app_info,
       std::function<void(flutter::EncodableMap map)> on_success,
       std::function<void(int error_code, std::string error_string)> on_error) {
-    std::string app_id = app_info->GetAppId();
-    if (app_id.empty()) {
+    std::optional<std::string> app_id = app_info->GetAppId();
+    if (!app_id.has_value()) {
       on_error(app_info->GetLastError(), app_info->GetLastErrorString());
       return;
     }
 
-    std::string package_id = app_info->GetPackageId();
-    if (package_id.empty()) {
+    std::optional<std::string> package_id = app_info->GetPackageId();
+    if (!package_id.has_value()) {
       on_error(app_info->GetLastError(), app_info->GetLastErrorString());
       return;
     }
 
-    std::string label = app_info->GetLabel();
-    if (label.empty()) {
+    std::optional<std::string> label = app_info->GetLabel();
+    if (!label.has_value()) {
       on_error(app_info->GetLastError(), app_info->GetLastErrorString());
       return;
     }
 
-    std::string type = app_info->GetType();
-    if (type.empty()) {
+    std::optional<std::string> type = app_info->GetType();
+    if (!type.has_value()) {
       on_error(app_info->GetLastError(), app_info->GetLastErrorString());
       return;
     }
 
-    std::string icon_path = app_info->GetIconPath();
+    std::optional<std::string> icon_path = app_info->GetIconPath();
 
-    std::string executable_path = app_info->GetExecutablePath();
-    if (executable_path.empty()) {
+    std::optional<std::string> executable_path = app_info->GetExecutablePath();
+    if (!executable_path.has_value()) {
       on_error(app_info->GetLastError(), app_info->GetLastErrorString());
       return;
     }
 
     TizenAppManager &app_manager = TizenAppManager::GetInstance();
-    std::string shared_res_path = app_manager.GetSharedResourcePath(app_id);
-    if (shared_res_path.empty()) {
+    std::optional<std::string> shared_res_path =
+        app_manager.GetSharedResourcePath(app_id.value());
+    if (!shared_res_path.has_value()) {
       on_error(app_manager.GetLastError(), app_manager.GetLastErrorString());
       return;
     }
 
-    bool is_no_display = app_info->IsNoDisplay();
+    std::optional<bool> is_no_display = app_info->IsNoDisplay();
 
     flutter::EncodableMap metadata;
     for (const auto &[key, value] : app_info->GetMetadata()) {
@@ -197,20 +201,23 @@ class TizenAppManagerPlugin : public flutter::Plugin {
     }
 
     flutter::EncodableMap result = {
-        {flutter::EncodableValue("appId"), flutter::EncodableValue(app_id)},
+        {flutter::EncodableValue("appId"),
+         flutter::EncodableValue(app_id.value())},
         {flutter::EncodableValue("packageId"),
-         flutter::EncodableValue(package_id)},
-        {flutter::EncodableValue("label"), flutter::EncodableValue(label)},
-        {flutter::EncodableValue("type"), flutter::EncodableValue(type)},
+         flutter::EncodableValue(package_id.value())},
+        {flutter::EncodableValue("label"),
+         flutter::EncodableValue(label.value())},
+        {flutter::EncodableValue("type"),
+         flutter::EncodableValue(type.value())},
         {flutter::EncodableValue("iconPath"),
-         icon_path.empty() ? flutter::EncodableValue()
-                           : flutter::EncodableValue(icon_path)},
+         icon_path.has_value() ? flutter::EncodableValue(icon_path.value())
+                               : flutter::EncodableValue()},
         {flutter::EncodableValue("executablePath"),
-         flutter::EncodableValue(executable_path)},
+         flutter::EncodableValue(executable_path.value())},
         {flutter::EncodableValue("sharedResourcePath"),
-         flutter::EncodableValue(shared_res_path)},
+         flutter::EncodableValue(shared_res_path.value())},
         {flutter::EncodableValue("isNoDisplay"),
-         flutter::EncodableValue(is_no_display)},
+         flutter::EncodableValue(is_no_display.value())},
         {flutter::EncodableValue("metadata"),
          flutter::EncodableValue(metadata)},
     };
@@ -242,26 +249,18 @@ class TizenAppManagerPlugin : public flutter::Plugin {
     flutter::EncodableList list;
     for (const auto &app_info :
          TizenAppManager::GetInstance().GetAllAppsInfo()) {
-      int error;
-      std::string reason;
-
       AppInfoToEncodableMap(
           app_info.get(),
           [&list](flutter::EncodableMap map) {
             list.push_back(flutter::EncodableValue(map));
           },
-          [&error, &reason](int error_code, std::string error_string) {
-            error = error_code;
-            reason = error_string;
+          [app_info = app_info.get()](int error_code,
+                                      std::string error_string) {
+            std::optional<std::string> app_id = app_info->GetAppId();
+            LOG_ERROR("Failed to get app info [%s]: %s",
+                      app_id.has_value() ? app_id->c_str() : "",
+                      error_string.c_str());
           });
-
-      if (error) {
-        std::string app_id = app_info->GetAppId();
-        result->Error(
-            std::to_string(error),
-            "Failed to get app info for app ID " + app_id + ": " + reason);
-        return;
-      }
     }
     result->Success(flutter::EncodableValue(list));
   }

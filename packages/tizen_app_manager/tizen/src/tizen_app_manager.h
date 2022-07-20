@@ -30,7 +30,7 @@ class TizenAppManager {
 
   std::vector<std::unique_ptr<TizenAppInfo>> GetAllAppsInfo();
 
-  std::string GetSharedResourcePath(const std::string& app_id);
+  std::optional<std::string> GetSharedResourcePath(const std::string& app_id);
 
   bool IsAppRunning(const std::string& app_id);
 
