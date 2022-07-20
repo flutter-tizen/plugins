@@ -15,7 +15,7 @@ TizenAppManager::TizenAppManager() {
         char *app_id = nullptr;
         int ret = app_context_get_app_id(app_context, &app_id);
         if (ret != APP_MANAGER_ERROR_NONE) {
-          LOG_ERROR("Failed to get app ID from context: %s",
+          LOG_ERROR("Failed to get app ID from the context: %s",
                     get_error_message(ret));
           return;
         }
@@ -40,7 +40,7 @@ TizenAppManager::TizenAppManager() {
             return;
           }
         }
-        // No callback has been registered. Destroy immediately.
+        // No callback has been registered. Destroy the context immediately.
         app_context_destroy(clone_context);
       },
       this);
@@ -107,7 +107,7 @@ std::optional<std::string> TizenAppManager::GetSharedResourcePath(
 }
 
 std::optional<bool> TizenAppManager::IsAppRunning(const std::string &app_id) {
-  bool is_running;
+  bool is_running = false;
   int ret = app_manager_is_running(app_id.c_str(), &is_running);
   if (ret != APP_MANAGER_ERROR_NONE) {
     LOG_ERROR("Failed to check if app is running: %s", get_error_message(ret));

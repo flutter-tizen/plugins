@@ -87,8 +87,6 @@ class AppContextStreamHandler : public FlStreamHandler {
 
 class TizenAppManagerPlugin : public flutter::Plugin {
  public:
-  using MethodResultPtr = std::unique_ptr<FlMethodResult>;
-
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto plugin = std::make_unique<TizenAppManagerPlugin>();
 
@@ -216,7 +214,7 @@ class TizenAppManagerPlugin : public flutter::Plugin {
     }
   }
 
-  void GetCurrentAppId(MethodResultPtr result) {
+  void GetCurrentAppId(std::unique_ptr<FlMethodResult> result) {
     char *app_id = nullptr;
     int ret = app_get_id(&app_id);
     if (ret == APP_ERROR_NONE) {
@@ -228,7 +226,7 @@ class TizenAppManagerPlugin : public flutter::Plugin {
   }
 
   void GetAppInfo(const flutter::EncodableMap *arguments,
-                  MethodResultPtr result) {
+                  std::unique_ptr<FlMethodResult> result) {
     std::string app_id;
     if (!GetValueFromEncodableMap(arguments, "appId", app_id)) {
       result->Error("Invalid arguments", "No appId provided.");
@@ -248,7 +246,7 @@ class TizenAppManagerPlugin : public flutter::Plugin {
         });
   }
 
-  void GetInstalledApps(MethodResultPtr result) {
+  void GetInstalledApps(std::unique_ptr<FlMethodResult> result) {
     flutter::EncodableList list;
     for (const auto &app_info :
          TizenAppManager::GetInstance().GetAllAppsInfo()) {
@@ -269,7 +267,7 @@ class TizenAppManagerPlugin : public flutter::Plugin {
   }
 
   void IsAppRunning(const flutter::EncodableMap *arguments,
-                    MethodResultPtr result) {
+                    std::unique_ptr<FlMethodResult> result) {
     std::string app_id;
     if (!GetValueFromEncodableMap(arguments, "appId", app_id)) {
       result->Error("Invalid arguments", "No appId provided.");
