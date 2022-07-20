@@ -13,15 +13,16 @@ TizenAppManager::TizenAppManager() {
         auto *self = static_cast<TizenAppManager *>(user_data);
 
         char *app_id = nullptr;
-        app_context_h clone_context = nullptr;
         int ret = app_context_get_app_id(app_context, &app_id);
         if (ret != APP_MANAGER_ERROR_NONE) {
-          LOG_ERROR("Failed to get app ID: %s", get_error_message(ret));
+          LOG_ERROR("Failed to get app ID from context: %s",
+                    get_error_message(ret));
           return;
         }
         std::string app_id_str = std::string(app_id);
         free(app_id);
 
+        app_context_h clone_context = nullptr;
         ret = app_context_clone(&clone_context, app_context);
         if (ret != APP_MANAGER_ERROR_NONE) {
           LOG_ERROR("Failed to clone app context: %s", get_error_message(ret));
@@ -39,9 +40,15 @@ TizenAppManager::TizenAppManager() {
             return;
           }
         }
+        // No callback has been registered. Destroy immediately.
         app_context_destroy(clone_context);
       },
       this);
+  if (ret != APP_MANAGER_ERROR_NONE) {
+    LOG_ERROR("Failed to set an app context event callback: %s",
+              get_error_message(ret));
+    last_error_ = ret;
+  }
 }
 
 TizenAppManager::~TizenAppManager() {
@@ -54,6 +61,7 @@ std::unique_ptr<TizenAppInfo> TizenAppManager::GetAppInfo(
   int ret = app_manager_get_app_info(app_id.c_str(), &app_info);
   if (ret != APP_MANAGER_ERROR_NONE) {
     LOG_ERROR("Failed to retrieve app info: %s", get_error_message(ret));
+    last_error_ = ret;
     return nullptr;
   }
   return std::make_unique<TizenAppInfo>(app_info);
@@ -65,18 +73,21 @@ std::vector<std::unique_ptr<TizenAppInfo>> TizenAppManager::GetAllAppsInfo() {
       [](app_info_h app_info, void *user_data) {
         auto *list = static_cast<std::vector<std::unique_ptr<TizenAppInfo>> *>(
             user_data);
+
         app_info_h clone_info = nullptr;
         int ret = app_info_clone(&clone_info, app_info);
         if (ret != APP_MANAGER_ERROR_NONE) {
           LOG_ERROR("Failed to clone app info: %s", get_error_message(ret));
-        } else {
-          list->push_back(std::make_unique<TizenAppInfo>(clone_info));
+          return true;
         }
+
+        list->push_back(std::make_unique<TizenAppInfo>(clone_info));
         return true;
       },
       &list);
   if (ret != APP_MANAGER_ERROR_NONE) {
     LOG_ERROR("Failed to retrieve all app info: %s", get_error_message(ret));
+    last_error_ = ret;
   }
   return list;
 }
@@ -95,13 +106,13 @@ std::optional<std::string> TizenAppManager::GetSharedResourcePath(
   return result;
 }
 
-bool TizenAppManager::IsAppRunning(const std::string &app_id) {
+std::optional<bool> TizenAppManager::IsAppRunning(const std::string &app_id) {
   bool is_running;
   int ret = app_manager_is_running(app_id.c_str(), &is_running);
   if (ret != APP_MANAGER_ERROR_NONE) {
     LOG_ERROR("Failed to check if app is running: %s", get_error_message(ret));
     last_error_ = ret;
-    return false;
+    return std::nullopt;
   }
   return is_running;
 }

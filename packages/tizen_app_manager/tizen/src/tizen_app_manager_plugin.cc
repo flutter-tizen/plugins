@@ -6,11 +6,13 @@
 
 #include <app.h>
 #include <flutter/event_channel.h>
-#include <flutter/event_stream_handler_functions.h>
+#include <flutter/event_sink.h>
+#include <flutter/event_stream_handler.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -62,10 +64,11 @@ class AppContextStreamHandler : public FlStreamHandler {
       events_->Success(flutter::EncodableValue(map));
     };
 
+    TizenAppManager &app_manager = TizenAppManager::GetInstance();
     if (is_launch_) {
-      TizenAppManager::GetInstance().SetAppLaunchHandler(callback);
+      app_manager.SetAppLaunchHandler(callback);
     } else {
-      TizenAppManager::GetInstance().SetAppTerminateHandler(callback);
+      app_manager.SetAppTerminateHandler(callback);
     }
     return nullptr;
   }
@@ -117,38 +120,6 @@ class TizenAppManagerPlugin : public flutter::Plugin {
   virtual ~TizenAppManagerPlugin() {}
 
  private:
-  void HandleMethodCall(const FlMethodCall &method_call,
-                        std::unique_ptr<FlMethodResult> result) {
-    const auto &method_name = method_call.method_name();
-
-    if (method_name == "getCurrentAppId") {
-      GetCurrentAppId(std::move(result));
-    } else if (method_name == "getAppInfo") {
-      const auto *arguments =
-          std::get_if<flutter::EncodableMap>(method_call.arguments());
-      GetAppInfo(arguments, std::move(result));
-    } else if (method_name == "getInstalledApps") {
-      GetInstalledApps(std::move(result));
-    } else if (method_name == "isRunning") {
-      const auto *arguments =
-          std::get_if<flutter::EncodableMap>(method_call.arguments());
-      IsAppRunning(arguments, std::move(result));
-    } else {
-      result->NotImplemented();
-    }
-  }
-
-  void GetCurrentAppId(MethodResultPtr result) {
-    char *app_id = nullptr;
-    int ret = app_get_id(&app_id);
-    if (ret == APP_ERROR_NONE) {
-      result->Success(flutter::EncodableValue(std::string(app_id)));
-      free(app_id);
-    } else {
-      result->Error(std::to_string(ret), get_error_message(ret));
-    }
-  }
-
   static void AppInfoToEncodableMap(
       TizenAppInfo *app_info,
       std::function<void(flutter::EncodableMap map)> on_success,
@@ -224,9 +195,41 @@ class TizenAppManagerPlugin : public flutter::Plugin {
     on_success(result);
   }
 
+  void HandleMethodCall(const FlMethodCall &method_call,
+                        std::unique_ptr<FlMethodResult> result) {
+    const auto &method_name = method_call.method_name();
+
+    if (method_name == "getCurrentAppId") {
+      GetCurrentAppId(std::move(result));
+    } else if (method_name == "getAppInfo") {
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
+      GetAppInfo(arguments, std::move(result));
+    } else if (method_name == "getInstalledApps") {
+      GetInstalledApps(std::move(result));
+    } else if (method_name == "isRunning") {
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
+      IsAppRunning(arguments, std::move(result));
+    } else {
+      result->NotImplemented();
+    }
+  }
+
+  void GetCurrentAppId(MethodResultPtr result) {
+    char *app_id = nullptr;
+    int ret = app_get_id(&app_id);
+    if (ret == APP_ERROR_NONE) {
+      result->Success(flutter::EncodableValue(std::string(app_id)));
+      free(app_id);
+    } else {
+      result->Error(std::to_string(ret), get_error_message(ret));
+    }
+  }
+
   void GetAppInfo(const flutter::EncodableMap *arguments,
                   MethodResultPtr result) {
-    std::string app_id = "";
+    std::string app_id;
     if (!GetValueFromEncodableMap(arguments, "appId", app_id)) {
       result->Error("Invalid arguments", "No appId provided.");
       return;
@@ -273,8 +276,14 @@ class TizenAppManagerPlugin : public flutter::Plugin {
       return;
     }
 
-    bool is_running = TizenAppManager::GetInstance().IsAppRunning(app_id);
-    result->Success(flutter::EncodableValue(is_running));
+    TizenAppManager &app_manager = TizenAppManager::GetInstance();
+    std::optional<bool> is_running = app_manager.IsAppRunning(app_id);
+    if (!is_running.has_value()) {
+      result->Error(std::to_string(app_manager.GetLastError()),
+                    app_manager.GetLastErrorString());
+      return;
+    }
+    result->Success(flutter::EncodableValue(is_running.value()));
   }
 
   std::unique_ptr<FlEventChannel> launch_event_channel_;

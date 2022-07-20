@@ -9,7 +9,9 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 #include "tizen_app_info.h"
 
@@ -32,7 +34,7 @@ class TizenAppManager {
 
   std::optional<std::string> GetSharedResourcePath(const std::string& app_id);
 
-  bool IsAppRunning(const std::string& app_id);
+  std::optional<bool> IsAppRunning(const std::string& app_id);
 
   void SetAppLaunchHandler(OnAppContextEvent on_launch) {
     launch_callback_ = on_launch;
