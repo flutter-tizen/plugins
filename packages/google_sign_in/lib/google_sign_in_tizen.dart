@@ -51,7 +51,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
         Configuration(clientId: clientId, clientSecret: clientSecret);
   }
 
-  void _ensureInitialized() {
+  void _ensureConfigurationInitialized() {
     if (_configuration == null) {
       throw PlatformException(
         code: 'credentials-missing',
@@ -60,6 +60,9 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
             "in google_sign_in_tizen.dart before calling GoogleSignIn's signIn API.",
       );
     }
+  }
+
+  void _ensureNavigatorKeyInitialized() {
     if (device_flow_widget.navigatorKey.currentContext == null) {
       throw PlatformException(
         code: 'navigatorkey-unassigned',
@@ -95,8 +98,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
       );
     }
 
-    _ensureInitialized();
-
+    _ensureConfigurationInitialized();
     _configuration = Configuration(
       clientId: _configuration!.clientId,
       clientSecret: _configuration!.clientSecret,
@@ -111,7 +113,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   @override
   Future<GoogleSignInUserData?> signIn() async {
-    _ensureInitialized();
+    _ensureConfigurationInitialized();
+    _ensureNavigatorKeyInitialized();
 
     final GoogleUser? user = await _googleSignIn.signIn(_configuration!);
     if (user != null) {
@@ -128,8 +131,12 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   @override
   Future<GoogleSignInTokenData> getTokens(
       {required String email, bool? shouldRecoverAuth = true}) async {
-    // TODO(HakkyuKim): Handle token refresh if expired.
-    final Authentication? authentication = _googleSignIn.authentication;
+    _ensureConfigurationInitialized();
+    final Authentication? authentication =
+        await _googleSignIn.getAuthentication(
+      refresh: true,
+      clientSecret: _configuration!.clientSecret,
+    );
     if (authentication != null) {
       return GoogleSignInTokenData(
         accessToken: authentication.accessToken,

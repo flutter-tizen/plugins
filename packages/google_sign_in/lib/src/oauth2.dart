@@ -1,5 +1,6 @@
 import 'dart:convert' as convert;
 
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'authorization_exception.dart';
@@ -132,8 +133,8 @@ class DeviceAuthClient {
     required this.authorizationEndPoint,
     required this.tokenEndPoint,
     required this.revokeEndPoint,
-    required this.httpClient,
-  });
+    http.Client? httpClient,
+  }) : _httpClient = httpClient ?? http.Client();
 
   final Uri authorizationEndPoint;
 
@@ -141,7 +142,7 @@ class DeviceAuthClient {
 
   final Uri revokeEndPoint;
 
-  final http.Client httpClient;
+  final http.Client _httpClient;
 
   bool _isPolling = false;
 
@@ -157,7 +158,7 @@ class DeviceAuthClient {
     body['scope'] = scope.join(' ');
 
     final http.Response response =
-        await httpClient.post(authorizationEndPoint, body: body);
+        await _httpClient.post(authorizationEndPoint, body: body);
 
     final Map<String, dynamic> jsonResponse =
         convert.jsonDecode(response.body) as Map<String, dynamic>;
@@ -181,7 +182,7 @@ class DeviceAuthClient {
     };
 
     final http.Response response =
-        await httpClient.post(tokenEndPoint, body: body);
+        await _httpClient.post(tokenEndPoint, body: body);
     final Map<String, dynamic> jsonResponse =
         convert.jsonDecode(response.body) as Map<String, dynamic>;
 
@@ -199,7 +200,11 @@ class DeviceAuthClient {
     required Duration interval,
   }) async {
     if (isPolling) {
-      throw Exception('Already polling token.');
+      throw PlatformException(
+        code: 'already-polling',
+        message: 'Client is already polling token from server, cancel the '
+            'previous poll request before starting a new one.',
+      );
     }
     _isPolling = true;
     Duration currentInterval = Duration(seconds: interval.inSeconds);
@@ -238,7 +243,7 @@ class DeviceAuthClient {
     };
 
     final http.Response response =
-        await httpClient.post(revokeEndPoint, body: body);
+        await _httpClient.post(revokeEndPoint, body: body);
     final Map<String, dynamic> jsonResponse =
         convert.jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode != 200) {
@@ -247,17 +252,19 @@ class DeviceAuthClient {
   }
 
   Future<TokenResponse> refreshToken({
-    required String refreshToken,
+    required String clientId,
     required String clientSecret,
+    required String refreshToken,
   }) async {
     final Map<String, String> body = <String, String>{
-      'grant_type': 'refresh_token',
-      'refresh_token': refreshToken,
+      'client_id': clientId,
       'client_secret': clientSecret,
+      'refresh_token': refreshToken,
+      'grant_type': 'refresh_token',
     };
 
     final http.Response response =
-        await httpClient.post(tokenEndPoint, body: body);
+        await _httpClient.post(tokenEndPoint, body: body);
     final Map<String, dynamic> jsonResponse =
         convert.jsonDecode(response.body) as Map<String, dynamic>;
 

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:google_sign_in_tizen/src/oauth2.dart';
 import 'package:http/http.dart' as http;
 
@@ -144,16 +145,11 @@ class GoogleSignIn {
   /// signed in.
   GoogleUser? get user => _user;
 
-  /// Returns the [Authentication] object of the currently signed in user, returns
-  /// `null` if no user is signed in.
-  Authentication? get authentication => _user?.authentication;
-
   final DeviceAuthClient _authClient = DeviceAuthClient(
     authorizationEndPoint:
         Uri.parse('https://oauth2.googleapis.com/device/code'),
     tokenEndPoint: Uri.parse('https://oauth2.googleapis.com/token'),
     revokeEndPoint: Uri.parse('https://oauth2.googleapis.com/revoke'),
-    httpClient: http.Client(),
   );
 
   /// Starts the interactive sign-in flow.
@@ -165,8 +161,11 @@ class GoogleSignIn {
       return _user;
     }
 
-    final AuthorizationResponse authorizationResponse = await _authClient
-        .requestAuthorization(configuration.clientId, configuration.scope);
+    final AuthorizationResponse authorizationResponse =
+        await _authClient.requestAuthorization(
+      configuration.clientId,
+      configuration.scope,
+    );
 
     final Future<TokenResponse?> tokenResponseFuture = _authClient.pollToken(
       clientId: configuration.clientId,
@@ -190,6 +189,7 @@ class GoogleSignIn {
       return null;
     }
     closeDeviceFlowWidget();
+
     final Map<String, dynamic> jsonProfile =
         utils.decodeJWT(tokenResponse.idToken);
     final ProfileData profile = ProfileData.fromJson(jsonProfile);
@@ -211,6 +211,68 @@ class GoogleSignIn {
     );
 
     return _user;
+  }
+
+  /// Returns the [Authentication] of the currently signed in user, returns
+  /// `null` if no user is signed in.
+  ///
+  /// If [refresh] is `true`, expired tokens will be refreshed after
+  /// getting new tokens from the server. [clientSecret] cannot be `null` when
+  /// refresh is required.
+  Future<Authentication?> getAuthentication({
+    bool refresh = false,
+    String? clientSecret,
+  }) async {
+    if (_user == null) {
+      return null;
+    }
+    final GoogleUser user = _user!;
+    final Authentication authentication = user.authentication;
+
+    // Check access token is if expired.
+    const Duration minimalTimeToExpire = Duration(minutes: 1);
+    if (!refresh ||
+        authentication.accessTokenExpirationDate
+            .add(minimalTimeToExpire)
+            .isBefore(DateTime.now())) {
+      return authentication;
+    }
+
+    if (clientSecret == null) {
+      throw ArgumentError(
+          "Token expired: `clientSecret` can't be null when refresh is required",
+          'clientSecret');
+    }
+
+    if (authentication.refreshToken == null) {
+      throw PlatformException(
+        code: 'refresh-token-missing',
+        message: 'Cannot refresh tokens as refresh tokens are missing. '
+            'Request new tokens by signing-in again.',
+      );
+    }
+
+    final TokenResponse tokenResponse = await _authClient.refreshToken(
+      clientId: authentication.clientId,
+      clientSecret: clientSecret,
+      refreshToken: authentication.refreshToken!,
+    );
+
+    final Authentication newAuthentication = Authentication(
+      clientId: authentication.clientId,
+      accessToken: tokenResponse.accessToken,
+      accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
+      refreshToken: tokenResponse.refreshToken,
+      idToken: tokenResponse.idToken,
+    );
+
+    _user = GoogleUser(
+      userId: user.userId,
+      profile: user.profile,
+      authentication: newAuthentication,
+      scope: tokenResponse.scope,
+    );
+    return newAuthentication;
   }
 
   /// Signs out the currently signed in user.
