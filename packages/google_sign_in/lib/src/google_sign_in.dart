@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:google_sign_in_tizen/src/oauth2.dart';
-import 'package:http/http.dart' as http;
 
 import 'device_flow_widget.dart';
 import 'utils.dart' as utils;
@@ -55,7 +54,7 @@ class Configuration {
   final List<String> scope;
 }
 
-/// The class that represents OAuth 2.0 entities needed for sign-in.
+/// The class that represents OAuth 2.0 entities after sign-in.
 class Authentication {
   /// Creates an instance of [Authentication].
   const Authentication({
@@ -140,13 +139,7 @@ class ProfileData {
   }
 }
 
-/// The class that handles OAuth 2.0 Device Authorization Grant flow for Google SignIn.
-///
-/// See:
-///  - [Google SignIn guide for limited input devices](https://developers.google.com/identity/gsi/web/guides/devices)
-///  - [Google OAuth 2.0 guide for limited input devices](https://developers.google.com/identity/protocols/oauth2/limited-input-device)
-///  - [OAuth 2.0 Device Authorization Grant spec](https://datatracker.ietf.org/doc/html/rfc8628)
-///  - [OpenID Connect spec](https://openid.net/specs/openid-connect-core-1_0.html)
+/// The class that handles Google SignIn.
 class GoogleSignIn {
   /// The currently signed in user.
   GoogleUser? _user;

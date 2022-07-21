@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:convert' as convert;
 
 import 'package:flutter/services.dart';
@@ -127,6 +131,12 @@ class TokenResponse {
   final String idToken;
 }
 
+/// OAuth 2.0 client that handles Device Authorization Grant.
+/// See:
+///  - [Google SignIn guide for limited input devices](https://developers.google.com/identity/gsi/web/guides/devices)
+///  - [Google OAuth 2.0 guide for limited input devices](https://developers.google.com/identity/protocols/oauth2/limited-input-device)
+///  - [OAuth 2.0 Device Authorization Grant spec](https://datatracker.ietf.org/doc/html/rfc8628)
+///  - [OpenID Connect spec](https://openid.net/specs/openid-connect-core-1_0.html)
 class DeviceAuthClient {
   /// Creates an instance of [DeviceAuthClient].
   DeviceAuthClient({
@@ -136,20 +146,26 @@ class DeviceAuthClient {
     http.Client? httpClient,
   }) : _httpClient = httpClient ?? http.Client();
 
+  /// The server endpoint that returns authroization grant when user grants access.
   final Uri authorizationEndPoint;
 
+  /// The server endpoint that returns access token when given authorization grant.
   final Uri tokenEndPoint;
 
+  /// The server endpoint that revokes future access to issued tokens.
   final Uri revokeEndPoint;
 
   final http.Client _httpClient;
 
   bool _isPolling = false;
 
+  /// Checks whether polling started by by [pollToken] is in progress.
   bool get isPolling => _isPolling;
 
+  /// Stops poll request started by [pollToken].
   void cancelPollToken() => _isPolling = false;
 
+  /// Requests authroization grant from [authorizationEndPoint].
   Future<AuthorizationResponse> requestAuthorization(
       String clientId, List<String> scope) async {
     final Map<String, String> body = <String, String>{
@@ -169,6 +185,7 @@ class DeviceAuthClient {
     return AuthorizationResponse.fromJson(jsonResponse);
   }
 
+  /// Requests tokens from [tokenEndPoint].
   Future<TokenResponse> requestToken(
     String clientId,
     String clientSecret,
@@ -193,6 +210,7 @@ class DeviceAuthClient {
     return TokenResponse.fromJson(jsonResponse);
   }
 
+  /// Repeat sending token request to [tokenEndPoint] until user grants access.
   Future<TokenResponse?> pollToken({
     required String clientId,
     required String clientSecret,
@@ -237,6 +255,7 @@ class DeviceAuthClient {
     return null;
   }
 
+  /// Requests a revoke token request to [revokeEndPoint].
   Future<void> revokeToken(String token) async {
     final Map<String, String> body = <String, String>{
       'token': token,
@@ -251,6 +270,7 @@ class DeviceAuthClient {
     }
   }
 
+  /// Requests a refresh token request to [tokenEndPoint].
   Future<TokenResponse> refreshToken({
     required String clientId,
     required String clientSecret,
