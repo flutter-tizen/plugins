@@ -123,6 +123,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
         id: user.userId,
         displayName: user.profile.name,
         idToken: user.authentication.idToken,
+        photoUrl: user.profile.picture.toString(),
       );
     }
     return null;

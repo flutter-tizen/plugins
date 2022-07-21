@@ -94,6 +94,7 @@ class ProfileData {
     required this.name,
     this.givenName,
     this.familyName,
+    this.picture,
   });
 
   /// The Google user's email.
@@ -108,10 +109,15 @@ class ProfileData {
   /// The Google user's family name.
   final String? familyName;
 
+  /// The Uri of Google user's profile picture.
+  final Uri? picture;
+
   /// Creates a [ProfileData] from json object.
   static ProfileData fromJson(Map<String, dynamic> json) {
+    print(json);
+
     utils.checkFormat<String>(
-      <String>['email', 'name', 'given_name', 'family_name'],
+      <String>['email', 'name', 'given_name', 'family_name', 'picture'],
       json,
     );
 
@@ -121,11 +127,15 @@ class ProfileData {
     final String? familyName =
         json['family_name'] != null ? json['family_name'] as String : null;
 
+    final Uri? picture =
+        json['picture'] != null ? Uri.parse(json['picture'] as String) : null;
+
     return ProfileData(
       email: json['email'] as String,
       name: json['name'] as String,
       givenName: givenName,
       familyName: familyName,
+      picture: picture,
     );
   }
 }
