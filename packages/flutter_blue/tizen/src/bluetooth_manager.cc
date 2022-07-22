@@ -2,6 +2,7 @@
 
 #include <system_info.h>
 
+#include "flutterblue.pb.h"
 #include "log.h"
 #include "proto_helper.h"
 
@@ -87,6 +88,18 @@ void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
         notifications_handler.NotifyUIThread("MtuSize", mtu_size_response);
         LOG_DEBUG("mtu request callback sent response!");
       });
+}
+
+void BluetoothManager::ReadRssi(const std::string& device_id) {
+  auto device = LocateDevice(device_id);
+
+  device->ReadRssi([&notifications_handler = notifications_handler_](
+                       int rssi, auto& bluetoothDevice) {
+    proto::gen::ReadRssiResult result;
+    result.set_rssi(rssi);
+    result.set_remote_id(bluetoothDevice.address());
+    notifications_handler.NotifyUIThread("ReadRssiResult", result);
+  });
 }
 
 BluetoothDeviceController* BluetoothManager::LocateDevice(

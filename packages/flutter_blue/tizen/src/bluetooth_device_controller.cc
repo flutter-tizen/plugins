@@ -1,6 +1,17 @@
 #include "bluetooth_device_controller.h"
 
+#include <bluetooth.h>
+
+#include <array>
+#include <mutex>
+#include <string>
+#include <string_view>
+#include <utility>
+
+#include "bluetooth_type.h"
 #include "log.h"
+#include "tizen_error.h"
+#include "utils.h"
 
 namespace flutter_blue_tizen {
 
@@ -42,7 +53,7 @@ void BluetoothDeviceController::Connect(bool auto_connect) {
   if (GetState() == State::kDisconnected) {
     is_connecting_ = true;
     int ret = bt_gatt_connect(address_.c_str(), auto_connect);
-    LOG_ERROR("bt_gatt_connect", get_error_message(ret));
+    LOG_ERROR("bt_gatt_connect %s", get_error_message(ret));
   } else {
     throw BtException("Device is not disconnected.");
   }
@@ -54,7 +65,7 @@ void BluetoothDeviceController::Disconnect() {
     services_.clear();
     is_disconnecting_ = true;
     int ret = bt_gatt_disconnect(address_.c_str());
-    LOG_ERROR("bt_gatt_disconnect", get_error_message(ret));
+    LOG_ERROR("bt_gatt_disconnect %s", get_error_message(ret));
   }
 }
 
@@ -81,7 +92,7 @@ void BluetoothDeviceController::DiscoverServices() {
       },
       &scope);
 
-  LOG_ERROR("bt_gatt_client_foreach_services", get_error_message(ret));
+  LOG_ERROR("bt_gatt_client_foreach_services %s", get_error_message(ret));
 }
 
 std::vector<btGatt::PrimaryService*>
@@ -104,7 +115,7 @@ btGatt::PrimaryService* BluetoothDeviceController::GetService(
 uint32_t BluetoothDeviceController::GetMtu() const {
   uint32_t mtu = -1;
   auto ret = bt_gatt_client_get_att_mtu(GetGattClient(address_), &mtu);
-  LOG_ERROR("bt_gatt_client_get_att_mtu", get_error_message(ret));
+  LOG_ERROR("bt_gatt_client_get_att_mtu %s", get_error_message(ret));
 
   if (ret) throw BtException(ret, "could not get mtu of the device!");
   return mtu;
@@ -131,25 +142,33 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
       },
       scope);
 
-  LOG_ERROR("bt_gatt_client_set_att_mtu_changed_cb", get_error_message(ret));
+  LOG_ERROR("bt_gatt_client_set_att_mtu_changed_cb %s", get_error_message(ret));
 
   if (ret) throw BtException(ret, "bt_gatt_client_set_att_mtu_changed_cb");
 
   ret = bt_gatt_client_request_att_mtu_change(GetGattClient(address_), mtu);
 
-  LOG_ERROR("bt_gatt_client_request_att_mtu_change", get_error_message(ret));
+  LOG_ERROR("bt_gatt_client_request_att_mtu_change %s", get_error_message(ret));
 
   if (ret) throw BtException(ret, "bt_gatt_client_request_att_mtu_change");
 }
 
+void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) {
+  struct Scope {
+    ReadRssiCallback callback;
+  };
+
+  auto scope = new Scope{std::move(callback)};
+
+}
+
 void BluetoothDeviceController::SetConnectionStateChangedCallback(
-    std::function<void(State state, const BluetoothDeviceController* device)>
-        connection_changed_callback) {
-  connection_changed_callback_ = connection_changed_callback;
+    ConnectionStateChangedCallback connection_changed_callback) {
+  connection_changed_callback_ = std::move(connection_changed_callback);
 
   int ret = bt_gatt_set_connection_state_changed_cb(
       [](int ret, bool connected, const char* remote_address, void* user_data) {
-        LOG_ERROR("bt_gatt_connection_state_changed_cb",
+        LOG_ERROR("bt_gatt_connection_state_changed_cb %s",
                   get_error_message(ret));
         std::scoped_lock lock(active_devices_.mutex_);
         auto it = active_devices_.var_.find(remote_address);
@@ -175,7 +194,7 @@ void BluetoothDeviceController::SetConnectionStateChangedCallback(
       nullptr);
 
   if (ret != 0) {
-    LOG_ERROR("[bt_gatt_set_connection_state_changed_cb]",
+    LOG_ERROR("[bt_gatt_set_connection_state_changed_cb] %s",
               get_error_message(ret));
     return;
   }
@@ -190,7 +209,7 @@ bt_gatt_client_h BluetoothDeviceController::GetGattClient(
 
   if (it == gatt_clients_.var_.end()) {
     int ret = bt_gatt_client_create(address.c_str(), &client);
-    LOG_ERROR("bt_gatt_client_create", get_error_message(ret));
+    LOG_ERROR("bt_gatt_client_create %s", get_error_message(ret));
 
     if ((ret == BT_ERROR_NONE || ret == BT_ERROR_ALREADY_DONE) && client) {
       gatt_clients_.var_.emplace(address, client);
@@ -210,7 +229,7 @@ void BluetoothDeviceController::DestroyGattClientIfExists(
   if (it != gatt_clients_.var_.end()) {
     auto ret = bt_gatt_client_destroy(it->second);
     if (!ret) gatt_clients_.var_.erase(address);
-    LOG_ERROR("bt_gatt_client_destroy", get_error_message(ret));
+    LOG_ERROR("bt_gatt_client_destroy %s", get_error_message(ret));
   }
 }
 

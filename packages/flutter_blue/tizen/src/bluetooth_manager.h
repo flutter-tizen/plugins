@@ -53,6 +53,8 @@ class BluetoothManager {
 
   void RequestMtu(const proto::gen::MtuSizeRequest& request);
 
+  void ReadRssi(const std::string& device_id);
+
   BluetoothDeviceController* LocateDevice(const std::string& remote_id);
 
   btGatt::PrimaryService* LocatePrimaryService(const std::string& remote_id,

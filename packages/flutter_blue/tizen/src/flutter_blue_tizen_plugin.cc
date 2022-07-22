@@ -25,8 +25,7 @@ namespace {
 
 class FlutterBlueTizenPlugin : public flutter::Plugin {
  public:
-  const static inline std::string channel_name_ =
-      "plugins.pauldemarco.com/flutter_blue/";
+  const static inline std::string channel_name_ = "flutter_blue_plus";
 
   static inline std::shared_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       method_channel_;
@@ -37,12 +36,12 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
     method_channel_ =
         std::make_shared<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), channel_name_ + "methods",
+            registrar->messenger(), channel_name_ + "/methods",
             &flutter::StandardMethodCodec::GetInstance());
 
     state_channel_ =
         std::make_shared<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), channel_name_ + "state",
+            registrar->messenger(), channel_name_ + "/state",
             &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin_ = std::make_unique<FlutterBlueTizenPlugin>();
@@ -276,6 +275,16 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       try {
         request.ParseFromArray(encoded.data(), encoded.size());
         bluetooth_manager_->RequestMtu(request);
+        result->Success();
+      } catch (const std::exception& e) {
+        result->Error(e.what());
+      }
+
+    } else if (method_name == "readRssi") {
+      std::string device_id = std::get<std::string>(args);
+
+      try {
+        bluetooth_manager_->ReadRssi(device_id);
         result->Success();
       } catch (const std::exception& e) {
         result->Error(e.what());

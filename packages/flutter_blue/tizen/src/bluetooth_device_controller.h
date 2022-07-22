@@ -29,6 +29,12 @@ class BluetoothDeviceController {
   using RequestMtuCallback =
       std::function<void(bool, const BluetoothDeviceController&)>;
 
+  using ConnectionStateChangedCallback = 
+	  std::function<void(State state, const BluetoothDeviceController* device)>;//TODO should be ref
+  
+  using ReadRssiCallback = 
+	  std::function<void(int rssi, const BluetoothDeviceController& device)>;
+
   BluetoothDeviceController(const std::string& name,
                             const std::string& address) noexcept;
 
@@ -54,8 +60,9 @@ class BluetoothDeviceController {
 
   void RequestMtu(uint32_t mtu, const RequestMtuCallback& callback);
 
-  static void SetConnectionStateChangedCallback(
-      std::function<void(State state, const BluetoothDeviceController* device)>
+  void ReadRssi(ReadRssiCallback callback);
+
+  static void SetConnectionStateChangedCallback(ConnectionStateChangedCallback      
           connection_changed_callback);
 
  private:
