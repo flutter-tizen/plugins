@@ -5,11 +5,11 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter/foundation.dart';
 
-typedef _DlogNative = Void Function(
+typedef _DlogPrintNative = Void Function(
     Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
-typedef _Dlog = void Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
+typedef _DlogPrint = void Function(
+    int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
 
 /// Provides the ability to use Tizen's logging service, dlog.
 ///
@@ -23,8 +23,11 @@ class Log {
   Log._();
 
   static final DynamicLibrary _library = DynamicLibrary.open('libdlog.so.0');
-  static final _Dlog _dlogPrint =
-      _library.lookup<NativeFunction<_DlogNative>>('dlog_print').asFunction();
+
+  static final _DlogPrint _dlogPrint = _library
+      .lookup<NativeFunction<_DlogPrintNative>>('dlog_print')
+      .asFunction();
+
   static final RegExp _stackTraceRegExp =
       RegExp(r'^#(\d+)\s+(.+)\((.+\.dart):(\d+)(:\d+)?\)$', multiLine: true);
 
@@ -43,8 +46,13 @@ class Log {
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
-  static void verbose(String tag, String message,
-      {String? file, String? func, int? line}) {
+  static void verbose(
+    String tag,
+    String message, {
+    String? file,
+    String? func,
+    int? line,
+  }) {
     _log(_LogPriority.verbose, tag, message,
         file: file, func: func, line: line);
   }
@@ -55,8 +63,13 @@ class Log {
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
-  static void debug(String tag, String message,
-      {String? file, String? func, int? line}) {
+  static void debug(
+    String tag,
+    String message, {
+    String? file,
+    String? func,
+    int? line,
+  }) {
     _log(_LogPriority.debug, tag, message, file: file, func: func, line: line);
   }
 
@@ -67,8 +80,13 @@ class Log {
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
-  static void info(String tag, String message,
-      {String? file, String? func, int? line}) {
+  static void info(
+    String tag,
+    String message, {
+    String? file,
+    String? func,
+    int? line,
+  }) {
     _log(_LogPriority.info, tag, message, file: file, func: func, line: line);
   }
 
@@ -79,8 +97,13 @@ class Log {
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
-  static void warn(String tag, String message,
-      {String? file, String? func, int? line}) {
+  static void warn(
+    String tag,
+    String message, {
+    String? file,
+    String? func,
+    int? line,
+  }) {
     _log(_LogPriority.warn, tag, message, file: file, func: func, line: line);
   }
 
@@ -91,8 +114,13 @@ class Log {
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
-  static void error(String tag, String message,
-      {String? file, String? func, int? line}) {
+  static void error(
+    String tag,
+    String message, {
+    String? file,
+    String? func,
+    int? line,
+  }) {
     _log(_LogPriority.error, tag, message, file: file, func: func, line: line);
   }
 
@@ -103,13 +131,24 @@ class Log {
   ///
   /// [file], [func] and [line] parameters are set automatically if debug mode
   /// is enabled, but they can be explicitly overridden.
-  static void fatal(String tag, String message,
-      {String? file, String? func, int? line}) {
+  static void fatal(
+    String tag,
+    String message, {
+    String? file,
+    String? func,
+    int? line,
+  }) {
     _log(_LogPriority.fatal, tag, message, file: file, func: func, line: line);
   }
 
-  static void _log(_LogPriority priority, String tag, String message,
-      {String? file, String? func, int? line}) {
+  static void _log(
+    _LogPriority priority,
+    String tag,
+    String message, {
+    String? file,
+    String? func,
+    int? line,
+  }) {
     if (isDebugEnabled) {
       if (file == null || func == null || line == null) {
         final _StackFrame? frame = _getStackFrameAt(3);
@@ -152,7 +191,7 @@ class Log {
         }
       }
     } catch (error) {
-      debugPrint('[Log] Error parsing stack trace: $error');
+      // Ignore any error.
     }
     return null;
   }
