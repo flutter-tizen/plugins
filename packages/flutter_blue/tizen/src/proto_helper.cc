@@ -1,4 +1,8 @@
 #include "proto_helper.h"
+#include <algorithm>
+#include "log.h"
+#include "utils.h"
+
 
 namespace flutter_blue_tizen {
 
@@ -127,6 +131,21 @@ proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
     default:
       return proto::gen::DeviceStateResponse_BluetoothDeviceState_DISCONNECTED;
   }
+}
+
+BleScanSettings fromProtoScanSettings(const proto::gen::ScanSettings& scan_settings){
+	
+	auto uuid_count=scan_settings.service_uuids_size();
+
+	std::vector<bt_scan_filter_h> filters(uuid_count);
+
+	BleScanSettings bleScanSettings{scan_settings.allow_duplicates()};
+
+	for (auto i = 0u; i < uuid_count; ++i) {
+		bleScanSettings.service_uuids_filters_.push_back(scan_settings.service_uuids()[i]);
+	}
+
+	return bleScanSettings;
 }
 
 }  // namespace flutter_blue_tizen

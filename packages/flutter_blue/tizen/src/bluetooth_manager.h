@@ -24,8 +24,8 @@ class BluetoothManager {
 
   ~BluetoothManager() noexcept = default;
 
-  void StartBluetoothDeviceScanLE(
-      const proto::gen::ScanSettings& scan_settings);
+void StartBluetoothDeviceScanLE(
+    const BleScanSettings& scan_settings);
 
   void StopBluetoothDeviceScanLE();
 

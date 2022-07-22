@@ -5,6 +5,9 @@
 
 #include <exception>
 #include <mutex>
+#include <vector>
+#include <string>
+
 
 namespace flutter_blue_tizen {
 
@@ -40,6 +43,14 @@ class BtException : public std::exception {
 std::string GetGattValue(bt_gatt_h handle);
 
 std::string GetGattUuid(bt_gatt_h handle);
+
+
+struct BleScanSettings{
+	bool allow_duplicates_;
+	bool clear_devices_;
+	std::vector<std::string> device_ids_filters_;
+	std::vector<std::string> service_uuids_filters_;
+};
 
 }  // namespace flutter_blue_tizen
 

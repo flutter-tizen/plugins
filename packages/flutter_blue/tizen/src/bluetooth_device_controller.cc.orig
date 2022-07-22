@@ -159,6 +159,11 @@ void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) {
   };
 
   auto scope = new Scope{std::move(callback)};
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
 }
 
 void BluetoothDeviceController::SetConnectionStateChangedCallback(

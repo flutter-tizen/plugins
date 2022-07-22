@@ -1,10 +1,15 @@
 #include "bluetooth_manager.h"
 
 #include <system_info.h>
+#include <algorithm>
+#include <iterator>
 
+#include "bluetooth.h"
+#include "bluetooth_type.h"
 #include "flutterblue.pb.h"
 #include "log.h"
 #include "proto_helper.h"
+#include "utils.h"
 
 namespace flutter_blue_tizen {
 
@@ -200,51 +205,74 @@ proto::gen::BluetoothState BluetoothManager::BluetoothState() const noexcept {
   return state;
 }
 
-void BluetoothManager::StartBluetoothDeviceScanLE(
-    const proto::gen::ScanSettings& scan_settings) {
-  StopBluetoothDeviceScanLE();
-  std::scoped_lock lock(bluetooth_devices_.mutex_);
-  bluetooth_devices_.var_.clear();
-  scan_allow_duplicates_ = scan_settings.allow_duplicates();
-  auto ret = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
-  LOG_ERROR("bt_adapter_le_set_scan_mode", get_error_message(ret));
+void BluetoothManager::StartBluetoothDeviceScanLE(const BleScanSettings& scan_settings) {
+	StopBluetoothDeviceScanLE();
 
-  if (ret) throw BtException(ret, "bt_adapter_le_set_scan_mode");
+	std::scoped_lock lock(bluetooth_devices_.mutex_);
 
-  int uuid_count = scan_settings.service_uuids_size();
-  std::vector<bt_scan_filter_h> filters(uuid_count);
+	bluetooth_devices_.var_.clear();
+	scan_allow_duplicates_ = scan_settings.allow_duplicates_;
+	auto ret = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
+	LOG_ERROR("bt_adapter_le_set_scan_mode %s", get_error_message(ret));
 
-  for (int i = 0; i < uuid_count; ++i) {
-    const std::string& uuid = scan_settings.service_uuids()[i];
-    ret = bt_adapter_le_scan_filter_create(&filters[i]);
+	if (ret) throw BtException(ret, "bt_adapter_le_set_scan_mode");
 
-    LOG_ERROR("bt_adapter_le_scan_filter_create", get_error_message(ret));
-    if (ret) throw BtException(ret, "bt_adapter_le_scan_filter_create");
+	std::vector<bt_scan_filter_h> filters;
 
-    ret =
-        bt_adapter_le_scan_filter_set_device_address(filters[i], uuid.c_str());
+	std::transform(
+		scan_settings.service_uuids_filters_.begin(),
+		scan_settings.service_uuids_filters_.end(),
+		std::back_inserter(filters),
+		[](const std::string& uuid){
+			bt_scan_filter_h filter;
+			auto ret = bt_adapter_le_scan_filter_create(&filter);
+			LOG_ERROR("bt_adapter_le_scan_filter_create %s", get_error_message(ret));
 
-    LOG_ERROR("bt_adapter_le_scan_filter_set_device_address",
-              get_error_message(ret));
+			ret = bt_adapter_le_scan_filter_set_service_uuid(filter, uuid.c_str());
+			LOG_ERROR("bt_adapter_le_scan_filter_set_service_uuid %s", get_error_message(ret));
 
-    if (ret)
-      throw BtException(ret, "bt_adapter_le_scan_filter_set_device_address");
-  }
+			ret = bt_adapter_le_scan_filter_register(filter);
 
-  if (!ret) {
-    ret = bt_adapter_le_start_scan(&BluetoothManager::ScanCallback, this);
-    LOG_ERROR("bt_adapter_le_start_scan", get_error_message(ret));
-    if (ret) throw BtException(ret, "bt_adapter_le_start_scan");
-  } else {
-    throw BtException(ret, "cannot start scan");
-  }
+			return filter;
+		}
+	);
 
-  for (auto& filter : filters) {
-    ret = bt_adapter_le_scan_filter_destroy(&filter);
-    LOG_ERROR("bt_adapter_le_scan_filter_destroy", get_error_message(ret));
+	std::transform(
+		scan_settings.device_ids_filters_.begin(),
+		scan_settings.device_ids_filters_.end(),
+		std::back_inserter(filters),
+		[](const std::string& uuid){
+			bt_scan_filter_h filter;
+			auto ret = bt_adapter_le_scan_filter_create(&filter);
+			LOG_ERROR("bt_adapter_le_scan_filter_create %s", get_error_message(ret));
 
-    if (ret) throw BtException(ret, "bt_adapter_le_scan_filter_destroy");
-  }
+			ret = bt_adapter_le_scan_filter_set_device_address(filter, uuid.c_str());
+			LOG_ERROR("bt_adapter_le_scan_filter_set_device_address %s", get_error_message(ret));
+			
+			ret = bt_adapter_le_scan_filter_register(filter);
+
+			return filter;
+		}
+	);
+
+	if (!ret) {
+		ret = bt_adapter_le_start_scan(&BluetoothManager::ScanCallback, static_cast<void*>(this));
+		LOG_ERROR("bt_adapter_le_start_scan %s", get_error_message(ret));
+		if (ret) throw BtException(ret, "bt_adapter_le_start_scan");
+	} 
+	else {
+		throw BtException(ret, "cannot start scan");
+	}
+
+	ret = bt_adapter_le_scan_filter_unregister_all();
+	LOG_ERROR("bt_adapter_le_start_scan %s", get_error_message(ret));
+
+	for (auto filter : filters) {
+		ret = bt_adapter_le_scan_filter_destroy(&filter);
+		LOG_ERROR("bt_adapter_le_scan_filter_destroy %s", get_error_message(ret));
+
+		if (ret) throw BtException(ret, "bt_adapter_le_scan_filter_destroy");
+	}
 }
 
 void BluetoothManager::ScanCallback(

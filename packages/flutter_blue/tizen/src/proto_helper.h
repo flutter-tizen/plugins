@@ -6,6 +6,7 @@
 #include "GATT/bluetooth_service.h"
 #include "bluetooth_device_controller.h"
 #include "flutterblue.pb.h"
+#include "utils.h"
 
 namespace flutter_blue_tizen {
 
@@ -40,5 +41,6 @@ std::vector<uint8_t> MessageToVector(
 proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
     const BluetoothDeviceController::State state);
 
+BleScanSettings fromProtoScanSettings(const proto::gen::ScanSettings& settings);
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_PROTO_HELPER_H
