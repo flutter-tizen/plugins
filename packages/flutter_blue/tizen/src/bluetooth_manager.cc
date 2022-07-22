@@ -259,11 +259,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(const BleScanSettings& scan_se
 	if (!ret) {
 		ret = bt_adapter_le_start_scan(&BluetoothManager::ScanCallback, static_cast<void*>(this));
 		LOG_ERROR("bt_adapter_le_start_scan %s", get_error_message(ret));
-		if (ret) throw BtException(ret, "bt_adapter_le_start_scan");
 	} 
-	else {
-		throw BtException(ret, "cannot start scan");
-	}
 
 	ret = bt_adapter_le_scan_filter_unregister_all();
 	LOG_ERROR("bt_adapter_le_start_scan %s", get_error_message(ret));
@@ -271,8 +267,6 @@ void BluetoothManager::StartBluetoothDeviceScanLE(const BleScanSettings& scan_se
 	for (auto filter : filters) {
 		ret = bt_adapter_le_scan_filter_destroy(&filter);
 		LOG_ERROR("bt_adapter_le_scan_filter_destroy %s", get_error_message(ret));
-
-		if (ret) throw BtException(ret, "bt_adapter_le_scan_filter_destroy");
 	}
 }
 
