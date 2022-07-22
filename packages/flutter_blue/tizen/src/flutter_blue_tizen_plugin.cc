@@ -20,6 +20,7 @@
 #include "bluetooth_manager.h"
 #include "notifications_handler.h"
 #include "proto_helper.h"
+#include "utils.h"
 
 namespace {
 
@@ -74,7 +75,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     auto ret = bt_deinitialize();
 
-    LOG_ERROR("bt_adapter_le_is_discovering", get_error_message(ret));
+    LOG_ERROR("bt_adapter_le_is_discovering %s", get_error_message(ret));
   }
 
  private:
@@ -112,7 +113,11 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
       try {
         scan_settings.ParseFromArray(encoded.data(), encoded.size());
-        bluetooth_manager_->StartBluetoothDeviceScanLE(scan_settings);
+
+		flutter_blue_tizen::BleScanSettings bleScanSettings
+			= flutter_blue_tizen::FromProtoScanSettings(scan_settings);
+
+        bluetooth_manager_->StartBluetoothDeviceScanLE(bleScanSettings);
         result->Success();
       } catch (const std::exception& e) {
         result->Error(e.what());

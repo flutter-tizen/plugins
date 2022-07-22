@@ -133,7 +133,7 @@ proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
   }
 }
 
-BleScanSettings fromProtoScanSettings(const proto::gen::ScanSettings& scan_settings){
+BleScanSettings FromProtoScanSettings(const proto::gen::ScanSettings& scan_settings){
 	
 	auto uuid_count=scan_settings.service_uuids_size();
 

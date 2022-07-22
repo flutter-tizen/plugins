@@ -9,6 +9,7 @@
 #include "flutterblue.pb.h"
 #include "log.h"
 #include "proto_helper.h"
+#include "tizen_error.h"
 #include "utils.h"
 
 namespace flutter_blue_tizen {
@@ -19,13 +20,13 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     : notifications_handler_(notificationsHandler) {
   int ret = IsBLEAvailable();
   if (ret == 0) {
-    LOG_ERROR("Bluetooth is not available on this device!",
+    LOG_ERROR("Bluetooth is not available on this device! %s",
               get_error_message(ret));
     return;
   }
   ret = bt_initialize();
   if (ret != 0) {
-    LOG_ERROR("[bt_initialize]", get_error_message(ret));
+    LOG_ERROR("[bt_initialize] %s", get_error_message(ret));
     return;
   }
 
@@ -308,6 +309,7 @@ void BluetoothManager::ScanCallback(
                                         name, mac_address)})
               .first->second.get();
     }
+
     proto::gen::ScanResult scan_result;
     scan_result.set_rssi(discovery_info->rssi);
     proto::gen::AdvertisementData* advertisement_data =
@@ -333,10 +335,10 @@ void BluetoothManager::StopBluetoothDeviceScanLE() {
     auto ret = bt_adapter_le_is_discovering(&is_discovering);
     if (!ret && is_discovering) {
       ret = bt_adapter_le_stop_scan();
-      LOG_ERROR("bt_adapter_le_stop_scan", ret);
+      LOG_ERROR("bt_adapter_le_stop_scan %s", get_error_message(ret));
     }
 
-    LOG_ERROR("bt_adapter_le_is_discovering", ret);
+    LOG_ERROR("bt_adapter_le_is_discovering %s", get_error_message(ret));
   }
 }
 

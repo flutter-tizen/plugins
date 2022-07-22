@@ -41,6 +41,6 @@ std::vector<uint8_t> MessageToVector(
 proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
     const BluetoothDeviceController::State state);
 
-BleScanSettings fromProtoScanSettings(const proto::gen::ScanSettings& settings);
+BleScanSettings FromProtoScanSettings(const proto::gen::ScanSettings& settings);
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_PROTO_HELPER_H
