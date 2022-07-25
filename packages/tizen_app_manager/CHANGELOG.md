@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Code refactoring.
+
 ## 0.1.2
 
 * Implement a Dart finalizer for `AppRunningContext`.
