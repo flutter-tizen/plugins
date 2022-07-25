@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/tizen_log.svg)](https://pub.dev/packages/tizen_log)
 
-A flutter plugin which provides the ability to use [Tizen dlog logging service](https://docs.tizen.org/application/native/guides/error/system-logs/).
+A Flutter plugin which provides the ability to use [Tizen dlog logging service](https://docs.tizen.org/application/native/guides/error/system-logs/).
 
 ## Getting Started
 
@@ -10,7 +10,7 @@ To use this package, add `tizen_log` as a dependency in your `pubspec.yaml` file
 
 ```yaml
 dependencies:
-  tizen_log: ^0.1.0
+  tizen_log: ^0.1.1
 ```
 
 ### Simple logging
@@ -25,12 +25,12 @@ Log.error(logTag, 'error message');
 Log.fatal(logTag, 'fatal message');
 ```
 
-### Customizing the logs
+### Customizing logs
 
-To add file name, function name and line number to logs, use `--dart-define=DEBUG_MODE=debug` flag:
+To add file name, function name and line number to logs, use `--dart-define=DEBUG_MODE=true` flag:
 
-```console
-$ flutter-tizen run --dart-define=DEBUG_MODE=debug
+```sh
+$ flutter-tizen run --dart-define=DEBUG_MODE=true
 ```
 
 To override file name, function name or line number in logs, use additional parameters in function calls:
@@ -47,8 +47,8 @@ Log.fatal(logTag, 'fatal message', file: 'main', line: 1234);
 
 To view logs use the following command:
 
-```console
-$ sdb dlog logTag
+```sh
+$ sdb dlog TEST  # Replace TEST with your log tag.
 ```
 
 ## Supported devices

@@ -1,7 +1,6 @@
 name: tizen_log_example
 description: Demonstrates how to use the tizen_log plugin.
-
-publish_to: 'none'
+publish_to: "none"
 
 environment:
   sdk: ">=2.15.1 <3.0.0"
@@ -11,9 +10,6 @@ dependencies:
     sdk: flutter
   tizen_log:
     path: ../
-
-dev_dependencies:
-  flutter_lints: ^1.0.0
 
 flutter:
   uses-material-design: true
