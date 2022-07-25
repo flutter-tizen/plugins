@@ -1,8 +1,9 @@
 #include "proto_helper.h"
+
 #include <algorithm>
+
 #include "log.h"
 #include "utils.h"
-
 
 namespace flutter_blue_tizen {
 
@@ -133,19 +134,29 @@ proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
   }
 }
 
-BleScanSettings FromProtoScanSettings(const proto::gen::ScanSettings& scan_settings){
-	
-	auto uuid_count=scan_settings.service_uuids_size();
+BleScanSettings FromProtoScanSettings(
+    const proto::gen::ScanSettings& scan_settings) {
+  auto uuid_count = scan_settings.service_uuids_size();
 
-	std::vector<bt_scan_filter_h> filters(uuid_count);
+  std::vector<bt_scan_filter_h> filters(uuid_count);
 
-	BleScanSettings bleScanSettings{scan_settings.allow_duplicates()};
+  BleScanSettings bleScanSettings{scan_settings.allow_duplicates()};
 
-	for (auto i = 0u; i < uuid_count; ++i) {
-		bleScanSettings.service_uuids_filters_.push_back(scan_settings.service_uuids()[i]);
-	}
+  for (auto i = 0u; i < uuid_count; ++i) {
+    bleScanSettings.service_uuids_filters_.push_back(
+        scan_settings.service_uuids()[i]);
+  }
 
-	return bleScanSettings;
+  return bleScanSettings;
+}
+
+void ToProtoAdvertisementData(
+    const AdvertisementData& advertisement_data,
+    proto::gen::AdvertisementData& advertisement_data_proto) noexcept {
+  advertisement_data_proto.set_connectable(advertisement_data.connectable_);
+  advertisement_data_proto.set_local_name(
+      advertisement_data.local_name_.data(),
+      advertisement_data.local_name_.size());
 }
 
 }  // namespace flutter_blue_tizen

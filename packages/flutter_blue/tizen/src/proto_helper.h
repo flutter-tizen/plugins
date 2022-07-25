@@ -42,5 +42,8 @@ proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
     const BluetoothDeviceController::State state);
 
 BleScanSettings FromProtoScanSettings(const proto::gen::ScanSettings& settings);
+
+void ToProtoAdvertisementData(const AdvertisementData& advertisement_data, proto::gen::AdvertisementData&) noexcept;
+
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_PROTO_HELPER_H

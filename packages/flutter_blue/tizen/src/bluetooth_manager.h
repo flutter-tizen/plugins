@@ -24,8 +24,10 @@ class BluetoothManager {
 
   ~BluetoothManager() noexcept = default;
 
+  using ScanCallback = std::function<void(BluetoothDeviceController&, int rssi, const AdvertisementData&)>;
+
 void StartBluetoothDeviceScanLE(
-    const BleScanSettings& scan_settings);
+    const BleScanSettings& scan_settings, ScanCallback callback);
 
   void StopBluetoothDeviceScanLE();
 
@@ -80,10 +82,6 @@ void StartBluetoothDeviceScanLE(
 
   static bool IsBLEAvailable();
 
-  static void ScanCallback(
-      int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
-      void* user_data) noexcept;
-
  private:
   // Map key is device's mac address.
   SafeType<std::unordered_map<std::string,
@@ -95,9 +93,7 @@ void StartBluetoothDeviceScanLE(
   std::atomic<bool> scan_allow_duplicates_;
 };
 
-void DecodeAdvertisementData(const char* packets_data,
-                             proto::gen::AdvertisementData& advertisement,
-                             int data_len) noexcept;
+AdvertisementData DecodeAdvertisementData(const char* packets_data, int data_len) noexcept;
 
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H

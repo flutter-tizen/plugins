@@ -52,6 +52,11 @@ struct BleScanSettings{
 	std::vector<std::string> service_uuids_filters_;
 };
 
+struct AdvertisementData{
+	bool connectable_;
+	std::string local_name_;
+};
+
 }  // namespace flutter_blue_tizen
 
 #endif  // FLUTTER_BLUE_TIZEN_UTILS_H
