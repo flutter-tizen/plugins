@@ -103,6 +103,8 @@ void BluetoothManager::ReadRssi(const std::string& device_id) {
 
   device->ReadRssi([&notifications_handler = notifications_handler_](
                        auto& bluetoothDevice, int rssi) {
+    LOG_DEBUG("read_rssi_callback called");
+
     proto::gen::ReadRssiResult result;
     result.set_rssi(rssi);
     result.set_remote_id(bluetoothDevice.address());
@@ -188,7 +190,8 @@ bool BluetoothManager::IsBLEAvailable() {
   return state;
 }
 
-enum BluetoothManager::BluetoothState BluetoothManager::BluetoothState() noexcept {
+enum BluetoothManager::BluetoothState
+BluetoothManager::BluetoothState() noexcept {
   using NativeState = bt_adapter_state_e;
 
   NativeState adapter_state;
@@ -196,71 +199,96 @@ enum BluetoothManager::BluetoothState BluetoothManager::BluetoothState() noexcep
 
   if (ret == BT_ERROR_NONE) {
     if (adapter_state == NativeState::BT_ADAPTER_ENABLED) {
-		return BluetoothState::kAdapterOn;
+      return BluetoothState::kAdapterOn;
     } else {
-		return BluetoothState::kAdapterOff;
+      return BluetoothState::kAdapterOff;
     }
   } else if (ret == BT_ERROR_NOT_INITIALIZED) {
-		return BluetoothState::kUnavailable;
+    return BluetoothState::kUnavailable;
   } else {
-		return BluetoothState::kUnknown;
+    return BluetoothState::kUnknown;
   }
 }
 
-void BluetoothManager::StartBluetoothDeviceScanLE(const BleScanSettings& scan_settings,
-                                       ScanCallback callback) {
+void BluetoothManager::StartBluetoothDeviceScanLE(
+    const BleScanSettings& scan_settings, ScanCallback callback) {
   auto ret = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
   LOG_ERROR("bt_adapter_le_set_scan_mode %s", get_error_message(ret));
 
   if (ret) throw BtException(ret, "bt_adapter_le_set_scan_mode");
 
-  std::vector<bt_scan_filter_h> filters;
+  StopBluetoothDeviceScanLE();
 
-  std::transform(scan_settings.service_uuids_filters_.begin(),
-                 scan_settings.service_uuids_filters_.end(),
-                 std::back_inserter(filters), [](const std::string& uuid) {
-                   bt_scan_filter_h filter;
-                   auto ret = bt_adapter_le_scan_filter_create(&filter);
-                   LOG_ERROR("bt_adapter_le_scan_filter_create %s",
-                             get_error_message(ret));
+  struct Scope {
+    ScanCallback scan_callback;
+    std::vector<bt_scan_filter_h> filters;
+  };
 
-                   ret = bt_adapter_le_scan_filter_set_service_uuid(
-                       filter, uuid.c_str());
-                   LOG_ERROR("bt_adapter_le_scan_filter_set_service_uuid %s",
-                             get_error_message(ret));
+  static SafeType<std::optional<Scope>>
+      scope;  // there's only one scan available per time.
 
-                   ret = bt_adapter_le_scan_filter_register(filter);
+  std::scoped_lock lock(scope.mutex_);
 
-                   return filter;
-                 });
+//  if (scope.var_.has_value()) {
+//    auto& filters = scope.var_->filters;
+//    ret = bt_adapter_le_scan_filter_unregister_all();
+//    LOG_ERROR("bt_adapter_le_scan_filter_unregister_all %s",
+//              get_error_message(ret));
+//    LOG_DEBUG("bt_adapter_le_scan_filter_unregister_all");
+//
+//    for (auto filter : filters) {
+//      ret = bt_adapter_le_scan_filter_destroy(&filter);
+//      LOG_ERROR("bt_adapter_le_scan_filter_destroy %s", get_error_message(ret));
+//      LOG_DEBUG("bt_adapter_le_scan_filter_destroy");
+//    }
+//
+//    scope.var_->filters.clear();
+//  }
 
-  std::transform(scan_settings.device_ids_filters_.begin(),
-                 scan_settings.device_ids_filters_.end(),
-                 std::back_inserter(filters), [](const std::string& uuid) {
-                   bt_scan_filter_h filter;
-                   auto ret = bt_adapter_le_scan_filter_create(&filter);
-                   LOG_ERROR("bt_adapter_le_scan_filter_create %s",
-                             get_error_message(ret));
+  scope.var_.emplace(Scope{std::move(callback)});
 
-                   ret = bt_adapter_le_scan_filter_set_device_address(
-                       filter, uuid.c_str());
-                   LOG_ERROR("bt_adapter_le_scan_filter_set_device_address %s",
-                             get_error_message(ret));
-
-                   ret = bt_adapter_le_scan_filter_register(filter);
-
-                   return filter;
-                 });
+// filters seem to be buggy at this time.
+// it can slightly increase performance in the future if the reason for double free here
+// is found.
+//  auto& filters = scope.var_->filters;
+//
+//  std::transform(scan_settings.service_uuids_filters_.begin(),
+//                 scan_settings.service_uuids_filters_.end(),
+//                 std::back_inserter(filters), [](const std::string& uuid) {
+//                   bt_scan_filter_h filter;
+//                   auto ret = bt_adapter_le_scan_filter_create(&filter);
+//                   LOG_ERROR("bt_adapter_le_scan_filter_create %s",
+//                             get_error_message(ret));
+//
+//                   ret = bt_adapter_le_scan_filter_set_service_uuid(
+//                       filter, uuid.c_str());
+//                   LOG_ERROR("bt_adapter_le_scan_filter_set_service_uuid %s",
+//                             get_error_message(ret));
+//
+//                   ret = bt_adapter_le_scan_filter_register(filter);
+//
+//                   return filter;
+//                 });
+//
+//  std::transform(scan_settings.device_ids_filters_.begin(),
+//                 scan_settings.device_ids_filters_.end(),
+//                 std::back_inserter(filters), [](const std::string& uuid) {
+//                   bt_scan_filter_h filter;
+//                   auto ret = bt_adapter_le_scan_filter_create(&filter);
+//                   LOG_ERROR("bt_adapter_le_scan_filter_create %s",
+//                             get_error_message(ret));
+//
+//                   ret = bt_adapter_le_scan_filter_set_device_address(
+//                       filter, uuid.c_str());
+//                   LOG_ERROR("bt_adapter_le_scan_filter_set_device_address %s",
+//                             get_error_message(ret));
+//
+//                   ret = bt_adapter_le_scan_filter_register(filter);
+//
+//                   return filter;
+//                 });
 
   if (!ret) {
-    struct Scope {
-      ScanCallback scan_callback;
-    };
-
-    static SafeType<std::optional<Scope>>
-        scope;  // there's only one scan available per time.
-    scope.var_.emplace(Scope{std::move(callback)});
-
     ret = bt_adapter_le_start_scan(
         [](int result, bt_adapter_le_device_scan_result_info_s* info,
            void* scope_ptr) {
@@ -276,7 +304,6 @@ void BluetoothManager::StartBluetoothDeviceScanLE(const BleScanSettings& scan_se
                 DecodeAdvertisementData(info->adv_data, info->adv_data_len);
 
             std::string device_name;
-
             char* name_cstr;
             int ret = bt_adapter_le_get_scan_result_device_name(
                 info, BT_ADAPTER_LE_PACKET_SCAN_RESPONSE, &name_cstr);
@@ -294,20 +321,10 @@ void BluetoothManager::StartBluetoothDeviceScanLE(const BleScanSettings& scan_se
 
     LOG_ERROR("bt_adapter_le_start_scan %s", get_error_message(ret));
   }
-
-  ret = bt_adapter_le_scan_filter_unregister_all();
-  LOG_ERROR("bt_adapter_le_start_scan %s", get_error_message(ret));
-
-  for (auto filter : filters) {
-    ret = bt_adapter_le_scan_filter_destroy(&filter);
-    LOG_ERROR("bt_adapter_le_scan_filter_destroy %s", get_error_message(ret));
-  }
 }
 
 void BluetoothManager::StartBluetoothDeviceScanLE(
     const BleScanSettings& scan_settings) {
-  StopBluetoothDeviceScanLE();
-
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   bluetooth_devices_.var_.clear();
 
@@ -343,6 +360,10 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
                                                      *proto_advertisement_data);
 
         scan_result.set_allocated_advertisement_data(proto_advertisement_data);
+
+        auto proto_device =
+            new proto::gen::BluetoothDevice(ToProtoDevice(*device));
+
         scan_result.set_allocated_device(
             new proto::gen::BluetoothDevice(ToProtoDevice(*device)));
 
@@ -355,13 +376,7 @@ void BluetoothManager::StopBluetoothDeviceScanLE() {
   std::scoped_lock lock(mutex);
   auto bt_state = BluetoothState();
   if (bt_state == BluetoothState::kAdapterOn) {
-    bool is_discovering;
-    auto ret = bt_adapter_le_is_discovering(&is_discovering);
-    if (!ret && is_discovering) {
-      ret = bt_adapter_le_stop_scan();
-      LOG_ERROR("bt_adapter_le_stop_scan %s", get_error_message(ret));
-    }
-
+    auto ret = bt_adapter_le_stop_scan();
     LOG_ERROR("bt_adapter_le_is_discovering %s", get_error_message(ret));
   }
 }
