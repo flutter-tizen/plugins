@@ -8,6 +8,7 @@
 #include <string_view>
 #include <utility>
 
+#include "bluetooth_manager.h"
 #include "bluetooth_type.h"
 #include "log.h"
 #include "tizen_error.h"
@@ -154,15 +155,24 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
 }
 
 void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) {
-  struct Scope {
-    ReadRssiCallback callback;
-  };
 
   BleScanSettings settings;
   settings.device_ids_filters_ = {address()};
-  
-  
- // auto scope = new Scope{std::move(callback)};
+
+  BluetoothManager::StartBluetoothDeviceScanLE(
+      settings, [dest_address = address(), callback = std::move(callback)](const std::string& address, const std::string& device_name,
+                   int rssi, const AdvertisementData& advertisement_data) {
+	  	
+	  		std::scoped_lock lock(active_devices_.mutex_);
+
+	  		auto it = active_devices_.var_.find(address);
+
+			if(address == dest_address && it != active_devices_.var_.end()){
+				auto device = it->second;
+				
+				callback(*device, rssi);
+			}
+      });
 }
 
 void BluetoothDeviceController::SetConnectionStateChangedCallback(

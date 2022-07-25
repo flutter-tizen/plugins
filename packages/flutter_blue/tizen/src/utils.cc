@@ -73,4 +73,6 @@ AdvertisementData DecodeAdvertisementData(const char* packets_data,
   }
   return advertisement_data;
 }
+
+
 }  // namespace flutter_blue_tizen

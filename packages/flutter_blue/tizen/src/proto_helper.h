@@ -5,6 +5,7 @@
 #include "GATT/bluetooth_descriptor.h"
 #include "GATT/bluetooth_service.h"
 #include "bluetooth_device_controller.h"
+#include "bluetooth_manager.h"
 #include "flutterblue.pb.h"
 #include "utils.h"
 
@@ -44,6 +45,8 @@ proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
 BleScanSettings FromProtoScanSettings(const proto::gen::ScanSettings& settings);
 
 void ToProtoAdvertisementData(const AdvertisementData& advertisement_data, proto::gen::AdvertisementData&) noexcept;
+
+proto::gen::BluetoothState_State ToProtoBluetoothState(const enum BluetoothManager::BluetoothState bluetooth_state);
 
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_PROTO_HELPER_H

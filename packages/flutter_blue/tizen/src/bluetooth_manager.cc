@@ -102,7 +102,7 @@ void BluetoothManager::ReadRssi(const std::string& device_id) {
   auto device = LocateDevice(device_id);
 
   device->ReadRssi([&notifications_handler = notifications_handler_](
-                       int rssi, auto& bluetoothDevice) {
+                       auto& bluetoothDevice, int rssi) {
     proto::gen::ReadRssiResult result;
     result.set_rssi(rssi);
     result.set_remote_id(bluetoothDevice.address());
@@ -188,24 +188,23 @@ bool BluetoothManager::IsBLEAvailable() {
   return state;
 }
 
-proto::gen::BluetoothState BluetoothManager::BluetoothState() const noexcept {
-  /* Checks whether the Bluetooth adapter is enabled */
-  bt_adapter_state_e adapter_state;
+enum BluetoothManager::BluetoothState BluetoothManager::BluetoothState() noexcept {
+  using NativeState = bt_adapter_state_e;
+
+  NativeState adapter_state;
   int ret = bt_adapter_get_state(&adapter_state);
-  proto::gen::BluetoothState state;
+
   if (ret == BT_ERROR_NONE) {
-    if (adapter_state == BT_ADAPTER_ENABLED) {
-      state.set_state(proto::gen::BluetoothState_State_ON);
+    if (adapter_state == NativeState::BT_ADAPTER_ENABLED) {
+		return BluetoothState::kAdapterOn;
     } else {
-      state.set_state(proto::gen::BluetoothState_State_OFF);
+		return BluetoothState::kAdapterOff;
     }
   } else if (ret == BT_ERROR_NOT_INITIALIZED) {
-    state.set_state(proto::gen::BluetoothState_State_UNAVAILABLE);
+		return BluetoothState::kUnavailable;
   } else {
-    state.set_state(proto::gen::BluetoothState_State_UNKNOWN);
+		return BluetoothState::kUnknown;
   }
-
-  return state;
 }
 
 void BluetoothManager::StartBluetoothDeviceScanLE(const BleScanSettings& scan_settings,
@@ -354,8 +353,8 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
 void BluetoothManager::StopBluetoothDeviceScanLE() {
   static std::mutex mutex;
   std::scoped_lock lock(mutex);
-  auto bt_state = BluetoothState().state();
-  if (bt_state == proto::gen::BluetoothState_State_ON) {
+  auto bt_state = BluetoothState();
+  if (bt_state == BluetoothState::kAdapterOn) {
     bool is_discovering;
     auto ret = bt_adapter_le_is_discovering(&is_discovering);
     if (!ret && is_discovering) {

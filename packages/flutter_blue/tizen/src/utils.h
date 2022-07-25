@@ -64,9 +64,6 @@ struct AdvertisementData {
 AdvertisementData DecodeAdvertisementData(const char* packets_data,
                                           int data_len) noexcept;
 
-using ScanCallback = std::function<void(const std::string& address,
-                                        const std::string& device_name,
-                                        int rssi, const AdvertisementData&)>;
 
 
 }  // namespace flutter_blue_tizen

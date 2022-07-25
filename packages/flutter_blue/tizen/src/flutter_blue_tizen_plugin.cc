@@ -98,14 +98,16 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       result->Success();
 
     } else if (method_name == "state") {
+		auto state_proto_e = flutter_blue_tizen::ToProtoBluetoothState(bluetooth_manager_->BluetoothState());
+	
+	  proto::gen::BluetoothState state_proto; state_proto.set_state(state_proto_e);
+
       result->Success(
-          flutter::EncodableValue(flutter_blue_tizen::MessageToVector(
-              bluetooth_manager_->BluetoothState())));
+          flutter::EncodableValue(flutter_blue_tizen::MessageToVector(state_proto)));
 
     } else if (method_name == "isOn") {
       result->Success(flutter::EncodableValue(
-          (bluetooth_manager_->BluetoothState().state() ==
-           proto::gen::BluetoothState_State::BluetoothState_State_ON)));
+          bluetooth_manager_->BluetoothState() == flutter_blue_tizen::BluetoothManager::BluetoothState::kAdapterOn));
 
     } else if (method_name == "startScan") {
       proto::gen::ScanSettings scan_settings;

@@ -20,6 +20,14 @@ namespace flutter_blue_tizen {
 
 class BluetoothManager {
  public:
+
+  enum class BluetoothState{
+	kAdapterOn,
+	kAdapterOff,
+	kUnavailable,
+	kUnknown,
+  };
+
   BluetoothManager(NotificationsHandler& notifications_handler);
 
   ~BluetoothManager() noexcept = default;
@@ -42,13 +50,13 @@ class BluetoothManager {
   static void StartBluetoothDeviceScanLE(const BleScanSettings& scan_settings,
                                          ScanCallback callback);
 
-  void StopBluetoothDeviceScanLE();
+  static void StopBluetoothDeviceScanLE();
 
   void Connect(const proto::gen::ConnectRequest& conn_request);
 
   void Disconnect(const std::string& device_id);
 
-  proto::gen::BluetoothState BluetoothState() const noexcept;
+  static enum BluetoothState BluetoothState() noexcept;
 
   std::vector<proto::gen::BluetoothDevice>
   GetConnectedProtoBluetoothDevices() noexcept;

@@ -33,7 +33,7 @@ class BluetoothDeviceController {
 	  std::function<void(State state, const BluetoothDeviceController* device)>;//TODO should be ref
   
   using ReadRssiCallback = 
-	  std::function<void(int rssi, const BluetoothDeviceController& device)>;
+	  std::function<void(const BluetoothDeviceController& device, int rssi)>;
 
   BluetoothDeviceController(const std::string& name,
                             const std::string& address) noexcept;
