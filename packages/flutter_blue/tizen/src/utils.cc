@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include "log.h"
+#include <algorithm>
 
 namespace flutter_blue_tizen {
 
@@ -33,4 +34,43 @@ std::string GetGattUuid(bt_gatt_h handle) {
   return result;
 }
 
+AdvertisementData DecodeAdvertisementData(const char* packets_data,
+                                          int data_len) noexcept {
+  AdvertisementData advertisement_data;
+  using byte = char;
+  int start = 0;
+  bool long_name_set = false;
+
+  //TODO - fix. read, write properies not checked!
+
+  while (start < data_len) {
+    byte advertisement_data_len = packets_data[start] & 0xFFu;
+    byte type = packets_data[start + 1] & 0xFFu;
+
+    const byte* packet = packets_data + start + 2;
+    switch (type) {
+      case 0x09:
+      case 0x08: {
+        if (!long_name_set)
+          std::copy_n(packet, advertisement_data_len - 1,
+                      std::back_inserter(advertisement_data.local_name_));
+
+        if (type == 0x09) long_name_set = true;
+
+        break;
+      }
+      case 0x01: {
+        advertisement_data.connectable_ = *packet & 0x3;
+        break;
+      }
+      case 0xFF: {
+        break;
+      }
+      default:
+        break;
+    }
+    start += advertisement_data_len + 1;
+  }
+  return advertisement_data;
+}
 }  // namespace flutter_blue_tizen

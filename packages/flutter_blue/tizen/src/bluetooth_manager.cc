@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <mutex>
 
 #include "bluetooth.h"
 #include "bluetooth_type.h"
@@ -207,22 +208,8 @@ proto::gen::BluetoothState BluetoothManager::BluetoothState() const noexcept {
   return state;
 }
 
-void BluetoothManager::StartBluetoothDeviceScanLE(
-    const BleScanSettings& scan_settings, ScanCallback callback) {
-  StopBluetoothDeviceScanLE();
-
-  struct Scope {
-    ScanCallback scan_callback;
-    BluetoothManager& bluetoothManager;
-  };
-
-  static SafeType<std::optional<Scope>> scope; //there's only one scan available per time. Also it has to be declared here to avoid deadlocks
-  
-  scope.var_.emplace(Scope{std::move(callback), *this});
-  std::scoped_lock lock(bluetooth_devices_.mutex_);
-
-  bluetooth_devices_.var_.clear();
-  scan_allow_duplicates_ = scan_settings.allow_duplicates_;
+void BluetoothManager::StartBluetoothDeviceScanLE(const BleScanSettings& scan_settings,
+                                       ScanCallback callback) {
   auto ret = bt_adapter_le_set_scan_mode(BT_ADAPTER_LE_SCAN_MODE_BALANCED);
   LOG_ERROR("bt_adapter_le_set_scan_mode %s", get_error_message(ret));
 
@@ -267,52 +254,41 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
                  });
 
   if (!ret) {
+    struct Scope {
+      ScanCallback scan_callback;
+    };
+
+    static SafeType<std::optional<Scope>>
+        scope;  // there's only one scan available per time.
+    scope.var_.emplace(Scope{std::move(callback)});
 
     ret = bt_adapter_le_start_scan(
         [](int result, bt_adapter_le_device_scan_result_info_s* info,
            void* scope_ptr) {
-          auto& scope = *static_cast<SafeType<std::optional<Scope>>*>(scope_ptr);
-		  std::scoped_lock scope_lock(scope.mutex_);
-
-		  LOG_DEBUG("native scan callback: %s", get_error_message(result));
-
-          BluetoothManager& bluetooth_manager = scope.var_->bluetoothManager;
-          auto rssi = info->rssi;
-          std::string address = info->remote_address;
-          AdvertisementData advertisement_data =
-              DecodeAdvertisementData(info->adv_data, info->adv_data_len);
-
           if (!result) {
-            std::scoped_lock lock(bluetooth_manager.bluetooth_devices_.mutex_);
-            BluetoothDeviceController* device;
-            auto it = bluetooth_manager.bluetooth_devices_.var_.find(address);
+            auto& scope =
+                *static_cast<SafeType<std::optional<Scope>>*>(scope_ptr);
+            std::scoped_lock scope_lock(scope.mutex_);
 
-            // Already scanned.
-            if (it != bluetooth_manager.bluetooth_devices_.var_.end()) {
-              if (!bluetooth_manager.scan_allow_duplicates_) {
-                return;
-              }
-              device = it->second.get();
-            } else {
-              char* name_cstr;
-              int ret = bt_adapter_le_get_scan_result_device_name(
-                  info, BT_ADAPTER_LE_PACKET_SCAN_RESPONSE, &name_cstr);
+            LOG_DEBUG("native scan callback: %s", get_error_message(result));
+            auto rssi = info->rssi;
+            std::string address = info->remote_address;
+            AdvertisementData advertisement_data =
+                DecodeAdvertisementData(info->adv_data, info->adv_data_len);
 
-              std::string name;
+            std::string device_name;
 
-              if (!ret) {
-                name = std::string(name_cstr);
-                free(name_cstr);
-              }
+            char* name_cstr;
+            int ret = bt_adapter_le_get_scan_result_device_name(
+                info, BT_ADAPTER_LE_PACKET_SCAN_RESPONSE, &name_cstr);
 
-              device = bluetooth_manager.bluetooth_devices_.var_
-                           .insert({address,
-                                    std::make_unique<BluetoothDeviceController>(
-                                        name, address)})
-                           .first->second.get();
-
-			  scope.var_->scan_callback(*device, rssi, advertisement_data);
+            if (!ret) {
+              device_name = std::string(name_cstr);
+              free(name_cstr);
             }
+
+            scope.var_->scan_callback(address, device_name, rssi,
+                                      advertisement_data);
           }
         },
         static_cast<void*>(&scope));
@@ -329,56 +305,50 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
   }
 }
 
-void ScanCallbackT(
-    int result, bt_adapter_le_device_scan_result_info_s* discovery_info,
-    void* user_data) noexcept {
-//  BluetoothManager& bluetooth_manager =
-//      *static_cast<BluetoothManager*>(user_data);
-//
-//  if (!result) {
-//    std::string mac_address = discovery_info->remote_address;
-//    std::scoped_lock lock(bluetooth_manager.bluetooth_devices_.mutex_);
-//    BluetoothDeviceController* device;
-//    auto it = bluetooth_manager.bluetooth_devices_.var_.find(mac_address);
-//
-//    // Already scanned.
-//    if (it != bluetooth_manager.bluetooth_devices_.var_.end()) {
-//      if (!bluetooth_manager.scan_allow_duplicates_) {
-//        return;
-//      }
-//      device = it->second.get();
-//    } else {
-//      char* name_cstr;
-//      int ret = bt_adapter_le_get_scan_result_device_name(
-//          discovery_info, BT_ADAPTER_LE_PACKET_SCAN_RESPONSE, &name_cstr);
-//      std::string name;
-//      if (!ret) {
-//        name = std::string(name_cstr);
-//        free(name_cstr);
-//      }
-//
-//      device =
-//          bluetooth_manager.bluetooth_devices_.var_
-//              .insert({mac_address, std::make_unique<BluetoothDeviceController>(
-//                                        name, mac_address)})
-//              .first->second.get();
-//    }
-//
-//    proto::gen::ScanResult scan_result;
-//    scan_result.set_rssi(discovery_info->rssi);
-//
-//    proto::gen::AdvertisementData* advertisement_data =
-//        new proto::gen::AdvertisementData();
-//    DecodeAdvertisementData(discovery_info->adv_data, *advertisement_data,
-//                            discovery_info->adv_data_len);
-//
-//    scan_result.set_allocated_advertisement_data(advertisement_data);
-//    scan_result.set_allocated_device(
-//        new proto::gen::BluetoothDevice(ToProtoDevice(*device)));
-//
-//    bluetooth_manager.notifications_handler_.NotifyUIThread("ScanResult",
-//                                                            scan_result);
-//  }
+void BluetoothManager::StartBluetoothDeviceScanLE(
+    const BleScanSettings& scan_settings) {
+  StopBluetoothDeviceScanLE();
+
+  std::scoped_lock lock(bluetooth_devices_.mutex_);
+  bluetooth_devices_.var_.clear();
+
+  StartBluetoothDeviceScanLE(
+      scan_settings,
+      [&bluetooth_manager = *this,
+       &notifications_handler = notifications_handler_](
+          const std::string& address, const std::string& device_name, int rssi,
+          const flutter_blue_tizen::AdvertisementData& advertisement_data) {
+        std::scoped_lock lock(bluetooth_manager.bluetooth_devices_.mutex_);
+
+        auto& devices_container = bluetooth_manager.bluetooth_devices_.var_;
+
+        auto it = devices_container.find(address);
+
+        BluetoothDeviceController* device;
+        if (it == devices_container.end()) {
+          device =
+              bluetooth_manager.bluetooth_devices_.var_
+                  .insert({address, std::make_unique<BluetoothDeviceController>(
+                                        device_name, address)})
+                  .first->second.get();
+        } else {
+          device = it->second.get();
+        }
+
+        proto::gen::ScanResult scan_result;
+        scan_result.set_rssi(rssi);
+
+        auto proto_advertisement_data = new proto::gen::AdvertisementData();
+
+        flutter_blue_tizen::ToProtoAdvertisementData(advertisement_data,
+                                                     *proto_advertisement_data);
+
+        scan_result.set_allocated_advertisement_data(proto_advertisement_data);
+        scan_result.set_allocated_device(
+            new proto::gen::BluetoothDevice(ToProtoDevice(*device)));
+
+        notifications_handler.NotifyUIThread("ScanResult", scan_result);
+      });
 }
 
 void BluetoothManager::StopBluetoothDeviceScanLE() {
@@ -512,46 +482,6 @@ void BluetoothManager::WriteDescriptor(
         notifications_handler.NotifyUIThread("WriteDescriptorResponse",
                                              write_descriptor_response);
       });
-}
-
-AdvertisementData DecodeAdvertisementData(const char* packets_data,
-                                          int data_len) noexcept {
-  AdvertisementData advertisement_data;
-  using byte = char;
-  int start = 0;
-  bool long_name_set = false;
-
-  //TODO - fix. read, write properies not checked!
-
-  while (start < data_len) {
-    byte advertisement_data_len = packets_data[start] & 0xFFu;
-    byte type = packets_data[start + 1] & 0xFFu;
-
-    const byte* packet = packets_data + start + 2;
-    switch (type) {
-      case 0x09:
-      case 0x08: {
-        if (!long_name_set)
-          std::copy_n(packet, advertisement_data_len - 1,
-                      std::back_inserter(advertisement_data.local_name_));
-
-        if (type == 0x09) long_name_set = true;
-
-        break;
-      }
-      case 0x01: {
-        advertisement_data.connectable_ = *packet & 0x3;
-        break;
-      }
-      case 0xFF: {
-        break;
-      }
-      default:
-        break;
-    }
-    start += advertisement_data_len + 1;
-  }
-  return advertisement_data;
 }
 
 }  // namespace flutter_blue_tizen

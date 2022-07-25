@@ -158,7 +158,11 @@ void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) {
     ReadRssiCallback callback;
   };
 
-  auto scope = new Scope{std::move(callback)};
+  BleScanSettings settings;
+  settings.device_ids_filters_ = {address()};
+  
+  
+ // auto scope = new Scope{std::move(callback)};
 }
 
 void BluetoothDeviceController::SetConnectionStateChangedCallback(

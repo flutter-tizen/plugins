@@ -118,27 +118,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
             flutter_blue_tizen::FromProtoScanSettings(scan_settings);
 
         bluetooth_manager_->StartBluetoothDeviceScanLE(
-            bleScanSettings,
-            [&notifications_handler = notifications_handler_](
-                flutter_blue_tizen::BluetoothDeviceController& device, int rssi,
-                const flutter_blue_tizen::AdvertisementData&
-                    advertisement_data) {
-              proto::gen::ScanResult scan_result;
-              scan_result.set_rssi(rssi);
-
-              auto proto_advertisement_data =
-                  new proto::gen::AdvertisementData();
-
-              flutter_blue_tizen::ToProtoAdvertisementData(
-                  advertisement_data, *proto_advertisement_data);
-
-              scan_result.set_allocated_advertisement_data(
-                  proto_advertisement_data);
-              scan_result.set_allocated_device(
-                  new proto::gen::BluetoothDevice(ToProtoDevice(device)));
-
-              notifications_handler.NotifyUIThread("ScanResult", scan_result);
-            });
+            bleScanSettings);
         result->Success();
       } catch (const std::exception& e) {
         result->Error(e.what());

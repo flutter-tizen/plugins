@@ -3,11 +3,16 @@
 
 #include <bluetooth.h>
 
+#include <algorithm>
 #include <exception>
 #include <mutex>
-#include <vector>
+#include <optional>
 #include <string>
+#include <tuple>
+#include <type_traits>
+#include <vector>
 
+#include "log.h"
 
 namespace flutter_blue_tizen {
 
@@ -44,18 +49,25 @@ std::string GetGattValue(bt_gatt_h handle);
 
 std::string GetGattUuid(bt_gatt_h handle);
 
-
-struct BleScanSettings{
-	bool allow_duplicates_;
-	bool clear_devices_;
-	std::vector<std::string> device_ids_filters_;
-	std::vector<std::string> service_uuids_filters_;
+struct BleScanSettings {
+  bool allow_duplicates_;
+  bool clear_devices_;
+  std::vector<std::string> device_ids_filters_;
+  std::vector<std::string> service_uuids_filters_;
 };
 
-struct AdvertisementData{
-	bool connectable_;
-	std::string local_name_;
+struct AdvertisementData {
+  bool connectable_;
+  std::string local_name_;
 };
+
+AdvertisementData DecodeAdvertisementData(const char* packets_data,
+                                          int data_len) noexcept;
+
+using ScanCallback = std::function<void(const std::string& address,
+                                        const std::string& device_name,
+                                        int rssi, const AdvertisementData&)>;
+
 
 }  // namespace flutter_blue_tizen
 

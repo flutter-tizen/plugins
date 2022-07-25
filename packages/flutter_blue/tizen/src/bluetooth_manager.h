@@ -24,10 +24,23 @@ class BluetoothManager {
 
   ~BluetoothManager() noexcept = default;
 
-  using ScanCallback = std::function<void(BluetoothDeviceController&, int rssi, const AdvertisementData&)>;
+  using ScanCallback = std::function<void(const std::string& address,
+                                          const std::string& device_name,
+                                          int rssi, const AdvertisementData&)>;
 
-void StartBluetoothDeviceScanLE(
-    const BleScanSettings& scan_settings, ScanCallback callback);
+  /**
+   * @brief this member function already contains a callback redirecting output
+   * to flutter.
+   */
+  void StartBluetoothDeviceScanLE(const BleScanSettings& scan_settings);
+
+  /**
+   * @brief this static member is designed to use from other places such as
+   * bluetooth_device_controller for rssi fetch
+   *
+   */
+  static void StartBluetoothDeviceScanLE(const BleScanSettings& scan_settings,
+                                         ScanCallback callback);
 
   void StopBluetoothDeviceScanLE();
 
@@ -92,8 +105,6 @@ void StartBluetoothDeviceScanLE(
 
   std::atomic<bool> scan_allow_duplicates_;
 };
-
-AdvertisementData DecodeAdvertisementData(const char* packets_data, int data_len) noexcept;
 
 }  // namespace flutter_blue_tizen
 #endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
