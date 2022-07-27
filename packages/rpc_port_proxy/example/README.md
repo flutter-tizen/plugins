@@ -1,6 +1,6 @@
-# rpcport_proxy_example
+# rpc_port_proxy_example
 
-Demonstrates how to use the rpcport_proxy plugin.
+Demonstrates how to use the rpc_port_proxy plugin.
 
 ## Getting Started
 

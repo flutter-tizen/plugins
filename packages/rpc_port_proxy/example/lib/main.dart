@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:rpcport_proxy/rpcport_proxy.dart';
+import 'package:rpc_port_proxy/rpc_port_proxy.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
-  final _rpcportProxyPlugin = RpcportProxy();
+  final _rpcPortProxyPlugin = RpcPortProxy();
 
   @override
   void initState() {
@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
     // We also handle the message potentially returning null.
     try {
       platformVersion =
-          await _rpcportProxyPlugin.getPlatformVersion() ?? 'Unknown platform version';
+          await _rpcPortProxyPlugin.getPlatformVersion() ?? 'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }

@@ -1,4 +1,4 @@
-# rpcport_proxy
+# rpc_port_proxy
 
 A new Flutter plugin project.
 

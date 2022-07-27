@@ -5,10 +5,10 @@
 // platforms in the `pubspec.yaml` at
 // https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms.
 
-import 'rpcport_proxy_platform_interface.dart';
+import 'rpc_port_proxy_platform_interface.dart';
 
-class RpcportProxy {
+class RpcPortProxy {
   Future<String?> getPlatformVersion() {
-    return RpcportProxyPlatform.instance.getPlatformVersion();
+    return RpcPortProxyPlatform.instance.getPlatformVersion();
   }
 }
