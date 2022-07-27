@@ -125,16 +125,13 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   Future<GoogleSignInTokenData> getTokens(
       {required String email, bool? shouldRecoverAuth = true}) async {
     _ensureInitParametersInitialized();
-    final Authentication? authentication =
+    final GoogleSignInTokenData? tokenData =
         await _googleSignIn.getAuthentication(
       refresh: true,
-      clientSecret: _initParameters!.clientSecret,
+      initParameters: _initParameters,
     );
-    if (authentication != null) {
-      return GoogleSignInTokenData(
-        accessToken: authentication.accessToken,
-        idToken: authentication.idToken,
-      );
+    if (tokenData != null) {
+      return tokenData;
     }
     return GoogleSignInTokenData();
   }

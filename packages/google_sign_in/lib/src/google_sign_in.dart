@@ -11,7 +11,7 @@ import 'device_flow_widget.dart';
 import 'oauth2.dart';
 import 'utils.dart' as utils;
 
-/// The parameters to use when initializing the sign in process for Tizen.
+/// The parameters to use when initializing the Google sign in process for Tizen.
 class SignInInitParametersTizen extends SignInInitParameters {
   /// Creates an instance of [SignInInitParametersTizen].
   const SignInInitParametersTizen({
@@ -23,46 +23,47 @@ class SignInInitParametersTizen extends SignInInitParameters {
   @override
   String get clientId => super.clientId!;
 
-  /// The secret credential knwon only to the application and the authorization
-  /// server. It's analogous to a password.
+  /// The secret credential known only to the application and the authorization
+  /// server, it's analogous to a password.
   final String clientSecret;
 }
 
-/// The class that represents OAuth 2.0 entities after sign-in.
-class Authentication {
-  /// Creates an instance of [Authentication].
-  const Authentication({
-    required this.clientId,
-    required this.accessToken,
+/// Holds authentication data after Google sign in for Tizen.
+class GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
+  /// Creates an instance of [GoogleSignInTokenDataTizen].
+  GoogleSignInTokenDataTizen({
+    required super.accessToken,
     required this.accessTokenExpirationDate,
-    required this.idToken,
+    required super.idToken,
     this.refreshToken,
-    this.idTokenExpirationDate,
   });
 
-  /// The client ID associated with the authentication.
-  final String clientId;
-
-  /// The OAuth2 access token to access Google services.
-  final String accessToken;
+  @override
+  String get accessToken => super.accessToken!;
 
   /// The estimated expiration date of [accessToken].
   final DateTime accessTokenExpirationDate;
 
-  /// The OpenID Connect ID token that identifies the user.
-  final String idToken;
+  @override
+  String get idToken => super.idToken!;
 
   /// The OAuth2 refresh token to exchange for new access tokens.
   final String? refreshToken;
 
-  /// The estimated expiration date of [idToken].
-  final DateTime? idTokenExpirationDate;
+  /// Returns `true` if [accessToken] is expired and needs to be refreshed,
+  /// otherwise `false`.
+  bool get isExpired {
+    const Duration minimalTimeToExpire = Duration(minutes: 1);
+    return accessTokenExpirationDate
+        .add(minimalTimeToExpire)
+        .isAfter(DateTime.now());
+  }
 }
 
 /// The class that handles Google SignIn.
 class GoogleSignIn {
-  /// The current authentication.
-  Authentication? _authentication;
+  /// The current token data.
+  GoogleSignInTokenDataTizen? _tokenData;
 
   final DeviceAuthClient _authClient = DeviceAuthClient(
     authorizationEndPoint:
@@ -77,8 +78,8 @@ class GoogleSignIn {
   /// sign-in was cancelled.
   Future<GoogleSignInUserData?> signIn(
       SignInInitParametersTizen initParameters) async {
-    if (_authentication != null) {
-      return _createUserData(_authentication!.idToken);
+    if (_tokenData != null) {
+      return _createUserData(_tokenData!.idToken);
     }
 
     final AuthorizationResponse authorizationResponse =
@@ -110,48 +111,43 @@ class GoogleSignIn {
     }
     closeDeviceFlowWidget();
 
-    _authentication = Authentication(
-      clientId: initParameters.clientId,
+    _tokenData = GoogleSignInTokenDataTizen(
       accessToken: tokenResponse.accessToken,
       accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
       refreshToken: tokenResponse.refreshToken,
       idToken: tokenResponse.idToken,
     );
 
-    return _createUserData(_authentication!.idToken);
+    return _createUserData(_tokenData!.idToken);
   }
 
-  /// Returns the [Authentication] of the currently signed in user, returns
+  /// Returns the [tokenData] of the currently signed in user, returns
   /// `null` if no user is signed in.
   ///
   /// If [refresh] is `true`, expired tokens will be refreshed after
-  /// getting new tokens from the server. [clientSecret] cannot be `null` when
+  /// getting new tokens from the server. [initParameters] cannot be `null` when
   /// refresh is required.
-  Future<Authentication?> getAuthentication({
+  Future<GoogleSignInTokenDataTizen?> getAuthentication({
     bool refresh = false,
-    String? clientSecret,
+    SignInInitParametersTizen? initParameters,
   }) async {
-    if (_authentication == null) {
+    if (_tokenData == null) {
       return null;
     }
-    final Authentication authentication = _authentication!;
+    final GoogleSignInTokenDataTizen tokenData = _tokenData!;
 
-    // Check access token is if expired.
-    const Duration minimalTimeToExpire = Duration(minutes: 1);
-    if (!refresh ||
-        authentication.accessTokenExpirationDate
-            .add(minimalTimeToExpire)
-            .isBefore(DateTime.now())) {
-      return authentication;
+    // Check if access token expired.
+    if (!refresh || !tokenData.isExpired) {
+      return tokenData;
     }
 
-    if (clientSecret == null) {
+    if (initParameters == null) {
       throw ArgumentError(
-          "Token expired: `clientSecret` can't be null when refresh is required",
-          'clientSecret');
+          "Token expired: `initParameters` can't be null when refresh is required",
+          'initParameters');
     }
 
-    if (authentication.refreshToken == null) {
+    if (tokenData.refreshToken == null) {
       throw PlatformException(
         code: 'refresh-token-missing',
         message: 'Cannot refresh tokens as refresh tokens are missing. '
@@ -160,43 +156,42 @@ class GoogleSignIn {
     }
 
     final TokenResponse tokenResponse = await _authClient.refreshToken(
-      clientId: authentication.clientId,
-      clientSecret: clientSecret,
-      refreshToken: authentication.refreshToken!,
+      clientId: initParameters.clientId,
+      clientSecret: initParameters.clientSecret,
+      refreshToken: tokenData.refreshToken!,
     );
 
-    _authentication = Authentication(
-      clientId: authentication.clientId,
+    _tokenData = GoogleSignInTokenDataTizen(
       accessToken: tokenResponse.accessToken,
       accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
       refreshToken: tokenResponse.refreshToken,
       idToken: tokenResponse.idToken,
     );
 
-    return _authentication;
+    return _tokenData;
   }
 
   /// Signs out the currently signed in user.
   Future<void> signOut() async {
-    if (_authentication != null) {
-      _authentication = null;
+    if (_tokenData != null) {
+      _tokenData = null;
     }
   }
 
   /// Signs out the currently signed in user and revoke its authentication.
   Future<void> disconnect() async {
-    if (_authentication == null) {
+    if (_tokenData == null) {
       return;
     }
 
-    final String accessToken = _authentication!.accessToken;
+    final String accessToken = _tokenData!.accessToken;
     signOut();
 
     _authClient.revokeToken(accessToken);
   }
 
   /// Returns `true` if there is a signed in user, otherwise returns `false`.
-  Future<bool> isSignedIn() async => _authentication != null;
+  Future<bool> isSignedIn() async => _tokenData != null;
 
   GoogleSignInUserData _createUserData(String idToken) {
     final Map<String, dynamic> json = utils.decodeJWT(idToken);
