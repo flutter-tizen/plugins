@@ -43,18 +43,18 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  Configuration? _configuration;
+  SignInInitParametersTizen? _initParameters;
 
   void _setCredentials({
     required String clientId,
     required String clientSecret,
   }) {
-    _configuration =
-        Configuration(clientId: clientId, clientSecret: clientSecret);
+    _initParameters = SignInInitParametersTizen(
+        clientId: clientId, clientSecret: clientSecret);
   }
 
-  void _ensureConfigurationInitialized() {
-    if (_configuration == null) {
+  void _ensureInitParametersInitialized() {
+    if (_initParameters == null) {
       throw PlatformException(
         code: 'credentials-missing',
         message: 'Cannot initialize GoogleSignInTizen: ClientID and '
@@ -100,11 +100,11 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
       );
     }
 
-    _ensureConfigurationInitialized();
-    _configuration = Configuration(
-      clientId: _configuration!.clientId,
-      clientSecret: _configuration!.clientSecret,
-      scope: scopes,
+    _ensureInitParametersInitialized();
+    _initParameters = SignInInitParametersTizen(
+      clientId: _initParameters!.clientId,
+      clientSecret: _initParameters!.clientSecret,
+      scopes: scopes,
     );
   }
 
@@ -115,20 +115,20 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   @override
   Future<GoogleSignInUserData?> signIn() async {
-    _ensureConfigurationInitialized();
+    _ensureInitParametersInitialized();
     _ensureNavigatorKeyInitialized();
 
-    return await _googleSignIn.signIn(_configuration!);
+    return await _googleSignIn.signIn(_initParameters!);
   }
 
   @override
   Future<GoogleSignInTokenData> getTokens(
       {required String email, bool? shouldRecoverAuth = true}) async {
-    _ensureConfigurationInitialized();
+    _ensureInitParametersInitialized();
     final Authentication? authentication =
         await _googleSignIn.getAuthentication(
       refresh: true,
-      clientSecret: _configuration!.clientSecret,
+      clientSecret: _initParameters!.clientSecret,
     );
     if (authentication != null) {
       return GoogleSignInTokenData(

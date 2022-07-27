@@ -11,25 +11,21 @@ import 'device_flow_widget.dart';
 import 'oauth2.dart';
 import 'utils.dart' as utils;
 
-/// The class that holds parameters for OAuth request.
-class Configuration {
-  /// Creates an instance of [Configuration].
-  const Configuration({
-    required this.clientId,
+/// The parameters to use when initializing the sign in process for Tizen.
+class SignInInitParametersTizen extends SignInInitParameters {
+  /// Creates an instance of [SignInInitParametersTizen].
+  const SignInInitParametersTizen({
+    required String clientId,
     required this.clientSecret,
-    this.scope = const <String>[],
-  });
+    super.scopes,
+  }) : super(clientId: clientId);
 
-  /// The unique public identifier for apps that is issued by the authorization
-  /// server. It's analogous to a login id.
-  final String clientId;
+  @override
+  String get clientId => super.clientId!;
 
   /// The secret credential knwon only to the application and the authorization
   /// server. It's analogous to a password.
   final String clientSecret;
-
-  /// The amount of resources to access on behalf of the user.
-  final List<String> scope;
 }
 
 /// The class that represents OAuth 2.0 entities after sign-in.
@@ -63,52 +59,6 @@ class Authentication {
   final DateTime? idTokenExpirationDate;
 }
 
-/// The class that represents basic profile information.
-class ProfileData {
-  /// Creates an instance of [ProfileData].
-  const ProfileData({
-    required this.email,
-    required this.name,
-    this.givenName,
-    this.familyName,
-    this.picture,
-  });
-
-  /// The Google user's email.
-  final String email;
-
-  /// The Google user's full name.
-  final String name;
-
-  /// The Google user's given name.
-  final String? givenName;
-
-  /// The Google user's family name.
-  final String? familyName;
-
-  /// The Uri of Google user's profile picture.
-  final Uri? picture;
-
-  /// Creates a [ProfileData] from json object.
-  static ProfileData fromJson(Map<String, dynamic> json) {
-    print(json);
-
-    utils.checkFormat<String>(
-      <String>['email', 'name', 'given_name', 'family_name', 'picture'],
-      json,
-    );
-
-    return ProfileData(
-      email: json['email'] as String,
-      name: json['name'] as String,
-      givenName: json['given_name'] as String?,
-      familyName: json['family_name'] as String?,
-      picture:
-          json['picture'] != null ? Uri.parse(json['picture'] as String) : null,
-    );
-  }
-}
-
 /// The class that handles Google SignIn.
 class GoogleSignIn {
   /// The current authentication.
@@ -125,20 +75,21 @@ class GoogleSignIn {
   ///
   /// Returns the currently signed in user if already signed in, `null` if
   /// sign-in was cancelled.
-  Future<GoogleSignInUserData?> signIn(Configuration configuration) async {
+  Future<GoogleSignInUserData?> signIn(
+      SignInInitParametersTizen initParameters) async {
     if (_authentication != null) {
       return _createUserData(_authentication!.idToken);
     }
 
     final AuthorizationResponse authorizationResponse =
         await _authClient.requestAuthorization(
-      configuration.clientId,
-      configuration.scope,
+      initParameters.clientId,
+      initParameters.scopes,
     );
 
     final Future<TokenResponse?> tokenResponseFuture = _authClient.pollToken(
-      clientId: configuration.clientId,
-      clientSecret: configuration.clientSecret,
+      clientId: initParameters.clientId,
+      clientSecret: initParameters.clientSecret,
       deviceCode: authorizationResponse.deviceCode,
       interval: authorizationResponse.interval,
     );
@@ -160,7 +111,7 @@ class GoogleSignIn {
     closeDeviceFlowWidget();
 
     _authentication = Authentication(
-      clientId: configuration.clientId,
+      clientId: initParameters.clientId,
       accessToken: tokenResponse.accessToken,
       accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
       refreshToken: tokenResponse.refreshToken,
@@ -248,17 +199,17 @@ class GoogleSignIn {
   Future<bool> isSignedIn() async => _authentication != null;
 
   GoogleSignInUserData _createUserData(String idToken) {
-    final Map<String, dynamic> jsonProfile = utils.decodeJWT(idToken);
-    final ProfileData profile = ProfileData.fromJson(jsonProfile);
+    final Map<String, dynamic> json = utils.decodeJWT(idToken);
 
-    utils.checkFormat<String>(<String>['sub'], jsonProfile);
+    utils
+        .checkFormat<String>(<String>['email', 'sub', 'name', 'picture'], json);
 
     return GoogleSignInUserData(
-      email: profile.email,
-      id: jsonProfile['sub'] as String,
-      displayName: profile.name,
+      email: json['email'] as String,
+      id: json['sub'] as String,
+      displayName: json['name'] as String?,
       idToken: idToken,
-      photoUrl: profile.picture.toString(),
+      photoUrl: json['picture'] as String?,
     );
   }
 }
