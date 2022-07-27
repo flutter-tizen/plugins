@@ -18,14 +18,18 @@ For detailed usage on how to use `google_sign_in`, see https://pub.dev/packages/
 
 ## Tizen integration
 
+`google_sign_in_tizen` supports Google Sign-In for [TVs and Limited Input Devices](https://developers.google.com/identity/gsi/web/guides/devices), note that many API scopes are limited for these device types, see [supported scopes](https://developers.google.com/identity/protocols/oauth2/limited-input-device#allowedscopes).
+
+The plugin uses [OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628) (aka device flow) which has a different authorization flow than [Authorization Code Grant with PKCE](https://datatracker.ietf.org/doc/html/rfc7636) used for endorsed platforms (Android, iOS, and web). While every step needed to authorize the app for "authorization code grant with PKCE" happens on a single device, "device flow" requires the user to use a secondary device (PC, tablet, or desktop) to finalize the authorization.
+
 To access Google Sign-In for Tizen, you'll need to make sure to [register your application for TVs and limited input devices](https://developers.google.com/identity/gsi/web/guides/devices). You also need to add some additional code to your app to fully integrate `google_sign_in` on Tizen (explained below).
 
 ### Adding OAuth credentials
 
-`google_sign_in_tizen` uses [OAuth 2.0 Device Authorization Grant](https://datatracker.ietf.org/doc/html/rfc8628) (device flow) which has a different authorization flow than [Authorization Code Grant with PKCE](https://datatracker.ietf.org/doc/html/rfc7636) used for endorsed platforms (Android, iOS, and web). One of the key differences is requiring [client secret](https://developers.google.com/identity/protocols/oauth2/limited-input-device#step-4:-poll-googles-authorization-server) parameter during token request. You must call the `setCredentials` function with your client's OAuth credentials before calling `google_sign_in`'s API.
+Unlike "authorization code grant with PKCE", "device flow" requires [client secret](https://developers.google.com/identity/protocols/oauth2/limited-input-device#step-4:-poll-googles-authorization-server) parameter during token request. You must call `setCredentials` function with your client's OAuth credentials before calling `google_sign_in`'s API.
 
 ```dart
-import `package:google_sign_in_tizen/google_sign_in_tizen.dart as tizen`
+import 'package:google_sign_in_tizen/google_sign_in_tizen.dart as tizen'
 
 tizen.setCredentials(
   clientId: 'YOUR_CLIENT_ID',
@@ -56,7 +60,7 @@ See [Obfuscating Dart code](https://docs.flutter.dev/deployment/obfuscate) for m
 During Google Sign-In with device flow, the client displays a widget that shows [user_code](https://developers.google.com/identity/gsi/web/guides/devices#obtain_a_user_code_and_verification_url) and [verification url](https://developers.google.com/identity/gsi/web/guides/devices#obtain_a_user_code_and_verification_url) to the user and instructs them to visit the verification url in a user agent on a secondary device (for example, in a browser on their mobile phone) and enter the user code. The plugin will be able to show this widget only when the plugin's navigatorKey object is assigned to the `navigatorKey` parameter of `MaterialApp` or `CupertinoApp` using the `getNavigatorKey` function.
 
 ```dart
-import `package:google_sign_in_tizen/google_sign_in_tizen.dart as tizen`
+import 'package:google_sign_in_tizen/google_sign_in_tizen.dart as tizen'
 
 MaterialApp(
   title: 'Google Sign In',
@@ -68,7 +72,7 @@ MaterialApp(
 If you need to assign a custom navigatorKey to `MaterialApp`'s (or `CupertinoApp`'s) `navigatorKey` parameter, you must set that key to be used by the plugin as well using `setNavigatorKey` function.
 
 ```dart
-import `package:google_sign_in_tizen/google_sign_in_tizen.dart as tizen`
+import 'package:google_sign_in_tizen/google_sign_in_tizen.dart as tizen'
 
 final GlobalKey<NavigatorState> customNavigatorKey = GlobalKey<NavigatorState>(); 
 tizen.setNavigatorKey(customNavigatorKey);
