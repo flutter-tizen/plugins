@@ -118,17 +118,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     _ensureConfigurationInitialized();
     _ensureNavigatorKeyInitialized();
 
-    final GoogleUser? user = await _googleSignIn.signIn(_configuration!);
-    if (user != null) {
-      return GoogleSignInUserData(
-        email: user.profile.email,
-        id: user.userId,
-        displayName: user.profile.name,
-        idToken: user.authentication.idToken,
-        photoUrl: user.profile.picture.toString(),
-      );
-    }
-    return null;
+    return await _googleSignIn.signIn(_configuration!);
   }
 
   @override

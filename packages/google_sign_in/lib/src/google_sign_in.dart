@@ -5,33 +5,11 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:google_sign_in_tizen/src/oauth2.dart';
+import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 
 import 'device_flow_widget.dart';
+import 'oauth2.dart';
 import 'utils.dart' as utils;
-
-/// The class that represents a Google user account.
-class GoogleUser {
-  /// Creates an instance of [GoogleUser].
-  GoogleUser({
-    required this.userId,
-    required this.profile,
-    required this.authentication,
-    List<String>? scope,
-  }) : grantedScope = scope ?? <String>[];
-
-  /// The Google user ID.
-  final String userId;
-
-  /// The basic profile data for the user.
-  final ProfileData profile;
-
-  /// The authentication info for the user.
-  final Authentication authentication;
-
-  /// The API scopes granted to the app.
-  final List<String> grantedScope;
-}
 
 /// The class that holds parameters for OAuth request.
 class Configuration {
@@ -61,8 +39,8 @@ class Authentication {
     required this.clientId,
     required this.accessToken,
     required this.accessTokenExpirationDate,
+    required this.idToken,
     this.refreshToken,
-    this.idToken,
     this.idTokenExpirationDate,
   });
 
@@ -75,11 +53,11 @@ class Authentication {
   /// The estimated expiration date of [accessToken].
   final DateTime accessTokenExpirationDate;
 
+  /// The OpenID Connect ID token that identifies the user.
+  final String idToken;
+
   /// The OAuth2 refresh token to exchange for new access tokens.
   final String? refreshToken;
-
-  /// The OpenID Connect ID token that identifies the user.
-  final String? idToken;
 
   /// The estimated expiration date of [idToken].
   final DateTime? idTokenExpirationDate;
@@ -133,12 +111,8 @@ class ProfileData {
 
 /// The class that handles Google SignIn.
 class GoogleSignIn {
-  /// The currently signed in user.
-  GoogleUser? _user;
-
-  /// Returns the currently signed in [GoogleUser], returns `null` if no user is
-  /// signed in.
-  GoogleUser? get user => _user;
+  /// The current authentication.
+  Authentication? _authentication;
 
   final DeviceAuthClient _authClient = DeviceAuthClient(
     authorizationEndPoint:
@@ -151,9 +125,9 @@ class GoogleSignIn {
   ///
   /// Returns the currently signed in user if already signed in, `null` if
   /// sign-in was cancelled.
-  Future<GoogleUser?> signIn(Configuration configuration) async {
-    if (_user != null) {
-      return _user;
+  Future<GoogleSignInUserData?> signIn(Configuration configuration) async {
+    if (_authentication != null) {
+      return _createUserData(_authentication!.idToken);
     }
 
     final AuthorizationResponse authorizationResponse =
@@ -185,11 +159,7 @@ class GoogleSignIn {
     }
     closeDeviceFlowWidget();
 
-    final Map<String, dynamic> jsonProfile =
-        utils.decodeJWT(tokenResponse.idToken);
-    final ProfileData profile = ProfileData.fromJson(jsonProfile);
-
-    final Authentication authentication = Authentication(
+    _authentication = Authentication(
       clientId: configuration.clientId,
       accessToken: tokenResponse.accessToken,
       accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
@@ -197,15 +167,7 @@ class GoogleSignIn {
       idToken: tokenResponse.idToken,
     );
 
-    utils.checkFormat<String>(<String>['sub'], jsonProfile);
-    _user = GoogleUser(
-      userId: jsonProfile['sub'] as String,
-      profile: profile,
-      authentication: authentication,
-      scope: tokenResponse.scope,
-    );
-
-    return _user;
+    return _createUserData(_authentication!.idToken);
   }
 
   /// Returns the [Authentication] of the currently signed in user, returns
@@ -218,11 +180,10 @@ class GoogleSignIn {
     bool refresh = false,
     String? clientSecret,
   }) async {
-    if (_user == null) {
+    if (_authentication == null) {
       return null;
     }
-    final GoogleUser user = _user!;
-    final Authentication authentication = user.authentication;
+    final Authentication authentication = _authentication!;
 
     // Check access token is if expired.
     const Duration minimalTimeToExpire = Duration(minutes: 1);
@@ -253,7 +214,7 @@ class GoogleSignIn {
       refreshToken: authentication.refreshToken!,
     );
 
-    final Authentication newAuthentication = Authentication(
+    _authentication = Authentication(
       clientId: authentication.clientId,
       accessToken: tokenResponse.accessToken,
       accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
@@ -261,34 +222,43 @@ class GoogleSignIn {
       idToken: tokenResponse.idToken,
     );
 
-    _user = GoogleUser(
-      userId: user.userId,
-      profile: user.profile,
-      authentication: newAuthentication,
-      scope: tokenResponse.scope,
-    );
-    return newAuthentication;
+    return _authentication;
   }
 
   /// Signs out the currently signed in user.
   Future<void> signOut() async {
-    if (_user != null) {
-      _user = null;
+    if (_authentication != null) {
+      _authentication = null;
     }
   }
 
   /// Signs out the currently signed in user and revoke its authentication.
   Future<void> disconnect() async {
-    if (_user == null) {
+    if (_authentication == null) {
       return;
     }
 
-    final String accessToken = _user!.authentication.accessToken;
+    final String accessToken = _authentication!.accessToken;
     signOut();
 
     _authClient.revokeToken(accessToken);
   }
 
   /// Returns `true` if there is a signed in user, otherwise returns `false`.
-  Future<bool> isSignedIn() async => _user != null;
+  Future<bool> isSignedIn() async => _authentication != null;
+
+  GoogleSignInUserData _createUserData(String idToken) {
+    final Map<String, dynamic> jsonProfile = utils.decodeJWT(idToken);
+    final ProfileData profile = ProfileData.fromJson(jsonProfile);
+
+    utils.checkFormat<String>(<String>['sub'], jsonProfile);
+
+    return GoogleSignInUserData(
+      email: profile.email,
+      id: jsonProfile['sub'] as String,
+      displayName: profile.name,
+      idToken: idToken,
+      photoUrl: profile.picture.toString(),
+    );
+  }
 }
