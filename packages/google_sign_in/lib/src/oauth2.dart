@@ -32,16 +32,14 @@ class AuthorizationResponse {
       json,
     );
 
-    final Duration? interval = json['interval'] != null
-        ? Duration(seconds: json['interval'] as int)
-        : null;
-
     return AuthorizationResponse._(
       deviceCode: json['device_code'] as String,
       userCode: json['user_code'] as String,
       verificationUrl: Uri.parse(json['verification_url'] as String),
       expiresIn: Duration(seconds: json['expires_in'] as int),
-      interval: interval,
+      interval: json['interval'] != null
+          ? Duration(seconds: json['interval'] as int)
+          : null,
     );
   }
 
@@ -93,18 +91,14 @@ class TokenResponse {
       json,
     );
 
-    final String? refreshToken =
-        json['refresh_token'] != null ? json['refresh_token'] as String : null;
-    final List<String>? scope = json['scope'] != null
-        ? (json['scope'] as String).split(' ').toList()
-        : null;
-
     return TokenResponse._(
       accessToken: json['access_token'] as String,
       tokenType: json['token_type'] as String,
       expiresIn: Duration(seconds: json['expires_in'] as int),
-      refreshToken: refreshToken,
-      scope: scope,
+      refreshToken: json['refresh_token'] as String?,
+      scope: json['scope'] != null
+          ? (json['scope'] as String).split(' ').toList()
+          : null,
       idToken: json['id_token'] as String,
     );
   }
@@ -170,8 +164,8 @@ class DeviceAuthClient {
       String clientId, List<String> scope) async {
     final Map<String, String> body = <String, String>{
       'client_id': clientId,
+      'scope': scope.join(' '),
     };
-    body['scope'] = scope.join(' ');
 
     final http.Response response =
         await _httpClient.post(authorizationEndPoint, body: body);
@@ -300,14 +294,13 @@ class DeviceAuthClient {
       <String>['error', 'error_description', 'error_uri'],
       jsonResponse,
     );
-    final String error = jsonResponse['error'] as String;
-    final String? description = jsonResponse['error_description'] != null
-        ? jsonResponse['error_description'] as String
-        : null;
-    final String? uriString = jsonResponse['error_uri'] != null
-        ? jsonResponse['error_uri'] as String
-        : null;
-    final Uri? uri = uriString == null ? null : Uri.parse(uriString);
-    throw AuthorizationException(error, description, uri);
+
+    throw AuthorizationException(
+      jsonResponse['error'] as String,
+      jsonResponse['error_description'] as String?,
+      jsonResponse['error_uri'] != null
+          ? Uri.parse(jsonResponse['error_uri'] as String)
+          : null,
+    );
   }
 }

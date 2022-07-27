@@ -120,21 +120,13 @@ class ProfileData {
       json,
     );
 
-    final String? givenName =
-        json['given_name'] != null ? json['given_name'] as String : null;
-
-    final String? familyName =
-        json['family_name'] != null ? json['family_name'] as String : null;
-
-    final Uri? picture =
-        json['picture'] != null ? Uri.parse(json['picture'] as String) : null;
-
     return ProfileData(
       email: json['email'] as String,
       name: json['name'] as String,
-      givenName: givenName,
-      familyName: familyName,
-      picture: picture,
+      givenName: json['given_name'] as String?,
+      familyName: json['family_name'] as String?,
+      picture:
+          json['picture'] != null ? Uri.parse(json['picture'] as String) : null,
     );
   }
 }

@@ -9,6 +9,8 @@ import 'package:google_sign_in_platform_interface/google_sign_in_platform_interf
 import 'src/device_flow_widget.dart' as device_flow_widget;
 import 'src/google_sign_in.dart';
 
+export 'src/authorization_exception.dart';
+
 /// Sets a custom [GlobalKey\<NavigatorState>] object used for pushing a Flutter
 /// widget that displays "user_code" and "verification_uri".
 void setNavigatorKey(GlobalKey<NavigatorState> key) =>
