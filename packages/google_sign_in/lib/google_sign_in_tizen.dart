@@ -5,25 +5,13 @@
 import 'dart:convert' as convert;
 
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 
 import 'src/device_flow_widget.dart' as device_flow_widget;
 import 'src/oauth2.dart';
 
 export 'src/authorization_exception.dart';
-
-/// Sets a custom [GlobalKey\<NavigatorState>] object used for pushing a Flutter
-/// widget that displays "user_code" and "verification_uri".
-void setNavigatorKey(GlobalKey<NavigatorState> key) =>
-    device_flow_widget.navigatorKey = key;
-
-/// Returns a [GlobalKey\<NavigatorState>] object currently used for pushing a
-/// Flutter widget that displays "user_code" and "verification_uri".
-///
-/// A default key used by the plugin will be returned unless a custom key was
-/// provided with [setNavigatorKey].
-GlobalKey<NavigatorState> getNavigatorKey() => device_flow_widget.navigatorKey;
+export 'src/device_flow_widget.dart' show navigatorKey;
 
 /// Sets [clientId] and [clientSecret] to be used for GoogleSignIn authentication.
 ///
@@ -129,9 +117,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
         code: 'navigatorkey-unassigned',
         message: 'Cannot initialize GoogleSignInTizen: a default or custom '
             'navigator key must be assigned to `navigatorKey` parameter in '
-            '`MaterialApp` or `CupertinoApp`. To get a default navigator key, '
-            'call getNavigatorKey, to provide a custom one, call setNavigatorKey '
-            'in google_sign_in_tizen.dart.',
+            '`MaterialApp` or `CupertinoApp`.',
       );
     }
   }

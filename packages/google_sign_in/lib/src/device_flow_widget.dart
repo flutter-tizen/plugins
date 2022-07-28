@@ -10,14 +10,9 @@ import 'package:flutter/material.dart';
 /// that displays "user_code" and "verification_uri".
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-BuildContext? _context;
-
 /// Closes the widget that was shown from [showDeviceFlowWidget].
 void closeDeviceFlowWidget() {
-  if (_context != null) {
-    Navigator.pop(_context!);
-    _context = null;
-  }
+  Navigator.of(navigatorKey.currentContext!, rootNavigator: true).pop();
 }
 
 /// Displays a widget that shows [code] and [verificationUrl].
@@ -33,7 +28,6 @@ void showDeviceFlowWidget({
     context: navigatorKey.currentContext!,
     barrierDismissible: false,
     builder: (BuildContext context) {
-      _context = context;
       return AlertDialog(
         title: const Text('Google SignIn'),
         content: Column(
@@ -56,8 +50,7 @@ void showDeviceFlowWidget({
               expiresIn,
               onFinished: () {
                 onExpired?.call();
-                Navigator.pop(context);
-                _context = null;
+                closeDeviceFlowWidget();
               },
             ),
           ],
@@ -66,8 +59,7 @@ void showDeviceFlowWidget({
           TextButton(
             onPressed: () {
               onCancelled?.call();
-              Navigator.pop(context);
-              _context = null;
+              closeDeviceFlowWidget();
             },
             child: const Text(
               'Cancel',

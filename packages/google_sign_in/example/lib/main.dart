@@ -32,7 +32,7 @@ void main() {
   runApp(
     MaterialApp(
       title: 'Google Sign In',
-      navigatorKey: tizen.getNavigatorKey(),
+      navigatorKey: tizen.navigatorKey,
       home: const SignInDemo(),
     ),
   );
