@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'authorization_exception.dart';
-import 'utils.dart' as utils;
 
 /// The class that represents successful device authorization response.
 /// See: https://datatracker.ietf.org/doc/html/rfc8628#section-3.2
@@ -23,15 +22,6 @@ class AuthorizationResponse {
 
   /// Creates a [AuthorizationResponse] from a json object.
   static AuthorizationResponse fromJson(Map<String, dynamic> json) {
-    utils.checkFormat<String>(
-      <String>['device_code', 'user_code', 'verification_url'],
-      json,
-    );
-    utils.checkFormat<int>(
-      <String>['expires_in', 'interval'],
-      json,
-    );
-
     return AuthorizationResponse._(
       deviceCode: json['device_code'] as String,
       userCode: json['user_code'] as String,
@@ -76,21 +66,6 @@ class TokenResponse {
 
   /// Creates a [TokenResponse] from a json object.
   static TokenResponse fromJson(Map<String, dynamic> json) {
-    utils.checkFormat<String>(
-      <String>[
-        'access_token',
-        'refresh_token',
-        'scope',
-        'token_type',
-        'id_token',
-      ],
-      json,
-    );
-    utils.checkFormat<int>(
-      <String>['expires_in'],
-      json,
-    );
-
     return TokenResponse._(
       accessToken: json['access_token'] as String,
       tokenType: json['token_type'] as String,
@@ -290,11 +265,6 @@ class DeviceAuthClient {
   }
 
   void _handleErrorResponse(Map<String, dynamic> jsonResponse) {
-    utils.checkFormat<String>(
-      <String>['error', 'error_description', 'error_uri'],
-      jsonResponse,
-    );
-
     throw AuthorizationException(
       jsonResponse['error'] as String,
       jsonResponse['error_description'] as String?,

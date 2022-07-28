@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' as convert;
 
 import 'package:flutter/services.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 
 import 'device_flow_widget.dart';
 import 'oauth2.dart';
-import 'utils.dart' as utils;
 
 /// The parameters to use when initializing the Google sign in process for Tizen.
 class SignInInitParametersTizen extends SignInInitParameters {
@@ -194,10 +194,16 @@ class GoogleSignIn {
   Future<bool> isSignedIn() async => _tokenData != null;
 
   GoogleSignInUserData _createUserData(String idToken) {
-    final Map<String, dynamic> json = utils.decodeJWT(idToken);
-
-    utils
-        .checkFormat<String>(<String>['email', 'sub', 'name', 'picture'], json);
+    // Decodes JWT payload as a json object.
+    final List<String> splitTokens = idToken.split('.');
+    if (splitTokens.length != 3) {
+      throw const FormatException('Invalid idToken.');
+    }
+    final String normalizedPayload = convert.base64.normalize(splitTokens[1]);
+    final String payloadString =
+        convert.utf8.decode(convert.base64.decode(normalizedPayload));
+    final Map<String, dynamic> json =
+        convert.jsonDecode(payloadString) as Map<String, dynamic>;
 
     return GoogleSignInUserData(
       email: json['email'] as String,
