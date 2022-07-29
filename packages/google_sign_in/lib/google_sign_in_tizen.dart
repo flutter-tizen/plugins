@@ -24,23 +24,6 @@ void setCredentials({
       ._setCredentials(clientId: clientId, clientSecret: clientSecret);
 }
 
-/// The parameters to use when initializing the Google sign in process for Tizen.
-class _SignInInitParametersTizen extends SignInInitParameters {
-  /// Creates an instance of [_SignInInitParametersTizen].
-  const _SignInInitParametersTizen({
-    required String clientId,
-    required this.clientSecret,
-    super.scopes,
-  }) : super(clientId: clientId);
-
-  @override
-  String get clientId => super.clientId!;
-
-  /// The secret credential known only to the application and the authorization
-  /// server, it's analogous to a password.
-  final String clientSecret;
-}
-
 /// Holds authentication data after Google sign in for Tizen.
 class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
   /// Creates an instance of [_GoogleSignInTokenDataTizen].
@@ -73,6 +56,19 @@ class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
   }
 }
 
+/// The set of "Client ID" and "Client Secret" issued by the authorization server.
+class _Credentials {
+  const _Credentials(this.clientId, this.clientSecret);
+
+  /// The unique public identifier for apps that is issued by the authorization
+  /// server. It's analogous to a login id.
+  final String clientId;
+
+  /// The secret credential known only to the application and the authorization
+  /// server, it's analogous to a password.
+  final String clientSecret;
+}
+
 /// Tizen implementation of [GoogleSignInPlatform].
 class GoogleSignInTizen extends GoogleSignInPlatform {
   /// Registers this class as the default instance of [GoogleSignInPlatform].
@@ -80,7 +76,9 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     GoogleSignInPlatform.instance = GoogleSignInTizen();
   }
 
-  _SignInInitParametersTizen? _initParameters;
+  _Credentials? _credentials;
+
+  List<String> _scopes = <String>[];
 
   /// The current token data.
   _GoogleSignInTokenDataTizen? _tokenData;
@@ -96,12 +94,11 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     required String clientId,
     required String clientSecret,
   }) {
-    _initParameters = _SignInInitParametersTizen(
-        clientId: clientId, clientSecret: clientSecret);
+    _credentials = _Credentials(clientId, clientSecret);
   }
 
-  void _ensureInitParametersInitialized() {
-    if (_initParameters == null) {
+  void _ensureSetCredentials() {
+    if (_credentials == null) {
       throw PlatformException(
         code: 'credentials-missing',
         message: 'Cannot initialize GoogleSignInTizen: ClientID and '
@@ -111,7 +108,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     }
   }
 
-  void _ensureNavigatorKeyInitialized() {
+  void _ensureNavigatorKeyAssigned() {
     if (device_flow_widget.navigatorKey.currentContext == null) {
       throw PlatformException(
         code: 'navigatorkey-unassigned',
@@ -136,21 +133,11 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
       );
     }
 
+    _ensureSetCredentials();
     if (clientId != null) {
-      throw PlatformException(
-        code: 'invalid-parameter',
-        message:
-            'ClientID cannot be set when initializing GoogleSignIn for Tizen, '
-            'instead call `setCredentials` in google_sign_in_tizen.dart.',
-      );
+      _credentials = _Credentials(clientId, _credentials!.clientSecret);
     }
-
-    _ensureInitParametersInitialized();
-    _initParameters = _SignInInitParametersTizen(
-      clientId: _initParameters!.clientId,
-      clientSecret: _initParameters!.clientSecret,
-      scopes: scopes,
-    );
+    _scopes = scopes;
   }
 
   @override
@@ -160,8 +147,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   @override
   Future<GoogleSignInUserData?> signIn() async {
-    _ensureInitParametersInitialized();
-    _ensureNavigatorKeyInitialized();
+    _ensureSetCredentials();
+    _ensureNavigatorKeyAssigned();
 
     if (_tokenData != null) {
       return _createUserData(_tokenData!.idToken);
@@ -169,13 +156,13 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
     final AuthorizationResponse authorizationResponse =
         await _authClient.requestAuthorization(
-      _initParameters!.clientId,
-      _initParameters!.scopes,
+      _credentials!.clientId,
+      _scopes,
     );
 
     final Future<TokenResponse?> tokenResponseFuture = _authClient.pollToken(
-      clientId: _initParameters!.clientId,
-      clientSecret: _initParameters!.clientSecret,
+      clientId: _credentials!.clientId,
+      clientSecret: _credentials!.clientSecret,
       deviceCode: authorizationResponse.deviceCode,
       interval: authorizationResponse.interval,
     );
@@ -221,7 +208,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
       return tokenData;
     }
 
-    _ensureInitParametersInitialized();
+    _ensureSetCredentials();
 
     if (tokenData.refreshToken == null) {
       throw PlatformException(
@@ -232,8 +219,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     }
 
     final TokenResponse tokenResponse = await _authClient.refreshToken(
-      clientId: _initParameters!.clientId,
-      clientSecret: _initParameters!.clientSecret,
+      clientId: _credentials!.clientId,
+      clientSecret: _credentials!.clientSecret,
       refreshToken: tokenData.refreshToken!,
     );
 
