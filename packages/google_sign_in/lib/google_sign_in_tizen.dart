@@ -172,7 +172,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
       verificationUrl: authorizationResponse.verificationUrl,
       expiresIn: authorizationResponse.expiresIn,
       onExpired: () => _authClient.cancelPollToken(),
-      onCancelled: () => _authClient.cancelPollToken(),
+      onCanceled: () => _authClient.cancelPollToken(),
     );
 
     // Waits until user interaction on secondary device is finished, or until
@@ -194,8 +194,10 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   }
 
   @override
-  Future<GoogleSignInTokenData> getTokens(
-      {required String email, bool? shouldRecoverAuth = true}) async {
+  Future<GoogleSignInTokenData> getTokens({
+    required String email,
+    bool? shouldRecoverAuth = true,
+  }) async {
     if (_tokenData == null) {
       throw PlatformException(
           code: 'not-signed-in',
@@ -275,12 +277,12 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     final String normalizedPayload = convert.base64.normalize(splitTokens[1]);
     final String payloadString =
         convert.utf8.decode(convert.base64.decode(normalizedPayload));
-    final Map<String, dynamic> json =
-        convert.jsonDecode(payloadString) as Map<String, dynamic>;
+    final Map<String, Object?> json =
+        convert.jsonDecode(payloadString) as Map<String, Object?>;
 
     return GoogleSignInUserData(
-      email: json['email'] as String,
-      id: json['sub'] as String,
+      email: json['email']! as String,
+      id: json['sub']! as String,
       displayName: json['name'] as String?,
       idToken: idToken,
       photoUrl: json['picture'] as String?,

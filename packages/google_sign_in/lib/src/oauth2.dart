@@ -4,7 +4,6 @@
 
 import 'dart:convert' as convert;
 
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'authorization_exception.dart';
@@ -21,14 +20,14 @@ class AuthorizationResponse {
   }) : interval = interval ?? const Duration(seconds: 5);
 
   /// Creates a [AuthorizationResponse] from a json object.
-  static AuthorizationResponse fromJson(Map<String, dynamic> json) {
+  static AuthorizationResponse fromJson(Map<String, Object?> json) {
     return AuthorizationResponse._(
-      deviceCode: json['device_code'] as String,
-      userCode: json['user_code'] as String,
-      verificationUrl: Uri.parse(json['verification_url'] as String),
-      expiresIn: Duration(seconds: json['expires_in'] as int),
-      interval: json['interval'] != null
-          ? Duration(seconds: json['interval'] as int)
+      deviceCode: json['device_code']! as String,
+      userCode: json['user_code']! as String,
+      verificationUrl: Uri.parse(json['verification_url']! as String),
+      expiresIn: Duration(seconds: json['expires_in']! as int),
+      interval: json['interval'] is int
+          ? Duration(seconds: json['interval']! as int)
           : null,
     );
   }
@@ -65,16 +64,16 @@ class TokenResponse {
   }) : scope = scope ?? <String>[];
 
   /// Creates a [TokenResponse] from a json object.
-  static TokenResponse fromJson(Map<String, dynamic> json) {
+  static TokenResponse fromJson(Map<String, Object?> json) {
     return TokenResponse._(
-      accessToken: json['access_token'] as String,
-      tokenType: json['token_type'] as String,
-      expiresIn: Duration(seconds: json['expires_in'] as int),
+      accessToken: json['access_token']! as String,
+      tokenType: json['token_type']! as String,
+      expiresIn: Duration(seconds: json['expires_in']! as int),
       refreshToken: json['refresh_token'] as String?,
       scope: json['scope'] != null
-          ? (json['scope'] as String).split(' ').toList()
+          ? (json['scope']! as String).split(' ').toList()
           : null,
-      idToken: json['id_token'] as String,
+      idToken: json['id_token']! as String,
     );
   }
 
@@ -145,8 +144,8 @@ class DeviceAuthClient {
     final http.Response response =
         await _httpClient.post(authorizationEndPoint, body: body);
 
-    final Map<String, dynamic> jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, Object?> jsonResponse =
+        convert.jsonDecode(response.body) as Map<String, Object?>;
     if (response.statusCode != 200) {
       _handleErrorResponse(jsonResponse);
     }
@@ -169,8 +168,8 @@ class DeviceAuthClient {
 
     final http.Response response =
         await _httpClient.post(tokenEndPoint, body: body);
-    final Map<String, dynamic> jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, Object?> jsonResponse =
+        convert.jsonDecode(response.body) as Map<String, Object?>;
 
     if (response.statusCode != 200) {
       _handleErrorResponse(jsonResponse);
@@ -187,23 +186,17 @@ class DeviceAuthClient {
     required Duration interval,
   }) async {
     if (isPolling) {
-      throw PlatformException(
-        code: 'already-polling',
-        message: 'Client is already polling token from server, cancel the '
-            'previous poll request before starting a new one.',
+      throw StateError(
+        'Client is already polling token from server, cancel the '
+        'previous poll request before starting a new one.',
       );
     }
     _isPolling = true;
-    Duration currentInterval = Duration(seconds: interval.inSeconds);
     while (isPolling) {
       try {
         final TokenResponse tokenResponse = await Future<TokenResponse>.delayed(
-          currentInterval,
-          () => requestToken(
-            clientId,
-            clientSecret,
-            deviceCode,
-          ),
+          interval,
+          () => requestToken(clientId, clientSecret, deviceCode),
         );
         _isPolling = false;
         return tokenResponse;
@@ -211,7 +204,7 @@ class DeviceAuthClient {
         // Subsequent requests MUST be increased by 5 seconds.
         // See: https://datatracker.ietf.org/doc/html/rfc8628#section-3.5.
         if (e.error == 'slow_down') {
-          currentInterval = currentInterval + const Duration(seconds: 5);
+          interval = interval + const Duration(seconds: 5);
         }
         // The authorization request is still pending as the end user hasn't
         // yet completed the user-interaction steps.
@@ -232,8 +225,8 @@ class DeviceAuthClient {
 
     final http.Response response =
         await _httpClient.post(revokeEndPoint, body: body);
-    final Map<String, dynamic> jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, Object?> jsonResponse =
+        convert.jsonDecode(response.body) as Map<String, Object?>;
     if (response.statusCode != 200) {
       _handleErrorResponse(jsonResponse);
     }
@@ -254,8 +247,8 @@ class DeviceAuthClient {
 
     final http.Response response =
         await _httpClient.post(tokenEndPoint, body: body);
-    final Map<String, dynamic> jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, dynamic>;
+    final Map<String, Object?> jsonResponse =
+        convert.jsonDecode(response.body) as Map<String, Object?>;
 
     if (response.statusCode != 200) {
       _handleErrorResponse(jsonResponse);
@@ -264,12 +257,12 @@ class DeviceAuthClient {
     return TokenResponse.fromJson(jsonResponse);
   }
 
-  void _handleErrorResponse(Map<String, dynamic> jsonResponse) {
+  void _handleErrorResponse(Map<String, Object?> jsonResponse) {
     throw AuthorizationException(
-      jsonResponse['error'] as String,
-      jsonResponse['error_description'] as String?,
+      jsonResponse['error']! as String,
+      jsonResponse['error_description']! as String?,
       jsonResponse['error_uri'] != null
-          ? Uri.parse(jsonResponse['error_uri'] as String)
+          ? Uri.parse(jsonResponse['error_uri']! as String)
           : null,
     );
   }

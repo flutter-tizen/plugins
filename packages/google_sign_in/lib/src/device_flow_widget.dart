@@ -21,10 +21,11 @@ void showDeviceFlowWidget({
   required Uri verificationUrl,
   required Duration expiresIn,
   VoidCallback? onExpired,
-  VoidCallback? onCancelled,
+  VoidCallback? onCanceled,
 }) {
   showDialog<void>(
-    // NavigatorKey.currentContext is non-null if plugin is properly initialized.
+    // The navigatorKey.currentContext is non-null if navigatorKey is assigned
+    // to either MaterialApp or CupertinoApp.
     context: navigatorKey.currentContext!,
     barrierDismissible: false,
     builder: (BuildContext context) {
@@ -58,7 +59,7 @@ void showDeviceFlowWidget({
         actions: <Widget>[
           TextButton(
             onPressed: () {
-              onCancelled?.call();
+              onCanceled?.call();
               closeDeviceFlowWidget();
             },
             child: const Text(
@@ -92,11 +93,11 @@ class _CountdownTimerState extends State<_CountdownTimer> {
   void _countDown() {
     setState(() {
       _remaining = _remaining - const Duration(seconds: 1);
-      if (_remaining.inSeconds == 0) {
-        _timer.cancel();
-        widget.onFinished?.call();
-      }
     });
+    if (_remaining.inSeconds == 0) {
+      _timer.cancel();
+      widget.onFinished?.call();
+    }
   }
 
   @override
@@ -108,10 +109,9 @@ class _CountdownTimerState extends State<_CountdownTimer> {
 
   @override
   Widget build(BuildContext context) {
-    final String minutes =
-        (_remaining.inSeconds / 60).floor().toString().padLeft(2, '0');
+    final String minutes = _remaining.inMinutes.toString().padLeft(2, '0');
     final String seconds =
-        (_remaining.inSeconds % 60).toString().padLeft(2, '0');
+        _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
     return Text('$minutes:$seconds');
   }
 
