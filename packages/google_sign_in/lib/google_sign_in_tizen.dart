@@ -5,24 +5,13 @@
 import 'dart:convert' as convert;
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 
 import 'src/device_flow_widget.dart' as device_flow_widget;
 import 'src/oauth2.dart';
 
 export 'src/authorization_exception.dart';
-export 'src/device_flow_widget.dart' show navigatorKey;
-
-/// Sets [clientId] and [clientSecret] to be used for GoogleSignIn authentication.
-///
-/// This must be called before calling the GoogleSignIn's signIn API.
-void setCredentials({
-  required String clientId,
-  required String clientSecret,
-}) {
-  (GoogleSignInPlatform.instance as GoogleSignInTizen)
-      ._setCredentials(clientId: clientId, clientSecret: clientSecret);
-}
 
 /// Holds authentication data after Google sign in for Tizen.
 class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
@@ -76,7 +65,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     GoogleSignInPlatform.instance = GoogleSignInTizen();
   }
 
-  _Credentials? _credentials;
+  static _Credentials? _credentials;
 
   List<String> _scopes = <String>[];
 
@@ -90,12 +79,33 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     revokeEndPoint: Uri.parse('https://oauth2.googleapis.com/revoke'),
   );
 
-  void _setCredentials({
+  /// Sets [clientId] and [clientSecret] to be used for GoogleSignIn authentication.
+  ///
+  /// This must be called before calling the GoogleSignIn's signIn API.
+  static void setCredentials({
     required String clientId,
     required String clientSecret,
   }) {
     _credentials = _Credentials(clientId, clientSecret);
   }
+
+  /// Gets the [GlobalKey] that identifies a [NavigatorState].
+  ///
+  /// This object must be assigned to a valid [Navigator] widget to push
+  /// a dialog that shows "verification url" and "user code" which are
+  /// required to authorize sign-in.
+  ///
+  /// If [MaterialApp] or [CupertinoApp] is used, it's convinient to
+  /// assign this object to their `navigatorKey` parameter.
+  static GlobalKey<NavigatorState> get navigatorKey =>
+      device_flow_widget.navigatorKey;
+
+  /// Sets the [GlobalKey] that identifies a [NavigatorState].
+  ///
+  /// This object must be set if [GlobalKey] needs to be instantiated from
+  /// client code.
+  static set navigatorKey(GlobalKey<NavigatorState> navigatorKey) =>
+      device_flow_widget.navigatorKey = navigatorKey;
 
   void _ensureSetCredentials() {
     if (_credentials == null) {

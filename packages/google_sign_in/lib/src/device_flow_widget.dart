@@ -6,13 +6,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-/// The [GlobalKey\<NavigatorState>] object used for pushing a Flutter widget
-/// that displays "user_code" and "verification_uri".
+/// The [GlobalKey] that identifies a [NavigatorState].
+///
+/// This object refers to a navigator used to push the "Device Flow Widget"
+/// that shows "verification url" and "user code" which are
+/// required to authorize sign-in.
+///
+/// The navigatorKey.currentContext is non-null if navigatorKey
+/// is assigned to a valid [Navigator].
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 /// Closes the widget that was shown from [showDeviceFlowWidget].
 void closeDeviceFlowWidget() {
-  Navigator.of(navigatorKey.currentContext!, rootNavigator: true).pop();
+  navigatorKey.currentState!.pop();
 }
 
 /// Displays a widget that shows [code] and [verificationUrl].
@@ -24,8 +30,6 @@ void showDeviceFlowWidget({
   VoidCallback? onCanceled,
 }) {
   showDialog<void>(
-    // The navigatorKey.currentContext is non-null if navigatorKey is assigned
-    // to either MaterialApp or CupertinoApp.
     context: navigatorKey.currentContext!,
     barrierDismissible: false,
     builder: (BuildContext context) {
