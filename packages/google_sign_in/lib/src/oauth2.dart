@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:convert' as convert;
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -70,7 +71,7 @@ class TokenResponse {
       tokenType: json['token_type']! as String,
       expiresIn: Duration(seconds: json['expires_in']! as int),
       refreshToken: json['refresh_token'] as String?,
-      scope: json['scope'] != null
+      scope: json['scope'] is String
           ? (json['scope']! as String).split(' ').toList()
           : null,
       idToken: json['id_token']! as String,
@@ -144,13 +145,12 @@ class DeviceAuthClient {
     final http.Response response =
         await _httpClient.post(authorizationEndPoint, body: body);
 
-    final Map<String, Object?> jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, Object?>;
     if (response.statusCode != 200) {
-      _handleErrorResponse(jsonResponse);
+      _handleErrorResponse(response);
     }
 
-    return AuthorizationResponse.fromJson(jsonResponse);
+    return AuthorizationResponse.fromJson(
+        convert.jsonDecode(response.body) as Map<String, Object?>);
   }
 
   /// Requests tokens from [tokenEndPoint].
@@ -168,14 +168,13 @@ class DeviceAuthClient {
 
     final http.Response response =
         await _httpClient.post(tokenEndPoint, body: body);
-    final Map<String, Object?> jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, Object?>;
 
     if (response.statusCode != 200) {
-      _handleErrorResponse(jsonResponse);
+      _handleErrorResponse(response);
     }
 
-    return TokenResponse.fromJson(jsonResponse);
+    return TokenResponse.fromJson(
+        convert.jsonDecode(response.body) as Map<String, Object?>);
   }
 
   /// Repeat sending token request to [tokenEndPoint] until user grants access.
@@ -225,10 +224,8 @@ class DeviceAuthClient {
 
     final http.Response response =
         await _httpClient.post(revokeEndPoint, body: body);
-    final Map<String, Object?> jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, Object?>;
     if (response.statusCode != 200) {
-      _handleErrorResponse(jsonResponse);
+      _handleErrorResponse(response);
     }
   }
 
@@ -247,23 +244,32 @@ class DeviceAuthClient {
 
     final http.Response response =
         await _httpClient.post(tokenEndPoint, body: body);
-    final Map<String, Object?> jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, Object?>;
 
     if (response.statusCode != 200) {
-      _handleErrorResponse(jsonResponse);
+      _handleErrorResponse(response);
     }
-
-    return TokenResponse.fromJson(jsonResponse);
+    return TokenResponse.fromJson(
+        convert.jsonDecode(response.body) as Map<String, Object?>);
   }
 
-  void _handleErrorResponse(Map<String, Object?> jsonResponse) {
-    throw AuthorizationException(
-      jsonResponse['error']! as String,
-      jsonResponse['error_description']! as String?,
-      jsonResponse['error_uri'] != null
-          ? Uri.parse(jsonResponse['error_uri']! as String)
-          : null,
-    );
+  void _handleErrorResponse(http.Response response) {
+    // Google Token endpoint returns status code 428 for 'authroization_pending'
+    // response which is not specified in the spec: https://datatracker.ietf.org/doc/html/rfc8628#section-3.5.
+    if (response.statusCode == 400 ||
+        response.statusCode == 401 ||
+        response.statusCode == 428) {
+      final Map<String, Object?> json =
+          convert.jsonDecode(response.body) as Map<String, Object?>;
+      throw AuthorizationException(
+        json['error']! as String,
+        json['error_description']! as String?,
+        json['error_uri'] is String
+            ? Uri.parse(json['error_uri']! as String)
+            : null,
+      );
+    } else {
+      throw HttpException(
+          'Status code: ${response.statusCode}, ${response.reasonPhrase}.');
+    }
   }
 }

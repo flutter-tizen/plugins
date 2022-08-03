@@ -185,9 +185,13 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
       onCanceled: () => _authClient.cancelPollToken(),
     );
 
-    // Waits until user interaction on secondary device is finished, or until
-    // code is expired or polling is cancelled.
-    final TokenResponse? tokenResponse = await tokenResponseFuture;
+    // Waits until user interaction on secondary device is finished, code is expired,
+    // polling is cancelled, or networking error occurred.
+    final TokenResponse? tokenResponse =
+        await tokenResponseFuture.onError((_, __) {
+      device_flow_widget.closeDeviceFlowWidget();
+      return null;
+    });
     if (tokenResponse == null) {
       return null;
     }
@@ -211,7 +215,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (_tokenData == null) {
       throw PlatformException(
           code: 'not-signed-in',
-          message: 'Cannot get tokens as there are no signed in user.');
+          message: 'Cannot get tokens as there is no signed in user.');
     }
     final _GoogleSignInTokenDataTizen tokenData = _tokenData!;
 

@@ -28,12 +28,12 @@ You also need to add some additional code to your app to fully integrate `google
 
 ### Adding OAuth credentials
 
-Unlike "Authorization Code Grant with PKCE", "Device Flow" requires a [client secret](https://developers.google.com/identity/protocols/oauth2/limited-input-device#step-4:-poll-googles-authorization-server) parameter during Google Sign-In. You must call `setCredentials` function with your client's OAuth credentials before calling `google_sign_in`'s API.
+Unlike "Authorization Code Grant with PKCE", "Device Flow" requires a [client secret](https://developers.google.com/identity/protocols/oauth2/limited-input-device#step-4:-poll-googles-authorization-server) parameter during Google Sign-In. You must call `GoogleSignInTizen.setCredentials` function with your client's OAuth credentials before calling `google_sign_in`'s API.
 
 ```dart
-import 'package:google_sign_in_tizen/google_sign_in_tizen.dart' as tizen
+import 'package:google_sign_in_tizen/google_sign_in_tizen.dart';
 
-tizen.setCredentials(
+GoogleSignInTizen.setCredentials(
   clientId: 'YOUR_CLIENT_ID',
   clientSecret: 'YOUR_CLIENT_SECRET',
 );
@@ -59,14 +59,14 @@ Storing a client secret in code is considered a bad practice as it exposes [secu
 
 ### Assigning the plugin's navigatorKey object to MaterialApp or CupertinoApp
 
-During Google Sign-In with Device Flow, the client displays a widget that shows [user_code](https://developers.google.com/identity/gsi/web/guides/devices#obtain_a_user_code_and_verification_url) and [verification url](https://developers.google.com/identity/gsi/web/guides/devices#obtain_a_user_code_and_verification_url) to the user and instructs them to visit the verification url in a user agent on a secondary device (for example, in a browser on their mobile phone) and enter the user code. The plugin will be able to show this widget only when the plugin's navigatorKey object is assigned to the `navigatorKey` parameter of `MaterialApp` or `CupertinoApp`.
+During Google Sign-In with Device Flow, the client displays a widget that shows [user_code](https://developers.google.com/identity/gsi/web/guides/devices#obtain_a_user_code_and_verification_url) and [verification url](https://developers.google.com/identity/gsi/web/guides/devices#obtain_a_user_code_and_verification_url) to the user and instructs them to visit the verification url in a user agent on a secondary device (for example, in a browser on their mobile phone) and enter the user code. The plugin will be able to show this widget when `GoogleSignInTizen.navigatorKey` is assigned to the `navigatorKey` parameter of `MaterialApp` or `CupertinoApp`.
 
 ```dart
-import 'package:google_sign_in_tizen/google_sign_in_tizen.dart' as tizen
+import 'package:google_sign_in_tizen/google_sign_in_tizen.dart';
 
 MaterialApp(
   title: 'Google Sign In',
-  navigatorKey: tizen.navigatorKey,
+  navigatorKey: GoogleSignInTizen.navigatorKey,
   home: const SignInDemo(),
 );
 ```
@@ -74,12 +74,22 @@ MaterialApp(
 If you need to assign a custom navigatorKey to `MaterialApp` (or `CupertinoApp`), you must set that key to be used by the plugin as well.
 
 ```dart
-import 'package:google_sign_in_tizen/google_sign_in_tizen.dart' as tizen
+import 'package:google_sign_in_tizen/google_sign_in_tizen.dart';
 
-tizen.navigatorKey = GlobalKey<NavigatorState>();
+GoogleSignInTizen.navigatorKey = GlobalKey<NavigatorState>();
 MaterialApp(
   title: 'Google Sign In',
-  navigatorKey: tizen.navigatorKey,
+  navigatorKey: GoogleSignInTizen.navigatorKey,
   home: const SignInDemo(),
 );
+```
+
+## Required privileges
+
+The `http://tizen.org/privilege/internet` privilege is required to perform networking operations requested by your app during Google Sign-In. Add the required privilege in `tizen-manifest.xml` of your application.
+
+```xml
+<privileges>
+  <privilege>http://tizen.org/privilege/internet</privilege>
+</privileges>
 ```
