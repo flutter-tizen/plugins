@@ -42,33 +42,32 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       tts_ = nullptr;
       return;
     }
-    tts_->SetStateChanagedCallback(
-        [this](tts_state_e previous, tts_state_e current) -> void {
-          std::unique_ptr<flutter::EncodableValue> value =
-              std::make_unique<flutter::EncodableValue>(true);
-          if (current == TTS_STATE_PLAYING) {
-            if (previous == TTS_STATE_READY) {
-              channel_->InvokeMethod("speak.onStart", std::move(value));
-            } else if (previous == TTS_STATE_PAUSED) {
-              channel_->InvokeMethod("speak.onContinue", std::move(value));
-            }
-          } else if (current == TTS_STATE_PAUSED) {
-            channel_->InvokeMethod("speak.onPause", std::move(value));
-          } else if (current == TTS_STATE_READY) {
-            if (previous == TTS_STATE_PLAYING || previous == TTS_STATE_PAUSED) {
-              // utterance ID is not zero during speaking and pausing.
-              if (tts_->GetUttId()) {
-                channel_->InvokeMethod("speak.onCancel", std::move(value));
-                HandleAwaitSpeakCompletion(0);
-              }
-            }
+    tts_->SetStateChanagedCallback([this](TtsState previous, TtsState current) {
+      std::unique_ptr<flutter::EncodableValue> value =
+          std::make_unique<flutter::EncodableValue>(true);
+      if (current == TtsState::kPlaying) {
+        if (previous == TtsState::kReady) {
+          channel_->InvokeMethod("speak.onStart", std::move(value));
+        } else if (previous == TtsState::kPaused) {
+          channel_->InvokeMethod("speak.onContinue", std::move(value));
+        }
+      } else if (current == TtsState::kPaused) {
+        channel_->InvokeMethod("speak.onPause", std::move(value));
+      } else if (current == TtsState::kReady) {
+        if (previous == TtsState::kPlaying || previous == TtsState::kPaused) {
+          // The utterance ID is not zero while speaking and pausing.
+          if (tts_->GetUttId()) {
+            channel_->InvokeMethod("speak.onCancel", std::move(value));
+            HandleAwaitSpeakCompletion(flutter::EncodableValue(0));
           }
-        });
-    tts_->SetUtteranceCompletedCallback([this](int32_t utt_id) -> void {
+        }
+      }
+    });
+    tts_->SetUtteranceCompletedCallback([this](int32_t utt_id) {
       std::unique_ptr<flutter::EncodableValue> args =
           std::make_unique<flutter::EncodableValue>(true);
       channel_->InvokeMethod("speak.onComplete", std::move(args));
-      HandleAwaitSpeakCompletion(1);
+      HandleAwaitSpeakCompletion(flutter::EncodableValue(1));
     });
   }
 
@@ -212,17 +211,15 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   void SendResult(const flutter::EncodableValue &result) {
-    if (!result_) {
-      return;
+    if (result_) {
+      result_->Success(result);
+      result_ = nullptr;
     }
-    result_->Success(result);
-    result_ = nullptr;
   }
 
-  void HandleAwaitSpeakCompletion(int32_t value) {
+  void HandleAwaitSpeakCompletion(const flutter::EncodableValue &result) {
     if (await_speak_completion_) {
-      result_for_await_speak_completion_->Success(
-          flutter::EncodableValue(value));
+      result_for_await_speak_completion_->Success(result);
       result_for_await_speak_completion_ = nullptr;
     }
   }
