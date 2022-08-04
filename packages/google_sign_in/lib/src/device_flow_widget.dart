@@ -34,13 +34,11 @@ void showDeviceFlowWidget({
     barrierDismissible: false,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Google SignIn'),
+        title: const Text('Google Sign In'),
         content: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'From a PC, phone, or tablet go to:',
-            ),
+            const Text('From a PC, phone, or tablet go to:'),
             Text(
               '$verificationUrl',
               textScaleFactor: 1.5,

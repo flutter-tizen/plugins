@@ -23,3 +23,7 @@ dev_dependencies:
 environment:
   sdk: ">=2.17.0 <3.0.0"
   flutter: ">=2.5.0"
+
+# The example deliberately includes secrets.
+false_secrets:
+  - /example/lib/credentials.dart

@@ -28,6 +28,6 @@ class AuthorizationException implements Exception {
     if (uri != null) {
       errorString = '$errorString: $uri';
     }
-    return '$errorString.';
+    return errorString;
   }
 }

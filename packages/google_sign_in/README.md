@@ -45,7 +45,7 @@ Storing a client secret in code is considered a bad practice as it exposes [secu
 
 1. Do not upload credentials to public repositories.
 
-   Anyone who has access to your credentials can impersonate your app. Make sure to not upload your production credentials in any source code repositories. See the `main.dart` file (comments above `import 'fake_credentials.dart'`) in the [example](/example/) app for a simple demonstration.
+   Anyone who has access to your credentials can impersonate your app. Make sure to not upload your production credentials in any source code repositories. See the comments in `credentials.dart` file in the [example](/example/) app .
 
 2. Obfuscate code in production.
 

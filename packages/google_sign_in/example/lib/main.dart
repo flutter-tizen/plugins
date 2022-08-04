@@ -12,10 +12,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_tizen/google_sign_in_tizen.dart';
 import 'package:http/http.dart' as http;
 
-// `credentials.dart` contains the actual "client id" and "client secret".
-// `fake_credentials.dart` is a dummy file to pass CI.
-import 'fake_credentials.dart' as credentials;
-// import 'credentials.dart' as credentials;
+import 'credentials.dart' as credentials;
 
 GoogleSignIn _googleSignIn = GoogleSignIn(
   scopes: <String>[
