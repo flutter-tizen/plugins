@@ -64,7 +64,6 @@ void TextToSpeech::RegisterCallbacks() {
         self->OnStateChanged(previous, current);
       },
       this);
-
   tts_set_utterance_completed_cb(
       tts_,
       [](tts_h tts, int32_t utt_id, void *user_data) {

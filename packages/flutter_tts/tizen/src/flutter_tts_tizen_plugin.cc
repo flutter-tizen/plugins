@@ -39,10 +39,6 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
     tts_ = std::make_unique<TextToSpeech>();
     if (!tts_->Initialize()) {
-      // TODO : Handle initialization failure cases
-      // Rarely, initializing TextToSpeech can fail. we should consider catching
-      // the exception and propagating it to the flutter side. however, I think
-      // this is optional because flutter side is not expecting any errors.
       tts_ = nullptr;
       return;
     }
@@ -68,16 +64,11 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
             }
           }
         });
-
     tts_->SetUtteranceCompletedCallback([this](int32_t utt_id) -> void {
       std::unique_ptr<flutter::EncodableValue> args =
           std::make_unique<flutter::EncodableValue>(true);
       channel_->InvokeMethod("speak.onComplete", std::move(args));
       HandleAwaitSpeakCompletion(1);
-    });
-
-    tts_->SetErrorCallback([](int32_t utt_id, tts_error_e reason) -> void {
-      // It seems unnecessary for now.
     });
   }
 
@@ -86,21 +77,17 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
  private:
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    // Keep in sync with the return values implemented in:
-    // https://github.com/dlutton/flutter_tts/blob/master/android/src/main/java/com/tundralabs/fluttertts/FlutterTtsPlugin.java.
-    // In principle, MethodResult was designed to call MethodResult.Error() to
-    // notify the dart code of any method call failures from the host platform.
-    // However, in the case of flutter_tts, it expects a return value 0 on
-    // failure(and value 1 on success). Therefore in the scope of this plugin,
-    // we call SendResult(flutter::EncodableValue(0)); to notify errors.
+      std::unique_ptr<FlMethodResult> result) {
+    // Keep the return values consistent with the Android implementation.
+    // The Dart side of this plugin expects a return value of 1 on success and
+    // 0 on failure, but not result->Error() as other plugins normally expect.
     const auto method_name = method_call.method_name();
     const auto &arguments = *method_call.arguments();
 
     result_ = std::move(result);
 
     if (!tts_) {
-      result_->Error("Operation failed", "TTS is invalid.");
+      result_->Error("Operation failed", "TTS initialization failed.");
       return;
     }
 
