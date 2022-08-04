@@ -8,6 +8,7 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
@@ -111,8 +112,6 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       OnStop();
     } else if (method_name == "pause") {
       OnPause();
-    } else if (method_name == "getSpeechRateValidRange") {
-      OnGetSpeechRateValidRange();
     } else if (method_name == "setSpeechRate") {
       OnSetSpeechRate(arguments);
     } else if (method_name == "setLanguage") {
@@ -180,25 +179,15 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void OnGetSpeechRateValidRange() {
-    int32_t min = 0, normal = 0, max = 0;
-    tts_->GetSpeedRange(&min, &normal, &max);
-    // FIXME: The value of "platform" is temporarily set to "android" instead of
-    // "tizen". Because it is not declared in TextToSpeechPlatform of
-    // TextToSpeech example.
-    flutter::EncodableMap map = {
-        {flutter::EncodableValue("min"), flutter::EncodableValue(min)},
-        {flutter::EncodableValue("normal"), flutter::EncodableValue(normal)},
-        {flutter::EncodableValue("max"), flutter::EncodableValue(max)},
-        {flutter::EncodableValue("platform"),
-         flutter::EncodableValue("android")},
-    };
-    SendResult(flutter::EncodableValue(map));
-  }
-
   void OnSetSpeechRate(const flutter::EncodableValue &arguments) {
     if (std::holds_alternative<double>(arguments)) {
-      int32_t speed = std::get<double>(arguments);
+      double rate = std::get<double>(arguments);
+      rate = std::max(rate, 0.0);
+      rate = std::min(rate, 1.0);
+      // Scale the value to be between the supported range.
+      int32_t min = 0, normal = 0, max = 0;
+      tts_->GetSpeedRange(&min, &normal, &max);
+      int32_t speed = min + (max - min) * rate;
       tts_->SetTtsSpeed(speed);
       SendResult(flutter::EncodableValue(1));
       return;
