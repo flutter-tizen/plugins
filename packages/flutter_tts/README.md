@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen)
 
-The tizen implementation of [`flutter_tts`](https://github.com/dlutton/flutter_tts).
+The Tizen implementation of [`flutter_tts`](https://github.com/dlutton/flutter_tts).
 
 ## Getting Started
 
@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `flutter_tts`. Therefore, yo
 
 ```yaml
 dependencies:
-  flutter_tts: ^3.2.2
-  flutter_tts_tizen: ^1.2.0
+  flutter_tts: ^3.5.0
+  flutter_tts_tizen: ^1.3.0
 ```
 
 Then you can import `flutter_tts` in your Dart code:
