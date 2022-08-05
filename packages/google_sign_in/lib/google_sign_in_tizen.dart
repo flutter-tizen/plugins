@@ -12,6 +12,7 @@ import 'src/device_flow_widget.dart' as device_flow_widget;
 import 'src/oauth2.dart';
 
 export 'src/authorization_exception.dart';
+export 'src/secure_storage.dart';
 
 /// Holds authentication data after Google sign in for Tizen.
 class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
