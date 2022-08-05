@@ -9,6 +9,8 @@ flutter:
     platforms:
       tizen:
         dartPluginClass: GoogleSignInTizen
+        pluginClass: GoogleSignInTizenPlugin
+        fileName: google_sign_in_tizen_plugin.h
 
 dependencies:
   flutter:
