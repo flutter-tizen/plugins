@@ -25,6 +25,7 @@ plugins:
   webview_flutter: []
 
   # No tests.
+  google_sign_in: []
   image_picker: []
   tizen_log: []
   tizen_notification: []
