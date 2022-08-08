@@ -8,6 +8,7 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
@@ -38,45 +39,35 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
     tts_ = std::make_unique<TextToSpeech>();
     if (!tts_->Initialize()) {
-      // TODO : Handle initialization failure cases
-      // Rarely, initializing TextToSpeech can fail. we should consider catching
-      // the exception and propagating it to the flutter side. however, I think
-      // this is optional because flutter side is not expecting any errors.
       tts_ = nullptr;
       return;
     }
-    tts_->SetStateChanagedCallback(
-        [this](tts_state_e previous, tts_state_e current) -> void {
-          std::unique_ptr<flutter::EncodableValue> value =
-              std::make_unique<flutter::EncodableValue>(true);
-          if (current == TTS_STATE_PLAYING) {
-            if (previous == TTS_STATE_READY) {
-              channel_->InvokeMethod("speak.onStart", std::move(value));
-            } else if (previous == TTS_STATE_PAUSED) {
-              channel_->InvokeMethod("speak.onContinue", std::move(value));
-            }
-          } else if (current == TTS_STATE_PAUSED) {
-            channel_->InvokeMethod("speak.onPause", std::move(value));
-          } else if (current == TTS_STATE_READY) {
-            if (previous == TTS_STATE_PLAYING || previous == TTS_STATE_PAUSED) {
-              // utterance ID is not zero during speaking and pausing.
-              if (tts_->GetUttId()) {
-                channel_->InvokeMethod("speak.onCancel", std::move(value));
-                HandleAwaitSpeakCompletion(0);
-              }
-            }
+    tts_->SetStateChanagedCallback([this](TtsState previous, TtsState current) {
+      std::unique_ptr<flutter::EncodableValue> value =
+          std::make_unique<flutter::EncodableValue>(true);
+      if (current == TtsState::kPlaying) {
+        if (previous == TtsState::kReady) {
+          channel_->InvokeMethod("speak.onStart", std::move(value));
+        } else if (previous == TtsState::kPaused) {
+          channel_->InvokeMethod("speak.onContinue", std::move(value));
+        }
+      } else if (current == TtsState::kPaused) {
+        channel_->InvokeMethod("speak.onPause", std::move(value));
+      } else if (current == TtsState::kReady) {
+        if (previous == TtsState::kPlaying || previous == TtsState::kPaused) {
+          // The utterance ID is not zero while speaking and pausing.
+          if (tts_->GetUttId()) {
+            channel_->InvokeMethod("speak.onCancel", std::move(value));
+            HandleAwaitSpeakCompletion(flutter::EncodableValue(0));
           }
-        });
-
-    tts_->SetUtteranceCompletedCallback([this](int32_t utt_id) -> void {
+        }
+      }
+    });
+    tts_->SetUtteranceCompletedCallback([this](int32_t utt_id) {
       std::unique_ptr<flutter::EncodableValue> args =
           std::make_unique<flutter::EncodableValue>(true);
       channel_->InvokeMethod("speak.onComplete", std::move(args));
-      HandleAwaitSpeakCompletion(1);
-    });
-
-    tts_->SetErrorCallback([](int32_t utt_id, tts_error_e reason) -> void {
-      // It seems unnecessary for now.
+      HandleAwaitSpeakCompletion(flutter::EncodableValue(1));
     });
   }
 
@@ -85,21 +76,17 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
  private:
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    // Keep in sync with the return values implemented in:
-    // https://github.com/dlutton/flutter_tts/blob/master/android/src/main/java/com/tundralabs/fluttertts/FlutterTtsPlugin.java.
-    // In principle, MethodResult was designed to call MethodResult.Error() to
-    // notify the dart code of any method call failures from the host platform.
-    // However, in the case of flutter_tts, it expects a return value 0 on
-    // failure(and value 1 on success). Therefore in the scope of this plugin,
-    // we call SendResult(flutter::EncodableValue(0)); to notify errors.
+      std::unique_ptr<FlMethodResult> result) {
+    // Keep the return values consistent with the Android implementation.
+    // The Dart side of this plugin expects a return value of 1 on success and
+    // 0 on failure, but not result->Error() as other plugins normally expect.
     const auto method_name = method_call.method_name();
     const auto &arguments = *method_call.arguments();
 
     result_ = std::move(result);
 
     if (!tts_) {
-      result_->Error("Operation failed", "TTS is invalid.");
+      result_->Error("Operation failed", "TTS initialization failed.");
       return;
     }
 
@@ -111,8 +98,6 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       OnStop();
     } else if (method_name == "pause") {
       OnPause();
-    } else if (method_name == "getSpeechRateValidRange") {
-      OnGetSpeechRateValidRange();
     } else if (method_name == "setSpeechRate") {
       OnSetSpeechRate(arguments);
     } else if (method_name == "setLanguage") {
@@ -180,25 +165,15 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void OnGetSpeechRateValidRange() {
-    int32_t min = 0, normal = 0, max = 0;
-    tts_->GetSpeedRange(&min, &normal, &max);
-    // FIXME: The value of "platform" is temporarily set to "android" instead of
-    // "tizen". Because it is not declared in TextToSpeechPlatform of
-    // TextToSpeech example.
-    flutter::EncodableMap map = {
-        {flutter::EncodableValue("min"), flutter::EncodableValue(min)},
-        {flutter::EncodableValue("normal"), flutter::EncodableValue(normal)},
-        {flutter::EncodableValue("max"), flutter::EncodableValue(max)},
-        {flutter::EncodableValue("platform"),
-         flutter::EncodableValue("android")},
-    };
-    SendResult(flutter::EncodableValue(map));
-  }
-
   void OnSetSpeechRate(const flutter::EncodableValue &arguments) {
     if (std::holds_alternative<double>(arguments)) {
-      int32_t speed = std::get<double>(arguments);
+      double rate = std::get<double>(arguments);
+      rate = std::max(rate, 0.0);
+      rate = std::min(rate, 1.0);
+      // Scale the value to be between the supported range.
+      int32_t min = 0, normal = 0, max = 0;
+      tts_->GetSpeedRange(&min, &normal, &max);
+      int32_t speed = min + (max - min) * rate;
       tts_->SetTtsSpeed(speed);
       SendResult(flutter::EncodableValue(1));
       return;
@@ -236,17 +211,15 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   void SendResult(const flutter::EncodableValue &result) {
-    if (!result_) {
-      return;
+    if (result_) {
+      result_->Success(result);
+      result_ = nullptr;
     }
-    result_->Success(result);
-    result_ = nullptr;
   }
 
-  void HandleAwaitSpeakCompletion(int32_t value) {
+  void HandleAwaitSpeakCompletion(const flutter::EncodableValue &result) {
     if (await_speak_completion_) {
-      result_for_await_speak_completion_->Success(
-          flutter::EncodableValue(value));
+      result_for_await_speak_completion_->Success(result);
       result_for_await_speak_completion_ = nullptr;
     }
   }

@@ -37,6 +37,8 @@ class _MyAppState extends State<MyApp> {
   initTts() {
     flutterTts = FlutterTts();
 
+    _setAwaitOptions();
+
     flutterTts.setStartHandler(() {
       setState(() {
         print("Playing");
@@ -88,10 +90,13 @@ class _MyAppState extends State<MyApp> {
 
     if (_newVoiceText != null) {
       if (_newVoiceText!.isNotEmpty) {
-        await flutterTts.awaitSpeakCompletion(true);
         await flutterTts.speak(_newVoiceText!);
       }
     }
+  }
+
+  Future _setAwaitOptions() async {
+    await flutterTts.awaitSpeakCompletion(true);
   }
 
   Future _stop() async {
@@ -241,8 +246,8 @@ class _MyAppState extends State<MyApp> {
         setState(() => rate = newRate);
       },
       min: 0.0,
-      max: 15.0,
-      divisions: 15,
+      max: 1.0,
+      divisions: 10,
       label: "Rate: $rate",
       activeColor: Colors.green,
     );

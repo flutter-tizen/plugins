@@ -8,6 +8,23 @@
 
 #include "log.h"
 
+namespace {
+
+TtsState ConvertTtsState(tts_state_e state) {
+  switch (state) {
+    case TTS_STATE_CREATED:
+      return TtsState::kCreated;
+    case TTS_STATE_READY:
+      return TtsState::kReady;
+    case TTS_STATE_PLAYING:
+      return TtsState::kPlaying;
+    case TTS_STATE_PAUSED:
+      return TtsState::kPaused;
+  }
+}
+
+}  // namespace
+
 TextToSpeech::~TextToSpeech() {
   UnregisterCallbacks();
 
@@ -61,24 +78,25 @@ void TextToSpeech::RegisterCallbacks() {
       [](tts_h tts, tts_state_e previous, tts_state_e current,
          void *user_data) {
         TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
-        self->OnStateChanged(previous, current);
+        self->SwitchVolumeOnStateChange(previous, current);
+        self->state_changed_callback_(ConvertTtsState(previous),
+                                      ConvertTtsState(current));
       },
       this);
-
   tts_set_utterance_completed_cb(
       tts_,
       [](tts_h tts, int32_t utt_id, void *user_data) {
         TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
-        self->OnUtteranceCompleted(utt_id);
-        // Explicitly call stop method to change the tts state to ready.
+        self->utterance_completed_callback_(utt_id);
+        self->ClearUttId();
+        // Explicitly call Stop() to change the TTS state to ready.
         self->Stop();
       },
       this);
   tts_set_error_cb(
       tts_,
       [](tts_h tts, int32_t utt_id, tts_error_e reason, void *user_data) {
-        TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
-        self->OnError(utt_id, reason);
+        LOG_ERROR("TTS error: utt_id(%d), reason(%d)", utt_id, reason);
       },
       this);
 }
@@ -100,7 +118,7 @@ std::vector<std::string> &TextToSpeech::GetSupportedLanaguages() {
           }
           TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
           self->supported_lanaguages_.push_back(std::string(language));
-          LOG_INFO("Supported Voices - Language(%s), Type(%d)", language,
+          LOG_INFO("Supported voice: language(%s), type(%d)", language,
                    voice_type);
           return true;
         },
@@ -120,21 +138,10 @@ std::optional<TtsState> TextToSpeech::GetState() {
     LOG_ERROR("tts_get_state failed: %s", get_error_message(ret));
     return std::nullopt;
   }
-  switch (state) {
-    case TTS_STATE_CREATED:
-      return TtsState::kCreated;
-    case TTS_STATE_READY:
-      return TtsState::kReady;
-    case TTS_STATE_PLAYING:
-      return TtsState::kPlaying;
-    case TTS_STATE_PAUSED:
-      return TtsState::kPaused;
-    default:
-      return std::nullopt;
-  }
+  return ConvertTtsState(state);
 }
 
-bool TextToSpeech::AddText(std::string text) {
+bool TextToSpeech::AddText(const std::string &text) {
   int ret = tts_add_text(tts_, text.c_str(), default_language_.c_str(),
                          default_voice_type_, tts_speed_, &utt_id_);
   if (ret != TTS_ERROR_NONE) {
