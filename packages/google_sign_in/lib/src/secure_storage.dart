@@ -38,7 +38,7 @@ class SecureStorage {
         .invokeMethod<Uint8List>('get', <String, String>{'name': name});
     if (bytes != null) {
       return convert.jsonDecode(String.fromCharCodes(bytes.toList()))
-          as Map<String, dynamic>;
+          as Map<String, Object?>;
     }
     return null;
   }

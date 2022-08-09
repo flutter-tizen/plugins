@@ -43,7 +43,7 @@ class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
     const Duration minimalTimeToExpire = Duration(minutes: 1);
     return accessTokenExpirationDate
         .add(minimalTimeToExpire)
-        .isAfter(DateTime.now());
+        .isBefore(DateTime.now());
   }
 
   /// Creates a [_GoogleSignInTokenDataTizen] from a json object.
@@ -363,7 +363,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     return _GoogleSignInTokenDataTizen(
       accessToken: tokenResponse.accessToken,
       accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
-      refreshToken: tokenResponse.refreshToken,
+      refreshToken: tokenResponse.refreshToken ?? token.refreshToken,
       idToken: tokenResponse.idToken,
     );
   }
