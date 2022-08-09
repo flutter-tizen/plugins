@@ -23,12 +23,12 @@ class SecureStorage {
   Future<void> saveJson(String name, Map<String, Object?> json) async {
     final Uint8List bytes =
         Uint8List.fromList(convert.jsonEncode(json).codeUnits);
-    final Uint8List iv =
+    final Uint8List initializationVector =
         Uint8List.fromList(List<int>.generate(16, (_) => _random.nextInt(256)));
     await _channel.invokeMethod<void>('save', <String, Object>{
       'name': name,
       'data': bytes,
-      'iv': iv,
+      'initialization_vector': initializationVector,
     });
   }
 

@@ -84,12 +84,13 @@ class GoogleSignInTizenPlugin : public flutter::Plugin {
         result->Error(kInvalidArgument, "No data provided.");
         return;
       }
-      std::vector<uint8_t> iv;
-      if (!GetValueFromEncodableMap(arguments, "iv", iv)) {
+      std::vector<uint8_t> initialization_vector;
+      if (!GetValueFromEncodableMap(arguments, "initialization_vector",
+                                    initialization_vector)) {
         result->Error(kInvalidArgument, "No initialization_vector provided.");
         return;
       }
-      storage_.SaveData(name, iv, data);
+      storage_.SaveData(name, data, initialization_vector);
       result->Success();
     } else if (method_name == "get") {
       std::optional<std::vector<uint8_t>> data = storage_.GetData(name);
