@@ -202,20 +202,29 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   }
 
   @override
-  Future<GoogleSignInUserData?> signInSilently() {
-    throw UnimplementedError('signInSilently() has not been implemented.');
+  Future<GoogleSignInUserData?> signInSilently() async {
+    final _GoogleSignInTokenDataTizen? existingToken =
+        await _storage.getToken();
+    if (existingToken == null) {
+      throw PlatformException(
+          code: 'not-signed-in',
+          message: 'Cannot get tokens as there is no signed in user.');
+    }
+    // Check if access token expired.
+    if (!existingToken.isExpired) {
+      return _createUserData(existingToken.idToken);
+    }
+    final _GoogleSignInTokenDataTizen token =
+        await _refreshToken(existingToken);
+    await _storage.saveToken(token);
+
+    return _createUserData(token.idToken);
   }
 
   @override
   Future<GoogleSignInUserData?> signIn() async {
     _ensureSetCredentials();
     _ensureNavigatorKeyAssigned();
-
-    final _GoogleSignInTokenDataTizen? existingToken =
-        await _storage.getToken();
-    if (existingToken != null) {
-      return _createUserData(existingToken.idToken);
-    }
 
     final AuthorizationResponse authorizationResponse =
         await _authClient.requestAuthorization(
@@ -278,31 +287,10 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (!existingToken.isExpired) {
       return existingToken;
     }
+    final _GoogleSignInTokenDataTizen token =
+        await _refreshToken(existingToken);
 
-    _ensureSetCredentials();
-
-    if (existingToken.refreshToken == null) {
-      throw PlatformException(
-        code: 'refresh-token-missing',
-        message: 'Cannot refresh tokens as refresh tokens are missing. '
-            'Request new tokens by signing-in again.',
-      );
-    }
-
-    final TokenResponse tokenResponse = await _authClient.refreshToken(
-      clientId: _credentials!.clientId,
-      clientSecret: _credentials!.clientSecret,
-      refreshToken: existingToken.refreshToken!,
-    );
-
-    final _GoogleSignInTokenDataTizen token = _GoogleSignInTokenDataTizen(
-      accessToken: tokenResponse.accessToken,
-      accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
-      refreshToken: tokenResponse.refreshToken,
-      idToken: tokenResponse.idToken,
-    );
     await _storage.saveToken(token);
-
     return token;
   }
 
@@ -352,6 +340,31 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
       displayName: json['name'] as String?,
       idToken: idToken,
       photoUrl: json['picture'] as String?,
+    );
+  }
+
+  Future<_GoogleSignInTokenDataTizen> _refreshToken(
+      _GoogleSignInTokenDataTizen token) async {
+    if (token.refreshToken == null) {
+      throw PlatformException(
+        code: 'refresh-token-missing',
+        message: 'Cannot refresh tokens as refresh tokens are missing. '
+            'Request new tokens by signing-in again.',
+      );
+    }
+    _ensureSetCredentials();
+
+    final TokenResponse tokenResponse = await _authClient.refreshToken(
+      clientId: _credentials!.clientId,
+      clientSecret: _credentials!.clientSecret,
+      refreshToken: token.refreshToken!,
+    );
+
+    return _GoogleSignInTokenDataTizen(
+      accessToken: tokenResponse.accessToken,
+      accessTokenExpirationDate: DateTime.now().add(tokenResponse.expiresIn),
+      refreshToken: tokenResponse.refreshToken,
+      idToken: tokenResponse.idToken,
     );
   }
 }
