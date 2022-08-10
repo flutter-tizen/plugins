@@ -9,9 +9,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Storage that encrypts data using AES algorithm.
-///
-/// AES key is automatically created and removed internally.
+// This value must match `kIvSizeBytes` in `secure_storage.cc`.
+const int _kIvSizeBytes = 12;
+
+/// Storage that encrypts/decrypts saved data.
 @visibleForTesting
 class SecureStorage {
   final MethodChannel _channel = const MethodChannel('tizen/secure_storage');
@@ -23,8 +24,8 @@ class SecureStorage {
   Future<void> saveJson(String name, Map<String, Object?> json) async {
     final Uint8List bytes =
         Uint8List.fromList(convert.jsonEncode(json).codeUnits);
-    final Uint8List initializationVector =
-        Uint8List.fromList(List<int>.generate(16, (_) => _random.nextInt(256)));
+    final Uint8List initializationVector = Uint8List.fromList(
+        List<int>.generate(_kIvSizeBytes, (_) => _random.nextInt(256)));
     await _channel.invokeMethod<void>('save', <String, Object>{
       'name': name,
       'data': bytes,

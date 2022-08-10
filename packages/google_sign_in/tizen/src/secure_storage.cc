@@ -11,6 +11,9 @@
 
 namespace {
 
+// This value must match `_kIvSizeBytes` in `secure_storage.dart`.
+const size_t kIvSizeBytes = 12;
+
 const char *kAesKey = "AesKey";
 
 const ckmc_policy_s kDefaultKeyPolicy = {
@@ -55,13 +58,13 @@ std::vector<std::string> GetNames(NameType name_type) {
 }  // namespace
 
 SecureStorage::SecureStorage() {
-  ckmc_generate_new_params(CKMC_ALGO_AES_CTR, &params_);
+  ckmc_generate_new_params(CKMC_ALGO_AES_GCM, &params_);
 }
 
 SecureStorage::~SecureStorage() { ckmc_param_list_free(params_); }
 
 void SecureStorage::CreateKey() {
-  ckmc_create_key_aes(128, kAesKey, kDefaultKeyPolicy);
+  ckmc_create_key_aes(256, kAesKey, kDefaultKeyPolicy);
 }
 
 bool SecureStorage::HasKey() const {
@@ -149,8 +152,8 @@ std::vector<uint8_t> SecureStorage::DecryptData(std::vector<uint8_t> data) {
   ckmc_raw_buffer_s *buffer;
   ckmc_raw_buffer_s *decrypted_buffer;
 
-  std::vector<uint8_t> initialization_vector(16);
-  for (int i = 15; i >= 0; --i) {
+  std::vector<uint8_t> initialization_vector(kIvSizeBytes);
+  for (int i = kIvSizeBytes - 1; i >= 0; --i) {
     initialization_vector[i] = data.back();
     data.pop_back();
   }
