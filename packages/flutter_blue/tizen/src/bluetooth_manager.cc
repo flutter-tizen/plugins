@@ -7,6 +7,7 @@
 #include <mutex>
 
 #include "bluetooth.h"
+#include "bluetooth_device_controller.h"
 #include "bluetooth_type.h"
 #include "flutterblue.pb.h"
 #include "log.h"
@@ -110,6 +111,12 @@ void BluetoothManager::ReadRssi(const std::string& device_id) {
     result.set_remote_id(bluetoothDevice.address());
     notifications_handler.NotifyUIThread("ReadRssiResult", result);
   });
+}
+
+void BluetoothManager::Pair(const std::string& device_id) {
+  auto device = LocateDevice(device_id);
+
+  device->Pair([](auto&&...) { LOG_DEBUG("pair_callback called"); });
 }
 
 BluetoothDeviceController* BluetoothManager::LocateDevice(
@@ -229,64 +236,67 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
 
   std::scoped_lock lock(scope.mutex_);
 
-//  if (scope.var_.has_value()) {
-//    auto& filters = scope.var_->filters;
-//    ret = bt_adapter_le_scan_filter_unregister_all();
-//    LOG_ERROR("bt_adapter_le_scan_filter_unregister_all %s",
-//              get_error_message(ret));
-//    LOG_DEBUG("bt_adapter_le_scan_filter_unregister_all");
-//
-//    for (auto filter : filters) {
-//      ret = bt_adapter_le_scan_filter_destroy(&filter);
-//      LOG_ERROR("bt_adapter_le_scan_filter_destroy %s", get_error_message(ret));
-//      LOG_DEBUG("bt_adapter_le_scan_filter_destroy");
-//    }
-//
-//    scope.var_->filters.clear();
-//  }
+  //  if (scope.var_.has_value()) {
+  //    auto& filters = scope.var_->filters;
+  //    ret = bt_adapter_le_scan_filter_unregister_all();
+  //    LOG_ERROR("bt_adapter_le_scan_filter_unregister_all %s",
+  //              get_error_message(ret));
+  //    LOG_DEBUG("bt_adapter_le_scan_filter_unregister_all");
+  //
+  //    for (auto filter : filters) {
+  //      ret = bt_adapter_le_scan_filter_destroy(&filter);
+  //      LOG_ERROR("bt_adapter_le_scan_filter_destroy %s",
+  //      get_error_message(ret));
+  //      LOG_DEBUG("bt_adapter_le_scan_filter_destroy");
+  //    }
+  //
+  //    scope.var_->filters.clear();
+  //  }
 
   scope.var_.emplace(Scope{std::move(callback)});
 
-// filters seem to be buggy at this time.
-// it can slightly increase performance in the future if the reason for double free here
-// is found.
-//  auto& filters = scope.var_->filters;
-//
-//  std::transform(scan_settings.service_uuids_filters_.begin(),
-//                 scan_settings.service_uuids_filters_.end(),
-//                 std::back_inserter(filters), [](const std::string& uuid) {
-//                   bt_scan_filter_h filter;
-//                   auto ret = bt_adapter_le_scan_filter_create(&filter);
-//                   LOG_ERROR("bt_adapter_le_scan_filter_create %s",
-//                             get_error_message(ret));
-//
-//                   ret = bt_adapter_le_scan_filter_set_service_uuid(
-//                       filter, uuid.c_str());
-//                   LOG_ERROR("bt_adapter_le_scan_filter_set_service_uuid %s",
-//                             get_error_message(ret));
-//
-//                   ret = bt_adapter_le_scan_filter_register(filter);
-//
-//                   return filter;
-//                 });
-//
-//  std::transform(scan_settings.device_ids_filters_.begin(),
-//                 scan_settings.device_ids_filters_.end(),
-//                 std::back_inserter(filters), [](const std::string& uuid) {
-//                   bt_scan_filter_h filter;
-//                   auto ret = bt_adapter_le_scan_filter_create(&filter);
-//                   LOG_ERROR("bt_adapter_le_scan_filter_create %s",
-//                             get_error_message(ret));
-//
-//                   ret = bt_adapter_le_scan_filter_set_device_address(
-//                       filter, uuid.c_str());
-//                   LOG_ERROR("bt_adapter_le_scan_filter_set_device_address %s",
-//                             get_error_message(ret));
-//
-//                   ret = bt_adapter_le_scan_filter_register(filter);
-//
-//                   return filter;
-//                 });
+  // filters seem to be buggy at this time.
+  // it can slightly increase performance in the future if the reason for double
+  // free here is found.
+  //  auto& filters = scope.var_->filters;
+  //
+  //  std::transform(scan_settings.service_uuids_filters_.begin(),
+  //                 scan_settings.service_uuids_filters_.end(),
+  //                 std::back_inserter(filters), [](const std::string& uuid) {
+  //                   bt_scan_filter_h filter;
+  //                   auto ret = bt_adapter_le_scan_filter_create(&filter);
+  //                   LOG_ERROR("bt_adapter_le_scan_filter_create %s",
+  //                             get_error_message(ret));
+  //
+  //                   ret = bt_adapter_le_scan_filter_set_service_uuid(
+  //                       filter, uuid.c_str());
+  //                   LOG_ERROR("bt_adapter_le_scan_filter_set_service_uuid
+  //                   %s",
+  //                             get_error_message(ret));
+  //
+  //                   ret = bt_adapter_le_scan_filter_register(filter);
+  //
+  //                   return filter;
+  //                 });
+  //
+  //  std::transform(scan_settings.device_ids_filters_.begin(),
+  //                 scan_settings.device_ids_filters_.end(),
+  //                 std::back_inserter(filters), [](const std::string& uuid) {
+  //                   bt_scan_filter_h filter;
+  //                   auto ret = bt_adapter_le_scan_filter_create(&filter);
+  //                   LOG_ERROR("bt_adapter_le_scan_filter_create %s",
+  //                             get_error_message(ret));
+  //
+  //                   ret = bt_adapter_le_scan_filter_set_device_address(
+  //                       filter, uuid.c_str());
+  //                   LOG_ERROR("bt_adapter_le_scan_filter_set_device_address
+  //                   %s",
+  //                             get_error_message(ret));
+  //
+  //                   ret = bt_adapter_le_scan_filter_register(filter);
+  //
+  //                   return filter;
+  //                 });
 
   if (!ret) {
     ret = bt_adapter_le_start_scan(

@@ -174,6 +174,31 @@ void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) {
       });
 }
 
+void BluetoothDeviceController::Pair(PairCallback callback) {
+  struct Scope {
+    std::string device_address;
+    PairCallback callback;
+  };
+  auto ret = bt_device_set_bond_created_cb(
+      [](int result, bt_device_info_s* info, void* scope_ptr) {
+        auto scope = static_cast<Scope*>(scope_ptr);
+
+        std::scoped_lock lock(active_devices_.mutex_);
+        auto it = active_devices_.var_.find(scope->device_address);
+
+        if (it != active_devices_.var_.end()) {
+          auto device = it->second;
+
+          auto bond = info->is_bonded ? Bond::created : Bond::not_created;
+          device->bond_state_ = bond;
+          scope->callback(*device, bond);
+        }
+
+        delete scope;
+      },
+      new Scope{address(), std::move(callback)});
+}
+
 void BluetoothDeviceController::SetConnectionStateChangedCallback(
     ConnectionStateChangedCallback connection_changed_callback) {
   connection_changed_callback_ = std::move(connection_changed_callback);

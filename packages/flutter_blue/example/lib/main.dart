@@ -279,11 +279,12 @@ class DeviceScreen extends StatelessWidget {
                         : const Icon(Icons.bluetooth_disabled),
                     snapshot.data == BluetoothDeviceState.connected
                         ? StreamBuilder<int>(
-                        stream: rssiStream(),
-                        builder: (context, snapshot) {
-                          return Text(snapshot.hasData ? '${snapshot.data}dBm' : '',
-                              style: Theme.of(context).textTheme.caption);
-                        })
+                            stream: rssiStream(),
+                            builder: (context, snapshot) {
+                              return Text(
+                                  snapshot.hasData ? '${snapshot.data}dBm' : '',
+                                  style: Theme.of(context).textTheme.caption);
+                            })
                         : Text('', style: Theme.of(context).textTheme.caption),
                   ],
                 ),
@@ -327,6 +328,16 @@ class DeviceScreen extends StatelessWidget {
                 ),
               ),
             ),
+            TextButton(
+              child: Container(
+                child: const Text('Pair'),
+                alignment: Alignment.centerLeft,
+              ),
+              style: ElevatedButton.styleFrom(
+                onPrimary: Colors.black,
+              ),
+              onPressed: device.pair,
+            ),
             StreamBuilder<List<BluetoothService>>(
               stream: device.services,
               initialData: const [],
@@ -341,7 +352,7 @@ class DeviceScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Stream<int> rssiStream() async* {
     var isConnected = true;
     final subscription = device.state.listen((state) {
@@ -349,10 +360,11 @@ class DeviceScreen extends StatelessWidget {
     });
     while (isConnected) {
       yield await device.readRssi();
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
     }
     subscription.cancel();
     // Device disconnected, stopping RSSI stream
   }
-}
 
+  Future pairDevice(BluetoothDevice device) async {}
+}

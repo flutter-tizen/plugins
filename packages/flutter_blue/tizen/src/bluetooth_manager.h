@@ -20,12 +20,11 @@ namespace flutter_blue_tizen {
 
 class BluetoothManager {
  public:
-
-  enum class BluetoothState{
-	kAdapterOn,
-	kAdapterOff,
-	kUnavailable,
-	kUnknown,
+  enum class BluetoothState {
+    kAdapterOn,
+    kAdapterOff,
+    kUnavailable,
+    kUnknown,
   };
 
   BluetoothManager(NotificationsHandler& notifications_handler);
@@ -78,6 +77,8 @@ class BluetoothManager {
 
   void ReadRssi(const std::string& device_id);
 
+  void Pair(const std::string& device_id);
+
   BluetoothDeviceController* LocateDevice(const std::string& remote_id);
 
   btGatt::PrimaryService* LocatePrimaryService(const std::string& remote_id,
@@ -110,8 +111,6 @@ class BluetoothManager {
       bluetooth_devices_;
 
   NotificationsHandler& notifications_handler_;
-
-  std::atomic<bool> scan_allow_duplicates_;
 };
 
 }  // namespace flutter_blue_tizen

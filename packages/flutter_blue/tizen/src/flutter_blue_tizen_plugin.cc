@@ -98,16 +98,19 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       result->Success();
 
     } else if (method_name == "state") {
-		auto state_proto_e = flutter_blue_tizen::ToProtoBluetoothState(bluetooth_manager_->BluetoothState());
-	
-	  proto::gen::BluetoothState state_proto; state_proto.set_state(state_proto_e);
+      auto state_proto_e = flutter_blue_tizen::ToProtoBluetoothState(
+          bluetooth_manager_->BluetoothState());
 
-      result->Success(
-          flutter::EncodableValue(flutter_blue_tizen::MessageToVector(state_proto)));
+      proto::gen::BluetoothState state_proto;
+      state_proto.set_state(state_proto_e);
+
+      result->Success(flutter::EncodableValue(
+          flutter_blue_tizen::MessageToVector(state_proto)));
 
     } else if (method_name == "isOn") {
       result->Success(flutter::EncodableValue(
-          bluetooth_manager_->BluetoothState() == flutter_blue_tizen::BluetoothManager::BluetoothState::kAdapterOn));
+          bluetooth_manager_->BluetoothState() ==
+          flutter_blue_tizen::BluetoothManager::BluetoothState::kAdapterOn));
 
     } else if (method_name == "startScan") {
       proto::gen::ScanSettings scan_settings;
@@ -119,8 +122,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         flutter_blue_tizen::BleScanSettings bleScanSettings =
             flutter_blue_tizen::FromProtoScanSettings(scan_settings);
 
-        bluetooth_manager_->StartBluetoothDeviceScanLE(
-            bleScanSettings);
+        bluetooth_manager_->StartBluetoothDeviceScanLE(bleScanSettings);
         result->Success();
       } catch (const std::exception& e) {
         result->Error(e.what());
@@ -298,6 +300,15 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         result->Error(e.what());
       }
 
+    } else if (method_name == "pair") {
+      std::string device_id = std::get<std::string>(args);
+
+      try {
+        bluetooth_manager_->Pair(device_id);
+        result->Success();
+      } catch (const std::exception& e) {
+        result->Error(e.what());
+      }
     } else {
       result->NotImplemented();
     }

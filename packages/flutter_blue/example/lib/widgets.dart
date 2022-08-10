@@ -301,4 +301,3 @@ class AdapterStateTile extends StatelessWidget {
     );
   }
 }
-

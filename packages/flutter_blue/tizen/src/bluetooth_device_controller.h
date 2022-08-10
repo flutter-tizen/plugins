@@ -26,14 +26,24 @@ class BluetoothDeviceController {
     kDisconnecting,
   };
 
+  enum class Bond {
+    unknown,
+    created,
+    not_created,
+  };
+
   using RequestMtuCallback =
       std::function<void(bool, const BluetoothDeviceController&)>;
 
-  using ConnectionStateChangedCallback = 
-	  std::function<void(State state, const BluetoothDeviceController* device)>;//TODO should be ref
-  
-  using ReadRssiCallback = 
-	  std::function<void(const BluetoothDeviceController& device, int rssi)>;
+  using ConnectionStateChangedCallback =
+      std::function<void(State state, const BluetoothDeviceController*
+                                          device)>;  // TODO should be ref
+
+  using ReadRssiCallback =
+      std::function<void(const BluetoothDeviceController& device, int rssi)>;
+
+  using PairCallback = std::function<void(
+      const BluetoothDeviceController& device, const Bond bond)>;
 
   BluetoothDeviceController(const std::string& name,
                             const std::string& address) noexcept;
@@ -62,8 +72,10 @@ class BluetoothDeviceController {
 
   void ReadRssi(ReadRssiCallback callback);
 
-  static void SetConnectionStateChangedCallback(ConnectionStateChangedCallback      
-          connection_changed_callback);
+  void Pair(PairCallback callback);
+
+  static void SetConnectionStateChangedCallback(
+      ConnectionStateChangedCallback connection_changed_callback);
 
  private:
   std::mutex operation_mutex_;
@@ -73,6 +85,8 @@ class BluetoothDeviceController {
   std::string name_;
 
   std::string address_;
+
+  std::atomic<Bond> bond_state_{Bond::unknown};
 
   std::atomic<bool> is_connecting_ = false;
 
