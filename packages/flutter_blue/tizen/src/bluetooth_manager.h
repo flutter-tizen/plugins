@@ -81,25 +81,25 @@ class BluetoothManager {
 
   std::vector<BluetoothDeviceController*> GetBondedDevices();
 
-  BluetoothDeviceController* LocateDevice(const std::string& remote_id);
+  BluetoothDeviceController& LocateDevice(const std::string& remote_id);
 
-  btGatt::PrimaryService* LocatePrimaryService(const std::string& remote_id,
+  btGatt::PrimaryService& LocatePrimaryService(const std::string& remote_id,
                                                const std::string& primary_uuid);
 
-  btGatt::SecondaryService* LocateSecondaryService(
+  btGatt::SecondaryService& LocateSecondaryService(
       const std::string& remote_id, const std::string& primary_uuid,
       const std::string& secondary_uuid);
 
-  btGatt::BluetoothService* LocateService(const std::string& remote_id,
+  btGatt::BluetoothService& LocateService(const std::string& remote_id,
                                           const std::string& primary_uuid,
                                           const std::string& secondary_uuid);
 
-  btGatt::BluetoothCharacteristic* LocateCharacteristic(
+  btGatt::BluetoothCharacteristic& LocateCharacteristic(
       const std::string& remote_id, const std::string& primary_uuid,
       const std::string& secondary_uuid,
       const std::string& characteristic_uuid);
 
-  btGatt::BluetoothDescriptor* LocateDescriptor(
+  btGatt::BluetoothDescriptor& LocateDescriptor(
       const std::string& remote_id, const std::string& primary_uuid,
       const std::string& secondary_uuid, const std::string& characteristic_uuid,
       const std::string& descriptor_uuid);

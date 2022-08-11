@@ -20,13 +20,17 @@ class BluetoothDescriptor {
 
   BluetoothDescriptor(bt_gatt_h handle);
 
+  BluetoothDescriptor(const BluetoothDescriptor&) = delete;
+
+  BluetoothDescriptor(BluetoothDescriptor&&) = default;
+
   ~BluetoothDescriptor();
 
   std::string Uuid() const noexcept;
 
   std::string Value() const noexcept;
 
-  void Read(ReadCallback callback);
+  void Read(ReadCallback callback) const;
 
   void Write(const std::string value, WriteCallback callback);
 

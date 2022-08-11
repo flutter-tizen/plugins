@@ -23,6 +23,10 @@ class BluetoothCharacteristic {
 
   BluetoothCharacteristic(bt_gatt_h handle);
 
+  BluetoothCharacteristic(const BluetoothCharacteristic&) = delete;
+
+  BluetoothCharacteristic(BluetoothCharacteristic&&) = default;
+
   ~BluetoothCharacteristic() noexcept;
 
   std::string Uuid() const noexcept;
@@ -33,7 +37,7 @@ class BluetoothCharacteristic {
 
   std::vector<BluetoothDescriptor*> GetDescriptors() const;
 
-  void Read(ReadCallback callback);
+  void Read(ReadCallback callback) const;
 
   void Write(const std::string value, bool without_response,
              WriteCallback callback);

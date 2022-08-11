@@ -18,7 +18,7 @@ BluetoothService::BluetoothService(bt_gatt_h handle) : handle_(handle) {
       },
       this);
 
-  LOG_ERROR("bt_gatt_service_foreach_characteristics", get_error_message(ret));
+  LOG_ERROR("bt_gatt_service_foreach_characteristics %s", get_error_message(ret));
 }
 
 std::string BluetoothService::Uuid() const noexcept {
@@ -54,7 +54,7 @@ PrimaryService::PrimaryService(bt_gatt_h handle) : BluetoothService(handle) {
         return true;
       },
       this);
-  LOG_ERROR("bt_gatt_service_foreach_included_services",
+  LOG_ERROR("bt_gatt_service_foreach_included_services %s",
             get_error_message(ret));
 }
 

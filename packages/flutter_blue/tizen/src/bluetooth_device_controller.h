@@ -70,7 +70,7 @@ class BluetoothDeviceController {
 
   void RequestMtu(uint32_t mtu, const RequestMtuCallback& callback);
 
-  void ReadRssi(ReadRssiCallback callback);
+  void ReadRssi(ReadRssiCallback callback) const;
 
   void Pair(PairCallback callback);
 

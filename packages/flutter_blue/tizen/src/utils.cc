@@ -12,7 +12,7 @@ std::string GetGattValue(bt_gatt_h handle) {
   int length = 0;
 
   int ret = bt_gatt_get_value(handle, &value, &length);
-  LOG_ERROR("bt_gatt_get_value", get_error_message(ret));
+  LOG_ERROR("bt_gatt_get_value %s", get_error_message(ret));
   if (!ret && value) {
     result = std::string(value, length);
     free(value);
@@ -26,7 +26,7 @@ std::string GetGattUuid(bt_gatt_h handle) {
   std::string result;
   char* uuid = nullptr;
   int ret = bt_gatt_get_uuid(handle, &uuid);
-  LOG_ERROR("bt_gatt_get_uuid", get_error_message(ret));
+  LOG_ERROR("bt_gatt_get_uuid %s", get_error_message(ret));
   if (!ret && uuid) {
     result = std::string(uuid);
     free(uuid);

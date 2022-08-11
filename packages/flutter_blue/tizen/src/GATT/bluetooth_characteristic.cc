@@ -53,7 +53,7 @@ std::vector<BluetoothDescriptor*> BluetoothCharacteristic::GetDescriptors()
   return descriptors;
 }
 
-void BluetoothCharacteristic::Read(ReadCallback callback) {
+void BluetoothCharacteristic::Read(ReadCallback callback) const {
   struct Scope {
     ReadCallback callback;
     const std::string uuid;

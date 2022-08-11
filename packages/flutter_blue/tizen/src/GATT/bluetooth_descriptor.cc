@@ -23,7 +23,7 @@ std::string BluetoothDescriptor::Value() const noexcept {
   return GetGattValue(handle_);
 }
 
-void BluetoothDescriptor::Read(ReadCallback callback) {
+void BluetoothDescriptor::Read(ReadCallback callback) const {
   struct Scope {
     ReadCallback callback;
     const std::string descriptor_uuid;

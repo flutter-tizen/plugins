@@ -154,14 +154,11 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
   if (ret) throw BtException(ret, "bt_gatt_client_request_att_mtu_change");
 }
 
-void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) {
-  BleScanSettings settings;
-  settings.device_ids_filters_ = {address()};
-
+void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) const {
   BluetoothManager::StartBluetoothDeviceScanLE(
-      settings, [dest_address = address(), callback = std::move(callback)](
-                    const std::string& address, const std::string& device_name,
-                    int rssi, const AdvertisementData& advertisement_data) {
+      {}, [dest_address = address(), callback = std::move(callback)](
+              const std::string& address, const std::string& device_name,
+              int rssi, const AdvertisementData& advertisement_data) {
         std::scoped_lock lock(active_devices_.mutex_);
 
         auto it = active_devices_.var_.find(address);

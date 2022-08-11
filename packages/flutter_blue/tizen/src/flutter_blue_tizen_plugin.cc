@@ -22,6 +22,8 @@
 #include "proto_helper.h"
 #include "utils.h"
 
+
+
 namespace {
 
 class FlutterBlueTizenPlugin : public flutter::Plugin {
@@ -162,6 +164,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_name == "disconnect") {
       std::string device_id = std::get<std::string>(args);
+
       try {
         bluetooth_manager_->Disconnect(device_id);
         result->Success();
@@ -172,44 +175,58 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     } else if (method_name == "deviceState") {
       std::string device_id = std::get<std::string>(args);
 
-      auto device = bluetooth_manager_->LocateDevice(device_id);
+      try {
+        const auto& device = bluetooth_manager_->LocateDevice(device_id);
 
-      proto::gen::DeviceStateResponse device_state_response;
-      device_state_response.set_remote_id(device->address());
-      device_state_response.set_state(
-          flutter_blue_tizen::ToProtoDeviceState(device->GetState()));
+        proto::gen::DeviceStateResponse device_state_response;
+        device_state_response.set_remote_id(device.address());
+        device_state_response.set_state(
+            flutter_blue_tizen::ToProtoDeviceState(device.GetState()));
 
-      result->Success(flutter::EncodableValue(
-          flutter_blue_tizen::MessageToVector(device_state_response)));
+        result->Success(flutter::EncodableValue(
+            flutter_blue_tizen::MessageToVector(device_state_response)));
+      } catch (const std::exception& e) {
+        result->Error(e.what());
+      }
 
     } else if (method_name == "discoverServices") {
       std::string device_id = std::get<std::string>(args);
 
-      auto device = bluetooth_manager_->LocateDevice(device_id);
+      try {
+        auto& device = bluetooth_manager_->LocateDevice(device_id);
 
-      // Return early to discover services asynchronously.
-      result->Success();
+        // Return early to discover services asynchronously.
+        result->Success();
 
-      device->DiscoverServices();
-      auto services = device->GetServices();
-      notifications_handler_.NotifyUIThread(
-          "DiscoverServicesResult",
-          flutter_blue_tizen::GetProtoServiceDiscoveryResult(*device,
-                                                             services));
+        device.DiscoverServices();
+        auto services = device.GetServices();
+        notifications_handler_.NotifyUIThread(
+            "DiscoverServicesResult",
+            flutter_blue_tizen::GetProtoServiceDiscoveryResult(device,
+                                                               services));
+      } catch (const std::exception& e) {
+        result->Error(e.what());
+      }
 
     } else if (method_name == "services") {
       std::string device_id = std::get<std::string>(args);
 
-      auto device = bluetooth_manager_->LocateDevice(device_id);
+      try {
+        auto& device = bluetooth_manager_->LocateDevice(device_id);
 
-      auto proto_services = flutter_blue_tizen::GetProtoServiceDiscoveryResult(
-          *device, device->GetServices());
-      result->Success(flutter::EncodableValue(
-          flutter_blue_tizen::MessageToVector(proto_services)));
+        auto proto_services =
+            flutter_blue_tizen::GetProtoServiceDiscoveryResult(
+                device, device.GetServices());
+        result->Success(flutter::EncodableValue(
+            flutter_blue_tizen::MessageToVector(proto_services)));
+      } catch (const std::exception& e) {
+        result->Error(e.what());
+      }
 
     } else if (method_name == "readCharacteristic") {
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
       proto::gen::ReadCharacteristicRequest request;
+
       try {
         request.ParseFromArray(encoded.data(), encoded.size());
         bluetooth_manager_->ReadCharacteristic(request);
@@ -245,6 +262,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
     } else if (method_name == "writeDescriptor") {
       std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
       proto::gen::WriteDescriptorRequest request;
+
       try {
         request.ParseFromArray(encoded.data(), encoded.size());
         bluetooth_manager_->WriteDescriptor(request);

@@ -33,6 +33,10 @@ class BluetoothService {
 
   BluetoothService(bt_gatt_h handle);
 
+  BluetoothService(const BluetoothService&) = delete;
+
+  BluetoothService(BluetoothService&&) = default;
+
   virtual ~BluetoothService() = default;
 };
 
