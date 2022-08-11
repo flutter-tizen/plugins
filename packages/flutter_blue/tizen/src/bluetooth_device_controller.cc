@@ -175,28 +175,37 @@ void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) {
 }
 
 void BluetoothDeviceController::Pair(PairCallback callback) {
+  if (bond_state_ == Bond::created) throw BtException("device already paired!");
   struct Scope {
-    std::string device_address;
     PairCallback callback;
   };
   auto ret = bt_device_set_bond_created_cb(
       [](int result, bt_device_info_s* info, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
+        if (!result) {
+          LOG_DEBUG("pairing native callback. address: %s, bond_created: %i",
+                    info->remote_address, info->is_bonded);
+          std::scoped_lock lock(active_devices_.mutex_);
+          auto it = active_devices_.var_.find(info->remote_address);
 
-        std::scoped_lock lock(active_devices_.mutex_);
-        auto it = active_devices_.var_.find(scope->device_address);
+          if (it != active_devices_.var_.end()) {
+            auto device = it->second;
 
-        if (it != active_devices_.var_.end()) {
-          auto device = it->second;
-
-          auto bond = info->is_bonded ? Bond::created : Bond::not_created;
-          device->bond_state_ = bond;
-          scope->callback(*device, bond);
+            auto bond = info->is_bonded ? Bond::created : Bond::not_created;
+            device->bond_state_ = bond;
+            scope->callback(*device, bond);
+          }
+        } else {
+          LOG_ERROR("bond not created with %s. Error: %s", info->remote_address,
+                    get_error_message(result));
         }
-
         delete scope;
       },
-      new Scope{address(), std::move(callback)});
+      new Scope{std::move(callback)});
+  if (ret) throw BtException(ret, "bt_device_set_bond_created_cb");
+
+  ret = bt_device_create_bond(address().c_str());
+  if (ret) throw BtException(ret, "bt_device_create_bond");
 }
 
 void BluetoothDeviceController::SetConnectionStateChangedCallback(

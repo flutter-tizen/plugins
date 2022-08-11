@@ -119,6 +119,15 @@ void BluetoothManager::Pair(const std::string& device_id) {
   device->Pair([](auto&&...) { LOG_DEBUG("pair_callback called"); });
 }
 
+std::vector<BluetoothDeviceController*> BluetoothManager::GetBondedDevices() {
+  std::scoped_lock lock(bluetooth_devices_.mutex_);
+  std::vector<BluetoothDeviceController*> ret;
+  for (auto& device : bluetooth_devices_.var_) {
+    ret.push_back(device.second.get());
+  }
+  return ret;
+}
+
 BluetoothDeviceController* BluetoothManager::LocateDevice(
     const std::string& remote_id) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);

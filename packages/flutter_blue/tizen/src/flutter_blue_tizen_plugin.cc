@@ -309,6 +309,14 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
       } catch (const std::exception& e) {
         result->Error(e.what());
       }
+    } else if (method_name == "getBondedDevices") {
+      proto::gen::ConnectedDevicesResponse response;
+      for (auto device : bluetooth_manager_->GetBondedDevices()) {
+        *response.add_devices() = flutter_blue_tizen::ToProtoDevice(*device);
+      }
+
+      result->Success(flutter::EncodableValue(
+          flutter_blue_tizen::MessageToVector(response)));
     } else {
       result->NotImplemented();
     }
