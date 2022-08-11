@@ -14,6 +14,10 @@ namespace btGatt {
 
 class BluetoothDescriptor {
  public:
+  using ReadCallback = std::function<void(const BluetoothDescriptor&)>;
+  using WriteCallback =
+      std::function<void(bool success, const BluetoothDescriptor&)>;
+
   BluetoothDescriptor(bt_gatt_h handle);
 
   ~BluetoothDescriptor();
@@ -22,11 +26,9 @@ class BluetoothDescriptor {
 
   std::string Value() const noexcept;
 
-  void Read(const std::function<void(const BluetoothDescriptor&)>& callback);
+  void Read(ReadCallback callback);
 
-  void Write(const std::string value,
-             const std::function<void(bool success,
-                                      const BluetoothDescriptor&)>& callback);
+  void Write(const std::string value, WriteCallback callback);
 
  private:
   bt_gatt_h handle_;

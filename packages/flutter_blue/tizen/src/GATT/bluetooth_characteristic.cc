@@ -53,15 +53,14 @@ std::vector<BluetoothDescriptor*> BluetoothCharacteristic::GetDescriptors()
   return descriptors;
 }
 
-void BluetoothCharacteristic::Read(
-    const std::function<void(const BluetoothCharacteristic&)>& callback) {
+void BluetoothCharacteristic::Read(ReadCallback callback) {
   struct Scope {
-    std::function<void(const BluetoothCharacteristic&)> callback;
+    ReadCallback callback;
     const std::string uuid;
   };
 
   // Requires raw pointer to be passed to bt_gatt_client_read_value.
-  Scope* scope = new Scope{callback, Uuid()};
+  Scope* scope = new Scope{std::move(callback), Uuid()};
   int ret = bt_gatt_client_read_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
@@ -71,7 +70,7 @@ void BluetoothCharacteristic::Read(
         if (it != active_characteristics_.var_.end()) {
           auto& characteristic = *it->second;
           scope->callback(characteristic);
-          LOG_ERROR("bt_gatt_client_request_completed_cb",
+          LOG_ERROR("bt_gatt_client_request_completed_cb %s",
                     get_error_message(result));
         }
 
@@ -79,39 +78,38 @@ void BluetoothCharacteristic::Read(
       },
       scope);
 
-  LOG_ERROR("bt_gatt_client_read_value", get_error_message(ret));
+  LOG_ERROR("bt_gatt_client_read_value %s", get_error_message(ret));
   if (ret) throw BtException(ret, "could not read characteristic");
 }
 
-void BluetoothCharacteristic::Write(
-    const std::string value, bool without_response,
-    const std::function<void(bool success, const BluetoothCharacteristic&)>&
-        callback) {
+void BluetoothCharacteristic::Write(const std::string value,
+                                    bool without_response,
+                                    WriteCallback callback) {
   struct Scope {
-    std::function<void(bool success, const BluetoothCharacteristic&)> callback;
+    WriteCallback callback;
     const std::string uuid;
   };
 
   int ret = bt_gatt_characteristic_set_write_type(
       handle_, without_response ? BT_GATT_WRITE_TYPE_WRITE_NO_RESPONSE
                                 : BT_GATT_WRITE_TYPE_WRITE);
-  LOG_ERROR("bt_gatt_characteristic_set_write_type", get_error_message(ret));
+  LOG_ERROR("bt_gatt_characteristic_set_write_type %s", get_error_message(ret));
 
   if (ret)
     throw BtException(ret,
                       "could not set write type to characteristic " + Uuid());
 
   ret = bt_gatt_set_value(handle_, value.c_str(), value.size());
-  LOG_ERROR("bt_gatt_set_value", get_error_message(ret));
+  LOG_ERROR("bt_gatt_set_value %s", get_error_message(ret));
 
   if (ret) throw BtException(ret, "could not set value");
 
   // Requires raw pointer to be passed to bt_gatt_client_write_value.
-  Scope* scope = new Scope{callback, Uuid()};
+  Scope* scope = new Scope{std::move(callback), Uuid()};
   ret = bt_gatt_client_write_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
-        LOG_ERROR("bt_gatt_client_request_completed_cb",
+        LOG_ERROR("bt_gatt_client_request_completed_cb %s",
                   get_error_message(result));
 
         auto scope = static_cast<Scope*>(scope_ptr);
@@ -126,7 +124,7 @@ void BluetoothCharacteristic::Write(
         delete scope;
       },
       scope);
-  LOG_ERROR("bt_gatt_client_write_value", get_error_message(ret));
+  LOG_ERROR("bt_gatt_client_write_value %s", get_error_message(ret));
 
   if (ret) throw BtException("could not write value to remote");
 }
@@ -134,7 +132,7 @@ void BluetoothCharacteristic::Write(
 int BluetoothCharacteristic::Properties() const noexcept {
   int properties = 0;
   auto ret = bt_gatt_characteristic_get_properties(handle_, &properties);
-  LOG_ERROR("bt_gatt_characteristic_get_properties", get_error_message(ret));
+  LOG_ERROR("bt_gatt_characteristic_get_properties %s", get_error_message(ret));
   return properties;
 }
 
@@ -162,7 +160,7 @@ void BluetoothCharacteristic::SetNotifyCallback(
       },
       this);
 
-  LOG_ERROR("bt_gatt_client_set_characteristic_value_changed_cb",
+  LOG_ERROR("bt_gatt_client_set_characteristic_value_changed_cb %s",
             get_error_message(ret));
   if (ret)
     throw BtException(ret,
@@ -172,7 +170,7 @@ void BluetoothCharacteristic::SetNotifyCallback(
 void BluetoothCharacteristic::UnsetNotifyCallback() {
   if (notify_callback_) {
     int ret = bt_gatt_client_unset_characteristic_value_changed_cb(handle_);
-    LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb",
+    LOG_ERROR("bt_gatt_client_unset_characteristic_value_changed_cb %s",
               get_error_message(ret));
   }
   notify_callback_ = nullptr;

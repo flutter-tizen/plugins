@@ -36,7 +36,7 @@ class BluetoothDeviceController {
       std::function<void(bool, const BluetoothDeviceController&)>;
 
   using ConnectionStateChangedCallback =
-      std::function<void(State state, const BluetoothDeviceController*
+      std::function<void(State state, const BluetoothDeviceController&
                                           device)>;  // TODO should be ref
 
   using ReadRssiCallback =
@@ -92,9 +92,8 @@ class BluetoothDeviceController {
 
   std::atomic<bool> is_disconnecting_ = false;
 
-  static inline std::function<void(State state,
-                                   const BluetoothDeviceController* device)>
-      connection_changed_callback_;
+  static inline ConnectionStateChangedCallback
+      connection_state_changed_callback_;
 
   static inline SafeType<std::map<std::string, BluetoothDeviceController*>>
       active_devices_;

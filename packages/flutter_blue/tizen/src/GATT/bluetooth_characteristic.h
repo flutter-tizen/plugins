@@ -17,6 +17,9 @@ namespace btGatt {
 class BluetoothCharacteristic {
  public:
   using NotifyCallback = std::function<void(const BluetoothCharacteristic&)>;
+  using ReadCallback = std::function<void(const BluetoothCharacteristic&)>;
+  using WriteCallback =
+      std::function<void(bool success, const BluetoothCharacteristic&)>;
 
   BluetoothCharacteristic(bt_gatt_h handle);
 
@@ -30,13 +33,10 @@ class BluetoothCharacteristic {
 
   std::vector<BluetoothDescriptor*> GetDescriptors() const;
 
-  void Read(
-      const std::function<void(const BluetoothCharacteristic&)>& callback);
+  void Read(ReadCallback callback);
 
-  void Write(
-      const std::string value, bool without_response,
-      const std::function<void(bool success, const BluetoothCharacteristic&)>&
-          callback);
+  void Write(const std::string value, bool without_response,
+             WriteCallback callback);
 
   int Properties() const noexcept;
 

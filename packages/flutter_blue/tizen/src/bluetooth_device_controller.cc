@@ -210,7 +210,7 @@ void BluetoothDeviceController::Pair(PairCallback callback) {
 
 void BluetoothDeviceController::SetConnectionStateChangedCallback(
     ConnectionStateChangedCallback connection_changed_callback) {
-  connection_changed_callback_ = std::move(connection_changed_callback);
+  connection_state_changed_callback_ = std::move(connection_changed_callback);
 
   int ret = bt_gatt_set_connection_state_changed_cb(
       [](int ret, bool connected, const char* remote_address, void* user_data) {
@@ -230,8 +230,8 @@ void BluetoothDeviceController::SetConnectionStateChangedCallback(
             // Creates gatt client if it does not exist.
             GetGattClient(device->address());
           }
-          connection_changed_callback_(
-              connected ? State::kConnected : State::kDisconnected, device);
+          connection_state_changed_callback_(
+              connected ? State::kConnected : State::kDisconnected, *device);
         }
         if (!connected) {
           DestroyGattClientIfExists(remote_address);

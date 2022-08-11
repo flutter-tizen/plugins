@@ -23,15 +23,14 @@ std::string BluetoothDescriptor::Value() const noexcept {
   return GetGattValue(handle_);
 }
 
-void BluetoothDescriptor::Read(
-    const std::function<void(const BluetoothDescriptor&)>& callback) {
+void BluetoothDescriptor::Read(ReadCallback callback) {
   struct Scope {
-    std::function<void(const BluetoothDescriptor&)> callback;
+    ReadCallback callback;
     const std::string descriptor_uuid;
   };
 
   // Requires raw pointer to be passed to bt_gatt_client_read_value.
-  auto scope = new Scope{callback, Uuid()};
+  auto scope = new Scope{std::move(callback), Uuid()};
   int ret = bt_gatt_client_read_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
@@ -43,36 +42,34 @@ void BluetoothDescriptor::Read(
           auto& descriptor = *it->second;
           scope->callback(descriptor);
         }
-        LOG_ERROR("bt_gatt_client_request_completed_cb",
+        LOG_ERROR("bt_gatt_client_request_completed_cb %s",
                   get_error_message(result));
         delete scope;
       },
       scope);
 
-  LOG_ERROR("bt_gatt_client_read_value", get_error_message(ret));
+  LOG_ERROR("bt_gatt_client_read_value %s", get_error_message(ret));
   if (ret) throw BtException("could not read descriptor");
 }
 
-void BluetoothDescriptor::Write(
-    const std::string value,
-    const std::function<void(bool success, const BluetoothDescriptor&)>&
-        callback) {
+void BluetoothDescriptor::Write(const std::string value,
+                                WriteCallback callback) {
   struct Scope {
-    std::function<void(bool success, const BluetoothDescriptor&)> callback;
+    WriteCallback callback;
     const std::string descriptor_uuid;
   };
 
   int ret = bt_gatt_set_value(handle_, value.c_str(), value.size());
-  LOG_ERROR("bt_gatt_set_value", get_error_message(ret));
+  LOG_ERROR("bt_gatt_set_value %s", get_error_message(ret));
 
   if (ret) throw BtException("could not set value");
 
   // Requires raw pointer to be passed to bt_gatt_client_write_value.
-  auto scope = new Scope{callback, Uuid()};
+  auto scope = new Scope{std::move(callback), Uuid()};
   ret = bt_gatt_client_write_value(
       handle_,
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
-        LOG_ERROR("bt_gatt_client_request_completed_cb",
+        LOG_ERROR("bt_gatt_client_request_completed_cb %s",
                   get_error_message(result));
 
         auto scope = static_cast<Scope*>(scope_ptr);
@@ -88,7 +85,7 @@ void BluetoothDescriptor::Write(
       },
       scope);
 
-  LOG_ERROR("bt_gatt_client_write_value", get_error_message(ret));
+  LOG_ERROR("bt_gatt_client_write_value %s", get_error_message(ret));
 
   if (ret) throw BtException("could not write value to remote");
 }

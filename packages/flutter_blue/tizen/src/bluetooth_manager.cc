@@ -36,9 +36,9 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
   BluetoothDeviceController::SetConnectionStateChangedCallback(
       [&notifications_handler = notifications_handler_](
           BluetoothDeviceController::State state,
-          const BluetoothDeviceController* device) {
+          const BluetoothDeviceController& device) {
         proto::gen::DeviceStateResponse device_state;
-        device_state.set_remote_id(device->address());
+        device_state.set_remote_id(device.address());
         device_state.set_state(ToProtoDeviceState(state));
         notifications_handler.NotifyUIThread("DeviceState", device_state);
       });
