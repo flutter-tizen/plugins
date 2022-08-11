@@ -292,25 +292,24 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
     return false;
   }
 
-  void* evasKeyEvent = nullptr;
   if (is_down) {
     Evas_Event_Key_Down downEvent;
     memset(&downEvent, 0, sizeof(Evas_Event_Key_Down));
     downEvent.key = key;
     downEvent.string = string;
-    evasKeyEvent = static_cast<void*>(&downEvent);
+    void* evasKeyEvent = static_cast<void*>(&downEvent);
+    ewk_view_send_key_event(webview_instance_, evasKeyEvent, is_down);
+    return true;
   } else {
     Evas_Event_Key_Up upEvent;
     memset(&upEvent, 0, sizeof(Evas_Event_Key_Up));
     upEvent.key = key;
     upEvent.string = string;
-    evasKeyEvent = static_cast<void*>(&upEvent);
-  }
-
-  if (evasKeyEvent && ewk_view_send_key_event(webview_instance_, evasKeyEvent,
-                                              is_down) == EINA_TRUE) {
+    void* evasKeyEvent = static_cast<void*>(&upEvent);
+    ewk_view_send_key_event(webview_instance_, evasKeyEvent, is_down);
     return true;
   }
+
   return false;
 }
 
