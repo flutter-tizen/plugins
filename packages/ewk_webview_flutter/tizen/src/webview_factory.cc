@@ -24,15 +24,15 @@ static std::string GetAppDataPath() {
   return result;
 }
 
-WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar)
-    : PlatformViewFactory(registrar) {
+WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar, void* win)
+    : PlatformViewFactory(registrar), win_(win) {
   texture_registrar_ = registrar->texture_registrar();
 }
 
 PlatformView* WebViewFactory::Create(int view_id, double width, double height,
                                      const ByteMessage& params) {
   return new WebView(GetPluginRegistrar(), view_id, texture_registrar_, width,
-                     height, *GetCodec().DecodeMessage(params));
+                     height, *GetCodec().DecodeMessage(params), win_);
 }
 
 void WebViewFactory::Dispose() {}

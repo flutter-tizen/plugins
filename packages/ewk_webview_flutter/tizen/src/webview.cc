@@ -107,11 +107,13 @@ static bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
                  flutter::TextureRegistrar* texture_registrar, double width,
-                 double height, const flutter::EncodableValue& params)
+                 double height, const flutter::EncodableValue& params,
+                 void* win)
     : PlatformView(registrar, view_id, nullptr),
       texture_registrar_(texture_registrar),
       width_(width),
-      height_(height) {
+      height_(height),
+      win_(win) {
   tbm_pool_ = std::make_unique<SingleBufferPool>(width, height);
 
   texture_variant_ =
@@ -335,6 +337,8 @@ void WebView::InitWebView() {
         manager, EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY);
   }
   ewk_settings_viewport_meta_tag_set(settings, false);
+  ewk_settings_ime_panel_enabled_set(settings, true);
+  ewk_view_ime_window_set(webview_instance_, win_);
   ewk_view_key_events_enabled_set(webview_instance_, true);
   ewk_context_cache_model_set(context, EWK_CACHE_MODEL_PRIMARY_WEBBROWSER);
 

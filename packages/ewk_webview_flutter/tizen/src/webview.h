@@ -30,7 +30,7 @@ class WebView : public PlatformView {
  public:
   WebView(flutter::PluginRegistrar* registrar, int view_id,
           flutter::TextureRegistrar* texture_registrar, double width,
-          double height, const flutter::EncodableValue& params);
+          double height, const flutter::EncodableValue& params, void* win);
   ~WebView();
 
   virtual void Dispose() override;
@@ -83,6 +83,7 @@ class WebView : public PlatformView {
                                       const char* default_value, void*);
 
   Evas_Object* webview_instance_ = nullptr;
+  void* win_ = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
   double width_;
   double height_;

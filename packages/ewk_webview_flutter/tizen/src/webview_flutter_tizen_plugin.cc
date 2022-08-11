@@ -34,6 +34,9 @@ void EwkWebviewFlutterTizenPluginRegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(core_registrar);
   FlutterDesktopRegisterViewFactory(
-      core_registrar, kViewType, std::make_unique<WebViewFactory>(registrar));
+      core_registrar, kViewType,
+      std::make_unique<WebViewFactory>(
+          registrar,
+          FlutterDesktopPluginRegistrarGetNativeWindow(core_registrar)));
   EwkWebviewFlutterTizenPlugin::RegisterWithRegistrar(registrar);
 }
