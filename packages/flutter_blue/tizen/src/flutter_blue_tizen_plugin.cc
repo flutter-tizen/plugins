@@ -22,8 +22,6 @@
 #include "proto_helper.h"
 #include "utils.h"
 
-
-
 namespace {
 
 class FlutterBlueTizenPlugin : public flutter::Plugin {
@@ -55,7 +53,9 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         });
 
     state_channel_->SetStreamHandler(
-        std::make_unique<flutter_blue_tizen::StateHandler>());  // todo
+        std::make_unique<flutter_blue_tizen::StateHandler>([](...) {
+			//TODO
+        }));
 
     registrar->AddPlugin(std::move(plugin_));
   }
