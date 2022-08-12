@@ -43,7 +43,8 @@ class BluetoothManager {
 
   /**
    * @brief this static member is designed to use from other places such as
-   * bluetooth_device_controller for rssi fetch
+   * bluetooth_device_controller for rssi fetch.
+   * It does not clear all the current devices.
    *
    */
   static void StartBluetoothDeviceScanLE(const BleScanSettings& scan_settings,
