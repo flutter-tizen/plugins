@@ -59,7 +59,8 @@ class AppContextStreamHandler : public FlStreamHandler {
       flutter::EncodableMap map = {
           {flutter::EncodableValue("appId"), flutter::EncodableValue(app_id)},
           {flutter::EncodableValue("handle"),
-           flutter::EncodableValue(reinterpret_cast<int>(app_context_handle))},
+           flutter::EncodableValue(
+               reinterpret_cast<int64_t>(app_context_handle))},
       };
       events_->Success(flutter::EncodableValue(map));
     };
