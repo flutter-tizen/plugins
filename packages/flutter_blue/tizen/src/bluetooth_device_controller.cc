@@ -172,7 +172,7 @@ void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) const {
 }
 
 void BluetoothDeviceController::Pair(PairCallback callback) {
-  if (bond_state_ == Bond::created) throw BtException("device already paired!");
+  if (bond_state_ == Bond::kCreated) throw BtException("device already paired!");
   struct Scope {
     PairCallback callback;
   };
@@ -188,7 +188,7 @@ void BluetoothDeviceController::Pair(PairCallback callback) {
           if (it != active_devices_.var_.end()) {
             auto device = it->second;
 
-            auto bond = info->is_bonded ? Bond::created : Bond::not_created;
+            auto bond = info->is_bonded ? Bond::kCreated : Bond::kNotCreated;
             device->bond_state_ = bond;
             scope->callback(*device, bond);
           }

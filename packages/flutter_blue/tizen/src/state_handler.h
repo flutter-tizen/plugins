@@ -17,18 +17,24 @@ namespace flutter_blue_tizen {
 
 class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
  public:
-  constexpr auto static kBtStateSystemEvent = "tizen.system.event.bt_state";
+  // Definition for key of SYSTEM_EVENT_BT_STATE.
+  constexpr auto static kBtStateSystemEvent = EVENT_KEY_BT_LE_STATE;
+  constexpr auto static kBtStateOff = EVENT_VAL_BT_LE_OFF;
+  constexpr auto static kBtStateOn = EVENT_VAL_BT_LE_ON;
 
   using Base = flutter::StreamHandler<flutter::EncodableValue>;
 
   using ErrorType = flutter::StreamHandlerError<flutter::EncodableValue>;
 
-  using BluetoothStateChangedCallback = std::function<void()>;
+  using EventSink = flutter::EventSink<flutter::EncodableValue>;
+
+  using BluetoothStateChangedCallback =
+      std::function<void(std::shared_ptr<EventSink>)>;
 
   StateHandler(BluetoothStateChangedCallback callback);
 
  private:
-  std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink;
+  std::shared_ptr<EventSink> event_sink_;
 
   BluetoothStateChangedCallback callback_;
 

@@ -53,9 +53,11 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         });
 
     state_channel_->SetStreamHandler(
-        std::make_unique<flutter_blue_tizen::StateHandler>([](...) {
-			//TODO
-        }));
+        std::make_unique<flutter_blue_tizen::StateHandler>(
+            [](std::shared_ptr<flutter_blue_tizen::StateHandler::EventSink>
+                   event_sink) {
+
+            }));
 
     registrar->AddPlugin(std::move(plugin_));
   }

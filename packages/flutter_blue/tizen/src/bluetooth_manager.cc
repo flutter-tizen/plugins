@@ -330,7 +330,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
                                       advertisement_data);
           }
         },
-        static_cast<void*>(&scope)); //note that it's a static variable
+        static_cast<void*>(&scope));  // note that it's a static variable
 
     LOG_ERROR("bt_adapter_le_start_scan %s", get_error_message(ret));
   }

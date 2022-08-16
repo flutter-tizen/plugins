@@ -27,9 +27,9 @@ class BluetoothDeviceController {
   };
 
   enum class Bond {
-    unknown,
-    created,
-    not_created,
+    kUnknown,
+    kCreated,
+    kNotCreated,
   };
 
   using RequestMtuCallback =
@@ -86,7 +86,7 @@ class BluetoothDeviceController {
 
   std::string address_;
 
-  std::atomic<Bond> bond_state_{Bond::unknown};
+  std::atomic<Bond> bond_state_{Bond::kUnknown};
 
   std::atomic<bool> is_connecting_ = false;
 
