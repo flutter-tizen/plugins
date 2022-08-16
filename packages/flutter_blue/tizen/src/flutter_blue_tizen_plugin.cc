@@ -53,11 +53,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
         });
 
     state_channel_->SetStreamHandler(
-        std::make_unique<flutter_blue_tizen::StateHandler>(
-            [](std::shared_ptr<flutter_blue_tizen::StateHandler::EventSink>
-                   event_sink) {
-
-            }));
+        std::make_unique<flutter_blue_tizen::StateHandler>());
 
     registrar->AddPlugin(std::move(plugin_));
   }
@@ -103,7 +99,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_name == "state") {
       auto state_proto_e = flutter_blue_tizen::ToProtoBluetoothState(
-          bluetooth_manager_->BluetoothState());
+          bluetooth_manager_->GetBluetoothState());
 
       proto::gen::BluetoothState state_proto;
       state_proto.set_state(state_proto_e);
@@ -113,7 +109,7 @@ class FlutterBlueTizenPlugin : public flutter::Plugin {
 
     } else if (method_name == "isOn") {
       result->Success(flutter::EncodableValue(
-          bluetooth_manager_->BluetoothState() ==
+          bluetooth_manager_->GetBluetoothState() ==
           flutter_blue_tizen::BluetoothManager::BluetoothState::kAdapterOn));
 
     } else if (method_name == "startScan") {

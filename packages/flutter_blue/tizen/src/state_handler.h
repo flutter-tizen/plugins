@@ -2,10 +2,13 @@
 #define FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
 
 #include <app_event.h>
+#include <flutter/event_channel.h>
 
 #include <functional>
 #include <memory>
 #include <string>
+
+#include "flutterblue.pb.h"
 /**
  * it is included with non angle brackets in order to avoid sorting in
  * clang-format. This include is lacking <memory> and <string> and they have to
@@ -17,26 +20,17 @@ namespace flutter_blue_tizen {
 
 class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
  public:
-  // Definition for key of SYSTEM_EVENT_BT_STATE.
-  constexpr auto static kBtStateSystemEvent = EVENT_KEY_BT_LE_STATE;
-  constexpr auto static kBtStateOff = EVENT_VAL_BT_LE_OFF;
-  constexpr auto static kBtStateOn = EVENT_VAL_BT_LE_ON;
-
   using Base = flutter::StreamHandler<flutter::EncodableValue>;
 
   using ErrorType = flutter::StreamHandlerError<flutter::EncodableValue>;
 
   using EventSink = flutter::EventSink<flutter::EncodableValue>;
 
-  using BluetoothStateChangedCallback =
-      std::function<void(std::shared_ptr<EventSink>)>;
-
-  StateHandler(BluetoothStateChangedCallback callback);
+  void BroadcastEvent(
+      const google::protobuf::MessageLite& encodable) const noexcept;
 
  private:
-  std::shared_ptr<EventSink> event_sink_;
-
-  BluetoothStateChangedCallback callback_;
+  std::unique_ptr<EventSink> event_sink_;
 
   event_handler_h handle_{nullptr};
 

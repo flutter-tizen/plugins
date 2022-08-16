@@ -1,6 +1,7 @@
 #ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
 #define FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
 
+#include <app_event.h>
 #include <bluetooth.h>
 
 #include <atomic>
@@ -14,6 +15,7 @@
 #include "bluetooth_device_controller.h"
 #include "flutterblue.pb.h"
 #include "notifications_handler.h"
+#include "system_event_handler.h"
 #include "utils.h"
 
 namespace flutter_blue_tizen {
@@ -56,7 +58,7 @@ class BluetoothManager {
 
   void Disconnect(const std::string& device_id);
 
-  static enum BluetoothState BluetoothState() noexcept;
+  static BluetoothState GetBluetoothState() noexcept;
 
   std::vector<proto::gen::BluetoothDevice>
   GetConnectedProtoBluetoothDevices() noexcept;
@@ -114,6 +116,8 @@ class BluetoothManager {
       bluetooth_devices_;
 
   NotificationsHandler& notifications_handler_;
+
+  SystemEventHandler event_handler_;
 };
 
 }  // namespace flutter_blue_tizen

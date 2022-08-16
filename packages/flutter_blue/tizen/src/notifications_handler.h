@@ -2,11 +2,13 @@
 #define FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
 
 #include <flutter/encodable_value.h>
+#include <flutter/event_channel.h>
 #include <flutter/method_channel.h>
 
 #include <memory>
 
 #include "flutterblue.pb.h"
+#include "state_handler.h"
 
 namespace flutter_blue_tizen {
 

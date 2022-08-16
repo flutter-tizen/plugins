@@ -160,16 +160,21 @@ void ToProtoAdvertisementData(
       advertisement_data.local_name_.size());
 }
 
-proto::gen::BluetoothState_State ToProtoBluetoothState(const enum BluetoothManager::BluetoothState bluetooth_state){
-	using State = enum BluetoothManager::BluetoothState;
-	using Proto = proto::gen::BluetoothState_State;
+proto::gen::BluetoothState_State ToProtoBluetoothState(
+    const BluetoothManager::BluetoothState bluetooth_state) {
+  using State = BluetoothManager::BluetoothState;
+  using Proto = proto::gen::BluetoothState_State;
 
-	switch(bluetooth_state){
-		case State::kAdapterOn: return Proto::BluetoothState_State_ON;
-		case State::kAdapterOff: return Proto::BluetoothState_State_OFF;
-		case State::kUnavailable: return Proto::BluetoothState_State_UNAVAILABLE;
-		case State::kUnknown: return Proto::BluetoothState_State_UNKNOWN;
-	}
+  switch (bluetooth_state) {
+    case State::kAdapterOn:
+      return Proto::BluetoothState_State_ON;
+    case State::kAdapterOff:
+      return Proto::BluetoothState_State_OFF;
+    case State::kUnavailable:
+      return Proto::BluetoothState_State_UNAVAILABLE;
+    case State::kUnknown:
+      return Proto::BluetoothState_State_UNKNOWN;
+  }
 }
 
 }  // namespace flutter_blue_tizen

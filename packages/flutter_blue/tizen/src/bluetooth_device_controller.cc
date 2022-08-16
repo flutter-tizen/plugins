@@ -172,7 +172,8 @@ void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) const {
 }
 
 void BluetoothDeviceController::Pair(PairCallback callback) {
-  if (bond_state_ == Bond::kCreated) throw BtException("device already paired!");
+  if (bond_state_ == Bond::kCreated)
+    throw BtException("device already paired!");
   struct Scope {
     PairCallback callback;
   };

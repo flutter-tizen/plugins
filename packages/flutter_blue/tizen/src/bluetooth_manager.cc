@@ -3,24 +3,47 @@
 #include <system_info.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <iterator>
+#include <memory>
 #include <mutex>
 
 #include "bluetooth.h"
 #include "bluetooth_device_controller.h"
 #include "bluetooth_type.h"
+#include "flutter/encodable_value.h"
 #include "flutterblue.pb.h"
 #include "log.h"
 #include "proto_helper.h"
+#include "system_event_handler.h"
 #include "tizen_error.h"
 #include "utils.h"
 
 namespace flutter_blue_tizen {
 
 using State = BluetoothDeviceController::State;
+// Definition for key of SYSTEM_EVENT_BT_STATE.
+constexpr auto static kBtStateSystemEvent = EVENT_KEY_BT_LE_STATE;
+constexpr auto static kBtStateOff = EVENT_VAL_BT_LE_OFF;
+constexpr auto static kBtStateOn = EVENT_VAL_BT_LE_ON;
 
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
-    : notifications_handler_(notificationsHandler) {
+    : notifications_handler_(notificationsHandler),
+      event_handler_(kBtStateSystemEvent, [](SystemEventHandler::MapType map) {
+        try {
+          auto state_str = std::any_cast<std::string>(map["bt_le_state"]);
+
+          assert(state_str == kBtStateOn || state_str == kBtStateOff);
+
+          auto state = state_str == kBtStateOn ? BluetoothState::kAdapterOn
+                                               : BluetoothState::kAdapterOff;
+
+          proto::gen::BluetoothState proto_state;
+          proto_state.set_state(ToProtoBluetoothState(state));
+        } catch (const std::bad_any_cast& e) {
+          LOG_ERROR("%s", e.what());
+        }
+      }) {
   int ret = IsBLEAvailable();
   if (ret == 0) {
     LOG_ERROR("Bluetooth is not available on this device! %s",
@@ -208,7 +231,7 @@ bool BluetoothManager::IsBLEAvailable() {
 }
 
 enum BluetoothManager::BluetoothState
-BluetoothManager::BluetoothState() noexcept {
+BluetoothManager::GetBluetoothState() noexcept {
   using NativeState = bt_adapter_state_e;
 
   NativeState adapter_state;
@@ -387,7 +410,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
 void BluetoothManager::StopBluetoothDeviceScanLE() {
   static std::mutex mutex;
   std::scoped_lock lock(mutex);
-  auto bt_state = BluetoothState();
+  auto bt_state = GetBluetoothState();
   if (bt_state == BluetoothState::kAdapterOn) {
     auto ret = bt_adapter_le_stop_scan();
     LOG_ERROR("bt_adapter_le_is_discovering %s", get_error_message(ret));
