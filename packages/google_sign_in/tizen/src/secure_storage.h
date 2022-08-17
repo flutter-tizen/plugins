@@ -19,7 +19,7 @@ class SecureStorage {
 
   void Destroy();
 
-  void SaveData(const std::string& name, std::vector<uint8_t> data,
+  void SaveData(const std::string& name, const std::vector<uint8_t>& data,
                 std::vector<uint8_t> initialization_vector);
 
   std::optional<std::vector<uint8_t>> GetData(const std::string& name);
@@ -29,9 +29,7 @@ class SecureStorage {
  private:
   ckmc_param_list_h params_;
 
-  std::vector<std::string> GetDataNames() const;
-
-  std::vector<uint8_t> EncryptData(std::vector<uint8_t> data,
+  std::vector<uint8_t> EncryptData(const std::vector<uint8_t>& data,
                                    std::vector<uint8_t> initialization_vector);
 
   std::vector<uint8_t> DecryptData(std::vector<uint8_t> data);

@@ -75,14 +75,15 @@ SecureStorage::SecureStorage() {
 SecureStorage::~SecureStorage() { ckmc_param_list_free(params_); }
 
 void SecureStorage::Destroy() {
-  std::vector<std::string> names = GetDataNames();
+  std::vector<std::string> names = GetNames(NameType::kData);
   for (const auto &name : names) {
     RemoveData(name);
   }
   ckmc_remove_alias(kAesKey);
 }
 
-void SecureStorage::SaveData(const std::string &name, std::vector<uint8_t> data,
+void SecureStorage::SaveData(const std::string &name,
+                             const std::vector<uint8_t> &data,
                              std::vector<uint8_t> initialization_vector) {
   std::vector<uint8_t> encrypted = EncryptData(data, initialization_vector);
 
@@ -109,16 +110,13 @@ std::optional<std::vector<uint8_t>> SecureStorage::GetData(
   return DecryptData(data);
 }
 
-std::vector<std::string> SecureStorage::GetDataNames() const {
-  return GetNames(NameType::kData);
-}
-
 void SecureStorage::RemoveData(const std::string &name) {
   ckmc_remove_alias(name.c_str());
 }
 
 std::vector<uint8_t> SecureStorage::EncryptData(
-    std::vector<uint8_t> data, std::vector<uint8_t> initialization_vector) {
+    const std::vector<uint8_t> &data,
+    std::vector<uint8_t> initialization_vector) {
   ckmc_raw_buffer_s *buffer = nullptr;
   ckmc_raw_buffer_s *encrypted_buffer = nullptr;
 
@@ -127,7 +125,8 @@ std::vector<uint8_t> SecureStorage::EncryptData(
   ckmc_param_list_set_buffer(params_, CKMC_PARAM_ED_IV, buffer);
   ckmc_buffer_free(buffer);
 
-  ckmc_buffer_new(data.data(), data.size(), &buffer);
+  std::vector<uint8_t> plain(data);
+  ckmc_buffer_new(plain.data(), plain.size(), &buffer);
   ckmc_encrypt_data(params_, kAesKey, nullptr, *buffer, &encrypted_buffer);
   ckmc_buffer_free(buffer);
 
