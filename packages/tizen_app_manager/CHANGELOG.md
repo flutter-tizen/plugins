@@ -1,3 +1,7 @@
+## 0.1.4
+
+* Fix arm64 build error
+
 ## 0.1.3
 
 * Code refactoring.
