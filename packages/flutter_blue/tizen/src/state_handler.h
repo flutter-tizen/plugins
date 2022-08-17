@@ -15,6 +15,7 @@
  * be included before it.
  */
 #include "flutter/event_stream_handler.h"
+#include "system_event_handler.h"
 
 namespace flutter_blue_tizen {
 
@@ -29,10 +30,19 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
   void BroadcastEvent(
       const google::protobuf::MessageLite& encodable) const noexcept;
 
+  constexpr static auto kBtStateChangedEvent = SYSTEM_EVENT_BT_STATE;
+  constexpr static auto kBtStateChangedKey = EVENT_KEY_BT_LE_STATE;
+  constexpr static auto kBtStateOn = EVENT_VAL_BT_LE_ON;
+  constexpr static auto kBtStateOff = EVENT_VAL_BT_LE_OFF;
+
+  StateHandler();
+
  private:
-  std::unique_ptr<EventSink> event_sink_;
+  std::shared_ptr<EventSink> event_sink_;
 
   event_handler_h handle_{nullptr};
+
+  SystemEventHandler system_event_handler_;
 
   virtual std::unique_ptr<ErrorType> OnListenInternal(
       const flutter::EncodableValue* arguments,

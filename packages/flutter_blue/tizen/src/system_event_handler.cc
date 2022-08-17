@@ -1,5 +1,7 @@
 #include "system_event_handler.h"
 
+#include <stdexcept>
+
 namespace flutter_blue_tizen {
 
 SystemEventHandler::SystemEventHandler(std::string event_name)
@@ -37,14 +39,14 @@ SystemEventHandler::SystemEventHandler(std::string event_name)
                  * etc) in the future
                  * https://docs.tizen.org/application/native/api/mobile/6.5/group__CORE__LIB__BUNDLE__MODULE.html#gab4ba87b3aebc54170c0ac760e921a851
                  */
-                assert(false);
+                throw std::logic_error("feature unimplemented!");
               }
             },
             &scope);
 
         assert(event_name == state_handler.event_name_);
 
-        state_handler.callback_(std::move(map));
+        if (state_handler.callback_) state_handler.callback_(std::move(map));
       },
       this, &handle_);
 }

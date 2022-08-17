@@ -116,8 +116,6 @@ class BluetoothManager {
       bluetooth_devices_;
 
   NotificationsHandler& notifications_handler_;
-
-  SystemEventHandler event_handler_;
 };
 
 }  // namespace flutter_blue_tizen

@@ -28,22 +28,7 @@ constexpr auto static kBtStateOff = EVENT_VAL_BT_LE_OFF;
 constexpr auto static kBtStateOn = EVENT_VAL_BT_LE_ON;
 
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
-    : notifications_handler_(notificationsHandler),
-      event_handler_(kBtStateSystemEvent, [](SystemEventHandler::MapType map) {
-        try {
-          auto state_str = std::any_cast<std::string>(map["bt_le_state"]);
-
-          assert(state_str == kBtStateOn || state_str == kBtStateOff);
-
-          auto state = state_str == kBtStateOn ? BluetoothState::kAdapterOn
-                                               : BluetoothState::kAdapterOff;
-
-          proto::gen::BluetoothState proto_state;
-          proto_state.set_state(ToProtoBluetoothState(state));
-        } catch (const std::bad_any_cast& e) {
-          LOG_ERROR("%s", e.what());
-        }
-      }) {
+    : notifications_handler_(notificationsHandler) {
   int ret = IsBLEAvailable();
   if (ret == 0) {
     LOG_ERROR("Bluetooth is not available on this device! %s",
