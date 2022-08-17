@@ -29,7 +29,7 @@ class SecureStorage {
     await _channel.invokeMethod<void>('save', <String, Object>{
       'name': name,
       'data': bytes,
-      'initialization_vector': initializationVector,
+      'initializationVector': initializationVector,
     });
   }
 

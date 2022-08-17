@@ -9,18 +9,13 @@
 
 #include <optional>
 #include <string>
-#include <variant>
 #include <vector>
 
 class SecureStorage {
  public:
   SecureStorage();
 
-  virtual ~SecureStorage();
-
-  void CreateKey();
-
-  bool HasKey() const;
+  ~SecureStorage();
 
   void Destroy();
 
