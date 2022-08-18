@@ -82,9 +82,9 @@ void SecureStorage::Destroy() {
   ckmc_remove_alias(kAesKey);
 }
 
-void SecureStorage::SaveData(const std::string &name,
-                             const std::vector<uint8_t> &data,
-                             std::vector<uint8_t> initialization_vector) {
+void SecureStorage::SaveData(
+    const std::string &name, const std::vector<uint8_t> &data,
+    const std::vector<uint8_t> &initialization_vector) {
   std::vector<uint8_t> encrypted = EncryptData(data, initialization_vector);
 
   ckmc_raw_buffer_s *buffer = nullptr;
@@ -115,18 +115,15 @@ void SecureStorage::RemoveData(const std::string &name) {
 }
 
 std::vector<uint8_t> SecureStorage::EncryptData(
-    const std::vector<uint8_t> &data,
-    std::vector<uint8_t> initialization_vector) {
+    std::vector<uint8_t> data, std::vector<uint8_t> initialization_vector) {
   ckmc_raw_buffer_s *buffer = nullptr;
-  ckmc_raw_buffer_s *encrypted_buffer = nullptr;
-
   ckmc_buffer_new(initialization_vector.data(), initialization_vector.size(),
                   &buffer);
   ckmc_param_list_set_buffer(params_, CKMC_PARAM_ED_IV, buffer);
   ckmc_buffer_free(buffer);
 
-  std::vector<uint8_t> plain(data);
-  ckmc_buffer_new(plain.data(), plain.size(), &buffer);
+  ckmc_buffer_new(data.data(), data.size(), &buffer);
+  ckmc_raw_buffer_s *encrypted_buffer = nullptr;
   ckmc_encrypt_data(params_, kAesKey, nullptr, *buffer, &encrypted_buffer);
   ckmc_buffer_free(buffer);
 
@@ -139,19 +136,18 @@ std::vector<uint8_t> SecureStorage::EncryptData(
 }
 
 std::vector<uint8_t> SecureStorage::DecryptData(std::vector<uint8_t> data) {
-  ckmc_raw_buffer_s *buffer = nullptr;
-  ckmc_raw_buffer_s *decrypted_buffer = nullptr;
-
   std::vector<uint8_t> initialization_vector(data.end() - kIvSizeBytes,
                                              data.end());
   data.erase(data.end() - kIvSizeBytes, data.end());
 
+  ckmc_raw_buffer_s *buffer = nullptr;
   ckmc_buffer_new(initialization_vector.data(), initialization_vector.size(),
                   &buffer);
   ckmc_param_list_set_buffer(params_, CKMC_PARAM_ED_IV, buffer);
   ckmc_buffer_free(buffer);
 
   ckmc_buffer_new(data.data(), data.size(), &buffer);
+  ckmc_raw_buffer_s *decrypted_buffer = nullptr;
   ckmc_decrypt_data(params_, kAesKey, nullptr, *buffer, &decrypted_buffer);
   ckmc_buffer_free(buffer);
 
