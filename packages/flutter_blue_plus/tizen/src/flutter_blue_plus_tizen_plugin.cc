@@ -1,4 +1,4 @@
-#include "flutter_blue_tizen_plugin.h"
+#include "flutter_blue_plus_tizen_plugin.h"
 
 #include <app_control.h>
 #include <bluetooth.h>

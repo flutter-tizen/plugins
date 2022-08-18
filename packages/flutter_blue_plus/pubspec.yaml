@@ -19,5 +19,5 @@ flutter:
   plugin:
     platforms:
       tizen:
-        pluginClass: FlutterBlueTizenPlugin
-        fileName: flutter_blue_tizen_plugin.h
+        pluginClass: FlutterBluePlusTizenPlugin
+        fileName: flutter_blue_plus_tizen_plugin.h

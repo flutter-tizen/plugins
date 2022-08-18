@@ -22,10 +22,6 @@
 namespace flutter_blue_tizen {
 
 using State = BluetoothDeviceController::State;
-// Definition for key of SYSTEM_EVENT_BT_STATE.
-constexpr auto static kBtStateSystemEvent = EVENT_KEY_BT_LE_STATE;
-constexpr auto static kBtStateOff = EVENT_VAL_BT_LE_OFF;
-constexpr auto static kBtStateOn = EVENT_VAL_BT_LE_ON;
 
 BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
     : notifications_handler_(notificationsHandler) {
@@ -385,8 +381,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
         auto proto_device =
             new proto::gen::BluetoothDevice(ToProtoDevice(*device));
 
-        scan_result.set_allocated_device(
-            new proto::gen::BluetoothDevice(ToProtoDevice(*device)));
+        scan_result.set_allocated_device(proto_device);
 
         notifications_handler.NotifyUIThread("ScanResult", scan_result);
       });

@@ -1,4 +1,4 @@
-# flutter_blue_tizen
+# flutter_blue_plus_tizen
 
 [![pub package](https://img.shields.io/pub/v/flutter_blue_plus_tizen.svg)](https://pub.dev/packages/flutter_blue_plus_tizen)
 
@@ -7,7 +7,7 @@ The Tizen implementation of [flutter_blue_plus](https://github.com/pauldemarco/f
 
 ## Usage
 
-This package is not an _endorsed_ implementation of `flutter_blue`. Therefore, you have to include `flutter_blue_tizen` alongside flutter_blue as dependencies in your `pubspec.yaml` file.
+This package is not an _endorsed_ implementation of `flutter_blue`. Therefore, you have to include `flutter_blue_plus_tizen` alongside flutter_blue as dependencies in your `pubspec.yaml` file.
 
 ```
 dependencies:
