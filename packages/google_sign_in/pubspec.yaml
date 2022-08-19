@@ -2,13 +2,15 @@ name: google_sign_in_tizen
 description: Tizen implementation of the google_sign_in plugin
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/google_sign_in
-version: 0.1.0
+version: 0.1.1
 
 flutter:
   plugin:
     platforms:
       tizen:
         dartPluginClass: GoogleSignInTizen
+        pluginClass: GoogleSignInTizenPlugin
+        fileName: google_sign_in_tizen_plugin.h
 
 dependencies:
   flutter:
