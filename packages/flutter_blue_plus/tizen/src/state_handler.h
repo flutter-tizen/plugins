@@ -31,7 +31,10 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
       const google::protobuf::MessageLite& encodable) const noexcept;
 
   constexpr static auto kBtStateChangedEvent = SYSTEM_EVENT_BT_STATE;
-  constexpr static auto kBtStateChangedKey = EVENT_KEY_BT_LE_STATE;
+  // SYSTEM_EVENT_BT_STATE does not contain for some reason
+  // EVENT_KEY_BT_LE_STATE. They are disabled simultaneously though.
+  constexpr static auto kBtStateChangedKey =
+      EVENT_KEY_BT_STATE;  // EVENT_KEY_BT_LE_STATE;
   constexpr static auto kBtStateOn = EVENT_VAL_BT_LE_ON;
   constexpr static auto kBtStateOff = EVENT_VAL_BT_LE_OFF;
 
