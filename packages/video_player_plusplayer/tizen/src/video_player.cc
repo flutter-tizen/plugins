@@ -98,11 +98,16 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
     LOG_ERROR("could not obtain the screen size.");
     return false;
   }
+  FlutterDesktopViewRef view_ref =
+      FlutterDesktopPluginRegistrarGetView(registrar_ref);
+  if (view_ref == nullptr) {
+    LOG_ERROR("could not get window view handle");
+    return false;
+  }
   return instance.SetDisplay(
       plusplayer_, plusplayer::DisplayType::kOverlay,
-      instance.GetSurfaceId(
-          plusplayer_,
-          FlutterDesktopPluginRegistrarGetNativeWindow(registrar_ref)),
+      instance.GetSurfaceId(plusplayer_,
+                            FlutterDesktopViewGetNativeHandle(view_ref)),
       0, 0, w, h);
 }
 
