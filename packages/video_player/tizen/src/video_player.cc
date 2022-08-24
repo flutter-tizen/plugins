@@ -12,6 +12,16 @@
 #include "log.h"
 #include "video_player_error.h"
 
+constexpr int kMessageQuit = -1;
+constexpr int kMessageOnFrameDecoded = 0;
+constexpr int kMessageOnRenderFinished = 1;
+
+struct Message {
+  Eina_Thread_Queue_Msg head;
+  int event;
+  media_packet_h media_packet;
+};
+
 static std::string RotationToString(player_display_rotation_e rotation) {
   switch (rotation) {
     case PLAYER_DISPLAY_ROTATION_NONE:
@@ -46,25 +56,28 @@ void VideoPlayer::ReleaseMediaPacket(void *data) {
   auto *player = reinterpret_cast<VideoPlayer *>(data);
 
   std::lock_guard<std::mutex> lock(player->mutex_);
-  if (player->current_media_packet_) {
-    media_packet_destroy(player->current_media_packet_);
-    player->current_media_packet_ = nullptr;
-  }
+  player->is_rendering_ = false;
+  player->SendRenderFinishedMessage();
 }
 
 FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
                                                       size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!current_media_packet_) {
-    LOG_ERROR("[VideoPlayer] No valid media packet.");
+    LOG_ERROR("[VideoPlayer] current media packet not valid.");
+    is_rendering_ = false;
+    SendRenderFinishedMessage();
     return nullptr;
   }
+
   tbm_surface_h surface;
   int ret = media_packet_get_tbm_surface(current_media_packet_, &surface);
   if (ret != MEDIA_PACKET_ERROR_NONE || !surface) {
-    LOG_ERROR("[VideoPlayer] Failed to get a TBM surface, error: %d", ret);
+    LOG_ERROR("[VideoPlayer] Failed to get a tbm surface, error: %d", ret);
+    is_rendering_ = false;
     media_packet_destroy(current_media_packet_);
     current_media_packet_ = nullptr;
+    SendRenderFinishedMessage();
     return nullptr;
   }
   flutter_desktop_gpu_buffer_->buffer = surface;
@@ -79,6 +92,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          flutter::TextureRegistrar *texture_registrar,
                          const std::string &uri, VideoPlayerOptions &options) {
   is_initialized_ = false;
+  is_rendering_ = false;
   texture_registrar_ = texture_registrar;
 
   texture_variant_ =
@@ -108,6 +122,8 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                            get_error_message(ret));
   }
 
+  packet_thread_ = ecore_thread_feedback_run(RunMediaPacketLoop, nullptr,
+                                             nullptr, nullptr, this, EINA_TRUE);
   ret = player_set_media_packet_video_frame_decoded_cb(
       player_, OnVideoFrameDecoded, this);
   if (ret != PLAYER_ERROR_NONE) {
@@ -265,9 +281,20 @@ void VideoPlayer::Dispose() {
     player_ = 0;
   }
 
+  SendMessage(kMessageQuit, nullptr);
+  if (packet_thread_) {
+    ecore_thread_cancel(packet_thread_);
+    packet_thread_ = nullptr;
+  }
+
   if (current_media_packet_) {
     media_packet_destroy(current_media_packet_);
     current_media_packet_ = nullptr;
+  }
+
+  if (previous_media_packet_) {
+    media_packet_destroy(previous_media_packet_);
+    previous_media_packet_ = nullptr;
   }
 
   if (texture_registrar_) {
@@ -423,13 +450,84 @@ void VideoPlayer::OnError(int code, void *data) {
 
 void VideoPlayer::OnVideoFrameDecoded(media_packet_h packet, void *data) {
   auto *player = reinterpret_cast<VideoPlayer *>(data);
-
   std::lock_guard<std::mutex> lock(player->mutex_);
-  if (player->current_media_packet_) {
-    LOG_INFO("[VideoPlayer] Media packet already pending.");
-    media_packet_destroy(packet);
+  player->SendMessage(kMessageOnFrameDecoded, packet);
+}
+
+void VideoPlayer::RunMediaPacketLoop(void *data, Ecore_Thread *thread) {
+  auto *self = reinterpret_cast<VideoPlayer *>(data);
+  Eina_Thread_Queue *packet_thread_queue = eina_thread_queue_new();
+  if (!packet_thread_queue) {
+    LOG_ERROR("Invalid packet queue.");
+    ecore_thread_cancel(thread);
     return;
   }
-  player->current_media_packet_ = packet;
-  player->texture_registrar_->MarkTextureFrameAvailable(player->texture_id_);
+
+  self->packet_thread_queue_ = packet_thread_queue;
+  std::queue<media_packet_h> packet_queue;
+  while (!ecore_thread_check(thread)) {
+    void *ref;
+    Message *message = static_cast<Message *>(
+        eina_thread_queue_wait(packet_thread_queue, &ref));
+    if (message->event == kMessageQuit) {
+      LOG_ERROR("Message quit.");
+      eina_thread_queue_wait_done(packet_thread_queue, ref);
+      break;
+    }
+
+    if (message->event == kMessageOnFrameDecoded) {
+      if (message->media_packet != nullptr) {
+        packet_queue.push(message->media_packet);
+      }
+    }
+
+    eina_thread_queue_wait_done(packet_thread_queue, ref);
+    std::lock_guard<std::mutex> lock(self->mutex_);
+    if (packet_queue.empty() || self->is_rendering_) {
+      continue;
+    }
+    if (self->texture_registrar_->MarkTextureFrameAvailable(
+            self->texture_id_)) {
+      self->is_rendering_ = true;
+      self->previous_media_packet_ = self->current_media_packet_;
+      self->current_media_packet_ = packet_queue.front();
+      packet_queue.pop();
+    }
+  }
+
+  while (!packet_queue.empty()) {
+    media_packet_destroy(packet_queue.front());
+    packet_queue.pop();
+  }
+
+  if (packet_thread_queue) {
+    eina_thread_queue_free(packet_thread_queue);
+  }
+}
+
+void VideoPlayer::SendMessage(int event, media_packet_h media_packet) {
+  if (!packet_thread_ || ecore_thread_check(packet_thread_)) {
+    LOG_ERROR("Invalid packet thread.");
+    return;
+  }
+
+  if (!packet_thread_queue_) {
+    LOG_ERROR("Invalid packet thread queue.");
+    return;
+  }
+
+  void *ref;
+  Message *message = static_cast<Message *>(
+      eina_thread_queue_send(packet_thread_queue_, sizeof(Message), &ref));
+  message->event = event;
+  message->media_packet = media_packet;
+  eina_thread_queue_send_done(packet_thread_queue_, ref);
+}
+
+void VideoPlayer::SendRenderFinishedMessage() {
+  if (previous_media_packet_) {
+    media_packet_destroy(previous_media_packet_);
+    previous_media_packet_ = nullptr;
+  }
+  SendMessage(kMessageOnRenderFinished, nullptr);
 }

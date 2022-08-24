@@ -5,6 +5,7 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
+#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -13,6 +14,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <string>
 
 #include "video_player_options.h"
@@ -42,6 +44,8 @@ class VideoPlayer {
   void Initialize();
   void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void SendInitialized();
+  void SendMessage(int event, media_packet_h media_packet);
+  void SendRenderFinishedMessage();
   FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
   static void ReleaseMediaPacket(void *packet);
 
@@ -52,8 +56,14 @@ class VideoPlayer {
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
+  static void RunMediaPacketLoop(void *data, Ecore_Thread *thread);
 
+  Ecore_Thread *packet_thread_ = nullptr;
+  Eina_Thread_Queue *packet_thread_queue_ = nullptr;
+  media_packet_h current_media_packet_ = nullptr;
+  media_packet_h previous_media_packet_ = nullptr;
   bool is_initialized_;
+  bool is_rendering_;
   player_h player_;
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
@@ -64,7 +74,6 @@ class VideoPlayer {
   std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
   std::mutex mutex_;
   SeekCompletedCallback on_seek_completed_;
-  media_packet_h current_media_packet_ = nullptr;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_
