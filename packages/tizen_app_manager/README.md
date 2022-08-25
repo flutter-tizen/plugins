@@ -10,7 +10,7 @@ To use this package, add `tizen_app_manager` as a dependency in your `pubspec.ya
 
 ```yaml
 dependencies:
-  tizen_app_manager: ^0.1.4
+  tizen_app_manager: ^0.1.5
 ```
 
 ### Retrieving current app info
