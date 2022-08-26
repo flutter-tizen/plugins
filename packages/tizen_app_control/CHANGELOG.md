@@ -1,5 +1,6 @@
-## NEXT
+## 0.2.2
 
+* Improve FFI symbol resolution.
 * Resolve linter warnings.
 
 ## 0.2.1

@@ -15,41 +15,20 @@ typedef CreateAppControl = int Function(Object);
 typedef _AttachAppControlNative = Int8 Function(Int32, Handle);
 typedef _AttachAppControl = int Function(int, Object);
 
-DynamicLibrary? _libEmbedderCache;
-
-DynamicLibrary get _libEmbedder {
-  if (_libEmbedderCache == null) {
-    const List<String> embedderPaths = <String>[
-      'libflutter_tizen.so',
-      'libflutter_tizen_common.so',
-      'libflutter_tizen_mobile.so',
-      'libflutter_tizen_tv.so',
-      'libflutter_tizen_wearable.so',
-    ];
-    for (final String path in embedderPaths) {
-      try {
-        _libEmbedderCache = DynamicLibrary.open(path);
-        break;
-      } on ArgumentError {
-        continue;
-      }
-    }
-    if (_libEmbedderCache == null) {
-      throw Exception('Failed to load the embedder library.');
-    }
-    final _InitializeDartApi initFunction = _libEmbedder.lookupFunction<
-        _InitializeDartApiNative,
-        _InitializeDartApi>('NativeInitializeDartApi');
-    initFunction(NativeApi.initializeApiDLData);
-  }
-  return _libEmbedderCache!;
-}
+final DynamicLibrary _processLib = () {
+  final DynamicLibrary processLib = DynamicLibrary.process();
+  final _InitializeDartApi initFunction =
+      processLib.lookupFunction<_InitializeDartApiNative, _InitializeDartApi>(
+          'NativeInitializeDartApi');
+  initFunction(NativeApi.initializeApiDLData);
+  return processLib;
+}();
 
 final CreateAppControl nativeCreateAppControl =
-    _libEmbedder.lookupFunction<_CreateAppControlNative, CreateAppControl>(
+    _processLib.lookupFunction<_CreateAppControlNative, CreateAppControl>(
         'NativeCreateAppControl');
 final _AttachAppControl _nativeAttachAppControl =
-    _libEmbedder.lookupFunction<_AttachAppControlNative, _AttachAppControl>(
+    _processLib.lookupFunction<_AttachAppControlNative, _AttachAppControl>(
         'NativeAttachAppControl');
 
 bool nativeAttachAppControl(int id, Object dartObject) {
