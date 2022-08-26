@@ -27,6 +27,7 @@ class BundleTest {
     addTestcase(deleteTest);
     addTestcase(isEmptyTest);
     addTestcase(getTypeTest);
+    addTestcase(containsTest);
     addTestcase(getKeysTest);
     addTestcase(bundleFromMapTest);
   }
@@ -195,6 +196,16 @@ class BundleTest {
       bundle.addBytes('byteKey', bytes);
       type = bundle.getType('byteKey');
       expect(type, BundleType.byte);
+      bundle.dispose();
+    });
+  }
+
+  void containsTest() {
+    test('containsTest', () {
+      Log.info(_logTag, 'containsTest');
+      var bundle = Bundle();
+      bundle.addString('testName', 'containsTest');
+      expect(bundle.contains('testName'), true);
       bundle.dispose();
     });
   }

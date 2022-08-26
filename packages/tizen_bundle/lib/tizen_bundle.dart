@@ -22,23 +22,20 @@ class BundleTypeProperty {
 
 /// The class for the type of the bundle.
 class BundleType {
-  /// The none type
-  static const int none = -1;
-
-  /// The any type.
-  static const int any = 0;
+  /// The none type.
+  static const int none = 0;
 
   /// The string type.
   static const int string = 1 | BundleTypeProperty.measurable;
 
-  /// The string array Type.
-  static const int stringArray = string | BundleTypeProperty.array;
+  /// The string list Type.
+  static const int strings = string | BundleTypeProperty.array;
 
   /// The byte type.
   static const int byte = 2;
 
-  /// The byte array type.
-  static const int byteArray = byte | BundleTypeProperty.array;
+  /// The byte list type.
+  static const int bytes = byte | BundleTypeProperty.array;
 }
 
 /// The class for information of the key of the bundle object.
@@ -305,6 +302,12 @@ class Bundle {
   /// Gets a type of the item of the key.
   int getType(String key) {
     return tizen.bundle_get_type(_handle, key.toNativeInt8());
+  }
+
+  /// Checks whether the key exists or not.
+  bool contains(String key) {
+    return (tizen.bundle_get_type(_handle, key.toNativeInt8()) !=
+        BundleType.none) as bool;
   }
 
   /// Releases all resources associated with this object.
