@@ -1,5 +1,6 @@
-## NEXT
+## 2.0.3
 
+* Bump ffi dependency.
 * Update the example app.
 
 ## 2.0.2

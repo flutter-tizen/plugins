@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Bump ffi dependency.
+
 ## 0.2.0
 
 * Remove the deprecated API `AppManager`.

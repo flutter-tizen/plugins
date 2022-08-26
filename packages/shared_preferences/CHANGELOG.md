@@ -1,3 +1,7 @@
+## 2.0.3
+
+* Bump ffi dependency.
+
 ## 2.0.2
 
 * Update shared_preferences to 2.0.9.
