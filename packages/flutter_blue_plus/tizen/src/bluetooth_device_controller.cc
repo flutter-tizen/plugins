@@ -20,8 +20,6 @@
 
 namespace flutter_blue_plus_tizen {
 
-
-
 using State = BluetoothDeviceController::State;
 
 BluetoothDeviceController::BluetoothDeviceController(
