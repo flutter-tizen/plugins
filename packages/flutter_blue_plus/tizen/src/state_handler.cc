@@ -18,6 +18,7 @@
 #include "proto_helper.h"
 
 namespace flutter_blue_plus_tizen {
+
 StateHandler::StateHandler() : system_event_handler_(kBtStateChangedEvent) {}
 
 /*

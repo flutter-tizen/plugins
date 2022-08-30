@@ -41,7 +41,7 @@ std::string GetGattUuid(bt_gatt_h handle) {
 
 AdvertisementData DecodeAdvertisementData(const char* packets_data,
                                           int data_len) noexcept {
-  AdvertisementData advertisement_data;
+  AdvertisementData advertisement_data{};
   using byte = char;
   int start = 0;
   bool long_name_set = false;
