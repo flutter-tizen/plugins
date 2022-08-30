@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -32,7 +32,7 @@ Future<ScanResult?> scanRemoteDevice(
   String deviceName, [
   Duration duration = const Duration(seconds: 5),
 ]) async {
-  Future<List<ScanResult>> scanFuture = FlutterBlue.instance
+  Future<List<ScanResult>> scanFuture = FlutterBluePlus.instance
       .startScan(timeout: duration)
       .then((dynamic values) => List.castFrom<dynamic, ScanResult>(values));
   final List<ScanResult> scanResults = await scanFuture;
@@ -83,25 +83,25 @@ void main() {
 
   testWidgets('ble is available and is turned on.',
       (WidgetTester tester) async {
-    final bool isAvailable = await FlutterBlue.instance.isAvailable;
+    final bool isAvailable = await FlutterBluePlus.instance.isAvailable;
     expect(isAvailable, true);
 
-    final bool isOn = await FlutterBlue.instance.isOn;
+    final bool isOn = await FlutterBluePlus.instance.isOn;
     expect(isOn, true);
   });
 
   testWidgets('can scan device name: $deviceName.',
       (WidgetTester tester) async {
-    Future<List<ScanResult>> scanFuture = FlutterBlue.instance
+    Future<List<ScanResult>> scanFuture = FlutterBluePlus.instance
         .startScan()
         .then((dynamic values) => List.castFrom<dynamic, ScanResult>(values));
 
     await Future.delayed(const Duration(seconds: 1));
-    final bool isScanning = await FlutterBlue.instance.isScanning.first;
+    final bool isScanning = await FlutterBluePlus.instance.isScanning.first;
     expect(isScanning, true);
 
     await Future.delayed(const Duration(seconds: 5));
-    await FlutterBlue.instance.stopScan();
+    await FlutterBluePlus.instance.stopScan();
     final List<ScanResult> scanResults = await scanFuture;
     final bool deviceDiscovered = scanResults
         .any((ScanResult scanResult) => scanResult.device.name == deviceName);
