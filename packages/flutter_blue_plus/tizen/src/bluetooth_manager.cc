@@ -25,7 +25,7 @@
 #include "tizen_error.h"
 #include "utils.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 using State = BluetoothDeviceController::State;
 
@@ -347,7 +347,8 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
       [&bluetooth_manager = *this,
        &notifications_handler = notifications_handler_](
           const std::string& address, const std::string& device_name, int rssi,
-          const flutter_blue_tizen::AdvertisementData& advertisement_data) {
+          const flutter_blue_plus_tizen::AdvertisementData&
+              advertisement_data) {
         std::scoped_lock lock(bluetooth_manager.bluetooth_devices_.mutex_);
 
         auto& devices_container = bluetooth_manager.bluetooth_devices_.var_;
@@ -369,7 +370,8 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
         scan_result.set_rssi(rssi);
 
         auto proto_advertisement_data = new proto::gen::AdvertisementData(
-            flutter_blue_tizen::ToProtoAdvertisementData(advertisement_data));
+            flutter_blue_plus_tizen::ToProtoAdvertisementData(
+                advertisement_data));
 
         scan_result.set_allocated_advertisement_data(proto_advertisement_data);
 
@@ -500,4 +502,4 @@ void BluetoothManager::WriteDescriptor(
       });
 }
 
-}  // namespace flutter_blue_tizen
+}  // namespace flutter_blue_plus_tizen

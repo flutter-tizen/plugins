@@ -2,7 +2,7 @@
 
 #include "log.h"
 
-namespace flutter_blue_tizen::btGatt {
+namespace flutter_blue_plus_tizen::btGatt {
 
 // BluetoothService
 
@@ -93,4 +93,4 @@ std::string SecondaryService::PrimaryUuid() const noexcept {
   return primary_service_.Uuid();
 }
 
-}  // namespace flutter_blue_tizen::btGatt
+}  // namespace flutter_blue_plus_tizen::btGatt

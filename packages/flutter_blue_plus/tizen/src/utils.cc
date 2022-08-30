@@ -8,7 +8,7 @@
 
 #include "log.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 // Gets the value of descriptor or characteristic.
 std::string GetGattValue(bt_gatt_h handle) {
@@ -79,4 +79,4 @@ AdvertisementData DecodeAdvertisementData(const char* packets_data,
   return advertisement_data;
 }
 
-}  // namespace flutter_blue_tizen
+}  // namespace flutter_blue_plus_tizen

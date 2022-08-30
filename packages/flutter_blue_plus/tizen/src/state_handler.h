@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
-#define FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
+#ifndef FLUTTER_BLUE_PLUS_TIZEN_STATE_HANDLER_H
+#define FLUTTER_BLUE_PLUS_TIZEN_STATE_HANDLER_H
 
 #include <app_event.h>
 #include <flutter/event_channel.h>
@@ -21,7 +21,7 @@
 #include "flutter/event_stream_handler.h"
 #include "system_event_handler.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
  public:
@@ -58,5 +58,5 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
       const flutter::EncodableValue* arguments) override;
 };
 
-}  // namespace flutter_blue_tizen
-#endif  // FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
+}  // namespace flutter_blue_plus_tizen
+#endif  // FLUTTER_BLUE_PLUS_TIZEN_STATE_HANDLER_H

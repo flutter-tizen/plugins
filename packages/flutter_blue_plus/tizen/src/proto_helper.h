@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_BLUE_TIZEN_PROTO_HELPER_H
-#define FLUTTER_BLUE_TIZEN_PROTO_HELPER_H
+#ifndef FLUTTER_BLUE_PLUS_TIZEN_PROTO_HELPER_H
+#define FLUTTER_BLUE_PLUS_TIZEN_PROTO_HELPER_H
 
 #include "GATT/bluetooth_characteristic.h"
 #include "GATT/bluetooth_descriptor.h"
@@ -13,7 +13,7 @@
 #include "flutterblue.pb.h"
 #include "utils.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 proto::gen::DiscoverServicesResult GetProtoServiceDiscoveryResult(
     const BluetoothDeviceController& device,
@@ -54,5 +54,5 @@ proto::gen::AdvertisementData ToProtoAdvertisementData(
 proto::gen::BluetoothState_State ToProtoBluetoothState(
     const BluetoothManager::BluetoothState bluetooth_state);
 
-}  // namespace flutter_blue_tizen
-#endif  // FLUTTER_BLUE_TIZEN_PROTO_HELPER_H
+}  // namespace flutter_blue_plus_tizen
+#endif  // FLUTTER_BLUE_PLUS_TIZEN_PROTO_HELPER_H

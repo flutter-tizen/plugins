@@ -1,5 +1,5 @@
-#ifndef FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
-#define FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
+#ifndef FLUTTER_BLUE_PLUS_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
+#define FLUTTER_BLUE_PLUS_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
 
 #include <bluetooth.h>
 
@@ -9,7 +9,7 @@
 
 #include "utils.h"
 
-namespace flutter_blue_tizen::btGatt {
+namespace flutter_blue_plus_tizen::btGatt {
 
 class BluetoothDescriptor {
  public:
@@ -44,5 +44,5 @@ class BluetoothDescriptor {
       active_descriptors_;
 };
 
-}  // namespace flutter_blue_tizen::btGatt
-#endif  // FLUTTER_BLUE_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H
+}  // namespace flutter_blue_plus_tizen::btGatt
+#endif  // FLUTTER_BLUE_PLUS_TIZEN_GATT_BLUETOOTH_DESCRIPTOR_H

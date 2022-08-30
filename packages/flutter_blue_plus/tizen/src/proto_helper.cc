@@ -11,7 +11,7 @@
 #include "log.h"
 #include "utils.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 std::vector<uint8_t> MessageToVector(
     const google::protobuf::MessageLite& message_lite) noexcept {
@@ -184,4 +184,4 @@ proto::gen::BluetoothState_State ToProtoBluetoothState(
   }
 }
 
-}  // namespace flutter_blue_tizen
+}  // namespace flutter_blue_plus_tizen

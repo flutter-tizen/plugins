@@ -17,7 +17,7 @@
 #include "log.h"
 #include "proto_helper.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 StateHandler::StateHandler() : system_event_handler_(kBtStateChangedEvent) {}
 
 /*
@@ -62,4 +62,4 @@ std::unique_ptr<StateHandler::ErrorType> StateHandler::OnCancelInternal(
   return nullptr;
 }
 
-}  // namespace flutter_blue_tizen
+}  // namespace flutter_blue_plus_tizen

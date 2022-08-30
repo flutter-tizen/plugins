@@ -57,19 +57,19 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
         });
 
     state_channel_->SetStreamHandler(
-        std::make_unique<flutter_blue_tizen::StateHandler>());
+        std::make_unique<flutter_blue_plus_tizen::StateHandler>());
 
     registrar->AddPlugin(std::move(plugin_));
   }
 
-  flutter_blue_tizen::NotificationsHandler notifications_handler_;
+  flutter_blue_plus_tizen::NotificationsHandler notifications_handler_;
 
-  std::unique_ptr<flutter_blue_tizen::BluetoothManager> bluetooth_manager_;
+  std::unique_ptr<flutter_blue_plus_tizen::BluetoothManager> bluetooth_manager_;
 
   FlutterBluePlusTizenPlugin()
       : notifications_handler_(method_channel_),
         bluetooth_manager_(
-            std::make_unique<flutter_blue_tizen::BluetoothManager>(
+            std::make_unique<flutter_blue_plus_tizen::BluetoothManager>(
                 notifications_handler_)) {}
 
   virtual ~FlutterBluePlusTizenPlugin() {
@@ -98,19 +98,20 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
         result->Success();
 
       } else if (method_name == "state") {
-        auto state_proto_e = flutter_blue_tizen::ToProtoBluetoothState(
+        auto state_proto_e = flutter_blue_plus_tizen::ToProtoBluetoothState(
             bluetooth_manager_->GetBluetoothState());
 
         proto::gen::BluetoothState state_proto;
         state_proto.set_state(state_proto_e);
 
         result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::MessageToVector(state_proto)));
+            flutter_blue_plus_tizen::MessageToVector(state_proto)));
 
       } else if (method_name == "isOn") {
-        result->Success(flutter::EncodableValue(
-            bluetooth_manager_->GetBluetoothState() ==
-            flutter_blue_tizen::BluetoothManager::BluetoothState::kAdapterOn));
+        result->Success(
+            flutter::EncodableValue(bluetooth_manager_->GetBluetoothState() ==
+                                    flutter_blue_plus_tizen::BluetoothManager::
+                                        BluetoothState::kAdapterOn));
 
       } else if (method_name == "startScan") {
         proto::gen::ScanSettings scan_settings;
@@ -118,8 +119,8 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
 
         scan_settings.ParseFromArray(encoded.data(), encoded.size());
 
-        flutter_blue_tizen::BleScanSettings bleScanSettings =
-            flutter_blue_tizen::FromProtoScanSettings(scan_settings);
+        flutter_blue_plus_tizen::BleScanSettings bleScanSettings =
+            flutter_blue_plus_tizen::FromProtoScanSettings(scan_settings);
 
         bluetooth_manager_->StartBluetoothDeviceScanLE(bleScanSettings);
         result->Success();
@@ -138,7 +139,7 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
         }
 
         result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::MessageToVector(response)));
+            flutter_blue_plus_tizen::MessageToVector(response)));
 
       } else if (method_name == "connect") {
         std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
@@ -162,10 +163,10 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
         proto::gen::DeviceStateResponse device_state_response;
         device_state_response.set_remote_id(device.address());
         device_state_response.set_state(
-            flutter_blue_tizen::ToProtoDeviceState(device.GetState()));
+            flutter_blue_plus_tizen::ToProtoDeviceState(device.GetState()));
 
         result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::MessageToVector(device_state_response)));
+            flutter_blue_plus_tizen::MessageToVector(device_state_response)));
 
       } else if (method_name == "discoverServices") {
         std::string device_id = std::get<std::string>(args);
@@ -179,8 +180,8 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
         auto services = device.GetServices();
         notifications_handler_.NotifyUIThread(
             "DiscoverServicesResult",
-            flutter_blue_tizen::GetProtoServiceDiscoveryResult(device,
-                                                               services));
+            flutter_blue_plus_tizen::GetProtoServiceDiscoveryResult(device,
+                                                                    services));
 
       } else if (method_name == "services") {
         std::string device_id = std::get<std::string>(args);
@@ -188,10 +189,10 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
         auto& device = bluetooth_manager_->LocateDevice(device_id);
 
         auto proto_services =
-            flutter_blue_tizen::GetProtoServiceDiscoveryResult(
+            flutter_blue_plus_tizen::GetProtoServiceDiscoveryResult(
                 device, device.GetServices());
         result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::MessageToVector(proto_services)));
+            flutter_blue_plus_tizen::MessageToVector(proto_services)));
 
       } else if (method_name == "readCharacteristic") {
         std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
@@ -240,7 +241,7 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
         response.set_remote_id(device_id);
         response.set_mtu(bluetooth_manager_->GetMtu(device_id));
         result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::MessageToVector(response)));
+            flutter_blue_plus_tizen::MessageToVector(response)));
 
       } else if (method_name == "requestMtu") {
         std::vector<uint8_t> encoded = std::get<std::vector<uint8_t>>(args);
@@ -265,16 +266,17 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
       } else if (method_name == "getBondedDevices") {
         proto::gen::ConnectedDevicesResponse response;
         for (auto device : bluetooth_manager_->GetBondedDevices()) {
-          *response.add_devices() = flutter_blue_tizen::ToProtoDevice(*device);
+          *response.add_devices() =
+              flutter_blue_plus_tizen::ToProtoDevice(*device);
         }
 
         result->Success(flutter::EncodableValue(
-            flutter_blue_tizen::MessageToVector(response)));
+            flutter_blue_plus_tizen::MessageToVector(response)));
 
       } else {
         result->NotImplemented();
       }
-    } catch (const flutter_blue_tizen::BtException& e) {
+    } catch (const flutter_blue_plus_tizen::BtException& e) {
       result->Error(std::to_string(e.GetTizenError()), e.what());
     } catch (const std::exception& e) {
       result->Error(e.what());

@@ -1,5 +1,5 @@
-#ifndef FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_SERVICE_H
-#define FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_SERVICE_H
+#ifndef FLUTTER_BLUE_PLUS_TIZEN_GATT_BLEUTOOTH_SERVICE_H
+#define FLUTTER_BLUE_PLUS_TIZEN_GATT_BLEUTOOTH_SERVICE_H
 
 #include <bluetooth.h>
 
@@ -9,7 +9,7 @@
 
 #include "GATT/bluetooth_characteristic.h"
 
-namespace flutter_blue_tizen::btGatt {
+namespace flutter_blue_plus_tizen::btGatt {
 
 class SecondaryService;
 
@@ -69,5 +69,5 @@ class SecondaryService : public BluetoothService {
   const PrimaryService& primary_service_;
 };
 
-}  // namespace flutter_blue_tizen::btGatt
-#endif  // FLUTTER_BLUE_TIZEN_GATT_BLEUTOOTH_SERVICE_H
+}  // namespace flutter_blue_plus_tizen::btGatt
+#endif  // FLUTTER_BLUE_PLUS_TIZEN_GATT_BLEUTOOTH_SERVICE_H

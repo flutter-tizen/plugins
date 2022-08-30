@@ -2,7 +2,7 @@
 
 #include "log.h"
 
-namespace flutter_blue_tizen::btGatt {
+namespace flutter_blue_plus_tizen::btGatt {
 
 BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle)
     : handle_(handle) {
@@ -175,4 +175,4 @@ void BluetoothCharacteristic::UnsetNotifyCallback() {
   notify_callback_ = nullptr;
 }
 
-}  // namespace flutter_blue_tizen::btGatt
+}  // namespace flutter_blue_plus_tizen::btGatt

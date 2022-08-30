@@ -18,7 +18,7 @@
 #include "tizen_error.h"
 #include "utils.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 using State = BluetoothDeviceController::State;
 
@@ -280,4 +280,4 @@ void BluetoothDeviceController::DestroyGattClientIfExists(
   }
 }
 
-}  // namespace flutter_blue_tizen
+}  // namespace flutter_blue_plus_tizen

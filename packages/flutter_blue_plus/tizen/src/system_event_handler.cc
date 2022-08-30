@@ -10,7 +10,7 @@
 #include "log.h"
 #include "tizen_error.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 SystemEventHandler::SystemEventHandler(std::string event_name)
     : event_name_(std::move(event_name)) {
@@ -76,4 +76,4 @@ SystemEventHandler::~SystemEventHandler() {
   }
 }
 
-}  // namespace flutter_blue_tizen
+}  // namespace flutter_blue_plus_tizen

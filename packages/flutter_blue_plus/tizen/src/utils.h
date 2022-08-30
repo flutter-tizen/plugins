@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_BLUE_TIZEN_UTILS_H
-#define FLUTTER_BLUE_TIZEN_UTILS_H
+#ifndef FLUTTER_BLUE_PLUS_TIZEN_UTILS_H
+#define FLUTTER_BLUE_PLUS_TIZEN_UTILS_H
 
 #include <bluetooth.h>
 
@@ -18,7 +18,7 @@
 
 #include "log.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 template <typename T>
 struct SafeType {
@@ -72,6 +72,6 @@ struct AdvertisementData {
 AdvertisementData DecodeAdvertisementData(const char* packets_data,
                                           int data_len) noexcept;
 
-}  // namespace flutter_blue_tizen
+}  // namespace flutter_blue_plus_tizen
 
-#endif  // FLUTTER_BLUE_TIZEN_UTILS_H
+#endif  // FLUTTER_BLUE_PLUS_TIZEN_UTILS_H

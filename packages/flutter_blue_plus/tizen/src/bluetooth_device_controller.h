@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
-#define FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
+#ifndef FLUTTER_BLUE_PLUS_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
+#define FLUTTER_BLUE_PLUS_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 
 #include <bluetooth.h>
 
@@ -19,7 +19,7 @@
 #include "GATT/bluetooth_service.h"
 #include "utils.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 class BluetoothDeviceController {
  public:
@@ -109,5 +109,5 @@ class BluetoothDeviceController {
   static void DestroyGattClientIfExists(const std::string& address) noexcept;
 };
 
-}  // namespace flutter_blue_tizen
-#endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
+}  // namespace flutter_blue_plus_tizen
+#endif  // FLUTTER_BLUE_PLUS_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
-#define FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
+#ifndef FLUTTER_BLUE_PLUS_TIZEN_BLUETOOTH_MANAGER_H
+#define FLUTTER_BLUE_PLUS_TIZEN_BLUETOOTH_MANAGER_H
 
 #include <app_event.h>
 #include <bluetooth.h>
@@ -22,7 +22,7 @@
 #include "system_event_handler.h"
 #include "utils.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 class BluetoothManager {
  public:
@@ -122,5 +122,5 @@ class BluetoothManager {
   NotificationsHandler& notifications_handler_;
 };
 
-}  // namespace flutter_blue_tizen
-#endif  // FLUTTER_BLUE_TIZEN_BLUETOOTH_MANAGER_H
+}  // namespace flutter_blue_plus_tizen
+#endif  // FLUTTER_BLUE_PLUS_TIZEN_BLUETOOTH_MANAGER_H

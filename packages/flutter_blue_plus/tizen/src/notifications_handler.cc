@@ -10,7 +10,7 @@
 #include "proto_helper.h"
 #include "state_handler.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 NotificationsHandler::NotificationsHandler(
     std::shared_ptr<MethodChannel> method_channel)
@@ -24,4 +24,4 @@ void NotificationsHandler::NotifyUIThread(
   method_channel_->InvokeMethod(
       method, std::make_unique<flutter::EncodableValue>(encodable));
 }
-}  // namespace flutter_blue_tizen
+}  // namespace flutter_blue_plus_tizen

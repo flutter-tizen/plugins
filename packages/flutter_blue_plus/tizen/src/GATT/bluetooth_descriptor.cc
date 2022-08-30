@@ -2,7 +2,7 @@
 
 #include "log.h"
 
-namespace flutter_blue_tizen::btGatt {
+namespace flutter_blue_plus_tizen::btGatt {
 
 BluetoothDescriptor::BluetoothDescriptor(bt_gatt_h handle) : handle_(handle) {
   std::scoped_lock lock(active_descriptors_.mutex_);
@@ -89,4 +89,4 @@ void BluetoothDescriptor::Write(const std::string value,
   if (ret) throw BtException("could not write value to remote");
 }
 
-}  // namespace flutter_blue_tizen::btGatt
+}  // namespace flutter_blue_plus_tizen::btGatt

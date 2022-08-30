@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_BLUE_TIZEN_SYSTEM_EVENT_HANDLER_H
-#define FLUTTER_BLUE_TIZEN_SYSTEM_EVENT_HANDLER_H
+#ifndef FLUTTER_BLUE_PLUS_TIZEN_SYSTEM_EVENT_HANDLER_H
+#define FLUTTER_BLUE_PLUS_TIZEN_SYSTEM_EVENT_HANDLER_H
 
 #include <app_event.h>
 #include <bundle.h>
@@ -17,7 +17,7 @@
 
 #include "log.h"
 
-namespace flutter_blue_tizen {
+namespace flutter_blue_plus_tizen {
 
 class SystemEventHandler {
  public:
@@ -39,5 +39,5 @@ class SystemEventHandler {
   std::string event_name_;
 };
 
-}  // namespace flutter_blue_tizen
-#endif  // FLUTTER_BLUE_TIZEN_SYSTEM_EVENT_HANDLER_H
+}  // namespace flutter_blue_plus_tizen
+#endif  // FLUTTER_BLUE_PLUS_TIZEN_SYSTEM_EVENT_HANDLER_H
