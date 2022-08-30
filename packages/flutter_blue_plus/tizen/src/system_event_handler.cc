@@ -5,6 +5,7 @@
 #include "system_event_handler.h"
 
 #include <stdexcept>
+#include <utility>
 
 #include "log.h"
 #include "tizen_error.h"

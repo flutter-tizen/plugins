@@ -5,6 +5,7 @@
 #include "proto_helper.h"
 
 #include <algorithm>
+#include <vector>
 
 #include "bluetooth_manager.h"
 #include "log.h"

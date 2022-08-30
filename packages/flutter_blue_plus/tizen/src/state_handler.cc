@@ -9,6 +9,7 @@
 
 #include <any>
 #include <cassert>
+#include <utility>
 
 #include "bluetooth_device_controller.h"
 #include "bluetooth_manager.h"
@@ -19,10 +20,13 @@
 namespace flutter_blue_tizen {
 StateHandler::StateHandler() : system_event_handler_(kBtStateChangedEvent) {}
 
-// Handles a request to set up an event stream. Returns nullptr on success,
-// or an error on failure.
-// |arguments| is stream configuration arguments and
-// |events| is an EventSink for emitting events to the Flutter receiver.
+/*
+ Handles a request to set up an event stream. Returns nullptr on success,
+ or an error on failure.
+ |arguments| is stream configuration arguments and
+ |events| is an EventSink for emitting events to the Flutter receiver.
+ */
+
 std::unique_ptr<StateHandler::ErrorType> StateHandler::OnListenInternal(
     const flutter::EncodableValue* arguments,
     std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events) {
@@ -51,7 +55,6 @@ std::unique_ptr<StateHandler::ErrorType> StateHandler::OnListenInternal(
   return nullptr;
 }
 
-// Implementation of the public interface, to be provided by subclasses.
 std::unique_ptr<StateHandler::ErrorType> StateHandler::OnCancelInternal(
     const flutter::EncodableValue* arguments) {
   event_sink_ = nullptr;

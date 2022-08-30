@@ -4,6 +4,9 @@
 
 #include "notifications_handler.h"
 
+#include <string>
+#include <vector>
+
 #include "proto_helper.h"
 #include "state_handler.h"
 

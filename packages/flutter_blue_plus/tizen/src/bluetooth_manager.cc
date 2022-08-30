@@ -11,6 +11,8 @@
 #include <iterator>
 #include <memory>
 #include <mutex>
+#include <string>
+#include <utility>
 
 #include "bluetooth.h"
 #include "bluetooth_device_controller.h"
@@ -366,7 +368,8 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
         proto::gen::ScanResult scan_result;
         scan_result.set_rssi(rssi);
 
-        auto proto_advertisement_data = new proto::gen::AdvertisementData(flutter_blue_tizen::ToProtoAdvertisementData(advertisement_data));
+        auto proto_advertisement_data = new proto::gen::AdvertisementData(
+            flutter_blue_tizen::ToProtoAdvertisementData(advertisement_data));
 
         scan_result.set_allocated_advertisement_data(proto_advertisement_data);
 

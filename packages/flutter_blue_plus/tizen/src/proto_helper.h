@@ -48,8 +48,8 @@ proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
 
 BleScanSettings FromProtoScanSettings(const proto::gen::ScanSettings& settings);
 
- proto::gen::AdvertisementData ToProtoAdvertisementData(const AdvertisementData& advertisement_data
-                              ) noexcept;
+proto::gen::AdvertisementData ToProtoAdvertisementData(
+    const AdvertisementData& advertisement_data) noexcept;
 
 proto::gen::BluetoothState_State ToProtoBluetoothState(
     const BluetoothManager::BluetoothState bluetooth_state);

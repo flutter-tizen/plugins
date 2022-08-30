@@ -37,15 +37,19 @@ class BtException : public std::exception {
  public:
   BtException(const std::string& message) : message_(message){};
   BtException(const int tizen_error, const std::string& message)
-      : message_(std::string(get_error_message(tizen_error)) + ": " +
+      : tizen_error_(tizen_error),
+        message_(std::string(get_error_message(tizen_error)) + ": " +
                  message){};
 
   BtException(const int tizen_error)
-      : message_(get_error_message(tizen_error)){};
+      : tizen_error_(tizen_error), message_(get_error_message(tizen_error)){};
 
   const char* what() const noexcept override { return message_.c_str(); }
 
+  int GetTizenError() const noexcept { return tizen_error_; }
+
  private:
+  int tizen_error_ = -1;
   std::string message_;
 };
 
