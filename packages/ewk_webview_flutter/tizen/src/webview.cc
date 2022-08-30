@@ -175,7 +175,6 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
   if (GetValueFromEncodableMap(&params, "userAgent", &user_agent)) {
     ewk_view_user_agent_set(webview_instance_, user_agent.c_str());
   }
-
   ewk_view_url_set(webview_instance_, url.c_str());
 }
 
@@ -320,6 +319,16 @@ void WebView::SetDirection(int direction) {
 }
 
 void WebView::InitWebView() {
+  char* chromium_argv[] = {
+      const_cast<char*>("--disable-pinch"),
+      const_cast<char*>("--js-flags=--expose-gc"),
+      const_cast<char*>("--disable-web-security"),
+      const_cast<char*>("--single-process"),
+      const_cast<char*>("--no-zygote"),
+  };
+  int chromium_argc = sizeof(chromium_argv) / sizeof(chromium_argv[0]);
+  ewk_set_arguments(chromium_argc, chromium_argv);
+
   ewk_init();
   Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
 
@@ -338,6 +347,8 @@ void WebView::InitWebView() {
   }
   ewk_settings_viewport_meta_tag_set(settings, false);
   ewk_settings_ime_panel_enabled_set(settings, true);
+  ewk_settings_javascript_enabled_set(settings, true);
+
   ewk_view_ime_window_set(webview_instance_, win_);
   ewk_view_key_events_enabled_set(webview_instance_, true);
   ewk_context_cache_model_set(context, EWK_CACHE_MODEL_PRIMARY_WEBBROWSER);
@@ -360,6 +371,8 @@ void WebView::InitWebView() {
                                  &WebView::OnNavigationPolicy, this);
   Resize(width_, height_);
   evas_object_show(webview_instance_);
+
+  evas_object_data_set(webview_instance_, "ewk_instance", (void*)this);
 }
 
 void WebView::HandleMethodCall(
@@ -415,6 +428,7 @@ void WebView::HandleMethodCall(
     if (javascript) {
       ewk_view_script_execute(webview_instance_, javascript->c_str(),
                               &WebView::OnEvaluateJavaScript, nullptr);
+      result->Success();
     } else {
       result->Error("Invalid argument", "The argument must be a string.");
     }
@@ -483,7 +497,7 @@ void WebView::HandleMethodCall(
     if (GetValueFromEncodableMap(arguments, "baseUrl", &base_url)) {
       LOG_WARN("loadHtmlString: baseUrl is not supported and will be ignored.");
     }
-    ewk_view_html_string_load(webview_instance_, html.c_str(), nullptr,
+    ewk_view_html_string_load(webview_instance_, html.c_str(), base_url.c_str(),
                               nullptr);
     result->Success();
   } else if (method_name == "loadFile") {
@@ -648,18 +662,24 @@ void WebView::OnEvaluateJavaScript(Evas_Object* o, const char* result,
                                    void* data) {}
 
 void WebView::OnJavaScriptMessage(Evas_Object* o, Ewk_Script_Message message) {
-  LOG_DEBUG("JavaScript channel message: %s", message.name);
+  LOG_DEBUG("JavaScript channel message name: %s", message.name);
   if (o) {
-    WebView* webview = (WebView*)o;
-    flutter::EncodableMap args = {
-        {flutter::EncodableValue("channel"),
-         flutter::EncodableValue(message.name)},
-        {flutter::EncodableValue("message"),
-         flutter::EncodableValue(static_cast<char*>(message.body))},
-    };
-    webview->channel_->InvokeMethod(
-        "javascriptChannelMessage",
-        std::make_unique<flutter::EncodableValue>(args));
+    WebView* webview =
+        static_cast<WebView*>(evas_object_data_get(o, "ewk_instance"));
+    if (webview->channel_) {
+      std::string channel_name(message.name);
+      std::string channel_message(static_cast<char*>(message.body));
+
+      flutter::EncodableMap args = {
+          {flutter::EncodableValue("channel"),
+           flutter::EncodableValue(channel_name)},
+          {flutter::EncodableValue("message"),
+           flutter::EncodableValue(channel_message)},
+      };
+      webview->channel_->InvokeMethod(
+          "javascriptChannelMessage",
+          std::make_unique<flutter::EncodableValue>(args));
+    }
   }
 }
 
