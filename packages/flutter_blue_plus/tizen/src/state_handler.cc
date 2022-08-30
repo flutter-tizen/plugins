@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "state_handler.h"
 
 #include <bundle.h>
@@ -51,11 +55,6 @@ std::unique_ptr<StateHandler::ErrorType> StateHandler::OnListenInternal(
 std::unique_ptr<StateHandler::ErrorType> StateHandler::OnCancelInternal(
     const flutter::EncodableValue* arguments) {
   event_sink_ = nullptr;
-
-  if (handle_) {
-    auto ret = event_remove_event_handler(handle_);
-    LOG_ERROR("event_add_event_handler %s", get_error_message(ret));
-  }
 
   return nullptr;
 }

@@ -42,8 +42,6 @@ std::vector<BluetoothCharacteristic*> BluetoothService::GetCharacteristics()
   return characteristics;
 }
 
-// PrimaryService
-
 PrimaryService::PrimaryService(bt_gatt_h handle) : BluetoothService(handle) {
   int ret = bt_gatt_service_foreach_included_services(
       handle,
@@ -58,8 +56,8 @@ PrimaryService::PrimaryService(bt_gatt_h handle) : BluetoothService(handle) {
             get_error_message(ret));
 }
 
-// This must not be in a virtual destructor. Characteristic references abstract
-// method, when derived objects are already destroyed otherwise.
+/* This must not be in a virtual destructor. Characteristic references abstract
+ method, when derived objects are already destroyed otherwise. */
 PrimaryService::~PrimaryService() { characteristics_.clear(); }
 
 bool PrimaryService::IsPrimary() const noexcept { return true; }
@@ -81,14 +79,12 @@ std::vector<SecondaryService*> PrimaryService::getSecondaryServices()
   return services;
 }
 
-// SecondaryService
-
 SecondaryService::SecondaryService(bt_gatt_h service_handle,
                                    const PrimaryService& primary_service)
     : BluetoothService(service_handle), primary_service_(primary_service) {}
 
-// This must not be in a virtual destructor. Characteristic references abstract
-// method, when derived objects are already destroyed otherwise.
+/* This must not be in a virtual destructor. Characteristic references abstract
+ method, when derived objects are already destroyed otherwise. */
 SecondaryService::~SecondaryService() { characteristics_.clear(); }
 
 bool SecondaryService::IsPrimary() const noexcept { return false; }

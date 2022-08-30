@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef FLUTTER_BLUE_TIZEN_SYSTEM_EVENT_HANDLER_H
 #define FLUTTER_BLUE_TIZEN_SYSTEM_EVENT_HANDLER_H
 
@@ -30,7 +34,7 @@ class SystemEventHandler {
   ~SystemEventHandler();
 
  private:
-  event_handler_h handle_{nullptr};
+  event_handler_h handle_ = nullptr;
   SystemEventCallback callback_;
   std::string event_name_;
 };

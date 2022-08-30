@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "flutter_blue_plus_tizen_plugin.h"
 
 #include <app_control.h>
@@ -193,7 +197,7 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
       try {
         auto& device = bluetooth_manager_->LocateDevice(device_id);
 
-        // Return early to discover services asynchronously.
+        /* Return early to discover services asynchronously.*/
         result->Success();
 
         device.DiscoverServices();

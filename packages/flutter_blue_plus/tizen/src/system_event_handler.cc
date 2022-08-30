@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "system_event_handler.h"
 
 #include <stdexcept>
@@ -13,8 +17,6 @@ SystemEventHandler::SystemEventHandler(std::string event_name)
       event_name_.c_str(),
       [](const char* event_name, bundle* event_data, void* user_data) {
         auto& state_handler = *static_cast<SystemEventHandler*>(user_data);
-
-        LOG_DEBUG("state_changed_callback_event_channel: %s", event_name);
 
         MapType map;
 
@@ -39,8 +41,8 @@ SystemEventHandler::SystemEventHandler(std::string event_name)
                 scope.map[key] = std::string(string);
               } else {
                 /*
-                 * TODO may implement other types(string array, byte array
-                 * etc) in the future
+                 * TODO(JRazek): may implement other types(string array, byte
+                 * array etc) in the future
                  * https://docs.tizen.org/application/native/api/mobile/6.5/group__CORE__LIB__BUNDLE__MODULE.html#gab4ba87b3aebc54170c0ac760e921a851
                  */
                 throw std::logic_error("feature unimplemented!");

@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "bluetooth_manager.h"
 
 #include <system_info.h>
@@ -46,8 +50,6 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
         device_state.set_state(ToProtoDeviceState(state));
         notifications_handler.NotifyUIThread("DeviceState", device_state);
       });
-
-  LOG_DEBUG("All callbacks successfully initialized.");
 }
 
 void BluetoothManager::SetNotification(
@@ -74,7 +76,6 @@ void BluetoothManager::SetNotification(
 
           notifications_handler.NotifyUIThread("SetNotificationResponse",
                                                response);
-          LOG_DEBUG("notified UI thread - characteristic written by remote");
         });
   } else {
     characteristic.UnsetNotifyCallback();
@@ -100,7 +101,6 @@ void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
           // LOG_ERROR(e.what());
         }
         notifications_handler.NotifyUIThread("MtuSize", mtu_size_response);
-        LOG_DEBUG("mtu request callback sent response!");
       });
 }
 
@@ -109,8 +109,6 @@ void BluetoothManager::ReadRssi(const std::string& device_id) {
 
   device.ReadRssi([&notifications_handler = notifications_handler_](
                       auto& bluetoothDevice, int rssi) {
-    LOG_DEBUG("read_rssi_callback called");
-
     proto::gen::ReadRssiResult result;
     result.set_rssi(rssi);
     result.set_remote_id(bluetoothDevice.address());
@@ -255,12 +253,10 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
     ret = bt_adapter_le_scan_filter_unregister_all();
     LOG_ERROR("bt_adapter_le_scan_filter_unregister_all %s",
               get_error_message(ret));
-    LOG_DEBUG("bt_adapter_le_scan_filter_unregister_all");
 
     for (auto filter : filters) {
       ret = bt_adapter_le_scan_filter_destroy(filter);
       LOG_ERROR("bt_adapter_le_scan_filter_destroy %s", get_error_message(ret));
-      LOG_DEBUG("bt_adapter_le_scan_filter_destroy");
     }
 
     scope.var_->filters.clear();
@@ -314,7 +310,6 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
                 *static_cast<SafeType<std::optional<Scope>>*>(scope_ptr);
             std::scoped_lock scope_lock(scope.mutex_);
 
-            LOG_DEBUG("native scan callback: %s", get_error_message(result));
             auto rssi = info->rssi;
             std::string address = info->remote_address;
             AdvertisementData advertisement_data =
@@ -371,10 +366,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
         proto::gen::ScanResult scan_result;
         scan_result.set_rssi(rssi);
 
-        auto proto_advertisement_data = new proto::gen::AdvertisementData();
-
-        flutter_blue_tizen::ToProtoAdvertisementData(advertisement_data,
-                                                     *proto_advertisement_data);
+        auto proto_advertisement_data = new proto::gen::AdvertisementData(flutter_blue_tizen::ToProtoAdvertisementData(advertisement_data));
 
         scan_result.set_allocated_advertisement_data(proto_advertisement_data);
 
@@ -442,7 +434,6 @@ void BluetoothManager::ReadCharacteristic(
 
         notifications_handler.NotifyUIThread("ReadCharacteristicResponse",
                                              read_characteristic_result);
-        LOG_DEBUG("finished characteristic read cb");
       });
 }
 
@@ -482,7 +473,6 @@ void BluetoothManager::WriteCharacteristic(
             new proto::gen::WriteCharacteristicRequest(request));
         notifications_handler.NotifyUIThread("WriteCharacteristicResponse",
                                              write_characteristic_response);
-        LOG_DEBUG("finished characteristic write cb");
       });
 }
 

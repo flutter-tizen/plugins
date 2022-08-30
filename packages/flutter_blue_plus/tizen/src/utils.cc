@@ -1,7 +1,12 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "utils.h"
 
-#include "log.h"
 #include <algorithm>
+
+#include "log.h"
 
 namespace flutter_blue_tizen {
 
@@ -41,7 +46,7 @@ AdvertisementData DecodeAdvertisementData(const char* packets_data,
   int start = 0;
   bool long_name_set = false;
 
-  //TODO - fix. read, write properies not checked!
+  // TODO(JRazek): fix. read, write properies not checked!
 
   while (start < data_len) {
     byte advertisement_data_len = packets_data[start] & 0xFFu;
@@ -73,6 +78,5 @@ AdvertisementData DecodeAdvertisementData(const char* packets_data,
   }
   return advertisement_data;
 }
-
 
 }  // namespace flutter_blue_tizen

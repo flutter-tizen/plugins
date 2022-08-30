@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef FLUTTER_BLUE_TIZEN_PROTO_HELPER_H
 #define FLUTTER_BLUE_TIZEN_PROTO_HELPER_H
 
@@ -44,8 +48,8 @@ proto::gen::DeviceStateResponse_BluetoothDeviceState ToProtoDeviceState(
 
 BleScanSettings FromProtoScanSettings(const proto::gen::ScanSettings& settings);
 
-void ToProtoAdvertisementData(const AdvertisementData& advertisement_data,
-                              proto::gen::AdvertisementData&) noexcept;
+ proto::gen::AdvertisementData ToProtoAdvertisementData(const AdvertisementData& advertisement_data
+                              ) noexcept;
 
 proto::gen::BluetoothState_State ToProtoBluetoothState(
     const BluetoothManager::BluetoothState bluetooth_state);

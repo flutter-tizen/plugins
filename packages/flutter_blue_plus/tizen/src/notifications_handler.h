@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
 #define FLUTTER_BLUE_TIZEN_NOTIFICATIONS_HANDLER_H
 

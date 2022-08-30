@@ -1,3 +1,8 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+
 #include "bluetooth_device_controller.h"
 
 #include <bluetooth.h>
@@ -44,13 +49,14 @@ State BluetoothDeviceController::GetState() const noexcept {
     bool is_connected = false;
     int ret = bt_device_is_profile_connected(address_.c_str(), BT_PROFILE_GATT,
                                              &is_connected);
+    LOG_ERROR("bt_device_is_profile_connected: %s", get_error_message(ret));
     return (is_connected ? State::kConnected : State::kDisconnected);
   }
 }
 
 void BluetoothDeviceController::Connect(bool auto_connect) {
   std::unique_lock lock(operation_mutex_);
-  auto_connect = false;  // TODO - fix. API fails when autoconnect==true
+  auto_connect = false;  // TODO(JRazek): fix. API fails when autoconnect==true
   if (GetState() == State::kDisconnected) {
     is_connecting_ = true;
     int ret = bt_gatt_connect(address_.c_str(), auto_connect);
@@ -79,8 +85,8 @@ void BluetoothDeviceController::DiscoverServices() {
     std::vector<std::unique_ptr<btGatt::PrimaryService>>& services;
   };
 
-  // bt_gatt_client_foreach_services is executed synchronously.
-  // There's no need to allocate Scope on heap.
+  /* bt_gatt_client_foreach_services is executed synchronously.
+   There's no need to allocate Scope on heap. */
   Scope scope{*this, services_};
   int ret = bt_gatt_client_foreach_services(
       GetGattClient(address_),
@@ -181,8 +187,6 @@ void BluetoothDeviceController::Pair(PairCallback callback) {
       [](int result, bt_device_info_s* info, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
         if (!result) {
-          LOG_DEBUG("pairing native callback. address: %s, bond_created: %i",
-                    info->remote_address, info->is_bonded);
           std::scoped_lock lock(active_devices_.mutex_);
           auto it = active_devices_.var_.find(info->remote_address);
 

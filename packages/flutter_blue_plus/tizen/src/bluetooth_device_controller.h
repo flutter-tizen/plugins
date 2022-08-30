@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 #define FLUTTER_BLUE_TIZEN_BLUETOOTH_DEVICE_CONTROLLER_H
 
@@ -36,8 +40,7 @@ class BluetoothDeviceController {
       std::function<void(bool, const BluetoothDeviceController&)>;
 
   using ConnectionStateChangedCallback =
-      std::function<void(State state, const BluetoothDeviceController&
-                                          device)>;  // TODO should be ref
+      std::function<void(State state, const BluetoothDeviceController& device)>;
 
   using ReadRssiCallback =
       std::function<void(const BluetoothDeviceController& device, int rssi)>;

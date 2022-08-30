@@ -28,7 +28,7 @@ void BluetoothDescriptor::Read(ReadCallback callback) const {
     const std::string descriptor_uuid;
   };
 
-  // Requires raw pointer to be passed to bt_gatt_client_read_value.
+  /* Requires raw pointer to be passed to bt_gatt_client_read_value. */
   auto scope = new Scope{std::move(callback), Uuid()};
   int ret = bt_gatt_client_read_value(
       handle_,
@@ -63,7 +63,7 @@ void BluetoothDescriptor::Write(const std::string value,
 
   if (ret) throw BtException("could not set value");
 
-  // Requires raw pointer to be passed to bt_gatt_client_write_value.
+  /* Requires raw pointer to be passed to bt_gatt_client_write_value. */
   auto scope = new Scope{std::move(callback), Uuid()};
   ret = bt_gatt_client_write_value(
       handle_,

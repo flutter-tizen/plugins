@@ -58,7 +58,7 @@ void BluetoothCharacteristic::Read(ReadCallback callback) const {
     const std::string uuid;
   };
 
-  // Requires raw pointer to be passed to bt_gatt_client_read_value.
+  /* Requires raw pointer to be passed to bt_gatt_client_read_value. */
   Scope* scope = new Scope{std::move(callback), Uuid()};
   int ret = bt_gatt_client_read_value(
       handle_,
@@ -103,7 +103,7 @@ void BluetoothCharacteristic::Write(const std::string value,
 
   if (ret) throw BtException(ret, "could not set value");
 
-  // Requires raw pointer to be passed to bt_gatt_client_write_value.
+  /* Requires raw pointer to be passed to bt_gatt_client_write_value. */
   Scope* scope = new Scope{std::move(callback), Uuid()};
   ret = bt_gatt_client_write_value(
       handle_,

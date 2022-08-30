@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "proto_helper.h"
 
 #include <algorithm>
@@ -151,13 +155,15 @@ BleScanSettings FromProtoScanSettings(
   return bleScanSettings;
 }
 
-void ToProtoAdvertisementData(
-    const AdvertisementData& advertisement_data,
-    proto::gen::AdvertisementData& advertisement_data_proto) noexcept {
+proto::gen::AdvertisementData ToProtoAdvertisementData(
+    const AdvertisementData& advertisement_data) noexcept {
+  proto::gen::AdvertisementData advertisement_data_proto;
   advertisement_data_proto.set_connectable(advertisement_data.connectable_);
   advertisement_data_proto.set_local_name(
       advertisement_data.local_name_.data(),
       advertisement_data.local_name_.size());
+
+  return advertisement_data_proto;
 }
 
 proto::gen::BluetoothState_State ToProtoBluetoothState(

@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
 #define FLUTTER_BLUE_TIZEN_STATE_HANDLER_H
 
@@ -31,10 +35,10 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
       const google::protobuf::MessageLite& encodable) const noexcept;
 
   constexpr static auto kBtStateChangedEvent = SYSTEM_EVENT_BT_STATE;
-  // SYSTEM_EVENT_BT_STATE does not contain for some reason
-  // EVENT_KEY_BT_LE_STATE. They are disabled simultaneously though.
+  /* SYSTEM_EVENT_BT_STATE does not contain for some reason
+   EVENT_KEY_BT_LE_STATE. They are disabled simultaneously though. */
   constexpr static auto kBtStateChangedKey =
-      EVENT_KEY_BT_STATE;  // EVENT_KEY_BT_LE_STATE;
+      EVENT_KEY_BT_STATE; /* EVENT_KEY_BT_LE_STATE; */
   constexpr static auto kBtStateOn = EVENT_VAL_BT_LE_ON;
   constexpr static auto kBtStateOff = EVENT_VAL_BT_LE_OFF;
 
@@ -42,8 +46,6 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
 
  private:
   std::shared_ptr<EventSink> event_sink_;
-
-  event_handler_h handle_{nullptr};
 
   SystemEventHandler system_event_handler_;
 
