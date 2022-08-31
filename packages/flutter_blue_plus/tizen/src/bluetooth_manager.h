@@ -33,12 +33,12 @@ class BluetoothManager {
     kUnknown,
   };
 
-  explicit BluetoothManager(
-      std::shared_ptr<NotificationsHandler> notifications_handler);
-
   using ScanCallback = std::function<void(const std::string& address,
                                           const std::string& device_name,
                                           int rssi, const AdvertisementData&)>;
+
+  explicit BluetoothManager(
+      std::shared_ptr<NotificationsHandler> notifications_handler);
 
   /**
    * @brief this member function already contains a callback redirecting output

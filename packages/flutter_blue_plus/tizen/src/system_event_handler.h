@@ -29,9 +29,9 @@ class SystemEventHandler {
 
   SystemEventHandler(std::string event_name, SystemEventCallback callback);
 
-  void SetCallback(SystemEventCallback);
-
   ~SystemEventHandler();
+
+  void SetCallback(SystemEventCallback);
 
  private:
   event_handler_h handle_ = nullptr;

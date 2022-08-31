@@ -31,9 +31,6 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
 
   using EventSink = flutter::EventSink<flutter::EncodableValue>;
 
-  void BroadcastEvent(
-      const google::protobuf::MessageLite& encodable) const noexcept;
-
   constexpr static auto kBtStateChangedEvent = SYSTEM_EVENT_BT_STATE;
   /* SYSTEM_EVENT_BT_STATE does not contain for some reason
    EVENT_KEY_BT_LE_STATE. They are disabled simultaneously though. */
@@ -43,6 +40,9 @@ class StateHandler : public flutter::StreamHandler<flutter::EncodableValue> {
   constexpr static auto kBtStateOff = EVENT_VAL_BT_LE_OFF;
 
   StateHandler();
+
+  void BroadcastEvent(
+      const google::protobuf::MessageLite& encodable) const noexcept;
 
  private:
   std::shared_ptr<EventSink> event_sink_;

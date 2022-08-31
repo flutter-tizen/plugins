@@ -25,10 +25,6 @@ class BluetoothService {
   std::vector<BluetoothCharacteristic*> GetCharacteristics() const noexcept;
 
  protected:
-  bt_gatt_h handle_;
-
-  std::vector<std::unique_ptr<BluetoothCharacteristic>> characteristics_;
-
   explicit BluetoothService(bt_gatt_h handle);
 
   BluetoothService(const BluetoothService&) = delete;
@@ -36,6 +32,10 @@ class BluetoothService {
   BluetoothService(BluetoothService&&) = default;
 
   virtual ~BluetoothService() = default;
+
+  bt_gatt_h handle_;
+
+  std::vector<std::unique_ptr<BluetoothCharacteristic>> characteristics_;
 };
 
 class PrimaryService : public BluetoothService {
