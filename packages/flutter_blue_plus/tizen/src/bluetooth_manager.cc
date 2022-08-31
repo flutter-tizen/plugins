@@ -29,7 +29,8 @@ namespace flutter_blue_plus_tizen {
 
 using State = BluetoothDeviceController::State;
 
-BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
+BluetoothManager::BluetoothManager(
+    std::shared_ptr<NotificationsHandler> notificationsHandler)
     : notifications_handler_(notificationsHandler) {
   int ret = IsBLEAvailable();
   if (ret == 0) {
@@ -44,13 +45,13 @@ BluetoothManager::BluetoothManager(NotificationsHandler& notificationsHandler)
   }
 
   BluetoothDeviceController::SetConnectionStateChangedCallback(
-      [&notifications_handler = notifications_handler_](
+      [notifications_handler = notifications_handler_](
           BluetoothDeviceController::State state,
           const BluetoothDeviceController& device) {
         proto::gen::DeviceStateResponse device_state;
         device_state.set_remote_id(device.address());
         device_state.set_state(ToProtoDeviceState(state));
-        notifications_handler.NotifyUIThread("DeviceState", device_state);
+        notifications_handler->NotifyUIThread("DeviceState", device_state);
       });
 }
 
@@ -68,16 +69,16 @@ void BluetoothManager::SetNotification(
 
   if (request.enable()) {
     characteristic.SetNotifyCallback(
-        [&device, &service, &notifications_handler = notifications_handler_](
-            auto& characteristic) {
+        [&device, &service,
+         notifications_handler = notifications_handler_](auto& characteristic) {
           proto::gen::SetNotificationResponse response;
           response.set_remote_id(device.address());
           response.set_allocated_characteristic(
               new proto::gen::BluetoothCharacteristic(
                   ToProtoCharacteristic(device, service, characteristic)));
 
-          notifications_handler.NotifyUIThread("SetNotificationResponse",
-                                               response);
+          notifications_handler->NotifyUIThread("SetNotificationResponse",
+                                                response);
         });
   } else {
     characteristic.UnsetNotifyCallback();
@@ -93,7 +94,7 @@ uint32_t BluetoothManager::GetMtu(const std::string& device_id) {
 void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
   auto& device = LocateDevice(request.remote_id());
   device.RequestMtu(
-      request.mtu(), [&notifications_handler = notifications_handler_](
+      request.mtu(), [notifications_handler = notifications_handler_](
                          auto status, auto& bluetooth_device) {
         proto::gen::MtuSizeResponse mtu_size_response;
         mtu_size_response.set_remote_id(bluetooth_device.address());
@@ -102,19 +103,19 @@ void BluetoothManager::RequestMtu(const proto::gen::MtuSizeRequest& request) {
         } catch (const std::exception& e) {
           // LOG_ERROR(e.what());
         }
-        notifications_handler.NotifyUIThread("MtuSize", mtu_size_response);
+        notifications_handler->NotifyUIThread("MtuSize", mtu_size_response);
       });
 }
 
 void BluetoothManager::ReadRssi(const std::string& device_id) {
   const auto& device = LocateDevice(device_id);
 
-  device.ReadRssi([&notifications_handler = notifications_handler_](
+  device.ReadRssi([notifications_handler = notifications_handler_](
                       auto& bluetoothDevice, int rssi) {
     proto::gen::ReadRssiResult result;
     result.set_rssi(rssi);
     result.set_remote_id(bluetoothDevice.address());
-    notifications_handler.NotifyUIThread("ReadRssiResult", result);
+    notifications_handler->NotifyUIThread("ReadRssiResult", result);
   });
 }
 
@@ -345,7 +346,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
   StartBluetoothDeviceScanLE(
       scan_settings,
       [&bluetooth_manager = *this,
-       &notifications_handler = notifications_handler_](
+       notifications_handler = notifications_handler_](
           const std::string& address, const std::string& device_name, int rssi,
           const flutter_blue_plus_tizen::AdvertisementData&
               advertisement_data) {
@@ -380,7 +381,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
 
         scan_result.set_allocated_device(proto_device);
 
-        notifications_handler.NotifyUIThread("ScanResult", scan_result);
+        notifications_handler->NotifyUIThread("ScanResult", scan_result);
       });
 }
 
@@ -429,7 +430,7 @@ void BluetoothManager::ReadCharacteristic(
                     request.secondary_service_uuid());
 
   characteristic.Read(
-      [&device, &service, &notifications_handler = notifications_handler_](
+      [&device, &service, notifications_handler = notifications_handler_](
           auto& characteristic) -> void {
         proto::gen::ReadCharacteristicResponse read_characteristic_result;
         read_characteristic_result.set_remote_id(device.address());
@@ -437,8 +438,8 @@ void BluetoothManager::ReadCharacteristic(
             new proto::gen::BluetoothCharacteristic(
                 ToProtoCharacteristic(device, service, characteristic)));
 
-        notifications_handler.NotifyUIThread("ReadCharacteristicResponse",
-                                             read_characteristic_result);
+        notifications_handler->NotifyUIThread("ReadCharacteristicResponse",
+                                              read_characteristic_result);
       });
 }
 
@@ -449,15 +450,15 @@ void BluetoothManager::ReadDescriptor(
       request.secondary_service_uuid(), request.characteristic_uuid(),
       request.descriptor_uuid());
 
-  descriptor.Read([request, &notifications_handler = notifications_handler_](
+  descriptor.Read([request, notifications_handler = notifications_handler_](
                       auto& descriptor) -> void {
     proto::gen::ReadDescriptorResponse read_descriptor_response;
     read_descriptor_response.set_allocated_request(
         new proto::gen::ReadDescriptorRequest(request));
     read_descriptor_response.set_allocated_value(
         new std::string(descriptor.Value()));
-    notifications_handler.NotifyUIThread("ReadDescriptorResponse",
-                                         read_descriptor_response);
+    notifications_handler->NotifyUIThread("ReadDescriptorResponse",
+                                          read_descriptor_response);
   });
 }
 
@@ -469,15 +470,15 @@ void BluetoothManager::WriteCharacteristic(
 
   characteristic.Write(
       request.value(), request.write_type(),
-      [request, &notifications_handler = notifications_handler_](
+      [request, notifications_handler = notifications_handler_](
           bool success, auto& characteristic) {
         proto::gen::WriteCharacteristicResponse write_characteristic_response;
 
         write_characteristic_response.set_success(success);
         write_characteristic_response.set_allocated_request(
             new proto::gen::WriteCharacteristicRequest(request));
-        notifications_handler.NotifyUIThread("WriteCharacteristicResponse",
-                                             write_characteristic_response);
+        notifications_handler->NotifyUIThread("WriteCharacteristicResponse",
+                                              write_characteristic_response);
       });
 }
 
@@ -490,15 +491,15 @@ void BluetoothManager::WriteDescriptor(
 
   descriptor.Write(
       request.value(),
-      [request, &notifications_handler = notifications_handler_](
+      [request, notifications_handler = notifications_handler_](
           auto success, auto& descriptor) -> void {
         proto::gen::WriteDescriptorResponse write_descriptor_response;
         write_descriptor_response.set_success(success);
         write_descriptor_response.set_allocated_request(
             new proto::gen::WriteDescriptorRequest(request));
 
-        notifications_handler.NotifyUIThread("WriteDescriptorResponse",
-                                             write_descriptor_response);
+        notifications_handler->NotifyUIThread("WriteDescriptorResponse",
+                                              write_descriptor_response);
       });
 }
 

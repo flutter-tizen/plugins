@@ -33,7 +33,7 @@ class BluetoothManager {
     kUnknown,
   };
 
-  BluetoothManager(NotificationsHandler& notifications_handler);
+  BluetoothManager(std::shared_ptr<NotificationsHandler> notifications_handler);
 
   ~BluetoothManager() noexcept = default;
 
@@ -119,7 +119,7 @@ class BluetoothManager {
                               std::unique_ptr<BluetoothDeviceController>>>
       bluetooth_devices_;
 
-  NotificationsHandler& notifications_handler_;
+  std::shared_ptr<NotificationsHandler> notifications_handler_;
 };
 
 }  // namespace flutter_blue_plus_tizen

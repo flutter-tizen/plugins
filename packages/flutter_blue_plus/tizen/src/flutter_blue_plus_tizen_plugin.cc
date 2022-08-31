@@ -62,12 +62,15 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin_));
   }
 
-  flutter_blue_plus_tizen::NotificationsHandler notifications_handler_;
+  std::shared_ptr<flutter_blue_plus_tizen::NotificationsHandler>
+      notifications_handler_;
 
   std::unique_ptr<flutter_blue_plus_tizen::BluetoothManager> bluetooth_manager_;
 
   FlutterBluePlusTizenPlugin()
-      : notifications_handler_(method_channel_),
+      : notifications_handler_(
+            std::make_shared<flutter_blue_plus_tizen::NotificationsHandler>(
+                method_channel_)),
         bluetooth_manager_(
             std::make_unique<flutter_blue_plus_tizen::BluetoothManager>(
                 notifications_handler_)) {}
@@ -178,7 +181,7 @@ class FlutterBluePlusTizenPlugin : public flutter::Plugin {
 
         device.DiscoverServices();
         auto services = device.GetServices();
-        notifications_handler_.NotifyUIThread(
+        notifications_handler_->NotifyUIThread(
             "DiscoverServicesResult",
             flutter_blue_plus_tizen::GetProtoServiceDiscoveryResult(device,
                                                                     services));
