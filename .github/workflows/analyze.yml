@@ -18,6 +18,7 @@ jobs:
           done
       - name: Analyze source code
         run: dart analyze --fatal-infos packages
+
   format:
     runs-on: ubuntu-latest
     steps:
