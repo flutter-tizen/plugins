@@ -18,53 +18,6 @@ import 'port.dart';
 
 const String _logTag = "RPC_PORT";
 
-class StubPort extends Port {
-  final String _portName;
-  final String _instance;
-
-  StubPort(this._portName, this._instance, PortType portType) : super(portType);
-
-  String get portName => _portName;
-
-  String get instance => _instance;
-
-  @override
-  Future<void> disconnect() async {
-    final manager = RpcPortPlatform.instance;
-    await manager.stubDisconnect(this);
-  }
-
-  @override
-  Future<void> send(Parcel parcel) async {
-    final manager = RpcPortPlatform.instance;
-    return manager.stubSend(this, parcel.raw as Uint8List);
-  }
-
-  @override
-  Future<Parcel> receive() async {
-    final manager = RpcPortPlatform.instance;
-    return Parcel.fromRaw(await manager.stubReceive(this));
-  }
-
-  @override
-  Future<void> setPrivateSharingList(List<String> paths) async {
-    final manager = RpcPortPlatform.instance;
-    await manager.stubSetPrivateSharingArray(this, paths);
-  }
-
-  @override
-  Future<void> setPrivateSharing(String path) async {
-    final manager = RpcPortPlatform.instance;
-    await manager.stubSetPrivateSharing(this, path);
-  }
-
-  @override
-  Future<void> unsetPrivateSharing() async {
-    final manager = RpcPortPlatform.instance;
-    await manager.stubUnsetPrivateSharing(this);
-  }
-}
-
 abstract class StubBase extends Disposable {
   final String _portName;
   StreamSubscription<dynamic>? _streamSubscription;
@@ -127,8 +80,8 @@ abstract class StubBase extends Disposable {
     isDisposed = true;
   }
 
-  StubPort getPort(String instance, PortType portType) {
-    return StubPort(_portName, instance, portType);
+  Port getPort(String instance, PortType portType) {
+    return Port.fromProxy(_portName, instance, portType);
   }
 
   void onConnectedEvent(String sender, String instance);

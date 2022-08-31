@@ -60,23 +60,17 @@ class RpcPortPlugin : public flutter::Plugin {
         { "listen",
           std::bind(&RpcPortPlugin::Listen, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "stubSend",
-          std::bind(&RpcPortPlugin::StubSend, this,
+        { "send",
+          std::bind(&RpcPortPlugin::Send, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "stubReceive",
-          std::bind(&RpcPortPlugin::StubReceive, this,
+        { "receive",
+          std::bind(&RpcPortPlugin::Receive, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "connect",
           std::bind(&RpcPortPlugin::Connect, this,
               std::placeholders::_1, std::placeholders::_2)},
         { "connectSync",
           std::bind(&RpcPortPlugin::ConnectSync, this,
-              std::placeholders::_1, std::placeholders::_2)},
-        { "proxySend",
-          std::bind(&RpcPortPlugin::ProxySend, this,
-              std::placeholders::_1, std::placeholders::_2)},
-        { "proxyReceive",
-          std::bind(&RpcPortPlugin::ProxyReceive, this,
               std::placeholders::_1, std::placeholders::_2)},
         { "setPrivateSharingArray",
           std::bind(&RpcPortPlugin::SetPrivateSharingArray, this,
@@ -398,57 +392,16 @@ class RpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void ProxySend(const flutter::EncodableValue* args,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("ProxySend");
-    std::string appid;
-    std::string port_name;
-    int32_t port_type;
-    std::vector<uint8_t> raw_data;
-    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
-        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
-        !GetValueFromArgs<int32_t>(args, "portType", port_type) ||
-        !GetValueFromArgs<std::vector<uint8_t>>(args, "rawData", raw_data)) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
-    auto* proxy = FindProxy(appid, port_name);
-    if (proxy == nullptr) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
-    LOG_DEBUG("appid: %s, portName: %s, portType: %d", appid.c_str(),
-              port_name.c_str(), port_type);
-    RpcPort* port = nullptr;
-    auto ret = proxy->GetPort(port_type, &port);
-    if (!ret) {
-      LOG_ERROR("Failed to get port");
-      result->Error("GetPort() is failed", ret.message());
-      return;
-    }
-    auto port_auto = std::unique_ptr<RpcPort>(port);
-
-    RpcPortParcel parcel(raw_data);
-    ret = parcel.Send(port);
-    if (!ret) {
-      LOG_ERROR("Failed to send parcel");
-      result->Error("Send() is failed", ret.message());
-      return;
-    }
-
-    result->Success();
-  }
-
-  void StubSend(const flutter::EncodableValue* args,
+  void Send(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Send");
+    std::string appid;
     std::string port_name;
     std::string instance;
     int32_t port_type;
     std::vector<uint8_t> raw_data;
-    if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
+    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
+        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
         !GetValueFromArgs<std::string>(args, "instance", instance) ||
         !GetValueFromArgs<int32_t>(args, "portType", port_type) ||
         !GetValueFromArgs<std::vector<uint8_t>>(args, "rawData", raw_data)) {
@@ -456,24 +409,43 @@ class RpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    auto* stub = FindStub(port_name);
-    if (stub == nullptr) {
-      result->Error("Invalid parameter");
-      return;
+    RpcPort* port = nullptr;
+    if (!instance.empty()) {
+      auto* stub = FindStub(port_name);
+      if (stub == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
+
+      LOG_DEBUG("portName: %s, instance: %s, portType: %d", port_name.c_str(),
+                instance.c_str(), port_type);
+      auto ret = stub->GetPort(port_type, instance, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    } else if (!appid.empty()) {
+      auto* proxy = FindProxy(appid, port_name);
+      if (proxy == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
+
+      LOG_DEBUG("appid: %s, portName: %s, portType: %d", appid.c_str(),
+                port_name.c_str(), port_type);
+      auto ret = proxy->GetPort(port_type, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
     }
 
-    LOG_DEBUG("portName: %s, instance: %s, portType: %d", port_name.c_str(), instance.c_str(), port_type);
-    RpcPort* port = nullptr;
-    auto ret = stub->GetPort(port_type, instance, &port);
-    if (!ret) {
-      LOG_ERROR("Failed to get port");
-      result->Error("GetPort() is failed", ret.message());
-      return;
-    }
     auto port_auto = std::unique_ptr<RpcPort>(port);
 
     RpcPortParcel parcel(raw_data);
-    ret = parcel.Send(port);
+    auto ret = parcel.Send(port);
     if (!ret) {
       LOG_ERROR("Failed to send parcel");
       result->Error("Send() is failed", ret.message());
@@ -483,84 +455,58 @@ class RpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void ProxyReceive(const flutter::EncodableValue* args,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("ProxyReceive");
-    std::string appid;
-    std::string port_name;
-    int32_t port_type;
-    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
-        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
-        !GetValueFromArgs<int32_t>(args, "portType", port_type)) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
-    auto* proxy = FindProxy(appid, port_name);
-    if (proxy == nullptr) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
-    LOG_DEBUG("appid: %s, portName: %s, portType: %d", appid.c_str(),
-              port_name.c_str(), port_type);
-    RpcPort* port = nullptr;
-    auto ret = proxy->GetPort(port_type, &port);
-    if (!ret) {
-      LOG_ERROR("Failed to get port");
-      result->Error("GetPort() is failed", ret.message());
-      return;
-    }
-
-    auto port_auto = std::unique_ptr<RpcPort>(port);
-
-    RpcPortParcel parcel(port);
-    std::vector<uint8_t> raw;
-    ret = parcel.GetRaw(&raw);
-    if (!ret) {
-      LOG_ERROR("Failed to get raw from parcel");
-      result->Error("ProxyReceive() is failed", ret.message());
-      return;
-    }
-
-    flutter::EncodableMap map {
-      { flutter::EncodableValue("rawData"), flutter::EncodableValue(std::move(raw)) }
-    };
-
-    result->Success(std::move(flutter::EncodableValue(map)));
-  }
-  void StubReceive(const flutter::EncodableValue* args,
+  void Receive(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Receive");
+    std::string appid;
     std::string port_name;
     std::string instance;
     int32_t port_type;
-    if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
+    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
+        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
         !GetValueFromArgs<std::string>(args, "instance", instance) ||
         !GetValueFromArgs<int32_t>(args, "portType", port_type)) {
       result->Error("Invalid parameter");
       return;
     }
 
-    auto* stub = FindStub(port_name);
-    if (stub == nullptr) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
-    LOG_DEBUG("portName: %s, instance: %s, portType: %d", port_name.c_str(), instance.c_str(), port_type);
     RpcPort* port = nullptr;
-    auto ret = stub->GetPort(port_type, instance, &port);
-    if (!ret) {
-      LOG_ERROR("Failed to get port");
-      result->Error("GetPort() is failed", ret.message());
-      return;
+    if (!instance.empty()) {
+      auto* stub = FindStub(port_name);
+      if (stub == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
+
+      LOG_DEBUG("portName: %s, instance: %s, portType: %d", port_name.c_str(),
+                instance.c_str(), port_type);
+      auto ret = stub->GetPort(port_type, instance, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    } else if (!appid.empty()) {
+      auto* proxy = FindProxy(appid, port_name);
+      if (proxy == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
+
+      LOG_DEBUG("appid: %s, portName: %s, portType: %d", appid.c_str(),
+                port_name.c_str(), port_type);
+      auto ret = proxy->GetPort(port_type, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
     }
     auto port_auto = std::unique_ptr<RpcPort>(port);
 
     RpcPortParcel parcel(port);
     std::vector<uint8_t> raw;
-    ret = parcel.GetRaw(&raw);
+    auto ret = parcel.GetRaw(&raw);
     if (!ret) {
       LOG_ERROR("Failed to get raw from parcel");
       result->Error("Receive() is failed", ret.message());
@@ -577,11 +523,13 @@ class RpcPortPlugin : public flutter::Plugin {
   void SetPrivateSharing(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("SetPrivateSharing");
+    std::string appid;
     std::string port_name;
     std::string instance;
     int32_t port_type;
     std::string path;
-    if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
+    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
+        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
         !GetValueFromArgs<std::string>(args, "instance", instance) ||
         !GetValueFromArgs<int32_t>(args, "portType", port_type) ||
         !GetValueFromArgs<std::string>(args, "path", path)) {
@@ -589,21 +537,40 @@ class RpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    auto* stub = FindStub(port_name);
-    if (stub == nullptr) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
     RpcPort* port = nullptr;
-    auto ret = stub->GetPort(port_type, instance, &port);
-    if (!ret) {
-      result->Error("GetPort() is failed", ret.message());
-      return;
-    }
+    if (!instance.empty()) {
+      auto* stub = FindStub(port_name);
+      if (stub == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
 
+      LOG_DEBUG("portName: %s, instance: %s, portType: %d", port_name.c_str(),
+                instance.c_str(), port_type);
+      auto ret = stub->GetPort(port_type, instance, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    } else if (!appid.empty()) {
+      auto* proxy = FindProxy(appid, port_name);
+      if (proxy == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
+
+      LOG_DEBUG("appid: %s, portName: %s, portType: %d", appid.c_str(),
+                port_name.c_str(), port_type);
+      auto ret = proxy->GetPort(port_type, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    }
     auto port_auto = std::unique_ptr<RpcPort>(port);
-    ret = port->SetPrivateSharing(path);
+    auto ret = port->SetPrivateSharing(path);
     if (!ret) {
       result->Error("SetPrivateSharing() is failed", ret.message());
       return;
@@ -615,11 +582,13 @@ class RpcPortPlugin : public flutter::Plugin {
   void SetPrivateSharingArray(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("SetPrivateSharingArray");
+    std::string appid;
     std::string port_name;
     std::string instance;
     int32_t port_type;
     flutter::EncodableList list;
-    if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
+    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
+        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
         !GetValueFromArgs<std::string>(args, "instance", instance) ||
         !GetValueFromArgs<int32_t>(args, "portType", port_type) ||
         !GetValueFromArgs<flutter::EncodableList>(args, "paths", list)) {
@@ -627,19 +596,39 @@ class RpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    auto* stub = FindStub(port_name);
-    if (stub == nullptr) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
     RpcPort* port = nullptr;
-    auto ret = stub->GetPort(port_type, instance, &port);
-    if (!ret) {
-      result->Error("GetPort() is failed", ret.message());
-      return;
-    }
+    if (!instance.empty()) {
+      auto* stub = FindStub(port_name);
+      if (stub == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
 
+      LOG_DEBUG("portName: %s, instance: %s, portType: %d", port_name.c_str(),
+                instance.c_str(), port_type);
+      auto ret = stub->GetPort(port_type, instance, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    } else if (!appid.empty()) {
+      auto* proxy = FindProxy(appid, port_name);
+      if (proxy == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
+
+      LOG_DEBUG("appid: %s, portName: %s, portType: %d", appid.c_str(),
+                port_name.c_str(), port_type);
+      auto ret = proxy->GetPort(port_type, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    }
+    auto port_auto = std::unique_ptr<RpcPort>(port);
     std::vector<std::string> paths;
     for (auto const& value : list) {
       if (std::holds_alternative<std::string>(value)) {
@@ -648,8 +637,7 @@ class RpcPortPlugin : public flutter::Plugin {
       }
     }
 
-    auto port_auto = std::unique_ptr<RpcPort>(port);
-    ret = port->SetPrivateSharing(paths);
+    auto ret = port->SetPrivateSharing(paths);
     if (!ret) {
       result->Error("SetPrivateSharing() is failed", ret.message());
       return;
@@ -661,30 +649,53 @@ class RpcPortPlugin : public flutter::Plugin {
   void UnsetPrivateSharing(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("UnsetPrivateSharing");
+    std::string appid;
     std::string port_name;
     std::string instance;
     int32_t port_type;
-    if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
+    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
+        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
         !GetValueFromArgs<std::string>(args, "instance", instance) ||
         !GetValueFromArgs<int32_t>(args, "portType", port_type)) {
       result->Error("Invalid parameter");
       return;
     }
 
-    auto* stub = FindStub(port_name);
-    if (stub == nullptr) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
     RpcPort* port = nullptr;
-    auto ret = stub->GetPort(port_type, instance, &port);
-    if (!ret) {
-      result->Error("GetPort() is failed", ret.message());
-      return;
-    }
+    if (!instance.empty()) {
+      auto* stub = FindStub(port_name);
+      if (stub == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
 
-    ret = port->UnsetPrivateSharing();
+      LOG_DEBUG("portName: %s, instance: %s, portType: %d", port_name.c_str(),
+                instance.c_str(), port_type);
+      auto ret = stub->GetPort(port_type, instance, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    } else if (!appid.empty()) {
+      auto* proxy = FindProxy(appid, port_name);
+      if (proxy == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
+
+      LOG_DEBUG("appid: %s, portName: %s, portType: %d", appid.c_str(),
+                port_name.c_str(), port_type);
+      auto ret = proxy->GetPort(port_type, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    }
+    auto port_auto = std::unique_ptr<RpcPort>(port);
+
+    auto ret = port->UnsetPrivateSharing();
     if (!ret) {
       result->Error("UnsetPrivateSharing() is failed", ret.message());
       return;
@@ -696,30 +707,52 @@ class RpcPortPlugin : public flutter::Plugin {
   void Disconnect(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Disconnect");
+    std::string appid;
     std::string port_name;
     std::string instance;
     int32_t port_type;
-    if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
+    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
+        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
         !GetValueFromArgs<std::string>(args, "instance", instance) ||
         !GetValueFromArgs<int32_t>(args, "portType", port_type)) {
       result->Error("Invalid parameter");
       return;
     }
 
-    auto* stub = FindStub(port_name);
-    if (stub == nullptr) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
     RpcPort* port = nullptr;
-    auto ret = stub->GetPort(port_type, instance, &port);
-    if (!ret) {
-      result->Error("GetPort() is failed", ret.message());
-      return;
-    }
+    if (!instance.empty()) {
+      auto* stub = FindStub(port_name);
+      if (stub == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
 
-    ret = port->Disconnect();
+      LOG_DEBUG("portName: %s, instance: %s, portType: %d", port_name.c_str(),
+                instance.c_str(), port_type);
+      auto ret = stub->GetPort(port_type, instance, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    } else if (!appid.empty()) {
+      auto* proxy = FindProxy(appid, port_name);
+      if (proxy == nullptr) {
+        result->Error("Invalid parameter");
+        return;
+      }
+
+      LOG_DEBUG("appid: %s, portName: %s, portType: %d", appid.c_str(),
+                port_name.c_str(), port_type);
+      auto ret = proxy->GetPort(port_type, &port);
+      if (!ret) {
+        LOG_ERROR("Failed to get port");
+        result->Error("GetPort() is failed", ret.message());
+        return;
+      }
+    }
+    auto port_auto = std::unique_ptr<RpcPort>(port);
+    auto ret = port->Disconnect();
     if (!ret) {
       result->Error("Disconnect() is failed", ret.message());
       return;

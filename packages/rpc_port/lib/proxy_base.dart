@@ -18,53 +18,6 @@ import 'disposable.dart';
 
 String _logTag = "RPC_PORT";
 
-class ProxyPort extends Port {
-  final String _appid;
-  final String _portName;
-
-  ProxyPort(this._appid, this._portName, PortType portType) : super(portType);
-
-  String get appid => _appid;
-
-  String get portName => _portName;
-
-  @override
-  Future<void> disconnect() async {
-    final manager = RpcPortPlatform.instance;
-    await manager.proxyDisconnect(this);
-  }
-
-  @override
-  Future<void> send(Parcel parcel) async {
-    final manager = RpcPortPlatform.instance;
-    return manager.proxySend(this, parcel.raw as Uint8List);
-  }
-
-  @override
-  Future<Parcel> receive() async {
-    final manager = RpcPortPlatform.instance;
-    return Parcel.fromRaw(await manager.proxyReceive(this));
-  }
-
-  @override
-  Future<void> setPrivateSharingList(List<String> paths) async {
-    final manager = RpcPortPlatform.instance;
-    await manager.proxySetPrivateSharingArray(this, paths);
-  }
-
-  @override
-  Future<void> setPrivateSharing(String path) async {
-    final manager = RpcPortPlatform.instance;
-    await manager.proxySetPrivateSharing(this, path);
-  }
-
-  @override
-  Future<void> unsetPrivateSharing() async {
-    final manager = RpcPortPlatform.instance;
-    await manager.proxyUnsetPrivateSharing(this);
-  }
-}
-
 abstract class ProxyBase extends Disposable {
   late final String _appid;
   late final String _portName;
@@ -156,8 +109,8 @@ abstract class ProxyBase extends Disposable {
     });
   }
 
-  ProxyPort getPort(PortType portType) {
-    return ProxyPort(_appid, _portName, portType);
+  Port getPort(PortType portType) {
+    return Port.fromStub(_appid, _portName, portType);
   }
 
   /// virtual functions

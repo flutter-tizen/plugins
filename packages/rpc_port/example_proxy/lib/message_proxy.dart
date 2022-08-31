@@ -61,7 +61,7 @@ abstract class MessageProxy extends ProxyBase {
     }
   }
 
-  Future<Parcel> _consumeCommand(ProxyPort port) async {
+  Future<Parcel> _consumeCommand(Port port) async {
     do {
       Parcel p = await port.receive();
       int cmd = p.readInt32();

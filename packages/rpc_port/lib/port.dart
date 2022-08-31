@@ -11,21 +11,42 @@ enum PortType {
   callback,
 }
 
-abstract class Port {
-  final PortType _portType;
+class Port {
+  final PortType portType;
+  final String appid;
+  final String portName;
+  final String instance;
 
-  Port(this._portType);
-  PortType get portType => _portType;
+  Port.fromProxy(this.portName, this.instance, this.portType) : appid = "";
+  Port.fromStub(this.appid, this.portName, this.portType) : instance = "";
 
-  Future<void> send(Parcel parcel);
+  Future<void> send(Parcel parcel) async {
+    final manager = RpcPortPlatform.instance;
+    return manager.send(this, parcel.raw as Uint8List);
+  }
 
-  Future<Parcel> receive();
+  Future<Parcel> receive() async {
+    final manager = RpcPortPlatform.instance;
+    return Parcel.fromRaw(await manager.receive(this));
+  }
 
-  Future<void> setPrivateSharing(String path);
+  Future<void> setPrivateSharingList(List<String> paths) async {
+    final manager = RpcPortPlatform.instance;
+    await manager.setPrivateSharingArray(this, paths);
+  }
 
-  Future<void> setPrivateSharingList(List<String> paths);
+  Future<void> setPrivateSharing(String path) async {
+    final manager = RpcPortPlatform.instance;
+    await manager.setPrivateSharing(this, path);
+  }
 
-  Future<void> unsetPrivateSharing();
+  Future<void> unsetPrivateSharing() async {
+    final manager = RpcPortPlatform.instance;
+    await manager.unsetPrivateSharing(this);
+  }
 
-  Future<void> disconnect();
+  Future<void> disconnect() async {
+    final manager = RpcPortPlatform.instance;
+    await manager.proxyDisconnect(this);
+  }
 }

@@ -19,7 +19,7 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    ProxyPort rpcPortPlugin = ProxyPort();
+    Port rpcPortPlugin = Port();
     MockRpcPortPlatform fakePlatform = MockRpcPortPlatform();
     RpcPortPlatform.instance = fakePlatform;
 
