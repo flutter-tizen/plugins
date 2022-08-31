@@ -1,15 +1,8 @@
 import 'dart:async';
 
-import 'package:rpc_port/parcel.dart';
-import 'package:rpc_port/port.dart';
-import 'package:rpc_port/proxy_base.dart';
+import 'package:rpc_port/rpc_port.dart';
 
 const _logTag = "RpcPort";
-
-abstract class Parcelable {
-  void serialize(Parcel parcel);
-  void deserialize(Parcel parcel);
-}
 
 abstract class MessageProxy extends ProxyBase {
   static const String _tidlVersion = "1.9.1";
@@ -54,7 +47,7 @@ abstract class MessageProxy extends ProxyBase {
 
     for (final delegate in _delegateList) {
       if (delegate._id == id && delegate._seqId == seqId) {
-        await delegate.onReceivedEvent(parcel);
+        await delegate._onReceivedEvent(parcel);
         if (delegate._once) _delegateList.remove(delegate);
         break;
       }
@@ -180,7 +173,7 @@ abstract class CallbackBase extends Parcelable {
     _seqId = _seqNum++;
   }
 
-  Future<void> onReceivedEvent(Parcel h);
+  Future<void> _onReceivedEvent(Parcel parcel);
 
   @override
   void serialize(Parcel parcel) {
@@ -203,9 +196,9 @@ abstract class NotifyCB extends CallbackBase {
   Future<void> onReceived(String sender, String msg);
 
   @override
-  Future<void> onReceivedEvent(Parcel h) async {
-    final appid = h.readString();
-    final portName = h.readString();
+  Future<void> _onReceivedEvent(Parcel parcel) async {
+    final appid = parcel.readString();
+    final portName = parcel.readString();
     onReceived(appid, portName);
   }
 }
