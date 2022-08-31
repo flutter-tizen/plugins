@@ -148,10 +148,10 @@ BleScanSettings FromProtoScanSettings(
 
   BleScanSettings bleScanSettings{scan_settings.allow_duplicates()};
 
-  for (auto i = 0u; i < uuid_count; ++i) {
-    bleScanSettings.service_uuids_filters_.push_back(
-        scan_settings.service_uuids()[i]);
-  }
+  bleScanSettings.service_uuids_filters.insert(
+      bleScanSettings.service_uuids_filters.end(),
+      scan_settings.service_uuids().begin(),
+      scan_settings.service_uuids().end());
 
   return bleScanSettings;
 }
@@ -159,10 +159,9 @@ BleScanSettings FromProtoScanSettings(
 proto::gen::AdvertisementData ToProtoAdvertisementData(
     const AdvertisementData& advertisement_data) noexcept {
   proto::gen::AdvertisementData advertisement_data_proto;
-  advertisement_data_proto.set_connectable(advertisement_data.connectable_);
-  advertisement_data_proto.set_local_name(
-      advertisement_data.local_name_.data(),
-      advertisement_data.local_name_.size());
+  advertisement_data_proto.set_connectable(advertisement_data.connectable);
+  advertisement_data_proto.set_local_name(advertisement_data.local_name.data(),
+                                          advertisement_data.local_name.size());
 
   return advertisement_data_proto;
 }

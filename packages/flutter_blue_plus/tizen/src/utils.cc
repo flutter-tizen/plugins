@@ -58,14 +58,14 @@ AdvertisementData DecodeAdvertisementData(const char* packets_data,
       case 0x08: {
         if (!long_name_set)
           std::copy_n(packet, advertisement_data_len - 1,
-                      std::back_inserter(advertisement_data.local_name_));
+                      std::back_inserter(advertisement_data.local_name));
 
         if (type == 0x09) long_name_set = true;
 
         break;
       }
       case 0x01: {
-        advertisement_data.connectable_ = *packet & 0x3;
+        advertisement_data.connectable = *packet & 0x3;
         break;
       }
       case 0xFF: {

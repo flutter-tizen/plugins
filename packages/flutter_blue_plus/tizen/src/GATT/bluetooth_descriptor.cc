@@ -6,12 +6,12 @@ namespace flutter_blue_plus_tizen::btGatt {
 
 BluetoothDescriptor::BluetoothDescriptor(bt_gatt_h handle) : handle_(handle) {
   std::scoped_lock lock(active_descriptors_.mutex_);
-  active_descriptors_.var_[Uuid()] = this;
+  active_descriptors_.var[Uuid()] = this;
 }
 
 BluetoothDescriptor::~BluetoothDescriptor() {
   std::scoped_lock lock(active_descriptors_.mutex_);
-  active_descriptors_.var_.erase(Uuid());
+  active_descriptors_.var.erase(Uuid());
 }
 
 std::string BluetoothDescriptor::Uuid() const noexcept {
@@ -35,9 +35,9 @@ void BluetoothDescriptor::Read(ReadCallback callback) const {
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(active_descriptors_.mutex_);
-        auto it = active_descriptors_.var_.find(scope->descriptor_uuid);
+        auto it = active_descriptors_.var.find(scope->descriptor_uuid);
 
-        if (it != active_descriptors_.var_.end() && !result) {
+        if (it != active_descriptors_.var.end() && !result) {
           auto& descriptor = *it->second;
           scope->callback(descriptor);
         }
@@ -73,9 +73,9 @@ void BluetoothDescriptor::Write(const std::string value,
 
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(active_descriptors_.mutex_);
-        auto it = active_descriptors_.var_.find(scope->descriptor_uuid);
+        auto it = active_descriptors_.var.find(scope->descriptor_uuid);
 
-        if (it != active_descriptors_.var_.end()) {
+        if (it != active_descriptors_.var.end()) {
           auto& descriptor = *it->second;
           scope->callback(!result, descriptor);
         }

@@ -22,15 +22,15 @@ namespace flutter_blue_plus_tizen {
 
 template <typename T>
 struct SafeType {
-  T var_;
+  T var;
 
   std::mutex mutex_;
 
-  SafeType(const T& t) : var_(t) {}
+  SafeType(const T& t) : var(t) {}
 
-  SafeType(T&& t) : var_(std::move(t)) {}
+  SafeType(T&& t) : var(std::move(t)) {}
 
-  SafeType() : var_(T()) {}
+  SafeType() : var(T()) {}
 };
 
 class BtException : public std::exception {
@@ -58,15 +58,15 @@ std::string GetGattValue(bt_gatt_h handle);
 std::string GetGattUuid(bt_gatt_h handle);
 
 struct BleScanSettings {
-  bool allow_duplicates_;
-  bool clear_devices_;
-  std::vector<std::string> device_ids_filters_;
-  std::vector<std::string> service_uuids_filters_;
+  bool allow_duplicates;
+  bool clear_devices;
+  std::vector<std::string> device_ids_filters;
+  std::vector<std::string> service_uuids_filters;
 };
 
 struct AdvertisementData {
-  bool connectable_;
-  std::string local_name_;
+  bool connectable;
+  std::string local_name;
 };
 
 AdvertisementData DecodeAdvertisementData(const char* packets_data,

@@ -26,13 +26,13 @@ BluetoothDeviceController::BluetoothDeviceController(
     const std::string& name, const std::string& address) noexcept
     : name_(name), address_(address) {
   std::scoped_lock lock(active_devices_.mutex_);
-  active_devices_.var_.insert({address, this});
+  active_devices_.var.insert({address, this});
 }
 
 BluetoothDeviceController::~BluetoothDeviceController() noexcept {
   std::scoped_lock lock(active_devices_.mutex_);
   Disconnect();
-  active_devices_.var_.erase(address());
+  active_devices_.var.erase(address());
 }
 
 std::string BluetoothDeviceController::name() const noexcept { return name_; }
@@ -141,8 +141,8 @@ void BluetoothDeviceController::RequestMtu(uint32_t mtu,
          void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(active_devices_.mutex_);
-        auto it = active_devices_.var_.find(scope->address);
-        if (it != active_devices_.var_.end())
+        auto it = active_devices_.var.find(scope->address);
+        if (it != active_devices_.var.end())
           scope->callback(mtu_info->status == 0, *it->second);
         delete scope;
       },
@@ -166,9 +166,9 @@ void BluetoothDeviceController::ReadRssi(ReadRssiCallback callback) const {
               int rssi, const AdvertisementData& advertisement_data) {
         std::scoped_lock lock(active_devices_.mutex_);
 
-        auto it = active_devices_.var_.find(address);
+        auto it = active_devices_.var.find(address);
 
-        if (address == dest_address && it != active_devices_.var_.end()) {
+        if (address == dest_address && it != active_devices_.var.end()) {
           auto device = it->second;
 
           callback(*device, rssi);
@@ -187,9 +187,9 @@ void BluetoothDeviceController::Pair(PairCallback callback) {
         auto scope = static_cast<Scope*>(scope_ptr);
         if (!result) {
           std::scoped_lock lock(active_devices_.mutex_);
-          auto it = active_devices_.var_.find(info->remote_address);
+          auto it = active_devices_.var.find(info->remote_address);
 
-          if (it != active_devices_.var_.end()) {
+          if (it != active_devices_.var.end()) {
             auto device = it->second;
 
             auto bond = info->is_bonded ? Bond::kCreated : Bond::kNotCreated;
@@ -218,9 +218,9 @@ void BluetoothDeviceController::SetConnectionStateChangedCallback(
         LOG_ERROR("bt_gatt_connection_state_changed_cb %s",
                   get_error_message(ret));
         std::scoped_lock lock(active_devices_.mutex_);
-        auto it = active_devices_.var_.find(remote_address);
+        auto it = active_devices_.var.find(remote_address);
 
-        if (it != active_devices_.var_.end()) {
+        if (it != active_devices_.var.end()) {
           auto device = it->second;
           std::scoped_lock operation_lock(device->operation_mutex_);
           device->is_connecting_ = false;
@@ -251,15 +251,15 @@ bt_gatt_client_h BluetoothDeviceController::GetGattClient(
     const std::string& address) {
   std::scoped_lock lock(gatt_clients_.mutex_);
 
-  auto it = gatt_clients_.var_.find(address);
+  auto it = gatt_clients_.var.find(address);
   bt_gatt_client_h client = nullptr;
 
-  if (it == gatt_clients_.var_.end()) {
+  if (it == gatt_clients_.var.end()) {
     int ret = bt_gatt_client_create(address.c_str(), &client);
     LOG_ERROR("bt_gatt_client_create %s", get_error_message(ret));
 
     if ((ret == BT_ERROR_NONE || ret == BT_ERROR_ALREADY_DONE) && client) {
-      gatt_clients_.var_.emplace(address, client);
+      gatt_clients_.var.emplace(address, client);
     } else {
       throw BtException(ret, "bt_gatt_client_create");
     }
@@ -272,10 +272,10 @@ bt_gatt_client_h BluetoothDeviceController::GetGattClient(
 void BluetoothDeviceController::DestroyGattClientIfExists(
     const std::string& address) noexcept {
   std::scoped_lock lock(gatt_clients_.mutex_);
-  auto it = gatt_clients_.var_.find(address);
-  if (it != gatt_clients_.var_.end()) {
+  auto it = gatt_clients_.var.find(address);
+  if (it != gatt_clients_.var.end()) {
     auto ret = bt_gatt_client_destroy(it->second);
-    if (!ret) gatt_clients_.var_.erase(address);
+    if (!ret) gatt_clients_.var.erase(address);
     LOG_ERROR("bt_gatt_client_destroy %s", get_error_message(ret));
   }
 }

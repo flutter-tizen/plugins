@@ -128,18 +128,20 @@ void BluetoothManager::Pair(const std::string& device_id) {
 std::vector<BluetoothDeviceController*> BluetoothManager::GetBondedDevices() {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
   std::vector<BluetoothDeviceController*> ret;
-  for (auto& device : bluetooth_devices_.var_) {
+
+  for (auto& device : bluetooth_devices_.var) {
     ret.push_back(device.second.get());
   }
+
   return ret;
 }
 
 BluetoothDeviceController& BluetoothManager::LocateDevice(
     const std::string& remote_id) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
-  auto it = bluetooth_devices_.var_.find(remote_id);
+  auto it = bluetooth_devices_.var.find(remote_id);
 
-  if (it == bluetooth_devices_.var_.end())
+  if (it == bluetooth_devices_.var.end())
     throw BtException("could not locate device " + remote_id);
 
   return *it->second;
@@ -212,7 +214,7 @@ bool BluetoothManager::IsBLEAvailable() {
   return state;
 }
 
-enum BluetoothManager::BluetoothState
+BluetoothManager::BluetoothState
 BluetoothManager::GetBluetoothState() noexcept {
   using NativeState = bt_adapter_state_e;
 
@@ -251,8 +253,8 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
 
   std::scoped_lock lock(scope.mutex_);
 
-  if (scope.var_.has_value()) {
-    auto& filters = scope.var_->filters;
+  if (scope.var.has_value()) {
+    auto& filters = scope.var->filters;
     ret = bt_adapter_le_scan_filter_unregister_all();
     LOG_ERROR("bt_adapter_le_scan_filter_unregister_all %s",
               get_error_message(ret));
@@ -262,14 +264,14 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
       LOG_ERROR("bt_adapter_le_scan_filter_destroy %s", get_error_message(ret));
     }
 
-    scope.var_->filters.clear();
+    scope.var->filters.clear();
   }
 
-  scope.var_.emplace(Scope{std::move(callback)});
+  scope.var.emplace(Scope{std::move(callback)});
 
-  auto& filters = scope.var_->filters;
-  std::transform(scan_settings.service_uuids_filters_.begin(),
-                 scan_settings.service_uuids_filters_.end(),
+  auto& filters = scope.var->filters;
+  std::transform(scan_settings.service_uuids_filters.begin(),
+                 scan_settings.service_uuids_filters.end(),
                  std::back_inserter(filters), [](const std::string& uuid) {
                    bt_scan_filter_h filter;
                    auto ret = bt_adapter_le_scan_filter_create(&filter);
@@ -286,8 +288,8 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
                    return filter;
                  });
 
-  std::transform(scan_settings.device_ids_filters_.begin(),
-                 scan_settings.device_ids_filters_.end(),
+  std::transform(scan_settings.device_ids_filters.begin(),
+                 scan_settings.device_ids_filters.end(),
                  std::back_inserter(filters), [](const std::string& uuid) {
                    bt_scan_filter_h filter;
                    auto ret = bt_adapter_le_scan_filter_create(&filter);
@@ -328,8 +330,8 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
               free(name_cstr);
             }
 
-            scope.var_->scan_callback(address, device_name, rssi,
-                                      advertisement_data);
+            scope.var->scan_callback(address, device_name, rssi,
+                                     advertisement_data);
           }
         },
         static_cast<void*>(&scope));  // note that it's a static variable
@@ -341,7 +343,7 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
 void BluetoothManager::StartBluetoothDeviceScanLE(
     const BleScanSettings& scan_settings) {
   std::scoped_lock lock(bluetooth_devices_.mutex_);
-  bluetooth_devices_.var_.clear();
+  bluetooth_devices_.var.clear();
 
   StartBluetoothDeviceScanLE(
       scan_settings,
@@ -352,14 +354,14 @@ void BluetoothManager::StartBluetoothDeviceScanLE(
               advertisement_data) {
         std::scoped_lock lock(bluetooth_manager.bluetooth_devices_.mutex_);
 
-        auto& devices_container = bluetooth_manager.bluetooth_devices_.var_;
+        auto& devices_container = bluetooth_manager.bluetooth_devices_.var;
 
         auto it = devices_container.find(address);
 
         BluetoothDeviceController* device;
         if (it == devices_container.end()) {
           device =
-              bluetooth_manager.bluetooth_devices_.var_
+              bluetooth_manager.bluetooth_devices_.var
                   .insert({address, std::make_unique<BluetoothDeviceController>(
                                         device_name, address)})
                   .first->second.get();
@@ -409,7 +411,7 @@ std::vector<proto::gen::BluetoothDevice>
 BluetoothManager::GetConnectedProtoBluetoothDevices() noexcept {
   std::vector<proto::gen::BluetoothDevice> proto_bluetooth_device;
   std::scoped_lock lock(bluetooth_devices_.mutex_);
-  for (const auto& e : bluetooth_devices_.var_) {
+  for (const auto& e : bluetooth_devices_.var) {
     if (e.second->GetState() == State::kConnected) {
       proto_bluetooth_device.emplace_back(ToProtoDevice(*e.second));
     }

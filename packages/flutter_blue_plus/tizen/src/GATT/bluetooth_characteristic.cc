@@ -18,14 +18,14 @@ BluetoothCharacteristic::BluetoothCharacteristic(bt_gatt_h handle)
       this);
   if (ret) throw BtException(ret, "bt_gatt_characteristic_foreach_descriptors");
   std::scoped_lock lock(active_characteristics_.mutex_);
-  active_characteristics_.var_[Uuid()] = this;
+  active_characteristics_.var[Uuid()] = this;
 }
 
 BluetoothCharacteristic::~BluetoothCharacteristic() noexcept {
   std::scoped_lock lock(active_characteristics_.mutex_);
   UnsetNotifyCallback();
   descriptors_.clear();
-  active_characteristics_.var_.erase(Uuid());
+  active_characteristics_.var.erase(Uuid());
 }
 
 std::string BluetoothCharacteristic::Uuid() const noexcept {
@@ -65,8 +65,8 @@ void BluetoothCharacteristic::Read(ReadCallback callback) const {
       [](int result, bt_gatt_h request_handle, void* scope_ptr) {
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(active_characteristics_.mutex_);
-        auto it = active_characteristics_.var_.find(scope->uuid);
-        if (it != active_characteristics_.var_.end()) {
+        auto it = active_characteristics_.var.find(scope->uuid);
+        if (it != active_characteristics_.var.end()) {
           auto& characteristic = *it->second;
           scope->callback(characteristic);
           LOG_ERROR("bt_gatt_client_request_completed_cb %s",
@@ -113,9 +113,9 @@ void BluetoothCharacteristic::Write(const std::string value,
 
         auto scope = static_cast<Scope*>(scope_ptr);
         std::scoped_lock lock(active_characteristics_.mutex_);
-        auto it = active_characteristics_.var_.find(scope->uuid);
+        auto it = active_characteristics_.var.find(scope->uuid);
 
-        if (it != active_characteristics_.var_.end()) {
+        if (it != active_characteristics_.var.end()) {
           auto& characteristic = *it->second;
           scope->callback(!result, characteristic);
         }
@@ -152,8 +152,8 @@ void BluetoothCharacteristic::SetNotifyCallback(
             *static_cast<BluetoothCharacteristic*>(data);
 
         std::scoped_lock lock(active_characteristics_.mutex_);
-        auto it = active_characteristics_.var_.find(characteristic.Uuid());
-        if (it != active_characteristics_.var_.end()) {
+        auto it = active_characteristics_.var.find(characteristic.Uuid());
+        if (it != active_characteristics_.var.end()) {
           characteristic.notify_callback_->operator()(characteristic);
         }
       },
