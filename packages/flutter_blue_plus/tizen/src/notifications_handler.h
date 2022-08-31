@@ -20,7 +20,7 @@ using MethodChannel = flutter::MethodChannel<flutter::EncodableValue>;
 
 class NotificationsHandler {
  public:
-  NotificationsHandler(std::shared_ptr<MethodChannel> method_channel);
+  explicit NotificationsHandler(std::shared_ptr<MethodChannel> method_channel);
 
   void NotifyUIThread(
       const std::string& method,

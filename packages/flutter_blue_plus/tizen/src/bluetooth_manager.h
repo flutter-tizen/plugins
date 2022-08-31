@@ -33,9 +33,8 @@ class BluetoothManager {
     kUnknown,
   };
 
-  BluetoothManager(std::shared_ptr<NotificationsHandler> notifications_handler);
-
-  ~BluetoothManager() noexcept = default;
+  explicit BluetoothManager(
+      std::shared_ptr<NotificationsHandler> notifications_handler);
 
   using ScanCallback = std::function<void(const std::string& address,
                                           const std::string& device_name,

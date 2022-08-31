@@ -35,13 +35,13 @@ struct SafeType {
 
 class BtException : public std::exception {
  public:
-  BtException(const std::string& message) : message_(message){};
+  explicit BtException(const std::string& message) : message_(message){};
   BtException(const int tizen_error, const std::string& message)
       : tizen_error_(tizen_error),
         message_(std::string(get_error_message(tizen_error)) + ": " +
                  message){};
 
-  BtException(const int tizen_error)
+  explicit BtException(const int tizen_error)
       : tizen_error_(tizen_error), message_(get_error_message(tizen_error)){};
 
   const char* what() const noexcept override { return message_.c_str(); }

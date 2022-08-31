@@ -17,7 +17,7 @@ class BluetoothDescriptor {
   using WriteCallback =
       std::function<void(bool success, const BluetoothDescriptor&)>;
 
-  BluetoothDescriptor(bt_gatt_h handle);
+  explicit BluetoothDescriptor(bt_gatt_h handle);
 
   BluetoothDescriptor(const BluetoothDescriptor&) = delete;
 

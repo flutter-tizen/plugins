@@ -29,7 +29,7 @@ class BluetoothService {
 
   std::vector<std::unique_ptr<BluetoothCharacteristic>> characteristics_;
 
-  BluetoothService(bt_gatt_h handle);
+  explicit BluetoothService(bt_gatt_h handle);
 
   BluetoothService(const BluetoothService&) = delete;
 
@@ -40,7 +40,7 @@ class BluetoothService {
 
 class PrimaryService : public BluetoothService {
  public:
-  PrimaryService(bt_gatt_h handle);
+  explicit PrimaryService(bt_gatt_h handle);
 
   ~PrimaryService();
 

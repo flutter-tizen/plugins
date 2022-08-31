@@ -25,7 +25,7 @@ class SystemEventHandler {
 
   using SystemEventCallback = std::function<void(MapType)>;
 
-  SystemEventHandler(std::string event_name);
+  explicit SystemEventHandler(std::string event_name);
 
   SystemEventHandler(std::string event_name, SystemEventCallback callback);
 

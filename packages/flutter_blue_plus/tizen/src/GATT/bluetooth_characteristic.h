@@ -20,7 +20,7 @@ class BluetoothCharacteristic {
   using WriteCallback =
       std::function<void(bool success, const BluetoothCharacteristic&)>;
 
-  BluetoothCharacteristic(bt_gatt_h handle);
+  explicit BluetoothCharacteristic(bt_gatt_h handle);
 
   BluetoothCharacteristic(const BluetoothCharacteristic&) = delete;
 
