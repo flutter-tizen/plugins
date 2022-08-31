@@ -1,0 +1,26 @@
+name: rpc_port_proxy_example
+description: Demonstrates how to use the rpc_port_proxy plugin.
+
+publish_to: none
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  cupertino_icons: ^1.0.2
+
+  flutter:
+    sdk: flutter
+
+  rpc_port:
+    path: ../
+
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

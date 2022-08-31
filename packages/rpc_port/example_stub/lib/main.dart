@@ -2,10 +2,59 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:rpc_port_proxy/rpc_port_proxy.dart';
+import "message_stub.dart";
+import "package:tizen_log/tizen_log.dart";
+
+String _logTag = "RpcPortStubExample";
 
 void main() {
   runApp(const MyApp());
+}
+
+class Service extends ServiceBase {
+  String _name = "";
+  NotifyCB? _cb;
+
+  Service(String sender, String instance) : super(sender, instance);
+
+  @override
+  void onCreate() {
+    Log.info(_logTag, "onCreate. instance: $instance");
+  }
+
+  @override
+  void onTerminate() {
+    Log.info(_logTag, "onTerminate. instance: $instance");
+  }
+
+  @override
+  int onRegister(String name, NotifyCB cb) {
+    Log.info(_logTag, "register. instance: $instance, name: $name");
+    _name = name;
+    _cb = cb;
+    return 0;
+  }
+
+  @override
+  int onSend(String msg) {
+    Log.info(_logTag, "send. instance: $instance, msg: $msg");
+    _cb?.invoke(_name, msg);
+    return 0;
+  }
+
+  @override
+  void onUnregister() {
+    Log.info(_logTag, "unregister. instance: $instance");
+    _cb = null;
+  }
+}
+
+class MyMessageStub extends MessageStub {
+  MyMessageStub() : super();
+
+  @override
+  ServiceBase createInstance(String sender, String instance) =>
+      Service(sender, instance);
 }
 
 class MyApp extends StatefulWidget {
@@ -17,25 +66,22 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
-  final _rpcPortProxyPlugin = RpcPortProxy();
+  MyMessageStub? _stub;
 
   @override
   void initState() {
     super.initState();
+    Log.info(_logTag, 'initState');
+    _stub = MyMessageStub();
+    _stub?.listen();
     initPlatformState();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String platformVersion;
+    String platformVersion = "7.0";
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await _rpcPortProxyPlugin.getPlatformVersion() ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling

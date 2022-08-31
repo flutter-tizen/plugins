@@ -1,10 +1,10 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rpc_port_proxy/rpc_port_proxy_method_channel.dart';
+import 'package:rpc_port/rpc_port_method_channel.dart';
 
 void main() {
-  MethodChannelRpcPortProxy platform = MethodChannelRpcPortProxy();
-  const MethodChannel channel = MethodChannel('rpc_port_proxy');
+  MethodChannelRpcPort platform = MethodChannelRpcPort();
+  const MethodChannel channel = MethodChannel('rpc_port');
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
