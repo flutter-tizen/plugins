@@ -5,7 +5,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:tizen_interop/6.5/tizen.dart';
+import 'package:tizen_interop/4.0/tizen.dart';
 import 'package:tizen_log/tizen_log.dart';
 
 /// The class for the property type of the bundle.
@@ -60,8 +60,6 @@ class _BundleErrorFactory {
     bundle_error_e.BUNDLE_ERROR_INVALID_PARAMETER: "Invalid parameter",
     bundle_error_e.BUNDLE_ERROR_KEY_EXISTS: "Key already exists",
     bundle_error_e.BUNDLE_ERROR_KEY_NOT_AVAILABLE: "Key does not exists",
-    bundle_error_e.BUNDLE_ERROR_ARRAY_INDEX_OUT_OF_BOUNDS:
-        "Index is not out of bounds of the array"
   };
 
   factory _BundleErrorFactory() {
