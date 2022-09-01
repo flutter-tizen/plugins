@@ -100,26 +100,27 @@ class Bundle {
   final dynamic _handle;
   static int _iteratorCount = 0;
   static final Map<int, List<KeyInfo>> _iteratorMap = <int, List<KeyInfo>>{};
+  bool _isDisposed = false;
 
-  static final Finalizer<dynamic> _finalizer =
-      Finalizer<dynamic>((dynamic handle) => tizen.bundle_free(handle));
+  static final Finalizer<Bundle> _finalizer =
+      Finalizer<Bundle>((Bundle bundle) => bundle.dispose());
 
   /// Creates an instance of [Bundle].
   Bundle() : _handle = tizen.bundle_create() {
-    _finalizer.attach(this, _handle, detach: this);
+    _finalizer.attach(this, this, detach: this);
   }
 
   /// Creates an instance of [Bundle] with the given raw data.
   Bundle.fromBundleRaw(BundleRaw bundleRaw)
       : _handle = tizen.bundle_decode(
             bundleRaw.raw.toNativeInt8().cast<Uint8>(), bundleRaw.length) {
-    _finalizer.attach(this, _handle, detach: this);
+    _finalizer.attach(this, this, detach: this);
   }
 
   /// Creates an instance of [Bundle] with the given bundle object.
   Bundle.fromBundle(Bundle bundle)
       : _handle = tizen.bundle_dup(bundle._handle) {
-    _finalizer.attach(this, _handle, detach: this);
+    _finalizer.attach(this, this, detach: this);
   }
 
   /// Creates an instance of [Bundle] with the given map object.
@@ -137,7 +138,7 @@ class Bundle {
       }
     });
 
-    _finalizer.attach(this, _handle, detach: this);
+    _finalizer.attach(this, this, detach: this);
   }
 
   /// Adds a string ino the bundle object.
@@ -334,5 +335,13 @@ class Bundle {
               _handle, key.toNativeInt8(allocator: arena)) !=
           BundleType.none;
     });
+  }
+
+  /// Releases all resources associated with this object.
+  void dispose() {
+    if (_isDisposed) return;
+
+    tizen.bundle_free(_handle);
+    _isDisposed = true;
   }
 }
