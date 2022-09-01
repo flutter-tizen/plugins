@@ -10,7 +10,7 @@ This package is not an _endorsed_ implementation of `google_sign_in`. Therefore,
 
 ```yaml
 dependencies:
-  google_sign_in: ^5.4.0
+  google_sign_in: ^5.4.1
   google_sign_in_tizen: ^0.1.1
 ```
 

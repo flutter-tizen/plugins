@@ -1,3 +1,9 @@
+## NEXT
+
+* Remove unnecessary `dart:typed_data` import.
+* Update google_sign_in_platform_interface to 2.3.0.
+* Update google_sign_in to 5.4.1.
+
 ## 0.1.1
 
 * Fix bug where token was always being refreshed.
