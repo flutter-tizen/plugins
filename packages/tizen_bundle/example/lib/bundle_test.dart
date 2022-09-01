@@ -23,7 +23,7 @@ class BundleTest {
     addTestcase(addBytesAndGetBytesTest);
     addTestcase(addStringsAndGetStringsTest);
     addTestcase(toRawTest);
-    addTestcase(getCountTest);
+    addTestcase(lengthTest);
     addTestcase(deleteTest);
     addTestcase(isEmptyTest);
     addTestcase(getTypeTest);
@@ -82,7 +82,7 @@ class BundleTest {
       Log.info(_logTag, 'addStringAndGetStringTest');
       var bundle = Bundle();
       bundle.addString("testKey", "testValue");
-      expect(bundle.getCount(), 1);
+      expect(bundle.length, 1);
       expect(bundle.getString("testKey"), "testValue");
     });
   }
@@ -93,7 +93,7 @@ class BundleTest {
       var bundle = Bundle();
       List<int> bytes = [0x01, 0x02, 0x03, 0x04, 0x05];
       bundle.addBytes("testKey", bytes);
-      expect(bundle.getCount(), 1);
+      expect(bundle.length, 1);
       var resultBytes = bundle.getBytes("testKey");
       expect(bytes, resultBytes);
       expect(bytes.length, resultBytes.length);
@@ -107,7 +107,7 @@ class BundleTest {
       List<String> strings = ["Hello", "Tizen", "Bundle"];
       bundle.addStrings("testKey", strings);
       bundle.addString("testName", "addStringsAndGetStringsTest");
-      expect(bundle.getCount(), 2);
+      expect(bundle.length, 2);
       expect(bundle.getString("testName"), "addStringsAndGetStringsTest");
       var resultStrings = bundle.getStrings("testKey");
       expect(resultStrings.length, strings.length);
@@ -120,7 +120,7 @@ class BundleTest {
       Log.info(_logTag, 'toRawTest');
       var bundle = Bundle();
       bundle.addString("testName", "toRawTest");
-      expect(bundle.getCount(), 1);
+      expect(bundle.length, 1);
 
       var bundleRaw = bundle.toRaw();
       expect(bundleRaw.raw.isNotEmpty, true);
@@ -131,20 +131,20 @@ class BundleTest {
     });
   }
 
-  void getCountTest() {
-    test('getCountTest', () {
-      Log.info(_logTag, 'getCountTest');
+  void lengthTest() {
+    test('lengthTest', () {
+      Log.info(_logTag, 'lengthTest');
       var bundle = Bundle();
-      expect(bundle.getCount(), 0);
+      expect(bundle.length, 0);
       bundle.addString("key1", "value1");
-      expect(bundle.getCount(), 1);
+      expect(bundle.length, 1);
       bundle.addString("key2", "value2");
-      expect(bundle.getCount(), 2);
+      expect(bundle.length, 2);
       bundle.addString("key3", "value3");
-      expect(bundle.getCount(), 3);
+      expect(bundle.length, 3);
       bundle.addString("key4", "value4");
       bundle.addString("testName", "getCountTest");
-      expect(bundle.getCount(), 5);
+      expect(bundle.length, 5);
     });
   }
 
@@ -153,10 +153,10 @@ class BundleTest {
       Log.info(_logTag, 'deleteTest');
       var bundle = Bundle();
       bundle.addString("testName", "deleteTest");
-      expect(bundle.getCount(), 1);
+      expect(bundle.length, 1);
       expect(bundle.getString("testName"), "deleteTest");
       bundle.delete("testName");
-      expect(bundle.getCount(), 0);
+      expect(bundle.length, 0);
     });
   }
 
@@ -234,7 +234,7 @@ class BundleTest {
       map['keyBytes'] = bytes;
 
       var bundle = Bundle.fromMap(map);
-      expect(bundle.getCount(), 3);
+      expect(bundle.length, 3);
       expect(bundle.getString('keyString'), string);
       expect(bundle.getStrings('keyListString'), strings);
       expect(bundle.getBytes('keyBytes'), bytes);

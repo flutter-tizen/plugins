@@ -9,7 +9,7 @@ import 'package:tizen_interop/4.0/tizen.dart';
 import 'package:tizen_log/tizen_log.dart';
 
 /// The class for the property type of the bundle.
-class BundleTypeProperty {
+class _BundleTypeProperty {
   /// The array type.
   static const int array = 0x0100;
 
@@ -26,16 +26,16 @@ class BundleType {
   static const int none = 0;
 
   /// The string type.
-  static const int string = 1 | BundleTypeProperty.measurable;
+  static const int string = 1 | _BundleTypeProperty.measurable;
 
   /// The string list Type.
-  static const int strings = string | BundleTypeProperty.array;
+  static const int strings = string | _BundleTypeProperty.array;
 
   /// The byte type.
   static const int byte = 2;
 
   /// The byte list type.
-  static const int bytes = byte | BundleTypeProperty.array;
+  static const int bytes = byte | _BundleTypeProperty.array;
 }
 
 /// The class for information of the key of the bundle object.
@@ -50,7 +50,7 @@ class KeyInfo {
   KeyInfo(this.name, this.type);
 
   /// Check whether the type of the key is array or not.
-  bool get isArray => (type & BundleTypeProperty.array) as bool;
+  bool get isArray => (type & _BundleTypeProperty.array) as bool;
 }
 
 class _BundleErrorFactory {
@@ -318,16 +318,13 @@ class Bundle {
   }
 
   /// Gets the number of items in the bundle object.
-  int getCount() {
-    return tizen.bundle_get_count(_handle);
-  }
+  int get length => tizen.bundle_get_count(_handle);
 
   /// Gets a type of the item of the key.
   int getType(String key) {
     return using((Arena arena) {
       return tizen.bundle_get_type(_handle, key.toNativeInt8(allocator: arena));
     });
-    ;
   }
 
   /// Checks whether the key exists or not.
