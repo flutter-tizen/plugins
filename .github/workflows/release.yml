@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'flutter-tizen' }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
-            fetch-depth: 2
-      - uses: subosito/flutter-action@v1
+          fetch-depth: 2
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
       - name: Dry run on pull request
@@ -37,7 +37,7 @@ jobs:
       - name: Publish plugins
         if: ${{ github.event_name == 'push' }}
         env:
-          PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
         run: |
           ./tools/tools_runner.sh publish-plugin \
             --all-changed \
