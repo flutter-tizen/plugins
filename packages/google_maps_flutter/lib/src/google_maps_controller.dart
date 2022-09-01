@@ -614,7 +614,7 @@ class GoogleMapsController {
             focusLatLng = await _pixelToLatLng(
                 json[2][0] as double, json[2][1] as double);
           } catch (e) {
-            print('Error computing focus LatLng. JS Error: ${e.toString()}');
+            print('Error computing focus LatLng. JS Error: $e');
           }
         }
         await _setZoom('${(await getZoomLevel()) + newZoomDelta}');

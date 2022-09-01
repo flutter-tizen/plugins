@@ -1,3 +1,7 @@
+## NEXT
+
+* Replace deprecated parameter `primary` with `backgroundColor`.
+
 ## 0.3.2
 
 * Update the example app and integration_test.

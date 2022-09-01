@@ -1,3 +1,7 @@
+## NEXT
+
+* Remove unnecessary `dart:typed_data` import.
+
 ## 2.4.0
 
 * Update video_player to 2.4.2.

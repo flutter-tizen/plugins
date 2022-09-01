@@ -1,3 +1,8 @@
+## NEXT
+
+* Remove unnecessary `dart:typed_data` import.
+* Annotate `override` to overriden member.
+
 ## 0.5.2
 * Add a back key handling.
 

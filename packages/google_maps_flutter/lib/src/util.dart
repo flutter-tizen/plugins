@@ -184,8 +184,8 @@ class GInfoWindow {
   }
 
   Future<void> _callOpenInfoWindow(GMarker? anchor) async {
-    await (await webController!).runJavascript(
-        '${toString()}.open({anchor: ${anchor.toString()}, map});');
+    await (await webController!)
+        .runJavascript('${toString()}.open({anchor: $anchor, map});');
   }
 
   @override
@@ -349,7 +349,7 @@ class GPolylineOptions {
       }
     }
 
-    return '{geodesic:$geodesic, path:[${paths.toString()}], strokeColor:"$strokeColor",'
+    return '{geodesic:$geodesic, path:[$paths], strokeColor:"$strokeColor",'
         ' strokeOpacity:$strokeOpacity, map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
@@ -453,7 +453,7 @@ class GPolygonOptions {
       str.write('], ');
     }
 
-    return '{fillColor:"$fillColor", fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[${str.toString()}],'
+    return '{fillColor:"$fillColor", fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[$str],'
         ' strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map,'
         ' strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
@@ -563,22 +563,20 @@ Future<WebViewController>? webController;
 /// Returns the property value of the object.
 Future<String> getProperty(Object o, String property) async {
   assert(webController != null, 'mapController is null!!');
-  final String command = "JSON.stringify(${o.toString()}['$property'])";
+  final String command = "JSON.stringify($o['$property'])";
   return await (await webController!).runJavascriptReturningResult(command);
 }
 
 /// Sets the value to property of the object.
 Future<String> setProperty(Object o, String property, Object? value) async {
   assert(webController != null, 'mapController is null!!');
-  final String command =
-      "JSON.stringify(${o.toString()}['$property'] = $value)";
+  final String command = "JSON.stringify($o['$property'] = $value)";
   return await (await webController!).runJavascriptReturningResult(command);
 }
 
 /// Calls the method of the object with the args.
 Future<String> callMethod(Object o, String method, List<Object?> args) async {
   assert(webController != null, 'webController is null!!');
-  final String command =
-      'JSON.stringify(${o.toString()}.$method.apply(${o.toString()}, $args))';
+  final String command = 'JSON.stringify($o.$method.apply($o, $args))';
   return await (await webController!).runJavascriptReturningResult(command);
 }

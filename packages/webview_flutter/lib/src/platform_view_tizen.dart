@@ -302,6 +302,7 @@ class TizenViewController extends PlatformViewController {
     });
   }
 
+  @override
   Future<void> create({Size? size}) async {
     assert(_state != _TizenViewState.disposed,
         'trying to create a disposed Tizen view');

@@ -1,3 +1,7 @@
+## NEXT
+
+* Resolve 'noop_primitive_operations' lint rule violation.
+
 ## 0.1.2
 
 * Fix variouse bugs.

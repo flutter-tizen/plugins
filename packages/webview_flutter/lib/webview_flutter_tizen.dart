@@ -4,7 +4,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';

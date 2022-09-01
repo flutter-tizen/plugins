@@ -193,7 +193,8 @@ class _MyAppState extends State<MyApp> {
               if (_isServiceStarted)
                 ElevatedButton(
                   onPressed: _terminateService,
-                  style: ElevatedButton.styleFrom(primary: Colors.redAccent),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent),
                   child: const Text('Terminate service'),
                 )
               else

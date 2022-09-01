@@ -1,3 +1,7 @@
+## NEXT
+
+* Replace deprecated parameter `primary` with `backgroundColor` in example app.
+
 ## 0.2.1
 
 * Bump ffi dependency.
