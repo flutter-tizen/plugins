@@ -51,7 +51,6 @@ class BundleTest {
       var bundle = Bundle();
       bundle.addString("testName", "bundleTest");
       expect(bundle.getString("testName"), "bundleTest");
-      bundle.dispose();
     });
   }
 
@@ -61,11 +60,9 @@ class BundleTest {
       var bundle = Bundle();
       bundle.addString("testName", "bundleFromBundleRawTest");
       BundleRaw bundleRaw = bundle.toRaw();
-      bundle.dispose();
 
       var newBundle = Bundle.fromBundleRaw(bundleRaw);
       expect(newBundle.getString("testName"), "bundleFromBundleRawTest");
-      newBundle.dispose();
     });
   }
 
@@ -76,9 +73,7 @@ class BundleTest {
       bundle.addString("testName", "bundleFromBundleTest");
 
       var newBundle = Bundle.fromBundle(bundle);
-      bundle.dispose();
       expect(newBundle.getString("testName"), "bundleFromBundleTest");
-      newBundle.dispose();
     });
   }
 
@@ -89,7 +84,6 @@ class BundleTest {
       bundle.addString("testKey", "testValue");
       expect(bundle.getCount(), 1);
       expect(bundle.getString("testKey"), "testValue");
-      bundle.dispose();
     });
   }
 
@@ -103,7 +97,6 @@ class BundleTest {
       var resultBytes = bundle.getBytes("testKey");
       expect(bytes, resultBytes);
       expect(bytes.length, resultBytes.length);
-      bundle.dispose();
     });
   }
 
@@ -119,7 +112,6 @@ class BundleTest {
       var resultStrings = bundle.getStrings("testKey");
       expect(resultStrings.length, strings.length);
       expect(resultStrings, strings);
-      bundle.dispose();
     });
   }
 
@@ -131,13 +123,11 @@ class BundleTest {
       expect(bundle.getCount(), 1);
 
       var bundleRaw = bundle.toRaw();
-      bundle.dispose();
       expect(bundleRaw.raw.isNotEmpty, true);
       expect(bundleRaw.length != 0, true);
 
       var newBundle = Bundle.fromBundleRaw(bundleRaw);
       expect(newBundle.getString("testName"), "toRawTest");
-      newBundle.dispose();
     });
   }
 
@@ -155,7 +145,6 @@ class BundleTest {
       bundle.addString("key4", "value4");
       bundle.addString("testName", "getCountTest");
       expect(bundle.getCount(), 5);
-      bundle.dispose();
     });
   }
 
@@ -168,7 +157,6 @@ class BundleTest {
       expect(bundle.getString("testName"), "deleteTest");
       bundle.delete("testName");
       expect(bundle.getCount(), 0);
-      bundle.dispose();
     });
   }
 
@@ -180,7 +168,6 @@ class BundleTest {
       expect(bundle.isEmpty(), false);
       bundle.delete('testName');
       expect(bundle.isEmpty(), true);
-      bundle.dispose();
     });
   }
 
@@ -196,7 +183,6 @@ class BundleTest {
       bundle.addBytes('byteKey', bytes);
       type = bundle.getType('byteKey');
       expect(type, BundleType.byte);
-      bundle.dispose();
     });
   }
 
@@ -206,7 +192,6 @@ class BundleTest {
       var bundle = Bundle();
       bundle.addString('testName', 'containsTest');
       expect(bundle.contains('testName'), true);
-      bundle.dispose();
     });
   }
 
@@ -234,7 +219,6 @@ class BundleTest {
       });
 
       expect(keyInfos?.length, keys.length);
-      bundle.dispose();
     });
   }
 
@@ -254,7 +238,6 @@ class BundleTest {
       expect(bundle.getString('keyString'), string);
       expect(bundle.getStrings('keyListString'), strings);
       expect(bundle.getBytes('keyBytes'), bytes);
-      bundle.dispose();
     });
   }
 }
