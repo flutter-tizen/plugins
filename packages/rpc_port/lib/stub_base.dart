@@ -62,7 +62,6 @@ abstract class StubBase extends Disposable {
           final Uint8List rawData = map['rawData'] as Uint8List;
           final parcel = Parcel.fromRaw(rawData);
           onReceivedEvent(sender, instance, parcel);
-          parcel.dispose();
         } else {
           Log.error(_logTag, "Unknown event; $eventName");
         }

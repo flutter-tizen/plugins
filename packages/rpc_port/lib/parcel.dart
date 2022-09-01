@@ -83,6 +83,12 @@ class Parcel implements Disposable {
   static const _int16Max = 0x7fff;
   static const _int32Max = 0x7ffffffff;
   static const _int64Max = 0x7FFFFFFFFFFFFFFF;
+  static final _finalizer = Finalizer<Pointer<Void>>((handle) {
+    int ret = tizen.rpc_port_parcel_destroy(handle);
+    if (ret != 0) {
+      throw ret;
+    }
+  });
 
   Parcel() {
     _parcel = using((Arena arena) {
@@ -95,6 +101,8 @@ class Parcel implements Disposable {
       isDisposed = false;
       return pParcel.value;
     });
+
+    _finalizer.attach(this, _parcel, detach: this);
   }
 
   Parcel.fromRaw(Uint8List rawData) {
@@ -139,6 +147,7 @@ class Parcel implements Disposable {
       throw ret;
     }
 
+    _finalizer.detach(this);
     isDisposed = true;
   }
 

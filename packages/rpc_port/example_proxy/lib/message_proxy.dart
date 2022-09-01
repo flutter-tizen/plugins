@@ -56,11 +56,11 @@ abstract class MessageProxy extends ProxyBase {
 
   Future<Parcel> _consumeCommand(Port port) async {
     do {
-      Parcel p = await port.receive();
-      int cmd = p.readInt32();
-      if (cmd == _MethodId.result) return p;
+      Parcel parcel = await port.receive();
+      int cmd = parcel.readInt32();
+      if (cmd == _MethodId.result) return parcel;
 
-      p.dispose();
+      parcel.dispose();
     } while (true);
   }
 
@@ -104,25 +104,25 @@ abstract class MessageProxy extends ProxyBase {
   Future<void> unregister() async {
     if (!_online) throw Exception("NotConnectedSocketException");
 
-    final p = Parcel();
-    final header = p.getHeader();
+    final parcel = Parcel();
+    final header = parcel.getHeader();
     header.tag = _tidlVersion;
-    p.writeInt32(_MethodId.unregister);
+    parcel.writeInt32(_MethodId.unregister);
     final port = getPort(PortType.main);
-    await port.send(p);
-    p.dispose();
+    await port.send(parcel);
+    parcel.dispose();
   }
 
   Future<int> send(String msg) async {
     if (!_online) throw Exception("NotConnectedSocketException");
 
-    final p = Parcel();
-    final header = p.getHeader();
+    final parcel = Parcel();
+    final header = parcel.getHeader();
     header.tag = _tidlVersion;
-    p.writeInt32(_MethodId.send);
-    p.writeString(msg);
+    parcel.writeInt32(_MethodId.send);
+    parcel.writeString(msg);
     final port = getPort(PortType.main);
-    port.send(p);
+    port.send(parcel);
 
     Parcel? parcelReceived;
     do {
@@ -138,7 +138,7 @@ abstract class MessageProxy extends ProxyBase {
     } while (true);
 
     int ret = parcelReceived.readInt32();
-    p.dispose();
+    parcel.dispose();
     parcelReceived.dispose();
     return ret;
   }

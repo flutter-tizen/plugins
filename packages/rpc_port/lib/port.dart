@@ -27,7 +27,8 @@ class Port {
 
   Future<Parcel> receive() async {
     final manager = RpcPortPlatform.instance;
-    return Parcel.fromRaw(await manager.receive(this));
+    final raw = (await manager.receive(this));
+    return Parcel.fromRaw(raw);
   }
 
   Future<void> setPrivateSharingList(List<String> paths) async {
