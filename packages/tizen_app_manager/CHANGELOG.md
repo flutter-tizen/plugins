@@ -1,6 +1,10 @@
+## 0.1.5
+
+* Bump ffi dependency.
+
 ## 0.1.4
 
-* Fix arm64 build error
+* Fix arm64 build error.
 
 ## 0.1.3
 
