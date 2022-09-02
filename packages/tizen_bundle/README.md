@@ -21,7 +21,7 @@ The bundle content is in the from of key-value pairs, The key is always a string
 |--------------------------|-------------------|
 | `BundleType.string`      | String (default)  |
 | `BundleType.strings`     | String list       |
-| `BundleType.bytes`       | Byte list         |
+| `BundleType.bytes`       | Bytes             |
 
 To add content to a bundle, use a method associated with the type of the value you want to add:
 
@@ -58,14 +58,13 @@ To manage the bundle content:
 - `Bundle.getStrings()`
 - `Bundle.getBytes()`
 
-  You can also get the number of the bundle items with the `Bundle.getCount()` method, and the type of a value with a specific key with the `Bundle.getType()` method.
+  You can also get the number of the bundle items with the `Bundle.length` property, and the type of a value with a specific key with the `Bundle.getType()` method.
 
 ```dart
 import 'package:tizen_log/tizen_log.dart';
 
 String logTag = 'BundleTest';
-int count = bundle.getCount();
-Log.info(logTag, 'count: $count');
+Log.info(logTag, 'length: ${bundle.length}');
 if (bundle.getType('string') == BundleType.string) {
   var stringValue = bundle.getString("string");
   Log.info(logTag, 'string: $stringValue');
@@ -101,7 +100,7 @@ To iterate through the bundle records, use the 'Bundle.GetKeys()' method:
 
 ```dart
 final keyInfos = bundle.getKeys();
-keyInfos?.asMap().forEach((index, keyInfo) {
+keyInfos.asMap().forEach((index, keyInfo) {
 for (var index = 0; index < keys.length; ++index) {
   Log.info(logTag, 'key: ${keyInfo.name}');
   if (keyInfo.type == BundlType.string) {
@@ -117,18 +116,18 @@ for (var index = 0; index < keys.length; ++index) {
 
 ## Encoding and Decoding the Bundle
 
-To store or send a bundle over a connection, encode it to `BundleRaw` with the `Bundle.toRaw()` method.
+To store or send a bundle over a connection, encode it to `String` with the `Bundle.toRaw()` method.
 
-To open the encoded bundle, use the `Bundle.fromBundleRaw()` method.
+To open the encoded bundle, use the `Bundle.fromRaw()` method.
 
 ```dart
 var bundle = Bundle();
 bundle.addString('key1', 'value1');
 
-var bundleRaw = bundle.toRaw();
+var raw = bundle.toRaw();
 bundle.dispose();
 
-var newBundle = Bundle.fromBundleRaw(bundleRaw);
+var newBundle = Bundle.fromRaw(raw);
 Log.info(logTag, 'value: ${newBundle.getString('key')}');
 newBundle.dispose();
 ```
