@@ -5,7 +5,6 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter/services.dart';
 import 'package:tizen_interop/4.0/tizen.dart';
 import 'package:tizen_log/tizen_log.dart';
 
@@ -13,9 +12,6 @@ import 'package:tizen_log/tizen_log.dart';
 class _BundleTypeProperty {
   /// The array type.
   static const int array = 0x0100;
-
-  /// The primitive type.
-  static const int primitive = 0x0200;
 
   /// The measurable type.
   static const int measurable = 0x0400;

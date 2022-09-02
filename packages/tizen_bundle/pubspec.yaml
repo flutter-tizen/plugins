@@ -12,10 +12,11 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
+  ffi: ^1.1.2
+  tizen_interop: ^0.1.0
+  tizen_log: ^0.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
-  tizen_interop: ^0.1.0
-  tizen_log: ^0.1.0
