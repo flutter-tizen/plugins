@@ -35,8 +35,8 @@ enum BundleType {
   /// The bytes type.
   bytes(2);
 
-  const BundleType(this.type);
-  final int type;
+  const BundleType(this.value);
+  final int value;
 }
 
 /// The class for information of the key of the bundle object.
@@ -51,7 +51,7 @@ class KeyInfo {
   KeyInfo(this.name, this.type);
 
   /// Check whether the type of the key is array or not.
-  bool get isArray => (type.type & _BundleTypeProperty.array) as bool;
+  bool get isArray => (type.value & _BundleTypeProperty.array) as bool;
 }
 
 class _BundleErrorFactory {
@@ -203,9 +203,9 @@ class Bundle {
   }
 
   static BundleType _getBundleType(int type) {
-    if (type == BundleType.string.type) return BundleType.string;
-    if (type == BundleType.strings.type) return BundleType.strings;
-    if (type == BundleType.bytes.type) return BundleType.bytes;
+    if (type == BundleType.string.value) return BundleType.string;
+    if (type == BundleType.strings.value) return BundleType.strings;
+    if (type == BundleType.bytes.value) return BundleType.bytes;
 
     return BundleType.none;
   }
