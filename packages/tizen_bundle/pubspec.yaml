@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   plugin_platform_interface: ^2.0.2
-  ffi: ^1.1.2
+  ffi: ">=1.1.2 <3.0.0"
   tizen_interop: ^0.1.0
   tizen_log: ^0.1.0
 
