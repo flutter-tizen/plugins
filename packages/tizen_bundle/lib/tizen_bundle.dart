@@ -97,9 +97,9 @@ class Bundle {
   }
 
   /// Creates an instance of [Bundle] with the given raw data.
-  Bundle.fromBundleRaw(String bundleRaw)
-      : _handle = tizen.bundle_decode(
-            bundleRaw.toNativeInt8().cast<Uint8>(), bundleRaw.length) {
+  Bundle.fromRaw(String raw)
+      : _handle =
+            tizen.bundle_decode(raw.toNativeInt8().cast<Uint8>(), raw.length) {
     _finalizer.attach(this, this, detach: this);
   }
 
@@ -227,9 +227,10 @@ class Bundle {
   }
 
   /// Checks whether the bundle object is empty or not.
-  bool isEmpty() {
-    return tizen.bundle_get_count(_handle) == 0;
-  }
+  bool get isEmpty => length == 0;
+
+  /// Checks whether the bundle object is not empty or not.
+  bool get isNotEmpty => length > 0;
 
   /// Adds a bytes type key-value pair into the bundle object.
   void addBytes(String key, List<int> bytes) {

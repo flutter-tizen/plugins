@@ -17,7 +17,7 @@ class BundleTest {
 
   BundleTest._internal() {
     addTestcase(bundleTest);
-    addTestcase(bundleFromBundleRawTest);
+    addTestcase(bundleFromRawTest);
     addTestcase(bundleFromBundleTest);
     addTestcase(addStringAndGetStringTest);
     addTestcase(addBytesAndGetBytesTest);
@@ -26,6 +26,7 @@ class BundleTest {
     addTestcase(lengthTest);
     addTestcase(deleteTest);
     addTestcase(isEmptyTest);
+    addTestcase(isNotEmptyTest);
     addTestcase(getTypeTest);
     addTestcase(containsTest);
     addTestcase(getKeysTest);
@@ -54,14 +55,14 @@ class BundleTest {
     });
   }
 
-  void bundleFromBundleRawTest() {
+  void bundleFromRawTest() {
     test('bundleFromBundleRawTest', () {
       Log.info(_logTag, 'bundleFromBundleRawTest');
       var bundle = Bundle();
       bundle.addString("testName", "bundleFromBundleRawTest");
       String bundleRaw = bundle.toRaw();
 
-      var newBundle = Bundle.fromBundleRaw(bundleRaw);
+      var newBundle = Bundle.fromRaw(bundleRaw);
       expect(newBundle.getString("testName"), "bundleFromBundleRawTest");
     });
   }
@@ -124,9 +125,9 @@ class BundleTest {
 
       var bundleRaw = bundle.toRaw();
       expect(bundleRaw.isNotEmpty, true);
-      expect(bundleRaw.length != 0, true);
+      expect(bundleRaw.isEmpty, false);
 
-      var newBundle = Bundle.fromBundleRaw(bundleRaw);
+      var newBundle = Bundle.fromRaw(bundleRaw);
       expect(newBundle.getString("testName"), "toRawTest");
     });
   }
@@ -165,9 +166,20 @@ class BundleTest {
       Log.info(_logTag, 'isEmptyTest');
       var bundle = Bundle();
       bundle.addString('testName', 'isEmptyTest');
-      expect(bundle.isEmpty(), false);
+      expect(bundle.isEmpty, false);
       bundle.delete('testName');
-      expect(bundle.isEmpty(), true);
+      expect(bundle.isEmpty, true);
+    });
+  }
+
+  void isNotEmptyTest() {
+    test('isNotEmptyTest', () {
+      Log.info(_logTag, 'isNotEmptyTest');
+      var bundle = Bundle();
+      bundle.addString('testName', 'isNotEmptyTest');
+      expect(bundle.isNotEmpty, true);
+      bundle.delete('testName');
+      expect(bundle.isNotEmpty, false);
     });
   }
 
