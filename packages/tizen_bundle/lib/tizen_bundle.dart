@@ -77,19 +77,6 @@ class _BundleErrorFactory {
   }
 }
 
-/// A bundle raw object represents a bundle_raw.
-/// A bundle raw
-class BundleRaw {
-  /// The raw data.
-  final String raw;
-
-  /// The length of the raw data.
-  final int length;
-
-  /// Creates an instance of [BundleRaw] with the given arguments.
-  BundleRaw(this.raw, this.length);
-}
-
 /// A bundle object represents a bundle.
 /// A bundle holds items (key-value pairs) and can be used with other Tizen APIs.
 /// Keys can be used to access values.
@@ -98,8 +85,7 @@ class BundleRaw {
 class Bundle {
   static const String _logTag = 'BUNDLE';
   final dynamic _handle;
-  static int _iteratorCount = 0;
-  static final Map<int, List<KeyInfo>> _iteratorMap = <int, List<KeyInfo>>{};
+  static final List<KeyInfo> _keyInfos = [];
   bool _isDisposed = false;
 
   static final Finalizer<Bundle> _finalizer =
@@ -111,9 +97,9 @@ class Bundle {
   }
 
   /// Creates an instance of [Bundle] with the given raw data.
-  Bundle.fromBundleRaw(BundleRaw bundleRaw)
+  Bundle.fromBundleRaw(String bundleRaw)
       : _handle = tizen.bundle_decode(
-            bundleRaw.raw.toNativeInt8().cast<Uint8>(), bundleRaw.length) {
+            bundleRaw.toNativeInt8().cast<Uint8>(), bundleRaw.length) {
     _finalizer.attach(this, this, detach: this);
   }
 
@@ -217,25 +203,16 @@ class Bundle {
 
   static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
       Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
-    final pCount = userData.cast<Int32>();
     final String key = pKey.toDartString();
-    _iteratorMap[pCount.value]?.add(KeyInfo(key, type));
+    _keyInfos.add(KeyInfo(key, type));
   }
 
   /// Gets the KeyInfo items from the bundle object.
-  List<KeyInfo>? getKeys() {
-    int count = _iteratorCount++;
-    _iteratorMap[count] = [];
-    List<KeyInfo>? keys = using((Arena arena) {
-      final pCount = arena<Int32>();
-      pCount.value = count;
-      tizen.bundle_foreach(_handle,
-          Pointer.fromFunction(_bundleIteratorCallback), pCount.cast<Void>());
-      return _iteratorMap[count];
-    });
-    _iteratorMap.remove(count);
-
-    return keys;
+  List<KeyInfo> getKeys() {
+    _keyInfos.clear();
+    tizen.bundle_foreach(
+        _handle, Pointer.fromFunction(_bundleIteratorCallback), nullptr);
+    return _keyInfos;
   }
 
   /// Deletes the item from the bundle object with the specific key.
@@ -300,9 +277,9 @@ class Bundle {
     return values;
   }
 
-  /// Converts this object to BundleRaw type.
-  BundleRaw toRaw() {
-    BundleRaw raw = using((Arena arena) {
+  /// Converts this object to String type.
+  String toRaw() {
+    String raw = using((Arena arena) {
       final rawPointer = arena<Pointer<Int8>>();
       final lengthPointer = arena<Int32>();
       int ret = tizen.bundle_encode(
@@ -312,7 +289,7 @@ class Bundle {
         _BundleErrorFactory().throwException(ret);
       }
 
-      return BundleRaw(rawPointer.value.toDartString(), lengthPointer.value);
+      return rawPointer.value.toDartString();
     });
 
     return raw;
@@ -343,5 +320,6 @@ class Bundle {
 
     tizen.bundle_free(_handle);
     _isDisposed = true;
+    _finalizer.detach(this);
   }
 }

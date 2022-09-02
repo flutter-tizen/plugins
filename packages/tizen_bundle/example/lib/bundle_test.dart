@@ -59,7 +59,7 @@ class BundleTest {
       Log.info(_logTag, 'bundleFromBundleRawTest');
       var bundle = Bundle();
       bundle.addString("testName", "bundleFromBundleRawTest");
-      BundleRaw bundleRaw = bundle.toRaw();
+      String bundleRaw = bundle.toRaw();
 
       var newBundle = Bundle.fromBundleRaw(bundleRaw);
       expect(newBundle.getString("testName"), "bundleFromBundleRawTest");
@@ -123,7 +123,7 @@ class BundleTest {
       expect(bundle.length, 1);
 
       var bundleRaw = bundle.toRaw();
-      expect(bundleRaw.raw.isNotEmpty, true);
+      expect(bundleRaw.isNotEmpty, true);
       expect(bundleRaw.length != 0, true);
 
       var newBundle = Bundle.fromBundleRaw(bundleRaw);
@@ -206,7 +206,7 @@ class BundleTest {
       }
 
       final keyInfos = bundle.getKeys();
-      keyInfos?.asMap().forEach((index, keyInfo) {
+      keyInfos.asMap().forEach((index, keyInfo) {
         bool matched = false;
         for (var index = 0; index < keys.length; ++index) {
           if (matched) break;
@@ -218,7 +218,7 @@ class BundleTest {
         expect(matched, true);
       });
 
-      expect(keyInfos?.length, keys.length);
+      expect(keyInfos.length, keys.length);
     });
   }
 
