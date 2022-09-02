@@ -5,6 +5,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
 import 'package:tizen_interop/4.0/tizen.dart';
 import 'package:tizen_log/tizen_log.dart';
 
@@ -21,21 +22,21 @@ class _BundleTypeProperty {
 }
 
 /// The class for the type of the bundle.
-class BundleType {
+enum BundleType {
   /// The none type.
-  static const int none = 0;
+  none(0),
 
   /// The string type.
-  static const int string = 1 | _BundleTypeProperty.measurable;
+  string(1 | _BundleTypeProperty.measurable),
 
   /// The string list Type.
-  static const int strings = string | _BundleTypeProperty.array;
+  strings(1 | _BundleTypeProperty.measurable | _BundleTypeProperty.array),
 
-  /// The byte type.
-  static const int byte = 2;
+  /// The bytes type.
+  bytes(2);
 
-  /// The byte list type.
-  static const int bytes = byte | _BundleTypeProperty.array;
+  const BundleType(this.type);
+  final int type;
 }
 
 /// The class for information of the key of the bundle object.
@@ -44,13 +45,13 @@ class KeyInfo {
   final String name;
 
   /// The type of the key.
-  final int type;
+  final BundleType type;
 
   /// Creates an instance of [KeyInfo] with the given arguments.
   KeyInfo(this.name, this.type);
 
   /// Check whether the type of the key is array or not.
-  bool get isArray => (type & _BundleTypeProperty.array) as bool;
+  bool get isArray => (type.type & _BundleTypeProperty.array) as bool;
 }
 
 class _BundleErrorFactory {
@@ -201,10 +202,18 @@ class Bundle {
     return values;
   }
 
+  static BundleType _getBundleType(int type) {
+    if (type == BundleType.string.type) return BundleType.string;
+    if (type == BundleType.strings.type) return BundleType.strings;
+    if (type == BundleType.bytes.type) return BundleType.bytes;
+
+    return BundleType.none;
+  }
+
   static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
       Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
     final String key = pKey.toDartString();
-    _keyInfos.add(KeyInfo(key, type));
+    _keyInfos.add(KeyInfo(key, _getBundleType(type)));
   }
 
   /// Gets the KeyInfo items from the bundle object.
@@ -232,21 +241,21 @@ class Bundle {
   /// Checks whether the bundle object is not empty or not.
   bool get isNotEmpty => length > 0;
 
-  /// Adds a bytes type key-value pair into the bundle object.
+  /// Adds bytes type key-value pair into the bundle object.
   void addBytes(String key, List<int> bytes) {
     using((Arena arena) {
-      final byteArray = arena<Uint8>(bytes.length);
+      final bytesArray = arena<Uint8>(bytes.length);
       for (int index = 0; index < bytes.length; ++index) {
-        byteArray[index] = bytes[index] & 0xff;
+        bytesArray[index] = bytes[index] & 0xff;
       }
 
       int ret = tizen.bundle_add_byte(
           _handle,
           key.toNativeInt8(allocator: arena),
-          byteArray.cast<Void>(),
+          bytesArray.cast<Void>(),
           bytes.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, "Failed to add bytes. key: $key, error: $ret");
+        Log.error(_logTag, "Failed to add byte. key: $key, error: $ret");
         _BundleErrorFactory().throwException(ret);
       }
     });
@@ -263,7 +272,7 @@ class Bundle {
           bytes.cast<Pointer<Void>>(),
           bytesSize);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, "Failed to get bytes. key: $key, error: $ret");
+        Log.error(_logTag, "Failed to get byte. key: $key, error: $ret");
         _BundleErrorFactory().throwException(ret);
       }
 
@@ -300,19 +309,16 @@ class Bundle {
   int get length => tizen.bundle_get_count(_handle);
 
   /// Gets a type of the item of the key.
-  int getType(String key) {
-    return using((Arena arena) {
+  BundleType getType(String key) {
+    int type = using((Arena arena) {
       return tizen.bundle_get_type(_handle, key.toNativeInt8(allocator: arena));
     });
+    return _getBundleType(type);
   }
 
   /// Checks whether the key exists or not.
   bool contains(String key) {
-    return using((Arena arena) {
-      return tizen.bundle_get_type(
-              _handle, key.toNativeInt8(allocator: arena)) !=
-          BundleType.none;
-    });
+    return getType(key) != BundleType.none;
   }
 
   /// Releases all resources associated with this object.

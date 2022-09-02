@@ -188,13 +188,13 @@ class BundleTest {
       Log.info(_logTag, 'getTypeTest');
       var bundle = Bundle();
       bundle.addString('testName', 'getTypeTest');
-      int type = bundle.getType('testName');
+      var type = bundle.getType('testName');
       expect(type, BundleType.string);
 
       List<int> bytes = [0x01, 0x02, 0x03];
       bundle.addBytes('byteKey', bytes);
       type = bundle.getType('byteKey');
-      expect(type, BundleType.byte);
+      expect(type, BundleType.bytes);
     });
   }
 
