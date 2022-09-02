@@ -60,7 +60,7 @@ class ParcelHeader {
   }
 
   Timestamp get timestamp {
-    var using2 = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<timespec> time = calloc<timespec>();
       arena.using(time, calloc.free);
       int ret = tizen.rpc_port_parcel_header_get_timestamp(_header, time);
@@ -70,7 +70,6 @@ class ParcelHeader {
 
       return Timestamp(time.ref.tv_sec, time.ref.tv_nsec);
     });
-    return using2;
   }
 }
 

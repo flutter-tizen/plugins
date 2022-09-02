@@ -2,7 +2,25 @@ import 'dart:async';
 
 import 'package:rpc_port/rpc_port.dart';
 
-const _logTag = "RpcPort";
+const _logTag = "MessageProxy";
+
+enum _DelegateId {
+  notifyCB(1);
+
+  const _DelegateId(this.code);
+  final int code;
+}
+
+enum _MethodId {
+  result(0),
+  callback(1),
+  register(2),
+  unregister(3),
+  send(4);
+
+  const _MethodId(this.code);
+  final int code;
+}
 
 abstract class MessageProxy extends ProxyBase {
   static const String _tidlVersion = "1.9.1";
@@ -32,7 +50,7 @@ abstract class MessageProxy extends ProxyBase {
   Future<void> onReceivedEvent(
       String appid, String portName, Parcel parcel) async {
     final cmd = parcel.readInt32();
-    if (cmd != _MethodId.callback) {
+    if (cmd != _MethodId.callback.code) {
       parcel.dispose();
       return;
     }
@@ -58,7 +76,7 @@ abstract class MessageProxy extends ProxyBase {
     do {
       Parcel parcel = await port.receive();
       int cmd = parcel.readInt32();
-      if (cmd == _MethodId.result) return parcel;
+      if (cmd == _MethodId.result.code) return parcel;
 
       parcel.dispose();
     } while (true);
@@ -74,7 +92,7 @@ abstract class MessageProxy extends ProxyBase {
     final parcel = Parcel();
     ParcelHeader header = parcel.getHeader();
     header.tag = _tidlVersion;
-    parcel.writeInt32(_MethodId.register);
+    parcel.writeInt32(_MethodId.register.code);
     parcel.writeString(name);
     cb.serialize(parcel);
 
@@ -107,7 +125,7 @@ abstract class MessageProxy extends ProxyBase {
     final parcel = Parcel();
     final header = parcel.getHeader();
     header.tag = _tidlVersion;
-    parcel.writeInt32(_MethodId.unregister);
+    parcel.writeInt32(_MethodId.unregister.code);
     final port = getPort(PortType.main);
     await port.send(parcel);
     parcel.dispose();
@@ -119,7 +137,7 @@ abstract class MessageProxy extends ProxyBase {
     final parcel = Parcel();
     final header = parcel.getHeader();
     header.tag = _tidlVersion;
-    parcel.writeInt32(_MethodId.send);
+    parcel.writeInt32(_MethodId.send.code);
     parcel.writeString(msg);
     final port = getPort(PortType.main);
     port.send(parcel);
@@ -147,18 +165,6 @@ abstract class MessageProxy extends ProxyBase {
   void onConnected() {}
   void onDisconnected() {}
   void onRejected() {}
-}
-
-class _DelegateId {
-  static const int notifyCB = 1;
-}
-
-class _MethodId {
-  static const int result = 0;
-  static const int callback = 1;
-  static const int register = 2;
-  static const int unregister = 3;
-  static const int send = 4;
 }
 
 abstract class CallbackBase extends Parcelable {
@@ -191,7 +197,7 @@ abstract class CallbackBase extends Parcelable {
 }
 
 abstract class NotifyCB extends CallbackBase {
-  NotifyCB({bool once = false}) : super(_DelegateId.notifyCB, once);
+  NotifyCB({bool once = false}) : super(_DelegateId.notifyCB.code, once);
 
   Future<void> onReceived(String sender, String msg);
 

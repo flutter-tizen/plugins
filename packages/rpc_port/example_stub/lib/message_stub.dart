@@ -1,11 +1,25 @@
 import 'package:rpc_port/rpc_port.dart';
 import 'package:tizen_log/tizen_log.dart';
 
-String _logTag = 'RPC_PORT_STUB';
+String _logTag = 'MessageStub';
 
-enum DelegateId { notifyCB }
+enum _DelegateId {
+  notifyCB(1);
 
-enum MethodId { result, callback, register, unregister, send }
+  const _DelegateId(this.code);
+  final int code;
+}
+
+enum _MethodId {
+  result(0),
+  callback(1),
+  register(2),
+  unregister(3),
+  send(4);
+
+  const _MethodId(this.code);
+  final int code;
+}
 
 abstract class ServiceBase {
   final String sender;
@@ -58,8 +72,7 @@ class NotifyCB extends CallbackBase {
   ServiceBase service;
   bool _valid = true;
 
-  NotifyCB(this._port, this.service)
-      : super(DelegateId.notifyCB.index + 1, false);
+  NotifyCB(this._port, this.service) : super(_DelegateId.notifyCB.code, false);
 
   void invoke(String sender, String msg) {
     Log.info(_logTag, "invoke");
@@ -74,7 +87,7 @@ class NotifyCB extends CallbackBase {
     }
 
     Parcel parcel = Parcel();
-    parcel.writeInt32(MethodId.callback.index);
+    parcel.writeInt32(_MethodId.callback.code);
     serialize(parcel);
     parcel.writeString(sender);
     parcel.writeString(msg);
@@ -90,9 +103,9 @@ abstract class MessageStub extends StubBase {
   final Map<int, dynamic> _methodHandlers = {};
 
   MessageStub() : super('Message') {
-    _methodHandlers[MethodId.register.index] = onRegisterMethod;
-    _methodHandlers[MethodId.unregister.index] = onUnregisterMethod;
-    _methodHandlers[MethodId.send.index] = onSendMethod;
+    _methodHandlers[_MethodId.register.code] = onRegisterMethod;
+    _methodHandlers[_MethodId.unregister.code] = onUnregisterMethod;
+    _methodHandlers[_MethodId.send.code] = onSendMethod;
   }
 
   ServiceBase createInstance(String sender, String instance);
@@ -132,7 +145,7 @@ abstract class MessageStub extends StubBase {
     ParcelHeader resultHeader = result.getHeader();
     resultHeader.tag = "1.0";
     resultHeader.sequenceNumber = header.sequenceNumber;
-    result.writeInt32(MethodId.result.index);
+    result.writeInt32(_MethodId.result.code);
     result.writeInt32(ret);
     port.send(result);
     result.dispose();
@@ -153,7 +166,7 @@ abstract class MessageStub extends StubBase {
     ParcelHeader resultHeader = result.getHeader();
     resultHeader.tag = "1.0";
     resultHeader.sequenceNumber = header.sequenceNumber;
-    result.writeInt32(MethodId.result.index);
+    result.writeInt32(_MethodId.result.code);
     result.writeInt32(ret);
     port.send(result);
     result.dispose();
