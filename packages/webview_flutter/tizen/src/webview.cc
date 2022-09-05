@@ -166,9 +166,10 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
   }
 
   texture_variant_ =
-      std::make_unique<flutter::TextureVariant>(flutter::GpuBufferTexture(
+      std::make_unique<flutter::TextureVariant>(flutter::GpuSurfaceTexture(
+          kFlutterDesktopGpuSurfaceTypeNone,
           [this](size_t width,
-                 size_t height) -> const FlutterDesktopGpuBuffer* {
+                 size_t height) -> const FlutterDesktopGpuSurfaceDescriptor* {
             return ObtainGpuBuffer(width, height);
           }));
   SetTextureId(texture_registrar_->RegisterTexture(texture_variant_.get()));
@@ -862,7 +863,8 @@ void WebView::HandleCookieMethodCall(
   }
 }
 
-FlutterDesktopGpuBuffer* WebView::ObtainGpuBuffer(size_t width, size_t height) {
+FlutterDesktopGpuSurfaceDescriptor* WebView::ObtainGpuBuffer(size_t width,
+                                                             size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!candidate_surface_) {
     if (rendered_surface_) {

@@ -329,7 +329,8 @@ class CameraDevice {
   long texture_id_{0};
   flutter::PluginRegistrar *registrar_{nullptr};
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
-  std::unique_ptr<FlutterDesktopGpuBuffer> flutter_desktop_gpu_buffer_;
+  std::unique_ptr<FlutterDesktopGpuSurfaceDescriptor>
+      flutter_desktop_gpu_buffer_;
   media_packet_h current_packet_{nullptr};
 
   std::mutex mutex_;

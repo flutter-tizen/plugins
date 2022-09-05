@@ -52,8 +52,8 @@ void VideoPlayer::ReleaseMediaPacket(void *data) {
   }
 }
 
-FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
-                                                      size_t height) {
+FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuBuffer(
+    size_t width, size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (!current_media_packet_) {
     LOG_ERROR("[VideoPlayer] No valid media packet.");
@@ -67,9 +67,11 @@ FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
     current_media_packet_ = nullptr;
     return nullptr;
   }
-  flutter_desktop_gpu_buffer_->buffer = surface;
+  flutter_desktop_gpu_buffer_->handle = surface;
   flutter_desktop_gpu_buffer_->width = width;
+  flutter_desktop_gpu_buffer_->visible_width = width;
   flutter_desktop_gpu_buffer_->height = height;
+  flutter_desktop_gpu_buffer_->visible_height = height;
   flutter_desktop_gpu_buffer_->release_context = this;
   flutter_desktop_gpu_buffer_->release_callback = ReleaseMediaPacket;
   return flutter_desktop_gpu_buffer_.get();
@@ -82,12 +84,14 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
   texture_registrar_ = texture_registrar;
 
   texture_variant_ =
-      std::make_unique<flutter::TextureVariant>(flutter::GpuBufferTexture(
+      std::make_unique<flutter::TextureVariant>(flutter::GpuSurfaceTexture(
+          kFlutterDesktopGpuSurfaceTypeNone,
           [this](size_t width,
-                 size_t height) -> const FlutterDesktopGpuBuffer * {
+                 size_t height) -> const FlutterDesktopGpuSurfaceDescriptor * {
             return this->ObtainGpuBuffer(width, height);
           }));
-  flutter_desktop_gpu_buffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
+  flutter_desktop_gpu_buffer_ =
+      std::make_unique<FlutterDesktopGpuSurfaceDescriptor>();
   texture_id_ = texture_registrar->RegisterTexture(texture_variant_.get());
 
   int ret = player_create(&player_);

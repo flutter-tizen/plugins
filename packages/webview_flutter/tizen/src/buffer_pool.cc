@@ -53,10 +53,12 @@ void BufferUnit::Reset(int32_t width, int32_t height) {
   }
 
   tbm_surface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
-  gpu_buffer_ = new FlutterDesktopGpuBuffer();
+  gpu_buffer_ = new FlutterDesktopGpuSurfaceDescriptor();
   gpu_buffer_->width = width_;
+  gpu_buffer_->visible_width = width_;
   gpu_buffer_->height = height_;
-  gpu_buffer_->buffer = tbm_surface_;
+  gpu_buffer_->visible_height = height_;
+  gpu_buffer_->handle = tbm_surface_;
   gpu_buffer_->release_callback = [](void* release_context) {
     BufferUnit* buffer = reinterpret_cast<BufferUnit*>(release_context);
     buffer->UnmarkInUse();
