@@ -1,51 +1,86 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:tizen_bundle_example/bundle_test.dart';
+import 'package:tizen_bundle/tizen_bundle.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  String _testState = 'Unknown';
+  final Bundle _bundle = Bundle();
+  int _count = 0;
+  String _msg = '';
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    BundleTest().run();
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _testState = "done";
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Tizen Bundle example',
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
+        appBar: AppBar(title: const Text('Tizen Bundle example')),
         body: Center(
-          child: Text('Test state: $_testState\n'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const Text(
+                'Bundle example',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0.0, 50.0, 0.0, 50.0),
+                child: Text('Message: $_msg\n'),
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  _bundle.addString(
+                      'stringKey_${_count++}', 'stringValue_$_count');
+                  setState(() {
+                    _msg = 'addString done.';
+                  });
+                },
+                child: const Text('Add String'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final String value =
+                      _bundle.getString('stringKey_${_count - 1}');
+                  setState(() {
+                    _msg = 'getString done. value: $value';
+                  });
+                },
+                child: const Text('Get String'),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _msg = 'length: ${_bundle.length}';
+                  });
+                },
+                child: const Text('Get length'),
+              ),
+              TextButton(
+                onPressed: () {
+                  _bundle.delete('stringKey_${--_count}');
+                  setState(() {
+                    _msg = 'delete done.';
+                  });
+                },
+                child: const Text('Remove String'),
+              ),
+            ],
+          ),
         ),
       ),
     );

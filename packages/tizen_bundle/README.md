@@ -1,5 +1,7 @@
 # tizen_bundle
 
+[![pub package](https://img.shields.io/pub/v/tizen_bundle.svg)](https://pub.dev/packages/tizen_bundle)
+
 Tizen bundle APIs.
 
 ## Usage
@@ -8,20 +10,19 @@ To use this package, add `tizen_bundle` as a dependency in your `pubspec.yaml` f
 
 ```yaml
 depenedencies:
-  tizen_bundle:
-
+  tizen_bundle: ^0.1.0
 ```
 
-## Adding Content to a Bundle
+### Adding Content to a Bundle
 
-The bundle content is in the from of key-value pairs, The key is always a string. The value can be of the following types:
+The bundle content is in the from of key-value pairs, the key is always a string. The value can be of the following types:
 
 **Table: Bundle value types**
-| Value constant           | Value type        |
+| Type enum                | Dart type         |
 |--------------------------|-------------------|
-| `BundleType.string`      | String (default)  |
-| `BundleType.strings`     | String list       |
-| `BundleType.bytes`       | Bytes             |
+| `BundleType.string`      | String            |
+| `BundleType.strings`     | List<String>      |
+| `BundleType.bytes`       | Uint8List         |
 
 To add content to a bundle, use a method associated with the type of the value you want to add:
 
