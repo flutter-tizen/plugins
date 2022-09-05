@@ -59,6 +59,7 @@ std::unique_ptr<StateHandler::ErrorType> StateHandler::OnListenInternal(
 std::unique_ptr<StateHandler::ErrorType> StateHandler::OnCancelInternal(
     const flutter::EncodableValue* arguments) {
   event_sink_ = nullptr;
+  system_event_handler_.SetCallback(nullptr);
 
   return nullptr;
 }
