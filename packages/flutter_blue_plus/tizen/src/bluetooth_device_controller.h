@@ -48,8 +48,8 @@ class BluetoothDeviceController {
   using PairCallback = std::function<void(
       const BluetoothDeviceController& device, const Bond bond)>;
 
-  BluetoothDeviceController(const std::string& name,
-                            const std::string& address) noexcept;
+  BluetoothDeviceController(std::string name,
+                            std::string address) noexcept;
 
   ~BluetoothDeviceController() noexcept;
 

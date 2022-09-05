@@ -35,11 +35,11 @@ struct SafeType {
 
 class BtException : public std::exception {
  public:
-  explicit BtException(const std::string& message) : message_(message){};
-  BtException(const int tizen_error, const std::string& message)
-      : tizen_error_(tizen_error),
-        message_(std::string(get_error_message(tizen_error)) + ": " +
-                 message){};
+  explicit BtException(std::string message) : message_(std::move(message)){};
+  BtException(const int tizen_error, std::string message)
+      : tizen_error_(tizen_error), message_(std::move(message)) {
+    message_ += ": " + std::string(get_error_message(tizen_error));
+  };
 
   explicit BtException(const int tizen_error)
       : tizen_error_(tizen_error), message_(get_error_message(tizen_error)){};

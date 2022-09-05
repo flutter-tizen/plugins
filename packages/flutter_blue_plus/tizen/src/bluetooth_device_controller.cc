@@ -23,8 +23,8 @@ namespace flutter_blue_plus_tizen {
 using State = BluetoothDeviceController::State;
 
 BluetoothDeviceController::BluetoothDeviceController(
-    const std::string& name, const std::string& address) noexcept
-    : name_(name), address_(address) {
+    std::string name, std::string address) noexcept
+    : name_(std::move(name)), address_(std::move(address)) {
   std::scoped_lock lock(active_devices_.mutex_);
   active_devices_.var.insert({address, this});
 }
