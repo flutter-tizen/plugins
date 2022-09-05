@@ -8,6 +8,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include <algorithm>
+#include <queue>
 
 #include "log.h"
 #include "video_player_error.h"
@@ -92,7 +93,6 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          flutter::TextureRegistrar *texture_registrar,
                          const std::string &uri, VideoPlayerOptions &options) {
   is_initialized_ = false;
-  is_rendering_ = false;
   texture_registrar_ = texture_registrar;
 
   texture_variant_ =
@@ -470,7 +470,6 @@ void VideoPlayer::RunMediaPacketLoop(void *data, Ecore_Thread *thread) {
     Message *message = static_cast<Message *>(
         eina_thread_queue_wait(packet_thread_queue, &ref));
     if (message->event == kMessageQuit) {
-      LOG_ERROR("Message quit.");
       eina_thread_queue_wait_done(packet_thread_queue, ref);
       break;
     }

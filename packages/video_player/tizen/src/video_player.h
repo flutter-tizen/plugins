@@ -14,7 +14,6 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <string>
 
 #include "video_player_options.h"
@@ -63,7 +62,7 @@ class VideoPlayer {
   media_packet_h current_media_packet_ = nullptr;
   media_packet_h previous_media_packet_ = nullptr;
   bool is_initialized_;
-  bool is_rendering_;
+  bool is_rendering_ = false;
   player_h player_;
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
