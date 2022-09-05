@@ -44,21 +44,33 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  _bundle.addString(
-                      'stringKey_${_count++}', 'stringValue_$_count');
-                  setState(() {
-                    _msg = 'addString done.';
-                  });
+                  try {
+                    _bundle.addString(
+                        'stringKey_${_count++}', 'stringValue_$_count');
+                    setState(() {
+                      _msg = 'addString done.';
+                    });
+                  } on Exception catch (_, e) {
+                    setState(() {
+                      _msg = 'Exception($e) occurs';
+                    });
+                  }
                 },
                 child: const Text('Add String'),
               ),
               TextButton(
                 onPressed: () {
-                  final String value =
-                      _bundle.getString('stringKey_${_count - 1}');
-                  setState(() {
-                    _msg = 'getString done. value: $value';
-                  });
+                  if (_count > 0) {
+                    final String value =
+                        _bundle.getString('stringKey_${_count - 1}');
+                    setState(() {
+                      _msg = 'getString done. value: $value';
+                    });
+                  } else {
+                    setState(() {
+                      _msg = 'Bundle is empty';
+                    });
+                  }
                 },
                 child: const Text('Get String'),
               ),
@@ -72,10 +84,16 @@ class _MyAppState extends State<MyApp> {
               ),
               TextButton(
                 onPressed: () {
-                  _bundle.delete('stringKey_${--_count}');
-                  setState(() {
-                    _msg = 'delete done.';
-                  });
+                  if (_count > 0) {
+                    _bundle.delete('stringKey_${--_count}');
+                    setState(() {
+                      _msg = 'delete done.';
+                    });
+                  } else {
+                    setState(() {
+                      _msg = 'Bundle is empty';
+                    });
+                  }
                 },
                 child: const Text('Remove String'),
               ),
