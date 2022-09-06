@@ -42,8 +42,8 @@ class VideoPlayer {
   void Initialize();
   void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void SendInitialized();
-  FlutterDesktopGpuSurfaceDescriptor *ObtainGpuBuffer(size_t width,
-                                                      size_t height);
+  FlutterDesktopGpuSurfaceDescriptor *ObtainGpuSurface(size_t width,
+                                                       size_t height);
   static void ReleaseMediaPacket(void *packet);
 
   static void OnPrepared(void *data);
@@ -62,8 +62,7 @@ class VideoPlayer {
   int64_t texture_id_;
   flutter::TextureRegistrar *texture_registrar_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
-  std::unique_ptr<FlutterDesktopGpuSurfaceDescriptor>
-      flutter_desktop_gpu_buffer_;
+  std::unique_ptr<FlutterDesktopGpuSurfaceDescriptor> gpu_surface_;
   std::mutex mutex_;
   SeekCompletedCallback on_seek_completed_;
   media_packet_h current_media_packet_ = nullptr;

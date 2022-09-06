@@ -26,7 +26,7 @@ class BufferUnit {
 
   tbm_surface_h Surface();
 
-  FlutterDesktopGpuSurfaceDescriptor* GpuBuffer() { return gpu_buffer_; }
+  FlutterDesktopGpuSurfaceDescriptor* GpuSurface() { return gpu_surface_; }
 
 #ifndef NDEBUG
   // TODO: Unused code.
@@ -38,7 +38,7 @@ class BufferUnit {
   int32_t width_ = 0;
   int32_t height_ = 0;
   tbm_surface_h tbm_surface_ = nullptr;
-  FlutterDesktopGpuSurfaceDescriptor* gpu_buffer_ = nullptr;
+  FlutterDesktopGpuSurfaceDescriptor* gpu_surface_ = nullptr;
 };
 
 class BufferPool {

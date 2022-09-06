@@ -46,8 +46,8 @@ class WebView : public PlatformView {
 
   LWE::WebContainer* GetWebViewInstance() { return webview_instance_; }
 
-  FlutterDesktopGpuSurfaceDescriptor* ObtainGpuBuffer(size_t width,
-                                                      size_t height);
+  FlutterDesktopGpuSurfaceDescriptor* ObtainGpuSurface(size_t width,
+                                                       size_t height);
 
  private:
   void HandleMethodCall(

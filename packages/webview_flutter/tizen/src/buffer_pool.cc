@@ -13,9 +13,9 @@ BufferUnit::~BufferUnit() {
     tbm_surface_destroy(tbm_surface_);
     tbm_surface_ = nullptr;
   }
-  if (gpu_buffer_) {
-    delete gpu_buffer_;
-    gpu_buffer_ = nullptr;
+  if (gpu_surface_) {
+    delete gpu_surface_;
+    gpu_surface_ = nullptr;
   }
 }
 
@@ -47,23 +47,23 @@ void BufferUnit::Reset(int32_t width, int32_t height) {
     tbm_surface_destroy(tbm_surface_);
     tbm_surface_ = nullptr;
   }
-  if (gpu_buffer_) {
-    delete gpu_buffer_;
-    gpu_buffer_ = nullptr;
+  if (gpu_surface_) {
+    delete gpu_surface_;
+    gpu_surface_ = nullptr;
   }
 
   tbm_surface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
-  gpu_buffer_ = new FlutterDesktopGpuSurfaceDescriptor();
-  gpu_buffer_->width = width_;
-  gpu_buffer_->visible_width = width_;
-  gpu_buffer_->height = height_;
-  gpu_buffer_->visible_height = height_;
-  gpu_buffer_->handle = tbm_surface_;
-  gpu_buffer_->release_callback = [](void* release_context) {
+  gpu_surface_ = new FlutterDesktopGpuSurfaceDescriptor();
+  gpu_surface_->width = width_;
+  gpu_surface_->visible_width = width_;
+  gpu_surface_->height = height_;
+  gpu_surface_->visible_height = height_;
+  gpu_surface_->handle = tbm_surface_;
+  gpu_surface_->release_callback = [](void* release_context) {
     BufferUnit* buffer = reinterpret_cast<BufferUnit*>(release_context);
     buffer->UnmarkInUse();
   };
-  gpu_buffer_->release_context = this;
+  gpu_surface_->release_context = this;
 }
 
 BufferPool::BufferPool(int32_t width, int32_t height, size_t pool_size) {
