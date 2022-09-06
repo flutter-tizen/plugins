@@ -69,9 +69,7 @@ FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuSurface(
   }
   gpu_surface_->handle = surface;
   gpu_surface_->width = width;
-  gpu_surface_->visible_width = width;
   gpu_surface_->height = height;
-  gpu_surface_->visible_height = height;
   gpu_surface_->release_context = this;
   gpu_surface_->release_callback = ReleaseMediaPacket;
   return gpu_surface_.get();

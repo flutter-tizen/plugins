@@ -348,9 +348,7 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
             }
             gpu_surface_->handle = surface;
             gpu_surface_->width = width;
-            gpu_surface_->visible_width = width;
             gpu_surface_->height = height;
-            gpu_surface_->visible_height = height;
             gpu_surface_->release_callback = [](void *release_context) {
               CameraDevice *cd = (CameraDevice *)release_context;
               cd->ReleaseMediaPacket();
