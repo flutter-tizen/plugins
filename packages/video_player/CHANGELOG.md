@@ -1,5 +1,6 @@
 ## 2.4.1
-* Appaly new texture APIs.
+
+* Apply new texture APIs.
 
 ## 2.4.0
 

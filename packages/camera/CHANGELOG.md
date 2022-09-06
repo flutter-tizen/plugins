@@ -1,5 +1,6 @@
 ## 0.3.3
-* Appaly new texture APIs.
+
+* Apply new texture APIs.
 
 ## 0.3.2
 
