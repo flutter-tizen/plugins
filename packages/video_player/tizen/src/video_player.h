@@ -18,6 +18,12 @@
 
 #include "video_player_options.h"
 
+typedef enum {
+  kMessageQuit = 0,
+  kMessageOnFrameDecoded,
+  kMessageOnRenderFinished,
+} MessageEvent;
+
 class VideoPlayer {
  public:
   using SeekCompletedCallback = std::function<void()>;
@@ -43,7 +49,7 @@ class VideoPlayer {
   void Initialize();
   void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void SendInitialized();
-  void SendMessage(int event, media_packet_h media_packet);
+  void SendMessage(MessageEvent event, media_packet_h media_packet);
   void SendRenderFinishedMessage();
   FlutterDesktopGpuBuffer *ObtainGpuBuffer(size_t width, size_t height);
   static void ReleaseMediaPacket(void *packet);
@@ -61,7 +67,7 @@ class VideoPlayer {
   Eina_Thread_Queue *packet_thread_queue_ = nullptr;
   media_packet_h current_media_packet_ = nullptr;
   media_packet_h previous_media_packet_ = nullptr;
-  bool is_initialized_;
+  bool is_initialized_ = false;
   bool is_rendering_ = false;
   player_h player_;
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>

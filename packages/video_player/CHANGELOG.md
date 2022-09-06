@@ -1,3 +1,7 @@
+## 2.4.1
+
+* Implement a new message loop for storing media packet.
+
 ## 2.4.0
 
 * Update video_player to 2.4.2.

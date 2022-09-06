@@ -13,13 +13,9 @@
 #include "log.h"
 #include "video_player_error.h"
 
-constexpr int kMessageQuit = -1;
-constexpr int kMessageOnFrameDecoded = 0;
-constexpr int kMessageOnRenderFinished = 1;
-
 struct Message {
   Eina_Thread_Queue_Msg head;
-  int event;
+  MessageEvent event;
   media_packet_h media_packet;
 };
 
@@ -92,7 +88,6 @@ FlutterDesktopGpuBuffer *VideoPlayer::ObtainGpuBuffer(size_t width,
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          flutter::TextureRegistrar *texture_registrar,
                          const std::string &uri, VideoPlayerOptions &options) {
-  is_initialized_ = false;
   texture_registrar_ = texture_registrar;
 
   texture_variant_ =
@@ -470,6 +465,7 @@ void VideoPlayer::RunMediaPacketLoop(void *data, Ecore_Thread *thread) {
     Message *message = static_cast<Message *>(
         eina_thread_queue_wait(packet_thread_queue, &ref));
     if (message->event == kMessageQuit) {
+      LOG_INFO("Message quit.");
       eina_thread_queue_wait_done(packet_thread_queue, ref);
       break;
     }
@@ -504,7 +500,7 @@ void VideoPlayer::RunMediaPacketLoop(void *data, Ecore_Thread *thread) {
   }
 }
 
-void VideoPlayer::SendMessage(int event, media_packet_h media_packet) {
+void VideoPlayer::SendMessage(MessageEvent event, media_packet_h media_packet) {
   if (!packet_thread_ || ecore_thread_check(packet_thread_)) {
     LOG_ERROR("Invalid packet thread.");
     return;
