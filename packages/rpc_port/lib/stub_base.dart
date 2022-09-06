@@ -19,31 +19,33 @@ import 'port.dart';
 const String _logTag = "RPC_PORT";
 
 abstract class StubBase extends Disposable {
-  final String _portName;
-  StreamSubscription<dynamic>? _streamSubscription;
-  bool _isListening = false;
-
   StubBase(this._portName) {
-    final manager = RpcPortPlatform.instance;
+    final RpcPortPlatform manager = RpcPortPlatform.instance;
     manager.create(_portName);
   }
+
+  final String _portName;
+  late final StreamSubscription<dynamic> _streamSubscription;
+  bool _isListening = false;
 
   String get portName => _portName;
 
   void setTrusted(bool trusted) {
-    final manager = RpcPortPlatform.instance;
+    final RpcPortPlatform manager = RpcPortPlatform.instance;
     manager.setTrusted(_portName, trusted);
   }
 
   void addPrivilege(String privilege) {
-    final manager = RpcPortPlatform.instance;
+    final RpcPortPlatform manager = RpcPortPlatform.instance;
     manager.addPrivilege(_portName, privilege);
   }
 
   void listen() {
-    if (_isListening) return;
+    if (_isListening) {
+      return;
+    }
 
-    final manager = RpcPortPlatform.instance;
+    final RpcPortPlatform manager = RpcPortPlatform.instance;
     final Stream<dynamic> stream = manager.listen(_portName);
     _streamSubscription = stream.listen((dynamic event) {
       if (event is Map) {
@@ -53,17 +55,17 @@ abstract class StubBase extends Disposable {
         final String instance = map['instance'] as String;
 
         Log.info(
-            _logTag, "event: $eventName, sender: $sender, instance: $instance");
+            _logTag, 'event: $eventName, sender: $sender, instance: $instance');
         if (eventName == 'connected') {
           onConnectedEvent(sender, instance);
         } else if (eventName == 'disconnected') {
           onDisconnectedEvent(sender, instance);
         } else if (eventName == 'received') {
           final Uint8List rawData = map['rawData'] as Uint8List;
-          final parcel = Parcel.fromRaw(rawData);
+          final Parcel parcel = Parcel.fromRaw(rawData);
           onReceivedEvent(sender, instance, parcel);
         } else {
-          Log.error(_logTag, "Unknown event; $eventName");
+          Log.error(_logTag, 'Unknown event; $eventName');
         }
       }
     });
@@ -72,9 +74,11 @@ abstract class StubBase extends Disposable {
 
   @override
   void dispose() {
-    if (isDisposed) return;
+    if (isDisposed) {
+      return;
+    }
 
-    final manager = RpcPortPlatform.instance;
+    final RpcPortPlatform manager = RpcPortPlatform.instance;
     manager.destroy(_portName);
     isDisposed = true;
   }

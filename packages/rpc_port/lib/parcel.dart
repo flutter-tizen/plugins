@@ -4,8 +4,8 @@ import 'package:ffi/ffi.dart';
 
 import 'package:tizen_interop/6.5/tizen.dart';
 
-import 'disposable.dart';
 import 'bundle.dart';
+import 'disposable.dart';
 
 class Timestamp {
   int second;
@@ -14,13 +14,14 @@ class Timestamp {
 }
 
 class ParcelHeader {
+  ParcelHeader._fromHandle(this._header);
+
   late final Pointer<Void> _header;
 
-  ParcelHeader._fromHandle(this._header);
   String get tag {
     return using((Arena arena) {
-      Pointer<Pointer<Int8>> rawTag = arena();
-      int ret = tizen.rpc_port_parcel_header_get_tag(_header, rawTag);
+      final Pointer<Pointer<Int8>> rawTag = arena();
+      final int ret = tizen.rpc_port_parcel_header_get_tag(_header, rawTag);
       arena.using(rawTag.value, malloc.free);
       if (ret != 0) {
         throw ret;
@@ -33,7 +34,7 @@ class ParcelHeader {
   set tag(String tag_) {
     using((Arena arena) {
       final Pointer<Int8> rawTag = tag_.toNativeInt8(allocator: arena);
-      int ret = tizen.rpc_port_parcel_header_set_tag(_header, rawTag);
+      final int ret = tizen.rpc_port_parcel_header_set_tag(_header, rawTag);
       if (ret != 0) {
         throw ret;
       }
@@ -43,7 +44,7 @@ class ParcelHeader {
   int get sequenceNumber {
     return using((Arena arena) {
       Pointer<Int32> seqNum = arena();
-      int ret = tizen.rpc_port_parcel_header_get_seq_num(_header, seqNum);
+      final int ret = tizen.rpc_port_parcel_header_get_seq_num(_header, seqNum);
       if (ret != 0) {
         throw ret;
       }
@@ -53,7 +54,7 @@ class ParcelHeader {
   }
 
   set sequenceNumber(int seqNum) {
-    int ret = tizen.rpc_port_parcel_header_set_seq_num(_header, seqNum);
+    final int ret = tizen.rpc_port_parcel_header_set_seq_num(_header, seqNum);
     if (ret != 0) {
       throw ret;
     }
@@ -61,9 +62,9 @@ class ParcelHeader {
 
   Timestamp get timestamp {
     return using((Arena arena) {
-      Pointer<timespec> time = calloc<timespec>();
+      final Pointer<timespec> time = calloc<timespec>();
       arena.using(time, calloc.free);
-      int ret = tizen.rpc_port_parcel_header_get_timestamp(_header, time);
+      final int ret = tizen.rpc_port_parcel_header_get_timestamp(_header, time);
       if (ret != 0) {
         throw ret;
       }
@@ -74,25 +75,10 @@ class ParcelHeader {
 }
 
 class Parcel implements Disposable {
-  @override
-  bool isDisposed = true;
-  late final Pointer<Void> _parcel;
-
-  static const _byteMax = 0xff;
-  static const _int16Max = 0x7fff;
-  static const _int32Max = 0x7ffffffff;
-  static const _int64Max = 0x7FFFFFFFFFFFFFFF;
-  static final _finalizer = Finalizer<Pointer<Void>>((handle) {
-    int ret = tizen.rpc_port_parcel_destroy(handle);
-    if (ret != 0) {
-      throw ret;
-    }
-  });
-
   Parcel() {
     _parcel = using((Arena arena) {
-      Pointer<Pointer<Void>> pParcel = arena();
-      int ret = tizen.rpc_port_parcel_create(pParcel);
+      final Pointer<Pointer<Void>> pParcel = arena();
+      final int ret = tizen.rpc_port_parcel_create(pParcel);
       if (ret != 0) {
         throw ret;
       }
@@ -106,13 +92,13 @@ class Parcel implements Disposable {
 
   Parcel.fromRaw(Uint8List rawData) {
     using((Arena arena) {
-      var pRaw = arena.allocate<Uint8>(rawData.length);
-      Pointer<Pointer<Void>> pH = arena();
-      for (var i in Iterable<int>.generate(rawData.length)) {
+      final Pointer<Uint8> pRaw = arena.allocate<Uint8>(rawData.length);
+      final Pointer<Pointer<Void>> pH = arena();
+      for (final int i in Iterable<int>.generate(rawData.length)) {
         pRaw[i] = rawData[i] & 0xff;
       }
 
-      int ret = tizen.rpc_port_parcel_create_from_raw(
+      final int ret = tizen.rpc_port_parcel_create_from_raw(
           pH, pRaw.cast<Void>(), rawData.length);
       if (ret != 0) {
         throw ret;
@@ -122,11 +108,28 @@ class Parcel implements Disposable {
     });
   }
 
+  @override
+  bool isDisposed = true;
+  late final Pointer<Void> _parcel;
+
+  static const int _byteMax = 0xff;
+  static const int _int16Max = 0x7fff;
+  static const int _int32Max = 0x7ffffffff;
+  static const int _int64Max = 0x7FFFFFFFFFFFFFFF;
+
+  static final Finalizer<Pointer<Void>> _finalizer =
+      Finalizer<Pointer<Void>>((Pointer<Void> handle) {
+    final int ret = tizen.rpc_port_parcel_destroy(handle);
+    if (ret != 0) {
+      throw ret;
+    }
+  });
+
   List<int> get raw {
     return using((Arena arena) {
-      Pointer<Pointer<Void>> rawData = arena();
-      Pointer<Uint32> size = arena();
-      int ret = tizen.rpc_port_parcel_get_raw(_parcel, rawData, size);
+      final Pointer<Pointer<Void>> rawData = arena();
+      final Pointer<Uint32> size = arena();
+      final int ret = tizen.rpc_port_parcel_get_raw(_parcel, rawData, size);
       if (ret != 0) {
         throw ret;
       }
@@ -141,7 +144,7 @@ class Parcel implements Disposable {
       return;
     }
 
-    int ret = tizen.rpc_port_parcel_destroy(_parcel);
+    final int ret = tizen.rpc_port_parcel_destroy(_parcel);
     if (ret != 0) {
       throw ret;
     }
@@ -151,54 +154,55 @@ class Parcel implements Disposable {
   }
 
   void writeByte(int value) {
-    int ret = tizen.rpc_port_parcel_write_byte(_parcel, value & _byteMax);
+    final int ret = tizen.rpc_port_parcel_write_byte(_parcel, value & _byteMax);
     if (ret != 0) {
       throw ret;
     }
   }
 
   void writeInt16(int value) {
-    int ret = tizen.rpc_port_parcel_write_int16(_parcel, value & _int16Max);
+    final int ret =
+        tizen.rpc_port_parcel_write_int16(_parcel, value & _int16Max);
     if (ret != 0) {
       throw ret;
     }
   }
 
   void writeInt32(int value) {
-    int ret = tizen.rpc_port_parcel_write_int32(_parcel, value & _int32Max);
+    final int ret =
+        tizen.rpc_port_parcel_write_int32(_parcel, value & _int32Max);
     if (ret != 0) {
       throw ret;
     }
   }
 
   void writeInt64(int value) {
-    int ret = tizen.rpc_port_parcel_write_int64(_parcel, value & _int64Max);
+    final int ret =
+        tizen.rpc_port_parcel_write_int64(_parcel, value & _int64Max);
     if (ret != 0) {
       throw ret;
     }
   }
 
   void writeDouble(double value) {
-    int ret = tizen.rpc_port_parcel_write_double(_parcel, value);
+    final int ret = tizen.rpc_port_parcel_write_double(_parcel, value);
     if (ret != 0) {
       throw ret;
     }
   }
 
   void writeString(String value) {
-    int ret = 0;
     using((Arena arena) {
-      final str = value.toNativeInt8(allocator: arena);
-      ret = tizen.rpc_port_parcel_write_string(_parcel, str);
+      final Pointer<Int8> str = value.toNativeInt8(allocator: arena);
+      final int ret = tizen.rpc_port_parcel_write_string(_parcel, str);
+      if (ret != 0) {
+        throw ret;
+      }
     });
-
-    if (ret != 0) {
-      throw ret;
-    }
   }
 
   void writeBool(bool value) {
-    int ret = tizen.rpc_port_parcel_write_bool(_parcel, value);
+    final int ret = tizen.rpc_port_parcel_write_bool(_parcel, value);
     if (ret != 0) {
       throw ret;
     }
@@ -206,14 +210,14 @@ class Parcel implements Disposable {
 
   void writeBundle(Bundle b) {
     dynamic bundleHandle = b.getHandle;
-    int ret = tizen.rpc_port_parcel_write_bundle(_parcel, bundleHandle);
+    final int ret = tizen.rpc_port_parcel_write_bundle(_parcel, bundleHandle);
     if (ret != 0) {
       throw ret;
     }
   }
 
   void writeArrayCount(int count) {
-    int ret =
+    final int ret =
         tizen.rpc_port_parcel_write_array_count(_parcel, count & _int32Max);
 
     if (ret != 0) {
@@ -222,169 +226,150 @@ class Parcel implements Disposable {
   }
 
   int readByte() {
-    int value = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<Int8> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_byte(_parcel, pV);
+      final int ret = tizen.rpc_port_parcel_read_byte(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
       return pV.value;
     });
-
-    return value;
   }
 
   int readInt16() {
-    int value = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<Int16> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_int16(_parcel, pV);
+      final int ret = tizen.rpc_port_parcel_read_int16(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
       return pV.value;
     });
-
-    return value;
   }
 
   int readInt32() {
-    int value = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<Int32> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_int32(_parcel, pV);
+      final int ret = tizen.rpc_port_parcel_read_int32(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
       return pV.value;
     });
-
-    return value;
   }
 
   int readInt64() {
-    int value = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<Int64> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_int64(_parcel, pV);
+      final int ret = tizen.rpc_port_parcel_read_int64(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
       return pV.value;
     });
-
-    return value;
   }
 
   double readFloat() {
-    double value = using((Arena arena) {
-      Pointer<Float> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_float(_parcel, pV);
+    return using((Arena arena) {
+      final Pointer<Float> pV = arena();
+      final int ret = tizen.rpc_port_parcel_read_float(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
       return pV.value;
     });
-
-    return value;
   }
 
   double readDouble() {
-    double value = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<Double> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_double(_parcel, pV);
+      final int ret = tizen.rpc_port_parcel_read_double(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
       return pV.value;
     });
-
-    return value;
   }
 
   String readString() {
-    String value = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<Pointer<Int8>> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_string(_parcel, pV);
+      final int ret = tizen.rpc_port_parcel_read_string(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
       return pV.value.toDartString();
     });
-
-    return value;
   }
 
   bool readBool() {
-    bool value = using((Arena arena) {
-      Pointer<Uint8> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_bool(_parcel, pV);
+    return using((Arena arena) {
+      final Pointer<Uint8> pV = arena();
+      final int ret = tizen.rpc_port_parcel_read_bool(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
-      return (pV.value != 0);
+      return pV.value != 0;
     });
-
-    return value;
   }
 
   Bundle readBundle() {
-    Bundle value = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<Pointer<Int8>> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_string(_parcel, pV);
+      final int ret = tizen.rpc_port_parcel_read_string(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
-      final str = pV.value.toDartString();
-      final raw = BundleRaw(str, str.length);
+      final String str = pV.value.toDartString();
+      final BundleRaw raw = BundleRaw(str, str.length);
       return Bundle.fromBundleRaw(raw);
     });
-
-    return value;
   }
 
   int readArrayCount() {
-    int value = using((Arena arena) {
+    return using((Arena arena) {
       Pointer<Int32> pV = arena();
-      int ret = tizen.rpc_port_parcel_read_array_count(_parcel, pV);
+      final int ret = tizen.rpc_port_parcel_read_array_count(_parcel, pV);
       if (ret != 0) {
         throw ret;
       }
 
       return pV.value;
     });
-
-    return value;
   }
 
   List<int> burstRead(int size) {
     return using((Arena arena) {
-      final buf = malloc.allocate(size).cast<Uint8>();
+      final Pointer<Uint8> buf = malloc.allocate(size).cast<Uint8>();
       arena.using(buf, malloc.free);
-      int ret = tizen.rpc_port_parcel_burst_read(_parcel, buf, size);
+      final int ret = tizen.rpc_port_parcel_burst_read(_parcel, buf, size);
       if (ret != 0) {
         throw ret;
       }
 
-      return List<int>.generate(size, (index) => buf[index]);
+      return List<int>.generate(size, (int index) => buf[index]);
     });
   }
 
   void burstWrite(List<int> buf) {
     using((Arena arena) {
-      final rawBuf = malloc.allocate(buf.length).cast<Uint8>();
+      final Pointer<Uint8> rawBuf = malloc.allocate(buf.length).cast<Uint8>();
       arena.using(rawBuf, malloc.free);
       for (int i = 0; i < buf.length; ++i) {
         rawBuf[i] = buf[i];
       }
 
-      int ret = tizen.rpc_port_parcel_burst_write(_parcel, rawBuf, buf.length);
+      final int ret =
+          tizen.rpc_port_parcel_burst_write(_parcel, rawBuf, buf.length);
       if (ret != 0) {
         throw ret;
       }
@@ -394,7 +379,7 @@ class Parcel implements Disposable {
   ParcelHeader getHeader() {
     return using((Arena arena) {
       Pointer<Pointer<Void>> header = arena();
-      int ret = tizen.rpc_port_parcel_get_header(_parcel, header);
+      final int ret = tizen.rpc_port_parcel_get_header(_parcel, header);
       if (ret != 0) {
         throw ret;
       }

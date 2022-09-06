@@ -6,9 +6,6 @@
         <icon>ic_launcher.png</icon>
         <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true"/>
     </ui-application>
-    <tv-info api-version="8.8.0">
-        <infolink>T-INFOLINK2021-1000</infolink>
-    </tv-info>
     <privileges>
         <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
         <privilege>http://tizen.org/privilege/datasharing</privilege>

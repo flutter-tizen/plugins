@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
-import "message_proxy.dart";
-import "package:tizen_log/tizen_log.dart";
+import 'package:tizen_log/tizen_log.dart';
 
-String _logTag = "RpcPortProxyExample";
+import 'message_proxy.dart';
+
+const String _logTag = 'RpcPortProxyExample';
 
 void main() {
   runApp(const MyApp());
@@ -18,13 +19,13 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-String _msg = "";
+String _msg = '';
 
 class MyNotify extends NotifyCB {
   @override
   Future<void> onReceived(String sender, String msg) async {
-    Log.info(_logTag, "onReceived $sender: $msg");
-    _msg = "$sender: $msg";
+    Log.info(_logTag, 'onReceived $sender: $msg');
+    _msg = '$sender: $msg';
   }
 }
 
@@ -36,31 +37,31 @@ class MyMessageProxy extends MessageProxy {
 
   @override
   Future<void> onConnected() async {
-    _msg = "onConnected";
-    Log.info(_logTag, "onConnected");
-    print("onConnected");
+    _msg = 'onConnected';
+    Log.info(_logTag, 'onConnected');
+    print('onConnected');
 
-    register("Native_GOGO1", MyNotify());
+    register('Native_GOGO1', MyNotify());
   }
 
   @override
   Future<void> onDisconnected() async {
-    _msg = "onDisconnected";
-    Log.info(_logTag, "onDisconnected");
-    print("onDisconnected");
+    _msg = 'onDisconnected';
+    Log.info(_logTag, 'onDisconnected');
+    print('onDisconnected');
   }
 
   @override
   Future<void> onRejected() async {
-    _msg = "onRejected";
-    Log.info(_logTag, "onRejected");
-    print("onRejected");
+    _msg = 'onRejected';
+    Log.info(_logTag, 'onRejected');
+    print('onRejected');
   }
 }
 
 class _MyAppState extends State<MyApp> {
   late final MyMessageProxy _myProxy;
-  String _input = "";
+  String _input = '';
   @override
   void initState() {
     super.initState();
@@ -69,13 +70,15 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> initPlatformState() async {
     try {
-      _myProxy = MyMessageProxy("com.example.rpc_port_stub_example");
+      _myProxy = MyMessageProxy('com.example.rpc_port_stub_example');
       _myProxy.connect();
     } on PlatformException {
       _msg = 'Failed to get platform version.';
     }
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _msg = _myProxy.msg;
@@ -84,11 +87,10 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _sendMsg() async {
     _myProxy.send(_input);
-    Future.delayed(
+    Future<void>.delayed(
         const Duration(seconds: 1),
         () => setState(() {
-              Log.info(_logTag, "received message: $_msg");
-              _msg;
+              Log.info(_logTag, 'received message: $_msg');
             }));
   }
 
@@ -106,7 +108,7 @@ class _MyAppState extends State<MyApp> {
                 child: Text('Message: $_msg\n'),
               ),
               TextField(
-                  onChanged: (text) {
+                  onChanged: (String text) {
                     setState(() => _input = text);
                   },
                   decoration: const InputDecoration(

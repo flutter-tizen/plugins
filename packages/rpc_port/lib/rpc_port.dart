@@ -1,8 +1,8 @@
 library rpc_port;
 
-export 'port.dart';
-export 'parcel.dart';
-export 'stub_base.dart';
-export 'proxy_base.dart';
 export 'bundle.dart';
+export 'parcel.dart';
 export 'parcelable.dart';
+export 'port.dart';
+export 'proxy_base.dart';
+export 'stub_base.dart';

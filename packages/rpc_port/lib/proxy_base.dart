@@ -19,12 +19,12 @@ import 'disposable.dart';
 String _logTag = "RPC_PORT";
 
 abstract class ProxyBase extends Disposable {
+  ProxyBase(this._appid, this._portName);
+
   late final String _appid;
   late final String _portName;
   bool _connected = false;
   StreamSubscription<dynamic>? _streamSubscription;
-
-  ProxyBase(this._appid, this._portName);
 
   String get appid => _appid;
   String get portName => _portName;
@@ -34,16 +34,16 @@ abstract class ProxyBase extends Disposable {
       throw Exception('Proxy $_appid/$_portName already requested to stub');
     }
 
-    final manager = RpcPortPlatform.instance;
+    final RpcPortPlatform manager = RpcPortPlatform.instance;
     final Stream<dynamic> stream = manager.connect(this);
-    _streamSubscription = stream.listen((event) async {
+    _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
-        final map = event;
+        final Map<String, dynamic> map = event as Map<String, dynamic>;
         if (map.containsKey('event')) {
-          final event = map['event'] as String;
-          final appid = map['receiver'] as String;
-          final portName = map['portName'] as String;
-          Log.info(_logTag, "event: $event, appid:$appid, portName:$portName");
+          final String event = map['event'] as String;
+          final String appid = map['receiver'] as String;
+          final String portName = map['portName'] as String;
+          Log.info(_logTag, 'event: $event, appid:$appid, portName:$portName');
           if (event == 'connected') {
             await onConnectedEvent(appid, portName);
             _connected = true;
@@ -58,8 +58,8 @@ abstract class ProxyBase extends Disposable {
             _streamSubscription = null;
             _connected = false;
           } else if (event == 'received') {
-            final rawData = map['rawData'] as Uint8List;
-            final parcel = Parcel.fromRaw(rawData);
+            final Uint8List rawData = map['rawData'] as Uint8List;
+            final Parcel parcel = Parcel.fromRaw(rawData);
             await onReceivedEvent(appid, portName, parcel);
           } else {
             throw Exception('Not supported event');
@@ -74,16 +74,16 @@ abstract class ProxyBase extends Disposable {
       throw Exception('Proxy $_appid/$_portName already requested to stub');
     }
 
-    final manager = RpcPortPlatform.instance;
+    final RpcPortPlatform manager = RpcPortPlatform.instance;
     final Stream<dynamic> stream = manager.connectSync(this);
-    _streamSubscription = stream.listen((event) async {
+    _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
-        final map = event;
+        final Map<String, dynamic> map = event as Map<String, dynamic>;
         if (map.containsKey('event')) {
-          final event = map['event'] as String;
-          final appid = map['receiver'] as String;
-          final portName = map['portName'] as String;
-          Log.info(_logTag, "event: $event, appid:$appid, portName:$portName");
+          final String event = map['event'] as String;
+          final String appid = map['receiver'] as String;
+          final String portName = map['portName'] as String;
+          Log.info(_logTag, 'event: $event, appid:$appid, portName:$portName');
           if (event == 'connected') {
             await onConnectedEvent(appid, portName);
             _connected = true;
@@ -98,8 +98,8 @@ abstract class ProxyBase extends Disposable {
             _streamSubscription = null;
             _connected = false;
           } else if (event == 'received') {
-            final rawData = map['rawData'] as Uint8List;
-            final parcel = Parcel.fromRaw(rawData);
+            final Uint8List rawData = map['rawData'] as Uint8List;
+            final Parcel parcel = Parcel.fromRaw(rawData);
             await onReceivedEvent(appid, portName, parcel);
           } else {
             throw Exception('Not supported event');

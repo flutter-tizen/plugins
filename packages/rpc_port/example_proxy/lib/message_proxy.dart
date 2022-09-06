@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:rpc_port/rpc_port.dart';
 
-const _logTag = "MessageProxy";
+const String _logTag = 'MessageProxy';
 
 enum _DelegateId {
   notifyCB(1);
@@ -23,11 +23,11 @@ enum _MethodId {
 }
 
 abstract class MessageProxy extends ProxyBase {
-  static const String _tidlVersion = "1.9.1";
-  bool _online = false;
-  final List<CallbackBase> _delegateList = [];
-
   MessageProxy(String appId) : super(appId, "Message");
+
+  static const String _tidlVersion = '1.9.1';
+  bool _online = false;
+  final List<_CallbackBase> _delegateList = <_CallbackBase>[];
 
   @override
   Future<void> onConnectedEvent(String appid, String portName) async {
@@ -49,7 +49,7 @@ abstract class MessageProxy extends ProxyBase {
   @override
   Future<void> onReceivedEvent(
       String appid, String portName, Parcel parcel) async {
-    final cmd = parcel.readInt32();
+    final int cmd = parcel.readInt32();
     if (cmd != _MethodId.callback.code) {
       parcel.dispose();
       return;
@@ -59,14 +59,16 @@ abstract class MessageProxy extends ProxyBase {
   }
 
   Future<void> _processReceivedEvent(Parcel parcel) async {
-    final id = parcel.readInt32();
-    final seqId = parcel.readInt32();
-    final once = parcel.readBool();
+    final int id = parcel.readInt32();
+    final int seqId = parcel.readInt32();
+    final bool once = parcel.readBool();
 
-    for (final delegate in _delegateList) {
+    for (final _CallbackBase delegate in _delegateList) {
       if (delegate._id == id && delegate._seqId == seqId) {
         await delegate._onReceivedEvent(parcel);
-        if (delegate._once) _delegateList.remove(delegate);
+        if (delegate._once) {
+          _delegateList.remove(delegate);
+        }
         break;
       }
     }
@@ -74,36 +76,40 @@ abstract class MessageProxy extends ProxyBase {
 
   Future<Parcel> _consumeCommand(Port port) async {
     do {
-      Parcel parcel = await port.receive();
-      int cmd = parcel.readInt32();
-      if (cmd == _MethodId.result.code) return parcel;
+      final Parcel parcel = await port.receive();
+      final int cmd = parcel.readInt32();
+      if (cmd == _MethodId.result.code) {
+        return parcel;
+      }
 
       parcel.dispose();
     } while (true);
   }
 
   void disposeCallback(String tag) {
-    _delegateList.removeWhere((element) => element.tag == tag);
+    _delegateList.removeWhere((_CallbackBase element) => element.tag == tag);
   }
 
   Future<int> register(String name, NotifyCB cb) async {
-    if (!_online) throw Exception('NotConnectedSocketException');
+    if (!_online) {
+      throw Exception('NotConnectedSocketException');
+    }
 
-    final parcel = Parcel();
-    ParcelHeader header = parcel.getHeader();
+    final Parcel parcel = Parcel();
+    final ParcelHeader header = parcel.getHeader();
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.register.code);
     parcel.writeString(name);
     cb.serialize(parcel);
 
     _delegateList.add(cb);
-    final port = getPort(PortType.main);
-    port.send(parcel);
+    final Port port = getPort(PortType.main);
+    await port.send(parcel);
 
     late Parcel parcelReceived;
     do {
       parcelReceived = await _consumeCommand(port);
-      final headerReceived = parcelReceived.getHeader();
+      final ParcelHeader headerReceived = parcelReceived.getHeader();
       if (headerReceived.tag.isEmpty) {
         break;
       } else if (headerReceived.sequenceNumber == header.sequenceNumber) {
@@ -113,39 +119,43 @@ abstract class MessageProxy extends ProxyBase {
       parcelReceived.dispose();
     } while (true);
 
-    int ret = parcelReceived.readInt32();
+    final int ret = parcelReceived.readInt32();
     parcel.dispose();
     parcelReceived.dispose();
     return ret;
   }
 
   Future<void> unregister() async {
-    if (!_online) throw Exception("NotConnectedSocketException");
+    if (!_online) {
+      throw Exception("NotConnectedSocketException");
+    }
 
-    final parcel = Parcel();
-    final header = parcel.getHeader();
+    final Parcel parcel = Parcel();
+    final ParcelHeader header = parcel.getHeader();
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.unregister.code);
-    final port = getPort(PortType.main);
+    final Port port = getPort(PortType.main);
     await port.send(parcel);
     parcel.dispose();
   }
 
   Future<int> send(String msg) async {
-    if (!_online) throw Exception("NotConnectedSocketException");
+    if (!_online) {
+      throw Exception("NotConnectedSocketException");
+    }
 
-    final parcel = Parcel();
-    final header = parcel.getHeader();
+    final Parcel parcel = Parcel();
+    final ParcelHeader header = parcel.getHeader();
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.send.code);
     parcel.writeString(msg);
-    final port = getPort(PortType.main);
-    port.send(parcel);
+    final Port port = getPort(PortType.main);
+    await port.send(parcel);
 
     Parcel? parcelReceived;
     do {
       parcelReceived = await _consumeCommand(port);
-      final headerReceived = parcelReceived.getHeader();
+      final ParcelHeader headerReceived = parcelReceived.getHeader();
       if (headerReceived.tag.isEmpty) {
         break;
       } else if (headerReceived.sequenceNumber == header.sequenceNumber) {
@@ -155,7 +165,7 @@ abstract class MessageProxy extends ProxyBase {
       parcelReceived.dispose();
     } while (true);
 
-    int ret = parcelReceived.readInt32();
+    final int ret = parcelReceived.readInt32();
     parcel.dispose();
     parcelReceived.dispose();
     return ret;
@@ -167,19 +177,12 @@ abstract class MessageProxy extends ProxyBase {
   void onRejected() {}
 }
 
-abstract class CallbackBase extends Parcelable {
-  late final int _id;
-  late int _seqId;
-  late bool _once;
-  static int _seqNum = 0;
-
-  String get tag => "$_id::$_seqId";
-
-  CallbackBase(this._id, this._once) {
+abstract class _CallbackBase extends Parcelable {
+  _CallbackBase(this._id, this._once) {
     _seqId = _seqNum++;
   }
 
-  Future<void> _onReceivedEvent(Parcel parcel);
+  String get tag => '$_id::$_seqId';
 
   @override
   void serialize(Parcel parcel) {
@@ -194,17 +197,24 @@ abstract class CallbackBase extends Parcelable {
     _seqId = parcel.readInt32();
     _once = parcel.readBool();
   }
+
+  Future<void> _onReceivedEvent(Parcel parcel);
+
+  late final int _id;
+  late int _seqId;
+  late bool _once;
+  static int _seqNum = 0;
 }
 
-abstract class NotifyCB extends CallbackBase {
+abstract class NotifyCB extends _CallbackBase {
   NotifyCB({bool once = false}) : super(_DelegateId.notifyCB.code, once);
 
   Future<void> onReceived(String sender, String msg);
 
   @override
   Future<void> _onReceivedEvent(Parcel parcel) async {
-    final appid = parcel.readString();
-    final portName = parcel.readString();
-    onReceived(appid, portName);
+    final String param1 = parcel.readString();
+    final String param2 = parcel.readString();
+    onReceived(param1, param2);
   }
 }

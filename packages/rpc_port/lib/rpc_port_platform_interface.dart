@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import "port.dart";
-import "proxy_base.dart";
-import "stub_base.dart";
+import 'port.dart';
+import 'proxy_base.dart';
 import 'rpc_port_method_channel.dart';
 
 abstract class RpcPortPlatform extends PlatformInterface {
