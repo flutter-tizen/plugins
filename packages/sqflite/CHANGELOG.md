@@ -1,7 +1,6 @@
 ## NEXT
 
-* Resolve 'no_leading_underscores_for_local_identifiers' lint rule violation.
-* Remove unnecessary `dart:typed_data` import.
+* Resolve linter warnings.
 
 ## 0.1.0
 

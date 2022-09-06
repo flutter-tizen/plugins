@@ -1,6 +1,6 @@
 ## NEXT
 
-* Replace deprecated parameter `primary` with `backgroundColor` in example app.
+* Resolve linter warnings.
 
 ## 0.2.1
 

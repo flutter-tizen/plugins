@@ -1,6 +1,6 @@
 ## NEXT
 
-* Remove unnecessary `dart:typed_data` import.
+* Resolve linter warnings.
 
 ## 2.4.0
 

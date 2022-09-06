@@ -1,6 +1,6 @@
 ## NEXT
 
-* Replace deprecated parameter `primary` with `backgroundColor`.
+* Resolve linter warnings.
 
 ## 0.3.2
 
