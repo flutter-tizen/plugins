@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   Future<void> _showNotification() async {
     final TizenNotificationDetails details = TizenNotificationDetails(
       image: NotificationImage(iconPath: 'test.png'),
-      properties: Property.disableAutoDelete,
+      properties: Property.disableAutoDelete | Property.disableAppLaunch,
       vibration: NotificationVibration(type: VibrationType.builtIn),
       sound: NotificationSound(type: SoundType.builtIn),
     );
