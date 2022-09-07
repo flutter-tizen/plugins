@@ -157,22 +157,21 @@ void main() {
         bundle.addString(keys[index], values[index]);
       }
 
-      final List<KeyInfo> keyInfos = bundle.getKeys();
-      keyInfos.asMap().forEach((int index, KeyInfo keyInfo) {
+      final List<String> keysFromBundle = bundle.getKeys();
+      keysFromBundle.asMap().forEach((int index, String key) {
         bool matched = false;
         for (int index = 0; index < keys.length; ++index) {
           if (matched) {
             break;
           }
 
-          matched =
-              keyInfo.name == keys[index] && keyInfo.type == BundleType.string;
+          matched = key == keys[index];
         }
 
         expect(matched, true);
       });
 
-      expect(keyInfos.length, keys.length);
+      expect(keysFromBundle.length, keys.length);
     });
 
     testWidgets('bundleFromMapTest', (WidgetTester _) async {
@@ -180,10 +179,11 @@ void main() {
       const String string = 'String';
       final List<String> strings = ['String 1', 'String 2'];
       final List<int> bytes = [0x01, 0x02, 0x03];
-      final Map<String, dynamic> map = {};
-      map['keyString'] = string;
-      map['keyListString'] = strings;
-      map['keyBytes'] = bytes;
+      final Map<String, Object> map = {
+        'keyString': string,
+        'keyListString': strings,
+        'keyBytes': bytes
+      };
 
       final Bundle bundle = Bundle.fromMap(map);
       expect(bundle.length, 3);

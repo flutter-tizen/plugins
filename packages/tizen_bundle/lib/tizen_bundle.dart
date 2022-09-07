@@ -5,31 +5,23 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
 import 'package:tizen_interop/4.0/tizen.dart';
 import 'package:tizen_log/tizen_log.dart';
-
-/// The class for the property type of the bundle.
-class _BundleTypeProperty {
-  /// The array type.
-  static const int array = 0x0100;
-
-  /// The measurable type.
-  static const int measurable = 0x0400;
-}
 
 /// The class for the type of the bundle.
 enum BundleType {
   /// The none type.
-  none(0),
+  none(bundle_type.BUNDLE_TYPE_NONE),
 
   /// The string type.
-  string(1 | _BundleTypeProperty.measurable),
+  string(bundle_type.BUNDLE_TYPE_STR),
 
   /// The string list Type.
-  strings(1 | _BundleTypeProperty.measurable | _BundleTypeProperty.array),
+  strings(bundle_type.BUNDLE_TYPE_STR_ARRAY),
 
   /// The bytes type.
-  bytes(2);
+  bytes(bundle_type.BUNDLE_TYPE_BYTE_ARRAY);
 
   /// Creates an instance of [BundleType] with the given argument.
   const BundleType(this.value);
@@ -38,94 +30,59 @@ enum BundleType {
   final int value;
 }
 
-/// The class for information of the key of the bundle object.
-class KeyInfo {
-  /// Creates an instance of [KeyInfo] with the given arguments.
-  KeyInfo(this.name, this.type);
-
-  /// The name of the key.
-  final String name;
-
-  /// The type of the key.
-  final BundleType type;
-
-  /// Check whether the type of the key is array or not.
-  bool get isArray => type.value & _BundleTypeProperty.array as bool;
-}
-
-class _BundleErrorFactory {
-  factory _BundleErrorFactory() {
-    return _instance;
-  }
-
-  _BundleErrorFactory._internal();
-
-  static final _BundleErrorFactory _instance = _BundleErrorFactory._internal();
-
-  final Map<int, String> _errorMessages = {
-    bundle_error_e.BUNDLE_ERROR_OUT_OF_MEMORY: 'Out of memory',
-    bundle_error_e.BUNDLE_ERROR_INVALID_PARAMETER: 'Invalid parameter',
-    bundle_error_e.BUNDLE_ERROR_KEY_EXISTS: 'Key already exists',
-    bundle_error_e.BUNDLE_ERROR_KEY_NOT_AVAILABLE: 'Key does not exists',
-  };
-
-  void throwException(int error) {
-    if (_errorMessages.containsKey(error)) {
-      throw Exception(_errorMessages[error]);
-    } else {
-      throw Exception('Unknown error: $error');
-    }
-  }
-}
-
-/// A bundle object represents a bundle.
-/// A bundle holds items (key-value pairs) and can be used with other Tizen APIs.
-/// Keys can be used to access values.
-/// This class is accessed by using a constructor to create a new instance of this object.
-/// A bundle instance is not guaranteed to be thread safe if the instance is modified by multiple threads.
+/// Bundle is a string based Dictionary ADT.
+/// A dictionary is an ordered or unordered list of key element pairs,
+/// where keys are used to locate elements in the list.
 class Bundle {
   /// Creates an instance of [Bundle].
-  Bundle() : _handle = tizen.bundle_create() {
+  Bundle() {
+    _handle = tizen.bundle_create();
     _finalizer.attach(this, this, detach: this);
   }
 
   /// Creates an instance of [Bundle] with the given raw data.
-  Bundle.fromRaw(String raw)
-      : _handle =
-            tizen.bundle_decode(raw.toNativeInt8().cast<Uint8>(), raw.length) {
+  Bundle.fromRaw(String raw) {
+    _handle = tizen.bundle_decode(raw.toNativeInt8().cast<Uint8>(), raw.length);
     _finalizer.attach(this, this, detach: this);
   }
 
   /// Creates an instance of [Bundle] with the given bundle object.
-  Bundle.fromBundle(Bundle bundle)
-      : _handle = tizen.bundle_dup(bundle._handle) {
+  Bundle.fromBundle(Bundle bundle) {
+    _handle = tizen.bundle_dup(bundle._handle);
     _finalizer.attach(this, this, detach: this);
   }
 
   /// Creates an instance of [Bundle] with the given map object.
-  Bundle.fromMap(Map<String, dynamic> map) : _handle = tizen.bundle_create() {
-    map.forEach((String key, value) {
+  factory Bundle.fromMap(Map<String, Object> map) {
+    final Bundle bundle = Bundle();
+
+    map.forEach((String key, Object value) {
       if (value is String) {
-        addString(key, value);
+        bundle.addString(key, value);
       } else if (value is List<String>) {
-        addStrings(key, value);
+        bundle.addStrings(key, value);
       } else if (value is List<int>) {
-        addBytes(key, value);
+        bundle.addBytes(key, value);
       } else {
         Log.error(_logTag, 'No such type. type: ${value.runtimeType}');
         throw Exception('Invalid parameter');
       }
     });
-
-    _finalizer.attach(this, this, detach: this);
+    return bundle;
   }
 
   static const String _logTag = 'BUNDLE';
-  final dynamic _handle;
-  static final List<KeyInfo> _keyInfos = [];
+  late final _handle;
+  static final List<String> _keys = [];
   bool _isDisposed = false;
   static final Finalizer<Bundle> _finalizer =
       Finalizer<Bundle>((Bundle bundle) => bundle.dispose());
+
+  void _throwException(int ret) {
+    throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString());
+  }
 
   /// Adds a string ino the bundle object.
   void addString(String key, String value) {
@@ -136,7 +93,7 @@ class Bundle {
     if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
       Log.error(_logTag,
           'Failed to add string. key: $key, value: $value, error: $ret');
-      _BundleErrorFactory().throwException(ret);
+      _throwException(ret);
     }
   }
 
@@ -148,7 +105,7 @@ class Bundle {
           _handle, key.toNativeInt8(allocator: arena), pValue);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         Log.error(_logTag, 'Failed to get string. key: $key, error: $ret');
-        _BundleErrorFactory().throwException(ret);
+        _throwException(ret);
       }
 
       return pValue.value.toDartString();
@@ -174,14 +131,14 @@ class Bundle {
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         Log.error(
             _logTag, 'Failed to add string array. key: $key, error: $ret');
-        _BundleErrorFactory().throwException(ret);
+        _throwException(ret);
       }
     });
   }
 
   /// Gets strings from the bundle object with the specific key.
   List<String> getStrings(String key) {
-    List<String> values = using((Arena arena) {
+    final List<String> values = using((Arena arena) {
       final Pointer<Int32> arraySize = arena<Int32>();
       final Pointer<Pointer<Int8>> stringArray = tizen.bundle_get_str_array(
           _handle, key.toNativeInt8(allocator: arena), arraySize);
@@ -189,7 +146,7 @@ class Bundle {
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         Log.error(
             _logTag, 'Failed to get string array. key: $key, error: $ret');
-        _BundleErrorFactory().throwException(ret);
+        _throwException(ret);
       }
 
       final List<String> strings = [];
@@ -203,36 +160,27 @@ class Bundle {
     return values;
   }
 
-  static BundleType _getBundleType(int type) {
-    if (type == BundleType.string.value) return BundleType.string;
-    if (type == BundleType.strings.value) return BundleType.strings;
-    if (type == BundleType.bytes.value) return BundleType.bytes;
-
-    return BundleType.none;
-  }
-
   static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
       Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
-    final String key = pKey.toDartString();
-    _keyInfos.add(KeyInfo(key, _getBundleType(type)));
+    _keys.add(pKey.toDartString());
   }
 
   /// Gets the KeyInfo items from the bundle object.
-  List<KeyInfo> getKeys() {
-    _keyInfos.clear();
+  List<String> getKeys() {
+    _keys.clear();
     tizen.bundle_foreach(
         _handle, Pointer.fromFunction(_bundleIteratorCallback), nullptr);
-    return _keyInfos;
+    return _keys;
   }
 
   /// Deletes the item from the bundle object with the specific key.
   void delete(String key) {
-    int ret = using((Arena arena) {
+    final int ret = using((Arena arena) {
       return tizen.bundle_del(_handle, key.toNativeInt8(allocator: arena));
     });
     if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
       Log.error(_logTag, 'Failed to delete key/value. key: $key, error: $ret');
-      _BundleErrorFactory().throwException(ret);
+      _throwException(ret);
     }
   }
 
@@ -250,21 +198,21 @@ class Bundle {
         bytesArray[index] = bytes[index] & 0xff;
       }
 
-      int ret = tizen.bundle_add_byte(
+      final int ret = tizen.bundle_add_byte(
           _handle,
           key.toNativeInt8(allocator: arena),
           bytesArray.cast<Void>(),
           bytes.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         Log.error(_logTag, 'Failed to add byte. key: $key, error: $ret');
-        _BundleErrorFactory().throwException(ret);
+        _throwException(ret);
       }
     });
   }
 
   /// Gets bytes from the bundle object with the given specific key.
   List<int> getBytes(String key) {
-    List<int> values = using((Arena arena) {
+    final List<int> values = using((Arena arena) {
       final Pointer<Pointer<Uint8>> bytes = arena<Pointer<Uint8>>();
       final Pointer<Int32> bytesSize = arena<Int32>();
       final int ret = tizen.bundle_get_byte(
@@ -274,7 +222,7 @@ class Bundle {
           bytesSize);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         Log.error(_logTag, 'Failed to get byte. key: $key, error: $ret');
-        _BundleErrorFactory().throwException(ret);
+        _throwException(ret);
       }
 
       final List<int> byteList = [];
@@ -297,7 +245,7 @@ class Bundle {
           _handle, rawPointer.cast<Pointer<Uint8>>(), lengthPointer);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         Log.error(_logTag, 'Failed to encode bundle to raw data. error: $ret');
-        _BundleErrorFactory().throwException(ret);
+        _throwException(ret);
       }
 
       return rawPointer.value.toDartString();
@@ -311,10 +259,22 @@ class Bundle {
 
   /// Gets a type of the item of the key.
   BundleType getType(String key) {
-    int type = using((Arena arena) {
+    final int type = using((Arena arena) {
       return tizen.bundle_get_type(_handle, key.toNativeInt8(allocator: arena));
     });
-    return _getBundleType(type);
+
+    BundleType bundleType;
+    if (type == BundleType.string.value) {
+      bundleType = BundleType.string;
+    } else if (type == BundleType.strings.value) {
+      bundleType = BundleType.strings;
+    } else if (type == BundleType.bytes.value) {
+      bundleType = BundleType.bytes;
+    } else {
+      bundleType = BundleType.none;
+    }
+
+    return bundleType;
   }
 
   /// Checks whether the key exists or not.
@@ -324,7 +284,9 @@ class Bundle {
 
   /// Releases all resources associated with this object.
   void dispose() {
-    if (_isDisposed) return;
+    if (_isDisposed) {
+      return;
+    }
 
     tizen.bundle_free(_handle);
     _isDisposed = true;

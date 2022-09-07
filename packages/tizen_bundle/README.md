@@ -100,17 +100,9 @@ if (bundle.contains('bytes'))
 To iterate through the bundle records, use the 'Bundle.GetKeys()' method:
 
 ```dart
-final keyInfos = bundle.getKeys();
-keyInfos.asMap().forEach((index, keyInfo) {
-for (var index = 0; index < keys.length; ++index) {
+final keys = bundle.getKeys();
+keys.asMap().forEach((index, key) {
   Log.info(logTag, 'key: ${keyInfo.name}');
-  if (keyInfo.type == BundlType.string) {
-    Log.info(logTag, 'value: ${bundle.getString(keyInfo.name)}');
-  } else if (keyInfo.type == BundleType.strings) {
-    Log.info(logTag, 'value: ${bundle.getStrings(keyInfo.name)}');
-  } else if (keyInfo.type == BundleType.bytes) {
-    Log.info(logTag, 'value: ${bundle.getBytes(keyInfo.name)}');
-  }
 }
 
 ```
