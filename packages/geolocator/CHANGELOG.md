@@ -1,3 +1,7 @@
+## NEXT
+
+* Resolve linter warnings.
+
 ## 1.0.3
 
 * Refactor the C++ code.
