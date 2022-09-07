@@ -20,8 +20,8 @@
 
 typedef enum {
   kMessageQuit = 0,
-  kMessageOnFrameDecoded,
-  kMessageOnRenderFinished,
+  kMessageFrameDecoded,
+  kMessageRenderFinished,
 } MessageEvent;
 
 class VideoPlayer {

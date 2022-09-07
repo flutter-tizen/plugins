@@ -446,7 +446,7 @@ void VideoPlayer::OnError(int code, void *data) {
 void VideoPlayer::OnVideoFrameDecoded(media_packet_h packet, void *data) {
   auto *player = reinterpret_cast<VideoPlayer *>(data);
   std::lock_guard<std::mutex> lock(player->mutex_);
-  player->SendMessage(kMessageOnFrameDecoded, packet);
+  player->SendMessage(kMessageFrameDecoded, packet);
 }
 
 void VideoPlayer::RunMediaPacketLoop(void *data, Ecore_Thread *thread) {
@@ -470,7 +470,7 @@ void VideoPlayer::RunMediaPacketLoop(void *data, Ecore_Thread *thread) {
       break;
     }
 
-    if (message->event == kMessageOnFrameDecoded) {
+    if (message->event == kMessageFrameDecoded) {
       if (message->media_packet != nullptr) {
         packet_queue.push(message->media_packet);
       }
@@ -524,5 +524,5 @@ void VideoPlayer::SendRenderFinishedMessage() {
     media_packet_destroy(previous_media_packet_);
     previous_media_packet_ = nullptr;
   }
-  SendMessage(kMessageOnRenderFinished, nullptr);
+  SendMessage(kMessageRenderFinished, nullptr);
 }
