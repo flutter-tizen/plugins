@@ -15,7 +15,7 @@ depenedencies:
 
 ### Adding Content to a Bundle
 
-The bundle content is in the from of key-value pairs, the key is always a string. The value can be of the following types:
+The bundle content is in the from of key-value pairs. The key is always a string. The value can be of the following types:
 
 **Table: Bundle value types**
 | Type enum                | Dart type         |
