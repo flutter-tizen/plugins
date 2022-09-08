@@ -1,3 +1,7 @@
+## 0.3.3
+
+* Apply new texture APIs.
+
 ## 0.3.2
 
 * Update the example app and integration_test.

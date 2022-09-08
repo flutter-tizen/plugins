@@ -1,3 +1,7 @@
+## 2.4.1
+
+* Apply new texture APIs.
+
 ## 2.4.0
 
 * Update video_player to 2.4.2.

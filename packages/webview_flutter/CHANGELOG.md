@@ -1,3 +1,7 @@
+## 0.5.3
+
+* Apply new texture APIs.
+
 ## 0.5.2
 * Add a back key handling.
 
