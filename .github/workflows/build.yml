@@ -53,8 +53,13 @@ jobs:
           path: flutter-tizen
       - name: Build examples of changed packages
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
+        # Example app of geolocator and permission_handler are temporary excluded 
+        # due to unmigrated depedency "baseflow_plugin_template". 
+        # Reallow the builds by removing the "--exclude=geolocator,permission_handler" line
+        # after https://github.com/Baseflow/baseflow_plugin_template/pull/4 is resolved.
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           ./tools/tools_runner.sh build-examples \
             --run-on-changed-packages \
+            --exclude=geolocator,permission_handler \
             --base-sha=$(git rev-parse HEAD^)
