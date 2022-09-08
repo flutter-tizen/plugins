@@ -488,6 +488,10 @@ void VideoPlayer::RunMediaPacketLoop(void *data, Ecore_Thread *thread) {
       self->previous_media_packet_ = self->current_media_packet_;
       self->current_media_packet_ = packet_queue.front();
       packet_queue.pop();
+      while (!packet_queue.empty()) {
+        media_packet_destroy(packet_queue.front());
+        packet_queue.pop();
+      }
     }
   }
 

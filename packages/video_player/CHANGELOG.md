@@ -1,6 +1,9 @@
-## 2.4.1
+## 2.4.2
 
 * Implement a new message loop for storing media packet.
+
+## 2.4.1
+
 * Apply new texture APIs.
 
 ## 2.4.0
