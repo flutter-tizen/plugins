@@ -1,6 +1,6 @@
-## NEXT
+## 0.3.3
 
-* Resolve linter warnings.
+* Apply new texture APIs.
 
 ## 0.3.2
 

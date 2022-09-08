@@ -1,6 +1,6 @@
-## NEXT
+## 0.5.3
 
-* Resolve linter warnings.
+* Apply new texture APIs.
 
 ## 0.5.2
 * Add a back key handling.

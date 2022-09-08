@@ -330,9 +330,10 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
 
   // Init channels
   texture_variant_ =
-      std::make_unique<flutter::TextureVariant>(flutter::GpuBufferTexture(
+      std::make_unique<flutter::TextureVariant>(flutter::GpuSurfaceTexture(
+          kFlutterDesktopGpuSurfaceTypeNone,
           [this](size_t width,
-                 size_t height) -> const FlutterDesktopGpuBuffer * {
+                 size_t height) -> const FlutterDesktopGpuSurfaceDescriptor * {
             std::lock_guard<std::mutex> lock(mutex_);
             if (!current_packet_) {
               return nullptr;
@@ -345,20 +346,19 @@ CameraDevice::CameraDevice(flutter::PluginRegistrar *registrar,
               current_packet_ = nullptr;
               return nullptr;
             }
-            flutter_desktop_gpu_buffer_->buffer = surface;
-            flutter_desktop_gpu_buffer_->width = width;
-            flutter_desktop_gpu_buffer_->height = height;
-            flutter_desktop_gpu_buffer_->release_callback =
-                [](void *release_context) {
-                  CameraDevice *cd = (CameraDevice *)release_context;
-                  cd->ReleaseMediaPacket();
-                };
-            flutter_desktop_gpu_buffer_->release_context = this;
-            return flutter_desktop_gpu_buffer_.get();
+            gpu_surface_->handle = surface;
+            gpu_surface_->width = width;
+            gpu_surface_->height = height;
+            gpu_surface_->release_callback = [](void *release_context) {
+              CameraDevice *cd = (CameraDevice *)release_context;
+              cd->ReleaseMediaPacket();
+            };
+            gpu_surface_->release_context = this;
+            return gpu_surface_.get();
           }));
   texture_id_ =
       registrar_->texture_registrar()->RegisterTexture(texture_variant_.get());
-  flutter_desktop_gpu_buffer_ = std::make_unique<FlutterDesktopGpuBuffer>();
+  gpu_surface_ = std::make_unique<FlutterDesktopGpuSurfaceDescriptor>();
 
   LOG_DEBUG("texture_id_[%ld]", texture_id_);
   camera_method_channel_ =
