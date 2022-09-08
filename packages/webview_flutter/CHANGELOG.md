@@ -1,4 +1,4 @@
-## NEXT
+## 0.5.4
 
 * Change the project type to sharedLib.
 
