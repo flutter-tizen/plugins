@@ -1,3 +1,8 @@
+## 0.1.3
+
+* Resolve linter warnings.
+* Update webview_flutter_tizen to 0.5.3.
+
 ## 0.1.2
 
 * Fix variouse bugs.

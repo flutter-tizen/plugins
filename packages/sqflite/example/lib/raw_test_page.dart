@@ -113,7 +113,7 @@ class RawTestPage extends TestPage {
         await db
             .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
 
-        Future _test(int i) async {
+        Future testItem(int i) async {
           await db.transaction((txn) async {
             final count = Sqflite.firstIntValue(
                 await txn.rawQuery('SELECT COUNT(*) FROM Test'))!;
@@ -129,7 +129,7 @@ class RawTestPage extends TestPage {
 
         final futures = <Future>[];
         for (var i = 0; i < 4; i++) {
-          futures.add(_test(i));
+          futures.add(testItem(i));
         }
         await Future.wait(futures);
       } finally {

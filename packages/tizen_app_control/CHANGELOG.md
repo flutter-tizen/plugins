@@ -1,3 +1,7 @@
+## NEXT
+
+* Resolve linter warnings.
+
 ## 0.2.1
 
 * Bump ffi dependency.

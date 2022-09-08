@@ -1,6 +1,7 @@
 ## NEXT
 
 * Code refactoring.
+* Resolve linter warnings.
 
 ## 1.2.0
 

@@ -151,7 +151,7 @@ String _mapStyles(String? mapStyleJson) {
           .cast<MapTypeStyle>()
           .toList() as List<MapTypeStyle>;
     } catch (e) {
-      throw MapStyleException('Invalid Map Style JSON: ${e.toString()}');
+      throw MapStyleException('Invalid Map Style JSON: $e');
     }
     return mapStyleJson;
   }
