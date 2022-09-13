@@ -8,17 +8,19 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:rpc_port/disposable.dart';
 import 'package:tizen_log/tizen_log.dart';
+import 'package:tizen_rpc_port/disposable.dart';
 
+import 'disposable.dart';
 import 'parcel.dart';
 import 'port.dart';
 import 'rpc_port_platform_interface.dart';
-import 'disposable.dart';
 
-String _logTag = "RPC_PORT";
+const String _logTag = 'RPC_PORT';
 
+/// The base of RpcPort proxy class.
 abstract class ProxyBase extends Disposable {
+  /// The constructor of ProxyBase.
   ProxyBase(this._appid, this._portName);
 
   late final String _appid;
@@ -26,9 +28,13 @@ abstract class ProxyBase extends Disposable {
   bool _connected = false;
   StreamSubscription<dynamic>? _streamSubscription;
 
+  /// The appid of stub app.
   String get appid => _appid;
+
+  /// The port name of connection with stub.
   String get portName => _portName;
 
+  /// Connects to the stub.
   void connect() {
     if (_connected) {
       throw Exception('Proxy $_appid/$_portName already requested to stub');
@@ -69,6 +75,7 @@ abstract class ProxyBase extends Disposable {
     });
   }
 
+  /// Connects to the stub synchronously.
   void connectSync() {
     if (_connected) {
       throw Exception('Proxy $_appid/$_portName already requested to stub');
@@ -109,13 +116,20 @@ abstract class ProxyBase extends Disposable {
     });
   }
 
+  /// Gets a port.
   Port getPort(PortType portType) {
     return Port.fromStub(_appid, _portName, portType);
   }
 
-  /// virtual functions
+  /// The callback function that is invoked when be connected with the stub.
   Future<void> onConnectedEvent(String appid, String portName);
+
+  /// The callback function that is invoked when be disconnected with the stub.
   Future<void> onDisconnectedEvent(String appid, String portName);
+
+  /// The callback function that is invoked when connection is failed.
   Future<void> onRejectedEvent(String appid, String portName);
+
+  /// The callback function that is invoked when receive data from the stub.
   Future<void> onReceivedEvent(String appid, String portName, Parcel parcel);
 }

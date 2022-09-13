@@ -7,17 +7,26 @@ import 'package:tizen_interop/6.5/tizen.dart';
 import 'bundle.dart';
 import 'disposable.dart';
 
+/// The timestamp when parcel created.
 class Timestamp {
+  Timestamp._(this.second, this.nanoSecond);
+
+  /// The second of timestamp.
   int second;
+
+  /// THe nano second of timestamp. (10^-9 second)
   int nanoSecond;
-  Timestamp(this.second, this.nanoSecond);
 }
 
+/// The header of parcel that is included information of the parcel.
 class ParcelHeader {
   ParcelHeader._fromHandle(this._header);
 
   late final Pointer<Void> _header;
 
+  /// The tag is used version naming from TIDL.
+
+  /// Gets the tag of header.
   String get tag {
     return using((Arena arena) {
       final Pointer<Pointer<Int8>> rawTag = arena();
@@ -31,6 +40,7 @@ class ParcelHeader {
     });
   }
 
+  /// Sets the tag of header.
   set tag(String tag_) {
     using((Arena arena) {
       final Pointer<Int8> rawTag = tag_.toNativeInt8(allocator: arena);
@@ -41,9 +51,12 @@ class ParcelHeader {
     });
   }
 
+  /// The sequence number is used when distinguish parcel pair from TIDL.
+
+  /// Gets the sequence number of header.
   int get sequenceNumber {
     return using((Arena arena) {
-      Pointer<Int32> seqNum = arena();
+      final Pointer<Int32> seqNum = arena();
       final int ret = tizen.rpc_port_parcel_header_get_seq_num(_header, seqNum);
       if (ret != 0) {
         throw ret;
@@ -53,6 +66,7 @@ class ParcelHeader {
     });
   }
 
+  /// Sets the sequence number of header.
   set sequenceNumber(int seqNum) {
     final int ret = tizen.rpc_port_parcel_header_set_seq_num(_header, seqNum);
     if (ret != 0) {
@@ -60,6 +74,7 @@ class ParcelHeader {
     }
   }
 
+  /// Gets the timestamp of header.
   Timestamp get timestamp {
     return using((Arena arena) {
       final Pointer<timespec> time = calloc<timespec>();
@@ -69,12 +84,15 @@ class ParcelHeader {
         throw ret;
       }
 
-      return Timestamp(time.ref.tv_sec, time.ref.tv_nsec);
+      return Timestamp._(time.ref.tv_sec, time.ref.tv_nsec);
     });
   }
 }
 
+/// The parcel that can serialize & deserialize.
+/// It can only sequentially read & write.(like FIFO)
 class Parcel implements Disposable {
+  /// The constructor default parcel
   Parcel() {
     _parcel = using((Arena arena) {
       final Pointer<Pointer<Void>> pParcel = arena();
@@ -90,6 +108,7 @@ class Parcel implements Disposable {
     _finalizer.attach(this, _parcel, detach: this);
   }
 
+  /// The constructor of parcel from raw data.
   Parcel.fromRaw(Uint8List rawData) {
     using((Arena arena) {
       final Pointer<Uint8> pRaw = arena.allocate<Uint8>(rawData.length);
@@ -113,9 +132,9 @@ class Parcel implements Disposable {
   late final Pointer<Void> _parcel;
 
   static const int _byteMax = 0xff;
-  static const int _int16Max = 0x7fff;
-  static const int _int32Max = 0x7ffffffff;
-  static const int _int64Max = 0x7FFFFFFFFFFFFFFF;
+  static const int _int16Max = 0xffff;
+  static const int _int32Max = 0xFffffffff;
+  static const int _int64Max = 0xFFFFFFFFFFFFFFFF;
 
   static final Finalizer<Pointer<Void>> _finalizer =
       Finalizer<Pointer<Void>>((Pointer<Void> handle) {
@@ -125,7 +144,8 @@ class Parcel implements Disposable {
     }
   });
 
-  List<int> get raw {
+  /// Gets the raw data. (Byte array)
+  Uint8List get raw {
     return using((Arena arena) {
       final Pointer<Pointer<Void>> rawData = arena();
       final Pointer<Uint32> size = arena();
@@ -138,6 +158,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Dispose the parcel.
   @override
   void dispose() {
     if (isDisposed) {
@@ -153,6 +174,7 @@ class Parcel implements Disposable {
     isDisposed = true;
   }
 
+  /// Writes a byte value to the parcel.
   void writeByte(int value) {
     final int ret = tizen.rpc_port_parcel_write_byte(_parcel, value & _byteMax);
     if (ret != 0) {
@@ -160,6 +182,7 @@ class Parcel implements Disposable {
     }
   }
 
+  /// Writes a int(16bit) value to the parcel.
   void writeInt16(int value) {
     final int ret =
         tizen.rpc_port_parcel_write_int16(_parcel, value & _int16Max);
@@ -168,6 +191,7 @@ class Parcel implements Disposable {
     }
   }
 
+  /// Writes a int(32bit) value to the parcel.
   void writeInt32(int value) {
     final int ret =
         tizen.rpc_port_parcel_write_int32(_parcel, value & _int32Max);
@@ -176,6 +200,7 @@ class Parcel implements Disposable {
     }
   }
 
+  /// Writes a int(64bit) value to the parcel.
   void writeInt64(int value) {
     final int ret =
         tizen.rpc_port_parcel_write_int64(_parcel, value & _int64Max);
@@ -184,6 +209,7 @@ class Parcel implements Disposable {
     }
   }
 
+  /// Writes a double value to the parcel.
   void writeDouble(double value) {
     final int ret = tizen.rpc_port_parcel_write_double(_parcel, value);
     if (ret != 0) {
@@ -191,6 +217,7 @@ class Parcel implements Disposable {
     }
   }
 
+  /// Writes a String value to the parcel.
   void writeString(String value) {
     using((Arena arena) {
       final Pointer<Int8> str = value.toNativeInt8(allocator: arena);
@@ -201,6 +228,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Writes a bool value to the parcel.
   void writeBool(bool value) {
     final int ret = tizen.rpc_port_parcel_write_bool(_parcel, value);
     if (ret != 0) {
@@ -208,6 +236,7 @@ class Parcel implements Disposable {
     }
   }
 
+  /// Writes a Bundle value to the parcel.
   void writeBundle(Bundle b) {
     dynamic bundleHandle = b.getHandle;
     final int ret = tizen.rpc_port_parcel_write_bundle(_parcel, bundleHandle);
@@ -216,6 +245,7 @@ class Parcel implements Disposable {
     }
   }
 
+  /// Writes the array count to the parcel.
   void writeArrayCount(int count) {
     final int ret =
         tizen.rpc_port_parcel_write_array_count(_parcel, count & _int32Max);
@@ -225,6 +255,7 @@ class Parcel implements Disposable {
     }
   }
 
+  /// Reads a byte value from the parcel.
   int readByte() {
     return using((Arena arena) {
       Pointer<Int8> pV = arena();
@@ -237,6 +268,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Reads a int(16bit) value from the parcel.
   int readInt16() {
     return using((Arena arena) {
       Pointer<Int16> pV = arena();
@@ -249,6 +281,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Reads a int(32bit) value from the parcel.
   int readInt32() {
     return using((Arena arena) {
       Pointer<Int32> pV = arena();
@@ -261,6 +294,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Reads a int(64bit) value from the parcel.
   int readInt64() {
     return using((Arena arena) {
       Pointer<Int64> pV = arena();
@@ -273,18 +307,7 @@ class Parcel implements Disposable {
     });
   }
 
-  double readFloat() {
-    return using((Arena arena) {
-      final Pointer<Float> pV = arena();
-      final int ret = tizen.rpc_port_parcel_read_float(_parcel, pV);
-      if (ret != 0) {
-        throw ret;
-      }
-
-      return pV.value;
-    });
-  }
-
+  /// Reads a double value from the parcel.
   double readDouble() {
     return using((Arena arena) {
       Pointer<Double> pV = arena();
@@ -297,6 +320,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Reads a String value from the parcel.
   String readString() {
     return using((Arena arena) {
       Pointer<Pointer<Int8>> pV = arena();
@@ -309,6 +333,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Reads a bool value from the parcel.
   bool readBool() {
     return using((Arena arena) {
       final Pointer<Uint8> pV = arena();
@@ -321,6 +346,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Reads a bundle value from the parcel.
   Bundle readBundle() {
     return using((Arena arena) {
       Pointer<Pointer<Int8>> pV = arena();
@@ -335,6 +361,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Reads a array count from the parcel.
   int readArrayCount() {
     return using((Arena arena) {
       Pointer<Int32> pV = arena();
@@ -347,6 +374,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Reads a raw data from the parcel by size.
   List<int> burstRead(int size) {
     return using((Arena arena) {
       final Pointer<Uint8> buf = malloc.allocate(size).cast<Uint8>();
@@ -360,6 +388,7 @@ class Parcel implements Disposable {
     });
   }
 
+  /// Writes a raw data to the parcel by size.
   void burstWrite(List<int> buf) {
     using((Arena arena) {
       final Pointer<Uint8> rawBuf = malloc.allocate(buf.length).cast<Uint8>();
@@ -376,9 +405,10 @@ class Parcel implements Disposable {
     });
   }
 
-  ParcelHeader getHeader() {
+  /// Gets header of parcel.
+  ParcelHeader get header {
     return using((Arena arena) {
-      Pointer<Pointer<Void>> header = arena();
+      final Pointer<Pointer<Void>> header = arena();
       final int ret = tizen.rpc_port_parcel_get_header(_parcel, header);
       if (ret != 0) {
         throw ret;

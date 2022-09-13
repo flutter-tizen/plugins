@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:rpc_port/tizen_rpc_port.dart';
 import 'package:tizen_log/tizen_log.dart';
+import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
-const _logTag = 'RPC_PORT_PROXY';
-const _tidlVersion = '1.9.1';
+const String _logTag = 'RPC_PORT_PROXY';
+const String _tidlVersion = '1.9.1';
 
 enum _DelegateId {
   notifyCB(1);
@@ -157,7 +157,7 @@ abstract class Message extends ProxyBase {
     }
 
     final Parcel parcel = Parcel();
-    final ParcelHeader header = parcel.getHeader();
+    final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.register.id);
 
@@ -172,7 +172,7 @@ abstract class Message extends ProxyBase {
     late Parcel parcelReceived;
     do {
       parcelReceived = await _consumeCommand(port);
-      final ParcelHeader headerReceived = parcelReceived.getHeader();
+      final ParcelHeader headerReceived = parcelReceived.header;
       if (headerReceived.tag.isEmpty) {
         break;
       } else if (headerReceived.sequenceNumber == header.sequenceNumber) {
@@ -196,7 +196,7 @@ abstract class Message extends ProxyBase {
     }
 
     final Parcel parcel = Parcel();
-    final ParcelHeader header = parcel.getHeader();
+    final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.unregister.id);
 
@@ -213,7 +213,7 @@ abstract class Message extends ProxyBase {
     }
 
     final Parcel parcel = Parcel();
-    final ParcelHeader header = parcel.getHeader();
+    final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.send.id);
 
@@ -226,7 +226,7 @@ abstract class Message extends ProxyBase {
     late Parcel parcelReceived;
     do {
       parcelReceived = await _consumeCommand(port);
-      final ParcelHeader headerReceived = parcelReceived.getHeader();
+      final ParcelHeader headerReceived = parcelReceived.header;
       if (headerReceived.tag.isEmpty) {
         break;
       } else if (headerReceived.sequenceNumber == header.sequenceNumber) {

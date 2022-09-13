@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
-import "message_stub.dart";
-import "package:tizen_log/tizen_log.dart";
+import 'package:flutter/material.dart';
+import 'package:tizen_log/tizen_log.dart';
+
+import 'message_stub.dart';
 
 String _logTag = "RpcPortStubExample";
 

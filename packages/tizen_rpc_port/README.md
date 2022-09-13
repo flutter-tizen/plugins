@@ -1,6 +1,6 @@
-# rpc_port_proxy_tizen
+# rpc_port_tizen
 
-[![pub package](https://img.shields.io/pub/v/rpc_port_proxy_tizen.svg)](https://pub.dev/packages/rpc_port_proxy_tizen)
+[![pub package](https://img.shields.io/pub/v/rpc_port_tizen.svg)](https://pub.dev/packages/rpc_port_tizen)
 
 This plugin adds support for communication between Flutter applications on Tizen platform.
 

@@ -1,0 +1,20 @@
+name: rpc_port_stub_example
+description: Demonstrates how to use the rpc_port_stub plugin.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+  flutter:
+    sdk: flutter
+  tizen_rpc_port:
+    path: ../
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

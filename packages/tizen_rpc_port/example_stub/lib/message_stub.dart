@@ -1,5 +1,5 @@
-import 'package:rpc_port/tizen_rpc_port.dart';
 import 'package:tizen_log/tizen_log.dart';
+import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
 String _logTag = 'MessageStub';
 
@@ -75,14 +75,14 @@ class NotifyCB extends CallbackBase {
   NotifyCB(this._port, this.service) : super(_DelegateId.notifyCB.code, false);
 
   void invoke(String sender, String msg) {
-    Log.info(_logTag, "invoke");
+    Log.info(_logTag, 'invoke');
     if (_port == null) {
-      Log.error(_logTag, "port is null");
+      Log.error(_logTag, 'port is null');
       throw Exception('NotConnectedSocketException');
     }
 
     if (once && !_valid) {
-      Log.error(_logTag, "invalid");
+      Log.error(_logTag, 'invalid');
       throw Exception('InvalidCallbackException');
     }
 
@@ -100,7 +100,7 @@ class NotifyCB extends CallbackBase {
 
 abstract class MessageStub extends StubBase {
   List<ServiceBase> services = [];
-  final Map<int, dynamic> _methodHandlers = {};
+  final Map<int, dynamic> _methodHandlers = <int, dynamic>{};
 
   MessageStub() : super('Message') {
     _methodHandlers[_MethodId.register.code] = onRegisterMethod;
@@ -112,8 +112,8 @@ abstract class MessageStub extends StubBase {
 
   @override
   void onConnectedEvent(String sender, String instance) {
-    Log.info(_logTag, "OnConnectedEvent. sender: $sender, instance: $instance");
-    var port = getPort(instance, PortType.callback);
+    Log.info(_logTag, 'OnConnectedEvent. sender: $sender, instance: $instance');
+    final Port port = getPort(instance, PortType.callback);
     ServiceBase service = createInstance(sender, instance);
     service._port = port;
     service.onCreate();
@@ -123,8 +123,8 @@ abstract class MessageStub extends StubBase {
   @override
   void onDisconnectedEvent(String sender, String instance) {
     Log.info(
-        _logTag, "onDisconnectedEvent. sender: $sender, instance: $instance");
-    for (var service in services) {
+        _logTag, 'onDisconnectedEvent. sender: $sender, instance: $instance');
+    for (final ServiceBase service in services) {
       if (service.instance == instance) {
         service.onTerminate();
         services.remove(service);
@@ -134,16 +134,16 @@ abstract class MessageStub extends StubBase {
   }
 
   void onRegisterMethod(ServiceBase service, Port port, Parcel parcel) {
-    Log.info(_logTag, "Register");
-    String name = parcel.readString();
-    NotifyCB cb = NotifyCB(service._port, service);
+    Log.info(_logTag, 'Register');
+    final String name = parcel.readString();
+    final NotifyCB cb = NotifyCB(service._port, service);
     cb.deserialize(parcel);
-    var ret = service.onRegister(name, cb);
+    final int ret = service.onRegister(name, cb);
 
-    Parcel result = Parcel();
-    ParcelHeader header = parcel.getHeader();
-    ParcelHeader resultHeader = result.getHeader();
-    resultHeader.tag = "1.0";
+    final Parcel result = Parcel();
+    final ParcelHeader header = parcel.header;
+    final ParcelHeader resultHeader = result.header;
+    resultHeader.tag = '1.0';
     resultHeader.sequenceNumber = header.sequenceNumber;
     result.writeInt32(_MethodId.result.code);
     result.writeInt32(ret);
@@ -152,19 +152,19 @@ abstract class MessageStub extends StubBase {
   }
 
   void onUnregisterMethod(ServiceBase service, Port port, Parcel parcel) {
-    Log.info(_logTag, "Unregister");
+    Log.info(_logTag, 'Unregister');
     service.onUnregister();
   }
 
   void onSendMethod(ServiceBase service, Port port, Parcel parcel) {
-    Log.info(_logTag, "Send");
-    String msg = parcel.readString();
-    var ret = service.onSend(msg);
+    Log.info(_logTag, 'Send');
+    final String msg = parcel.readString();
+    final int ret = service.onSend(msg);
 
-    Parcel result = Parcel();
-    ParcelHeader header = parcel.getHeader();
-    ParcelHeader resultHeader = result.getHeader();
-    resultHeader.tag = "1.0";
+    final Parcel result = Parcel();
+    final ParcelHeader header = parcel.header;
+    final ParcelHeader resultHeader = result.header;
+    resultHeader.tag = '1.0';
     resultHeader.sequenceNumber = header.sequenceNumber;
     result.writeInt32(_MethodId.result.code);
     result.writeInt32(ret);
@@ -174,9 +174,9 @@ abstract class MessageStub extends StubBase {
 
   @override
   void onReceivedEvent(String sender, String instance, Parcel parcel) {
-    Log.info(_logTag, "onReceivedEvent. sender: $sender, instance: $instance");
+    Log.info(_logTag, 'onReceivedEvent. sender: $sender, instance: $instance');
     ServiceBase? service;
-    for (var s in services) {
+    for (final ServiceBase s in services) {
       if (s.instance == instance) {
         service = s;
         break;
@@ -188,12 +188,12 @@ abstract class MessageStub extends StubBase {
       return;
     }
 
-    var port = getPort(instance, PortType.main);
-    int cmd = parcel.readInt32();
+    final Port port = getPort(instance, PortType.main);
+    final int cmd = parcel.readInt32();
     if (_methodHandlers.containsKey(cmd)) {
       _methodHandlers[cmd](service, port, parcel);
     } else {
-      Log.error(_logTag, "Unknown cmd: $cmd");
+      Log.error(_logTag, 'Unknown cmd: $cmd');
     }
   }
 }
