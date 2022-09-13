@@ -24,23 +24,25 @@ The bundle content is in the from of key-value pairs. The key is always a string
 | `BundleType.strings`     | List<String>      |
 | `BundleType.bytes`       | Uint8List         |
 
-To add content to a bundle, use a method associated with the type of the value you want to add:
+To add content to a bundle, use following methods or `operator [](String key, Object value)` you want to add:
 
-- `Bundle.addString()`
-- `Bundle.addStrings()`
-- `Bundle.addBytes()`
+- `Bundle.addAll()`
+- `Bundle.addEntries()`
 
 ```dart
 import 'package:tizen_bundle/tizen_bundle.dart';
 
 var bundle = Bundle();
-bundle.addString('string', 'stringValue');
+bundle['string'] = 'stringValue';
 
 List<String> values = ['stringValue1', 'stringValue2', 'stringValue3'];
-bundle.addStrings('strings', values);
+bundle['strings'] = values;
 
-List<int> bytes[] = [0x01, 0x02, 0x03];
-bundle.addBytes('bytes', bytes);
+Uint8List bytes = Uint8List(3);
+bytes[0] = 0x01;
+bytes[1] = 0x02;
+bytes[2] = 0x03;
+bundle['bytes'] =  bytes;
 ```
 
 When you no longer needed the bundle object, release it using the `Bundle.dispose()` method as below:
@@ -53,54 +55,49 @@ bundle.dispose();
 
 To manage the bundle content:
 
-1. Gets values from the bundle object using the method associated with the type of the value you want to get :
-
-- `Bundle.getString()`
-- `Bundle.getStrings()`
-- `Bundle.getBytes()`
-
-  You can also get the number of the bundle items with the `Bundle.length` property, and the type of a value with a specific key with the `Bundle.getType()` method.
+1. Gets values from the bundle object using `operator [](String key)` you want to get :
+   You can also get the number of the bundle items with the `Bundle.length` property, and check whether the value is the type or not with `is` keyword as below:
 
 ```dart
 import 'package:tizen_log/tizen_log.dart';
 
 String logTag = 'BundleTest';
 Log.info(logTag, 'length: ${bundle.length}');
-if (bundle.getType('string') == BundleType.string) {
-  var stringValue = bundle.getString("string");
+var stringValue = bundle['string'];
+if (stringValue is String) {
   Log.info(logTag, 'string: $stringValue');
 }
 
-if (bundle.getType('strings') == BundleType.strings) {
-  var stringsValue = bundle.getStrings("strings");
+var stringsValue = bundle['strings'];
+if (stringsValue is List<String>) {
   Log.info(logTag, 'strings: $stringsValue');
 }
 
-if (bundle.getType('bytes') == BundleType.bytes) {
-  var bytesValue = bundle.getBytes('bytes');
+var bytesValue = bundle['bytes'];
+if (bytesValue is Uint8List) {
   Log.info(logTag, 'bytes: $bytesValue');
 }
 ```
 
-2. Deletes a key-value pair from the bundle content using the `Bundle.delete()` method:
+2. Deletes a key-value pair from the bundle content using the `Bundle.remove()` method:
 
 ```dart
-if (bundle.contains('string'))
-  bundle.delete('string');
+if (bundle.containsKey('string'))
+  bundle.remove('string');
 
-if (bundle.contains('strings'))
-  bundle.delete('strings');
+if (bundle.containsKey('strings'))
+  bundle.remove('strings');
 
-if (bundle.contains('bytes'))
-  bundle.delete('bytes');
+if (bundle.containsKey('bytes'))
+  bundle.remove('bytes');
 ```
 
 ## Iterating the Bundle Content
 
-To iterate through the bundle records, use the 'Bundle.GetKeys()' method:
+To iterate through the bundle records, use the 'Bundle.keys' property:
 
 ```dart
-final keys = bundle.getKeys();
+final keys = bundle.keys;
 keys.asMap().forEach((index, key) {
   Log.info(logTag, 'key: ${keyInfo.name}');
 }

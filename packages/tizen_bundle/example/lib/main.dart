@@ -45,8 +45,7 @@ class _MyAppState extends State<MyApp> {
               TextButton(
                 onPressed: () {
                   try {
-                    _bundle.addString(
-                        'stringKey_${_count++}', 'stringValue_$_count');
+                    _bundle['stringKey_${_count++}'] = 'stringValue_$_count';
                     setState(() {
                       _msg = 'addString done.';
                     });
@@ -61,8 +60,7 @@ class _MyAppState extends State<MyApp> {
               TextButton(
                 onPressed: () {
                   if (_count > 0) {
-                    final String value =
-                        _bundle.getString('stringKey_${_count - 1}');
+                    final Object? value = _bundle['stringKey_${_count - 1}'];
                     setState(() {
                       _msg = 'getString done. value: $value';
                     });
@@ -85,9 +83,9 @@ class _MyAppState extends State<MyApp> {
               TextButton(
                 onPressed: () {
                   if (_count > 0) {
-                    _bundle.delete('stringKey_${--_count}');
+                    _bundle.remove('stringKey_${--_count}');
                     setState(() {
-                      _msg = 'delete done.';
+                      _msg = 'remove done.';
                     });
                   } else {
                     setState(() {
@@ -96,6 +94,15 @@ class _MyAppState extends State<MyApp> {
                   }
                 },
                 child: const Text('Remove String'),
+              ),
+              TextButton(
+                onPressed: () {
+                  _bundle.clear();
+                  setState(() {
+                    _msg = 'clear done.';
+                  });
+                },
+                child: const Text('Clear'),
               ),
             ],
           ),
