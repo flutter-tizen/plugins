@@ -1,4 +1,4 @@
-#include "rpc_port_plugin.h"
+#include "tizen_rpc_port_plugin.h"
 
 // For getPlatformVersion; remove unless needed for your plugin implementation.
 #include <system_info.h>
@@ -24,7 +24,7 @@
 namespace {
 using namespace tizen;
 
-class RpcPortPlugin : public flutter::Plugin {
+class TizenRpcPortPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
@@ -32,7 +32,7 @@ class RpcPortPlugin : public flutter::Plugin {
             registrar->messenger(), "tizen/rpc_port",
             &flutter::StandardMethodCodec::GetInstance());
 
-    auto plugin = std::make_unique<RpcPortPlugin>(registrar);
+    auto plugin = std::make_unique<TizenRpcPortPlugin>(registrar);
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -42,48 +42,48 @@ class RpcPortPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  explicit RpcPortPlugin(flutter::PluginRegistrar* plugin_registrar)
+  explicit TizenRpcPortPlugin(flutter::PluginRegistrar* plugin_registrar)
       : plugin_registrar_(plugin_registrar) {
     method_handlers_ = {
         { "create",
-          std::bind(&RpcPortPlugin::StubCreate, this,
+          std::bind(&TizenRpcPortPlugin::StubCreate, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "destroy",
-          std::bind(&RpcPortPlugin::StubDestroy, this,
+          std::bind(&TizenRpcPortPlugin::StubDestroy, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "setTrusted",
-          std::bind(&RpcPortPlugin::SetTrusted, this,
+          std::bind(&TizenRpcPortPlugin::SetTrusted, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "addPrivilege",
-          std::bind(&RpcPortPlugin::AddPrivilege, this,
+          std::bind(&TizenRpcPortPlugin::AddPrivilege, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "listen",
-          std::bind(&RpcPortPlugin::Listen, this,
+          std::bind(&TizenRpcPortPlugin::Listen, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "send",
-          std::bind(&RpcPortPlugin::Send, this,
+          std::bind(&TizenRpcPortPlugin::Send, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "receive",
-          std::bind(&RpcPortPlugin::Receive, this,
+          std::bind(&TizenRpcPortPlugin::Receive, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "connect",
-          std::bind(&RpcPortPlugin::Connect, this,
+          std::bind(&TizenRpcPortPlugin::Connect, this,
               std::placeholders::_1, std::placeholders::_2)},
         { "connectSync",
-          std::bind(&RpcPortPlugin::ConnectSync, this,
+          std::bind(&TizenRpcPortPlugin::ConnectSync, this,
               std::placeholders::_1, std::placeholders::_2)},
         { "setPrivateSharingArray",
-          std::bind(&RpcPortPlugin::SetPrivateSharingArray, this,
+          std::bind(&TizenRpcPortPlugin::SetPrivateSharingArray, this,
               std::placeholders::_1, std::placeholders::_2)},
         { "setPrivateSharing",
-          std::bind(&RpcPortPlugin::SetPrivateSharing, this,
+          std::bind(&TizenRpcPortPlugin::SetPrivateSharing, this,
               std::placeholders::_1, std::placeholders::_2)},
         { "unsetPrivateSharing",
-          std::bind(&RpcPortPlugin::UnsetPrivateSharing, this,
+          std::bind(&TizenRpcPortPlugin::UnsetPrivateSharing, this,
               std::placeholders::_1, std::placeholders::_2)}};
   }
 
-  virtual ~RpcPortPlugin() {}
+  virtual ~TizenRpcPortPlugin() {}
 
  private:
   template <typename T>
@@ -810,9 +810,9 @@ class RpcPortPlugin : public flutter::Plugin {
 
 }  // namespace
 
-void RpcPortPluginRegisterWithRegistrar(
+void TizenRpcPortPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  RpcPortPlugin::RegisterWithRegistrar(
+  TizenRpcPortPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

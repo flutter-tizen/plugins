@@ -1,5 +1,5 @@
-#ifndef FLUTTER_PLUGIN_RPC_PORT_PLUGIN_H_
-#define FLUTTER_PLUGIN_RPC_PORT_PLUGIN_H_
+#ifndef FLUTTER_PLUGIN_TIZEN_RPC_PORT_PLUGIN_H_
+#define FLUTTER_PLUGIN_TIZEN_RPC_PORT_PLUGIN_H_
 
 #include <flutter_plugin_registrar.h>
 
@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void RpcPortPluginRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void TizenRpcPortPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)

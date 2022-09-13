@@ -1,4 +1,4 @@
-name: rpc_port
+name: tizen_rpc_port
 description: A new Flutter plugin project.
 version: 0.1.0
 homepage: https://github.com/flutter-tizen/plugins
@@ -20,5 +20,5 @@ flutter:
   plugin:
     platforms:
       tizen:
-        pluginClass: RpcPortPlugin
-        fileName: rpc_port_plugin.h
+        pluginClass: TizenRpcPortPlugin
+        fileName: tizen_rpc_port_plugin.h

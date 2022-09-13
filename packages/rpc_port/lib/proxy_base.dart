@@ -38,7 +38,7 @@ abstract class ProxyBase extends Disposable {
     final Stream<dynamic> stream = manager.connect(this);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
-        final Map<String, dynamic> map = event as Map<String, dynamic>;
+        final map = event;
         if (map.containsKey('event')) {
           final String event = map['event'] as String;
           final String appid = map['receiver'] as String;

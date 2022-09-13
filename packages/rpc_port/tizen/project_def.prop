@@ -1,7 +1,7 @@
 # See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
 # for details.
 
-APPNAME = rpc_port_plugin
+APPNAME = tizen_rpc_port_plugin
 type = staticLib
 profile = common-6.5
 

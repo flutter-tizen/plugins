@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'package:tizen_log/tizen_log.dart';
 
 import 'port.dart';
 import 'proxy_base.dart';
@@ -98,10 +99,16 @@ class MethodChannelRpcPort extends RpcPortPlatform {
       'instance': port.instance,
       'portType': port.portType.index,
     };
-    final Uint8List? ret =
-        await _channel.invokeMethod<Uint8List>('receive', args);
-    if (ret == null) {
-      throw Exception('Receive is failed');
+    final Uint8List? ret;
+
+    try {
+      ret = await _channel.invokeMethod<Uint8List>('receive', args);
+      if (ret == null) {
+        throw Exception('Receive is failed');
+      }
+    } catch (e) {
+      Log.error('RpcPort', e.toString());
+      return Uint8List(0);
     }
 
     return ret;

@@ -29,7 +29,7 @@ class MyNotify extends NotifyCB {
   }
 }
 
-class MyMessageProxy extends MessageProxy {
+class MyMessageProxy extends Message {
   MyMessageProxy(String appid) : super(appid);
 
   String get msg => _msg;

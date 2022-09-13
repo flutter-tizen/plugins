@@ -1,4 +1,4 @@
-import 'package:rpc_port/rpc_port.dart';
+import 'package:rpc_port/tizen_rpc_port.dart';
 import 'package:tizen_log/tizen_log.dart';
 
 String _logTag = 'MessageStub';
