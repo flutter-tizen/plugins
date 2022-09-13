@@ -186,10 +186,10 @@ void main() {
       bundle['testName'] = 'entriesTest';
       bundle['testName2'] = 'entriesTest2';
 
-      final entries = bundle.entries;
+      final Iterable<MapEntry<String, Object>> entries = bundle.entries;
       for (MapEntry<String, Object> entry in entries) {
         bool matched = false;
-        if (entry.key == 'testName' && entry.value == 'entiresTest') {
+        if (entry.key == 'testName' && entry.value == 'entriesTest') {
           matched = true;
         } else if (entry.key == 'testName2' && entry.value == 'entriesTest2') {
           matched = true;
@@ -313,7 +313,7 @@ void main() {
       Log.info(_logTag, 'putIfAbsentTest');
       final Bundle bundle = Bundle();
       bundle['testName'] = 'putIfAbsentTest';
-      bundle['testName'] = 'putIfAbsentTest2';
+      bundle.putIfAbsent('testName', () => 'putIfAbsentTest2');
       expect(bundle.length, 1);
       expect(bundle['testName'], 'putIfAbsentTest');
     });
