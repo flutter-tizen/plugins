@@ -3,10 +3,7 @@ description: Demonstrates how to use the permission_handler_tizen plugin.
 publish_to: "none"
 
 dependencies:
-  baseflow_plugin_template:
-    git:
-      url: https://github.com/Baseflow/baseflow_plugin_template.git
-      ref: v2.0.0-nullsafety
+  baseflow_plugin_template: ^2.1.1
   flutter:
     sdk: flutter
   permission_handler: ^8.3.0
