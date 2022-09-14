@@ -45,7 +45,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
           'a list of profiles to test for each plugin.\n'
           'Pass this file if you want to select specific profiles to test '
           'for different plugins. Every package listed in the recipe file '
-          'will be recognized by the tool(same as $_packagesArg option) '
+          'will be recognized by the tool (same as $_packagesArg option) '
           'and those that specify an empty list will be explicitly excluded '
           '(same as $_excludeArg option). If --$_recipeArg is used, '
           '$_packagesArg and $_excludeArg options will be ignored.\n\n'

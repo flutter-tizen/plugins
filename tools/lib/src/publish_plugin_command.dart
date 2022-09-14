@@ -250,21 +250,6 @@ Safe to ignore if the package is deleted in this commit.
         .transform(utf8.decoder)
         .listen((String data) => publish.stdin.writeln(data));
     final int result = await publish.exitCode;
-
-    // Removes all generated files from `pub get`.
-    // It's safe to clean with `git clean` as there are no uncomitted
-    // changes(including files in .gitignore) before entering `_publish`.
-    print('Running `git clean -xdf` in '
-        '${package.directory.absolute.path}...\n');
-    final io.ProcessResult cleanResult = await processRunner.run(
-      'git',
-      <String>['clean', '-xdf'],
-      workingDir: package.directory,
-    );
-    if (cleanResult.exitCode != 0) {
-      logWarning('Failed to clean ${package.displayName} after pub get.');
-    }
-
     if (result != 0) {
       printError('Publishing ${package.directory.basename} failed.');
       return false;

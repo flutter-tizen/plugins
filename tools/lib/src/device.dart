@@ -131,7 +131,7 @@ class Device {
   ) async {
     if (!isConnected) {
       return PackageResult.fail(
-          <String>['Device $name($profile) is not connected.']);
+          <String>['Device $name ($profile) is not connected.']);
     }
 
     final io.Process process = await _processRunner.start(
@@ -282,7 +282,7 @@ class EmulatorDevice extends Device {
   /// Launches this emualtor.
   Future<void> launch() async {
     if (isConnected) {
-      print('Device $name($profile) is already launched.');
+      print('Device $name ($profile) is already launched.');
       return;
     }
     await _processRunner.runAndStream(
@@ -313,7 +313,7 @@ class EmulatorDevice extends Device {
   /// Closes this emulator.
   Future<void> close() async {
     if (!isConnected) {
-      print('Device $name($profile) is already closed.');
+      print('Device $name ($profile) is already closed.');
       return;
     }
     // TODO(HakkyuKim): Support Windows.
