@@ -2,18 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:tizen_interop/4.0/tizen.dart';
-import 'package:tizen_log/tizen_log.dart';
 
 /// Bundle is a string based Dictionary ADT.
 /// A dictionary is an ordered or unordered list of key element pairs,
 /// where keys are used to locate elements in the list.
-class Bundle {
+class Bundle extends MapMixin<String, Object> {
   /// Creates an instance of [Bundle].
   Bundle() {
     _handle = tizen.bundle_create();
@@ -26,7 +26,7 @@ class Bundle {
     _finalizer.attach(this, this, detach: this);
   }
 
-  /// Creates an instance of [Bundle] with the given bundle object.
+  /// Creates a copy of [Bundle] with the given bundle object.
   Bundle.fromBundle(Bundle bundle) {
     _handle = tizen.bundle_dup(bundle._handle);
     _finalizer.attach(this, this, detach: this);
@@ -35,54 +35,29 @@ class Bundle {
   /// Creates an instance of [Bundle] with the given map object.
   factory Bundle.fromMap(Map<String, Object> map) {
     final Bundle bundle = Bundle();
-
     map.forEach((String key, Object value) => bundle[key] = value);
     return bundle;
   }
 
-  static const String _logTag = 'BUNDLE';
   late final _handle;
   static final List<String> _keys = <String>[];
   bool _isDisposed = false;
   static final Finalizer<Bundle> _finalizer =
       Finalizer<Bundle>((Bundle bundle) => bundle.dispose());
 
-  /// The map entries of this.
-  Iterable<MapEntry<String, Object>> get entries {
-    return toMap().entries;
-  }
-
   /// The keys of this.
-  Iterable<String> get keys {
-    final List<String> keys = <String>[];
-    toMap().forEach((String key, Object value) {
-      keys.add(key);
-    });
-    return keys;
-  }
-
-  /// The values of this.
-  Iterable<Object> get values {
-    final List<Object> values = <Object>[];
-    toMap().forEach((String key, Object value) {
-      values.add(value);
-    });
-    return values;
-  }
-
-  /// Gets the number of items in the bundle object.
-  int get length => toMap().length;
-
-  /// Checks whether the bundle object is empty or not.
-  bool get isEmpty => length == 0;
-
-  /// Checks whether the bundle object is not empty or not.
-  bool get isNotEmpty => length > 0;
+  @override
+  Iterable<String> get keys => toMap().keys;
 
   /// The value for the given key, or null if key is not in the Bundle.
-  Object? operator [](String key) {
+  @override
+  Object? operator [](Object? key) {
+    if (key == null) {
+      return null;
+    }
+
     Object? value;
-    final int type = _getType(key);
+    final int type = _getType(key as String);
     if (type == bundle_type.BUNDLE_TYPE_STR) {
       value = _getString(key);
     } else if (type == bundle_type.BUNDLE_TYPE_STR_ARRAY) {
@@ -95,6 +70,7 @@ class Bundle {
   }
 
   /// Associates the key with the given value.
+  @override
   void operator []=(String key, Object value) {
     if (containsKey(key)) {
       remove(key);
@@ -107,47 +83,14 @@ class Bundle {
     } else if (value is Uint8List) {
       _addBytes(key, value);
     } else {
-      Log.error(_logTag, 'No such type: ${value.runtimeType}');
       _throwException(bundle_error_e.BUNDLE_ERROR_INVALID_PARAMETER);
     }
   }
 
-  /// Adds all key/value pairs [other] to this Bundle.
-  void addAll(Map<String, Object> other) {
-    other.forEach((String key, Object value) {
-      if (containsKey(key)) {
-        remove(key);
-      }
-
-      this[key] = value;
-    });
-  }
-
-  /// Adds all key/value pairs of [newEntries] to this [Bundle].
-  void addEntries(Iterable<MapEntry<String, Object>> newEntries) {
-    for (final MapEntry<String, Object> element in newEntries) {
-      this[element.key] = element.value;
-    }
-  }
-
   /// Removes all entries from the [Bundle].
+  @override
   void clear() {
-    keys.forEach((String key) => remove(key));
-  }
-
-  /// Applies [action] to each key/value pair of the [Bundle].
-  void forEach(void Function(String key, Object value) action) {
-    toMap().forEach((String key, Object value) => action(key, value));
-  }
-
-  /// Whether this [Bundle] contains the given [key].
-  bool containsKey(String key) {
-    return toMap().containsKey(key);
-  }
-
-  /// Whether this [Bundle] contains the given [value].
-  bool containsValue(Object value) {
-    return toMap().containsValue(value);
+    keys.forEach(remove);
   }
 
   static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
@@ -167,71 +110,20 @@ class Bundle {
     return map;
   }
 
-  /// Returns a new map where all entries of this [Bundle] are transformed by the given [convert] function.
-  Map<K, V> map<K, V>(
-      MapEntry<K, V> Function(String key, Object value) convert) {
-    final Map<K, V> convertedMap = <K, V>{};
-    toMap().forEach((String key, Object value) {
-      final List<MapEntry<K, V>> iterable = <MapEntry<K, V>>[
-        convert(key, value)
-      ];
-      convertedMap.addEntries(iterable);
-    });
-    return convertedMap;
-  }
-
-  /// Look up the value of the [key], or add a new entry if it isn't there.
-  Object putIfAbsent(String key, Object Function() ifAbsent) {
-    final Object? value = this[key];
-    if (value == null) {
-      this[key] = ifAbsent();
+  /// Removes [key] and its associated value, if present, from the [Bundle].
+  @override
+  void remove(Object? key) {
+    if (key == null) {
+      return;
     }
 
-    return this[key]!;
-  }
-
-  /// Removes [key] and its associated value, if present, from the [Bundle].
-  void remove(String key) {
     final int ret = using((Arena arena) {
-      return tizen.bundle_del(_handle, key.toNativeInt8(allocator: arena));
+      final String keyName = key as String;
+      return tizen.bundle_del(_handle, keyName.toNativeInt8(allocator: arena));
     });
     if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-      Log.error(_logTag, 'Failed to delete key/value. key: $key, error: $ret');
       _throwException(ret);
     }
-  }
-
-  /// Removes all entries of this [Bundle] that satisfy the given [test].
-  void removeWhere(bool Function(String key, Object value) test) {
-    forEach((String key, Object value) {
-      if (test(key, value)) {
-        remove(key);
-      }
-    });
-  }
-
-  /// Updates the value for the provided [key].
-  Object update(String key, Object Function(Object value) update,
-      {Object Function()? ifAbsent}) {
-    final Object? value = this[key];
-    if (value == null) {
-      if (ifAbsent == null) {
-        throw Exception('ifAbsent should not be null');
-      } else {
-        this[key] = ifAbsent();
-      }
-    } else {
-      this[key] = update(value);
-    }
-
-    return this[key]!;
-  }
-
-  /// Updates all values.
-  void updateAll(Object Function(String key, Object value) update) {
-    forEach((String key, Object value) {
-      this[key] = update(key, value);
-    });
   }
 
   /// Converts this object to String type.
@@ -242,7 +134,6 @@ class Bundle {
       final int ret = tizen.bundle_encode(
           _handle, rawPointer.cast<Pointer<Uint8>>(), lengthPointer);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, 'Failed to encode bundle to raw data. error: $ret');
         _throwException(ret);
       }
 
@@ -263,7 +154,7 @@ class Bundle {
     _finalizer.detach(this);
   }
 
-  static void _throwException(int ret) {
+  void _throwException(int ret) {
     throw PlatformException(
         code: ret.toString(),
         message: tizen.get_error_message(ret).toDartString());
@@ -275,8 +166,6 @@ class Bundle {
           value.toNativeInt8(allocator: arena));
     });
     if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-      Log.error(_logTag,
-          'Failed to add string. key: $key, value: $value, error: $ret');
       _throwException(ret);
     }
   }
@@ -287,7 +176,6 @@ class Bundle {
       final int ret = tizen.bundle_get_str(
           _handle, key.toNativeInt8(allocator: arena), pValue);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, 'Failed to get string. key: $key, error: $ret');
         _throwException(ret);
       }
 
@@ -311,8 +199,6 @@ class Bundle {
       final int ret = tizen.bundle_add_str_array(_handle,
           key.toNativeInt8(allocator: arena), pointerArray, values.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(
-            _logTag, 'Failed to add string array. key: $key, error: $ret');
         _throwException(ret);
       }
     });
@@ -325,8 +211,6 @@ class Bundle {
           _handle, key.toNativeInt8(allocator: arena), arraySize);
       final int ret = tizen.get_last_result();
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(
-            _logTag, 'Failed to get string array. key: $key, error: $ret');
         _throwException(ret);
       }
 
@@ -354,7 +238,6 @@ class Bundle {
           bytesArray.cast<Void>(),
           bytes.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, 'Failed to add byte. key: $key, error: $ret');
         _throwException(ret);
       }
     });
@@ -370,7 +253,6 @@ class Bundle {
           bytes.cast<Pointer<Void>>(),
           bytesSize);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, 'Failed to get byte. key: $key, error: $ret');
         _throwException(ret);
       }
 
