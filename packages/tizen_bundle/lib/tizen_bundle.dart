@@ -72,7 +72,7 @@ class Bundle extends MapMixin<String, Object> {
   /// Associates the key with the given value.
   @override
   void operator []=(String key, Object value) {
-    if (containsKey(key)) {
+    if (this[key] != null) {
       remove(key);
     }
 
