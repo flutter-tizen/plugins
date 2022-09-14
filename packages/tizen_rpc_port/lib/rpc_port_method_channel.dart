@@ -6,6 +6,8 @@ import 'port.dart';
 import 'proxy_base.dart';
 import 'rpc_port_platform_interface.dart';
 
+const String _logTag = 'RpcPortMethodChannel';
+
 /// An implementation of [RpcPortPlatform] that uses method channels.
 class MethodChannelRpcPort extends RpcPortPlatform {
   /// The method channel used to interact with the native platform.
@@ -107,7 +109,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
         throw Exception('Receive is failed');
       }
     } catch (e) {
-      Log.error('RpcPort', e.toString());
+      Log.error(_logTag, e.toString());
       return Uint8List(0);
     }
 

@@ -23,7 +23,7 @@ String _msg = '';
 
 class MyNotify extends NotifyCB {
   @override
-  Future<void> onReceived(String sender, String msg) async {
+  void onReceived(String sender, String msg) {
     Log.info(_logTag, 'onReceived $sender: $msg');
     _msg = '$sender: $msg';
   }
@@ -41,7 +41,7 @@ class MyMessageProxy extends Message {
     Log.info(_logTag, 'onConnected');
     print('onConnected');
 
-    register('Native_GOGO1', MyNotify());
+    await register('Native_GOGO1', MyNotify());
   }
 
   @override
@@ -86,7 +86,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _sendMsg() async {
-    _myProxy.send(_input);
+    await _myProxy.send(_input);
     Future<void>.delayed(
         const Duration(seconds: 1),
         () => setState(() {

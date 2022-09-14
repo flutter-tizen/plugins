@@ -513,11 +513,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    flutter::EncodableMap map {
-      { flutter::EncodableValue("rawData"), flutter::EncodableValue(std::move(raw)) }
-    };
-
-    result->Success(std::move(flutter::EncodableValue(map)));
+    result->Success(std::move(flutter::EncodableValue(raw)));
   }
 
   void SetPrivateSharing(const flutter::EncodableValue* args,
