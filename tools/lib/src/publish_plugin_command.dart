@@ -55,7 +55,7 @@ class PublishPluginCommand extends PackageLoopingCommand {
       help:
           'Skips the real `pub publish` command and assumes the command is successful.\n'
           'This does not run `pub publish --dry-run`.\n'
-          'If you want to run the command with `pub publish --dry-run`, use `pub-publish-flags=--dry-run`',
+          'If you want to run the command with `pub publish --dry-run`, use `--pub-publish-flags=--dry-run`',
       defaultsTo: false,
       negatable: true,
     );
@@ -216,29 +216,30 @@ Safe to ignore if the package is deleted in this commit.
 
   Future<bool> _publish(RepositoryPackage package) async {
     print('Publishing...');
-    print('Running `pub publish ${_publishFlags.join(' ')}` in '
-        '${package.directory.absolute.path}...\n');
     if (getBoolArg(_dryRunFlag)) {
       return true;
     }
 
-    if (_publishFlags.contains('--force')) {
-      _ensureValidPubCredential();
-    }
-
     // Publishing on CI server fails for large packages (a few megabytes).
     // Running 'pub get' before publishing solves the issue.
-    final io.ProcessResult processResult = await processRunner.run(
+    print('Running `pub get` in '
+        '${package.directory.absolute.path}...\n');
+    final io.ProcessResult pubGetResult = await processRunner.run(
       'flutter',
       <String>['pub', 'get'],
       workingDir: package.directory,
     );
-    if (processResult.exitCode != 0) {
+    if (pubGetResult.exitCode != 0) {
       printError(
           'Pub get failed for ${package.directory.basename}, publishing failed.');
       return false;
     }
 
+    print('Running `pub publish ${_publishFlags.join(' ')}` in '
+        '${package.directory.absolute.path}...\n');
+    if (_publishFlags.contains('--force')) {
+      _ensureValidPubCredential();
+    }
     final io.Process publish = await processRunner.start(
         flutterCommand, <String>['pub', 'publish', ..._publishFlags],
         workingDirectory: package.directory);
@@ -248,6 +249,21 @@ Safe to ignore if the package is deleted in this commit.
         .transform(utf8.decoder)
         .listen((String data) => publish.stdin.writeln(data));
     final int result = await publish.exitCode;
+
+    // Removes all generated files from `pub get`.
+    // It's safe to clean with `git clean` as there are no uncomitted 
+    // changes(including files in .gitignore) before entering `_publish`. 
+    print('Running `git clean -xdf` in '
+        '${package.directory.absolute.path}...\n');
+    final io.ProcessResult cleanResult = await processRunner.run(
+      'git',
+      <String>['clean', '-xdf'],
+      workingDir: package.directory,
+    );
+    if (cleanResult.exitCode != 0) {
+      logWarning('Failed to clean ${package.displayName} after pub get.');
+    }
+
     if (result != 0) {
       printError('Publishing ${package.directory.basename} failed.');
       return false;
