@@ -1,6 +1,7 @@
-## NEXT
+## 1.0.4
 
 * Resolve linter warnings.
+* Bump up baseflow_plugin_template in example app.
 
 ## 1.0.3
 
