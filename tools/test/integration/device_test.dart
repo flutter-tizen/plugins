@@ -34,8 +34,8 @@ Future<void> _checkSystemRequirements(String emulatorName) async {
       .map((String token) => token.trim())
       .toList();
   if (names.contains(emulatorName)) {
-    throw Exception('Emulator name used for test already exists: $emulatorName.'
-        'Emulator name is randomly generated each test, rerun test to'
+    throw Exception('Emulator name used for test already exists: $emulatorName. '
+        'Emulator name is randomly generated each test, rerun test to '
         'choose a different name.');
   }
 

@@ -49,7 +49,7 @@ class Device {
     );
     device._serial = device._findSerial();
     if (device._serial == null) {
-      throw Exception('$name($profile)\'s serial is null. '
+      throw Exception("$name($profile)'s serial is null. "
           'Physical device references must be connected to host PC.');
     }
     return device;
@@ -85,7 +85,7 @@ class Device {
   final ProcessRunner _processRunner;
 
   /// The unqiue identifier assigned to a connected device.
-  /// 
+  ///
   /// Physical devices have baked in serial numbers while emulators
   /// are assigned with a port number when they're launched.
   String? get serial => _serial;
@@ -162,7 +162,7 @@ class Device {
       },
       onDone: () async => completer.complete(await timedExitCode),
     );
-    // Waits for the done event as finishing `Process.exitCode` future does not 
+    // Waits for the done event as finishing `Process.exitCode` future does not
     // guarantee that all buffered outputs of the process have returned.
     await completer.future;
 
@@ -216,16 +216,11 @@ class EmulatorDevice extends Device {
   }
 
   EmulatorDevice._(
-    String name,
-    Profile profile, {
-    required TizenSdk tizenSdk,
-    ProcessRunner processRunner = const ProcessRunner(),
-  }) : super._(
-          name,
-          profile,
-          tizenSdk: tizenSdk,
-          processRunner: processRunner,
-        );
+    super.name,
+    super.profile, {
+    required super.tizenSdk,
+    super.processRunner = const ProcessRunner(),
+  }) : super._();
 
   String? _pid;
 

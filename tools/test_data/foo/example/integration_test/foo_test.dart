@@ -6,7 +6,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Can get platform version', (WidgetTester tester) async {
-    String platformVersion = await Foo.platformVersion ?? '';
+    final String platformVersion = await Foo.platformVersion ?? '';
     expect(platformVersion, 'Tizen');
   });
 }

@@ -22,10 +22,9 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   /// Creates an instance of the integration-test command, which runs
   /// integration tests of each plugin example on physical or emulator devices.
   IntegrationTestCommand(
-    Directory packagesDir, {
+    super.packagesDir, {
     FileSystem fileSystem = const LocalFileSystem(),
-  })  : _fileSystem = fileSystem,
-        super(packagesDir) {
+  }) : _fileSystem = fileSystem {
     argParser.addFlag(
       _generateEmulatorsArg,
       help: 'Create and destroy emulators during test.\n'
@@ -47,8 +46,8 @@ class IntegrationTestCommand extends PackageLoopingCommand {
           'Pass this file if you want to select specific profiles to test '
           'for different plugins. Every package listed in the recipe file '
           'will be recognized by the tool(same as $_packagesArg option) '
-          'and those that specify an empty list will be explicitly excluded'
-          '(same as $_excludeArg option). If --$_recipeArg is used, '
+          'and those that specify an empty list will be explicitly '
+          'excluded(same as $_excludeArg option). If --$_recipeArg is used, '
           '$_packagesArg and $_excludeArg options will be ignored.\n\n'
           'plugins:\n'
           '  a: [wearable-5.5, tv-6.0]\n'
@@ -120,7 +119,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     if (args.wasParsed(_recipeArg)) {
       final File recipeFile = _fileSystem.file(getStringArg(_recipeArg));
       if (!recipeFile.existsSync()) {
-        print('Recipe file doesn\'t exist: ${recipeFile.absolute.path}');
+        print("Recipe file doesn't exist: ${recipeFile.absolute.path}");
         throw ToolExit(exitCommandFoundErrors);
       }
       try {

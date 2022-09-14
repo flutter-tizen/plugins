@@ -7,7 +7,6 @@ import 'dart:io';
 
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
-import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:flutter_tizen_plugin_tools/src/device.dart';
 import 'package:flutter_tizen_plugin_tools/src/tizen_sdk.dart';
@@ -75,7 +74,7 @@ void main() {
       expect(result.details.first.contains('Timeout expired'), true);
     });
 
-    test('correctly parses log \'No tests ran\'', () async {
+    test("correctly parses log 'No tests ran'", () async {
       Future<void>.delayed(
         const Duration(seconds: 1),
         () {
@@ -92,7 +91,7 @@ void main() {
       expect(result.details.first.contains('Missing integration tests'), true);
     });
 
-    test('correctly parses log \'No devices found\'', () async {
+    test("correctly parses log 'No devices found'", () async {
       Future<void>.delayed(
         const Duration(seconds: 1),
         () {
@@ -111,7 +110,7 @@ void main() {
           true);
     });
 
-    test('correctly parses log \'All tests passed!\'', () async {
+    test("correctly parses log 'All tests passed!'", () async {
       Future<void>.delayed(
         const Duration(seconds: 1),
         () {
@@ -127,7 +126,7 @@ void main() {
       expect(result.state, RunState.succeeded);
     });
 
-    test('correctly parses log \'Some tests failed\'', () async {
+    test("correctly parses log 'Some tests failed'", () async {
       Future<void>.delayed(
         const Duration(seconds: 1),
         () {

@@ -16,7 +16,6 @@ import 'package:flutter_plugin_tools/src/common/plugin_command.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:flutter_plugin_tools/src/common/pub_version_finder.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
-import 'package:git/git.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:platform/platform.dart';
@@ -29,22 +28,16 @@ import 'package:pub_semver/pub_semver.dart';
 class PublishPluginCommand extends PackageLoopingCommand {
   /// Creates an instance of the publish command.
   PublishPluginCommand(
-    Directory packagesDir, {
-    ProcessRunner processRunner = const ProcessRunner(),
-    Platform platform = const LocalPlatform(),
+    super.packagesDir, {
+    super.processRunner = const ProcessRunner(),
+    super.platform = const LocalPlatform(),
     io.Stdin? stdinput,
-    GitDir? gitDir,
+    super.gitDir,
     http.Client? httpClient,
   })  : _pubVersionFinder = PubVersionFinder(
           httpClient: httpClient ?? http.Client(),
         ),
-        _stdin = stdinput ?? io.stdin,
-        super(
-          packagesDir,
-          platform: platform,
-          processRunner: processRunner,
-          gitDir: gitDir,
-        ) {
+        _stdin = stdinput ?? io.stdin {
     argParser.addMultiOption(
       _pubFlagsOption,
       help:
