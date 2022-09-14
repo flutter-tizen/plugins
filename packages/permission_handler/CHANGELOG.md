@@ -1,7 +1,8 @@
-## NEXT
+## 1.2.1
 
 * Code refactoring.
 * Resolve linter warnings.
+* Bump up baseflow_plugin_template in example app.
 
 ## 1.2.0
 
