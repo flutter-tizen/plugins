@@ -23,7 +23,7 @@ import 'package:platform/platform.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Wraps pub publish with a few niceties used by the flutter-tizen team.
-// The code is mostly copied from `PublishPluginCommand` in 
+// The code is mostly copied from `PublishPluginCommand` in
 // `flutter_plugin_tools`, parts regarding git tagging are removed as we don't
 // tag our releases.
 class PublishPluginCommand extends PackageLoopingCommand {
@@ -231,6 +231,19 @@ Safe to ignore if the package is deleted in this commit.
 
     if (_publishFlags.contains('--force')) {
       _ensureValidPubCredential();
+    }
+
+    // Publishing on CI server fails for large packages (a few megabytes).
+    // Running 'pub get' before publishing solves the issue.
+    final io.ProcessResult processResult = await processRunner.run(
+      'flutter',
+      <String>['pub', 'get'],
+      workingDir: package.directory,
+    );
+    if (processResult.exitCode != 0) {
+      printError(
+          'Pub get failed for ${package.directory.basename}, publishing failed.');
+      return false;
     }
 
     final io.Process publish = await processRunner.start(
