@@ -11,35 +11,35 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'flutter-tizen' }}
     steps:
-    - uses: subosito/flutter-action@v1
-      with:
-        channel: stable
-    - uses: actions/checkout@v2
-      with:
+      - uses: actions/checkout@v3
+        with:
           fetch-depth: 2
-    - name: Dry run on pull request
-      if: ${{ github.event_name == 'pull_request' }}
-      run: |
-        ./tools/tools_runner.sh publish-plugin \
-          --all-changed \
-          --pub-publish-flags=--dry-run \
-          --base-sha=HEAD~
-    - name: Wait on all tests
-      if: ${{ github.event_name == 'push' }}
-      uses: lewagon/wait-on-check-action@v1.1.1
-      with:
-        ref: ${{ github.sha }}
-        running-workflow-name: 'release'
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 180 # seconds
-        allowed-conclusions: success
-        verbose: false
-    - name: Publish plugins
-      if: ${{ github.event_name == 'push' }}
-      run: |
-        ./tools/tools_runner.sh publish-plugin \
-          --all-changed \
-          --base-sha=HEAD~ \
-          --skip-confirmation
-      env: {PUB_CREDENTIALS: "${{ secrets.PUB_CREDENTIALS }}"}
-    
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Dry run on pull request
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          ./tools/tools_runner.sh publish-plugin \
+            --all-changed \
+            --pub-publish-flags=--dry-run \
+            --base-sha=HEAD~
+      - name: Wait on all tests
+        if: ${{ github.event_name == 'push' }}
+        uses: lewagon/wait-on-check-action@v1.1.1
+        with:
+          ref: ${{ github.sha }}
+          running-workflow-name: 'release'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 180 # seconds
+          allowed-conclusions: success
+          verbose: false
+      - name: Publish plugins
+        if: ${{ github.event_name == 'push' }}
+        env:
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+        run: |
+          ./tools/tools_runner.sh publish-plugin \
+            --all-changed \
+            --base-sha=HEAD~ \
+            --skip-confirmation

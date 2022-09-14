@@ -6,10 +6,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 2
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
       - name: Find changed packages
@@ -47,7 +47,7 @@ jobs:
             -p tizen
       - name: Install flutter-tizen
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: flutter-tizen/flutter-tizen
           path: flutter-tizen

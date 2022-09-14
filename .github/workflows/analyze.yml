@@ -6,8 +6,8 @@ jobs:
   dart_analyze:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
       - name: Install pub dependencies
@@ -18,11 +18,12 @@ jobs:
           done
       - name: Analyze source code
         run: dart analyze --fatal-infos packages
+
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: subosito/flutter-action@v1
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
       - name: Install clang-format
