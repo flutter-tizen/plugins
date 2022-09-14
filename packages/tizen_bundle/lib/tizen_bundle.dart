@@ -101,13 +101,10 @@ class Bundle {
     }
 
     if (value is String) {
-      Log.info(_logTag, '_addString: $key/$value');
       _addString(key, value);
     } else if (value is List<String>) {
-      Log.info(_logTag, '_addStrings: $key/$value');
       _addStrings(key, value);
     } else if (value is Uint8List) {
-      Log.info(_logTag, '_addBytes: $key/$value');
       _addBytes(key, value);
     } else {
       Log.error(_logTag, 'No such type: ${value.runtimeType}');
