@@ -88,8 +88,8 @@ RpcPortResult RpcPort::UnsetPrivateSharing() {
   return result;
 }
 
-RpcPortResult RpcPort::Disconnect() {
-  LOG_DEBUG("Disconnect");
+RpcPortResult RpcPort::PortDisconnect() {
+  LOG_DEBUG("PortDisconnect");
   int ret = rpc_port_disconnect(handle_);
   RpcPortResult result(ret);
   if (!result) {

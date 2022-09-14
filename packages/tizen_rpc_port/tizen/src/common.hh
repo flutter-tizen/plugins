@@ -48,7 +48,7 @@ class RpcPort {
   RpcPortResult SetPrivateSharing(const std::vector<std::string>& paths);
   RpcPortResult SetPrivateSharing(const std::string& path);
   RpcPortResult UnsetPrivateSharing();
-  RpcPortResult Disconnect();
+  RpcPortResult PortDisconnect();
 
   int32_t GetType() const;
   rpc_port_h GetHandle() const;

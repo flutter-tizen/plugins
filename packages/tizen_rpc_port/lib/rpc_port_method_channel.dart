@@ -20,13 +20,13 @@ class MethodChannelRpcPort extends RpcPortPlatform {
   @override
   Future<void> create(String portName) async {
     final Map<String, String> args = {'portName': portName};
-    return _channel.invokeMethod('create', args);
+    return _channel.invokeMethod('stubCreate', args);
   }
 
   @override
   Future<void> destroy(String portName) async {
     final Map<String, String> args = {'portName': portName};
-    return _channel.invokeMethod('destroy', args);
+    return _channel.invokeMethod('stubDestroy', args);
   }
 
   @override
@@ -43,7 +43,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
       'portName': proxy.portName,
     };
 
-    _channel.invokeMethod<dynamic>('connect', args);
+    _channel.invokeMethod<dynamic>('proxyConnect', args);
     return _streams[key]!;
   }
 
@@ -61,7 +61,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
       'portName': proxy.portName,
     };
 
-    _channel.invokeMethod<dynamic>('connectSync', args);
+    _channel.invokeMethod<dynamic>('proxyProxyConnectSync', args);
     return _streams[key]!;
   }
 
@@ -76,7 +76,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
         'portType': port.portType.index,
       };
 
-      _channel.invokeMethod<void>('disconnect', args);
+      _channel.invokeMethod<void>('portDisconnect', args);
     }
   }
 
@@ -90,7 +90,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
       'rawData': raw
     };
 
-    return _channel.invokeMethod<dynamic>('send', args);
+    return _channel.invokeMethod<dynamic>('portSend', args);
   }
 
   @override
@@ -104,7 +104,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     final Uint8List? ret;
 
     try {
-      ret = await _channel.invokeMethod<Uint8List>('receive', args);
+      ret = await _channel.invokeMethod<Uint8List>('portReceive', args);
       if (ret == null) {
         throw Exception('Receive is failed');
       }
@@ -128,7 +128,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
         'paths': paths,
       };
 
-      return _channel.invokeMethod('setPrivateSharingArray', args);
+      return _channel.invokeMethod('portSetPrivateSharingArray', args);
     }
   }
 
@@ -144,7 +144,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
         'path': path,
       };
 
-      return _channel.invokeMethod('setPrivateSharing', args);
+      return _channel.invokeMethod('portSetPrivateSharing', args);
     }
   }
 
@@ -159,7 +159,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
         'portType': port.portType.index,
       };
 
-      return _channel.invokeMethod('unsetPrivateSharing', args);
+      return _channel.invokeMethod('portUnsetPrivateSharing', args);
     }
   }
 
@@ -170,7 +170,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
       'trusted': trusted
     };
 
-    return _channel.invokeMethod('setTrusted', args);
+    return _channel.invokeMethod('stubSetTrusted', args);
   }
 
   @override
@@ -179,7 +179,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
       'portName': portName,
       'privilege': privilege
     };
-    return _channel.invokeMethod('addPrivilege', args);
+    return _channel.invokeMethod('stubAddPrivilege', args);
   }
 
   @override
@@ -193,7 +193,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     _streams[portName] = eventChannel.receiveBroadcastStream();
 
     final Map<String, String> args = <String, String>{'portName': portName};
-    _channel.invokeMethod<dynamic>('listen', args);
+    _channel.invokeMethod<dynamic>('stubListen', args);
     return _streams[portName]!;
   }
 }

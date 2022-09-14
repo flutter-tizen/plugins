@@ -82,8 +82,8 @@ RpcPortResult RpcPortProxy::Connect(EventSink sink) {
   return CreateResult(RPC_PORT_ERROR_NONE);
 }
 
-RpcPortResult RpcPortProxy::ConnectSync(EventSink sink) {
-  LOG_DEBUG("ConnectSync: %s/%s", appid_.c_str(), port_name_.c_str());
+RpcPortResult RpcPortProxy::ProxyConnectSync(EventSink sink) {
+  LOG_DEBUG("ProxyConnectSync: %s/%s", appid_.c_str(), port_name_.c_str());
   if (connected_) {
     LOG_ERROR("Already connected");
     return CreateResult(RPC_PORT_ERROR_INVALID_PARAMETER);

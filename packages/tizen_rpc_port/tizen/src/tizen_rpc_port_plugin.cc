@@ -45,41 +45,41 @@ class TizenRpcPortPlugin : public flutter::Plugin {
   explicit TizenRpcPortPlugin(flutter::PluginRegistrar* plugin_registrar)
       : plugin_registrar_(plugin_registrar) {
     method_handlers_ = {
-        { "create",
+        { "stubCreate",
           std::bind(&TizenRpcPortPlugin::StubCreate, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "destroy",
+        { "stubDestroy",
           std::bind(&TizenRpcPortPlugin::StubDestroy, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "setTrusted",
+        { "stubSetTrusted",
           std::bind(&TizenRpcPortPlugin::SetTrusted, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "addPrivilege",
+        { "stubAddPrivilege",
           std::bind(&TizenRpcPortPlugin::AddPrivilege, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "listen",
-          std::bind(&TizenRpcPortPlugin::Listen, this,
+        { "stubListen",
+          std::bind(&TizenRpcPortPlugin::stubListen, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "send",
-          std::bind(&TizenRpcPortPlugin::Send, this,
+        { "portSend",
+          std::bind(&TizenRpcPortPlugin::PortSend, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "receive",
-          std::bind(&TizenRpcPortPlugin::Receive, this,
+        { "portReceive",
+          std::bind(&TizenRpcPortPlugin::PortReceive, this,
               std::placeholders::_1, std::placeholders::_2) },
-        { "connect",
-          std::bind(&TizenRpcPortPlugin::Connect, this,
+        { "proxyConnect",
+          std::bind(&TizenRpcPortPlugin::ProxyConnect, this,
               std::placeholders::_1, std::placeholders::_2)},
-        { "connectSync",
-          std::bind(&TizenRpcPortPlugin::ConnectSync, this,
+        { "proxyProxyConnectSync",
+          std::bind(&TizenRpcPortPlugin::ProxyConnectSync, this,
               std::placeholders::_1, std::placeholders::_2)},
-        { "setPrivateSharingArray",
-          std::bind(&TizenRpcPortPlugin::SetPrivateSharingArray, this,
+        { "portSetPrivateSharingArray",
+          std::bind(&TizenRpcPortPlugin::PortSetPrivateSharingArray, this,
               std::placeholders::_1, std::placeholders::_2)},
-        { "setPrivateSharing",
-          std::bind(&TizenRpcPortPlugin::SetPrivateSharing, this,
+        { "portSetPrivateSharing",
+          std::bind(&TizenRpcPortPlugin::PortSetPrivateSharing, this,
               std::placeholders::_1, std::placeholders::_2)},
-        { "unsetPrivateSharing",
-          std::bind(&TizenRpcPortPlugin::UnsetPrivateSharing, this,
+        { "portUnsetPrivateSharing",
+          std::bind(&TizenRpcPortPlugin::PortUnsetPrivateSharing, this,
               std::placeholders::_1, std::placeholders::_2)}};
   }
 
@@ -230,7 +230,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void Connect(
+  void ProxyConnect(
       const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Connect");
@@ -267,7 +267,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
               proxy = CreateProxy(appid, port_name);
               auto ret = proxy->Connect(std::move(events));
               if (!ret) {
-                LOG_ERROR("Failed to connect");
+                LOG_ERROR("Failed to proxyConnect");
                 RemoveProxy(appid, port_name);
               }
 
@@ -286,10 +286,10 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void ConnectSync(
+  void ProxyConnectSync(
       const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("ConnectSync");
+    LOG_DEBUG("ProxyConnectSync");
     std::string appid;
     std::string port_name;
     if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
@@ -321,7 +321,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
                 return nullptr;
               }
               proxy = CreateProxy(appid, port_name);
-              auto ret = proxy->ConnectSync(std::move(events));
+              auto ret = proxy->ProxyConnectSync(std::move(events));
               if (!ret) {
                 LOG_ERROR("Failed to connect");
                 RemoveProxy(appid, port_name);
@@ -342,7 +342,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void Listen(const flutter::EncodableValue* args,
+  void stubListen(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Listen");
     std::string port_name;
@@ -392,7 +392,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void Send(const flutter::EncodableValue* args,
+  void PortSend(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Send");
     std::string appid;
@@ -455,7 +455,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void Receive(const flutter::EncodableValue* args,
+  void PortReceive(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Receive");
     std::string appid;
@@ -516,7 +516,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success(std::move(flutter::EncodableValue(raw)));
   }
 
-  void SetPrivateSharing(const flutter::EncodableValue* args,
+  void PortSetPrivateSharing(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("SetPrivateSharing");
     std::string appid;
@@ -575,7 +575,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void SetPrivateSharingArray(const flutter::EncodableValue* args,
+  void PortSetPrivateSharingArray(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("SetPrivateSharingArray");
     std::string appid;
@@ -642,7 +642,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void UnsetPrivateSharing(const flutter::EncodableValue* args,
+  void PortUnsetPrivateSharing(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("UnsetPrivateSharing");
     std::string appid;
@@ -700,9 +700,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void Disconnect(const flutter::EncodableValue* args,
+  void PortDisconnect(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("Disconnect");
+    LOG_DEBUG("PortDisconnect");
     std::string appid;
     std::string port_name;
     std::string instance;
@@ -748,9 +748,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       }
     }
     auto port_auto = std::unique_ptr<RpcPort>(port);
-    auto ret = port->Disconnect();
+    auto ret = port->PortDisconnect();
     if (!ret) {
-      result->Error("Disconnect() is failed", ret.message());
+      result->Error("PortDisconnect() is failed", ret.message());
       return;
     }
 
