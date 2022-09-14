@@ -49,7 +49,7 @@ class Device {
     );
     device._serial = device._findSerial();
     if (device._serial == null) {
-      throw Exception("$name($profile)'s serial is null. "
+      throw Exception("$name ($profile)'s serial is null. "
           'Physical device references must be connected to host PC.');
     }
     return device;

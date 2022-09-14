@@ -220,8 +220,7 @@ Safe to ignore if the package is deleted in this commit.
       return true;
     }
 
-    // Publishing on CI server fails for large packages (a few megabytes).
-    // Running 'pub get' before publishing solves the issue.
+    // Run "pub get" in advance to avoid a possible "Connection closed" error.
     print('Running `pub get` in '
         '${package.directory.absolute.path}...\n');
     final io.ProcessResult pubGetResult = await processRunner.run(
@@ -241,8 +240,10 @@ Safe to ignore if the package is deleted in this commit.
       _ensureValidPubCredential();
     }
     final io.Process publish = await processRunner.start(
-        flutterCommand, <String>['pub', 'publish', ..._publishFlags],
-        workingDirectory: package.directory);
+      flutterCommand,
+      <String>['pub', 'publish', ..._publishFlags],
+      workingDirectory: package.directory,
+    );
     publish.stdout.transform(utf8.decoder).listen((String data) => print(data));
     publish.stderr.transform(utf8.decoder).listen((String data) => print(data));
     _stdinSubscription ??= _stdin
@@ -251,8 +252,8 @@ Safe to ignore if the package is deleted in this commit.
     final int result = await publish.exitCode;
 
     // Removes all generated files from `pub get`.
-    // It's safe to clean with `git clean` as there are no uncomitted 
-    // changes(including files in .gitignore) before entering `_publish`. 
+    // It's safe to clean with `git clean` as there are no uncomitted
+    // changes(including files in .gitignore) before entering `_publish`.
     print('Running `git clean -xdf` in '
         '${package.directory.absolute.path}...\n');
     final io.ProcessResult cleanResult = await processRunner.run(
