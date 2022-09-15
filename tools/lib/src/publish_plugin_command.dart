@@ -221,8 +221,7 @@ Safe to ignore if the package is deleted in this commit.
     }
 
     // Run "pub get" in advance to avoid a possible "Connection closed" error.
-    print('Running `pub get` in '
-        '${package.directory.absolute.path}...\n');
+    print('Running `pub get` in ${package.directory.absolute.path}...\n');
     final io.ProcessResult pubGetResult = await processRunner.run(
       'flutter',
       <String>['pub', 'get'],
