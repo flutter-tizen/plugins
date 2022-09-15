@@ -16,35 +16,28 @@ import 'package:flutter_plugin_tools/src/common/plugin_command.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:flutter_plugin_tools/src/common/pub_version_finder.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
-import 'package:git/git.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:platform/platform.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Wraps pub publish with a few niceties used by the flutter-tizen team.
-// The code is mostly copied from `PublishPluginCommand` in 
+// The code is mostly copied from `PublishPluginCommand` in
 // `flutter_plugin_tools`, parts regarding git tagging are removed as we don't
 // tag our releases.
 class PublishPluginCommand extends PackageLoopingCommand {
   /// Creates an instance of the publish command.
   PublishPluginCommand(
-    Directory packagesDir, {
-    ProcessRunner processRunner = const ProcessRunner(),
-    Platform platform = const LocalPlatform(),
+    super.packagesDir, {
+    super.processRunner = const ProcessRunner(),
+    super.platform = const LocalPlatform(),
     io.Stdin? stdinput,
-    GitDir? gitDir,
+    super.gitDir,
     http.Client? httpClient,
   })  : _pubVersionFinder = PubVersionFinder(
           httpClient: httpClient ?? http.Client(),
         ),
-        _stdin = stdinput ?? io.stdin,
-        super(
-          packagesDir,
-          platform: platform,
-          processRunner: processRunner,
-          gitDir: gitDir,
-        ) {
+        _stdin = stdinput ?? io.stdin {
     argParser.addMultiOption(
       _pubFlagsOption,
       help:
@@ -62,7 +55,7 @@ class PublishPluginCommand extends PackageLoopingCommand {
       help:
           'Skips the real `pub publish` command and assumes the command is successful.\n'
           'This does not run `pub publish --dry-run`.\n'
-          'If you want to run the command with `pub publish --dry-run`, use `pub-publish-flags=--dry-run`',
+          'If you want to run the command with `pub publish --dry-run`, use `--pub-publish-flags=--dry-run`',
       defaultsTo: false,
       negatable: true,
     );
@@ -223,19 +216,33 @@ Safe to ignore if the package is deleted in this commit.
 
   Future<bool> _publish(RepositoryPackage package) async {
     print('Publishing...');
-    print('Running `pub publish ${_publishFlags.join(' ')}` in '
-        '${package.directory.absolute.path}...\n');
     if (getBoolArg(_dryRunFlag)) {
       return true;
     }
 
+    // Run "pub get" in advance to avoid a possible "Connection closed" error.
+    print('Running `pub get` in ${package.directory.absolute.path}...\n');
+    final io.ProcessResult pubGetResult = await processRunner.run(
+      'flutter',
+      <String>['pub', 'get'],
+      workingDir: package.directory,
+    );
+    if (pubGetResult.exitCode != 0) {
+      printError(
+          'Pub get failed for ${package.directory.basename}, publishing failed.');
+      return false;
+    }
+
+    print('Running `pub publish ${_publishFlags.join(' ')}` in '
+        '${package.directory.absolute.path}...\n');
     if (_publishFlags.contains('--force')) {
       _ensureValidPubCredential();
     }
-
     final io.Process publish = await processRunner.start(
-        flutterCommand, <String>['pub', 'publish', ..._publishFlags],
-        workingDirectory: package.directory);
+      flutterCommand,
+      <String>['pub', 'publish', ..._publishFlags],
+      workingDirectory: package.directory,
+    );
     publish.stdout.transform(utf8.decoder).listen((String data) => print(data));
     publish.stderr.transform(utf8.decoder).listen((String data) => print(data));
     _stdinSubscription ??= _stdin

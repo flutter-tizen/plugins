@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
 
 /// A command to build the example applications for packages.
 class BuildExamplesCommand extends PackageLoopingCommand {
   /// Creates an instance of the build command.
-  BuildExamplesCommand(Directory packagesDir) : super(packagesDir);
+  BuildExamplesCommand(super.packagesDir);
 
   @override
   String get description => 'Builds all example apps.\n\n'

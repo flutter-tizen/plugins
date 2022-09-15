@@ -91,7 +91,7 @@ void main() {
   });
 
   group('parsing recipe file: ', () {
-    test('handle when recipe file doesn\'t exist', () async {
+    test("handle when recipe file doesn't exist", () async {
       Error? commandError;
       final List<String> output = await runCapturingPrint(
         commandRunner,
@@ -109,7 +109,7 @@ void main() {
       expect(
         output,
         containsAllInOrder(
-          <Matcher>[contains('Recipe file doesn\'t exist')],
+          <Matcher>[contains("Recipe file doesn't exist")],
         ),
       );
     });
