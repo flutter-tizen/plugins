@@ -1,11 +1,17 @@
+## 0.5.4
+
+* Change the project type to sharedLib.
+
 ## 0.5.3
 
 * Apply new texture APIs.
 
 ## 0.5.2
-* Add a back key handling.
+
+* Add back key handling.
 
 ## 0.5.1
+
 * Apply PlatformView API change.
 * Code refactoring.
 
