@@ -33,11 +33,11 @@ abstract class ServiceBase {
     _port = null;
   }
 
-  void onCreate();
-  void onTerminate();
-  int onRegister(String name, NotifyCB cb);
-  void onUnregister();
-  int onSend(String msg);
+  Future<void> onCreate();
+  Future<void> onTerminate();
+  Future<int> onRegister(String name, NotifyCB cb);
+  Future<void> onUnregister();
+  Future<int> onSend(String msg);
 }
 
 class CallbackBase extends Parcelable {
@@ -98,11 +98,11 @@ class NotifyCB extends CallbackBase {
   }
 }
 
-abstract class MessageStub extends StubBase {
+abstract class Message extends StubBase {
   List<ServiceBase> services = [];
   final Map<int, dynamic> _methodHandlers = <int, dynamic>{};
 
-  MessageStub() : super('Message') {
+  Message() : super('Message') {
     _methodHandlers[_MethodId.register.code] = onRegisterMethod;
     _methodHandlers[_MethodId.unregister.code] = onUnregisterMethod;
     _methodHandlers[_MethodId.send.code] = onSendMethod;
@@ -111,34 +111,35 @@ abstract class MessageStub extends StubBase {
   ServiceBase createInstance(String sender, String instance);
 
   @override
-  void onConnectedEvent(String sender, String instance) {
+  Future<void> onConnectedEvent(String sender, String instance) async {
     Log.info(_logTag, 'OnConnectedEvent. sender: $sender, instance: $instance');
     final Port port = getPort(instance, PortType.callback);
     ServiceBase service = createInstance(sender, instance);
     service._port = port;
-    service.onCreate();
+    await service.onCreate();
     services.add(service);
   }
 
   @override
-  void onDisconnectedEvent(String sender, String instance) {
+  Future<void> onDisconnectedEvent(String sender, String instance) async {
     Log.info(
         _logTag, 'onDisconnectedEvent. sender: $sender, instance: $instance');
     for (final ServiceBase service in services) {
       if (service.instance == instance) {
-        service.onTerminate();
+        await service.onTerminate();
         services.remove(service);
         break;
       }
     }
   }
 
-  void onRegisterMethod(ServiceBase service, Port port, Parcel parcel) {
+  Future<void> onRegisterMethod(
+      ServiceBase service, Port port, Parcel parcel) async {
     Log.info(_logTag, 'Register');
     final String name = parcel.readString();
     final NotifyCB cb = NotifyCB(service._port, service);
     cb.deserialize(parcel);
-    final int ret = service.onRegister(name, cb);
+    final int ret = await service.onRegister(name, cb);
 
     final Parcel result = Parcel();
     final ParcelHeader header = parcel.header;
@@ -147,19 +148,21 @@ abstract class MessageStub extends StubBase {
     resultHeader.sequenceNumber = header.sequenceNumber;
     result.writeInt32(_MethodId.result.code);
     result.writeInt32(ret);
-    port.send(result);
+    await port.send(result);
     result.dispose();
   }
 
-  void onUnregisterMethod(ServiceBase service, Port port, Parcel parcel) {
+  Future<void> onUnregisterMethod(
+      ServiceBase service, Port port, Parcel parcel) async {
     Log.info(_logTag, 'Unregister');
-    service.onUnregister();
+    await service.onUnregister();
   }
 
-  void onSendMethod(ServiceBase service, Port port, Parcel parcel) {
+  Future<void> onSendMethod(
+      ServiceBase service, Port port, Parcel parcel) async {
     Log.info(_logTag, 'Send');
     final String msg = parcel.readString();
-    final int ret = service.onSend(msg);
+    final int ret = await service.onSend(msg);
 
     final Parcel result = Parcel();
     final ParcelHeader header = parcel.header;
@@ -168,12 +171,13 @@ abstract class MessageStub extends StubBase {
     resultHeader.sequenceNumber = header.sequenceNumber;
     result.writeInt32(_MethodId.result.code);
     result.writeInt32(ret);
-    port.send(result);
+    await port.send(result);
     result.dispose();
   }
 
   @override
-  void onReceivedEvent(String sender, String instance, Parcel parcel) {
+  Future<void> onReceivedEvent(
+      String sender, String instance, Parcel parcel) async {
     Log.info(_logTag, 'onReceivedEvent. sender: $sender, instance: $instance');
     ServiceBase? service;
     for (final ServiceBase s in services) {

@@ -92,11 +92,11 @@ abstract class StubBase extends Disposable {
   }
 
   /// The callback function that is invoked when be connected with the proxy.
-  void onConnectedEvent(String sender, String instance);
+  Future<void> onConnectedEvent(String sender, String instance);
 
   /// The callback function that is invoked when be disconnected with the proxy.
-  void onDisconnectedEvent(String sender, String instance);
+  Future<void> onDisconnectedEvent(String sender, String instance);
 
   /// The callback function that is invoked when receive data from the proxy.
-  void onReceivedEvent(String sender, String instance, Parcel parcel);
+  Future<void> onReceivedEvent(String sender, String instance, Parcel parcel);
 }

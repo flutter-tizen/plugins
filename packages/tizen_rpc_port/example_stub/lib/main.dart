@@ -5,51 +5,51 @@ import 'package:tizen_log/tizen_log.dart';
 
 import 'message_stub.dart';
 
-String _logTag = "RpcPortStubExample";
+String _logTag = 'RpcPortStubExample';
 
 void main() {
   runApp(const MyApp());
 }
 
 class Service extends ServiceBase {
-  String _name = "";
+  String _name = '';
   NotifyCB? _cb;
 
   Service(String sender, String instance) : super(sender, instance);
 
   @override
-  void onCreate() {
-    Log.info(_logTag, "onCreate. instance: $instance");
+  Future<void> onCreate() async {
+    Log.info(_logTag, 'onCreate. instance: $instance');
   }
 
   @override
-  void onTerminate() {
-    Log.info(_logTag, "onTerminate. instance: $instance");
+  Future<void> onTerminate() async {
+    Log.info(_logTag, 'onTerminate. instance: $instance');
   }
 
   @override
-  int onRegister(String name, NotifyCB cb) {
-    Log.info(_logTag, "register. instance: $instance, name: $name");
+  Future<int> onRegister(String name, NotifyCB cb) async {
+    Log.info(_logTag, 'register. instance: $instance, name: $name');
     _name = name;
     _cb = cb;
     return 0;
   }
 
   @override
-  int onSend(String msg) {
-    Log.info(_logTag, "send. instance: $instance, msg: $msg");
+  Future<int> onSend(String msg) async {
+    Log.info(_logTag, 'send. instance: $instance, msg: $msg');
     _cb?.invoke(_name, msg);
     return 0;
   }
 
   @override
-  void onUnregister() {
-    Log.info(_logTag, "unregister. instance: $instance");
+  Future<void> onUnregister() async {
+    Log.info(_logTag, 'unregister. instance: $instance');
     _cb = null;
   }
 }
 
-class MyMessageStub extends MessageStub {
+class MyMessageStub extends Message {
   MyMessageStub() : super();
 
   @override
@@ -68,8 +68,21 @@ class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   MyMessageStub? _stub;
 
+  static void serialize(dynamic param) {
+    switch (param.runtimeType) {
+      case List<String>:
+        {
+          Log.info(_logTag, "List<String>");
+          break;
+        }
+    }
+  }
+
   @override
   void initState() {
+    List<String> stringList = [];
+    serialize(stringList);
+
     super.initState();
     Log.info(_logTag, 'initState');
     _stub = MyMessageStub();
@@ -79,7 +92,7 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String platformVersion = "7.0";
+    String platformVersion = '7.0';
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
 

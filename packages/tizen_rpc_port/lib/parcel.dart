@@ -405,7 +405,7 @@ class Parcel implements Disposable {
     });
   }
 
-  /// Gets header of parcel.
+  /// Gets the header of parcel.
   ParcelHeader get header {
     return using((Arena arena) {
       final Pointer<Pointer<Void>> header = arena();
