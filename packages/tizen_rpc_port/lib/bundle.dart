@@ -1,104 +1,179 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'dart:collection';
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:tizen_interop/6.5/tizen.dart';
-import 'package:tizen_log/tizen_log.dart';
+import 'package:flutter/services.dart';
+import 'package:tizen_interop/4.0/tizen.dart';
 
-import 'disposable.dart';
-
-const String _logTag = "DART_BUNDLE";
-
-class BundleTypeProperty {
-  static const int array = 0x0100;
-  static const int primitive = 0x0200;
-  static const int measurable = 0x0400;
-}
-
-class BundleType {
-  static const int none = -1;
-  static const int any = 0;
-  static const int string = 1 | BundleTypeProperty.measurable;
-  static const int stringArray = string | BundleTypeProperty.array;
-  static const int byte = 2;
-  static const int byteArray = byte | BundleTypeProperty.array;
-}
-
-class KeyInfo {
-  final String _name;
-  final int _type;
-
-  KeyInfo(this._name, this._type);
-
-  bool isArray() {
-    return (_type & BundleTypeProperty.array) as bool;
+/// Bundle is a string based Dictionary ADT.
+/// A dictionary is an ordered or unordered list of key element pairs,
+/// where keys are used to locate elements in the list.
+class Bundle extends MapMixin<String, Object> {
+  /// Creates an instance of [Bundle].
+  Bundle() {
+    _handle = tizen.bundle_create();
+    _finalizer.attach(this, this, detach: this);
   }
 
-  int get getType => _type;
+  Bundle._fromRaw(String raw) {
+    _handle = tizen.bundle_decode(raw.toNativeInt8().cast<Uint8>(), raw.length);
+    _finalizer.attach(this, this, detach: this);
+  }
 
-  String get getName => _name;
-}
+  /// Creates a copy of [Bundle] with the given bundle object.
+  Bundle.fromBundle(Bundle bundle) {
+    _handle = tizen.bundle_dup(bundle._handle);
+    _finalizer.attach(this, this, detach: this);
+  }
 
-class BundleRaw {
-  final String _raw;
-  final int _length;
+  /// Creates an instance of [Bundle] with the given map object.
+  factory Bundle.fromMap(Map<String, Object> map) {
+    final Bundle bundle = Bundle();
+    map.forEach((String key, Object value) => bundle[key] = value);
+    return bundle;
+  }
 
-  BundleRaw(this._raw, this._length);
+  late final _handle;
+  static final List<String> _keys = <String>[];
+  bool _isDisposed = false;
+  static final Finalizer<Bundle> _finalizer =
+      Finalizer<Bundle>((Bundle bundle) => bundle.dispose());
 
-  String get getRaw => _raw;
-  int get getLength => _length;
-}
+  static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
+      Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
+    _keys.add(pKey.toDartString());
+  }
 
-class Bundle implements Disposable {
-  final dynamic _handle;
-  static int _iteratorCount = 0;
-  static final Map<int, List<KeyInfo>> _iteratorMap = <int, List<KeyInfo>>{};
-
+  /// The keys of this.
   @override
-  bool isDisposed = false;
-
-  Bundle() : _handle = tizen.bundle_create();
-
-  Bundle.fromBundleRaw(BundleRaw bundleRaw)
-      : _handle = tizen.bundle_decode(
-            bundleRaw.getRaw.toNativeInt8().cast<Uint8>(), bundleRaw.getLength);
-
-  Bundle.fromBundle(Bundle bundle) : _handle = tizen.bundle_dup(bundle._handle);
-
-  Bundle.fromBundleHandle(dynamic handle) : _handle = tizen.bundle_dup(handle);
-
-  Bundle.withBundleHandle(dynamic handle) : _handle = handle;
-
-  Bundle.fromMap(Map<String, dynamic> map) : _handle = tizen.bundle_create() {
-    map.forEach((key, value) {
-      if (value is String) {
-        addString(key, value);
-      } else if (value is List<String>) {
-        addStrings(key, value);
-      } else if (value is List<int>) {
-        addBytes(key, value);
-      } else {
-        Log.error(_logTag, "No such type. type: ${value.runtimeType}");
-      }
-    });
+  Iterable<String> get keys {
+    _keys.clear();
+    tizen.bundle_foreach(
+        _handle, Pointer.fromFunction(_bundleIteratorCallback), nullptr);
+    return _keys;
   }
 
-  void addString(String key, String value) {
-    int ret =
-        tizen.bundle_add_str(_handle, key.toNativeInt8(), value.toNativeInt8());
-    if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-      Log.error(_logTag,
-          "Failed to add string. key: $key, value: $value, error: $ret");
-      throw Exception("bundle_add_str() is failed. error: $ret");
+  /// The value for the given key, or null if key is not in the Bundle.
+  @override
+  Object? operator [](Object? key) {
+    if (key == null) {
+      return null;
+    }
+
+    Object? value;
+    final int type = _getType(key as String);
+    if (type == bundle_type.BUNDLE_TYPE_STR) {
+      value = _getString(key);
+    } else if (type == bundle_type.BUNDLE_TYPE_STR_ARRAY) {
+      value = _getStrings(key);
+    } else if (type == bundle_type.BUNDLE_TYPE_BYTE) {
+      value = _getBytes(key);
+    }
+
+    return value;
+  }
+
+  /// Associates the key with the given value.
+  @override
+  void operator []=(String key, Object value) {
+    if (this[key] != null) {
+      remove(key);
+    }
+
+    if (value is String) {
+      _addString(key, value);
+    } else if (value is List<String>) {
+      _addStrings(key, value);
+    } else if (value is Uint8List) {
+      _addBytes(key, value);
+    } else {
+      throw ArgumentError('Not supported type: ${value.runtimeType}', 'value');
     }
   }
 
-  String getString(String key) {
-    String value = using((Arena arena) {
-      final pValue = arena<Pointer<Int8>>();
-      int ret = tizen.bundle_get_str(_handle, key.toNativeInt8(), pValue);
+  /// Removes all entries from the [Bundle].
+  @override
+  void clear() {
+    keys.forEach(remove);
+  }
+
+  /// Removes [key] and its associated value, if present, from the [Bundle].
+  @override
+  void remove(Object? key) {
+    if (key == null) {
+      return;
+    }
+
+    final int ret = using((Arena arena) {
+      final String keyName = key as String;
+      return tizen.bundle_del(_handle, keyName.toNativeInt8(allocator: arena));
+    });
+    if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
+      _throwException(ret);
+    }
+  }
+
+  /// Decodes an encoded bundle data.
+  static Bundle decode(String bundleRaw) {
+    return Bundle._fromRaw(bundleRaw);
+  }
+
+  /// Encodes this object to String.
+  String encode() {
+    final String raw = using((Arena arena) {
+      final Pointer<Pointer<Int8>> rawPointer = arena<Pointer<Int8>>();
+      final Pointer<Int32> lengthPointer = arena<Int32>();
+      final int ret = tizen.bundle_encode(
+          _handle, rawPointer.cast<Pointer<Uint8>>(), lengthPointer);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, "Failed to get string. key: $key, error: $ret");
-        throw Exception("bundle_get_str() is failed. error: $ret");
+        _throwException(ret);
+      }
+
+      return rawPointer.value.toDartString();
+    });
+
+    return raw;
+  }
+
+  /// Releases all resources associated with this object.
+  void dispose() {
+    if (_isDisposed) {
+      return;
+    }
+
+    tizen.bundle_free(_handle);
+    _isDisposed = true;
+    _finalizer.detach(this);
+  }
+
+  void _throwException(int ret) {
+    throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString());
+  }
+
+  void _addString(String key, String value) {
+    final int ret = using((Arena arena) {
+      return tizen.bundle_add_str(_handle, key.toNativeInt8(allocator: arena),
+          value.toNativeInt8(allocator: arena));
+    });
+    if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
+      _throwException(ret);
+    }
+  }
+
+  String _getString(String key) {
+    final String value = using((Arena arena) {
+      final Pointer<Pointer<Int8>> pValue = arena<Pointer<Int8>>();
+      final int ret = tizen.bundle_get_str(
+          _handle, key.toNativeInt8(allocator: arena), pValue);
+      if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
+        _throwException(ret);
       }
 
       return pValue.value.toDartString();
@@ -107,37 +182,36 @@ class Bundle implements Disposable {
     return value;
   }
 
-  void addStrings(String key, List<String> values) {
+  void _addStrings(String key, List<String> values) {
     using((Arena arena) {
-      final pointerList = values.map((str) => str.toNativeInt8()).toList();
-      final pointerArray = arena<Pointer<Int8>>(pointerList.length);
-      values.asMap().forEach((index, value) {
+      final List<Pointer<Int8>> pointerList = values
+          .map((String str) => str.toNativeInt8(allocator: arena))
+          .toList();
+      final Pointer<Pointer<Int8>> pointerArray =
+          arena<Pointer<Int8>>(pointerList.length);
+      values.asMap().forEach((int index, String value) {
         pointerArray[index] = pointerList[index];
       });
 
-      int ret = tizen.bundle_add_str_array(
-          _handle, key.toNativeInt8(), pointerArray, values.length);
+      final int ret = tizen.bundle_add_str_array(_handle,
+          key.toNativeInt8(allocator: arena), pointerArray, values.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(
-            _logTag, "Failed to add string array. key: $key, error: $ret");
-        throw Exception("bundle_add_str_array() is failed. error: $ret");
+        _throwException(ret);
       }
     });
   }
 
-  List<String> getStrings(String key) {
-    List<String> values = using((Arena arena) {
-      final arraySize = arena<Int32>();
-      final stringArray =
-          tizen.bundle_get_str_array(_handle, key.toNativeInt8(), arraySize);
-      int ret = tizen.get_last_result();
+  List<String> _getStrings(String key) {
+    final List<String> values = using((Arena arena) {
+      final Pointer<Int32> arraySize = arena<Int32>();
+      final Pointer<Pointer<Int8>> stringArray = tizen.bundle_get_str_array(
+          _handle, key.toNativeInt8(allocator: arena), arraySize);
+      final int ret = tizen.get_last_result();
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(
-            _logTag, "Failed to get string array. key: $key, error: $ret");
-        throw Exception("bundle_get_str_array() is failed. error: $ret");
+        _throwException(ret);
       }
 
-      List<String> strings = [];
+      final List<String> strings = <String>[];
       for (int index = 0; index < arraySize.value; ++index) {
         strings.add(stringArray[index].toDartString());
       }
@@ -148,70 +222,40 @@ class Bundle implements Disposable {
     return values;
   }
 
-  static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
-      Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
-    final pCount = userData.cast<Int32>();
-    final String key = pKey.toDartString();
-    _iteratorMap[pCount.value]?.add(KeyInfo(key, type));
-  }
-
-  List<KeyInfo>? getKeys() {
-    int count = _iteratorCount++;
-    _iteratorMap[count] = [];
-    List<KeyInfo>? keys = using((Arena arena) {
-      final pCount = arena<Int32>();
-      pCount.value = count;
-      tizen.bundle_foreach(_handle,
-          Pointer.fromFunction(_bundleIteratorCallback), pCount.cast<Void>());
-      return _iteratorMap[count];
-    });
-    _iteratorMap.remove(count);
-
-    return keys;
-  }
-
-  void delete(String key) {
-    int ret = tizen.bundle_del(_handle, key.toNativeInt8());
-    if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-      Log.error(_logTag, "Failed to delete key/value. key: $key, error: $ret");
-      throw Exception("bundle_del() is failed. error: $ret");
-    }
-  }
-
-  bool isEmpty() {
-    return tizen.bundle_get_count(_handle) == 0;
-  }
-
-  void addBytes(String key, List<int> bytes) {
+  void _addBytes(String key, Uint8List bytes) {
     using((Arena arena) {
-      final byteArray = arena<Uint8>(bytes.length);
+      final Pointer<Uint8> bytesArray = arena<Uint8>(bytes.length);
       for (int index = 0; index < bytes.length; ++index) {
-        byteArray[index] = bytes[index] & 0xff;
+        bytesArray[index] = bytes[index] & 0xff;
       }
 
-      int ret = tizen.bundle_add_byte(
-          _handle, key.toNativeInt8(), byteArray.cast<Void>(), bytes.length);
+      final int ret = tizen.bundle_add_byte(
+          _handle,
+          key.toNativeInt8(allocator: arena),
+          bytesArray.cast<Void>(),
+          bytes.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, "Failed to add bytes. key: $key, error: $ret");
-        throw Exception("bundle_add_bytes() is failed. error: $ret");
+        _throwException(ret);
       }
     });
   }
 
-  List<int> getBytes(String key) {
-    List<int> values = using((Arena arena) {
-      final bytes = arena<Pointer<Uint8>>();
-      final bytesSize = arena<Int32>();
-      int ret = tizen.bundle_get_byte(
-          _handle, key.toNativeInt8(), bytes.cast<Pointer<Void>>(), bytesSize);
+  Uint8List _getBytes(String key) {
+    final Uint8List values = using((Arena arena) {
+      final Pointer<Pointer<Uint8>> bytes = arena<Pointer<Uint8>>();
+      final Pointer<Int32> bytesSize = arena<Int32>();
+      final int ret = tizen.bundle_get_byte(
+          _handle,
+          key.toNativeInt8(allocator: arena),
+          bytes.cast<Pointer<Void>>(),
+          bytesSize);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, "Failed to get bytes. key: $key, error: $ret");
-        throw Exception("bundle_get_byte() is failed. error: $ret");
+        _throwException(ret);
       }
 
-      List<int> byteList = [];
+      final Uint8List byteList = Uint8List(bytesSize.value);
       for (int index = 0; index < bytesSize.value; ++index) {
-        byteList.add(bytes.value[index]);
+        byteList[index] = bytes.value[index];
       }
 
       return byteList;
@@ -220,38 +264,9 @@ class Bundle implements Disposable {
     return values;
   }
 
-  BundleRaw toRaw() {
-    BundleRaw raw = using((Arena arena) {
-      final rawPointer = arena<Pointer<Int8>>();
-      final lengthPointer = arena<Int32>();
-      int ret = tizen.bundle_encode(
-          _handle, rawPointer.cast<Pointer<Uint8>>(), lengthPointer);
-      if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-        Log.error(_logTag, "Failed to encode bundle to raw data. error: $ret");
-        throw Exception("bundle_encode() is failed. error: $ret");
-      }
-
-      return BundleRaw(rawPointer.value.toDartString(), lengthPointer.value);
+  int _getType(String key) {
+    return using((Arena arena) {
+      return tizen.bundle_get_type(_handle, key.toNativeInt8(allocator: arena));
     });
-
-    return raw;
-  }
-
-  int getCount() {
-    return tizen.bundle_get_count(_handle);
-  }
-
-  int getType(String key) {
-    return tizen.bundle_get_type(_handle, key.toNativeInt8());
-  }
-
-  dynamic get getHandle => _handle;
-
-  @override
-  void dispose() {
-    if (isDisposed) return;
-
-    tizen.bundle_free(_handle);
-    isDisposed = true;
   }
 }

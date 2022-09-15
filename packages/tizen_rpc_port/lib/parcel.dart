@@ -238,11 +238,8 @@ class Parcel implements Disposable {
 
   /// Writes a Bundle value to the parcel.
   void writeBundle(Bundle b) {
-    dynamic bundleHandle = b.getHandle;
-    final int ret = tizen.rpc_port_parcel_write_bundle(_parcel, bundleHandle);
-    if (ret != 0) {
-      throw ret;
-    }
+    final String raw = b.encode();
+    writeString(raw);
   }
 
   /// Writes the array count to the parcel.
@@ -356,8 +353,7 @@ class Parcel implements Disposable {
       }
 
       final String str = pV.value.toDartString();
-      final BundleRaw raw = BundleRaw(str, str.length);
-      return Bundle.fromBundleRaw(raw);
+      return Bundle.decode(str);
     });
   }
 
