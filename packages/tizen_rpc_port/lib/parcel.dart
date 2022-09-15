@@ -133,8 +133,8 @@ class Parcel implements Disposable {
 
   static const int _byteMax = 0xff;
   static const int _int16Max = 0xffff;
-  static const int _int32Max = 0xFffffffff;
-  static const int _int64Max = 0xFFFFFFFFFFFFFFFF;
+  static const int _int32Max = 0xffffffff;
+  static const int _int64Max = 0xffffffffffffffff;
 
   static final Finalizer<Pointer<Void>> _finalizer =
       Finalizer<Pointer<Void>>((Pointer<Void> handle) {

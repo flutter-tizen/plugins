@@ -36,7 +36,7 @@ class Port {
   /// Sends a parcel to connected app.
   Future<void> send(Parcel parcel) async {
     final RpcPortPlatform manager = RpcPortPlatform.instance;
-    return manager.send(this, parcel.raw);
+    await manager.send(this, parcel.raw);
   }
 
   /// Receives a parcel from connected app.

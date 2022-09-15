@@ -72,6 +72,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         { "proxyProxyConnectSync",
           std::bind(&TizenRpcPortPlugin::ProxyConnectSync, this,
               std::placeholders::_1, std::placeholders::_2)},
+        { "proxyDestroy",
+          std::bind(&TizenRpcPortPlugin::ProxyDestroy, this,
+              std::placeholders::_1, std::placeholders::_2)},
         { "portSetPrivateSharingArray",
           std::bind(&TizenRpcPortPlugin::PortSetPrivateSharingArray, this,
               std::placeholders::_1, std::placeholders::_2)},
@@ -339,6 +342,34 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     event_channels_[event_channel_name] = std::move(event_channel);
     LOG_DEBUG("Successfully connect stream for appid(%s) port_name(%s): ",
               appid.c_str(), port_name.c_str());
+    result->Success();
+  }
+
+  void ProxyDestroy(const flutter::EncodableValue* args,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    LOG_DEBUG("ProxyDestroy");
+    std::string appid;
+    std::string port_name;
+    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
+        !GetValueFromArgs<std::string>(args, "portName", port_name)) {
+      result->Error("Invalid parameter");
+      return;
+    }
+
+    {
+      auto found = event_channels_.find(port_name);
+      if (found != event_channels_.end())
+        event_channels_.erase(found);
+    }
+
+    auto key = CreateKey(appid, port_name);
+    auto found = native_proxies_.find(key);
+    if (found == native_stubs_.end()) {
+      result->Error("Invalid parameter");
+      return;
+    }
+
+    native_proxies_.erase(found);
     result->Success();
   }
 

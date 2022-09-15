@@ -18,6 +18,10 @@ import 'rpc_port_platform_interface.dart';
 
 const String _logTag = 'RPC_PORT';
 
+Finalizer<ProxyBase> _finalizer = Finalizer<ProxyBase>((ProxyBase proxy) {
+  proxy.dispose();
+});
+
 /// The base of RpcPort proxy class.
 abstract class ProxyBase extends Disposable {
   /// The constructor of ProxyBase.
@@ -26,6 +30,7 @@ abstract class ProxyBase extends Disposable {
   late final String _appid;
   late final String _portName;
   bool _connected = false;
+  bool _isDisposed = true;
   StreamSubscription<dynamic>? _streamSubscription;
 
   /// The appid of stub app.
@@ -72,6 +77,8 @@ abstract class ProxyBase extends Disposable {
           }
         }
       }
+
+      _isDisposed = false;
     });
   }
 
@@ -119,6 +126,18 @@ abstract class ProxyBase extends Disposable {
   /// Gets a port.
   Port getPort(PortType portType) {
     return Port.fromStub(_appid, _portName, portType);
+  }
+
+  @override
+  void dispose() {
+    if (_isDisposed) {
+      return;
+    }
+
+    final RpcPortPlatform manager = RpcPortPlatform.instance;
+    _finalizer.detach(this);
+    manager.destoryProxy(this);
+    _isDisposed = true;
   }
 
   /// The callback function that is invoked when be connected with the stub.

@@ -16,6 +16,10 @@ import 'rpc_port_platform_interface.dart';
 
 const String _logTag = 'RPC_PORT';
 
+Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
+  stub.dispose();
+});
+
 /// The base of RpcPort stub class.
 abstract class StubBase extends Disposable {
   /// The constructor of StubBase.
@@ -28,6 +32,7 @@ abstract class StubBase extends Disposable {
   late final StreamSubscription<dynamic> _streamSubscription;
   bool _isListening = false;
 
+  /// The port name of connection with proxy.
   String get portName => _portName;
 
   /// Sets trusted flag.
@@ -82,7 +87,8 @@ abstract class StubBase extends Disposable {
     }
 
     final RpcPortPlatform manager = RpcPortPlatform.instance;
-    manager.destroy(_portName);
+    _finalizer.detach(this);
+    manager.destroyStub(_portName);
     isDisposed = true;
   }
 

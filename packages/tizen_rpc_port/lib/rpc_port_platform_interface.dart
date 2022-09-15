@@ -29,12 +29,16 @@ abstract class RpcPortPlatform extends PlatformInterface {
     throw UnimplementedError('create() has not been implemented.');
   }
 
-  Future<void> destroy(String portName) async {
-    throw UnimplementedError('destroy() has not been implemented.');
+  Future<void> destroyStub(String portName) async {
+    throw UnimplementedError('destroyStub() has not been implemented.');
   }
 
   Stream<dynamic> connect(ProxyBase proxy) {
     throw UnimplementedError('connect() has not been implemented.');
+  }
+
+  Future<void> destoryProxy(ProxyBase proxy) async {
+    throw UnimplementedError('destoryProxy() has not been implemented.');
   }
 
   Stream<dynamic> connectSync(ProxyBase proxy) {
