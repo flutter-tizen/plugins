@@ -356,15 +356,16 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
+    auto event_channel_name = "tizen/rpc_port_proxy/" + appid + "/" + port_name;
     {
-      auto found = event_channels_.find(port_name);
+      auto found = event_channels_.find(event_channel_name);
       if (found != event_channels_.end())
         event_channels_.erase(found);
     }
 
     auto key = CreateKey(appid, port_name);
     auto found = native_proxies_.find(key);
-    if (found == native_stubs_.end()) {
+    if (found == native_proxies_.end()) {
       result->Error("Invalid parameter");
       return;
     }
