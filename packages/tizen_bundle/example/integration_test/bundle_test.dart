@@ -22,16 +22,6 @@ void main() {
       expect(bundle['testName'], 'bundleTest');
     });
 
-    testWidgets('bundleFromRawTest', (WidgetTester _) async {
-      Log.info(_logTag, 'bundleFromRawTest');
-      final Bundle bundle = Bundle();
-      bundle['testName'] = 'bundleFromRawTest';
-      final String bundleRaw = bundle.toRaw();
-
-      final Bundle newBundle = Bundle.fromRaw(bundleRaw);
-      expect(newBundle['testName'], 'bundleFromRawTest');
-    });
-
     testWidgets('bundleFromBundleTest', (WidgetTester _) async {
       Log.info(_logTag, 'bundleFromBundleTest');
       final Bundle bundle = Bundle();
@@ -265,26 +255,6 @@ void main() {
       expect(bundle.containsValue('containsValueTest'), true);
     });
 
-    testWidgets('toMapTest', (WidgetTester _) async {
-      Log.info(_logTag, 'toMapTest');
-      final Bundle bundle = Bundle();
-      bundle['testName'] = 'toMapTest';
-      bundle['testName2'] = 'toMapTest2';
-      bundle['testName3'] = 'toMapTest3';
-      bundle.toMap().forEach((String key, Object value) {
-        bool matched = false;
-        if (key == 'testName' && value == 'toMapTest') {
-          matched = true;
-        } else if (key == 'testName2' && value == 'toMapTest2') {
-          matched = true;
-        } else if (key == 'testName3' && value == 'toMapTest3') {
-          matched = true;
-        }
-
-        expect(matched, true);
-      });
-    });
-
     testWidgets('mapTest', (WidgetTester _) async {
       Log.info(_logTag, 'mapTest');
       final Bundle bundle = Bundle();
@@ -376,18 +346,26 @@ void main() {
       expect(bundle['testName3'], 'testName3+updateAllTest');
     });
 
-    testWidgets('toRawTest', (WidgetTester _) async {
-      Log.info(_logTag, 'toRawTest');
+    testWidgets('decodeTest', (WidgetTester _) async {
+      Log.info(_logTag, 'decodeTest');
       final Bundle bundle = Bundle();
-      bundle['testName'] = 'toRawTest';
+      bundle['testName'] = 'decodeTest';
+      final String bundleRaw = bundle.encode();
+      final Bundle newBundle = Bundle.decode(bundleRaw);
+      expect(newBundle['testName'], 'decodeTest');
+    });
+
+    testWidgets('encodeTest', (WidgetTester _) async {
+      Log.info(_logTag, 'encodeTest');
+      final Bundle bundle = Bundle();
+      bundle['testName'] = 'encodeTest';
       expect(bundle.length, 1);
 
-      final String bundleRaw = bundle.toRaw();
+      final String bundleRaw = bundle.encode();
       expect(bundleRaw.isNotEmpty, true);
-      expect(bundleRaw.isEmpty, false);
 
-      final Bundle newBundle = Bundle.fromRaw(bundleRaw);
-      expect(newBundle['testName'], 'toRawTest');
+      final Bundle newBundle = Bundle.decode(bundleRaw);
+      expect(newBundle['testName'], 'encodeTest');
     });
   });
 }

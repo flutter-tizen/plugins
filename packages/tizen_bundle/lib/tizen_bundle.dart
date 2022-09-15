@@ -20,8 +20,7 @@ class Bundle extends MapMixin<String, Object> {
     _finalizer.attach(this, this, detach: this);
   }
 
-  /// Creates an instance of [Bundle] with the given raw data.
-  Bundle.fromRaw(String raw) {
+  Bundle._fromRaw(String raw) {
     _handle = tizen.bundle_decode(raw.toNativeInt8().cast<Uint8>(), raw.length);
     _finalizer.attach(this, this, detach: this);
   }
@@ -45,9 +44,19 @@ class Bundle extends MapMixin<String, Object> {
   static final Finalizer<Bundle> _finalizer =
       Finalizer<Bundle>((Bundle bundle) => bundle.dispose());
 
+  static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
+      Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
+    _keys.add(pKey.toDartString());
+  }
+
   /// The keys of this.
   @override
-  Iterable<String> get keys => toMap().keys;
+  Iterable<String> get keys {
+    _keys.clear();
+    tizen.bundle_foreach(
+        _handle, Pointer.fromFunction(_bundleIteratorCallback), nullptr);
+    return _keys;
+  }
 
   /// The value for the given key, or null if key is not in the Bundle.
   @override
@@ -83,7 +92,7 @@ class Bundle extends MapMixin<String, Object> {
     } else if (value is Uint8List) {
       _addBytes(key, value);
     } else {
-      _throwException(bundle_error_e.BUNDLE_ERROR_INVALID_PARAMETER);
+      throw ArgumentError('Not supported type: ${value.runtimeType}', 'value');
     }
   }
 
@@ -91,23 +100,6 @@ class Bundle extends MapMixin<String, Object> {
   @override
   void clear() {
     keys.forEach(remove);
-  }
-
-  static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
-      Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
-    _keys.add(pKey.toDartString());
-  }
-
-  /// Creates a [Map] containing the elements of this [Bundle].
-  Map<String, Object> toMap() {
-    _keys.clear();
-    tizen.bundle_foreach(
-        _handle, Pointer.fromFunction(_bundleIteratorCallback), nullptr);
-    final Map<String, Object> map = <String, Object>{};
-    for (final String element in _keys) {
-      map[element] = this[element]!;
-    }
-    return map;
   }
 
   /// Removes [key] and its associated value, if present, from the [Bundle].
@@ -126,8 +118,13 @@ class Bundle extends MapMixin<String, Object> {
     }
   }
 
-  /// Converts this object to String type.
-  String toRaw() {
+  /// Decodes an encoded bundle data.
+  static Bundle decode(String bundleRaw) {
+    return Bundle._fromRaw(bundleRaw);
+  }
+
+  /// Encodes this object to String.
+  String encode() {
     final String raw = using((Arena arena) {
       final Pointer<Pointer<Int8>> rawPointer = arena<Pointer<Int8>>();
       final Pointer<Int32> lengthPointer = arena<Int32>();
@@ -268,10 +265,8 @@ class Bundle extends MapMixin<String, Object> {
   }
 
   int _getType(String key) {
-    final int type = using((Arena arena) {
+    return using((Arena arena) {
       return tizen.bundle_get_type(_handle, key.toNativeInt8(allocator: arena));
     });
-
-    return type;
   }
 }

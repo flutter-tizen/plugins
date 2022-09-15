@@ -13,5 +13,3 @@ dependencies:
   flutter:
     sdk: flutter
   tizen_interop: ^0.1.0
-  tizen_log: ^0.1.0
-
