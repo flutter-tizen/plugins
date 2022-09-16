@@ -6,7 +6,7 @@ import 'dart:collection';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' hide Size;
 import 'package:tizen_interop/4.0/tizen.dart';
 
 /// Bundle is a string based Dictionary ADT.
