@@ -38,6 +38,11 @@ class Bundle extends MapMixin<String, Object> {
     return bundle;
   }
 
+  /// Creates an instance of [Bundle] with the encoded bundle raw.
+  factory Bundle.decode(String raw) {
+    return Bundle._fromRaw(raw);
+  }
+
   late final _handle;
   static final List<String> _keys = <String>[];
   bool _isDisposed = false;
@@ -116,11 +121,6 @@ class Bundle extends MapMixin<String, Object> {
     if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
       _throwException(ret);
     }
-  }
-
-  /// Decodes an encoded bundle data.
-  static Bundle decode(String bundleRaw) {
-    return Bundle._fromRaw(bundleRaw);
   }
 
   /// Encodes this object to String.

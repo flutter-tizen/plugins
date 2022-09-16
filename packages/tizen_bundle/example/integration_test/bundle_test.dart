@@ -346,13 +346,13 @@ void main() {
       expect(bundle['testName3'], 'testName3+updateAllTest');
     });
 
-    testWidgets('decodeTest', (WidgetTester _) async {
-      Log.info(_logTag, 'decodeTest');
+    testWidgets('bundleDecodeTest', (WidgetTester _) async {
+      Log.info(_logTag, 'bundleDecodeTest');
       final Bundle bundle = Bundle();
-      bundle['testName'] = 'decodeTest';
+      bundle['testName'] = 'bundleDecodeTest';
       final String bundleRaw = bundle.encode();
       final Bundle newBundle = Bundle.decode(bundleRaw);
-      expect(newBundle['testName'], 'decodeTest');
+      expect(newBundle['testName'], 'bundleDecodeTest');
     });
 
     testWidgets('encodeTest', (WidgetTester _) async {
