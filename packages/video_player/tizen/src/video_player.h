@@ -14,6 +14,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <string>
 
 #include "video_player_options.h"
@@ -47,14 +48,13 @@ class VideoPlayer {
 
  private:
   void Initialize();
+  void RequestRendering();
   void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void SendInitialized();
-  void SendMessage(MessageEvent event, media_packet_h media_packet);
-  void SendRenderFinishedMessage();
+  void OnRenderingCompleted();
+
   FlutterDesktopGpuSurfaceDescriptor *ObtainGpuSurface(size_t width,
                                                        size_t height);
-  static void ReleaseMediaPacket(void *packet);
-
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
   static void OnSeekCompleted(void *data);
@@ -62,10 +62,8 @@ class VideoPlayer {
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
-  static void RunMediaPacketLoop(void *data, Ecore_Thread *thread);
+  static void ReleaseMediaPacket(void *packet);
 
-  Ecore_Thread *packet_thread_ = nullptr;
-  Eina_Thread_Queue *packet_thread_queue_ = nullptr;
   media_packet_h current_media_packet_ = nullptr;
   media_packet_h previous_media_packet_ = nullptr;
   bool is_initialized_ = false;
@@ -80,6 +78,7 @@ class VideoPlayer {
   std::unique_ptr<FlutterDesktopGpuSurfaceDescriptor> gpu_surface_;
   std::mutex mutex_;
   SeekCompletedCallback on_seek_completed_;
+  std::queue<media_packet_h> packet_queue_;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_

@@ -8,7 +8,6 @@
 #include <flutter/standard_method_codec.h>
 
 #include <algorithm>
-#include <queue>
 
 #include "log.h"
 #include "video_player_error.h"
@@ -54,7 +53,7 @@ void VideoPlayer::ReleaseMediaPacket(void *data) {
 
   std::lock_guard<std::mutex> lock(player->mutex_);
   player->is_rendering_ = false;
-  player->SendRenderFinishedMessage();
+  player->OnRenderingCompleted();
 }
 
 FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuSurface(
@@ -63,7 +62,7 @@ FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuSurface(
   if (!current_media_packet_) {
     LOG_ERROR("[VideoPlayer] current media packet not valid.");
     is_rendering_ = false;
-    SendRenderFinishedMessage();
+    OnRenderingCompleted();
     return nullptr;
   }
 
@@ -74,7 +73,7 @@ FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuSurface(
     is_rendering_ = false;
     media_packet_destroy(current_media_packet_);
     current_media_packet_ = nullptr;
-    SendRenderFinishedMessage();
+    OnRenderingCompleted();
     return nullptr;
   }
   gpu_surface_->handle = surface;
@@ -118,8 +117,6 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                            get_error_message(ret));
   }
 
-  packet_thread_ = ecore_thread_feedback_run(RunMediaPacketLoop, nullptr,
-                                             nullptr, nullptr, this, EINA_TRUE);
   ret = player_set_media_packet_video_frame_decoded_cb(
       player_, OnVideoFrameDecoded, this);
   if (ret != PLAYER_ERROR_NONE) {
@@ -277,10 +274,9 @@ void VideoPlayer::Dispose() {
     player_ = 0;
   }
 
-  SendMessage(kMessageQuit, nullptr);
-  if (packet_thread_) {
-    ecore_thread_cancel(packet_thread_);
-    packet_thread_ = nullptr;
+  while (!packet_queue_.empty()) {
+    media_packet_destroy(packet_queue_.front());
+    packet_queue_.pop();
   }
 
   if (current_media_packet_) {
@@ -447,87 +443,30 @@ void VideoPlayer::OnError(int code, void *data) {
 void VideoPlayer::OnVideoFrameDecoded(media_packet_h packet, void *data) {
   auto *player = reinterpret_cast<VideoPlayer *>(data);
   std::lock_guard<std::mutex> lock(player->mutex_);
-  player->SendMessage(kMessageFrameDecoded, packet);
+  player->packet_queue_.push(packet);
+  player->RequestRendering();
 }
 
-void VideoPlayer::RunMediaPacketLoop(void *data, Ecore_Thread *thread) {
-  auto *self = reinterpret_cast<VideoPlayer *>(data);
-  Eina_Thread_Queue *packet_thread_queue = eina_thread_queue_new();
-  if (!packet_thread_queue) {
-    LOG_ERROR("Invalid packet queue.");
-    ecore_thread_cancel(thread);
+void VideoPlayer::RequestRendering() {
+  if (packet_queue_.empty() || is_rendering_) {
     return;
   }
-
-  self->packet_thread_queue_ = packet_thread_queue;
-  std::queue<media_packet_h> packet_queue;
-  while (!ecore_thread_check(thread)) {
-    void *ref;
-    Message *message = static_cast<Message *>(
-        eina_thread_queue_wait(packet_thread_queue, &ref));
-    if (message->event == kMessageQuit) {
-      LOG_INFO("Message quit.");
-      eina_thread_queue_wait_done(packet_thread_queue, ref);
-      break;
+  if (texture_registrar_->MarkTextureFrameAvailable(texture_id_)) {
+    is_rendering_ = true;
+    previous_media_packet_ = current_media_packet_;
+    current_media_packet_ = packet_queue_.front();
+    packet_queue_.pop();
+    while (!packet_queue_.empty()) {
+      media_packet_destroy(packet_queue_.front());
+      packet_queue_.pop();
     }
-
-    if (message->event == kMessageFrameDecoded) {
-      if (message->media_packet != nullptr) {
-        packet_queue.push(message->media_packet);
-      }
-    }
-
-    eina_thread_queue_wait_done(packet_thread_queue, ref);
-    std::lock_guard<std::mutex> lock(self->mutex_);
-    if (packet_queue.empty() || self->is_rendering_) {
-      continue;
-    }
-    if (self->texture_registrar_->MarkTextureFrameAvailable(
-            self->texture_id_)) {
-      self->is_rendering_ = true;
-      self->previous_media_packet_ = self->current_media_packet_;
-      self->current_media_packet_ = packet_queue.front();
-      packet_queue.pop();
-      while (!packet_queue.empty()) {
-        media_packet_destroy(packet_queue.front());
-        packet_queue.pop();
-      }
-    }
-  }
-
-  while (!packet_queue.empty()) {
-    media_packet_destroy(packet_queue.front());
-    packet_queue.pop();
-  }
-
-  if (packet_thread_queue) {
-    eina_thread_queue_free(packet_thread_queue);
   }
 }
 
-void VideoPlayer::SendMessage(MessageEvent event, media_packet_h media_packet) {
-  if (!packet_thread_ || ecore_thread_check(packet_thread_)) {
-    LOG_ERROR("Invalid packet thread.");
-    return;
-  }
-
-  if (!packet_thread_queue_) {
-    LOG_ERROR("Invalid packet thread queue.");
-    return;
-  }
-
-  void *ref;
-  Message *message = static_cast<Message *>(
-      eina_thread_queue_send(packet_thread_queue_, sizeof(Message), &ref));
-  message->event = event;
-  message->media_packet = media_packet;
-  eina_thread_queue_send_done(packet_thread_queue_, ref);
-}
-
-void VideoPlayer::SendRenderFinishedMessage() {
+void VideoPlayer::OnRenderingCompleted() {
   if (previous_media_packet_) {
     media_packet_destroy(previous_media_packet_);
     previous_media_packet_ = nullptr;
   }
-  SendMessage(kMessageRenderFinished, nullptr);
+  RequestRendering();
 }
