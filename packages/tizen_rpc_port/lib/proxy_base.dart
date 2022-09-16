@@ -9,9 +9,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:tizen_log/tizen_log.dart';
-import 'package:tizen_rpc_port/disposable.dart';
 
-import 'disposable.dart';
 import 'parcel.dart';
 import 'port.dart';
 import 'rpc_port_method_channel.dart';
@@ -19,13 +17,16 @@ import 'rpc_port_method_channel.dart';
 const String _logTag = 'RPC_PORT';
 
 Finalizer<ProxyBase> _finalizer = Finalizer<ProxyBase>((ProxyBase proxy) {
-  proxy.dispose();
+  final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+  manager.proxyDestroy(proxy);
 });
 
 /// The base of RpcPort proxy class.
-abstract class ProxyBase extends Disposable {
+abstract class ProxyBase {
   /// The constructor of ProxyBase.
-  ProxyBase(this._appid, this._portName);
+  ProxyBase(this._appid, this._portName) {
+    _finalizer.attach(this, this);
+  }
 
   late final String _appid;
   late final String _portName;
@@ -45,7 +46,7 @@ abstract class ProxyBase extends Disposable {
     }
 
     final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    final Stream<dynamic> stream = manager.proxyConnect(this);
+    final Stream<dynamic> stream = await manager.proxyConnect(this);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
         final map = event;
@@ -76,8 +77,6 @@ abstract class ProxyBase extends Disposable {
           }
         }
       }
-
-      isDisposed = false;
     });
   }
 
@@ -125,18 +124,6 @@ abstract class ProxyBase extends Disposable {
   /// Gets a port.
   Port getPort(PortType portType) {
     return Port.fromStub(_appid, _portName, portType);
-  }
-
-  @override
-  void dispose() {
-    if (isDisposed) {
-      return;
-    }
-
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    _finalizer.detach(this);
-    manager.proxyDestroy(this);
-    isDisposed = true;
   }
 
   /// The callback function that is invoked when be connected with the stub.

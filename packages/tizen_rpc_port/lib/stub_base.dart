@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:tizen_log/tizen_log.dart';
-import 'disposable.dart';
 import 'parcel.dart';
 import 'port.dart';
 import 'rpc_port_method_channel.dart';
@@ -17,15 +16,17 @@ import 'rpc_port_method_channel.dart';
 const String _logTag = 'RPC_PORT';
 
 Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
-  stub.dispose();
+  final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+  manager.stubDestroy(stub.portName);
 });
 
 /// The base of RpcPort stub class.
-abstract class StubBase extends Disposable {
+abstract class StubBase {
   /// The constructor of StubBase.
   StubBase(this._portName) {
     final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
     manager.stubCreate(_portName);
+    _finalizer.attach(this, this);
   }
 
   final String _portName;
@@ -78,18 +79,6 @@ abstract class StubBase extends Disposable {
       }
     });
     _isListening = true;
-  }
-
-  @override
-  void dispose() {
-    if (isDisposed) {
-      return;
-    }
-
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    _finalizer.detach(this);
-    manager.stubDestroy(_portName);
-    isDisposed = true;
   }
 
   /// Gets the port connected with proxy that has instance id.

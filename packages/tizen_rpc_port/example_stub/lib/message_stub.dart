@@ -94,7 +94,6 @@ class NotifyCB extends CallbackBase {
 
     _port?.send(parcel);
     _valid = false;
-    parcel.dispose();
   }
 }
 
@@ -149,7 +148,6 @@ abstract class Message extends StubBase {
     result.writeInt32(_MethodId.result.code);
     result.writeInt32(ret);
     await port.send(result);
-    result.dispose();
   }
 
   Future<void> onUnregisterMethod(
@@ -172,7 +170,6 @@ abstract class Message extends StubBase {
     result.writeInt32(_MethodId.result.code);
     result.writeInt32(ret);
     await port.send(result);
-    result.dispose();
   }
 
   @override

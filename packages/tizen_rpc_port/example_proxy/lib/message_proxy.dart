@@ -105,7 +105,6 @@ abstract class Message extends ProxyBase {
       String appid, String portName, Parcel parcel) async {
     final int cmd = parcel.readInt32();
     if (cmd != _MethodId.callback.id) {
-      parcel.dispose();
       return;
     }
 
@@ -136,8 +135,6 @@ abstract class Message extends ProxyBase {
         if (cmd == _MethodId.result.id) {
           return parcel;
         }
-
-        parcel.dispose();
       } catch (e) {
         Log.error(_logTag, e.toString());
         return Parcel();
@@ -167,7 +164,6 @@ abstract class Message extends ProxyBase {
 
     final Port port = getPort(PortType.main);
     await port.send(parcel);
-    parcel.dispose();
 
     late Parcel parcelReceived;
     while (true) {
@@ -178,13 +174,9 @@ abstract class Message extends ProxyBase {
       } else if (headerReceived.sequenceNumber == header.sequenceNumber) {
         break;
       }
-
-      parcelReceived.dispose();
     }
 
     final ret = parcelReceived.readInt32();
-
-    parcelReceived.dispose();
     return ret;
   }
 
@@ -202,7 +194,6 @@ abstract class Message extends ProxyBase {
 
     final Port port = getPort(PortType.main);
     await port.send(parcel);
-    parcel.dispose();
   }
 
   Future<int> send(String msg) async {
@@ -221,7 +212,6 @@ abstract class Message extends ProxyBase {
 
     final Port port = getPort(PortType.main);
     await port.send(parcel);
-    parcel.dispose();
 
     late Parcel parcelReceived;
     while (true) {
@@ -232,13 +222,9 @@ abstract class Message extends ProxyBase {
       } else if (headerReceived.sequenceNumber == header.sequenceNumber) {
         break;
       }
-
-      parcelReceived.dispose();
     }
 
     final ret = parcelReceived.readInt32();
-
-    parcelReceived.dispose();
     return ret;
   }
 }

@@ -5,7 +5,6 @@ import 'package:ffi/ffi.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
 
 import 'bundle.dart';
-import 'disposable.dart';
 
 /// The timestamp when parcel created.
 class Timestamp {
@@ -91,7 +90,7 @@ class ParcelHeader {
 
 /// The parcel that can serialize & deserialize.
 /// It can only sequentially read & write.(like FIFO)
-class Parcel implements Disposable {
+class Parcel {
   /// The constructor default parcel
   Parcel() {
     _parcel = using((Arena arena) {
@@ -101,7 +100,6 @@ class Parcel implements Disposable {
         throw ret;
       }
 
-      isDisposed = false;
       return pParcel.value;
     });
 
@@ -127,8 +125,6 @@ class Parcel implements Disposable {
     });
   }
 
-  @override
-  bool isDisposed = true;
   late final Pointer<Void> _parcel;
 
   static const int _byteMax = 0xff;
@@ -156,22 +152,6 @@ class Parcel implements Disposable {
 
       return rawData.value.cast<Uint8>().asTypedList(size.value);
     });
-  }
-
-  /// Dispose the parcel.
-  @override
-  void dispose() {
-    if (isDisposed) {
-      return;
-    }
-
-    final int ret = tizen.rpc_port_parcel_destroy(_parcel);
-    if (ret != 0) {
-      throw ret;
-    }
-
-    _finalizer.detach(this);
-    isDisposed = true;
   }
 
   /// Writes a byte value to the parcel.
