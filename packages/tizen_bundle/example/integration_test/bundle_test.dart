@@ -34,10 +34,10 @@ void main() {
     testWidgets('bundleFromMapTest', (WidgetTester _) async {
       Log.info(_logTag, 'bundleFromMapTest');
       const String string = 'String';
-      final List<String> strings = ['String 1', 'String 2'];
+      final List<String> strings = <String>['String 1', 'String 2'];
       final Uint8List bytes = Uint8List(1);
       bytes[0] = 0x03;
-      final Map<String, Object> map = {
+      final Map<String, Object> map = <String, Object>{
         'keyString': string,
         'keyListString': strings,
         'keyBytes': bytes
@@ -57,7 +57,7 @@ void main() {
       bundle['testName2'] = 'entriesTest2';
 
       final Iterable<MapEntry<String, Object>> entries = bundle.entries;
-      for (MapEntry<String, Object> entry in entries) {
+      for (final MapEntry<String, Object> entry in entries) {
         bool matched = false;
         if (entry.key == 'testName' && entry.value == 'entriesTest') {
           matched = true;
@@ -74,14 +74,19 @@ void main() {
     testWidgets('keysPropertyTest', (WidgetTester _) async {
       Log.info(_logTag, 'keysPropertyTest');
       final Bundle bundle = Bundle();
-      final List<String> keys = ['testKey', 'key1', 'key2', 'key3'];
-      final List<String> values = ['getKeyTest', 'value1', 'value2', 'value3'];
+      final List<String> keys = <String>['testKey', 'key1', 'key2', 'key3'];
+      final List<String> values = <String>[
+        'getKeyTest',
+        'value1',
+        'value2',
+        'value3'
+      ];
       for (int index = 0; index < keys.length; ++index) {
         bundle[keys[index]] = values[index];
       }
 
       final Iterable<String> keysFromBundle = bundle.keys;
-      for (String key in bundle.keys) {
+      for (final String key in bundle.keys) {
         expect(keys.contains(key), true);
       }
 
@@ -91,14 +96,19 @@ void main() {
     testWidgets('valuesPropertyTest', (WidgetTester _) async {
       Log.info(_logTag, 'valuesPropertyTest');
       final Bundle bundle = Bundle();
-      final List<String> keys = ['testKey', 'key1', 'key2', 'key3'];
-      final List<String> values = ['getKeyTest', 'value1', 'value2', 'value3'];
+      final List<String> keys = <String>['testKey', 'key1', 'key2', 'key3'];
+      final List<String> values = <String>[
+        'getKeyTest',
+        'value1',
+        'value2',
+        'value3'
+      ];
       for (int index = 0; index < keys.length; ++index) {
         bundle[keys[index]] = values[index];
       }
 
       final Iterable<Object> valuesFromBundle = bundle.values;
-      for (Object value in valuesFromBundle) {
+      for (final Object value in valuesFromBundle) {
         expect(values.contains(value), true);
       }
 
@@ -160,7 +170,7 @@ void main() {
     testWidgets('operatorTestForStrings', (WidgetTester _) async {
       Log.info(_logTag, 'operatorTestForStrings');
       final Bundle bundle = Bundle();
-      final List<String> strings = ['Hello', 'Tizen', 'Bundle'];
+      final List<String> strings = <String>['Hello', 'Tizen', 'Bundle'];
       bundle['testKey'] = strings;
       bundle['testName'] = 'operatorTestForStrings';
       expect(bundle.length, 2);
@@ -173,10 +183,10 @@ void main() {
     testWidgets('addAllTest', (WidgetTester _) async {
       Log.info(_logTag, 'addAllTest');
       const String string = 'String';
-      final List<String> strings = ['String 1', 'String 2'];
+      final List<String> strings = <String>['String 1', 'String 2'];
       final Uint8List bytes = Uint8List(1);
       bytes[0] = 0x02;
-      final Map<String, Object> map = {
+      final Map<String, Object> map = <String, Object>{
         'keyString': string,
         'keyListString': strings,
         'keyBytes': bytes
@@ -193,11 +203,11 @@ void main() {
     testWidgets('addEntriesTest', (WidgetTester _) async {
       Log.info(_logTag, 'addEntriesTest');
       const String string = 'String';
-      final List<String> strings = ['String 1', 'String 2'];
+      final List<String> strings = <String>['String 1', 'String 2'];
       final Uint8List bytes = Uint8List(2);
       bytes[0] = 0x01;
       bytes[1] = 0x02;
-      final Map<String, Object> map = {
+      final Map<String, Object> map = <String, Object>{
         'keyString': string,
         'keyListString': strings,
         'keyBytes': bytes
@@ -303,7 +313,7 @@ void main() {
       bundle['testName2'] = 'removeWhereTest2';
       expect(bundle.length, 2);
       expect(bundle['testName'], 'removeWhereTest');
-      bundle.removeWhere((key, value) {
+      bundle.removeWhere((String key, Object value) {
         return key == 'testName';
       });
       expect(bundle.length, 1);
