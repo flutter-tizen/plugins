@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'parcel.dart';
-import 'rpc_port_platform_interface.dart';
+import 'rpc_port_method_channel.dart';
 
 /// The port type.
 enum PortType {
@@ -35,39 +35,39 @@ class Port {
 
   /// Sends a parcel to connected app.
   Future<void> send(Parcel parcel) async {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    await manager.send(this, parcel.raw);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    await manager.portSend(this, parcel.raw);
   }
 
   /// Receives a parcel from connected app.
   /// This api should be used only guaranteed receive something after send().
   Future<Parcel> receive() async {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    final Uint8List raw = await manager.receive(this);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    final Uint8List raw = await manager.portReceive(this);
     return Parcel.fromRaw(raw);
   }
 
   /// Sets private sharing paths.
   Future<void> setPrivateSharingList(List<String> paths) async {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    await manager.setPrivateSharingArray(this, paths);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    await manager.portSetPrivateSharingArray(this, paths);
   }
 
   /// Sets private sharing a path.
   Future<void> setPrivateSharing(String path) async {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    await manager.setPrivateSharing(this, path);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    await manager.portSetPrivateSharing(this, path);
   }
 
   /// Unsets all setted private sharing paths.
   Future<void> unsetPrivateSharing() async {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    await manager.unsetPrivateSharing(this);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    await manager.portUnsetPrivateSharing(this);
   }
 
   /// Disconnects port connection.
   Future<void> disconnect() async {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    await manager.proxyDisconnect(this);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    await manager.portDisconnect(this);
   }
 }

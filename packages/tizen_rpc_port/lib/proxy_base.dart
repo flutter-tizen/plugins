@@ -14,7 +14,7 @@ import 'package:tizen_rpc_port/disposable.dart';
 import 'disposable.dart';
 import 'parcel.dart';
 import 'port.dart';
-import 'rpc_port_platform_interface.dart';
+import 'rpc_port_method_channel.dart';
 
 const String _logTag = 'RPC_PORT';
 
@@ -45,8 +45,8 @@ abstract class ProxyBase extends Disposable {
       throw Exception('Proxy $_appid/$_portName already requested to stub');
     }
 
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    final Stream<dynamic> stream = manager.connect(this);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    final Stream<dynamic> stream = manager.proxyConnect(this);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
         final map = event;
@@ -88,8 +88,8 @@ abstract class ProxyBase extends Disposable {
       throw Exception('Proxy $_appid/$_portName already requested to stub');
     }
 
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    final Stream<dynamic> stream = manager.connectSync(this);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    final Stream<dynamic> stream = manager.proxyConnectSync(this);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
         final Map<String, dynamic> map = event as Map<String, dynamic>;
@@ -134,9 +134,9 @@ abstract class ProxyBase extends Disposable {
       return;
     }
 
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
     _finalizer.detach(this);
-    manager.destoryProxy(this);
+    manager.proxyDestroy(this);
     _isDisposed = true;
   }
 

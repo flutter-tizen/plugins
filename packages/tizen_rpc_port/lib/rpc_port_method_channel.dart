@@ -4,12 +4,13 @@ import 'package:tizen_log/tizen_log.dart';
 
 import 'port.dart';
 import 'proxy_base.dart';
-import 'rpc_port_platform_interface.dart';
 
 const String _logTag = 'RpcPortMethodChannel';
 
 /// An implementation of [RpcPortPlatform] that uses method channels.
-class MethodChannelRpcPort extends RpcPortPlatform {
+class MethodChannelRpcPort {
+  static final MethodChannelRpcPort instance = MethodChannelRpcPort();
+
   /// The method channel used to interact with the native platform.
   final MethodChannel _channel = const MethodChannel('tizen/rpc_port');
 
@@ -17,20 +18,17 @@ class MethodChannelRpcPort extends RpcPortPlatform {
 
   String _createKey(String appid, String portName) => '$appid/$portName';
 
-  @override
-  Future<void> create(String portName) async {
+  Future<void> stubCreate(String portName) async {
     final Map<String, String> args = <String, String>{'portName': portName};
     return await _channel.invokeMethod('stubCreate', args);
   }
 
-  @override
-  Future<void> destroyStub(String portName) async {
+  Future<void> stubDestroy(String portName) async {
     final Map<String, String> args = <String, String>{'portName': portName};
     return await _channel.invokeMethod('stubDestroy', args);
   }
 
-  @override
-  Stream<dynamic> connect(ProxyBase proxy) {
+  Stream<dynamic> proxyConnect(ProxyBase proxy) {
     final String key = _createKey(proxy.appid, proxy.portName);
     if (_streams.containsKey(key)) {
       return _streams[key]!;
@@ -47,8 +45,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     return _streams[key]!;
   }
 
-  @override
-  Stream<dynamic> connectSync(ProxyBase proxy) {
+  Stream<dynamic> proxyConnectSync(ProxyBase proxy) {
     final String key = _createKey(proxy.appid, proxy.portName);
     if (_streams.containsKey(key)) {
       return _streams[key]!;
@@ -61,12 +58,11 @@ class MethodChannelRpcPort extends RpcPortPlatform {
       'portName': proxy.portName,
     };
 
-    _channel.invokeMethod<dynamic>('proxyProxyConnectSync', args);
+    _channel.invokeMethod<dynamic>('proxyConnectSync', args);
     return _streams[key]!;
   }
 
-  @override
-  Future<void> destoryProxy(ProxyBase proxy) async {
+  Future<void> proxyDestroy(ProxyBase proxy) async {
     final String key = _createKey(proxy.appid, proxy.portName);
     if (_streams.containsKey(key)) {
       final Map<String, dynamic> args = <String, dynamic>{
@@ -78,8 +74,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     }
   }
 
-  @override
-  Future<void> disconnect(Port port) async {
+  Future<void> portDisconnect(Port port) async {
     final String key = _createKey(port.appid, port.portName);
     if (_streams.containsKey(key)) {
       final Map<String, dynamic> args = <String, dynamic>{
@@ -93,8 +88,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     }
   }
 
-  @override
-  Future<dynamic> send(Port port, Uint8List raw) async {
+  Future<dynamic> portSend(Port port, Uint8List raw) async {
     final Map<String, dynamic> args = <String, dynamic>{
       'appid': port.appid,
       'portName': port.portName,
@@ -106,8 +100,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     return await _channel.invokeMethod<dynamic>('portSend', args);
   }
 
-  @override
-  Future<Uint8List> receive(Port port) async {
+  Future<Uint8List> portReceive(Port port) async {
     final Map<String, dynamic> args = <String, dynamic>{
       'appid': port.appid,
       'portName': port.portName,
@@ -129,8 +122,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     return ret;
   }
 
-  @override
-  Future<void> setPrivateSharingArray(Port port, List<String> paths) async {
+  Future<void> portSetPrivateSharingArray(Port port, List<String> paths) async {
     final String key = _createKey(port.appid, port.portName);
     if (_streams.containsKey(key)) {
       final Map<String, dynamic> args = <String, dynamic>{
@@ -145,8 +137,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     }
   }
 
-  @override
-  Future<void> setPrivateSharing(Port port, String path) async {
+  Future<void> portSetPrivateSharing(Port port, String path) async {
     final String key = _createKey(port.appid, port.portName);
     if (_streams.containsKey(key)) {
       final Map<String, dynamic> args = <String, dynamic>{
@@ -161,8 +152,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     }
   }
 
-  @override
-  Future<void> unsetPrivateSharing(Port port) async {
+  Future<void> portUnsetPrivateSharing(Port port) async {
     final String key = _createKey(port.appid, port.portName);
     if (_streams.containsKey(key)) {
       final Map<String, dynamic> args = <String, dynamic>{
@@ -176,8 +166,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     }
   }
 
-  @override
-  Future<void> setTrusted(String portName, bool trusted) async {
+  Future<void> stubSetTrusted(String portName, bool trusted) async {
     final Map<String, dynamic> args = <String, dynamic>{
       'portName': portName,
       'trusted': trusted
@@ -187,7 +176,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
   }
 
   @override
-  Future<void> addPrivilege(String portName, String privilege) async {
+  Future<void> stubAddPrivilege(String portName, String privilege) async {
     final Map<String, String> args = <String, String>{
       'portName': portName,
       'privilege': privilege
@@ -195,8 +184,7 @@ class MethodChannelRpcPort extends RpcPortPlatform {
     return await _channel.invokeMethod('stubAddPrivilege', args);
   }
 
-  @override
-  Stream<dynamic> listen(String portName) {
+  Stream<dynamic> stubListen(String portName) {
     if (_streams.containsKey(portName)) {
       return _streams[portName]!;
     }

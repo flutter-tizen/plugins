@@ -12,7 +12,7 @@ import 'package:tizen_log/tizen_log.dart';
 import 'disposable.dart';
 import 'parcel.dart';
 import 'port.dart';
-import 'rpc_port_platform_interface.dart';
+import 'rpc_port_method_channel.dart';
 
 const String _logTag = 'RPC_PORT';
 
@@ -24,8 +24,8 @@ Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
 abstract class StubBase extends Disposable {
   /// The constructor of StubBase.
   StubBase(this._portName) {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    manager.create(_portName);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    manager.stubCreate(_portName);
   }
 
   final String _portName;
@@ -37,14 +37,14 @@ abstract class StubBase extends Disposable {
 
   /// Sets trusted flag.
   void setTrusted(bool trusted) {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    manager.setTrusted(_portName, trusted);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    manager.stubSetTrusted(_portName, trusted);
   }
 
   /// Adds privilege required when try to connect on proxy.
   void addPrivilege(String privilege) {
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    manager.addPrivilege(_portName, privilege);
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    manager.stubAddPrivilege(_portName, privilege);
   }
 
   /// Listens to signal of connection request from the proxy.
@@ -53,9 +53,9 @@ abstract class StubBase extends Disposable {
       return;
     }
 
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
-    final Stream<dynamic> stream = manager.listen(_portName);
-    _streamSubscription = stream.listen((dynamic event) {
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
+    final Stream<dynamic> stream = manager.stubListen(_portName);
+    _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
         final Map<dynamic, dynamic> map = event;
         final String eventName = map['event'] as String;
@@ -65,13 +65,13 @@ abstract class StubBase extends Disposable {
         Log.info(
             _logTag, 'event: $eventName, sender: $sender, instance: $instance');
         if (eventName == 'connected') {
-          onConnectedEvent(sender, instance);
+          await onConnectedEvent(sender, instance);
         } else if (eventName == 'disconnected') {
-          onDisconnectedEvent(sender, instance);
+          await onDisconnectedEvent(sender, instance);
         } else if (eventName == 'received') {
           final Uint8List rawData = map['rawData'] as Uint8List;
           final Parcel parcel = Parcel.fromRaw(rawData);
-          onReceivedEvent(sender, instance, parcel);
+          await onReceivedEvent(sender, instance, parcel);
         } else {
           Log.error(_logTag, 'Unknown event; $eventName');
         }
@@ -86,9 +86,9 @@ abstract class StubBase extends Disposable {
       return;
     }
 
-    final RpcPortPlatform manager = RpcPortPlatform.instance;
+    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
     _finalizer.detach(this);
-    manager.destroyStub(_portName);
+    manager.stubDestroy(_portName);
     isDisposed = true;
   }
 
