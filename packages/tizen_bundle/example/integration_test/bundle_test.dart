@@ -3,27 +3,19 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:tizen_bundle/tizen_bundle.dart';
-import 'package:tizen_log/tizen_log.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('$Bundle', () {
-    const String _logTag = 'BundleTest';
-
-    setUp(() async {});
-
-    tearDown(() {});
-
-    testWidgets('bundleTest', (WidgetTester _) async {
-      Log.info(_logTag, 'bundleTest');
+    testWidgets('can create a bundle', (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'bundleTest';
       expect(bundle['testName'], 'bundleTest');
     });
 
-    testWidgets('bundleFromBundleTest', (WidgetTester _) async {
-      Log.info(_logTag, 'bundleFromBundleTest');
+    testWidgets('can create a bundle from another bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'bundleFromBundleTest';
 
@@ -31,8 +23,7 @@ void main() {
       expect(newBundle['testName'], 'bundleFromBundleTest');
     });
 
-    testWidgets('bundleFromMapTest', (WidgetTester _) async {
-      Log.info(_logTag, 'bundleFromMapTest');
+    testWidgets('can create a bundle from a map', (WidgetTester _) async {
       const String string = 'String';
       final List<String> strings = <String>['String 1', 'String 2'];
       final Uint8List bytes = Uint8List(1);
@@ -50,8 +41,8 @@ void main() {
       expect(bundle['keyBytes'], bytes);
     });
 
-    testWidgets('entriesPropertyTest', (WidgetTester _) async {
-      Log.info(_logTag, 'entriesTest');
+    testWidgets('Bundle.entries returns entries of the Bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'entriesTest';
       bundle['testName2'] = 'entriesTest2';
@@ -71,8 +62,7 @@ void main() {
       expect(entries.length, 2);
     });
 
-    testWidgets('keysPropertyTest', (WidgetTester _) async {
-      Log.info(_logTag, 'keysPropertyTest');
+    testWidgets('Bundle.keys returns all stored keys', (WidgetTester _) async {
       final Bundle bundle = Bundle();
       final List<String> keys = <String>['testKey', 'key1', 'key2', 'key3'];
       final List<String> values = <String>[
@@ -93,8 +83,8 @@ void main() {
       expect(keysFromBundle.length, keys.length);
     });
 
-    testWidgets('valuesPropertyTest', (WidgetTester _) async {
-      Log.info(_logTag, 'valuesPropertyTest');
+    testWidgets('Bundle.values returns all stored values',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       final List<String> keys = <String>['testKey', 'key1', 'key2', 'key3'];
       final List<String> values = <String>[
@@ -115,8 +105,8 @@ void main() {
       expect(valuesFromBundle.length, values.length);
     });
 
-    testWidgets('lengthPropertyTest', (WidgetTester _) async {
-      Log.info(_logTag, 'lengthPropertyTest');
+    testWidgets('Bundle.length returns the number of key/value pairs',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       expect(bundle.length, 0);
       bundle['key1'] = 'value1';
@@ -126,12 +116,12 @@ void main() {
       bundle['key3'] = 'value3';
       expect(bundle.length, 3);
       bundle['key4'] = 'value4';
-      bundle['testName'] = 'getCountTest';
+      bundle['testName'] = 'lengthTest';
       expect(bundle.length, 5);
     });
 
-    testWidgets('isEmptyPropertyTest', (WidgetTester _) async {
-      Log.info(_logTag, 'isEmptyPropertyTest');
+    testWidgets('can check whether there is no key/value pair in the bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'isEmptyPropertyTest';
       expect(bundle.isEmpty, false);
@@ -139,8 +129,9 @@ void main() {
       expect(bundle.isEmpty, true);
     });
 
-    testWidgets('isNotEmptyPropertyTest', (WidgetTester _) async {
-      Log.info(_logTag, 'isNotEmptyPropertyTest');
+    testWidgets(
+        'can check whether there is at least on key/value pair in the bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'isNotEmptyPropertyTest';
       expect(bundle.isNotEmpty, true);
@@ -148,16 +139,16 @@ void main() {
       expect(bundle.isNotEmpty, false);
     });
 
-    testWidgets('operatorTestForString', (WidgetTester _) async {
-      Log.info(_logTag, 'operatorTestForString');
+    testWidgets('can set the key with the given String value to the bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testKey'] = 'testValue';
       expect(bundle.length, 1);
       expect(bundle['testKey'], 'testValue');
     });
 
-    testWidgets('operatorTestForBytes', (WidgetTester _) async {
-      Log.info(_logTag, 'operatorTestForBytes');
+    testWidgets('can set the key with the given Uint8List value to the bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       final Uint8List bytes = Uint8List(10);
       bundle['testKey'] = bytes;
@@ -167,8 +158,9 @@ void main() {
       expect(bytes.length, resultBytes.length);
     });
 
-    testWidgets('operatorTestForStrings', (WidgetTester _) async {
-      Log.info(_logTag, 'operatorTestForStrings');
+    testWidgets(
+        'can set the key with the given List<String> value to the bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       final List<String> strings = <String>['Hello', 'Tizen', 'Bundle'];
       bundle['testKey'] = strings;
@@ -180,8 +172,8 @@ void main() {
       expect(resultStrings, strings);
     });
 
-    testWidgets('addAllTest', (WidgetTester _) async {
-      Log.info(_logTag, 'addAllTest');
+    testWidgets('can add all key/value pairs of other to this bundle',
+        (WidgetTester _) async {
       const String string = 'String';
       final List<String> strings = <String>['String 1', 'String 2'];
       final Uint8List bytes = Uint8List(1);
@@ -200,8 +192,8 @@ void main() {
       expect(bundle['keyBytes'], bytes);
     });
 
-    testWidgets('addEntriesTest', (WidgetTester _) async {
-      Log.info(_logTag, 'addEntriesTest');
+    testWidgets('can add all key/value pairs of entries to this bundle',
+        (WidgetTester _) async {
       const String string = 'String';
       final List<String> strings = <String>['String 1', 'String 2'];
       final Uint8List bytes = Uint8List(2);
@@ -221,8 +213,8 @@ void main() {
       expect(bundle['keyBytes'], bytes);
     });
 
-    testWidgets('clearTest', (WidgetTester _) async {
-      Log.info(_logTag, 'clearTest');
+    testWidgets('can remove all entries from the bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'clearTest';
       bundle['testName2'] = 'clearTest2';
@@ -231,8 +223,8 @@ void main() {
       expect(bundle.length, 0);
     });
 
-    testWidgets('forEachTest', (WidgetTester _) async {
-      Log.info(_logTag, 'forEachTest');
+    testWidgets('can apply action to each key/value pair of the bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'forEachTest';
       bundle['testName2'] = 'forEachTest2';
@@ -251,22 +243,22 @@ void main() {
       });
     });
 
-    testWidgets('containsKeyTest', (WidgetTester _) async {
-      Log.info(_logTag, 'containsKeyTest');
+    testWidgets('can check whether the bundle contains the given key or not',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'containsKeyTest';
       expect(bundle.containsKey('testName'), true);
     });
 
-    testWidgets('containsValueTest', (WidgetTester _) async {
-      Log.info(_logTag, 'containsValueTest');
+    testWidgets('can check whether the bundle contains the given value or not',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'containsValueTest';
       expect(bundle.containsValue('containsValueTest'), true);
     });
 
-    testWidgets('mapTest', (WidgetTester _) async {
-      Log.info(_logTag, 'mapTest');
+    testWidgets('Bundle.map returns a new map where all entries of the bundle',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'mapTest';
       bundle['testName2'] = 'mapTest';
@@ -287,8 +279,8 @@ void main() {
       });
     });
 
-    testWidgets('putIfAbsentTest', (WidgetTester _) async {
-      Log.info(_logTag, 'putIfAbsentTest');
+    testWidgets('can add a new entry if it is not there',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'putIfAbsentTest';
       bundle.putIfAbsent('testName', () => 'putIfAbsentTest2');
@@ -296,8 +288,8 @@ void main() {
       expect(bundle['testName'], 'putIfAbsentTest');
     });
 
-    testWidgets('removeTest', (WidgetTester _) async {
-      Log.info(_logTag, 'removeTest');
+    testWidgets('can remove key and its associated value',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'removeTest';
       expect(bundle.length, 1);
@@ -306,8 +298,9 @@ void main() {
       expect(bundle.length, 0);
     });
 
-    testWidgets('removeWhereTest', (WidgetTester _) async {
-      Log.info(_logTag, 'removeWhereTest');
+    testWidgets(
+        'can remove all entries of the bundle that stisfy the given function',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'removeWhereTest';
       bundle['testName2'] = 'removeWhereTest2';
@@ -320,8 +313,8 @@ void main() {
       expect(bundle['testName2'], 'removeWhereTest2');
     });
 
-    testWidgets('updateTest', (WidgetTester _) async {
-      Log.info(_logTag, 'updateAllTest');
+    testWidgets('can update the value for the provided key',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'updateTest';
       expect(bundle.length, 1);
@@ -335,8 +328,7 @@ void main() {
       expect(bundle['testName'], 'updateTest2');
     });
 
-    testWidgets('updateAllTest', (WidgetTester _) async {
-      Log.info(_logTag, 'removeWhereTest');
+    testWidgets('can update all values', (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'updateAllTest';
       bundle['testName2'] = 'updateAllTest';
@@ -356,8 +348,8 @@ void main() {
       expect(bundle['testName3'], 'testName3+updateAllTest');
     });
 
-    testWidgets('bundleDecodeTest', (WidgetTester _) async {
-      Log.info(_logTag, 'bundleDecodeTest');
+    testWidgets('can create a bundle from the encoded raw data',
+        (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'bundleDecodeTest';
       final String bundleRaw = bundle.encode();
@@ -365,8 +357,7 @@ void main() {
       expect(newBundle['testName'], 'bundleDecodeTest');
     });
 
-    testWidgets('encodeTest', (WidgetTester _) async {
-      Log.info(_logTag, 'encodeTest');
+    testWidgets('can encode the bundle to the String', (WidgetTester _) async {
       final Bundle bundle = Bundle();
       bundle['testName'] = 'encodeTest';
       expect(bundle.length, 1);
