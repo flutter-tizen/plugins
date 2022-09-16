@@ -20,7 +20,8 @@ class Bundle extends MapMixin<String, Object> {
     _finalizer.attach(this, this, detach: this);
   }
 
-  Bundle._fromRaw(String raw) {
+  /// Creates an instance of [Bundle] with the encoded bundle raw.
+  Bundle.decode(String raw) {
     _handle = tizen.bundle_decode(raw.toNativeInt8().cast<Uint8>(), raw.length);
     _finalizer.attach(this, this, detach: this);
   }
@@ -36,11 +37,6 @@ class Bundle extends MapMixin<String, Object> {
     final Bundle bundle = Bundle();
     map.forEach((String key, Object value) => bundle[key] = value);
     return bundle;
-  }
-
-  /// Creates an instance of [Bundle] with the encoded bundle raw.
-  factory Bundle.decode(String raw) {
-    return Bundle._fromRaw(raw);
   }
 
   late final _handle;
