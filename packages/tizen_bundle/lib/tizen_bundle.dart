@@ -45,9 +45,8 @@ class Bundle extends MapMixin<String, Object> {
 
   late final _handle;
   static final List<String> _keys = <String>[];
-  bool _isDisposed = false;
   static final Finalizer<Bundle> _finalizer =
-      Finalizer<Bundle>((Bundle bundle) => bundle.dispose());
+      Finalizer<Bundle>((Bundle bundle) => tizen.bundle_free(bundle._handle));
 
   static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
       Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
@@ -138,17 +137,6 @@ class Bundle extends MapMixin<String, Object> {
     });
 
     return raw;
-  }
-
-  /// Releases all resources associated with this object.
-  void dispose() {
-    if (_isDisposed) {
-      return;
-    }
-
-    tizen.bundle_free(_handle);
-    _isDisposed = true;
-    _finalizer.detach(this);
   }
 
   void _throwException(int ret) {
