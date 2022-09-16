@@ -5,7 +5,6 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
-#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -18,12 +17,6 @@
 #include <string>
 
 #include "video_player_options.h"
-
-typedef enum {
-  kMessageQuit = 0,
-  kMessageFrameDecoded,
-  kMessageRenderFinished,
-} MessageEvent;
 
 class VideoPlayer {
  public:

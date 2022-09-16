@@ -1,6 +1,6 @@
 ## 2.4.2
 
-* Implement a new message loop for storing media packet.
+* Add a queue for storing decoded media packet.
 
 ## 2.4.1
 

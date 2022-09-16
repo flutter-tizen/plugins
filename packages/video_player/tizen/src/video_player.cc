@@ -12,12 +12,6 @@
 #include "log.h"
 #include "video_player_error.h"
 
-struct Message {
-  Eina_Thread_Queue_Msg head;
-  MessageEvent event;
-  media_packet_h media_packet;
-};
-
 static std::string RotationToString(player_display_rotation_e rotation) {
   switch (rotation) {
     case PLAYER_DISPLAY_ROTATION_NONE:
@@ -263,17 +257,6 @@ void VideoPlayer::Dispose() {
   event_sink_ = nullptr;
   event_channel_->SetStreamHandler(nullptr);
 
-  if (player_) {
-    player_unprepare(player_);
-    player_unset_media_packet_video_frame_decoded_cb(player_);
-    player_unset_buffering_cb(player_);
-    player_unset_completed_cb(player_);
-    player_unset_interrupted_cb(player_);
-    player_unset_error_cb(player_);
-    player_destroy(player_);
-    player_ = 0;
-  }
-
   while (!packet_queue_.empty()) {
     media_packet_destroy(packet_queue_.front());
     packet_queue_.pop();
@@ -287,6 +270,16 @@ void VideoPlayer::Dispose() {
   if (previous_media_packet_) {
     media_packet_destroy(previous_media_packet_);
     previous_media_packet_ = nullptr;
+  }
+  if (player_) {
+    player_unprepare(player_);
+    player_unset_media_packet_video_frame_decoded_cb(player_);
+    player_unset_buffering_cb(player_);
+    player_unset_completed_cb(player_);
+    player_unset_interrupted_cb(player_);
+    player_unset_error_cb(player_);
+    player_destroy(player_);
+    player_ = 0;
   }
 
   if (texture_registrar_) {
