@@ -30,7 +30,6 @@ abstract class ProxyBase extends Disposable {
   late final String _appid;
   late final String _portName;
   bool _connected = false;
-  bool _isDisposed = true;
   StreamSubscription<dynamic>? _streamSubscription;
 
   /// The appid of stub app.
@@ -40,7 +39,7 @@ abstract class ProxyBase extends Disposable {
   String get portName => _portName;
 
   /// Connects to the stub.
-  void connect() {
+  Future<void> connect() async {
     if (_connected) {
       throw Exception('Proxy $_appid/$_portName already requested to stub');
     }
@@ -78,18 +77,18 @@ abstract class ProxyBase extends Disposable {
         }
       }
 
-      _isDisposed = false;
+      isDisposed = false;
     });
   }
 
   /// Connects to the stub synchronously.
-  void connectSync() {
+  Future<void> connectSync() async {
     if (_connected) {
       throw Exception('Proxy $_appid/$_portName already requested to stub');
     }
 
     final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    final Stream<dynamic> stream = manager.proxyConnectSync(this);
+    final Stream<dynamic> stream = await manager.proxyConnectSync(this);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
         final Map<String, dynamic> map = event as Map<String, dynamic>;
@@ -130,14 +129,14 @@ abstract class ProxyBase extends Disposable {
 
   @override
   void dispose() {
-    if (_isDisposed) {
+    if (isDisposed) {
       return;
     }
 
     final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
     _finalizer.detach(this);
     manager.proxyDestroy(this);
-    _isDisposed = true;
+    isDisposed = true;
   }
 
   /// The callback function that is invoked when be connected with the stub.

@@ -28,7 +28,7 @@ class MethodChannelRpcPort {
     return await _channel.invokeMethod('stubDestroy', args);
   }
 
-  Stream<dynamic> proxyConnect(ProxyBase proxy) {
+  Future<Stream<dynamic>> proxyConnect(ProxyBase proxy) async {
     final String key = _createKey(proxy.appid, proxy.portName);
     if (_streams.containsKey(key)) {
       return _streams[key]!;
@@ -41,11 +41,11 @@ class MethodChannelRpcPort {
       'portName': proxy.portName,
     };
 
-    _channel.invokeMethod<dynamic>('proxyConnect', args);
+    await _channel.invokeMethod<dynamic>('proxyConnect', args);
     return _streams[key]!;
   }
 
-  Stream<dynamic> proxyConnectSync(ProxyBase proxy) {
+  Future<Stream<dynamic>> proxyConnectSync(ProxyBase proxy) async {
     final String key = _createKey(proxy.appid, proxy.portName);
     if (_streams.containsKey(key)) {
       return _streams[key]!;
@@ -58,7 +58,7 @@ class MethodChannelRpcPort {
       'portName': proxy.portName,
     };
 
-    _channel.invokeMethod<dynamic>('proxyConnectSync', args);
+    await _channel.invokeMethod<dynamic>('proxyConnectSync', args);
     return _streams[key]!;
   }
 
@@ -184,7 +184,7 @@ class MethodChannelRpcPort {
     return await _channel.invokeMethod('stubAddPrivilege', args);
   }
 
-  Stream<dynamic> stubListen(String portName) {
+  Future<Stream<dynamic>> stubListen(String portName) async {
     if (_streams.containsKey(portName)) {
       return _streams[portName]!;
     }
@@ -194,7 +194,7 @@ class MethodChannelRpcPort {
     _streams[portName] = eventChannel.receiveBroadcastStream();
 
     final Map<String, String> args = <String, String>{'portName': portName};
-    _channel.invokeMethod<dynamic>('stubListen', args);
+    await _channel.invokeMethod<dynamic>('stubListen', args);
     return _streams[portName]!;
   }
 }

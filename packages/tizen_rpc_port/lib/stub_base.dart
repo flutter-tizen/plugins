@@ -36,25 +36,25 @@ abstract class StubBase extends Disposable {
   String get portName => _portName;
 
   /// Sets trusted flag.
-  void setTrusted(bool trusted) {
+  Future<void> setTrusted(bool trusted) async {
     final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    manager.stubSetTrusted(_portName, trusted);
+    await manager.stubSetTrusted(_portName, trusted);
   }
 
   /// Adds privilege required when try to connect on proxy.
-  void addPrivilege(String privilege) {
+  Future<void> addPrivilege(String privilege) async {
     final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    manager.stubAddPrivilege(_portName, privilege);
+    await manager.stubAddPrivilege(_portName, privilege);
   }
 
   /// Listens to signal of connection request from the proxy.
-  void listen() {
+  Future<void> listen() async {
     if (_isListening) {
       return;
     }
 
     final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    final Stream<dynamic> stream = manager.stubListen(_portName);
+    final Stream<dynamic> stream = await manager.stubListen(_portName);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
         final Map<dynamic, dynamic> map = event;
