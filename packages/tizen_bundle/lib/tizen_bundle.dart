@@ -21,7 +21,8 @@ class Bundle extends MapMixin<String, Object> {
 
   /// Creates an instance of [Bundle] with the encoded bundle raw.
   Bundle.decode(String raw) {
-    _handle = tizen.bundle_decode(raw.toNativeInt8().cast<Uint8>(), raw.length);
+    _handle = tizen.bundle_decode(
+        raw.toNativeInt8().cast<UnsignedChar>(), raw.length);
     _finalizer.attach(this, this, detach: this);
   }
 
@@ -38,12 +39,12 @@ class Bundle extends MapMixin<String, Object> {
     return bundle;
   }
 
-  late final _handle;
+  late final Pointer<bundle> _handle;
   static final List<String> _keys = <String>[];
   static final Finalizer<Bundle> _finalizer =
       Finalizer<Bundle>((Bundle bundle) => tizen.bundle_free(bundle._handle));
 
-  static void _bundleIteratorCallback(Pointer<Int8> pKey, int type,
+  static void _bundleIteratorCallback(Pointer<Char> pKey, int type,
       Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
     _keys.add(pKey.toDartString());
   }
@@ -110,7 +111,7 @@ class Bundle extends MapMixin<String, Object> {
 
     final int ret = using((Arena arena) {
       final String keyName = key as String;
-      return tizen.bundle_del(_handle, keyName.toNativeInt8(allocator: arena));
+      return tizen.bundle_del(_handle, keyName.toNativeChar(allocator: arena));
     });
     if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
       _throwException(ret);
@@ -120,10 +121,10 @@ class Bundle extends MapMixin<String, Object> {
   /// Encodes this object to String.
   String encode() {
     final String raw = using((Arena arena) {
-      final Pointer<Pointer<Int8>> rawPointer = arena<Pointer<Int8>>();
-      final Pointer<Int32> lengthPointer = arena<Int32>();
+      final Pointer<Pointer<Char>> rawPointer = arena<Pointer<Char>>();
+      final Pointer<Int> lengthPointer = arena<Int>();
       final int ret = tizen.bundle_encode(
-          _handle, rawPointer.cast<Pointer<Uint8>>(), lengthPointer);
+          _handle, rawPointer.cast<Pointer<UnsignedChar>>(), lengthPointer);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
@@ -142,8 +143,8 @@ class Bundle extends MapMixin<String, Object> {
 
   void _addString(String key, String value) {
     final int ret = using((Arena arena) {
-      return tizen.bundle_add_str(_handle, key.toNativeInt8(allocator: arena),
-          value.toNativeInt8(allocator: arena));
+      return tizen.bundle_add_str(_handle, key.toNativeChar(allocator: arena),
+          value.toNativeChar(allocator: arena));
     });
     if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
       _throwException(ret);
@@ -152,9 +153,9 @@ class Bundle extends MapMixin<String, Object> {
 
   String _getString(String key) {
     final String value = using((Arena arena) {
-      final Pointer<Pointer<Int8>> pValue = arena<Pointer<Int8>>();
+      final Pointer<Pointer<Char>> pValue = arena<Pointer<Char>>();
       final int ret = tizen.bundle_get_str(
-          _handle, key.toNativeInt8(allocator: arena), pValue);
+          _handle, key.toNativeChar(allocator: arena), pValue);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
@@ -167,17 +168,17 @@ class Bundle extends MapMixin<String, Object> {
 
   void _addStrings(String key, List<String> values) {
     using((Arena arena) {
-      final List<Pointer<Int8>> pointerList = values
-          .map((String str) => str.toNativeInt8(allocator: arena))
+      final List<Pointer<Char>> pointerList = values
+          .map((String str) => str.toNativeChar(allocator: arena))
           .toList();
-      final Pointer<Pointer<Int8>> pointerArray =
-          arena<Pointer<Int8>>(pointerList.length);
+      final Pointer<Pointer<Char>> pointerArray =
+          arena<Pointer<Char>>(pointerList.length);
       values.asMap().forEach((int index, String value) {
         pointerArray[index] = pointerList[index];
       });
 
       final int ret = tizen.bundle_add_str_array(_handle,
-          key.toNativeInt8(allocator: arena), pointerArray, values.length);
+          key.toNativeChar(allocator: arena), pointerArray, values.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
@@ -186,9 +187,9 @@ class Bundle extends MapMixin<String, Object> {
 
   List<String> _getStrings(String key) {
     final List<String> values = using((Arena arena) {
-      final Pointer<Int32> arraySize = arena<Int32>();
-      final Pointer<Pointer<Int8>> stringArray = tizen.bundle_get_str_array(
-          _handle, key.toNativeInt8(allocator: arena), arraySize);
+      final Pointer<Int> arraySize = arena<Int>();
+      final Pointer<Pointer<Char>> stringArray = tizen.bundle_get_str_array(
+          _handle, key.toNativeChar(allocator: arena), arraySize);
       final int ret = tizen.get_last_result();
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
@@ -214,7 +215,7 @@ class Bundle extends MapMixin<String, Object> {
 
       final int ret = tizen.bundle_add_byte(
           _handle,
-          key.toNativeInt8(allocator: arena),
+          key.toNativeChar(allocator: arena),
           bytesArray.cast<Void>(),
           bytes.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
@@ -226,10 +227,10 @@ class Bundle extends MapMixin<String, Object> {
   Uint8List _getBytes(String key) {
     final Uint8List values = using((Arena arena) {
       final Pointer<Pointer<Uint8>> bytes = arena<Pointer<Uint8>>();
-      final Pointer<Int32> bytesSize = arena<Int32>();
+      final Pointer<Size> bytesSize = arena<Size>();
       final int ret = tizen.bundle_get_byte(
           _handle,
-          key.toNativeInt8(allocator: arena),
+          key.toNativeChar(allocator: arena),
           bytes.cast<Pointer<Void>>(),
           bytesSize);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
@@ -249,7 +250,7 @@ class Bundle extends MapMixin<String, Object> {
 
   int _getType(String key) {
     return using((Arena arena) {
-      return tizen.bundle_get_type(_handle, key.toNativeInt8(allocator: arena));
+      return tizen.bundle_get_type(_handle, key.toNativeChar(allocator: arena));
     });
   }
 }
