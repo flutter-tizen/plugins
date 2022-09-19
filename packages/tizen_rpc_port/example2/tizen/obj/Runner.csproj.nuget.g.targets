@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)tizen.net.api4/4.0.1.14164/build/tizen40/Tizen.NET.API4.targets" Condition="Exists('$(NuGetPackageRoot)tizen.net.api4/4.0.1.14164/build/tizen40/Tizen.NET.API4.targets')" />
+    <Import Project="$(NuGetPackageRoot)tizen.net/9.0.0.16760/build/tizen40/Tizen.NET.targets" Condition="Exists('$(NuGetPackageRoot)tizen.net/9.0.0.16760/build/tizen40/Tizen.NET.targets')" />
+  </ImportGroup>
+</Project>

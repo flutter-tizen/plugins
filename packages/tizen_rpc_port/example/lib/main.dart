@@ -23,7 +23,7 @@ String _msg = '';
 
 class MyNotify extends NotifyCB {
   @override
-  void onReceived(String sender, String msg) {
+  Future<void> onReceived(String sender, String msg) async {
     Log.info(_logTag, 'onReceived $sender: $msg');
     _msg = '$sender: $msg';
   }

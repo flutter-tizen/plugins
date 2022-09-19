@@ -1,7 +1,7 @@
-name: rpc_port_stub_example
+name: example2
 description: Demonstrates how to use the rpc_port_stub plugin.
 
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
 environment:
   sdk: ">=2.17.0 <3.0.0"

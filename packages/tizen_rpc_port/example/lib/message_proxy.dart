@@ -25,35 +25,35 @@ enum _MethodId {
 }
 
 abstract class CallbackBase extends Parcelable {
-  int id = 0;
-  bool once = false;
-  int seqId = 0;
+  int _id = 0;
+  bool _once = false;
+  int _seqId = 0;
   static int _seqNum = 0;
 
-  CallbackBase(this.id, this.once) {
-    seqId = _seqNum++;
+  CallbackBase(this._id, this._once) {
+    _seqId = _seqNum++;
   }
 
   CallbackBase.fromParcel(Parcel parcel) {
     deserialize(parcel);
   }
 
-  String get tag => '$id::$seqId';
+  String get tag => '$_id::$_seqId';
 
-  void _onReceivedEvent(Parcel parcel);
+  Future<void> _onReceivedEvent(Parcel parcel);
 
   @override
   void serialize(Parcel parcel) {
-    parcel.writeInt32(id);
-    parcel.writeInt32(seqId);
-    parcel.writeBool(once);
+    parcel.writeInt32(_id);
+    parcel.writeInt32(_seqId);
+    parcel.writeBool(_once);
   }
 
   @override
   void deserialize(Parcel parcel) {
-    id = parcel.readInt32();
-    seqId = parcel.readInt32();
-    once = parcel.readBool();
+    _id = parcel.readInt32();
+    _seqId = parcel.readInt32();
+    _once = parcel.readBool();
   }
 }
 
@@ -61,14 +61,14 @@ abstract class NotifyCB extends CallbackBase {
   NotifyCB({bool once = false}) : super(_DelegateId.notifyCB.id, once);
 
   /// virtual fucntion
-  void onReceived(String sender, String msg);
+  Future<void> onReceived(String sender, String msg);
 
   @override
-  void _onReceivedEvent(Parcel parcel) {
+  Future<void> _onReceivedEvent(Parcel parcel) async {
     String sender = parcel.readString();
     String msg = parcel.readString();
 
-    onReceived(sender, msg);
+    await onReceived(sender, msg);
   }
 }
 
@@ -79,25 +79,25 @@ abstract class Message extends ProxyBase {
   Message(String appid) : super(appid, 'Message');
 
   /// virtual fucntion
-  void onConnected();
-  void onDisconnected();
-  void onRejected();
+  Future<void> onConnected();
+  Future<void> onDisconnected();
+  Future<void> onRejected();
 
   @override
   Future<void> onConnectedEvent(String appid, String portName) async {
     _online = true;
-    onConnected();
+    await onConnected();
   }
 
   @override
   Future<void> onDisconnectedEvent(String appid, String portName) async {
     _online = false;
-    onDisconnected();
+    await onDisconnected();
   }
 
   @override
   Future<void> onRejectedEvent(String appid, String portName) async {
-    onRejected();
+    await onRejected();
   }
 
   @override
@@ -108,18 +108,18 @@ abstract class Message extends ProxyBase {
       return;
     }
 
-    _processReceivedEvent(parcel);
+    await _processReceivedEvent(parcel);
   }
 
-  void _processReceivedEvent(Parcel parcel) {
+  Future<void> _processReceivedEvent(Parcel parcel) async {
     final int id = parcel.readInt32();
     final int seqId = parcel.readInt32();
     final bool once = parcel.readBool();
 
     for (final CallbackBase delegate in _delegateList) {
-      if (delegate.id == id && delegate.seqId == seqId) {
-        delegate._onReceivedEvent(parcel);
-        if (delegate.once) {
+      if (delegate._id == id && delegate._seqId == seqId) {
+        await delegate._onReceivedEvent(parcel);
+        if (delegate._once) {
           _delegateList.remove(delegate);
         }
         break;
@@ -142,7 +142,20 @@ abstract class Message extends ProxyBase {
     }
   }
 
+  @override
+  Future<void> connect() async {
+    Log.info(_logTag, 'connect()');
+    await super.connect();
+  }
+
+  @override
+  Future<void> connectSync() async {
+    Log.info(_logTag, 'connectSync()');
+    await super.connectSync();
+  }
+
   void disposeCallback(String tag) {
+    Log.info(_logTag, 'disposeCallback($tag)');
     _delegateList.removeWhere((CallbackBase element) => element.tag == tag);
   }
 
@@ -177,6 +190,7 @@ abstract class Message extends ProxyBase {
     }
 
     final ret = parcelReceived.readInt32();
+
     return ret;
   }
 
@@ -225,6 +239,7 @@ abstract class Message extends ProxyBase {
     }
 
     final ret = parcelReceived.readInt32();
+
     return ret;
   }
 }
