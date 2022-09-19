@@ -2,107 +2,70 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: public_member_api_docs
-
 import 'dart:async';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
+import 'package:tizen_interop/4.0/tizen.dart';
 
-typedef _StorageGetDirectory = Int32 Function(
-    Int32, Int32, Pointer<Pointer<Utf8>>);
-typedef _StorageCallback = Int32 Function(
-    Int32, Int32, Int32, Pointer<Utf8>, Pointer<Void>);
-typedef _StorageForeachDeviceSupported = Int32 Function(
-    Pointer<NativeFunction<_StorageCallback>>, Pointer<Void>);
+export 'package:tizen_interop/4.0/tizen.dart' show storage_directory_e;
 
-/// Corresponds to `storage_directory_e`.
-enum StorageDirectoryType {
-  images,
-  sounds,
-  videos,
-  camera,
-  downloads,
-  music,
-  documents,
-  others,
-  system_ringtones,
-}
+/// A cached [Storage] instance.
+final Storage storage = Storage();
 
-Storage? _storageInstance;
-Storage get storage => _storageInstance ??= Storage();
-
-/// Dart wrapper of Tizen's `storage`.
+/// A Dart wrapper of Tizen's Storage module.
 ///
 /// See: https://docs.tizen.org/application/native/api/wearable/latest/group__CAPI__SYSTEM__STORAGE__MODULE.html
 class Storage {
+  /// Creates an instance of [Storage].
   Storage() {
-    final DynamicLibrary libStorage = DynamicLibrary.open('libstorage.so.0.1');
-    _storageGetDirectory = libStorage
-        .lookup<NativeFunction<_StorageGetDirectory>>('storage_get_directory')
-        .asFunction();
-
-    _storageForeachDeviceSupported = libStorage
-        .lookup<NativeFunction<_StorageForeachDeviceSupported>>(
-            'storage_foreach_device_supported')
-        .asFunction();
-
     if (_completer.isCompleted) {
       return;
     }
-
-    final int ret = _storageForeachDeviceSupported(
-        Pointer.fromFunction(_deviceSupportedCallback, 0), nullptr);
+    final int ret = tizen.storage_foreach_device_supported(
+        Pointer.fromFunction(_deviceSupportedCallback, false), nullptr);
     if (ret != 0) {
       throw PlatformException(
-        code: '$ret',
-        message: 'Failed to execute storage_foreach_device_supported.',
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
       );
     }
   }
 
-  late int Function(int, int, Pointer<Pointer<Utf8>>) _storageGetDirectory;
-  late int Function(Pointer<NativeFunction<_StorageCallback>>, Pointer<Void>)
-      _storageForeachDeviceSupported;
-
-  /// The unique storage device id.
+  /// The unique storage device ID.
   final Future<int> storageId = _completer.future;
 
   /// A completer for [storageId].
   static final Completer<int> _completer = Completer<int>();
 
-  static int _deviceSupportedCallback(
+  static bool _deviceSupportedCallback(
     int storageId,
     int type,
     int state,
-    Pointer<Utf8> path,
+    Pointer<Char> path,
     Pointer<Void> userData,
   ) {
     // internal storage
     if (type == 0) {
       _completer.complete(storageId);
-      return 0;
+      return false;
     }
-    return 1;
+    return true;
   }
 
   /// Corresponds to `storage_get_directory()`.
-  Future<String> getDirectory({
-    required StorageDirectoryType type,
-  }) async {
-    final Pointer<Pointer<Utf8>> path = malloc();
-    try {
-      final int ret = _storageGetDirectory(await storageId, type.index, path);
+  Future<String> getDirectory(int type) {
+    return using((Arena arena) async {
+      final Pointer<Pointer<Char>> path = arena();
+      final int ret = tizen.storage_get_directory(await storageId, type, path);
       if (ret != 0) {
         throw PlatformException(
-          code: '$ret',
-          message: 'Failed to execute storage_get_directory.',
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
         );
       }
       return path.value.toDartString();
-    } finally {
-      malloc.free(path);
-    }
+    });
   }
 }
