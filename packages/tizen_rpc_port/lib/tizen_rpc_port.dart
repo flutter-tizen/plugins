@@ -1,6 +1,5 @@
 library tizen_rpc_port;
 
-export 'bundle.dart';
 export 'parcel.dart';
 export 'parcelable.dart';
 export 'port.dart';

@@ -2,9 +2,8 @@ import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 
+import 'package:tizen_bundle/tizen_bundle.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
-
-import 'bundle.dart';
 
 /// The timestamp when parcel created.
 class Timestamp {
