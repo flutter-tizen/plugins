@@ -327,7 +327,7 @@ class Parcel {
         throw ret;
       }
 
-      return pV.value != 0;
+      return pV.value;
     });
   }
 

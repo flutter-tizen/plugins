@@ -8,16 +8,21 @@ environment:
 
 dependencies:
   cupertino_icons: ^1.0.2
-
   flutter:
     sdk: flutter
-
   tizen_rpc_port:
     path: ../
 
-
 dev_dependencies:
+  flutter_driver:
+    sdk: flutter
   flutter_lints: ^2.0.0
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../integration_test/
 
 flutter:
   uses-material-design: true
