@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:tizen_bundle/tizen_bundle.dart';
 
+/// The main entry point.
 void main() {
   runApp(const MyApp());
 }
 
+/// The UI app widget.
 class MyApp extends StatefulWidget {
+  /// The UI app widget.
   const MyApp({super.key});
 
   @override
