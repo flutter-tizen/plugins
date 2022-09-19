@@ -7,12 +7,9 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
-
-import 'src/bindings.dart';
+import 'package:tizen_interop/4.0/tizen.dart';
 
 /// The Tizen implementation of [SharedPreferencesStorePlatform].
-///
-/// This class implements the `package:shared_preferences` functionality for Tizen.
 class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   /// Registers this class as the default instance of [SharedPreferencesStorePlatform].
   static void register() {
@@ -22,31 +19,31 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   static Map<String, Object>? _cachedPreferences;
   static const String _separator = '␞';
 
-  static int _preferenceItemCallback(Pointer<Utf8> pKey, Pointer<Void> data) {
+  static bool _preferenceItemCallback(Pointer<Char> pKey, Pointer<Void> data) {
     final String key = pKey.toDartString();
 
     using((Arena arena) {
-      final Pointer<Int8> pBool = arena();
-      if (bindings.getBoolean(pKey, pBool) == 0) {
-        _cachedPreferences![key] = pBool.value == 1;
+      final Pointer<Bool> pBool = arena();
+      if (tizen.preference_get_boolean(pKey, pBool) == 0) {
+        _cachedPreferences![key] = pBool.value;
         return;
       }
 
       final Pointer<Double> pDouble = arena();
-      if (bindings.getDouble(pKey, pDouble) == 0) {
+      if (tizen.preference_get_double(pKey, pDouble) == 0) {
         _cachedPreferences![key] = pDouble.value;
         return;
       }
 
-      final Pointer<Int32> pInt = arena();
-      if (bindings.getInt(pKey, pInt) == 0) {
+      final Pointer<Int> pInt = arena();
+      if (tizen.preference_get_int(pKey, pInt) == 0) {
         _cachedPreferences![key] = pInt.value;
         return;
       }
 
-      final Pointer<Pointer<Utf8>> ppString = arena();
-      if (bindings.getString(pKey, ppString) == 0) {
-        final Pointer<Utf8> pString = ppString.value;
+      final Pointer<Pointer<Char>> ppString = arena();
+      if (tizen.preference_get_string(pKey, ppString) == 0) {
+        final Pointer<Char> pString = ppString.value;
         final String stringValue = pString.toDartString();
         if (stringValue == _separator) {
           _cachedPreferences![key] = <String>[];
@@ -56,12 +53,12 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
         } else {
           _cachedPreferences![key] = stringValue;
         }
-        malloc.free(pString);
+        arena.using(pString, calloc.free);
         return;
       }
     });
 
-    return 1;
+    return true;
   }
 
   Map<String, Object> get _preferences {
@@ -70,8 +67,8 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
     }
     _cachedPreferences = <String, Object>{};
 
-    final int ret = bindings.foreachItem(
-        Pointer.fromFunction(_preferenceItemCallback, 0), nullptr);
+    final int ret = tizen.preference_foreach_item(
+        Pointer.fromFunction(_preferenceItemCallback, false), nullptr);
     if (ret == 0) {
       return _cachedPreferences!;
     }
@@ -82,7 +79,7 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   Future<bool> clear() async {
     _preferences.clear();
 
-    return bindings.removeAll() == 0;
+    return tizen.preference_remove_all() == 0;
   }
 
   @override
@@ -91,7 +88,8 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   @override
   Future<bool> remove(String key) async {
     return using((Arena arena) {
-      final bool ret = bindings.remove(key.toNativeUtf8(allocator: arena)) == 0;
+      final bool ret =
+          tizen.preference_remove(key.toNativeChar(allocator: arena)) == 0;
       if (ret) {
         _preferences.remove(key);
       }
@@ -102,24 +100,24 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   @override
   Future<bool> setValue(String valueType, String key, Object value) async {
     final int ret = using((Arena arena) {
-      final Pointer<Utf8> pKey = key.toNativeUtf8(allocator: arena);
+      final Pointer<Char> pKey = key.toNativeChar(allocator: arena);
       switch (valueType) {
         case 'Bool':
-          return bindings.setBoolean(pKey, (value as bool) ? 1 : 0);
+          return tizen.preference_set_boolean(pKey, value as bool);
         case 'Double':
-          return bindings.setDouble(pKey, value as double);
+          return tizen.preference_set_double(pKey, value as double);
         case 'Int':
-          return bindings.setInt(pKey, value as int);
+          return tizen.preference_set_int(pKey, value as int);
         case 'String':
-          return bindings.setString(
+          return tizen.preference_set_string(
             pKey,
-            (value as String).toNativeUtf8(allocator: arena),
+            (value as String).toNativeChar(allocator: arena),
           );
         case 'StringList':
-          return bindings.setString(
+          return tizen.preference_set_string(
             pKey,
             _joinStringList(value as List<String>)
-                .toNativeUtf8(allocator: arena),
+                .toNativeChar(allocator: arena),
           );
         default:
           print('Not implemented: valueType[$valueType]');
