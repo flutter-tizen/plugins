@@ -45,6 +45,8 @@
   - packages/tizen_app_manager/**/*
 'p: tizen_audio_manager':
   - packages/tizen_audio_manager/**/*
+'p: tizen_bundle':
+  - packages/tizen_bundle/**/*
 'p: tizen_log':
   - packages/tizen_log/**/*
 'p: tizen_notification':

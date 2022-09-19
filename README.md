@@ -37,6 +37,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_app_control**](packages/tizen_app_control) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_app_control.svg)](https://pub.dev/packages/tizen_app_control) | N/A |
 | [**tizen_app_manager**](packages/tizen_app_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_app_manager.svg)](https://pub.dev/packages/tizen_app_manager) | N/A |
 | [**tizen_audio_manager**](packages/tizen_audio_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_audio_manager.svg)](https://pub.dev/packages/tizen_audio_manager) | N/A |
+| [**tizen_bundle**](packages/tizen_bundle) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_bundle.svg)](https://pub.dev/packages/tizen_bundle) | N/A |
 | [**tizen_log**](packages/tizen_log) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_log.svg)](https://pub.dev/packages/tizen_log) | N/A |
 | [**tizen_notification**](packages/tizen_notification) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_notification.svg)](https://pub.dev/packages/tizen_notification) | N/A |
 | [**tizen_package_manager**](packages/tizen_package_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_package_manager.svg)](https://pub.dev/packages/tizen_package_manager) | N/A |
@@ -73,6 +74,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_app_control**](packages/tizen_app_control) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_app_manager**](packages/tizen_app_manager) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_audio_manager**](packages/tizen_audio_manager) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_bundle**](packages/tizen_bundle) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_log**](packages/tizen_log) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**tizen_notification**](packages/tizen_notification) | ❌ | ✔️ | ✔️ | ✔️ | API not supported |
 | [**tizen_package_manager**](packages/tizen_package_manager) | ✔️ | ✔️ | ✔️ | ✔️ |
