@@ -1,7 +1,7 @@
 name: example2
 description: Demonstrates how to use the rpc_port_stub plugin.
 
-publish_to: 'none'
+publish_to: none
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
@@ -15,8 +15,6 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: ^2.0.0
-  flutter_test:
-    sdk: flutter
 
 flutter:
   uses-material-design: true

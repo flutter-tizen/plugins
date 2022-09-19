@@ -1,7 +1,7 @@
 library tizen_rpc_port;
 
-export 'parcel.dart';
-export 'parcelable.dart';
-export 'port.dart';
-export 'proxy_base.dart';
-export 'stub_base.dart';
+export 'src/parcel.dart';
+export 'src/parcelable.dart';
+export 'src/port.dart';
+export 'src/proxy_base.dart';
+export 'src/stub_base.dart';
