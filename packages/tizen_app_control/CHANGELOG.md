@@ -1,3 +1,7 @@
+## NEXT
+
+* Update README.
+
 ## 0.2.2
 
 * Improve FFI symbol resolution.
