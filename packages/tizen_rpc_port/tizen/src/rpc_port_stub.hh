@@ -31,7 +31,7 @@ class RpcPortStub {
   RpcPortResult AddPrivilege(const std::string& privilege);
   RpcPortResult SetTrusted(const bool trusted);
   RpcPortResult GetPort(int32_t type, const std::string& instance,
-      RpcPort** port);
+      std::unique_ptr<RpcPort>* port);
 
  private:
   static void OnConnectedEvent(const char* sender, const char* instance,

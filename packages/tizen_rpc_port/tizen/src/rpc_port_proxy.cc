@@ -45,11 +45,6 @@ RpcPortProxy::~RpcPortProxy() {
 
 RpcPortResult RpcPortProxy::Connect(EventSink sink) {
   LOG_DEBUG("Connect: %s/%s", appid_.c_str(), port_name_.c_str());
-  if (connected_) {
-    LOG_ERROR("Already connected");
-    return CreateResult(RPC_PORT_ERROR_INVALID_PARAMETER);
-  }
-
   event_sink_ = std::move(sink);
   int ret =
       rpc_port_proxy_add_connected_event_cb(handle_, OnConnectedEvent, this);
@@ -78,17 +73,11 @@ RpcPortResult RpcPortProxy::Connect(EventSink sink) {
     return CreateResult(ret);
   }
 
-  connected_ = true;
   return CreateResult(RPC_PORT_ERROR_NONE);
 }
 
 RpcPortResult RpcPortProxy::ProxyConnectSync(EventSink sink) {
   LOG_DEBUG("ProxyConnectSync: %s/%s", appid_.c_str(), port_name_.c_str());
-  if (connected_) {
-    LOG_ERROR("Already connected");
-    return CreateResult(RPC_PORT_ERROR_INVALID_PARAMETER);
-  }
-
   event_sink_ = std::move(sink);
   int ret =
       rpc_port_proxy_add_connected_event_cb(handle_, OnConnectedEvent, this);
@@ -118,17 +107,17 @@ RpcPortResult RpcPortProxy::ProxyConnectSync(EventSink sink) {
     return CreateResult(ret);
   }
 
-  connected_ = true;
   return CreateResult(RPC_PORT_ERROR_NONE);
 }
 
-RpcPortResult RpcPortProxy::GetPort(int32_t type, RpcPort** port) {
+RpcPortResult RpcPortProxy::GetPort(int32_t type,
+    std::unique_ptr<RpcPort>* port) {
   rpc_port_h port_native = nullptr;
   int ret = rpc_port_proxy_get_port(
       handle_, static_cast<rpc_port_port_type_e>(type), &port_native);
   if (ret != RPC_PORT_ERROR_NONE) return CreateResult(ret);
 
-  *port = new RpcPort(port_native, type);
+  port->reset(new RpcPort(port_native, type));
   return CreateResult(ret);
 }
 
@@ -215,9 +204,7 @@ void RpcPortProxy::OnReceivedEvent(const char* receiver, const char* port_name,
   map[flutter::EncodableValue("rawData")] =
       flutter::EncodableValue(std::move(raw_data));
 
-  auto* stub = static_cast<RpcPortProxy*>(data);
-  auto& sink = stub->event_sink_;
-  sink->Success(std::move(flutter::EncodableValue(map)));
+  proxy->event_sink_->Success(std::move(flutter::EncodableValue(map)));
 }
 
 }  // namespace tizen

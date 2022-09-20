@@ -28,13 +28,7 @@ class RpcPortProxy {
   ~RpcPortProxy();
   RpcPortResult Connect(EventSink sync);
   RpcPortResult ProxyConnectSync(EventSink sync);
-  RpcPortResult GetPort(int32_t type, RpcPort** port);
-
-  RpcPortResult Listen(EventSink sink);
-  RpcPortResult AddPrivilege(const std::string& privilege);
-  RpcPortResult SetTrusted(const bool trusted);
-  RpcPortResult GetPort(int32_t type, const std::string& instance,
-      RpcPort** port);
+  RpcPortResult GetPort(int32_t type, std::unique_ptr<RpcPort>* port);
 
  private:
   static void OnConnectedEvent(const char* receiver, const char* port_name,
@@ -47,7 +41,6 @@ class RpcPortProxy {
                               void* data);
 
  private:
-  bool connected_ = false;
   std::string appid_;
   std::string port_name_;
   rpc_port_proxy_h handle_ = nullptr;

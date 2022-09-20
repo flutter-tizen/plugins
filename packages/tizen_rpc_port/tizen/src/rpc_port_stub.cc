@@ -86,7 +86,7 @@ RpcPortResult RpcPortStub::SetTrusted(const bool trusted) {
 }
 
 RpcPortResult RpcPortStub::GetPort(int32_t type, const std::string& instance,
-    RpcPort** port) {
+    std::unique_ptr<RpcPort>* port) {
   LOG_DEBUG("GetPort: %s", port_name_.c_str());
   rpc_port_h h = nullptr;
   int ret = rpc_port_stub_get_port(handle_,
@@ -98,7 +98,7 @@ RpcPortResult RpcPortStub::GetPort(int32_t type, const std::string& instance,
     return result;
   }
 
-  *port = new RpcPort(h, type);
+  port->reset(new RpcPort(h, type));
   return result;
 }
 

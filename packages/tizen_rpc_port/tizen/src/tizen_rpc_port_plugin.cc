@@ -441,7 +441,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    RpcPort* port = nullptr;
+    std::unique_ptr<RpcPort> port;
     if (!instance.empty()) {
       auto* stub = FindStub(port_name);
       if (stub == nullptr) {
@@ -474,10 +474,10 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       }
     }
 
-    auto port_auto = std::unique_ptr<RpcPort>(port);
+
 
     RpcPortParcel parcel(raw_data);
-    auto ret = parcel.Send(port);
+    auto ret = parcel.Send(port.get());
     if (!ret) {
       LOG_ERROR("Failed to send parcel");
       result->Error("Send() is failed", ret.message());
@@ -502,7 +502,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    RpcPort* port = nullptr;
+    std::unique_ptr<RpcPort> port;
     if (!instance.empty()) {
       auto* stub = FindStub(port_name);
       if (stub == nullptr) {
@@ -534,9 +534,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         return;
       }
     }
-    auto port_auto = std::unique_ptr<RpcPort>(port);
 
-    RpcPortParcel parcel(port);
+
+    RpcPortParcel parcel(port.get());
     std::vector<uint8_t> raw;
     auto ret = parcel.GetRaw(&raw);
     if (!ret) {
@@ -565,7 +565,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    RpcPort* port = nullptr;
+    std::unique_ptr<RpcPort> port;
     if (!instance.empty()) {
       auto* stub = FindStub(port_name);
       if (stub == nullptr) {
@@ -597,7 +597,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         return;
       }
     }
-    auto port_auto = std::unique_ptr<RpcPort>(port);
+
     auto ret = port->SetPrivateSharing(path);
     if (!ret) {
       result->Error("SetPrivateSharing() is failed", ret.message());
@@ -624,7 +624,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    RpcPort* port = nullptr;
+    std::unique_ptr<RpcPort> port;
     if (!instance.empty()) {
       auto* stub = FindStub(port_name);
       if (stub == nullptr) {
@@ -656,7 +656,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         return;
       }
     }
-    auto port_auto = std::unique_ptr<RpcPort>(port);
+
     std::vector<std::string> paths;
     for (auto const& value : list) {
       if (std::holds_alternative<std::string>(value)) {
@@ -689,7 +689,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    RpcPort* port = nullptr;
+    std::unique_ptr<RpcPort> port;
     if (!instance.empty()) {
       auto* stub = FindStub(port_name);
       if (stub == nullptr) {
@@ -721,7 +721,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         return;
       }
     }
-    auto port_auto = std::unique_ptr<RpcPort>(port);
+
 
     auto ret = port->UnsetPrivateSharing();
     if (!ret) {
@@ -747,7 +747,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    RpcPort* port = nullptr;
+    std::unique_ptr<RpcPort> port;
     if (!instance.empty()) {
       auto* stub = FindStub(port_name);
       if (stub == nullptr) {
@@ -779,7 +779,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         return;
       }
     }
-    auto port_auto = std::unique_ptr<RpcPort>(port);
+
     auto ret = port->PortDisconnect();
     if (!ret) {
       result->Error("PortDisconnect() is failed", ret.message());

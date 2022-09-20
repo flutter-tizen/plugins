@@ -36,11 +36,6 @@ RpcPortResult CreateResult(int return_code);
 
 class RpcPort {
  public:
-  enum Type {
-    Main,
-    Callback,
-  };
-
   RpcPort(rpc_port_h handle, int32_t type);
 
   RpcPortResult Read(std::vector<uint8_t>* data, int32_t size);
