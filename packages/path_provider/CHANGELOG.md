@@ -1,3 +1,7 @@
+## 2.1.0
+
+* Migrate FFI implementation to tizen_interop.
+
 ## 2.0.3
 
 * Bump ffi dependency.
