@@ -111,7 +111,7 @@ RpcPortResult RpcPortProxy::ProxyConnectSync(EventSink sink) {
 }
 
 RpcPortResult RpcPortProxy::GetPort(int32_t type,
-    std::unique_ptr<RpcPort>* port) {
+                                    std::unique_ptr<RpcPort>* port) {
   rpc_port_h port_native = nullptr;
   int ret = rpc_port_proxy_get_port(
       handle_, static_cast<rpc_port_port_type_e>(type), &port_native);

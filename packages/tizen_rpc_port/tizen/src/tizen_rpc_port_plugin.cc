@@ -1,32 +1,31 @@
 #include "tizen_rpc_port_plugin.h"
 
 // For getPlatformVersion; remove unless needed for your plugin implementation.
-#include <system_info.h>
-
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter/standard_method_codec.h>
 #include <flutter/standard_message_codec.h>
+#include <flutter/standard_method_codec.h>
+#include <system_info.h>
 
 #include <functional>
 #include <memory>
-#include <string>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 
 #include "log.h"
-#include "rpc_port_stub.hh"
 #include "rpc_port_proxy.hh"
+#include "rpc_port_stub.hh"
 
 namespace {
 using namespace tizen;
 
 class TizenRpcPortPlugin : public flutter::Plugin {
  public:
-  static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
+  static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
             registrar->messenger(), "tizen/rpc_port",
@@ -35,7 +34,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     auto plugin = std::make_unique<TizenRpcPortPlugin>(registrar);
 
     channel->SetMethodCallHandler(
-        [plugin_pointer = plugin.get()](const auto &call, auto result) {
+        [plugin_pointer = plugin.get()](const auto& call, auto result) {
           plugin_pointer->HandleMethodCall(call, std::move(result));
         });
 
@@ -45,53 +44,50 @@ class TizenRpcPortPlugin : public flutter::Plugin {
   explicit TizenRpcPortPlugin(flutter::PluginRegistrar* plugin_registrar)
       : plugin_registrar_(plugin_registrar) {
     method_handlers_ = {
-        { "stubCreate",
-          std::bind(&TizenRpcPortPlugin::StubCreate, this,
-              std::placeholders::_1, std::placeholders::_2) },
-        { "stubDestroy",
-          std::bind(&TizenRpcPortPlugin::StubDestroy, this,
-              std::placeholders::_1, std::placeholders::_2) },
-        { "stubSetTrusted",
-          std::bind(&TizenRpcPortPlugin::StubSetTrusted, this,
-              std::placeholders::_1, std::placeholders::_2) },
-        { "stubAddPrivilege",
-          std::bind(&TizenRpcPortPlugin::StubAddPrivilege, this,
-              std::placeholders::_1, std::placeholders::_2) },
-        { "stubListen",
-          std::bind(&TizenRpcPortPlugin::StubListen, this,
-              std::placeholders::_1, std::placeholders::_2) },
-        { "portSend",
-          std::bind(&TizenRpcPortPlugin::PortSend, this,
-              std::placeholders::_1, std::placeholders::_2) },
-        { "portReceive",
-          std::bind(&TizenRpcPortPlugin::PortReceive, this,
-              std::placeholders::_1, std::placeholders::_2) },
-        { "proxyConnect",
-          std::bind(&TizenRpcPortPlugin::ProxyConnect, this,
-              std::placeholders::_1, std::placeholders::_2)},
-        { "proxyProxyConnectSync",
-          std::bind(&TizenRpcPortPlugin::ProxyConnectSync, this,
-              std::placeholders::_1, std::placeholders::_2)},
-        { "proxyDestroy",
-          std::bind(&TizenRpcPortPlugin::ProxyDestroy, this,
-              std::placeholders::_1, std::placeholders::_2)},
-        { "portSetPrivateSharingArray",
-          std::bind(&TizenRpcPortPlugin::PortSetPrivateSharingArray, this,
-              std::placeholders::_1, std::placeholders::_2)},
-        { "portSetPrivateSharing",
-          std::bind(&TizenRpcPortPlugin::PortSetPrivateSharing, this,
-              std::placeholders::_1, std::placeholders::_2)},
-        { "portUnsetPrivateSharing",
-          std::bind(&TizenRpcPortPlugin::PortUnsetPrivateSharing, this,
-              std::placeholders::_1, std::placeholders::_2)}};
+        {"stubCreate", std::bind(&TizenRpcPortPlugin::StubCreate, this,
+                                 std::placeholders::_1, std::placeholders::_2)},
+        {"stubDestroy",
+         std::bind(&TizenRpcPortPlugin::StubDestroy, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"stubSetTrusted",
+         std::bind(&TizenRpcPortPlugin::StubSetTrusted, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"stubAddPrivilege",
+         std::bind(&TizenRpcPortPlugin::StubAddPrivilege, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"stubListen", std::bind(&TizenRpcPortPlugin::StubListen, this,
+                                 std::placeholders::_1, std::placeholders::_2)},
+        {"portSend", std::bind(&TizenRpcPortPlugin::PortSend, this,
+                               std::placeholders::_1, std::placeholders::_2)},
+        {"portReceive",
+         std::bind(&TizenRpcPortPlugin::PortReceive, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"proxyConnect",
+         std::bind(&TizenRpcPortPlugin::ProxyConnect, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"proxyProxyConnectSync",
+         std::bind(&TizenRpcPortPlugin::ProxyConnectSync, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"proxyDestroy",
+         std::bind(&TizenRpcPortPlugin::ProxyDestroy, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"portSetPrivateSharingArray",
+         std::bind(&TizenRpcPortPlugin::PortSetPrivateSharingArray, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"portSetPrivateSharing",
+         std::bind(&TizenRpcPortPlugin::PortSetPrivateSharing, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"portUnsetPrivateSharing",
+         std::bind(&TizenRpcPortPlugin::PortUnsetPrivateSharing, this,
+                   std::placeholders::_1, std::placeholders::_2)}};
   }
 
   virtual ~TizenRpcPortPlugin() {}
 
  private:
   template <typename T>
-  bool GetValueFromArgs(const flutter::EncodableValue *args, const char *key,
-      T &out) {
+  bool GetValueFromArgs(const flutter::EncodableValue* args, const char* key,
+                        T& out) {
     if (std::holds_alternative<flutter::EncodableMap>(*args)) {
       flutter::EncodableMap map = std::get<flutter::EncodableMap>(*args);
       if (map.find(flutter::EncodableValue(key)) != map.end()) {
@@ -107,8 +103,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     return false;
   }
 
-  bool GetEncodableValueFromArgs(const flutter::EncodableValue *args,
-      const char *key, flutter::EncodableValue &out) {
+  bool GetEncodableValueFromArgs(const flutter::EncodableValue* args,
+                                 const char* key,
+                                 flutter::EncodableValue& out) {
     if (std::holds_alternative<flutter::EncodableMap>(*args)) {
       flutter::EncodableMap map = std::get<flutter::EncodableMap>(*args);
       if (map.find(flutter::EncodableValue(key)) != map.end()) {
@@ -121,9 +118,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
   }
 
   void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
+      const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    const auto &method_name = method_call.method_name();
+    const auto& method_name = method_call.method_name();
     auto found = method_handlers_.find(method_name);
     if (found == method_handlers_.end()) {
       LOG_ERROR("%s it not implmeneted", method_name.c_str());
@@ -137,7 +134,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     method(args, std::move(result));
   }
 
-  void StubCreate(const flutter::EncodableValue* args,
+  void StubCreate(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("StubCreate");
     std::string port_name;
@@ -156,7 +154,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void StubDestroy(const flutter::EncodableValue* args,
+  void StubDestroy(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Destroy");
     std::string port_name;
@@ -167,8 +166,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
 
     {
       auto found = event_channels_.find(port_name);
-      if (found != event_channels_.end())
-        event_channels_.erase(found);
+      if (found != event_channels_.end()) event_channels_.erase(found);
     }
 
     auto found = native_stubs_.find(port_name);
@@ -181,7 +179,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void StubSetTrusted(const flutter::EncodableValue* args,
+  void StubSetTrusted(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("StubSetTrusted");
     std::string port_name;
@@ -207,7 +206,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void StubAddPrivilege(const flutter::EncodableValue* args,
+  void StubAddPrivilege(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("StubAddPrivilege");
     std::string port_name;
@@ -258,8 +258,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
 
     auto event_channel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [this, appid, port_name](const flutter::EncodableValue* arguments,
-                               std::unique_ptr<flutter::EventSink<>>&& events)
+            [this, appid, port_name](
+                const flutter::EncodableValue* arguments,
+                std::unique_ptr<flutter::EventSink<>>&& events)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnListen: %s/%s", appid.c_str(), port_name.c_str());
               auto proxy = FindProxy(appid, port_name);
@@ -314,8 +315,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
 
     auto event_channel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [this, appid, port_name](const flutter::EncodableValue* arguments,
-                               std::unique_ptr<flutter::EventSink<>>&& events)
+            [this, appid, port_name](
+                const flutter::EncodableValue* arguments,
+                std::unique_ptr<flutter::EventSink<>>&& events)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnListen: %s/%s", appid.c_str(), port_name.c_str());
               auto proxy = FindProxy(appid, port_name);
@@ -345,7 +347,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void ProxyDestroy(const flutter::EncodableValue* args,
+  void ProxyDestroy(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("ProxyDestroy");
     std::string appid;
@@ -359,8 +362,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     auto event_channel_name = "tizen/rpc_port_proxy/" + appid + "/" + port_name;
     {
       auto found = event_channels_.find(event_channel_name);
-      if (found != event_channels_.end())
-        event_channels_.erase(found);
+      if (found != event_channels_.end()) event_channels_.erase(found);
     }
 
     auto key = CreateKey(appid, port_name);
@@ -374,7 +376,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void StubListen(const flutter::EncodableValue* args,
+  void StubListen(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("StubListen");
     std::string port_name;
@@ -388,7 +391,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    std::string event_channel_name = "tizen/rpc_port_stub/"  + port_name;
+    std::string event_channel_name = "tizen/rpc_port_stub/" + port_name;
     auto event_channel =
         std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
             plugin_registrar_->messenger(), event_channel_name.c_str(),
@@ -396,23 +399,21 @@ class TizenRpcPortPlugin : public flutter::Plugin {
 
     auto event_channel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [this, port_name](const flutter::EncodableValue *arguments,
-                              std::unique_ptr<flutter::EventSink<>> &&events)
+            [this, port_name](const flutter::EncodableValue* arguments,
+                              std::unique_ptr<flutter::EventSink<>>&& events)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnListen. port_name: %s", port_name.c_str());
               auto* stub = FindStub(port_name);
-              if (stub == nullptr)
-                return nullptr;
+              if (stub == nullptr) return nullptr;
 
               auto ret = stub->Listen(std::move(events));
               if (!ret) {
-                LOG_ERROR("Listen() is failed. error: %s",
-                    ret.message());
+                LOG_ERROR("Listen() is failed. error: %s", ret.message());
               }
 
               return nullptr;
             },
-            [port_name](const flutter::EncodableValue *arguments)
+            [port_name](const flutter::EncodableValue* arguments)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnCancel. port_name: %s", port_name.c_str());
               return nullptr;
@@ -424,7 +425,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void PortSend(const flutter::EncodableValue* args,
+  void PortSend(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Send");
     std::string appid;
@@ -474,8 +476,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       }
     }
 
-
-
     RpcPortParcel parcel(raw_data);
     auto ret = parcel.Send(port.get());
     if (!ret) {
@@ -487,7 +487,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void PortReceive(const flutter::EncodableValue* args,
+  void PortReceive(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("Receive");
     std::string appid;
@@ -547,7 +548,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success(std::move(flutter::EncodableValue(raw)));
   }
 
-  void PortSetPrivateSharing(const flutter::EncodableValue* args,
+  void PortSetPrivateSharing(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("SetPrivateSharing");
     std::string appid;
@@ -606,7 +608,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void PortSetPrivateSharingArray(const flutter::EncodableValue* args,
+  void PortSetPrivateSharingArray(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("SetPrivateSharingArray");
     std::string appid;
@@ -673,7 +676,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void PortUnsetPrivateSharing(const flutter::EncodableValue* args,
+  void PortUnsetPrivateSharing(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("UnsetPrivateSharing");
     std::string appid;
@@ -721,7 +725,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       }
     }
 
-
     auto ret = port->UnsetPrivateSharing();
     if (!ret) {
       result->Error("UnsetPrivateSharing() is failed", ret.message());
@@ -731,7 +734,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void PortDisconnect(const flutter::EncodableValue* args,
+  void PortDisconnect(
+      const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     LOG_DEBUG("PortDisconnect");
     std::string appid;
@@ -790,20 +794,19 @@ class TizenRpcPortPlugin : public flutter::Plugin {
 
  private:
   static std::string CreateKey(const std::string appid,
-      const std::string port_name) {
+                               const std::string port_name) {
     return appid + "/" + port_name;
   }
 
   tizen::RpcPortStub* FindStub(const std::string& port_name) {
     auto found = native_stubs_.find(port_name);
-    if (found == native_stubs_.end())
-      return nullptr;
+    if (found == native_stubs_.end()) return nullptr;
 
     return (found->second).get();
   }
 
   RpcPortProxy* CreateProxy(const std::string& appid,
-      const std::string& port_name) {
+                            const std::string& port_name) {
     auto proxy = std::make_shared<RpcPortProxy>(appid, port_name);
     auto key = CreateKey(appid, port_name);
     native_proxies_[key] = proxy;
@@ -813,25 +816,33 @@ class TizenRpcPortPlugin : public flutter::Plugin {
   void RemoveProxy(const std::string& appid, const std::string& port_name) {
     auto key = CreateKey(appid, port_name);
     auto found = native_proxies_.find(key);
-    if (found == native_proxies_.end())
-      native_proxies_.erase(found);
+    if (found == native_proxies_.end()) native_proxies_.erase(found);
   }
 
   tizen::RpcPortProxy* FindProxy(const std::string& appid,
-      const std::string& port_name) {
+                                 const std::string& port_name) {
     auto key = CreateKey(appid, port_name);
     auto found = native_proxies_.find(key);
-    if (found == native_proxies_.end())
-      return nullptr;
+    if (found == native_proxies_.end()) return nullptr;
 
     return (found->second).get();
   }
 
  private:
-  std::unordered_map<std::string, std::shared_ptr<tizen::RpcPortStub>> native_stubs_;
-  std::unordered_map<std::string, std::shared_ptr<tizen::RpcPortProxy>> native_proxies_;
-  std::unordered_map<std::string, std::function<void(const flutter::EncodableValue*, std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>)>> method_handlers_;
-  std::unordered_map<std::string, std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>> event_channels_;
+  std::unordered_map<std::string, std::shared_ptr<tizen::RpcPortStub>>
+      native_stubs_;
+  std::unordered_map<std::string, std::shared_ptr<tizen::RpcPortProxy>>
+      native_proxies_;
+  std::unordered_map<
+      std::string,
+      std::function<void(
+          const flutter::EncodableValue*,
+          std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>)>>
+      method_handlers_;
+  std::unordered_map<
+      std::string,
+      std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>>
+      event_channels_;
   flutter::PluginRegistrar* plugin_registrar_;
 };
 

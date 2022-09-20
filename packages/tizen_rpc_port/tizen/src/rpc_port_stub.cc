@@ -4,9 +4,8 @@
 
 #include "rpc_port_stub.hh"
 
-#include <rpc-port-parcel.h>
-
 #include <flutter/standard_method_codec.h>
+#include <rpc-port-parcel.h>
 
 #include <cstdint>
 
@@ -16,15 +15,13 @@ namespace tizen {
 namespace {
 
 flutter::EncodableMap CreateEncodableMap(const char* event, const char* sender,
-    const char* instance) {
-  return {
-    { flutter::EncodableValue("event"),
-      flutter::EncodableValue(std::string(event)) },
-    { flutter::EncodableValue("sender"),
-      flutter::EncodableValue(std::string(sender)) },
-    { flutter::EncodableValue("instance"),
-      flutter::EncodableValue(std::string(instance)) }
-  };
+                                         const char* instance) {
+  return {{flutter::EncodableValue("event"),
+           flutter::EncodableValue(std::string(event))},
+          {flutter::EncodableValue("sender"),
+           flutter::EncodableValue(std::string(sender))},
+          {flutter::EncodableValue("instance"),
+           flutter::EncodableValue(std::string(instance))}};
 }
 
 }  // namespace
@@ -38,8 +35,7 @@ RpcPortStub::RpcPortStub(std::string port_name)
 }
 
 RpcPortStub::~RpcPortStub() {
-  if (handle_ != nullptr)
-    rpc_port_stub_destroy(handle_);
+  if (handle_ != nullptr) rpc_port_stub_destroy(handle_);
 }
 
 RpcPortResult RpcPortStub::Listen(EventSink sink) {
@@ -52,49 +48,48 @@ RpcPortResult RpcPortStub::Listen(EventSink sink) {
   int ret = rpc_port_stub_listen(handle_);
   RpcPortResult result(ret);
   if (!result) {
-    LOG_ERROR("rpc_port_stub_listen() is failed. error: %s",
-        result.message());
+    LOG_ERROR("rpc_port_stub_listen() is failed. error: %s", result.message());
   }
 
   return result;
 }
 
 RpcPortResult RpcPortStub::AddPrivilege(const std::string& privilege) {
-  LOG_DEBUG("AddPrivilege: %s, privilege: %s",
-      port_name_.c_str(), privilege.c_str());
+  LOG_DEBUG("AddPrivilege: %s, privilege: %s", port_name_.c_str(),
+            privilege.c_str());
   int ret = rpc_port_stub_add_privilege(handle_, privilege.c_str());
   RpcPortResult result(ret);
   if (!result) {
     LOG_ERROR("rpc_port_stub_add_privilege() is failed. error: %s",
-        result.message());
+              result.message());
   }
 
   return result;
 }
 
 RpcPortResult RpcPortStub::SetTrusted(const bool trusted) {
-  LOG_DEBUG("SetTrusted: %s, trusted: %s",
-      port_name_.c_str(), trusted ? "true" : "false");
+  LOG_DEBUG("SetTrusted: %s, trusted: %s", port_name_.c_str(),
+            trusted ? "true" : "false");
   int ret = rpc_port_stub_set_trusted(handle_, trusted);
   RpcPortResult result(ret);
   if (!result) {
     LOG_ERROR("rpc_port_stub_set_trusted() is failed. error: %s",
-        result.message());
+              result.message());
   }
 
   return result;
 }
 
 RpcPortResult RpcPortStub::GetPort(int32_t type, const std::string& instance,
-    std::unique_ptr<RpcPort>* port) {
+                                   std::unique_ptr<RpcPort>* port) {
   LOG_DEBUG("GetPort: %s", port_name_.c_str());
   rpc_port_h h = nullptr;
-  int ret = rpc_port_stub_get_port(handle_,
-      static_cast<rpc_port_port_type_e>(type), instance.c_str(), &h);
+  int ret = rpc_port_stub_get_port(
+      handle_, static_cast<rpc_port_port_type_e>(type), instance.c_str(), &h);
   RpcPortResult result(ret);
   if (!result) {
     LOG_ERROR("rpc_port_stub_get_port() is failed. error: %s",
-        result.message());
+              result.message());
     return result;
   }
 
@@ -103,7 +98,7 @@ RpcPortResult RpcPortStub::GetPort(int32_t type, const std::string& instance,
 }
 
 void RpcPortStub::OnConnectedEvent(const char* sender, const char* instance,
-    void* user_data) {
+                                   void* user_data) {
   LOG_DEBUG("OnConnectedEvent. sender: %s, instance: %s", sender, instance);
   auto map = CreateEncodableMap("connected", sender, instance);
   auto* stub = static_cast<RpcPortStub*>(user_data);
@@ -112,7 +107,7 @@ void RpcPortStub::OnConnectedEvent(const char* sender, const char* instance,
 }
 
 void RpcPortStub::OnDisconnectedEvent(const char* sender, const char* instance,
-    void* user_data) {
+                                      void* user_data) {
   LOG_DEBUG("OnDisconnectedEvent. sender: %s, instance: %s", sender, instance);
   auto map = CreateEncodableMap("disconnected", sender, instance);
   auto* stub = static_cast<RpcPortStub*>(user_data);
@@ -121,7 +116,7 @@ void RpcPortStub::OnDisconnectedEvent(const char* sender, const char* instance,
 }
 
 int RpcPortStub::OnReceivedEvent(const char* sender, const char* instance,
-    rpc_port_h port, void* user_data) {
+                                 rpc_port_h port, void* user_data) {
   LOG_DEBUG("OnReceivedEvent. sender: %s, instance: %s", sender, instance);
   rpc_port_parcel_h parcel = nullptr;
   int ret = rpc_port_parcel_create_from_port(&parcel, port);
