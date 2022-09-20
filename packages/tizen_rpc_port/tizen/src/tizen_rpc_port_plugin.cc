@@ -52,13 +52,13 @@ class TizenRpcPortPlugin : public flutter::Plugin {
           std::bind(&TizenRpcPortPlugin::StubDestroy, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "stubSetTrusted",
-          std::bind(&TizenRpcPortPlugin::SetTrusted, this,
+          std::bind(&TizenRpcPortPlugin::StubSetTrusted, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "stubAddPrivilege",
-          std::bind(&TizenRpcPortPlugin::AddPrivilege, this,
+          std::bind(&TizenRpcPortPlugin::StubAddPrivilege, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "stubListen",
-          std::bind(&TizenRpcPortPlugin::stubListen, this,
+          std::bind(&TizenRpcPortPlugin::StubListen, this,
               std::placeholders::_1, std::placeholders::_2) },
         { "portSend",
           std::bind(&TizenRpcPortPlugin::PortSend, this,
@@ -181,9 +181,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void SetTrusted(const flutter::EncodableValue* args,
+  void StubSetTrusted(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("SetTrusted");
+    LOG_DEBUG("StubSetTrusted");
     std::string port_name;
     bool trusted;
     if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
@@ -198,18 +198,18 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    auto ret = stub->SetTrusted(trusted);
+    auto ret = stub->StubSetTrusted(trusted);
     if (!ret) {
-      result->Error("SetTrusted() is failed");
+      result->Error("StubSetTrusted() is failed");
       return;
     }
 
     result->Success();
   }
 
-  void AddPrivilege(const flutter::EncodableValue* args,
+  void StubAddPrivilege(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("AddPrivilege");
+    LOG_DEBUG("StubAddPrivilege");
     std::string port_name;
     std::string privilege;
     if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
@@ -224,9 +224,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    auto ret = stub->AddPrivilege(privilege);
+    auto ret = stub->StubAddPrivilege(privilege);
     if (!ret) {
-      result->Error("AddPrivilege() is failed");
+      result->Error("StubAddPrivilege() is failed");
       return;
     }
 
@@ -374,9 +374,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void stubListen(const flutter::EncodableValue* args,
+  void StubListen(const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("Listen");
+    LOG_DEBUG("StubListen");
     std::string port_name;
     if (!GetValueFromArgs<std::string>(args, "portName", port_name)) {
       result->Error("Invalid parameter");
@@ -534,7 +534,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         return;
       }
     }
-
 
     RpcPortParcel parcel(port.get());
     std::vector<uint8_t> raw;
