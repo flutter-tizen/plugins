@@ -24,20 +24,24 @@ enum _MethodId {
   final int id;
 }
 
+/// Abstract class for creating a [CallbackBase] class for RPC.
 abstract class CallbackBase extends Parcelable {
+  /// Constructor for this class.
+  CallbackBase(this._id, this._once) {
+    _seqId = _seqNum++;
+  }
+
+  /// Creating a [CallbackBase] class from the parcel.
+  CallbackBase.fromParcel(Parcel parcel) {
+    deserialize(parcel);
+  }
+
   int _id = 0;
   bool _once = false;
   int _seqId = 0;
   static int _seqNum = 0;
 
-  CallbackBase(this._id, this._once) {
-    _seqId = _seqNum++;
-  }
-
-  CallbackBase.fromParcel(Parcel parcel) {
-    deserialize(parcel);
-  }
-
+  /// Gets the tag.
   String get tag => '$_id::$_seqId';
 
   Future<void> _onReceivedEvent(Parcel parcel);
@@ -57,10 +61,12 @@ abstract class CallbackBase extends Parcelable {
   }
 }
 
+/// The 'NotifyCB class to invoke the delegate method.
 abstract class NotifyCB extends CallbackBase {
+  /// Constructor for this class.
   NotifyCB({bool once = false}) : super(_DelegateId.notifyCB.id, once);
 
-  /// virtual fucntion
+  /// This abstract method will be called when the delegate is received event.
   Future<void> onReceived(String sender, String msg);
 
   @override
@@ -72,15 +78,21 @@ abstract class NotifyCB extends CallbackBase {
   }
 }
 
+/// Abstract class for creating [Message] class for RPC.
 abstract class Message extends ProxyBase {
+  /// Constructor for this class.
+  Message(String appid) : super(appid, 'Message');
+
   bool _online = false;
   final List<CallbackBase> _delegateList = <CallbackBase>[];
 
-  Message(String appid) : super(appid, 'Message');
-
-  /// virtual fucntion
+  /// This abstract method will be called when the connet() is succeed.
   Future<void> onConnected();
+
+  /// This abstract method will be called when the connection with the stub is disconnected.
   Future<void> onDisconnected();
+
+  /// This abstract method will be called when connect() is failed.
   Future<void> onRejected();
 
   @override
@@ -142,18 +154,21 @@ abstract class Message extends ProxyBase {
     }
   }
 
+  /// Connects with the stub application.
   @override
   Future<void> connect() async {
     Log.info(_logTag, 'connect()');
     await super.connect();
   }
 
+  /// Connects with the stub application synchronously.
   @override
   Future<void> connectSync() async {
     Log.info(_logTag, 'connectSync()');
     await super.connectSync();
   }
 
+  /// Dispose registered delegate interface.
   void disposeCallback(String tag) {
     Log.info(_logTag, 'disposeCallback($tag)');
     _delegateList.removeWhere((CallbackBase element) => element.tag == tag);

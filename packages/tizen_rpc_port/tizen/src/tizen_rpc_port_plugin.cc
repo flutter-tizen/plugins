@@ -197,7 +197,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    auto ret = stub->StubSetTrusted(trusted);
+    auto ret = stub->SetTrusted(trusted);
     if (!ret) {
       result->Error("StubSetTrusted() is failed");
       return;
@@ -224,7 +224,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       return;
     }
 
-    auto ret = stub->StubAddPrivilege(privilege);
+    auto ret = stub->AddPrivilege(privilege);
     if (!ret) {
       result->Error("StubAddPrivilege() is failed");
       return;
