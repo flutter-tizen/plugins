@@ -24,17 +24,19 @@ var request = AppControl(appId: 'com.example.app_id');
 await request.sendLaunchRequest();
 ```
 
-To send an implicit launch request, create an `AppControl` instance and specify necessary conditions, such as operation, URI, and MIME type. For example, if you want to open an image file with an image viewer app on your device,
+To send an implicit launch request, create an `AppControl` instance and specify necessary conditions, such as operation, URI, and MIME type. For example, if you want to share a text message via SMS on a watch device, set `operation` to `http://tizen.org/appcontrol/operation/share_text` as follows.
 
 ```dart
 import 'package:tizen_app_control/tizen_app_control.dart';
 
-var request = AppControl(
-  operation: 'http://tizen.org/appcontrol/operation/view',
-  uri: 'file:///image_file_path',
-  mime: 'image/*',
-);
-await request.sendLaunchRequest();
+await AppControl(
+  operation: 'http://tizen.org/appcontrol/operation/share_text',
+  uri: 'sms:',
+  launchMode: LaunchMode.group,
+  extraData: {
+    'http://tizen.org/appcontrol/data/text': 'Some text',
+  },
+).sendLaunchRequest();
 ```
 
 For detailed information on Tizen application controls, see [Tizen Docs: Application Controls](https://docs.tizen.org/application/native/guides/app-management/app-controls). For a list of common operation types and examples, see [Tizen Docs: Common Application Controls](https://docs.tizen.org/application/native/guides/app-management/common-appcontrols). Operation and data constants, such as `http://tizen.org/appcontrol/operation/view`, are defined in [the native API references](https://docs.tizen.org/application/native/api/wearable/latest/group__CAPI__APP__CONTROL__MODULE.html).

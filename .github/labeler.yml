@@ -33,8 +33,6 @@
   - packages/permission_handler/**/*
 'p: sensors_plus':
   - packages/sensors_plus/**/*
-'p: share_plus':
-  - packages/share_plus/**/*
 'p: shared_preferences':
   - packages/shared_preferences/**/*
 'p: sqflite':

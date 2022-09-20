@@ -10,7 +10,6 @@ plugins:
   package_info_plus: ["wearable-5.5", "tv-6.5"]
   path_provider: ["tv-6.5"]
   sensors_plus: ["wearable-5.5"]
-  share_plus: ["wearable-5.5"]
   shared_preferences: ["wearable-5.5", "tv-6.5"]
   sqflite: ["wearable-5.5", "tv-6.5"]
   tizen_app_manager: ["wearable-5.5", "tv-6.5"]
