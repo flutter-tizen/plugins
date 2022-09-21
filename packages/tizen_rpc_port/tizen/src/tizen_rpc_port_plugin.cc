@@ -17,8 +17,8 @@
 #include <unordered_map>
 
 #include "log.h"
-#include "rpc_port_proxy.hh"
-#include "rpc_port_stub.hh"
+#include "rpc_port_proxy.h"
+#include "rpc_port_stub.h"
 
 namespace {
 using namespace tizen;

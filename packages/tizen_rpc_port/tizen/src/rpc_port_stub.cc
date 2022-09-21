@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "rpc_port_stub.hh"
+#include "rpc_port_stub.h"
 
 #include <flutter/standard_method_codec.h>
 #include <rpc-port-parcel.h>

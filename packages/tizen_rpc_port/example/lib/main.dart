@@ -52,10 +52,10 @@ class MyMessageProxy extends Message {
   }
 
   @override
-  Future<void> onRejected() async {
+  Future<void> onRejected(int error) async {
     _msg = 'onRejected';
-    Log.info(_logTag, 'onRejected');
-    print('onRejected');
+    Log.info(_logTag, 'onRejected. error($error)');
+    print('onRejected. error($error)');
   }
 }
 

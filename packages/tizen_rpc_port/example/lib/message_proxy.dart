@@ -93,28 +93,27 @@ abstract class Message extends ProxyBase {
   Future<void> onDisconnected();
 
   /// This abstract method will be called when connect() is failed.
-  Future<void> onRejected();
+  Future<void> onRejected(int error);
 
   @override
-  Future<void> onConnectedEvent(String appid, String portName) async {
+  Future<void> onConnectedEvent() async {
     _online = true;
     await onConnected();
   }
 
   @override
-  Future<void> onDisconnectedEvent(String appid, String portName) async {
+  Future<void> onDisconnectedEvent() async {
     _online = false;
     await onDisconnected();
   }
 
   @override
-  Future<void> onRejectedEvent(String appid, String portName) async {
-    await onRejected();
+  Future<void> onRejectedEvent(int error) async {
+    await onRejected(error);
   }
 
   @override
-  Future<void> onReceivedEvent(
-      String appid, String portName, Parcel parcel) async {
+  Future<void> onReceivedEvent(Parcel parcel) async {
     final int cmd = parcel.readInt32();
     if (cmd != _MethodId.callback.id) {
       return;

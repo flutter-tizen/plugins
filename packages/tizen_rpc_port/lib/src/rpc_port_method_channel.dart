@@ -19,6 +19,13 @@ class MethodChannelRpcPort {
 
   String _createKey(String appid, String portName) => '$appid/$portName';
 
+  void removeStream(String appid, String portName) {
+    final String key = _createKey(appid, portName);
+    if (_streams.containsKey(key)) {
+      _streams.remove(key);
+    }
+  }
+
   Future<void> stubCreate(String portName) async {
     final Map<String, String> args = <String, String>{'portName': portName};
     return await _channel.invokeMethod('stubCreate', args);
@@ -71,7 +78,8 @@ class MethodChannelRpcPort {
         'portName': proxy.portName,
       };
 
-      return await _channel.invokeMethod<void>('proxyDestroy', args);
+      await _channel.invokeMethod<void>('proxyDestroy', args);
+      _streams.remove(key);
     }
   }
 

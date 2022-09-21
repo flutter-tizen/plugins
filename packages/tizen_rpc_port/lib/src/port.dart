@@ -16,10 +16,21 @@ enum PortType {
 /// The port connection between proxy & stub.
 class Port {
   /// Create port from proxy.
-  Port.fromProxy(this.portName, this.instance, this.portType) : appid = '';
+  Port.fromProxy({
+    required this.instance,
+    required this.portName,
+    required this.portType,
+  }) : appid = '';
 
   /// Create port from stub.
-  Port.fromStub(this.appid, this.portName, this.portType) : instance = '';
+  Port.fromStub({
+    required this.appid,
+    required this.portName,
+    required this.portType,
+  }) : instance = '';
+
+  static final MethodChannelRpcPort _methodChannel =
+      MethodChannelRpcPort.instance;
 
   /// The type of port[main|callback].
   final PortType portType;
@@ -35,39 +46,33 @@ class Port {
 
   /// Sends a parcel to connected app.
   Future<void> send(Parcel parcel) async {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    await manager.portSend(this, parcel.raw);
+    await _methodChannel.portSend(this, parcel.raw);
   }
 
   /// Receives a parcel from connected app.
   /// This api should be used only guaranteed receive something after send().
   Future<Parcel> receive() async {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    final Uint8List raw = await manager.portReceive(this);
+    final Uint8List raw = await _methodChannel.portReceive(this);
     return Parcel.fromRaw(raw);
   }
 
   /// Sets private sharing paths.
   Future<void> setPrivateSharingList(List<String> paths) async {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    await manager.portSetPrivateSharingArray(this, paths);
+    await _methodChannel.portSetPrivateSharingArray(this, paths);
   }
 
   /// Sets private sharing a path.
   Future<void> setPrivateSharing(String path) async {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    await manager.portSetPrivateSharing(this, path);
+    await _methodChannel.portSetPrivateSharing(this, path);
   }
 
   /// Unsets all setted private sharing paths.
   Future<void> unsetPrivateSharing() async {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    await manager.portUnsetPrivateSharing(this);
+    await _methodChannel.portUnsetPrivateSharing(this);
   }
 
   /// Disconnects port connection.
   Future<void> disconnect() async {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    await manager.portDisconnect(this);
+    await _methodChannel.portDisconnect(this);
   }
 }

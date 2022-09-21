@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "rpc_port_proxy.hh"
+#include "rpc_port_proxy.h"
 
 #include <bundle.h>
 #include <flutter/standard_message_codec.h>
@@ -160,6 +160,8 @@ void RpcPortProxy::OnRejectedEvent(const char* receiver, const char* port_name,
 
   auto* proxy = static_cast<RpcPortProxy*>(data);
   auto map = CreateEncodableMap("rejected", receiver, port_name);
+  map[flutter::EncodableValue("error")] =
+      flutter::EncodableValue(get_last_result());
   proxy->event_sink_->Success(flutter::EncodableValue(map));
 }
 

@@ -1,5 +1,5 @@
 name: tizen_rpc_port
-description: A new Flutter plugin project.
+description: Tizen rpc port APIs. Used to make remote procedure calls between Tizen applications.
 version: 0.1.0
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_rpc_port

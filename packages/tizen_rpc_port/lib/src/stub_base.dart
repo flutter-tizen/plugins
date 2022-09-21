@@ -1,10 +1,3 @@
-// You have generated a new plugin project without specifying the `--platforms`
-// flag. A plugin project with no platform support was generated. To add a
-// platform, run `flutter create -t plugin --platforms <platforms> .` under the
-// same directory. You can also find a detailed instruction on how to add
-// platforms in the `pubspec.yaml` at
-// https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms.
-
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -15,37 +8,34 @@ import 'rpc_port_method_channel.dart';
 
 const String _logTag = 'RPC_PORT';
 
+final MethodChannelRpcPort _methodChannel = MethodChannelRpcPort.instance;
+
 Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
-  final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-  manager.stubDestroy(stub.portName);
+  _methodChannel.stubDestroy(stub.portName);
 });
 
 /// The base of RpcPort stub class.
 abstract class StubBase {
   /// The constructor of StubBase.
-  StubBase(this._portName) {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    manager.stubCreate(_portName);
+  StubBase(this.portName) {
+    _methodChannel.stubCreate(portName);
     _finalizer.attach(this, this);
   }
 
-  final String _portName;
+  /// The port name of connection with proxy.
+  final String portName;
+
   late final StreamSubscription<dynamic> _streamSubscription;
   bool _isListening = false;
 
-  /// The port name of connection with proxy.
-  String get portName => _portName;
-
   /// Sets trusted flag.
   Future<void> setTrusted(bool trusted) async {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    await manager.stubSetTrusted(_portName, trusted);
+    await _methodChannel.stubSetTrusted(portName, trusted);
   }
 
   /// Adds privilege required when try to connect on proxy.
   Future<void> addPrivilege(String privilege) async {
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    await manager.stubAddPrivilege(_portName, privilege);
+    await _methodChannel.stubAddPrivilege(portName, privilege);
   }
 
   /// Listens to signal of connection request from the proxy.
@@ -54,8 +44,7 @@ abstract class StubBase {
       return;
     }
 
-    final MethodChannelRpcPort manager = MethodChannelRpcPort.instance;
-    final Stream<dynamic> stream = await manager.stubListen(_portName);
+    final Stream<dynamic> stream = await _methodChannel.stubListen(portName);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
         final Map<dynamic, dynamic> map = event;
@@ -83,7 +72,8 @@ abstract class StubBase {
 
   /// Gets the port connected with proxy that has instance id.
   Port getPort(String instance, PortType portType) {
-    return Port.fromProxy(_portName, instance, portType);
+    return Port.fromProxy(
+        portName: portName, instance: instance, portType: portType);
   }
 
   /// The callback function that is invoked when be connected with the proxy.

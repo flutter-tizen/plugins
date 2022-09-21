@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef RPC_PORT_PROXY_HH
-#define RPC_PORT_PROXY_HH
+#ifndef RPC_PORT_PROXY_H
+#define RPC_PORT_PROXY_H
 
 #include <flutter/event_channel.h>
 #include <flutter/standard_method_codec.h>
@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "common.hh"
+#include "common.h"
 
 namespace tizen {
 
@@ -49,4 +49,4 @@ class RpcPortProxy {
 
 }  // namespace tizen
 
-#endif  // RPC_PORT_PROXY_HH
+#endif  // RPC_PORT_PROXY_H
