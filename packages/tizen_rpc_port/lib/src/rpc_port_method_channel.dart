@@ -9,6 +9,7 @@ const String _logTag = 'RpcPortMethodChannel';
 
 /// An implementation of [RpcPortPlatform] that uses method channels.
 class MethodChannelRpcPort {
+  /// MethodChannelRpcPort singleton instance
   static final MethodChannelRpcPort instance = MethodChannelRpcPort();
 
   /// The method channel used to interact with the native platform.

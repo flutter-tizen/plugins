@@ -49,25 +49,25 @@ abstract class ProxyBase {
     final Stream<dynamic> stream = await manager.proxyConnect(this);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
-        final map = event;
+        final Map<dynamic, dynamic> map = event;
         if (map.containsKey('event')) {
           final String event = map['event'] as String;
           final String appid = map['receiver'] as String;
           final String portName = map['portName'] as String;
           Log.info(_logTag, 'event: $event, appid:$appid, portName:$portName');
           if (event == 'connected') {
-            await onConnectedEvent(appid, portName);
             _connected = true;
+            await onConnectedEvent(appid, portName);
           } else if (event == 'disconnected') {
+            _connected = false;
             await onDisconnectedEvent(appid, portName);
             _streamSubscription?.cancel();
             _streamSubscription = null;
-            _connected = false;
           } else if (event == 'rejected') {
+            _connected = false;
             await onRejectedEvent(appid, portName);
             _streamSubscription?.cancel();
             _streamSubscription = null;
-            _connected = false;
           } else if (event == 'received') {
             final Uint8List rawData = map['rawData'] as Uint8List;
             final Parcel parcel = Parcel.fromRaw(rawData);
@@ -90,7 +90,7 @@ abstract class ProxyBase {
     final Stream<dynamic> stream = await manager.proxyConnectSync(this);
     _streamSubscription = stream.listen((dynamic event) async {
       if (event is Map) {
-        final Map<String, dynamic> map = event as Map<String, dynamic>;
+        final Map<dynamic, dynamic> map = event;
         if (map.containsKey('event')) {
           final String event = map['event'] as String;
           final String appid = map['receiver'] as String;
