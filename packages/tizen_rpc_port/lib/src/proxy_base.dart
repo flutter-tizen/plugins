@@ -45,14 +45,12 @@ abstract class ProxyBase {
         } else if (event == 'disconnected') {
           _connected = false;
           await onDisconnectedEvent();
-          _methodChannel.removeStream(appid, portName);
           _streamSubscription?.cancel();
           _streamSubscription = null;
         } else if (event == 'rejected') {
           _connected = false;
           final int error = map['error'] as int;
           await onRejectedEvent(error);
-          _methodChannel.removeStream(appid, portName);
           _streamSubscription?.cancel();
           _streamSubscription = null;
         } else if (event == 'received') {

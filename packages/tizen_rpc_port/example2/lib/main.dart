@@ -11,11 +11,13 @@ void main() {
   runApp(const MyApp());
 }
 
+/// Service fo Message class.
 class Service extends ServiceBase {
+  /// Constructor of Service.
+  Service(super.sender, super.instance);
+
   String _name = '';
   NotifyCB? _cb;
-
-  Service(String sender, String instance) : super(sender, instance);
 
   @override
   Future<void> onCreate() async {
@@ -49,7 +51,9 @@ class Service extends ServiceBase {
   }
 }
 
+/// Message Stub class.
 class MyMessageStub extends Message {
+  /// Constructor of MyMessageStub.
   MyMessageStub() : super();
 
   @override
@@ -57,8 +61,10 @@ class MyMessageStub extends Message {
       Service(sender, instance);
 }
 
+/// exmaple2 app class.
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  /// Constructor of MyApp.
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -72,7 +78,7 @@ class _MyAppState extends State<MyApp> {
     switch (param.runtimeType) {
       case List<String>:
         {
-          Log.info(_logTag, "List<String>");
+          Log.info(_logTag, 'List<String>');
           break;
         }
     }
@@ -80,7 +86,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    List<String> stringList = [];
+    final List<String> stringList = <String>[];
     serialize(stringList);
 
     super.initState();
@@ -92,14 +98,11 @@ class _MyAppState extends State<MyApp> {
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String platformVersion = '7.0';
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
+    const String platformVersion = '7.0';
 
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _platformVersion = platformVersion;

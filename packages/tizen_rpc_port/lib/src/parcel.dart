@@ -7,10 +7,10 @@ import 'package:tizen_interop/6.5/tizen.dart';
 
 class _Timespec extends Struct {
   @Int64()
-  external int tv_sec;
+  external int tvSec;
 
   @Int64()
-  external int tv_nsec;
+  external int tvNsec;
 }
 
 /// The timestamp when parcel created.
@@ -91,7 +91,7 @@ class ParcelHeader {
         throw ret;
       }
 
-      return Timestamp._(time.ref.tv_sec, time.ref.tv_nsec);
+      return Timestamp._(time.ref.tvSec, time.ref.tvNsec);
     });
   }
 }
@@ -243,7 +243,7 @@ class Parcel {
   /// Reads a byte value from the parcel.
   int readByte() {
     return using((Arena arena) {
-      Pointer<Char> pV = arena();
+      final Pointer<Char> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_byte(_parcel, pV);
       if (ret != 0) {
         throw ret;
@@ -256,7 +256,7 @@ class Parcel {
   /// Reads a int(16bit) value from the parcel.
   int readInt16() {
     return using((Arena arena) {
-      Pointer<Short> pV = arena();
+      final Pointer<Short> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_int16(_parcel, pV);
       if (ret != 0) {
         throw ret;
@@ -269,7 +269,7 @@ class Parcel {
   /// Reads a int(32bit) value from the parcel.
   int readInt32() {
     return using((Arena arena) {
-      Pointer<Int> pV = arena();
+      final Pointer<Int> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_int32(_parcel, pV);
       if (ret != 0) {
         throw ret;
@@ -282,7 +282,7 @@ class Parcel {
   /// Reads a int(64bit) value from the parcel.
   int readInt64() {
     return using((Arena arena) {
-      Pointer<LongLong> pV = arena();
+      final Pointer<LongLong> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_int64(_parcel, pV);
       if (ret != 0) {
         throw ret;
@@ -295,7 +295,7 @@ class Parcel {
   /// Reads a double value from the parcel.
   double readDouble() {
     return using((Arena arena) {
-      Pointer<Double> pV = arena();
+      final Pointer<Double> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_double(_parcel, pV);
       if (ret != 0) {
         throw ret;
@@ -308,7 +308,7 @@ class Parcel {
   /// Reads a String value from the parcel.
   String readString() {
     return using((Arena arena) {
-      Pointer<Pointer<Char>> pV = arena();
+      final Pointer<Pointer<Char>> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_string(_parcel, pV);
       if (ret != 0) {
         throw ret;
@@ -334,7 +334,7 @@ class Parcel {
   /// Reads a bundle value from the parcel.
   Bundle readBundle() {
     return using((Arena arena) {
-      Pointer<Pointer<Char>> pV = arena();
+      final Pointer<Pointer<Char>> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_string(_parcel, pV);
       if (ret != 0) {
         throw ret;
@@ -348,7 +348,7 @@ class Parcel {
   /// Reads a array count from the parcel.
   int readArrayCount() {
     return using((Arena arena) {
-      Pointer<Int> pV = arena();
+      final Pointer<Int> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_array_count(_parcel, pV);
       if (ret != 0) {
         throw ret;

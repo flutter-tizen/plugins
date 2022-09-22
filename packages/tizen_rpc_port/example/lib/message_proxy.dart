@@ -61,7 +61,7 @@ abstract class CallbackBase extends Parcelable {
   }
 }
 
-/// The 'NotifyCB class to invoke the delegate method.
+/// The NotifyCB class to invoke the delegate method.
 abstract class NotifyCB extends CallbackBase {
   /// Constructor for this class.
   NotifyCB({bool once = false}) : super(_DelegateId.notifyCB.id, once);
@@ -71,8 +71,8 @@ abstract class NotifyCB extends CallbackBase {
 
   @override
   Future<void> _onReceivedEvent(Parcel parcel) async {
-    String sender = parcel.readString();
-    String msg = parcel.readString();
+    final String sender = parcel.readString();
+    final String msg = parcel.readString();
 
     await onReceived(sender, msg);
   }
@@ -130,7 +130,7 @@ abstract class Message extends ProxyBase {
     for (final CallbackBase delegate in _delegateList) {
       if (delegate._id == id && delegate._seqId == seqId) {
         await delegate._onReceivedEvent(parcel);
-        if (delegate._once) {
+        if (delegate._once && once == true) {
           _delegateList.remove(delegate);
         }
         break;
@@ -173,12 +173,15 @@ abstract class Message extends ProxyBase {
     _delegateList.removeWhere((CallbackBase element) => element.tag == tag);
   }
 
+  /// This method is used to send 'Register' request to the stub app.
   Future<int> register(String name, NotifyCB cb) async {
-    Log.info(_logTag, 'register');
+    Log.info(_logTag, 'Register');
 
     if (!_online) {
       throw Exception('NotConnectedSocketException');
     }
+
+    final Port port = getPort(PortType.main);
 
     final Parcel parcel = Parcel();
     final ParcelHeader header = parcel.header;
@@ -189,7 +192,6 @@ abstract class Message extends ProxyBase {
     cb.serialize(parcel);
     _delegateList.add(cb);
 
-    final Port port = getPort(PortType.main);
     await port.send(parcel);
 
     late Parcel parcelReceived;
@@ -203,33 +205,37 @@ abstract class Message extends ProxyBase {
       }
     }
 
-    final ret = parcelReceived.readInt32();
-
+    final int ret = parcelReceived.readInt32();
     return ret;
   }
 
+  /// This method is used to send 'Unregister' request to the stub app.
   Future<void> unregister() async {
-    Log.info(_logTag, 'unregister');
+    Log.info(_logTag, 'Unregister');
 
     if (!_online) {
       throw Exception('NotConnectedSocketException');
     }
+
+    final Port port = getPort(PortType.main);
 
     final Parcel parcel = Parcel();
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.unregister.id);
 
-    final Port port = getPort(PortType.main);
     await port.send(parcel);
   }
 
+  /// This method is used to send 'Send' request to the stub app.
   Future<int> send(String msg) async {
-    Log.info(_logTag, 'send');
+    Log.info(_logTag, 'Send');
 
     if (!_online) {
       throw Exception('NotConnectedSocketException');
     }
+
+    final Port port = getPort(PortType.main);
 
     final Parcel parcel = Parcel();
     final ParcelHeader header = parcel.header;
@@ -238,7 +244,6 @@ abstract class Message extends ProxyBase {
 
     parcel.writeString(msg);
 
-    final Port port = getPort(PortType.main);
     await port.send(parcel);
 
     late Parcel parcelReceived;
@@ -252,8 +257,7 @@ abstract class Message extends ProxyBase {
       }
     }
 
-    final ret = parcelReceived.readInt32();
-
+    final int ret = parcelReceived.readInt32();
     return ret;
   }
 }

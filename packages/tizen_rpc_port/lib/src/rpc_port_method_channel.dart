@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:tizen_log/tizen_log.dart';
 
@@ -19,23 +18,19 @@ class MethodChannelRpcPort {
 
   String _createKey(String appid, String portName) => '$appid/$portName';
 
-  void removeStream(String appid, String portName) {
-    final String key = _createKey(appid, portName);
-    if (_streams.containsKey(key)) {
-      _streams.remove(key);
-    }
-  }
-
+  /// Creates a stub.
   Future<void> stubCreate(String portName) async {
     final Map<String, String> args = <String, String>{'portName': portName};
     return await _channel.invokeMethod('stubCreate', args);
   }
 
+  /// Destroy a stub.
   Future<void> stubDestroy(String portName) async {
     final Map<String, String> args = <String, String>{'portName': portName};
     return await _channel.invokeMethod('stubDestroy', args);
   }
 
+  /// Connects proxy to the stub.
   Future<Stream<dynamic>> proxyConnect(ProxyBase proxy) async {
     final String key = _createKey(proxy.appid, proxy.portName);
     if (_streams.containsKey(key)) {
@@ -53,6 +48,7 @@ class MethodChannelRpcPort {
     return _streams[key]!;
   }
 
+  /// Connects proxy to the stub synchronously.
   Future<Stream<dynamic>> proxyConnectSync(ProxyBase proxy) async {
     final String key = _createKey(proxy.appid, proxy.portName);
     if (_streams.containsKey(key)) {
@@ -70,6 +66,7 @@ class MethodChannelRpcPort {
     return _streams[key]!;
   }
 
+  /// Destroy a proxy.
   Future<void> proxyDestroy(ProxyBase proxy) async {
     final String key = _createKey(proxy.appid, proxy.portName);
     if (_streams.containsKey(key)) {
@@ -83,6 +80,7 @@ class MethodChannelRpcPort {
     }
   }
 
+  /// Disconnect the port connection.
   Future<void> portDisconnect(Port port) async {
     final String key = _createKey(port.appid, port.portName);
     if (_streams.containsKey(key)) {
@@ -97,6 +95,7 @@ class MethodChannelRpcPort {
     }
   }
 
+  /// Sends data with the port.
   Future<dynamic> portSend(Port port, Uint8List raw) async {
     final Map<String, dynamic> args = <String, dynamic>{
       'appid': port.appid,
@@ -109,6 +108,7 @@ class MethodChannelRpcPort {
     return await _channel.invokeMethod<dynamic>('portSend', args);
   }
 
+  /// Receives data with the port.
   Future<Uint8List> portReceive(Port port) async {
     final Map<String, dynamic> args = <String, dynamic>{
       'appid': port.appid,
@@ -131,6 +131,7 @@ class MethodChannelRpcPort {
     return ret;
   }
 
+  /// Sets private sharing path list with the port.
   Future<void> portSetPrivateSharingArray(Port port, List<String> paths) async {
     final String key = _createKey(port.appid, port.portName);
     if (_streams.containsKey(key)) {
@@ -146,6 +147,7 @@ class MethodChannelRpcPort {
     }
   }
 
+  /// Sets private sharing path with the port.
   Future<void> portSetPrivateSharing(Port port, String path) async {
     final String key = _createKey(port.appid, port.portName);
     if (_streams.containsKey(key)) {
@@ -161,6 +163,7 @@ class MethodChannelRpcPort {
     }
   }
 
+  /// Unsets private sharing path with the port.
   Future<void> portUnsetPrivateSharing(Port port) async {
     final String key = _createKey(port.appid, port.portName);
     if (_streams.containsKey(key)) {
@@ -175,6 +178,7 @@ class MethodChannelRpcPort {
     }
   }
 
+  /// Sets trusted option.
   Future<void> stubSetTrusted(String portName, bool trusted) async {
     final Map<String, dynamic> args = <String, dynamic>{
       'portName': portName,
@@ -184,7 +188,7 @@ class MethodChannelRpcPort {
     return await _channel.invokeMethod('stubSetTrusted', args);
   }
 
-  @override
+  /// Adds privilege condition.
   Future<void> stubAddPrivilege(String portName, String privilege) async {
     final Map<String, String> args = <String, String>{
       'portName': portName,
@@ -193,6 +197,7 @@ class MethodChannelRpcPort {
     return await _channel.invokeMethod('stubAddPrivilege', args);
   }
 
+  /// Listen stub about the proxy connect request.
   Future<Stream<dynamic>> stubListen(String portName) async {
     if (_streams.containsKey(portName)) {
       return _streams[portName]!;

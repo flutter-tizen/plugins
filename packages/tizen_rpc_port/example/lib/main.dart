@@ -12,8 +12,10 @@ void main() {
   runApp(const MyApp());
 }
 
+/// Example app class
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  /// Constructor of MyApp.
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -21,6 +23,7 @@ class MyApp extends StatefulWidget {
 
 String _msg = '';
 
+/// MyNotify delegate class.
 class MyNotify extends NotifyCB {
   @override
   Future<void> onReceived(String sender, String msg) async {
@@ -29,9 +32,12 @@ class MyNotify extends NotifyCB {
   }
 }
 
+/// Message proxy class.
 class MyMessageProxy extends Message {
-  MyMessageProxy(String appid) : super(appid);
+  /// Constructor of MeMessageProxy.
+  MyMessageProxy(super.appid);
 
+  /// display message.
   String get msg => _msg;
   set msg(String msg) => _msg = msg;
 
@@ -102,7 +108,7 @@ class _MyAppState extends State<MyApp> {
             title: const Text('RpcPortProxy example app'),
           ),
           body: SingleChildScrollView(
-            child: Column(children: [
+            child: Column(children: <Widget>[
               Padding(
                 padding: const EdgeInsets.fromLTRB(0.0, 50.0, 0.0, 50.0),
                 child: Text('Message: $_msg\n'),
@@ -117,7 +123,7 @@ class _MyAppState extends State<MyApp> {
                   )),
             ]),
           ),
-          persistentFooterButtons: [
+          persistentFooterButtons: <Widget>[
             TextButton(
               onPressed: _sendMsg,
               child: const Text('Send message'),

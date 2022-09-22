@@ -11,7 +11,7 @@ const String _logTag = 'RPC_PORT';
 final MethodChannelRpcPort _methodChannel = MethodChannelRpcPort.instance;
 
 Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
-  stub._streamSubscription?.cancel();
+  stub._streamSubscription.cancel();
   _methodChannel.stubDestroy(stub.portName);
 });
 
@@ -26,7 +26,8 @@ abstract class StubBase {
   /// The port name of connection with proxy.
   final String portName;
 
-  StreamSubscription<dynamic>? _streamSubscription;
+  /// ignore: cancel_subscriptions
+  late StreamSubscription<dynamic> _streamSubscription;
 
   /// Sets trusted flag.
   Future<void> setTrusted(bool trusted) async {
