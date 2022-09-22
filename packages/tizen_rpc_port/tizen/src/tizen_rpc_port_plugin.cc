@@ -65,7 +65,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         {"proxyConnect",
          std::bind(&TizenRpcPortPlugin::ProxyConnect, this,
                    std::placeholders::_1, std::placeholders::_2)},
-        {"proxyProxyConnectSync",
+        {"proxyConnectSync",
          std::bind(&TizenRpcPortPlugin::ProxyConnectSync, this,
                    std::placeholders::_1, std::placeholders::_2)},
         {"proxyDestroy",
