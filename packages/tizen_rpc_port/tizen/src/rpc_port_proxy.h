@@ -7,8 +7,8 @@
 
 #include <flutter/event_channel.h>
 #include <flutter/standard_method_codec.h>
-#include <rpc-port.h>
 #include <rpc-port-parcel.h>
+#include <rpc-port.h>
 
 #include <map>
 #include <memory>
