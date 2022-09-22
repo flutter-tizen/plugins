@@ -84,11 +84,6 @@ class _WebViewExampleState extends State<WebViewExample> {
       Completer<WebViewController>();
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.green,
