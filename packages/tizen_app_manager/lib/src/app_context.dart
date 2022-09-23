@@ -10,21 +10,14 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:tizen_interop/4.0/tizen.dart';
 
-_AppManager? _appManagerInstance;
-_AppManager get _appManager => _appManagerInstance ??= _AppManager();
+typedef _TerminateAppNative = Int Function(app_context_h);
+typedef _TerminateApp = int Function(app_context_h);
 
-class _AppManager {
-  _AppManager() {
-    final DynamicLibrary libAppMananger =
-        DynamicLibrary.open('libcapi-appfw-app-manager.so.0');
-    // Since app_manager_terminate_app is non public API, load it using ffi directly.
-    terminateApp = libAppMananger
-        .lookup<NativeFunction<Int32 Function(Pointer<app_context_s>)>>(
-            'app_manager_terminate_app')
-        .asFunction();
-  }
-  late int Function(Pointer<app_context_s>) terminateApp;
-}
+final DynamicLibrary _libAppMananger =
+    DynamicLibrary.open('libcapi-appfw-app-manager.so.0');
+final _TerminateApp _terminateApp =
+    _libAppMananger.lookupFunction<_TerminateAppNative, _TerminateApp>(
+        'app_manager_terminate_app');
 
 class AppContext {
   AppContext(String appId, int handleAddress) : _appId = appId {
@@ -33,20 +26,20 @@ class AppContext {
     }
     using((Arena arena) {
       if (handleAddress == 0) {
-        final Pointer<Pointer<app_context_s>> handle = arena();
-        final Pointer<Char> pAppId = appId.toNativeChar(allocator: arena);
-        final int ret = tizen.app_manager_get_app_context(pAppId, handle);
+        final Pointer<app_context_h> handle = arena();
+        final Pointer<Char> id = appId.toNativeChar(allocator: arena);
+        final int ret = tizen.app_manager_get_app_context(id, handle);
         if (ret != 0) {
           _throwPlatformException(ret);
         }
         _handle = handle.value;
       } else {
-        _handle = Pointer<app_context_s>.fromAddress(handleAddress);
+        _handle = app_context_h.fromAddress(handleAddress);
       }
     });
   }
 
-  late Pointer<app_context_s> _handle;
+  late app_context_h _handle;
   final String _appId;
 
   void destroy() {
@@ -105,7 +98,7 @@ class AppContext {
   }
 
   void terminate() {
-    final int ret = _appManager.terminateApp(_handle);
+    final int ret = _terminateApp(_handle);
     if (ret != 0) {
       _throwPlatformException(ret);
     }
