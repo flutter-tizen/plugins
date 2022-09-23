@@ -1,6 +1,7 @@
 ## NEXT
 
 * Update README.
+* Remove unused code and clean up.
 
 ## 0.2.2
 
