@@ -16,7 +16,7 @@ class CustomPageView extends StatefulWidget {
 
 class _CustomPageViewState extends State<CustomPageView> {
   StreamSubscription<RotaryEvent>? _rotarySubscription;
-  final PageController _pager = PageController(initialPage: 0);
+  final PageController _pager = PageController();
   int _currentPageIdx = 0;
 
   @override

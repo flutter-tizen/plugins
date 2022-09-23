@@ -250,7 +250,6 @@ class MapUiBodyState extends State<MapUiBody> {
       );
     }
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: columnChildren,
     );

@@ -97,7 +97,6 @@ void main() {
       child: GoogleMap(
         key: key,
         initialCameraPosition: _kInitialCameraPosition,
-        zoomGesturesEnabled: true,
         onMapCreated: (GoogleMapController controller) {
           fail('OnMapCreated should get called only once.');
         },
@@ -182,7 +181,6 @@ void main() {
       child: GoogleMap(
         key: key,
         initialCameraPosition: _kInitialCameraPosition,
-        scrollGesturesEnabled: true,
         onMapCreated: (GoogleMapController controller) {
           fail('OnMapCreated should get called only once.');
         },
@@ -333,7 +331,6 @@ void main() {
       child: GoogleMap(
         key: key,
         initialCameraPosition: _kInitialCameraPosition,
-        trafficEnabled: false,
         onMapCreated: (GoogleMapController controller) {
           fail('OnMapCreated should get called only once.');
         },

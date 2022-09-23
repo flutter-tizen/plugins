@@ -294,11 +294,10 @@ class _AppsEventScreenState extends State<_AppsEventScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final PageController controller = PageController(initialPage: 0);
+    final PageController controller = PageController();
     return Scaffold(
       appBar: AppBar(title: const Text('application context events')),
       body: PageView(
-        scrollDirection: Axis.horizontal,
         controller: controller,
         children: <Widget>[
           Center(
