@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-import 'src/app_context.dart';
+import 'app_context.dart';
 
 /// Enumeration for the application's current state.
 enum AppState {
@@ -193,14 +193,6 @@ class AppRunningContext {
     final String appId = map['appId'] as String;
     final int handle = map['handle'] as int;
     return AppRunningContext(appId: appId, handleAddress: handle);
-  }
-
-  /// Releases all resources associated with this object.
-  @Deprecated('Automatically disposed on GC')
-  void dispose() {
-    _context.destroy();
-
-    _finalizer.detach(this);
   }
 
   /// Sends a resume request to the application if it is not running.

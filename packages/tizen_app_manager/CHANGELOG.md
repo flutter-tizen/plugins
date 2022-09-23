@@ -1,3 +1,8 @@
+## 0.2.0
+
+* Migrate FFI implementation to tizen_interop.
+* Remove `AppRunningContext.dispose`.
+
 ## 0.1.5
 
 * Bump ffi dependency.

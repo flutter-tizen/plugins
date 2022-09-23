@@ -8,31 +8,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
-
-typedef _AppManagerGetAppContext = Int32 Function(
-    Pointer<Utf8>, Pointer<Pointer<_ContextHandle>>);
-typedef _AppManagerIsRunning = Int32 Function(Pointer<Utf8>, Pointer<Int8>);
-typedef _AppContextGetPackageId = Int32 Function(
-    Pointer<_ContextHandle>, Pointer<Pointer<Utf8>>);
-typedef _AppContextGetPid = Int32 Function(
-    Pointer<_ContextHandle>, Pointer<Int32>);
-typedef _AppContextGetAppState = Int32 Function(
-    Pointer<_ContextHandle>, Pointer<Int32>);
-typedef _AppManagerTerminate = Int32 Function(Pointer<_ContextHandle>);
-typedef _AppManagerRequestTerminateBgApp = Int32 Function(
-    Pointer<_ContextHandle>);
-typedef _AppManagerResumeApp = Int32 Function(Pointer<_ContextHandle>);
-typedef _AppContextDestroy = Int32 Function(Pointer<_ContextHandle>);
-
-class _ContextHandle extends Opaque {}
-
-typedef _GetErrorMessageNative = Pointer<Utf8> Function(Int32);
-final DynamicLibrary _libBaseCommon =
-    DynamicLibrary.open('libcapi-base-common.so.0');
-
-final Pointer<Utf8> Function(int) getErrorMessage = _libBaseCommon
-    .lookup<NativeFunction<_GetErrorMessageNative>>('get_error_message')
-    .asFunction();
+import 'package:tizen_interop/4.0/tizen.dart';
 
 _AppManager? _appManagerInstance;
 _AppManager get _appManager => _appManagerInstance ??= _AppManager();
@@ -41,51 +17,13 @@ class _AppManager {
   _AppManager() {
     final DynamicLibrary libAppMananger =
         DynamicLibrary.open('libcapi-appfw-app-manager.so.0');
-    getAppContext = libAppMananger
-        .lookup<NativeFunction<_AppManagerGetAppContext>>(
-            'app_manager_get_app_context')
-        .asFunction();
-    appIsRunning = libAppMananger
-        .lookup<NativeFunction<_AppManagerIsRunning>>('app_manager_is_running')
-        .asFunction();
-    getPackageId = libAppMananger
-        .lookup<NativeFunction<_AppContextGetPackageId>>(
-            'app_context_get_package_id')
-        .asFunction();
-    getProcessId = libAppMananger
-        .lookup<NativeFunction<_AppContextGetPid>>('app_context_get_pid')
-        .asFunction();
-    getAppState = libAppMananger
-        .lookup<NativeFunction<_AppContextGetAppState>>(
-            'app_context_get_app_state')
-        .asFunction();
+    // Since app_manager_terminate_app is non public API, load it using ffi directly.
     terminateApp = libAppMananger
-        .lookup<NativeFunction<_AppManagerTerminate>>(
+        .lookup<NativeFunction<Int32 Function(Pointer<app_context_s>)>>(
             'app_manager_terminate_app')
         .asFunction();
-    requestTerminateBgApp = libAppMananger
-        .lookup<NativeFunction<_AppManagerRequestTerminateBgApp>>(
-            'app_manager_request_terminate_bg_app')
-        .asFunction();
-    resumeApp = libAppMananger
-        .lookup<NativeFunction<_AppManagerResumeApp>>('app_manager_resume_app')
-        .asFunction();
-    destroyContext = libAppMananger
-        .lookup<NativeFunction<_AppContextDestroy>>('app_context_destroy')
-        .asFunction();
   }
-
-  late int Function(Pointer<Utf8>, Pointer<Pointer<_ContextHandle>>)
-      getAppContext;
-  late int Function(Pointer<Utf8>, Pointer<Int8>) appIsRunning;
-  late int Function(Pointer<_ContextHandle>, Pointer<Pointer<Utf8>>)
-      getPackageId;
-  late int Function(Pointer<_ContextHandle>, Pointer<Int32>) getProcessId;
-  late int Function(Pointer<_ContextHandle>, Pointer<Int32>) getAppState;
-  late int Function(Pointer<_ContextHandle>) terminateApp;
-  late int Function(Pointer<_ContextHandle>) requestTerminateBgApp;
-  late int Function(Pointer<_ContextHandle>) resumeApp;
-  late int Function(Pointer<_ContextHandle>) destroyContext;
+  late int Function(Pointer<app_context_s>) terminateApp;
 }
 
 class AppContext {
@@ -93,152 +31,104 @@ class AppContext {
     if (appId.isEmpty) {
       throw ArgumentError('Must not be empty', 'appId');
     }
-
-    if (handleAddress == 0) {
-      final Pointer<Pointer<_ContextHandle>> pHandle = malloc();
-      final Pointer<Utf8> pAppId = appId.toNativeUtf8();
-      try {
-        final int ret = _appManager.getAppContext(pAppId, pHandle);
+    using((Arena arena) {
+      if (handleAddress == 0) {
+        final Pointer<Pointer<app_context_s>> handle = arena();
+        final Pointer<Char> pAppId = appId.toNativeChar(allocator: arena);
+        final int ret = tizen.app_manager_get_app_context(pAppId, handle);
         if (ret != 0) {
-          throw PlatformException(
-            code: ret.toString(),
-            message: getErrorMessage(ret).toDartString(),
-          );
+          _throwPlatformException(ret);
         }
-        _handle = pHandle.value;
-      } finally {
-        malloc.free(pAppId);
-        malloc.free(pHandle);
+        _handle = handle.value;
+      } else {
+        _handle = Pointer<app_context_s>.fromAddress(handleAddress);
       }
-    } else {
-      // if have app_context_h
-      _handle = Pointer<_ContextHandle>.fromAddress(handleAddress);
-    }
+    });
   }
 
-  late Pointer<_ContextHandle> _handle;
+  late Pointer<app_context_s> _handle;
   final String _appId;
 
   void destroy() {
     if (_handle != nullptr) {
-      final int ret = _appManager.destroyContext(_handle);
+      final int ret = tizen.app_context_destroy(_handle);
       _handle = nullptr;
       if (ret != 0) {
-        throw PlatformException(
-          code: ret.toString(),
-          message: getErrorMessage(ret).toDartString(),
-        );
+        _throwPlatformException(ret);
       }
     }
   }
 
   bool isAppRunning() {
-    final Pointer<Int8> pOut = malloc();
-    final Pointer<Utf8> pAppId = _appId.toNativeUtf8();
-    try {
-      final int ret = _appManager.appIsRunning(pAppId, pOut);
+    return using((Arena arena) {
+      final Pointer<Bool> isRunning = arena();
+      final Pointer<Char> id = _appId.toNativeChar(allocator: arena);
+      final int ret = tizen.app_manager_is_running(id, isRunning);
       if (ret != 0) {
-        throw PlatformException(
-          code: ret.toString(),
-          message: getErrorMessage(ret).toDartString(),
-        );
+        _throwPlatformException(ret);
       }
-
-      return pOut.value != 0;
-    } finally {
-      malloc.free(pAppId);
-      malloc.free(pOut);
-    }
+      return isRunning.value;
+    });
   }
 
   String getPackageId() {
-    final Pointer<Pointer<Utf8>> pPackageId = malloc();
-    try {
-      _checkHandle();
-      final int ret = _appManager.getPackageId(_handle, pPackageId);
+    return using((Arena arena) {
+      final Pointer<Pointer<Char>> packageId = arena();
+      final int ret = tizen.app_context_get_package_id(_handle, packageId);
       if (ret != 0) {
-        throw PlatformException(
-          code: ret.toString(),
-          message: getErrorMessage(ret).toDartString(),
-        );
+        _throwPlatformException(ret);
       }
-
-      return pPackageId.value.toDartString();
-    } finally {
-      malloc.free(pPackageId);
-    }
+      return packageId.value.toDartString();
+    });
   }
 
   int getProcessId() {
-    final Pointer<Int32> pProcessId = malloc();
-    try {
-      _checkHandle();
-      final int ret = _appManager.getProcessId(_handle, pProcessId);
+    return using((Arena arena) {
+      final Pointer<Int> pid = arena();
+      final int ret = tizen.app_context_get_pid(_handle, pid);
       if (ret != 0) {
-        throw PlatformException(
-          code: ret.toString(),
-          message: getErrorMessage(ret).toDartString(),
-        );
+        _throwPlatformException(ret);
       }
-      return pProcessId.value;
-    } finally {
-      malloc.free(pProcessId);
-    }
+      return pid.value;
+    });
   }
 
   int getAppState() {
-    final Pointer<Int32> pState = malloc();
-    try {
-      _checkHandle();
-      final int ret = _appManager.getAppState(_handle, pState);
+    return using((Arena arena) {
+      final Pointer<Int32> state = arena();
+      final int ret = tizen.app_context_get_app_state(_handle, state);
       if (ret != 0) {
-        throw PlatformException(
-          code: ret.toString(),
-          message: getErrorMessage(ret).toDartString(),
-        );
+        _throwPlatformException(ret);
       }
-      return pState.value;
-    } finally {
-      malloc.free(pState);
-    }
+      return state.value;
+    });
   }
 
   void terminate() {
-    _checkHandle();
     final int ret = _appManager.terminateApp(_handle);
     if (ret != 0) {
-      throw PlatformException(
-        code: ret.toString(),
-        message: getErrorMessage(ret).toDartString(),
-      );
+      _throwPlatformException(ret);
     }
   }
 
   void requestTerminateBgApp() {
-    _checkHandle();
-    final int ret = _appManager.requestTerminateBgApp(_handle);
+    final int ret = tizen.app_manager_request_terminate_bg_app(_handle);
     if (ret != 0) {
-      throw PlatformException(
-        code: ret.toString(),
-        message: getErrorMessage(ret).toDartString(),
-      );
+      _throwPlatformException(ret);
     }
   }
 
   void resume() {
-    _checkHandle();
-    final int ret = _appManager.resumeApp(_handle);
+    final int ret = tizen.app_manager_resume_app(_handle);
     if (ret != 0) {
-      throw PlatformException(
-        code: ret.toString(),
-        message: getErrorMessage(ret).toDartString(),
-      );
+      _throwPlatformException(ret);
     }
   }
 
-  void _checkHandle() {
-    if (_handle == nullptr) {
-      throw StateError('The handle object has been destroyed');
-    }
+  void _throwPlatformException(int error) {
+    throw PlatformException(
+      code: error.toString(),
+      message: tizen.get_error_message(error).toDartString(),
+    );
   }
 }
