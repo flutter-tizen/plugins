@@ -8,6 +8,7 @@ import 'dart:io' as io;
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
+import 'package:flutter_plugin_tools/src/analyze_command.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/format_command.dart';
 import 'package:flutter_plugin_tools/src/list_command.dart';
@@ -34,6 +35,7 @@ void main(List<String> args) {
   final CommandRunner<void> commandRunner = CommandRunner<void>(
       './tools/tools_runner.sh',
       'Productivity utils for hosting multiple plugins within one repository.')
+    ..addCommand(AnalyzeCommand(packagesDir))
     ..addCommand(BuildExamplesCommand(packagesDir))
     ..addCommand(FormatCommand(packagesDir))
     ..addCommand(IntegrationTestCommand(packagesDir))
