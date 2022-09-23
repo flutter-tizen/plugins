@@ -1,4 +1,4 @@
-name: example
+name: example_proxy
 description: Demonstrates how to use the rpc_port_proxy plugin.
 
 publish_to: none

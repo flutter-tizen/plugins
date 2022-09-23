@@ -57,13 +57,12 @@ std::string ConvertErrorToString(int error) {
 }  // namespace
 
 RpcPortProxy::RpcPortProxy(std::string appid, std::string port_name)
-    :
-      appid_(std::move(appid)), port_name_(std::move(port_name)) {
-        LOG_DEBUG("RpcPortProxy: %s/%s", appid_.c_str(), port_name_.c_str());
-        int ret = rpc_port_proxy_create(&handle_);
-        if (ret != RPC_PORT_ERROR_NONE)
-          LOG_ERROR("rpc_port_proxy_create() is failed. error: %d", ret);
-      }
+    : appid_(std::move(appid)), port_name_(std::move(port_name)) {
+  LOG_DEBUG("RpcPortProxy: %s/%s", appid_.c_str(), port_name_.c_str());
+  int ret = rpc_port_proxy_create(&handle_);
+  if (ret != RPC_PORT_ERROR_NONE)
+    LOG_ERROR("rpc_port_proxy_create() is failed. error: %d", ret);
+}
 
 RpcPortProxy::~RpcPortProxy() {
   if (handle_ != nullptr) rpc_port_proxy_destroy(handle_);

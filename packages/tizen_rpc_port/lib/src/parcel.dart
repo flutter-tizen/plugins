@@ -1,17 +1,9 @@
 import 'dart:ffi';
-import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
 
 import 'package:tizen_bundle/tizen_bundle.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
-
-class _Timespec extends Struct {
-  @Int64()
-  external int tvSec;
-
-  @Int64()
-  external int tvNsec;
-}
 
 /// The timestamp when parcel created.
 class Timestamp {
@@ -30,8 +22,6 @@ class ParcelHeader {
 
   late final Pointer<Void> _header;
 
-  /// The tag is used version naming from TIDL.
-
   /// Gets the tag of header.
   String get tag {
     return using((Arena arena) {
@@ -39,25 +29,29 @@ class ParcelHeader {
       final int ret = tizen.rpc_port_parcel_header_get_tag(_header, rawTag);
       arena.using(rawTag.value, malloc.free);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return rawTag.value.toDartString();
     });
   }
 
-  /// Sets the tag of header.
-  set tag(String tag_) {
+  /// Sets a tag of this header.
+  set tag(String value) {
     using((Arena arena) {
-      final Pointer<Char> rawTag = tag_.toNativeChar(allocator: arena);
+      final Pointer<Char> rawTag = value.toNativeChar(allocator: arena);
       final int ret = tizen.rpc_port_parcel_header_set_tag(_header, rawTag);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
     });
   }
-
-  /// The sequence number is used when distinguish parcel pair from TIDL.
 
   /// Gets the sequence number of header.
   int get sequenceNumber {
@@ -65,7 +59,10 @@ class ParcelHeader {
       final Pointer<Int> seqNum = arena();
       final int ret = tizen.rpc_port_parcel_header_get_seq_num(_header, seqNum);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return seqNum.value;
@@ -76,22 +73,27 @@ class ParcelHeader {
   set sequenceNumber(int seqNum) {
     final int ret = tizen.rpc_port_parcel_header_set_seq_num(_header, seqNum);
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   }
 
   /// Gets the timestamp of header.
   Timestamp get timestamp {
     return using((Arena arena) {
-      final Pointer<_Timespec> time = calloc<_Timespec>();
+      final Pointer<timespec> time = calloc<timespec>();
       arena.using(time, calloc.free);
-      final int ret = tizen.rpc_port_parcel_header_get_timestamp(
-          _header, time as Pointer<timespec>);
+      final int ret = tizen.rpc_port_parcel_header_get_timestamp(_header, time);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
-      return Timestamp._(time.ref.tvSec, time.ref.tvNsec);
+      return Timestamp._(time.ref.tv_sec, time.ref.tv_nsec);
     });
   }
 }
@@ -105,7 +107,10 @@ class Parcel {
       final Pointer<Pointer<Void>> pParcel = arena();
       final int ret = tizen.rpc_port_parcel_create(pParcel);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pParcel.value;
@@ -126,7 +131,10 @@ class Parcel {
       final int ret = tizen.rpc_port_parcel_create_from_raw(
           pH, pRaw.cast<Void>(), rawData.length);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       _parcel = pH.value;
@@ -144,7 +152,10 @@ class Parcel {
       Finalizer<Pointer<Void>>((Pointer<Void> handle) {
     final int ret = tizen.rpc_port_parcel_destroy(handle);
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   });
 
@@ -155,7 +166,10 @@ class Parcel {
       final Pointer<UnsignedInt> size = arena();
       final int ret = tizen.rpc_port_parcel_get_raw(_parcel, rawData, size);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return rawData.value.cast<Uint8>().asTypedList(size.value);
@@ -166,7 +180,10 @@ class Parcel {
   void writeByte(int value) {
     final int ret = tizen.rpc_port_parcel_write_byte(_parcel, value & _byteMax);
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   }
 
@@ -175,7 +192,10 @@ class Parcel {
     final int ret =
         tizen.rpc_port_parcel_write_int16(_parcel, value & _int16Max);
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   }
 
@@ -184,7 +204,10 @@ class Parcel {
     final int ret =
         tizen.rpc_port_parcel_write_int32(_parcel, value & _int32Max);
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   }
 
@@ -193,7 +216,10 @@ class Parcel {
     final int ret =
         tizen.rpc_port_parcel_write_int64(_parcel, value & _int64Max);
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   }
 
@@ -201,7 +227,10 @@ class Parcel {
   void writeDouble(double value) {
     final int ret = tizen.rpc_port_parcel_write_double(_parcel, value);
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   }
 
@@ -211,7 +240,10 @@ class Parcel {
       final Pointer<Char> str = value.toNativeChar(allocator: arena);
       final int ret = tizen.rpc_port_parcel_write_string(_parcel, str);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
     });
   }
@@ -220,7 +252,10 @@ class Parcel {
   void writeBool(bool value) {
     final int ret = tizen.rpc_port_parcel_write_bool(_parcel, value);
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   }
 
@@ -236,7 +271,10 @@ class Parcel {
         tizen.rpc_port_parcel_write_array_count(_parcel, count & _int32Max);
 
     if (ret != 0) {
-      throw ret;
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
     }
   }
 
@@ -246,7 +284,10 @@ class Parcel {
       final Pointer<Char> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_byte(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pV.value;
@@ -259,7 +300,10 @@ class Parcel {
       final Pointer<Short> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_int16(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pV.value;
@@ -272,7 +316,10 @@ class Parcel {
       final Pointer<Int> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_int32(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pV.value;
@@ -285,7 +332,10 @@ class Parcel {
       final Pointer<LongLong> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_int64(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pV.value;
@@ -298,7 +348,10 @@ class Parcel {
       final Pointer<Double> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_double(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pV.value;
@@ -311,7 +364,10 @@ class Parcel {
       final Pointer<Pointer<Char>> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_string(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pV.value.toDartString();
@@ -324,7 +380,10 @@ class Parcel {
       final Pointer<Bool> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_bool(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pV.value;
@@ -337,7 +396,10 @@ class Parcel {
       final Pointer<Pointer<Char>> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_string(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       final String str = pV.value.toDartString();
@@ -351,7 +413,10 @@ class Parcel {
       final Pointer<Int> pV = arena();
       final int ret = tizen.rpc_port_parcel_read_array_count(_parcel, pV);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return pV.value;
@@ -366,7 +431,10 @@ class Parcel {
       arena.using(buf, malloc.free);
       final int ret = tizen.rpc_port_parcel_burst_read(_parcel, buf, size);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return List<int>.generate(size, (int index) => buf[index]);
@@ -386,7 +454,10 @@ class Parcel {
       final int ret =
           tizen.rpc_port_parcel_burst_write(_parcel, rawBuf, buf.length);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
     });
   }
@@ -397,7 +468,10 @@ class Parcel {
       final Pointer<Pointer<Void>> header = arena();
       final int ret = tizen.rpc_port_parcel_get_header(_parcel, header);
       if (ret != 0) {
-        throw ret;
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
       }
 
       return ParcelHeader._fromHandle(header.value);
