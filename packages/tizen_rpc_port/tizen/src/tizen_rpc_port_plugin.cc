@@ -65,9 +65,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         {"proxyConnect",
          std::bind(&TizenRpcPortPlugin::ProxyConnect, this,
                    std::placeholders::_1, std::placeholders::_2)},
-        {"proxyConnectSync",
-         std::bind(&TizenRpcPortPlugin::ProxyConnectSync, this,
-                   std::placeholders::_1, std::placeholders::_2)},
         {"proxyDestroy",
          std::bind(&TizenRpcPortPlugin::ProxyDestroy, this,
                    std::placeholders::_1, std::placeholders::_2)},
@@ -272,63 +269,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
               auto ret = proxy->Connect(std::move(events));
               if (!ret) {
                 LOG_ERROR("Failed to proxyConnect");
-                RemoveProxy(appid, port_name);
-              }
-
-              return nullptr;
-            },
-            [appid, port_name](const flutter::EncodableValue* arguments)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_DEBUG("OnCancel: %s/%s", appid.c_str(), port_name.c_str());
-              return nullptr;
-            });
-
-    event_channel->SetStreamHandler(std::move(event_channel_handler));
-    event_channels_[event_channel_name] = std::move(event_channel);
-    LOG_DEBUG("Successfully connect stream for appid(%s) port_name(%s): ",
-              appid.c_str(), port_name.c_str());
-    result->Success();
-  }
-
-  void ProxyConnectSync(
-      const flutter::EncodableValue* args,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("ProxyConnectSync");
-    std::string appid;
-    std::string port_name;
-    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
-        !GetValueFromArgs<std::string>(args, "portName", port_name)) {
-      result->Error("Invalid parameter");
-      return;
-    }
-
-    auto event_channel_name = "tizen/rpc_port_proxy/" + appid + "/" + port_name;
-    if (event_channels_.find(event_channel_name) != event_channels_.end()) {
-      result->Error("Already connecting");
-      return;
-    }
-
-    auto event_channel =
-        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            plugin_registrar_->messenger(), event_channel_name,
-            &flutter::StandardMethodCodec::GetInstance());
-
-    auto event_channel_handler =
-        std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [this, appid, port_name](
-                const flutter::EncodableValue* arguments,
-                std::unique_ptr<flutter::EventSink<>>&& events)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_DEBUG("OnListen: %s/%s", appid.c_str(), port_name.c_str());
-              auto proxy = FindProxy(appid, port_name);
-              if (proxy != nullptr) {
-                LOG_ERROR("Already connected");
-                return nullptr;
-              }
-              proxy = CreateProxy(appid, port_name);
-              auto ret = proxy->ProxyConnectSync(std::move(events));
-              if (!ret) {
-                LOG_ERROR("Failed to connect");
                 RemoveProxy(appid, port_name);
               }
 

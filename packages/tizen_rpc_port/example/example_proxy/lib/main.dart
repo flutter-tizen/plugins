@@ -6,7 +6,7 @@ import 'package:tizen_log/tizen_log.dart';
 
 import 'message_proxy.dart';
 
-const String _logTag = 'RpcPortProxyExample';
+const String _logTag = 'TizenRpcPortProxyExample';
 
 void main() {
   runApp(const MyApp());
@@ -58,16 +58,17 @@ class MyMessageProxy extends Message {
   }
 
   @override
-  Future<void> onRejected(int error) async {
+  Future<void> onRejected(String errorMessage) async {
     _msg = 'onRejected';
-    Log.info(_logTag, 'onRejected. error($error)');
-    print('onRejected. error($error)');
+    Log.info(_logTag, 'onRejected. error($errorMessage)');
+    print('onRejected. error($errorMessage)');
   }
 }
 
 class _MyAppState extends State<MyApp> {
   late final MyMessageProxy _myProxy;
   String _input = '';
+
   @override
   void initState() {
     super.initState();
@@ -114,9 +115,7 @@ class _MyAppState extends State<MyApp> {
                 child: Text('Message: $_msg\n'),
               ),
               TextField(
-                  onChanged: (String text) {
-                    setState(() => _input = text);
-                  },
+                  onChanged: (String text) => setState(() => _input = text),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Input',
@@ -128,8 +127,7 @@ class _MyAppState extends State<MyApp> {
               onPressed: _sendMsg,
               child: const Text('Send message'),
             ),
-          ] // This trailing comma makes auto-formatting nicer for build methods.
-          ),
+          ]),
     );
   }
 }

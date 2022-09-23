@@ -93,7 +93,7 @@ abstract class Message extends ProxyBase {
   Future<void> onDisconnected();
 
   /// This abstract method will be called when connect() is failed.
-  Future<void> onRejected(int error);
+  Future<void> onRejected(String errorMessage);
 
   @override
   Future<void> onConnectedEvent() async {
@@ -108,8 +108,8 @@ abstract class Message extends ProxyBase {
   }
 
   @override
-  Future<void> onRejectedEvent(int error) async {
-    await onRejected(error);
+  Future<void> onRejectedEvent(String errorMessage) async {
+    await onRejected(errorMessage);
   }
 
   @override
@@ -130,7 +130,7 @@ abstract class Message extends ProxyBase {
     for (final CallbackBase delegate in _delegateList) {
       if (delegate._id == id && delegate._seqId == seqId) {
         await delegate._onReceivedEvent(parcel);
-        if (delegate._once && once == true) {
+        if (delegate._once && once) {
           _delegateList.remove(delegate);
         }
         break;
@@ -158,13 +158,6 @@ abstract class Message extends ProxyBase {
   Future<void> connect() async {
     Log.info(_logTag, 'connect()');
     await super.connect();
-  }
-
-  /// Connects with the stub application synchronously.
-  @override
-  Future<void> connectSync() async {
-    Log.info(_logTag, 'connectSync()');
-    await super.connectSync();
   }
 
   /// Dispose registered delegate interface.

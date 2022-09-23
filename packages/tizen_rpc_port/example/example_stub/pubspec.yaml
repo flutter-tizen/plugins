@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   tizen_rpc_port:
-    path: ../
+    path: ../../
 
 dev_dependencies:
   flutter_lints: ^2.0.0

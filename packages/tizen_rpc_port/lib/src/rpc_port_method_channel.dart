@@ -48,24 +48,6 @@ class MethodChannelRpcPort {
     return _streams[key]!;
   }
 
-  /// Connects proxy to the stub synchronously.
-  Future<Stream<dynamic>> proxyConnectSync(ProxyBase proxy) async {
-    final String key = _createKey(proxy.appid, proxy.portName);
-    if (_streams.containsKey(key)) {
-      return _streams[key]!;
-    }
-
-    final EventChannel eventChannel = EventChannel('tizen/rpc_port_proxy/$key');
-    _streams[key] = eventChannel.receiveBroadcastStream();
-    final Map<String, dynamic> args = <String, dynamic>{
-      'appid': proxy.appid,
-      'portName': proxy.portName,
-    };
-
-    await _channel.invokeMethod<dynamic>('proxyConnectSync', args);
-    return _streams[key]!;
-  }
-
   /// Destroy a proxy.
   Future<void> proxyDestroy(ProxyBase proxy) async {
     final String key = _createKey(proxy.appid, proxy.portName);

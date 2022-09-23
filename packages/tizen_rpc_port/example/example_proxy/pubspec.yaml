@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   tizen_rpc_port:
-    path: ../
+    path: ../../
 
 dev_dependencies:
   flutter_driver:
@@ -22,7 +22,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   integration_test_tizen:
-    path: ../../integration_test/
+    path: ../../../integration_test/
 
 flutter:
   uses-material-design: true

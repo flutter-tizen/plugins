@@ -29,15 +29,41 @@ flutter::EncodableMap CreateEncodableMap(const char* event,
            flutter::EncodableValue(std::string(port_name))}};
 }
 
+std::string ConvertErrorToString(int error) {
+  switch (error) {
+    case TIZEN_ERROR_INVALID_PARAMETER:
+      return "Invalid parameter";
+    case TIZEN_ERROR_STREAMS_PIPE:
+      return "Streams pipe";
+    case TIZEN_ERROR_TRY_AGAIN:
+      return "Try again";
+    case TIZEN_ERROR_UNKNOWN:
+      return "Unknown error";
+    case TIZEN_ERROR_TIMED_OUT:
+      return "Time out";
+    case TIZEN_ERROR_NOT_SUPPORTED:
+      return "Not supported";
+    case TIZEN_ERROR_PERMISSION_DENIED:
+      return "Permission denied";
+    case TIZEN_ERROR_OUT_OF_MEMORY:
+      return "Out of memory";
+    case TIZEN_ERROR_IO_ERROR:
+      return "IO error";
+    default:
+      return "Unknown error";
+  }
+}
+
 }  // namespace
 
 RpcPortProxy::RpcPortProxy(std::string appid, std::string port_name)
-    : appid_(std::move(appid)), port_name_(std::move(port_name)) {
-  LOG_DEBUG("RpcPortProxy: %s/%s", appid_.c_str(), port_name_.c_str());
-  int ret = rpc_port_proxy_create(&handle_);
-  if (ret != RPC_PORT_ERROR_NONE)
-    LOG_ERROR("rpc_port_proxy_create() is failed. error: %d", ret);
-}
+    :
+      appid_(std::move(appid)), port_name_(std::move(port_name)) {
+        LOG_DEBUG("RpcPortProxy: %s/%s", appid_.c_str(), port_name_.c_str());
+        int ret = rpc_port_proxy_create(&handle_);
+        if (ret != RPC_PORT_ERROR_NONE)
+          LOG_ERROR("rpc_port_proxy_create() is failed. error: %d", ret);
+      }
 
 RpcPortProxy::~RpcPortProxy() {
   if (handle_ != nullptr) rpc_port_proxy_destroy(handle_);
@@ -161,7 +187,7 @@ void RpcPortProxy::OnRejectedEvent(const char* receiver, const char* port_name,
   auto* proxy = static_cast<RpcPortProxy*>(data);
   auto map = CreateEncodableMap("rejected", receiver, port_name);
   map[flutter::EncodableValue("error")] =
-      flutter::EncodableValue(get_last_result());
+      flutter::EncodableValue(ConvertErrorToString(get_last_result()));
   proxy->event_sink_->Success(flutter::EncodableValue(map));
 }
 

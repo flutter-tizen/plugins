@@ -15,14 +15,14 @@ enum PortType {
 
 /// The port connection between proxy & stub.
 class Port {
-  /// Create port from proxy.
+  /// Creates a port that represents a connection to a proxy.
   Port.fromProxy({
     required this.instance,
     required this.portName,
     required this.portType,
   }) : appid = '';
 
-  /// Create port from stub.
+  /// Creates a port that represents a connection to a stub.
   Port.fromStub({
     required this.appid,
     required this.portName,
@@ -32,7 +32,7 @@ class Port {
   static final MethodChannelRpcPort _methodChannel =
       MethodChannelRpcPort.instance;
 
-  /// The type of port[main|callback].
+  /// The type of port.
   final PortType portType;
 
   /// The appid of stub app. This member is used only proxy.

@@ -49,7 +49,7 @@ abstract class ProxyBase {
           _streamSubscription = null;
         } else if (event == 'rejected') {
           _connected = false;
-          final int error = map['error'] as int;
+          final String error = map['error'] as String;
           await onRejectedEvent(error);
           _streamSubscription?.cancel();
           _streamSubscription = null;
@@ -74,16 +74,6 @@ abstract class ProxyBase {
     _streamSubscription = stream.listen(_handleEvent);
   }
 
-  /// Connects to the stub synchronously.
-  Future<void> connectSync() async {
-    if (_connected) {
-      throw Exception('Proxy $appid/$portName already connected to stub');
-    }
-
-    final Stream<dynamic> stream = await _methodChannel.proxyConnectSync(this);
-    _streamSubscription = stream.listen(_handleEvent);
-  }
-
   /// Gets a port.
   Port getPort(PortType portType) {
     return Port.fromStub(appid: appid, portName: portName, portType: portType);
@@ -96,7 +86,7 @@ abstract class ProxyBase {
   Future<void> onDisconnectedEvent();
 
   /// The callback function that is invoked when connection is failed.
-  Future<void> onRejectedEvent(int error);
+  Future<void> onRejectedEvent(String errorMessage);
 
   /// The callback function that is invoked when receive data from the stub.
   Future<void> onReceivedEvent(Parcel parcel);
