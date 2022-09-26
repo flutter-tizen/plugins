@@ -45,12 +45,6 @@ bytes[2] = 0x03;
 bundle['bytes'] =  bytes;
 ```
 
-When you no longer needed the bundle object, release it using the `Bundle.dispose()` method as below:
-
-``` dart
-bundle.dispose();
-```
-
 ## Managing the Bundle Content
 
 To manage the bundle content:
@@ -115,9 +109,7 @@ var bundle = Bundle();
 bundle.addString('key1', 'value1');
 
 var raw = bundle.toRaw();
-bundle.dispose();
 
 var newBundle = Bundle.fromRaw(raw);
 Log.info(logTag, 'value: ${newBundle.getString('key')}');
-newBundle.dispose();
 ```
