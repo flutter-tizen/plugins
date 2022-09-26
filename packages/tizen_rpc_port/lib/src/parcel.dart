@@ -5,17 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:tizen_bundle/tizen_bundle.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
 
-/// The timestamp when parcel created.
-class Timestamp {
-  Timestamp._(this.second, this.nanoSecond);
-
-  /// The second of timestamp.
-  int second;
-
-  /// THe nano second of timestamp. (10^-9 second)
-  int nanoSecond;
-}
-
 /// The header of parcel that is included information of the parcel.
 class ParcelHeader {
   ParcelHeader._fromHandle(this._header);
@@ -76,23 +65,6 @@ class ParcelHeader {
         message: tizen.get_error_message(ret).toDartString(),
       );
     }
-  }
-
-  /// The timestamp of this header.
-  Timestamp get timestamp {
-    return using((Arena arena) {
-      final Pointer<timespec> time = calloc<timespec>();
-      arena.using(time, calloc.free);
-      final int ret = tizen.rpc_port_parcel_header_get_timestamp(_header, time);
-      if (ret != 0) {
-        throw PlatformException(
-          code: ret.toString(),
-          message: tizen.get_error_message(ret).toDartString(),
-        );
-      }
-
-      return Timestamp._(time.ref.tv_sec, time.ref.tv_nsec);
-    });
   }
 }
 
