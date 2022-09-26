@@ -5,15 +5,15 @@ import 'package:tizen_log/tizen_log.dart';
 
 import 'message_stub.dart';
 
+// ignore_for_file: public_member_api_docs
+
 String _logTag = 'RpcPortStubExample';
 
 void main() {
   runApp(const MyApp());
 }
 
-/// Service fo Message class.
 class Service extends ServiceBase {
-  /// Constructor of Service.
   Service(super.sender, super.instance);
 
   String _name = '';
@@ -51,9 +51,7 @@ class Service extends ServiceBase {
   }
 }
 
-/// Message Stub class.
 class MyMessageStub extends Message {
-  /// Constructor of MyMessageStub.
   MyMessageStub() : super();
 
   @override
@@ -61,9 +59,7 @@ class MyMessageStub extends Message {
       Service(sender, instance);
 }
 
-/// exmaple2 app class.
 class MyApp extends StatefulWidget {
-  /// Constructor of MyApp.
   const MyApp({super.key});
 
   @override
@@ -96,7 +92,6 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     const String platformVersion = '7.0';
 

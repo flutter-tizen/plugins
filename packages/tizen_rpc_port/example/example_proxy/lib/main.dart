@@ -6,15 +6,15 @@ import 'package:tizen_log/tizen_log.dart';
 
 import 'message_proxy.dart';
 
+// ignore_for_file: public_member_api_docs
+
 const String _logTag = 'TizenRpcPortProxyExample';
 
 void main() {
   runApp(const MyApp());
 }
 
-/// Example app class
 class MyApp extends StatefulWidget {
-  /// Constructor of MyApp.
   const MyApp({super.key});
 
   @override
@@ -23,7 +23,6 @@ class MyApp extends StatefulWidget {
 
 String _msg = '';
 
-/// MyNotify delegate class.
 class MyNotify extends NotifyCB {
   @override
   Future<void> onReceived(String sender, String msg) async {
@@ -32,12 +31,9 @@ class MyNotify extends NotifyCB {
   }
 }
 
-/// Message proxy class.
 class MyMessageProxy extends Message {
-  /// Constructor of MeMessageProxy.
   MyMessageProxy(super.appid);
 
-  /// display message.
   String get msg => _msg;
   set msg(String msg) => _msg = msg;
 

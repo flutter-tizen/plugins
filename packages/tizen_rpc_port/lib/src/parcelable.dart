@@ -1,10 +1,10 @@
 import 'parcel.dart';
 
-/// The parcelable class that can be encode & decode raw data.
+/// The parcelable class that can be serialize & deserialize object data.
 abstract class Parcelable {
-  /// Serialize self to raw data. And write it to parcel.
+  /// Serializes the object data to the parcel.
   void serialize(Parcel parcel);
 
-  /// Desrialize data from parcel.
+  /// Desrializes the object data from the parcel.
   void deserialize(Parcel parcel);
 }

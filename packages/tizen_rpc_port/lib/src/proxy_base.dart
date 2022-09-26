@@ -15,20 +15,20 @@ Finalizer<ProxyBase> _finalizer = Finalizer<ProxyBase>((ProxyBase proxy) {
   _methodChannel.proxyDestroy(proxy);
 });
 
-/// The base of RpcPort proxy class.
+/// The abstract class for creating a proxy class for RPC.
 abstract class ProxyBase {
-  /// The constructor of ProxyBase.
+  /// The constructor for this class.
   ProxyBase(this.appid, this.portName) {
     _finalizer.attach(this, this);
   }
 
-  /// The appid of stub app.
+  /// The target stub application id.
   final String appid;
 
-  /// The port name of connection with stub.
+  /// The port name of the connection with the stub.
   final String portName;
 
-  bool _connected = false;
+  bool _isConnected = false;
   StreamSubscription<dynamic>? _streamSubscription;
 
   Future<void> _handleEvent(dynamic event) async {
@@ -40,15 +40,15 @@ abstract class ProxyBase {
         final String portName = map['portName'] as String;
         Log.info(_logTag, 'event: $event, appid:$appid, portName:$portName');
         if (event == 'connected') {
-          _connected = true;
+          _isConnected = true;
           await onConnectedEvent();
         } else if (event == 'disconnected') {
-          _connected = false;
+          _isConnected = false;
           await onDisconnectedEvent();
           _streamSubscription?.cancel();
           _streamSubscription = null;
         } else if (event == 'rejected') {
-          _connected = false;
+          _isConnected = false;
           final String error = map['error'] as String;
           await onRejectedEvent(error);
           _streamSubscription?.cancel();
@@ -66,7 +66,7 @@ abstract class ProxyBase {
 
   /// Connects to the stub.
   Future<void> connect() async {
-    if (_connected) {
+    if (_isConnected) {
       throw Exception('Proxy $appid/$portName already connected to stub');
     }
 
@@ -79,15 +79,15 @@ abstract class ProxyBase {
     return Port.fromStub(appid: appid, portName: portName, portType: portType);
   }
 
-  /// The callback function that is invoked when be connected with the stub.
+  /// The abstract method for receiving connected event.
   Future<void> onConnectedEvent();
 
-  /// The callback function that is invoked when be disconnected with the stub.
+  /// The abstract method for receiving disconnected event.
   Future<void> onDisconnectedEvent();
 
-  /// The callback function that is invoked when connection is failed.
+  /// The abstract method for receiving rejected event.
   Future<void> onRejectedEvent(String errorMessage);
 
-  /// The callback function that is invoked when receive data from the stub.
+  /// The abstract method called when the proxy receives data from stub.
   Future<void> onReceivedEvent(Parcel parcel);
 }

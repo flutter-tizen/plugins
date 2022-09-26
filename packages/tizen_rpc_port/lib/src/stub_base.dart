@@ -15,31 +15,31 @@ Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
   _methodChannel.stubDestroy(stub.portName);
 });
 
-/// The base of RpcPort stub class.
+/// The abstract class for creating a stub class for RPC.
 abstract class StubBase {
-  /// The constructor of StubBase.
+  /// The constructor for this class.
   StubBase(this.portName) {
     _methodChannel.stubCreate(portName);
     _finalizer.attach(this, this);
   }
 
-  /// The port name of connection with proxy.
+  /// The port name of the connection with the proxy.
   final String portName;
 
   /// ignore: cancel_subscriptions
   StreamSubscription<dynamic>? _streamSubscription;
 
-  /// Sets trusted flag.
+  /// Sets a trusted proxy to the stub.
   Future<void> setTrusted(bool trusted) async {
     await _methodChannel.stubSetTrusted(portName, trusted);
   }
 
-  /// Adds privilege required when try to connect on proxy.
+  /// Adds a privilege which is required when the proxy connects this stub.
   Future<void> addPrivilege(String privilege) async {
     await _methodChannel.stubAddPrivilege(portName, privilege);
   }
 
-  /// Listens to signal of connection request from the proxy.
+  /// Listens to the requests for connections.
   Future<void> listen() async {
     if (_streamSubscription != null) {
       return;
@@ -70,18 +70,18 @@ abstract class StubBase {
     });
   }
 
-  /// Gets the port connected with proxy that has instance id.
+  /// Gets a port connected with proxy that has instance id.
   Port getPort(String instance, PortType portType) {
     return Port.fromProxy(
         portName: portName, instance: instance, portType: portType);
   }
 
-  /// The callback function that is invoked when be connected with the proxy.
+  /// The abstract method for receiving connected event.
   Future<void> onConnectedEvent(String sender, String instance);
 
-  /// The callback function that is invoked when be disconnected with the proxy.
+  /// The abstract method for receiving disconnected event.
   Future<void> onDisconnectedEvent(String sender, String instance);
 
-  /// The callback function that is invoked when receive data from the proxy.
+  /// The abstract method called when the stub receives data from proxy.
   Future<void> onReceivedEvent(String sender, String instance, Parcel parcel);
 }
