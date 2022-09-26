@@ -22,7 +22,7 @@ class ParcelHeader {
 
   late final Pointer<Void> _header;
 
-  /// Gets the tag of header.
+  /// The tag of this header.
   String get tag {
     return using((Arena arena) {
       final Pointer<Pointer<Char>> rawTag = arena();
@@ -39,7 +39,6 @@ class ParcelHeader {
     });
   }
 
-  /// Sets a tag of this header.
   set tag(String value) {
     using((Arena arena) {
       final Pointer<Char> rawTag = value.toNativeChar(allocator: arena);
@@ -53,7 +52,7 @@ class ParcelHeader {
     });
   }
 
-  /// Gets the sequence number of header.
+  /// The sequence number of this header.
   int get sequenceNumber {
     return using((Arena arena) {
       final Pointer<Int> seqNum = arena();
@@ -69,7 +68,6 @@ class ParcelHeader {
     });
   }
 
-  /// Sets the sequence number of header.
   set sequenceNumber(int seqNum) {
     final int ret = tizen.rpc_port_parcel_header_set_seq_num(_header, seqNum);
     if (ret != 0) {
@@ -80,7 +78,7 @@ class ParcelHeader {
     }
   }
 
-  /// Gets the timestamp of header.
+  /// The timestamp of this header.
   Timestamp get timestamp {
     return using((Arena arena) {
       final Pointer<timespec> time = calloc<timespec>();
