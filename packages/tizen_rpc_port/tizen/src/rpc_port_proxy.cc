@@ -29,31 +29,6 @@ flutter::EncodableMap CreateEncodableMap(const char* event,
            flutter::EncodableValue(std::string(port_name))}};
 }
 
-std::string ConvertErrorToString(int error) {
-  switch (error) {
-    case TIZEN_ERROR_INVALID_PARAMETER:
-      return "Invalid parameter";
-    case TIZEN_ERROR_STREAMS_PIPE:
-      return "Streams pipe";
-    case TIZEN_ERROR_TRY_AGAIN:
-      return "Try again";
-    case TIZEN_ERROR_UNKNOWN:
-      return "Unknown error";
-    case TIZEN_ERROR_TIMED_OUT:
-      return "Time out";
-    case TIZEN_ERROR_NOT_SUPPORTED:
-      return "Not supported";
-    case TIZEN_ERROR_PERMISSION_DENIED:
-      return "Permission denied";
-    case TIZEN_ERROR_OUT_OF_MEMORY:
-      return "Out of memory";
-    case TIZEN_ERROR_IO_ERROR:
-      return "IO error";
-    default:
-      return "Unknown error";
-  }
-}
-
 }  // namespace
 
 RpcPortProxy::RpcPortProxy(std::string appid, std::string port_name)
@@ -94,40 +69,6 @@ RpcPortResult RpcPortProxy::Connect(EventSink sink) {
   }
 
   ret = rpc_port_proxy_connect(handle_, appid_.c_str(), port_name_.c_str());
-  if (ret != RPC_PORT_ERROR_NONE) {
-    return CreateResult(ret);
-  }
-
-  return CreateResult(RPC_PORT_ERROR_NONE);
-}
-
-RpcPortResult RpcPortProxy::ProxyConnectSync(EventSink sink) {
-  LOG_DEBUG("ProxyConnectSync: %s/%s", appid_.c_str(), port_name_.c_str());
-  event_sink_ = std::move(sink);
-  int ret =
-      rpc_port_proxy_add_connected_event_cb(handle_, OnConnectedEvent, this);
-  if (ret != RPC_PORT_ERROR_NONE) {
-    return CreateResult(ret);
-  }
-
-  ret = rpc_port_proxy_add_disconnected_event_cb(handle_, OnDisconnectedEvent,
-                                                 this);
-  if (ret != RPC_PORT_ERROR_NONE) {
-    return CreateResult(ret);
-  }
-
-  ret = rpc_port_proxy_add_rejected_event_cb(handle_, OnRejectedEvent, this);
-  if (ret != RPC_PORT_ERROR_NONE) {
-    return CreateResult(ret);
-  }
-
-  ret = rpc_port_proxy_add_received_event_cb(handle_, OnReceivedEvent, this);
-  if (ret != RPC_PORT_ERROR_NONE) {
-    return CreateResult(ret);
-  }
-
-  ret =
-      rpc_port_proxy_connect_sync(handle_, appid_.c_str(), port_name_.c_str());
   if (ret != RPC_PORT_ERROR_NONE) {
     return CreateResult(ret);
   }
@@ -186,7 +127,7 @@ void RpcPortProxy::OnRejectedEvent(const char* receiver, const char* port_name,
   auto* proxy = static_cast<RpcPortProxy*>(data);
   auto map = CreateEncodableMap("rejected", receiver, port_name);
   map[flutter::EncodableValue("error")] =
-      flutter::EncodableValue(ConvertErrorToString(get_last_result()));
+      flutter::EncodableValue(get_error_message(get_last_result()));
   proxy->event_sink_->Success(flutter::EncodableValue(map));
 }
 

@@ -27,7 +27,6 @@ class RpcPortProxy {
   RpcPortProxy(std::string appid, std::string port_name);
   ~RpcPortProxy();
   RpcPortResult Connect(EventSink sync);
-  RpcPortResult ProxyConnectSync(EventSink sync);
   RpcPortResult GetPort(int32_t type, std::unique_ptr<RpcPort>* port);
 
  private:
