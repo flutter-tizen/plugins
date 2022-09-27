@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 
@@ -51,6 +55,7 @@ class MyMessageProxy extends Message {
     _msg = 'onDisconnected';
     Log.info(_logTag, 'onDisconnected');
     print('onDisconnected');
+    await connect();
   }
 
   @override
@@ -58,6 +63,7 @@ class MyMessageProxy extends Message {
     _msg = 'onRejected';
     Log.info(_logTag, 'onRejected. error($errorMessage)');
     print('onRejected. error($errorMessage)');
+    await connect();
   }
 }
 

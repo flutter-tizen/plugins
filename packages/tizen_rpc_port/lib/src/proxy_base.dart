@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file
+
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -7,20 +11,23 @@ import 'parcel.dart';
 import 'port.dart';
 import 'rpc_port_method_channel.dart';
 
-const String _logTag = 'RPC_PORT';
-
-final MethodChannelRpcPort _methodChannel = MethodChannelRpcPort.instance;
-
-Finalizer<ProxyBase> _finalizer = Finalizer<ProxyBase>((ProxyBase proxy) {
-  _methodChannel.proxyDestroy(proxy);
-});
-
 /// The abstract class for creating a proxy class for RPC.
 abstract class ProxyBase {
   /// The constructor for this class.
   ProxyBase(this.appid, this.portName) {
+    _methodChannel.proxyCreate(appid, portName);
     _finalizer.attach(this, this);
   }
+
+  static const String _logTag = 'RPC_PORT';
+
+  static final MethodChannelRpcPort _methodChannel =
+      MethodChannelRpcPort.instance;
+
+  final Finalizer<ProxyBase> _finalizer =
+      Finalizer<ProxyBase>((ProxyBase proxy) {
+    _methodChannel.proxyDestroy(proxy);
+  });
 
   /// The target stub application id.
   final String appid;

@@ -1,6 +1,9 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file
+
 #include "tizen_rpc_port_plugin.h"
 
-// For getPlatformVersion; remove unless needed for your plugin implementation.
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
 #include <flutter/event_stream_handler_functions.h>
@@ -61,6 +64,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
                                std::placeholders::_1, std::placeholders::_2)},
         {"portReceive",
          std::bind(&TizenRpcPortPlugin::PortReceive, this,
+                   std::placeholders::_1, std::placeholders::_2)},
+        {"proxyCreate",
+         std::bind(&TizenRpcPortPlugin::ProxyCreate, this,
                    std::placeholders::_1, std::placeholders::_2)},
         {"proxyConnect",
          std::bind(&TizenRpcPortPlugin::ProxyConnect, this,
@@ -230,6 +236,29 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     result->Success();
   }
 
+  void ProxyCreate(
+      const flutter::EncodableValue* args,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    LOG_DEBUG("ProxyCreate");
+    std::string appid;
+    std::string port_name;
+    if (!GetValueFromArgs<std::string>(args, "appid", appid) ||
+        !GetValueFromArgs<std::string>(args, "portName", port_name)) {
+      result->Error("Invalid parameter");
+      return;
+    }
+
+    auto key = CreateKey(appid, port_name);
+    auto found = native_proxies_.find(key);
+    if (found != native_proxies_.end()) {
+      result->Error("Already exists");
+      return;
+    }
+
+    CreateProxy(appid, port_name);
+    result->Success();
+  }
+
   void ProxyConnect(
       const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
@@ -243,9 +272,10 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     }
 
     auto event_channel_name = "tizen/rpc_port_proxy/" + appid + "/" + port_name;
-    if (event_channels_.find(event_channel_name) != event_channels_.end()) {
-      result->Error("Already connecting");
-      return;
+    auto it = event_channels_.find(event_channel_name);
+    if (it != event_channels_.end()) {
+      LOG_INFO("Already create event channel");
+      event_channels_.erase(it);
     }
 
     auto event_channel =
@@ -261,11 +291,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnListen: %s/%s", appid.c_str(), port_name.c_str());
               auto proxy = FindProxy(appid, port_name);
-              if (proxy != nullptr) {
-                LOG_ERROR("Already connected");
-                return nullptr;
-              }
-              proxy = CreateProxy(appid, port_name);
               auto ret = proxy->Connect(std::move(events));
               if (!ret) {
                 LOG_ERROR("Failed to proxyConnect");
@@ -745,7 +770,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     return (found->second).get();
   }
 
-  RpcPortProxy* CreateProxy(const std::string& appid,
+  tizen::RpcPortProxy* CreateProxy(const std::string& appid,
                             const std::string& port_name) {
     auto proxy = std::make_shared<RpcPortProxy>(appid, port_name);
     auto key = CreateKey(appid, port_name);

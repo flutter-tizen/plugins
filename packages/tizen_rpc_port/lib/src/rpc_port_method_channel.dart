@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file
+
 import 'package:flutter/services.dart';
 import 'package:tizen_log/tizen_log.dart';
 
@@ -21,26 +25,17 @@ class MethodChannelRpcPort {
     return await _channel.invokeMethod('stubCreate', args);
   }
 
+  Future<void> proxyCreate(String appid, String portName) async {
+    final Map<String, dynamic> args = <String, dynamic>{
+      'appid': appid,
+      'portName': portName,
+    };
+    return await _channel.invokeMethod('proxyCreate', args);
+  }
+
   Future<void> stubDestroy(String portName) async {
     final Map<String, String> args = <String, String>{'portName': portName};
     return await _channel.invokeMethod('stubDestroy', args);
-  }
-
-  Future<Stream<dynamic>> proxyConnect(ProxyBase proxy) async {
-    final String key = _createKey(proxy.appid, proxy.portName);
-    if (_streams.containsKey(key)) {
-      return _streams[key]!;
-    }
-
-    final EventChannel eventChannel = EventChannel('tizen/rpc_port_proxy/$key');
-    _streams[key] = eventChannel.receiveBroadcastStream();
-    final Map<String, dynamic> args = <String, dynamic>{
-      'appid': proxy.appid,
-      'portName': proxy.portName,
-    };
-
-    await _channel.invokeMethod<dynamic>('proxyConnect', args);
-    return _streams[key]!;
   }
 
   Future<void> proxyDestroy(ProxyBase proxy) async {
@@ -56,25 +51,39 @@ class MethodChannelRpcPort {
     }
   }
 
-  Future<void> portDisconnect(Port port) async {
-    final String key = _createKey(port.appid, port.portName);
-    if (_streams.containsKey(key)) {
-      final Map<String, dynamic> args = <String, dynamic>{
-        'appid': port.appid,
-        'portName': port.portName,
-        'instance': port.instance,
-        'portType': port.portType.index,
-      };
-
-      return await _channel.invokeMethod<void>('portDisconnect', args);
+  Future<Stream<dynamic>> proxyConnect(ProxyBase proxy) async {
+    final String key = _createKey(proxy.appid, proxy.portName);
+    if (!_streams.containsKey(key)) {
+      final EventChannel eventChannel =
+          EventChannel('tizen/rpc_port_proxy/$key');
+      _streams[key] = eventChannel.receiveBroadcastStream();
     }
+
+    final Map<String, dynamic> args = <String, dynamic>{
+      'appid': proxy.appid,
+      'portName': proxy.portName,
+    };
+
+    await _channel.invokeMethod<dynamic>('proxyConnect', args);
+    return _streams[key]!;
+  }
+
+  Future<void> portDisconnect(Port port) async {
+    final Map<String, dynamic> args = <String, dynamic>{
+      'appid': port.appid ?? '',
+      'portName': port.portName,
+      'instance': port.instance ?? '',
+      'portType': port.portType.index,
+    };
+
+    return await _channel.invokeMethod<void>('portDisconnect', args);
   }
 
   Future<dynamic> portSend(Port port, Uint8List raw) async {
     final Map<String, dynamic> args = <String, dynamic>{
-      'appid': port.appid,
+      'appid': port.appid ?? '',
       'portName': port.portName,
-      'instance': port.instance,
+      'instance': port.instance ?? '',
       'portType': port.portType.index,
       'rawData': raw
     };
@@ -84,9 +93,9 @@ class MethodChannelRpcPort {
 
   Future<Uint8List> portReceive(Port port) async {
     final Map<String, dynamic> args = <String, dynamic>{
-      'appid': port.appid,
+      'appid': port.appid ?? '',
       'portName': port.portName,
-      'instance': port.instance,
+      'instance': port.instance ?? '',
       'portType': port.portType.index,
     };
     final Uint8List? ret;
@@ -105,47 +114,38 @@ class MethodChannelRpcPort {
   }
 
   Future<void> portSetPrivateSharingArray(Port port, List<String> paths) async {
-    final String key = _createKey(port.appid, port.portName);
-    if (_streams.containsKey(key)) {
-      final Map<String, dynamic> args = <String, dynamic>{
-        'appid': port.appid,
-        'portName': port.portName,
-        'instance': port.instance,
-        'portType': port.portType.index,
-        'paths': paths,
-      };
+    final Map<String, dynamic> args = <String, dynamic>{
+      'appid': port.appid ?? '',
+      'portName': port.portName,
+      'instance': port.instance ?? '',
+      'portType': port.portType.index,
+      'paths': paths,
+    };
 
-      return await _channel.invokeMethod('portSetPrivateSharingArray', args);
-    }
+    return await _channel.invokeMethod('portSetPrivateSharingArray', args);
   }
 
   Future<void> portSetPrivateSharing(Port port, String path) async {
-    final String key = _createKey(port.appid, port.portName);
-    if (_streams.containsKey(key)) {
-      final Map<String, dynamic> args = <String, dynamic>{
-        'appid': port.appid,
-        'portName': port.portName,
-        'instance': port.instance,
-        'portType': port.portType.index,
-        'path': path,
-      };
+    final Map<String, dynamic> args = <String, dynamic>{
+      'appid': port.appid ?? '',
+      'portName': port.portName,
+      'instance': port.instance ?? '',
+      'portType': port.portType.index,
+      'path': path,
+    };
 
-      return await _channel.invokeMethod('portSetPrivateSharing', args);
-    }
+    return await _channel.invokeMethod('portSetPrivateSharing', args);
   }
 
   Future<void> portUnsetPrivateSharing(Port port) async {
-    final String key = _createKey(port.appid, port.portName);
-    if (_streams.containsKey(key)) {
-      final Map<String, dynamic> args = <String, dynamic>{
-        'appid': port.appid,
-        'portName': port.portName,
-        'instance': port.instance,
-        'portType': port.portType.index,
-      };
+    final Map<String, dynamic> args = <String, dynamic>{
+      'appid': port.appid ?? '',
+      'portName': port.portName,
+      'instance': port.instance ?? '',
+      'portType': port.portType.index,
+    };
 
-      return await _channel.invokeMethod('portUnsetPrivateSharing', args);
-    }
+    return await _channel.invokeMethod('portUnsetPrivateSharing', args);
   }
 
   Future<void> stubSetTrusted(String portName, bool trusted) async {

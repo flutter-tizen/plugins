@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file
+
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -20,14 +24,14 @@ class Port {
     required this.instance,
     required this.portName,
     required this.portType,
-  }) : appid = '';
+  }) : appid = null;
 
   /// Creates a port that represents a connection to a stub.
   Port.fromStub({
     required this.appid,
     required this.portName,
     required this.portType,
-  }) : instance = '';
+  }) : instance = null;
 
   static final MethodChannelRpcPort _methodChannel =
       MethodChannelRpcPort.instance;
@@ -36,13 +40,13 @@ class Port {
   final PortType portType;
 
   /// The appid of the stub app. This member is used only proxy.
-  final String appid;
+  final String? appid;
 
   /// The port name of the port connection.
   final String portName;
 
   /// The instance name of the proxy connection. This member is used only stub.
-  final String instance;
+  final String? instance;
 
   /// Sends a parcel to the connected app.
   Future<void> send(Parcel parcel) async {
@@ -57,17 +61,17 @@ class Port {
   }
 
   /// Shares private files with other proxy applications.
-  Future<void> setPrivateSharingList(List<String> paths) async {
+  Future<void> shareFileList(List<String> paths) async {
     await _methodChannel.portSetPrivateSharingArray(this, paths);
   }
 
   /// Shares a private file with other proxy applications.
-  Future<void> setPrivateSharing(String path) async {
+  Future<void> shareFile(String path) async {
     await _methodChannel.portSetPrivateSharing(this, path);
   }
 
   /// Unsets all shared private paths.
-  Future<void> unsetPrivateSharing() async {
+  Future<void> unshareFile() async {
     await _methodChannel.portUnsetPrivateSharing(this);
   }
 

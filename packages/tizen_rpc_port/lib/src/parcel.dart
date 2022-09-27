@@ -6,6 +6,15 @@ import 'package:flutter/services.dart';
 import 'package:tizen_bundle/tizen_bundle.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
 
+/// The parcelable class that can be serialize & deserialize object data.
+abstract class Parcelable {
+  /// Serializes the object data to the parcel.
+  void serialize(Parcel parcel);
+
+  /// Desrializes the object data from the parcel.
+  void deserialize(Parcel parcel);
+}
+
 /// The header of parcel included information of the parcel.
 class ParcelHeader {
   ParcelHeader._fromHandle(this._header);
