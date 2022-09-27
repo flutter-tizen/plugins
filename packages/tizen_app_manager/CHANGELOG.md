@@ -1,3 +1,9 @@
+## 0.2.0
+
+* Migrate FFI implementation to tizen_interop.
+* Remove `AppRunningContext.dispose`.
+* Move `app_manager.dart` into the `src` directory.
+
 ## 0.1.5
 
 * Bump ffi dependency.
