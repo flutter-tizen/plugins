@@ -771,7 +771,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
   }
 
   tizen::RpcPortProxy* CreateProxy(const std::string& appid,
-                            const std::string& port_name) {
+                                   const std::string& port_name) {
     auto proxy = std::make_shared<RpcPortProxy>(appid, port_name);
     auto key = CreateKey(appid, port_name);
     native_proxies_[key] = proxy;
