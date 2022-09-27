@@ -1,3 +1,7 @@
+// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -55,7 +59,8 @@ class ParcelHeader {
   int get sequenceNumber {
     return using((Arena arena) {
       final Pointer<Int> pSeqNum = arena();
-      final int ret = tizen.rpc_port_parcel_header_get_seq_num(_header, pSeqNum);
+      final int ret =
+          tizen.rpc_port_parcel_header_get_seq_num(_header, pSeqNum);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -380,8 +385,7 @@ class Parcel {
   int readArrayCount() {
     return using((Arena arena) {
       final Pointer<Int> pValue = arena();
-      final int ret =
-          tizen.rpc_port_parcel_read_array_count(_parcel, pValue);
+      final int ret = tizen.rpc_port_parcel_read_array_count(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
