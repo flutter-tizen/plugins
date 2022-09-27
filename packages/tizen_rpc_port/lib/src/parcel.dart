@@ -11,7 +11,7 @@ abstract class Parcelable {
   /// Serializes the object data to the parcel.
   void serialize(Parcel parcel);
 
-  /// Desrializes the object data from the parcel.
+  /// Desrializes the object data from this parcel.
   void deserialize(Parcel parcel);
 }
 
@@ -19,14 +19,14 @@ abstract class Parcelable {
 class ParcelHeader {
   ParcelHeader._fromHandle(this._header);
 
-  late final rpc_port_parcel_h _header;
+  late final rpc_port_parcel_header_h _header;
 
   /// The tag of this header.
   String get tag {
     return using((Arena arena) {
-      final Pointer<Pointer<Char>> rawTag = arena();
-      final int ret = tizen.rpc_port_parcel_header_get_tag(_header, rawTag);
-      arena.using(rawTag.value, malloc.free);
+      final Pointer<Pointer<Char>> pTag = arena();
+      final int ret = tizen.rpc_port_parcel_header_get_tag(_header, pTag);
+      arena.using(pTag.value, malloc.free);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -34,14 +34,14 @@ class ParcelHeader {
         );
       }
 
-      return rawTag.value.toDartString();
+      return pTag.value.toDartString();
     });
   }
 
   set tag(String value) {
     using((Arena arena) {
-      final Pointer<Char> rawTag = value.toNativeChar(allocator: arena);
-      final int ret = tizen.rpc_port_parcel_header_set_tag(_header, rawTag);
+      final Pointer<Char> pTag = value.toNativeChar(allocator: arena);
+      final int ret = tizen.rpc_port_parcel_header_set_tag(_header, pTag);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -54,8 +54,8 @@ class ParcelHeader {
   /// The sequence number of this header.
   int get sequenceNumber {
     return using((Arena arena) {
-      final Pointer<Int> seqNum = arena();
-      final int ret = tizen.rpc_port_parcel_header_get_seq_num(_header, seqNum);
+      final Pointer<Int> pSeqNum = arena();
+      final int ret = tizen.rpc_port_parcel_header_get_seq_num(_header, pSeqNum);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -63,7 +63,7 @@ class ParcelHeader {
         );
       }
 
-      return seqNum.value;
+      return pSeqNum.value;
     });
   }
 
@@ -101,14 +101,14 @@ class Parcel {
   /// The constructor of parcel from the raw data.
   Parcel.fromRaw(Uint8List rawData) {
     using((Arena arena) {
-      final Pointer<Uint8> nativeRaw = arena.allocate<Uint8>(rawData.length);
-      final Pointer<rpc_port_parcel_h> parcelPointer = arena();
+      final Pointer<Uint8> pRaw = arena.allocate<Uint8>(rawData.length);
+      final Pointer<rpc_port_parcel_h> pParcel = arena();
       for (int i = 0; i < rawData.length; ++i) {
-        nativeRaw[i] = rawData[i] & 0xff;
+        pRaw[i] = rawData[i] & 0xff;
       }
 
       final int ret = tizen.rpc_port_parcel_create_from_raw(
-          parcelPointer, nativeRaw.cast<Void>(), rawData.length);
+          pParcel, pRaw.cast<Void>(), rawData.length);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -116,18 +116,17 @@ class Parcel {
         );
       }
 
-      _parcel = parcelPointer.value;
+      _parcel = pParcel.value;
     });
   }
 
-  late final Pointer<Void> _parcel;
+  late final rpc_port_parcel_h _parcel;
 
   static const int _byteMax = 0xff;
   static const int _int16Max = 0xffff;
   static const int _int32Max = 0xffffffff;
-  static const int _int64Max = 0xffffffffffffffff;
 
-  static final Finalizer<Pointer<Void>> _finalizer =
+  static final Finalizer<rpc_port_parcel_h> _finalizer =
       Finalizer<rpc_port_parcel_h>((rpc_port_parcel_h handle) {
     tizen.rpc_port_parcel_destroy(handle);
   });
@@ -135,9 +134,9 @@ class Parcel {
   /// Gets the raw data of this parcel. (Byte array)
   Uint8List asRaw() {
     return using((Arena arena) {
-      final Pointer<Pointer<Void>> nativeRaw = arena();
-      final Pointer<UnsignedInt> size = arena();
-      final int ret = tizen.rpc_port_parcel_get_raw(_parcel, nativeRaw, size);
+      final Pointer<Pointer<Void>> pRaw = arena();
+      final Pointer<UnsignedInt> pSize = arena();
+      final int ret = tizen.rpc_port_parcel_get_raw(_parcel, pRaw, pSize);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -145,7 +144,7 @@ class Parcel {
         );
       }
 
-      return nativeRaw.value.cast<Uint8>().asTypedList(size.value);
+      return pRaw.value.cast<Uint8>().asTypedList(pSize.value);
     });
   }
 
@@ -186,8 +185,7 @@ class Parcel {
 
   /// Writes a int(64bit) value to this parcel.
   void writeInt64(int value) {
-    final int ret =
-        tizen.rpc_port_parcel_write_int64(_parcel, value & _int64Max);
+    final int ret = tizen.rpc_port_parcel_write_int64(_parcel, value);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -210,8 +208,8 @@ class Parcel {
   /// Writes a String value to this parcel.
   void writeString(String value) {
     using((Arena arena) {
-      final Pointer<Char> nativeString = value.toNativeChar(allocator: arena);
-      final int ret = tizen.rpc_port_parcel_write_string(_parcel, nativeString);
+      final Pointer<Char> pString = value.toNativeChar(allocator: arena);
+      final int ret = tizen.rpc_port_parcel_write_string(_parcel, pString);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -234,8 +232,7 @@ class Parcel {
 
   /// Writes a Bundle value to this parcel.
   void writeBundle(Bundle b) {
-    final String raw = b.encode();
-    writeString(raw);
+    writeString(b.encode());
   }
 
   /// Writes a array count to this parcel.
@@ -251,11 +248,11 @@ class Parcel {
     }
   }
 
-  /// Reads a byte value from the parcel.
+  /// Reads a byte value from this parcel.
   int readByte() {
     return using((Arena arena) {
-      final Pointer<Char> valuePointer = arena();
-      final int ret = tizen.rpc_port_parcel_read_byte(_parcel, valuePointer);
+      final Pointer<Char> pValue = arena();
+      final int ret = tizen.rpc_port_parcel_read_byte(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -263,15 +260,15 @@ class Parcel {
         );
       }
 
-      return valuePointer.value;
+      return pValue.value;
     });
   }
 
-  /// Reads a int(16bit) value from the parcel.
+  /// Reads a int(16bit) value from this parcel.
   int readInt16() {
     return using((Arena arena) {
-      final Pointer<Short> valuePointer = arena();
-      final int ret = tizen.rpc_port_parcel_read_int16(_parcel, valuePointer);
+      final Pointer<Short> pValue = arena();
+      final int ret = tizen.rpc_port_parcel_read_int16(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -279,15 +276,15 @@ class Parcel {
         );
       }
 
-      return valuePointer.value;
+      return pValue.value;
     });
   }
 
-  /// Reads a int(32bit) value from the parcel.
+  /// Reads a int(32bit) value from this parcel.
   int readInt32() {
     return using((Arena arena) {
-      final Pointer<Int> valuePointer = arena();
-      final int ret = tizen.rpc_port_parcel_read_int32(_parcel, valuePointer);
+      final Pointer<Int> pValue = arena();
+      final int ret = tizen.rpc_port_parcel_read_int32(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -295,15 +292,15 @@ class Parcel {
         );
       }
 
-      return valuePointer.value;
+      return pValue.value;
     });
   }
 
-  /// Reads a int(64bit) value from the parcel.
+  /// Reads a int(64bit) value from this parcel.
   int readInt64() {
     return using((Arena arena) {
-      final Pointer<LongLong> valuePointer = arena();
-      final int ret = tizen.rpc_port_parcel_read_int64(_parcel, valuePointer);
+      final Pointer<LongLong> pValue = arena();
+      final int ret = tizen.rpc_port_parcel_read_int64(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -311,15 +308,15 @@ class Parcel {
         );
       }
 
-      return valuePointer.value;
+      return pValue.value;
     });
   }
 
-  /// Reads a double value from the parcel.
+  /// Reads a double value from this parcel.
   double readDouble() {
     return using((Arena arena) {
-      final Pointer<Double> valuePointer = arena();
-      final int ret = tizen.rpc_port_parcel_read_double(_parcel, valuePointer);
+      final Pointer<Double> pValue = arena();
+      final int ret = tizen.rpc_port_parcel_read_double(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -327,15 +324,15 @@ class Parcel {
         );
       }
 
-      return valuePointer.value;
+      return pValue.value;
     });
   }
 
   /// Reads a String value from this parcel.
   String readString() {
     return using((Arena arena) {
-      final Pointer<Pointer<Char>> valuePointer = arena();
-      final int ret = tizen.rpc_port_parcel_read_string(_parcel, valuePointer);
+      final Pointer<Pointer<Char>> pValue = arena();
+      final int ret = tizen.rpc_port_parcel_read_string(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -343,15 +340,15 @@ class Parcel {
         );
       }
 
-      return valuePointer.value.toDartString();
+      return pValue.value.toDartString();
     });
   }
 
   /// Reads a bool value from this parcel.
   bool readBool() {
     return using((Arena arena) {
-      final Pointer<Bool> valuePointer = arena();
-      final int ret = tizen.rpc_port_parcel_read_bool(_parcel, valuePointer);
+      final Pointer<Bool> pValue = arena();
+      final int ret = tizen.rpc_port_parcel_read_bool(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -359,15 +356,15 @@ class Parcel {
         );
       }
 
-      return valuePointer.value;
+      return pValue.value;
     });
   }
 
   /// Reads a bundle value from this parcel.
   Bundle readBundle() {
     return using((Arena arena) {
-      final Pointer<Pointer<Char>> valuePointer = arena();
-      final int ret = tizen.rpc_port_parcel_read_string(_parcel, valuePointer);
+      final Pointer<Pointer<Char>> pValue = arena();
+      final int ret = tizen.rpc_port_parcel_read_string(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -375,17 +372,16 @@ class Parcel {
         );
       }
 
-      final String str = valuePointer.value.toDartString();
-      return Bundle.decode(str);
+      return Bundle.decode(pValue.value.toDartString());
     });
   }
 
   /// Reads a array count from this parcel.
   int readArrayCount() {
     return using((Arena arena) {
-      final Pointer<Int> valuePointer = arena();
+      final Pointer<Int> pValue = arena();
       final int ret =
-          tizen.rpc_port_parcel_read_array_count(_parcel, valuePointer);
+          tizen.rpc_port_parcel_read_array_count(_parcel, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -393,12 +389,12 @@ class Parcel {
         );
       }
 
-      return valuePointer.value;
+      return pValue.value;
     });
   }
 
   /// Reads a raw data from this parcel as much as size.
-  List<int> burstRead(int size) {
+  List<int> read(int size) {
     return using((Arena arena) {
       final Pointer<UnsignedChar> buf =
           malloc.allocate(size).cast<UnsignedChar>();
@@ -416,17 +412,17 @@ class Parcel {
   }
 
   /// Writes a raw data to this parcel as much as size.
-  void burstWrite(List<int> raw) {
+  void write(List<int> rawData) {
     using((Arena arena) {
-      final Pointer<UnsignedChar> nativeRaw =
-          malloc.allocate(raw.length).cast<UnsignedChar>();
-      arena.using(nativeRaw, malloc.free);
-      for (int i = 0; i < raw.length; ++i) {
-        nativeRaw[i] = raw[i];
+      final Pointer<UnsignedChar> pRaw =
+          malloc.allocate(rawData.length).cast<UnsignedChar>();
+      arena.using(pRaw, malloc.free);
+      for (int i = 0; i < rawData.length; ++i) {
+        pRaw[i] = rawData[i];
       }
 
       final int ret =
-          tizen.rpc_port_parcel_burst_write(_parcel, nativeRaw, raw.length);
+          tizen.rpc_port_parcel_burst_write(_parcel, pRaw, rawData.length);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -439,8 +435,8 @@ class Parcel {
   /// The header of this parcel.
   ParcelHeader get header {
     return using((Arena arena) {
-      final Pointer<Pointer<Void>> header = arena();
-      final int ret = tizen.rpc_port_parcel_get_header(_parcel, header);
+      final Pointer<rpc_port_parcel_header_h> pHeader = arena();
+      final int ret = tizen.rpc_port_parcel_get_header(_parcel, pHeader);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -448,7 +444,7 @@ class Parcel {
         );
       }
 
-      return ParcelHeader._fromHandle(header.value);
+      return ParcelHeader._fromHandle(pHeader.value);
     });
   }
 }
