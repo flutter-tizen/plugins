@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:tizen_package_manager/package_manager.dart';
 
 /// The example app package ID.
-const String currentPackageId = 'com.example.tizen_package_manager_example';
+const String currentPackageId = 'org.tizen.tizen_package_manager_example';
 
 void main() {
   runApp(const MyApp());

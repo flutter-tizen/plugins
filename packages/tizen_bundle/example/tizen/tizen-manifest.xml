@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.example.tizen_bundle_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
+<manifest package="org.tizen.tizen_bundle_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
     <profile name="common"/>
     <ui-application appid="org.tizen.tizen_bundle_example" exec="Runner.dll" type="dotnet" multiple="false" nodisplay="false" taskmanage="true">
         <label>tizen_bundle_example</label>
