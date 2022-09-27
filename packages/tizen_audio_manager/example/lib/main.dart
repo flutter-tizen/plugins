@@ -126,7 +126,6 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
             width: 250,
             child: Slider(
               value: _currentVolume.toDouble(),
-              min: 0,
               max: _maxVolume.toDouble(),
               divisions: _maxVolume,
               onChanged: _onVolumeSliderChanged,

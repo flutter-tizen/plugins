@@ -66,7 +66,6 @@ class _MapCoordinatesBodyState extends State<_MapCoordinatesBody> {
     }
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: columnChildren,
     );

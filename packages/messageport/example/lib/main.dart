@@ -151,7 +151,6 @@ class _MyAppState extends State<MyApp> {
     return Column(
       children: <Widget>[
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             Checkbox(
                 value: _attachLocalPort,
@@ -164,7 +163,6 @@ class _MyAppState extends State<MyApp> {
           ],
         ),
         GridView.builder(
-          scrollDirection: Axis.vertical,
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: 100,
@@ -218,7 +216,7 @@ class _MyAppState extends State<MyApp> {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(width: 1),
+          border: Border.all(),
           borderRadius: const BorderRadius.all(Radius.circular(3)),
         ),
         margin: const EdgeInsets.all(5),
