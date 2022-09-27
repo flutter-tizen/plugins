@@ -1,6 +1,7 @@
-## NEXT
+## 0.5.5
 
 * Update README.
+* Add `-Wl,-rpath=$ORIGIN` linker option.
 
 ## 0.5.4
 
