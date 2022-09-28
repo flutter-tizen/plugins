@@ -9,9 +9,11 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart' hide Size;
 import 'package:tizen_interop/4.0/tizen.dart';
 
+export 'dart:typed_data' show Uint8List;
+
 /// A string-based dictionary data type.
 ///
-/// A dictionary is a collection of key-value pairs from which you can locate
+/// A dictionary is a collection of key-value pairs, from which you can locate
 /// a value using its associated key. The key is always a [String]. The value
 /// must be either a [String], a list of [String]s, or a [Uint8List].
 class Bundle extends MapMixin<String, Object> {

@@ -15,12 +15,11 @@ depenedencies:
 
 ### Adding content to a bundle
 
-The bundle content is in the form of key-value pairs. The key is always a `String`. The value is either a `String`, a `List<String>`, or a `Uint8List`.
+The bundle content is in the form of key-value pairs. The key is always a `String`. The value must be either a `String`, a `List<String>`, or a `Uint8List`.
 
 Bundles can be treated like a `Map`. You can use the `[]` operator or `Bundle.addAll()` to add data to a bundle.
 
 ```dart
-import 'dart:typed_data';
 import 'package:tizen_bundle/tizen_bundle.dart';
 
 var bundle = Bundle();
@@ -31,7 +30,7 @@ bundle['bytes'] = Uint8List.fromList(<int>[0x01, 0x02, 0x03]);
 
 ### Accessing the bundle content
 
-To get data from a bundle (or update their values), use the `[]` operator.
+To get data from a bundle or update their values, use the `[]` operator.
 
 ```dart
 var stringValue = bundle['string'];
@@ -50,7 +49,7 @@ if (bytesValue is Uint8List) {
 }
 ```
 
-To remove a key-value pair from a bundle, use `Bundle.remove()`.
+You can also use other [methods and properties](https://api.flutter.dev/flutter/dart-collection/MapMixin-class.html) supported by a `Map`, such as `containsKey` and `remove`.
 
 ```dart
 if (bundle.containsKey('string')) {
@@ -60,7 +59,7 @@ if (bundle.containsKey('string')) {
 
 ### Encoding and decoding a bundle
 
-To store bundle data to a file or send over a connection, you can encode it to a string using `Bundle.encode()`. To decode the string back to a bundle, use `Bundle.decode()`.
+To save bundle data to a file or send over network, you can encode them to a raw string using `Bundle.encode()`. To restore the bundle from the encoded string, use `Bundle.decode()`.
 
 ```dart
 var bundle = Bundle();
