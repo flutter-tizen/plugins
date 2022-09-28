@@ -34,40 +34,6 @@ struct RpcPortResult {
 
 RpcPortResult CreateResult(int return_code);
 
-class RpcPort {
- public:
-  RpcPort(rpc_port_h handle, int32_t type);
-
-  RpcPortResult Read(std::vector<uint8_t>* data, int32_t size);
-  RpcPortResult Write(const std::vector<uint8_t>& data);
-  RpcPortResult SetPrivateSharing(const std::vector<std::string>& paths);
-  RpcPortResult SetPrivateSharing(const std::string& path);
-  RpcPortResult UnsetPrivateSharing();
-  RpcPortResult PortDisconnect();
-
-  int32_t GetType() const;
-  rpc_port_h GetHandle() const;
-
- private:
-  rpc_port_h handle_;
-  int32_t type_;
-};
-
-class RpcPortParcel {
- public:
-  RpcPortParcel();
-  explicit RpcPortParcel(const std::vector<uint8_t>& raw);
-  explicit RpcPortParcel(RpcPort* port);
-  ~RpcPortParcel();
-
-  RpcPortResult Send(RpcPort* port);
-  RpcPortResult GetRaw(std::vector<uint8_t>* raw);
-  rpc_port_parcel_h GetHandle() const;
-
- private:
-  rpc_port_parcel_h handle_;
-};
-
 }  // namespace tizen
 
 #endif  // COMMON_HH
