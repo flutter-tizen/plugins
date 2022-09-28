@@ -79,7 +79,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> initPlatformState() async {
     try {
-      _myProxy = MyMessageProxy('com.example.rpc_port_stub_example');
+      _myProxy = MyMessageProxy('com.example.tizen_rpc_port_stub_example');
       await _myProxy.connect();
     } on PlatformException {
       _msg = 'Failed to get platform version.';

@@ -72,6 +72,10 @@ abstract class ProxyBase {
   }
 
   /// Connects to the stub.
+  ///
+  /// The following privileges are required to use this API.
+  /// - `http://tizen.org/privilege/appmanager.launch`
+  /// - `http://tizen.org/privilege/datasharing`
   Future<void> connect() async {
     if (_isConnected) {
       throw Exception('Proxy $appid/$portName already connected to stub');

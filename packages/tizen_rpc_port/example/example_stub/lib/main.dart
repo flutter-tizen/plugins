@@ -56,8 +56,6 @@ class Service extends ServiceBase {
 }
 
 class MyMessageStub extends Message {
-  MyMessageStub() : super();
-
   @override
   ServiceBase createInstance(String sender, String instance) =>
       Service(sender, instance);
@@ -71,41 +69,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  MyMessageStub? _stub;
-
-  static void serialize(dynamic param) {
-    switch (param.runtimeType) {
-      case List<String>:
-        {
-          Log.info(_logTag, 'List<String>');
-          break;
-        }
-    }
-  }
+  static const String _platformVersion = '7.0';
+  late final MyMessageStub _stub;
 
   @override
   void initState() {
-    final List<String> stringList = <String>[];
-    serialize(stringList);
-
     super.initState();
     Log.info(_logTag, 'initState');
     _stub = MyMessageStub();
-    _stub?.listen();
-    initPlatformState();
-  }
-
-  Future<void> initPlatformState() async {
-    const String platformVersion = '7.0';
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
+    _stub.listen();
   }
 
   @override
@@ -115,8 +87,8 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: const Center(
+          child: Text('Running on: $_platformVersion'),
         ),
       ),
     );
