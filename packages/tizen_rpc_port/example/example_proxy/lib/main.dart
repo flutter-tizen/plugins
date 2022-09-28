@@ -55,7 +55,7 @@ class MyMessageProxy extends Message {
     _msg = 'onDisconnected';
     Log.info(_logTag, 'onDisconnected');
     print('onDisconnected');
-    await connect();
+    // await connect();
   }
 
   @override
@@ -63,7 +63,7 @@ class MyMessageProxy extends Message {
     _msg = 'onRejected';
     Log.info(_logTag, 'onRejected. error($errorMessage)');
     print('onRejected. error($errorMessage)');
-    await connect();
+    // await connect();
   }
 }
 

@@ -3,13 +3,14 @@
 // found in the LICENSE file.
 
 import 'dart:ffi';
-import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
 import 'package:tizen_bundle/tizen_bundle.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
+
+import 'port.dart';
 
 /// The parcelable class that can be serialize & deserialize object data.
 abstract class Parcelable {
@@ -104,6 +105,25 @@ class Parcel {
     _finalizer.attach(this, _parcel, detach: this);
   }
 
+  /// The constructor of parcel from the port.
+  Parcel.fromPort(Port port) {
+    _parcel = using((Arena arena) {
+      final Pointer<rpc_port_parcel_h> pParcel = arena();
+      final int ret =
+          tizen.rpc_port_parcel_create_from_port(pParcel, port.handle);
+      if (ret != 0) {
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
+      }
+
+      return pParcel.value;
+    });
+
+    _finalizer.attach(this, _parcel, detach: this);
+  }
+
   /// The constructor of parcel from the raw data.
   Parcel.fromRaw(Uint8List rawData) {
     using((Arena arena) {
@@ -127,6 +147,9 @@ class Parcel {
   }
 
   late final rpc_port_parcel_h _parcel;
+
+  /// The native handle of this parcel.
+  rpc_port_parcel_h get handle => _parcel;
 
   static const int _byteMax = 0xff;
   static const int _int16Max = 0xffff;

@@ -77,7 +77,7 @@ abstract class ServiceBase {
 
   /// Disconnects from the client application.
   Future<void> disconnect() async {
-    await _port?.disconnect();
+    _port?.disconnect();
     _port = null;
   }
 
@@ -128,7 +128,7 @@ class NotifyCB extends CallbackBase {
     parcel.writeString(sender);
     parcel.writeString(msg);
 
-    await _port?.send(parcel);
+    _port?.send(parcel);
     _valid = false;
   }
 }
@@ -195,7 +195,7 @@ abstract class Message extends StubBase {
     result.writeInt32(_MethodId.result.id);
     result.writeInt32(ret);
 
-    await port.send(result);
+    port.send(result);
   }
 
   Future<void> _onUnregisterMethod(
@@ -221,7 +221,7 @@ abstract class Message extends StubBase {
     result.writeInt32(_MethodId.result.id);
     result.writeInt32(ret);
 
-    await port.send(result);
+    port.send(result);
   }
 
   @override

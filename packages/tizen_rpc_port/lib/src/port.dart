@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file
 
-import 'dart:async';
-import 'dart:typed_data';
+import 'dart:ffi';
+
+import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
+import 'package:tizen_interop/6.5/tizen.dart';
 
 import 'parcel.dart';
-import 'rpc_port_method_channel.dart';
 
 /// Enumeration for RPC port types.
 enum PortType {
@@ -19,64 +21,87 @@ enum PortType {
 
 /// The class that proxy and stub can use to communicate with each other.
 class Port {
-  /// Creates a port that represents a connection to a proxy.
-  Port.fromProxy({
-    required this.instance,
-    required this.portName,
-    required this.portType,
-  }) : appid = null;
+  /// Constructor of this class.
+  Port(this._handle);
 
-  /// Creates a port that represents a connection to a stub.
-  Port.fromStub({
-    required this.appid,
-    required this.portName,
-    required this.portType,
-  }) : instance = null;
+  late final rpc_port_h _handle;
 
-  static final MethodChannelRpcPort _methodChannel =
-      MethodChannelRpcPort.instance;
-
-  /// The type of this port.
-  final PortType portType;
-
-  /// The appid of the stub app. This member is used only proxy.
-  final String? appid;
-
-  /// The port name of the port connection.
-  final String portName;
-
-  /// The instance name of the proxy connection. This member is used only stub.
-  final String? instance;
+  /// The native handle of this port.
+  rpc_port_h get handle => _handle;
 
   /// Sends a parcel to the connected app.
-  Future<void> send(Parcel parcel) async {
-    await _methodChannel.portSend(this, parcel.asRaw());
+  void send(Parcel parcel) {
+    final int ret = tizen.rpc_port_parcel_send(parcel.handle, _handle);
+    if (ret != 0) {
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
+    }
   }
 
   /// Receives a parcel from connected app.
   /// This api should be used only guaranteed receive something after send().
-  Future<Parcel> receive() async {
-    final Uint8List raw = await _methodChannel.portReceive(this);
-    return Parcel.fromRaw(raw);
+  // Future<Parcel> receive() async {
+  //   final Uint8List raw = await _methodChannel.portReceive(this);
+  //   return Parcel.fromRaw(raw);
+  // }
+
+  /// Shares private files with other applications.
+  void shareFileList(List<String> paths) {
+    using((Arena arena) {
+      final Pointer<Pointer<Char>> pPaths =
+          arena.allocate<Pointer<Char>>(paths.length);
+
+      for (int i = 0; i < paths.length; ++i) {
+        pPaths[i] = paths[i].toNativeChar();
+      }
+
+      final int ret = tizen.rpc_port_set_private_sharing_array(
+          _handle, pPaths, paths.length);
+
+      if (ret != 0) {
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
+      }
+    });
   }
 
-  /// Shares private files with other proxy applications.
-  Future<void> shareFileList(List<String> paths) async {
-    await _methodChannel.portSetPrivateSharingArray(this, paths);
+  /// Shares a private file with other applications.
+  void shareFile(String path) {
+    using((Arena arena) {
+      final Pointer<Char> pPath = path.toNativeChar();
+      final int ret = tizen.rpc_port_set_private_sharing(_handle, pPath);
+      if (ret != 0) {
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
+      }
+    });
   }
 
-  /// Shares a private file with other proxy applications.
-  Future<void> shareFile(String path) async {
-    await _methodChannel.portSetPrivateSharing(this, path);
-  }
-
-  /// Unsets all shared private paths.
-  Future<void> unshareFile() async {
-    await _methodChannel.portUnsetPrivateSharing(this);
+  /// Unsets all shared files.
+  void unshareFile() {
+    final int ret = tizen.rpc_port_unset_private_sharing(_handle);
+    if (ret != 0) {
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
+    }
   }
 
   /// Disconnects the port.
-  Future<void> disconnect() async {
-    await _methodChannel.portDisconnect(this);
+  void disconnect() {
+    final int ret = tizen.rpc_port_disconnect(_handle);
+    if (ret != 0) {
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
+    }
   }
 }

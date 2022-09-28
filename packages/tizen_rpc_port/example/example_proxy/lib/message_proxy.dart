@@ -143,7 +143,7 @@ abstract class Message extends ProxyBase {
   Future<Parcel> _consumeCommand(Port port) async {
     while (true) {
       try {
-        final Parcel parcel = await port.receive();
+        final Parcel parcel = Parcel.fromPort(port);
         final int cmd = parcel.readInt32();
         if (cmd == _MethodId.result.id) {
           return parcel;
@@ -187,7 +187,7 @@ abstract class Message extends ProxyBase {
     cb.serialize(parcel);
     _delegateList.add(cb);
 
-    await port.send(parcel);
+    port.send(parcel);
 
     late Parcel parcelReceived;
     while (true) {
@@ -219,7 +219,7 @@ abstract class Message extends ProxyBase {
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.unregister.id);
 
-    await port.send(parcel);
+    port.send(parcel);
   }
 
   /// This method is used to send 'Send' request to the stub app.
@@ -239,7 +239,7 @@ abstract class Message extends ProxyBase {
 
     parcel.writeString(msg);
 
-    await port.send(parcel);
+    port.send(parcel);
 
     late Parcel parcelReceived;
     while (true) {

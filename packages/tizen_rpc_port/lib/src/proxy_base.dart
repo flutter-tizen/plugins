@@ -3,8 +3,11 @@
 // found in the LICENSE file
 
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
+import 'package:flutter/services.dart';
+import 'package:tizen_interop/6.5/tizen.dart';
 import 'package:tizen_log/tizen_log.dart';
 
 import 'parcel.dart';
@@ -15,9 +18,23 @@ import 'rpc_port_method_channel.dart';
 abstract class ProxyBase {
   /// The constructor for this class.
   ProxyBase(this.appid, this.portName) {
-    _methodChannel.proxyCreate(appid, portName);
+    _handle = using((Arena arena) {
+      final Pointer<rpc_port_proxy_h> pProxy = arena();
+      final int ret = tizen.rpc_port_proxy_create(pProxy);
+      if (ret != 0) {
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
+      }
+
+      return pProxy.value;
+    });
+
     _finalizer.attach(this, this);
   }
+
+  late final rpc_port_proxy_h _handle;
 
   static const String _logTag = 'RPC_PORT';
 
@@ -26,7 +43,8 @@ abstract class ProxyBase {
 
   final Finalizer<ProxyBase> _finalizer =
       Finalizer<ProxyBase>((ProxyBase proxy) {
-    _methodChannel.proxyDestroy(proxy);
+    proxy._streamSubscription?.cancel();
+    tizen.rpc_port_proxy_destroy(proxy._handle);
   });
 
   /// The target stub application id.
@@ -41,7 +59,8 @@ abstract class ProxyBase {
   Future<void> _handleEvent(dynamic event) async {
     if (event is Map) {
       final Map<dynamic, dynamic> map = event;
-      if (map.containsKey('event')) {
+      final int handle = map['handle'] as int;
+      if (handle == _handle.address && map.containsKey('event')) {
         final String event = map['event'] as String;
         final String appid = map['receiver'] as String;
         final String portName = map['portName'] as String;
@@ -81,13 +100,27 @@ abstract class ProxyBase {
       throw Exception('Proxy $appid/$portName already connected to stub');
     }
 
-    final Stream<dynamic> stream = await _methodChannel.proxyConnect(this);
+    final Stream<dynamic> stream =
+        await _methodChannel.proxyConnect(_handle.address, appid, portName);
     _streamSubscription = stream.listen(_handleEvent);
   }
 
   /// Gets a port.
   Port getPort(PortType portType) {
-    return Port.fromStub(appid: appid, portName: portName, portType: portType);
+    return using((Arena arena) {
+      final Pointer<rpc_port_h> pPort = arena();
+      final int ret =
+          tizen.rpc_port_proxy_get_port(_handle, portType.index, pPort);
+
+      if (ret != 0) {
+        throw PlatformException(
+          code: ret.toString(),
+          message: tizen.get_error_message(ret).toDartString(),
+        );
+      }
+
+      return Port(pPort.value);
+    });
   }
 
   /// The abstract method for receiving connected event.
