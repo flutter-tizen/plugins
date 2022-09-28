@@ -9,30 +9,32 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart' hide Size;
 import 'package:tizen_interop/4.0/tizen.dart';
 
-/// Bundle is a string based Dictionary ADT.
-/// A dictionary is an ordered or unordered list of key element pairs,
-/// where keys are used to locate elements in the list.
+/// A string-based dictionary data type.
+///
+/// A dictionary is a collection of key-value pairs from which you can locate
+/// a value using its associated key. The key is always a [String]. The value
+/// must be either a [String], a list of [String]s, or a [Uint8List].
 class Bundle extends MapMixin<String, Object> {
-  /// Creates an instance of [Bundle].
+  /// Creates an empty [Bundle].
   Bundle() {
     _handle = tizen.bundle_create();
     _finalizer.attach(this, this, detach: this);
   }
 
-  /// Creates an instance of [Bundle] with the encoded bundle raw.
+  /// Creates a [Bundle] from the encoded bundle string.
   Bundle.decode(String raw) {
     _handle = tizen.bundle_decode(
         raw.toNativeInt8().cast<UnsignedChar>(), raw.length);
     _finalizer.attach(this, this, detach: this);
   }
 
-  /// Creates a copy of [Bundle] with the given bundle object.
+  /// Creates a copy of the given [bundle].
   Bundle.fromBundle(Bundle bundle) {
     _handle = tizen.bundle_dup(bundle._handle);
     _finalizer.attach(this, this, detach: this);
   }
 
-  /// Creates an instance of [Bundle] with the given map object.
+  /// Creates a [Bundle] from the given [map].
   factory Bundle.fromMap(Map<String, Object> map) {
     final Bundle bundle = Bundle();
     map.forEach((String key, Object value) => bundle[key] = value);
@@ -40,13 +42,18 @@ class Bundle extends MapMixin<String, Object> {
   }
 
   late final Pointer<bundle> _handle;
-  static final List<String> _keys = <String>[];
   static final Finalizer<Bundle> _finalizer =
       Finalizer<Bundle>((Bundle bundle) => tizen.bundle_free(bundle._handle));
 
-  static void _bundleIteratorCallback(Pointer<Char> pKey, int type,
-      Pointer<keyval_t> pKeyval, Pointer<Void> userData) {
-    _keys.add(pKey.toDartString());
+  static final List<String> _keys = <String>[];
+
+  static void _bundleIteratorCallback(
+    Pointer<Char> key,
+    int type,
+    Pointer<keyval_t> keyval,
+    Pointer<Void> userData,
+  ) {
+    _keys.add(key.toDartString());
   }
 
   /// The keys of this.
@@ -58,7 +65,16 @@ class Bundle extends MapMixin<String, Object> {
     return _keys;
   }
 
-  /// The value for the given key, or null if key is not in the Bundle.
+  @override
+  int get length => tizen.bundle_get_count(_handle);
+
+  @override
+  bool get isEmpty => length == 0;
+
+  @override
+  bool get isNotEmpty => length != 0;
+
+  /// The value for the given [key], or null if [key] is not in the bundle.
   @override
   Object? operator [](Object? key) {
     if (key == null) {
@@ -74,11 +90,10 @@ class Bundle extends MapMixin<String, Object> {
     } else if (type == bundle_type.BUNDLE_TYPE_BYTE) {
       value = _getBytes(key);
     }
-
     return value;
   }
 
-  /// Associates the key with the given value.
+  /// Associates the [key] with the given [value].
   @override
   void operator []=(String key, Object value) {
     if (this[key] != null) {
@@ -96,13 +111,13 @@ class Bundle extends MapMixin<String, Object> {
     }
   }
 
-  /// Removes all entries from the [Bundle].
+  /// Removes all entries from the bundle.
   @override
   void clear() {
     keys.forEach(remove);
   }
 
-  /// Removes [key] and its associated value, if present, from the [Bundle].
+  /// Removes [key] and its associated value, if present, from the bundle.
   @override
   void remove(Object? key) {
     if (key == null) {
@@ -120,65 +135,65 @@ class Bundle extends MapMixin<String, Object> {
 
   /// Encodes this object to String.
   String encode() {
-    final String raw = using((Arena arena) {
-      final Pointer<Pointer<Char>> rawPointer = arena<Pointer<Char>>();
-      final Pointer<Int> lengthPointer = arena<Int>();
+    return using((Arena arena) {
+      final Pointer<Pointer<Char>> raw = arena<Pointer<Char>>();
+      final Pointer<Int> length = arena<Int>();
       final int ret = tizen.bundle_encode(
-          _handle, rawPointer.cast<Pointer<UnsignedChar>>(), lengthPointer);
+          _handle, raw.cast<Pointer<UnsignedChar>>(), length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
 
-      return rawPointer.value.toDartString();
+      return raw.value.toDartString();
     });
-
-    return raw;
   }
 
   void _throwException(int ret) {
     throw PlatformException(
-        code: ret.toString(),
-        message: tizen.get_error_message(ret).toDartString());
+      code: ret.toString(),
+      message: tizen.get_error_message(ret).toDartString(),
+    );
   }
 
   void _addString(String key, String value) {
-    final int ret = using((Arena arena) {
-      return tizen.bundle_add_str(_handle, key.toNativeChar(allocator: arena),
-          value.toNativeChar(allocator: arena));
+    using((Arena arena) {
+      final int ret = tizen.bundle_add_str(
+        _handle,
+        key.toNativeChar(allocator: arena),
+        value.toNativeChar(allocator: arena),
+      );
+      if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
+        _throwException(ret);
+      }
     });
-    if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
-      _throwException(ret);
-    }
   }
 
   String _getString(String key) {
-    final String value = using((Arena arena) {
-      final Pointer<Pointer<Char>> pValue = arena<Pointer<Char>>();
+    return using((Arena arena) {
+      final Pointer<Pointer<Char>> string = arena<Pointer<Char>>();
       final int ret = tizen.bundle_get_str(
-          _handle, key.toNativeChar(allocator: arena), pValue);
+          _handle, key.toNativeChar(allocator: arena), string);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
 
-      return pValue.value.toDartString();
+      return string.value.toDartString();
     });
-
-    return value;
   }
 
   void _addStrings(String key, List<String> values) {
     using((Arena arena) {
-      final List<Pointer<Char>> pointerList = values
+      final List<Pointer<Char>> stringList = values
           .map((String str) => str.toNativeChar(allocator: arena))
           .toList();
-      final Pointer<Pointer<Char>> pointerArray =
-          arena<Pointer<Char>>(pointerList.length);
+      final Pointer<Pointer<Char>> stringArray =
+          arena<Pointer<Char>>(stringList.length);
       values.asMap().forEach((int index, String value) {
-        pointerArray[index] = pointerList[index];
+        stringArray[index] = stringList[index];
       });
 
       final int ret = tizen.bundle_add_str_array(_handle,
-          key.toNativeChar(allocator: arena), pointerArray, values.length);
+          key.toNativeChar(allocator: arena), stringArray, values.length);
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
@@ -186,24 +201,21 @@ class Bundle extends MapMixin<String, Object> {
   }
 
   List<String> _getStrings(String key) {
-    final List<String> values = using((Arena arena) {
-      final Pointer<Int> arraySize = arena<Int>();
+    return using((Arena arena) {
+      final Pointer<Int> length = arena<Int>();
       final Pointer<Pointer<Char>> stringArray = tizen.bundle_get_str_array(
-          _handle, key.toNativeChar(allocator: arena), arraySize);
+          _handle, key.toNativeChar(allocator: arena), length);
       final int ret = tizen.get_last_result();
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
 
       final List<String> strings = <String>[];
-      for (int index = 0; index < arraySize.value; ++index) {
+      for (int index = 0; index < length.value; ++index) {
         strings.add(stringArray[index].toDartString());
       }
-
       return strings;
     });
-
-    return values;
   }
 
   void _addBytes(String key, Uint8List bytes) {
@@ -214,10 +226,11 @@ class Bundle extends MapMixin<String, Object> {
       }
 
       final int ret = tizen.bundle_add_byte(
-          _handle,
-          key.toNativeChar(allocator: arena),
-          bytesArray.cast<Void>(),
-          bytes.length);
+        _handle,
+        key.toNativeChar(allocator: arena),
+        bytesArray.cast<Void>(),
+        bytes.length,
+      );
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
@@ -225,27 +238,25 @@ class Bundle extends MapMixin<String, Object> {
   }
 
   Uint8List _getBytes(String key) {
-    final Uint8List values = using((Arena arena) {
+    return using((Arena arena) {
       final Pointer<Pointer<Uint8>> bytes = arena<Pointer<Uint8>>();
-      final Pointer<Size> bytesSize = arena<Size>();
+      final Pointer<Size> size = arena<Size>();
       final int ret = tizen.bundle_get_byte(
-          _handle,
-          key.toNativeChar(allocator: arena),
-          bytes.cast<Pointer<Void>>(),
-          bytesSize);
+        _handle,
+        key.toNativeChar(allocator: arena),
+        bytes.cast<Pointer<Void>>(),
+        size,
+      );
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
 
-      final Uint8List byteList = Uint8List(bytesSize.value);
-      for (int index = 0; index < bytesSize.value; ++index) {
+      final Uint8List byteList = Uint8List(size.value);
+      for (int index = 0; index < size.value; ++index) {
         byteList[index] = bytes.value[index];
       }
-
       return byteList;
     });
-
-    return values;
   }
 
   int _getType(String key) {
