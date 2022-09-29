@@ -1,3 +1,7 @@
+## 1.0.5
+
+* Hold memory of StreamHandlerError's member to prevent crash
+
 ## 1.0.4
 
 * Resolve linter warnings.

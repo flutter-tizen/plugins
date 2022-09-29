@@ -1,3 +1,7 @@
+## 1.1.2
+
+* Hold memory of StreamHandlerError's member to prevent crash.
+
 ## 1.1.1
 
 * Update connectivity_plus to 2.3.0.
