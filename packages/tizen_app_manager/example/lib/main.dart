@@ -119,7 +119,7 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
   );
 
   late AppRunningContext _currentAppContext =
-      AppRunningContext(appId: 'com.example.tizen_app_manager_example');
+      AppRunningContext(appId: 'org.tizen.tizen_app_manager_example');
 
   @override
   void initState() {
