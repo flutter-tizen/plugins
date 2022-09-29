@@ -20,27 +20,20 @@ class BuildExamplesCommand extends PackageLoopingCommand {
   @override
   Future<PackageResult> runForPackage(RepositoryPackage package) async {
     final List<String> errors = <String>[];
-
-    int exitCode = await processRunner.runAndStream(
-      'flutter-tizen',
-      <String>['pub', 'get'],
-      workingDir: package.directory,
-    );
-    if (exitCode != 0) {
-      errors.add('${package.displayName} (pub get failed)');
-      return PackageResult.fail(errors);
-    }
-
     bool builtSomething = false;
     for (final RepositoryPackage example in package.getExamples()) {
-      final String packageName = getRelativePosixPath(
-        example.directory,
-        from: packagesDir,
+      int exitCode = await processRunner.runAndStream(
+        'flutter-tizen',
+        <String>['pub', 'get'],
+        workingDir: example.directory,
       );
+      if (exitCode != 0) {
+        errors.add('${example.displayName} (pub get failed)');
+        continue;
+      }
 
       builtSomething = true;
-      // TODO(HakkyuKim): Support different profiles.
-      final int exitCode = await processRunner.runAndStream(
+      exitCode = await processRunner.runAndStream(
         'flutter-tizen',
         <String>[
           'build',
@@ -52,21 +45,16 @@ class BuildExamplesCommand extends PackageLoopingCommand {
         workingDir: example.directory,
       );
       if (exitCode != 0) {
+        final String packageName = getRelativePosixPath(
+          example.directory,
+          from: packagesDir,
+        );
         errors.add(packageName);
       }
     }
 
     if (!builtSomething) {
       errors.add('No examples found');
-    }
-
-    exitCode = await processRunner.runAndStream(
-      'flutter-tizen',
-      <String>['clean'],
-      workingDir: package.directory,
-    );
-    if (exitCode != 0) {
-      logWarning('Failed to clean ${package.displayName} after build.');
     }
 
     return errors.isEmpty
