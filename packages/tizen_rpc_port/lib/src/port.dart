@@ -26,7 +26,7 @@ class Port {
   final rpc_port_h handle;
 
   /// Shares private files with other applications.
-  void shareFileList(List<String> paths) {
+  void shareFiles(List<String> paths) {
     using((Arena arena) {
       final Pointer<Pointer<Char>> pPaths =
           arena.allocate<Pointer<Char>>(paths.length);
