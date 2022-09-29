@@ -8,8 +8,6 @@ import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
 
-import 'parcel.dart';
-
 /// Enumeration for RPC port types.
 enum PortType {
   /// Main channel to communicate.
@@ -21,31 +19,11 @@ enum PortType {
 
 /// The class that proxy and stub can use to communicate with each other.
 class Port {
-  /// Constructor of this class.
-  Port(this._handle);
-
-  late final rpc_port_h _handle;
+  /// Constructor of this class from native handle.
+  Port.fromNativeHandle(this.handle);
 
   /// The native handle of this port.
-  rpc_port_h get handle => _handle;
-
-  /// Sends a parcel to the connected app.
-  void send(Parcel parcel) {
-    final int ret = tizen.rpc_port_parcel_send(parcel.handle, _handle);
-    if (ret != 0) {
-      throw PlatformException(
-        code: ret.toString(),
-        message: tizen.get_error_message(ret).toDartString(),
-      );
-    }
-  }
-
-  /// Receives a parcel from connected app.
-  /// This api should be used only guaranteed receive something after send().
-  // Future<Parcel> receive() async {
-  //   final Uint8List raw = await _methodChannel.portReceive(this);
-  //   return Parcel.fromRaw(raw);
-  // }
+  final rpc_port_h handle;
 
   /// Shares private files with other applications.
   void shareFileList(List<String> paths) {
@@ -58,7 +36,7 @@ class Port {
       }
 
       final int ret = tizen.rpc_port_set_private_sharing_array(
-          _handle, pPaths, paths.length);
+          handle, pPaths, paths.length);
 
       if (ret != 0) {
         throw PlatformException(
@@ -73,7 +51,7 @@ class Port {
   void shareFile(String path) {
     using((Arena arena) {
       final Pointer<Char> pPath = path.toNativeChar();
-      final int ret = tizen.rpc_port_set_private_sharing(_handle, pPath);
+      final int ret = tizen.rpc_port_set_private_sharing(handle, pPath);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -85,7 +63,7 @@ class Port {
 
   /// Unsets all shared files.
   void unshareFile() {
-    final int ret = tizen.rpc_port_unset_private_sharing(_handle);
+    final int ret = tizen.rpc_port_unset_private_sharing(handle);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -96,7 +74,7 @@ class Port {
 
   /// Disconnects the port.
   void disconnect() {
-    final int ret = tizen.rpc_port_disconnect(_handle);
+    final int ret = tizen.rpc_port_disconnect(handle);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),

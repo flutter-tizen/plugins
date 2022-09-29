@@ -119,7 +119,7 @@ abstract class ProxyBase {
         );
       }
 
-      return Port(pPort.value);
+      return Port.fromNativeHandle(pPort.value);
     });
   }
 

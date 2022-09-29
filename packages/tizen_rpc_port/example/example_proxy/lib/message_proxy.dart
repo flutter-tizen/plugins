@@ -187,7 +187,7 @@ abstract class Message extends ProxyBase {
     cb.serialize(parcel);
     _delegateList.add(cb);
 
-    port.send(parcel);
+    parcel.send(port);
 
     late Parcel parcelReceived;
     while (true) {
@@ -219,7 +219,7 @@ abstract class Message extends ProxyBase {
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.unregister.id);
 
-    port.send(parcel);
+    parcel.send(port);
   }
 
   /// This method is used to send 'Send' request to the stub app.
@@ -239,7 +239,7 @@ abstract class Message extends ProxyBase {
 
     parcel.writeString(msg);
 
-    port.send(parcel);
+    parcel.send(port);
 
     late Parcel parcelReceived;
     while (true) {

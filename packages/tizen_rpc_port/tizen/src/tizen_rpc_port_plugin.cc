@@ -109,7 +109,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
   void ProxyConnect(
       const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("Connect");
     rpc_port_proxy_h handle = nullptr;
     std::string appid;
     std::string port_name;
@@ -169,7 +168,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
   void StubListen(
       const flutter::EncodableValue* args,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-    LOG_DEBUG("StubListen");
     rpc_port_stub_h handle = nullptr;
 
     if (!GetValueFromArgs<int64_t>(args, "handle",

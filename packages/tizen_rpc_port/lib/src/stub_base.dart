@@ -67,8 +67,8 @@ abstract class StubBase {
   /// Adds a privilege which is required when the proxy connects this stub.
   void addPrivilege(String privilege) {
     using((Arena arena) {
-      final Pointer<Char> rPrivilege = privilege.toNativeChar(allocator: arena);
-      final int ret = tizen.rpc_port_stub_add_privilege(_handle, rPrivilege);
+      final Pointer<Char> pPrivilege = privilege.toNativeChar(allocator: arena);
+      final int ret = tizen.rpc_port_stub_add_privilege(_handle, pPrivilege);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -109,7 +109,7 @@ abstract class StubBase {
           final Parcel parcel = Parcel.fromRaw(rawData);
           await onReceivedEvent(sender, instance, parcel);
         } else {
-          Log.error(_logTag, 'Unknown event; $eventName');
+          Log.error(_logTag, 'Unknown event: $eventName');
         }
       }
     });
@@ -130,7 +130,7 @@ abstract class StubBase {
         );
       }
 
-      return Port(pPort.value);
+      return Port.fromNativeHandle(pPort.value);
     });
   }
 

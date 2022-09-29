@@ -3,9 +3,6 @@
 // found in the LICENSE file
 
 import 'package:flutter/services.dart';
-import 'package:tizen_log/tizen_log.dart';
-
-const String _logTag = 'RpcPortMethodChannel';
 
 // ignore_for_file: public_member_api_docs
 class MethodChannelRpcPort {
@@ -17,8 +14,6 @@ class MethodChannelRpcPort {
 
   Future<Stream<dynamic>> proxyConnect(
       int proxyPtr, String appid, String portName) async {
-    Log.info(_logTag,
-        'connect. ptr: ${proxyPtr.toRadixString(16)}, $appid/$portName');
     if (_stream == null) {
       const EventChannel eventChannel = EventChannel('tizen/rpc_port_proxy');
       _stream = eventChannel.receiveBroadcastStream();
@@ -35,7 +30,6 @@ class MethodChannelRpcPort {
   }
 
   Future<Stream<dynamic>> stubListen(int stubPtr) async {
-    Log.info(_logTag, 'listen. ptr: ${stubPtr.toRadixString(16)}');
     if (_stream == null) {
       const EventChannel eventChannel = EventChannel('tizen/rpc_port_stub');
       _stream = eventChannel.receiveBroadcastStream();
