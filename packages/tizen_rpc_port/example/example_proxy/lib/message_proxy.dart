@@ -2,11 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:tizen_log/tizen_log.dart';
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
-
-export 'package:meta/meta.dart' show nonVirtual;
 
 const String _logTag = 'RPC_PORT_PROXY';
 const String _tidlVersion = '1.9.1';

@@ -14,6 +14,8 @@ import 'parcel.dart';
 import 'port.dart';
 import 'rpc_port_method_channel.dart';
 
+export 'package:meta/meta.dart' show nonVirtual;
+
 /// The abstract class for creating a proxy class for RPC.
 abstract class ProxyBase {
   /// The constructor for this class.
