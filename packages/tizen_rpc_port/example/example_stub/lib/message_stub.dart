@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:tizen_log/tizen_log.dart';
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
+
+export 'package:meta/meta.dart' show nonVirtual;
 
 const String _logTag = 'RPC_PORT_STUB';
 const String _tidlVersion = '1.9.1';
@@ -160,6 +163,7 @@ abstract class Message extends StubBase {
   ServiceBase createInstance(String sender, String instance);
 
   @override
+  @nonVirtual
   Future<void> onConnectedEvent(String sender, String instance) async {
     Log.info(_logTag, 'sender: $sender, instance: $instance');
     final ServiceBase service = createInstance(sender, instance);
@@ -169,6 +173,7 @@ abstract class Message extends StubBase {
   }
 
   @override
+  @nonVirtual
   Future<void> onDisconnectedEvent(String sender, String instance) async {
     Log.info(_logTag, 'sender: $sender, instance: $instance');
     for (final ServiceBase service in services) {
@@ -228,6 +233,7 @@ abstract class Message extends StubBase {
   }
 
   @override
+  @nonVirtual
   Future<void> onReceivedEvent(
       String sender, String instance, Parcel parcel) async {
     Log.info(_logTag, 'sender: $sender, instance: $instance');

@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:tizen_log/tizen_log.dart';
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
+
+export 'package:meta/meta.dart' show nonVirtual;
 
 const String _logTag = 'RPC_PORT_PROXY';
 const String _tidlVersion = '1.9.1';
@@ -98,23 +101,27 @@ abstract class Message extends ProxyBase {
   Future<void> onRejected(String errorMessage);
 
   @override
+  @nonVirtual
   Future<void> onConnectedEvent() async {
     _online = true;
     await onConnected();
   }
 
   @override
+  @nonVirtual
   Future<void> onDisconnectedEvent() async {
     _online = false;
     await onDisconnected();
   }
 
   @override
+  @nonVirtual
   Future<void> onRejectedEvent(String errorMessage) async {
     await onRejected(errorMessage);
   }
 
   @override
+  @nonVirtual
   Future<void> onReceivedEvent(Parcel parcel) async {
     final int cmd = parcel.readInt32();
     if (cmd != _MethodId.callback.id) {
