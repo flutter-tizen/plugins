@@ -30,10 +30,7 @@ flutter::EncodableMap CreateEncodableMap(const char* event, const char* sender,
 
 }  // namespace
 
-RpcPortStubManager& RpcPortStubManager::GetInst() {
-  static RpcPortStubManager inst;
-  return inst;
-}
+EventSink RpcPortStubManager::event_sink_;
 
 void RpcPortStubManager::Init(EventSink sync) { event_sink_ = std::move(sync); }
 
@@ -84,8 +81,7 @@ void RpcPortStubManager::OnConnectedEvent(const char* sender,
   LOG_DEBUG("OnConnectedEvent. sender: %s, instance: %s", sender, instance);
   auto* stub = reinterpret_cast<rpc_port_stub_h>(user_data);
   auto map = CreateEncodableMap("connected", sender, instance, stub);
-  RpcPortStubManager::GetInst().event_sink_->Success(
-      std::move(flutter::EncodableValue(map)));
+  event_sink_->Success(std::move(flutter::EncodableValue(map)));
 }
 
 void RpcPortStubManager::OnDisconnectedEvent(const char* sender,
@@ -94,8 +90,7 @@ void RpcPortStubManager::OnDisconnectedEvent(const char* sender,
   LOG_DEBUG("OnDisconnectedEvent. sender: %s, instance: %s", sender, instance);
   auto* stub = reinterpret_cast<rpc_port_stub_h>(user_data);
   auto map = CreateEncodableMap("disconnected", sender, instance, stub);
-  RpcPortStubManager::GetInst().event_sink_->Success(
-      std::move(flutter::EncodableValue(map)));
+  event_sink_->Success(std::move(flutter::EncodableValue(map)));
 }
 
 int RpcPortStubManager::OnReceivedEvent(const char* sender,
@@ -120,8 +115,7 @@ int RpcPortStubManager::OnReceivedEvent(const char* sender,
   map[flutter::EncodableValue("rawData")] =
       flutter::EncodableValue(std::move(raw_data));
 
-  RpcPortStubManager::GetInst().event_sink_->Success(
-      std::move(flutter::EncodableValue(map)));
+  event_sink_->Success(std::move(flutter::EncodableValue(map)));
   return 0;
 }
 

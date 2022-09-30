@@ -134,8 +134,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
                   std::unique_ptr<flutter::EventSink<>>&& events)
                   -> std::unique_ptr<flutter::StreamHandlerError<>> {
                 LOG_DEBUG("OnListen event channel");
-                RpcPortProxyManager::GetInst().Init(std::move(events));
-                auto ret = RpcPortProxyManager::GetInst().Connect(handle, appid,
+                RpcPortProxyManager::Init(std::move(events));
+                auto ret = RpcPortProxyManager::Connect(handle, appid,
                                                                   port_name);
                 if (!ret) {
                   LOG_ERROR("connect failed.");
@@ -153,7 +153,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       proxy_channel_->SetStreamHandler(std::move(event_channel_handler));
     } else {
       auto ret =
-          RpcPortProxyManager::GetInst().Connect(handle, appid, port_name);
+          RpcPortProxyManager::Connect(handle, appid, port_name);
       if (!ret) {
         result->Error("connect failed.");
         return;
@@ -188,9 +188,9 @@ class TizenRpcPortPlugin : public flutter::Plugin {
                        std::unique_ptr<flutter::EventSink<>>&& events)
                   -> std::unique_ptr<flutter::StreamHandlerError<>> {
                 LOG_DEBUG("OnListen stub event channel:");
-                RpcPortStubManager::GetInst().Init(std::move(events));
+                RpcPortStubManager::Init(std::move(events));
 
-                auto ret = RpcPortStubManager::GetInst().Listen(handle);
+                auto ret = RpcPortStubManager::Listen(handle);
                 if (!ret) {
                   LOG_ERROR("connect failed.");
                 }
@@ -205,7 +205,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
 
       stub_channel_->SetStreamHandler(std::move(event_channel_handler));
     } else {
-      auto ret = RpcPortStubManager::GetInst().Listen(handle);
+      auto ret = RpcPortStubManager::Listen(handle);
       if (!ret) {
         result->Error("listen failed");
         return;

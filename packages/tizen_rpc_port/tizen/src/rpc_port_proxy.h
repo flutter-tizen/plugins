@@ -24,17 +24,12 @@ typedef std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> EventSink;
 
 class RpcPortProxyManager {
  public:
-  static RpcPortProxyManager& GetInst();
-  RpcPortProxyManager(const RpcPortProxyManager&) = delete;
-  RpcPortProxyManager& operator=(const RpcPortProxyManager&) = delete;
-
-  void Init(EventSink sync);
-  RpcPortResult Connect(rpc_port_proxy_h handle, const std::string& appid,
-                        const std::string& port_name);
+  static void Init(EventSink sync);
+  static RpcPortResult Connect(rpc_port_proxy_h handle,
+                               const std::string& appid,
+                               const std::string& port_name);
 
  private:
-  RpcPortProxyManager() = default;
-
   static void OnConnectedEvent(const char* receiver, const char* port_name,
                                rpc_port_h port, void* data);
   static void OnDisconnectedEvent(const char* receiver, const char* port_name,
@@ -45,7 +40,7 @@ class RpcPortProxyManager {
                               void* data);
 
  private:
-  EventSink event_sink_;
+  static EventSink event_sink_;
 };
 
 }  // namespace tizen

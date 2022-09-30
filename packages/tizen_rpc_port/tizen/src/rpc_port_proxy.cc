@@ -35,10 +35,7 @@ flutter::EncodableMap CreateEncodableMap(const char* event,
 
 }  // namespace
 
-RpcPortProxyManager& RpcPortProxyManager::GetInst() {
-  static RpcPortProxyManager inst;
-  return inst;
-}
+EventSink RpcPortProxyManager::event_sink_;
 
 void RpcPortProxyManager::Init(EventSink sync) {
   event_sink_ = std::move(sync);
@@ -90,12 +87,7 @@ void RpcPortProxyManager::OnConnectedEvent(const char* receiver,
 
   auto* proxy = static_cast<rpc_port_proxy_h>(data);
   auto map = CreateEncodableMap("connected", receiver, port_name, proxy);
-  while (GetInst().event_sink_ == nullptr) {
-    LOG_ERROR("Retry");
-    usleep(100 * 1000);
-  }
-
-  GetInst().event_sink_->Success(flutter::EncodableValue(map));
+  event_sink_->Success(flutter::EncodableValue(map));
 }
 
 void RpcPortProxyManager::OnDisconnectedEvent(const char* receiver,
@@ -110,7 +102,7 @@ void RpcPortProxyManager::OnDisconnectedEvent(const char* receiver,
 
   auto* proxy = static_cast<rpc_port_proxy_h>(data);
   auto map = CreateEncodableMap("disconnected", receiver, port_name, proxy);
-  GetInst().event_sink_->Success(flutter::EncodableValue(map));
+  event_sink_->Success(flutter::EncodableValue(map));
 }
 
 void RpcPortProxyManager::OnRejectedEvent(const char* receiver,
@@ -126,7 +118,7 @@ void RpcPortProxyManager::OnRejectedEvent(const char* receiver,
   auto map = CreateEncodableMap("rejected", receiver, port_name, proxy);
   map[flutter::EncodableValue("error")] =
       flutter::EncodableValue(get_error_message(get_last_result()));
-  GetInst().event_sink_->Success(flutter::EncodableValue(map));
+  event_sink_->Success(flutter::EncodableValue(map));
 }
 
 void RpcPortProxyManager::OnReceivedEvent(const char* receiver,
@@ -169,7 +161,7 @@ void RpcPortProxyManager::OnReceivedEvent(const char* receiver,
   map[flutter::EncodableValue("rawData")] =
       flutter::EncodableValue(std::move(raw_data));
 
-  GetInst().event_sink_->Success(std::move(flutter::EncodableValue(map)));
+  event_sink_->Success(std::move(flutter::EncodableValue(map)));
 }
 
 }  // namespace tizen

@@ -24,20 +24,14 @@ typedef std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> EventSink;
 
 class RpcPortStubManager {
  public:
-  static RpcPortStubManager& GetInst();
-  RpcPortStubManager(const RpcPortStubManager&) = delete;
-  RpcPortStubManager& operator=(const RpcPortStubManager&) = delete;
+  static void Init(EventSink sync);
 
-  void Init(EventSink sync);
-
-  RpcPortResult Listen(rpc_port_stub_h handle);
-  RpcPortResult AddPrivilege(rpc_port_stub_h handle,
-                             const std::string& privilege);
-  RpcPortResult SetTrusted(rpc_port_stub_h handle, const bool trusted);
+  static RpcPortResult Listen(rpc_port_stub_h handle);
+  static RpcPortResult AddPrivilege(rpc_port_stub_h handle,
+                                    const std::string& privilege);
+  static RpcPortResult SetTrusted(rpc_port_stub_h handle, const bool trusted);
 
  private:
-  RpcPortStubManager() = default;
-
   static void OnConnectedEvent(const char* sender, const char* instance,
                                void* user_data);
   static void OnDisconnectedEvent(const char* sender, const char* instance,
@@ -46,7 +40,7 @@ class RpcPortStubManager {
                              rpc_port_h port, void* user_data);
 
  private:
-  EventSink event_sink_;
+  static EventSink event_sink_;
 };
 
 }  // namespace tizen
