@@ -135,8 +135,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
                   -> std::unique_ptr<flutter::StreamHandlerError<>> {
                 LOG_DEBUG("OnListen event channel");
                 RpcPortProxyManager::Init(std::move(events));
-                auto ret = RpcPortProxyManager::Connect(handle, appid,
-                                                                  port_name);
+                auto ret =
+                    RpcPortProxyManager::Connect(handle, appid, port_name);
                 if (!ret) {
                   LOG_ERROR("connect failed.");
                 }
@@ -152,8 +152,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
 
       proxy_channel_->SetStreamHandler(std::move(event_channel_handler));
     } else {
-      auto ret =
-          RpcPortProxyManager::Connect(handle, appid, port_name);
+      auto ret = RpcPortProxyManager::Connect(handle, appid, port_name);
       if (!ret) {
         result->Error("connect failed.");
         return;

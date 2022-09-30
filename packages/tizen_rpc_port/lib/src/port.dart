@@ -61,7 +61,7 @@ class Port {
     });
   }
 
-  /// Unsets all shared files.
+  /// Unshares the private file.
   void unshareFile() {
     final int ret = tizen.rpc_port_unset_private_sharing(handle);
     if (ret != 0) {
