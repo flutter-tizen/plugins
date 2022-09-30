@@ -5,6 +5,8 @@
 import 'package:tizen_log/tizen_log.dart';
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
+// ignore_for_file: public_member_api_docs
+
 const String _logTag = 'RPC_PORT_STUB';
 const String _tidlVersion = '1.9.1';
 
@@ -26,16 +28,9 @@ enum _MethodId {
   final int id;
 }
 
-/// Abstract class for creating a [CallbackBase] class for RPC.
-abstract class CallbackBase extends Parcelable {
-  /// Constructor for this class.
-  CallbackBase(this._id, this._once) {
+abstract class _CallbackBase extends Parcelable {
+  _CallbackBase(this._id, this._once) {
     _seqId = _seqNum++;
-  }
-
-  /// Creating a [CallbackBase] class from the parcel.
-  CallbackBase.fromParcel(Parcel parcel) {
-    deserialize(parcel);
   }
 
   int _id = 0;
@@ -43,7 +38,6 @@ abstract class CallbackBase extends Parcelable {
   int _seqId = 0;
   static int _seqNum = 0;
 
-  /// Gets the tag.
   String get tag => '$_id::$_seqId';
 
   @override
@@ -61,59 +55,43 @@ abstract class CallbackBase extends Parcelable {
   }
 }
 
-/// Abstract class for creating a service base class for RPC.
 abstract class ServiceBase {
-  /// Constructor for this class.
   ServiceBase(this.sender, this.instance);
 
-  /// The client application ID.
   final String sender;
-
-  /// The client instance ID.
   final String instance;
 
-  /// The delegate port of the client.
   Port? _port;
 
-  /// Disconnects from the client application.
   Future<void> disconnect() async {
     _port?.disconnect();
     _port = null;
   }
 
-  /// This abstract method will be called when the client is connected.
   Future<void> onCreate();
 
-  /// This abstract method will be called when the client is disconnected.
   Future<void> onTerminate();
 
-  /// This abstract method will be called when the 'Register' request is delivered.
   Future<int> onRegister(String name, NotifyCB cb);
 
-  /// This abstract method will be called when the 'Unregister' request is delivered.
   Future<void> onUnregister();
 
-  /// This abstract method will be called when the 'Send' request is delivered.
   Future<int> onSend(String msg);
 }
 
-/// The 'NotifyCB class to invoke the delegate method.
-class NotifyCB extends CallbackBase {
-  /// Constructor for this class.
+class NotifyCB extends _CallbackBase {
   NotifyCB(this._port, this.service, {bool once = false})
       : super(_DelegateId.notifyCB.id, once);
 
   final Port? _port;
 
-  /// The client service.
   ServiceBase service;
   bool _valid = true;
 
-  /// Invokes the delegate method of the client.
   Future<void> invoke(String sender, String msg) async {
     if (_port == null) {
       Log.error(_logTag, 'port is null');
-      throw Exception('NotConnectedSocketException');
+      throw StateError('Must be connected first');
     }
 
     if (_once && !_valid) {
@@ -136,27 +114,22 @@ class NotifyCB extends CallbackBase {
   }
 }
 
-/// Abstract class for creating [Message] class for RPC.
 abstract class Message extends StubBase {
-  /// Constructor for this class.
   Message() : super('Message') {
     _methodHandlers[_MethodId.register.id] = _onRegisterMethod;
     _methodHandlers[_MethodId.unregister.id] = _onUnregisterMethod;
     _methodHandlers[_MethodId.send.id] = _onSendMethod;
   }
 
-  /// The indexable collection of [ServiceBase] class.
   List<ServiceBase> services = <ServiceBase>[];
   final Map<int, dynamic> _methodHandlers = <int, dynamic>{};
 
-  /// Listens to the requests for connections.
   @override
   Future<void> listen() async {
     Log.warn(_logTag, 'listen. portName: $portName');
     return await super.listen();
   }
 
-  /// Abstract method for creating an instance of the client.
   ServiceBase createInstance(String sender, String instance);
 
   @override
