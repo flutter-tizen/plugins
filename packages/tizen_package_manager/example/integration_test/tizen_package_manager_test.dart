@@ -15,7 +15,7 @@ void main() {
     // These test are based on the example app.
     final PackageInfo info =
         await PackageManager.getPackageInfo(currentPackageId);
-    expect(info.packageId, 'com.example.tizen_package_manager_example');
+    expect(info.packageId, 'org.tizen.tizen_package_manager_example');
     expect(info.label, 'tizen_package_manager_example');
     expect(info.packageType, PackageType.tpk);
     expect(info.version, '1.0.0');

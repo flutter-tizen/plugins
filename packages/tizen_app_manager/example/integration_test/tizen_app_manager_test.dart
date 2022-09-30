@@ -13,9 +13,9 @@ void main() {
   testWidgets('Can get current app info', (WidgetTester tester) async {
     // These test are based on the example app.
     final String appId = await AppManager.currentAppId;
-    expect(appId, 'com.example.tizen_app_manager_example');
+    expect(appId, 'org.tizen.tizen_app_manager_example');
     final AppInfo appInfo = await AppManager.getAppInfo(appId);
-    expect(appInfo.packageId, 'com.example.tizen_app_manager_example');
+    expect(appInfo.packageId, 'org.tizen.tizen_app_manager_example');
     expect(appInfo.label, 'tizen_app_manager_example');
     expect(appInfo.appType, 'dotnet');
   });

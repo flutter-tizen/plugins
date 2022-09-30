@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="org.tizen.geolocator_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
     <profile name="wearable"/>
-    <ui-application appid="org.tizen.geolocator_example" exec="Runner.dll" type="dotnet" multiple="false" nodisplay="false" taskmanage="true" api-version="4">
+    <ui-application appid="org.tizen.geolocator_example" exec="Runner.dll" type="dotnet" multiple="false" nodisplay="false" taskmanage="true">
         <label>geolocator_example</label>
         <icon>ic_launcher.png</icon>
         <metadata key="http://tizen.org/metadata/prefer_dotnet_aot" value="true"/>
