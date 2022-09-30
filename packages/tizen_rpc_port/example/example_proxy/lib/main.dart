@@ -27,11 +27,11 @@ class MyApp extends StatefulWidget {
 
 String _msg = '';
 
-class MyNotify extends NotifyCB {
+class MyNotify extends NotifyCallback {
   @override
-  Future<void> onReceived(String sender, String msg) async {
-    Log.info(_logTag, 'onReceived $sender: $msg');
-    _msg = '$sender: $msg';
+  Future<void> onReceived(String sender, String message) async {
+    Log.info(_logTag, 'onReceived $sender: $message');
+    _msg = '$sender: $message';
   }
 }
 

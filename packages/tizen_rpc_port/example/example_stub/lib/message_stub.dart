@@ -2,16 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:tizen_log/tizen_log.dart';
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
 // ignore_for_file: public_member_api_docs
 
-const String _logTag = 'RPC_PORT_STUB';
 const String _tidlVersion = '1.9.1';
 
 enum _DelegateId {
-  notifyCB(1);
+  notifyCallback(1);
 
   const _DelegateId(this.id);
   final int id;
@@ -29,29 +27,29 @@ enum _MethodId {
 }
 
 abstract class _CallbackBase extends Parcelable {
-  _CallbackBase(this._id, this._once) {
-    _seqId = _seqNum++;
+  _CallbackBase(this.id, this.once) {
+    seqId = _seqNum++;
   }
 
-  int _id = 0;
-  bool _once = false;
-  int _seqId = 0;
+  int id = 0;
+  bool once = false;
+  int seqId = 0;
   static int _seqNum = 0;
 
-  String get tag => '$_id::$_seqId';
+  String get tag => '$id::$seqId';
 
   @override
   void serialize(Parcel parcel) {
-    parcel.writeInt32(_id);
-    parcel.writeInt32(_seqId);
-    parcel.writeBool(_once);
+    parcel.writeInt32(id);
+    parcel.writeInt32(seqId);
+    parcel.writeBool(once);
   }
 
   @override
   void deserialize(Parcel parcel) {
-    _id = parcel.readInt32();
-    _seqId = parcel.readInt32();
-    _once = parcel.readBool();
+    id = parcel.readInt32();
+    seqId = parcel.readInt32();
+    once = parcel.readBool();
   }
 }
 
@@ -72,30 +70,27 @@ abstract class ServiceBase {
 
   Future<void> onTerminate();
 
-  Future<int> onRegister(String name, NotifyCB cb);
+  Future<int> onRegister(String name, NotifyCallback cb);
 
   Future<void> onUnregister();
 
-  Future<int> onSend(String msg);
+  Future<int> onSend(String message);
 }
 
-class NotifyCB extends _CallbackBase {
-  NotifyCB(this._port, this.service, {bool once = false})
-      : super(_DelegateId.notifyCB.id, once);
-
+class NotifyCallback extends _CallbackBase {
+  NotifyCallback(this._port, this.service, {bool once = false})
+      : super(_DelegateId.notifyCallback.id, once);
   final Port? _port;
 
   ServiceBase service;
   bool _valid = true;
 
-  Future<void> invoke(String sender, String msg) async {
+  Future<void> invoke(String sender, String message) async {
     if (_port == null) {
-      Log.error(_logTag, 'port is null');
       throw StateError('Must be connected first');
     }
 
-    if (_once && !_valid) {
-      Log.error(_logTag, 'invalid');
+    if (once && !_valid) {
       throw Exception('InvalidCallbackException');
     }
 
@@ -104,7 +99,7 @@ class NotifyCB extends _CallbackBase {
     serialize(parcel);
 
     parcel.writeString(sender);
-    parcel.writeString(msg);
+    parcel.writeString(message);
 
     if (_port != null) {
       parcel.send(_port!);
@@ -126,7 +121,6 @@ abstract class Message extends StubBase {
 
   @override
   Future<void> listen() async {
-    Log.warn(_logTag, 'listen. portName: $portName');
     return await super.listen();
   }
 
@@ -135,7 +129,6 @@ abstract class Message extends StubBase {
   @override
   @nonVirtual
   Future<void> onConnectedEvent(String sender, String instance) async {
-    Log.info(_logTag, 'sender: $sender, instance: $instance');
     final ServiceBase service = createInstance(sender, instance);
     service._port = getPort(instance, PortType.callback);
     await service.onCreate();
@@ -145,7 +138,6 @@ abstract class Message extends StubBase {
   @override
   @nonVirtual
   Future<void> onDisconnectedEvent(String sender, String instance) async {
-    Log.info(_logTag, 'sender: $sender, instance: $instance');
     for (final ServiceBase service in services) {
       if (service.instance == instance) {
         await service.onTerminate();
@@ -157,12 +149,11 @@ abstract class Message extends StubBase {
 
   Future<void> _onRegisterMethod(
       ServiceBase service, Port port, Parcel parcel) async {
-    Log.info(_logTag, 'Register');
     final String name = parcel.readString();
-    final NotifyCB cb = NotifyCB(service._port, service);
-    cb.deserialize(parcel);
+    final NotifyCallback callback = NotifyCallback(service._port, service);
+    callback.deserialize(parcel);
 
-    final int ret = await service.onRegister(name, cb);
+    final int ret = await service.onRegister(name, callback);
 
     final Parcel result = Parcel();
     final ParcelHeader header = parcel.header;
@@ -178,17 +169,13 @@ abstract class Message extends StubBase {
 
   Future<void> _onUnregisterMethod(
       ServiceBase service, Port port, Parcel parcel) async {
-    Log.info(_logTag, 'Unregister');
-
     service.onUnregister();
   }
 
   Future<void> _onSendMethod(
       ServiceBase service, Port port, Parcel parcel) async {
-    Log.info(_logTag, 'Send');
-    final String msg = parcel.readString();
-
-    final int ret = await service.onSend(msg);
+    final String message = parcel.readString();
+    final int ret = await service.onSend(message);
 
     final Parcel result = Parcel();
     final ParcelHeader header = parcel.header;
@@ -206,7 +193,6 @@ abstract class Message extends StubBase {
   @nonVirtual
   Future<void> onReceivedEvent(
       String sender, String instance, Parcel parcel) async {
-    Log.info(_logTag, 'sender: $sender, instance: $instance');
     ServiceBase? service;
     for (final ServiceBase s in services) {
       if (s.instance == instance) {
@@ -216,7 +202,6 @@ abstract class Message extends StubBase {
     }
 
     if (service == null) {
-      Log.error(_logTag, 'service is null');
       return;
     }
 
@@ -224,8 +209,6 @@ abstract class Message extends StubBase {
     final int cmd = parcel.readInt32();
     if (_methodHandlers.containsKey(cmd)) {
       await _methodHandlers[cmd](service, port, parcel);
-    } else {
-      Log.error(_logTag, 'Unknown cmd: $cmd');
     }
   }
 }

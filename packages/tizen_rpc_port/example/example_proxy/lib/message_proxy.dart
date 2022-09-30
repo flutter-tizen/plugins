@@ -2,16 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:tizen_log/tizen_log.dart';
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
 // ignore_for_file: public_member_api_docs
 
-const String _logTag = 'RPC_PORT_PROXY';
 const String _tidlVersion = '1.9.1';
 
 enum _DelegateId {
-  notifyCB(1);
+  notifyCallback(1);
 
   const _DelegateId(this.id);
   final int id;
@@ -57,17 +55,18 @@ abstract class _CallbackBase extends Parcelable {
   }
 }
 
-abstract class NotifyCB extends _CallbackBase {
-  NotifyCB({bool once = false}) : super(_DelegateId.notifyCB.id, once);
+abstract class NotifyCallback extends _CallbackBase {
+  NotifyCallback({bool once = false})
+      : super(_DelegateId.notifyCallback.id, once);
 
-  Future<void> onReceived(String sender, String msg);
+  Future<void> onReceived(String sender, String message);
 
   @override
   Future<void> _onReceivedEvent(Parcel parcel) async {
     final String sender = parcel.readString();
-    final String msg = parcel.readString();
+    final String message = parcel.readString();
 
-    await onReceived(sender, msg);
+    await onReceived(sender, message);
   }
 }
 
@@ -131,30 +130,26 @@ abstract class Message extends ProxyBase {
       final Parcel parcel = Parcel.fromPort(port);
       final int cmd = parcel.readInt32();
 
-      if (cmd != _MethodId.result.id)
-        Log.error(_logTag, 'Received parcel cmd: $cmd');
+      if (cmd != _MethodId.result.id) {
+        throw Exception('Received parcel is invalid. $cmd');
+      }
 
       return parcel;
     } catch (e) {
-      Log.error(_logTag, e.toString());
       return Parcel();
     }
   }
 
   @override
   Future<void> connect() async {
-    Log.info(_logTag, 'connect()');
     await super.connect();
   }
 
   void disposeCallback(String tag) {
-    Log.info(_logTag, 'disposeCallback($tag)');
     _delegateList.removeWhere((_CallbackBase element) => element.tag == tag);
   }
 
-  Future<int> register(String name, NotifyCB cb) async {
-    Log.info(_logTag, 'Register');
-
+  Future<int> register(String name, NotifyCallback cb) async {
     if (!_online) {
       throw StateError('Must be connected first');
     }
@@ -187,8 +182,6 @@ abstract class Message extends ProxyBase {
   }
 
   Future<void> unregister() async {
-    Log.info(_logTag, 'Unregister');
-
     if (!_online) {
       throw StateError('Must be connected first');
     }
@@ -203,9 +196,7 @@ abstract class Message extends ProxyBase {
     parcel.send(port);
   }
 
-  Future<int> send(String msg) async {
-    Log.info(_logTag, 'Send');
-
+  Future<int> send(String message) async {
     if (!_online) {
       throw StateError('Must be connected first');
     }
@@ -217,7 +208,7 @@ abstract class Message extends ProxyBase {
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.send.id);
 
-    parcel.writeString(msg);
+    parcel.writeString(message);
 
     parcel.send(port);
 
