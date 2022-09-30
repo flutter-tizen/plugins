@@ -5,18 +5,18 @@
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:tizen_app_control/tizen_app_control.dart';
 import 'package:tizen_app_manager/tizen_app_manager.dart';
 
 /// The settings app ID.
-const String settingAppId = 'org.tizen.setting';
+const String settingsAppId = 'org.tizen.setting';
 
 /// The wearable emulator settings app ID.
-const String wearbleSettingAppId = 'org.tizen.watch-setting';
+const String wearableSettingsAppId = 'org.tizen.watch-setting';
 
 /// The tv emulator volume setting app ID.
 const String tvVolumeSettingAppId = 'org.tizen.volume-setting';
@@ -25,69 +25,45 @@ void main() {
   runApp(const MyApp());
 }
 
-/// The main app widget.
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Application manager demo',
+      title: 'App Manager Demo',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const _MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
 
-class _MyHomePage extends StatefulWidget {
-  const _MyHomePage({Key? key}) : super(key: key);
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<_MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Application manager demo')),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('App Manager Demo'),
+          bottom: const TabBar(tabs: <Tab>[
+            Tab(text: 'This app'),
+            Tab(text: 'App list'),
+            Tab(text: 'App events'),
+          ]),
+        ),
+        body: const TabBarView(
           children: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<Object>(
-                      builder: (BuildContext context) =>
-                          const _CurrentAppScreen()),
-                );
-              },
-              child: const Text('Current application info'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<Object>(
-                      builder: (BuildContext context) =>
-                          const _AppsListScreen()),
-                );
-              },
-              child: const Text('Installed applications list'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<Object>(
-                      builder: (BuildContext context) =>
-                          const _AppsEventScreen()),
-                );
-              },
-              child: const Text('Application event listener'),
-            ),
+            _CurrentAppScreen(),
+            _AppListScreen(),
+            _AppEventsScreen(),
           ],
         ),
       ),
@@ -95,174 +71,122 @@ class _MyHomePageState extends State<_MyHomePage> {
   }
 }
 
-/// The current application info page widget.
 class _CurrentAppScreen extends StatefulWidget {
   const _CurrentAppScreen({Key? key}) : super(key: key);
 
   @override
-  _CurrentAppScreenState createState() => _CurrentAppScreenState();
+  State<_CurrentAppScreen> createState() => _CurrentAppScreenState();
 }
 
 class _CurrentAppScreenState extends State<_CurrentAppScreen> {
-  String _appId = 'Unknown';
-
-  AppInfo _appInfo = AppInfo(
-    appId: '',
-    packageId: '',
-    label: '',
-    appType: '',
-    iconPath: '',
-    executablePath: '',
-    sharedResourcePath: '',
-    isNoDisplay: false,
-    metadata: <String, String>{},
-  );
-
-  late AppRunningContext _currentAppContext =
-      AppRunningContext(appId: 'org.tizen.tizen_app_manager_example');
-
-  @override
-  void initState() {
-    super.initState();
-
-    _initApplicationsInfo();
-  }
-
-  Future<void> _initApplicationsInfo() async {
-    String appId;
-    AppInfo? appInfo;
-    AppRunningContext? currentAppContext;
-
-    // Platform messages may fail, so we use a try/catch.
-    try {
-      appId = await AppManager.currentAppId;
-      appInfo = await AppManager.getAppInfo(appId);
-      currentAppContext = AppRunningContext(appId: appId);
-    } on PlatformException {
-      appId = 'Fail to get current app ID';
-    }
-
-    setState(() {
-      _appId = appId;
-      if (appInfo != null) {
-        _appInfo = appInfo;
-      }
-
-      if (currentAppContext != null) {
-        _currentAppContext = currentAppContext;
-      }
-    });
-  }
+  final Future<AppInfo> _appInfo = () async {
+    final String appId = await AppManager.currentAppId;
+    return await AppManager.getAppInfo(appId);
+  }();
 
   Widget _infoTile(String title, String subtitle) {
-    return ListTile(
-      title: Text(title),
-      subtitle: Text(subtitle.isNotEmpty ? subtitle : 'Not set'),
-    );
+    return ListTile(title: Text(title), subtitle: Text(subtitle));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Current application info')),
-      body: ListView(
-        children: <Widget>[
-          _infoTile('App ID', _appId),
-          _infoTile('Package ID', _appInfo.packageId),
-          _infoTile('Label', _appInfo.label),
-          _infoTile('Application type', _appInfo.appType),
-          _infoTile('Execuatable path', _appInfo.executablePath),
-          _infoTile('Shared res path', _appInfo.sharedResourcePath),
-          _infoTile('Metadata', _appInfo.metadata.toString()),
-          _infoTile('Terminated', _currentAppContext.isTerminated.toString()),
-          _infoTile('Process ID', _currentAppContext.processId.toString()),
-          _infoTile('State', _currentAppContext.appState.toString()),
-        ],
-      ),
-    );
-  }
-}
-
-/// The installed applications' information page widget.
-class _AppsListScreen extends StatefulWidget {
-  const _AppsListScreen({Key? key}) : super(key: key);
-
-  @override
-  _AppsListScreenState createState() => _AppsListScreenState();
-}
-
-class _AppsListScreenState extends State<_AppsListScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Applications list')),
-      body: _AppsListScreenContent(key: GlobalKey()),
-    );
-  }
-}
-
-class _AppsListScreenContent extends StatelessWidget {
-  const _AppsListScreenContent({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<AppInfo>>(
-      future: AppManager.getInstalledApps(),
-      builder: (BuildContext context, AsyncSnapshot<List<AppInfo>> snapshot) {
-        if (snapshot.data == null) {
-          return const Center(child: CircularProgressIndicator());
-        } else {
-          final List<AppInfo> apps = snapshot.data!;
-
-          return Scrollbar(
-            child: ListView.builder(
-              itemBuilder: (BuildContext context, int position) {
-                final AppInfo app = apps[position];
-                return Column(
-                  children: <Widget>[
-                    ListTile(
-                      title: Text(app.label),
-                      subtitle: Text('Package Id: ${app.packageId}\n'
-                          'App type: ${app.appType}\n'),
-                    ),
-                    const Divider(height: 1.0)
-                  ],
-                );
-              },
-              itemCount: apps.length,
-            ),
+    return FutureBuilder<AppInfo>(
+      future: _appInfo,
+      builder: (BuildContext context, AsyncSnapshot<AppInfo> snapshot) {
+        if (snapshot.hasData) {
+          final AppInfo appInfo = snapshot.data!;
+          final AppRunningContext appContext =
+              AppRunningContext(appId: appInfo.appId);
+          return ListView(
+            children: <Widget>[
+              _infoTile('App ID', appInfo.appId),
+              _infoTile('Package ID', appInfo.packageId),
+              _infoTile('Label', appInfo.label),
+              _infoTile('Type', appInfo.appType),
+              _infoTile('Execuatable path', appInfo.executablePath),
+              _infoTile('Shared resource path', appInfo.sharedResourcePath),
+              _infoTile('Metadata', appInfo.metadata.toString()),
+              _infoTile('Process ID', appContext.processId.toString()),
+              _infoTile('State', appContext.appState.name),
+            ],
           );
+        } else {
+          return const Center(child: CircularProgressIndicator());
         }
       },
     );
   }
 }
 
-/// Represents application event, app ID, and process ID.
-class _AppEventContext {
-  _AppEventContext({
+class _AppListScreen extends StatefulWidget {
+  const _AppListScreen({Key? key}) : super(key: key);
+
+  @override
+  State<_AppListScreen> createState() => _AppListScreenState();
+}
+
+class _AppListScreenState extends State<_AppListScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<AppInfo>>(
+      future: AppManager.getInstalledApps(),
+      builder: (BuildContext context, AsyncSnapshot<List<AppInfo>> snapshot) {
+        if (snapshot.hasData) {
+          final List<AppInfo> apps = snapshot.data!;
+          return ListView.builder(
+            itemCount: apps.length,
+            itemBuilder: (BuildContext context, int index) {
+              final AppInfo appInfo = apps[index];
+              Widget appIcon = const Icon(Icons.error_outline);
+              if (appInfo.iconPath != null) {
+                final File iconFile = File(appInfo.iconPath!);
+                if (iconFile.existsSync()) {
+                  appIcon = Image.file(iconFile);
+                }
+              }
+              return ListTile(
+                leading: SizedBox(width: 30, child: appIcon),
+                title: Text(appInfo.label),
+                subtitle: Text(appInfo.packageId),
+                trailing: Text(
+                  appInfo.appType,
+                  style: Theme.of(context).textTheme.caption,
+                ),
+              );
+            },
+          );
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
+    );
+  }
+}
+
+class _AppEvent {
+  _AppEvent({
     required this.event,
     required this.appId,
     required this.processId,
   });
+
   final String event;
   final String appId;
   final int processId;
 }
 
-/// The application event page widget.
-class _AppsEventScreen extends StatefulWidget {
-  const _AppsEventScreen({Key? key}) : super(key: key);
+class _AppEventsScreen extends StatefulWidget {
+  const _AppEventsScreen({Key? key}) : super(key: key);
 
   @override
-  _AppsEventScreenState createState() => _AppsEventScreenState();
+  State<_AppEventsScreen> createState() => _AppEventsScreenState();
 }
 
-class _AppsEventScreenState extends State<_AppsEventScreen> {
-  final List<_AppEventContext> _events = <_AppEventContext>[];
-  final List<StreamSubscription<AppRunningContext>> _subscriptions =
-      <StreamSubscription<AppRunningContext>>[];
-  String _appId = settingAppId;
+class _AppEventsScreenState extends State<_AppEventsScreen> {
+  late final StreamSubscription<AppRunningContext>? _launchSubscription;
+  late final StreamSubscription<AppRunningContext>? _terminateSubscription;
+  final List<_AppEvent> _appEvents = <_AppEvent>[];
+  String _settingsAppId = settingsAppId;
 
   @override
   void initState() {
@@ -270,82 +194,26 @@ class _AppsEventScreenState extends State<_AppsEventScreen> {
 
     _getDeviceInfo();
 
-    _subscriptions
-        .add(AppManager.onAppLaunched.listen((AppRunningContext event) {
+    _launchSubscription =
+        AppManager.onAppLaunched.listen((AppRunningContext context) {
       setState(() {
-        _events.add(_AppEventContext(
-          event: 'launched',
-          appId: event.appId,
-          processId: event.processId,
+        _appEvents.add(_AppEvent(
+          event: 'Launched',
+          appId: context.appId,
+          processId: context.processId,
         ));
       });
-    }));
-    _subscriptions
-        .add(AppManager.onAppTerminated.listen((AppRunningContext event) {
+    });
+    _terminateSubscription =
+        AppManager.onAppTerminated.listen((AppRunningContext context) {
       setState(() {
-        _events.add(_AppEventContext(
-          event: 'terminated',
-          appId: event.appId,
-          processId: event.processId,
+        _appEvents.add(_AppEvent(
+          event: 'Terminated',
+          appId: context.appId,
+          processId: context.processId,
         ));
       });
-    }));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final PageController controller = PageController();
-    return Scaffold(
-      appBar: AppBar(title: const Text('application context events')),
-      body: PageView(
-        controller: controller,
-        children: <Widget>[
-          Center(
-            child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-              ElevatedButton(
-                onPressed: () async {
-                  try {
-                    final AppControl appControl = AppControl(appId: _appId);
-                    await appControl.sendLaunchRequest();
-                  } catch (e) {
-                    // ignore: avoid_print
-                    print('$_appId launch request failed : $e');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                child: Text('launch $_appId'),
-              ),
-            ]),
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: <Widget>[
-              Visibility(
-                visible: _events.isNotEmpty,
-                child: _EventsList(events: _events),
-              ),
-              Visibility(
-                visible: _events.isEmpty,
-                child: const _EmptyList(),
-              )
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    for (final StreamSubscription<AppRunningContext> subscription
-        in _subscriptions) {
-      subscription.cancel();
-    }
-    _subscriptions.clear();
-    super.dispose();
+    });
   }
 
   Future<void> _getDeviceInfo() async {
@@ -353,60 +221,51 @@ class _AppsEventScreenState extends State<_AppsEventScreen> {
     final TizenDeviceInfo tizenInfo = await deviceInfo.tizenInfo;
     setState(() {
       if (tizenInfo.profile == 'tv') {
-        _appId = tvVolumeSettingAppId;
+        _settingsAppId = tvVolumeSettingAppId;
       } else if (tizenInfo.profile == 'wearable') {
-        _appId = wearbleSettingAppId;
+        _settingsAppId = wearableSettingsAppId;
       }
     });
   }
-}
-
-class _EventsList extends StatelessWidget {
-  const _EventsList({required List<_AppEventContext> events})
-      : _events = events;
-
-  final Iterable<_AppEventContext> _events;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scrollbar(
-      child: ListView.builder(
-        itemBuilder: (BuildContext context, int position) {
-          return KeyedSubtree(
-              key: Key('$position'),
-              child: _AppContext(appEventContext: _events.elementAt(position)));
-        },
-        itemCount: _events.length,
-      ),
-    );
-  }
-}
-
-class _AppContext extends StatelessWidget {
-  const _AppContext({required this.appEventContext});
-
-  final _AppEventContext appEventContext;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        ListTile(
-          title: Text(appEventContext.appId),
-          subtitle: Text(
-              'event: ${appEventContext.event}, pid: ${appEventContext.processId}'),
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: ElevatedButton(
+            onPressed: () {
+              AppControl(appId: _settingsAppId).sendLaunchRequest();
+            },
+            child: Text('Launch $_settingsAppId'),
+          ),
         ),
-        const Divider()
+        Expanded(
+          child: ListView.builder(
+            itemCount: _appEvents.length,
+            itemBuilder: (BuildContext context, int index) {
+              final _AppEvent event = _appEvents.elementAt(index);
+              return ListTile(
+                title: Text(event.appId),
+                subtitle: Text('Process ID: ${event.processId}'),
+                trailing: Text(
+                  event.event,
+                  style: Theme.of(context).textTheme.caption,
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
-}
-
-class _EmptyList extends StatelessWidget {
-  const _EmptyList();
 
   @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('No event yet!'));
+  void dispose() {
+    super.dispose();
+    _launchSubscription?.cancel();
+    _terminateSubscription?.cancel();
   }
 }
