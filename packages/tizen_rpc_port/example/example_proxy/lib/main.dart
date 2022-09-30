@@ -25,25 +25,25 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-String _msg = '';
+String _message = '';
 
 class MyNotify extends NotifyCallback {
   @override
   Future<void> onReceived(String sender, String message) async {
     Log.info(_logTag, 'onReceived $sender: $message');
-    _msg = '$sender: $message';
+    _message = '$sender: $message';
   }
 }
 
 class MyMessageProxy extends Message {
   MyMessageProxy(super.appid);
 
-  String get msg => _msg;
-  set msg(String msg) => _msg = msg;
+  String get message => _message;
+  set message(String message) => _message = message;
 
   @override
   Future<void> onConnected() async {
-    _msg = 'onConnected';
+    _message = 'onConnected';
     Log.info(_logTag, 'onConnected');
     print('onConnected');
 
@@ -52,18 +52,18 @@ class MyMessageProxy extends Message {
 
   @override
   Future<void> onDisconnected() async {
-    _msg = 'onDisconnected';
+    _message = 'onDisconnected';
     Log.info(_logTag, 'onDisconnected');
     print('onDisconnected');
-    // await connect();
+    await connect();
   }
 
   @override
   Future<void> onRejected(String errorMessage) async {
-    _msg = 'onRejected';
+    _message = 'onRejected';
     Log.info(_logTag, 'onRejected. error($errorMessage)');
     print('onRejected. error($errorMessage)');
-    // await connect();
+    await connect();
   }
 }
 
@@ -82,7 +82,7 @@ class _MyAppState extends State<MyApp> {
       _myProxy = MyMessageProxy('com.example.tizen_rpc_port_stub_example');
       await _myProxy.connect();
     } on PlatformException {
-      _msg = 'Failed to get platform version.';
+      _message = 'Failed to get platform version.';
     }
 
     if (!mounted) {
@@ -90,7 +90,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     setState(() {
-      _msg = _myProxy.msg;
+      _message = _myProxy.message;
     });
   }
 
@@ -99,7 +99,7 @@ class _MyAppState extends State<MyApp> {
     Future<void>.delayed(
         const Duration(seconds: 1),
         () => setState(() {
-              Log.info(_logTag, 'received message: $_msg');
+              Log.info(_logTag, 'received message: $_message');
             }));
   }
 
@@ -114,7 +114,7 @@ class _MyAppState extends State<MyApp> {
             child: Column(children: <Widget>[
               Padding(
                 padding: const EdgeInsets.fromLTRB(0.0, 50.0, 0.0, 50.0),
-                child: Text('Message: $_msg\n'),
+                child: Text('Message: $_message\n'),
               ),
               TextField(
                   onChanged: (String text) => setState(() => _input = text),
