@@ -21,7 +21,7 @@ class Service extends ServiceBase {
   Service(super.sender, super.instance);
 
   String _name = '';
-  NotifyCallback? _cb;
+  NotifyCallback? _callback;
 
   @override
   Future<void> onCreate() async {
@@ -34,24 +34,24 @@ class Service extends ServiceBase {
   }
 
   @override
-  Future<int> onRegister(String name, NotifyCallback cb) async {
+  Future<int> onRegister(String name, NotifyCallback callback) async {
     Log.info(_logTag, 'register. instance: $instance, name: $name');
     _name = name;
-    _cb = cb;
+    _callback = callback;
     return 0;
   }
 
   @override
   Future<int> onSend(String message) async {
     Log.info(_logTag, 'send. instance: $instance, msg: $message');
-    _cb?.invoke(_name, message);
+    _callback?.invoke(_name, message);
     return 0;
   }
 
   @override
   Future<void> onUnregister() async {
     Log.info(_logTag, 'unregister. instance: $instance');
-    _cb = null;
+    _callback = null;
   }
 }
 

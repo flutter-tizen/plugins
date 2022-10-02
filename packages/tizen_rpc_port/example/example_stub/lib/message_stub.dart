@@ -28,27 +28,27 @@ enum _MethodId {
 
 abstract class _CallbackBase extends Parcelable {
   _CallbackBase(this.id, this.once) {
-    seqId = _seqNum++;
+    sequenceId = sequenceNum++;
   }
 
   int id = 0;
   bool once = false;
-  int seqId = 0;
-  static int _seqNum = 0;
+  int sequenceId = 0;
+  static int sequenceNum = 0;
 
-  String get tag => '$id::$seqId';
+  String get tag => '$id::$sequenceId';
 
   @override
   void serialize(Parcel parcel) {
     parcel.writeInt32(id);
-    parcel.writeInt32(seqId);
+    parcel.writeInt32(sequenceId);
     parcel.writeBool(once);
   }
 
   @override
   void deserialize(Parcel parcel) {
     id = parcel.readInt32();
-    seqId = parcel.readInt32();
+    sequenceId = parcel.readInt32();
     once = parcel.readBool();
   }
 }
@@ -70,7 +70,7 @@ abstract class ServiceBase {
 
   Future<void> onTerminate();
 
-  Future<int> onRegister(String name, NotifyCallback cb);
+  Future<int> onRegister(String name, NotifyCallback callback);
 
   Future<void> onUnregister();
 
@@ -193,22 +193,22 @@ abstract class Message extends StubBase {
   @nonVirtual
   Future<void> onReceivedEvent(
       String sender, String instance, Parcel parcel) async {
-    ServiceBase? service;
-    for (final ServiceBase s in services) {
-      if (s.instance == instance) {
-        service = s;
+    ServiceBase? invokeService;
+    for (final ServiceBase service in services) {
+      if (service.instance == instance) {
+        invokeService = service;
         break;
       }
     }
 
-    if (service == null) {
+    if (invokeService == null) {
       return;
     }
 
     final Port port = getPort(instance, PortType.main);
     final int cmd = parcel.readInt32();
     if (_methodHandlers.containsKey(cmd)) {
-      await _methodHandlers[cmd](service, port, parcel);
+      await _methodHandlers[cmd](invokeService, port, parcel);
     }
   }
 }

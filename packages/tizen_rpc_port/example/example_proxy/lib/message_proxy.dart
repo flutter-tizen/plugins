@@ -28,13 +28,13 @@ enum _MethodId {
 
 abstract class _CallbackBase extends Parcelable {
   _CallbackBase(this.id, this.once) {
-    sequenceId = _sequenceNum++;
+    sequenceId = sequenceNum++;
   }
 
   int id = 0;
   bool once = false;
   int sequenceId = 0;
-  static int _sequenceNum = 0;
+  static int sequenceNum = 0;
 
   String get tag => '$id::$sequenceId';
 
@@ -135,7 +135,7 @@ abstract class Message extends ProxyBase {
       }
 
       return parcel;
-    } catch (e) {
+    } catch (error) {
       return Parcel();
     }
   }
@@ -149,7 +149,7 @@ abstract class Message extends ProxyBase {
     _delegateList.removeWhere((_CallbackBase element) => element.tag == tag);
   }
 
-  Future<int> register(String name, NotifyCallback cb) async {
+  Future<int> register(String name, NotifyCallback callback) async {
     if (!_online) {
       throw StateError('Must be connected first');
     }
@@ -162,8 +162,8 @@ abstract class Message extends ProxyBase {
     parcel.writeInt32(_MethodId.register.id);
 
     parcel.writeString(name);
-    cb.serialize(parcel);
-    _delegateList.add(cb);
+    callback.serialize(parcel);
+    _delegateList.add(callback);
 
     parcel.send(port);
 
