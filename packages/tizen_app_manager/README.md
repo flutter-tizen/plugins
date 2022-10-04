@@ -10,7 +10,7 @@ To use this package, add `tizen_app_manager` as a dependency in your `pubspec.ya
 
 ```yaml
 dependencies:
-  tizen_app_manager: ^0.2.0
+  tizen_app_manager: ^0.2.1
 ```
 
 ### Retrieving current app info
@@ -49,31 +49,11 @@ AppRunningContext appContext = AppRunningContext(appId: appId);
 You can listen for app state changes by subscribing to `AppManager.onAppLaunched` and `AppManager.onAppTerminated`.
 
 ```dart
-final List<StreamSubscription<AppRunningContext>> _subscriptions =
-      <StreamSubscription<AppRunningContext>>[];
-
-@override
-void initState() {
-  super.initState();
-
-  _subscriptions
-      .add(AppManager.onAppLaunched.listen((AppRunningContext context) {
-    ...
-  }));
-  _subscriptions
-      .add(AppManager.onAppTerminated.listen((AppRunningContext context) {
-    ...
-  }));
-}
-
-@override
-void dispose() {
-  super.dispose();
-
-  _subscriptions
-      .forEach((StreamSubscription subscription) => subscription.cancel());
-  _subscriptions.clear();
-}
+var subscription = AppManager.onAppLaunched.listen((AppRunningContext context) {
+  print('Launched ${context.appId}');
+});
+...
+subscription.cancel();
 ```
 
 ## Required privileges

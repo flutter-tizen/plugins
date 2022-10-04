@@ -1,3 +1,8 @@
+## 0.2.1
+
+* Revise the example app.
+* Fix app launch event not being fired.
+
 ## 0.2.0
 
 * Migrate FFI implementation to tizen_interop.

@@ -76,7 +76,12 @@ class AppContextStreamHandler : public FlStreamHandler {
 
   std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
       const flutter::EncodableValue *arguments) override {
-    TizenAppManager::GetInstance().SetAppLaunchHandler(nullptr);
+    TizenAppManager &app_manager = TizenAppManager::GetInstance();
+    if (is_launch_) {
+      app_manager.SetAppLaunchHandler(nullptr);
+    } else {
+      app_manager.SetAppTerminateHandler(nullptr);
+    }
     events_.reset();
     return nullptr;
   }
