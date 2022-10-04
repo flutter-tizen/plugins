@@ -18,6 +18,20 @@ typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
 typedef flutter::StreamHandlerError<flutter::EncodableValue>
     FlStreamHandlerError;
 
+class DeviceSensorStreamHandlerError : public FlStreamHandlerError {
+ public:
+  DeviceSensorStreamHandlerError(const std::string &error_code,
+                                 const std::string &error_message,
+                                 const flutter::EncodableValue *error_details)
+      : error_code_(error_code),
+        error_message_(error_message),
+        FlStreamHandlerError(error_code_, error_message_, error_details) {}
+
+ private:
+  std::string error_code_;
+  std::string error_message_;
+};
+
 class DeviceSensorStreamHandler : public FlStreamHandler {
  public:
   DeviceSensorStreamHandler(SensorType type) : sensor_(type) {}
@@ -32,7 +46,7 @@ class DeviceSensorStreamHandler : public FlStreamHandler {
       events_->Success(flutter::EncodableValue(sensor_event));
     };
     if (!sensor_.StartListen(callback)) {
-      return std::make_unique<FlStreamHandlerError>(
+      return std::make_unique<DeviceSensorStreamHandlerError>(
           std::to_string(sensor_.GetLastError()), sensor_.GetLastErrorString(),
           nullptr);
     }

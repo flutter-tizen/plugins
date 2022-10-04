@@ -41,6 +41,20 @@ std::string BatteryStatusToString(BatteryStatus status) {
   }
 }
 
+class BatteryStatusStreamHandlerError : public FlStreamHandlerError {
+ public:
+  BatteryStatusStreamHandlerError(const std::string &error_code,
+                                  const std::string &error_message,
+                                  const flutter::EncodableValue *error_details)
+      : error_code_(error_code),
+        error_message_(error_message),
+        FlStreamHandlerError(error_code_, error_message_, error_details) {}
+
+ private:
+  std::string error_code_;
+  std::string error_message_;
+};
+
 class BatteryStatusStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
@@ -58,7 +72,7 @@ class BatteryStatusStreamHandler : public FlStreamHandler {
       }
     };
     if (!battery_.StartListen(callback)) {
-      return std::make_unique<FlStreamHandlerError>(
+      return std::make_unique<BatteryStatusStreamHandlerError>(
           std::to_string(battery_.GetLastError()),
           battery_.GetLastErrorString(), nullptr);
     }

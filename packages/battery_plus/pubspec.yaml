@@ -2,7 +2,7 @@ name: battery_plus_tizen
 description: Tizen implementation of the battery_plus plugin
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/battery_plus
-version: 1.1.0
+version: 1.1.1
 
 flutter:
   plugin:

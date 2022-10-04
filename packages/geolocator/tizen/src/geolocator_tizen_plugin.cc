@@ -31,6 +31,20 @@ typedef flutter::StreamHandlerError<flutter::EncodableValue>
 
 constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
 
+class LocationStreamHandlerError : public FlStreamHandlerError {
+ public:
+  LocationStreamHandlerError(const std::string &error_code,
+                             const std::string &error_message,
+                             const flutter::EncodableValue *error_details)
+      : error_code_(error_code),
+        error_message_(error_message),
+        FlStreamHandlerError(error_code_, error_message_, error_details) {}
+
+ private:
+  std::string error_code_;
+  std::string error_message_;
+};
+
 class LocationStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
@@ -43,11 +57,9 @@ class LocationStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StartListenLocationUpdate(callback);
     } catch (const LocationManagerError &error) {
-      // Issue: https://github.com/flutter/flutter/issues/101682
-      error_code_ = std::to_string(error.GetErrorCode());
-      error_message_ = error.GetErrorString();
-      return std::make_unique<FlStreamHandlerError>(error_code_, error_message_,
-                                                    nullptr);
+      return std::make_unique<LocationStreamHandlerError>(
+          std::to_string(error.GetErrorCode()), error.GetErrorString(),
+          nullptr);
     }
     return nullptr;
   }
@@ -57,10 +69,9 @@ class LocationStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StopListenLocationUpdate();
     } catch (const LocationManagerError &error) {
-      error_code_ = std::to_string(error.GetErrorCode());
-      error_message_ = error.GetErrorString();
-      return std::make_unique<FlStreamHandlerError>(error_code_, error_message_,
-                                                    nullptr);
+      return std::make_unique<LocationStreamHandlerError>(
+          std::to_string(error.GetErrorCode()), error.GetErrorString(),
+          nullptr);
     }
     events_.reset();
     return nullptr;
@@ -69,9 +80,6 @@ class LocationStreamHandler : public FlStreamHandler {
  private:
   LocationManager location_manager_;
   std::unique_ptr<FlEventSink> events_;
-
-  std::string error_code_;
-  std::string error_message_;
 };
 
 class ServiceStatusStreamHandler : public FlStreamHandler {
@@ -86,11 +94,9 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StartListenServiceStatusUpdate(callback);
     } catch (const LocationManagerError &error) {
-      // Issue: https://github.com/flutter/flutter/issues/101682
-      error_code_ = std::to_string(error.GetErrorCode());
-      error_message_ = error.GetErrorString();
-      return std::make_unique<FlStreamHandlerError>(error_code_, error_message_,
-                                                    nullptr);
+      return std::make_unique<LocationStreamHandlerError>(
+          std::to_string(error.GetErrorCode()), error.GetErrorString(),
+          nullptr);
     }
     return nullptr;
   }
@@ -100,10 +106,9 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StopListenServiceStatusUpdate();
     } catch (const LocationManagerError &error) {
-      error_code_ = std::to_string(error.GetErrorCode());
-      error_message_ = error.GetErrorString();
-      return std::make_unique<FlStreamHandlerError>(error_code_, error_message_,
-                                                    nullptr);
+      return std::make_unique<LocationStreamHandlerError>(
+          std::to_string(error.GetErrorCode()), error.GetErrorString(),
+          nullptr);
     }
     events_.reset();
     return nullptr;
@@ -112,9 +117,6 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
  private:
   LocationManager location_manager_;
   std::unique_ptr<FlEventSink> events_;
-
-  std::string error_code_;
-  std::string error_message_;
 };
 
 class GeolocatorTizenPlugin : public flutter::Plugin {

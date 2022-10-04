@@ -1,3 +1,7 @@
+## 1.1.1
+
+* Hold memory of StreamHandlerError's member to prevent crash.
+
 ## 1.1.0
 
 * Update sensors_plus to 1.2.1.

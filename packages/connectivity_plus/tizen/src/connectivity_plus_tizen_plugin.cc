@@ -43,6 +43,20 @@ std::string ConnectionTypeToString(ConnectionType type) {
   }
 }
 
+class ConnectivityStreamHandlerError : public FlStreamHandlerError {
+ public:
+  ConnectivityStreamHandlerError(const std::string &error_code,
+                                 const std::string &error_message,
+                                 const flutter::EncodableValue *error_details)
+      : error_code_(error_code),
+        error_message_(error_message),
+        FlStreamHandlerError(error_code_, error_message_, error_details) {}
+
+ private:
+  std::string error_code_;
+  std::string error_message_;
+};
+
 class ConnectivityStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
@@ -59,7 +73,7 @@ class ConnectivityStreamHandler : public FlStreamHandler {
       }
     };
     if (!connection_.StartListen(callback)) {
-      return std::make_unique<FlStreamHandlerError>(
+      return std::make_unique<ConnectivityStreamHandlerError>(
           std::to_string(connection_.GetLastError()),
           connection_.GetLastErrorString(), nullptr);
     }
