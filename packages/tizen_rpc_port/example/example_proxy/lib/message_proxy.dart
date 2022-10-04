@@ -65,7 +65,6 @@ abstract class NotifyCallback extends _CallbackBase {
   Future<void> _onReceivedEvent(Parcel parcel) async {
     final String sender = parcel.readString();
     final String message = parcel.readString();
-
     await onReceived(sender, message);
   }
 }
@@ -113,7 +112,6 @@ abstract class Message extends ProxyBase {
     final int id = parcel.readInt32();
     final int sequenceId = parcel.readInt32();
     final bool once = parcel.readBool();
-
     for (final _CallbackBase delegate in _delegateList) {
       if (delegate.id == id && delegate.sequenceId == sequenceId) {
         await delegate._onReceivedEvent(parcel);
@@ -129,20 +127,13 @@ abstract class Message extends ProxyBase {
     try {
       final Parcel parcel = Parcel.fromPort(port);
       final int cmd = parcel.readInt32();
-
       if (cmd != _MethodId.result.id) {
         throw Exception('Received parcel is invalid. $cmd');
       }
-
       return parcel;
     } catch (error) {
       return Parcel();
     }
-  }
-
-  @override
-  Future<void> connect() async {
-    await super.connect();
   }
 
   void disposeCallback(String tag) {
@@ -155,16 +146,13 @@ abstract class Message extends ProxyBase {
     }
 
     final Port port = getPort(PortType.main);
-
     final Parcel parcel = Parcel();
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.register.id);
-
     parcel.writeString(name);
     callback.serialize(parcel);
     _delegateList.add(callback);
-
     parcel.send(port);
 
     late Parcel parcelReceived;
@@ -187,12 +175,10 @@ abstract class Message extends ProxyBase {
     }
 
     final Port port = getPort(PortType.main);
-
     final Parcel parcel = Parcel();
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.unregister.id);
-
     parcel.send(port);
   }
 
@@ -202,14 +188,11 @@ abstract class Message extends ProxyBase {
     }
 
     final Port port = getPort(PortType.main);
-
     final Parcel parcel = Parcel();
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.send.id);
-
     parcel.writeString(message);
-
     parcel.send(port);
 
     late Parcel parcelReceived;

@@ -81,7 +81,6 @@ class NotifyCallback extends _CallbackBase {
   NotifyCallback(this._port, this.service, {bool once = false})
       : super(_DelegateId.notifyCallback.id, once);
   final Port? _port;
-
   ServiceBase service;
   bool _valid = true;
 
@@ -97,10 +96,8 @@ class NotifyCallback extends _CallbackBase {
     final Parcel parcel = Parcel();
     parcel.writeInt32(_MethodId.callback.id);
     serialize(parcel);
-
     parcel.writeString(sender);
     parcel.writeString(message);
-
     if (_port != null) {
       parcel.send(_port!);
     }
@@ -154,16 +151,13 @@ abstract class Message extends StubBase {
     callback.deserialize(parcel);
 
     final int ret = await service.onRegister(name, callback);
-
     final Parcel result = Parcel();
     final ParcelHeader header = parcel.header;
     final ParcelHeader resultHeader = result.header;
     resultHeader.tag = _tidlVersion;
     resultHeader.sequenceNumber = header.sequenceNumber;
-
     result.writeInt32(_MethodId.result.id);
     result.writeInt32(ret);
-
     result.send(port);
   }
 
@@ -176,16 +170,13 @@ abstract class Message extends StubBase {
       ServiceBase service, Port port, Parcel parcel) async {
     final String message = parcel.readString();
     final int ret = await service.onSend(message);
-
     final Parcel result = Parcel();
     final ParcelHeader header = parcel.header;
     final ParcelHeader resultHeader = result.header;
     resultHeader.tag = _tidlVersion;
     resultHeader.sequenceNumber = header.sequenceNumber;
-
     result.writeInt32(_MethodId.result.id);
     result.writeInt32(ret);
-
     result.send(port);
   }
 
