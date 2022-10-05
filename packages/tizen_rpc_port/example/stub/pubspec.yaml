@@ -1,5 +1,5 @@
-name: example_proxy
-description: Demonstrates how to use the rpc_port_proxy plugin.
+name: example_stub
+description: Demonstrates how to use the tizen_rpc_port stub plugin.
 
 publish_to: none
 

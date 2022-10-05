@@ -7,11 +7,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:tizen_log/tizen_log.dart';
 
-import 'message_stub.dart';
-
-String _logTag = 'RpcPortStubExample';
+import 'message_server.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,17 +22,17 @@ class Service extends ServiceBase {
 
   @override
   Future<void> onCreate() async {
-    Log.info(_logTag, 'onCreate. instance: $instance');
+    print('onCreate. instance: $instance');
   }
 
   @override
   Future<void> onTerminate() async {
-    Log.info(_logTag, 'onTerminate. instance: $instance');
+    print('onTerminate. instance: $instance');
   }
 
   @override
   Future<int> onRegister(String name, NotifyCallback callback) async {
-    Log.info(_logTag, 'register. instance: $instance, name: $name');
+    print('register. instance: $instance, name: $name');
     _name = name;
     _callback = callback;
     return 0;
@@ -43,19 +40,19 @@ class Service extends ServiceBase {
 
   @override
   Future<int> onSend(String message) async {
-    Log.info(_logTag, 'send. instance: $instance, msg: $message');
+    print('send. instance: $instance, msg: $message');
     _callback?.invoke(_name, message);
     return 0;
   }
 
   @override
   Future<void> onUnregister() async {
-    Log.info(_logTag, 'unregister. instance: $instance');
+    print('unregister. instance: $instance');
     _callback = null;
   }
 }
 
-class MyMessageStub extends Message {
+class MyMessageServer extends Message {
   @override
   ServiceBase createInstance(String sender, String instance) =>
       Service(sender, instance);
@@ -70,13 +67,12 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   static const String _platformVersion = '7.0';
-  late final MyMessageStub _stub;
+  late final MyMessageServer _stub;
 
   @override
   void initState() {
     super.initState();
-    Log.info(_logTag, 'initState');
-    _stub = MyMessageStub();
+    _stub = MyMessageServer();
     _stub.listen();
   }
 
