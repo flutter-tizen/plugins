@@ -5,18 +5,20 @@
 import 'package:flutter/services.dart';
 
 // ignore_for_file: public_member_api_docs
+
 class MethodChannelRpcPort {
   static final MethodChannelRpcPort instance = MethodChannelRpcPort();
 
   final MethodChannel _channel = const MethodChannel('tizen/rpc_port');
 
-  Stream<dynamic>? _stream;
+  Stream<dynamic>? _proxyStream;
+  Stream<dynamic>? _stubStream;
 
   Future<Stream<dynamic>> proxyConnect(
       int proxyPtr, String appid, String portName) async {
-    if (_stream == null) {
+    if (_proxyStream == null) {
       const EventChannel eventChannel = EventChannel('tizen/rpc_port_proxy');
-      _stream = eventChannel.receiveBroadcastStream();
+      _proxyStream = eventChannel.receiveBroadcastStream();
     }
 
     final Map<String, dynamic> args = <String, dynamic>{
@@ -26,17 +28,17 @@ class MethodChannelRpcPort {
     };
 
     await _channel.invokeMethod<dynamic>('proxyConnect', args);
-    return _stream!;
+    return _proxyStream!;
   }
 
   Future<Stream<dynamic>> stubListen(int stubPtr) async {
-    if (_stream == null) {
+    if (_stubStream == null) {
       const EventChannel eventChannel = EventChannel('tizen/rpc_port_stub');
-      _stream = eventChannel.receiveBroadcastStream();
+      _stubStream = eventChannel.receiveBroadcastStream();
     }
 
     final Map<String, int> args = <String, int>{'handle': stubPtr};
     await _channel.invokeMethod<dynamic>('stubListen', args);
-    return _stream!;
+    return _stubStream!;
   }
 }
