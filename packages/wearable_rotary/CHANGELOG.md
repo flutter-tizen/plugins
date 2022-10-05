@@ -1,3 +1,7 @@
+## NEXT
+
+* Refactor the C++ code.
+
 ## 1.0.2
 
 * Typo fix and minor cleanups.
