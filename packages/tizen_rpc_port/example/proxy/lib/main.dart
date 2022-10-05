@@ -117,18 +117,20 @@ class _MyAppState extends State<MyApp> implements MessageReceiver {
           title: const Text('RpcPortProxy example app'),
         ),
         body: SingleChildScrollView(
-          child: Column(children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0.0, 50.0, 0.0, 50.0),
-              child: Text('Message: $_message\n'),
-            ),
-            TextField(
-                onChanged: (String text) => setState(() => _input = text),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Input',
-                )),
-          ]),
+          child: Column(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0.0, 50.0, 0.0, 50.0),
+                child: Text('Message: $_message\n'),
+              ),
+              TextField(
+                  onChanged: (String text) => setState(() => _input = text),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Input',
+                  )),
+            ],
+          ),
         ),
         persistentFooterButtons: <Widget>[
           TextButton(
