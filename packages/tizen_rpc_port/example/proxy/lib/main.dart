@@ -98,14 +98,14 @@ class _MyAppState extends State<MyApp> implements MessageReceiver {
   Future<void> _registerCallback() async {
     await _myProxy.register('ClientApp', MyNotify(this));
     setState(() {
-      _message = 'register callback done.';
+      _message = 'Register callback has done.';
     });
   }
 
   Future<void> _unregisterCallback() async {
     await _myProxy.unregister();
     setState(() {
-      _message = 'Unregister callback done.';
+      _message = 'Unregister callback has done.';
     });
   }
 
