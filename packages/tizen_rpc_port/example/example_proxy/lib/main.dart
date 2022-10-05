@@ -63,7 +63,6 @@ class MyMessageProxy extends Message {
     _message = 'onRejected';
     Log.info(_logTag, 'onRejected. error($errorMessage)');
     print('onRejected. error($errorMessage)');
-    await connect();
   }
 }
 
@@ -103,6 +102,22 @@ class _MyAppState extends State<MyApp> {
             }));
   }
 
+  Future<void> _registerCallback() async {
+    await _myProxy.register('Native_GOGO1', MyNotify());
+    setState(() {
+      _message = 'register callback done.';
+      Log.info(_logTag, 'register callback done.');
+    });
+  }
+
+  Future<void> _unregisterCallback() async {
+    await _myProxy.unregister();
+    setState(() {
+      _message = 'Unregister callback done.';
+      Log.info(_logTag, 'Unregister callback done.');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -127,7 +142,15 @@ class _MyAppState extends State<MyApp> {
           persistentFooterButtons: <Widget>[
             TextButton(
               onPressed: _sendMsg,
-              child: const Text('Send message'),
+              child: const Text('Send'),
+            ),
+            TextButton(
+              onPressed: _registerCallback,
+              child: const Text('Register'),
+            ),
+            TextButton(
+              onPressed: _unregisterCallback,
+              child: const Text('Unregister'),
             ),
           ]),
     );
