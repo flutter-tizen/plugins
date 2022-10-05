@@ -6,9 +6,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-
 import 'package:flutter/services.dart';
-import 'package:tizen_log/tizen_log.dart';
 
 import 'message_proxy.dart';
 
@@ -30,7 +28,6 @@ String _message = '';
 class MyNotify extends NotifyCallback {
   @override
   Future<void> onReceived(String sender, String message) async {
-    Log.info(_logTag, 'Received $sender: $message');
     _message = '$sender: $message';
   }
 }
@@ -94,7 +91,6 @@ class _MyAppState extends State<MyApp> {
     await _myProxy.register('ClientApp', MyNotify());
     setState(() {
       _message = 'register callback done.';
-      Log.info(_logTag, 'register callback done.');
     });
   }
 
@@ -102,7 +98,6 @@ class _MyAppState extends State<MyApp> {
     await _myProxy.unregister();
     setState(() {
       _message = 'Unregister callback done.';
-      Log.info(_logTag, 'Unregister callback done.');
     });
   }
 
