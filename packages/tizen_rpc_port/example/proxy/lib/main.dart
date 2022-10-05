@@ -78,10 +78,6 @@ class _MyAppState extends State<MyApp> implements MessageReceiver {
     } on PlatformException {
       _message = 'Connection has failed.';
     }
-
-    if (!mounted) {
-      return;
-    }
   }
 
   @override
