@@ -2,9 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file
 
-import 'package:flutter/services.dart';
-
 // ignore_for_file: public_member_api_docs
+
+import 'package:flutter/services.dart';
 
 class MethodChannelRpcPort {
   static final MethodChannelRpcPort instance = MethodChannelRpcPort();

@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: public_member_api_docs
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 
@@ -9,8 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:tizen_log/tizen_log.dart';
 
 import 'message_proxy.dart';
-
-// ignore_for_file: public_member_api_docs
 
 const String _logTag = 'TizenRpcPortProxyExample';
 
@@ -30,7 +30,7 @@ String _message = '';
 class MyNotify extends NotifyCallback {
   @override
   Future<void> onReceived(String sender, String message) async {
-    Log.info(_logTag, 'onReceived $sender: $message');
+    Log.info(_logTag, 'Received $sender: $message');
     _message = '$sender: $message';
   }
 }
@@ -43,26 +43,19 @@ class MyMessageProxy extends Message {
 
   @override
   Future<void> onConnected() async {
-    _message = 'onConnected';
-    Log.info(_logTag, 'onConnected');
-    print('onConnected');
-
-    await register('Native_GOGO1', MyNotify());
+    _message = 'Connected';
+    await register('ClientApp', MyNotify());
   }
 
   @override
   Future<void> onDisconnected() async {
-    _message = 'onDisconnected';
-    Log.info(_logTag, 'onDisconnected');
-    print('onDisconnected');
+    _message = 'Disconnected';
     await connect();
   }
 
   @override
   Future<void> onRejected(String errorMessage) async {
-    _message = 'onRejected';
-    Log.info(_logTag, 'onRejected. error($errorMessage)');
-    print('onRejected. error($errorMessage)');
+    _message = 'Rejected error: $errorMessage';
   }
 }
 
@@ -81,7 +74,7 @@ class _MyAppState extends State<MyApp> {
       _myProxy = MyMessageProxy('com.example.tizen_rpc_port_stub_example');
       await _myProxy.connect();
     } on PlatformException {
-      _message = 'Failed to get platform version.';
+      _message = 'connect() is failed.';
     }
 
     if (!mounted) {
@@ -95,15 +88,10 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _sendMsg() async {
     await _myProxy.send(_input);
-    Future<void>.delayed(
-        const Duration(seconds: 1),
-        () => setState(() {
-              Log.info(_logTag, 'received message: $_message');
-            }));
   }
 
   Future<void> _registerCallback() async {
-    await _myProxy.register('Native_GOGO1', MyNotify());
+    await _myProxy.register('ClientApp', MyNotify());
     setState(() {
       _message = 'register callback done.';
       Log.info(_logTag, 'register callback done.');
