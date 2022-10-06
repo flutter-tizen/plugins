@@ -50,7 +50,7 @@ class MyMessageClient extends Message {
 
   @override
   Future<void> onDisconnected() async {
-    _receiver.updateMessage('Discnnected');
+    _receiver.updateMessage('Disconnected');
     await connect();
   }
 
