@@ -1,4 +1,4 @@
-name: example_stub
+name: example_server
 description: Demonstrates how to use the tizen_rpc_port stub plugin.
 
 publish_to: none

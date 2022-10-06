@@ -5,6 +5,7 @@
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -73,7 +74,7 @@ class _MyAppState extends State<MyApp> implements MessageReceiver {
   Future<void> initPlatformState() async {
     try {
       _myProxy =
-          MyMessageClient('com.example.tizen_rpc_port_stub_example', this);
+          MyMessageClient('com.example.tizen_rpc_port_server_example', this);
       await _myProxy.connect();
     } on PlatformException {
       _message = 'Connection has failed.';
@@ -110,7 +111,7 @@ class _MyAppState extends State<MyApp> implements MessageReceiver {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('RpcPortProxy example app'),
+          title: const Text('RpcPortClient example app'),
         ),
         body: SingleChildScrollView(
           child: Column(

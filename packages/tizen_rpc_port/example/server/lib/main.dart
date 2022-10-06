@@ -81,7 +81,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('RpcPortStub example app'),
+          title: const Text('RpcPortServer example app'),
         ),
         body: const Center(
           child: Text('Running on: $_platformVersion'),
