@@ -1,0 +1,24 @@
+name: flutter_secure_storage_tizen_example
+description: Demonstrates how to use the flutter_secure_storage_tizen plugin.
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_secure_storage: ^6.0.0
+  flutter_secure_storage_tizen:
+    path: ../
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  lint: ^1.10.0
+  test: any
+
+flutter:
+  uses-material-design: true
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
