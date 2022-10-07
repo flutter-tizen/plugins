@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/tizen_bundle.svg)](https://pub.dev/packages/tizen_bundle)
 
-Tizen bundle APIs.
+Tizen [Data Bundle](https://docs.tizen.org/application/native/guides/app-management/data-bundles) APIs.
 
 ## Usage
 
@@ -10,106 +10,63 @@ To use this package, add `tizen_bundle` as a dependency in your `pubspec.yaml` f
 
 ```yaml
 depenedencies:
-  tizen_bundle: ^0.1.0
+  tizen_bundle: ^0.1.1
 ```
 
-### Adding Content to a Bundle
+### Adding content to a bundle
 
-The bundle content is in the from of key-value pairs. The key is always a string. The value can be of the following types:
+The bundle content is in the form of key-value pairs. The key is always a `String`. The value must be either a `String`, a `List<String>`, or a `Uint8List`.
 
-**Table: Bundle value types**
-| Type enum                | Dart type         |
-|--------------------------|-------------------|
-| `BundleType.string`      | String            |
-| `BundleType.strings`     | List<String>      |
-| `BundleType.bytes`       | Uint8List         |
-
-To add content to a bundle, use following methods or `operator [](String key, Object value)` you want to add:
-
-- `Bundle.addAll()`
-- `Bundle.addEntries()`
+Bundles can be treated like a `Map`. You can use the `[]` operator or `Bundle.addAll()` to add data to a bundle.
 
 ```dart
 import 'package:tizen_bundle/tizen_bundle.dart';
 
 var bundle = Bundle();
-bundle['string'] = 'stringValue';
-
-List<String> values = ['stringValue1', 'stringValue2', 'stringValue3'];
-bundle['strings'] = values;
-
-Uint8List bytes = Uint8List(3);
-bytes[0] = 0x01;
-bytes[1] = 0x02;
-bytes[2] = 0x03;
-bundle['bytes'] =  bytes;
+bundle['string'] = 'value';
+bundle['strings'] = <String>['value1', 'value2', 'value3'];
+bundle['bytes'] = Uint8List.fromList(<int>[0x01, 0x02, 0x03]);
 ```
 
-## Managing the Bundle Content
+### Accessing the bundle content
 
-To manage the bundle content:
-
-1. Gets values from the bundle object using `operator [](String key)` you want to get :
-   You can also get the number of the bundle items with the `Bundle.length` property, and check whether the value is the type or not with `is` keyword as below:
+To get data from a bundle or update their values, use the `[]` operator.
 
 ```dart
-import 'package:tizen_log/tizen_log.dart';
-
-String logTag = 'BundleTest';
-Log.info(logTag, 'length: ${bundle.length}');
 var stringValue = bundle['string'];
 if (stringValue is String) {
-  Log.info(logTag, 'string: $stringValue');
+  print('string: $stringValue');
 }
 
 var stringsValue = bundle['strings'];
 if (stringsValue is List<String>) {
-  Log.info(logTag, 'strings: $stringsValue');
+  print('strings: $stringsValue');
 }
 
 var bytesValue = bundle['bytes'];
 if (bytesValue is Uint8List) {
-  Log.info(logTag, 'bytes: $bytesValue');
+  print('bytes: $bytesValue');
 }
 ```
 
-2. Deletes a key-value pair from the bundle content using the `Bundle.remove()` method:
+You can also use other [methods and properties](https://api.flutter.dev/flutter/dart-collection/MapMixin-class.html) supported by a `Map`, such as `containsKey` and `remove`.
 
 ```dart
-if (bundle.containsKey('string'))
+if (bundle.containsKey('string')) {
   bundle.remove('string');
-
-if (bundle.containsKey('strings'))
-  bundle.remove('strings');
-
-if (bundle.containsKey('bytes'))
-  bundle.remove('bytes');
-```
-
-## Iterating the Bundle Content
-
-To iterate through the bundle records, use the 'Bundle.keys' property:
-
-```dart
-final keys = bundle.keys;
-keys.asMap().forEach((index, key) {
-  Log.info(logTag, 'key: ${keyInfo.name}');
 }
-
 ```
 
-## Encoding and Decoding the Bundle
+### Encoding and decoding a bundle
 
-To store or send a bundle over a connection, encode it to `String` with the `Bundle.toRaw()` method.
-
-To open the encoded bundle, use the `Bundle.fromRaw()` method.
+To save bundle data to a file or send over network, you can encode them to a raw string using `Bundle.encode()`. To restore the bundle from the encoded string, use `Bundle.decode()`.
 
 ```dart
 var bundle = Bundle();
-bundle.addString('key1', 'value1');
+bundle['key'] = 'value';
 
-var raw = bundle.toRaw();
+var encoded = bundle.encode();
+var newBundle = Bundle.decode(encoded);
 
-var newBundle = Bundle.fromRaw(raw);
-Log.info(logTag, 'value: ${newBundle.getString('key')}');
+print(newBundle['key']);
 ```
