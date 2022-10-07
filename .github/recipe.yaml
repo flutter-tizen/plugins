@@ -26,6 +26,7 @@ plugins:
   webview_flutter: []
 
   # No tests.
+  firebase_core: []
   image_picker: []
   tizen_log: []
   tizen_notification: []

@@ -1,0 +1,29 @@
+name: firebase_core_tizen
+description: Tizen implementation of firebase_core
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/firebase_core
+version: 0.1.0
+
+environment:
+  sdk: ">=2.18.0 <3.0.0"
+  flutter: ">=2.5.0"
+
+dependencies:
+  firebase_core_dart: ^1.0.1
+  firebase_core_platform_interface: ^4.5.1
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        dartPluginClass: FirebaseCoreTizen
+
+false_secrets:
+  - /example/lib/main.dart
