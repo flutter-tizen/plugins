@@ -22,22 +22,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-abstract class MessageReceiver {
-  Future<void> onReceived(String sender, String message);
-}
-
-class MyNotify extends NotifyCallback {
-  MyNotify(this._receiver) : super();
-
-  final MessageReceiver _receiver;
-
-  @override
-  Future<void> onReceived(String sender, String message) async {
-    _receiver.onReceived(sender, message);
-  }
-}
-
-class _MyAppState extends State<MyApp> implements MessageReceiver {
+class _MyAppState extends State<MyApp> {
   late final Message _messageClient;
   String _input = '';
   String _message = '';
@@ -55,14 +40,13 @@ class _MyAppState extends State<MyApp> implements MessageReceiver {
         setState(() => _message = 'Disconnected');
       });
       setState(() => _message = 'Connected');
-      _messageClient.register('ClientApp', MyNotify(this));
+      _messageClient.register('ClientApp', onNotifyCallback);
     } on PlatformException {
       _message = 'Connection has failed.';
     }
   }
 
-  @override
-  Future<void> onReceived(String sender, String message) async {
+  void onNotifyCallback(String sender, String message) {
     setState(() {
       _message = '$sender: $message';
     });
@@ -73,7 +57,7 @@ class _MyAppState extends State<MyApp> implements MessageReceiver {
   }
 
   Future<void> _registerCallback() async {
-    await _messageClient.register('ClientApp', MyNotify(this));
+    await _messageClient.register('ClientApp', onNotifyCallback);
     setState(() {
       _message = 'Register callback has done.';
     });

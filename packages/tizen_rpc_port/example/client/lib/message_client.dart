@@ -27,16 +27,15 @@ enum _MethodId {
 }
 
 abstract class _CallbackBase extends Parcelable {
-  _CallbackBase(this.id, this.once) {
+  _CallbackBase(this.id, this.once, this.callback) {
     sequenceId = sequenceNum++;
   }
 
   int id = 0;
   bool once = false;
   int sequenceId = 0;
+  Function? callback;
   static int sequenceNum = 0;
-
-  String get tag => '$id::$sequenceId';
 
   Future<void> _onReceivedEvent(Parcel parcel);
 
@@ -55,17 +54,17 @@ abstract class _CallbackBase extends Parcelable {
   }
 }
 
-abstract class NotifyCallback extends _CallbackBase {
-  NotifyCallback({bool once = false})
-      : super(_DelegateId.notifyCallback.id, once);
+typedef NotifyCallback = void Function(String, String);
 
-  Future<void> onReceived(String sender, String message);
+class NotifyCallbackBase extends _CallbackBase {
+  NotifyCallbackBase(NotifyCallback callback, {bool once = false})
+      : super(_DelegateId.notifyCallback.id, once, callback);
 
   @override
   Future<void> _onReceivedEvent(Parcel parcel) async {
     final String sender = parcel.readString();
     final String message = parcel.readString();
-    await onReceived(sender, message);
+    callback?.call(sender, message);
   }
 }
 
@@ -135,8 +134,9 @@ class Message extends ProxyBase {
     _isOnline = false;
   }
 
-  void disposeCallback(String tag) {
-    _delegateList.removeWhere((_CallbackBase element) => element.tag == tag);
+  void disposeCallback(Function callback) {
+    _delegateList
+        .removeWhere((_CallbackBase element) => element.callback == callback);
   }
 
   Future<int> register(String name, NotifyCallback callback) async {
@@ -150,8 +150,9 @@ class Message extends ProxyBase {
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.register.id);
     parcel.writeString(name);
-    callback.serialize(parcel);
-    _delegateList.add(callback);
+    final NotifyCallbackBase callbackBase = NotifyCallbackBase(callback);
+    callbackBase.serialize(parcel);
+    _delegateList.add(callbackBase);
     parcel.send(port);
 
     late Parcel parcelReceived;
