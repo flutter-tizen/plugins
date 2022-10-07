@@ -56,8 +56,8 @@ abstract class _CallbackBase extends Parcelable {
 
 typedef NotifyCallback = void Function(String, String);
 
-class NotifyCallbackBase extends _CallbackBase {
-  NotifyCallbackBase(NotifyCallback callback, {bool once = false})
+class _NotifyCallback extends _CallbackBase {
+  _NotifyCallback(NotifyCallback callback, {bool once = false})
       : super(_DelegateId.notifyCallback.id, once, callback);
 
   @override
@@ -150,7 +150,7 @@ class Message extends ProxyBase {
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.register.id);
     parcel.writeString(name);
-    final NotifyCallbackBase callbackBase = NotifyCallbackBase(callback);
+    final _NotifyCallback callbackBase = _NotifyCallback(callback);
     callbackBase.serialize(parcel);
     _delegateList.add(callbackBase);
     parcel.send(port);
