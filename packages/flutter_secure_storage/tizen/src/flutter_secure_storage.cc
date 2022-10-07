@@ -17,6 +17,7 @@
 #include "log.h"
 
 constexpr char kAesKey[] = "AesKey";
+constexpr size_t kInitializationVectorSize = 12;
 
 FlutterSecureStorage::FlutterSecureStorage() {
   std::vector<std::string> names = GetKeys(false);
@@ -36,9 +37,6 @@ FlutterSecureStorage::~FlutterSecureStorage() {}
 
 void FlutterSecureStorage::Write(const std::string &key,
                                  const std::string &value) {
-  LOG_ERROR("key[%s][%zu]", key.c_str(), key.size());
-  LOG_ERROR("value[%s][%zu]", value.c_str(), key.size());
-
   std::string encrypt = Encrypt(value);
 
   ckmc_raw_buffer_s write_buffer;
@@ -50,10 +48,7 @@ void FlutterSecureStorage::Write(const std::string &key,
       .extractable = true,
   };
 
-  int ret = ckmc_save_data(key.c_str(), write_buffer, policy);
-  if (ret != CKMC_ERROR_NONE) {
-    LOG_ERROR("Failed to write: key[%s] value[%s]", key.c_str(), value.c_str());
-  }
+  ckmc_save_data(key.c_str(), write_buffer, policy);
 }
 
 std::optional<std::string> FlutterSecureStorage::Read(const std::string &key) {
@@ -137,10 +132,11 @@ std::string FlutterSecureStorage::Encrypt(const std::string &value) {
   ckmc_param_list_h params = nullptr;
   ckmc_generate_new_params(CKMC_ALGO_AES_GCM, &params);
 
-  unsigned char iv[16] = {0};
+  std::vector<unsigned char> iv = GenerateRandomVector();
+
   ckmc_raw_buffer_s iv_buffer;
-  iv_buffer.data = iv;
-  iv_buffer.size = sizeof(iv);
+  iv_buffer.data = iv.data();
+  iv_buffer.size = iv.size();
   ckmc_param_list_set_buffer(params, CKMC_PARAM_ED_IV, &iv_buffer);
 
   ckmc_raw_buffer_s *encrypted = nullptr;
@@ -151,21 +147,26 @@ std::string FlutterSecureStorage::Encrypt(const std::string &value) {
   ckmc_param_list_free(params);
   ckmc_buffer_free(encrypted);
 
-  return encrypted_value;
+  std::string iv_str((char *)iv.data(), iv.size());
+  std::string combind = iv_str + encrypted_value;
+
+  return combind;
 }
 
 std::string FlutterSecureStorage::Decrypt(const std::string &value) {
+  std::string encrypted_value = value.substr(kInitializationVectorSize);
   ckmc_raw_buffer_s encrypted;
-  encrypted.data = (unsigned char *)value.c_str();
-  encrypted.size = value.length();
+  encrypted.data = (unsigned char *)encrypted_value.c_str();
+  encrypted.size = encrypted_value.length();
 
   ckmc_param_list_h params = nullptr;
   ckmc_generate_new_params(CKMC_ALGO_AES_GCM, &params);
 
-  unsigned char iv[16] = {0};
+  std::string iv = value.substr(0, kInitializationVectorSize);
+
   ckmc_raw_buffer_s iv_buffer;
-  iv_buffer.data = iv;
-  iv_buffer.size = sizeof(iv);
+  iv_buffer.data = (unsigned char *)iv.c_str();
+  iv_buffer.size = iv.size();
   ckmc_param_list_set_buffer(params, CKMC_PARAM_ED_IV, &iv_buffer);
 
   ckmc_raw_buffer_s *decrypted = nullptr;
@@ -179,17 +180,13 @@ std::string FlutterSecureStorage::Decrypt(const std::string &value) {
   return decrypted_value;
 }
 
-std::vector<unsigned char> FlutterSecureStorage::GenerateRandomVector(
-    size_t size) {
+std::vector<unsigned char> FlutterSecureStorage::GenerateRandomVector() {
   static std::mt19937 mt{std::random_device{}()};
   static std::uniform_int_distribution<> distrib(0, 255);
 
   std::vector<unsigned char> vector;
-  for (size_t i = 0; i < size; i++) {
+  for (size_t i = 0; i < kInitializationVectorSize; i++) {
     vector.emplace_back(distrib(mt));
-  }
-  for (size_t i = 0; i < size; i++) {
-    LOG_DEBUG("vector[%zu]:[%d]", i, (int)vector[i]);
   }
 
   return vector;

@@ -35,7 +35,7 @@ class FlutterSecureStorage {
 
   std::string Decrypt(const std::string &value);
 
-  std::vector<unsigned char> GenerateRandomVector(size_t size);
+  std::vector<unsigned char> GenerateRandomVector();
 };
 
 #endif  // FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
