@@ -69,36 +69,22 @@ abstract class NotifyCallback extends _CallbackBase {
   }
 }
 
-abstract class Message extends ProxyBase {
+typedef OnDisconnected = Future<void> Function();
+
+class Message extends ProxyBase {
   Message(String appid) : super(appid, 'Message');
 
-  bool _online = false;
+  bool _isOnline = false;
   final List<_CallbackBase> _delegateList = <_CallbackBase>[];
 
-  Future<void> onConnected();
-
-  Future<void> onDisconnected();
-
-  Future<void> onRejected(String errorMessage);
-
-  @override
-  @nonVirtual
-  Future<void> onConnectedEvent() async {
-    _online = true;
-    await onConnected();
-  }
+  OnDisconnected? _onDisconnected;
 
   @override
   @nonVirtual
   Future<void> onDisconnectedEvent() async {
-    _online = false;
-    await onDisconnected();
-  }
-
-  @override
-  @nonVirtual
-  Future<void> onRejectedEvent(String errorMessage) async {
-    await onRejected(errorMessage);
+    await super.onDisconnectedEvent();
+    _isOnline = false;
+    await _onDisconnected?.call();
   }
 
   @override
@@ -136,12 +122,25 @@ abstract class Message extends ProxyBase {
     }
   }
 
+  @override
+  Future<void> connect({OnDisconnected? onDisconnected}) async {
+    await super.connect();
+    _onDisconnected = onDisconnected;
+    _isOnline = true;
+  }
+
+  @override
+  Future<void> disconnect() async {
+    await super.disconnect();
+    _isOnline = false;
+  }
+
   void disposeCallback(String tag) {
     _delegateList.removeWhere((_CallbackBase element) => element.tag == tag);
   }
 
   Future<int> register(String name, NotifyCallback callback) async {
-    if (!_online) {
+    if (!_isOnline) {
       throw StateError('Must be connected first');
     }
 
@@ -170,7 +169,7 @@ abstract class Message extends ProxyBase {
   }
 
   Future<void> unregister() async {
-    if (!_online) {
+    if (!_isOnline) {
       throw StateError('Must be connected first');
     }
 
@@ -183,7 +182,7 @@ abstract class Message extends ProxyBase {
   }
 
   Future<int> send(String message) async {
-    if (!_online) {
+    if (!_isOnline) {
       throw StateError('Must be connected first');
     }
 

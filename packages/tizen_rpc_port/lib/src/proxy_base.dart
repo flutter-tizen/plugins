@@ -49,6 +49,9 @@ abstract class ProxyBase {
     tizen.rpc_port_proxy_destroy(proxy._handle);
   });
 
+  final Completer<dynamic> _connectCompleter = Completer<dynamic>();
+  final Completer<dynamic> _disconnectCompleter = Completer<dynamic>();
+
   /// The target stub application id.
   final String appid;
 
@@ -69,7 +72,7 @@ abstract class ProxyBase {
         Log.info(_logTag, 'event: $event, appid:$appid, portName:$portName');
         if (event == 'connected') {
           _isConnected = true;
-          await onConnectedEvent();
+          await _onConnectedEvent();
         } else if (event == 'disconnected') {
           _isConnected = false;
           await onDisconnectedEvent();
@@ -78,7 +81,7 @@ abstract class ProxyBase {
         } else if (event == 'rejected') {
           _isConnected = false;
           final String error = map['error'] as String;
-          await onRejectedEvent(error);
+          await _onRejectedEvent(error);
           _streamSubscription?.cancel();
           _streamSubscription = null;
         } else if (event == 'received') {
@@ -105,6 +108,25 @@ abstract class ProxyBase {
     final Stream<dynamic> stream =
         await _methodChannel.proxyConnect(_handle.address, appid, portName);
     _streamSubscription = stream.listen(_handleEvent);
+    return _connectCompleter.future;
+  }
+
+  /// Disconnect to the stub.
+  Future<void> disconnect() async {
+    if (!_isConnected) {
+      throw Exception('Not connected');
+    }
+
+    final Port port = getPort(PortType.main);
+    final int ret = tizen.rpc_port_disconnect(port.handle);
+    if (ret != 0) {
+      throw PlatformException(
+        code: ret.toString(),
+        message: tizen.get_error_message(ret).toDartString(),
+      );
+    }
+
+    return _disconnectCompleter.future;
   }
 
   /// Gets a port.
@@ -125,14 +147,20 @@ abstract class ProxyBase {
     });
   }
 
-  /// The abstract method for receiving connected event.
-  Future<void> onConnectedEvent();
+  Future<void> _onConnectedEvent() async {
+    _connectCompleter.complete();
+  }
 
-  /// The abstract method for receiving disconnected event.
-  Future<void> onDisconnectedEvent();
+  Future<void> _onRejectedEvent(String errorMessage) async {
+    _connectCompleter.completeError(errorMessage);
+  }
 
-  /// The abstract method for receiving rejected event.
-  Future<void> onRejectedEvent(String errorMessage);
+  /// The method for receiving disconnected event.
+  Future<void> onDisconnectedEvent() async {
+    if (_disconnectCompleter.isCompleted == false) {
+      _disconnectCompleter.complete();
+    }
+  }
 
   /// The abstract method called when the proxy receives data from stub.
   Future<void> onReceivedEvent(Parcel parcel);

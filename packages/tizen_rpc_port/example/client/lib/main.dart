@@ -23,7 +23,7 @@ class MyApp extends StatefulWidget {
 }
 
 abstract class MessageReceiver {
-  void updateMessage(String message);
+  Future<void> onReceived(String sender, String message);
 }
 
 class MyNotify extends NotifyCallback {
@@ -33,35 +33,12 @@ class MyNotify extends NotifyCallback {
 
   @override
   Future<void> onReceived(String sender, String message) async {
-    _receiver.updateMessage('$sender: $message');
-  }
-}
-
-class MyMessageClient extends Message {
-  MyMessageClient(super.appid, this._receiver);
-
-  final MessageReceiver _receiver;
-
-  @override
-  Future<void> onConnected() async {
-    _receiver.updateMessage('Connected');
-    await register('ClientApp', MyNotify(_receiver));
-  }
-
-  @override
-  Future<void> onDisconnected() async {
-    _receiver.updateMessage('Disconnected');
-    await connect();
-  }
-
-  @override
-  Future<void> onRejected(String errorMessage) async {
-    _receiver.updateMessage('Rejected error: $errorMessage');
+    _receiver.onReceived(sender, message);
   }
 }
 
 class _MyAppState extends State<MyApp> implements MessageReceiver {
-  late final MyMessageClient _myProxy;
+  late final Message _messageClient;
   String _input = '';
   String _message = '';
 
@@ -73,34 +50,37 @@ class _MyAppState extends State<MyApp> implements MessageReceiver {
 
   Future<void> initPlatformState() async {
     try {
-      _myProxy =
-          MyMessageClient('com.example.tizen_rpc_port_server_example', this);
-      await _myProxy.connect();
+      _messageClient = Message('com.example.tizen_rpc_port_server_example');
+      await _messageClient.connect(onDisconnected: () async {
+        setState(() => _message = 'Disconnected');
+      });
+      setState(() => _message = 'Connected');
+      _messageClient.register('ClientApp', MyNotify(this));
     } on PlatformException {
       _message = 'Connection has failed.';
     }
   }
 
   @override
-  void updateMessage(String message) {
+  Future<void> onReceived(String sender, String message) async {
     setState(() {
-      _message = message;
+      _message = '$sender: $message';
     });
   }
 
   Future<void> _sendMsg() async {
-    await _myProxy.send(_input);
+    await _messageClient.send(_input);
   }
 
   Future<void> _registerCallback() async {
-    await _myProxy.register('ClientApp', MyNotify(this));
+    await _messageClient.register('ClientApp', MyNotify(this));
     setState(() {
       _message = 'Register callback has done.';
     });
   }
 
   Future<void> _unregisterCallback() async {
-    await _myProxy.unregister();
+    await _messageClient.unregister();
     setState(() {
       _message = 'Unregister callback has done.';
     });
