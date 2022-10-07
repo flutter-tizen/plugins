@@ -92,7 +92,7 @@ abstract class ProxyBase {
     }
   }
 
-  /// Connects to the stub.
+  /// Connects to the stub asynchronously.
   ///
   /// The following privileges are required to use this API.
   /// - `http://tizen.org/privilege/appmanager.launch`
