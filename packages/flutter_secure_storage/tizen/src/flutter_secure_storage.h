@@ -30,6 +30,12 @@ class FlutterSecureStorage {
 
  private:
   std::vector<std::string> GetKeys(bool is_data = true);
+
+  std::string Encrypt(const std::string &value);
+
+  std::string Decrypt(const std::string &value);
+
+  std::vector<unsigned char> GenerateRandomVector(size_t size);
 };
 
 #endif  // FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
