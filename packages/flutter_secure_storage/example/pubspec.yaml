@@ -13,12 +13,12 @@ dev_dependencies:
     sdk: flutter
   flutter_test:
     sdk: flutter
-  lint: ^1.10.0
-  test: any
   integration_test:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
+  lint: ^1.10.0
+  test: any
 
 flutter:
   uses-material-design: true
