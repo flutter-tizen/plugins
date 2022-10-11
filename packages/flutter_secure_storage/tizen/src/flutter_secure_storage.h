@@ -7,9 +7,12 @@
 
 #include <flutter/encodable_value.h>
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
+
+#include "cipher.h"
 
 class FlutterSecureStorage {
  public:
@@ -29,13 +32,13 @@ class FlutterSecureStorage {
   bool ContainsKey(const std::string &key);
 
  private:
-  std::vector<std::string> GetKeys(bool is_data = true);
-
   std::string Encrypt(const std::string &value);
 
   std::string Decrypt(const std::string &value);
 
   std::vector<unsigned char> GenerateRandomVector();
+
+  std::unique_ptr<Cipher> cipher_;
 };
 
 #endif  // FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
