@@ -4,9 +4,8 @@
 
 // @dart=2.9
 
-import 'dart:io';
-import 'package:integration_test/integration_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
 void main() {
@@ -19,11 +18,14 @@ void main() {
       _networkInfo = NetworkInfo();
     });
 
-    testWidgets('test location methods, iOS only', (WidgetTester tester) async {
-      if (Platform.isIOS) {
-        expect(await _networkInfo.getLocationServiceAuthorization(),
-            LocationAuthorizationStatus.notDetermined);
-      }
+    testWidgets('test non-null network value', (WidgetTester tester) async {
+      expect(_networkInfo.getWifiName(), isNotNull);
+      expect(_networkInfo.getWifiBSSID(), isNotNull);
+      expect(_networkInfo.getWifiIP(), isNotNull);
+      expect(_networkInfo.getWifiIPv6(), isNotNull);
+      expect(_networkInfo.getWifiSubmask(), isNotNull);
+      expect(_networkInfo.getWifiGatewayIP(), isNotNull);
+      expect(_networkInfo.getWifiBroadcast(), isNotNull);
     });
   });
 }
