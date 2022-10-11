@@ -12,8 +12,6 @@
 
 #include "secure_storage_util.h"
 
-constexpr size_t kInitializationVectorSize = 12;
-
 Cipher::Cipher(std::string aes_key_name, size_t initialization_vector_size)
     : aes_key_name_(aes_key_name),
       initialization_vector_size_(initialization_vector_size) {
