@@ -10,8 +10,8 @@ To use this plugin, add `image_picker` and `image_picker_tizen` as [dependencies
 
 ```yaml
 dependencies:
-  image_picker: ^0.8.4
-  image_picker_tizen: ^2.1.0
+  image_picker: ^0.8.6
+  image_picker_tizen: ^2.1.1
 ```
 
 Then you can import `image_picker` in your Dart code.

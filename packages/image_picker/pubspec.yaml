@@ -3,7 +3,7 @@ description: Flutter plugin for selecting images from the Tizen image
   library, and taking new pictures with the camera.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/image_picker
-version: 2.1.0
+version: 2.1.1
 
 flutter:
   plugin:
@@ -15,7 +15,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  image_picker_platform_interface: ^2.4.1
+  image_picker_platform_interface: ^2.6.2
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
