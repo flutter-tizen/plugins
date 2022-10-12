@@ -55,10 +55,8 @@ flutter::EncodableMap FlutterSecureStorage::ReadAll() {
 
   for (std::string key : keys) {
     std::optional<std::string> value = Read(key);
-    if (value.has_value()) {
-      key_value_pairs[flutter::EncodableValue(key)] =
-          flutter::EncodableValue(value.value());
-    }
+    key_value_pairs[flutter::EncodableValue(key)] =
+        flutter::EncodableValue(value.value());
   }
 
   return key_value_pairs;

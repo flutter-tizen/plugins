@@ -92,7 +92,6 @@ class FlutterSecureStorageTizenPlugin : public flutter::Plugin {
       }
 
       std::string key;
-      GetValueFromEncodableMap(arguments, "key", key);
       if (!GetValueFromEncodableMap(arguments, "key", key)) {
         result->Error("Invalid argument", "No key provided.");
         return;
@@ -113,7 +112,6 @@ class FlutterSecureStorageTizenPlugin : public flutter::Plugin {
       }
 
       std::string key;
-      GetValueFromEncodableMap(arguments, "key", key);
       if (!GetValueFromEncodableMap(arguments, "key", key)) {
         result->Error("Invalid argument", "No key provided.");
         return;
@@ -131,7 +129,6 @@ class FlutterSecureStorageTizenPlugin : public flutter::Plugin {
       }
 
       std::string key;
-      GetValueFromEncodableMap(arguments, "key", key);
       if (!GetValueFromEncodableMap(arguments, "key", key)) {
         result->Error("Invalid argument", "No key provided.");
         return;

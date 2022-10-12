@@ -36,8 +36,6 @@ class FlutterSecureStorage {
 
   std::string Decrypt(const std::string &value);
 
-  std::vector<unsigned char> GenerateRandomVector();
-
   std::unique_ptr<Cipher> cipher_;
 };
 
