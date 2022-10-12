@@ -23,7 +23,8 @@ void FlutterSecureStorage::Write(const std::string &key,
   std::string encrypt = cipher_->Encrypt(value);
 
   ckmc_raw_buffer_s write_buffer;
-  write_buffer.data = (unsigned char *)encrypt.c_str();
+  write_buffer.data = const_cast<unsigned char *>(
+      reinterpret_cast<const unsigned char *>(encrypt.c_str()));
   write_buffer.size = encrypt.size();
 
   ckmc_policy_s policy = {
@@ -41,7 +42,8 @@ std::optional<std::string> FlutterSecureStorage::Read(const std::string &key) {
     return std::nullopt;
   }
 
-  std::string read_string((char *)read_buffer->data, read_buffer->size);
+  std::string read_string(read_buffer->data,
+                          read_buffer->data + read_buffer->size);
   ckmc_buffer_free(read_buffer);
 
   std::string decrypt = cipher_->Decrypt(read_string);
