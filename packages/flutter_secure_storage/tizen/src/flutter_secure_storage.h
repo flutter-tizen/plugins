@@ -32,10 +32,6 @@ class FlutterSecureStorage {
   bool ContainsKey(const std::string &key);
 
  private:
-  std::string Encrypt(const std::string &value);
-
-  std::string Decrypt(const std::string &value);
-
   std::unique_ptr<Cipher> cipher_;
 };
 
