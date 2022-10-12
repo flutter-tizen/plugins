@@ -48,15 +48,14 @@ std::optional<std::string> SecureStorage::Read(const std::string &key) {
   return decrypt;
 }
 
-flutter::EncodableMap SecureStorage::ReadAll() {
+std::map<std::string, std::string> SecureStorage::ReadAll() {
   std::vector<std::string> keys =
       SecureStorageUtil::GetAliasList(AliasType::kData);
-  flutter::EncodableMap key_value_pairs;
 
+  std::map<std::string, std::string> key_value_pairs;
   for (std::string key : keys) {
     std::optional<std::string> value = Read(key);
-    key_value_pairs[flutter::EncodableValue(key)] =
-        flutter::EncodableValue(value.value());
+    key_value_pairs[key] = value.value();
   }
 
   return key_value_pairs;

@@ -5,8 +5,7 @@
 #ifndef FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
 #define FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
 
-#include <flutter/encodable_value.h>
-
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -23,7 +22,7 @@ class SecureStorage {
 
   std::optional<std::string> Read(const std::string &key);
 
-  flutter::EncodableMap ReadAll();
+  std::map<std::string, std::string> ReadAll();
 
   void Delete(const std::string &key);
 

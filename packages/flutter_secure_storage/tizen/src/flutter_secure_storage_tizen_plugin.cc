@@ -103,7 +103,12 @@ class FlutterSecureStorageTizenPlugin : public flutter::Plugin {
         result->Success();
       }
     } else if (method_name == "readAll") {
-      result->Success(flutter::EncodableValue(storage_.ReadAll()));
+      flutter::EncodableMap encodable_map;
+      for (const auto &[key, value] : storage_.ReadAll()) {
+        encodable_map[flutter::EncodableValue(key)] =
+            flutter::EncodableValue(value);
+      }
+      result->Success(flutter::EncodableValue(encodable_map));
     } else if (method_name == "delete") {
       if (!arguments) {
         result->Error("Invalid argument", "No arguments provided.");
