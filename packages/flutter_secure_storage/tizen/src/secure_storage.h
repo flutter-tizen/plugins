@@ -14,10 +14,10 @@
 
 #include "cipher.h"
 
-class FlutterSecureStorage {
+class SecureStorage {
  public:
-  FlutterSecureStorage();
-  ~FlutterSecureStorage();
+  SecureStorage();
+  ~SecureStorage();
 
   void Write(const std::string &key, const std::string &value);
 

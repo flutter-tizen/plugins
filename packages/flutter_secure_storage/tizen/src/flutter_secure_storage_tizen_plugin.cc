@@ -12,7 +12,7 @@
 #include <memory>
 #include <string>
 
-#include "flutter_secure_storage.h"
+#include "secure_storage.h"
 
 namespace {
 
@@ -140,7 +140,7 @@ class FlutterSecureStorageTizenPlugin : public flutter::Plugin {
     }
   }
 
-  FlutterSecureStorage storage_;
+  SecureStorage storage_;
 };
 
 }  // namespace

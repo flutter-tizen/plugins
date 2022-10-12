@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "flutter_secure_storage.h"
+#include "secure_storage.h"
 
 #include <ckmc/ckmc-manager.h>
 #include <ckmc/ckmc-type.h>
@@ -11,14 +11,13 @@
 
 #include "secure_storage_util.h"
 
-FlutterSecureStorage::FlutterSecureStorage() {
-  cipher_ = std::make_unique<Cipher>("FlutterSecureStorageAesKey", 12);
+SecureStorage::SecureStorage() {
+  cipher_ = std::make_unique<Cipher>("SecureStorageAesKey", 12);
 }
 
-FlutterSecureStorage::~FlutterSecureStorage() {}
+SecureStorage::~SecureStorage() {}
 
-void FlutterSecureStorage::Write(const std::string &key,
-                                 const std::string &value) {
+void SecureStorage::Write(const std::string &key, const std::string &value) {
   std::string encrypt = cipher_->Encrypt(value);
 
   ckmc_raw_buffer_s write_buffer;
@@ -34,7 +33,7 @@ void FlutterSecureStorage::Write(const std::string &key,
   ckmc_save_data(key.c_str(), write_buffer, policy);
 }
 
-std::optional<std::string> FlutterSecureStorage::Read(const std::string &key) {
+std::optional<std::string> SecureStorage::Read(const std::string &key) {
   ckmc_raw_buffer_s *read_buffer;
   int ret = ckmc_get_data(key.c_str(), nullptr, &read_buffer);
   if (ret != CKMC_ERROR_NONE) {
@@ -49,7 +48,7 @@ std::optional<std::string> FlutterSecureStorage::Read(const std::string &key) {
   return decrypt;
 }
 
-flutter::EncodableMap FlutterSecureStorage::ReadAll() {
+flutter::EncodableMap SecureStorage::ReadAll() {
   std::vector<std::string> keys =
       SecureStorageUtil::GetAliasList(AliasType::kData);
   flutter::EncodableMap key_value_pairs;
@@ -63,11 +62,11 @@ flutter::EncodableMap FlutterSecureStorage::ReadAll() {
   return key_value_pairs;
 }
 
-void FlutterSecureStorage::Delete(const std::string &key) {
+void SecureStorage::Delete(const std::string &key) {
   ckmc_remove_alias(key.c_str());
 }
 
-void FlutterSecureStorage::DeleteAll() {
+void SecureStorage::DeleteAll() {
   std::vector<std::string> keys =
       SecureStorageUtil::GetAliasList(AliasType::kData);
   for (std::string key : keys) {
@@ -75,7 +74,7 @@ void FlutterSecureStorage::DeleteAll() {
   }
 }
 
-bool FlutterSecureStorage::ContainsKey(const std::string &key) {
+bool SecureStorage::ContainsKey(const std::string &key) {
   std::vector<std::string> keys =
       SecureStorageUtil::GetAliasList(AliasType::kData);
   return std::find(keys.begin(), keys.end(), key) != keys.end();
