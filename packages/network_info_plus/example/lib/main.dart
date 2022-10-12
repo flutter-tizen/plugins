@@ -65,9 +65,23 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NetworkInfo example app'),
+        title: const Text('NetworkInfoPlus example'),
       ),
-      body: Center(child: Text('Connection Status: $_connectionStatus')),
+      body: Center(
+          child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Network info',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(_connectionStatus),
+        ],
+      )),
     );
   }
 
@@ -81,40 +95,14 @@ class _MyHomePageState extends State<MyHomePage> {
         wifiSubmask;
 
     try {
-      if (!kIsWeb && Platform.isIOS) {
-        var status = await _networkInfo.getLocationServiceAuthorization();
-        if (status == LocationAuthorizationStatus.notDetermined) {
-          status = await _networkInfo.requestLocationServiceAuthorization();
-        }
-        if (status == LocationAuthorizationStatus.authorizedAlways ||
-            status == LocationAuthorizationStatus.authorizedWhenInUse) {
-          wifiName = await _networkInfo.getWifiName();
-        } else {
-          wifiName = await _networkInfo.getWifiName();
-        }
-      } else {
-        wifiName = await _networkInfo.getWifiName();
-      }
+      wifiName = await _networkInfo.getWifiName();
     } on PlatformException catch (e) {
       developer.log('Failed to get Wifi Name', error: e);
       wifiName = 'Failed to get Wifi Name';
     }
 
     try {
-      if (!kIsWeb && Platform.isIOS) {
-        var status = await _networkInfo.getLocationServiceAuthorization();
-        if (status == LocationAuthorizationStatus.notDetermined) {
-          status = await _networkInfo.requestLocationServiceAuthorization();
-        }
-        if (status == LocationAuthorizationStatus.authorizedAlways ||
-            status == LocationAuthorizationStatus.authorizedWhenInUse) {
-          wifiBSSID = await _networkInfo.getWifiBSSID();
-        } else {
-          wifiBSSID = await _networkInfo.getWifiBSSID();
-        }
-      } else {
-        wifiBSSID = await _networkInfo.getWifiBSSID();
-      }
+      wifiBSSID = await _networkInfo.getWifiBSSID();
     } on PlatformException catch (e) {
       developer.log('Failed to get Wifi BSSID', error: e);
       wifiBSSID = 'Failed to get Wifi BSSID';

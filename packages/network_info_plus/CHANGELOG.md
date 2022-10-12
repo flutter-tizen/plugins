@@ -1,3 +1,9 @@
+## 1.1.3
+
+* Update network_info_plus to 2.3.2.
+* Update network_info_plus_platform_interface to 1.1.2.
+* Update the example app to not use deprecated iOS-specific APIs.
+
 ## 1.1.2
 
 * Update network_info_plus to 2.1.2
