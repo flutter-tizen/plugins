@@ -94,7 +94,8 @@ void SecureStorage::CreateAesKeyOnce() {
 
 std::string SecureStorage::Encrypt(const std::string &value) {
   ckmc_raw_buffer_s plaintext;
-  plaintext.data = (unsigned char *)value.c_str();
+  plaintext.data = const_cast<unsigned char *>(
+      reinterpret_cast<const unsigned char *>(value.c_str()));
   plaintext.size = value.length();
 
   ckmc_param_list_h params = nullptr;
@@ -111,12 +112,13 @@ std::string SecureStorage::Encrypt(const std::string &value) {
   ckmc_encrypt_data(params, kSecureStorageAesKey, nullptr, plaintext,
                     &encrypted);
 
-  std::string encrypted_value((char *)encrypted->data, encrypted->size);
+  std::string encrypted_value(encrypted->data,
+                              encrypted->data + encrypted->size);
 
   ckmc_param_list_free(params);
   ckmc_buffer_free(encrypted);
 
-  std::string iv_str((char *)iv.data(), iv.size());
+  std::string iv_str(iv.data(), iv.data() + iv.size());
   std::string combind = iv_str + encrypted_value;
 
   return combind;
@@ -125,7 +127,8 @@ std::string SecureStorage::Encrypt(const std::string &value) {
 std::string SecureStorage::Decrypt(const std::string &value) {
   std::string encrypted_value = value.substr(kInitializationVectorSize);
   ckmc_raw_buffer_s encrypted;
-  encrypted.data = (unsigned char *)encrypted_value.c_str();
+  encrypted.data = const_cast<unsigned char *>(
+      reinterpret_cast<const unsigned char *>(encrypted_value.c_str()));
   encrypted.size = encrypted_value.length();
 
   ckmc_param_list_h params = nullptr;
@@ -134,7 +137,8 @@ std::string SecureStorage::Decrypt(const std::string &value) {
   std::string iv = value.substr(0, kInitializationVectorSize);
 
   ckmc_raw_buffer_s iv_buffer;
-  iv_buffer.data = (unsigned char *)iv.c_str();
+  iv_buffer.data = const_cast<unsigned char *>(
+      reinterpret_cast<const unsigned char *>(iv.c_str()));
   iv_buffer.size = iv.size();
   ckmc_param_list_set_buffer(params, CKMC_PARAM_ED_IV, &iv_buffer);
 
@@ -142,7 +146,8 @@ std::string SecureStorage::Decrypt(const std::string &value) {
   ckmc_decrypt_data(params, kSecureStorageAesKey, nullptr, encrypted,
                     &decrypted);
 
-  std::string decrypted_value((char *)decrypted->data, decrypted->size);
+  std::string decrypted_value(decrypted->data,
+                              decrypted->data + decrypted->size);
 
   ckmc_param_list_free(params);
   ckmc_buffer_free(decrypted);
