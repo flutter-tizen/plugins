@@ -9,7 +9,6 @@
 
 #include <algorithm>
 
-#include "log.h"
 #include "secure_storage_util.h"
 
 FlutterSecureStorage::FlutterSecureStorage() {

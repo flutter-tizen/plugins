@@ -13,7 +13,6 @@
 #include <string>
 
 #include "flutter_secure_storage.h"
-#include "log.h"
 
 namespace {
 
