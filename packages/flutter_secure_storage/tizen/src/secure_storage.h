@@ -11,8 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "cipher.h"
-
 class SecureStorage {
  public:
   SecureStorage();
@@ -31,7 +29,20 @@ class SecureStorage {
   bool ContainsKey(const std::string &key);
 
  private:
-  std::unique_ptr<Cipher> cipher_;
+  enum class AliasType {
+    kKey,
+    kData,
+  };
+
+  void CreateAesKeyOnce();
+
+  std::string Encrypt(const std::string &value);
+
+  std::string Decrypt(const std::string &value);
+
+  std::vector<unsigned char> GenerateRandomVector();
+
+  std::vector<std::string> GetAliasList(AliasType type);
 };
 
 #endif  // FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
