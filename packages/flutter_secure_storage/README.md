@@ -10,7 +10,7 @@ This package is not an _endorsed_ implementation of `flutter_secure_storage`. Th
 
 ```yaml
 dependencies:
-  flutter_secure_storage:  ^6.0.0
+  flutter_secure_storage: ^6.0.0
   flutter_secure_storage_tizen: ^0.1.0
 ```
 
