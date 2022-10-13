@@ -57,6 +57,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**camera_tizen**](packages/camera) | 4.0 | ❌ | ❌ | ❌ | ❌ | No camera |
 | [**connectivity_plus_tizen**](packages/connectivity_plus) | 4.0 | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
 | [**device_info_plus_tizen**](packages/device_info_plus) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage_tizen) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_tts_tizen**](packages/flutter_tts) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**geolocator_tizen**](packages/geolocator) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**google_maps_flutter_tizen**](packages/google_maps_flutter) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |

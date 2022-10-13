@@ -2,70 +2,83 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-String _randomValue() {
-  final rand = Random();
-  final codeUnits = List.generate(20, (index) {
-    return rand.nextInt(26) + 65;
-  });
-
-  return String.fromCharCodes(codeUnits);
-}
-
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
   late FlutterSecureStorage storage;
-  final Map<String, String> testInput = {};
 
   setUpAll(() async {
     storage = const FlutterSecureStorage();
-
-    for (int i = 0; i < 5; i++) {
-      testInput[_randomValue()] = _randomValue();
-    }
   });
 
-  testWidgets('write', (WidgetTester tester) async {
-    await Future.forEach(testInput.entries, (MapEntry entry) async {
-      final String key = entry.key as String;
-      final String value = entry.value as String;
-      await storage.write(key: key, value: value);
-      final String? result = await storage.read(key: key);
-      expect(result, value);
-    });
+  tearDown(() async {
+    await storage.deleteAll();
   });
 
-  testWidgets('read', (WidgetTester tester) async {
-    final String? result = await storage.read(key: 'invaild_key');
+  testWidgets('read and write', (WidgetTester tester) async {
+    await storage.write(key: 'key1', value: 'value1');
+    await storage.write(key: 'key2', value: 'value2');
+
+    expect(await storage.read(key: 'key1'), 'value1');
+    expect(await storage.read(key: 'key2'), 'value2');
+  });
+
+  testWidgets('read non-existing key', (WidgetTester tester) async {
+    final String? result = await storage.read(key: 'foobar');
     expect(result, isNull);
   });
 
   testWidgets('readAll', (WidgetTester tester) async {
+    final Map<String, String> input = {
+      'foo': 'bar',
+      'baz': 'qux',
+      'waldo': 'fred',
+    };
+
+    for (final MapEntry<String, String> enrty in input.entries) {
+      await storage.write(key: enrty.key, value: enrty.value);
+    }
+
     final Map<String, String> result = await storage.readAll();
-    expect(true, mapEquals(testInput, result));
+    expect(mapEquals(input, result), isTrue);
   });
 
   testWidgets('containsKey', (WidgetTester tester) async {
-    await Future.forEach(testInput.entries, (MapEntry entry) async {
-      expect(await storage.containsKey(key: entry.key as String), isTrue);
-    });
+    await storage.write(key: 'dgx', value: 'dfs');
+    await storage.write(key: 'corge', value: 'grault');
+
+    expect(await storage.containsKey(key: 'dgx'), isTrue);
+    expect(await storage.containsKey(key: 'corge'), isTrue);
+
+    expect(await storage.containsKey(key: 'foo'), isFalse);
   });
 
   testWidgets('delete', (WidgetTester tester) async {
-    await storage.delete(key: testInput.keys.first);
-    expect(await storage.containsKey(key: testInput.keys.first), isFalse);
+    await storage.write(key: 'wibble', value: 'flob');
+    expect(await storage.containsKey(key: 'wibble'), isTrue);
+
+    await storage.delete(key: 'wibble');
+    expect(await storage.containsKey(key: 'wibble'), isFalse);
   });
 
   testWidgets('deleteAll', (WidgetTester tester) async {
+    final Map<String, String> input = {
+      'foo': 'bar',
+      'baz': 'qux',
+      'waldo': 'fred',
+    };
+
+    for (final MapEntry<String, String> enrty in input.entries) {
+      await storage.write(key: enrty.key, value: enrty.value);
+    }
+    expect(await storage.readAll(), isNotEmpty);
+
     await storage.deleteAll();
-    await Future.forEach(testInput.entries, (MapEntry entry) async {
-      expect(await storage.containsKey(key: entry.key as String), isFalse);
-    });
+    expect(await storage.readAll(), isEmpty);
   });
 }
