@@ -21,7 +21,7 @@ String _randomValue() {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   late FlutterSecureStorage storage;
-  late final Map<String, String> testInput = {};
+  final Map<String, String> testInput = {};
 
   setUpAll(() async {
     storage = const FlutterSecureStorage();
