@@ -18,7 +18,7 @@ String _randomValue() {
   return String.fromCharCodes(codeUnits);
 }
 
-Future<void> main() async {
+void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   late FlutterSecureStorage storage;
   late final Map<String, String> testInput = {};
