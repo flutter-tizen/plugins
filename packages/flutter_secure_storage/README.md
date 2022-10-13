@@ -20,5 +20,5 @@ Then you can import `flutter_secure_storage` in your Dart code:
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 ```
 
-For detailed usage, see https://pub.dev/packages/flutter_secure_storage#usage.
+For detailed usage, see https://pub.dev/packages/flutter_secure_storage#getting-started.
 
