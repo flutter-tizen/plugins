@@ -22,7 +22,7 @@ void main() {
   testWidgets('updateMinMaxZoomLevels', (WidgetTester tester) async {
     final Key key = GlobalKey();
     late GoogleMapsPlugin plugin;
-    int mapId = -1;
+    final Completer<int> mapIdCompleter = Completer<int>();
 
     const MinMaxZoomPreference initialZoomLevel = MinMaxZoomPreference(4, 8);
     const MinMaxZoomPreference finalZoomLevel = MinMaxZoomPreference(6, 10);
@@ -34,11 +34,11 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         minMaxZoomPreference: initialZoomLevel,
         onMapCreated: (GoogleMapController c) {
-          mapId = c.mapId;
+          mapIdCompleter.complete(c.mapId);
         },
       ),
     ));
-
+    final int mapId = await mapIdCompleter.future;
     await tester.pumpAndSettle();
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
@@ -68,7 +68,7 @@ void main() {
   testWidgets('testZoomGesturesEnabled', (WidgetTester tester) async {
     final Key key = GlobalKey();
     late GoogleMapsPlugin plugin;
-    int mapId = -1;
+    final Completer<int> mapIdCompleter = Completer<int>();
 
     await tester.pumpWidget(Directionality(
       textDirection: TextDirection.ltr,
@@ -77,11 +77,11 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         zoomGesturesEnabled: false,
         onMapCreated: (GoogleMapController c) {
-          mapId = c.mapId;
+          mapIdCompleter.complete(c.mapId);
         },
       ),
     ));
-
+    final int mapId = await mapIdCompleter.future;
     await tester.pumpAndSettle();
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
@@ -110,7 +110,7 @@ void main() {
   testWidgets('testZoomControlsEnabled', (WidgetTester tester) async {
     final Key key = GlobalKey();
     late GoogleMapsPlugin plugin;
-    int mapId = -1;
+    final Completer<int> mapIdCompleter = Completer<int>();
 
     await tester.pumpWidget(Directionality(
       textDirection: TextDirection.ltr,
@@ -118,11 +118,11 @@ void main() {
         key: key,
         initialCameraPosition: _kInitialCameraPosition,
         onMapCreated: (GoogleMapController c) {
-          mapId = c.mapId;
+          mapIdCompleter.complete(c.mapId);
         },
       ),
     ));
-
+    final int mapId = await mapIdCompleter.future;
     await tester.pumpAndSettle();
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
@@ -152,7 +152,7 @@ void main() {
   testWidgets('testScrollGesturesEnabled', (WidgetTester tester) async {
     final Key key = GlobalKey();
     late GoogleMapsPlugin plugin;
-    int mapId = -1;
+    final Completer<int> mapIdCompleter = Completer<int>();
 
     await tester.pumpWidget(Directionality(
       textDirection: TextDirection.ltr,
@@ -161,11 +161,11 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         scrollGesturesEnabled: false,
         onMapCreated: (GoogleMapController c) {
-          mapId = c.mapId;
+          mapIdCompleter.complete(c.mapId);
         },
       ),
     ));
-
+    final int mapId = await mapIdCompleter.future;
     await tester.pumpAndSettle();
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
@@ -302,7 +302,7 @@ void main() {
   testWidgets('testTraffic', (WidgetTester tester) async {
     final Key key = GlobalKey();
     late GoogleMapsPlugin plugin;
-    int mapId = -1;
+    final Completer<int> mapIdCompleter = Completer<int>();
 
     await tester.pumpWidget(Directionality(
       textDirection: TextDirection.ltr,
@@ -311,11 +311,11 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         trafficEnabled: true,
         onMapCreated: (GoogleMapController c) {
-          mapId = c.mapId;
+          mapIdCompleter.complete(c.mapId);
         },
       ),
     ));
-
+    final int mapId = await mapIdCompleter.future;
     await tester.pumpAndSettle();
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
