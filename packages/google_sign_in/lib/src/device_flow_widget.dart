@@ -43,91 +43,54 @@ void showDeviceFlowWidget({
       return AlertDialog(
         scrollable: true,
         contentPadding: const EdgeInsets.all(10),
-        content: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 25),
-          decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: const BorderRadius.all(Radius.circular(5))),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Image.asset(
-                'packages/google_sign_in_tizen/assets/images/google.png',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Image.asset(
+              'assets/images/google.png',
+              package: 'google_sign_in_tizen',
+            ),
+            const SizedBox(height: 15),
+            FittedBox(
+              child: Text(
+                'From a PC, phone, or tablet go to:',
+                style: bodyStyle,
               ),
-              Container(
-                margin: const EdgeInsets.only(top: 15),
-                child: Column(
-                  children: <Widget>[
-                    FittedBox(
-                      child: Text(
-                        'From a PC, phone, or tablet go to:',
-                        style: bodyStyle,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    FittedBox(
-                      child: Text(
-                        '$verificationUrl',
-                        style: titleStyle,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(top: 15),
-                child: Column(
-                  children: <Widget>[
-                    FittedBox(
-                      child: Text(
-                        'Then enter the code below:',
-                        style: bodyStyle,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    FittedBox(
-                      child: Text(
-                        code,
-                        style: titleStyle,
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(top: 15),
-                child: Column(
-                  children: <Widget>[
-                    FittedBox(
-                      child: Text(
-                        'Code will expire in:',
-                        style: bodyStyle,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    _CountdownTimer(
-                      const Duration(minutes: 30),
-                      style: bodyStyle,
-                      onFinished: () {
-                        onExpired?.call();
-                        closeDeviceFlowWidget();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.only(top: 15),
-                child: ElevatedButton(
-                  onPressed: () {
-                    onCanceled?.call();
-                    closeDeviceFlowWidget();
-                  },
-                  child: const Text('Cancel'),
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 5),
+            FittedBox(
+              child: Text('$verificationUrl', style: titleStyle),
+            ),
+            const SizedBox(height: 15),
+            FittedBox(
+              child: Text('Then enter the code below:', style: bodyStyle),
+            ),
+            const SizedBox(height: 5),
+            FittedBox(
+              child: Text(code, style: titleStyle),
+            ),
+            const SizedBox(height: 15),
+            FittedBox(
+              child: Text('Code will expire in:', style: bodyStyle),
+            ),
+            const SizedBox(height: 5),
+            _CountdownTimer(
+              const Duration(minutes: 30),
+              style: bodyStyle,
+              onFinished: () {
+                onExpired?.call();
+                closeDeviceFlowWidget();
+              },
+            ),
+            const SizedBox(height: 15),
+            ElevatedButton(
+              onPressed: () {
+                onCanceled?.call();
+                closeDeviceFlowWidget();
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
         ),
       );
     },
@@ -175,12 +138,7 @@ class _CountdownTimerState extends State<_CountdownTimer> {
     final String minutes = _remaining.inMinutes.toString().padLeft(2, '0');
     final String seconds =
         _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return FittedBox(
-      child: Text(
-        '$minutes:$seconds',
-        style: widget.style,
-      ),
-    );
+    return FittedBox(child: Text('$minutes:$seconds', style: widget.style));
   }
 
   @override
