@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
-#define FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
+#ifndef FLUTTER_PLUGIN_SECURE_STORAGE_H_
+#define FLUTTER_PLUGIN_SECURE_STORAGE_H_
 
 #include <map>
 #include <memory>
@@ -45,4 +45,4 @@ class SecureStorage {
   std::vector<std::string> GetAliasList(AliasType type);
 };
 
-#endif  // FLUTTER_PLUGIN_FLUTTER_SECURE_STORAGE_H_
+#endif  // FLUTTER_PLUGIN_SECURE_STORAGE_H_
