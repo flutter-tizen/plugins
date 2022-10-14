@@ -53,13 +53,13 @@ std::optional<std::string> SecureStorage::Read(const std::string &key) {
 std::map<std::string, std::string> SecureStorage::ReadAll() {
   std::vector<std::string> keys = GetAliasList(AliasType::kData);
 
-  std::map<std::string, std::string> key_value_pairs;
-  for (std::string key : keys) {
+  std::map<std::string, std::string> map;
+  for (const std::string &key : keys) {
     std::optional<std::string> value = Read(key);
-    key_value_pairs[key] = value.value();
+    map[key] = value.value();
   }
 
-  return key_value_pairs;
+  return map;
 }
 
 void SecureStorage::Delete(const std::string &key) {
@@ -119,9 +119,9 @@ std::string SecureStorage::Encrypt(const std::string &value) {
   ckmc_buffer_free(encrypted);
 
   std::string iv_str(iv.data(), iv.data() + iv.size());
-  std::string combind = iv_str + encrypted_value;
+  std::string combined = iv_str + encrypted_value;
 
-  return combind;
+  return combined;
 }
 
 std::string SecureStorage::Decrypt(const std::string &value) {
@@ -156,7 +156,7 @@ std::string SecureStorage::Decrypt(const std::string &value) {
 }
 
 std::vector<unsigned char> SecureStorage::GenerateRandomVector() {
-  static std::mt19937 mt{std::random_device{}()};
+  static std::mt19937 mt(std::random_device{}());
   static std::uniform_int_distribution<> distrib(0, 255);
 
   std::vector<unsigned char> vector;
