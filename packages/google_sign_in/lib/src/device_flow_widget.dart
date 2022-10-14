@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 /// The [GlobalKey] that identifies a [NavigatorState].
 ///
@@ -42,15 +43,10 @@ void showDeviceFlowWidget({
 
       return AlertDialog(
         scrollable: true,
-        contentPadding: const EdgeInsets.all(10),
+        contentPadding: const EdgeInsets.all(20),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Image.asset(
-              'assets/images/google.png',
-              package: 'google_sign_in_tizen',
-            ),
-            const SizedBox(height: 15),
             FittedBox(
               child: Text(
                 'From a PC, phone, or tablet go to:',
@@ -60,6 +56,20 @@ void showDeviceFlowWidget({
             const SizedBox(height: 5),
             FittedBox(
               child: Text('$verificationUrl', style: titleStyle),
+            ),
+            const SizedBox(height: 15),
+            FittedBox(
+              child: Text(
+                'Or scan the following QR code:',
+                style: bodyStyle,
+              ),
+            ),
+            const SizedBox(height: 5),
+            SvgPicture.asset(
+              'assets/images/qrcode.svg',
+              package: 'google_sign_in_tizen',
+              width: 100,
+              height: 100,
             ),
             const SizedBox(height: 15),
             FittedBox(

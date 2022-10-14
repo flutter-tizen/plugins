@@ -12,11 +12,12 @@ flutter:
         pluginClass: GoogleSignInTizenPlugin
         fileName: google_sign_in_tizen_plugin.h
   assets:
-    - assets/images/google.png
+    - assets/images/qrcode.svg
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_svg: ^1.1.5
   google_sign_in_platform_interface: ^2.3.0
   http: ^0.13.4
 
