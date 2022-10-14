@@ -20,12 +20,11 @@ SecureStorage::SecureStorage() { CreateAesKeyOnce(); }
 SecureStorage::~SecureStorage() {}
 
 void SecureStorage::Write(const std::string &key, const std::string &value) {
-  std::string encrypt = Encrypt(value);
+  std::vector<uint8_t> encrypted = Encrypt(value);
 
   ckmc_raw_buffer_s write_buffer;
-  write_buffer.data = const_cast<unsigned char *>(
-      reinterpret_cast<const unsigned char *>(encrypt.c_str()));
-  write_buffer.size = encrypt.size();
+  write_buffer.data = encrypted.data();
+  write_buffer.size = encrypted.size();
 
   ckmc_policy_s policy = {
       .password = nullptr,
@@ -42,12 +41,12 @@ std::optional<std::string> SecureStorage::Read(const std::string &key) {
     return std::nullopt;
   }
 
-  std::string read_string(read_buffer->data,
-                          read_buffer->data + read_buffer->size);
+  std::vector<uint8_t> encrypted(read_buffer->data,
+                                 read_buffer->data + read_buffer->size);
   ckmc_buffer_free(read_buffer);
 
-  std::string decrypt = Decrypt(read_string);
-  return decrypt;
+  std::string decrypted = Decrypt(encrypted);
+  return decrypted;
 }
 
 std::map<std::string, std::string> SecureStorage::ReadAll() {
@@ -92,74 +91,71 @@ void SecureStorage::CreateAesKeyOnce() {
   ckmc_create_key_aes(256, kSecureStorageAesKey, policy);
 }
 
-std::string SecureStorage::Encrypt(const std::string &value) {
-  ckmc_raw_buffer_s plaintext;
-  plaintext.data = const_cast<unsigned char *>(
-      reinterpret_cast<const unsigned char *>(value.c_str()));
-  plaintext.size = value.length();
+std::vector<uint8_t> SecureStorage::Encrypt(const std::string &value) {
+  ckmc_raw_buffer_s plain_buffer;
+  plain_buffer.data =
+      const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(value.c_str()));
+  plain_buffer.size = value.length();
 
   ckmc_param_list_h params = nullptr;
   ckmc_generate_new_params(CKMC_ALGO_AES_GCM, &params);
 
-  std::vector<unsigned char> iv = GenerateRandomVector();
-
+  std::vector<uint8_t> iv = GenerateRandomVector();
   ckmc_raw_buffer_s iv_buffer;
   iv_buffer.data = iv.data();
   iv_buffer.size = iv.size();
   ckmc_param_list_set_buffer(params, CKMC_PARAM_ED_IV, &iv_buffer);
 
-  ckmc_raw_buffer_s *encrypted = nullptr;
-  ckmc_encrypt_data(params, kSecureStorageAesKey, nullptr, plaintext,
-                    &encrypted);
+  ckmc_raw_buffer_s *encrypted_buffer = nullptr;
+  ckmc_encrypt_data(params, kSecureStorageAesKey, nullptr, plain_buffer,
+                    &encrypted_buffer);
 
-  std::string encrypted_value(encrypted->data,
-                              encrypted->data + encrypted->size);
+  std::vector<uint8_t> encrypted(iv);
+  encrypted.insert(encrypted.end(), encrypted_buffer->data,
+                   encrypted_buffer->data + encrypted_buffer->size);
 
   ckmc_param_list_free(params);
-  ckmc_buffer_free(encrypted);
+  ckmc_buffer_free(encrypted_buffer);
 
-  std::string iv_str(iv.data(), iv.data() + iv.size());
-  std::string combined = iv_str + encrypted_value;
-
-  return combined;
+  return encrypted;
 }
 
-std::string SecureStorage::Decrypt(const std::string &value) {
-  std::string encrypted_value = value.substr(kInitializationVectorSize);
-  ckmc_raw_buffer_s encrypted;
-  encrypted.data = const_cast<unsigned char *>(
-      reinterpret_cast<const unsigned char *>(encrypted_value.c_str()));
-  encrypted.size = encrypted_value.length();
+std::string SecureStorage::Decrypt(const std::vector<uint8_t> &value) {
+  std::vector<uint8_t> iv(value.begin(),
+                          value.begin() + kInitializationVectorSize);
+  ckmc_raw_buffer_s iv_buffer;
+  iv_buffer.data = iv.data();
+  iv_buffer.size = iv.size();
 
   ckmc_param_list_h params = nullptr;
   ckmc_generate_new_params(CKMC_ALGO_AES_GCM, &params);
 
-  std::string iv = value.substr(0, kInitializationVectorSize);
-
-  ckmc_raw_buffer_s iv_buffer;
-  iv_buffer.data = const_cast<unsigned char *>(
-      reinterpret_cast<const unsigned char *>(iv.c_str()));
-  iv_buffer.size = iv.size();
   ckmc_param_list_set_buffer(params, CKMC_PARAM_ED_IV, &iv_buffer);
 
-  ckmc_raw_buffer_s *decrypted = nullptr;
-  ckmc_decrypt_data(params, kSecureStorageAesKey, nullptr, encrypted,
-                    &decrypted);
+  std::vector<uint8_t> encrypted_value(
+      value.begin() + kInitializationVectorSize, value.end());
+  ckmc_raw_buffer_s encrypted_buffer;
+  encrypted_buffer.data = encrypted_value.data();
+  encrypted_buffer.size = encrypted_value.size();
 
-  std::string decrypted_value(decrypted->data,
-                              decrypted->data + decrypted->size);
+  ckmc_raw_buffer_s *decrypted_buffer = nullptr;
+  ckmc_decrypt_data(params, kSecureStorageAesKey, nullptr, encrypted_buffer,
+                    &decrypted_buffer);
+
+  std::string decrypted(decrypted_buffer->data,
+                        decrypted_buffer->data + decrypted_buffer->size);
 
   ckmc_param_list_free(params);
-  ckmc_buffer_free(decrypted);
+  ckmc_buffer_free(decrypted_buffer);
 
-  return decrypted_value;
+  return decrypted;
 }
 
-std::vector<unsigned char> SecureStorage::GenerateRandomVector() {
+std::vector<uint8_t> SecureStorage::GenerateRandomVector() {
   static std::mt19937 mt(std::random_device{}());
-  static std::uniform_int_distribution<> distrib(0, 255);
+  static std::uniform_int_distribution<uint8_t> distrib;
 
-  std::vector<unsigned char> vector;
+  std::vector<uint8_t> vector;
   for (size_t i = 0; i < kInitializationVectorSize; i++) {
     vector.emplace_back(distrib(mt));
   }

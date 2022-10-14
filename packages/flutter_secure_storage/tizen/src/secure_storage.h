@@ -36,11 +36,11 @@ class SecureStorage {
 
   void CreateAesKeyOnce();
 
-  std::string Encrypt(const std::string &value);
+  std::vector<uint8_t> Encrypt(const std::string &value);
 
-  std::string Decrypt(const std::string &value);
+  std::string Decrypt(const std::vector<uint8_t> &value);
 
-  std::vector<unsigned char> GenerateRandomVector();
+  std::vector<uint8_t> GenerateRandomVector();
 
   std::vector<std::string> GetAliasList(AliasType type);
 };
