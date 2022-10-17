@@ -55,18 +55,10 @@ class _MyAppState extends State<MyApp> {
     await _client.send(_input);
   }
 
-  Future<void> _registerCallback() async {
-    await _client.register('ClientApp', onNotifyCallback);
-    setState(() {
-      _message = 'Register callback has done.';
-    });
-  }
-
-  Future<void> _unregisterCallback() async {
+  @override
+  Future<void> dispose() async {
     await _client.unregister();
-    setState(() {
-      _message = 'Unregister callback has done.';
-    });
+    super.dispose();
   }
 
   @override
@@ -96,14 +88,6 @@ class _MyAppState extends State<MyApp> {
           TextButton(
             onPressed: _sendMsg,
             child: const Text('Send'),
-          ),
-          TextButton(
-            onPressed: _registerCallback,
-            child: const Text('Register'),
-          ),
-          TextButton(
-            onPressed: _unregisterCallback,
-            child: const Text('Unregister'),
           ),
         ],
       ),

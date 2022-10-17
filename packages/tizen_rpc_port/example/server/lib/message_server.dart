@@ -83,14 +83,14 @@ class NotifyCallback extends _Delegate {
 
   final Port? _port;
   ServiceBase service;
-  bool _wasInvoked = true;
+  bool _wasInvoked = false;
 
   Future<void> invoke(String sender, String message) async {
     if (_port == null) {
       throw StateError('Must be connected first');
     }
 
-    if (once && !_wasInvoked) {
+    if (once && _wasInvoked) {
       throw Exception('Can be invoked only once');
     }
 
@@ -100,7 +100,7 @@ class NotifyCallback extends _Delegate {
     parcel.writeString(sender);
     parcel.writeString(message);
     parcel.send(_port!);
-    _wasInvoked = false;
+    _wasInvoked = true;
   }
 }
 
