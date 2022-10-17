@@ -12,6 +12,7 @@ dependencies:
   ffi: ">=2.0.1 <3.0.0"
   flutter:
     sdk: flutter
+  meta: ^1.8.0
   tizen_bundle: ^0.1.0
   tizen_interop: ^0.2.1
   tizen_log: ^0.1.0
