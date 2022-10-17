@@ -83,7 +83,7 @@ abstract class ProxyBase {
           await _onConnectedEvent();
         } else if (event == 'disconnected') {
           _isConnected = false;
-          await onDisconnectedEvent();
+          await _onDisconnectedEvent();
           _streamSubscription?.cancel();
           _streamSubscription = null;
         } else if (event == 'rejected') {
@@ -169,8 +169,9 @@ abstract class ProxyBase {
   }
 
   /// The method for receiving disconnected event.
-  Future<void> onDisconnectedEvent() async {
+  Future<void> _onDisconnectedEvent() async {
     await _onDisconnected?.call();
+    _onDisconnected = null;
     if (_disconnectCompleter.isCompleted == false) {
       _disconnectCompleter.complete();
     }
