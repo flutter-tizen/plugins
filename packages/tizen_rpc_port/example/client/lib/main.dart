@@ -23,7 +23,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late final Message _messageClient;
+  final Message _client = Message('com.example.tizen_rpc_port_server_example');
   String _input = '';
   String _message = '';
 
@@ -35,12 +35,11 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> initPlatformState() async {
     try {
-      _messageClient = Message('com.example.tizen_rpc_port_server_example');
-      await _messageClient.connect(onDisconnected: () async {
+      await _client.connect(onDisconnected: () async {
         setState(() => _message = 'Disconnected');
       });
       setState(() => _message = 'Connected');
-      _messageClient.register('ClientApp', onNotifyCallback);
+      _client.register('ClientApp', onNotifyCallback);
     } on PlatformException {
       _message = 'Connection has failed.';
     }
@@ -53,18 +52,18 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _sendMsg() async {
-    await _messageClient.send(_input);
+    await _client.send(_input);
   }
 
   Future<void> _registerCallback() async {
-    await _messageClient.register('ClientApp', onNotifyCallback);
+    await _client.register('ClientApp', onNotifyCallback);
     setState(() {
       _message = 'Register callback has done.';
     });
   }
 
   Future<void> _unregisterCallback() async {
-    await _messageClient.unregister();
+    await _client.unregister();
     setState(() {
       _message = 'Unregister callback has done.';
     });

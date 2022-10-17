@@ -16,6 +16,9 @@ import 'rpc_port_method_channel.dart';
 
 export 'package:meta/meta.dart' show nonVirtual;
 
+/// The method type for receiving disconnected event.
+typedef OnDisconnected = Future<void> Function();
+
 /// The abstract class for creating a proxy class for RPC.
 abstract class ProxyBase {
   /// The constructor for this class.
@@ -59,7 +62,12 @@ abstract class ProxyBase {
   final String portName;
 
   bool _isConnected = false;
+
+  /// The flag of whether the port is connected.
+  bool get isConnected => _isConnected;
+
   StreamSubscription<dynamic>? _streamSubscription;
+  OnDisconnected? _onDisconnected;
 
   Future<void> _handleEvent(dynamic event) async {
     if (event is Map) {
@@ -95,12 +103,7 @@ abstract class ProxyBase {
     }
   }
 
-  /// Connects to the stub asynchronously.
-  ///
-  /// The following privileges are required to use this API.
-  /// - `http://tizen.org/privilege/appmanager.launch`
-  /// - `http://tizen.org/privilege/datasharing`
-  Future<void> connect() async {
+  Future<void> _connectInternal() async {
     if (_isConnected) {
       throw Exception('Proxy $appid/$portName already connected to stub');
     }
@@ -109,6 +112,16 @@ abstract class ProxyBase {
         await _methodChannel.proxyConnect(_handle.address, appid, portName);
     _streamSubscription = stream.listen(_handleEvent);
     return _connectCompleter.future;
+  }
+
+  /// Connects to the stub asynchronously.
+  ///
+  /// The following privileges are required to use this API.
+  /// - `http://tizen.org/privilege/appmanager.launch`
+  /// - `http://tizen.org/privilege/datasharing`
+  Future<void> connect({OnDisconnected? onDisconnected}) async {
+    await _connectInternal();
+    _onDisconnected = onDisconnected;
   }
 
   /// Disconnect to the stub.
@@ -157,6 +170,7 @@ abstract class ProxyBase {
 
   /// The method for receiving disconnected event.
   Future<void> onDisconnectedEvent() async {
+    await _onDisconnected?.call();
     if (_disconnectCompleter.isCompleted == false) {
       _disconnectCompleter.complete();
     }

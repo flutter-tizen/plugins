@@ -26,8 +26,8 @@ enum _MethodId {
   final int id;
 }
 
-abstract class _CallbackBase extends Parcelable {
-  _CallbackBase(this.id, this.once, this.callback) {
+abstract class _Delegate extends Parcelable {
+  _Delegate(this.id, this.once, this.callback) {
     sequenceId = sequenceNum++;
   }
 
@@ -37,7 +37,7 @@ abstract class _CallbackBase extends Parcelable {
   Function? callback;
   static int sequenceNum = 0;
 
-  Future<void> _onReceivedEvent(Parcel parcel);
+  Future<void> onReceivedEvent(Parcel parcel);
 
   @override
   void serialize(Parcel parcel) {
@@ -56,35 +56,22 @@ abstract class _CallbackBase extends Parcelable {
 
 typedef NotifyCallback = void Function(String, String);
 
-class _NotifyCallback extends _CallbackBase {
+class _NotifyCallback extends _Delegate {
   _NotifyCallback(NotifyCallback callback, {bool once = false})
       : super(_DelegateId.notifyCallback.id, once, callback);
 
   @override
-  Future<void> _onReceivedEvent(Parcel parcel) async {
+  Future<void> onReceivedEvent(Parcel parcel) async {
     final String sender = parcel.readString();
     final String message = parcel.readString();
     callback?.call(sender, message);
   }
 }
 
-typedef OnDisconnected = Future<void> Function();
-
 class Message extends ProxyBase {
   Message(String appid) : super(appid, 'Message');
 
-  bool _isOnline = false;
-  final List<_CallbackBase> _delegateList = <_CallbackBase>[];
-
-  OnDisconnected? _onDisconnected;
-
-  @override
-  @nonVirtual
-  Future<void> onDisconnectedEvent() async {
-    await super.onDisconnectedEvent();
-    _isOnline = false;
-    await _onDisconnected?.call();
-  }
+  final List<_Delegate> _delegates = <_Delegate>[];
 
   @override
   @nonVirtual
@@ -97,11 +84,11 @@ class Message extends ProxyBase {
     final int id = parcel.readInt32();
     final int sequenceId = parcel.readInt32();
     final bool once = parcel.readBool();
-    for (final _CallbackBase delegate in _delegateList) {
+    for (final _Delegate delegate in _delegates) {
       if (delegate.id == id && delegate.sequenceId == sequenceId) {
-        await delegate._onReceivedEvent(parcel);
+        await delegate.onReceivedEvent(parcel);
         if (delegate.once && once) {
-          _delegateList.remove(delegate);
+          _delegates.remove(delegate);
         }
         break;
       }
@@ -117,30 +104,18 @@ class Message extends ProxyBase {
       }
       return parcel;
     } catch (error) {
+      print(error.toString());
       return Parcel();
     }
   }
 
-  @override
-  Future<void> connect({OnDisconnected? onDisconnected}) async {
-    await super.connect();
-    _onDisconnected = onDisconnected;
-    _isOnline = true;
-  }
-
-  @override
-  Future<void> disconnect() async {
-    await super.disconnect();
-    _isOnline = false;
-  }
-
   void disposeCallback(Function callback) {
-    _delegateList
-        .removeWhere((_CallbackBase element) => element.callback == callback);
+    _delegates
+        .removeWhere((_Delegate delegate) => delegate.callback == callback);
   }
 
   Future<int> register(String name, NotifyCallback callback) async {
-    if (!_isOnline) {
+    if (!isConnected) {
       throw StateError('Must be connected first');
     }
 
@@ -150,9 +125,9 @@ class Message extends ProxyBase {
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.register.id);
     parcel.writeString(name);
-    final _NotifyCallback callbackBase = _NotifyCallback(callback);
-    callbackBase.serialize(parcel);
-    _delegateList.add(callbackBase);
+    final _NotifyCallback delegate = _NotifyCallback(callback);
+    delegate.serialize(parcel);
+    _delegates.add(delegate);
     parcel.send(port);
 
     late Parcel parcelReceived;
@@ -170,7 +145,7 @@ class Message extends ProxyBase {
   }
 
   Future<void> unregister() async {
-    if (!_isOnline) {
+    if (!isConnected) {
       throw StateError('Must be connected first');
     }
 
@@ -183,7 +158,7 @@ class Message extends ProxyBase {
   }
 
   Future<int> send(String message) async {
-    if (!_isOnline) {
+    if (!isConnected) {
       throw StateError('Must be connected first');
     }
 

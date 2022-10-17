@@ -26,8 +26,8 @@ enum _MethodId {
   final int id;
 }
 
-abstract class _CallbackBase extends Parcelable {
-  _CallbackBase(this.id, this.once) {
+abstract class _Delegate extends Parcelable {
+  _Delegate(this.id, this.once) {
     sequenceId = sequenceNum++;
   }
 
@@ -77,20 +77,21 @@ abstract class ServiceBase {
   Future<int> onSend(String message);
 }
 
-class NotifyCallback extends _CallbackBase {
+class NotifyCallback extends _Delegate {
   NotifyCallback(this._port, this.service, {bool once = false})
       : super(_DelegateId.notifyCallback.id, once);
+
   final Port? _port;
   ServiceBase service;
-  bool _valid = true;
+  bool _wasInvoked = true;
 
   Future<void> invoke(String sender, String message) async {
     if (_port == null) {
       throw StateError('Must be connected first');
     }
 
-    if (once && !_valid) {
-      throw Exception('InvalidCallbackException');
+    if (once && !_wasInvoked) {
+      throw Exception('Can be invoked only once');
     }
 
     final Parcel parcel = Parcel();
@@ -98,47 +99,43 @@ class NotifyCallback extends _CallbackBase {
     serialize(parcel);
     parcel.writeString(sender);
     parcel.writeString(message);
-    if (_port != null) {
-      parcel.send(_port!);
-    }
-
-    _valid = false;
+    parcel.send(_port!);
+    _wasInvoked = false;
   }
 }
 
-abstract class Message extends StubBase {
-  Message() : super('Message') {
+typedef MessageInstanceBuilder = ServiceBase Function(
+    String sender, String instance);
+
+class Message extends StubBase {
+  Message({required MessageInstanceBuilder instanceBuilder})
+      : _instanceBuilder = instanceBuilder,
+        super('Message') {
     _methodHandlers[_MethodId.register.id] = _onRegisterMethod;
     _methodHandlers[_MethodId.unregister.id] = _onUnregisterMethod;
     _methodHandlers[_MethodId.send.id] = _onSendMethod;
   }
 
-  List<ServiceBase> services = <ServiceBase>[];
+  final List<ServiceBase> _services = <ServiceBase>[];
   final Map<int, dynamic> _methodHandlers = <int, dynamic>{};
-
-  @override
-  Future<void> listen() async {
-    return await super.listen();
-  }
-
-  ServiceBase createInstance(String sender, String instance);
+  final MessageInstanceBuilder _instanceBuilder;
 
   @override
   @nonVirtual
   Future<void> onConnectedEvent(String sender, String instance) async {
-    final ServiceBase service = createInstance(sender, instance);
+    final ServiceBase service = _instanceBuilder(sender, instance);
     service._port = getPort(instance, PortType.callback);
     await service.onCreate();
-    services.add(service);
+    _services.add(service);
   }
 
   @override
   @nonVirtual
   Future<void> onDisconnectedEvent(String sender, String instance) async {
-    for (final ServiceBase service in services) {
+    for (final ServiceBase service in _services) {
       if (service.instance == instance) {
         await service.onTerminate();
-        services.remove(service);
+        _services.remove(service);
         break;
       }
     }
@@ -163,7 +160,7 @@ abstract class Message extends StubBase {
 
   Future<void> _onUnregisterMethod(
       ServiceBase service, Port port, Parcel parcel) async {
-    service.onUnregister();
+    await service.onUnregister();
   }
 
   Future<void> _onSendMethod(
@@ -185,7 +182,7 @@ abstract class Message extends StubBase {
   Future<void> onReceivedEvent(
       String sender, String instance, Parcel parcel) async {
     ServiceBase? invokeService;
-    for (final ServiceBase service in services) {
+    for (final ServiceBase service in _services) {
       if (service.instance == instance) {
         invokeService = service;
         break;

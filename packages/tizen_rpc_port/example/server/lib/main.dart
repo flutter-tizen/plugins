@@ -52,12 +52,6 @@ class Service extends ServiceBase {
   }
 }
 
-class MyMessageServer extends Message {
-  @override
-  ServiceBase createInstance(String sender, String instance) =>
-      Service(sender, instance);
-}
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -67,13 +61,15 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   static const String _platformVersion = '7.0';
-  late final MyMessageServer _stub;
+  late final Message _server;
 
   @override
   void initState() {
     super.initState();
-    _stub = MyMessageServer();
-    _stub.listen();
+    _server = Message(
+        instanceBuilder: (String sender, String instance) =>
+            Service(sender, instance));
+    _server.listen();
   }
 
   @override
