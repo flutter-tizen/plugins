@@ -104,12 +104,12 @@ class NotifyCallback extends _Delegate {
   }
 }
 
-typedef MessageInstanceBuilder = MessageServiceBase Function(
+typedef MessageServiceBuilder = MessageServiceBase Function(
     String sender, String instance);
 
 class Message extends StubBase {
-  Message({required MessageInstanceBuilder instanceBuilder})
-      : _instanceBuilder = instanceBuilder,
+  Message({required MessageServiceBuilder serviceBuilder})
+      : _serviceBuilder = serviceBuilder,
         super('Message') {
     _methodHandlers[_MethodId.register.id] = _onRegisterMethod;
     _methodHandlers[_MethodId.unregister.id] = _onUnregisterMethod;
@@ -118,18 +118,20 @@ class Message extends StubBase {
 
   final List<MessageServiceBase> _services = <MessageServiceBase>[];
   final Map<int, dynamic> _methodHandlers = <int, dynamic>{};
-  final MessageInstanceBuilder _instanceBuilder;
+  final MessageServiceBuilder _serviceBuilder;
 
   @override
+  @visibleForOverriding
   @nonVirtual
   Future<void> onConnectedEvent(String sender, String instance) async {
-    final MessageServiceBase service = _instanceBuilder(sender, instance);
+    final MessageServiceBase service = _serviceBuilder(sender, instance);
     service._port = getPort(instance, PortType.callback);
     await service.onCreate();
     _services.add(service);
   }
 
   @override
+  @visibleForOverriding
   @nonVirtual
   Future<void> onDisconnectedEvent(String sender, String instance) async {
     for (final MessageServiceBase service in _services) {
@@ -178,6 +180,7 @@ class Message extends StubBase {
   }
 
   @override
+  @visibleForOverriding
   @nonVirtual
   Future<void> onReceivedEvent(
       String sender, String instance, Parcel parcel) async {

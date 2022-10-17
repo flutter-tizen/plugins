@@ -51,6 +51,8 @@
   - packages/tizen_notification/**/*
 'p: tizen_package_manager':
   - packages/tizen_package_manager/**/*
+'p: tizen_rpc_port':
+  - packages/tizen_rpc_port/**/*
 'p: url_launcher':
   - packages/url_launcher/**/*
 'p: video_player':

@@ -74,6 +74,7 @@ class Message extends ProxyBase {
   final List<_Delegate> _delegates = <_Delegate>[];
 
   @override
+  @visibleForOverriding
   @nonVirtual
   Future<void> onReceivedEvent(Parcel parcel) async {
     final int cmd = parcel.readInt32();

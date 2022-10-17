@@ -14,7 +14,7 @@ import 'parcel.dart';
 import 'port.dart';
 import 'rpc_port_method_channel.dart';
 
-export 'package:meta/meta.dart' show nonVirtual;
+export 'package:meta/meta.dart' show nonVirtual, visibleForOverriding;
 
 /// The abstract class for creating a stub class for RPC.
 abstract class StubBase {

@@ -14,7 +14,7 @@ import 'parcel.dart';
 import 'port.dart';
 import 'rpc_port_method_channel.dart';
 
-export 'package:meta/meta.dart' show nonVirtual;
+export 'package:meta/meta.dart' show nonVirtual, visibleForOverriding;
 
 /// The method type for receiving disconnected event.
 typedef OnDisconnected = Future<void> Function();
@@ -114,7 +114,7 @@ abstract class ProxyBase {
     return _connectCompleter.future;
   }
 
-  /// Connects to the stub asynchronously.
+  /// Connects with the stub.
   ///
   /// The following privileges are required to use this API.
   /// - `http://tizen.org/privilege/appmanager.launch`
@@ -124,7 +124,7 @@ abstract class ProxyBase {
     _onDisconnected = onDisconnected;
   }
 
-  /// Disconnect to the stub.
+  /// Disconnects with the stub.
   Future<void> disconnect() async {
     if (!_isConnected) {
       throw Exception('Not connected');

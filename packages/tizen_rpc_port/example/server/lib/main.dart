@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _server = Message(
-        instanceBuilder: (String sender, String instance) =>
+        serviceBuilder: (String sender, String instance) =>
             Service(sender, instance));
     _server.listen();
   }
