@@ -14,7 +14,7 @@ void main() {
   runApp(const MyApp());
 }
 
-class Service extends ServiceBase {
+class Service extends MessageServiceBase {
   Service(super.sender, super.instance);
 
   String _name = '';

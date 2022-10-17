@@ -53,8 +53,8 @@ abstract class _Delegate extends Parcelable {
   }
 }
 
-abstract class ServiceBase {
-  ServiceBase(this.sender, this.instance);
+abstract class MessageServiceBase {
+  MessageServiceBase(this.sender, this.instance);
 
   final String sender;
   final String instance;
@@ -82,7 +82,7 @@ class NotifyCallback extends _Delegate {
       : super(_DelegateId.notifyCallback.id, once);
 
   final Port? _port;
-  ServiceBase service;
+  MessageServiceBase service;
   bool _wasInvoked = false;
 
   Future<void> invoke(String sender, String message) async {
@@ -104,7 +104,7 @@ class NotifyCallback extends _Delegate {
   }
 }
 
-typedef MessageInstanceBuilder = ServiceBase Function(
+typedef MessageInstanceBuilder = MessageServiceBase Function(
     String sender, String instance);
 
 class Message extends StubBase {
@@ -116,14 +116,14 @@ class Message extends StubBase {
     _methodHandlers[_MethodId.send.id] = _onSendMethod;
   }
 
-  final List<ServiceBase> _services = <ServiceBase>[];
+  final List<MessageServiceBase> _services = <MessageServiceBase>[];
   final Map<int, dynamic> _methodHandlers = <int, dynamic>{};
   final MessageInstanceBuilder _instanceBuilder;
 
   @override
   @nonVirtual
   Future<void> onConnectedEvent(String sender, String instance) async {
-    final ServiceBase service = _instanceBuilder(sender, instance);
+    final MessageServiceBase service = _instanceBuilder(sender, instance);
     service._port = getPort(instance, PortType.callback);
     await service.onCreate();
     _services.add(service);
@@ -132,7 +132,7 @@ class Message extends StubBase {
   @override
   @nonVirtual
   Future<void> onDisconnectedEvent(String sender, String instance) async {
-    for (final ServiceBase service in _services) {
+    for (final MessageServiceBase service in _services) {
       if (service.instance == instance) {
         await service.onTerminate();
         _services.remove(service);
@@ -142,7 +142,7 @@ class Message extends StubBase {
   }
 
   Future<void> _onRegisterMethod(
-      ServiceBase service, Port port, Parcel parcel) async {
+      MessageServiceBase service, Port port, Parcel parcel) async {
     final String name = parcel.readString();
     final NotifyCallback callback = NotifyCallback(service._port, service);
     callback.deserialize(parcel);
@@ -159,12 +159,12 @@ class Message extends StubBase {
   }
 
   Future<void> _onUnregisterMethod(
-      ServiceBase service, Port port, Parcel parcel) async {
+      MessageServiceBase service, Port port, Parcel parcel) async {
     await service.onUnregister();
   }
 
   Future<void> _onSendMethod(
-      ServiceBase service, Port port, Parcel parcel) async {
+      MessageServiceBase service, Port port, Parcel parcel) async {
     final String message = parcel.readString();
     final int ret = await service.onSend(message);
     final Parcel result = Parcel();
@@ -181,8 +181,8 @@ class Message extends StubBase {
   @nonVirtual
   Future<void> onReceivedEvent(
       String sender, String instance, Parcel parcel) async {
-    ServiceBase? invokeService;
-    for (final ServiceBase service in _services) {
+    MessageServiceBase? invokeService;
+    for (final MessageServiceBase service in _services) {
       if (service.instance == instance) {
         invokeService = service;
         break;
