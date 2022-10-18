@@ -77,7 +77,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_log**](packages/tizen_log) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**tizen_notification**](packages/tizen_notification) | 4.0 | ❌ | ✔️ | ✔️ | ✔️ | API not supported |
 | [**tizen_package_manager**](packages/tizen_package_manager) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_rpc_port**](packages/tizen_rpc_port) | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_rpc_port**](packages/tizen_rpc_port) | 6.5 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**url_launcher_tizen**](packages/url_launcher) | 4.0 | ✔️ | ❌ | ✔️ | ❌ | No browser app |
 | [**video_player_tizen**](packages/video_player) | 4.0 | ✔️ | ✔️ | ⚠️ | ❌ | Functional limitations,<br>TV emulator issue |
 | [**wakelock_tizen**](packages/wakelock) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Cannot override system settings |
