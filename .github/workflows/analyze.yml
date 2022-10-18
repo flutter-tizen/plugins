@@ -10,14 +10,8 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - name: Install pub dependencies
-        run: |
-          for d in `pwd`/packages/*/; do
-            cd $d
-            flutter pub get
-          done
       - name: Analyze source code
-        run: dart analyze --fatal-infos packages
+        run: ./tools/tools_runner.sh analyze --custom-analysis=$(ls packages | tr '\n' ',')
 
   format:
     runs-on: ubuntu-latest
