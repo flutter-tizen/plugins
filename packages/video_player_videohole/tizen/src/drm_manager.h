@@ -7,12 +7,12 @@
 
 #include <dlfcn.h>
 #include <glib.h>
+
+#include <memory>
 #include <string>
 
 #include "drm_manager_service_proxy.h"
 #include "player.h"
-
-#include <memory>
 
 class DrmManager {
  public:
@@ -39,7 +39,7 @@ class DrmManager {
   int drm_type_{DRM_TYPE_NONE};
   std::string license_url_;
   player_h player_;
-  void* DMGRsecurity_init_complete_cb;
+  void *DMGRsecurity_init_complete_cb;
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_

@@ -98,8 +98,9 @@ bool g_AppendData(SDynamicBuf* aBuf, const void* aData, size_t aSize) {
     }
     aBuf->iData = buf;
     aBuf->iAllocated = newSize;
-    LOG_DEBUG("g_AppendData : realloc aSize(%d), iSize(%d) aBuf->iAllocated(%d)",
-             aSize, aBuf->iSize, aBuf->iAllocated);
+    LOG_DEBUG(
+        "g_AppendData : realloc aSize(%d), iSize(%d) aBuf->iAllocated(%d)",
+        aSize, aBuf->iSize, aBuf->iAllocated);
   }
   memcpy(aBuf->iData + aBuf->iSize, aData, aSize);
   aBuf->iSize += aSize;
@@ -328,7 +329,7 @@ struct curl_slist* g_SetHttpHeader(CURL* pCurl,
   }
 
   LOG_DEBUG("g_SetHttpHeader : f_type(%d), f_pCookie(%s), f_pHttpHeader(%s)",
-           f_type, f_pCookie, f_pHttpHeader);
+            f_type, f_pCookie, f_pHttpHeader);
 
   headers = g_CurlSlistAppend(headers, hdr);
 

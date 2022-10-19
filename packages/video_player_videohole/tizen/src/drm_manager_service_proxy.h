@@ -125,11 +125,11 @@ typedef enum {
 } drm_init_data_type;
 
 typedef void* DRMSessionHandle_t;
-typedef bool (*security_init_complete_cb)(int *drmhandle, unsigned int length,
-                                          unsigned char *psshdata,
-                                          void *user_data);
-typedef int (*set_drm_init_data_cb)(drm_init_data_type init_type, void *data,
-                                    int data_length, void *user_data);
+typedef bool (*security_init_complete_cb)(int* drmhandle, unsigned int length,
+                                          unsigned char* psshdata,
+                                          void* user_data);
+typedef int (*set_drm_init_data_cb)(drm_init_data_type init_type, void* data,
+                                    int data_length, void* user_data);
 void* OpenDrmManager();
 void* OpenMediaPlayer();
 int CloseDrmManager(void* handle);
@@ -143,14 +143,13 @@ void DMGRSetDRMLocalMode(void* handle);
 DRMSessionHandle_t DMGRCreateDRMSession(void* handle, dm_type_e drm_type,
                                         const char* drm_sub_type);
 security_init_complete_cb DMGRSecurityInitCompleteCB(void* handle);
-int player_set_drm_handle(void* handle,player_h player, player_drm_type_e drm_type,
-                               int drm_handle);  
-int player_set_drm_init_complete_cb(void* handel, player_h player, 
+int player_set_drm_handle(void* handle, player_h player,
+                          player_drm_type_e drm_type, int drm_handle);
+int player_set_drm_init_complete_cb(void* handle, player_h player,
                                     security_init_complete_cb callback,
-                                    void *user_data);    
-int player_set_drm_init_data_cb(void* handle, player_h player, 
-                                set_drm_init_data_cb callback, 
-                                void *user_data);                                                                                            
+                                    void* user_data);
+int player_set_drm_init_data_cb(void* handle, player_h player,
+                                set_drm_init_data_cb callback, void* user_data);
 int DMGRReleaseDRMSession(void* handle, DRMSessionHandle_t drm_session);
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H

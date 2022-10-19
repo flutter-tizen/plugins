@@ -105,11 +105,11 @@ int player_set_drm_handle(void* handle, player_h player, player_drm_type_e drm_t
   return 0;
 }
 
-int player_set_drm_init_complete_cb(void* handel, player_h player, 
+int player_set_drm_init_complete_cb(void* handle, player_h player, 
                                     security_init_complete_cb callback, 
                                     void *user_data) {
   FuncPlayerSetDrmInitCompleteCB player_set_drm_init_complete_cb;
-  *(void **)(&player_set_drm_init_complete_cb) = Dlsym(handel, "player_set_drm_init_complete_cb");                                    
+  *(void **)(&player_set_drm_init_complete_cb) = Dlsym(handle, "player_set_drm_init_complete_cb");                                    
   if(player_set_drm_init_complete_cb){
     return player_set_drm_init_complete_cb(player, callback, user_data);
   }

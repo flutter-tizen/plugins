@@ -1110,7 +1110,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 reply(flutter::EncodableValue(wrapped));
                 return;
               }
-              
+
             } catch (const std::exception& exception) {
               wrapped.insert(std::make_pair(flutter::EncodableValue("error"),
                                             WrapError(exception.what())));

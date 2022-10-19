@@ -9,8 +9,8 @@
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen.h>
-
 #include <player.h>
+
 #include <memory>
 #include <string>
 
@@ -18,17 +18,9 @@
 #include "messages.h"
 #include "video_player_options.h"
 
-
 using SeekCompletedCb = std::function<void()>;
 
-enum DeviceProfile
-{
-  kUnknown,
-  kMobile,
-  kWearable,
-  kTV,
-  kCommon
-};
+enum DeviceProfile { kUnknown, kMobile, kWearable, kTV, kCommon };
 
 class VideoPlayer {
  public:
@@ -44,15 +36,15 @@ class VideoPlayer {
   void SetDisplayRoi(int x, int y, int w, int h);
   void SetLooping(bool is_looping);
   void SetPlaybackSpeed(double speed);
-  void SeekTo(int position);    
-  void SetVolume(double volume); 
+  void SeekTo(int position);
+  void SetVolume(double volume);
 
  private:
   void Initialize();
   void SetupEventChannel(flutter::BinaryMessenger *messenger);
   void SendInitialized();
   void SendBufferingStart();
-  void SendBufferingUpdate(int position); 
+  void SendBufferingUpdate(int position);
   void SendBufferingEnd();
   void SendSeeking(bool seeking);
   std::string GetApplicationId();

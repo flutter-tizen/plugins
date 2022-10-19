@@ -47,7 +47,6 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   std::optional<FlutterError> SetDisplayRoi(
       const GeometryMessage &geometryMsg) override;
 
-
  private:
   void DisposeAllPlayers();
   FlutterDesktopPluginRegistrarRef registrar_ref_;
@@ -183,8 +182,6 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayRoi(
   }
   return {};
 }
-
-
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &mixWithOthersMsg) {

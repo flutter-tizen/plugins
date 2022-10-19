@@ -198,7 +198,7 @@ class Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-      'https://media.w3.org/2010/05/bunny/trailer.mp4',
+      'https://media.w3.org/2010/05/bunny/trailer.mp4',      
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
     );
 

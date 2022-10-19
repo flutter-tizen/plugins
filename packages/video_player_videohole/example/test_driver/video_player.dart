@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:flutter_driver/driver_extension.dart';
-import 'package:video_player_example/main.dart' as app;
+import 'package:video_player_videohole_example/main.dart' as app;
 
 void main() {
   enableFlutterDriverExtension();

@@ -1,6 +1,6 @@
 # video_player_videohole
 
-A video_player flutter plugin for Tizen TV devices,also supports play DRM type.
+A video_player_videohole flutter plugin for Tizen TV devices, supports play DRM(playready & widevine).
 
 ## Required privileges
 
@@ -11,12 +11,19 @@ To use this plugin in a Tizen application, the internet privileges are required.
   <privilege>http://tizen.org/privilege/mediastorage</privilege>
   <privilege>http://tizen.org/privilege/externalstorage</privilege>
   <privilege>http://tizen.org/privilege/internet</privilege>
+  <privilege>http://tizen.org/privilege/network.get</privilege>
+  <privilege>http://tizen.org/privilege/download</privilege>
+  <privilege>http://tizen.org/privilege/push</privilege>
+  <privilege>http://developer.samsung.com/privilege/drmplay</privilege>
 </privileges>
 ```
 
 - The mediastorage privilege (http://tizen.org/privilege/mediastorage) is required to play video files located in the internal storage.
-  The externalstorage privilege (http://tizen.org/privilege/externalstorage) is required to play video files located in the external storage.
-  The internet privilege (http://tizen.org/privilege/internet) is required to play any URLs from network.
+- The externalstorage privilege (http://tizen.org/privilege/externalstorage) is required to play video files located in the external storage.
+- The internet privilege (http://tizen.org/privilege/internet) is required to play any URLs from network.
+- The drmplay privilege (http://developer.samsung.com/privilege/drmplay) is required to play DRM video files.
+
+To play DRM with this streaming player, you need to have partner level certificate(https://developer.samsung.com/tv-seller-office/guides/membership/becoming-partner.html).
 
 For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
 
@@ -97,7 +104,7 @@ Then you can import `video_player_videohole` in your Dart code:
 import 'package:video_player_videhole/video_player.dart';
 ```
 
-For how to use the plugin, see https://github.com/flutter/plugins/tree/master/packages/video_player/video_player#usage.
+For how to use the plugin, see https://github.com/flutter/plugins/tree/master/packages/video_player_videohole/video_player_videohole#usage.
 
 ## Limitations
 
