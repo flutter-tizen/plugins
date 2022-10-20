@@ -46,8 +46,6 @@ class VideoPlayer {
   void SendBufferingStart();
   void SendBufferingUpdate(int position);
   void SendBufferingEnd();
-  void SendSeeking(bool seeking);
-  std::string GetApplicationId();
   bool Open(const std::string &uri);
   void ParseCreateMessage(const CreateMessage &create_message);
   bool SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref);

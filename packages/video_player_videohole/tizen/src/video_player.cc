@@ -472,6 +472,16 @@ void VideoPlayer::OnPrepared(void *data) {
 
 void VideoPlayer::OnBuffering(int percent, void *data) {
   LOG_INFO("[VideoPlayer.onBuffering] percent: %d", percent);
+  VideoPlayer *player = (VideoPlayer *)data;
+  if (percent == 100) {
+    player->SendBufferingEnd();
+    player->is_buffering_ = false;
+  } else if (!player->is_buffering_ && percent <= 5) {
+    player->SendBufferingStart();
+    player->is_buffering_ = true;
+  } else {
+    player->SendBufferingUpdate(percent);
+  }
 }
 
 void VideoPlayer::OnSeekCompleted(void *data) {
@@ -484,7 +494,7 @@ void VideoPlayer::OnSeekCompleted(void *data) {
 }
 
 void VideoPlayer::OnPlayCompleted(void *data) {
-  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
+  VideoPlayer *player = (VideoPlayer *)data;
   LOG_INFO("[VideoPlayer.onPlayCompleted] completed to play video");
   if (player->event_sink_) {
     flutter::EncodableMap encodables = {{flutter::EncodableValue("event"),
