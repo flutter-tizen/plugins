@@ -437,14 +437,10 @@ void VideoPlayer::SendBufferingStart() {
 
 void VideoPlayer::SendBufferingUpdate(int position) {
   if (event_sink_) {
-    flutter::EncodableList range = {flutter::EncodableValue(0),
-                                    flutter::EncodableValue(position)};
-    flutter::EncodableList rangeList = {flutter::EncodableValue(range)};
     flutter::EncodableMap encodables = {
         {flutter::EncodableValue("event"),
          flutter::EncodableValue("bufferingUpdate")},
-        {flutter::EncodableValue("values"),
-         flutter::EncodableValue(rangeList)}};
+        {flutter::EncodableValue("values"), flutter::EncodableValue(position)}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer.onBuffering] send bufferingUpdate event");
     event_sink_->Success(eventValue);

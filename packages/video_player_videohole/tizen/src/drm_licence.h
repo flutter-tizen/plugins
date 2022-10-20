@@ -41,7 +41,6 @@ class CBmsDrmLicenseHelper {
     }
   };
 
- public:
   static DRM_RESULT DoTransaction_TZ(const char* pServerUrl,
                                      const void* f_pbChallenge,
                                      unsigned long f_cbChallenge,

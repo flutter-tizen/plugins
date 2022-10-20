@@ -63,6 +63,9 @@ bool DrmManager::InitializeDrmSession(const std::string &url) {
   ret = DMGRSetData(drm_manager_handle_, drm_session_, "Initialize", nullptr);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("initialize failed");
+    CloseDrmManager(drm_manager_handle_);
+    drm_manager_handle_ = nullptr;
+    drm_session_ = nullptr;
     return false;
   }
   return true;
