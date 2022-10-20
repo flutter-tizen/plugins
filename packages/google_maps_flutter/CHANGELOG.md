@@ -1,3 +1,7 @@
+## NEXT
+
+* Fix integration test failures
+
 ## 0.1.3
 
 * Resolve linter warnings.
