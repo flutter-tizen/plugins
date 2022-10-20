@@ -23,6 +23,7 @@ plugins:
   wakelock: ["wearable-5.5"]
 
   # No tests.
+  flutter_reactive_ble: []
   google_sign_in: []
   image_picker: []
   firebase_core: []
