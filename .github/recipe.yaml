@@ -3,6 +3,7 @@ plugins:
   battery_plus: ["wearable-5.5"]
   connectivity_plus: ["wearable-5.5", "tv-6.5"]
   device_info_plus: ["wearable-5.5", "tv-6.5"]
+  flutter_secure_storage: ["wearable-5.5", "tv-6.5"]
   flutter_tts: ["wearable-5.5", "tv-6.5"]
   google_sign_in: ["wearable-5.5", "tv-6.5"]
   integration_test: ["wearable-5.5", "tv-6.5"]
