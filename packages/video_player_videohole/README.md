@@ -1,6 +1,6 @@
 # video_player_videohole
 
-A video_player_videohole flutter plugin for Tizen TV devices, supports play DRM(playready & widevine).
+A video_player_videohole flutter plugin only for Tizen TV devices, supports play DRM(playready & widevine).
 
 ## Required privileges
 

@@ -40,28 +40,6 @@ void VideoPlayer::ParseCreateMessage(const CreateMessage &create_message) {
   }
 }
 
-static DeviceProfile GetDeviceProfile() {
-  char *feature_profile = nullptr;
-  system_info_get_platform_string("http://tizen.org/feature/profile",
-                                  &feature_profile);
-  if (feature_profile == nullptr) {
-    return DeviceProfile::kUnknown;
-  }
-  std::string profile(feature_profile);
-  free(feature_profile);
-
-  if (profile == "mobile") {
-    return DeviceProfile::kMobile;
-  } else if (profile == "wearable") {
-    return DeviceProfile::kWearable;
-  } else if (profile == "tv") {
-    return DeviceProfile::kTV;
-  } else if (profile == "common") {
-    return DeviceProfile::kCommon;
-  }
-  return DeviceProfile::kUnknown;
-}
-
 VideoPlayer::VideoPlayer(FlutterDesktopPluginRegistrarRef registrar_ref,
                          const CreateMessage &create_message)
     : registrar_ref_(registrar_ref) {
@@ -83,6 +61,7 @@ bool VideoPlayer::Open(const std::string &uri) {
 
   ret = player_set_uri(player_, uri.c_str());
   if (ret != PLAYER_ERROR_NONE) {
+    player_destroy(player_);
     LOG_ERROR("set uri(%s) failed", get_error_message(ret));
     return false;
   }
@@ -107,30 +86,25 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
     return false;
   }
 
-  if (GetDeviceProfile() == kWearable) {
-    ret = player_set_display(player_, PLAYER_DISPLAY_TYPE_OVERLAY,
-                             FlutterDesktopViewGetNativeHandle(view_ref));
-  } else {
-    ret = -1;
-    void *libHandle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
-    int (*player_set_ecore_wl_display)(
-        player_h player, player_display_type_e type, void *ecore_wl_window,
-        int x, int y, int width, int height);
-    if (libHandle) {
-      *(void **)(&player_set_ecore_wl_display) =
-          dlsym(libHandle, "player_set_ecore_wl_display");
-      if (player_set_ecore_wl_display) {
-        ret = player_set_ecore_wl_display(
-            player_, PLAYER_DISPLAY_TYPE_OVERLAY,
-            FlutterDesktopViewGetNativeHandle(view_ref), 0, 0, w, h);
-      } else {
-        LOG_ERROR("[VideoPlayer] Symbol not found: %s ", dlerror());
-      }
-      dlclose(libHandle);
+  void *libHandle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
+  int (*player_set_ecore_wl_display)(
+      player_h player, player_display_type_e type, void *ecore_wl_window, int x,
+      int y, int width, int height);
+  if (libHandle) {
+    *(void **)(&player_set_ecore_wl_display) =
+        dlsym(libHandle, "player_set_ecore_wl_display");
+    if (player_set_ecore_wl_display) {
+      ret = player_set_ecore_wl_display(
+          player_, PLAYER_DISPLAY_TYPE_OVERLAY,
+          FlutterDesktopViewGetNativeHandle(view_ref), 0, 0, w, h);
     } else {
-      LOG_ERROR("[VideoPlayer] dlopen failed: %s ", dlerror());
+      LOG_ERROR("[VideoPlayer] Symbol not found: %s ", dlerror());
     }
+    dlclose(libHandle);
+  } else {
+    LOG_ERROR("[VideoPlayer] dlopen failed: %s ", dlerror());
   }
+
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_ecore_wl_display failed: %s",
@@ -139,6 +113,7 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
   }
   ret = player_set_display_mode(player_, PLAYER_DISPLAY_MODE_DST_ROI);
   if (ret != PLAYER_ERROR_NONE) {
+    player_destroy(player_);
     LOG_ERROR("fail to set display mode :%s", get_error_message(ret));
     return false;
   }
@@ -216,6 +191,7 @@ int64_t VideoPlayer::Create() {
 void VideoPlayer::SetDisplayRoi(int x, int y, int w, int h) {
   int ret = player_set_display_roi_area(player_, x, y, w, h);
   if (ret != PLAYER_ERROR_NONE) {
+    player_destroy(player_);
     LOG_ERROR("fail to set display roi :%s", get_error_message(ret));
   }
 }
@@ -231,12 +207,14 @@ void VideoPlayer::Play() {
   player_state_e state;
   int ret = player_get_state(player_, &state);
   if (state < PLAYER_STATE_READY) {
+    player_destroy(player_);
     LOG_ERROR("invalid state for play operation");
     return;
   }
   ret = player_start(player_);
   if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PAUSED) {
     if (ret != PLAYER_ERROR_NONE) {
+      player_destroy(player_);
       LOG_ERROR("fail to start");
     }
   }
@@ -252,6 +230,7 @@ void VideoPlayer::Pause() {
   ret = player_pause(player_);
   if (state == PLAYER_STATE_PLAYING) {
     if (ret != PLAYER_ERROR_NONE) {
+      player_destroy(player_);
       LOG_ERROR("fail to pause");
     }
   }
@@ -261,6 +240,7 @@ void VideoPlayer::SetLooping(bool is_looping) {
   LOG_INFO("[VideoPlayer.setLooping] isLooping: %d", is_looping);
   int ret = player_set_looping(player_, is_looping);
   if (ret != PLAYER_ERROR_NONE) {
+    player_destroy(player_);
     LOG_ERROR("[VideoPlayer.setLooping] player_set_looping failed: %s",
               get_error_message(ret));
   }
@@ -270,6 +250,7 @@ void VideoPlayer::SetVolume(double volume) {
   LOG_INFO("[VideoPlayer.setVolume] volume: %f", volume);
   int ret = player_set_volume(player_, volume, volume);
   if (ret != PLAYER_ERROR_NONE) {
+    player_destroy(player_);
     LOG_ERROR("[VideoPlayer.setVolume] player_set_volume failed: %s",
               get_error_message(ret));
   }
@@ -279,7 +260,8 @@ void VideoPlayer::SetPlaybackSpeed(double speed) {
   LOG_INFO("set playback speed: %f", speed);
   int ret = player_set_playback_rate(player_, speed);
   if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("fail to set playback rate speed : %f", speed);
+    player_destroy(player_);
+    LOG_ERROR("fail to set playback rate speed : %s", get_error_message(ret));
   }
 }
 
@@ -288,6 +270,7 @@ void VideoPlayer::SeekTo(int position) {
   int ret =
       player_set_play_position(player_, position, true, OnSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
+    player_destroy(player_);
     LOG_ERROR("[VideoPlayer.seekTo] player_set_play_position failed: %s",
               get_error_message(ret));
     LOG_ERROR("fail to seek, position : %d", position);
@@ -298,6 +281,7 @@ int VideoPlayer::GetPosition() {
   int position;
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
+    player_destroy(player_);
     LOG_ERROR("[VideoPlayer.getPosition] player_get_play_position failed :%s",
               get_error_message(ret));
   }
@@ -374,6 +358,7 @@ void VideoPlayer::SendInitialized() {
     int duration;
     int ret = player_get_duration(player_, &duration);
     if (ret != PLAYER_ERROR_NONE) {
+      player_destroy(player_);
       LOG_ERROR("[VideoPlayer.sendInitialized] player_get_duration failed:%s",
                 get_error_message(ret));
       event_sink_->Error("player_get_duration failed");
@@ -384,6 +369,7 @@ void VideoPlayer::SendInitialized() {
     int width = 0, height = 0;
     ret = player_get_video_size(player_, &width, &height);
     if (ret != PLAYER_ERROR_NONE) {
+      player_destroy(player_);
       LOG_ERROR(
           "[VideoPlayer.sendInitialized] player_get_video_size failed :%s",
           get_error_message(ret));
@@ -396,6 +382,7 @@ void VideoPlayer::SendInitialized() {
     player_display_rotation_e rotation;
     ret = player_get_display_rotation(player_, &rotation);
     if (ret != PLAYER_ERROR_NONE) {
+      player_destroy(player_);
       LOG_ERROR(
           "[VideoPlayer.sendInitialized] player_get_display_rotation failed: "
           "%s",
