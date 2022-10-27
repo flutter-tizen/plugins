@@ -108,11 +108,6 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   Future<void> setDisplayGeometry(int texureId, int x, int y, int w, int h) {
     throw UnimplementedError('setDisplayGeometry() has not been implemented.');
   }
-
-  /// Sets the video buffering config
-  Future<bool> setBufferingConfig(int textureId, String option, int amount) {
-    throw UnimplementedError('setBufferingConfig() has not been implemented.');
-  }
 }
 
 /// Description of the data source used to create an instance of

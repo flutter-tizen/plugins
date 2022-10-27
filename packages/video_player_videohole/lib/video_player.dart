@@ -204,10 +204,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// null. The [package] argument must be non-null when the asset comes from a
   /// package and null otherwise.
   VideoPlayerController.asset(this.dataSource,
-      {this.package,
-      this.closedCaptionFile,
-      this.videoPlayerOptions,
-      this.bufferConfigs = const <String, int>{}})
+      {this.package, this.closedCaptionFile, this.videoPlayerOptions})
       : dataSourceType = DataSourceType.asset,
         formatHint = null,
         httpHeaders = const <String, String>{},
@@ -228,7 +225,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       this.closedCaptionFile,
       this.videoPlayerOptions,
       this.httpHeaders = const <String, String>{},
-      this.bufferConfigs = const <String, int>{},
       this.drmConfigs = const <String, Object>{}})
       : dataSourceType = DataSourceType.network,
         package = null,
@@ -245,7 +241,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         package = null,
         formatHint = null,
         httpHeaders = const <String, String>{},
-        bufferConfigs = const <String, int>{},
         drmConfigs = const <String, Object>{},
         super(VideoPlayerValue(duration: Duration.zero));
 
@@ -262,7 +257,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         package = null,
         formatHint = null,
         httpHeaders = const <String, String>{},
-        bufferConfigs = const <String, int>{},
         drmConfigs = const <String, Object>{},
         super(VideoPlayerValue(duration: Duration.zero));
 
@@ -274,8 +268,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Only for [VideoPlayerController.network].
   /// Always empty for other video types.
   final Map<String, String> httpHeaders;
-
-  final Map<String, int> bufferConfigs;
 
   final Map<String, Object> drmConfigs;
 
@@ -367,9 +359,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _textureId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
         kUninitializedTextureId;
     _creatingCompleter!.complete(null);
-    bufferConfigs.forEach((key, value) async {
-      await _videoPlayerPlatform.setBufferingConfig(textureId, key, value);
-    });
+
     final Completer<void> initializingCompleter = Completer<void>();
 
     void eventListener(VideoEvent event) {
@@ -521,11 +511,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
     await _videoPlayerPlatform.setVolume(_textureId, value.volume);
-  }
-
-  Future<bool> setBufferConfig(String option, int amount) async {
-    return await _videoPlayerPlatform.setBufferingConfig(
-        _textureId, option, amount);
   }
 
   Future<void> _setDisplayRoi(int texureId, int x, int y, int w, int h) async {

@@ -63,13 +63,6 @@ class GeometryMessage {
   int h;
 }
 
-class BufferingConfigMessage {
-  BufferingConfigMessage(this.textureId, this.bufferOption, this.amount);
-  int textureId;
-  String bufferOption;
-  int amount;
-}
-
 @HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
 abstract class VideoPlayerApi {
   void initialize();
@@ -84,5 +77,4 @@ abstract class VideoPlayerApi {
   void pause(TextureMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);
   void setDisplayRoi(GeometryMessage arg);
-  bool setBufferingConfig(BufferingConfigMessage arg);
 }

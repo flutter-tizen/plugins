@@ -25,4 +25,5 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   pedantic: ^1.10.0
-  pigeon: ^3.1.4
+  pigeon:
+    path: /home/hyue/Tizen/pigeon

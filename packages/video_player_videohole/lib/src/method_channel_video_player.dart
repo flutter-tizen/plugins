@@ -149,12 +149,6 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
         GeometryMessage(textureId: texureId, x: x, y: y, w: w, h: h));
   }
 
-  @override
-  Future<bool> setBufferingConfig(int textureId, String option, int amount) {
-    return _api.setBufferingConfig(BufferingConfigMessage(
-        textureId: textureId, bufferOption: option, amount: amount));
-  }
-
   EventChannel _eventChannelFor(int textureId) {
     return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
   }
