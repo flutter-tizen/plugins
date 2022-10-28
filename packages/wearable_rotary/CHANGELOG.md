@@ -1,5 +1,8 @@
-## NEXT
+## 2.0.0
 
+* [BREAKING] `RotaryEvent` is now a class with `direction` and `magnitude` properties.
+* Adds Wear OS support.
+* Adds `RotaryScrollController` for easily making scrolling widgets respond to rotary input.
 * Refactor the C++ code.
 
 ## 1.0.2

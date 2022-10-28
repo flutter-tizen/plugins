@@ -17,21 +17,22 @@ class WearableRotaryPlugin : FlutterPlugin, EventChannel.StreamHandler {
         private var events: EventChannel.EventSink? = null
 
         fun onGenericMotionEvent(event: MotionEvent?): Boolean {
-            return if (event != null && event.action == MotionEvent.ACTION_SCROLL && event.isFromSource(
+            if (event == null || event.action != MotionEvent.ACTION_SCROLL || !event.isFromSource(
                     InputDeviceCompat.SOURCE_ROTARY_ENCODER
                 )
             ) {
-                val delta = event.getAxisValue(MotionEventCompat.AXIS_SCROLL) * scaleFactor
-                events?.success(
-                    mapOf(
-                        "direction" to if (delta < 0) "clockwise" else "counterClockwise",
-                        "magnitude" to abs(delta),
-                    )
-                )
-                true
-            } else {
-                false
+                return false
             }
+
+            val delta = event.getAxisValue(MotionEventCompat.AXIS_SCROLL) * scaleFactor
+            events?.success(
+                mapOf(
+                    "direction" to if (delta < 0) "clockwise" else "counterClockwise",
+                    "magnitude" to abs(delta),
+                )
+            )
+            return true
+
         }
     }
 
