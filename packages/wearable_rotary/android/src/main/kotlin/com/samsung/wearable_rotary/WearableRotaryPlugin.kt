@@ -1,35 +1,41 @@
 package com.samsung.wearable_rotary
 
-import androidx.annotation.NonNull
-
+import android.view.MotionEvent
+import androidx.core.view.InputDeviceCompat
+import androidx.core.view.MotionEventCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.EventChannel
 
 /** WearableRotaryPlugin */
-class WearableRotaryPlugin: FlutterPlugin, MethodCallHandler {
-  /// The MethodChannel that will the communication between Flutter and native Android
-  ///
-  /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-  /// when the Flutter Engine is detached from the Activity
-  private lateinit var channel : MethodChannel
+class WearableRotaryPlugin : FlutterPlugin, EventChannel.StreamHandler {
+    companion object {
+        private var events: EventChannel.EventSink? = null
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "wearable_rotary")
-    channel.setMethodCallHandler(this)
-  }
-
-  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
-    } else {
-      result.notImplemented()
+        fun onGenericMotionEvent(event: MotionEvent?): Boolean {
+            return if (event != null && event.action == MotionEvent.ACTION_SCROLL && event.isFromSource(
+                    InputDeviceCompat.SOURCE_ROTARY_ENCODER
+                )
+            ) {
+                events?.success(event.getAxisValue(MotionEventCompat.AXIS_SCROLL))
+                true
+            } else {
+                false
+            }
+        }
     }
-  }
 
-  override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-    channel.setMethodCallHandler(null)
-  }
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        val channel = EventChannel(flutterPluginBinding.binaryMessenger, "flutter.wearable_rotary.channel")
+        channel.setStreamHandler(this)
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {}
+
+    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+        Companion.events = events
+    }
+
+    override fun onCancel(arguments: Any?) {
+        events = null
+    }
 }
