@@ -4,6 +4,26 @@
 
 Flutter plugin that can listen to rotary events on Wear OS and Tizen Galaxy watch devices.
 
+## Setup
+
+### Android
+
+Add the following to `MainActivity.kt`:
+
+```kotlin
+import android.view.MotionEvent
+import com.samsung.wearable_rotary.WearableRotaryPlugin
+
+class MainActivity : FlutterActivity() {
+    override fun onGenericMotionEvent(event: MotionEvent?): Boolean {
+        return when {
+            WearableRotaryPlugin.onGenericMotionEvent(event) -> true
+            else -> super.onGenericMotionEvent(event)
+        }
+    }
+}
+```
+
 ## Usage
 
 To use this plugin, add `wearable_rotary` as a dependency in your `pubspec.yaml` file.
