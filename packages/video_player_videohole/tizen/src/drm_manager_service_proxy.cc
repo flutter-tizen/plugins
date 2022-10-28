@@ -31,7 +31,7 @@ typedef int (*FuncPlayerSetDrmInitDataCB)(player_h player,
 
 void* Dlsym(void* handle, const char* name) {
   if (!handle) {
-    LOG_ERROR("dlsym failed, handle is null");
+    LOG_ERROR("[DrmManagerService] dlsym failed, handle is null");
     return nullptr;
   }
   return dlsym(handle, name);
@@ -135,7 +135,7 @@ int player_set_drm_init_data_cb(void* handle, player_h player,
 
 int CloseDrmManager(void* handle) {
   if (handle == nullptr) {
-    LOG_ERROR("handle is null");
+    LOG_ERROR("[DrmManagerService] handle is null");
     return -1;
   }
   return dlclose(handle);
@@ -143,7 +143,7 @@ int CloseDrmManager(void* handle) {
 
 int CloseMediaPlayer(void* handle) {
   if (handle == nullptr) {
-    LOG_ERROR("handle is null");
+    LOG_ERROR("[DrmManagerService] handle is null");
     return -1;
   }
   return dlclose(handle);
