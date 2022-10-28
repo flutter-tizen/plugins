@@ -11,6 +11,9 @@ environment:
 flutter:
   plugin:
     platforms:
+      android:
+        package: com.samsung.wearable_rotary
+        pluginClass: WearableRotaryPlugin
       tizen:
         pluginClass: WearableRotaryPlugin
         fileName: wearable_rotary_plugin.h
