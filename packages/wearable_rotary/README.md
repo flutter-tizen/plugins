@@ -2,7 +2,7 @@
 
  [![pub package](https://img.shields.io/pub/v/wearable_rotary.svg)](https://pub.dev/packages/wearable_rotary)
 
-Plugin that can listen to rotary events on Galaxy watch devices.
+Flutter plugin that can listen to rotary events on Wear OS and Tizen Galaxy watch devices.
 
 ## Usage
 
