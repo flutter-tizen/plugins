@@ -31,15 +31,14 @@ class DrmManager {
   static int UpdatePsshDataCB(drm_init_data_type type, void *data, int length,
                               void *user_data);
 
-  unsigned char *ppb_response_{nullptr};
+  unsigned char *ppb_response_ = nullptr;
   SetDataParam_t m_param;
-  DRMSessionHandle_t drm_session_{nullptr};
-  void *drm_manager_handle_{nullptr};
-  void *media_player_handle_{nullptr};
-  int drm_type_{DRM_TYPE_NONE};
+  DRMSessionHandle_t drm_session_ = nullptr;
+  void *drm_manager_handle_ = nullptr;
+  void *media_player_handle_ = nullptr;
+  int drm_type_ = DRM_TYPE_NONE;
   std::string license_url_;
   player_h player_;
-  void *DMGRsecurity_init_complete_cb;
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_

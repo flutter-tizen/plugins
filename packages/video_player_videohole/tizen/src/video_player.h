@@ -60,16 +60,16 @@ class VideoPlayer {
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
   SeekCompletedCb on_seek_completed_;
-  bool is_interrupted_;
   player_h player_;
   FlutterDesktopPluginRegistrarRef registrar_ref_{nullptr};
   std::unique_ptr<DrmManager> drm_manager_;
   std::string uri_;
   std::string license_url_;
-  int64_t player_id_{-1};
-  int drm_type_{DRM_TYPE_NONE};
-  bool is_initialized_{false};
-  bool is_buffering_{false};
+  int64_t player_id_ = -1;
+  int drm_type_ = DRM_TYPE_NONE;
+  bool is_initialized_ = false;
+  bool is_interrupted_ = false;
+  bool is_buffering_ = false;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_

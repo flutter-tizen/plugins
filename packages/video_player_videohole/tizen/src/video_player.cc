@@ -70,7 +70,7 @@ bool VideoPlayer::Open(const std::string &uri) {
 
 bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
   int w, h = 0;
-  int ret;
+  int ret = 0;
   if (system_info_get_platform_int("http://tizen.org/feature/screen.width",
                                    &w) != SYSTEM_INFO_ERROR_NONE ||
       system_info_get_platform_int("http://tizen.org/feature/screen.height",
@@ -121,7 +121,6 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
 }
 
 int64_t VideoPlayer::Create() {
-  int ret;
   player_id_ = gPlayerIndex++;
   if (uri_.empty()) {
     LOG_ERROR("uri is empty");
@@ -139,7 +138,7 @@ int64_t VideoPlayer::Create() {
   }
   SetDisplayRoi(0, 0, 1, 1);
 
-  ret = player_set_buffering_cb(player_, OnBuffering, (void *)this);
+  int ret = player_set_buffering_cb(player_, OnBuffering, (void *)this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_buffering_cb failed: %s",
@@ -207,16 +206,13 @@ void VideoPlayer::Play() {
   player_state_e state;
   int ret = player_get_state(player_, &state);
   if (state < PLAYER_STATE_READY) {
-    player_destroy(player_);
     LOG_ERROR("invalid state for play operation");
     return;
   }
   ret = player_start(player_);
-  if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PAUSED) {
-    if (ret != PLAYER_ERROR_NONE) {
-      player_destroy(player_);
-      LOG_ERROR("fail to start");
-    }
+  if (state == PLAYER_STATE_READY ||
+      state == PLAYER_STATE_PAUSED && ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("fail to start");
   }
 }
 
@@ -228,11 +224,8 @@ void VideoPlayer::Pause() {
     return;
   }
   ret = player_pause(player_);
-  if (state == PLAYER_STATE_PLAYING) {
-    if (ret != PLAYER_ERROR_NONE) {
-      player_destroy(player_);
-      LOG_ERROR("fail to pause");
-    }
+  if (state == PLAYER_STATE_PLAYING && ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("fail to pause");
   }
 }
 
@@ -240,7 +233,6 @@ void VideoPlayer::SetLooping(bool is_looping) {
   LOG_INFO("[VideoPlayer.setLooping] isLooping: %d", is_looping);
   int ret = player_set_looping(player_, is_looping);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer.setLooping] player_set_looping failed: %s",
               get_error_message(ret));
   }
@@ -250,7 +242,6 @@ void VideoPlayer::SetVolume(double volume) {
   LOG_INFO("[VideoPlayer.setVolume] volume: %f", volume);
   int ret = player_set_volume(player_, volume, volume);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer.setVolume] player_set_volume failed: %s",
               get_error_message(ret));
   }
@@ -260,7 +251,6 @@ void VideoPlayer::SetPlaybackSpeed(double speed) {
   LOG_INFO("set playback speed: %f", speed);
   int ret = player_set_playback_rate(player_, speed);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("fail to set playback rate speed : %s", get_error_message(ret));
   }
 }
@@ -270,7 +260,6 @@ void VideoPlayer::SeekTo(int position) {
   int ret =
       player_set_play_position(player_, position, true, OnSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer.seekTo] player_set_play_position failed: %s",
               get_error_message(ret));
     LOG_ERROR("fail to seek, position : %d", position);
@@ -278,10 +267,9 @@ void VideoPlayer::SeekTo(int position) {
 }
 
 int VideoPlayer::GetPosition() {
-  int position;
+  int position = 0;
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer.getPosition] player_get_play_position failed :%s",
               get_error_message(ret));
   }
@@ -355,10 +343,9 @@ void VideoPlayer::Initialize() {
 
 void VideoPlayer::SendInitialized() {
   if (!is_initialized_ && !is_interrupted_ && event_sink_ != nullptr) {
-    int duration;
+    int duration = 0;
     int ret = player_get_duration(player_, &duration);
     if (ret != PLAYER_ERROR_NONE) {
-      player_destroy(player_);
       LOG_ERROR("[VideoPlayer.sendInitialized] player_get_duration failed:%s",
                 get_error_message(ret));
       event_sink_->Error("player_get_duration failed");
@@ -369,7 +356,6 @@ void VideoPlayer::SendInitialized() {
     int width = 0, height = 0;
     ret = player_get_video_size(player_, &width, &height);
     if (ret != PLAYER_ERROR_NONE) {
-      player_destroy(player_);
       LOG_ERROR(
           "[VideoPlayer.sendInitialized] player_get_video_size failed :%s",
           get_error_message(ret));
@@ -382,7 +368,6 @@ void VideoPlayer::SendInitialized() {
     player_display_rotation_e rotation;
     ret = player_get_display_rotation(player_, &rotation);
     if (ret != PLAYER_ERROR_NONE) {
-      player_destroy(player_);
       LOG_ERROR(
           "[VideoPlayer.sendInitialized] player_get_display_rotation failed: "
           "%s",
@@ -503,6 +488,7 @@ void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
   VideoPlayer *player = (VideoPlayer *)data;
   LOG_ERROR("[VideoPlayer.onErrorOccurred] error code: %s",
             get_error_message(code));
+  player->is_interrupted_ = true;
   if (player->event_sink_) {
     player->event_sink_->Error("Video player had error",
                                get_error_message(code));
