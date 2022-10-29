@@ -8,10 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:wearable_rotary/wearable_rotary.dart';
 
 void main() {
-  runApp(const MaterialApp(
-    title: 'Rotary example app',
-    home: MyApp(),
-  ));
+  runApp(
+    MaterialApp(
+      title: 'Rotary example app',
+      home: const MyApp(),
+      theme: ThemeData(platform: TargetPlatform.iOS),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
