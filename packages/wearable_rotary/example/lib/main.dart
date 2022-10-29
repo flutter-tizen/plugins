@@ -12,6 +12,7 @@ void main() {
     MaterialApp(
       title: 'Rotary example app',
       home: const MyApp(),
+      // Set the target platform to iOS so that navigation behaves as expected for a wearable app
       theme: ThemeData(platform: TargetPlatform.iOS),
     ),
   );
