@@ -2,18 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:convert' as convert;
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 
 import 'src/device_flow_widget.dart' as device_flow_widget;
 import 'src/oauth2.dart';
-import 'src/secure_storage.dart';
 
 export 'src/authorization_exception.dart';
-export 'src/secure_storage.dart';
 
 /// Holds authentication data after Google sign in for Tizen.
 class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
@@ -47,24 +46,23 @@ class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
   }
 
   /// Creates a [_GoogleSignInTokenDataTizen] from a json object.
-  static _GoogleSignInTokenDataTizen fromJson(Map<String, Object?> json) {
+  static _GoogleSignInTokenDataTizen fromJson(Map<String, dynamic> json) {
     return _GoogleSignInTokenDataTizen(
       accessToken: json['access_token']! as String,
-      accessTokenExpirationDate: DateTime.fromMicrosecondsSinceEpoch(
-          json['access_token_expiration_date']! as int),
+      accessTokenExpirationDate:
+          DateTime.parse(json['access_token_expiration_date']! as String),
       idToken: json['id_token']! as String,
       refreshToken: json['refresh_token'] as String?,
     );
   }
 
   /// Creates a json object from this token data.
-  Map<String, Object> toJson() {
-    return <String, Object>{
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
       'access_token': accessToken,
-      'access_token_expiration_date':
-          accessTokenExpirationDate.microsecondsSinceEpoch,
+      'access_token_expiration_date': accessTokenExpirationDate.toString(),
       'id_token': idToken,
-      if (refreshToken != null) 'refresh_token': refreshToken!,
+      if (refreshToken != null) 'refresh_token': refreshToken,
     };
   }
 }
@@ -84,7 +82,7 @@ class _Credentials {
 
 class _CachedTokenStorage {
   // ignore: invalid_use_of_visible_for_testing_member
-  final SecureStorage _storage = SecureStorage();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   final String _kToken = 'token';
 
@@ -92,7 +90,7 @@ class _CachedTokenStorage {
   _GoogleSignInTokenDataTizen? _token;
 
   Future<void> saveToken(_GoogleSignInTokenDataTizen token) async {
-    await _storage.saveJson(_kToken, token.toJson());
+    await _storage.write(key: _kToken, value: jsonEncode(token.toJson()));
     _token = token;
   }
 
@@ -100,12 +98,15 @@ class _CachedTokenStorage {
     if (_token != null) {
       return _token!;
     }
-    final Map<String, Object?>? json = await _storage.getJson(_kToken);
-    return json != null ? _GoogleSignInTokenDataTizen.fromJson(json) : null;
+    final String? jsonString = await _storage.read(key: _kToken);
+    return json != null
+        ? _GoogleSignInTokenDataTizen.fromJson(
+            jsonDecode(jsonString!) as Map<String, dynamic>)
+        : null;
   }
 
   Future<void> removeToken() async {
-    await _storage.remove(_kToken);
+    await _storage.delete(key: _kToken);
     _token = null;
   }
 }
@@ -328,11 +329,10 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (splitTokens.length != 3) {
       throw const FormatException('Invalid idToken.');
     }
-    final String normalizedPayload = convert.base64.normalize(splitTokens[1]);
-    final String payloadString =
-        convert.utf8.decode(convert.base64.decode(normalizedPayload));
+    final String normalizedPayload = base64.normalize(splitTokens[1]);
+    final String payloadString = utf8.decode(base64.decode(normalizedPayload));
     final Map<String, Object?> json =
-        convert.jsonDecode(payloadString) as Map<String, Object?>;
+        jsonDecode(payloadString) as Map<String, Object?>;
 
     return GoogleSignInUserData(
       email: json['email']! as String,
