@@ -46,7 +46,7 @@ class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
   }
 
   /// Creates a [_GoogleSignInTokenDataTizen] from a json object.
-  static _GoogleSignInTokenDataTizen fromJson(Map<String, dynamic> json) {
+  static _GoogleSignInTokenDataTizen fromJson(Map<String, Object?> json) {
     return _GoogleSignInTokenDataTizen(
       accessToken: json['access_token']! as String,
       accessTokenExpirationDate:
@@ -57,12 +57,12 @@ class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
   }
 
   /// Creates a json object from this token data.
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
+  Map<String, Object> toJson() {
+    return <String, Object>{
       'access_token': accessToken,
       'access_token_expiration_date': accessTokenExpirationDate.toString(),
       'id_token': idToken,
-      if (refreshToken != null) 'refresh_token': refreshToken,
+      if (refreshToken != null) 'refresh_token': refreshToken!,
     };
   }
 }
@@ -99,9 +99,9 @@ class _CachedTokenStorage {
       return _token!;
     }
     final String? jsonString = await _storage.read(key: _kToken);
-    return json != null
+    return jsonString != null
         ? _GoogleSignInTokenDataTizen.fromJson(
-            jsonDecode(jsonString!) as Map<String, dynamic>)
+            jsonDecode(jsonString) as Map<String, Object?>)
         : null;
   }
 

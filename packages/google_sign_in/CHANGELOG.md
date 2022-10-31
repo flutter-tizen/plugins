@@ -1,4 +1,5 @@
 ## 0.1.3
+
 * Add dependency on flutter_secure_storage_tizen.
 
 ## 0.1.2
