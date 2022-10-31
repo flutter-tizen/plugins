@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_WEVIEW_H_
-#define FLUTTER_PLUGIN_WEVIEW_H_
+#ifndef FLUTTER_PLUGIN_WEBVIEW_H_
+#define FLUTTER_PLUGIN_WEBVIEW_H_
 
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
@@ -80,4 +80,4 @@ class WebView : public PlatformView {
   bool use_sw_backend_;
 };
 
-#endif  // FLUTTER_PLUGIN_WEVIEW_H_
+#endif  // FLUTTER_PLUGIN_WEBVIEW_H_
