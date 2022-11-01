@@ -5,7 +5,6 @@ plugins:
   device_info_plus: ["wearable-5.5", "tv-6.5"]
   flutter_secure_storage: ["wearable-5.5", "tv-6.5"]
   flutter_tts: ["wearable-5.5", "tv-6.5"]
-  google_sign_in: ["wearable-5.5", "tv-6.5"]
   integration_test: ["wearable-5.5", "tv-6.5"]
   messageport: ["wearable-5.5", "tv-6.5"]
   package_info_plus: ["wearable-5.5", "tv-6.5"]
@@ -28,6 +27,7 @@ plugins:
   webview_flutter: []
 
   # No tests.
+  google_sign_in: []
   image_picker: []
   tizen_log: []
   tizen_notification: []
