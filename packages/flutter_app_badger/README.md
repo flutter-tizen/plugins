@@ -12,7 +12,7 @@ The Tizen implementation of [`flutter_app_badger`](https://github.com/mogol/flut
  ```yaml
 dependencies:
   flutter_app_badger: ^1.5.0
-  flutter_app_badger_tizen: ^0.0.1
+  flutter_app_badger_tizen: ^0.1.0
 ```
 
 Then you can import `flutter_app_badger` in your Dart code:
