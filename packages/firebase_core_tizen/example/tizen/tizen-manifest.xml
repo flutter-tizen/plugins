@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.example.flutterfire_core_tizen" version="1.0.0" api-version="6.0" xmlns="http://tizen.org/ns/packages">
+<manifest package="com.example.flutterfire_core_tizen" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
     <profile name="common"/>
     <ui-application appid="com.example.flutterfire_core_tizen" exec="runner" type="capp" multiple="false" nodisplay="false" taskmanage="true" hw-acceleration="on">
         <label>FlutterFire Core Example</label>

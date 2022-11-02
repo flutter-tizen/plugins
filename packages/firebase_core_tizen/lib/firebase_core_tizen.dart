@@ -17,10 +17,11 @@ class FirebaseCore extends FirebasePlatform {
     FirebasePlatform.instance = FirebaseCore();
   }
 
+  // ignore: public_member_api_docs
   static void register() => registerWith();
 
   FirebaseApp _mapDartToPlatfromApp(core_dart.FirebaseApp app) {
-    final options = app.options;
+    final core_dart.FirebaseOptions options = app.options;
 
     return FirebaseApp._(
       app.name,
@@ -59,12 +60,14 @@ class FirebaseCore extends FirebasePlatform {
 
     /// Ensures the name isn't null, in case no name
     /// passed, [defaultFirebaseAppName] will be used
-    final _name = name ?? defaultFirebaseAppName;
+    final String _name = name ?? defaultFirebaseAppName;
 
     try {
       // Initialize the app in firebase_core_dart
-      final _dartOptions = core_dart.FirebaseOptions.fromMap(options!.asMap);
-      final _dartApp = await core_dart.Firebase.initializeApp(
+      final core_dart.FirebaseOptions _dartOptions =
+          core_dart.FirebaseOptions.fromMap(options!.asMap);
+      final core_dart.FirebaseApp _dartApp =
+          await core_dart.Firebase.initializeApp(
         name: _name,
         options: _dartOptions,
       );

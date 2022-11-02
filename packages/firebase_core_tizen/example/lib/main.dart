@@ -1,3 +1,4 @@
+// Copyright (c) Invertase Limited <oss@invertase.io> & Contributors
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
@@ -8,25 +9,28 @@ import 'package:flutter/material.dart';
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   String get name => 'foo';
 
+  // fill app keys if needed, you can take ones from
+  // https://github.com/invertase/flutterfire_desktop/blob/main/packages/firebase_core/firebase_core_desktop/example/lib/main.dart
   FirebaseOptions get firebaseOptions => const FirebaseOptions(
-        appId: '1:448618578101:ios:0b650370bb29e29cac3efc',
-        apiKey: 'AIzaSyAgUhHU8wSJgO5MVNy95tMT07NEjzMOfz0',
+        appId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        apiKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
         projectId: 'react-native-firebase-testing',
-        messagingSenderId: '448618578101',
+        messagingSenderId: 'xxxxxxxxxxxx',
       );
 
   Future<void> initializeDefault() async {
-    final app = await Firebase.initializeApp(options: firebaseOptions);
+    final FirebaseApp app =
+        await Firebase.initializeApp(options: firebaseOptions);
     log('Initialized default app $app');
     print('Initialized default app $app');
   }
 
   Future<void> initializeSecondary() async {
-    final app = await Firebase.initializeApp(
+    final FirebaseApp app = await Firebase.initializeApp(
       name: name,
       options: firebaseOptions,
     );
@@ -41,14 +45,14 @@ class MyApp extends StatelessWidget {
   }
 
   void options() {
-    final app = Firebase.app(name);
-    final options = app.options;
+    final FirebaseApp app = Firebase.app(name);
+    final FirebaseOptions options = app.options;
     log('Current options for app $name: $options');
     print('Current options for app $name: $options');
   }
 
   Future<void> delete() async {
-    final app = Firebase.app(name);
+    final FirebaseApp app = Firebase.app(name);
     await app.delete();
     log('App $name deleted');
     print('App $name deleted');

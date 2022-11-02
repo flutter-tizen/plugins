@@ -1,18 +1,20 @@
 # firebase_core_tizen
 
-A new Flutter plugin project.
+A Firebase Core implementation for Tizen.
 
 ## Getting Started
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+Use this plugin if you want to run your FlutterFire (Firebase for Flutter)
+application on Tizen.
 
-For help getting started with Flutter development, view the
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
-The plugin project was generated without specifying the `--platforms` flag, no platforms are currently supported.
-To add platforms, run `flutter create -t plugin --platforms <platforms> .` in this directory.
-You can also find a detailed instruction on how to add platforms in the `pubspec.yaml` at https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms.
+1. First you should install flutter-tizen, see [flutter-tizen installation](https://github.com/flutter-tizen/flutter-tizen/#installation).
+2. Create your new application.
+    ```
+    flutter-tizen create my-app
+    cd my-app
+    ```
+3. Add firebase_core and firebase_core_tizen to your application.
+    ```
+    flutter-tizen pub add firebase_core firebase_core_tizen
+    ```
+4. Include Firebase in the app as described at [Firebase Flutter setup](https://firebase.google.com/docs/flutter/setup).
