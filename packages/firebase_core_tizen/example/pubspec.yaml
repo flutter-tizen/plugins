@@ -1,0 +1,23 @@
+name: firebase_core_tizen_example
+description: An example application demonstrating calls to Firebase Core.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0
+
+environment:
+  sdk: ">=2.18.0 <3.0.0"
+  flutter: ">=2.5.0"
+
+dependencies:
+  firebase_core: ^1.9.0
+  firebase_core_tizen:
+  flutter:
+    sdk: flutter
+
+dependency_overrides:
+  firebase_core_tizen:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
