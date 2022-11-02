@@ -11,6 +11,8 @@
   - packages/device_info_plus/**/*
 "p: firebase_core":
   - packages/firebase_core/**/*
+"p: firebase_functions":
+  - packages/firebase_functions/**/*
 "p: flutter_app_badger":
   - packages/flutter_app_badger/**/*
 "p: flutter_secure_storage":

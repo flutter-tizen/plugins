@@ -1,0 +1,21 @@
+name: firebase_functions_tizen_example
+description: An example application demonstrating calls to Firebase Functions.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  cloud_functions:
+  firebase_core:
+  firebase_core_tizen:
+    path: ../../firebase_core
+  firebase_functions_tizen:
+    path: ../
+  flutter:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
