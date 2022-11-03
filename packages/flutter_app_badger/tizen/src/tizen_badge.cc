@@ -23,7 +23,7 @@ bool TizenBadge::Initialize() {
   ret = badge_add(app_id_);
   if (ret == BADGE_ERROR_NOT_SUPPORTED) {
     LOG_ERROR("badge is not supported.");
-    is_supported = false;
+    is_supported_ = false;
   } else if (ret != BADGE_ERROR_NONE) {
     LOG_ERROR("badge_add() failed with error %d.", ret);
     return false;
@@ -32,7 +32,7 @@ bool TizenBadge::Initialize() {
 }
 
 bool TizenBadge::UpdateBadgeCount(int count) {
-  if (!is_supported) {
+  if (!is_supported_) {
     LOG_ERROR("badge is not supported.");
     return false;
   }
@@ -52,6 +52,11 @@ bool TizenBadge::UpdateBadgeCount(int count) {
 }
 
 bool TizenBadge::RemoveBadge() {
+  if (!is_supported_) {
+    LOG_ERROR("badge is not supported.");
+    return false;
+  }
+
   int ret = badge_set_count(app_id_, 0);
   if (ret != BADGE_ERROR_NONE) {
     LOG_ERROR("badge_set_count() failed with error %d.", ret);
