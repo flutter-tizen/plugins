@@ -64,7 +64,8 @@ class FlutterAppBadgerTizenPlugin : public flutter::Plugin {
     const auto &method_name = method_call.method_name();
 
     if (!badge_) {
-      result->Error("Operation failed", "Badge initialization failed.");
+      result->Error(std::to_string(badge_->GetLastError()),
+                    badge_->GetLastErrorString());
       return;
     }
 
@@ -78,7 +79,7 @@ class FlutterAppBadgerTizenPlugin : public flutter::Plugin {
       const auto *arguments =
           std::get_if<flutter::EncodableMap>(method_call.arguments());
       if (!arguments) {
-        result->Error("Invalid arguments", "Invalid argument type.");
+        result->Error("Invalid arguments", "Invalid arguments.");
         return;
       }
       int count = 0;
@@ -86,16 +87,18 @@ class FlutterAppBadgerTizenPlugin : public flutter::Plugin {
         if (badge_->UpdateBadgeCount(count)) {
           result->Success(flutter::EncodableValue(true));
         } else {
-          result->Error("Operation failed", "updateBadgeCount() falied.");
+          result->Error(std::to_string(badge_->GetLastError()),
+                        badge_->GetLastErrorString());
         }
       } else {
-        result->Error("Invalid arguments", "Invalid argument type.");
+        result->Error("Invalid arguments", "Invalid arguments.");
       }
     } else if (method_name == "removeBadge") {
       if (badge_->RemoveBadge()) {
         result->Success(flutter::EncodableValue(true));
       } else {
-        result->Error("Operation failed", "removeBadge() failed.");
+        result->Error(std::to_string(badge_->GetLastError()),
+                      badge_->GetLastErrorString());
       }
     } else {
       result->NotImplemented();

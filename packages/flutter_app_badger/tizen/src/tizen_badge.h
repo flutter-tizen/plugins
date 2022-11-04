@@ -8,10 +8,16 @@
 #include <app.h>
 #include <badge.h>
 
+#include <string>
+
 class TizenBadge {
  public:
   TizenBadge() = default;
-  ~TizenBadge();
+  ~TizenBadge(){};
+
+  int GetLastError() { return last_error_; }
+
+  std::string GetLastErrorString() { return get_error_message(last_error_); }
 
   bool IsSupported() { return is_supported_; };
 
@@ -22,8 +28,10 @@ class TizenBadge {
   bool RemoveBadge();
 
  private:
-  char* app_id_;
-  bool is_supported_ = true;
+  std::string app_id_;
+  bool is_added_ = false;
+  bool is_supported_ = false;
+  int last_error_ = TIZEN_ERROR_NONE;
 };
 
 #endif  // FLUTTER_PLUGIN_TIZEN_BADGE_H_
