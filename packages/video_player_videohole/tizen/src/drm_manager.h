@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_DRM_MANAGER_H_
-#define FLUTTER_PLUGIN_DRM_MANAGER_H_
+#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_H_
+#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_H_
 
 #include <dlfcn.h>
 #include <glib.h>
@@ -16,7 +16,7 @@
 
 class DrmManager {
  public:
-  DrmManager(int drmType, const std::string &licenseUrl, player_h player_);
+  DrmManager(int drmType, const std::string &licenseUrl, player_h player);
   ~DrmManager();
   bool InitializeDrmSession(const std::string &url);
   void ReleaseDrmSession();
@@ -32,7 +32,7 @@ class DrmManager {
                               void *user_data);
 
   unsigned char *ppb_response_ = nullptr;
-  SetDataParam_t m_param;
+  SetDataParam_t security_param_;
   DRMSessionHandle_t drm_session_ = nullptr;
   void *drm_manager_handle_ = nullptr;
   void *media_player_handle_ = nullptr;
@@ -41,4 +41,4 @@ class DrmManager {
   player_h player_;
 };
 
-#endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_
+#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_H_

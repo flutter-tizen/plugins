@@ -44,57 +44,57 @@ void* OpenMediaPlayer() {
 
 int DMGRSetData(void* handle, DRMSessionHandle_t drm_session,
                 const char* data_type, void* input_data) {
-  FuncDMGRSetData DMGRSetData;
-  *(void**)(&DMGRSetData) = Dlsym(handle, "DMGRSetData");
-  if (DMGRSetData) {
-    return DMGRSetData(drm_session, data_type, input_data);
+  FuncDMGRSetData drm_set_data;
+  *(void**)(&drm_set_data) = Dlsym(handle, "DMGRSetData");
+  if (drm_set_data) {
+    return drm_set_data(drm_session, data_type, input_data);
   }
   return DM_ERROR_UNKOWN;
 }
 
 int DMGRGetData(void* handle, DRMSessionHandle_t drm_session,
                 const char* data_type, void** output_data) {
-  FuncDMGRGetData DMGRGetData;
-  *(void**)(&DMGRGetData) = Dlsym(handle, "DMGRGetData");
-  if (DMGRGetData) {
-    return DMGRGetData(drm_session, data_type, output_data);
+  FuncDMGRGetData drm_get_data;
+  *(void**)(&drm_get_data) = Dlsym(handle, "DMGRGetData");
+  if (drm_get_data) {
+    return drm_get_data(drm_session, data_type, output_data);
   }
   return DM_ERROR_UNKOWN;
 }
 
 void DMGRSetDRMLocalMode(void* handle) {
-  FuncDMGRSetDRMLocalMode DMGRSetDRMLocalMode;
-  *(void**)(&DMGRSetDRMLocalMode) = Dlsym(handle, "DMGRSetDRMLocalMode");
-  if (DMGRSetDRMLocalMode) {
-    return DMGRSetDRMLocalMode();
+  FuncDMGRSetDRMLocalMode drm_set_local_mode;
+  *(void**)(&drm_set_local_mode) = Dlsym(handle, "DMGRSetDRMLocalMode");
+  if (drm_set_local_mode) {
+    return drm_set_local_mode();
   }
 }
 
 DRMSessionHandle_t DMGRCreateDRMSession(void* handle, dm_type_e drm_type,
                                         const char* drm_sub_type) {
-  FuncDMGRCreateDRMSession DMGRCreateDRMSession;
-  *(void**)(&DMGRCreateDRMSession) = Dlsym(handle, "DMGRCreateDRMSession");
-  if (DMGRCreateDRMSession) {
-    return DMGRCreateDRMSession(drm_type, drm_sub_type);
+  FuncDMGRCreateDRMSession drm_create_session;
+  *(void**)(&drm_create_session) = Dlsym(handle, "DMGRCreateDRMSession");
+  if (drm_create_session) {
+    return drm_create_session(drm_type, drm_sub_type);
   }
   return nullptr;
 }
 
 FuncDMGRSecurityInitCompleteCB DMGRSecurityInitCompleteCB(void* handle) {
-  FuncDMGRSecurityInitCompleteCB DMGRSecurityInitCompleteCB;
-  *(void**)(&DMGRSecurityInitCompleteCB) =
+  FuncDMGRSecurityInitCompleteCB drm_security_init_complete_cb;
+  *(void**)(&drm_security_init_complete_cb) =
       Dlsym(handle, "DMGRSecurityInitCompleteCB");
-  if (DMGRSecurityInitCompleteCB) {
-    return DMGRSecurityInitCompleteCB;
+  if (drm_security_init_complete_cb) {
+    return drm_security_init_complete_cb;
   }
   return nullptr;
 }
 
 int DMGRReleaseDRMSession(void* handle, DRMSessionHandle_t drm_session) {
-  FuncDMGRReleaseDRMSession DMGRReleaseDRMSession;
-  *(void**)(&DMGRReleaseDRMSession) = Dlsym(handle, "DMGRReleaseDRMSession");
-  if (DMGRReleaseDRMSession) {
-    return DMGRReleaseDRMSession(drm_session);
+  FuncDMGRReleaseDRMSession drm_release_session;
+  *(void**)(&drm_release_session) = Dlsym(handle, "DMGRReleaseDRMSession");
+  if (drm_release_session) {
+    return drm_release_session(drm_session);
   }
   return DM_ERROR_UNKOWN;
 }

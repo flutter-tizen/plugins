@@ -429,7 +429,7 @@ void VideoPlayer::SendBufferingEnd() {
 }
 
 void VideoPlayer::OnPrepared(void *data) {
-  VideoPlayer *player = (VideoPlayer *)data;
+  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_INFO("[VideoPlayer] video player is prepared");
   if (!player->is_initialized_) {
     player->SendInitialized();
@@ -438,7 +438,7 @@ void VideoPlayer::OnPrepared(void *data) {
 
 void VideoPlayer::OnBuffering(int percent, void *data) {
   LOG_INFO("[VideoPlayer] percent: %d", percent);
-  VideoPlayer *player = (VideoPlayer *)data;
+  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
   if (percent == 100) {
     player->SendBufferingEnd();
     player->is_buffering_ = false;
@@ -451,7 +451,7 @@ void VideoPlayer::OnBuffering(int percent, void *data) {
 }
 
 void VideoPlayer::OnSeekCompleted(void *data) {
-  VideoPlayer *player = (VideoPlayer *)data;
+  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_INFO("[VideoPlayer] completed to seek");
   if (player->on_seek_completed_) {
     player->on_seek_completed_();
@@ -460,7 +460,7 @@ void VideoPlayer::OnSeekCompleted(void *data) {
 }
 
 void VideoPlayer::OnPlayCompleted(void *data) {
-  VideoPlayer *player = (VideoPlayer *)data;
+  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_INFO("[VideoPlayer] completed to play video");
   if (player->event_sink_) {
     flutter::EncodableMap encodables = {{flutter::EncodableValue("event"),
@@ -472,7 +472,7 @@ void VideoPlayer::OnPlayCompleted(void *data) {
 }
 
 void VideoPlayer::OnError(int error_code, void *user_data) {
-  VideoPlayer *player = (VideoPlayer *)user_data;
+  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(user_data);
   LOG_ERROR("[VideoPlayer] error code: %s", get_error_message(error_code));
   if (player->event_sink_) {
     player->event_sink_->Error("Video player had error",
@@ -481,7 +481,7 @@ void VideoPlayer::OnError(int error_code, void *user_data) {
 }
 
 void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
-  VideoPlayer *player = (VideoPlayer *)data;
+  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_ERROR("[VideoPlayer] interrupt code: %d", code);
   player->is_interrupted_ = true;
   if (player->event_sink_) {

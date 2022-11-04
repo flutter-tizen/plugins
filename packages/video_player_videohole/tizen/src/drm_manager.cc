@@ -81,14 +81,15 @@ bool DrmManager::CreateDrmSession(void) {
 
 bool DrmManager::SetPlayerDrm(const std::string &url) {
   int drm_handle = 0;
-  int ret = DMGRSetData(drm_manager_handle_, drm_session_,
-                        "set_playready_manifest", (void *)url.c_str());
+  int ret = DMGRSetData(
+      drm_manager_handle_, drm_session_, "set_playready_manifest",
+      const_cast<void *>(reinterpret_cast<const void *>(url.c_str())));
 
   SetDataParam_t configure_param;
-  configure_param.param1 = (void *)OnDrmManagerError;
-  configure_param.param2 = (void *)drm_session_;
-  ret = DMGRSetData(drm_manager_handle_, drm_session_,
-                    (char *)"error_event_callback", (void *)&configure_param);
+  configure_param.param1 = reinterpret_cast<void *>(OnDrmManagerError);
+  configure_param.param2 = reinterpret_cast<void *>(drm_session_);
+  ret = DMGRSetData(drm_manager_handle_, drm_session_, "error_event_callback",
+                    reinterpret_cast<void *>(&configure_param));
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] error_event_callback failed: %s",
               get_error_message(ret));
@@ -96,14 +97,14 @@ bool DrmManager::SetPlayerDrm(const std::string &url) {
   }
 
   ret = DMGRGetData(drm_manager_handle_, drm_session_, "drm_handle",
-                    (void **)&drm_handle);
+                    reinterpret_cast<void **>(&drm_handle));
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] drm_handle failed: %s", get_error_message(ret));
     return false;
   }
   LOG_DEBUG("[DrmManager] drm_handle succeed, drm handle: %d", drm_handle);
 
-  ret = player_set_drm_handle(media_player_handle_, (player_h)player_,
+  ret = player_set_drm_handle(media_player_handle_, player_,
                               PLAYER_DRM_TYPE_EME, drm_handle);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[DrmManager] player_set_drm_handle failed: %s",
@@ -115,22 +116,21 @@ bool DrmManager::SetPlayerDrm(const std::string &url) {
   // DMGRSecurityInitCompleteCB will response multiple times and exist all the
   // time during drm video play, if use malloc() way, also need to release the
   // memory after play end.
-  m_param.param1 = (void *)player_;
-  m_param.param2 = (void *)drm_session_;
+  security_param_.param1 = reinterpret_cast<void *>(player_);
+  security_param_.param2 = reinterpret_cast<void *>(drm_session_);
   ret = player_set_drm_init_complete_cb(
-      media_player_handle_, (player_h)player_,
-      (security_init_complete_cb)DMGRSecurityInitCompleteCB(
-          drm_manager_handle_),
-      (void *)&m_param);
+      media_player_handle_, player_,
+      DMGRSecurityInitCompleteCB(drm_manager_handle_),
+      reinterpret_cast<void *>(&security_param_));
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[DrmManager] player_set_drm_init_complete_cb failed: %s",
               get_error_message(ret));
     return false;
   }
 
-  ret = player_set_drm_init_data_cb(media_player_handle_, (player_h)player_,
-                                    (set_drm_init_data_cb)UpdatePsshDataCB,
-                                    (void *)this);
+  ret = player_set_drm_init_data_cb(media_player_handle_, player_,
+                                    UpdatePsshDataCB,
+                                    reinterpret_cast<void *>(this));
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[DrmManager] player_set_drm_init_data_cb failed: %s",
               get_error_message(ret));
@@ -140,18 +140,20 @@ bool DrmManager::SetPlayerDrm(const std::string &url) {
 }
 
 bool DrmManager::SetChallengeCondition() {
-  SetDataParam_t *pChaSetDataParam = nullptr;
-  pChaSetDataParam = (SetDataParam_t *)malloc(sizeof(SetDataParam_t));
-  pChaSetDataParam->param1 = (void *)OnChallengeData;
-  pChaSetDataParam->param2 = (void *)this;
-  int ret = DMGRSetData(drm_manager_handle_, drm_session_,
-                        "eme_request_key_callback", (void *)pChaSetDataParam);
+  SetDataParam_t *challenge_data_param = nullptr;
+  challenge_data_param =
+      static_cast<SetDataParam_t *>(malloc(sizeof(SetDataParam_t)));
+  challenge_data_param->param1 = reinterpret_cast<void *>(OnChallengeData);
+  challenge_data_param->param2 = reinterpret_cast<void *>(this);
+  int ret =
+      DMGRSetData(drm_manager_handle_, drm_session_, "eme_request_key_callback",
+                  reinterpret_cast<void *>(challenge_data_param));
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] eme_request_key_callback failed: %s",
               get_error_message(ret));
   }
-  if (pChaSetDataParam) {
-    free(pChaSetDataParam);
+  if (challenge_data_param) {
+    free(challenge_data_param);
   }
   return true;
 }
@@ -159,36 +161,36 @@ bool DrmManager::SetChallengeCondition() {
 int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
                                 int msg_len, void *user_data) {
   LOG_INFO("[DrmManager] session_id is [%s]", session_id);
-  DrmManager *pThis = static_cast<DrmManager *>(user_data);
+  DrmManager *drm_manager = static_cast<DrmManager *>(user_data);
 
   char license_url[128] = {0};
-  strcpy(license_url, pThis->license_url_.c_str());
-  LOG_INFO("[DrmManager] drm_type_: %d", pThis->drm_type_);
+  strcpy(license_url, drm_manager->license_url_.c_str());
+  LOG_INFO("[DrmManager] drm_type_: %d", drm_manager->drm_type_);
   LOG_INFO("[DrmManager] license_url: %s", license_url);
-  pThis->ppb_response_ = nullptr;
-  unsigned long pbResponse_len = 0;
+  unsigned long pb_response_len = 0;
   LOG_INFO("[DrmManager] challenge data length: %d", msg_len);
-  std::string challengeData(msg_len, 0);
-  memcpy(&challengeData[0], (char *)msg, msg_len);
+  std::string challenge_data(msg_len, 0);
+  memcpy(&challenge_data[0], (char *)msg, msg_len);
   // Get the license from the DRM Server
-  DRM_RESULT drm_result = CBmsDrmLicenseHelper::DoTransaction_TZ(
-      license_url, (const void *)&challengeData[0],
-      (unsigned long)challengeData.length(), &pThis->ppb_response_,
-      &pbResponse_len, (CBmsDrmLicenseHelper::EDrmType)pThis->drm_type_,
-      nullptr, nullptr);
+  DRM_RESULT drm_result = DrmLicenseHelper::DoTransactionTZ(
+      license_url, reinterpret_cast<const void *>(&challenge_data[0]),
+      static_cast<unsigned long>(challenge_data.length()),
+      &drm_manager->ppb_response_, &pb_response_len,
+      static_cast<DrmLicenseHelper::EDrmType>(drm_manager->drm_type_), nullptr,
+      nullptr);
   LOG_DEBUG("[DrmManager] drm_result: 0x%lx", drm_result);
-  LOG_DEBUG("[DrmManager] ppb_response_: %s", pThis->ppb_response_);
-  LOG_DEBUG("[DrmManager] pbResponse_len: %ld", pbResponse_len);
+  LOG_DEBUG("[DrmManager] ppb_response_: %s", drm_manager->ppb_response_);
+  LOG_DEBUG("[DrmManager] pbResponse_len: %ld", pb_response_len);
 
   SetDataParam_t *license_param =
-      (SetDataParam_t *)malloc(sizeof(SetDataParam_t));
+      reinterpret_cast<SetDataParam_t *>(malloc(sizeof(SetDataParam_t)));
   license_param->param1 = session_id;
-  license_param->param2 = pThis->ppb_response_;
-  license_param->param3 = (void *)pbResponse_len;
+  license_param->param2 = drm_manager->ppb_response_;
+  license_param->param3 = reinterpret_cast<void *>(pb_response_len);
 
-  int ret = DMGRSetData(pThis->drm_manager_handle_,
-                        (DRMSessionHandle_t)pThis->drm_session_,
-                        "install_eme_key", (void *)license_param);
+  int ret =
+      DMGRSetData(drm_manager->drm_manager_handle_, drm_manager->drm_session_,
+                  "install_eme_key", reinterpret_cast<void *>(license_param));
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] install_eme_key failed: %s",
               get_error_message(ret));
@@ -196,27 +198,28 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   if (license_param) {
     free(license_param);
   }
-  free(pThis->ppb_response_);
-  pThis->ppb_response_ = nullptr;
+  free(drm_manager->ppb_response_);
+  drm_manager->ppb_response_ = nullptr;
 
   return 0;
 }
 
 int DrmManager::UpdatePsshDataCB(drm_init_data_type type, void *data,
                                  int length, void *user_data) {
-  DrmManager *pThis = static_cast<DrmManager *>(user_data);
-  if (pThis == nullptr) {
-    LOG_ERROR("[DrmManager] pThis == nullptr");
+  DrmManager *drm_manager = static_cast<DrmManager *>(user_data);
+  if (drm_manager == nullptr) {
+    LOG_ERROR("[DrmManager] drm_manager == nullptr");
     return 0;
   }
 
-  LOG_INFO("[DrmManager] drm_session_: %p", pThis->drm_session_);
-  SetDataParam_t pssh_data;
-  pssh_data.param1 = (void *)data;
-  pssh_data.param2 = (void *)length;
+  LOG_INFO("[DrmManager] drm_session_: %p", drm_manager->drm_session_);
+  SetDataParam_t pssh_data_param;
+  pssh_data_param.param1 = reinterpret_cast<void *>(data);
+  pssh_data_param.param2 = reinterpret_cast<void *>(length);
 
-  int ret = DMGRSetData(pThis->drm_manager_handle_, pThis->drm_session_,
-                        "update_pssh_data", (void *)&pssh_data);
+  int ret = DMGRSetData(drm_manager->drm_manager_handle_,
+                        drm_manager->drm_session_, "update_pssh_data",
+                        reinterpret_cast<void *>(&pssh_data_param));
   if (DM_ERROR_NONE != ret) {
     LOG_ERROR("[DrmManager] update_pssh_data failed: %s",
               get_error_message(ret));
@@ -248,6 +251,8 @@ void DrmManager::ReleaseDrmSession() {
   media_player_handle_ = nullptr;
 }
 
-void DrmManager::OnDrmManagerError(long errCode, char *errMsg, void *userData) {
-  LOG_ERROR("[DrmManager] Drm manager had error: [%ld][%s]", errCode, errMsg);
+void DrmManager::OnDrmManagerError(long error_code, char *error_msg,
+                                   void *user_data) {
+  LOG_ERROR("[DrmManager] Drm manager had error: [%ld][%s]", error_code,
+            error_msg);
 }

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VIDEO_PLAYER_PLUGIN_DRM_LICENCE_H
-#define VIDEO_PLAYER_PLUGIN_DRM_LICENCE_H
+#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENCE_H_
+#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENCE_H_
 typedef long DRM_RESULT;
 
 #define DRM_SUCCESS ((DRM_RESULT)0x00000000L)
@@ -19,7 +19,7 @@ typedef long DRM_RESULT;
 #define DRM_E_NETWORK_RESPONSE ((DRM_RESULT)0x91000007L)
 #define DRM_E_NETWORK_CANCELED ((DRM_RESULT)0x91000008L)
 
-class CBmsDrmLicenseHelper {
+class DrmLicenseHelper {
  public:
   enum EDrmType {
     DRM_TYPE_NONE = 0,
@@ -28,26 +28,26 @@ class CBmsDrmLicenseHelper {
   };
 
   struct SExtensionCtxTZ {
-    char* pSoapHeader;
-    char* pHttpHeader;
-    char* pUserAgent;
-    bool cancelRequest;
+    char* p_soap_header;
+    char* p_http_header;
+    char* p_user_agent;
+    bool cancel_request;
 
     SExtensionCtxTZ() {
-      pSoapHeader = nullptr;
-      pHttpHeader = nullptr;
-      pUserAgent = nullptr;
-      cancelRequest = false;
+      p_soap_header = nullptr;
+      p_http_header = nullptr;
+      p_user_agent = nullptr;
+      cancel_request = false;
     }
   };
 
-  static DRM_RESULT DoTransaction_TZ(const char* pServerUrl,
-                                     const void* f_pbChallenge,
-                                     unsigned long f_cbChallenge,
-                                     unsigned char** f_ppbResponse,
-                                     unsigned long* f_pcbResponse,
-                                     EDrmType f_type, const char* f_pCookie,
-                                     SExtensionCtxTZ* pExtCtx);
+  static DRM_RESULT DoTransactionTZ(const char* p_server_url,
+                                    const void* pb_challenge,
+                                    unsigned long cb_challenge,
+                                    unsigned char** ppb_response,
+                                    unsigned long* pcb_response, EDrmType type,
+                                    const char* p_cookie,
+                                    SExtensionCtxTZ* p_ext_ctx);
 };
 
-#endif  // VIDEO_PLAYER_PLUGIN_DRM_LICENCE_H
+#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENCE_H_

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
-#define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
+#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_
+#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_
 
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
@@ -61,7 +61,7 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
   SeekCompletedCb on_seek_completed_;
   player_h player_;
-  FlutterDesktopPluginRegistrarRef registrar_ref_{nullptr};
+  FlutterDesktopPluginRegistrarRef registrar_ref_ = nullptr;
   std::unique_ptr<DrmManager> drm_manager_;
   std::string uri_;
   std::string license_url_;
@@ -72,4 +72,4 @@ class VideoPlayer {
   bool is_buffering_ = false;
 };
 
-#endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_
+#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_

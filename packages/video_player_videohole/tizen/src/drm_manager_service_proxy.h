@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H
-#define FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H
+#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
+#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
 #include "player.h"
 
 typedef enum {
@@ -152,4 +152,4 @@ int player_set_drm_init_data_cb(void* handle, player_h player,
                                 set_drm_init_data_cb callback, void* user_data);
 int DMGRReleaseDRMSession(void* handle, DRMSessionHandle_t drm_session);
 
-#endif  // FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H
+#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
