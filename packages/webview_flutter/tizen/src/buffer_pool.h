@@ -24,6 +24,9 @@ class BufferUnit {
 
   bool IsUsed() { return is_used_ && tbm_surface_; }
 
+  void UseExternalBuffer();
+  void SetExternalBuffer(tbm_surface_h tbm_surface);
+
   tbm_surface_h Surface();
 
   FlutterDesktopGpuSurfaceDescriptor* GpuSurface() { return gpu_surface_; }
@@ -35,6 +38,7 @@ class BufferUnit {
 
  private:
   bool is_used_ = false;
+  bool use_external_buffer_ = false;
   int32_t width_ = 0;
   int32_t height_ = 0;
   tbm_surface_h tbm_surface_ = nullptr;

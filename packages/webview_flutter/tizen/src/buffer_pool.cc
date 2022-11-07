@@ -9,13 +9,30 @@
 BufferUnit::BufferUnit(int32_t width, int32_t height) { Reset(width, height); }
 
 BufferUnit::~BufferUnit() {
-  if (tbm_surface_) {
+  if (tbm_surface_ && !use_external_buffer_) {
     tbm_surface_destroy(tbm_surface_);
     tbm_surface_ = nullptr;
   }
   if (gpu_surface_) {
     delete gpu_surface_;
     gpu_surface_ = nullptr;
+  }
+}
+
+void BufferUnit::UseExternalBuffer() {
+  if (!use_external_buffer_) {
+    use_external_buffer_ = true;
+    if (tbm_surface_) {
+      tbm_surface_destroy(tbm_surface_);
+      tbm_surface_ = nullptr;
+    }
+  }
+}
+
+void BufferUnit::SetExternalBuffer(tbm_surface_h tbm_surface) {
+  if (use_external_buffer_) {
+    tbm_surface_ = tbm_surface;
+    gpu_surface_->handle = tbm_surface_;
   }
 }
 

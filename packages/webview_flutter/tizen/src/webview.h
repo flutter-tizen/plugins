@@ -5,6 +5,8 @@
 #ifndef FLUTTER_PLUGIN_WEBVIEW_H_
 #define FLUTTER_PLUGIN_WEBVIEW_H_
 
+#include <EWebKit.h>
+#include <Evas.h>
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -17,10 +19,6 @@
 #include <mutex>
 #include <string>
 
-namespace LWE {
-class WebContainer;
-}
-
 class BufferPool;
 class BufferUnit;
 
@@ -28,7 +26,7 @@ class WebView : public PlatformView {
  public:
   WebView(flutter::PluginRegistrar* registrar, int view_id,
           flutter::TextureRegistrar* texture_registrar, double width,
-          double height, const flutter::EncodableValue& params);
+          double height, const flutter::EncodableValue& params, void* win);
   ~WebView();
 
   virtual void Dispose() override;
@@ -44,7 +42,11 @@ class WebView : public PlatformView {
                        uint32_t modifiers, uint32_t scan_code,
                        bool is_down) override;
 
-  LWE::WebContainer* GetWebViewInstance() { return webview_instance_; }
+  void Resume();
+
+  void Stop();
+
+  Evas_Object* GetWebViewInstance() { return webview_instance_; }
 
   FlutterDesktopGpuSurfaceDescriptor* ObtainGpuSurface(size_t width,
                                                        size_t height);
@@ -63,21 +65,29 @@ class WebView : public PlatformView {
 
   void InitWebView();
 
-  LWE::WebContainer* webview_instance_ = nullptr;
+  static void OnFrameRendered(void* data, Evas_Object* obj, void* event_info);
+  static void OnLoadStarted(void* data, Evas_Object* obj, void* event_info);
+  static void OnLoadFinished(void* data, Evas_Object* obj, void* event_info);
+  static void OnLoadError(void* data, Evas_Object* obj, void* event_info);
+  static void OnConsoleMessage(void* data, Evas_Object* obj, void* event_info);
+  static void OnNavigationPolicy(void* data, Evas_Object* obj,
+                                 void* event_info);
+  static void OnJavaScriptMessage(Evas_Object* obj, Ewk_Script_Message message);
+
+  Evas_Object* webview_instance_ = nullptr;
+  void* win_ = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
-  double width_;
-  double height_;
+  double width_ = 0.0;
+  double height_ = 0.0;
   BufferUnit* working_surface_ = nullptr;
   BufferUnit* candidate_surface_ = nullptr;
   BufferUnit* rendered_surface_ = nullptr;
-  bool is_mouse_lbutton_down_ = false;
   bool has_navigation_delegate_ = false;
   bool has_progress_tracking_ = false;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;
-  bool use_sw_backend_;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_H_
