@@ -42,7 +42,7 @@ import 'package:wearable_rotary/wearable_rotary.dart';
 // Be informed when an event (RotaryEvent.clockwise or RotaryEvent.counterClockwise) occurs.
 StreamSubscription<RotaryEvent> rotarySubscription =
     rotaryEvents.listen((RotaryEvent event) {
-  if (event.direction == RotaryEvent.clockwise) {
+  if (event.direction == RotaryDirection.clockwise) {
     // Do something.
   } else if (event.direction == RotaryEvent.counterClockwise) {
     // Do something.
