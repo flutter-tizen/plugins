@@ -44,7 +44,7 @@ StreamSubscription<RotaryEvent> rotarySubscription =
     rotaryEvents.listen((RotaryEvent event) {
   if (event.direction == RotaryDirection.clockwise) {
     // Do something.
-  } else if (event.direction == RotaryEvent.counterClockwise) {
+  } else if (event.direction == RotaryDirection.counterClockwise) {
     // Do something.
   }
 });

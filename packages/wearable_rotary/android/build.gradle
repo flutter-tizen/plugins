@@ -2,7 +2,7 @@ group 'com.samsung.wearable_rotary'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.6.21'
+    ext.kotlin_version = '1.7.20'
     repositories {
         google()
         mavenCentral()

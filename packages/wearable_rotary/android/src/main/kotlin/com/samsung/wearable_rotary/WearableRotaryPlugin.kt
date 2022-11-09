@@ -32,12 +32,13 @@ class WearableRotaryPlugin : FlutterPlugin, EventChannel.StreamHandler {
                 )
             )
             return true
-
         }
     }
 
+    private lateinit var channel: EventChannel
+
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        val channel =
+        channel =
             EventChannel(flutterPluginBinding.binaryMessenger, "flutter.wearable_rotary.channel")
         channel.setStreamHandler(this)
 
@@ -47,7 +48,9 @@ class WearableRotaryPlugin : FlutterPlugin, EventChannel.StreamHandler {
         )
     }
 
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {}
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setStreamHandler(null)
+    }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         Companion.events = events
