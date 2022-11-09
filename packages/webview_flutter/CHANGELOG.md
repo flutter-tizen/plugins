@@ -1,3 +1,7 @@
+## 0.6.0
+
+* Change web engine from LWE to EFL WebKit(EWK)
+
 ## 0.5.6
 
 * Update LWE binary (9af6ea4101d173935fe6e6cd3f2c91ca17ed451e).
