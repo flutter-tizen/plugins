@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 import 'ffi.dart';
-import 'utils.dart';
 
 /// Enumeration for the application control launch mode.
 ///
@@ -80,8 +79,7 @@ class AppControl {
         uri = map['uri'] as String?,
         mime = map['mime'] as String?,
         category = map['category'] as String?,
-        launchMode =
-            enumFromString(LaunchMode.values, map['launchMode'] as String),
+        launchMode = LaunchMode.values.byName(map['launchMode'] as String),
         extraData = Map<String, dynamic>.from(
             map['extraData'] as Map<dynamic, dynamic>) {
     if (!nativeAttachAppControl(_id, this)) {
@@ -180,11 +178,8 @@ class AppControl {
           await _methodChannel.invokeMethod<dynamic>('sendLaunchRequest', args);
       final Map<String, dynamic> responseMap =
           Map<String, dynamic>.from(response as Map<dynamic, dynamic>);
-      final AppControlReplyResult result = enumFromString(
-        AppControlReplyResult.values,
-        responseMap['result'] as String,
-        AppControlReplyResult.failed,
-      );
+      final AppControlReplyResult result =
+          AppControlReplyResult.values.byName(responseMap['result'] as String);
       final Map<String, dynamic> replyMap = Map<String, dynamic>.from(
           responseMap['reply'] as Map<dynamic, dynamic>);
       final AppControl reply = AppControl._fromMap(replyMap);
