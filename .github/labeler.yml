@@ -63,8 +63,8 @@
   - packages/wakelock/**/*
 "p: wearable_rotary":
   - packages/wearable_rotary/**/*
-"p: webview_flutter":
-  - packages/webview_flutter/**/*
+"p: webview_flutter_lwe":
+  - packages/webview_flutter_lwe/**/*
 
 # Tools
 "tools":
