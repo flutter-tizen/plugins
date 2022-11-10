@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_WEVIEW_FACTORY_H_
-#define FLUTTER_PLUGIN_WEVIEW_FACTORY_H_
+#ifndef FLUTTER_PLUGIN_WEBVIEW_FACTORY_H_
+#define FLUTTER_PLUGIN_WEBVIEW_FACTORY_H_
 
 #include <flutter/plugin_registrar.h>
 #include <flutter/texture_registrar.h>
@@ -24,4 +24,4 @@ class WebViewFactory : public PlatformViewFactory {
   flutter::TextureRegistrar* texture_registrar_;
 };
 
-#endif  // FLUTTER_PLUGIN_WEVIEW_FACTORY_H_
+#endif  // FLUTTER_PLUGIN_WEBVIEW_FACTORY_H_
