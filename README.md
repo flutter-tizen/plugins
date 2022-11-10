@@ -46,7 +46,6 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**video_player_tizen**](packages/video_player) | [video_player](https://github.com/flutter/plugins/tree/main/packages/video_player) (1st-party) | [![pub package](https://img.shields.io/pub/v/video_player_tizen.svg)](https://pub.dev/packages/video_player_tizen) | No |
 | [**wakelock_tizen**](packages/wakelock) | [wakelock](https://github.com/creativecreatorormaybenot/wakelock) (3rd-party) | [![pub package](https://img.shields.io/pub/v/wakelock_tizen.svg)](https://pub.dev/packages/wakelock_tizen) | No |
 | [**wearable_rotary**](packages/wearable_rotary) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/wearable_rotary.svg)](https://pub.dev/packages/wearable_rotary) | N/A |
-| [**webview_flutter_tizen**](packages/webview_flutter) | [webview_flutter](https://github.com/flutter/plugins/tree/main/packages/webview_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen) | No |
 | [**webview_flutter_lwe**](packages/webview_flutter) | [webview_flutter](https://github.com/flutter/plugins/tree/main/packages/webview_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_lwe) | No |
 
 ## Device limitations
@@ -85,6 +84,5 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**video_player_tizen**](packages/video_player) | 4.0 | ✔️ | ✔️ | ⚠️ | ❌ | Functional limitations,<br>TV emulator issue |
 | [**wakelock_tizen**](packages/wakelock) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Cannot override system settings |
 | [**wearable_rotary**](packages/wearable_rotary) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
-| [**webview_flutter_tizen**](packages/webview_flutter) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ | Not for production use |
 | [**webview_flutter_lwe**](packages/webview_flutter_lwe) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ | Not for production use |
 
