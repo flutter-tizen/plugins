@@ -108,7 +108,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
       height_(height),
       win_(win) {
   if (!EwkInternalApiBinding::GetInstance().Initialize()) {
-    LOG_ERROR("Faield to Initialize EWK internal APIs.");
+    LOG_ERROR("Failed to Initialize EWK internal APIs.");
     return;
   }
 
@@ -323,7 +323,6 @@ void WebView::InitWebView() {
   char* chromium_argv[] = {
       const_cast<char*>("--disable-pinch"),
       const_cast<char*>("--js-flags=--expose-gc"),
-      const_cast<char*>("--disable-web-security"),
       const_cast<char*>("--single-process"),
       const_cast<char*>("--no-zygote"),
   };

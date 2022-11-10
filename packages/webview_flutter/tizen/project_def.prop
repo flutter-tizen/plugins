@@ -24,6 +24,6 @@ USER_INC_FILES =
 USER_CPP_INC_FILES =
 
 # Linker options
-# USER_LIBS = pthread lightweight-web-engine.flutter tuv
-# USER_LIB_DIRS = lib/${BUILD_ARCH}
-# USER_LFLAGS = -Wl,-rpath='$$ORIGIN'
+USER_LIBS =
+USER_LIB_DIRS =
+USER_LFLAGS =
