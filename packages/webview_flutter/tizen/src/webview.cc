@@ -17,6 +17,10 @@
 
 namespace {
 
+typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
+typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
+typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
+
 constexpr size_t kBufferPoolSize = 5;
 constexpr char kEwkInstance[] = "ewk_instance";
 
@@ -53,26 +57,24 @@ class NavigationRequestResult
 
 std::string ErrorCodeToString(int error_code) {
   switch (error_code) {
-    case EWK_ERROR_CODE_CANCELED:
-      return "Canceled";
     case EWK_ERROR_CODE_AUTHENTICATION:
-      return "Authentication";
+      return "authentication";
     case EWK_ERROR_CODE_BAD_URL:
-      return "Bad URL";
+      return "badUrl";
     case EWK_ERROR_CODE_FAILED_TLS_HANDSHAKE:
-      return "Failed TLS Handshake";
+      return "failedSslHandshake";
     case EWK_ERROR_CODE_FAILED_FILE_IO:
-      return "Failed File IO";
+      return "file";
     case EWK_ERROR_CODE_CANT_LOOKUP_HOST:
-      return "Can't Host Lookup";
+      return "hostLookup";
     case EWK_ERROR_CODE_REQUEST_TIMEOUT:
-      return "Timeout";
+      return "timeout";
     case EWK_ERROR_CODE_TOO_MANY_REQUESTS:
-      return "Too many requests";
+      return "tooManyRequests";
     case EWK_ERROR_CODE_UNKNOWN:
-      return "Unknown";
+      return "unknown";
     case EWK_ERROR_CODE_UNSUPPORTED_SCHEME:
-      return "Unsupported Scheme";
+      return "unsupportedScheme";
     default:
       LOG_ERROR("Unknown error type: %d", error_code);
       return std::to_string(error_code);
@@ -123,7 +125,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   InitWebView();
 
-  channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+  channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
   channel_->SetMethodCallHandler(
@@ -131,11 +133,9 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         webview->HandleMethodCall(call, std::move(result));
       });
 
-  auto cookie_channel =
-      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          GetPluginRegistrar()->messenger(),
-          "plugins.flutter.io/cookie_manager",
-          &flutter::StandardMethodCodec::GetInstance());
+  auto cookie_channel = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(), "plugins.flutter.io/cookie_manager",
+      &flutter::StandardMethodCodec::GetInstance());
   cookie_channel->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
         webview->HandleCookieMethodCall(call, std::move(result));
@@ -377,9 +377,8 @@ void WebView::InitWebView() {
   evas_object_data_set(webview_instance_, kEwkInstance, this);
 }
 
-void WebView::HandleMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue>& method_call,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+void WebView::HandleMethodCall(const FlMethodCall& method_call,
+                               std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
     result->Error("Invalid operation",
                   "The webview instance has not been initialized.");
@@ -426,9 +425,9 @@ void WebView::HandleMethodCall(
              method_name == "runJavascript") {
     const auto* javascript = std::get_if<std::string>(arguments);
     if (javascript) {
-      ewk_view_script_execute(webview_instance_, javascript->c_str(), nullptr,
-                              nullptr);
-      result->Success();
+      auto p_result = result.release();
+      ewk_view_script_execute(webview_instance_, javascript->c_str(),
+                              &WebView::OnEvaluateJavaScript, p_result);
     } else {
       result->Error("Invalid argument", "The argument must be a string.");
     }
@@ -468,9 +467,13 @@ void WebView::HandleMethodCall(
       result->Error("Invalid argument", "No x or y provided.");
     }
   } else if (method_name == "getScrollX") {
-    result->NotImplemented();
+    int x = 0;
+    ewk_view_scroll_pos_get(webview_instance_, &x, nullptr);
+    result->Success(flutter::EncodableValue(x));
   } else if (method_name == "getScrollY") {
-    result->NotImplemented();
+    int y = 0;
+    ewk_view_scroll_pos_get(webview_instance_, nullptr, &y);
+    result->Success(flutter::EncodableValue(y));
   } else if (method_name == "loadFlutterAsset") {
     const auto* key = std::get_if<std::string>(arguments);
     if (key) {
@@ -518,9 +521,8 @@ void WebView::HandleMethodCall(
   }
 }
 
-void WebView::HandleCookieMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue>& method_call,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
+                                     std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
     result->Error("Invalid operation",
                   "The webview instance has not been initialized.");
@@ -586,44 +588,38 @@ void WebView::OnFrameRendered(void* data, Evas_Object* obj, void* event_info) {
 void WebView::OnLoadStarted(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
   std::string url = std::string(ewk_view_url_get(webview->webview_instance_));
-  flutter::EncodableMap map;
-  map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+  flutter::EncodableMap args;
+  args.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
       flutter::EncodableValue("url"), flutter::EncodableValue(url)));
-  auto args = std::make_unique<flutter::EncodableValue>(map);
-  webview->channel_->InvokeMethod("onPageStarted", std::move(args));
+  webview->channel_->InvokeMethod(
+      "onPageStarted", std::make_unique<flutter::EncodableValue>(args));
 }
 
 void WebView::OnLoadFinished(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
   std::string url = std::string(ewk_view_url_get(webview->webview_instance_));
-
-  flutter::EncodableMap map;
-  map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
+  flutter::EncodableMap args;
+  args.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
       flutter::EncodableValue("url"), flutter::EncodableValue(url)));
-
-  auto args = std::make_unique<flutter::EncodableValue>(map);
-  webview->channel_->InvokeMethod("onPageFinished", std::move(args));
+  webview->channel_->InvokeMethod(
+      "onPageFinished", std::make_unique<flutter::EncodableValue>(args));
 }
 
 void WebView::OnLoadError(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
   Ewk_Error* error = static_cast<Ewk_Error*>(event_info);
-  flutter::EncodableMap map;
-
-  map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-      flutter::EncodableValue("errorCode"),
-      flutter::EncodableValue(ewk_error_code_get(error))));
-  map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-      flutter::EncodableValue("description"),
-      flutter::EncodableValue(ewk_error_description_get(error))));
-  map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-      flutter::EncodableValue("errorType"),
-      flutter::EncodableValue(ErrorCodeToString(ewk_error_code_get(error)))));
-  map.insert(std::make_pair<flutter::EncodableValue, flutter::EncodableValue>(
-      flutter::EncodableValue("failingUrl"),
-      flutter::EncodableValue(ewk_error_url_get(error))));
-  auto args = std::make_unique<flutter::EncodableValue>(map);
-  webview->channel_->InvokeMethod("onWebResourceError", std::move(args));
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("errorCode"),
+       flutter::EncodableValue(ewk_error_code_get(error))},
+      {flutter::EncodableValue("description"),
+       flutter::EncodableValue(ewk_error_description_get(error))},
+      {flutter::EncodableValue("errorType"),
+       flutter::EncodableValue(ErrorCodeToString(ewk_error_code_get(error)))},
+      {flutter::EncodableValue("failingUrl"),
+       flutter::EncodableValue(ewk_error_url_get(error))},
+  };
+  webview->channel_->InvokeMethod(
+      "onWebResourceError", std::make_unique<flutter::EncodableValue>(args));
 }
 
 void WebView::OnConsoleMessage(void* data, Evas_Object* obj, void* event_info) {
@@ -657,6 +653,13 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   webview->channel_->InvokeMethod(
       "navigationRequest", std::make_unique<flutter::EncodableValue>(args),
       std::move(result));
+}
+
+void WebView::OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
+                                   void* user_data) {
+  FlMethodResult* result = static_cast<FlMethodResult*>(user_data);
+  result->Success(flutter::EncodableValue(result_value));
+  delete result;
 }
 
 void WebView::OnJavaScriptMessage(Evas_Object* obj,
