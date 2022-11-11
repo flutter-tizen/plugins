@@ -5,18 +5,21 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:flutter/material.dart';
-
-import 'custom_page_view.dart';
+import 'package:wearable_rotary/wearable_rotary.dart';
 
 void main() {
-  runApp(const MaterialApp(
-    title: 'Rotary example app',
-    home: MyApp(),
-  ));
+  runApp(
+    MaterialApp(
+      title: 'Rotary example app',
+      home: const MyApp(),
+      // Set the target platform to iOS so that navigation behaves as expected for a wearable app
+      theme: ThemeData(platform: TargetPlatform.iOS),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,31 +30,60 @@ class MyApp extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             ElevatedButton(
-              child: const Text('HorizontalPageView'),
+              child: const Text('HorizontalScrollView'),
               onPressed: () {
                 Navigator.push<dynamic>(
                   context,
                   MaterialPageRoute<dynamic>(
-                    builder: (BuildContext context) =>
-                        const CustomPageView(Axis.horizontal),
+                    builder: (BuildContext context) => const RotaryScrollPage(
+                      scrollDirection: Axis.horizontal,
+                    ),
                   ),
                 );
               },
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              child: const Text('VerticalPageView'),
+              child: const Text('VerticalScrollView'),
               onPressed: () {
                 Navigator.push<dynamic>(
                   context,
                   MaterialPageRoute<dynamic>(
                     builder: (BuildContext context) =>
-                        const CustomPageView(Axis.vertical),
+                        const RotaryScrollPage(scrollDirection: Axis.vertical),
                   ),
                 );
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class RotaryScrollPage extends StatelessWidget {
+  const RotaryScrollPage({super.key, required this.scrollDirection});
+
+  final Axis scrollDirection;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          scrollDirection == Axis.vertical
+              ? 'VerticalScrollView'
+              : 'HorizontalScrollView',
+        ),
+      ),
+      body: Center(
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          controller: RotaryScrollController(),
+          scrollDirection: scrollDirection,
+          itemCount: 1000,
+          itemBuilder: (BuildContext context, int index) => Text('Item $index'),
         ),
       ),
     );
