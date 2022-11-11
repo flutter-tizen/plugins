@@ -4,6 +4,7 @@
 
 #include "video_player.h"
 
+#include <app_common.h>
 #include <app_manager.h>
 #include <dlfcn.h>
 #include <flutter/event_stream_handler_functions.h>
@@ -20,25 +21,39 @@
 static int64_t gPlayerIndex = 1;
 
 void VideoPlayer::ParseCreateMessage(const CreateMessage &create_message) {
-  uri_ = std::string(*create_message.uri());
-  const flutter::EncodableMap *drm_configs = create_message.drm_configs();
-  auto drm_configs_iter = drm_configs->find(flutter::EncodableValue("drmType"));
-  if (drm_configs_iter != drm_configs->end()) {
-    if (std::holds_alternative<int>(
-            drm_configs->at(flutter::EncodableValue("drmType")))) {
-      drm_type_ =
-          std::get<int>(drm_configs->at(flutter::EncodableValue("drmType")));
+  if (create_message.uri() != nullptr && !create_message.uri()->empty()) {
+    uri_ = *create_message.uri();
+    const flutter::EncodableMap *drm_configs = create_message.drm_configs();
+    if (drm_configs) {
+      auto drm_configs_iter =
+          drm_configs->find(flutter::EncodableValue("drmType"));
+      if (drm_configs_iter != drm_configs->end()) {
+        if (std::holds_alternative<int>(
+                drm_configs->at(flutter::EncodableValue("drmType")))) {
+          drm_type_ = std::get<int>(
+              drm_configs->at(flutter::EncodableValue("drmType")));
+        }
+      }
+      drm_configs_iter =
+          drm_configs->find(flutter::EncodableValue("licenseServerUrl"));
+      if (drm_configs_iter != drm_configs->end()) {
+        if (std::holds_alternative<std::string>(
+                drm_configs->at(flutter::EncodableValue("licenseServerUrl")))) {
+          license_url_ = std::get<std::string>(
+              drm_configs->at(flutter::EncodableValue("licenseServerUrl")));
+        }
+      }
+    }
+  } else {
+    char *res_path = app_get_resource_path();
+    if (res_path) {
+      uri_ = uri_ + res_path + "flutter_assets/" + *create_message.asset();
+      free(res_path);
+    } else {
+      LOG_ERROR("Internal error", "Failed to get resource path.");
     }
   }
-  drm_configs_iter =
-      drm_configs->find(flutter::EncodableValue("licenseServerUrl"));
-  if (drm_configs_iter != drm_configs->end()) {
-    if (std::holds_alternative<std::string>(
-            drm_configs->at(flutter::EncodableValue("licenseServerUrl")))) {
-      license_url_ = std::get<std::string>(
-          drm_configs->at(flutter::EncodableValue("licenseServerUrl")));
-    }
-  }
+  LOG_DEBUG(" player uri: %s", uri_.c_str());
 }
 
 VideoPlayer::VideoPlayer(FlutterDesktopPluginRegistrarRef registrar_ref,
