@@ -6,11 +6,11 @@ Tizen notification APIs. Used to show and delete notifications on a Tizen device
 
 ## Usage
 
-To use this plugin, add `tizen_notification` as a dependency in your pubspec.yaml file:
+To use this plugin, add `tizen_notification` as a dependency in your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  tizen_notification: ^0.1.1
+  tizen_notification: ^0.2.0
 ```
 
 Then you can import `tizen_notification` in your Dart code:

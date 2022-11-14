@@ -1,3 +1,13 @@
+## 0.2.0
+
+* Clean up the API.
+  * Rename `NotificationImage` to `NotificationIcons`.
+  * Rename `Property` to `NotificationProperty`.
+  * Rename `DisplayApplist` to `NotificationStyle`.
+  * Rename some members of the above classes.
+* Update the documentation.
+* Code refactoring and bug fixes.
+
 ## 0.1.1
 
 * Update the example app.
