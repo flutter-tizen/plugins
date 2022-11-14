@@ -12,8 +12,7 @@
 
 class TizenBadge {
  public:
-  TizenBadge() = default;
-  ~TizenBadge(){};
+  ~TizenBadge() = default;
 
   int GetLastError() { return last_error_; }
 
@@ -23,7 +22,7 @@ class TizenBadge {
 
   bool Initialize();
 
-  bool UpdateBadgeCount(int count);
+  bool UpdateBadgeCount(int32_t count);
 
   bool RemoveBadge();
 

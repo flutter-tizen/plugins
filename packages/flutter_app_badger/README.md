@@ -1,4 +1,3 @@
-
 # flutter_app_badger_tizen
 
 [![pub package](https://img.shields.io/pub/v/flutter_app_badger_tizen.svg)](https://pub.dev/packages/flutter_app_badger_tizen)

@@ -7,7 +7,6 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
-#include <system_info.h>
 
 #include <memory>
 #include <string>
@@ -70,7 +69,7 @@ class FlutterAppBadgerTizenPlugin : public flutter::Plugin {
     }
 
     if (method_name == "isAppBadgeSupported") {
-      if (badge_->IsSupported()) {
+      if (badge_) {
         result->Success(flutter::EncodableValue(true));
       } else {
         result->Success(flutter::EncodableValue(false));
@@ -82,7 +81,7 @@ class FlutterAppBadgerTizenPlugin : public flutter::Plugin {
         result->Error("Invalid arguments", "Invalid arguments.");
         return;
       }
-      int count = 0;
+      int32_t count = 0;
       if (GetValueFromEncodableMap(arguments, "count", count)) {
         if (badge_->UpdateBadgeCount(count)) {
           result->Success(flutter::EncodableValue(true));
@@ -91,7 +90,7 @@ class FlutterAppBadgerTizenPlugin : public flutter::Plugin {
                         badge_->GetLastErrorString());
         }
       } else {
-        result->Error("Invalid arguments", "Invalid arguments.");
+        result->Error("Invalid arguments", "No count provided.");
       }
     } else if (method_name == "removeBadge") {
       if (badge_->RemoveBadge()) {

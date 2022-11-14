@@ -14,10 +14,10 @@ void main() {
   });
 
   testWidgets('update badge count', (tester) async {
-    await FlutterAppBadger.updateBadgeCount(1);
+    await expectLater(FlutterAppBadger.updateBadgeCount(1), completes);
   });
 
   testWidgets('remove badge count', (tester) async {
-    await FlutterAppBadger.removeBadge();
+    await expectLater(FlutterAppBadger.removeBadge(), completes);
   });
 }
