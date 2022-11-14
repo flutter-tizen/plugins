@@ -113,12 +113,11 @@ char* GetRedirectLocation(const char* a_headers, bool b_support_https) {
   if (!a_headers) {
     return nullptr;
   }
-
+  // Get the header's location value
   const char* p_location = strcasestr(a_headers, "Location");
   if (!p_location) {
     return nullptr;
   }
-
   const char* ptr = p_location + strlen("Location");
 
   while (*ptr == ':') {
@@ -146,7 +145,7 @@ char* GetRedirectLocation(const char* a_headers, bool b_support_https) {
   } else {
     // Convert Redirection Location from https to http
     // [soyoung]
-    // Redirect location 捞 https 老 版快绰 http 肺 函券
+    // Redirect location from https to http
     // If the petition URL contains "https," the client may use SSL for the
     // connection. (For non-SSL transport, remove the "s" in "https" from the
     // URL.) If SSL is used, the client should check the server's certificate to
@@ -182,7 +181,8 @@ struct curl_slist* CurlSlistAppend(struct curl_slist* a_list,
     return nullptr;
   }
 
-  struct curl_slist* new_list = curl_slist_append(a_list, a_string);
+  struct curl_slist* new_list = nullptr;
+  new_list = curl_slist_append(a_list, a_string);
   if (!new_list) {
     curl_slist_free_all(a_list);
   }
@@ -192,22 +192,14 @@ struct curl_slist* CurlSlistAppend(struct curl_slist* a_list,
 
 DRM_RESULT ComposePostDataTZ(SHttpSession* h_session, const char* pb_post_data,
                              int cb_post_data, const char* ext_soap_header) {
-  DRM_RESULT dr = DRM_SUCCESS;
-  const char* p;
+  DRM_RESULT drm_result = DRM_SUCCESS;
+  const char* pointer;
   char* dest;
   int dest_len;
   int remain;
 
-  h_session->post_data_len = 0;
-
   int ext_soap_header_len = ext_soap_header ? strlen(ext_soap_header) : 0;
-
   dest_len = cb_post_data;
-
-  if (ext_soap_header_len > 0) {
-    dest_len +=
-        ext_soap_header_len + sizeof("<soap:Header>\r\n</soap:Header>\r");
-  }
 
   h_session->post_data = reinterpret_cast<unsigned char*>(malloc(dest_len + 1));
   if (h_session->post_data == nullptr) {
@@ -218,10 +210,12 @@ DRM_RESULT ComposePostDataTZ(SHttpSession* h_session, const char* pb_post_data,
   remain = cb_post_data;
 
   if (ext_soap_header_len > 0) {
+    dest_len +=
+        ext_soap_header_len + sizeof("<soap:Header>\r\n</soap:Header>\r");
     /* append to the last in an existing soap header */
-    p = strstr(pb_post_data, "</soap:Header>");
-    if (p > pb_post_data && p < pb_post_data + remain) {
-      int hd_len = p - pb_post_data;
+    pointer = strstr(pb_post_data, "</soap:Header>");
+    if (pointer > pb_post_data && pointer < pb_post_data + remain) {
+      int hd_len = pointer - pb_post_data;
       memcpy(dest, pb_post_data, hd_len);
       dest += hd_len;
       dest_len -= hd_len;
@@ -234,9 +228,9 @@ DRM_RESULT ComposePostDataTZ(SHttpSession* h_session, const char* pb_post_data,
       }
     } else {
       /* insert soap header in front of soap body */
-      p = strstr(pb_post_data, "<soap:Body>");
-      if (p > pb_post_data && p < pb_post_data + remain) {
-        int hd_len = p - pb_post_data;
+      pointer = strstr(pb_post_data, "<soap:Body>");
+      if (pointer > pb_post_data && pointer < pb_post_data + remain) {
+        int hd_len = pointer - pb_post_data;
         memcpy(dest, pb_post_data, hd_len);
         dest += hd_len;
         dest_len -= hd_len;
@@ -259,14 +253,14 @@ DRM_RESULT ComposePostDataTZ(SHttpSession* h_session, const char* pb_post_data,
         dest_len -= hd_len;
       } else {
         /* not a SOAP message */
-        p = pb_post_data;
+        pointer = pb_post_data;
       }
     }
   } else {
-    p = pb_post_data;
+    pointer = pb_post_data;
   }
 
-  memcpy(dest, p, remain);
+  memcpy(dest, pointer, remain);
   dest += remain;
   *dest = '\0';
 
@@ -276,7 +270,7 @@ DRM_RESULT ComposePostDataTZ(SHttpSession* h_session, const char* pb_post_data,
              h_session->post_data_len, h_session->post_data);
   }
 
-  return dr;
+  return drm_result;
 }
 
 struct curl_slist* SetHttpHeader(CURL* p_curl, DrmLicenseHelper::EDrmType type,
@@ -444,14 +438,17 @@ DRM_RESULT HttpStartTransaction(SHttpSession* h_session, const char* p_url,
   int soap_flag = 0;
   free(h_session->post_data);
   h_session->post_data = nullptr;
+  h_session->post_data_len = 0;
   if (pb_post_data && cb_post_data > 0) {
     if (p_soap_header != nullptr) {
-      DRM_RESULT dr = ComposePostDataTZ(h_session, (char*)pb_post_data,
-                                        cb_post_data, p_soap_header);
-      if (dr != DRM_SUCCESS) {
-        LOG_ERROR("[DrmLicence] Failed to compose post data, dr : 0x%lx", dr);
-        return dr;
-      } else if (dr == DRM_SUCCESS) {
+      DRM_RESULT drm_result = ComposePostDataTZ(h_session, (char*)pb_post_data,
+                                                cb_post_data, p_soap_header);
+      if (drm_result != DRM_SUCCESS) {
+        LOG_ERROR(
+            "[DrmLicence] Failed to compose post data, drm_result : 0x%lx",
+            drm_result);
+        return drm_result;
+      } else if (drm_result == DRM_SUCCESS) {
         soap_flag = 1;
       }
     }
@@ -683,7 +680,7 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
   SHttpSession* p_session;
   char* sz_redirect_url = nullptr;
 
-  DRM_RESULT dr = DRM_SUCCESS;
+  DRM_RESULT drm_result = DRM_SUCCESS;
 
   // Redirection 3 times..
   for (int i = 0; i < 3; i++) {
@@ -713,12 +710,14 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
       p_cancel_request = &(p_ext_ctx->cancel_request);
     }
 
-    dr = HttpStartTransaction(p_session, p_url, pb_challenge, cb_challenge,
-                              type, p_cookie, p_soap_hdr, p_http_hdr,
-                              p_user_agent, p_cancel_request);
-    if (dr != DRM_SUCCESS) {
-      LOG_ERROR("[DrmLicence] Failed on network transaction(%d/%d), dr : 0x%lx",
-                i + 1, 3, dr);
+    drm_result = HttpStartTransaction(
+        p_session, p_url, pb_challenge, cb_challenge, type, p_cookie,
+        p_soap_hdr, p_http_hdr, p_user_agent, p_cancel_request);
+    if (drm_result != DRM_SUCCESS) {
+      LOG_ERROR(
+          "[DrmLicence] Failed on network transaction(%d/%d), drm_result : "
+          "0x%lx",
+          i + 1, 3, drm_result);
       break;
     }
 
@@ -741,11 +740,11 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
                   p_session->body.i_size);
 
         if (p_session->res_code >= 400 && p_session->res_code < 500) {
-          dr = DRM_E_NETWORK_CLIENT;
+          drm_result = DRM_E_NETWORK_CLIENT;
         } else if (p_session->res_code >= 500 && p_session->res_code < 600) {
-          dr = DRM_E_NETWORK_SERVER;
+          drm_result = DRM_E_NETWORK_SERVER;
         } else {
-          dr = DRM_E_NETWORK;
+          drm_result = DRM_E_NETWORK;
         }
         break;
       }
@@ -756,7 +755,7 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
       p_session->body.i_data = nullptr;
       p_session->body.i_size = 0;
       p_session->body.i_allocated = 0;
-      dr = DRM_SUCCESS;
+      drm_result = DRM_SUCCESS;
       break;
     }
   }
@@ -768,9 +767,10 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
 
   HttpClose(p_session);
 
-  if (dr != DRM_SUCCESS) {
-    LOG_ERROR("[DrmLicence] Failed on network transaction, dr : 0x%lx", dr);
+  if (drm_result != DRM_SUCCESS) {
+    LOG_ERROR("[DrmLicence] Failed on network transaction, drm_result : 0x%lx",
+              drm_result);
   }
 
-  return dr;
+  return drm_result;
 }
