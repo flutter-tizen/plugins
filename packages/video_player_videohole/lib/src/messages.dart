@@ -9,39 +9,39 @@ import 'dart:async';
 import 'dart:typed_data' show Uint8List, Int32List, Int64List, Float64List;
 import 'package:flutter/services.dart';
 
-class TextureMessage {
-  TextureMessage({
-    required this.textureId,
+class PlayerMessage {
+  PlayerMessage({
+    required this.playerId,
   });
 
-  int textureId;
+  int playerId;
 
   Object encode() {
     final Map<Object?, Object?> pigeonMap = <Object?, Object?>{};
-    pigeonMap['textureId'] = textureId;
+    pigeonMap['playerId'] = playerId;
     return pigeonMap;
   }
 
-  static TextureMessage decode(Object message) {
+  static PlayerMessage decode(Object message) {
     final Map<Object?, Object?> pigeonMap = message as Map<Object?, Object?>;
-    return TextureMessage(
-      textureId: pigeonMap['textureId']! as int,
+    return PlayerMessage(
+      playerId: pigeonMap['playerId']! as int,
     );
   }
 }
 
 class LoopingMessage {
   LoopingMessage({
-    required this.textureId,
+    required this.playerId,
     required this.isLooping,
   });
 
-  int textureId;
+  int playerId;
   bool isLooping;
 
   Object encode() {
     final Map<Object?, Object?> pigeonMap = <Object?, Object?>{};
-    pigeonMap['textureId'] = textureId;
+    pigeonMap['playerId'] = playerId;
     pigeonMap['isLooping'] = isLooping;
     return pigeonMap;
   }
@@ -49,7 +49,7 @@ class LoopingMessage {
   static LoopingMessage decode(Object message) {
     final Map<Object?, Object?> pigeonMap = message as Map<Object?, Object?>;
     return LoopingMessage(
-      textureId: pigeonMap['textureId']! as int,
+      playerId: pigeonMap['playerId']! as int,
       isLooping: pigeonMap['isLooping']! as bool,
     );
   }
@@ -57,16 +57,16 @@ class LoopingMessage {
 
 class VolumeMessage {
   VolumeMessage({
-    required this.textureId,
+    required this.playerId,
     required this.volume,
   });
 
-  int textureId;
+  int playerId;
   double volume;
 
   Object encode() {
     final Map<Object?, Object?> pigeonMap = <Object?, Object?>{};
-    pigeonMap['textureId'] = textureId;
+    pigeonMap['playerId'] = playerId;
     pigeonMap['volume'] = volume;
     return pigeonMap;
   }
@@ -74,7 +74,7 @@ class VolumeMessage {
   static VolumeMessage decode(Object message) {
     final Map<Object?, Object?> pigeonMap = message as Map<Object?, Object?>;
     return VolumeMessage(
-      textureId: pigeonMap['textureId']! as int,
+      playerId: pigeonMap['playerId']! as int,
       volume: pigeonMap['volume']! as double,
     );
   }
@@ -82,16 +82,16 @@ class VolumeMessage {
 
 class PlaybackSpeedMessage {
   PlaybackSpeedMessage({
-    required this.textureId,
+    required this.playerId,
     required this.speed,
   });
 
-  int textureId;
+  int playerId;
   double speed;
 
   Object encode() {
     final Map<Object?, Object?> pigeonMap = <Object?, Object?>{};
-    pigeonMap['textureId'] = textureId;
+    pigeonMap['playerId'] = playerId;
     pigeonMap['speed'] = speed;
     return pigeonMap;
   }
@@ -99,7 +99,7 @@ class PlaybackSpeedMessage {
   static PlaybackSpeedMessage decode(Object message) {
     final Map<Object?, Object?> pigeonMap = message as Map<Object?, Object?>;
     return PlaybackSpeedMessage(
-      textureId: pigeonMap['textureId']! as int,
+      playerId: pigeonMap['playerId']! as int,
       speed: pigeonMap['speed']! as double,
     );
   }
@@ -107,16 +107,16 @@ class PlaybackSpeedMessage {
 
 class PositionMessage {
   PositionMessage({
-    required this.textureId,
+    required this.playerId,
     required this.position,
   });
 
-  int textureId;
+  int playerId;
   int position;
 
   Object encode() {
     final Map<Object?, Object?> pigeonMap = <Object?, Object?>{};
-    pigeonMap['textureId'] = textureId;
+    pigeonMap['playerId'] = playerId;
     pigeonMap['position'] = position;
     return pigeonMap;
   }
@@ -124,7 +124,7 @@ class PositionMessage {
   static PositionMessage decode(Object message) {
     final Map<Object?, Object?> pigeonMap = message as Map<Object?, Object?>;
     return PositionMessage(
-      textureId: pigeonMap['textureId']! as int,
+      playerId: pigeonMap['playerId']! as int,
       position: pigeonMap['position']! as int,
     );
   }
@@ -196,14 +196,14 @@ class MixWithOthersMessage {
 
 class GeometryMessage {
   GeometryMessage({
-    required this.textureId,
+    required this.playerId,
     required this.x,
     required this.y,
     required this.w,
     required this.h,
   });
 
-  int textureId;
+  int playerId;
   int x;
   int y;
   int w;
@@ -211,7 +211,7 @@ class GeometryMessage {
 
   Object encode() {
     final Map<Object?, Object?> pigeonMap = <Object?, Object?>{};
-    pigeonMap['textureId'] = textureId;
+    pigeonMap['playerId'] = playerId;
     pigeonMap['x'] = x;
     pigeonMap['y'] = y;
     pigeonMap['w'] = w;
@@ -222,7 +222,7 @@ class GeometryMessage {
   static GeometryMessage decode(Object message) {
     final Map<Object?, Object?> pigeonMap = message as Map<Object?, Object?>;
     return GeometryMessage(
-      textureId: pigeonMap['textureId']! as int,
+      playerId: pigeonMap['playerId']! as int,
       x: pigeonMap['x']! as int,
       y: pigeonMap['y']! as int,
       w: pigeonMap['w']! as int,
@@ -250,10 +250,10 @@ class _VideoPlayerApiCodec extends StandardMessageCodec {
     } else if (value is PlaybackSpeedMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else if (value is PositionMessage) {
+    } else if (value is PlayerMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is TextureMessage) {
+    } else if (value is PositionMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
     } else if (value is VolumeMessage) {
@@ -283,10 +283,10 @@ class _VideoPlayerApiCodec extends StandardMessageCodec {
         return PlaybackSpeedMessage.decode(readValue(buffer)!);
 
       case 133:
-        return PositionMessage.decode(readValue(buffer)!);
+        return PlayerMessage.decode(readValue(buffer)!);
 
       case 134:
-        return TextureMessage.decode(readValue(buffer)!);
+        return PositionMessage.decode(readValue(buffer)!);
 
       case 135:
         return VolumeMessage.decode(readValue(buffer)!);
@@ -332,7 +332,7 @@ class VideoPlayerApi {
     }
   }
 
-  Future<TextureMessage> create(CreateMessage arg_msg) async {
+  Future<PlayerMessage> create(CreateMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.VideoPlayerApi.create', codec,
         binaryMessenger: _binaryMessenger);
@@ -357,11 +357,11 @@ class VideoPlayerApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (replyMap['result'] as TextureMessage?)!;
+      return (replyMap['result'] as PlayerMessage?)!;
     }
   }
 
-  Future<void> dispose(TextureMessage arg_msg) async {
+  Future<void> dispose(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.VideoPlayerApi.dispose', codec,
         binaryMessenger: _binaryMessenger);
@@ -457,7 +457,7 @@ class VideoPlayerApi {
     }
   }
 
-  Future<void> play(TextureMessage arg_msg) async {
+  Future<void> play(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.VideoPlayerApi.play', codec,
         binaryMessenger: _binaryMessenger);
@@ -481,7 +481,7 @@ class VideoPlayerApi {
     }
   }
 
-  Future<PositionMessage> position(TextureMessage arg_msg) async {
+  Future<PositionMessage> position(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.VideoPlayerApi.position', codec,
         binaryMessenger: _binaryMessenger);
@@ -534,7 +534,7 @@ class VideoPlayerApi {
     }
   }
 
-  Future<void> pause(TextureMessage arg_msg) async {
+  Future<void> pause(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.VideoPlayerApi.pause', codec,
         binaryMessenger: _binaryMessenger);

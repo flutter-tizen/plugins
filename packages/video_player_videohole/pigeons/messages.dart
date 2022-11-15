@@ -10,32 +10,32 @@ import 'package:pigeon/pigeon.dart';
     //cppHeaderOut: 'tizen/src/messages.h',
     //cppSourceOut: 'tizen/src/messages.cc',
     copyrightHeader: 'pigeons/copyright.txt'))
-class TextureMessage {
-  TextureMessage(this.textureId);
-  int textureId;
+class PlayerMessage {
+  PlayerMessage(this.playerId);
+  int playerId;
 }
 
 class LoopingMessage {
-  LoopingMessage(this.textureId, this.isLooping);
-  int textureId;
+  LoopingMessage(this.playerId, this.isLooping);
+  int playerId;
   bool isLooping;
 }
 
 class VolumeMessage {
-  VolumeMessage(this.textureId, this.volume);
-  int textureId;
+  VolumeMessage(this.playerId, this.volume);
+  int playerId;
   double volume;
 }
 
 class PlaybackSpeedMessage {
-  PlaybackSpeedMessage(this.textureId, this.speed);
-  int textureId;
+  PlaybackSpeedMessage(this.playerId, this.speed);
+  int playerId;
   double speed;
 }
 
 class PositionMessage {
-  PositionMessage(this.textureId, this.position);
-  int textureId;
+  PositionMessage(this.playerId, this.position);
+  int playerId;
   int position;
 }
 
@@ -55,8 +55,8 @@ class MixWithOthersMessage {
 }
 
 class GeometryMessage {
-  GeometryMessage(this.textureId, this.x, this.y, this.w, this.h);
-  int textureId;
+  GeometryMessage(this.playerId, this.x, this.y, this.w, this.h);
+  int playerId;
   int x;
   int y;
   int w;
@@ -66,15 +66,15 @@ class GeometryMessage {
 @HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
 abstract class VideoPlayerApi {
   void initialize();
-  TextureMessage create(CreateMessage msg);
-  void dispose(TextureMessage msg);
+  PlayerMessage create(CreateMessage msg);
+  void dispose(PlayerMessage msg);
   void setLooping(LoopingMessage msg);
   void setVolume(VolumeMessage msg);
   void setPlaybackSpeed(PlaybackSpeedMessage msg);
-  void play(TextureMessage msg);
-  PositionMessage position(TextureMessage msg);
+  void play(PlayerMessage msg);
+  PositionMessage position(PlayerMessage msg);
   void seekTo(PositionMessage msg);
-  void pause(TextureMessage msg);
+  void pause(PlayerMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);
   void setDisplayRoi(GeometryMessage arg);
 }

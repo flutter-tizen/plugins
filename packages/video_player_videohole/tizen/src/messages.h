@@ -53,26 +53,26 @@ class ErrorOr {
 };
 
 /* Generated class from Pigeon that represents data sent in messages. */
-class TextureMessage {
+class PlayerMessage {
  public:
-  TextureMessage();
-  int64_t texture_id() const;
-  void set_texture_id(int64_t value_arg);
+  PlayerMessage();
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
 
  private:
-  TextureMessage(flutter::EncodableMap map);
+  PlayerMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
   friend class VideoPlayerApi;
   friend class VideoPlayerApiCodecSerializer;
-  int64_t texture_id_;
+  int64_t player_id_;
 };
 
 /* Generated class from Pigeon that represents data sent in messages. */
 class LoopingMessage {
  public:
   LoopingMessage();
-  int64_t texture_id() const;
-  void set_texture_id(int64_t value_arg);
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
 
   bool is_looping() const;
   void set_is_looping(bool value_arg);
@@ -82,7 +82,7 @@ class LoopingMessage {
   flutter::EncodableMap ToEncodableMap() const;
   friend class VideoPlayerApi;
   friend class VideoPlayerApiCodecSerializer;
-  int64_t texture_id_;
+  int64_t player_id_;
   bool is_looping_;
 };
 
@@ -90,8 +90,8 @@ class LoopingMessage {
 class VolumeMessage {
  public:
   VolumeMessage();
-  int64_t texture_id() const;
-  void set_texture_id(int64_t value_arg);
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
 
   double volume() const;
   void set_volume(double value_arg);
@@ -101,7 +101,7 @@ class VolumeMessage {
   flutter::EncodableMap ToEncodableMap() const;
   friend class VideoPlayerApi;
   friend class VideoPlayerApiCodecSerializer;
-  int64_t texture_id_;
+  int64_t player_id_;
   double volume_;
 };
 
@@ -109,8 +109,8 @@ class VolumeMessage {
 class PlaybackSpeedMessage {
  public:
   PlaybackSpeedMessage();
-  int64_t texture_id() const;
-  void set_texture_id(int64_t value_arg);
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
 
   double speed() const;
   void set_speed(double value_arg);
@@ -120,7 +120,7 @@ class PlaybackSpeedMessage {
   flutter::EncodableMap ToEncodableMap() const;
   friend class VideoPlayerApi;
   friend class VideoPlayerApiCodecSerializer;
-  int64_t texture_id_;
+  int64_t player_id_;
   double speed_;
 };
 
@@ -128,8 +128,8 @@ class PlaybackSpeedMessage {
 class PositionMessage {
  public:
   PositionMessage();
-  int64_t texture_id() const;
-  void set_texture_id(int64_t value_arg);
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
 
   int64_t position() const;
   void set_position(int64_t value_arg);
@@ -139,7 +139,7 @@ class PositionMessage {
   flutter::EncodableMap ToEncodableMap() const;
   friend class VideoPlayerApi;
   friend class VideoPlayerApiCodecSerializer;
-  int64_t texture_id_;
+  int64_t player_id_;
   int64_t position_;
 };
 
@@ -203,8 +203,8 @@ class MixWithOthersMessage {
 class GeometryMessage {
  public:
   GeometryMessage();
-  int64_t texture_id() const;
-  void set_texture_id(int64_t value_arg);
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
 
   int64_t x() const;
   void set_x(int64_t value_arg);
@@ -223,7 +223,7 @@ class GeometryMessage {
   flutter::EncodableMap ToEncodableMap() const;
   friend class VideoPlayerApi;
   friend class VideoPlayerApiCodecSerializer;
-  int64_t texture_id_;
+  int64_t player_id_;
   int64_t x_;
   int64_t y_;
   int64_t w_;
@@ -256,18 +256,18 @@ class VideoPlayerApi {
   VideoPlayerApi& operator=(const VideoPlayerApi&) = delete;
   virtual ~VideoPlayerApi(){};
   virtual std::optional<FlutterError> Initialize() = 0;
-  virtual ErrorOr<std::unique_ptr<TextureMessage>> Create(
+  virtual ErrorOr<std::unique_ptr<PlayerMessage>> Create(
       const CreateMessage& msg) = 0;
-  virtual std::optional<FlutterError> Dispose(const TextureMessage& msg) = 0;
+  virtual std::optional<FlutterError> Dispose(const PlayerMessage& msg) = 0;
   virtual std::optional<FlutterError> SetLooping(const LoopingMessage& msg) = 0;
   virtual std::optional<FlutterError> SetVolume(const VolumeMessage& msg) = 0;
   virtual std::optional<FlutterError> SetPlaybackSpeed(
       const PlaybackSpeedMessage& msg) = 0;
-  virtual std::optional<FlutterError> Play(const TextureMessage& msg) = 0;
+  virtual std::optional<FlutterError> Play(const PlayerMessage& msg) = 0;
   virtual ErrorOr<std::unique_ptr<PositionMessage>> Position(
-      const TextureMessage& msg) = 0;
+      const PlayerMessage& msg) = 0;
   virtual std::optional<FlutterError> SeekTo(const PositionMessage& msg) = 0;
-  virtual std::optional<FlutterError> Pause(const TextureMessage& msg) = 0;
+  virtual std::optional<FlutterError> Pause(const PlayerMessage& msg) = 0;
   virtual std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage& msg) = 0;
   virtual std::optional<FlutterError> SetDisplayRoi(

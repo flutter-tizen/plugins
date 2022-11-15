@@ -17,37 +17,35 @@
 #include <optional>
 #include <string>
 
-/* TextureMessage */
+/* PlayerMessage */
 
-int64_t TextureMessage::texture_id() const { return texture_id_; }
-void TextureMessage::set_texture_id(int64_t value_arg) {
-  texture_id_ = value_arg;
-}
+int64_t PlayerMessage::player_id() const { return player_id_; }
+void PlayerMessage::set_player_id(int64_t value_arg) { player_id_ = value_arg; }
 
-flutter::EncodableMap TextureMessage::ToEncodableMap() const {
+flutter::EncodableMap PlayerMessage::ToEncodableMap() const {
   return flutter::EncodableMap{
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue(texture_id_)},
+      {flutter::EncodableValue("playerId"),
+       flutter::EncodableValue(player_id_)},
   };
 }
 
-TextureMessage::TextureMessage() {}
+PlayerMessage::PlayerMessage() {}
 
-TextureMessage::TextureMessage(flutter::EncodableMap map) {
-  auto encodable_texture_id = map.at(flutter::EncodableValue("textureId"));
-  if (const int32_t* pointer_texture_id =
-          std::get_if<int32_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id;
-  else if (const int64_t* pointer_texture_id_64 =
-               std::get_if<int64_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id_64;
+PlayerMessage::PlayerMessage(flutter::EncodableMap map) {
+  auto encodable_player_id = map.at(flutter::EncodableValue("playerId"));
+  if (const int32_t* pointer_player_id =
+          std::get_if<int32_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id;
+  else if (const int64_t* pointer_player_id_64 =
+               std::get_if<int64_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id_64;
 }
 
 /* LoopingMessage */
 
-int64_t LoopingMessage::texture_id() const { return texture_id_; }
-void LoopingMessage::set_texture_id(int64_t value_arg) {
-  texture_id_ = value_arg;
+int64_t LoopingMessage::player_id() const { return player_id_; }
+void LoopingMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
 }
 
 bool LoopingMessage::is_looping() const { return is_looping_; }
@@ -55,8 +53,8 @@ void LoopingMessage::set_is_looping(bool value_arg) { is_looping_ = value_arg; }
 
 flutter::EncodableMap LoopingMessage::ToEncodableMap() const {
   return flutter::EncodableMap{
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue(texture_id_)},
+      {flutter::EncodableValue("playerId"),
+       flutter::EncodableValue(player_id_)},
       {flutter::EncodableValue("isLooping"),
        flutter::EncodableValue(is_looping_)},
   };
@@ -65,13 +63,13 @@ flutter::EncodableMap LoopingMessage::ToEncodableMap() const {
 LoopingMessage::LoopingMessage() {}
 
 LoopingMessage::LoopingMessage(flutter::EncodableMap map) {
-  auto encodable_texture_id = map.at(flutter::EncodableValue("textureId"));
-  if (const int32_t* pointer_texture_id =
-          std::get_if<int32_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id;
-  else if (const int64_t* pointer_texture_id_64 =
-               std::get_if<int64_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id_64;
+  auto encodable_player_id = map.at(flutter::EncodableValue("playerId"));
+  if (const int32_t* pointer_player_id =
+          std::get_if<int32_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id;
+  else if (const int64_t* pointer_player_id_64 =
+               std::get_if<int64_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id_64;
   auto encodable_is_looping = map.at(flutter::EncodableValue("isLooping"));
   if (const bool* pointer_is_looping =
           std::get_if<bool>(&encodable_is_looping)) {
@@ -81,18 +79,16 @@ LoopingMessage::LoopingMessage(flutter::EncodableMap map) {
 
 /* VolumeMessage */
 
-int64_t VolumeMessage::texture_id() const { return texture_id_; }
-void VolumeMessage::set_texture_id(int64_t value_arg) {
-  texture_id_ = value_arg;
-}
+int64_t VolumeMessage::player_id() const { return player_id_; }
+void VolumeMessage::set_player_id(int64_t value_arg) { player_id_ = value_arg; }
 
 double VolumeMessage::volume() const { return volume_; }
 void VolumeMessage::set_volume(double value_arg) { volume_ = value_arg; }
 
 flutter::EncodableMap VolumeMessage::ToEncodableMap() const {
   return flutter::EncodableMap{
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue(texture_id_)},
+      {flutter::EncodableValue("playerId"),
+       flutter::EncodableValue(player_id_)},
       {flutter::EncodableValue("volume"), flutter::EncodableValue(volume_)},
   };
 }
@@ -100,13 +96,13 @@ flutter::EncodableMap VolumeMessage::ToEncodableMap() const {
 VolumeMessage::VolumeMessage() {}
 
 VolumeMessage::VolumeMessage(flutter::EncodableMap map) {
-  auto encodable_texture_id = map.at(flutter::EncodableValue("textureId"));
-  if (const int32_t* pointer_texture_id =
-          std::get_if<int32_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id;
-  else if (const int64_t* pointer_texture_id_64 =
-               std::get_if<int64_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id_64;
+  auto encodable_player_id = map.at(flutter::EncodableValue("playerId"));
+  if (const int32_t* pointer_player_id =
+          std::get_if<int32_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id;
+  else if (const int64_t* pointer_player_id_64 =
+               std::get_if<int64_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id_64;
   auto encodable_volume = map.at(flutter::EncodableValue("volume"));
   if (const double* pointer_volume = std::get_if<double>(&encodable_volume)) {
     volume_ = *pointer_volume;
@@ -115,9 +111,9 @@ VolumeMessage::VolumeMessage(flutter::EncodableMap map) {
 
 /* PlaybackSpeedMessage */
 
-int64_t PlaybackSpeedMessage::texture_id() const { return texture_id_; }
-void PlaybackSpeedMessage::set_texture_id(int64_t value_arg) {
-  texture_id_ = value_arg;
+int64_t PlaybackSpeedMessage::player_id() const { return player_id_; }
+void PlaybackSpeedMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
 }
 
 double PlaybackSpeedMessage::speed() const { return speed_; }
@@ -125,8 +121,8 @@ void PlaybackSpeedMessage::set_speed(double value_arg) { speed_ = value_arg; }
 
 flutter::EncodableMap PlaybackSpeedMessage::ToEncodableMap() const {
   return flutter::EncodableMap{
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue(texture_id_)},
+      {flutter::EncodableValue("playerId"),
+       flutter::EncodableValue(player_id_)},
       {flutter::EncodableValue("speed"), flutter::EncodableValue(speed_)},
   };
 }
@@ -134,13 +130,13 @@ flutter::EncodableMap PlaybackSpeedMessage::ToEncodableMap() const {
 PlaybackSpeedMessage::PlaybackSpeedMessage() {}
 
 PlaybackSpeedMessage::PlaybackSpeedMessage(flutter::EncodableMap map) {
-  auto encodable_texture_id = map.at(flutter::EncodableValue("textureId"));
-  if (const int32_t* pointer_texture_id =
-          std::get_if<int32_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id;
-  else if (const int64_t* pointer_texture_id_64 =
-               std::get_if<int64_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id_64;
+  auto encodable_player_id = map.at(flutter::EncodableValue("playerId"));
+  if (const int32_t* pointer_player_id =
+          std::get_if<int32_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id;
+  else if (const int64_t* pointer_player_id_64 =
+               std::get_if<int64_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id_64;
   auto encodable_speed = map.at(flutter::EncodableValue("speed"));
   if (const double* pointer_speed = std::get_if<double>(&encodable_speed)) {
     speed_ = *pointer_speed;
@@ -149,9 +145,9 @@ PlaybackSpeedMessage::PlaybackSpeedMessage(flutter::EncodableMap map) {
 
 /* PositionMessage */
 
-int64_t PositionMessage::texture_id() const { return texture_id_; }
-void PositionMessage::set_texture_id(int64_t value_arg) {
-  texture_id_ = value_arg;
+int64_t PositionMessage::player_id() const { return player_id_; }
+void PositionMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
 }
 
 int64_t PositionMessage::position() const { return position_; }
@@ -159,8 +155,8 @@ void PositionMessage::set_position(int64_t value_arg) { position_ = value_arg; }
 
 flutter::EncodableMap PositionMessage::ToEncodableMap() const {
   return flutter::EncodableMap{
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue(texture_id_)},
+      {flutter::EncodableValue("playerId"),
+       flutter::EncodableValue(player_id_)},
       {flutter::EncodableValue("position"), flutter::EncodableValue(position_)},
   };
 }
@@ -168,13 +164,13 @@ flutter::EncodableMap PositionMessage::ToEncodableMap() const {
 PositionMessage::PositionMessage() {}
 
 PositionMessage::PositionMessage(flutter::EncodableMap map) {
-  auto encodable_texture_id = map.at(flutter::EncodableValue("textureId"));
-  if (const int32_t* pointer_texture_id =
-          std::get_if<int32_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id;
-  else if (const int64_t* pointer_texture_id_64 =
-               std::get_if<int64_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id_64;
+  auto encodable_player_id = map.at(flutter::EncodableValue("playerId"));
+  if (const int32_t* pointer_player_id =
+          std::get_if<int32_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id;
+  else if (const int64_t* pointer_player_id_64 =
+               std::get_if<int64_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id_64;
   auto encodable_position = map.at(flutter::EncodableValue("position"));
   if (const int32_t* pointer_position =
           std::get_if<int32_t>(&encodable_position))
@@ -331,9 +327,9 @@ MixWithOthersMessage::MixWithOthersMessage(flutter::EncodableMap map) {
 
 /* GeometryMessage */
 
-int64_t GeometryMessage::texture_id() const { return texture_id_; }
-void GeometryMessage::set_texture_id(int64_t value_arg) {
-  texture_id_ = value_arg;
+int64_t GeometryMessage::player_id() const { return player_id_; }
+void GeometryMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
 }
 
 int64_t GeometryMessage::x() const { return x_; }
@@ -350,8 +346,8 @@ void GeometryMessage::set_h(int64_t value_arg) { h_ = value_arg; }
 
 flutter::EncodableMap GeometryMessage::ToEncodableMap() const {
   return flutter::EncodableMap{
-      {flutter::EncodableValue("textureId"),
-       flutter::EncodableValue(texture_id_)},
+      {flutter::EncodableValue("playerId"),
+       flutter::EncodableValue(player_id_)},
       {flutter::EncodableValue("x"), flutter::EncodableValue(x_)},
       {flutter::EncodableValue("y"), flutter::EncodableValue(y_)},
       {flutter::EncodableValue("w"), flutter::EncodableValue(w_)},
@@ -362,13 +358,13 @@ flutter::EncodableMap GeometryMessage::ToEncodableMap() const {
 GeometryMessage::GeometryMessage() {}
 
 GeometryMessage::GeometryMessage(flutter::EncodableMap map) {
-  auto encodable_texture_id = map.at(flutter::EncodableValue("textureId"));
-  if (const int32_t* pointer_texture_id =
-          std::get_if<int32_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id;
-  else if (const int64_t* pointer_texture_id_64 =
-               std::get_if<int64_t>(&encodable_texture_id))
-    texture_id_ = *pointer_texture_id_64;
+  auto encodable_player_id = map.at(flutter::EncodableValue("playerId"));
+  if (const int32_t* pointer_player_id =
+          std::get_if<int32_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id;
+  else if (const int64_t* pointer_player_id_64 =
+               std::get_if<int64_t>(&encodable_player_id))
+    player_id_ = *pointer_player_id_64;
   auto encodable_x = map.at(flutter::EncodableValue("x"));
   if (const int32_t* pointer_x = std::get_if<int32_t>(&encodable_x))
     x_ = *pointer_x;
@@ -417,11 +413,11 @@ flutter::EncodableValue VideoPlayerApiCodecSerializer::ReadValueOfType(
 
     case 133:
       return flutter::CustomEncodableValue(
-          PositionMessage(std::get<flutter::EncodableMap>(ReadValue(stream))));
+          PlayerMessage(std::get<flutter::EncodableMap>(ReadValue(stream))));
 
     case 134:
       return flutter::CustomEncodableValue(
-          TextureMessage(std::get<flutter::EncodableMap>(ReadValue(stream))));
+          PositionMessage(std::get<flutter::EncodableMap>(ReadValue(stream))));
 
     case 135:
       return flutter::CustomEncodableValue(
@@ -477,19 +473,19 @@ void VideoPlayerApiCodecSerializer::WriteValue(
                  stream);
       return;
     }
-    if (custom_value->type() == typeid(PositionMessage)) {
+    if (custom_value->type() == typeid(PlayerMessage)) {
       stream->WriteByte(133);
       WriteValue(
           flutter::EncodableValue(
-              std::any_cast<PositionMessage>(*custom_value).ToEncodableMap()),
+              std::any_cast<PlayerMessage>(*custom_value).ToEncodableMap()),
           stream);
       return;
     }
-    if (custom_value->type() == typeid(TextureMessage)) {
+    if (custom_value->type() == typeid(PositionMessage)) {
       stream->WriteByte(134);
       WriteValue(
           flutter::EncodableValue(
-              std::any_cast<TextureMessage>(*custom_value).ToEncodableMap()),
+              std::any_cast<PositionMessage>(*custom_value).ToEncodableMap()),
           stream);
       return;
     }
@@ -568,7 +564,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                   std::any_cast<const CreateMessage&>(
                       std::get<flutter::CustomEncodableValue>(
                           encodable_msg_arg));
-              ErrorOr<std::unique_ptr<TextureMessage>> output =
+              ErrorOr<std::unique_ptr<PlayerMessage>> output =
                   api->Create(msg_arg);
               if (output.hasError()) {
                 wrapped.insert(std::make_pair(flutter::EncodableValue("error"),
@@ -614,8 +610,8 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 reply(flutter::EncodableValue(wrapped));
                 return;
               }
-              const TextureMessage& msg_arg =
-                  std::any_cast<const TextureMessage&>(
+              const PlayerMessage& msg_arg =
+                  std::any_cast<const PlayerMessage&>(
                       std::get<flutter::CustomEncodableValue>(
                           encodable_msg_arg));
               std::optional<FlutterError> output = api->Dispose(msg_arg);
@@ -783,8 +779,8 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 reply(flutter::EncodableValue(wrapped));
                 return;
               }
-              const TextureMessage& msg_arg =
-                  std::any_cast<const TextureMessage&>(
+              const PlayerMessage& msg_arg =
+                  std::any_cast<const PlayerMessage&>(
                       std::get<flutter::CustomEncodableValue>(
                           encodable_msg_arg));
               std::optional<FlutterError> output = api->Play(msg_arg);
@@ -825,8 +821,8 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 reply(flutter::EncodableValue(wrapped));
                 return;
               }
-              const TextureMessage& msg_arg =
-                  std::any_cast<const TextureMessage&>(
+              const PlayerMessage& msg_arg =
+                  std::any_cast<const PlayerMessage&>(
                       std::get<flutter::CustomEncodableValue>(
                           encodable_msg_arg));
               ErrorOr<std::unique_ptr<PositionMessage>> output =
@@ -917,8 +913,8 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 reply(flutter::EncodableValue(wrapped));
                 return;
               }
-              const TextureMessage& msg_arg =
-                  std::any_cast<const TextureMessage&>(
+              const PlayerMessage& msg_arg =
+                  std::any_cast<const PlayerMessage&>(
                       std::get<flutter::CustomEncodableValue>(
                           encodable_msg_arg));
               std::optional<FlutterError> output = api->Pause(msg_arg);

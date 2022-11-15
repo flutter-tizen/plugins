@@ -24,8 +24,8 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
-  Future<void> dispose(int textureId) {
-    return _api.dispose(TextureMessage(textureId: textureId));
+  Future<void> dispose(int playerId) {
+    return _api.dispose(PlayerMessage(playerId: playerId));
   }
 
   @override
@@ -51,55 +51,55 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
         break;
     }
 
-    final TextureMessage response = await _api.create(message);
-    return response.textureId;
+    final PlayerMessage response = await _api.create(message);
+    return response.playerId;
   }
 
   @override
-  Future<void> setLooping(int textureId, bool looping) {
+  Future<void> setLooping(int playerId, bool looping) {
     return _api
-        .setLooping(LoopingMessage(textureId: textureId, isLooping: looping));
+        .setLooping(LoopingMessage(playerId: playerId, isLooping: looping));
   }
 
   @override
-  Future<void> play(int textureId) {
-    return _api.play(TextureMessage(textureId: textureId));
+  Future<void> play(int playerId) {
+    return _api.play(PlayerMessage(playerId: playerId));
   }
 
   @override
-  Future<void> pause(int textureId) {
-    return _api.pause(TextureMessage(textureId: textureId));
+  Future<void> pause(int playerId) {
+    return _api.pause(PlayerMessage(playerId: playerId));
   }
 
   @override
-  Future<void> setVolume(int textureId, double volume) {
-    return _api.setVolume(VolumeMessage(textureId: textureId, volume: volume));
+  Future<void> setVolume(int playerId, double volume) {
+    return _api.setVolume(VolumeMessage(playerId: playerId, volume: volume));
   }
 
   @override
-  Future<void> setPlaybackSpeed(int textureId, double speed) {
+  Future<void> setPlaybackSpeed(int playerId, double speed) {
     assert(speed > 0);
 
     return _api.setPlaybackSpeed(
-        PlaybackSpeedMessage(speed: speed, textureId: textureId));
+        PlaybackSpeedMessage(speed: speed, playerId: playerId));
   }
 
   @override
-  Future<void> seekTo(int textureId, Duration position) {
-    return _api.seekTo(PositionMessage(
-        textureId: textureId, position: position.inMilliseconds));
+  Future<void> seekTo(int playerId, Duration position) {
+    return _api.seekTo(
+        PositionMessage(playerId: playerId, position: position.inMilliseconds));
   }
 
   @override
-  Future<Duration> getPosition(int textureId) async {
+  Future<Duration> getPosition(int playerId) async {
     final PositionMessage response =
-        await _api.position(TextureMessage(textureId: textureId));
+        await _api.position(PlayerMessage(playerId: playerId));
     return Duration(milliseconds: response.position);
   }
 
   @override
-  Stream<VideoEvent> videoEventsFor(int textureId) {
-    return _eventChannelFor(textureId)
+  Stream<VideoEvent> videoEventsFor(int playerId) {
+    return _eventChannelFor(playerId)
         .receiveBroadcastStream()
         .map((dynamic event) {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
@@ -133,8 +133,8 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
-  Widget buildView(int textureId) {
-    return Texture(textureId: textureId);
+  Widget buildView(int playerId) {
+    return Texture(textureId: playerId);
   }
 
   @override
@@ -144,13 +144,13 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
-  Future<void> setDisplayGeometry(int texureId, int x, int y, int w, int h) {
+  Future<void> setDisplayGeometry(int playerId, int x, int y, int w, int h) {
     return _api.setDisplayRoi(
-        GeometryMessage(textureId: texureId, x: x, y: y, w: w, h: h));
+        GeometryMessage(playerId: playerId, x: x, y: y, w: w, h: h));
   }
 
-  EventChannel _eventChannelFor(int textureId) {
-    return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
+  EventChannel _eventChannelFor(int playerId) {
+    return EventChannel('flutter.io/videoPlayer/videoEvents$playerId');
   }
 
   static const Map<VideoFormat, String> _videoFormatStringMap =

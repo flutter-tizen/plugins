@@ -11,7 +11,6 @@
 #include <flutter/standard_method_codec.h>
 #include <flutter_tizen.h>
 
-#include "flutter_texture_registrar.h"
 #include "log.h"
 #include "messages.h"
 #include "video_player.h"
@@ -26,20 +25,19 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
                          flutter::PluginRegistrar *plugin_registrar);
   virtual ~VideoPlayerTizenPlugin();
   std::optional<FlutterError> Initialize() override;
-  ErrorOr<std::unique_ptr<TextureMessage>> Create(
+  ErrorOr<std::unique_ptr<PlayerMessage>> Create(
       const CreateMessage &createMsg) override;
-  std::optional<FlutterError> Dispose(
-      const TextureMessage &textureMsg) override;
+  std::optional<FlutterError> Dispose(const PlayerMessage &playerMsg) override;
   std::optional<FlutterError> SetLooping(
       const LoopingMessage &loopingMsg) override;
   std::optional<FlutterError> SetVolume(
       const VolumeMessage &volumeMsg) override;
   std::optional<FlutterError> SetPlaybackSpeed(
       const PlaybackSpeedMessage &speedMsg) override;
-  std::optional<FlutterError> Play(const TextureMessage &textureMsg) override;
-  std::optional<FlutterError> Pause(const TextureMessage &textureMsg) override;
+  std::optional<FlutterError> Play(const PlayerMessage &playerMsg) override;
+  std::optional<FlutterError> Pause(const PlayerMessage &playerMsg) override;
   ErrorOr<std::unique_ptr<PositionMessage>> Position(
-      const TextureMessage &textureMsg) override;
+      const PlayerMessage &playerMsg) override;
   std::optional<FlutterError> SeekTo(
       const PositionMessage &positionMsg) override;
   std::optional<FlutterError> SetMixWithOthers(
@@ -86,21 +84,21 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
   return {};
 }
 
-ErrorOr<std::unique_ptr<TextureMessage>> VideoPlayerTizenPlugin::Create(
+ErrorOr<std::unique_ptr<PlayerMessage>> VideoPlayerTizenPlugin::Create(
     const CreateMessage &createMsg) {
   std::unique_ptr<VideoPlayer> player =
       std::make_unique<VideoPlayer>(registrar_ref_, createMsg);
-  int64_t textureId = player->Create();
-  players_[textureId] = std::move(player);
-  std::unique_ptr<TextureMessage> texture_message =
-      std::make_unique<TextureMessage>();
-  texture_message->set_texture_id(textureId);
-  return ErrorOr<TextureMessage>::MakeWithUniquePtr(std::move(texture_message));
+  int64_t playerId = player->Create();
+  players_[playerId] = std::move(player);
+  std::unique_ptr<PlayerMessage> player_message =
+      std::make_unique<PlayerMessage>();
+  player_message->set_player_id(playerId);
+  return ErrorOr<PlayerMessage>::MakeWithUniquePtr(std::move(player_message));
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
-    const TextureMessage &textureMsg) {
-  auto iter = players_.find(textureMsg.texture_id());
+    const PlayerMessage &playerMsg) {
+  auto iter = players_.find(playerMsg.player_id());
   if (iter != players_.end()) {
     iter->second->Dispose();
     players_.erase(iter);
@@ -110,7 +108,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
     const LoopingMessage &loopingMsg) {
-  auto iter = players_.find(loopingMsg.texture_id());
+  auto iter = players_.find(loopingMsg.player_id());
   if (iter != players_.end()) {
     iter->second->SetLooping(loopingMsg.is_looping());
   }
@@ -119,7 +117,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
     const VolumeMessage &volumeMsg) {
-  auto iter = players_.find(volumeMsg.texture_id());
+  auto iter = players_.find(volumeMsg.player_id());
   if (iter != players_.end()) {
     iter->second->SetVolume(volumeMsg.volume());
   }
@@ -128,7 +126,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
     const PlaybackSpeedMessage &speedMsg) {
-  auto iter = players_.find(speedMsg.texture_id());
+  auto iter = players_.find(speedMsg.player_id());
   if (iter != players_.end()) {
     iter->second->SetPlaybackSpeed(speedMsg.speed());
   }
@@ -136,8 +134,8 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
-    const TextureMessage &textureMsg) {
-  auto iter = players_.find(textureMsg.texture_id());
+    const PlayerMessage &playerMsg) {
+  auto iter = players_.find(playerMsg.player_id());
   if (iter != players_.end()) {
     iter->second->Play();
   }
@@ -145,8 +143,8 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
-    const TextureMessage &textureMsg) {
-  auto iter = players_.find(textureMsg.texture_id());
+    const PlayerMessage &playerMsg) {
+  auto iter = players_.find(playerMsg.player_id());
   if (iter != players_.end()) {
     iter->second->Pause();
   }
@@ -154,11 +152,11 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
 }
 
 ErrorOr<std::unique_ptr<PositionMessage>> VideoPlayerTizenPlugin::Position(
-    const TextureMessage &textureMsg) {
+    const PlayerMessage &playerMsg) {
   std::unique_ptr<PositionMessage> result = std::make_unique<PositionMessage>();
-  auto iter = players_.find(textureMsg.texture_id());
+  auto iter = players_.find(playerMsg.player_id());
   if (iter != players_.end()) {
-    result->set_texture_id(textureMsg.texture_id());
+    result->set_player_id(playerMsg.player_id());
     result->set_position(iter->second->GetPosition());
   }
   return ErrorOr<PositionMessage>::MakeWithUniquePtr(std::move(result));
@@ -166,7 +164,7 @@ ErrorOr<std::unique_ptr<PositionMessage>> VideoPlayerTizenPlugin::Position(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
     const PositionMessage &positionMsg) {
-  auto iter = players_.find(positionMsg.texture_id());
+  auto iter = players_.find(positionMsg.player_id());
   if (iter != players_.end()) {
     iter->second->SeekTo(positionMsg.position());
   }
@@ -175,7 +173,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayRoi(
     const GeometryMessage &geometryMsg) {
-  auto iter = players_.find(geometryMsg.texture_id());
+  auto iter = players_.find(geometryMsg.player_id());
   if (iter != players_.end()) {
     iter->second->SetDisplayRoi(geometryMsg.x(), geometryMsg.y(),
                                 geometryMsg.w(), geometryMsg.h());
