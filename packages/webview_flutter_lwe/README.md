@@ -1,8 +1,8 @@
-# webview_flutter_tizen
+# webview_flutter_lwe
 
-[![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen)
+[![pub package](https://img.shields.io/pub/v/webview_flutter_lwe.svg)](https://pub.dev/packages/webview_flutter_lwe)
 
-The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/main/packages/webview_flutter).
+The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/main/packages/webview_flutter) backed by the Lightweight Web Engine (LWE).
 
 ## Required privileges
 
@@ -16,12 +16,12 @@ To use this plugin, add below lines under the `<manifest>` section in your `tize
 
 ## Usage
 
-This package is not an _endorsed_ implementation of `webview_flutter`. Therefore, you have to include `webview_flutter_tizen` alongside `webview_flutter` as dependencies in your `pubspec.yaml` file.
+This package is not an _endorsed_ implementation of `webview_flutter`. Therefore, you have to include `webview_flutter_lwe` alongside `webview_flutter` as dependencies in your `pubspec.yaml` file.
 
 ```yaml
 dependencies:
   webview_flutter: ^3.0.4
-  webview_flutter_tizen: ^0.5.6
+  webview_flutter_lwe: ^0.1.0
 ```
 
 ## Example
@@ -48,4 +48,4 @@ class WebViewExampleState extends State<WebViewExample> {
 
 This plugin is supported on devices running Tizen 5.5 or later.
 
-The WebView widget is backed by the Lightweight Web Engine (LWE) on Tizen. For a detailed list of features supported by the Lightweight Web Engine, refer to [this page](https://git.tizen.org/cgit/platform/upstream/lightweight-web-engine/tree/docs/Spec.md?h=tizen).
+For a detailed list of features supported by the Lightweight Web Engine, refer to [this page](https://git.tizen.org/cgit/platform/upstream/lightweight-web-engine/tree/docs/Spec.md?h=tizen).

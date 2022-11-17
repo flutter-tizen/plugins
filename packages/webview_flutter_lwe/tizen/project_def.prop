@@ -1,7 +1,7 @@
 # See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
 # for details.
 
-APPNAME = webview_flutter_tizen_plugin
+APPNAME = webview_flutter_lwe_plugin
 type = sharedLib
 profile = common-5.5
 

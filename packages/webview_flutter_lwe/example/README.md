@@ -1,6 +1,6 @@
-# webview_flutter_tizen_example
+# webview_flutter_lwe_example
 
-Demonstrates how to use the webview_flutter_tizen plugin.
+Demonstrates how to use the webview_flutter_lwe plugin.
 
 ## Getting Started
 
