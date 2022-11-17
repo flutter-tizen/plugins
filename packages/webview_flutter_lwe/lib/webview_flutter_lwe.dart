@@ -13,7 +13,7 @@ import 'package:flutter_tizen/widgets.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-/// Builds an Tizen webview.
+/// Builds a Tizen webview.
 ///
 /// This is used as the default implementation for [WebView.platform] on Tizen. It uses a method channel to
 /// communicate with the platform code.

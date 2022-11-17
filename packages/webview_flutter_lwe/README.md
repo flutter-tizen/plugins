@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/webview_flutter_lwe.svg)](https://pub.dev/packages/webview_flutter_lwe)
 
-The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/master/packages/webview_flutter).
+The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/main/packages/webview_flutter) backed by the Lightweight Web Engine (LWE).
 
 ## Required privileges
 
