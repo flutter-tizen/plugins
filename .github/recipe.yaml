@@ -24,6 +24,7 @@ plugins:
   camera: []
   google_maps_flutter: []
   network_info_plus: []
+  webview_flutter: []
   webview_flutter_lwe: []
 
   # No tests.
