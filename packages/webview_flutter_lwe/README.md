@@ -48,4 +48,4 @@ class WebViewExampleState extends State<WebViewExample> {
 
 This plugin is supported on devices running Tizen 5.5 or later.
 
-The WebView widget is backed by the Lightweight Web Engine (LWE) on Tizen. For a detailed list of features supported by the Lightweight Web Engine, refer to [this page](https://git.tizen.org/cgit/platform/upstream/lightweight-web-engine/tree/docs/Spec.md?h=tizen).
+For a detailed list of features supported by the Lightweight Web Engine, refer to [this page](https://git.tizen.org/cgit/platform/upstream/lightweight-web-engine/tree/docs/Spec.md?h=tizen).
