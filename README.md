@@ -84,5 +84,6 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**video_player_tizen**](packages/video_player) | 4.0 | ✔️ | ✔️ | ⚠️ | ❌ | Functional limitations,<br>TV emulator issue |
 | [**wakelock_tizen**](packages/wakelock) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Cannot override system settings |
 | [**wearable_rotary**](packages/wearable_rotary) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
+| [**webview_flutter_tizen**](packages/webview_flutter) | 5.5 | ❌ | ❌ | ✔️ | ❌ |
 | [**webview_flutter_lwe**](packages/webview_flutter_lwe) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ | Not for production use |
 
