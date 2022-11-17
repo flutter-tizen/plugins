@@ -1,6 +1,6 @@
 ## 0.6.0
 
-* Change web engine from LWE to EFL WebKit(EWK)
+*  Change the backing web engine from LWE to EFL WebKit (EWK).
 
 ## 0.5.6
 
