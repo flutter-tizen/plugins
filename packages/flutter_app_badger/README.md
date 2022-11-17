@@ -38,7 +38,7 @@ To use this plugin, you need to declare privileges in `tizen-manifest.xml` of yo
 
 ## Notes
 
-You need to declare one or more of the following features in your `tizen-manifest.xml` if you plan to release your app on the app store (to enable [feature-based filtering](https://docs.tizen.org/application/native/tutorials/details/app-filtering)).
+You need to declare the following feature in your `tizen-manifest.xml` if you plan to release your app on the app store (to enable [feature-based filtering](https://docs.tizen.org/application/native/tutorials/details/app-filtering)).
 
 ```xml
 <feature name="http://tizen.org/feature/badge"/>
