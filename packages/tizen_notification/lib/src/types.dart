@@ -134,6 +134,17 @@ class NotificationVibration {
       };
 }
 
+extension _AppControlToMap on AppControl {
+  /// Converts to a map.
+  Map<String, Object?> toMap() => <String, Object?>{
+        'appId': appId,
+        'operation': operation,
+        'uri': uri,
+        'mime': mime,
+        'extraData': extraData,
+      };
+}
+
 /// The notification details.
 class TizenNotificationDetails {
   /// Constructs a [TizenNotificationDetails] from the given properties.
@@ -184,13 +195,6 @@ class TizenNotificationDetails {
         'properties': properties,
         'displayApplist': style,
         'ongoing': ongoing,
-        if (appControl != null)
-          'appControl': <String, Object?>{
-            'appId': appControl!.appId,
-            'operation': appControl!.operation,
-            'uri': appControl!.uri,
-            'mime': appControl!.mime,
-            'extraData': appControl!.extraData,
-          },
+        'appControl': appControl?.toMap(),
       };
 }
