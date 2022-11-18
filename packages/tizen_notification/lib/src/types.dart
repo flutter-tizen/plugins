@@ -54,16 +54,16 @@ class NotificationIcons {
   });
 
   /// The path to the icon file.
-  final String? icon;
+  String? icon;
 
   /// The path to the indicator icon file.
-  final String? indicatorIcon;
+  String? indicatorIcon;
 
   /// The path to the lock screen icon file.
-  final String? lockIcon;
+  String? lockIcon;
 
   /// Converts to a map.
-  Map<String, Object?> toMap() => <String, Object?>{
+  Map<String, String?> toMap() => <String, String?>{
         'icon': icon,
         'iconForIndicator': indicatorIcon,
         'iconForLock': lockIcon,
@@ -88,7 +88,7 @@ class NotificationSound {
   NotificationSound({required this.type, this.path});
 
   /// The type of sound.
-  final SoundType type;
+  SoundType type;
 
   /// The path to the user sound data file.
   ///
@@ -96,7 +96,7 @@ class NotificationSound {
   String? path;
 
   /// Converts to a map.
-  Map<String, Object?> toMap() => <String, Object?>{
+  Map<String, String?> toMap() => <String, String?>{
         'type': type.name,
         'path': path,
       };
@@ -120,7 +120,7 @@ class NotificationVibration {
   NotificationVibration({required this.type, this.path});
 
   /// The type of vibration.
-  final VibrationType type;
+  VibrationType type;
 
   /// The path to the user vibration data file.
   ///
@@ -128,7 +128,7 @@ class NotificationVibration {
   String? path;
 
   /// Converts to a map.
-  Map<String, Object?> toMap() => <String, Object?>{
+  Map<String, String?> toMap() => <String, String?>{
         'type': type.name,
         'path': path,
       };
@@ -137,7 +137,7 @@ class NotificationVibration {
 /// The notification details.
 class TizenNotificationDetails {
   /// Constructs a [TizenNotificationDetails] from the given properties.
-  const TizenNotificationDetails({
+  TizenNotificationDetails({
     this.icons,
     this.sound,
     this.vibration,
@@ -148,42 +148,40 @@ class TizenNotificationDetails {
   });
 
   /// A set of icons to be shown in the notification layouts.
-  final NotificationIcons? icons;
+  NotificationIcons? icons;
 
   /// The sound to play when the notification is presented.
-  final NotificationSound? sound;
+  NotificationSound? sound;
 
   /// The notification vibration options.
-  final NotificationVibration? vibration;
+  NotificationVibration? vibration;
 
   /// Specifies how the system handles the notification in certain scenarios.
   ///
   /// Multiple [NotificationProperty] values can be set using the bitwise OR
   /// operator (|).
-  final int properties;
+  int properties;
 
   /// Specifies where and how the notification should be presented.
   ///
   /// Multiple [NotificationStyle] values can be set using the bitwise OR
   /// operator (|).
-  final int style;
+  int style;
 
   /// Whether the notification can be dismissed by user.
   ///
   /// Only supported on Raspberry Pi (common profile) devices.
-  final bool ongoing;
+  bool ongoing;
 
   /// A control message to be sent when the notification is clicked.
-  final AppControl? appControl;
+  AppControl? appControl;
 
   /// Converts to a map.
   Map<String, Object?> toMap() => <String, Object?>{
         'image': icons?.toMap(),
         'sound': sound?.toMap(),
         'vibration': vibration?.toMap(),
-        'properties': appControl != null
-            ? properties
-            : properties | NotificationProperty.disableAppLaunch,
+        'properties': properties,
         'displayApplist': style,
         'ongoing': ongoing,
         if (appControl != null)

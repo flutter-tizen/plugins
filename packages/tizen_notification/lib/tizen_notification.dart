@@ -27,6 +27,14 @@ class TizenNotificationPlugin {
     details['id'] = id.toString();
     details['title'] = title;
     details['body'] = body;
+
+    // Set disableAppLaunch automatically if appControl is unset.
+    if (notificationDetails?.appControl == null) {
+      final int properties = details['properties']! as int;
+      details['properties'] =
+          properties | NotificationProperty.disableAppLaunch;
+    }
+
     return _channel.invokeMethod('show', details);
   }
 
