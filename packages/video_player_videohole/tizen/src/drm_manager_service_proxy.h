@@ -130,26 +130,38 @@ typedef bool (*security_init_complete_cb)(int* drmhandle, unsigned int length,
                                           void* user_data);
 typedef int (*set_drm_init_data_cb)(drm_init_data_type init_type, void* data,
                                     int data_length, void* user_data);
+typedef int (*FuncDMGRSetData)(DRMSessionHandle_t drm_session,
+                               const char* data_type, void* input_data);
+typedef int (*FuncDMGRGetData)(DRMSessionHandle_t drm_session,
+                               const char* data_type, void* output_data);
+typedef DRMSessionHandle_t (*FuncDMGRCreateDRMSession)(
+    dm_type_e type, const char* drm_sub_type);
+typedef bool (*FuncDMGRSecurityInitCompleteCB)(int* drm_handle,
+                                               unsigned int len,
+                                               unsigned char* pssh_data,
+                                               void* user_data);
+typedef int (*FuncDMGRReleaseDRMSession)(DRMSessionHandle_t drm_session);
+typedef int (*FuncPlayerSetDrmHandle)(player_h player,
+                                      player_drm_type_e drm_type,
+                                      int drm_handle);
+typedef int (*FuncPlayerSetDrmInitCompleteCB)(
+    player_h player, security_init_complete_cb callback, void* user_data);
+typedef int (*FuncPlayerSetDrmInitDataCB)(player_h player,
+                                          set_drm_init_data_cb callback,
+                                          void* user_data);
 void* OpenDrmManager();
 void* OpenMediaPlayer();
 int CloseDrmManager(void* handle);
 int CloseMediaPlayer(void* handle);
-
-int DMGRSetData(void* handle, DRMSessionHandle_t drm_session,
-                const char* data_type, void* input_data);
-int DMGRGetData(void* handle, DRMSessionHandle_t drm_session,
-                const char* data_type, void** output_data);
-void DMGRSetDRMLocalMode(void* handle);
-DRMSessionHandle_t DMGRCreateDRMSession(void* handle, dm_type_e drm_type,
-                                        const char* drm_sub_type);
-security_init_complete_cb DMGRSecurityInitCompleteCB(void* handle);
-int player_set_drm_handle(void* handle, player_h player,
-                          player_drm_type_e drm_type, int drm_handle);
-int player_set_drm_init_complete_cb(void* handle, player_h player,
-                                    security_init_complete_cb callback,
-                                    void* user_data);
-int player_set_drm_init_data_cb(void* handle, player_h player,
-                                set_drm_init_data_cb callback, void* user_data);
-int DMGRReleaseDRMSession(void* handle, DRMSessionHandle_t drm_session);
+int InitDrmManager(void* handle);
+int InitMediaPlayer(void* handle);
+extern FuncDMGRSetData DMGRSetData;
+extern FuncDMGRGetData DMGRGetData;
+extern FuncDMGRCreateDRMSession DMGRCreateDRMSession;
+extern FuncDMGRSecurityInitCompleteCB DMGRSecurityInitCompleteCB;
+extern FuncDMGRReleaseDRMSession DMGRReleaseDRMSession;
+extern FuncPlayerSetDrmHandle player_set_drm_handle;
+extern FuncPlayerSetDrmInitCompleteCB player_set_drm_init_complete_cb;
+extern FuncPlayerSetDrmInitDataCB player_set_drm_init_data_cb;
 
 #endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
