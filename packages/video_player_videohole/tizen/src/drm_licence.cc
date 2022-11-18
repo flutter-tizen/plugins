@@ -30,14 +30,6 @@
     INFO("REQ Headers: END");                      \
   }
 
-#define CHECK_CURL_FAIL(expr)      \
-  {                                \
-    if (expr != CURLE_OK) {        \
-      INFO("Error %d ", __LINE__); \
-      goto ErrorExit;              \
-    }                              \
-  }
-
 #define MAX_POPUP_MESSAGE_LENGTH (1024)
 #define ERROR_TITLE_LICENSE_FETCHING_FAILURE "Fetching License Failed"
 
@@ -85,6 +77,17 @@ static DRM_RESULT HttpStartTransaction(
     const char* p_cookie, const char* p_soap_header, const char* p_http_header,
     const char* p_user_agent, bool* p_cancel_request);
 static void HttpClose(SHttpSession* h_session);
+static void CheckCurlFail(CURLcode expr, struct curl_slist* headers);
+
+static void CheckCurlFail(CURLcode expr, struct curl_slist* headers) {
+  if (expr != CURLE_OK) {
+    INFO("Error %d", __LINE__);
+    if (headers != nullptr) {
+      INFO_CURL_HEADERS(headers);
+      curl_slist_free_all(headers);
+    }
+  }
+}
 
 bool AppendData(SDynamicBuf* a_buf, const void* a_data, size_t a_size) {
   size_t new_size = a_buf->i_size + a_size;
@@ -135,7 +138,7 @@ char* GetRedirectLocation(const char* a_headers, bool b_support_https) {
   if (b_support_https) {
     // [soyoung] get redirection location
     // for using https itself
-    char* ret = (char*)malloc(i + 1);
+    char* ret = static_cast<char*>(malloc(i + 1));
     if (!ret) {
       return nullptr;
     }
@@ -163,7 +166,7 @@ char* GetRedirectLocation(const char* a_headers, bool b_support_https) {
       p++;
     }
 
-    char* ret = (char*)malloc(len + 1);
+    char* ret = static_cast<char*>(malloc(len + 1));
     if (!ret) {
       return nullptr;
     }
@@ -206,7 +209,7 @@ DRM_RESULT ComposePostDataTZ(SHttpSession* h_session, const char* pb_post_data,
     LOG_ERROR("[DrmLicence] Failed to alloc post data.");
     return DRM_E_POINTER;
   }
-  dest = (char*)h_session->post_data;
+  dest = reinterpret_cast<char*>(h_session->post_data);
   remain = cb_post_data;
 
   if (ext_soap_header_len > 0) {
@@ -264,7 +267,8 @@ DRM_RESULT ComposePostDataTZ(SHttpSession* h_session, const char* pb_post_data,
   dest += remain;
   *dest = '\0';
 
-  h_session->post_data_len = dest - (char*)h_session->post_data;
+  h_session->post_data_len =
+      dest - reinterpret_cast<char*>(h_session->post_data);
   if (ext_soap_header_len > 0) {
     LOG_INFO("[DrmLicence] [soap header added %d ] %s ",
              h_session->post_data_len, h_session->post_data);
@@ -300,7 +304,8 @@ struct curl_slist* SetHttpHeader(CURL* p_curl, DrmLicenseHelper::EDrmType type,
     unsigned prefix_len = strlen(user_agent_prefix);
     unsigned user_agent_len = strlen(p_user_agent);
 
-    char* user_agent_string = (char*)malloc(prefix_len + user_agent_len + 1);
+    char* user_agent_string =
+        static_cast<char*>(malloc(prefix_len + user_agent_len + 1));
     if (nullptr == user_agent_string) {
       LOG_ERROR("[DrmLicence] Memory allocation failed.");
       return nullptr;
@@ -336,7 +341,7 @@ struct curl_slist* SetHttpHeader(CURL* p_curl, DrmLicenseHelper::EDrmType type,
     unsigned prefix_len = strlen(cookie_prefix);
     unsigned cookie_len = strlen(p_cookie);
 
-    char* cookie = (char*)malloc(prefix_len + cookie_len + 1);
+    char* cookie = static_cast<char*>(malloc(prefix_len + cookie_len + 1));
 
     if (cookie) {
       memcpy(cookie, cookie_prefix, prefix_len);
@@ -371,7 +376,7 @@ static SHttpSession* HttpOpen(void) {
 
   CURL* p_curl = curl_easy_init();
   if (p_curl) {
-    p_session = (SHttpSession*)malloc(sizeof(SHttpSession));
+    p_session = reinterpret_cast<SHttpSession*>(malloc(sizeof(SHttpSession)));
     if (p_session) {
       memset(p_session, 0, sizeof(SHttpSession));
       p_session->curl_handle = p_curl;
@@ -385,7 +390,7 @@ static SHttpSession* HttpOpen(void) {
 
 int CbCurlProgress(void* ptr, double total_to_download, double now_downloaded,
                    double total_to_upload, double now_uploaded) {
-  bool* p_cancel_qequest = (bool*)ptr;
+  bool* p_cancel_qequest = static_cast<bool*>(ptr);
 
   if (p_cancel_qequest) {
     LOG_INFO("[DrmLicence] p_cancel_qequest : (%d)", *p_cancel_qequest);
@@ -441,8 +446,9 @@ DRM_RESULT HttpStartTransaction(SHttpSession* h_session, const char* p_url,
   h_session->post_data_len = 0;
   if (pb_post_data && cb_post_data > 0) {
     if (p_soap_header != nullptr) {
-      DRM_RESULT drm_result = ComposePostDataTZ(h_session, (char*)pb_post_data,
-                                                cb_post_data, p_soap_header);
+      DRM_RESULT drm_result =
+          ComposePostDataTZ(h_session, static_cast<const char*>(pb_post_data),
+                            cb_post_data, p_soap_header);
       if (drm_result != DRM_SUCCESS) {
         LOG_ERROR(
             "[DrmLicence] Failed to compose post data, drm_result : 0x%lx",
@@ -454,7 +460,7 @@ DRM_RESULT HttpStartTransaction(SHttpSession* h_session, const char* p_url,
     }
 
     f_res = curl_easy_setopt(p_curl, CURLOPT_POST, 1L);
-    CHECK_CURL_FAIL(f_res);
+    CheckCurlFail(f_res, headers);
 
     if (soap_flag == 0) {
       if (!(h_session->post_data =
@@ -473,14 +479,14 @@ DRM_RESULT HttpStartTransaction(SHttpSession* h_session, const char* p_url,
     }
 
     f_res = curl_easy_setopt(p_curl, CURLOPT_READFUNCTION, SendBody);
-    CHECK_CURL_FAIL(f_res);
+    CheckCurlFail(f_res, headers);
 
     f_res = curl_easy_setopt(p_curl, CURLOPT_POSTFIELDSIZE,
                              h_session->post_data_len);
-    CHECK_CURL_FAIL(f_res);
+    CheckCurlFail(f_res, headers);
 
     f_res = curl_easy_setopt(p_curl, CURLOPT_READDATA, h_session);
-    CHECK_CURL_FAIL(f_res);
+    CheckCurlFail(f_res, headers);
   } else {
     curl_easy_setopt(p_curl, CURLOPT_HTTPGET, 1L);
   }
@@ -493,61 +499,61 @@ DRM_RESULT HttpStartTransaction(SHttpSession* h_session, const char* p_url,
   curl_easy_setopt(p_curl, CURLOPT_TIMEOUT, 10);
 
   f_res = curl_easy_setopt(p_curl, CURLOPT_URL, p_url);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
 
   f_res = curl_easy_setopt(p_curl, CURLOPT_NOPROGRESS, 0L);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
   f_res = curl_easy_setopt(p_curl, CURLOPT_PROGRESSFUNCTION, CbCurlProgress);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
   f_res = curl_easy_setopt(p_curl, CURLOPT_PROGRESSDATA, p_cancel_request);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
 
   f_res = curl_easy_setopt(p_curl, CURLOPT_HEADERFUNCTION, ReceiveHeader);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
 
   f_res = curl_easy_setopt(p_curl, CURLOPT_BUFFERSIZE, 1024L * 20L);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
 
   f_res = curl_easy_setopt(p_curl, CURLOPT_WRITEFUNCTION, ReceiveBody);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
 
   f_res = curl_easy_setopt(p_curl, CURLOPT_WRITEHEADER, h_session);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
 
   f_res = curl_easy_setopt(p_curl, CURLOPT_WRITEDATA, h_session);
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
 
   f_res = curl_easy_setopt(
       p_curl, CURLOPT_NOSIGNAL,
       1);  // Add by SJKIM 2013.12.18 for signal safe [according to guide]
-  CHECK_CURL_FAIL(f_res);
+  CheckCurlFail(f_res, headers);
 
   f_res = curl_easy_perform(p_curl);
 
   if (f_res == CURLE_OK) {
     LOG_INFO("[DrmLicence] after curl_easy_perform : f_res(%d)", f_res);
     curl_easy_getinfo(p_curl, CURLINFO_RESPONSE_CODE,
-                      (long*)&h_session->res_code);
+                      static_cast<long*>(&h_session->res_code));
     LOG_INFO("[DrmLicence] after curl_easy_perform : h_session->res_code(%ld)",
              h_session->res_code);
   } else if (f_res == CURLE_PARTIAL_FILE) {
     LOG_INFO("[DrmLicence] after curl_easy_perform : f_res(%d)", f_res);
     curl_easy_getinfo(p_curl, CURLINFO_RESPONSE_CODE,
-                      (long*)&h_session->res_code);
+                      static_cast<long*>(&h_session->res_code));
     LOG_INFO("[DrmLicence] after curl_easy_perform : h_session->res_code(%ld)",
              h_session->res_code);
     f_res = CURLE_OK;
   } else if (f_res == CURLE_SEND_ERROR) {
     LOG_INFO("[DrmLicence] after curl_easy_perform : f_res(%d)", f_res);
     curl_easy_getinfo(p_curl, CURLINFO_RESPONSE_CODE,
-                      (long*)&h_session->res_code);
+                      static_cast<long*>(&h_session->res_code));
     LOG_INFO("[DrmLicence] after curl_easy_perform : h_session->res_code(%ld)",
              h_session->res_code);
     f_res = CURLE_OK;
   } else {
     LOG_INFO("[DrmLicence] after curl_easy_perform : f_res(%d)", f_res);
     curl_easy_getinfo(p_curl, CURLINFO_RESPONSE_CODE,
-                      (long*)&h_session->res_code);
+                      static_cast<long*>(&h_session->res_code));
     LOG_INFO("[DrmLicence] after curl_easy_perform : h_session->res_code(%ld)",
              h_session->res_code);
     if (f_res == CURLE_OPERATION_TIMEDOUT) {
@@ -570,12 +576,6 @@ DRM_RESULT HttpStartTransaction(SHttpSession* h_session, const char* p_url,
                 curl_easy_strerror(f_res));
       return DRM_E_NETWORK_CURL;
     }
-  }
-
-ErrorExit:
-  if (headers != nullptr) {
-    INFO_CURL_HEADERS(headers);
-    curl_slist_free_all(headers);
   }
 
   if (f_res != CURLE_OK) {
@@ -622,7 +622,7 @@ size_t ReceiveHeader(void* ptr, size_t size, size_t nmemb, void* p_stream) {
   size_t data_size = size * nmemb;
 
   if (data_size > 0) {
-    SHttpSession* p_session = (SHttpSession*)p_stream;
+    SHttpSession* p_session = reinterpret_cast<SHttpSession*>(p_stream);
 
     if (!AppendData(&p_session->header, ptr, data_size)) {
       return 0;
@@ -637,7 +637,7 @@ size_t ReceiveBody(void* ptr, size_t size, size_t nmemb, void* p_stream) {
   size_t data_size = size * nmemb;
 
   if (data_size > 0) {
-    SHttpSession* p_session = (SHttpSession*)p_stream;
+    SHttpSession* p_session = reinterpret_cast<SHttpSession*>(p_stream);
 
     if (!AppendData(&p_session->body, ptr, data_size)) {
       return 0;
@@ -649,7 +649,7 @@ size_t ReceiveBody(void* ptr, size_t size, size_t nmemb, void* p_stream) {
 size_t SendBody(void* ptr, size_t size, size_t nmemb, void* p_stream) {
   LOG_DEBUG("[DrmLicence] size:%d nmemb:%d", (int)size, (int)nmemb);
 
-  SHttpSession* p_session = (SHttpSession*)p_stream;
+  SHttpSession* p_session = reinterpret_cast<SHttpSession*>(p_stream);
 
   size_t avail_data = p_session->post_data_len - p_session->send_data_len;
   size_t can_send = size * nmemb;
@@ -723,8 +723,8 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
 
     if (p_session->res_code == 301 || p_session->res_code == 302) {
       // Convert https to http for GETSECURECLOCKSERVER_URL
-      sz_redirect_url =
-          GetRedirectLocation((const char*)p_session->header.i_data, true);
+      sz_redirect_url = GetRedirectLocation(
+          reinterpret_cast<const char*>(p_session->header.i_data), true);
 
       HttpClose(p_session);
       p_session = nullptr;
