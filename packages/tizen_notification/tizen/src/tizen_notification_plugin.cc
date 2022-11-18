@@ -19,6 +19,21 @@
 
 #include "log.h"
 
+namespace {
+
+template <typename T>
+static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
+                                     const char *key, T &out) {
+  auto iter = map->find(flutter::EncodableValue(key));
+  if (iter != map->end() && !iter->second.IsNull()) {
+    if (auto *value = std::get_if<T>(&iter->second)) {
+      out = *value;
+      return true;
+    }
+  }
+  return false;
+}
+
 class TizenNotificationPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
@@ -42,19 +57,6 @@ class TizenNotificationPlugin : public flutter::Plugin {
   virtual ~TizenNotificationPlugin() {}
 
  private:
-  template <typename T>
-  static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
-                                       const char *key, T &out) {
-    auto iter = map->find(flutter::EncodableValue(key));
-    if (iter != map->end() && !iter->second.IsNull()) {
-      if (auto *value = std::get_if<T>(&iter->second)) {
-        out = *value;
-        return true;
-      }
-    }
-    return false;
-  }
-
   void FreeNotification(notification_h handle) {
     int ret = notification_free(handle);
     if (ret != NOTIFICATION_ERROR_NONE) {
@@ -434,6 +436,8 @@ class TizenNotificationPlugin : public flutter::Plugin {
     }
   }
 };
+
+}  // namespace
 
 void TizenNotificationPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
