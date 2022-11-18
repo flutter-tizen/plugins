@@ -8,32 +8,40 @@ export 'package:tizen_app_control/tizen_app_control.dart';
 
 /// How the system handles the notification in certain scenarios.
 class NotificationProperty {
+  // The constants below are originally defined in notification_type.h as
+  // the enum type _notification_property.
+  NotificationProperty._();
+
   /// Display only if a SIM card is inserted.
-  static const int onlySimMode = 1 << 0;
+  static const int onlySimMode = 0x00000001;
 
   /// Do not perform any operation when the notification is clicked.
-  static const int disableAppLaunch = 1 << 1;
+  static const int disableAppLaunch = 0x00000002;
 
   /// Do not dismiss the notification when clicked.
-  static const int disableAutoDelete = 1 << 2;
+  static const int disableAutoDelete = 0x00000004;
 
   /// Dismiss the notification when the device is rebooted.
-  static const int volatile = 1 << 8;
+  static const int volatile = 0x00000100;
 }
 
 /// Where and how the notification should be presented.
 class NotificationStyle {
+  // The constants below are originally defined in notification_type.h as
+  // the enum type _notification_display_applist.
+  NotificationStyle._();
+
   /// Display in the notification area of the quick panel.
-  static const int tray = 1 << 0;
+  static const int tray = 0x00000001;
 
   /// Display in the lock screen.
-  static const int lock = 1 << 2;
+  static const int lock = 0x00000004;
 
   /// Display in the indicator area (the top of the screen).
-  static const int indicator = 1 << 1 | 1 << 3;
+  static const int indicator = 0x00000002 | 0x00000008;
 
   /// All of the above.
-  static const int all = (1 << 4) - 1;
+  static const int all = tray | lock | indicator;
 }
 
 /// A set of icons to be shown in the notification layouts.
