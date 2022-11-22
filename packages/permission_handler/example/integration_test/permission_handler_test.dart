@@ -6,7 +6,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('get permission status', (tester) async {
-    expect(await Permission.camera.status.isDenied, true);
+    expect(await Permission.camera.status.isGranted, true);
   });
 
   testWidgets('get location service status', (tester) async {
