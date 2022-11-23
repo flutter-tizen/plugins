@@ -29,6 +29,7 @@ plugins:
   # No tests.
   google_sign_in: []
   image_picker: []
+  firebase_core: []
   tizen_log: []
   tizen_notification: []
   wearable_rotary: []

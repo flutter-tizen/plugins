@@ -9,6 +9,8 @@
   - packages/connectivity_plus/**/*
 "p: device_info_plus":
   - packages/device_info_plus/**/*
+"p: firebase_core":
+  - packages/firebase_core/**/*
 "p: flutter_secure_storage":
   - packages/flutter_secure_storage/**/*
 "p: flutter_tts":
