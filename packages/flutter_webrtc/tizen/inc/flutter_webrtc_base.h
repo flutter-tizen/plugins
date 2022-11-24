@@ -9,8 +9,8 @@
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter/texture_registrar.h>
-
 #include <string.h>
+
 #include <list>
 #include <map>
 #include <memory>
@@ -51,8 +51,7 @@ inline const T GetValue(EncodableValue val) {
 inline EncodableValue findEncodableValue(const EncodableMap& map,
                                          const std::string& key) {
   auto it = map.find(EncodableValue(key));
-  if (it != map.end())
-    return it->second;
+  if (it != map.end()) return it->second;
   return EncodableValue();
 }
 
@@ -162,7 +161,7 @@ class FlutterWebRTCBase {
 
   void RemoveTracksForId(const std::string& id);
 
-  EventSink<EncodableValue> *event_sink();
+  EventSink<EncodableValue>* event_sink();
 
  private:
   void ParseConstraints(const EncodableMap& src,

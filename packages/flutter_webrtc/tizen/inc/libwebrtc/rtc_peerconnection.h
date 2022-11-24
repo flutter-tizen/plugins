@@ -76,8 +76,7 @@ class MediaTrackStatistics {
   MediaTrackStatistics(const MediaTrackStatistics* stats) { copy(*stats); }
 
   MediaTrackStatistics& operator=(const MediaTrackStatistics& rhs) {
-    if (&rhs == this)
-      return *this;
+    if (&rhs == this) return *this;
     return copy(rhs);
   }
 
@@ -174,11 +173,11 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual int RemoveStream(scoped_refptr<RTCMediaStream> stream) = 0;
 
-  virtual scoped_refptr<RTCMediaStream> CreateLocalMediaStream(const string stream_id) = 0;
+  virtual scoped_refptr<RTCMediaStream> CreateLocalMediaStream(
+      const string stream_id) = 0;
 
   virtual scoped_refptr<RTCDataChannel> CreateDataChannel(
-      const string label,
-      RTCDataChannelInit* dataChannelDict) = 0;
+      const string label, RTCDataChannelInit* dataChannelDict) = 0;
 
   virtual void CreateOffer(OnSdpCreateSuccess success,
                            OnSdpCreateFailure failure,
@@ -192,13 +191,11 @@ class RTCPeerConnection : public RefCountInterface {
 
   virtual void Close() = 0;
 
-  virtual void SetLocalDescription(const string sdp,
-                                   const string type,
+  virtual void SetLocalDescription(const string sdp, const string type,
                                    OnSetSdpSuccess success,
                                    OnSetSdpFailure failure) = 0;
 
-  virtual void SetRemoteDescription(const string sdp,
-                                    const string type,
+  virtual void SetRemoteDescription(const string sdp, const string type,
                                     OnSetSdpSuccess success,
                                     OnSetSdpFailure failure) = 0;
 
@@ -208,8 +205,7 @@ class RTCPeerConnection : public RefCountInterface {
   virtual void GetRemoteDescription(OnGetSdpSuccess success,
                                     OnGetSdpFailure failure) = 0;
 
-  virtual void AddCandidate(const string mid,
-                            int mid_mline_index,
+  virtual void AddCandidate(const string mid, int mid_mline_index,
                             const string candiate) = 0;
 
   virtual void RegisterRTCPeerConnectionObserver(
@@ -238,15 +234,13 @@ class RTCPeerConnection : public RefCountInterface {
       scoped_refptr<RTCMediaTrack> track) = 0;
 
   virtual scoped_refptr<RTCRtpSender> AddTrack(
-      scoped_refptr<RTCMediaTrack> track,
-      const vector<string> streamIds) = 0;
+      scoped_refptr<RTCMediaTrack> track, const vector<string> streamIds) = 0;
 
   virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(
       RTCMediaType media_type) = 0;
 
   virtual scoped_refptr<RTCRtpTransceiver> AddTransceiver(
-      RTCMediaType media_type,
-      scoped_refptr<RTCRtpTransceiverInit> init) = 0;
+      RTCMediaType media_type, scoped_refptr<RTCRtpTransceiverInit> init) = 0;
 
   virtual bool RemoveTrack(scoped_refptr<RTCRtpSender> render) = 0;
 

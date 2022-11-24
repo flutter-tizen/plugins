@@ -8,8 +8,7 @@ namespace b2bua {
 class AudioFrame {
  public:
   MEDIA_MANAGER_API static AudioFrame* Create();
-  MEDIA_MANAGER_API static AudioFrame* Create(int id,
-                                              uint32_t timestamp,
+  MEDIA_MANAGER_API static AudioFrame* Create(int id, uint32_t timestamp,
                                               const int16_t* data,
                                               size_t samples_per_channel,
                                               int sample_rate_hz,
@@ -18,11 +17,8 @@ class AudioFrame {
   virtual void Release() = 0;
 
  public:
-  virtual void UpdateFrame(int id,
-                           uint32_t timestamp,
-                           const int16_t* data,
-                           size_t samples_per_channel,
-                           int sample_rate_hz,
+  virtual void UpdateFrame(int id, uint32_t timestamp, const int16_t* data,
+                           size_t samples_per_channel, int sample_rate_hz,
                            size_t num_channels = 1) = 0;
 
   virtual void CopyFrom(const AudioFrame& src) = 0;

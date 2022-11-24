@@ -2,10 +2,10 @@
 
 namespace flutter_webrtc_plugin {
 
-FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar *registrar,
-                                           BinaryMessenger *messenger)
+FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar* registrar,
+                                           BinaryMessenger* messenger)
     : registrar_(registrar) {
-    texture_ =
+  texture_ =
       std::make_unique<flutter::TextureVariant>(flutter::PixelBufferTexture(
           [this](size_t width,
                  size_t height) -> const FlutterDesktopPixelBuffer* {
@@ -20,30 +20,29 @@ FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar *registrar,
       messenger, event_channel, &StandardMethodCodec::GetInstance()));
 
   auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
-		  [&](
-			  const flutter::EncodableValue* arguments,
-			  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
-		  -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-	  event_sink_ = std::move(events);
-	  return nullptr;
-  },
-		  [&](const flutter::EncodableValue* arguments)
-	  -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-	  event_sink_ = nullptr;
-	  return nullptr;
-  });
+      [&](const flutter::EncodableValue* arguments,
+          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = std::move(events);
+        return nullptr;
+      },
+      [&](const flutter::EncodableValue* arguments)
+          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
+        event_sink_ = nullptr;
+        return nullptr;
+      });
 
   event_channel_->SetStreamHandler(std::move(handler));
 }
 
 const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(
-    size_t width,
-    size_t height) const {
+    size_t width, size_t height) const {
   mutex_.lock();
   if (pixel_buffer_.get() && frame_.get()) {
     if (pixel_buffer_->width != frame_->width() ||
         pixel_buffer_->height != frame_->height()) {
-      size_t buffer_size = (size_t(frame_->width()) * size_t(frame_->height())) * (32 >> 3);
+      size_t buffer_size =
+          (size_t(frame_->width()) * size_t(frame_->height())) * (32 >> 3);
       rgb_buffer_.reset(new uint8_t[buffer_size]);
       pixel_buffer_->width = frame_->width();
       pixel_buffer_->height = frame_->height();
@@ -79,7 +78,8 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
       EncodableMap params;
       params[EncodableValue("event")] = "didTextureChangeRotation";
       params[EncodableValue("id")] = EncodableValue(texture_id_);
-      params[EncodableValue("rotation")] = EncodableValue((int32_t)frame->rotation());
+      params[EncodableValue("rotation")] =
+          EncodableValue((int32_t)frame->rotation());
       event_sink_->Success(EncodableValue(params));
     }
     rotation_ = frame->rotation();
@@ -91,7 +91,8 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
       params[EncodableValue("event")] = "didTextureChangeVideoSize";
       params[EncodableValue("id")] = EncodableValue(texture_id_);
       params[EncodableValue("width")] = EncodableValue((int32_t)frame->width());
-      params[EncodableValue("height")] = EncodableValue((int32_t)frame->height());
+      params[EncodableValue("height")] =
+          EncodableValue((int32_t)frame->height());
       event_sink_->Success(EncodableValue(params));
     }
     last_frame_size_ = {(size_t)frame->width(), (size_t)frame->height()};
@@ -112,7 +113,6 @@ void FlutterVideoRenderer::SetVideoTrack(scoped_refptr<RTCVideoTrack> track) {
   }
 }
 
-
 bool FlutterVideoRenderer::CheckMediaStream(std::string mediaId) {
   if (0 == mediaId.size() || 0 == media_stream_id.size()) {
     return false;
@@ -128,7 +128,7 @@ bool FlutterVideoRenderer::CheckVideoTrack(std::string mediaId) {
 }
 
 FlutterVideoRendererManager::FlutterVideoRendererManager(
-    FlutterWebRTCBase *base)
+    FlutterWebRTCBase* base)
     : base_(base) {}
 
 void FlutterVideoRendererManager::CreateVideoRendererTexture(
@@ -144,11 +144,10 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
 
 void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
                                                  const std::string& stream_id) {
-  scoped_refptr<RTCMediaStream> stream =
-      base_->MediaStreamForId(stream_id);
+  scoped_refptr<RTCMediaStream> stream = base_->MediaStreamForId(stream_id);
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
-    FlutterVideoRenderer *renderer = it->second.get();
+    FlutterVideoRenderer* renderer = it->second.get();
     if (stream.get()) {
       auto video_tracks = stream->video_tracks();
       if (video_tracks.size() > 0) {
@@ -173,6 +172,5 @@ void FlutterVideoRendererManager::VideoRendererDispose(
   result->Error("VideoRendererDisposeFailed",
                 "VideoRendererDispose() texture not found!");
 }
-
 
 }  // namespace flutter_webrtc_plugin

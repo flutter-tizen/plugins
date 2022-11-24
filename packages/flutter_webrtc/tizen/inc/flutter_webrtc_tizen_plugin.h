@@ -1,10 +1,10 @@
 #ifndef FLUTTER_PLUGIN_FLUTTER_WEBRTC_TIZEN_PLUGIN_H_
 #define FLUTTER_PLUGIN_FLUTTER_WEBRTC_TIZEN_PLUGIN_H_
 
-#include <flutter_plugin_registrar.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_message_codec.h>
+#include <flutter_plugin_registrar.h>
 
 #include "flutter_data_channel.h"
 #include "flutter_media_stream.h"
@@ -29,7 +29,7 @@ FLUTTER_PLUGIN_EXPORT void FlutterWebRtcTizenPluginRegisterWithRegistrar(
 }  // extern "C"
 #endif
 
-#endif  
+#endif
 
 namespace flutter_webrtc_plugin {
 using namespace libwebrtc;

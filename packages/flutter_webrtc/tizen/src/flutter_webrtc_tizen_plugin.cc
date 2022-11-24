@@ -3,12 +3,13 @@
 // found in the LICENSE file.
 
 #include "flutter_webrtc_tizen_plugin.h"
-#include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
+
 #include <flutter/standard_message_codec.h>
 
 #include <memory>
 
 #include "flutter_tizen.h"
+#include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
 #include "log.h"
 
 // class WebviewFlutterTizenPlugin : public flutter::Plugin {
@@ -35,7 +36,7 @@ namespace flutter_webrtc_plugin {
 
 // A webrtc plugin for windows/linux.
 class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
-public:
+ public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel = std::make_unique<flutter::MethodChannel<EncodableValue>>(
         registrar->messenger(), kChannelName,
@@ -61,12 +62,13 @@ public:
 
   flutter::TextureRegistrar *textures() { return textures_; }
 
-private:
+ private:
   // Creates a plugin that communicates on the given channel.
   FlutterWebRTCPluginImpl(
       flutter::PluginRegistrar *registrar,
       std::unique_ptr<flutter::MethodChannel<EncodableValue>> channel)
-      : channel_(std::move(channel)), messenger_(registrar->messenger()),
+      : channel_(std::move(channel)),
+        messenger_(registrar->messenger()),
         textures_(registrar->texture_registrar()) {
     webrtc_ = std::make_unique<FlutterWebRTC>(this);
     LOG_DEBUG("[MONG] FlutterWebRTCPluginImpl()-->");
@@ -80,14 +82,14 @@ private:
     webrtc_->HandleMethodCall(method_call, std::move(result));
   }
 
-private:
+ private:
   std::unique_ptr<flutter::MethodChannel<EncodableValue>> channel_;
   std::unique_ptr<FlutterWebRTC> webrtc_;
   flutter::BinaryMessenger *messenger_;
   flutter::TextureRegistrar *textures_;
 };
 
-} // namespace flutter_webrtc_plugin
+}  // namespace flutter_webrtc_plugin
 
 void FlutterWebRTCPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {

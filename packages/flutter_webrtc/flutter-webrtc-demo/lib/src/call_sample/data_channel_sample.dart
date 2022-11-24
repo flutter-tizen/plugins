@@ -166,7 +166,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
           : ListView.builder(
               shrinkWrap: true,
               padding: const EdgeInsets.all(0.0),
-              itemCount: (_peers != null ? _peers.length : 0),
+              itemCount: _peers.length,
               itemBuilder: (context, i) {
                 return _buildRow(context, _peers[i]);
               }),
