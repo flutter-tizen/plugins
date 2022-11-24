@@ -1,4 +1,4 @@
-include: package:lints/recommended.yaml
+include: package:pedantic/analysis_options.yaml
 
 linter:
   rules:
@@ -6,9 +6,8 @@ linter:
     - avoid_empty_else
     - await_only_futures
     - avoid_returning_null_for_void
-    - camel_case_extensions
-    - camel_case_types
     - cancel_subscriptions
+    - directives_ordering
     - flutter_style_todos
     - sort_constructors_first
     - sort_unnamed_constructors_first
@@ -45,6 +44,3 @@ analyzer:
     # Stream and not importing dart:async
     # Please see https://github.com/flutter/flutter/pull/24528 for details.
     sdk_version_async_exported_from_core: ignore
-    # Conflict with import_sorter
-    directives_ordering: ignore
-    constant_identifier_names: ignore
