@@ -1,0 +1,28 @@
+name: flutter_webrtc_demo
+description: A new Flutter application.
+version: 1.2.0
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+  flutter: '>=1.22.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.3
+  flutter_webrtc: ^0.9.2
+  flutter_webrtc_tizen:
+    path: ../
+  shared_preferences: ^2.0.9
+  shared_preferences_tizen: ^2.0.2
+  http: ^0.13.3
+  path_provider: ^2.0.7
+  path_provider_tizen: ^2.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
