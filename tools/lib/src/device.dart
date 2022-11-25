@@ -272,6 +272,45 @@ class EmulatorDevice extends Device {
     );
   }
 
+  /// Grants all privacy-related permissions to apps by default.
+  ///
+  /// This only applies to apps newly installed to the device after this call.
+  bool _disablePermissionPopups() {
+    if (!isConnected) {
+      return false;
+    }
+    final Map<String, String> capability = _tizenSdk.sdbCapability(serial!);
+    final bool rooted = capability['rootonoff_support'] == 'enabled';
+    if (!rooted) {
+      return false;
+    }
+
+    io.ProcessResult result = _processRunner.runSync(
+      _tizenSdk.sdb.path,
+      <String>['-s', serial!, 'root', 'on'],
+    );
+    if (result.exitCode != 0) {
+      print('Error: running "sdb root on" failed.');
+      return false;
+    }
+
+    result = _processRunner.runSync(
+      _tizenSdk.sdb.path,
+      <String>['-s', serial!, 'shell', 'touch', '/opt/share/askuser_disable'],
+    );
+    final String stdout = result.stdout as String;
+    if (result.exitCode != 0 || stdout.trim().isNotEmpty) {
+      print('Error: running sdb shell command failed: $stdout');
+      return false;
+    }
+
+    _processRunner.runSync(
+      _tizenSdk.sdb.path,
+      <String>['-s', serial!, 'root', 'off'],
+    );
+    return true;
+  }
+
   /// Deletes this emulator.
   Future<void> delete() async => await _processRunner.runAndStream(
         _tizenSdk.emCli.path,
@@ -368,6 +407,7 @@ class EmulatorDevice extends Device {
         autoLaunched = true;
         await launch();
       }
+      _disablePermissionPopups();
       result = await super.runIntegrationTest(workingDir, timeout);
     } finally {
       if (autoLaunched) {
