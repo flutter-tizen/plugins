@@ -1,3 +1,7 @@
+## 0.6.1
+
+*  Fix canGoBack/Forward error
+
 ## 0.6.0
 
 *  Change the backing web engine from LWE to EFL WebKit (EWK).

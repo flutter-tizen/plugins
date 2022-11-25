@@ -402,11 +402,11 @@ void WebView::HandleMethodCall(const FlMethodCall& method_call,
     }
     result->Success();
   } else if (method_name == "canGoBack") {
-    result->Success(
-        flutter::EncodableValue(ewk_view_back_possible(webview_instance_)));
+    result->Success(flutter::EncodableValue(
+        static_cast<bool>(ewk_view_back_possible(webview_instance_))));
   } else if (method_name == "canGoForward") {
-    result->Success(
-        flutter::EncodableValue(ewk_view_forward_possible(webview_instance_)));
+    result->Success(flutter::EncodableValue(
+        static_cast<bool>(ewk_view_forward_possible(webview_instance_))));
   } else if (method_name == "goBack") {
     ewk_view_back(webview_instance_);
     result->Success();
