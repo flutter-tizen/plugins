@@ -50,10 +50,51 @@ void VideoPlayer::ParseCreateMessage(const CreateMessage &create_message) {
       uri_ = uri_ + res_path + "flutter_assets/" + *create_message.asset();
       free(res_path);
     } else {
-      LOG_ERROR("Internal error", "Failed to get resource path.");
+      LOG_ERROR("[VideoPlayer] Internal error", "Failed to get resource path.");
     }
   }
-  LOG_DEBUG(" player uri: %s", uri_.c_str());
+  LOG_INFO("[VideoPlayer] player uri: %s", uri_.c_str());
+
+  const flutter::EncodableMap *geometry_configs =
+      create_message.geometry_configs();
+  if (geometry_configs) {
+    auto geometry_configs_iter =
+        geometry_configs->find(flutter::EncodableValue("x"));
+    if (geometry_configs_iter != geometry_configs->end()) {
+      if (std::holds_alternative<int>(
+              geometry_configs->at(flutter::EncodableValue("x")))) {
+        x_ = std::get<int>(geometry_configs->at(flutter::EncodableValue("x")));
+      }
+    }
+    geometry_configs_iter =
+        geometry_configs->find(flutter::EncodableValue("y"));
+    if (geometry_configs_iter != geometry_configs->end()) {
+      if (std::holds_alternative<int>(
+              geometry_configs->at(flutter::EncodableValue("y")))) {
+        y_ = std::get<int>(geometry_configs->at(flutter::EncodableValue("y")));
+      }
+    }
+    geometry_configs_iter =
+        geometry_configs->find(flutter::EncodableValue("width"));
+    if (geometry_configs_iter != geometry_configs->end()) {
+      if (std::holds_alternative<int>(
+              geometry_configs->at(flutter::EncodableValue("width")))) {
+        width_ = std::get<int>(
+            geometry_configs->at(flutter::EncodableValue("width")));
+      }
+    }
+    geometry_configs_iter =
+        geometry_configs->find(flutter::EncodableValue("height"));
+    if (geometry_configs_iter != geometry_configs->end()) {
+      if (std::holds_alternative<int>(
+              geometry_configs->at(flutter::EncodableValue("height")))) {
+        height_ = std::get<int>(
+            geometry_configs->at(flutter::EncodableValue("height")));
+      }
+    }
+  }
+  LOG_INFO("[VideoPlayer] geometry of window,x:%d,y:%d,width:%d,height:%d", x_,
+           y_, width_, height_);
 }
 
 VideoPlayer::VideoPlayer(FlutterDesktopPluginRegistrarRef registrar_ref,
@@ -72,7 +113,7 @@ bool VideoPlayer::Open(const std::string &uri) {
   if (drm_type_ != DRM_TYPE_NONE && !license_url_.empty()) {
     drm_manager_ =
         std::make_unique<DrmManager>(drm_type_, license_url_, player_);
-    if(!drm_manager_->InitializeDrmSession(uri_)){
+    if (!drm_manager_->InitializeDrmSession(uri_)) {
       LOG_ERROR("[VideoPlayer] initial drm session failed");
     }
   }
@@ -88,16 +129,6 @@ bool VideoPlayer::Open(const std::string &uri) {
 }
 
 bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
-  int w, h = 0;
-  int ret = 0;
-  if (system_info_get_platform_int("http://tizen.org/feature/screen.width",
-                                   &w) != SYSTEM_INFO_ERROR_NONE ||
-      system_info_get_platform_int("http://tizen.org/feature/screen.height",
-                                   &h) != SYSTEM_INFO_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] could not obtain the screen size");
-    return false;
-  }
-
   FlutterDesktopViewRef view_ref =
       FlutterDesktopPluginRegistrarGetView(registrar_ref);
   if (view_ref == nullptr) {
@@ -105,6 +136,7 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
     return false;
   }
 
+  int ret = 0;
   void *libHandle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
   int (*player_set_ecore_wl_display)(
       player_h player, player_display_type_e type, void *ecore_wl_window, int x,
@@ -115,7 +147,7 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
     if (player_set_ecore_wl_display) {
       ret = player_set_ecore_wl_display(
           player_, PLAYER_DISPLAY_TYPE_OVERLAY,
-          FlutterDesktopViewGetNativeHandle(view_ref), 0, 0, w, h);
+          FlutterDesktopViewGetNativeHandle(view_ref), x_, y_, width_, height_);
     } else {
       LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
     }

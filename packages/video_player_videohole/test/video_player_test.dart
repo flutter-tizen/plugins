@@ -72,16 +72,16 @@ class FakeController extends ValueNotifier<VideoPlayerValue>
   void setCaptionOffset(Duration delay) {}
 
   @override
-  Future<bool> setBufferConfig(String option, int amount) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Map<String, int> get bufferConfigs => throw UnimplementedError();
-
-  @override
   // TODO: implement drmConfigs
   Map<String, Object> get drmConfigs => throw UnimplementedError();
+
+  @override
+  // TODO: implement geometryConfigs
+  Map<String, Object> get geometryConfigs => throw UnimplementedError();
+
+  @override
+  set geometryConfigs(Map<String, Object> _geometryConfigs) =>
+      throw UnimplementedError();
 }
 
 Future<ClosedCaptionFile> _loadClosedCaption() async =>

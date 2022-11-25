@@ -171,6 +171,10 @@ class CreateMessage {
   void set_drm_configs(const flutter::EncodableMap* value_arg);
   void set_drm_configs(const flutter::EncodableMap& value_arg);
 
+  const flutter::EncodableMap* geometry_configs() const;
+  void set_geometry_configs(const flutter::EncodableMap* value_arg);
+  void set_geometry_configs(const flutter::EncodableMap& value_arg);
+
  private:
   CreateMessage(flutter::EncodableMap map);
   flutter::EncodableMap ToEncodableMap() const;
@@ -182,6 +186,7 @@ class CreateMessage {
   std::optional<std::string> format_hint_;
   std::optional<flutter::EncodableMap> http_headers_;
   std::optional<flutter::EncodableMap> drm_configs_;
+  std::optional<flutter::EncodableMap> geometry_configs_;
 };
 
 /* Generated class from Pigeon that represents data sent in messages. */

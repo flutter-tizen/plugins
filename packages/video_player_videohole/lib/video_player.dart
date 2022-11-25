@@ -209,6 +209,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         formatHint = null,
         httpHeaders = const <String, String>{},
         drmConfigs = const <String, Object>{},
+        geometryConfigs = const <String, Object>{},
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// Constructs a [VideoPlayerController] playing a video from obtained from
@@ -225,7 +226,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       this.closedCaptionFile,
       this.videoPlayerOptions,
       this.httpHeaders = const <String, String>{},
-      this.drmConfigs = const <String, Object>{}})
+      this.drmConfigs = const <String, Object>{},
+      this.geometryConfigs = const <String, Object>{}})
       : dataSourceType = DataSourceType.network,
         package = null,
         super(VideoPlayerValue(duration: Duration.zero));
@@ -242,6 +244,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         formatHint = null,
         httpHeaders = const <String, String>{},
         drmConfigs = const <String, Object>{},
+        geometryConfigs = const <String, Object>{},
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// Constructs a [VideoPlayerController] playing a video from a contentUri.
@@ -258,6 +261,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         formatHint = null,
         httpHeaders = const <String, String>{},
         drmConfigs = const <String, Object>{},
+        geometryConfigs = const <String, Object>{},
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// The URI to the video file. This will be in different formats depending on
@@ -310,7 +314,20 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   int get textureId => _textureId;
 
   /// Attempts to open the given [dataSource] and load metadata about the video.
+  /// Get the window geometry through window_channel.
+  final MethodChannel _kChannel = const MethodChannel('tizen/internal/window');
+  Map<String, Object> geometryConfigs;
   Future<void> initialize() async {
+    final map = await _kChannel.invokeMethod('getWindowGeometry');
+    if (map != null) {
+      geometryConfigs = {
+        'x': map['x'] as int,
+        'y': map['y'] as int,
+        'width': map['width'] as int,
+        'height': map['height'] as int
+      };
+    }
+
     final bool allowBackgroundPlayback =
         videoPlayerOptions?.allowBackgroundPlayback ?? false;
     if (!allowBackgroundPlayback) {
@@ -326,6 +343,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           sourceType: DataSourceType.asset,
           asset: dataSource,
           package: package,
+          geometryConfigs: geometryConfigs,
         );
         break;
       case DataSourceType.network:
@@ -335,6 +353,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           formatHint: formatHint,
           httpHeaders: httpHeaders,
           drmConfigs: drmConfigs,
+          geometryConfigs: geometryConfigs,
         );
         break;
       case DataSourceType.file:

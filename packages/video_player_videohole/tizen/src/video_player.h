@@ -70,6 +70,10 @@ class VideoPlayer {
   bool is_initialized_ = false;
   bool is_interrupted_ = false;
   bool is_buffering_ = false;
+  int x_;
+  int y_;
+  int width_;
+  int height_;
 };
 
 #endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_

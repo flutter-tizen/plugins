@@ -47,6 +47,7 @@ class CreateMessage {
   String? formatHint;
   Map<Object?, Object?>? httpHeaders;
   Map<Object?, Object?>? drmConfigs;
+  Map<Object?, Object?>? geometryConfigs;
 }
 
 class MixWithOthersMessage {

@@ -138,6 +138,7 @@ class CreateMessage {
     this.formatHint,
     this.httpHeaders,
     this.drmConfigs,
+    this.geometryConfigs,
   });
 
   String? asset;
@@ -146,6 +147,7 @@ class CreateMessage {
   String? formatHint;
   Map<Object?, Object?>? httpHeaders;
   Map<Object?, Object?>? drmConfigs;
+  Map<Object?, Object?>? geometryConfigs;
 
   Object encode() {
     final Map<Object?, Object?> pigeonMap = <Object?, Object?>{};
@@ -155,6 +157,7 @@ class CreateMessage {
     pigeonMap['formatHint'] = formatHint;
     pigeonMap['httpHeaders'] = httpHeaders;
     pigeonMap['drmConfigs'] = drmConfigs;
+    pigeonMap['geometryConfigs'] = geometryConfigs;
     return pigeonMap;
   }
 
@@ -168,6 +171,8 @@ class CreateMessage {
       httpHeaders: (pigeonMap['httpHeaders'] as Map<Object?, Object?>?)
           ?.cast<Object?, Object?>(),
       drmConfigs: (pigeonMap['drmConfigs'] as Map<Object?, Object?>?)
+          ?.cast<Object?, Object?>(),
+      geometryConfigs: (pigeonMap['geometryConfigs'] as Map<Object?, Object?>?)
           ?.cast<Object?, Object?>(),
     );
   }
