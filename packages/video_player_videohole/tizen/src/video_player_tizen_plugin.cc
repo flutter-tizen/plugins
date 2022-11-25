@@ -88,11 +88,13 @@ ErrorOr<std::unique_ptr<PlayerMessage>> VideoPlayerTizenPlugin::Create(
     const CreateMessage &createMsg) {
   std::unique_ptr<VideoPlayer> player =
       std::make_unique<VideoPlayer>(registrar_ref_, createMsg);
-  int64_t playerId = player->Create();
-  players_[playerId] = std::move(player);
   std::unique_ptr<PlayerMessage> player_message =
       std::make_unique<PlayerMessage>();
-  player_message->set_player_id(playerId);
+  int64_t playerId = player->Create();
+  if (playerId != -1) {
+    players_[playerId] = std::move(player);
+    player_message->set_player_id(playerId);
+  }
   return ErrorOr<PlayerMessage>::MakeWithUniquePtr(std::move(player_message));
 }
 
