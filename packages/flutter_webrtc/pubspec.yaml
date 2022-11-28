@@ -7,7 +7,7 @@ flutter:
   plugin:
     platforms:
       tizen:
-        pluginClass: FlutterWebRTCPlugin
+        pluginClass: FlutterWebRtcTizenPlugin
         fileName: flutter_webrtc_tizen_plugin.h
 
 dependencies:

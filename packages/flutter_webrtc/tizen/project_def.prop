@@ -6,7 +6,7 @@ type = staticLib
 profile = common-5.5
 
 # Source files
-USER_SRCS += src/*.cc
+USER_SRCS += src/*.cc third_party/uuidxx/*.cc
 
 # User defines
 USER_DEFS =
@@ -19,6 +19,6 @@ USER_CFLAGS_MISC =
 USER_CPPFLAGS_MISC =
 
 # User includes
-USER_INC_DIRS = inc src inc/libwebrtc
+USER_INC_DIRS = inc src third_party/libwebrtc/include third_party/uuidxx
 USER_INC_FILES =
 USER_CPP_INC_FILES =

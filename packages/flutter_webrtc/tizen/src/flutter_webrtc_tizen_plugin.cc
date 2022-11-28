@@ -6,36 +6,15 @@
 
 #include <flutter/standard_message_codec.h>
 
-#include <memory>
-
-#include "flutter_tizen.h"
-#include "flutter_webrtc/flutter_web_r_t_c_plugin.h"
+#include "flutter_webrtc.h"
 #include "log.h"
-
-// class WebviewFlutterTizenPlugin : public flutter::Plugin {
-//  public:
-//   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
-//     auto plugin = std::make_unique<WebviewFlutterTizenPlugin>();
-//     registrar->AddPlugin(std::move(plugin));
-//   }
-//   WebviewFlutterTizenPlugin() {}
-//   virtual ~WebviewFlutterTizenPlugin() {}
-// };
-
-// void FlutterWebRtcTizenPluginRegisterWithRegistrar(
-//     FlutterDesktopPluginRegistrarRef registrar) {
-//   flutter::PluginRegistrar* core_registrar =
-//       flutter::PluginRegistrarManager::GetInstance()
-//           ->GetRegistrar<flutter::PluginRegistrar>(registrar);
-//   flutter_webrtc_plugin::FlutterWebRTCPlugin::RegisterWithRegistrar(core_registrar);
-// }
 
 const char *kChannelName = "FlutterWebRTC.Method";
 
 namespace flutter_webrtc_plugin {
 
-// A webrtc plugin for windows/linux.
-class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
+// A webrtc plugin for tizen.
+class FlutterWebRtcTizenPlugin : public FlutterWebRTCPlugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel = std::make_unique<flutter::MethodChannel<EncodableValue>>(
@@ -45,8 +24,8 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
     auto *channel_pointer = channel.get();
 
     // Uses new instead of make_unique due to private constructor.
-    std::unique_ptr<FlutterWebRTCPluginImpl> plugin(
-        new FlutterWebRTCPluginImpl(registrar, std::move(channel)));
+    std::unique_ptr<FlutterWebRtcTizenPlugin> plugin(
+        new FlutterWebRtcTizenPlugin(registrar, std::move(channel)));
 
     channel_pointer->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -56,7 +35,7 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  virtual ~FlutterWebRTCPluginImpl() {}
+  virtual ~FlutterWebRtcTizenPlugin() {}
 
   flutter::BinaryMessenger *messenger() { return messenger_; }
 
@@ -64,14 +43,14 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
  private:
   // Creates a plugin that communicates on the given channel.
-  FlutterWebRTCPluginImpl(
+  FlutterWebRtcTizenPlugin(
       flutter::PluginRegistrar *registrar,
       std::unique_ptr<flutter::MethodChannel<EncodableValue>> channel)
       : channel_(std::move(channel)),
         messenger_(registrar->messenger()),
         textures_(registrar->texture_registrar()) {
     webrtc_ = std::make_unique<FlutterWebRTC>(this);
-    LOG_DEBUG("[MONG] FlutterWebRTCPluginImpl()-->");
+    LOG_DEBUG("[MONG] FlutterWebRtcTizenPlugin()-->");
   }
 
   // Called when a method is called on |channel_|;
@@ -91,9 +70,9 @@ class FlutterWebRTCPluginImpl : public FlutterWebRTCPlugin {
 
 }  // namespace flutter_webrtc_plugin
 
-void FlutterWebRTCPluginRegisterWithRegistrar(
+void FlutterWebRtcTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
   static auto *plugin_registrar = new flutter::PluginRegistrar(registrar);
-  flutter_webrtc_plugin::FlutterWebRTCPluginImpl::RegisterWithRegistrar(
+  flutter_webrtc_plugin::FlutterWebRtcTizenPlugin::RegisterWithRegistrar(
       plugin_registrar);
 }
