@@ -34,9 +34,9 @@ class _ThumbnailWidgetState extends State<ThumbnailWidget> {
 
   @override
   void deactivate() {
-    _subscriptions.forEach((element) {
+    for (var element in _subscriptions) {
       element.cancel();
-    });
+    }
     super.deactivate();
   }
 
@@ -100,42 +100,42 @@ class ScreenSelectDialog extends Dialog {
   }
   final Map<String, DesktopCapturerSource> _sources = {};
   SourceType _sourceType = SourceType.Screen;
-  DesktopCapturerSource? _selected_source;
+  DesktopCapturerSource? _selectedSource;
   final List<StreamSubscription<DesktopCapturerSource>> _subscriptions = [];
   StateSetter? _stateSetter;
   Timer? _timer;
 
   void _ok(context) async {
     _timer?.cancel();
-    _subscriptions.forEach((element) {
-      element.cancel();
-    });
-    Navigator.pop<DesktopCapturerSource>(context, _selected_source);
+    for (var element in _subscriptions) {
+      await element.cancel();
+    }
+    Navigator.pop<DesktopCapturerSource>(context, _selectedSource);
   }
 
   void _cancel(context) async {
     _timer?.cancel();
-    _subscriptions.forEach((element) {
-      element.cancel();
-    });
+    for (var element in _subscriptions) {
+      await element.cancel();
+    }
     Navigator.pop<DesktopCapturerSource>(context, null);
   }
 
   Future<void> _getSources() async {
     try {
       var sources = await desktopCapturer.getSources(types: [_sourceType]);
-      sources.forEach((element) {
+      for (var element in sources) {
         print(
             'name: ${element.name}, id: ${element.id}, type: ${element.type}');
-      });
+      }
       _timer?.cancel();
       _timer = Timer.periodic(Duration(seconds: 3), (timer) {
         desktopCapturer.updateSources(types: [_sourceType]);
       });
       _sources.clear();
-      sources.forEach((element) {
+      for (var element in sources) {
         _sources[element.id] = element;
-      });
+      }
       _stateSetter?.call(() {});
       return;
     } catch (e) {
@@ -229,12 +229,12 @@ class ScreenSelectDialog extends Dialog {
                                             .map((e) => ThumbnailWidget(
                                                   onTap: (source) {
                                                     setState(() {
-                                                      _selected_source = source;
+                                                      _selectedSource = source;
                                                     });
                                                   },
                                                   source: e.value,
                                                   selected:
-                                                      _selected_source?.id ==
+                                                      _selectedSource?.id ==
                                                           e.value.id,
                                                 ))
                                             .toList(),
@@ -253,12 +253,12 @@ class ScreenSelectDialog extends Dialog {
                                             .map((e) => ThumbnailWidget(
                                                   onTap: (source) {
                                                     setState(() {
-                                                      _selected_source = source;
+                                                      _selectedSource = source;
                                                     });
                                                   },
                                                   source: e.value,
                                                   selected:
-                                                      _selected_source?.id ==
+                                                      _selectedSource?.id ==
                                                           e.value.id,
                                                 ))
                                             .toList(),

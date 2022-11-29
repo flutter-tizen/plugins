@@ -1,5 +1,5 @@
 // ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as HTML;
+import 'dart:html' as html;
 
 class DeviceInfo {
   static String get label {
@@ -7,9 +7,6 @@ class DeviceInfo {
   }
 
   static String get userAgent {
-    return 'flutter-webrtc/web-plugin 0.0.1 ' +
-        ' ( ' +
-        HTML.window.navigator.userAgent +
-        ' )';
+    return 'flutter-webrtc/web-plugin 0.0.1 ( ${html.window.navigator.userAgent} )';
   }
 }

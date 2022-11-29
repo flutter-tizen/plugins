@@ -4,26 +4,27 @@ version: 1.2.0
 publish_to: none
 
 environment:
-  sdk: '>=2.15.0 <3.0.0'
-  flutter: '>=1.22.0'
+  sdk: ">=2.15.0 <3.0.0"
+  flutter: ">=1.22.0"
 
 dependencies:
+  cupertino_icons: ^1.0.3
   flutter:
     sdk: flutter
-
-  cupertino_icons: ^1.0.3
   flutter_webrtc: ^0.9.11
   flutter_webrtc_tizen:
     path: ../
-  shared_preferences: ^2.0.9
-  shared_preferences_tizen: ^2.0.2
   http: ^0.13.3
   path_provider: ^2.0.7
   path_provider_tizen: ^2.0.2
+  shared_preferences: ^2.0.9
+  shared_preferences_tizen: ^2.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  lints: ^2.0.1
+  pedantic: ^1.11.0
 
 flutter:
   uses-material-design: true

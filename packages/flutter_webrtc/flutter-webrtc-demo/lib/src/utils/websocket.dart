@@ -1,47 +1,47 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:convert';
-import 'dart:async';
 
 class SimpleWebSocket {
-  String _url;
-  var _socket;
+  SimpleWebSocket(this._url);
+  final String _url;
+  WebSocket? _socket;
   Function()? onOpen;
   Function(dynamic msg)? onMessage;
   Function(int? code, String? reaso)? onClose;
-  SimpleWebSocket(this._url);
 
-  connect() async {
+  Future<void> connect() async {
     try {
       //_socket = await WebSocket.connect(_url);
       _socket = await _connectForSelfSignedCert(_url);
       onOpen?.call();
-      _socket.listen((data) {
+      _socket!.listen((data) {
         onMessage?.call(data);
       }, onDone: () {
-        onClose?.call(_socket.closeCode, _socket.closeReason);
+        onClose?.call(_socket!.closeCode, _socket!.closeReason);
       });
     } catch (e) {
       onClose?.call(500, e.toString());
     }
   }
 
-  send(data) {
+  void send(data) {
     if (_socket != null) {
-      _socket.add(data);
+      _socket!.add(data);
       print('send: $data');
     }
   }
 
-  close() {
-    if (_socket != null) _socket.close();
+  void close() {
+    if (_socket != null) _socket!.close();
   }
 
   Future<WebSocket> _connectForSelfSignedCert(url) async {
     try {
-      Random r = new Random();
-      String key = base64.encode(List<int>.generate(8, (_) => r.nextInt(255)));
-      HttpClient client = HttpClient(context: SecurityContext());
+      var r = Random();
+      var key = base64.encode(List<int>.generate(8, (_) => r.nextInt(255)));
+      var client = HttpClient(context: SecurityContext());
       client.badCertificateCallback =
           (X509Certificate cert, String host, int port) {
         print(
@@ -49,7 +49,7 @@ class SimpleWebSocket {
         return true;
       };
 
-      HttpClientRequest request =
+      var request =
           await client.getUrl(Uri.parse(url)); // form the correct url here
       request.headers.add('Connection', 'Upgrade');
       request.headers.add('Upgrade', 'websocket');
@@ -57,9 +57,9 @@ class SimpleWebSocket {
           'Sec-WebSocket-Version', '13'); // insert the correct version here
       request.headers.add('Sec-WebSocket-Key', key.toLowerCase());
 
-      HttpClientResponse response = await request.close();
+      var response = await request.close();
       // ignore: close_sinks
-      Socket socket = await response.detachSocket();
+      var socket = await response.detachSocket();
       var webSocket = WebSocket.fromUpgradedSocket(
         socket,
         protocol: 'signaling',
@@ -68,7 +68,7 @@ class SimpleWebSocket {
 
       return webSocket;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }

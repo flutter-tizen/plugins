@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:core';
+
+import 'package:flutter/material.dart';
 
 class CallSettings extends StatefulWidget {
   static String tag = 'call_settings';
@@ -10,12 +11,12 @@ class CallSettings extends StatefulWidget {
 
 class _CallSettingsState extends State<CallSettings> {
   @override
-  initState() {
+  void initState() {
     super.initState();
   }
 
   @override
-  deactivate() {
+  void deactivate() {
     super.deactivate();
   }
 
@@ -27,7 +28,7 @@ class _CallSettingsState extends State<CallSettings> {
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
-          return Center(child: Text("settings"));
+          return Center(child: Text('settings'));
         },
       ),
     );

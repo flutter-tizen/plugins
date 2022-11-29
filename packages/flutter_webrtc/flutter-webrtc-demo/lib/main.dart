@@ -7,11 +7,11 @@ import 'src/call_sample/call_sample.dart';
 import 'src/call_sample/data_channel_sample.dart';
 import 'src/route_item.dart';
 
-void main() => runApp(new MyApp());
+void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
   @override
-  _MyAppState createState() => new _MyAppState();
+  _MyAppState createState() => _MyAppState();
 }
 
 enum DialogDemoAction {
@@ -26,13 +26,13 @@ class _MyAppState extends State<MyApp> {
 
   bool _datachannel = false;
   @override
-  initState() {
+  void initState() {
     super.initState();
     _initData();
     _initItems();
   }
 
-  _buildRow(context, item) {
+  ListBody _buildRow(context, item) {
     return ListBody(children: <Widget>[
       ListTile(
         title: Text(item.title),
@@ -60,7 +60,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  _initData() async {
+  void _initData() async {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
       _server = _prefs.getString('server') ?? 'demo.cloudwebrtc.com';
@@ -88,7 +88,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  _showAddressDialog(context) {
+  void _showAddressDialog(context) {
     showDemoDialog<DialogDemoAction>(
         context: context,
         child: AlertDialog(
@@ -118,7 +118,7 @@ class _MyAppState extends State<MyApp> {
             ]));
   }
 
-  _initItems() {
+  void _initItems() {
     items = <RouteItem>[
       RouteItem(
           title: 'P2P Call Sample',
