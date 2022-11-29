@@ -347,7 +347,6 @@ void WebView::InitWebView() {
     ewk_cookie_manager_accept_policy_set(
         manager, EWK_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY);
   }
-  ewk_settings_viewport_meta_tag_set(settings, false);
   EwkInternalApiBinding::GetInstance().settings.ImePanelEnabledSet(settings,
                                                                    true);
   ewk_settings_javascript_enabled_set(settings, true);
