@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file.
 
-library firebase_core_desktop;
+library firebase_core_tizen;
 
 import 'package:firebase_core_dart/firebase_core_dart.dart' as core_dart;
 import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
@@ -13,12 +13,9 @@ part 'firebase_app_desktop.dart';
 /// instances.
 class FirebaseCore extends FirebasePlatform {
   /// Called by PluginRegistry to register this plugin as the implementation for Desktop
-  static void registerWith() {
+  static void register() {
     FirebasePlatform.instance = FirebaseCore();
   }
-
-  // ignore: public_member_api_docs
-  static void register() => registerWith();
 
   FirebaseApp _mapDartToPlatfromApp(core_dart.FirebaseApp app) {
     final core_dart.FirebaseOptions options = app.options;

@@ -1,20 +1,21 @@
 # firebase_core_tizen
 
-A Firebase Core implementation for Tizen.
+[![pub package](https://img.shields.io/pub/v/firebase_core_tizen.svg)](https://pub.dev/packages/firebase_core_tizen)
 
-## Getting Started
+The Tizen implementation of [`firebase_core`](https://github.com/firebase/flutterfire/tree/master/packages/firebase_core).
 
-Use this plugin if you want to run your FlutterFire (Firebase for Flutter)
-application on Tizen.
+## Usage
 
-1. First you should install flutter-tizen, see [flutter-tizen installation](https://github.com/flutter-tizen/flutter-tizen/#installation).
-2. Create your new application.
-    ```
-    flutter-tizen create my-app
-    cd my-app
-    ```
-3. Add firebase_core and firebase_core_tizen to your application.
-    ```
-    flutter-tizen pub add firebase_core firebase_core_tizen
-    ```
-4. Include Firebase in the app as described at [Firebase Flutter setup](https://firebase.google.com/docs/flutter/setup).
+This package is not an _endorsed_ implementation of `firebase_core`. Therefore, you have to include `firebase_core_tizen` alongside `firebase_core` as dependencies in your `pubspec.yaml` file.
+
+```yaml
+dependencies:
+  firebase_core: ^1.9.0
+  firebase_core_tizen: ^0.1.0
+```
+
+For detailed usage see https://github.com/invertase/flutterfire_desktop#flutterfire-desktop.
+
+## Tizen integration
+
+The implementation of `firebase_core` is based on [FlutterFire Desktop Core](https://github.com/invertase/flutterfire_desktop/tree/main/packages/firebase_core/firebase_core_desktop). FlutterFire Desktop provides dart implementation of the Firebase modules.

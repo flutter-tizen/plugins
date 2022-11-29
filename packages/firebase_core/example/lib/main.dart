@@ -17,9 +17,9 @@ class MyApp extends StatelessWidget {
   // https://github.com/invertase/flutterfire_desktop/blob/main/packages/firebase_core/firebase_core_desktop/example/lib/main.dart
   FirebaseOptions get firebaseOptions => const FirebaseOptions(
         appId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-        apiKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        apiKey: 'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy',
         projectId: 'react-native-firebase-testing',
-        messagingSenderId: 'xxxxxxxxxxxx',
+        messagingSenderId: 'zzzzzzzzzzzz',
       );
 
   Future<void> initializeDefault() async {
