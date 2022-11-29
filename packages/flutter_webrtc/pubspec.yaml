@@ -1,7 +1,7 @@
 name: flutter_webrtc_tizen
 description: Flutter WebRTC plugin for Tizen, based on GoogleWebRTC.
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter-webrtc
-version: 1.0.0
+version: 0.9.11
 
 flutter:
   plugin:
@@ -25,5 +25,5 @@ dev_dependencies:
   pedantic: ^1.11.1
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ">=2.12.0 <3.0.0"
   flutter: ">=2.0.0"
