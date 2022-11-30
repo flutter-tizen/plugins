@@ -399,7 +399,7 @@ void VideoPlayer::SendInitialized() {
     if (ret != PLAYER_ERROR_NONE) {
       LOG_ERROR("[VideoPlayer] player_get_duration failed: %s",
                 get_error_message(ret));
-      event_sink_->Error("player_get_duration failed");
+      event_sink_->Error("player_get_duration failed", get_error_message(ret));
       return;
     }
     LOG_INFO("[VideoPlayer] video duration: %d", duration);
@@ -409,7 +409,8 @@ void VideoPlayer::SendInitialized() {
     if (ret != PLAYER_ERROR_NONE) {
       LOG_ERROR("[VideoPlayer] player_get_video_size failed: %s",
                 get_error_message(ret));
-      event_sink_->Error("player_get_video_size failed");
+      event_sink_->Error("player_get_video_size failed",
+                         get_error_message(ret));
       return;
     }
     LOG_INFO("[VideoPlayer] video width: %d, video height: %d", width, height);
@@ -419,7 +420,8 @@ void VideoPlayer::SendInitialized() {
     if (ret != PLAYER_ERROR_NONE) {
       LOG_ERROR("[VideoPlayer] player_get_display_rotation failed: %s",
                 get_error_message(ret));
-      event_sink_->Error("player_get_display_rotation failed");
+      event_sink_->Error("player_get_display_rotation failed",
+                         get_error_message(ret));
     } else {
       if (rotation == player_display_rotation_e::PLAYER_DISPLAY_ROTATION_90 ||
           rotation == player_display_rotation_e::PLAYER_DISPLAY_ROTATION_270) {
@@ -524,8 +526,8 @@ void VideoPlayer::OnError(int error_code, void *user_data) {
   VideoPlayer *player = reinterpret_cast<VideoPlayer *>(user_data);
   LOG_ERROR("[VideoPlayer] error code: %s", get_error_message(error_code));
   if (player->event_sink_) {
-    player->event_sink_->Error("Video player had error",
-                               get_error_message(error_code));
+    player->event_sink_->Error(
+        "Player error", std::string("Error: ") + get_error_message(error_code));
   }
 }
 
@@ -534,7 +536,7 @@ void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
   LOG_ERROR("[VideoPlayer] interrupt code: %d", code);
   player->is_interrupted_ = true;
   if (player->event_sink_) {
-    player->event_sink_->Error("Video player had interrupted error",
-                               get_error_message(code));
+    player->event_sink_->Error("Player interrupted",
+                               "Video player has been interrupted.");
   }
 }
