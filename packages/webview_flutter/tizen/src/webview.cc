@@ -656,7 +656,11 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
 void WebView::OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data) {
   FlMethodResult* result = static_cast<FlMethodResult*>(user_data);
-  result->Success(flutter::EncodableValue(result_value));
+  if (result_value) {
+    result->Success(flutter::EncodableValue(result_value));
+  } else {
+    result->Success();
+  }
   delete result;
 }
 
