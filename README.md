@@ -63,7 +63,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**flutter_app_badger_tizen**](packages/flutter_app_badger) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | API not supported |
 | [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_tts_tizen**](packages/flutter_tts) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**flutter_webrtc_tizen**](packages/flutter_webrtc) | 4.0 | ❌ | ❌ | ✔️ | ✔️ |
+| [**flutter_webrtc_tizen**](packages/flutter_webrtc) | 6.0 | ❌ | ❌ | ✔️ | ❌ | No camera |
 | [**geolocator_tizen**](packages/geolocator) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**google_maps_flutter_tizen**](packages/google_maps_flutter) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**google_sign_in_tizen**](packages/google_sign_in) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
