@@ -11,11 +11,11 @@ flutter:
         fileName: flutter_webrtc_tizen_plugin.h
 
 dependencies:
-  dart_webrtc: 1.0.11
+  dart_webrtc: ^1.0.11
   flutter:
     sdk: flutter
   path_provider: ^2.0.2
-  webrtc_interface: 1.0.10
+  webrtc_interface: ^1.0.10
 
 dev_dependencies:
   flutter_test:
