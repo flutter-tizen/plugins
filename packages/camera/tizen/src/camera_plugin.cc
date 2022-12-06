@@ -8,17 +8,12 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include "camera_device.h"
 #include "log.h"
 #include "permission_manager.h"
-
-#define CAMERA_CHANNEL_NAME "plugins.flutter.io/camera"
-#define IMAGE_STREAM_CHANNEL_NAME "plugins.flutter.io/camera/imageStream"
 
 template <typename T>
 bool GetValueFromEncodableMap(flutter::EncodableMap &map, std::string key,
@@ -38,7 +33,7 @@ class CameraPlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto camera_channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), CAMERA_CHANNEL_NAME,
+            registrar->messenger(), "plugins.flutter.io/camera_tizen",
             &flutter::StandardMethodCodec::GetInstance());
 
     auto camera_plugin = std::make_unique<CameraPlugin>(registrar);
