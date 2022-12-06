@@ -20,7 +20,10 @@
 
 using SeekCompletedCb = std::function<void()>;
 
-enum DeviceProfile { kUnknown, kMobile, kWearable, kTV, kCommon };
+typedef int (*FuncPlayerSetEcoreWlDisplay)(player_h player,
+                                           player_display_type_e type,
+                                           void *ecore_wl_window, int x, int y,
+                                           int width, int height);
 
 class VideoPlayer {
  public:

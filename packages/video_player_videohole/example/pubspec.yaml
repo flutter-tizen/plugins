@@ -21,7 +21,6 @@ dev_dependencies:
     sdk: flutter
   path_provider: ^2.0.2
   path_provider_tizen: ^2.0.1
-  pedantic: ^1.10.0
   test: any
 
 flutter:

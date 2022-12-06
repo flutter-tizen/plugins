@@ -9,7 +9,6 @@
 #include <dlfcn.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/standard_method_codec.h>
-#include <system_info.h>
 #include <unistd.h>
 
 #include <cstdarg>
@@ -137,13 +136,11 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
   }
 
   int ret = 0;
-  void *libHandle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
-  int (*player_set_ecore_wl_display)(
-      player_h player, player_display_type_e type, void *ecore_wl_window, int x,
-      int y, int width, int height);
-  if (libHandle) {
-    *(void **)(&player_set_ecore_wl_display) =
-        dlsym(libHandle, "player_set_ecore_wl_display");
+  void *lib_handle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
+  if (lib_handle) {
+    FuncPlayerSetEcoreWlDisplay player_set_ecore_wl_display =
+        reinterpret_cast<FuncPlayerSetEcoreWlDisplay>(
+            dlsym(lib_handle, "player_set_ecore_wl_display"));
     if (player_set_ecore_wl_display) {
       ret = player_set_ecore_wl_display(
           player_, PLAYER_DISPLAY_TYPE_OVERLAY,
@@ -151,7 +148,7 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
     } else {
       LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
     }
-    dlclose(libHandle);
+    dlclose(lib_handle);
   } else {
     LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
   }

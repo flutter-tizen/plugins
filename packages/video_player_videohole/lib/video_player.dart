@@ -382,7 +382,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     final Completer<void> initializingCompleter = Completer<void>();
 
     void eventListener(VideoEvent event) {
-      print('VideoEvent.eventType == ' + event.eventType.toString());
       if (_isDisposed) {
         return;
       }
