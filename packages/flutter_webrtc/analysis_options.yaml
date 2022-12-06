@@ -1,5 +1,3 @@
-include: package:lints/recommended.yaml
-
 linter:
   rules:
     - always_declare_return_types
@@ -29,7 +27,7 @@ linter:
     - use_rethrow_when_possible
     - valid_regexps
     - void_checks
-  
+
 analyzer:
   errors:
     # treat missing required parameters as a warning (not a hint)

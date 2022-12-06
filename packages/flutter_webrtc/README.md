@@ -18,11 +18,10 @@ To use this plugin in a Tizen application, you may need to declare the following
 ```
 
 - The internet privilege (`http://tizen.org/privilege/internet`) is required to access the internet.
-- The camera priviege (`http://tizen.org/privilege/internet`) is required to use camera.
-- The recorder priviege (`http://tizen.org/privilege/recorder`) is required to record video and audio.
+- The camera privilege (`http://tizen.org/privilege/camera`) is required to use camera.
+- The recorder privilege (`http://tizen.org/privilege/recorder`) is required to record video and audio.
 
- To use camera on Tizen TV devices, you need to add developer camera privilege (`http://developer.samsung.com/privilege/camera`) and have a [partner level certificate](https://developer.samsung.com/tv-seller-office/guides/membership/becoming-partner.html).
- For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
+ To use camera on Tizen TV devices, you need to add developer camera privilege (`http://developer.samsung.com/privilege/camera`) and become a [partner seller](https://developer.samsung.com/tv-seller-office/guides/membership/becoming-partner.html).
 
 ## Usage
 
@@ -31,7 +30,7 @@ To use this plugin in a Tizen application, you may need to declare the following
  ```yaml
 dependencies:
   flutter_webrtc: ^0.9.11
-  flutter_webrtc_tizen: ^0.9.11
+  flutter_webrtc_tizen: ^0.1.0
 ```
 
 ## Functionality

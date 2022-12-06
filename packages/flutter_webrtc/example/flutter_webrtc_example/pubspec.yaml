@@ -3,8 +3,8 @@ description: Demonstrates how to use the webrtc plugin.
 version: 1.0.0
 publish_to: none
 environment:
-  sdk: '>=2.12.0 <3.0.0'
-  
+  sdk: ">=2.12.0 <3.0.0"
+
 dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -14,7 +14,7 @@ dependencies:
   flutter_background: ^1.0.0
   flutter_webrtc: ^0.9.16
   flutter_webrtc_tizen:
-    path: ../
+    path: ../../
   # Required for MediaRecorder example
   path_provider: ^2.0.7
   path_provider_tizen: ^2.0.2
@@ -30,7 +30,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -64,5 +63,5 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  # For details regarding fonts from package dependencies, 
+  # For details regarding fonts from package dependencies,
   # see https://flutter.io/custom-fonts/#from-packages

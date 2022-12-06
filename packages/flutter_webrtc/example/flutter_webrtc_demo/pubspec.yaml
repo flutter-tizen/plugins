@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
   flutter_webrtc: ^0.9.11
   flutter_webrtc_tizen:
-    path: ../
+    path: ../../
   http: ^0.13.3
   path_provider: ^2.0.7
   path_provider_tizen: ^2.0.2
