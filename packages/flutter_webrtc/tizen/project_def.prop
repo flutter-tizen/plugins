@@ -2,7 +2,7 @@
 # for details.
 
 APPNAME = flutter_webrtc_tizen_plugin
-type = staticLib
+type = sharedLib
 profile = common-5.5
 
 # Source files
@@ -22,3 +22,8 @@ USER_CPPFLAGS_MISC =
 USER_INC_DIRS = inc src third_party/libwebrtc/include third_party/uuidxx
 USER_INC_FILES =
 USER_CPP_INC_FILES =
+
+# Linker options
+USER_LIBS = webrtc
+USER_LIB_DIRS = lib/${BUILD_ARCH}
+USER_LFLAGS = -Wl,-rpath='$$ORIGIN'
