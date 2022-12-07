@@ -8,20 +8,31 @@ The Tizen implementation of [`flutter_webrtc`](https://github.com/flutter-webrtc
 
 To use this plugin in a Tizen application, you may need to declare the following privileges in your `tizen-manifest.xml` file.
 
+For Tizen TV devices :
+
 ```xml
 <privileges>
     <privilege>http://developer.samsung.com/privilege/camera</privilege>
     <privilege>http://tizen.org/privilege/internet</privilege>
+    <privilege>http://tizen.org/privilege/recorder</privilege>
+</privileges>
+```
+
+For other Tizen devices :
+
+```xml
+<privileges>
     <privilege>http://tizen.org/privilege/camera</privilege>
+    <privilege>http://tizen.org/privilege/internet</privilege>
     <privilege>http://tizen.org/privilege/recorder</privilege>
 </privileges>
 ```
 
 - The internet privilege (`http://tizen.org/privilege/internet`) is required to access the internet.
-- The camera privilege (`http://tizen.org/privilege/camera`) is required to use camera.
 - The recorder privilege (`http://tizen.org/privilege/recorder`) is required to record video and audio.
+- The camera privilege (`http://tizen.org/privilege/camera`) is required to use camera.
 
- To use camera on Tizen TV devices, you need to add developer camera privilege (`http://developer.samsung.com/privilege/camera`) and become a [partner seller](https://developer.samsung.com/tv-seller-office/guides/membership/becoming-partner.html).
+ To use camera on Tizen TV devices, you need to add developer camera privilege (`http://developer.samsung.com/privilege/camera`) and have a [partner level certificate](https://docs.tizen.org/application/dotnet/get-started/certificates/creating-certificates).
 
 ## Usage
 
