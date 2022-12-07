@@ -19,7 +19,7 @@ dependencies:
   video_player_platform_interface: ^5.1.2
 
 dev_dependencies:
-  pigeon: ^2.0.1
+  pigeon: ^4.2.9
 
 environment:
   flutter: ">=2.0.0"

@@ -6,12 +6,8 @@ import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/src/messages.g.dart',
-  dartTestOut: 'test/test_api.dart',
-  javaOut: 'android/src/main/java/io/flutter/plugins/videoplayer/Messages.java',
-  javaOptions: JavaOptions(
-    package: 'io.flutter.plugins.videoplayer',
-  ),
-  copyrightHeader: 'pigeons/copyright.txt',
+  cppHeaderOut: 'tizen/src/messages.h',
+  cppSourceOut: 'tizen/src/messages.cc',
 ))
 class TextureMessage {
   TextureMessage(this.textureId);
@@ -56,8 +52,8 @@ class MixWithOthersMessage {
   bool mixWithOthers;
 }
 
-@HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
-abstract class AndroidVideoPlayerApi {
+@HostApi()
+abstract class TizenVideoPlayerApi {
   void initialize();
   TextureMessage create(CreateMessage msg);
   void dispose(TextureMessage msg);
@@ -66,6 +62,7 @@ abstract class AndroidVideoPlayerApi {
   void setPlaybackSpeed(PlaybackSpeedMessage msg);
   void play(TextureMessage msg);
   PositionMessage position(TextureMessage msg);
+  @async
   void seekTo(PositionMessage msg);
   void pause(TextureMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);

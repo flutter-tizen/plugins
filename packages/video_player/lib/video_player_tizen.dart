@@ -11,9 +11,9 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 import 'src/messages.g.dart';
 
 /// A Tizen implementation of [VideoPlayerPlatform] that uses the
-/// Pigeon-generated [AndroidVideoPlayerApi].
+/// Pigeon-generated [TizenVideoPlayerApi].
 class VideoPlayerTizen extends VideoPlayerPlatform {
-  final AndroidVideoPlayerApi _api = AndroidVideoPlayerApi();
+  final TizenVideoPlayerApi _api = TizenVideoPlayerApi();
 
   /// Registers this class as the default platform instance.
   static void register() {
