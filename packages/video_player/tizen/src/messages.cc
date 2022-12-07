@@ -346,46 +346,58 @@ void TizenVideoPlayerApiCodecSerializer::WriteValue(
           std::get_if<flutter::CustomEncodableValue>(&value)) {
     if (custom_value->type() == typeid(CreateMessage)) {
       stream->WriteByte(128);
-      WriteValue(std::any_cast<CreateMessage>(*custom_value).ToEncodableMap(),
-                 stream);
+      WriteValue(
+          flutter::EncodableValue(
+              std::any_cast<CreateMessage>(*custom_value).ToEncodableMap()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(LoopingMessage)) {
       stream->WriteByte(129);
-      WriteValue(std::any_cast<LoopingMessage>(*custom_value).ToEncodableMap(),
-                 stream);
+      WriteValue(
+          flutter::EncodableValue(
+              std::any_cast<LoopingMessage>(*custom_value).ToEncodableMap()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(MixWithOthersMessage)) {
       stream->WriteByte(130);
-      WriteValue(
-          std::any_cast<MixWithOthersMessage>(*custom_value).ToEncodableMap(),
-          stream);
+      WriteValue(flutter::EncodableValue(
+                     std::any_cast<MixWithOthersMessage>(*custom_value)
+                         .ToEncodableMap()),
+                 stream);
       return;
     }
     if (custom_value->type() == typeid(PlaybackSpeedMessage)) {
       stream->WriteByte(131);
-      WriteValue(
-          std::any_cast<PlaybackSpeedMessage>(*custom_value).ToEncodableMap(),
-          stream);
+      WriteValue(flutter::EncodableValue(
+                     std::any_cast<PlaybackSpeedMessage>(*custom_value)
+                         .ToEncodableMap()),
+                 stream);
       return;
     }
     if (custom_value->type() == typeid(PositionMessage)) {
       stream->WriteByte(132);
-      WriteValue(std::any_cast<PositionMessage>(*custom_value).ToEncodableMap(),
-                 stream);
+      WriteValue(
+          flutter::EncodableValue(
+              std::any_cast<PositionMessage>(*custom_value).ToEncodableMap()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(TextureMessage)) {
       stream->WriteByte(133);
-      WriteValue(std::any_cast<TextureMessage>(*custom_value).ToEncodableMap(),
-                 stream);
+      WriteValue(
+          flutter::EncodableValue(
+              std::any_cast<TextureMessage>(*custom_value).ToEncodableMap()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(VolumeMessage)) {
       stream->WriteByte(134);
-      WriteValue(std::any_cast<VolumeMessage>(*custom_value).ToEncodableMap(),
-                 stream);
+      WriteValue(
+          flutter::EncodableValue(
+              std::any_cast<VolumeMessage>(*custom_value).ToEncodableMap()),
+          stream);
       return;
     }
   }
@@ -425,7 +437,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -447,7 +459,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const CreateMessage&>(
@@ -465,7 +477,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -487,7 +499,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const TextureMessage&>(
@@ -504,7 +516,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -526,7 +538,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const LoopingMessage&>(
@@ -543,7 +555,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -565,7 +577,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const VolumeMessage&>(
@@ -582,7 +594,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -605,7 +617,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const PlaybackSpeedMessage&>(
@@ -623,7 +635,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -645,7 +657,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const TextureMessage&>(
@@ -662,7 +674,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -684,7 +696,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const TextureMessage&>(
@@ -702,7 +714,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -724,7 +736,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const PositionMessage&>(
@@ -734,17 +746,17 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 if (output.has_value()) {
                   wrapped.emplace(flutter::EncodableValue("error"),
                                   WrapError(output.value()));
-                  reply(wrapped);
+                  reply(flutter::EncodableValue(wrapped));
                 } else {
                   wrapped.emplace(flutter::EncodableValue("result"),
                                   flutter::EncodableValue());
-                  reply(wrapped);
+                  reply(flutter::EncodableValue(wrapped));
                 }
               });
             } catch (const std::exception& exception) {
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
-              reply(wrapped);
+              reply(flutter::EncodableValue(wrapped));
             }
           });
     } else {
@@ -767,7 +779,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const TextureMessage&>(
@@ -784,7 +796,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
@@ -807,7 +819,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               if (encodable_msg_arg.IsNull()) {
                 wrapped.emplace(flutter::EncodableValue("error"),
                                 WrapError("msg_arg unexpectedly null."));
-                reply(wrapped);
+                reply(flutter::EncodableValue(wrapped));
                 return;
               }
               const auto& msg_arg = std::any_cast<const MixWithOthersMessage&>(
@@ -825,7 +837,7 @@ void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               wrapped.emplace(flutter::EncodableValue("error"),
                               WrapError(exception.what()));
             }
-            reply(wrapped);
+            reply(flutter::EncodableValue(wrapped));
           });
     } else {
       channel->SetMessageHandler(nullptr);
