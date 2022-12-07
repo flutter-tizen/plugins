@@ -13,7 +13,7 @@
 
 class WebViewFactory : public PlatformViewFactory {
  public:
-  WebViewFactory(flutter::PluginRegistrar* registrar);
+  WebViewFactory(flutter::PluginRegistrar* registrar, void* win);
 
   virtual PlatformView* Create(int view_id, double width, double height,
                                const ByteMessage& params) override;
@@ -22,6 +22,7 @@ class WebViewFactory : public PlatformViewFactory {
 
  private:
   flutter::TextureRegistrar* texture_registrar_;
+  void* win_ = nullptr;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_FACTORY_H_

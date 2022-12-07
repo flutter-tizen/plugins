@@ -81,7 +81,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   // Tizen SDK installed on the system.
   late final TizenSdk _tizenSdk = TizenSdk.locateTizenSdk();
 
-  Duration _timeout = const Duration(seconds: 120);
+  Duration _timeout = const Duration(seconds: 300);
 
   Recipe? _recipe;
 
