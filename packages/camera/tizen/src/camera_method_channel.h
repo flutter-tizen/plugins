@@ -9,6 +9,8 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 
+#include <memory>
+
 enum class CameraEventType {
   kError,
   kCameraClosing,
