@@ -1,3 +1,8 @@
+## 2.2.0
+
+* Switch to an internal method channel implementation.
+* Unsupport deprecated methods.
+
 ## 2.1.1
 
 * Update image_picker to 0.8.6.

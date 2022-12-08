@@ -44,7 +44,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "plugins.flutter.io/image_picker",
+            registrar->messenger(), "plugins.flutter.io/image_picker_tizen",
             &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin = std::make_unique<ImagePickerTizenPlugin>();
