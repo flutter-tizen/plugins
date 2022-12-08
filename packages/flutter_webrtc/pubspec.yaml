@@ -14,6 +14,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
+  path_provider_tizen: ^2.0.2
 
 environment:
   sdk: ">=2.12.0 <3.0.0"

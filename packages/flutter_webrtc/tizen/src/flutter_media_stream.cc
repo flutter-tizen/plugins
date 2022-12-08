@@ -1,3 +1,8 @@
+// Copyright (c) 2018 湖北捷智云技术有限公司. All rights reserved.
+//
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE.
+
 #include "flutter_media_stream.h"
 
 #define DEFAULT_WIDTH 640

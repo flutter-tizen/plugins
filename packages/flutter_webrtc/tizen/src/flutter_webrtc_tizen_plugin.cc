@@ -1,6 +1,7 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright (c) 2018 湖北捷智云技术有限公司. All rights reserved.
+//
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE.
 
 #include "flutter_webrtc_tizen_plugin.h"
 

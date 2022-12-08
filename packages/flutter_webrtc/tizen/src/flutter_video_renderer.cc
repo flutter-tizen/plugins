@@ -1,3 +1,8 @@
+// Copyright (c) 2018 湖北捷智云技术有限公司. All rights reserved.
+//
+// Distributed under the MIT software license, see the accompanying
+// file LICENSE.
+
 #include "flutter_video_renderer.h"
 
 namespace flutter_webrtc_plugin {
