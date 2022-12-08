@@ -8,8 +8,6 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
-#include <flutter/texture_registrar.h>
-#include <string.h>
 
 #include <list>
 #include <map>
