@@ -83,8 +83,12 @@ class _MapClickBodyState extends State<_MapClickBody> {
         lastLongPress,
         textAlign: TextAlign.center,
       )));
+      columnChildren.add(Center(
+          child: Text(
+        _lastLongPress != null ? 'Long pressed' : '',
+        textAlign: TextAlign.center,
+      )));
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: columnChildren,

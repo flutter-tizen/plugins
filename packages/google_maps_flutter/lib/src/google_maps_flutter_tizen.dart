@@ -11,8 +11,6 @@ part of google_maps_flutter_tizen;
 class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
   /// Registers this class as the default instance of [GoogleMapsFlutterPlatform].
   static void register() {
-    print(
-        'Registers GoogleMapsPlugin() as the default instance [GoogleMapsFlutterPlatform]');
     GoogleMapsFlutterPlatform.instance = GoogleMapsPlugin();
   }
 

@@ -4,6 +4,7 @@
 
 // ignore_for_file: public_member_api_docs
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -164,8 +165,46 @@ class PlacePolylineBodyState extends State<PlacePolylineBody> {
     });
   }
 
+  void _changeJointType(PolylineId polylineId) {
+    final Polyline polyline = polylines[polylineId]!;
+    setState(() {
+      polylines[polylineId] = polyline.copyWith(
+        jointTypeParam: jointTypes[++jointTypesIndex % jointTypes.length],
+      );
+    });
+  }
+
+  void _changeEndCap(PolylineId polylineId) {
+    final Polyline polyline = polylines[polylineId]!;
+    setState(() {
+      polylines[polylineId] = polyline.copyWith(
+        endCapParam: endCaps[++endCapsIndex % endCaps.length],
+      );
+    });
+  }
+
+  void _changeStartCap(PolylineId polylineId) {
+    final Polyline polyline = polylines[polylineId]!;
+    setState(() {
+      polylines[polylineId] = polyline.copyWith(
+        startCapParam: startCaps[++startCapsIndex % startCaps.length],
+      );
+    });
+  }
+
+  void _changePattern(PolylineId polylineId) {
+    final Polyline polyline = polylines[polylineId]!;
+    setState(() {
+      polylines[polylineId] = polyline.copyWith(
+        patternsParam: patterns[++patternsIndex % patterns.length],
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
     final PolylineId? selectedId = selectedPolyline;
 
     return Column(
@@ -232,6 +271,30 @@ class PlacePolylineBodyState extends State<PlacePolylineBody> {
                               ? null
                               : () => _changeColor(selectedId),
                           child: const Text('change color'),
+                        ),
+                        TextButton(
+                          onPressed: isIOS || (selectedId == null)
+                              ? null
+                              : () => _changeStartCap(selectedId),
+                          child: const Text('change start cap [Android only]'),
+                        ),
+                        TextButton(
+                          onPressed: isIOS || (selectedId == null)
+                              ? null
+                              : () => _changeEndCap(selectedId),
+                          child: const Text('change end cap [Android only]'),
+                        ),
+                        TextButton(
+                          onPressed: isIOS || (selectedId == null)
+                              ? null
+                              : () => _changeJointType(selectedId),
+                          child: const Text('change joint type [Android only]'),
+                        ),
+                        TextButton(
+                          onPressed: isIOS || (selectedId == null)
+                              ? null
+                              : () => _changePattern(selectedId),
+                          child: const Text('change pattern [Android only]'),
                         ),
                       ],
                     )
