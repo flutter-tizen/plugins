@@ -228,8 +228,8 @@ class IntegrationTestCommand extends PackageLoopingCommand {
             await device.runIntegrationTest(example.directory, _timeout);
         if (packageResult.state == RunState.failed) {
           // Tests may fail unexpectedly on a self-hosted runner. Try again.
-          packageResult = await device
-              .runIntegrationTest(example.directory, _timeout, debug: true);
+          packageResult =
+              await device.runIntegrationTest(example.directory, _timeout);
         }
         if (packageResult.state == RunState.failed) {
           errors.addAll(packageResult.details);

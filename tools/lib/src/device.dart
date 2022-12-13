@@ -127,9 +127,8 @@ class Device {
   /// nor [PackageResult.exclude].
   Future<PackageResult> runIntegrationTest(
     Directory workingDir,
-    Duration timeout, {
-    bool debug = false,
-  }) async {
+    Duration timeout,
+  ) async {
     if (!isConnected) {
       return PackageResult.fail(
           <String>['Device $name ($profile) is not connected.']);
@@ -137,13 +136,7 @@ class Device {
 
     final io.Process process = await _processRunner.start(
       'flutter-tizen',
-      <String>[
-        if (debug) '-v',
-        '-d',
-        serial!,
-        'test',
-        'integration_test',
-      ],
+      <String>['-d', serial!, 'test', 'integration_test'],
       workingDirectory: workingDir,
     );
 
@@ -319,11 +312,10 @@ class EmulatorDevice extends Device {
   }
 
   /// Deletes this emulator.
-  Future<void> delete() async => await _processRunner.runAndStream(
-        _tizenSdk.emCli.path,
-        <String>['delete', '-n', name],
-        exitOnError: true,
-      );
+  Future<void> delete() async {
+    await _processRunner
+        .runAndStream(_tizenSdk.emCli.path, <String>['delete', '-n', name]);
+  }
 
   /// Launches this emualtor.
   Future<void> launch() async {
@@ -400,9 +392,8 @@ class EmulatorDevice extends Device {
   @override
   Future<PackageResult> runIntegrationTest(
     Directory workingDir,
-    Duration timeout, {
-    bool debug = false,
-  }) async {
+    Duration timeout,
+  ) async {
     bool autoLaunched = false;
     bool autoCreated = false;
     try {
@@ -415,7 +406,7 @@ class EmulatorDevice extends Device {
         await launch();
       }
       _disablePermissionPopups();
-      return await super.runIntegrationTest(workingDir, timeout, debug: debug);
+      return await super.runIntegrationTest(workingDir, timeout);
     } finally {
       if (autoLaunched) {
         await close();
