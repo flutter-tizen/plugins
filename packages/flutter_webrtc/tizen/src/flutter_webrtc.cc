@@ -20,11 +20,8 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
 FlutterWebRTC::~FlutterWebRTC() {}
 
 void FlutterWebRTC::HandleMethodCall(
-    const flutter::MethodCall<EncodableValue>& method_call,
-    std::unique_ptr<flutter::MethodResult<EncodableValue>> result) {
-  LOG_DEBUG("[MONG] HandleMethodCall() : %s\n",
-            method_call.method_name().c_str());
-
+    const MethodCallProxy& method_call,
+    std::unique_ptr<MethodResultProxy> result) {
   if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null arguments received");
@@ -100,8 +97,6 @@ void FlutterWebRTC::HandleMethodCall(
     }
     const EncodableMap thumbnailSize = findMap(params, "thumbnailSize");
     if (thumbnailSize != EncodableMap()) {
-      // int width = 0;
-      // int height = 0;
       result->NotImplemented();
     } else {
       result->Error("Bad Arguments", "Bad arguments received");

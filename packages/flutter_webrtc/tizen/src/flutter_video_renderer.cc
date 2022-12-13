@@ -19,25 +19,9 @@ FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar* registrar,
 
   texture_id_ = registrar_->RegisterTexture(texture_.get());
 
-  std::string event_channel =
+  std::string channel_name =
       "FlutterWebRTC/Texture" + std::to_string(texture_id_);
-  event_channel_.reset(new EventChannel<EncodableValue>(
-      messenger, event_channel, &StandardMethodCodec::GetInstance()));
-
-  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
-      [&](const flutter::EncodableValue* arguments,
-          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
-          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-        event_sink_ = std::move(events);
-        return nullptr;
-      },
-      [&](const flutter::EncodableValue* arguments)
-          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-        event_sink_ = nullptr;
-        return nullptr;
-      });
-
-  event_channel_->SetStreamHandler(std::move(handler));
+  event_channel_ = EventChannelProxy::Create(messenger, channel_name);
 }
 
 const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(
@@ -67,39 +51,33 @@ const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(
 
 void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
   if (!first_frame_rendered) {
-    if (event_sink_) {
-      EncodableMap params;
-      params[EncodableValue("event")] = "didFirstFrameRendered";
-      params[EncodableValue("id")] = EncodableValue(texture_id_);
-      event_sink_->Success(EncodableValue(params));
-    }
+    EncodableMap params;
+    params[EncodableValue("event")] = "didFirstFrameRendered";
+    params[EncodableValue("id")] = EncodableValue(texture_id_);
+    event_channel_->Success(EncodableValue(params));
     pixel_buffer_.reset(new FlutterDesktopPixelBuffer());
     pixel_buffer_->width = 0;
     pixel_buffer_->height = 0;
     first_frame_rendered = true;
   }
   if (rotation_ != frame->rotation()) {
-    if (event_sink_) {
-      EncodableMap params;
-      params[EncodableValue("event")] = "didTextureChangeRotation";
-      params[EncodableValue("id")] = EncodableValue(texture_id_);
-      params[EncodableValue("rotation")] =
-          EncodableValue((int32_t)frame->rotation());
-      event_sink_->Success(EncodableValue(params));
-    }
+    EncodableMap params;
+    params[EncodableValue("event")] = "didTextureChangeRotation";
+    params[EncodableValue("id")] = EncodableValue(texture_id_);
+    params[EncodableValue("rotation")] =
+        EncodableValue((int32_t)frame->rotation());
+    event_channel_->Success(EncodableValue(params));
     rotation_ = frame->rotation();
   }
   if (last_frame_size_.width != frame->width() ||
       last_frame_size_.height != frame->height()) {
-    if (event_sink_) {
-      EncodableMap params;
-      params[EncodableValue("event")] = "didTextureChangeVideoSize";
-      params[EncodableValue("id")] = EncodableValue(texture_id_);
-      params[EncodableValue("width")] = EncodableValue((int32_t)frame->width());
-      params[EncodableValue("height")] =
-          EncodableValue((int32_t)frame->height());
-      event_sink_->Success(EncodableValue(params));
-    }
+    EncodableMap params;
+    params[EncodableValue("event")] = "didTextureChangeVideoSize";
+    params[EncodableValue("id")] = EncodableValue(texture_id_);
+    params[EncodableValue("width")] = EncodableValue((int32_t)frame->width());
+    params[EncodableValue("height")] = EncodableValue((int32_t)frame->height());
+    event_channel_->Success(EncodableValue(params));
+
     last_frame_size_ = {(size_t)frame->width(), (size_t)frame->height()};
   }
   mutex_.lock();
@@ -137,7 +115,7 @@ FlutterVideoRendererManager::FlutterVideoRendererManager(
     : base_(base) {}
 
 void FlutterVideoRendererManager::CreateVideoRendererTexture(
-    std::unique_ptr<MethodResult<EncodableValue>> result) {
+    std::unique_ptr<MethodResultProxy> result) {
   std::unique_ptr<FlutterVideoRenderer> texture(
       new FlutterVideoRenderer(base_->textures_, base_->messenger_));
   int64_t texture_id = texture->texture_id();
@@ -168,7 +146,7 @@ void FlutterVideoRendererManager::SetMediaStream(
 }
 
 void FlutterVideoRendererManager::VideoRendererDispose(
-    int64_t texture_id, std::unique_ptr<MethodResult<EncodableValue>> result) {
+    int64_t texture_id, std::unique_ptr<MethodResultProxy> result) {
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
     base_->textures_->UnregisterTexture(texture_id);

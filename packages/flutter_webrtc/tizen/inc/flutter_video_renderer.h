@@ -3,6 +3,7 @@
 
 #include <mutex>
 
+#include "flutter_common.h"
 #include "flutter_webrtc_base.h"
 #include "rtc_video_frame.h"
 #include "rtc_video_renderer.h"
@@ -10,7 +11,6 @@
 namespace flutter_webrtc_plugin {
 
 using namespace libwebrtc;
-using namespace flutter;
 
 class FlutterVideoRenderer
     : public RTCVideoRenderer<scoped_refptr<RTCVideoFrame>> {
@@ -40,8 +40,7 @@ class FlutterVideoRenderer
   FrameSize last_frame_size_ = {0, 0};
   bool first_frame_rendered = false;
   TextureRegistrar *registrar_ = nullptr;
-  std::unique_ptr<EventChannel<EncodableValue>> event_channel_;
-  std::unique_ptr<EventSink<EncodableValue>> event_sink_;
+  std::unique_ptr<EventChannelProxy> event_channel_;
   int64_t texture_id_ = -1;
   scoped_refptr<RTCVideoTrack> track_ = nullptr;
   scoped_refptr<RTCVideoFrame> frame_;
@@ -56,14 +55,13 @@ class FlutterVideoRendererManager {
  public:
   FlutterVideoRendererManager(FlutterWebRTCBase *base);
 
-  void CreateVideoRendererTexture(
-      std::unique_ptr<MethodResult<EncodableValue>> result);
+  void CreateVideoRendererTexture(std::unique_ptr<MethodResultProxy> result);
 
   void SetMediaStream(int64_t texture_id, const std::string &stream_id,
                       const std::string &peerConnectionId);
 
-  void VideoRendererDispose(
-      int64_t texture_id, std::unique_ptr<MethodResult<EncodableValue>> result);
+  void VideoRendererDispose(int64_t texture_id,
+                            std::unique_ptr<MethodResultProxy> result);
 
  private:
   FlutterWebRTCBase *base_;

@@ -19,30 +19,13 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger *messenger,
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
-
-  event_channel_.reset(new EventChannel<EncodableValue>(
-      messenger_, kEventChannelName, &StandardMethodCodec::GetInstance()));
-
-  auto handler = std::make_unique<StreamHandlerFunctions<EncodableValue>>(
-      [&](const flutter::EncodableValue *arguments,
-          std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events)
-          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-        event_sink_ = std::move(events);
-        return nullptr;
-      },
-      [&](const flutter::EncodableValue *arguments)
-          -> std::unique_ptr<StreamHandlerError<flutter::EncodableValue>> {
-        event_sink_ = nullptr;
-        return nullptr;
-      });
-
-  event_channel_->SetStreamHandler(std::move(handler));
+  event_channel_ = EventChannelProxy::Create(messenger_, kEventChannelName);
 }
 
 FlutterWebRTCBase::~FlutterWebRTCBase() { LibWebRTC::Terminate(); }
 
-EventSink<EncodableValue> *FlutterWebRTCBase::event_sink() {
-  return event_sink_ ? event_sink_.get() : nullptr;
+EventChannelProxy *FlutterWebRTCBase::event_channel() {
+  return event_channel_ ? event_channel_.get() : nullptr;
 }
 
 std::string FlutterWebRTCBase::GenerateUUID() {
