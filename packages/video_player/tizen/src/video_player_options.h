@@ -13,10 +13,10 @@ class VideoPlayerOptions {
   VideoPlayerOptions(const VideoPlayerOptions &other) = default;
   VideoPlayerOptions &operator=(const VideoPlayerOptions &other) = default;
 
-  void setMixWithOthers(bool mix_with_others) {
+  void SetMixWithOthers(bool mix_with_others) {
     mix_with_others_ = mix_with_others;
   }
-  bool getMixWithOthers() const { return mix_with_others_; }
+  bool GetMixWithOthers() const { return mix_with_others_; }
 
  private:
   bool mix_with_others_ = true;

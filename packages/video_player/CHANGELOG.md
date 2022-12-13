@@ -1,3 +1,7 @@
+## 2.4.3
+
+* Migrate to in-package pigeon-generated code.
+
 ## 2.4.2
 
 * Add a queue for storing decoded media packet.

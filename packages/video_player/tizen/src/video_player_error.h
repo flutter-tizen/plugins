@@ -23,8 +23,8 @@ class VideoPlayerError {
     return *this;
   }
 
-  std::string getCode() const { return code_; }
-  std::string getMessage() const { return message_; }
+  std::string code() const { return code_; }
+  std::string message() const { return message_; }
 
  private:
   std::string code_;

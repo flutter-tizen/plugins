@@ -8,6 +8,7 @@
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
+#include <flutter/texture_registrar.h>
 #include <player.h>
 
 #include <functional>
