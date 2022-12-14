@@ -59,7 +59,7 @@ typedef void (*EwkSettingsImePanelEnabledSetFnPtr)(Ewk_Settings* settings,
 
 typedef struct {
   EwkSettingsImePanelEnabledSetFnPtr ImePanelEnabledSet = nullptr;
-} EWKSettingsProcTable;
+} EwkSettingsProcTable;
 
 typedef struct _Ewk_Console_Message Ewk_Console_Message;
 
@@ -86,7 +86,7 @@ typedef struct {
   EwkConsoleMessageTextGetFnPtr TextGet = nullptr;
   EwkConsoleMessageLineGetFnPtr LineGet = nullptr;
   EwkConsoleMessageSourceGetFnPtr SourceGet = nullptr;
-} EWKConsoleMessageProcTable;
+} EwkConsoleMessageProcTable;
 
 class EwkInternalApiBinding {
  public:
@@ -98,15 +98,14 @@ class EwkInternalApiBinding {
   ~EwkInternalApiBinding();
 
   EwkInternalApiBinding(const EwkInternalApiBinding&) = delete;
-
   EwkInternalApiBinding& operator=(const EwkInternalApiBinding&) = delete;
 
   bool Initialize();
 
   EwkViewProcTable view;
   EwkMainProcTable main;
-  EWKSettingsProcTable settings;
-  EWKConsoleMessageProcTable console_message;
+  EwkSettingsProcTable settings;
+  EwkConsoleMessageProcTable console_message;
 
  private:
   EwkInternalApiBinding();

@@ -17,7 +17,7 @@ EwkInternalApiBinding::~EwkInternalApiBinding() {
 }
 
 bool EwkInternalApiBinding::Initialize() {
-  if (handle_ == nullptr) {
+  if (!handle_) {
     return false;
   }
 

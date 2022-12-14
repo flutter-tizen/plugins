@@ -2,7 +2,8 @@
 
 [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen)
 
-The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/main/packages/webview_flutter) only for Tizen TV devices.  
+The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/main/packages/webview_flutter) for Tizen TV devices.
+
 The WebView widget is backed by the EFL WebKit (EWK) on Tizen.
 
 ## Required privileges
@@ -22,7 +23,7 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 ```yaml
 dependencies:
   webview_flutter: ^3.0.4
-  webview_flutter_tizen: ^0.6.1
+  webview_flutter_tizen: ^0.6.2
 ```
 
 ## Example
@@ -47,4 +48,4 @@ class WebViewExampleState extends State<WebViewExample> {
 
 ## Supported devices
 
-This plugin is supported on Tizen TV devices running Tizen 5.5 or later.  
+This plugin is only supported on Tizen TV devices running Tizen 5.5 or later.  
