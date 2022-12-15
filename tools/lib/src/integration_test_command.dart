@@ -224,15 +224,14 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       }
 
       for (final Device device in devices) {
-        PackageResult packageResult =
+        String? error =
             await device.runIntegrationTest(example.directory, _timeout);
-        if (packageResult.state == RunState.failed) {
+        if (error != null) {
           // Tests may fail unexpectedly on a self-hosted runner. Try again.
-          packageResult =
-              await device.runIntegrationTest(example.directory, _timeout);
+          error = await device.runIntegrationTest(example.directory, _timeout);
         }
-        if (packageResult.state == RunState.failed) {
-          errors.addAll(packageResult.details);
+        if (error != null) {
+          errors.add(error);
         }
       }
     }

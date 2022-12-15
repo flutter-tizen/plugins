@@ -178,7 +178,7 @@ class TizenSdk {
     if (tizenHomeDir == null || !tizenHomeDir.existsSync()) {
       print(
         'Error: Unable to locate Tizen SDK.\n'
-        'If the Tizen SDK has been installed to a custom location, set TIZEN_SDK to that location.',
+        'If the Tizen SDK has been installed to a custom location, set $_kTizenSdk to that location.',
       );
       throw ToolExit(exitCommandFoundErrors);
     }
@@ -271,7 +271,7 @@ String? findEmulatorPid(String name) {
   final io.ProcessResult result = processRunner.runSync('ps', <String>['aux']);
 
   if (result.exitCode != 0) {
-    print('Error: running the command `ps aux` failed.');
+    print('Error: Unable to list running processes.');
     throw ToolExit(result.exitCode);
   }
 

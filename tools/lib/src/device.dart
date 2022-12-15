@@ -8,14 +8,10 @@ import 'dart:io' as io;
 
 import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
-import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 
 import 'process_runner_apis.dart';
 import 'tizen_sdk.dart';
-
-export 'package:flutter_plugin_tools/src/common/package_looping_command.dart'
-    show PackageResult, RunState;
 
 /// A reference to a Tizen device (either physical or emulator) that can run
 /// Flutter applications.
@@ -114,24 +110,19 @@ class Device {
 
   /// Runs integration test in [workingDir].
   ///
-  /// [workingDir] must be a valid exisiting flutter directory where
-  /// `flutter pub get` has already been ran succesfully. For an app project,
+  /// [workingDir] must be a valid existing Flutter project directory where
+  /// `flutter pub get` has already been run succesfully. For an app project,
   /// [workingDir] is the app's source root. For a plugin project, [workingDir]
   /// is one of the example directories.
   ///
-  /// If test doesn't finish after [timeout], it's considered a failure and the
-  /// function will return [PackageResult.fail] with time expired log.
-  ///
-  /// Returns [PackageResult.success] when every test passes succesfully,
-  /// otherwise returns [PackageResult.fail]. Never returns [PackageResult.skip]
-  /// nor [PackageResult.exclude].
-  Future<PackageResult> runIntegrationTest(
+  /// Returns null if all tests have passed successfully before [timeout],
+  /// otherwise returns a string with the error details.
+  Future<String?> runIntegrationTest(
     Directory workingDir,
     Duration timeout,
   ) async {
     if (!isConnected) {
-      return PackageResult.fail(
-          <String>['Device $name ($profile) is not connected.']);
+      return 'Device $name ($profile) is not connected.';
     }
 
     final io.Process process = await _processRunner.start(
@@ -166,30 +157,27 @@ class Device {
     // guarantee that all buffered outputs of the process have returned.
     await completer.future;
 
-    final List<String> errors = <String>[];
+    String? error;
     if (timedOut) {
-      errors.add('Timeout expired. The test may need more time to finish. '
+      error = 'Timeout expired. The test may need more time to finish. '
           'If you expect the test to finish before timeout, check if the tests '
           'require device screen to be awake or if they require manually '
-          'clicking the UI button for permissions.');
+          'clicking the UI button for permissions.';
     } else if (lastLine.startsWith('No tests ran')) {
-      errors.add(
-          'Missing integration tests (use --exclude if this is intentional).');
+      error =
+          'Missing integration tests (use --exclude if this is intentional).';
     } else if (lastLine.startsWith('No devices found')) {
-      errors.add('Device was disconnected during test.');
+      error = 'Device was disconnected during test.';
     } else {
       final RegExpMatch? match = _logPattern.firstMatch(lastLine);
       if (match == null || match.group(2) == null) {
-        throw Exception('Log message is not parsed correctly.');
+        error = 'Could not parse the log output.';
       } else if (!match.group(2)!.startsWith('All tests passed!')) {
-        errors.add('flutter-tizen test integration_test failed, see the output '
-            'above for details.');
+        error = 'flutter-tizen test integration_test failed, see the output '
+            'above for details.';
       }
     }
-
-    return errors.isEmpty
-        ? PackageResult.success()
-        : PackageResult.fail(errors);
+    return error;
   }
 }
 
@@ -240,6 +228,7 @@ class EmulatorDevice extends Device {
     final io.ProcessResult result =
         _processRunner.runSync(_tizenSdk.emCli.path, <String>['list-vm']);
     if (result.exitCode != 0) {
+      print('Error: Unable to list available emulators.');
       throw ToolExit(result.exitCode);
     }
 
@@ -377,7 +366,7 @@ class EmulatorDevice extends Device {
   Future<void> _poll(
     FutureOr<bool> Function() function, {
     Duration interval = const Duration(seconds: 1),
-    Duration timeout = const Duration(minutes: 10),
+    Duration timeout = const Duration(minutes: 5),
   }) async {
     final DateTime start = DateTime.now();
     while (DateTime.now().difference(start) <= timeout) {
@@ -390,7 +379,7 @@ class EmulatorDevice extends Device {
   }
 
   @override
-  Future<PackageResult> runIntegrationTest(
+  Future<String?> runIntegrationTest(
     Directory workingDir,
     Duration timeout,
   ) async {
