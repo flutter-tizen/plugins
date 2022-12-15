@@ -39,7 +39,7 @@ jobs:
         env:
           PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
         run: |
-          ./tools/tools_runner.sh publish-plugin \
+          ./tools/tools_runner.sh publish \
             --all-changed \
             --base-sha=HEAD~ \
             --skip-confirmation

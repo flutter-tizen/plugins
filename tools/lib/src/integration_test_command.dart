@@ -8,8 +8,8 @@ import 'package:args/args.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
+import 'package:flutter_plugin_tools/src/common/package_command.dart';
 import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
-import 'package:flutter_plugin_tools/src/common/plugin_command.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
 import 'package:yaml/yaml.dart';
 
@@ -58,16 +58,16 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     );
     argParser.addOption(
       _timeoutArg,
-      help: 'Timeout limit of each integration test in seconds.',
+      help: 'Time in seconds to wait for each test to finish.',
       valueHelp: 'seconds',
       defaultsTo: _timeout.inSeconds.toString(),
     );
   }
 
-  /// Copied from [PluginCommand].
+  /// Copied from [PackageCommand].
   static const String _excludeArg = 'exclude';
 
-  /// Copied from [PluginCommand].
+  /// Copied from [PackageCommand].
   static const String _packagesArg = 'packages';
 
   static const String _generateEmulatorsArg = 'generate-emulators';
@@ -142,7 +142,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     }
   }
 
-  /// See: [PluginCommand.getTargetPackages].
+  /// See: [PackageCommand.getTargetPackages].
   @override
   Stream<PackageEnumerationEntry> getTargetPackages({
     bool filterExcluded = true,
