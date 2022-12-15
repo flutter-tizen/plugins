@@ -151,19 +151,19 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       yield* super.getTargetPackages(filterExcluded: filterExcluded);
     } else {
       final Recipe recipe = _recipe!;
-      final List<PackageEnumerationEntry> plugins = await super
+      final List<PackageEnumerationEntry> packages = await super
           .getTargetPackages(filterExcluded: filterExcluded)
           .toList();
 
-      for (final PackageEnumerationEntry plugin in plugins) {
-        final String pluginName = plugin.package.displayName;
-        if (!recipe.contains(pluginName)) {
+      for (final PackageEnumerationEntry package in packages) {
+        final String packageName = package.package.displayName;
+        if (!recipe.contains(packageName)) {
           continue;
         }
-        if (!(filterExcluded && plugin.excluded)) {
-          yield recipe.isExcluded(pluginName)
-              ? PackageEnumerationEntry(plugin.package, excluded: true)
-              : plugin;
+        if (!(filterExcluded && package.excluded)) {
+          yield recipe.isExcluded(packageName)
+              ? PackageEnumerationEntry(package.package, excluded: true)
+              : package;
         }
       }
     }
