@@ -11,8 +11,6 @@
 
 #include "log.h"
 
-#define DEVICE_CHANNEL_NAME "flutter.io/cameraPlugin/device"
-
 std::string EventTypeToString(DeviceEventType type) {
   if (type == DeviceEventType::kOrientationChanged) {
     return "orientation_changed";
@@ -22,9 +20,8 @@ std::string EventTypeToString(DeviceEventType type) {
 }
 
 DeviceMethodChannel::DeviceMethodChannel(flutter::PluginRegistrar* registrar) {
-  std::string channel_name = DEVICE_CHANNEL_NAME;
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-      registrar->messenger(), channel_name.c_str(),
+      registrar->messenger(), "plugins.flutter.io/camera_tizen/fromPlatform",
       &flutter::StandardMethodCodec::GetInstance());
 }
 

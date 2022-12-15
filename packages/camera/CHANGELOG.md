@@ -1,3 +1,7 @@
+## 0.3.4
+
+* Switch to an internal method channel implementation.
+
 ## 0.3.3
 
 * Apply new texture APIs.

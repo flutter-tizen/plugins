@@ -11,8 +11,6 @@
 
 #include "log.h"
 
-#define CAMERA_CHANNEL_NAME_BASE "flutter.io/cameraPlugin/camera"
-
 std::string EventTypeToString(CameraEventType type) {
   if (type == CameraEventType::kError) {
     return "error";
@@ -27,8 +25,8 @@ std::string EventTypeToString(CameraEventType type) {
 
 CameraMethodChannel::CameraMethodChannel(flutter::PluginRegistrar* registrar,
                                          long event_channel_Id) {
-  std::string channel_name = CAMERA_CHANNEL_NAME_BASE;
-  channel_name += std::to_string(event_channel_Id);
+  std::string channel_name = "plugins.flutter.io/camera_tizen/camera" +
+                             std::to_string(event_channel_Id);
   channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
       registrar->messenger(), channel_name.c_str(),
       &flutter::StandardMethodCodec::GetInstance());

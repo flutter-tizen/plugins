@@ -26,7 +26,7 @@ This package is not an _endorsed_ implementation of `camera`. Therefore, you hav
 ```yaml
 dependencies:
   camera: ^0.9.4
-  camera_tizen: ^0.3.3
+  camera_tizen: ^0.3.4
 ```
 
 Then you can import `camera` in your Dart code:
@@ -39,17 +39,17 @@ For detailed usage, see https://pub.dev/packages/camera#example.
 
 ## Notes
 
-For the camera preview to rotate correctly, you have to modify the `camera_preview.dart` file as follows.
+For the camera preview to rotate correctly, you have to modify the `CameraPreview` class (`camera_preview.dart`) as follows.
 
 ```dart
-  Widget _wrapInRotatedBox({required Widget child}) {
-    // if (defaultTargetPlatform != TargetPlatform.android) {
-    //   return child;
-    // }
+Widget _wrapInRotatedBox({required Widget child}) {
+  // if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+  //   return child;
+  // }
 
-    return RotatedBox(
-      quarterTurns: _getQuarterTurns(),
-      child: child,
-    );
-  }
+  return RotatedBox(
+    quarterTurns: _getQuarterTurns(),
+    child: child,
+  );
+}
 ```

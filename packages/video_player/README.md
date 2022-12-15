@@ -29,7 +29,7 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 ```yaml
 dependencies:
   video_player: ^2.4.2
-  video_player_tizen: ^2.4.2
+  video_player_tizen: ^2.4.3
 ```
 
 Then you can import `video_player` in your Dart code:
