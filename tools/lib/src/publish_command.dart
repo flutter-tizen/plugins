@@ -11,23 +11,25 @@ import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/common/file_utils.dart';
 import 'package:flutter_plugin_tools/src/common/git_version_finder.dart';
+import 'package:flutter_plugin_tools/src/common/package_command.dart';
 import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
-import 'package:flutter_plugin_tools/src/common/plugin_command.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:flutter_plugin_tools/src/common/pub_version_finder.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
+import 'package:flutter_plugin_tools/src/publish_command.dart'
+    as flutter_plugin_tools;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:platform/platform.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Wraps pub publish with a few niceties used by the flutter-tizen team.
-// The code is mostly copied from `PublishPluginCommand` in
-// `flutter_plugin_tools`, parts regarding git tagging are removed as we don't
-// tag our releases.
-class PublishPluginCommand extends PackageLoopingCommand {
+///
+/// The code is a copy of [flutter_plugin_tools.PublishCommand] with parts
+/// related to git tagging removed as we don't tag our releases.
+class PublishCommand extends PackageLoopingCommand {
   /// Creates an instance of the publish command.
-  PublishPluginCommand(
+  PublishCommand(
     super.packagesDir, {
     super.processRunner = const ProcessRunner(),
     super.platform = const LocalPlatform(),
@@ -48,7 +50,6 @@ class PublishPluginCommand extends PackageLoopingCommand {
       help:
           'Release all packages that contains pubspec changes at the current commit compares to the base-sha.\n'
           'The --packages option is ignored if this is on.',
-      defaultsTo: false,
     );
     argParser.addFlag(
       _dryRunFlag,
@@ -56,15 +57,11 @@ class PublishPluginCommand extends PackageLoopingCommand {
           'Skips the real `pub publish` command and assumes the command is successful.\n'
           'This does not run `pub publish --dry-run`.\n'
           'If you want to run the command with `pub publish --dry-run`, use `--pub-publish-flags=--dry-run`',
-      defaultsTo: false,
-      negatable: true,
     );
     argParser.addFlag(
       _skipConfirmationFlag,
       help: 'Run the command without asking for Y/N inputs.\n'
           'This command will add a `--force` flag to the `pub publish` command if it is not added with $_pubFlagsOption\n',
-      defaultsTo: false,
-      negatable: true,
     );
   }
 
@@ -76,7 +73,7 @@ class PublishPluginCommand extends PackageLoopingCommand {
   static const String _pubCredentialName = 'PUB_CREDENTIALS';
 
   @override
-  String get name => 'publish-plugin';
+  String get name => 'publish';
 
   @override
   String get description => 'Attempts to publish the given packages to pub.\n'

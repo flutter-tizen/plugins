@@ -34,9 +34,10 @@ Future<void> _checkSystemRequirements(String emulatorName) async {
       .map((String token) => token.trim())
       .toList();
   if (names.contains(emulatorName)) {
-    throw Exception('Emulator name used for test already exists: $emulatorName. '
-        'Emulator name is randomly generated each test, rerun test to '
-        'choose a different name.');
+    throw Exception(
+        'Emulator name used for test already exists: $emulatorName. '
+        'Emulator name is randomly generated for each test. '
+        'Rerun the test to choose a different name.');
   }
 
   result = await io.Process.run('flutter-tizen', <String>['-v']);
@@ -95,12 +96,12 @@ void main() {
     await io.Process.run('flutter-tizen', <String>['pub', 'get'],
         workingDirectory: testDataDir.parent.absolute.path);
 
-    final PackageResult result = await device.runIntegrationTest(
+    final String? error = await device.runIntegrationTest(
         testDataDir, const Duration(seconds: 60));
 
     await io.Process.run('flutter-tizen', <String>['clean'],
         workingDirectory: testDataDir.parent.absolute.path);
-    expect(result.state, RunState.succeeded);
+    expect(error, isNull);
   });
 
   tearDown(() async {

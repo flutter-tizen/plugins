@@ -7,7 +7,6 @@ import 'dart:io' as io;
 
 import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
-
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 
 /// An extension method of [ProcessRunner] to supports synchronous operations.

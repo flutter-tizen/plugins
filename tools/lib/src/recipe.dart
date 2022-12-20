@@ -13,12 +13,12 @@ class Recipe {
 
   /// Creates a [Recipe] instance by parsing [yamlMap].
   factory Recipe.fromYaml(YamlMap yamlMap) {
-    final Map<String, YamlList> plugins =
+    final Map<String, YamlList> packages =
         (yamlMap['plugins'] as YamlMap).cast<String, YamlList>();
     final Map<String, List<Profile>> profilesPerPackage =
         <String, List<Profile>>{};
-    for (final MapEntry<String, YamlList> plugin in plugins.entries) {
-      profilesPerPackage[plugin.key] = plugin.value
+    for (final MapEntry<String, YamlList> package in packages.entries) {
+      profilesPerPackage[package.key] = package.value
           .map((dynamic profile) => Profile.fromString(profile as String))
           .toList();
     }
@@ -27,19 +27,19 @@ class Recipe {
 
   final Map<String, List<Profile>> _profilesPerPackage;
 
-  /// Returns `true` if [plugin] was specified in the recipe file but
+  /// Returns `true` if [package] was specified in the recipe file but
   /// with an empty profile list.
-  bool isExcluded(String plugin) =>
-      contains(plugin) && _profilesPerPackage[plugin]!.isEmpty;
+  bool isExcluded(String package) =>
+      contains(package) && _profilesPerPackage[package]!.isEmpty;
 
-  /// Returns `true` if [plugin] was specified in the recipe file.
-  bool contains(String plugin) => _profilesPerPackage.containsKey(plugin);
+  /// Returns `true` if [package] was specified in the recipe file.
+  bool contains(String package) => _profilesPerPackage.containsKey(package);
 
-  /// Returns a list of profiles to test on for [plugin].
-  List<Profile> getProfiles(String plugin) {
-    if (!contains(plugin)) {
-      throw ArgumentError('Package $plugin is not included in recipe.');
+  /// Returns a list of profiles to test on for [package].
+  List<Profile> getProfiles(String package) {
+    if (!contains(package)) {
+      throw ArgumentError('Package $package not found in the recipe.');
     }
-    return _profilesPerPackage[plugin]!;
+    return _profilesPerPackage[package]!;
   }
 }
