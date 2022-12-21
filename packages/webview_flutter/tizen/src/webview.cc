@@ -147,7 +147,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
     url = "about:blank";
   }
 
-  int color;
+  int32_t color;
   if (GetValueFromEncodableMap(&params, "backgroundColor", &color)) {
     EwkInternalApiBinding::GetInstance().view.SetBackgroundColor(
         webview_instance_, color >> 16 & 0xff, color >> 8 & 0xff, color & 0xff,
