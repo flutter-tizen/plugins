@@ -154,7 +154,8 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     } else {
       auto ret = RpcPortProxyManager::Connect(handle, appid, port_name);
       if (!ret) {
-        result->Error("connect failed.");
+        result->Error(std::to_string(ret.error_code),
+                      get_error_message(ret.error_code));
         return;
       }
     }

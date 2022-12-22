@@ -116,8 +116,8 @@ void RpcPortProxyManager::OnRejectedEvent(const char* receiver,
 
   auto* proxy = static_cast<rpc_port_proxy_h>(data);
   auto map = CreateEncodableMap("rejected", receiver, port_name, proxy);
-  map[flutter::EncodableValue("error")] =
-      flutter::EncodableValue(get_error_message(get_last_result()));
+  map[flutter::EncodableValue("error")] = flutter::EncodableValue(
+      std::string(get_error_message(get_last_result())));
   event_sink_->Success(flutter::EncodableValue(map));
 }
 

@@ -8,17 +8,19 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
-
 import 'package:tizen_log/tizen_log.dart';
+
 import 'parcel.dart';
 import 'port.dart';
 import 'rpc_port_method_channel.dart';
 
 export 'package:meta/meta.dart' show nonVirtual, visibleForOverriding;
 
-/// The abstract class for creating a stub class for RPC.
+const String _logTag = 'RPC_PORT';
+
+/// The base class for creating a custom stub object.
 abstract class StubBase {
-  /// The constructor for this class.
+  /// Creates a [StubBase] instance with the port name.
   StubBase(this.portName) {
     _handle = using((Arena arena) {
       final Pointer<rpc_port_stub_h> pStub = arena();
@@ -30,7 +32,6 @@ abstract class StubBase {
           message: tizen.get_error_message(ret).toDartString(),
         );
       }
-
       return pStub.value;
     });
 
@@ -39,23 +40,21 @@ abstract class StubBase {
 
   late final rpc_port_stub_h _handle;
 
-  static const String _logTag = 'RPC_PORT';
-
-  static final MethodChannelRpcPort _methodChannel =
-      MethodChannelRpcPort.instance;
-
   final Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
     stub._streamSubscription?.cancel();
     tizen.rpc_port_stub_destroy(stub._handle);
   });
 
-  /// The port name of the connection with the proxy.
+  /// A port name to use when listening for connections.
   final String portName;
 
   /// ignore: cancel_subscriptions
   StreamSubscription<dynamic>? _streamSubscription;
 
-  /// Sets a trusted proxy to the stub.
+  /// Sets whether this stub should only allow trusted connections.
+  ///
+  /// If [trusted] is true, this stub only allows connections from trusted
+  /// applications signed with the same certificate.
   void setTrusted(bool trusted) {
     final int ret = tizen.rpc_port_stub_set_trusted(_handle, trusted);
     if (ret != 0) {
@@ -66,7 +65,7 @@ abstract class StubBase {
     }
   }
 
-  /// Adds a privilege which is required when the proxy connects this stub.
+  /// Adds a privilege which is required when a proxy connects to this stub.
   void addPrivilege(String privilege) {
     using((Arena arena) {
       final Pointer<Char> pPrivilege = privilege.toNativeChar(allocator: arena);
@@ -80,68 +79,63 @@ abstract class StubBase {
     });
   }
 
-  /// Listens to the requests for connections.
+  /// Listens to requests for connections.
   Future<void> listen() async {
     if (_streamSubscription != null) {
       return;
     }
 
-    final Stream<dynamic> stream =
-        await _methodChannel.stubListen(_handle.address);
-    _streamSubscription = stream.listen((dynamic event) async {
-      if (event is Map) {
-        final Map<dynamic, dynamic> map = event;
-        final int handle = map['handle'] as int;
-        if (handle != _handle.address) {
-          return;
-        }
+    final Stream<Map<String, dynamic>> stream =
+        await MethodChannelRpcPort.instance.stubListen(_handle.address);
+    _streamSubscription = stream.listen((Map<String, dynamic> map) async {
+      final int handle = map['handle'] as int;
+      if (handle != _handle.address) {
+        return;
+      }
 
-        final String eventName = map['event'] as String;
-        final String sender = map['sender'] as String;
-        final String instance = map['instance'] as String;
+      final String event = map['event'] as String;
+      final String sender = map['sender'] as String;
+      final String instance = map['instance'] as String;
+      Log.info(_logTag, 'event: $event, sender: $sender, instance: $instance');
 
-        Log.info(
-            _logTag, 'event: $eventName, sender: $sender, instance: $instance');
-        if (eventName == 'connected') {
-          await onConnectedEvent(sender, instance);
-        } else if (eventName == 'disconnected') {
-          await onDisconnectedEvent(sender, instance);
-        } else if (eventName == 'received') {
-          final Uint8List rawData = map['rawData'] as Uint8List;
-          final Parcel parcel = Parcel.fromRaw(rawData);
-          await onReceivedEvent(sender, instance, parcel);
-        } else {
-          Log.error(_logTag, 'Unknown event: $eventName');
-        }
+      if (event == 'connected') {
+        await onConnectedEvent(sender, instance);
+      } else if (event == 'disconnected') {
+        await onDisconnectedEvent(sender, instance);
+      } else if (event == 'received') {
+        final Uint8List rawData = map['rawData'] as Uint8List;
+        final Parcel parcel = Parcel.fromRaw(rawData);
+        await onReceivedEvent(sender, instance, parcel);
+      } else {
+        Log.error(_logTag, 'Unknown event: $event');
       }
     });
   }
 
-  /// Gets a port connected with proxy that has instance id.
+  /// Gets a [Port] associated with a proxy instance with the specified name
+  /// and port type.
   Port getPort(String instance, PortType portType) {
     return using((Arena arena) {
       final Pointer<Char> pInstance = instance.toNativeChar();
       final Pointer<rpc_port_h> pPort = arena();
       final int ret = tizen.rpc_port_stub_get_port(
           _handle, portType.index, pInstance, pPort);
-
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
           message: tizen.get_error_message(ret).toDartString(),
         );
       }
-
       return Port.fromNativeHandle(pPort.value);
     });
   }
 
-  /// The abstract method for receiving connected event.
+  /// Called when a connection is established by a proxy instance.
   Future<void> onConnectedEvent(String sender, String instance);
 
-  /// The abstract method for receiving disconnected event.
+  /// Called when disconnected from a proxy instance.
   Future<void> onDisconnectedEvent(String sender, String instance);
 
-  /// The abstract method called when the stub receives data from proxy.
+  /// Called when data are received from a proxy instance.
   Future<void> onReceivedEvent(String sender, String instance, Parcel parcel);
 }

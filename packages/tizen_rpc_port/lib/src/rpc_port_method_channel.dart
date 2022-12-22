@@ -9,36 +9,40 @@ import 'package:flutter/services.dart';
 class MethodChannelRpcPort {
   static final MethodChannelRpcPort instance = MethodChannelRpcPort();
 
-  final MethodChannel _channel = const MethodChannel('tizen/rpc_port');
+  static const MethodChannel _channel = MethodChannel('tizen/rpc_port');
 
-  Stream<dynamic>? _proxyStream;
-  Stream<dynamic>? _stubStream;
+  static const EventChannel _proxyEventChannel =
+      EventChannel('tizen/rpc_port_proxy');
+  static const EventChannel _stubEventChannel =
+      EventChannel('tizen/rpc_port_stub');
 
-  Future<Stream<dynamic>> proxyConnect(
-      int proxyPtr, String appid, String portName) async {
-    if (_proxyStream == null) {
-      const EventChannel eventChannel = EventChannel('tizen/rpc_port_proxy');
-      _proxyStream = eventChannel.receiveBroadcastStream();
-    }
+  static final Stream<Map<String, dynamic>> _proxyEvents = _proxyEventChannel
+      .receiveBroadcastStream()
+      .map((dynamic event) =>
+          Map<String, dynamic>.from(event as Map<dynamic, dynamic>));
+  static final Stream<Map<String, dynamic>> _stubEvents = _stubEventChannel
+      .receiveBroadcastStream()
+      .map((dynamic event) =>
+          Map<String, dynamic>.from(event as Map<dynamic, dynamic>));
 
-    final Map<String, dynamic> args = <String, dynamic>{
-      'handle': proxyPtr,
-      'appid': appid,
-      'portName': portName,
-    };
-
-    await _channel.invokeMethod<dynamic>('proxyConnect', args);
-    return _proxyStream!;
+  Future<Stream<Map<String, dynamic>>> proxyConnect(
+      int handle, String appid, String portName) async {
+    await _channel.invokeMethod<void>(
+      'proxyConnect',
+      <String, Object>{
+        'handle': handle,
+        'appid': appid,
+        'portName': portName,
+      },
+    );
+    return _proxyEvents;
   }
 
-  Future<Stream<dynamic>> stubListen(int stubPtr) async {
-    if (_stubStream == null) {
-      const EventChannel eventChannel = EventChannel('tizen/rpc_port_stub');
-      _stubStream = eventChannel.receiveBroadcastStream();
-    }
-
-    final Map<String, int> args = <String, int>{'handle': stubPtr};
-    await _channel.invokeMethod<dynamic>('stubListen', args);
-    return _stubStream!;
+  Future<Stream<Map<String, dynamic>>> stubListen(int handle) async {
+    await _channel.invokeMethod<void>(
+      'stubListen',
+      <String, int>{'handle': handle},
+    );
+    return _stubEvents;
   }
 }

@@ -16,12 +16,15 @@ import 'rpc_port_method_channel.dart';
 
 export 'package:meta/meta.dart' show nonVirtual, visibleForOverriding;
 
-/// The method type for receiving disconnected event.
+const String _logTag = 'RPC_PORT';
+
+/// A signature for callbacks to be invoked when a disconnected event is
+/// received.
 typedef OnDisconnected = Future<void> Function();
 
-/// The abstract class for creating a proxy class for RPC.
+/// The base class for creating a custom proxy object.
 abstract class ProxyBase {
-  /// The constructor for this class.
+  /// Creates a [ProxyBase] instance with a stub application ID and port name.
   ProxyBase(this.appid, this.portName) {
     _handle = using((Arena arena) {
       final Pointer<rpc_port_proxy_h> pProxy = arena();
@@ -32,7 +35,6 @@ abstract class ProxyBase {
           message: tizen.get_error_message(ret).toDartString(),
         );
       }
-
       return pProxy.value;
     });
 
@@ -41,43 +43,47 @@ abstract class ProxyBase {
 
   late final rpc_port_proxy_h _handle;
 
-  static const String _logTag = 'RPC_PORT';
-
-  static final MethodChannelRpcPort _methodChannel =
-      MethodChannelRpcPort.instance;
-
   final Finalizer<ProxyBase> _finalizer =
       Finalizer<ProxyBase>((ProxyBase proxy) {
     proxy._streamSubscription?.cancel();
     tizen.rpc_port_proxy_destroy(proxy._handle);
   });
 
-  final Completer<dynamic> _connectCompleter = Completer<dynamic>();
-  final Completer<dynamic> _disconnectCompleter = Completer<dynamic>();
+  Completer<void> _connectCompleter = Completer<void>();
+  Completer<void> _disconnectCompleter = Completer<void>();
 
-  /// The target stub application id.
+  /// The target stub application ID.
   final String appid;
 
-  /// The port name of the connection with the stub.
+  /// A port name to use when connecting to the remote stub.
   final String portName;
 
   bool _isConnected = false;
 
-  /// The flag of whether the port is connected.
+  /// Whether the proxy is connected to the remote stub.
   bool get isConnected => _isConnected;
 
-  StreamSubscription<dynamic>? _streamSubscription;
+  StreamSubscription<Map<String, dynamic>>? _streamSubscription;
   OnDisconnected? _onDisconnected;
 
-  Future<void> _handleEvent(dynamic event) async {
-    if (event is Map) {
-      final Map<dynamic, dynamic> map = event;
+  Future<void> _connectInternal() async {
+    if (_isConnected) {
+      // TODO(swift-kim): Immediately return without throwing an error when
+      // already connected.
+      throw StateError('Proxy $appid/$portName already connected.');
+    }
+
+    final Stream<Map<String, dynamic>> stream = await MethodChannelRpcPort
+        .instance
+        .proxyConnect(_handle.address, appid, portName);
+    _streamSubscription = stream.listen((Map<String, dynamic> map) async {
       final int handle = map['handle'] as int;
       if (handle == _handle.address && map.containsKey('event')) {
         final String event = map['event'] as String;
         final String appid = map['receiver'] as String;
         final String portName = map['portName'] as String;
-        Log.info(_logTag, 'event: $event, appid:$appid, portName:$portName');
+        Log.info(_logTag, 'event: $event, appid: $appid, portName: $portName');
+
         if (event == 'connected') {
           _isConnected = true;
           await _onConnectedEvent();
@@ -97,24 +103,17 @@ abstract class ProxyBase {
           final Parcel parcel = Parcel.fromRaw(rawData);
           await onReceivedEvent(parcel);
         } else {
-          throw Exception('Not supported event');
+          Log.error(_logTag, 'Unknown event: $event');
         }
       }
-    }
-  }
-
-  Future<void> _connectInternal() async {
-    if (_isConnected) {
-      throw Exception('Proxy $appid/$portName already connected to stub');
-    }
-
-    final Stream<dynamic> stream =
-        await _methodChannel.proxyConnect(_handle.address, appid, portName);
-    _streamSubscription = stream.listen(_handleEvent);
+    });
     return _connectCompleter.future;
   }
 
-  /// Connects with the stub.
+  /// Connects to the remote stub.
+  ///
+  /// If [onDisconnected] is provided, it is later called when this proxy is
+  /// disconnected from the remote stub.
   ///
   /// The following privileges are required to use this API.
   /// - `http://tizen.org/privilege/appmanager.launch`
@@ -124,10 +123,10 @@ abstract class ProxyBase {
     _onDisconnected = onDisconnected;
   }
 
-  /// Disconnects with the stub.
+  /// Disconnects from the remote stub.
   Future<void> disconnect() async {
     if (!_isConnected) {
-      throw Exception('Not connected');
+      throw StateError('Not connected.');
     }
 
     final Port port = getPort(PortType.main);
@@ -138,45 +137,48 @@ abstract class ProxyBase {
         message: tizen.get_error_message(ret).toDartString(),
       );
     }
-
     return _disconnectCompleter.future;
   }
 
-  /// Gets a port.
+  /// Gets a [Port] associated with this proxy.
   Port getPort(PortType portType) {
     return using((Arena arena) {
       final Pointer<rpc_port_h> pPort = arena();
       final int ret =
           tizen.rpc_port_proxy_get_port(_handle, portType.index, pPort);
-
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
           message: tizen.get_error_message(ret).toDartString(),
         );
       }
-
       return Port.fromNativeHandle(pPort.value);
     });
   }
 
   Future<void> _onConnectedEvent() async {
-    _connectCompleter.complete();
-  }
-
-  Future<void> _onRejectedEvent(String errorMessage) async {
-    _connectCompleter.completeError(errorMessage);
-  }
-
-  /// The method for receiving disconnected event.
-  Future<void> _onDisconnectedEvent() async {
-    await _onDisconnected?.call();
-    _onDisconnected = null;
-    if (_disconnectCompleter.isCompleted == false) {
-      _disconnectCompleter.complete();
+    if (!_connectCompleter.isCompleted) {
+      _connectCompleter.complete();
+      _connectCompleter = Completer<void>();
     }
   }
 
-  /// The abstract method called when the proxy receives data from stub.
+  Future<void> _onRejectedEvent(String errorMessage) async {
+    if (!_connectCompleter.isCompleted) {
+      _connectCompleter.completeError(errorMessage);
+      _connectCompleter = Completer<void>();
+    }
+  }
+
+  Future<void> _onDisconnectedEvent() async {
+    await _onDisconnected?.call();
+    _onDisconnected = null;
+    if (!_disconnectCompleter.isCompleted) {
+      _disconnectCompleter.complete();
+      _disconnectCompleter = Completer<void>();
+    }
+  }
+
+  /// Called when data are received from the remote stub.
   Future<void> onReceivedEvent(Parcel parcel);
 }

@@ -1,3 +1,3 @@
-# tizen_rpc_port_proxy_example
+# tizen_rpc_port_client_example
 
-Demonstrates how to use the tizen_rpc_port proxy apis.
+Demonstrates how to use the tizen_rpc_port client API.

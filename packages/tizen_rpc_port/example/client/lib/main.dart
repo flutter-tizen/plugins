@@ -7,7 +7,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'message_client.dart';
 
@@ -23,41 +22,43 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final Message _client = Message('com.example.tizen_rpc_port_server_example');
+  final Message _client = Message('org.tizen.tizen_rpc_port_server_example');
+  String _message = 'Not connected';
+  bool _isConnected = false;
   String _input = '';
-  String _message = '';
 
-  @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-  }
-
-  Future<void> initPlatformState() async {
-    try {
-      await _client.connect(onDisconnected: () async {
-        setState(() => _message = 'Disconnected');
+  Future<void> _connect() async {
+    await _client.connect(onDisconnected: () async {
+      setState(() {
+        _isConnected = false;
+        _message = 'Disconnected';
       });
-      setState(() => _message = 'Connected');
-      _client.register('ClientApp', onNotifyCallback);
-    } on PlatformException {
-      _message = 'Connection has failed.';
-    }
-  }
+    });
+    await _client.register('ClientApp', onMessage);
 
-  void onNotifyCallback(String sender, String message) {
     setState(() {
-      _message = '$sender: $message';
+      _isConnected = true;
+      _message = 'Connected';
     });
   }
 
-  Future<void> _sendMsg() async {
-    await _client.send(_input);
+  void onMessage(String sender, String message) {
+    setState(() {
+      _message = 'Received: $message';
+    });
+  }
+
+  Future<void> _send() async {
+    if (_isConnected) {
+      await _client.send(_input);
+    }
   }
 
   @override
   Future<void> dispose() async {
-    await _client.unregister();
+    if (_isConnected) {
+      await _client.unregister();
+    }
     super.dispose();
   }
 
@@ -66,27 +67,35 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('RpcPortClient example app'),
+          title: const Text('TizenRpcPort Client Demo'),
         ),
-        body: SingleChildScrollView(
+        body: Padding(
+          padding: const EdgeInsets.all(10),
           child: Column(
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.fromLTRB(0.0, 50.0, 0.0, 50.0),
-                child: Text('Message: $_message\n'),
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text(_message),
               ),
               TextField(
-                  onChanged: (String text) => setState(() => _input = text),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Input',
-                  )),
+                onChanged: (String text) {
+                  setState(() => _input = text);
+                },
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Input',
+                ),
+              ),
             ],
           ),
         ),
         persistentFooterButtons: <Widget>[
           TextButton(
-            onPressed: _sendMsg,
+            onPressed: _isConnected ? null : _connect,
+            child: const Text('Connect'),
+          ),
+          TextButton(
+            onPressed: _isConnected ? _send : null,
             child: const Text('Send'),
           ),
         ],

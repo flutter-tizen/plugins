@@ -14,25 +14,25 @@ void main() {
   runApp(const MyApp());
 }
 
-class Service extends MessageServiceBase {
-  Service(super.sender, super.instance);
+class EchoService extends MessageServiceBase {
+  EchoService(super.sender, super.instance);
 
-  String _name = '';
+  String? _name;
   NotifyCallback? _callback;
 
   @override
   Future<void> onCreate() async {
-    print('onCreate. instance: $instance');
+    print('Service started');
   }
 
   @override
   Future<void> onTerminate() async {
-    print('onTerminate. instance: $instance');
+    print('Service terminated');
   }
 
   @override
   Future<int> onRegister(String name, NotifyCallback callback) async {
-    print('register. instance: $instance, name: $name');
+    print('Registered: $name');
     _name = name;
     _callback = callback;
     return 0;
@@ -40,14 +40,17 @@ class Service extends MessageServiceBase {
 
   @override
   Future<int> onSend(String message) async {
-    print('send. instance: $instance, msg: $message');
-    _callback?.invoke(_name, message);
+    print('Received: $message');
+    if (_callback != null) {
+      _callback!.invoke(_name!, message);
+    }
     return 0;
   }
 
   @override
   Future<void> onUnregister() async {
-    print('unregister. instance: $instance');
+    print('Unregistered: $_name');
+    _name = null;
     _callback = null;
   }
 }
@@ -60,15 +63,16 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  static const String _platformVersion = '7.0';
   late final Message _server;
 
   @override
   void initState() {
     super.initState();
+
     _server = Message(
-        serviceBuilder: (String sender, String instance) =>
-            Service(sender, instance));
+      serviceBuilder: (String sender, String instance) =>
+          EchoService(sender, instance),
+    );
     _server.listen();
   }
 
@@ -77,11 +81,9 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('RpcPortServer example app'),
+          title: const Text('TizenRpcPort Server Demo'),
         ),
-        body: const Center(
-          child: Text('Running on: $_platformVersion'),
-        ),
+        body: const Center(child: Text('Service running')),
       ),
     );
   }

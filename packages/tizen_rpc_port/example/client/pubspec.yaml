@@ -1,7 +1,6 @@
-name: example_proxy
-description: Demonstrates how to use the tizen_rpc_port proxy plugin.
-
-publish_to: none
+name: tizen_rpc_port_client_example
+description: Demonstrates how to use the tizen_rpc_port client API.
+publish_to: "none"
 
 environment:
   sdk: ">=2.17.0 <3.0.0"

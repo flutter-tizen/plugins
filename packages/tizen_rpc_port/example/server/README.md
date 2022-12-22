@@ -1,3 +1,3 @@
-# rpc_port_stub_example
+# tizen_rpc_port_server_example
 
-Demonstrates how to use the tizen_rpc_port stub apis.
+Demonstrates how to use the tizen_rpc_port server API.

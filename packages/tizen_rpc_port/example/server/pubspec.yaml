@@ -1,7 +1,6 @@
-name: example_server
-description: Demonstrates how to use the tizen_rpc_port stub plugin.
-
-publish_to: none
+name: tizen_rpc_port_server_example
+description: Demonstrates how to use the tizen_rpc_port server API.
+publish_to: "none"
 
 environment:
   sdk: ">=2.17.0 <3.0.0"
