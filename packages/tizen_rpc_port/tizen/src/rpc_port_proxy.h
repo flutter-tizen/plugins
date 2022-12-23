@@ -2,29 +2,26 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef RPC_PORT_PROXY_H
-#define RPC_PORT_PROXY_H
+#ifndef FLUTTER_PLUGIN_RPC_PORT_PROXY_H_
+#define FLUTTER_PLUGIN_RPC_PORT_PROXY_H_
 
-#include <flutter/event_channel.h>
-#include <flutter/standard_method_codec.h>
-#include <rpc-port-parcel.h>
+#include <flutter/encodable_value.h>
+#include <flutter/event_sink.h>
 #include <rpc-port.h>
 
-#include <map>
 #include <memory>
-#include <set>
 #include <string>
-#include <vector>
 
-#include "common.h"
+#include "rpc_port_result.h"
 
 namespace tizen {
 
-typedef std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> EventSink;
+typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 
 class RpcPortProxyManager {
  public:
-  static void Init(EventSink sync);
+  static void Init(std::unique_ptr<FlEventSink> event_sink);
+
   static RpcPortResult Connect(rpc_port_proxy_h handle,
                                const std::string& appid,
                                const std::string& port_name);
@@ -39,10 +36,9 @@ class RpcPortProxyManager {
   static void OnReceivedEvent(const char* receiver, const char* port_name,
                               void* data);
 
- private:
-  static EventSink event_sink_;
+  static std::unique_ptr<FlEventSink> event_sink_;
 };
 
 }  // namespace tizen
 
-#endif  // RPC_PORT_PROXY_H
+#endif  // FLUTTER_PLUGIN_RPC_PORT_PROXY_H_

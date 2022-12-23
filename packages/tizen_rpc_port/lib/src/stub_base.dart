@@ -12,6 +12,7 @@ import 'package:tizen_log/tizen_log.dart';
 
 import 'parcel.dart';
 import 'port.dart';
+import 'proxy_base.dart' show OnError;
 import 'rpc_port_method_channel.dart';
 
 export 'package:meta/meta.dart' show nonVirtual, visibleForOverriding;
@@ -80,7 +81,7 @@ abstract class StubBase {
   }
 
   /// Listens to requests for connections.
-  Future<void> listen() async {
+  Future<void> listen({OnError? onError}) async {
     if (_streamSubscription != null) {
       return;
     }
@@ -109,7 +110,7 @@ abstract class StubBase {
       } else {
         Log.error(_logTag, 'Unknown event: $event');
       }
-    });
+    }, onError: onError);
   }
 
   /// Gets a [Port] associated with a proxy instance with the specified name

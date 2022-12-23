@@ -18,8 +18,10 @@ export 'package:meta/meta.dart' show nonVirtual, visibleForOverriding;
 
 const String _logTag = 'RPC_PORT';
 
-/// A signature for callbacks to be invoked when a disconnected event is
-/// received.
+/// A signature for callbacks to be invoked on stream errors.
+typedef OnError = void Function(Object error);
+
+/// A signature for callbacks to be invoked on disconnected events.
 typedef OnDisconnected = Future<void> Function();
 
 /// The base class for creating a custom proxy object.
@@ -66,7 +68,7 @@ abstract class ProxyBase {
   StreamSubscription<Map<String, dynamic>>? _streamSubscription;
   OnDisconnected? _onDisconnected;
 
-  Future<void> _connectInternal() async {
+  Future<void> _connectInternal(OnError? onError) async {
     if (_isConnected) {
       // TODO(swift-kim): Immediately return without throwing an error when
       // already connected.
@@ -106,7 +108,7 @@ abstract class ProxyBase {
           Log.error(_logTag, 'Unknown event: $event');
         }
       }
-    });
+    }, onError: onError);
     return _connectCompleter.future;
   }
 
@@ -118,8 +120,11 @@ abstract class ProxyBase {
   /// The following privileges are required to use this API.
   /// - `http://tizen.org/privilege/appmanager.launch`
   /// - `http://tizen.org/privilege/datasharing`
-  Future<void> connect({OnDisconnected? onDisconnected}) async {
-    await _connectInternal();
+  Future<void> connect({
+    OnError? onError,
+    OnDisconnected? onDisconnected,
+  }) async {
+    await _connectInternal(onError);
     _onDisconnected = onDisconnected;
   }
 
@@ -165,7 +170,10 @@ abstract class ProxyBase {
 
   Future<void> _onRejectedEvent(String errorMessage) async {
     if (!_connectCompleter.isCompleted) {
-      _connectCompleter.completeError(errorMessage);
+      _connectCompleter.completeError(PlatformException(
+        code: 'Connection rejected',
+        message: errorMessage,
+      ));
       _connectCompleter = Completer<void>();
     }
   }
