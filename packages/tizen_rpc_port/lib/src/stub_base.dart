@@ -15,9 +15,9 @@ import 'proxy_base.dart' show OnError;
 
 export 'package:meta/meta.dart' show nonVirtual, visibleForOverriding;
 
-/// The base class for creating a custom stub object.
+/// The base class for stub objects used by RPC servers.
 abstract class StubBase {
-  /// Creates a [StubBase] instance with the port name.
+  /// Creates a [StubBase] instance with the specified port name.
   StubBase(this.portName) {
     _handle = using((Arena arena) {
       final Pointer<rpc_port_stub_h> pStub = arena();
@@ -64,7 +64,7 @@ abstract class StubBase {
     }
   }
 
-  /// Adds a privilege which is required when a proxy connects to this stub.
+  /// Adds a privilege required by client applications to connect to this stub.
   void addPrivilege(String privilege) {
     using((Arena arena) {
       final Pointer<Char> pPrivilege = privilege.toNativeChar(allocator: arena);
@@ -78,7 +78,7 @@ abstract class StubBase {
     });
   }
 
-  /// Listens to requests for connections.
+  /// Starts listening to connection requests from clients.
   Future<void> listen({OnError? onError}) async {
     if (_streamSubscription != null) {
       return;
@@ -108,8 +108,7 @@ abstract class StubBase {
     }, onError: onError);
   }
 
-  /// Gets a [Port] associated with a proxy instance with the specified name
-  /// and port type.
+  /// Gets a [Port] associated with a specific client [instance].
   Port getPort(String instance, PortType portType) {
     return using((Arena arena) {
       final Pointer<Char> pInstance = instance.toNativeChar();
@@ -126,12 +125,12 @@ abstract class StubBase {
     });
   }
 
-  /// Called when a connection is established by a proxy instance.
+  /// Called when a connection is established by a client.
   Future<void> onConnectedEvent(String sender, String instance);
 
-  /// Called when disconnected from a proxy instance.
+  /// Called when a connection is closed by a client.
   Future<void> onDisconnectedEvent(String sender, String instance);
 
-  /// Called when data are received from a proxy instance.
+  /// Called when data are received from a client.
   Future<void> onReceivedEvent(String sender, String instance, Parcel parcel);
 }

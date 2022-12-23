@@ -11,8 +11,6 @@ import 'package:tizen_interop/6.5/tizen.dart';
 
 import 'port.dart';
 
-export 'dart:typed_data';
-
 /// An interface for marshaling and unmarshaling object data.
 abstract class Parcelable {
   /// Serializes the object data to the [parcel].
@@ -22,7 +20,7 @@ abstract class Parcelable {
   void deserialize(Parcel parcel);
 }
 
-/// A parcel header that contains various metadata about a [Parcel].
+/// Provides various metadata about a [Parcel].
 class ParcelHeader {
   ParcelHeader._fromHandle(this._header);
 
@@ -84,8 +82,7 @@ class ParcelHeader {
   }
 }
 
-/// Contains serialized and deserialized object data to be transferred for
-/// RPC communication.
+/// Holds serialized object data for sequential read/write access.
 class Parcel {
   /// Creates a new [Parcel].
   Parcel() {
@@ -125,7 +122,7 @@ class Parcel {
   /// Creates a [Parcel] from the given [rawData].
   Parcel.fromRaw(Uint8List rawData) {
     _handle = using((Arena arena) {
-      final Pointer<Uint8> pRaw = arena.allocate<Uint8>(rawData.length);
+      final Pointer<Uint8> pRaw = arena(rawData.length);
       for (int i = 0; i < rawData.length; ++i) {
         pRaw[i] = rawData[i] & _byteMax;
       }

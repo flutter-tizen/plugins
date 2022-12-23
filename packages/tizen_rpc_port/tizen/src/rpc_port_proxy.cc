@@ -69,7 +69,7 @@ RpcPortResult RpcPortProxyManager::Connect(rpc_port_proxy_h handle,
 void RpcPortProxyManager::OnConnectedEvent(const char* receiver,
                                            const char* port_name,
                                            rpc_port_h port, void* user_data) {
-  LOG_DEBUG("Connected: receiver(%s), port_name(%s)", receiver, port_name);
+  LOG_DEBUG("Connected: receiver(%s), portName(%s)", receiver, port_name);
 
   rpc_port_proxy_h handle = static_cast<rpc_port_proxy_h>(user_data);
   flutter::EncodableMap map =
@@ -80,7 +80,7 @@ void RpcPortProxyManager::OnConnectedEvent(const char* receiver,
 void RpcPortProxyManager::OnDisconnectedEvent(const char* receiver,
                                               const char* port_name,
                                               void* user_data) {
-  LOG_DEBUG("Disconnected: receiver(%s), port_name(%s)", receiver, port_name);
+  LOG_DEBUG("Disconnected: receiver(%s), portName(%s)", receiver, port_name);
 
   rpc_port_proxy_h handle = static_cast<rpc_port_proxy_h>(user_data);
   flutter::EncodableMap map =
@@ -91,7 +91,7 @@ void RpcPortProxyManager::OnDisconnectedEvent(const char* receiver,
 void RpcPortProxyManager::OnRejectedEvent(const char* receiver,
                                           const char* port_name,
                                           void* user_data) {
-  LOG_DEBUG("Rejected: receiver(%s), port_name(%s)", receiver, port_name);
+  LOG_DEBUG("Rejected: receiver(%s), portName(%s)", receiver, port_name);
 
   rpc_port_proxy_h handle = static_cast<rpc_port_proxy_h>(user_data);
   flutter::EncodableMap map =
@@ -104,7 +104,7 @@ void RpcPortProxyManager::OnRejectedEvent(const char* receiver,
 void RpcPortProxyManager::OnReceivedEvent(const char* receiver,
                                           const char* port_name,
                                           void* user_data) {
-  LOG_DEBUG("Received: receiver(%s), port_name(%s)", receiver, port_name);
+  LOG_DEBUG("Received: receiver(%s), portName(%s)", receiver, port_name);
 
   rpc_port_proxy_h handle = static_cast<rpc_port_proxy_h>(user_data);
   rpc_port_h port = nullptr;

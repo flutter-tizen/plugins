@@ -20,9 +20,10 @@ typedef OnError = void Function(Object error);
 /// A signature for callbacks to be invoked on disconnected events.
 typedef OnDisconnected = Future<void> Function();
 
-/// The base class for creating a custom proxy object.
+/// The base class for proxy objects used by RPC clients.
 abstract class ProxyBase {
-  /// Creates a [ProxyBase] instance with a stub application ID and port name.
+  /// Creates a [ProxyBase] instance with a server application ID and
+  /// port name.
   ProxyBase(this.appid, this.portName) {
     _handle = using((Arena arena) {
       final Pointer<rpc_port_proxy_h> pProxy = arena();
@@ -47,15 +48,15 @@ abstract class ProxyBase {
     tizen.rpc_port_proxy_destroy(proxy._handle);
   });
 
-  /// The target stub application ID.
+  /// The server application ID.
   final String appid;
 
-  /// A port name to use when connecting to the remote stub.
+  /// A port name to use when connecting to the server.
   final String portName;
 
   bool _isConnected = false;
 
-  /// Whether the proxy is connected to the remote stub.
+  /// Whether the proxy is connected to the server.
   bool get isConnected => _isConnected;
 
   Completer<void> _connectCompleter = Completer<void>();
@@ -67,10 +68,16 @@ abstract class ProxyBase {
   StreamSubscription<dynamic>? _streamSubscription;
   OnDisconnected? _onDisconnected;
 
-  /// Connects to the remote stub.
+  /// Connects to the server.
   ///
-  /// If [onDisconnected] is provided, it is later called when this proxy is
-  /// disconnected from the remote stub.
+  /// This internally creates an event [Stream] and manages until the proxy
+  /// is disconnected from the server.
+  ///
+  /// The [onError] handler is invoked when a platform error is reported by
+  /// the stream. If omitted, the error is considered unhandled.
+  ///
+  /// The [onDisconnected] handler is invoked when the proxy is disconnected
+  /// from the server. If omitted, nothing happens.
   ///
   /// The following privileges are required to use this API.
   /// - `http://tizen.org/privilege/appmanager.launch`
@@ -82,7 +89,6 @@ abstract class ProxyBase {
     if (_isConnected) {
       throw StateError('Proxy $appid/$portName already connected');
     }
-    _onDisconnected = onDisconnected;
 
     final Stream<dynamic> stream =
         _eventChannel.receiveBroadcastStream(<String, Object>{
@@ -98,6 +104,7 @@ abstract class ProxyBase {
       final String event = map['event'] as String;
       if (event == 'connected') {
         _isConnected = true;
+        _onDisconnected = onDisconnected;
         await _onConnectedEvent();
       } else if (event == 'disconnected') {
         _isConnected = false;
@@ -122,7 +129,7 @@ abstract class ProxyBase {
     return _connectCompleter.future;
   }
 
-  /// Disconnects from the remote stub.
+  /// Disconnects from the connected server.
   Future<void> disconnect() async {
     if (!_isConnected) {
       return;
@@ -139,7 +146,7 @@ abstract class ProxyBase {
     return _disconnectCompleter.future;
   }
 
-  /// Gets a [Port] associated with this proxy.
+  /// Gets a [Port] used to connect to the server.
   Port getPort(PortType portType) {
     return using((Arena arena) {
       final Pointer<rpc_port_h> pPort = arena();
@@ -181,6 +188,6 @@ abstract class ProxyBase {
     }
   }
 
-  /// Called when data are received from the remote stub.
+  /// Called when data are received from the connected server.
   Future<void> onReceivedEvent(Parcel parcel);
 }
