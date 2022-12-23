@@ -8,7 +8,6 @@
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
 #include <flutter/event_stream_handler_functions.h>
-#include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
@@ -26,26 +25,9 @@ using namespace tizen;
 
 typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
 typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
-typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
-typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
-typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
 typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
 typedef flutter::StreamHandlerError<flutter::EncodableValue>
     FlStreamHandlerError;
-
-class RpcStreamHandlerError : public FlStreamHandlerError {
- public:
-  RpcStreamHandlerError(const std::string& error_code,
-                        const std::string& error_message,
-                        const flutter::EncodableValue* error_details)
-      : error_code_(error_code),
-        error_message_(error_message),
-        FlStreamHandlerError(error_code_, error_message_, error_details) {}
-
- private:
-  std::string error_code_;
-  std::string error_message_;
-};
 
 template <typename T>
 static bool GetValueFromEncodableMap(const flutter::EncodableMap* map,
@@ -60,144 +42,116 @@ static bool GetValueFromEncodableMap(const flutter::EncodableMap* map,
   return false;
 }
 
+class RpcStreamHandlerError : public FlStreamHandlerError {
+ public:
+  RpcStreamHandlerError(const std::string& error_code,
+                        const std::string& error_message,
+                        const flutter::EncodableValue* error_details = nullptr)
+      : error_code_(error_code),
+        error_message_(error_message),
+        FlStreamHandlerError(error_code_, error_message_, error_details) {}
+
+ private:
+  std::string error_code_;
+  std::string error_message_;
+};
+
+class RpcProxyStreamHandler : public FlStreamHandler {
+ protected:
+  std::unique_ptr<FlStreamHandlerError> OnListenInternal(
+      const flutter::EncodableValue* arguments,
+      std::unique_ptr<FlEventSink>&& events) override {
+    RpcPortProxyManager::Init(std::move(events));
+
+    const auto* args = std::get_if<flutter::EncodableMap>(arguments);
+    if (!args) {
+      return std::make_unique<RpcStreamHandlerError>(
+          "Invalid arguments", "The argument must be a map.");
+    }
+    rpc_port_proxy_h handle = nullptr;
+    std::string appid, port_name;
+    if (!GetValueFromEncodableMap(args, "handle",
+                                  reinterpret_cast<int64_t&>(handle)) ||
+        !GetValueFromEncodableMap(args, "appid", appid) ||
+        !GetValueFromEncodableMap(args, "portName", port_name)) {
+      return std::make_unique<RpcStreamHandlerError>(
+          "Invalid arguments", "No handle, appid, or portName provided.");
+    }
+
+    auto ret = RpcPortProxyManager::Connect(handle, appid, port_name);
+    if (!ret) {
+      return std::make_unique<RpcStreamHandlerError>(
+          std::to_string(ret.error_code), ret.message());
+    }
+    return nullptr;
+  }
+
+  std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
+      const flutter::EncodableValue* arguments) override {
+    return nullptr;
+  }
+};
+
+class RpcStubStreamHandler : public FlStreamHandler {
+ protected:
+  std::unique_ptr<FlStreamHandlerError> OnListenInternal(
+      const flutter::EncodableValue* arguments,
+      std::unique_ptr<FlEventSink>&& events) override {
+    RpcPortStubManager::Init(std::move(events));
+
+    const auto* args = std::get_if<flutter::EncodableMap>(arguments);
+    if (!args) {
+      return std::make_unique<RpcStreamHandlerError>(
+          "Invalid arguments", "The argument must be a map.");
+    }
+    rpc_port_stub_h handle = nullptr;
+    if (!GetValueFromEncodableMap(args, "handle",
+                                  reinterpret_cast<int64_t&>(handle))) {
+      return std::make_unique<RpcStreamHandlerError>("Invalid arguments",
+                                                     "No handle provided.");
+    }
+
+    auto ret = RpcPortStubManager::Listen(handle);
+    if (!ret) {
+      return std::make_unique<RpcStreamHandlerError>(
+          std::to_string(ret.error_code), ret.message());
+    }
+    return nullptr;
+  }
+
+  std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
+      const flutter::EncodableValue* arguments) override {
+    return nullptr;
+  }
+};
+
 class TizenRpcPortPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
-    auto plugin = std::make_unique<TizenRpcPortPlugin>(registrar);
+    auto plugin = std::make_unique<TizenRpcPortPlugin>();
 
-    auto channel = std::make_unique<FlMethodChannel>(
-        registrar->messenger(), "tizen/rpc_port",
+    plugin->proxy_channel_ = std::make_unique<FlEventChannel>(
+        registrar->messenger(), "tizen/rpc_port_proxy",
         &flutter::StandardMethodCodec::GetInstance());
-    channel->SetMethodCallHandler(
-        [plugin_pointer = plugin.get()](const auto& call, auto result) {
-          plugin_pointer->HandleMethodCall(call, std::move(result));
-        });
+    plugin->proxy_channel_->SetStreamHandler(
+        std::make_unique<RpcProxyStreamHandler>());
+
+    plugin->stub_channel_ = std::make_unique<FlEventChannel>(
+        registrar->messenger(), "tizen/rpc_port_stub",
+        &flutter::StandardMethodCodec::GetInstance());
+    plugin->stub_channel_->SetStreamHandler(
+        std::make_unique<RpcStubStreamHandler>());
 
     registrar->AddPlugin(std::move(plugin));
   }
 
-  explicit TizenRpcPortPlugin(flutter::PluginRegistrar* plugin_registrar)
-      : plugin_registrar_(plugin_registrar) {}
+  TizenRpcPortPlugin() {}
 
   virtual ~TizenRpcPortPlugin() {}
 
  private:
-  void HandleMethodCall(const FlMethodCall& method_call,
-                        std::unique_ptr<FlMethodResult> result) {
-    const auto& method_name = method_call.method_name();
-    const auto* arguments =
-        std::get_if<flutter::EncodableMap>(method_call.arguments());
-
-    if (method_name == "proxyConnect") {
-      ProxyConnect(arguments, std::move(result));
-    } else if (method_name == "stubListen") {
-      StubListen(arguments, std::move(result));
-    } else {
-      result->NotImplemented();
-    }
-  }
-
-  void ProxyConnect(const flutter::EncodableMap* arguments,
-                    std::unique_ptr<FlMethodResult> result) {
-    rpc_port_proxy_h handle = nullptr;
-    std::string appid;
-    std::string port_name;
-
-    if (!GetValueFromEncodableMap(arguments, "handle",
-                                  reinterpret_cast<int64_t&>(handle)) ||
-        !GetValueFromEncodableMap(arguments, "appid", appid) ||
-        !GetValueFromEncodableMap(arguments, "portName", port_name)) {
-      result->Error("Invalid arguments");
-      return;
-    }
-
-    if (!proxy_channel_) {
-      proxy_channel_ = std::make_unique<FlEventChannel>(
-          plugin_registrar_->messenger(), "tizen/rpc_port_proxy",
-          &flutter::StandardMethodCodec::GetInstance());
-
-      auto event_handler = std::make_unique<flutter::StreamHandlerFunctions<>>(
-          [handle, appid, port_name](const flutter::EncodableValue* arguments,
-                                     std::unique_ptr<FlEventSink>&& events)
-              -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            RpcPortProxyManager::Init(std::move(events));
-
-            auto ret = RpcPortProxyManager::Connect(handle, appid, port_name);
-            if (!ret) {
-              return std::make_unique<RpcStreamHandlerError>(
-                  std::to_string(ret.error_code), ret.message(), nullptr);
-            }
-            return nullptr;
-          },
-          [this](const flutter::EncodableValue* arguments)
-              -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            proxy_channel_ = nullptr;
-            return nullptr;
-          });
-
-      proxy_channel_->SetStreamHandler(std::move(event_handler));
-    } else {
-      auto ret = RpcPortProxyManager::Connect(handle, appid, port_name);
-      if (!ret) {
-        result->Error(std::to_string(ret.error_code), ret.message());
-        return;
-      }
-    }
-
-    LOG_DEBUG("Successfully connect stream for appid(%s) port_name(%s): ",
-              appid.c_str(), port_name.c_str());
-    result->Success();
-  }
-
-  void StubListen(const flutter::EncodableMap* arguments,
-                  std::unique_ptr<FlMethodResult> result) {
-    rpc_port_stub_h handle = nullptr;
-
-    if (!GetValueFromEncodableMap(arguments, "handle",
-                                  reinterpret_cast<int64_t&>(handle))) {
-      result->Error("Invalid arguments");
-      return;
-    }
-
-    if (!stub_channel_) {
-      stub_channel_ = std::make_unique<FlEventChannel>(
-          plugin_registrar_->messenger(), "tizen/rpc_port_stub",
-          &flutter::StandardMethodCodec::GetInstance());
-
-      auto event_handler = std::make_unique<flutter::StreamHandlerFunctions<>>(
-          [handle](const flutter::EncodableValue* arguments,
-                   std::unique_ptr<FlEventSink>&& events)
-              -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            RpcPortStubManager::Init(std::move(events));
-
-            auto ret = RpcPortStubManager::Listen(handle);
-            if (!ret) {
-              return std::make_unique<RpcStreamHandlerError>(
-                  std::to_string(ret.error_code), ret.message(), nullptr);
-            }
-            return nullptr;
-          },
-          [](const flutter::EncodableValue* arguments)
-              -> std::unique_ptr<flutter::StreamHandlerError<>> {
-            return nullptr;
-          });
-
-      stub_channel_->SetStreamHandler(std::move(event_handler));
-    } else {
-      auto ret = RpcPortStubManager::Listen(handle);
-      if (!ret) {
-        result->Error(std::to_string(ret.error_code), ret.message());
-        return;
-      }
-    }
-
-    result->Success();
-  }
-
- private:
   std::unique_ptr<FlEventChannel> proxy_channel_;
   std::unique_ptr<FlEventChannel> stub_channel_;
-  flutter::PluginRegistrar* plugin_registrar_;
 };
 
 }  // namespace

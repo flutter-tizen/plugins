@@ -8,16 +8,12 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
-import 'package:tizen_log/tizen_log.dart';
 
 import 'parcel.dart';
 import 'port.dart';
 import 'proxy_base.dart' show OnError;
-import 'rpc_port_method_channel.dart';
 
 export 'package:meta/meta.dart' show nonVirtual, visibleForOverriding;
-
-const String _logTag = 'RPC_PORT';
 
 /// The base class for creating a custom stub object.
 abstract class StubBase {
@@ -49,7 +45,9 @@ abstract class StubBase {
   /// A port name to use when listening for connections.
   final String portName;
 
-  /// ignore: cancel_subscriptions
+  static const EventChannel _eventChannel = EventChannel('tizen/rpc_port_stub');
+
+  // ignore: cancel_subscriptions
   StreamSubscription<dynamic>? _streamSubscription;
 
   /// Sets whether this stub should only allow trusted connections.
@@ -86,19 +84,16 @@ abstract class StubBase {
       return;
     }
 
-    final Stream<Map<String, dynamic>> stream =
-        await MethodChannelRpcPort.instance.stubListen(_handle.address);
-    _streamSubscription = stream.listen((Map<String, dynamic> map) async {
+    final Stream<dynamic> stream = _eventChannel
+        .receiveBroadcastStream(<String, Object>{'handle': _handle.address});
+    _streamSubscription = stream.listen((dynamic map) async {
       final int handle = map['handle'] as int;
       if (handle != _handle.address) {
         return;
       }
-
       final String event = map['event'] as String;
       final String sender = map['sender'] as String;
       final String instance = map['instance'] as String;
-      Log.info(_logTag, 'event: $event, sender: $sender, instance: $instance');
-
       if (event == 'connected') {
         await onConnectedEvent(sender, instance);
       } else if (event == 'disconnected') {
@@ -108,7 +103,7 @@ abstract class StubBase {
         final Parcel parcel = Parcel.fromRaw(rawData);
         await onReceivedEvent(sender, instance, parcel);
       } else {
-        Log.error(_logTag, 'Unknown event: $event');
+        print('Unknown event: $event');
       }
     }, onError: onError);
   }

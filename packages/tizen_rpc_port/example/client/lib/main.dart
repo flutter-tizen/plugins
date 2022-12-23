@@ -28,12 +28,19 @@ class _MyAppState extends State<MyApp> {
   String _input = '';
 
   Future<void> _connect() async {
-    await _client.connect(onDisconnected: () async {
-      setState(() {
-        _isConnected = false;
-        _message = 'Disconnected';
-      });
-    });
+    await _client.connect(
+      onError: (Object error) {
+        setState(() {
+          _message = 'Error: $error';
+        });
+      },
+      onDisconnected: () async {
+        setState(() {
+          _isConnected = false;
+          _message = 'Disconnected';
+        });
+      },
+    );
     await _client.register('ClientApp', onMessage);
 
     setState(() {
