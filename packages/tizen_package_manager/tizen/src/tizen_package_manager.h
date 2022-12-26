@@ -22,9 +22,9 @@ struct PackageInfo {
   std::optional<std::string> icon_path;
   std::string version;
   std::string installed_storage_type;
-  bool is_system;
-  bool is_preloaded;
-  bool is_removable;
+  bool is_system = false;
+  bool is_preloaded = false;
+  bool is_removable = false;
 };
 
 enum class PacakgeEventState { kStarted, kProcessing, kFailed, kCompleted };
@@ -42,6 +42,10 @@ class TizenPackageManager {
     static TizenPackageManager instance;
     return instance;
   }
+
+  // Prevent copying.
+  TizenPackageManager(TizenPackageManager const&) = delete;
+  TizenPackageManager& operator=(TizenPackageManager const&) = delete;
 
   std::optional<PackageInfo> GetPackageInfo(const std::string& package_id);
 
