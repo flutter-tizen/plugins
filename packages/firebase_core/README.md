@@ -10,12 +10,12 @@ This package is not an _endorsed_ implementation of `firebase_core`. Therefore, 
 
 ```yaml
 dependencies:
-  firebase_core: ^1.9.0
+  firebase_core: ^2.4.0
   firebase_core_tizen: ^0.1.0
 ```
 
-For detailed usage see https://github.com/invertase/flutterfire_desktop#flutterfire-desktop.
+For detailed usage, see https://github.com/invertase/flutterfire_desktop#flutterfire-desktop.
 
 ## Tizen integration
 
-The implementation of `firebase_core` is based on [FlutterFire Desktop Core](https://github.com/invertase/flutterfire_desktop/tree/main/packages/firebase_core/firebase_core_desktop). FlutterFire Desktop provides dart implementation of the Firebase modules.
+The implementation of `firebase_core_tizen` is based on [FlutterFire Desktop Core](https://github.com/invertase/flutterfire_desktop/tree/main/packages/firebase_core/firebase_core_desktop). FlutterFire Desktop provides Dart implementation of the Firebase modules.

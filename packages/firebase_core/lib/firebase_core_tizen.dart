@@ -7,12 +7,11 @@ library firebase_core_tizen;
 import 'package:firebase_core_dart/firebase_core_dart.dart' as core_dart;
 import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
 
-part 'firebase_app_desktop.dart';
+part 'firebase_app_tizen.dart';
 
-/// Desktop implementation of FirebaseCore for managing Firebase app
-/// instances.
+/// Tizen implementation of FirebaseCore for managing Firebase app instances.
 class FirebaseCore extends FirebasePlatform {
-  /// Called by PluginRegistry to register this plugin as the implementation for Desktop
+  /// Registers this class as the default instance of [FirebasePlatform].
   static void register() {
     FirebasePlatform.instance = FirebaseCore();
   }

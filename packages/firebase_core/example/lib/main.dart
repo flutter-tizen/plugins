@@ -1,4 +1,7 @@
 // Copyright (c) Invertase Limited <oss@invertase.io> & Contributors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 // ignore_for_file: public_member_api_docs
 
 import 'dart:async';
@@ -13,13 +16,11 @@ class MyApp extends StatelessWidget {
 
   String get name => 'foo';
 
-  // fill app keys if needed, you can take ones from
-  // https://github.com/invertase/flutterfire_desktop/blob/main/packages/firebase_core/firebase_core_desktop/example/lib/main.dart
   FirebaseOptions get firebaseOptions => const FirebaseOptions(
-        appId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-        apiKey: 'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy',
+        appId: '1:448618578101:ios:0b650370bb29e29cac3efc',
+        apiKey: 'AIzaSyAgUhHU8wSJgO5MVNy95tMT07NEjzMOfz0',
         projectId: 'react-native-firebase-testing',
-        messagingSenderId: 'zzzzzzzzzzzz',
+        messagingSenderId: '448618578101',
       );
 
   Future<void> initializeDefault() async {
