@@ -10,22 +10,23 @@ import 'package:tizen_interop/6.5/tizen.dart';
 
 /// Enumeration for RPC port types.
 enum PortType {
-  /// Main channel to communicate.
+  /// Main channel for data transfer.
   main,
 
   /// Sub channel for callbacks.
   callback,
 }
 
-/// The class that proxy and stub can use to communicate with each other.
+/// Represents a connection between remote endpoints (proxy and stub).
 class Port {
-  /// Constructor of this class from native handle.
+  /// Creates a [Port] from an existing native handle.
   Port.fromNativeHandle(this.handle);
 
-  /// The native handle of this port.
+  /// The native handle.
   final rpc_port_h handle;
 
-  /// Shares private files with other applications.
+  /// Temporarily grants an access to files at [paths] to the remote
+  /// application.
   void shareFiles(List<String> paths) {
     using((Arena arena) {
       final Pointer<Pointer<Char>> pPaths =
@@ -47,7 +48,8 @@ class Port {
     });
   }
 
-  /// Shares a private file with other applications.
+  /// Temporarily grants an access to a file at [path] to the remote
+  /// application.
   void shareFile(String path) {
     using((Arena arena) {
       final Pointer<Char> pPath = path.toNativeChar();
@@ -61,7 +63,7 @@ class Port {
     });
   }
 
-  /// Unshares the private file.
+  /// Revoke file access permissions.
   void unshareFile() {
     final int ret = tizen.rpc_port_unset_private_sharing(handle);
     if (ret != 0) {
