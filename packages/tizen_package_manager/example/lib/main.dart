@@ -4,8 +4,10 @@
 
 // ignore_for_file: public_member_api_docs
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:tizen_package_manager/package_manager.dart';
+import 'package:tizen_package_manager/tizen_package_manager.dart';
 
 /// The example app package ID.
 const String currentPackageId = 'org.tizen.tizen_package_manager_example';
@@ -20,52 +22,39 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Package manager demo',
+      title: 'Package Manager Demo',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const _MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
 
-class _MyHomePage extends StatefulWidget {
-  const _MyHomePage({Key? key}) : super(key: key);
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<_MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Package manager demo')),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Package Manager Demo'),
+          bottom: const TabBar(tabs: <Tab>[
+            Tab(text: 'This package'),
+            Tab(text: 'Package list'),
+            Tab(text: 'Package events'),
+          ]),
+        ),
+        body: const TabBarView(
           children: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<Object>(
-                    builder: (BuildContext context) =>
-                        _CurrentPackageInfoScreen(),
-                  ),
-                );
-              },
-              child: const Text('Current app package info'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<Object>(
-                    builder: (BuildContext context) => _PackagesListScreen(),
-                  ),
-                );
-              },
-              child: const Text('Installed packages list'),
-            ),
+            _CurrentPackageScreen(),
+            _PackageListScreen(),
+            _PackageEventsScreen(),
           ],
         ),
       ),
@@ -73,115 +62,161 @@ class _MyHomePageState extends State<_MyHomePage> {
   }
 }
 
-class _CurrentPackageInfoScreen extends StatefulWidget {
+class _CurrentPackageScreen extends StatefulWidget {
+  const _CurrentPackageScreen({Key? key}) : super(key: key);
+
   @override
-  _CurrentPackageInfoScreenState createState() =>
-      _CurrentPackageInfoScreenState();
+  State<_CurrentPackageScreen> createState() => _CurrentPackageScreenState();
 }
 
-class _CurrentPackageInfoScreenState extends State<_CurrentPackageInfoScreen> {
-  PackageInfo _packageInfo = PackageInfo(
-    packageId: '',
-    label: '',
-    packageType: PackageType.unknown,
-    iconPath: '',
-    version: '',
-    installedStorageType: '',
-    isSystem: false,
-    isPreloaded: false,
-    isRemovable: false,
-  );
+class _CurrentPackageScreenState extends State<_CurrentPackageScreen> {
+  Widget _infoTile(String title, String subtitle) {
+    return ListTile(title: Text(title), subtitle: Text(subtitle));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PackageInfo>(
+      future: PackageManager.getPackageInfo(currentPackageId),
+      builder: (BuildContext context, AsyncSnapshot<PackageInfo> snapshot) {
+        if (snapshot.hasData) {
+          final PackageInfo packageInfo = snapshot.data!;
+          return ListView(
+            children: <Widget>[
+              _infoTile('Package ID', packageInfo.packageId),
+              _infoTile('Label', packageInfo.label),
+              _infoTile('Version', packageInfo.version),
+              _infoTile('Package type', packageInfo.packageType.name),
+              _infoTile('Icon path', packageInfo.iconPath ?? ''),
+              _infoTile('System app', packageInfo.isSystem.toString()),
+              _infoTile('Preloaded app', packageInfo.isPreloaded.toString()),
+              _infoTile('Removable', packageInfo.isRemovable.toString()),
+            ],
+          );
+        } else if (snapshot.hasError) {
+          return Center(child: Text(snapshot.error.toString()));
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
+    );
+  }
+}
+
+class _PackageListScreen extends StatefulWidget {
+  const _PackageListScreen({Key? key}) : super(key: key);
+
+  @override
+  State<_PackageListScreen> createState() => _PackageListScreenState();
+}
+
+class _PackageListScreenState extends State<_PackageListScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<PackageInfo>>(
+      future: PackageManager.getPackagesInfo(),
+      builder:
+          (BuildContext context, AsyncSnapshot<List<PackageInfo>> snapshot) {
+        if (snapshot.hasData) {
+          final List<PackageInfo> packages = snapshot.data!;
+          return ListView.builder(
+            itemCount: packages.length,
+            itemBuilder: (BuildContext context, int index) {
+              final PackageInfo package = packages[index];
+              return ListTile(
+                title: Text(package.label),
+                subtitle: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  child: Text(
+                    'Package ID: ${package.packageId}\n'
+                    'Version: ${package.version}\n'
+                    'Type: ${package.packageType.name}\n'
+                    'System: ${package.isSystem}',
+                  ),
+                ),
+                isThreeLine: true,
+              );
+            },
+          );
+        } else if (snapshot.hasError) {
+          return Center(child: Text(snapshot.error.toString()));
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
+    );
+  }
+}
+
+class _PackageEventsScreen extends StatefulWidget {
+  const _PackageEventsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<_PackageEventsScreen> createState() => _PackageEventsScreenState();
+}
+
+class _PackageEventsScreenState extends State<_PackageEventsScreen>
+    with AutomaticKeepAliveClientMixin {
+  late final StreamSubscription<PackageEvent>? _installSubscription;
+  late final StreamSubscription<PackageEvent>? _uninstallSubscription;
+  late final StreamSubscription<PackageEvent>? _updateSubscription;
+  final List<PackageEvent> _packageEvents = <PackageEvent>[];
 
   @override
   void initState() {
     super.initState();
 
-    PackageManager.getPackageInfo(currentPackageId).then(
-      (PackageInfo packageInfo) {
-        setState(() {
-          _packageInfo = packageInfo;
-        });
-      },
-    );
+    _installSubscription =
+        PackageManager.onInstallProgressChanged.listen((PackageEvent event) {
+      setState(() {
+        _packageEvents.add(event);
+      });
+    });
+    _uninstallSubscription =
+        PackageManager.onUninstallProgressChanged.listen((PackageEvent event) {
+      setState(() {
+        _packageEvents.add(event);
+      });
+    });
+    _updateSubscription =
+        PackageManager.onUpdateProgressChanged.listen((PackageEvent event) {
+      setState(() {
+        _packageEvents.add(event);
+      });
+    });
   }
 
-  Widget _infoTile(String title, String subtitle) {
-    return ListTile(
-      title: Text(title),
-      subtitle: Text(subtitle.isNotEmpty ? subtitle : 'Not set'),
-    );
-  }
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Current app package info')),
-      body: ListView(
-        children: <Widget>[
-          _infoTile('Package ID', _packageInfo.packageId),
-          _infoTile('Label', _packageInfo.label),
-          _infoTile('Version', _packageInfo.version),
-          _infoTile('Package type', _packageInfo.packageType.name),
-          _infoTile('Icon path', _packageInfo.iconPath ?? ''),
-          _infoTile('Is system app', _packageInfo.isSystem.toString()),
-          _infoTile('Is preloaded app', _packageInfo.isPreloaded.toString()),
-          _infoTile('Is removable', _packageInfo.isRemovable.toString()),
-        ],
-      ),
-    );
-  }
-}
+    super.build(context);
 
-class _PackagesListScreen extends StatefulWidget {
-  @override
-  _PackagesListScreenState createState() => _PackagesListScreenState();
-}
-
-class _PackagesListScreenState extends State<_PackagesListScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Package list')),
-      body: _PackagesListScreenContent(key: GlobalKey()),
-    );
-  }
-}
-
-class _PackagesListScreenContent extends StatelessWidget {
-  const _PackagesListScreenContent({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<PackageInfo>>(
-      future: PackageManager.getPackagesInfo(),
-      builder: (BuildContext context, AsyncSnapshot<List<PackageInfo>> data) {
-        if (data.data == null) {
-          return const Center(child: CircularProgressIndicator());
-        } else {
-          final List<PackageInfo> packages = data.data!;
-
-          return Scrollbar(
-            child: ListView.builder(
-              itemBuilder: (BuildContext context, int position) {
-                final PackageInfo package = packages[position];
-                return Column(
-                  children: <Widget>[
-                    ListTile(
-                      title: Text(package.label),
-                      subtitle: Text('Package Id: ${package.packageId}\n'
-                          'Version: ${package.version}\n'
-                          'type: ${package.packageType}\n'
-                          'isSystem: ${package.isSystem}\n'),
-                    ),
-                    const Divider(height: 1.0)
-                  ],
-                );
-              },
-              itemCount: packages.length,
+    if (_packageEvents.isEmpty) {
+      return const Center(child: Text('No events'));
+    } else {
+      return ListView.builder(
+        itemCount: _packageEvents.length,
+        itemBuilder: (BuildContext context, int index) {
+          final PackageEvent event = _packageEvents.elementAt(index);
+          return ListTile(
+            title: Text(event.packageId),
+            subtitle: Text(
+              'Type: ${event.eventType.name}\n'
+              'State: ${event.eventState.name}',
             ),
           );
-        }
-      },
-    );
+        },
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _installSubscription?.cancel();
+    _uninstallSubscription?.cancel();
+    _updateSubscription?.cancel();
   }
 }

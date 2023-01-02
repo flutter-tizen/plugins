@@ -22,7 +22,16 @@ enum PackageType {
   unknown,
 }
 
-/// Enumeration for the package manager event types.
+/// Enumeration for the package installation storage type.
+enum StorageType {
+  /// External storage.
+  external,
+
+  /// Internal storage.
+  internal,
+}
+
+/// Enumeration for the package manager event type.
 enum PackageEventType {
   /// Install event.
   install,
@@ -80,12 +89,9 @@ class PackageManager {
     if (packageId.isEmpty) {
       throw ArgumentError('Must not be empty', 'packageId');
     }
-
-    final Map<String, dynamic> map = await _channel
-            .invokeMapMethod<String, dynamic>(
-                'getPackage', <String, String>{'packageId': packageId}) ??
-        <String, dynamic>{};
-
+    final Map<String, dynamic>? map = await _channel
+        .invokeMapMethod<String, dynamic>(
+            'getPackage', <String, String>{'packageId': packageId});
     return PackageInfo.fromMap(map);
   }
 
@@ -107,30 +113,24 @@ class PackageManager {
   ///
   /// The `http://tizen.org/privilege/packagemanager.admin` platform privilege
   /// is required to use this API.
-  static Future<bool> install(String packagePath) async {
+  static Future<void> install(String packagePath) async {
     if (packagePath.isEmpty) {
       throw ArgumentError('Must not be empty', 'packagePath');
     }
-
-    final bool ret = await _channel.invokeMethod<bool>(
-            'install', <String, String>{'path': packagePath}) ??
-        false;
-    return ret;
+    await _channel
+        .invokeMethod<bool>('install', <String, String>{'path': packagePath});
   }
 
   /// Uninstalls the package with the given package ID.
   ///
   /// The `http://tizen.org/privilege/packagemanager.admin` platform privilege
   /// is required to use this API.
-  static Future<bool> uninstall(String packageId) async {
+  static Future<void> uninstall(String packageId) async {
     if (packageId.isEmpty) {
       throw ArgumentError('Must not be empty', 'packageId');
     }
-
-    final bool ret = await _channel.invokeMethod<bool>(
-            'uninstall', <String, String>{'packageId': packageId}) ??
-        false;
-    return ret;
+    await _channel.invokeMethod<bool>(
+        'uninstall', <String, String>{'packageId': packageId});
   }
 
   /// A stream of events occurring when a package is getting installed
@@ -161,7 +161,7 @@ class PackageInfo {
     required this.packageId,
     required this.label,
     required this.packageType,
-    required this.iconPath,
+    this.iconPath,
     required this.version,
     required this.installedStorageType,
     required this.isSystem,
@@ -185,43 +185,27 @@ class PackageInfo {
   final String version;
 
   /// Installed storage type for the package.
-  /// the return value is either internal storage or external storage.
-  final String installedStorageType;
+  final StorageType installedStorageType;
 
   /// Whether the package is a system package.
   final bool isSystem;
 
-  /// Whether the package is a preload package.
+  /// Whether the package is a preloaded package.
   final bool isPreloaded;
 
   /// Whether the package is a removable package.
   final bool isRemovable;
 
-  /// Creates an instance of [PackageInfo] with the map parameter.
+  /// Creates an instance of [PackageInfo] from the [map].
   static PackageInfo fromMap(dynamic map) {
-    final Object? packageType = map['type'];
-    PackageType type = PackageType.unknown;
-    switch (packageType) {
-      case 'rpm':
-        type = PackageType.rpm;
-        break;
-      case 'wgt':
-        type = PackageType.wgt;
-        break;
-      case 'tpk':
-        type = PackageType.tpk;
-        break;
-      case 'unknown':
-        type = PackageType.unknown;
-    }
-
     return PackageInfo(
       packageId: map['packageId'] as String,
       label: map['label'] as String,
       iconPath: map['iconPath'] as String?,
-      packageType: type,
+      packageType: PackageType.values.byName(map['type'] as String),
       version: map['version'] as String,
-      installedStorageType: map['installedStorageType'] as String,
+      installedStorageType:
+          StorageType.values.byName(map['installedStorageType'] as String),
       isSystem: map['isSystem'] as bool,
       isPreloaded: map['isPreloaded'] as bool,
       isRemovable: map['isRemovable'] as bool,
@@ -244,9 +228,9 @@ class PackageEvent {
   final String packageId;
 
   /// Type of the package.
-  final String packageType;
+  final PackageType packageType;
 
-  /// The package manager event types
+  /// The package manager event type.
   final PackageEventType eventType;
 
   /// The package manager event state.
@@ -255,49 +239,13 @@ class PackageEvent {
   /// Progress for the request being processed by the package manager (in percent).
   final int progress;
 
-  /// Creates an instance of [PackageEvent] with the map parameter.
+  /// Creates an instance of [PackageEvent] from the [map].
   static PackageEvent fromMap(dynamic map) {
-    PackageEventType type = PackageEventType.install;
-    PackageEventState state = PackageEventState.started;
-    final String eventType = map['eventType'] as String;
-    final String eventState = map['eventState'] as String;
-
-    switch (eventType) {
-      case 'install':
-        type = PackageEventType.install;
-        break;
-      case 'uninstall':
-        type = PackageEventType.uninstall;
-        break;
-      case 'update':
-        type = PackageEventType.update;
-        break;
-      case 'cleardata':
-        type = PackageEventType.clearData;
-        break;
-      case 'move':
-        type = PackageEventType.move;
-    }
-
-    switch (eventState) {
-      case 'started':
-        state = PackageEventState.started;
-        break;
-      case 'processing':
-        state = PackageEventState.processing;
-        break;
-      case 'completed':
-        state = PackageEventState.completed;
-        break;
-      case 'failed':
-        state = PackageEventState.failed;
-    }
-
     return PackageEvent(
       packageId: map['packageId'] as String,
-      packageType: map['type'] as String,
-      eventType: type,
-      eventState: state,
+      packageType: PackageType.values.byName(map['type'] as String),
+      eventType: PackageEventType.values.byName(map['eventType'] as String),
+      eventState: PackageEventState.values.byName(map['eventState'] as String),
       progress: map['progress'] as int,
     );
   }

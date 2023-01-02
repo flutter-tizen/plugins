@@ -4,414 +4,276 @@
 
 #include "tizen_package_manager_plugin.h"
 
+#include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
 #include <flutter/event_stream_handler_functions.h>
+#include <flutter/method_channel.h>
+#include <flutter/plugin_registrar.h>
+#include <flutter/standard_method_codec.h>
 
-#include "package_manager_utils.h"
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
 
-const char kPackageTypeUnkown[] = "unknown";
-const char kPackageTypeTpk[] = "tpk";
-const char kPackageTypeWgt[] = "wgt";
+#include "tizen_package_manager.h"
+
+namespace {
+
+typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
+typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
+typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
+typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
+typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
+typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
+typedef flutter::StreamHandlerError<flutter::EncodableValue>
+    FlStreamHandlerError;
+
+template <typename T>
+bool GetValueFromEncodableMap(const flutter::EncodableMap *map, const char *key,
+                              T &out) {
+  auto iter = map->find(flutter::EncodableValue(key));
+  if (iter != map->end() && !iter->second.IsNull()) {
+    if (auto *value = std::get_if<T>(&iter->second)) {
+      out = *value;
+      return true;
+    }
+  }
+  return false;
+}
+
+flutter::EncodableMap PackageInfoToMap(PackageInfo package) {
+  flutter::EncodableMap map;
+  map[flutter::EncodableValue("packageId")] =
+      flutter::EncodableValue(package.package_id);
+  map[flutter::EncodableValue("label")] =
+      flutter::EncodableValue(package.label);
+  map[flutter::EncodableValue("type")] = flutter::EncodableValue(package.type);
+  if (package.icon_path.has_value()) {
+    map[flutter::EncodableValue("iconPath")] =
+        flutter::EncodableValue(package.icon_path.value());
+  }
+  map[flutter::EncodableValue("version")] =
+      flutter::EncodableValue(package.version);
+  map[flutter::EncodableValue("installedStorageType")] =
+      flutter::EncodableValue(package.installed_storage_type);
+  map[flutter::EncodableValue("isSystem")] =
+      flutter::EncodableValue(package.is_system);
+  map[flutter::EncodableValue("isPreloaded")] =
+      flutter::EncodableValue(package.is_preloaded);
+  map[flutter::EncodableValue("isRemovable")] =
+      flutter::EncodableValue(package.is_removable);
+  return map;
+}
+
+class PackageEventStreamHandler : public FlStreamHandler {
+ public:
+  PackageEventStreamHandler(const std::string &event_type)
+      : event_type_(event_type) {}
+
+ protected:
+  std::unique_ptr<FlStreamHandlerError> OnListenInternal(
+      const flutter::EncodableValue *arguments,
+      std::unique_ptr<FlEventSink> &&events) override {
+    events_ = std::move(events);
+
+    OnPackageEvent callback =
+        [this](std::string package_id, std::string package_type,
+               PacakgeEventState state, int32_t progress) {
+          std::string event_state;
+          if (state == PacakgeEventState::kStarted) {
+            event_state = "started";
+          } else if (state == PacakgeEventState::kProcessing) {
+            event_state = "processing";
+          } else if (state == PacakgeEventState::kFailed) {
+            event_state = "failed";
+          } else {
+            event_state = "completed";
+          }
+          flutter::EncodableMap map = {
+              {flutter::EncodableValue("packageId"),
+               flutter::EncodableValue(package_id)},
+              {flutter::EncodableValue("type"),
+               flutter::EncodableValue(package_type)},
+              {flutter::EncodableValue("eventType"),
+               flutter::EncodableValue(event_type_)},
+              {flutter::EncodableValue("eventState"),
+               flutter::EncodableValue(event_state)},
+              {flutter::EncodableValue("progress"),
+               flutter::EncodableValue(progress)},
+          };
+          events_->Success(flutter::EncodableValue(map));
+        };
+
+    TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
+    if (event_type_ == "install") {
+      package_manager.SetInstallHandler(callback);
+    } else if (event_type_ == "uninstall") {
+      package_manager.SetUninstallHandler(callback);
+    } else {
+      package_manager.SetUpdateHandler(callback);
+    }
+    return nullptr;
+  }
+
+  std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
+      const flutter::EncodableValue *arguments) override {
+    TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
+    if (event_type_ == "install") {
+      package_manager.SetInstallHandler(nullptr);
+    } else if (event_type_ == "uninstall") {
+      package_manager.SetUninstallHandler(nullptr);
+    } else {
+      package_manager.SetUpdateHandler(nullptr);
+    }
+    events_.reset();
+    return nullptr;
+  }
+
+ private:
+  std::unique_ptr<FlEventSink> events_;
+  std::string event_type_;
+};
 
 class TizenPackageManagerPlugin : public flutter::Plugin {
  public:
-  using MethodResultPtr =
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>;
-
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto plugin = std::make_unique<TizenPackageManagerPlugin>();
-    plugin->SetupChannels(registrar);
+
+    auto method_channel = std::make_unique<FlMethodChannel>(
+        registrar->messenger(), "tizen/package_manager",
+        &flutter::StandardMethodCodec::GetInstance());
+    method_channel->SetMethodCallHandler(
+        [plugin_pointer = plugin.get()](const auto &call, auto result) {
+          plugin_pointer->HandleMethodCall(call, std::move(result));
+        });
+
+    plugin->install_event_channel_ = std::make_unique<FlEventChannel>(
+        registrar->messenger(), "tizen/package_manager/install_event",
+        &flutter::StandardMethodCodec::GetInstance());
+    plugin->install_event_channel_->SetStreamHandler(
+        std::make_unique<PackageEventStreamHandler>("install"));
+
+    plugin->uninstall_event_channel_ = std::make_unique<FlEventChannel>(
+        registrar->messenger(), "tizen/package_manager/uninstall_event",
+        &flutter::StandardMethodCodec::GetInstance());
+    plugin->uninstall_event_channel_->SetStreamHandler(
+        std::make_unique<PackageEventStreamHandler>("uninstall"));
+
+    plugin->update_event_channel_ = std::make_unique<FlEventChannel>(
+        registrar->messenger(), "tizen/package_manager/update_event",
+        &flutter::StandardMethodCodec::GetInstance());
+    plugin->update_event_channel_->SetStreamHandler(
+        std::make_unique<PackageEventStreamHandler>("update"));
+
     registrar->AddPlugin(std::move(plugin));
   }
 
   TizenPackageManagerPlugin() {}
 
-  virtual ~TizenPackageManagerPlugin() { UnregisterObserver(); }
+  virtual ~TizenPackageManagerPlugin() {}
 
  private:
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      MethodResultPtr result) {
-    const auto &arguments = *method_call.arguments();
+  void HandleMethodCall(const FlMethodCall &method_call,
+                        std::unique_ptr<FlMethodResult> result) {
+    const auto &method_name = method_call.method_name();
 
-    if (method_call.method_name().compare("getPackage") == 0) {
+    if (method_name == "getPackage") {
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
       GetPackageInfo(arguments, std::move(result));
-    } else if (method_call.method_name().compare("getPackages") == 0) {
+    } else if (method_name == "getPackages") {
       GetAllPackagesInfo(std::move(result));
-    } else if (method_call.method_name().compare("install") == 0) {
+    } else if (method_name == "install") {
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
       Install(arguments, std::move(result));
-    } else if (method_call.method_name().compare("uninstall") == 0) {
+    } else if (method_name == "uninstall") {
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
       Uninstall(arguments, std::move(result));
     } else {
       result->NotImplemented();
     }
   }
 
-  void RegisterObserver(
-      std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> &&events) {
-    int ret = PACKAGE_MANAGER_ERROR_NONE;
-    LOG_INFO("RegisterObserver");
-
-    if (package_manager_h_ == nullptr) {
-      ret = package_manager_create(&package_manager_h_);
-      if (ret != PACKAGE_MANAGER_ERROR_NONE) {
-        char *err_msg = get_error_message(ret);
-        LOG_ERROR("Failed package_manager_create : %s", err_msg);
-        events->Error("Failed to create package manager handle",
-                      std::string(err_msg));
-        return;
-      }
-    }
-
-    package_manager_set_event_status(package_manager_h_,
-                                     PACKAGE_MANAGER_STATUS_TYPE_INSTALL |
-                                         PACKAGE_MANAGER_STATUS_TYPE_UNINSTALL |
-                                         PACKAGE_MANAGER_STATUS_TYPE_UPGRADE);
-    ret = package_manager_set_event_cb(package_manager_h_, PackageEventCB,
-                                       (void *)this);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
-      char *err_msg = get_error_message(ret);
-      LOG_ERROR("Failed package_manager_set_event_cb : %s", err_msg);
-      events->Error("Failed to add callback", std::string(err_msg));
+  void GetPackageInfo(const flutter::EncodableMap *arguments,
+                      std::unique_ptr<FlMethodResult> result) {
+    std::string package_id;
+    if (!GetValueFromEncodableMap(arguments, "packageId", package_id)) {
+      result->Error("Invalid arguments", "No packageId provided.");
       return;
     }
-    is_event_callback_registered_ = true;
-  }
 
-  void UnregisterObserver() {
-    LOG_INFO("UnregisterObserver");
-    if (is_event_callback_registered_ && package_manager_h_) {
-      int ret = package_manager_unset_event_cb(package_manager_h_);
-      if (ret != PACKAGE_MANAGER_ERROR_NONE) {
-        LOG_ERROR("Failed package_manager_unset_event_cb : %s",
-                  get_error_message(ret));
-      }
-
-      package_manager_destroy(package_manager_h_);
-      package_manager_h_ = nullptr;
-      is_event_callback_registered_ = false;
-    }
-    install_events_ = nullptr;
-    uninstall_events_ = nullptr;
-    update_events_ = nullptr;
-  }
-
-  void GetPackageInfo(const flutter::EncodableValue &arguments,
-                      MethodResultPtr result) {
-    std::string id = "";
-    const char *package_id;
-    char *err_msg;
-    package_info_h package_info = nullptr;
-    flutter::EncodableMap value;
-
-    if (!package_manager_utils::ExtractValueFromMap(arguments, "packageId",
-                                                    id)) {
-      result->Error("InvalidArguments", "Please check packageId");
+    TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
+    std::optional<PackageInfo> package =
+        package_manager.GetPackageInfo(package_id);
+    if (!package.has_value()) {
+      result->Error(std::to_string(package_manager.GetLastError()),
+                    package_manager.GetLastErrorString());
       return;
     }
-    package_id = id.c_str();
-    LOG_INFO("GetPackageInfo() package_id : %s", package_id);
-
-    int ret = package_info_create(package_id, &package_info);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE || package_info == nullptr) {
-      err_msg = get_error_message(ret);
-      LOG_ERROR("Failed to get package_info handler : %s", err_msg);
-      result->Error(std::to_string(ret),
-                    "Failed to create package_info handler.",
-                    flutter::EncodableValue(std::string(err_msg)));
-      goto cleanup;
-    }
-
-    ret = package_manager_utils::GetPackageData(package_info, value);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
-      err_msg = get_error_message(ret);
-      result->Error(std::to_string(ret), "Failed to package info.",
-                    flutter::EncodableValue(std::string(err_msg)));
-      goto cleanup;
-    }
-    result->Success(flutter::EncodableValue(value));
-
-  cleanup:
-    if (package_info) {
-      package_info_destroy(package_info);
-    }
+    result->Success(flutter::EncodableValue(PackageInfoToMap(package.value())));
   }
 
-  void GetAllPackagesInfo(MethodResultPtr result) {
-    LOG_INFO("GetAllPackagesInfo()");
-    packages_.erase(packages_.begin(), packages_.end());
-    int ret = package_manager_foreach_package_info(PackageInfoCB, (void *)this);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
-      char *err_msg = get_error_message(ret);
-      LOG_ERROR("package_manager_foreach_package_info error: %s", err_msg);
-      result->Error(std::to_string(ret),
-                    "package_manager_foreach_package_info error.",
-                    flutter::EncodableValue(std::string(err_msg)));
-    }
-    result->Success(flutter::EncodableValue(packages_));
-  }
-
-  void Install(const flutter::EncodableValue &arguments,
-               MethodResultPtr result) {
-    std::string path = "";
-    const char *package_path;
-    char *err_msg;
-    package_manager_request_h package_manager_request = nullptr;
-    int request_id;
-
-    if (!package_manager_utils::ExtractValueFromMap(arguments, "path", path)) {
-      result->Error("InvalidArguments", "Please check path");
+  void GetAllPackagesInfo(std::unique_ptr<FlMethodResult> result) {
+    TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
+    std::optional<std::vector<PackageInfo>> packages =
+        package_manager.GetAllPackagesInfo();
+    if (!packages.has_value()) {
+      result->Error(std::to_string(package_manager.GetLastError()),
+                    package_manager.GetLastErrorString());
       return;
     }
-    package_path = path.c_str();
-    LOG_INFO("Install() package_path : %s", package_path);
 
-    int ret = package_manager_request_create(&package_manager_request);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE ||
-        package_manager_request == nullptr) {
-      err_msg = get_error_message(ret);
-      LOG_ERROR("Failed to get package_manager_request handler : %s", err_msg);
-      result->Error(std::to_string(ret),
-                    "Failed to create package_manager_request handler.",
-                    flutter::EncodableValue(std::string(err_msg)));
-      goto cleanup;
+    flutter::EncodableList list;
+    for (const PackageInfo &package : packages.value()) {
+      list.push_back(flutter::EncodableValue(PackageInfoToMap(package)));
     }
-
-    ret = package_manager_request_install(package_manager_request, package_path,
-                                          &request_id);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
-      err_msg = get_error_message(ret);
-      result->Error(std::to_string(ret), "Failed to install.",
-                    flutter::EncodableValue(std::string(err_msg)));
-      goto cleanup;
-    }
-    result->Success(flutter::EncodableValue(true));
-
-  cleanup:
-    if (package_manager_request) {
-      package_manager_request_destroy(package_manager_request);
-    }
+    result->Success(flutter::EncodableValue(list));
   }
 
-  void Uninstall(const flutter::EncodableValue &arguments,
-                 MethodResultPtr result) {
-    std::string id = "";
-    const char *package_id;
-    char *err_msg;
-    package_manager_request_h package_manager_request = nullptr;
-    int request_id;
-
-    if (!package_manager_utils::ExtractValueFromMap(arguments, "packageId",
-                                                    id)) {
-      result->Error("InvalidArguments", "Please check packageId");
+  void Install(const flutter::EncodableMap *arguments,
+               std::unique_ptr<FlMethodResult> result) {
+    std::string path;
+    if (!GetValueFromEncodableMap(arguments, "path", path)) {
+      result->Error("Invalid arguments", "No path provided.");
       return;
     }
-    package_id = id.c_str();
-    LOG_INFO("Uninstall() package_id : %s", package_id);
 
-    int ret = package_manager_request_create(&package_manager_request);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE ||
-        package_manager_request == nullptr) {
-      err_msg = get_error_message(ret);
-      LOG_ERROR("Failed to get package_manager_request handler : %s", err_msg);
-      result->Error(std::to_string(ret),
-                    "Failed to create package_manager_request handler.",
-                    flutter::EncodableValue(std::string(err_msg)));
-      goto cleanup;
+    TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
+    if (!package_manager.Install(path)) {
+      result->Error(std::to_string(package_manager.GetLastError()),
+                    package_manager.GetLastErrorString());
+      return;
     }
-
-    ret = package_manager_request_set_type(package_manager_request,
-                                           kPackageTypeUnkown);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
-      err_msg = get_error_message(ret);
-      LOG_ERROR("Failed to set request type : %s", err_msg);
-      result->Error(std::to_string(ret), "Failed to set request type.",
-                    flutter::EncodableValue(std::string(err_msg)));
-      goto cleanup;
-    }
-
-    ret = package_manager_request_uninstall(package_manager_request, package_id,
-                                            &request_id);
-    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
-      err_msg = get_error_message(ret);
-      result->Error(std::to_string(ret), "Failed to uninstall.",
-                    flutter::EncodableValue(std::string(err_msg)));
-      goto cleanup;
-    }
-    result->Success(flutter::EncodableValue(true));
-
-  cleanup:
-    if (package_manager_request) {
-      package_manager_request_destroy(package_manager_request);
-    }
+    result->Success();
   }
 
-  void SetupChannels(flutter::PluginRegistrar *registrar) {
-    auto method_channel =
-        std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "tizen/package_manager",
-            &flutter::StandardMethodCodec::GetInstance());
-
-    method_channel->SetMethodCallHandler([this](const auto &call, auto result) {
-      this->HandleMethodCall(call, std::move(result));
-    });
-
-    auto install_event_channel =
-        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "tizen/package_manager/install_event",
-            &flutter::StandardMethodCodec::GetInstance());
-
-    auto uninstall_event_channel =
-        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "tizen/package_manager/uninstall_event",
-            &flutter::StandardMethodCodec::GetInstance());
-
-    auto update_event_channel =
-        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "tizen/package_manager/update_event",
-            &flutter::StandardMethodCodec::GetInstance());
-
-    auto install_event_channel_handler =
-        std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [this](const flutter::EncodableValue *arguments,
-                   std::unique_ptr<flutter::EventSink<>> &&events)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_INFO("OnListen install");
-              install_events_ = std::move(events);
-              if (registered_cnt_ == 0) {
-                this->RegisterObserver(std::move(events));
-              }
-              registered_cnt_++;
-              return nullptr;
-            },
-            [this](const flutter::EncodableValue *arguments)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              registered_cnt_--;
-              LOG_INFO("OnCancel install");
-              if (registered_cnt_ == 0) {
-                this->UnregisterObserver();
-              }
-              install_events_ = nullptr;
-              return nullptr;
-            });
-
-    auto uninstall_event_channel_handler =
-        std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [this](const flutter::EncodableValue *arguments,
-                   std::unique_ptr<flutter::EventSink<>> &&events)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_INFO("OnListen uninstall");
-              uninstall_events_ = std::move(events);
-              if (registered_cnt_ == 0) {
-                this->RegisterObserver(std::move(events));
-              }
-              registered_cnt_++;
-              return nullptr;
-            },
-            [this](const flutter::EncodableValue *arguments)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_INFO("OnCancel uninstall");
-              registered_cnt_--;
-              if (registered_cnt_ == 0) {
-                this->UnregisterObserver();
-              }
-              uninstall_events_ = nullptr;
-              return nullptr;
-            });
-
-    auto update_event_channel_handler =
-        std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [this](const flutter::EncodableValue *arguments,
-                   std::unique_ptr<flutter::EventSink<>> &&events)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_INFO("OnListen update");
-              update_events_ = std::move(events);
-              if (registered_cnt_ == 0) {
-                this->RegisterObserver(std::move(events));
-              }
-              registered_cnt_++;
-              return nullptr;
-            },
-            [this](const flutter::EncodableValue *arguments)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_INFO("OnCancel update");
-              registered_cnt_--;
-              if (registered_cnt_ == 0) {
-                this->UnregisterObserver();
-              }
-              update_events_ = nullptr;
-              return nullptr;
-            });
-
-    install_event_channel->SetStreamHandler(
-        std::move(install_event_channel_handler));
-    uninstall_event_channel->SetStreamHandler(
-        std::move(uninstall_event_channel_handler));
-    update_event_channel->SetStreamHandler(
-        std::move(update_event_channel_handler));
-  }
-
-  static bool PackageInfoCB(package_info_h package_info, void *user_data) {
-    if (package_info) {
-      TizenPackageManagerPlugin *plugin =
-          (TizenPackageManagerPlugin *)user_data;
-      flutter::EncodableMap value;
-      int ret = package_manager_utils::GetPackageData(package_info, value);
-      if (ret == PACKAGE_MANAGER_ERROR_NONE) {
-        plugin->packages_.push_back(flutter::EncodableValue(value));
-      }
-      return true;
+  void Uninstall(const flutter::EncodableMap *arguments,
+                 std::unique_ptr<FlMethodResult> result) {
+    std::string package_id;
+    if (!GetValueFromEncodableMap(arguments, "packageId", package_id)) {
+      result->Error("Invalid arguments", "No packageId provided.");
+      return;
     }
-    return false;
-  }
 
-  static void PackageEventCB(const char *type, const char *package,
-                             package_manager_event_type_e event_type,
-                             package_manager_event_state_e event_state,
-                             int progress, package_manager_error_e error,
-                             void *user_data) {
-    LOG_INFO("PackageEventCB, packageId : %s, type: %s", package, type);
-    LOG_INFO(
-        "event_type: %s, event_state: %s, progress : %d ",
-        package_manager_utils::PacakgeEventTypeToString(event_type).c_str(),
-        package_manager_utils::PacakgeEventStateToString(event_state).c_str(),
-        progress);
-
-    TizenPackageManagerPlugin *plugin = (TizenPackageManagerPlugin *)user_data;
-    flutter::EncodableMap msg;
-    msg[flutter::EncodableValue("packageId")] =
-        flutter::EncodableValue(std::string(package));
-    msg[flutter::EncodableValue("type")] =
-        flutter::EncodableValue(std::string(type));
-    msg[flutter::EncodableValue("eventType")] = flutter::EncodableValue(
-        package_manager_utils::PacakgeEventTypeToString(event_type));
-    msg[flutter::EncodableValue("eventState")] = flutter::EncodableValue(
-        package_manager_utils::PacakgeEventStateToString(event_state));
-    msg[flutter::EncodableValue("progress")] =
-        flutter::EncodableValue(progress);
-
-    if (event_type == PACKAGE_MANAGER_EVENT_TYPE_INSTALL &&
-        plugin->install_events_) {
-      plugin->install_events_->Success(flutter::EncodableValue(msg));
-    } else if (event_type == PACKAGE_MANAGER_EVENT_TYPE_UNINSTALL &&
-               plugin->uninstall_events_) {
-      plugin->uninstall_events_->Success(flutter::EncodableValue(msg));
-    } else if (event_type == PACKAGE_MANAGER_EVENT_TYPE_UPDATE &&
-               plugin->update_events_) {
-      plugin->update_events_->Success(flutter::EncodableValue(msg));
+    TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
+    if (!package_manager.Uninstall(package_id)) {
+      result->Error(std::to_string(package_manager.GetLastError()),
+                    package_manager.GetLastErrorString());
+      return;
     }
+    result->Success();
   }
 
-  flutter::EncodableList packages_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> install_events_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
-      uninstall_events_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> update_events_;
-  bool is_event_callback_registered_ = false;
-  int registered_cnt_ = 0;
-  package_manager_h package_manager_h_ = nullptr;
+  std::unique_ptr<FlEventChannel> install_event_channel_;
+  std::unique_ptr<FlEventChannel> uninstall_event_channel_;
+  std::unique_ptr<FlEventChannel> update_event_channel_;
 };
+
+}  // namespace
 
 void TizenPackageManagerPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
