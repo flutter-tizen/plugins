@@ -1,6 +1,6 @@
 ## 0.1.5
 
-* Update the example app.
+* Update the example app (`9990a4b1d72158a14924d712e89d4efef3f178d2`).
 * Minor cleanups.
 
 ## 0.1.4
