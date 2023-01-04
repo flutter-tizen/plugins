@@ -2,20 +2,24 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: public_member_api_docs
-
 import 'package:flutter/material.dart';
+
 import 'animate_camera.dart';
+import 'lite_mode.dart';
 import 'map_click.dart';
 import 'map_coordinates.dart';
 import 'map_ui.dart';
 import 'marker_icons.dart';
 import 'move_camera.dart';
+import 'padding.dart';
 import 'page.dart';
 import 'place_circle.dart';
 import 'place_marker.dart';
 import 'place_polygon.dart';
 import 'place_polyline.dart';
+import 'scrolling_map.dart';
+import 'snapshot.dart';
+import 'tile_overlay.dart';
 
 final List<GoogleMapExampleAppPage> _allPages = <GoogleMapExampleAppPage>[
   const MapUiPage(),
@@ -25,9 +29,14 @@ final List<GoogleMapExampleAppPage> _allPages = <GoogleMapExampleAppPage>[
   const MoveCameraPage(),
   const PlaceMarkerPage(),
   const MarkerIconsPage(),
+  const ScrollingMapPage(),
   const PlacePolylinePage(),
   const PlacePolygonPage(),
   const PlaceCirclePage(),
+  const PaddingPage(),
+  const SnapshotPage(),
+  const LiteModePage(),
+  const TileOverlayPage(),
 ];
 
 /// MapsDemo is the Main Application.
