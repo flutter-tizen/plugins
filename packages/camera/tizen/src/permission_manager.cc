@@ -4,10 +4,13 @@
 
 #include "permission_manager.h"
 
+#ifndef TV_PROFILE
 #include <privacy_privilege_manager.h>
+#endif
 
 #include "log.h"
 
+#ifndef TV_PROFILE
 const char* PermissionToString(Permission permission) {
   switch (permission) {
     case Permission::kCamera:
@@ -27,12 +30,15 @@ const char* PermissionToString(Permission permission) {
       return nullptr;
   }
 }
+#endif
 
 void PermissionManager::RequestPermission(Permission permission,
                                           const OnSuccess& on_success,
                                           const OnFailure& on_failure) {
-  LOG_DEBUG("enter");
-
+#ifdef TV_PROFILE
+  on_success();
+  return;
+#else
   ppm_check_result_e result;
   const char* permission_string = PermissionToString(permission);
   int error = ppm_check_permission(permission_string, &result);
@@ -78,4 +84,5 @@ void PermissionManager::RequestPermission(Permission permission,
     }
   }
   return;
+#endif  // TV_PROFILE
 }
