@@ -63,17 +63,21 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late final Message _server;
+  final Message _server = Message(
+    serviceBuilder: (String sender, String instance) =>
+        EchoService(sender, instance),
+  );
 
   @override
   void initState() {
     super.initState();
-
-    _server = Message(
-      serviceBuilder: (String sender, String instance) =>
-          EchoService(sender, instance),
-    );
     _server.listen();
+  }
+
+  @override
+  void dispose() {
+    _server.close();
+    super.dispose();
   }
 
   @override

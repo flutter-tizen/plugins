@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Support explicitly stopping a server by adding `StubBase.close`.
+
 ## 0.1.1
 
 * Clean up the API documentation.

@@ -38,8 +38,7 @@ abstract class StubBase {
   late final rpc_port_stub_h _handle;
 
   final Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
-    stub._streamSubscription?.cancel();
-    tizen.rpc_port_stub_destroy(stub._handle);
+    stub.close();
   });
 
   /// A port name to use when listening for connections.
@@ -47,7 +46,6 @@ abstract class StubBase {
 
   static const EventChannel _eventChannel = EventChannel('tizen/rpc_port_stub');
 
-  // ignore: cancel_subscriptions
   StreamSubscription<dynamic>? _streamSubscription;
 
   /// Sets whether this stub should only allow trusted connections.
@@ -81,7 +79,7 @@ abstract class StubBase {
   /// Starts listening to connection requests from clients.
   Future<void> listen({OnError? onError}) async {
     if (_streamSubscription != null) {
-      return;
+      throw StateError('Cannot listen again');
     }
 
     final Stream<dynamic> stream = _eventChannel
@@ -123,6 +121,15 @@ abstract class StubBase {
       }
       return Port.fromNativeHandle(pPort.value);
     });
+  }
+
+  /// Shuts down this stub.
+  ///
+  /// All active connections will be closed immediately. No operation can be
+  /// made to this stub after this call.
+  Future<void> close() async {
+    _streamSubscription?.cancel();
+    tizen.rpc_port_stub_destroy(_handle);
   }
 
   /// Called when a connection is established by a client.

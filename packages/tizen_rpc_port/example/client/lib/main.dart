@@ -28,25 +28,35 @@ class _MyAppState extends State<MyApp> {
   String _input = '';
 
   Future<void> _connect() async {
-    await _client.connect(
-      onError: (Object error) {
-        setState(() {
-          _message = 'Error: $error';
-        });
-      },
-      onDisconnected: () async {
-        setState(() {
-          _isConnected = false;
-          _message = 'Disconnected';
-        });
-      },
-    );
-    _client.register('ClientApp', onMessage);
-
     setState(() {
-      _isConnected = true;
-      _message = 'Connected';
+      _message = 'Connecting...';
     });
+
+    try {
+      await _client.connect(
+        onError: (Object error) {
+          setState(() {
+            _message = 'Error: $error';
+          });
+        },
+        onDisconnected: () async {
+          setState(() {
+            _isConnected = false;
+            _message = 'Disconnected';
+          });
+        },
+      );
+      _client.register('ClientApp', onMessage);
+
+      setState(() {
+        _isConnected = true;
+        _message = 'Connected';
+      });
+    } catch (error) {
+      setState(() {
+        _message = 'Error: $error';
+      });
+    }
   }
 
   void onMessage(String sender, String message) {
@@ -62,9 +72,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  Future<void> dispose() async {
+  void dispose() {
     if (_isConnected) {
       _client.unregister();
+      _client.disconnect();
     }
     super.dispose();
   }
