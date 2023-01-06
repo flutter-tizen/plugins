@@ -4,6 +4,8 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:ffi' as ffi;
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -678,6 +680,37 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   bool get _isDisposedOrNotInitialized => _isDisposed || !value.isInitialized;
+}
+
+// FFI Init
+class FFIController {
+  final ffi.DynamicLibrary nativeApi = ffi.DynamicLibrary.open(
+      "/opt/usr/apps/org.tizen.video_player_videohole_example/lib/libvideo_player_tizen_plugin.so");
+  late void Function(ffi.Pointer) executeCallback;
+
+  void init() {
+    final initApi = nativeApi.lookupFunction<
+        ffi.IntPtr Function(ffi.Pointer<ffi.Void>),
+        int Function(ffi.Pointer<ffi.Void>)>("InitDartApiDL");
+    initApi(ffi.NativeApi.initializeApiDLData);
+
+    final receivePort = ReceivePort()..listen(handleNativeMessage);
+
+    final registerSendPort = nativeApi.lookupFunction<
+        ffi.Void Function(ffi.Int64 sendPort),
+        void Function(int sendPort)>('RegisterSendPort');
+    registerSendPort(receivePort.sendPort.nativePort);
+
+    executeCallback = nativeApi
+        .lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer)>>(
+            "ExecuteCallback")
+        .asFunction();
+  }
+
+  void handleNativeMessage(dynamic message) {
+    final int address = message;
+    executeCallback(ffi.Pointer<ffi.Void>.fromAddress(address).cast());
+  }
 }
 
 class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {

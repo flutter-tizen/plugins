@@ -26,8 +26,11 @@ static std::string GetDrmSubType(int dm_type) {
 }
 
 DrmManager::DrmManager(int drmType, const std::string &licenseUrl,
-                       player_h player)
-    : drm_type_(drmType), license_url_(licenseUrl), player_(player) {}
+                       player_h player, FuncLicenseCB licenseCb)
+    : drm_type_(drmType),
+      license_url_(licenseUrl),
+      player_(player),
+      license_cb_(licenseCb) {}
 
 DrmManager::~DrmManager() {}
 
@@ -177,21 +180,30 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   std::string challenge_data(msg_len, 0);
   memcpy(&challenge_data[0], (char *)msg, msg_len);
   // Get the license from the DRM Server
-  DRM_RESULT drm_result = DrmLicenseHelper::DoTransactionTZ(
-      license_url, reinterpret_cast<const void *>(&challenge_data[0]),
-      static_cast<unsigned long>(challenge_data.length()),
-      &drm_manager->ppb_response_, &pb_response_len,
-      static_cast<DrmLicenseHelper::EDrmType>(drm_manager->drm_type_), nullptr,
-      nullptr);
-  LOG_DEBUG("[DrmManager] drm_result: 0x%lx", drm_result);
-  LOG_DEBUG("[DrmManager] ppb_response_: %s", drm_manager->ppb_response_);
-  LOG_DEBUG("[DrmManager] pbResponse_len: %ld", pb_response_len);
-
   SetDataParam_t *license_param =
       reinterpret_cast<SetDataParam_t *>(malloc(sizeof(SetDataParam_t)));
-  license_param->param1 = session_id;
-  license_param->param2 = drm_manager->ppb_response_;
-  license_param->param3 = reinterpret_cast<void *>(pb_response_len);
+  if (!drm_manager->license_url_.empty()) {
+    DRM_RESULT drm_result = DrmLicenseHelper::DoTransactionTZ(
+        license_url, reinterpret_cast<const void *>(&challenge_data[0]),
+        static_cast<unsigned long>(challenge_data.length()),
+        &drm_manager->ppb_response_, &pb_response_len,
+        static_cast<DrmLicenseHelper::EDrmType>(drm_manager->drm_type_),
+        nullptr, nullptr);
+    LOG_DEBUG("[DrmManager] drm_result: 0x%lx", drm_result);
+    LOG_DEBUG("[DrmManager] ppb_response_: %s", drm_manager->ppb_response_);
+    LOG_DEBUG("[DrmManager] pbResponse_len: %ld", pb_response_len);
+
+    license_param->param1 = session_id;
+    license_param->param2 = drm_manager->ppb_response_;
+    license_param->param3 = reinterpret_cast<void *>(pb_response_len);
+  } else {
+    unsigned char response;
+    response =
+        drm_manager->license_cb_(const_cast<char *>(challenge_data.c_str()));
+    license_param->param1 = session_id;
+    license_param->param2 = &response;
+    license_param->param3 = reinterpret_cast<void *>(pb_response_len);
+  }
 
   int ret = DMGRSetData(drm_manager->drm_session_, "install_eme_key",
                         reinterpret_cast<void *>(license_param));

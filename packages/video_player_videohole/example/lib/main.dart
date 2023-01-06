@@ -7,6 +7,9 @@
 /// An example of using the plugin, controlling lifecycle and playback of the
 /// video.
 
+import 'dart:ffi';
+import 'dart:isolate';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player_videohole/video_player.dart';
 import 'package:video_player_videohole/video_player_platform_interface.dart';
@@ -23,7 +26,7 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5,
+      length: 1,
       child: Scaffold(
         key: const ValueKey<String>('home_page'),
         appBar: AppBar(
@@ -31,36 +34,36 @@ class _App extends StatelessWidget {
           bottom: const TabBar(
             isScrollable: true,
             tabs: <Widget>[
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: "Mp4",
-              ),
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: "Hls",
-              ),
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: "Dash",
-              ),
+              // Tab(
+              //   icon: Icon(Icons.cloud),
+              //   text: "Mp4",
+              // ),
+              // Tab(
+              //   icon: Icon(Icons.cloud),
+              //   text: "Hls",
+              // ),
+              // Tab(
+              //   icon: Icon(Icons.cloud),
+              //   text: "Dash",
+              // ),
               Tab(
                 icon: Icon(Icons.cloud),
                 text: "Drm widevine",
               ),
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: "Drm playready",
-              ),
+              // Tab(
+              //   icon: Icon(Icons.cloud),
+              //   text: "Drm playready",
+              // ),
             ],
           ),
         ),
         body: TabBarView(
           children: <Widget>[
-            _Mp4RemoteVideo(),
-            _HlsRomoteVideo(),
-            _DashRomoteVideo(),
+            // _Mp4RemoteVideo(),
+            // _HlsRomoteVideo(),
+            // _DashRomoteVideo(),
             _DrmRemoteVideo(),
-            _DrmRemoteVideo2(),
+            // _DrmRemoteVideo2(),
           ],
         ),
       ),
@@ -244,6 +247,14 @@ class Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
   }
 }
 
+typedef NativeAsyncCallbackFunc = Uint8 Function(Char);
+typedef NativeAsyncFunc = Void Function(
+  Pointer<NativeFunction<NativeAsyncCallbackFunc>> callback,
+);
+typedef dartAsyncFunc = void Function(
+  Pointer<NativeFunction<NativeAsyncCallbackFunc>> callback,
+);
+
 class _DrmRemoteVideo extends StatefulWidget {
   @override
   _DrmRemoteVideoState createState() => _DrmRemoteVideoState();
@@ -251,10 +262,24 @@ class _DrmRemoteVideo extends StatefulWidget {
 
 class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
   late VideoPlayerController _controller;
+  final callbacks = FFIController();
+
+  static int _getLicense(int challenge) {
+    return challenge;
+  }
 
   @override
   void initState() {
     super.initState();
+    //Get license through FFI
+    callbacks.init();
+    final dartAsyncFunc nativeAsyncCallback = callbacks.nativeApi
+        .lookup<NativeFunction<NativeAsyncFunc>>("GetLicense")
+        .asFunction();
+    var asyncFunc =
+        Pointer.fromFunction<NativeAsyncCallbackFunc>(_getLicense, 0);
+    nativeAsyncCallback(asyncFunc);
+
     _controller = VideoPlayerController.network(
       //widevine
       'https://storage.googleapis.com/wvmedia/cenc/hevc/tears/tears.mpd',

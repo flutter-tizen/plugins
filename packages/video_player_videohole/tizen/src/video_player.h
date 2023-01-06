@@ -41,6 +41,7 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int position);
   void SetVolume(double volume);
+  void SetDrmLicense(FuncLicenseCB callback);
 
  private:
   void Initialize();
@@ -77,6 +78,7 @@ class VideoPlayer {
   int y_;
   int width_;
   int height_;
+  FuncLicenseCB license_cb_ = nullptr;
 };
 
 #endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_

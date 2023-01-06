@@ -2,14 +2,14 @@
 # for details.
 
 APPNAME = video_player_tizen_plugin
-type = staticLib
+type = sharedLib
 profile = common-4.0
 
 # Source files
 USER_SRCS += src/*.cc
 
 # User defines
-USER_DEFS =
+USER_DEFS = ABC DEF
 USER_UNDEFS =
 USER_CPP_DEFS = FLUTTER_PLUGIN_IMPL
 USER_CPP_UNDEFS =

@@ -11,6 +11,10 @@
 #include <flutter/standard_method_codec.h>
 #include <flutter_tizen.h>
 
+#include <condition_variable>
+#include <mutex>
+
+#include "dart_api_dl.c"
 #include "log.h"
 #include "messages.h"
 #include "video_player.h"
@@ -88,6 +92,10 @@ ErrorOr<std::unique_ptr<PlayerMessage>> VideoPlayerTizenPlugin::Create(
     const CreateMessage &createMsg) {
   std::unique_ptr<VideoPlayer> player =
       std::make_unique<VideoPlayer>(registrar_ref_, createMsg);
+  set_license_cb_ = MyCallbackBlocking;
+  if (set_license_cb_ != nullptr) {
+    player->SetDrmLicense(set_license_cb_);
+  }
   std::unique_ptr<PlayerMessage> player_message =
       std::make_unique<PlayerMessage>();
   int64_t playerId = player->Create();
@@ -194,4 +202,56 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
   VideoPlayerTizenPlugin::RegisterWithRegistrar(
       registrar, flutter::PluginRegistrarManager::GetInstance()
                      ->GetRegistrar<flutter::PluginRegistrar>(registrar));
+}
+
+// Call Dart function through FFI
+intptr_t InitDartApiDL(void *data) { return Dart_InitializeApiDL(data); }
+Dart_Port send_port_;
+
+void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
+
+void GetLicense(FuncLicenseCB callback) { license_cb_ = callback; }
+
+void ExecuteCallback(CallbackWrapper *wrapper_ptr) {
+  const CallbackWrapper wrapper = *wrapper_ptr;
+  wrapper();
+  delete wrapper_ptr;
+  LOG_INFO("ExecuteCallback done");
+}
+
+void NotifyDart(CallbackWrapper *wrapper) {
+  intptr_t wrapper_intptr = reinterpret_cast<intptr_t>(wrapper);
+
+  Dart_CObject ptr_obj;
+  ptr_obj.type = Dart_CObject_kInt64;
+  ptr_obj.value.as_int64 = wrapper_intptr;
+
+  bool posted = Dart_PostCObject_DL(send_port_, &ptr_obj);
+  if (!posted) {
+    LOG_ERROR("Dart_PostCObject_DL(): message %d not posted", wrapper_intptr);
+  }
+  LOG_INFO("after calling Dart_PostCObject_DL()");
+}
+
+uint8_t MyCallbackBlocking(char *challenge) {
+  std::mutex mutex;
+  std::unique_lock<std::mutex> lock(mutex);
+  uint8_t result;
+  auto callback = license_cb_;
+  std::condition_variable cv;
+  bool notified = false;
+  const CallbackWrapper wrapper = [&]() {
+    result = callback(challenge);
+    LOG_INFO("Notify result ready");
+    notified = true;
+    cv.notify_one();
+  };
+  CallbackWrapper *wrapper_ptr = new CallbackWrapper(wrapper);
+  NotifyDart(wrapper_ptr);
+  LOG_INFO("Waiting for result");
+  while (!notified) {
+    cv.wait(lock);
+  }
+  LOG_INFO("Received result");
+  return result;
 }
