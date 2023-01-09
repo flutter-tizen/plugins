@@ -14,7 +14,7 @@ void main() {
   runApp(const MyApp());
 }
 
-class EchoService extends MessageServiceBase {
+class EchoService extends ServiceBase {
   EchoService(super.sender, super.instance);
 
   String? _name;

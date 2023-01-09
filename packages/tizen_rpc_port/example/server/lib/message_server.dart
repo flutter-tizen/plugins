@@ -6,7 +6,7 @@
 
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
-const String _tidlVersion = '1.9.1';
+const String _tidlVersion = '1.10.6';
 
 enum _DelegateId {
   notifyCallback(1);
@@ -27,16 +27,11 @@ enum _MethodId {
 }
 
 abstract class _Delegate extends Parcelable {
-  _Delegate(this.id, this.once) {
-    sequenceId = sequenceNum++;
-  }
+  _Delegate(this.id, this.once);
 
   int id = 0;
   bool once = false;
   int sequenceId = 0;
-  static int sequenceNum = 0;
-
-  String get tag => '$id::$sequenceId';
 
   @override
   void serialize(Parcel parcel) {
@@ -53,15 +48,14 @@ abstract class _Delegate extends Parcelable {
   }
 }
 
-abstract class MessageServiceBase {
-  MessageServiceBase(this.sender, this.instance);
+abstract class ServiceBase {
+  ServiceBase(this.sender, this.instance);
 
   final String sender;
   final String instance;
-
   Port? _port;
 
-  Future<void> disconnect() async {
+  void disconnect() {
     _port?.disconnect();
     _port = null;
   }
@@ -82,7 +76,8 @@ class NotifyCallback extends _Delegate {
       : super(_DelegateId.notifyCallback.id, once);
 
   final Port? _port;
-  MessageServiceBase service;
+
+  ServiceBase service;
   bool _wasInvoked = false;
 
   Future<void> invoke(String sender, String message) async {
@@ -97,18 +92,22 @@ class NotifyCallback extends _Delegate {
     final Parcel parcel = Parcel();
     parcel.writeInt32(_MethodId.callback.id);
     serialize(parcel);
+
     parcel.writeString(sender);
     parcel.writeString(message);
-    parcel.send(_port!);
+
+    if (_port != null) {
+      parcel.send(_port!);
+    }
+
     _wasInvoked = true;
   }
 }
 
-typedef MessageServiceBuilder = MessageServiceBase Function(
-    String sender, String instance);
+typedef ServiceBuilder = ServiceBase Function(String sender, String instance);
 
 class Message extends StubBase {
-  Message({required MessageServiceBuilder serviceBuilder})
+  Message({required ServiceBuilder serviceBuilder})
       : _serviceBuilder = serviceBuilder,
         super('Message') {
     _methodHandlers[_MethodId.register.id] = _onRegisterMethod;
@@ -116,66 +115,73 @@ class Message extends StubBase {
     _methodHandlers[_MethodId.send.id] = _onSendMethod;
   }
 
-  final List<MessageServiceBase> _services = <MessageServiceBase>[];
+  final List<ServiceBase> services = <ServiceBase>[];
   final Map<int, dynamic> _methodHandlers = <int, dynamic>{};
-  final MessageServiceBuilder _serviceBuilder;
+  final ServiceBuilder _serviceBuilder;
 
   @override
   @visibleForOverriding
   @nonVirtual
   Future<void> onConnectedEvent(String sender, String instance) async {
-    final MessageServiceBase service = _serviceBuilder(sender, instance);
+    final ServiceBase service = _serviceBuilder(sender, instance);
     service._port = getPort(instance, PortType.callback);
     await service.onCreate();
-    _services.add(service);
+    services.add(service);
   }
 
   @override
   @visibleForOverriding
   @nonVirtual
   Future<void> onDisconnectedEvent(String sender, String instance) async {
-    for (final MessageServiceBase service in _services) {
+    for (final ServiceBase service in services) {
       if (service.instance == instance) {
         await service.onTerminate();
-        _services.remove(service);
+        services.remove(service);
         break;
       }
     }
   }
 
   Future<void> _onRegisterMethod(
-      MessageServiceBase service, Port port, Parcel parcel) async {
+      ServiceBase service, Port port, Parcel parcel) async {
     final String name = parcel.readString();
     final NotifyCallback callback = NotifyCallback(service._port, service);
     callback.deserialize(parcel);
 
     final int ret = await service.onRegister(name, callback);
+
     final Parcel result = Parcel();
     final ParcelHeader header = parcel.header;
     final ParcelHeader resultHeader = result.header;
     resultHeader.tag = _tidlVersion;
     resultHeader.sequenceNumber = header.sequenceNumber;
+
     result.writeInt32(_MethodId.result.id);
     result.writeInt32(ret);
+
     result.send(port);
   }
 
   Future<void> _onUnregisterMethod(
-      MessageServiceBase service, Port port, Parcel parcel) async {
-    await service.onUnregister();
+      ServiceBase service, Port port, Parcel parcel) async {
+    service.onUnregister();
   }
 
   Future<void> _onSendMethod(
-      MessageServiceBase service, Port port, Parcel parcel) async {
+      ServiceBase service, Port port, Parcel parcel) async {
     final String message = parcel.readString();
+
     final int ret = await service.onSend(message);
+
     final Parcel result = Parcel();
     final ParcelHeader header = parcel.header;
     final ParcelHeader resultHeader = result.header;
     resultHeader.tag = _tidlVersion;
     resultHeader.sequenceNumber = header.sequenceNumber;
+
     result.writeInt32(_MethodId.result.id);
     result.writeInt32(ret);
+
     result.send(port);
   }
 
@@ -184,22 +190,22 @@ class Message extends StubBase {
   @nonVirtual
   Future<void> onReceivedEvent(
       String sender, String instance, Parcel parcel) async {
-    MessageServiceBase? invokeService;
-    for (final MessageServiceBase service in _services) {
-      if (service.instance == instance) {
-        invokeService = service;
+    ServiceBase? service;
+    for (final ServiceBase s in services) {
+      if (s.instance == instance) {
+        service = s;
         break;
       }
     }
 
-    if (invokeService == null) {
+    if (service == null) {
       return;
     }
 
     final Port port = getPort(instance, PortType.main);
     final int cmd = parcel.readInt32();
     if (_methodHandlers.containsKey(cmd)) {
-      await _methodHandlers[cmd](invokeService, port, parcel);
+      await _methodHandlers[cmd](service, port, parcel);
     }
   }
 }

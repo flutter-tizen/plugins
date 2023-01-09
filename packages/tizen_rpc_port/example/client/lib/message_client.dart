@@ -6,7 +6,7 @@
 
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
-const String _tidlVersion = '1.9.1';
+const String _tidlVersion = '1.10.6';
 
 enum _DelegateId {
   notifyCallback(1);
@@ -25,6 +25,8 @@ enum _MethodId {
   const _MethodId(this.id);
   final int id;
 }
+
+typedef OnDisconnected = void Function();
 
 abstract class _Delegate extends Parcelable {
   _Delegate(this.id, this.once, this.callback) {
@@ -64,6 +66,7 @@ class _NotifyCallback extends _Delegate {
   Future<void> onReceivedEvent(Parcel parcel) async {
     final String sender = parcel.readString();
     final String message = parcel.readString();
+
     callback?.call(sender, message);
   }
 }
@@ -85,6 +88,7 @@ class Message extends ProxyBase {
     final int id = parcel.readInt32();
     final int sequenceId = parcel.readInt32();
     final bool once = parcel.readBool();
+
     for (final _Delegate delegate in _delegates) {
       if (delegate.id == id && delegate.sequenceId == sequenceId) {
         await delegate.onReceivedEvent(parcel);
@@ -115,7 +119,7 @@ class Message extends ProxyBase {
         .removeWhere((_Delegate delegate) => delegate.callback == callback);
   }
 
-  Future<int> register(String name, NotifyCallback callback) async {
+  int register(String name, NotifyCallback callback) {
     if (!isConnected) {
       throw StateError('Must be connected first');
     }
@@ -125,10 +129,15 @@ class Message extends ProxyBase {
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.register.id);
+
     parcel.writeString(name);
-    final _NotifyCallback delegate = _NotifyCallback(callback);
-    delegate.serialize(parcel);
-    _delegates.add(delegate);
+
+    {
+      final _NotifyCallback delegate = _NotifyCallback(callback);
+      delegate.serialize(parcel);
+      _delegates.add(delegate);
+    }
+
     parcel.send(port);
 
     late Parcel parcelReceived;
@@ -142,7 +151,9 @@ class Message extends ProxyBase {
       }
     }
 
-    return parcelReceived.readInt32();
+    final int ret = parcelReceived.readInt32();
+
+    return ret;
   }
 
   Future<void> unregister() async {
@@ -155,10 +166,11 @@ class Message extends ProxyBase {
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.unregister.id);
+
     parcel.send(port);
   }
 
-  Future<int> send(String message) async {
+  int send(String message) {
     if (!isConnected) {
       throw StateError('Must be connected first');
     }
@@ -168,7 +180,9 @@ class Message extends ProxyBase {
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.send.id);
+
     parcel.writeString(message);
+
     parcel.send(port);
 
     late Parcel parcelReceived;
@@ -182,6 +196,8 @@ class Message extends ProxyBase {
       }
     }
 
-    return parcelReceived.readInt32();
+    final int ret = parcelReceived.readInt32();
+
+    return ret;
   }
 }
