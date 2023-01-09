@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="org.tizen.firebase_auth_tizen_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
+    <profile name="common"/>
+    <ui-application appid="org.tizen.firebase_auth_tizen_example" exec="runner" type="capp" multiple="false" nodisplay="false" taskmanage="true" hw-acceleration="on">
+        <label>firebase_auth_tizen_example</label>
+        <icon>ic_launcher.png</icon>
+    </ui-application>
+    <privileges>
+        <privilege>http://tizen.org/privilege/internet</privilege>
+    </privileges>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+</manifest>
