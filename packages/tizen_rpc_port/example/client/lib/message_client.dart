@@ -26,8 +26,6 @@ enum _MethodId {
   final int id;
 }
 
-typedef OnDisconnected = void Function();
-
 abstract class _Delegate extends Parcelable {
   _Delegate(this.id, this.once, this.callback) {
     sequenceId = sequenceNum++;
