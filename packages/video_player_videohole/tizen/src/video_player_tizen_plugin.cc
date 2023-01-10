@@ -92,10 +92,11 @@ ErrorOr<std::unique_ptr<PlayerMessage>> VideoPlayerTizenPlugin::Create(
     const CreateMessage &createMsg) {
   std::unique_ptr<VideoPlayer> player =
       std::make_unique<VideoPlayer>(registrar_ref_, createMsg);
-  set_license_cb_ = MyCallbackBlocking;
-  if (set_license_cb_ != nullptr) {
-    player->SetDrmLicense(set_license_cb_);
-  }
+  DrmManager::GetChallengeData(GetChallengeCb);
+  // get_challenge_cb_ = GetChallengeCb;
+  // if (get_challenge_cb_ != nullptr) {
+  //   player->GetDrmChallengeData(get_challenge_cb_);
+  // }
   std::unique_ptr<PlayerMessage> player_message =
       std::make_unique<PlayerMessage>();
   int64_t playerId = player->Create();
@@ -206,11 +207,14 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
 
 // Call Dart function through FFI
 intptr_t InitDartApiDL(void *data) { return Dart_InitializeApiDL(data); }
-Dart_Port send_port_;
 
 void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
 
-void GetLicense(FuncLicenseCB callback) { license_cb_ = callback; }
+void GetChallengeData(FuncLicenseCB callback) { challenge_cb_ = callback; }
+
+void SetLicense(unsigned char *response_data, unsigned long response_len) {
+  DrmManager::SetLicenseData(response_data, response_len);
+}
 
 void ExecuteCallback(CallbackWrapper *wrapper_ptr) {
   const CallbackWrapper wrapper = *wrapper_ptr;
@@ -233,15 +237,15 @@ void NotifyDart(CallbackWrapper *wrapper) {
   LOG_INFO("after calling Dart_PostCObject_DL()");
 }
 
-uint8_t MyCallbackBlocking(char *challenge) {
+int GetChallengeCb(uint8_t *challenge_data, uint64_t challenge_len) {
   std::mutex mutex;
   std::unique_lock<std::mutex> lock(mutex);
-  uint8_t result;
-  auto callback = license_cb_;
+  auto callback = challenge_cb_;
   std::condition_variable cv;
+  int result;
   bool notified = false;
   const CallbackWrapper wrapper = [&]() {
-    result = callback(challenge);
+    callback(challenge_data, challenge_len);
     LOG_INFO("Notify result ready");
     notified = true;
     cv.notify_one();
@@ -252,6 +256,5 @@ uint8_t MyCallbackBlocking(char *challenge) {
   while (!notified) {
     cv.wait(lock);
   }
-  LOG_INFO("Received result");
   return result;
 }

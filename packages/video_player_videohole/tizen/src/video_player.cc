@@ -102,12 +102,6 @@ VideoPlayer::VideoPlayer(FlutterDesktopPluginRegistrarRef registrar_ref,
   ParseCreateMessage(create_message);
 }
 
-void VideoPlayer::SetDrmLicense(FuncLicenseCB callback) {
-  if (license_url_.empty()) {
-    license_cb_ = callback;
-  }
-}
-
 bool VideoPlayer::Open(const std::string &uri) {
   int ret = player_create(&player_);
   if (ret != PLAYER_ERROR_NONE) {
@@ -116,8 +110,8 @@ bool VideoPlayer::Open(const std::string &uri) {
   }
 
   if (drm_type_ != DRM_TYPE_NONE) {
-    drm_manager_ = std::make_unique<DrmManager>(drm_type_, license_url_,
-                                                player_, license_cb_);
+    drm_manager_ =
+        std::make_unique<DrmManager>(drm_type_, license_url_, player_);
     if (!drm_manager_->InitializeDrmSession(uri_)) {
       LOG_ERROR("[VideoPlayer] initial drm session failed");
     }

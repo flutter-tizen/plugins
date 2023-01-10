@@ -8,7 +8,7 @@
 /// video.
 
 import 'dart:ffi';
-import 'dart:isolate';
+import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player_videohole/video_player.dart';
@@ -26,7 +26,7 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 1,
+      length: 5,
       child: Scaffold(
         key: const ValueKey<String>('home_page'),
         appBar: AppBar(
@@ -34,36 +34,36 @@ class _App extends StatelessWidget {
           bottom: const TabBar(
             isScrollable: true,
             tabs: <Widget>[
-              // Tab(
-              //   icon: Icon(Icons.cloud),
-              //   text: "Mp4",
-              // ),
-              // Tab(
-              //   icon: Icon(Icons.cloud),
-              //   text: "Hls",
-              // ),
-              // Tab(
-              //   icon: Icon(Icons.cloud),
-              //   text: "Dash",
-              // ),
+              Tab(
+                icon: Icon(Icons.cloud),
+                text: "Mp4",
+              ),
+              Tab(
+                icon: Icon(Icons.cloud),
+                text: "Hls",
+              ),
+              Tab(
+                icon: Icon(Icons.cloud),
+                text: "Dash",
+              ),
               Tab(
                 icon: Icon(Icons.cloud),
                 text: "Drm widevine",
               ),
-              // Tab(
-              //   icon: Icon(Icons.cloud),
-              //   text: "Drm playready",
-              // ),
+              Tab(
+                icon: Icon(Icons.cloud),
+                text: "Drm playready",
+              ),
             ],
           ),
         ),
         body: TabBarView(
           children: <Widget>[
-            // _Mp4RemoteVideo(),
-            // _HlsRomoteVideo(),
-            // _DashRomoteVideo(),
+            _Mp4RemoteVideo(),
+            _HlsRomoteVideo(),
+            _DashRomoteVideo(),
             _DrmRemoteVideo(),
-            // _DrmRemoteVideo2(),
+            _DrmRemoteVideo2(),
           ],
         ),
       ),
@@ -247,13 +247,15 @@ class Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
   }
 }
 
-typedef NativeAsyncCallbackFunc = Uint8 Function(Char);
+typedef NativeAsyncCallbackFunc = Int Function(Pointer<Uint8>, Uint64);
 typedef NativeAsyncFunc = Void Function(
   Pointer<NativeFunction<NativeAsyncCallbackFunc>> callback,
 );
 typedef dartAsyncFunc = void Function(
   Pointer<NativeFunction<NativeAsyncCallbackFunc>> callback,
 );
+final DynamicLibrary nativeApi = DynamicLibrary.open(
+    "/opt/usr/apps/org.tizen.video_player_videohole_example/lib/libvideo_player_tizen_plugin.so");
 
 class _DrmRemoteVideo extends StatefulWidget {
   @override
@@ -264,8 +266,25 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
   late VideoPlayerController _controller;
   final callbacks = FFIController();
 
-  static int _getLicense(int challenge) {
-    return challenge;
+  static Uint8List _getLicense(Uint8List payload) {
+    return payload;
+  }
+
+  static int getChallengeData(Pointer<Uint8> challengeData, int challengeLen) {
+    if (challengeData == nullptr || challengeLen == 0) {
+      return 0;
+    }
+    final Uint8List challenge = challengeData.asTypedList(challengeLen);
+    Uint8List licensePayload = _getLicense(challenge);
+    final setLicense = nativeApi.lookupFunction<
+        Void Function(Pointer<Uint8>, IntPtr),
+        void Function(Pointer<Uint8>, int)>('SetLicense');
+    final Pointer<Uint8> pointer = malloc.allocate(licensePayload.length);
+    pointer
+        .asTypedList(licensePayload.length)
+        .setRange(0, licensePayload.length, licensePayload);
+    setLicense(pointer, licensePayload.length);
+    return 1;
   }
 
   @override
@@ -274,10 +293,10 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
     //Get license through FFI
     callbacks.init();
     final dartAsyncFunc nativeAsyncCallback = callbacks.nativeApi
-        .lookup<NativeFunction<NativeAsyncFunc>>("GetLicense")
+        .lookup<NativeFunction<NativeAsyncFunc>>("GetChallengeData")
         .asFunction();
     var asyncFunc =
-        Pointer.fromFunction<NativeAsyncCallbackFunc>(_getLicense, 0);
+        Pointer.fromFunction<NativeAsyncCallbackFunc>(getChallengeData, 0);
     nativeAsyncCallback(asyncFunc);
 
     _controller = VideoPlayerController.network(
@@ -286,7 +305,7 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
       drmConfigs: {
         'drmType': 2,
-        'licenseServerUrl': 'https://proxy.uat.widevine.com/proxy'
+        //'licenseServerUrl': 'https://proxy.uat.widevine.com/proxy'
       },
     );
 
@@ -339,18 +358,49 @@ class _DrmRemoteVideo2 extends StatefulWidget {
 
 class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
   late VideoPlayerController _controller;
+  final callbacks = FFIController();
+
+  static Uint8List _getLicense(Uint8List payload) {
+    return payload;
+  }
+
+  static int getChallengeData(Pointer<Uint8> challengeData, int challengeLen) {
+    if (challengeData == nullptr || challengeLen == 0) {
+      return 0;
+    }
+    final Uint8List challenge = challengeData.asTypedList(challengeLen);
+    Uint8List licensePayload = _getLicense(challenge);
+    final setLicense = nativeApi.lookupFunction<
+        Void Function(Pointer<Uint8>, IntPtr),
+        void Function(Pointer<Uint8>, int)>('SetLicense');
+    final Pointer<Uint8> pointer = malloc.allocate(licensePayload.length);
+    pointer
+        .asTypedList(licensePayload.length)
+        .setRange(0, licensePayload.length, licensePayload);
+    setLicense(pointer, licensePayload.length);
+    return 1;
+  }
 
   @override
   void initState() {
     super.initState();
+    callbacks.init();
+
+    final dartAsyncFunc nativeAsyncCallback = callbacks.nativeApi
+        .lookup<NativeFunction<NativeAsyncFunc>>("GetChallengeData")
+        .asFunction();
+    var asyncFunc =
+        Pointer.fromFunction<NativeAsyncCallbackFunc>(getChallengeData, 0);
+    nativeAsyncCallback(asyncFunc);
+
     _controller = VideoPlayerController.network(
       //playready
       'https://test.playready.microsoft.com/smoothstreaming/SSWSS720H264PR/SuperSpeedway_720.ism/Manifest',
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
       drmConfigs: {
         'drmType': 1,
-        'licenseServerUrl':
-            'http://test.playready.microsoft.com/service/rightsmanager.asmx'
+        // 'licenseServerUrl':
+        //     'http://test.playready.microsoft.com/service/rightsmanager.asmx'
       },
     );
 

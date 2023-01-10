@@ -26,11 +26,8 @@ static std::string GetDrmSubType(int dm_type) {
 }
 
 DrmManager::DrmManager(int drmType, const std::string &licenseUrl,
-                       player_h player, FuncLicenseCB licenseCb)
-    : drm_type_(drmType),
-      license_url_(licenseUrl),
-      player_(player),
-      license_cb_(licenseCb) {}
+                       player_h player)
+    : drm_type_(drmType), license_url_(licenseUrl), player_(player) {}
 
 DrmManager::~DrmManager() {}
 
@@ -166,6 +163,22 @@ bool DrmManager::SetChallengeCondition() {
   return true;
 }
 
+FuncLicenseCB get_challenge_cb_;
+unsigned char *ppb_response_ = nullptr;
+unsigned long pb_response_len_ = 0;
+
+void DrmManager::GetChallengeData(FuncLicenseCB callback) {
+  get_challenge_cb_ = callback;
+}
+
+void DrmManager::SetLicenseData(unsigned char *response_data,
+                                unsigned long response_len) {
+  ppb_response_ = response_data;
+  pb_response_len_ = response_len;
+  LOG_INFO("[DrmManager] ppb_response_: %s", ppb_response_);
+  LOG_INFO("[DrmManager] pbResponse_len: %ld", pb_response_len_);
+}
+
 int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
                                 int msg_len, void *user_data) {
   LOG_INFO("[DrmManager] session_id is [%s]", session_id);
@@ -175,7 +188,6 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   strcpy(license_url, drm_manager->license_url_.c_str());
   LOG_INFO("[DrmManager] drm_type_: %d", drm_manager->drm_type_);
   LOG_INFO("[DrmManager] license_url: %s", license_url);
-  unsigned long pb_response_len = 0;
   LOG_INFO("[DrmManager] challenge data length: %d", msg_len);
   std::string challenge_data(msg_len, 0);
   memcpy(&challenge_data[0], (char *)msg, msg_len);
@@ -183,28 +195,26 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   SetDataParam_t *license_param =
       reinterpret_cast<SetDataParam_t *>(malloc(sizeof(SetDataParam_t)));
   if (!drm_manager->license_url_.empty()) {
+    LOG_INFO("[DrmManager] get license by player");
     DRM_RESULT drm_result = DrmLicenseHelper::DoTransactionTZ(
         license_url, reinterpret_cast<const void *>(&challenge_data[0]),
-        static_cast<unsigned long>(challenge_data.length()),
-        &drm_manager->ppb_response_, &pb_response_len,
+        static_cast<unsigned long>(challenge_data.length()), &ppb_response_,
+        &pb_response_len_,
         static_cast<DrmLicenseHelper::EDrmType>(drm_manager->drm_type_),
         nullptr, nullptr);
     LOG_DEBUG("[DrmManager] drm_result: 0x%lx", drm_result);
-    LOG_DEBUG("[DrmManager] ppb_response_: %s", drm_manager->ppb_response_);
-    LOG_DEBUG("[DrmManager] pbResponse_len: %ld", pb_response_len);
-
-    license_param->param1 = session_id;
-    license_param->param2 = drm_manager->ppb_response_;
-    license_param->param3 = reinterpret_cast<void *>(pb_response_len);
+    LOG_DEBUG("[DrmManager] ppb_response_: %s", ppb_response_);
+    LOG_DEBUG("[DrmManager] pbResponse_len: %ld", pb_response_len_);
   } else {
-    unsigned char response;
-    response =
-        drm_manager->license_cb_(const_cast<char *>(challenge_data.c_str()));
-    license_param->param1 = session_id;
-    license_param->param2 = &response;
-    license_param->param3 = reinterpret_cast<void *>(pb_response_len);
+    LOG_INFO("[DrmManager] get license by dart callback");
+    int ret =
+        get_challenge_cb_(reinterpret_cast<unsigned char *>(
+                              const_cast<char *>(challenge_data.c_str())),
+                          static_cast<unsigned long>(challenge_data.length()));
   }
-
+  license_param->param1 = session_id;
+  license_param->param2 = ppb_response_;
+  license_param->param3 = reinterpret_cast<void *>(pb_response_len_);
   int ret = DMGRSetData(drm_manager->drm_session_, "install_eme_key",
                         reinterpret_cast<void *>(license_param));
   if (ret != DM_ERROR_NONE) {
@@ -214,8 +224,8 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   if (license_param) {
     free(license_param);
   }
-  free(drm_manager->ppb_response_);
-  drm_manager->ppb_response_ = nullptr;
+  free(ppb_response_);
+  ppb_response_ = nullptr;
 
   return 0;
 }
