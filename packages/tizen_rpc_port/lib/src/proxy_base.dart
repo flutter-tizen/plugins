@@ -135,14 +135,8 @@ abstract class ProxyBase {
       return;
     }
 
-    final Port port = getPort(PortType.main);
-    final int ret = tizen.rpc_port_disconnect(port.handle);
-    if (ret != 0) {
-      throw PlatformException(
-        code: ret.toString(),
-        message: tizen.get_error_message(ret).toDartString(),
-      );
-    }
+    getPort(PortType.main).disconnect();
+    getPort(PortType.callback).disconnect();
     return _disconnectCompleter.future;
   }
 
@@ -182,6 +176,10 @@ abstract class ProxyBase {
   Future<void> _onDisconnectedEvent() async {
     await _onDisconnected?.call();
     _onDisconnected = null;
+
+    getPort(PortType.main).disconnect();
+    getPort(PortType.callback).disconnect();
+
     if (!_disconnectCompleter.isCompleted) {
       _disconnectCompleter.complete();
       _disconnectCompleter = Completer<void>();

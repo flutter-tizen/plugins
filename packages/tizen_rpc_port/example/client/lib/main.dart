@@ -41,7 +41,7 @@ class _MyAppState extends State<MyApp> {
         });
       },
     );
-    await _client.register('ClientApp', onMessage);
+    _client.register('ClientApp', onMessage);
 
     setState(() {
       _isConnected = true;
@@ -57,14 +57,14 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _send() async {
     if (_isConnected) {
-      await _client.send(_input);
+      _client.send(_input);
     }
   }
 
   @override
   Future<void> dispose() async {
     if (_isConnected) {
-      await _client.unregister();
+      _client.unregister();
     }
     super.dispose();
   }
