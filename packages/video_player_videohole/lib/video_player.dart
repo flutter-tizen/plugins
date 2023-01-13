@@ -682,34 +682,61 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   bool get _isDisposedOrNotInitialized => _isDisposed || !value.isInitialized;
 }
 
-// FFI Init
+class CppRequest {
+  final SendPort? replyPort;
+  final int? pendingCall;
+  final String method;
+  final Uint8List data;
+
+  factory CppRequest.fromCppMessage(List message) {
+    return CppRequest._(message[0], message[1], message[2], message[3]);
+  }
+
+  CppRequest._(this.replyPort, this.pendingCall, this.method, this.data);
+  String toString() => 'CppRequest(method: $method, ${data.length} bytes)';
+}
+
+class CppResponse {
+  final int pendingCall;
+  final Uint8List data;
+
+  CppResponse(this.pendingCall, this.data);
+  List toCppMessage() => List.from([pendingCall, data], growable: false);
+  String toString() => 'CppResponse(message: ${data.length})';
+}
+
 class FFIController {
-  final ffi.DynamicLibrary nativeApi = ffi.DynamicLibrary.open(
-      "/opt/usr/apps/org.tizen.video_player_videohole_example/lib/libvideo_player_tizen_plugin.so");
+  final ffi.DynamicLibrary nativeApi = ffi.DynamicLibrary.process();
   late void Function(ffi.Pointer) executeCallback;
 
-  void init() {
+  void FFIgetLicense() {
     final initApi = nativeApi.lookupFunction<
         ffi.IntPtr Function(ffi.Pointer<ffi.Void>),
         int Function(ffi.Pointer<ffi.Void>)>("InitDartApiDL");
     initApi(ffi.NativeApi.initializeApiDLData);
 
     final receivePort = ReceivePort()..listen(handleNativeMessage);
-
     final registerSendPort = nativeApi.lookupFunction<
         ffi.Void Function(ffi.Int64 sendPort),
         void Function(int sendPort)>('RegisterSendPort');
     registerSendPort(receivePort.sendPort.nativePort);
-
-    executeCallback = nativeApi
-        .lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer)>>(
-            "ExecuteCallback")
-        .asFunction();
   }
 
-  void handleNativeMessage(dynamic message) {
-    final int address = message;
-    executeCallback(ffi.Pointer<ffi.Void>.fromAddress(address).cast());
+  Future<Uint8List> _getlicense(Uint8List payload) async {
+    return payload;
+  }
+
+  void handleNativeMessage(dynamic message) async {
+    final CppRequest cppRequest = CppRequest.fromCppMessage(message);
+    print('Got message: $cppRequest');
+
+    if (cppRequest.method == 'ChallengeCb') {
+      final Uint8List argument = cppRequest.data;
+      final Uint8List result = await _getlicense(argument);
+      final cppResponse = CppResponse(cppRequest.pendingCall!, result);
+      print('Responding: $cppResponse');
+      cppRequest.replyPort!.send(cppResponse.toCppMessage());
+    }
   }
 }
 

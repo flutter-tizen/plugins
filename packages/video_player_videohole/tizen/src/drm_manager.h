@@ -14,7 +14,8 @@
 #include "drm_manager_service_proxy.h"
 #include "player.h"
 
-typedef int (*FuncLicenseCB)(uint8_t *challenge_data, uint64_t challenge_len);
+typedef intptr_t (*FuncLicenseCB)(uint8_t *challenge_data,
+                                  size_t challenge_len);
 
 class DrmManager {
  public:
@@ -22,8 +23,7 @@ class DrmManager {
   ~DrmManager();
   bool InitializeDrmSession(const std::string &url);
   void ReleaseDrmSession();
-  static void SetLicenseData(unsigned char *response_data,
-                             unsigned long response_len);
+  static void SetLicenseData(void *response_data, size_t response_len);
   static void GetChallengeData(FuncLicenseCB callback);
 
  private:

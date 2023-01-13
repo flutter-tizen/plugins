@@ -92,11 +92,7 @@ ErrorOr<std::unique_ptr<PlayerMessage>> VideoPlayerTizenPlugin::Create(
     const CreateMessage &createMsg) {
   std::unique_ptr<VideoPlayer> player =
       std::make_unique<VideoPlayer>(registrar_ref_, createMsg);
-  DrmManager::GetChallengeData(GetChallengeCb);
-  // get_challenge_cb_ = GetChallengeCb;
-  // if (get_challenge_cb_ != nullptr) {
-  //   player->GetDrmChallengeData(get_challenge_cb_);
-  // }
+  DrmManager::GetChallengeData(ChallengeCb);
   std::unique_ptr<PlayerMessage> player_message =
       std::make_unique<PlayerMessage>();
   int64_t playerId = player->Create();
@@ -210,51 +206,131 @@ intptr_t InitDartApiDL(void *data) { return Dart_InitializeApiDL(data); }
 
 void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
 
-void GetChallengeData(FuncLicenseCB callback) { challenge_cb_ = callback; }
+static void FreeFinalizer(void *, void *value) { free(value); }
 
-void SetLicense(unsigned char *response_data, unsigned long response_len) {
-  DrmManager::SetLicenseData(response_data, response_len);
-}
-
-void ExecuteCallback(CallbackWrapper *wrapper_ptr) {
-  const CallbackWrapper wrapper = *wrapper_ptr;
-  wrapper();
-  delete wrapper_ptr;
-  LOG_INFO("ExecuteCallback done");
-}
-
-void NotifyDart(CallbackWrapper *wrapper) {
-  intptr_t wrapper_intptr = reinterpret_cast<intptr_t>(wrapper);
-
-  Dart_CObject ptr_obj;
-  ptr_obj.type = Dart_CObject_kInt64;
-  ptr_obj.value.as_int64 = wrapper_intptr;
-
-  bool posted = Dart_PostCObject_DL(send_port_, &ptr_obj);
-  if (!posted) {
-    LOG_ERROR("Dart_PostCObject_DL(): message %d not posted", wrapper_intptr);
+class PendingCall {
+ public:
+  PendingCall(void **buffer, size_t *length)
+      : response_buffer_(buffer), response_length_(length) {
+    receive_port_ =
+        Dart_NewNativePort_DL("cpp-response", &PendingCall::HandleResponse,
+                              /*handle_concurrently=*/false);
   }
-  LOG_INFO("after calling Dart_PostCObject_DL()");
-}
+  ~PendingCall() { Dart_CloseNativePort_DL(receive_port_); }
 
-int GetChallengeCb(uint8_t *challenge_data, uint64_t challenge_len) {
-  std::mutex mutex;
-  std::unique_lock<std::mutex> lock(mutex);
-  auto callback = challenge_cb_;
-  std::condition_variable cv;
-  int result;
-  bool notified = false;
-  const CallbackWrapper wrapper = [&]() {
-    callback(challenge_data, challenge_len);
-    LOG_INFO("Notify result ready");
+  Dart_Port port() const { return receive_port_; }
+
+  void PostAndWait(Dart_Port port, Dart_CObject *object) {
+    std::unique_lock<std::mutex> lock(mutex);
+    const bool success = Dart_PostCObject_DL(send_port_, object);
+    if (!success) {
+      LOG_ERROR("Failed to send message, invalid port or isolate died.\n");
+    }
+
+    LOG_INFO("Waiting for result.\n");
+    while (!notified) {
+      cv.wait(lock);
+    }
+  }
+
+  static void HandleResponse(Dart_Port p, Dart_CObject *message) {
+    if (message->type != Dart_CObject_kArray) {
+      LOG_ERROR("Wrong Data: message->type != Dart_CObject_kArray.\n");
+    }
+    Dart_CObject **c_response_args = message->value.as_array.values;
+    Dart_CObject *c_pending_call = c_response_args[0];
+    Dart_CObject *c_message = c_response_args[1];
+    LOG_INFO("HandleResponse (call: %d).\n",
+             reinterpret_cast<intptr_t>(c_pending_call));
+
+    auto pending_call = reinterpret_cast<PendingCall *>(
+        c_pending_call->type == Dart_CObject_kInt64
+            ? c_pending_call->value.as_int64
+            : c_pending_call->value.as_int32);
+
+    pending_call->ResolveCall(c_message);
+  }
+
+ private:
+  static bool NonEmptyBuffer(void **value) { return *value != nullptr; }
+
+  void ResolveCall(Dart_CObject *bytes) {
+    assert(bytes->type == Dart_CObject_kTypedData);
+    if (bytes->type != Dart_CObject_kTypedData) {
+      LOG_ERROR("C Wrong Data: bytes->type != Dart_CObject_kTypedData.\n");
+    }
+    const intptr_t response_length = bytes->value.as_typed_data.length;
+    const uint8_t *response_buffer = bytes->value.as_typed_data.values;
+
+    void *buffer = malloc(response_length);
+    memmove(buffer, response_buffer, response_length);
+
+    *response_buffer_ = buffer;
+    *response_length_ = response_length;
+
     notified = true;
     cv.notify_one();
-  };
-  CallbackWrapper *wrapper_ptr = new CallbackWrapper(wrapper);
-  NotifyDart(wrapper_ptr);
-  LOG_INFO("Waiting for result");
-  while (!notified) {
-    cv.wait(lock);
   }
+
+  std::mutex mutex;
+  std::condition_variable cv;
+  bool notified = false;
+
+  Dart_Port receive_port_;
+  void **response_buffer_;
+  size_t *response_length_;
+};
+
+intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len) {
+  const char *methodname = "ChallengeCb";
+  intptr_t result = 0;
+  size_t request_length = challenge_len;
+  void *request_buffer = malloc(request_length);
+  memcpy(request_buffer, challenge_data, challenge_len);
+
+  void *response_buffer = nullptr;
+  size_t response_length = 0;
+
+  PendingCall pending_call(&response_buffer, &response_length);
+
+  Dart_CObject c_send_port;
+  c_send_port.type = Dart_CObject_kSendPort;
+  c_send_port.value.as_send_port.id = pending_call.port();
+  c_send_port.value.as_send_port.origin_id = ILLEGAL_PORT;
+
+  Dart_CObject c_pending_call;
+  c_pending_call.type = Dart_CObject_kInt64;
+  c_pending_call.value.as_int64 = reinterpret_cast<int64_t>(&pending_call);
+
+  Dart_CObject c_method_name;
+  c_method_name.type = Dart_CObject_kString;
+  c_method_name.value.as_string = const_cast<char *>(methodname);
+
+  Dart_CObject c_request_data;
+  c_request_data.type = Dart_CObject_kExternalTypedData;
+  c_request_data.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+  c_request_data.value.as_external_typed_data.length = request_length;
+  c_request_data.value.as_external_typed_data.data =
+      static_cast<uint8_t *>(request_buffer);
+  c_request_data.value.as_external_typed_data.peer = request_buffer;
+  c_request_data.value.as_external_typed_data.callback = FreeFinalizer;
+
+  Dart_CObject *c_request_arr[] = {&c_send_port, &c_pending_call,
+                                   &c_method_name, &c_request_data};
+  Dart_CObject c_request;
+  c_request.type = Dart_CObject_kArray;
+  c_request.value.as_array.values = c_request_arr;
+  c_request.value.as_array.length =
+      sizeof(c_request_arr) / sizeof(c_request_arr[0]);
+
+  pending_call.PostAndWait(send_port_, &c_request);
+  LOG_INFO("Received result.\n");
+
+  DrmManager::SetLicenseData(response_buffer, response_length);
+  if (response_length != 0) {
+    result = 1;
+  }
+  free(response_buffer);
+
   return result;
 }

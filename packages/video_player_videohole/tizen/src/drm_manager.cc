@@ -171,9 +171,8 @@ void DrmManager::GetChallengeData(FuncLicenseCB callback) {
   get_challenge_cb_ = callback;
 }
 
-void DrmManager::SetLicenseData(unsigned char *response_data,
-                                unsigned long response_len) {
-  ppb_response_ = response_data;
+void DrmManager::SetLicenseData(void *response_data, size_t response_len) {
+  ppb_response_ = reinterpret_cast<unsigned char *>(response_data);
   pb_response_len_ = response_len;
   LOG_INFO("[DrmManager] ppb_response_: %s", ppb_response_);
   LOG_INFO("[DrmManager] pbResponse_len: %ld", pb_response_len_);
@@ -202,15 +201,18 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
         &pb_response_len_,
         static_cast<DrmLicenseHelper::EDrmType>(drm_manager->drm_type_),
         nullptr, nullptr);
-    LOG_DEBUG("[DrmManager] drm_result: 0x%lx", drm_result);
-    LOG_DEBUG("[DrmManager] ppb_response_: %s", ppb_response_);
-    LOG_DEBUG("[DrmManager] pbResponse_len: %ld", pb_response_len_);
+    LOG_INFO("[DrmManager] drm_result: 0x%lx", drm_result);
+    LOG_INFO("[DrmManager] ppb_response_: %s", ppb_response_);
+    LOG_INFO("[DrmManager] pbResponse_len: %ld", pb_response_len_);
   } else {
     LOG_INFO("[DrmManager] get license by dart callback");
-    int ret =
-        get_challenge_cb_(reinterpret_cast<unsigned char *>(
-                              const_cast<char *>(challenge_data.c_str())),
-                          static_cast<unsigned long>(challenge_data.length()));
+    intptr_t ret = get_challenge_cb_(
+        reinterpret_cast<uint8_t *>(const_cast<char *>(challenge_data.c_str())),
+        static_cast<size_t>(challenge_data.length()));
+    LOG_INFO("ret:%d", ret);
+    if (ret == 0) {
+      LOG_ERROR("[DrmManager] request license failed");
+    }
   }
   license_param->param1 = session_id;
   license_param->param2 = ppb_response_;
@@ -224,8 +226,6 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   if (license_param) {
     free(license_param);
   }
-  free(ppb_response_);
-  ppb_response_ = nullptr;
 
   return 0;
 }
