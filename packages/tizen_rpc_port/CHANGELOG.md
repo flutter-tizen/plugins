@@ -1,5 +1,6 @@
 ## 0.1.2
 
+* Update the TIDLC version to 1.10.6.
 * Support explicitly stopping a server by adding `StubBase.close`.
 
 ## 0.1.1
