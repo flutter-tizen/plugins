@@ -10,6 +10,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'src/hole.dart';
 
 import 'src/closed_caption_file.dart';
@@ -722,8 +723,13 @@ class FFIController {
     registerSendPort(receivePort.sendPort.nativePort);
   }
 
-  Future<Uint8List> _getlicense(Uint8List payload) async {
-    return payload;
+  Future<Uint8List> _getlicense(Uint8List challenge) {
+    return http
+        .post(
+          Uri.parse('https://proxy.uat.widevine.com/proxy'),
+          body: challenge,
+        )
+        .then((response) => response.bodyBytes);
   }
 
   void handleNativeMessage(dynamic message) async {

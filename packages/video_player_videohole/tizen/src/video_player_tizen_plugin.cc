@@ -330,7 +330,6 @@ intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len) {
   if (response_length != 0) {
     result = 1;
   }
-  free(response_buffer);
 
   return result;
 }

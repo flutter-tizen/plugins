@@ -206,10 +206,9 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
     LOG_INFO("[DrmManager] pbResponse_len: %ld", pb_response_len_);
   } else {
     LOG_INFO("[DrmManager] get license by dart callback");
-    intptr_t ret = get_challenge_cb_(
-        reinterpret_cast<uint8_t *>(const_cast<char *>(challenge_data.c_str())),
-        static_cast<size_t>(challenge_data.length()));
-    LOG_INFO("ret:%d", ret);
+    intptr_t ret =
+        get_challenge_cb_(reinterpret_cast<uint8_t *>(&challenge_data[0]),
+                          static_cast<size_t>(challenge_data.length()));
     if (ret == 0) {
       LOG_ERROR("[DrmManager] request license failed");
     }
@@ -226,6 +225,8 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   if (license_param) {
     free(license_param);
   }
+  free(ppb_response_);
+  ppb_response_ = nullptr;
 
   return 0;
 }
