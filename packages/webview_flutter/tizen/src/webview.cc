@@ -62,12 +62,16 @@ std::string ErrorCodeToString(int error_code) {
       return "authentication";
     case EWK_ERROR_CODE_BAD_URL:
       return "badUrl";
+    case EWK_ERROR_CODE_CANT_CONNECT:
+      return "connect";
     case EWK_ERROR_CODE_FAILED_TLS_HANDSHAKE:
       return "failedSslHandshake";
     case EWK_ERROR_CODE_FAILED_FILE_IO:
       return "file";
     case EWK_ERROR_CODE_CANT_LOOKUP_HOST:
       return "hostLookup";
+    case EWK_ERROR_CODE_TOO_MANY_REDIRECTS:
+      return "redirectLoop";
     case EWK_ERROR_CODE_REQUEST_TIMEOUT:
       return "timeout";
     case EWK_ERROR_CODE_TOO_MANY_REQUESTS:
@@ -78,7 +82,7 @@ std::string ErrorCodeToString(int error_code) {
       return "unsupportedScheme";
     default:
       LOG_ERROR("Unknown error type: %d", error_code);
-      return std::to_string(error_code);
+      return "unknown";
   }
 }
 

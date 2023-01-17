@@ -118,7 +118,7 @@ static std::string ErrorCodeToString(int error_code) {
       return "unsupportedScheme";
     default:
       LOG_ERROR("Unknown error type: %d", error_code);
-      return std::to_string(error_code);
+      return "unknown";
   }
 }
 
