@@ -8,8 +8,10 @@
 /// video.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player_videohole/video_player.dart';
 import 'package:video_player_videohole/video_player_platform_interface.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(
@@ -251,11 +253,22 @@ class _DrmRemoteVideo extends StatefulWidget {
 
 class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
   late VideoPlayerController _controller;
-  final ffi_controller = FFIController();
+  late FFIController ffi_controller;
 
   @override
   void initState() {
     super.initState();
+
+    Future<Uint8List> _getlicense(Uint8List challenge) {
+      return http
+          .post(
+            Uri.parse('https://proxy.uat.widevine.com/proxy'),
+            body: challenge,
+          )
+          .then((response) => response.bodyBytes);
+    }
+
+    ffi_controller = FFIController(_getlicense);
     ffi_controller.FFIgetLicense();
 
     _controller = VideoPlayerController.network(
@@ -264,7 +277,7 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
       drmConfigs: {
         'drmType': 2,
-        'licenseServerUrl': 'https://proxy.uat.widevine.com/proxy'
+        //'licenseServerUrl': 'https://proxy.uat.widevine.com/proxy'
       },
     );
 

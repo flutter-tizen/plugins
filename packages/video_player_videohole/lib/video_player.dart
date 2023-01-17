@@ -11,8 +11,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'src/hole.dart';
 
+import 'src/hole.dart';
 import 'src/closed_caption_file.dart';
 import 'video_player_platform_interface.dart';
 export 'src/closed_caption_file.dart';
@@ -706,9 +706,12 @@ class CppResponse {
   String toString() => 'CppResponse(message: ${data.length})';
 }
 
+typedef Future<Uint8List> LicenseCallback(Uint8List challenge);
+
 class FFIController {
   final ffi.DynamicLibrary nativeApi = ffi.DynamicLibrary.process();
-  late void Function(ffi.Pointer) executeCallback;
+  final LicenseCallback drmLicenseCb;
+  FFIController(this.drmLicenseCb);
 
   void FFIgetLicense() {
     final initApi = nativeApi.lookupFunction<
@@ -723,22 +726,13 @@ class FFIController {
     registerSendPort(receivePort.sendPort.nativePort);
   }
 
-  Future<Uint8List> _getlicense(Uint8List challenge) {
-    return http
-        .post(
-          Uri.parse('https://proxy.uat.widevine.com/proxy'),
-          body: challenge,
-        )
-        .then((response) => response.bodyBytes);
-  }
-
   void handleNativeMessage(dynamic message) async {
     final CppRequest cppRequest = CppRequest.fromCppMessage(message);
     print('Got message: $cppRequest');
 
     if (cppRequest.method == 'ChallengeCb') {
       final Uint8List argument = cppRequest.data;
-      final Uint8List result = await _getlicense(argument);
+      final Uint8List result = await drmLicenseCb(argument);
       final cppResponse = CppResponse(cppRequest.pendingCall!, result);
       print('Responding: $cppResponse');
       cppRequest.replyPort!.send(cppResponse.toCppMessage());
