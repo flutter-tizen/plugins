@@ -19,5 +19,5 @@ flutter:
   plugin:
     platforms:
       tizen:
-        pluginClass: AudioManagerTizenPlugin
+        pluginClass: TizenAudioManagerPlugin
         fileName: tizen_audio_manager_plugin.h

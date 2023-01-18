@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void AudioManagerTizenPluginRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void TizenAudioManagerPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)
