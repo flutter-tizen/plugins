@@ -48,8 +48,7 @@ class TizenAudioManagerStreamHandler : public FlStreamHandler {
       const flutter::EncodableValue *arguments,
       std::unique_ptr<FlEventSink> &&events) override {
     events_ = std::move(events);
-    TizenAudioManager &audio_manager = TizenAudioManager::GetInstance();
-    audio_manager.RegisterVolumeChangedCallback(
+    audio_manager_.RegisterVolumeChangedCallback(
         [events = events_.get()](std::string type_str, int32_t volume) {
           flutter::EncodableMap msg;
           msg[flutter::EncodableValue("type")] =
@@ -63,13 +62,13 @@ class TizenAudioManagerStreamHandler : public FlStreamHandler {
 
   std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
       const flutter::EncodableValue *arguments) override {
-    TizenAudioManager &audio_manager = TizenAudioManager::GetInstance();
-    audio_manager.UnregisterVolumeChangedCallback();
+    audio_manager_.UnregisterVolumeChangedCallback();
     events_.reset();
     return nullptr;
   }
 
  private:
+  TizenAudioManager audio_manager_;
   std::unique_ptr<FlEventSink> events_;
 };
 
@@ -128,8 +127,7 @@ class TizenAudioManagerPlugin : public flutter::Plugin {
 
   void GetCurrentPlaybackType(std::unique_ptr<FlMethodResult> result) {
     try {
-      TizenAudioManager &audio_manager = TizenAudioManager::GetInstance();
-      std::string type = audio_manager.getCurrentPlaybackType();
+      std::string type = audio_manager_.GetCurrentPlaybackType();
       result->Success(flutter::EncodableValue(type));
     } catch (const TizenAudioManagerError &error) {
       result->Error(error.code(), error.message());
@@ -145,8 +143,7 @@ class TizenAudioManagerPlugin : public flutter::Plugin {
     }
 
     try {
-      TizenAudioManager &audio_manager = TizenAudioManager::GetInstance();
-      int32_t max = audio_manager.GetMaxVolume(type);
+      int32_t max = audio_manager_.GetMaxVolume(type);
       result->Success(flutter::EncodableValue(max));
     } catch (const TizenAudioManagerError &error) {
       result->Error(error.code(), error.message());
@@ -167,8 +164,7 @@ class TizenAudioManagerPlugin : public flutter::Plugin {
     }
 
     try {
-      TizenAudioManager &audio_manager = TizenAudioManager::GetInstance();
-      audio_manager.SetVolume(type, volume);
+      audio_manager_.SetVolume(type, volume);
       result->Success();
     } catch (const TizenAudioManagerError &error) {
       result->Error(error.code(), error.message());
@@ -184,14 +180,14 @@ class TizenAudioManagerPlugin : public flutter::Plugin {
     }
 
     try {
-      TizenAudioManager &audio_manager = TizenAudioManager::GetInstance();
-      int32_t volume = audio_manager.GetVolume(type);
+      int32_t volume = audio_manager_.GetVolume(type);
       result->Success(flutter::EncodableValue(volume));
     } catch (const TizenAudioManagerError &error) {
       result->Error(error.code(), error.message());
     }
   }
 
+  TizenAudioManager audio_manager_;
   std::unique_ptr<FlEventChannel> event_channel_;
 };
 

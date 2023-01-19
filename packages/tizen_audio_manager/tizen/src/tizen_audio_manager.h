@@ -18,12 +18,7 @@ class TizenAudioManager {
   TizenAudioManager() {}
   ~TizenAudioManager() {}
 
-  static TizenAudioManager& GetInstance() {
-    static TizenAudioManager instance;
-    return instance;
-  }
-
-  std::string getCurrentPlaybackType();
+  std::string GetCurrentPlaybackType();
 
   int32_t GetMaxVolume(const std::string& type);
 

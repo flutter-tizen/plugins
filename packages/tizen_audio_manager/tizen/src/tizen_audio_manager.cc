@@ -47,7 +47,7 @@ bool ConvertStringToSoundType(const std::string &str, sound_type_e &type) {
 
 }  // namespace
 
-std::string TizenAudioManager::getCurrentPlaybackType() {
+std::string TizenAudioManager::GetCurrentPlaybackType() {
   sound_type_e type;
 
   const int ret = sound_manager_get_current_sound_type(&type);
