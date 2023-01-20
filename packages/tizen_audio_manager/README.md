@@ -10,7 +10,7 @@ To use this package, add `tizen_audio_manager` as a dependency in your `pubspec.
 
 ```yaml
 dependencies:
-  tizen_audio_manager: ^0.1.0
+  tizen_audio_manager: ^0.1.1
 ```
 
 ### Getting and setting the volume level
