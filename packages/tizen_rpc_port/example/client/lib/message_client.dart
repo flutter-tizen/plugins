@@ -107,7 +107,7 @@ class Message extends ProxyBase {
       }
       return parcel;
     } catch (error) {
-      print(error.toString());
+      print(error);
       return Parcel();
     }
   }
