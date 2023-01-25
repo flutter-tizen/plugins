@@ -1,3 +1,7 @@
+## 2.4.4
+
+* Update pigeon to 6.0.1.
+
 ## 2.4.3
 
 * Migrate to in-package pigeon-generated code.
