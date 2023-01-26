@@ -99,17 +99,13 @@ class Message extends ProxyBase {
   }
 
   Parcel _consumeCommand(Port port) {
-    try {
-      final Parcel parcel = Parcel.fromPort(port);
-      final int cmd = parcel.readInt32();
-      if (cmd != _MethodId.result.id) {
-        print('Received parcel is invalid. $cmd');
-      }
-      return parcel;
-    } catch (error) {
-      print(error);
-      return Parcel();
+    final Parcel parcel = Parcel.fromPort(port);
+    final int cmd = parcel.readInt32();
+    if (cmd != _MethodId.result.id) {
+      print('Received parcel is invalid. $cmd');
     }
+
+    return parcel;
   }
 
   void disposeCallback(Function callback) {
