@@ -150,7 +150,7 @@ class _AppListScreenState extends State<_AppListScreen> {
                 subtitle: Text(appInfo.packageId),
                 trailing: Text(
                   appInfo.appType,
-                  style: Theme.of(context).textTheme.caption,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               );
             },
@@ -252,7 +252,7 @@ class _AppEventsScreenState extends State<_AppEventsScreen> {
                 subtitle: Text('Process ID: ${event.processId}'),
                 trailing: Text(
                   event.event,
-                  style: Theme.of(context).textTheme.caption,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               );
             },
