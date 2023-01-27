@@ -17,6 +17,7 @@ const std::string kMethodQuery = "query";
 const std::string kMethodUpdate = "update";
 const std::string kMethodBatch = "batch";
 const std::string kMethodDeleteDatabase = "deleteDatabase";
+const std::string kMethodDatabaseExists = "databaseExists";
 const std::string kParamId = "id";
 const std::string kParamPath = "path";
 
