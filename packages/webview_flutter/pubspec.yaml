@@ -20,5 +20,5 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_tizen: ^0.2.0
-  webview_flutter: ^3.0.4
-  webview_flutter_platform_interface: ^1.8.0
+  webview_flutter: ^4.0.2
+  webview_flutter_platform_interface: ^2.0.1

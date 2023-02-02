@@ -2,6 +2,8 @@
 
 * Use only error type names defined in `web_resource_error.dart`.
 * Remove unused dependencies.
+* Update webview_flutter to 4.0.2.
+* Temporarily use webview_flutter's legacy API.
 
 ## 0.6.2
 

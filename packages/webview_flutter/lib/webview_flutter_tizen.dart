@@ -11,8 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_tizen/widgets.dart';
 
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
+import 'package:webview_flutter/src/webview_flutter_legacy.dart';
+import 'package:webview_flutter_platform_interface/src/webview_flutter_platform_interface_legacy.dart';
+import 'webview_method_channel.dart';
 
 /// Builds a Tizen webview.
 ///
