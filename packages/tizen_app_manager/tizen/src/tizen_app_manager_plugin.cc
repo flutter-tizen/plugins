@@ -277,10 +277,15 @@ class TizenAppManagerPlugin : public flutter::Plugin {
                 });
           }
           result->Success(flutter::EncodableValue(list));
-
           delete result;
         },
-        nullptr, nullptr, result.release());
+        nullptr,
+        [](void *data, Ecore_Thread *thread) {
+          auto *result = static_cast<FlMethodResult *>(data);
+          result->Error("Operation failed", "Failed to start a thread.");
+          delete result;
+        },
+        result.release());
   }
 
   void IsAppRunning(const flutter::EncodableMap *arguments,

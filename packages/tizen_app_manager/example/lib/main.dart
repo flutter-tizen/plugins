@@ -113,6 +113,8 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
               _infoTile('State', appContext.appState.name),
             ],
           );
+        } else if (snapshot.hasError) {
+          return Center(child: Text(snapshot.error.toString()));
         } else {
           return const Center(child: CircularProgressIndicator());
         }
@@ -164,6 +166,8 @@ class _AppListScreenState extends State<_AppListScreen>
               );
             },
           );
+        } else if (snapshot.hasError) {
+          return Center(child: Text(snapshot.error.toString()));
         } else {
           return const Center(child: CircularProgressIndicator());
         }
