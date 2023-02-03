@@ -243,7 +243,13 @@ class TizenPackageManagerPlugin : public flutter::Plugin {
           }
           delete result;
         },
-        nullptr, nullptr, result.release());
+        nullptr,
+        [](void *data, Ecore_Thread *thread) {
+          auto *result = static_cast<FlMethodResult *>(data);
+          result->Error("Operation failed", "Failed to start a thread.");
+          delete result;
+        },
+        result.release());
   }
 
   void Install(const flutter::EncodableMap *arguments,
