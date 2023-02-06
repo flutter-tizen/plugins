@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Add threading to `AppManager.getInstalledApps` to prevent app freezing.
+
 ## 0.2.1
 
 * Revise the example app.
