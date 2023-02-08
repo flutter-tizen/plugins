@@ -1,4 +1,4 @@
-## NEXT
+## 0.1.1
 
 * Use only error type names defined in `web_resource_error.dart`.
 * Remove unused dependencies.
