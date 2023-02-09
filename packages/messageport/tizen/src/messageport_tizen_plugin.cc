@@ -19,15 +19,23 @@
 #include "log.h"
 #include "messageport.h"
 
+typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
+typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
+typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
+typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
+typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
+typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
+typedef flutter::StreamHandlerError<flutter::EncodableValue>
+    FlStreamHandlerError;
+
 namespace {
 
 class MessageportTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
-    auto channel =
-        std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "tizen/messageport",
-            &flutter::StandardMethodCodec::GetInstance());
+    auto channel = std::make_unique<FlMethodChannel>(
+        registrar->messenger(), "tizen/messageport",
+        &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin = std::make_unique<MessageportTizenPlugin>(registrar);
 
@@ -75,9 +83,8 @@ class MessageportTizenPlugin : public flutter::Plugin {
     return false;
   }
 
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  void HandleMethodCall(const FlMethodCall &method_call,
+                        std::unique_ptr<FlMethodResult> result) {
     const auto &method_name = method_call.method_name();
     const flutter::EncodableValue *args = method_call.arguments();
 
@@ -92,9 +99,8 @@ class MessageportTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void CheckForRemote(
-      const flutter::EncodableValue *args,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  void CheckForRemote(const flutter::EncodableValue *args,
+                      std::unique_ptr<FlMethodResult> result) {
     LOG_DEBUG("CheckForRemote");
     std::string remote_app_id = "";
     std::string port_name = "";
@@ -116,9 +122,8 @@ class MessageportTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void CreateLocal(
-      const flutter::EncodableValue *args,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  void CreateLocal(const flutter::EncodableValue *args,
+                   std::unique_ptr<FlMethodResult> result) {
     LOG_DEBUG("CreateLocal");
     std::string port_name = "";
     bool trusted = false;
@@ -142,10 +147,9 @@ class MessageportTizenPlugin : public flutter::Plugin {
       event_channel_name << "tizen/messageport/" << port_name;
     }
 
-    auto event_channel =
-        std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-            plugin_registrar_->messenger(), event_channel_name.str(),
-            &flutter::StandardMethodCodec::GetInstance());
+    auto event_channel = std::make_unique<FlEventChannel>(
+        plugin_registrar_->messenger(), event_channel_name.str(),
+        &flutter::StandardMethodCodec::GetInstance());
 
     auto event_channel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
@@ -189,9 +193,8 @@ class MessageportTizenPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void Send(
-      const flutter::EncodableValue *args,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  void Send(const flutter::EncodableValue *args,
+            std::unique_ptr<FlMethodResult> result) {
     flutter::EncodableValue message(nullptr);
     std::string remote_app_id = "";
     std::string port_name = "";
@@ -233,8 +236,7 @@ class MessageportTizenPlugin : public flutter::Plugin {
 
   // < channel_name, is_trusted > -> native number >
   std::map<std::pair<std::string, bool>, int> native_ports_;
-  std::set<std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>>
-      event_channels_;
+  std::set<std::unique_ptr<FlEventChannel>> event_channels_;
   MessagePortManager manager_;
   flutter::PluginRegistrar *plugin_registrar_;
 };
