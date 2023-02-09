@@ -17,6 +17,8 @@
   - packages/flutter_secure_storage/**/*
 "p: flutter_tts":
   - packages/flutter_tts/**/*
+"p: flutter_webrtc":
+  - packages/flutter_webrtc/**/*
 "p: geolocator":
   - packages/geolocator/**/*
 "p: google_maps_flutter":

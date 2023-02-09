@@ -1,6 +1,6 @@
-## NEXT
+## 2.1.2
 
-* Update tizen_app_control to 0.2.0.
+* Update tizen_app_control to 0.2.2.
 
 ## 2.1.1
 

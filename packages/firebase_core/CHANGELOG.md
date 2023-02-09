@@ -1,4 +1,4 @@
-## NEXT
+## 0.1.1
 
 * Update firebase_core to 2.4.0.
 * Update firebase_core_platform_interface to 4.5.2.

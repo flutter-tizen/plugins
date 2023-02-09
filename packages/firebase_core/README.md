@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `firebase_core`. Therefore, 
 ```yaml
 dependencies:
   firebase_core: ^2.4.0
-  firebase_core_tizen: ^0.1.0
+  firebase_core_tizen: ^0.1.1
 ```
 
 For detailed usage, see https://github.com/invertase/flutterfire_desktop#flutterfire-desktop.

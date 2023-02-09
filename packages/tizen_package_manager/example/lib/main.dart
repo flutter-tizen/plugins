@@ -44,11 +44,14 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Package Manager Demo'),
-          bottom: const TabBar(tabs: <Tab>[
-            Tab(text: 'This package'),
-            Tab(text: 'Package list'),
-            Tab(text: 'Package events'),
-          ]),
+          bottom: const TabBar(
+            isScrollable: true,
+            tabs: <Tab>[
+              Tab(text: 'This package'),
+              Tab(text: 'Package list'),
+              Tab(text: 'Package events'),
+            ],
+          ),
         ),
         body: const TabBarView(
           children: <Widget>[
@@ -110,9 +113,15 @@ class _PackageListScreen extends StatefulWidget {
   State<_PackageListScreen> createState() => _PackageListScreenState();
 }
 
-class _PackageListScreenState extends State<_PackageListScreen> {
+class _PackageListScreenState extends State<_PackageListScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return FutureBuilder<List<PackageInfo>>(
       future: PackageManager.getPackagesInfo(),
       builder:

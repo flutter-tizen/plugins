@@ -4,6 +4,7 @@
 
 #include "tizen_package_manager_plugin.h"
 
+#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
@@ -218,20 +219,37 @@ class TizenPackageManagerPlugin : public flutter::Plugin {
   }
 
   void GetAllPackagesInfo(std::unique_ptr<FlMethodResult> result) {
-    TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
-    std::optional<std::vector<PackageInfo>> packages =
-        package_manager.GetAllPackagesInfo();
-    if (!packages.has_value()) {
-      result->Error(std::to_string(package_manager.GetLastError()),
-                    package_manager.GetLastErrorString());
-      return;
-    }
+    // TizenPackageManager::GetAllPackagesInfo() is an expensive operation and
+    // might cause unresponsiveness on low-end devices if run on the platform
+    // thread.
+    ecore_thread_run(
+        [](void *data, Ecore_Thread *thread) {
+          auto *result = static_cast<FlMethodResult *>(data);
 
-    flutter::EncodableList list;
-    for (const PackageInfo &package : packages.value()) {
-      list.push_back(flutter::EncodableValue(PackageInfoToMap(package)));
-    }
-    result->Success(flutter::EncodableValue(list));
+          TizenPackageManager &package_manager =
+              TizenPackageManager::GetInstance();
+          std::optional<std::vector<PackageInfo>> packages =
+              package_manager.GetAllPackagesInfo();
+          if (packages.has_value()) {
+            flutter::EncodableList list;
+            for (const PackageInfo &package : packages.value()) {
+              list.push_back(
+                  flutter::EncodableValue(PackageInfoToMap(package)));
+            }
+            result->Success(flutter::EncodableValue(list));
+          } else {
+            result->Error(std::to_string(package_manager.GetLastError()),
+                          package_manager.GetLastErrorString());
+          }
+          delete result;
+        },
+        nullptr,
+        [](void *data, Ecore_Thread *thread) {
+          auto *result = static_cast<FlMethodResult *>(data);
+          result->Error("Operation failed", "Failed to start a thread.");
+          delete result;
+        },
+        result.release());
   }
 
   void Install(const flutter::EncodableMap *arguments,

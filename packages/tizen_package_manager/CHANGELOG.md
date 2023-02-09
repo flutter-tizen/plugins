@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Add threading to `PackageManager.getPackagesInfo` to prevent app freezing.
+
 ## 0.2.0
 
 * Rename `package_manager.dart` to `tizen_package_manager.dart`.

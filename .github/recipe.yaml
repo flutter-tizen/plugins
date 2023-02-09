@@ -33,6 +33,7 @@ plugins:
 
   # Functionality not available on emulator.
   camera: []
+  flutter_webrtc: []
   geolocator: []
   network_info_plus: []
 

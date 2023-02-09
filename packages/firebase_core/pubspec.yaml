@@ -1,8 +1,8 @@
 name: firebase_core_tizen
-description: Firebase Core for Tizen
+description: Tizen implementation of the firebase_core plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/firebase_core
-version: 0.1.0
+version: 0.1.1
 
 environment:
   sdk: ">=2.17.0 <3.0.0"

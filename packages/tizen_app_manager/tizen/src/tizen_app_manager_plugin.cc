@@ -4,6 +4,7 @@
 
 #include "tizen_app_manager_plugin.h"
 
+#include <Ecore.h>
 #include <app.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
@@ -253,23 +254,38 @@ class TizenAppManagerPlugin : public flutter::Plugin {
   }
 
   void GetInstalledApps(std::unique_ptr<FlMethodResult> result) {
-    flutter::EncodableList list;
-    for (const auto &app_info :
-         TizenAppManager::GetInstance().GetAllAppsInfo()) {
-      AppInfoToEncodableMap(
-          app_info.get(),
-          [&list](flutter::EncodableMap map) {
-            list.push_back(flutter::EncodableValue(map));
-          },
-          [app_info = app_info.get()](int error_code,
-                                      std::string error_string) {
-            std::optional<std::string> app_id = app_info->GetAppId();
-            LOG_ERROR("Failed to get app info [%s]: %s",
-                      app_id.has_value() ? app_id->c_str() : "",
-                      error_string.c_str());
-          });
-    }
-    result->Success(flutter::EncodableValue(list));
+    // TizenAppManager::GetAllAppsInfo() is an expensive operation and might
+    // cause unresponsiveness on low-end devices if run on the platform thread.
+    ecore_thread_run(
+        [](void *data, Ecore_Thread *thread) {
+          auto *result = static_cast<FlMethodResult *>(data);
+
+          flutter::EncodableList list;
+          for (const auto &app_info :
+               TizenAppManager::GetInstance().GetAllAppsInfo()) {
+            AppInfoToEncodableMap(
+                app_info.get(),
+                [&list](flutter::EncodableMap map) {
+                  list.push_back(flutter::EncodableValue(map));
+                },
+                [app_info = app_info.get()](int error_code,
+                                            std::string error_string) {
+                  std::optional<std::string> app_id = app_info->GetAppId();
+                  LOG_ERROR("Failed to get app info [%s]: %s",
+                            app_id.has_value() ? app_id->c_str() : "",
+                            error_string.c_str());
+                });
+          }
+          result->Success(flutter::EncodableValue(list));
+          delete result;
+        },
+        nullptr,
+        [](void *data, Ecore_Thread *thread) {
+          auto *result = static_cast<FlMethodResult *>(data);
+          result->Error("Operation failed", "Failed to start a thread.");
+          delete result;
+        },
+        result.release());
   }
 
   void IsAppRunning(const flutter::EncodableMap *arguments,

@@ -147,9 +147,4 @@ class SlowTestPage extends TestPage {
     print('1000 insert ${sw.elapsed}');
     await db.close();
   }
-
-// 2019-02-26
-
-// BACKGROUND
-
 }

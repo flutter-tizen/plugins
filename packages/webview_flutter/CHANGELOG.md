@@ -1,3 +1,8 @@
+## 0.6.3
+
+* Use only error type names defined in `web_resource_error.dart`.
+* Remove unused dependencies.
+
 ## 0.6.2
 
 * Remove the use of internal API `ewk_settings_viewport_meta_tag_set`.
