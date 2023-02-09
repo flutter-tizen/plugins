@@ -4,7 +4,7 @@ A video_player_videohole flutter plugin only for Tizen TV devices, supports play
 
 ## Required privileges
 
-To use this plugin in a Tizen application, the internet privileges are required. Add below lines under the `<manifest>` section in your `tizen-manifest.xml` file.
+To use this plugin in a Tizen application, you may need to add the following privileges in your `tizen-manifest.xml` file.
 
 ```xml
 <privileges>
@@ -23,9 +23,9 @@ To use this plugin in a Tizen application, the internet privileges are required.
 - The internet privilege (http://tizen.org/privilege/internet) is required to play any URLs from network.
 - The drmplay privilege (http://developer.samsung.com/privilege/drmplay) is required to play DRM video files.
 
-To play DRM with this streaming player, you need to have partner level certificate(https://developer.samsung.com/tv-seller-office/guides/membership/becoming-partner.html).
+To play DRM with this streaming player, you need to have [partner level certificate](https://developer.samsung.com/tv-seller-office/guides/membership/becoming-partner.html).
 
-For details, see [Security and API Privileges](https://docs.tizen.org/application/dotnet/tutorials/sec-privileges).
+For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges/).
 
 ## Example
 
@@ -47,46 +47,51 @@ class _VideoAppState extends State<VideoApp> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4')
-      ..initialize().then((_) {
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {});
-      });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Video Demo',
-      home: Scaffold(
-        body: Center(
-          child: _controller.value.isInitialized
-              ? AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                )
-              : Container(),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              _controller.value.isPlaying
-                  ? _controller.pause()
-                  : _controller.play();
-            });
-          },
-          child: Icon(
-            _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-          ),
-        ),
-      ),
+      'https://media.w3.org/2010/05/bunny/trailer.mp4',
     );
+
+    _controller.addListener(() {
+      setState(() {});
+    });
+    _controller.setLooping(true);
+    _controller.initialize().then((_) => setState(() {}));
+    _controller.play();
   }
 
   @override
   void dispose() {
-    super.dispose();
     _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          Container(padding: const EdgeInsets.only(top: 20.0)),
+          const Text('Video Demo'),
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: <Widget>[
+                  VideoPlayer(_controller),
+                  // Set internal subtitle from stream.
+                  ClosedCaption(
+                      text: _controller.value.subtitleText,
+                      isSubtitle: _controller.value.isSubtitle),
+                  _ControlsOverlay(controller: _controller),
+                  VideoProgressIndicator(_controller, allowScrubbing: true),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 ```
@@ -104,8 +109,6 @@ Then you can import `video_player_videohole` in your Dart code:
 import 'package:video_player_videhole/video_player.dart';
 ```
 
-For how to use the plugin, see https://github.com/flutter/plugins/tree/master/packages/video_player_videohole/video_player_videohole#usage.
-
 ## Limitations
 
 The 'httpheaders' option for 'VideoPlayerController.network' and 'mixWithOthers' option of 'VideoPlayerOptions' will be silently ignored in Tizen platform.
@@ -115,3 +118,4 @@ This plugin has some limitations on TV:
 - The 'setPlaybackSpeed' method will fail if triggered within last 3 seconds.
 - The playback speed will reset to 1.0 when video is replayed in loop mode.
 - The 'seekTo' method works only when playback speed is 1.0, and it sets video position to the nearest key frame which may differ from the passed argument.
+- The 'player_set_subtitle_updated_cb' can't support Dash sidecar subtitle on Tizen 6.0/6.5, but support on Tizen 7.0.

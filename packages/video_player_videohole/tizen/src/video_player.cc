@@ -229,6 +229,13 @@ int64_t VideoPlayer::Create() {
               get_error_message(ret));
   }
 
+  ret =
+      player_set_subtitle_updated_cb(player_, OnSubtitleUpdated, (void *)this);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[VideoPlayer] player_set_subtitle_updated_cb failed: %s",
+              get_error_message(ret));
+  }
+
   flutter::PluginRegistrar *plugin_registrar =
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar_ref_);
@@ -474,6 +481,29 @@ void VideoPlayer::SendBufferingEnd() {
     LOG_INFO("[VideoPlayer] send bufferingEnd event");
     event_sink_->Success(eventValue);
   }
+}
+
+void VideoPlayer::SendSubtitleUpdate(int duration, char *text) {
+  if (event_sink_) {
+    flutter::EncodableMap encodables = {
+        {flutter::EncodableValue("event"),
+         flutter::EncodableValue("subtitleUpdate")},
+        {flutter::EncodableValue("duration"),
+         flutter::EncodableValue(duration)},
+        {flutter::EncodableValue("text"),
+         flutter::EncodableValue(std::string(text))}};
+    flutter::EncodableValue eventValue(encodables);
+    LOG_INFO("[VideoPlayer] send SubtitleUpdate event");
+    event_sink_->Success(eventValue);
+  }
+}
+
+void VideoPlayer::OnSubtitleUpdated(unsigned long duration, char *text,
+                                    void *user_data) {
+  LOG_INFO("[VideoPlayer] video subtitle update,duration: %ld,text: %s",
+           duration, text);
+  VideoPlayer *player = reinterpret_cast<VideoPlayer *>(user_data);
+  player->SendSubtitleUpdate(duration, text);
 }
 
 void VideoPlayer::OnPrepared(void *data) {
