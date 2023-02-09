@@ -113,8 +113,9 @@ class MessageportTizenPlugin : public flutter::Plugin {
     }
 
     bool port_check = false;
-    MessagePortResult native_result = manager_.CheckRemotePort(
-        remote_app_id, port_name, trusted, &port_check);
+    MessagePortResult native_result =
+        MessagePortManager::GetInstance().CheckRemotePort(
+            remote_app_id, port_name, trusted, &port_check);
     if (native_result) {
       result->Success(flutter::EncodableValue(port_check));
     } else {
@@ -159,8 +160,9 @@ class MessageportTizenPlugin : public flutter::Plugin {
               LOG_DEBUG("OnListen: %s", key.first.c_str());
               int port = -1;
 
-              MessagePortResult native_result = manager_.RegisterLocalPort(
-                  key.first, std::move(events), key.second, &port);
+              MessagePortResult native_result =
+                  MessagePortManager::GetInstance().RegisterLocalPort(
+                      key.first, std::move(events), key.second, &port);
               if (native_result) {
                 native_ports_[key] = port;
               }
@@ -175,7 +177,8 @@ class MessageportTizenPlugin : public flutter::Plugin {
               }
 
               MessagePortResult native_result =
-                  manager_.UnregisterLocalPort(native_ports_[key]);
+                  MessagePortManager::GetInstance().UnregisterLocalPort(
+                      native_ports_[key]);
               if (native_result) {
                 native_ports_.erase(key);
                 return nullptr;
@@ -221,10 +224,11 @@ class MessageportTizenPlugin : public flutter::Plugin {
         return;
       }
 
-      native_result = manager_.Send(remote_app_id, port_name, message, trusted,
-                                    native_ports_[key]);
+      native_result = MessagePortManager::GetInstance().Send(
+          remote_app_id, port_name, message, trusted, native_ports_[key]);
     } else {
-      native_result = manager_.Send(remote_app_id, port_name, message, trusted);
+      native_result = MessagePortManager::GetInstance().Send(
+          remote_app_id, port_name, message, trusted);
     }
 
     if (native_result) {
@@ -237,7 +241,6 @@ class MessageportTizenPlugin : public flutter::Plugin {
   // < channel_name, is_trusted > -> native number >
   std::map<std::pair<std::string, bool>, int> native_ports_;
   std::set<std::unique_ptr<FlEventChannel>> event_channels_;
-  MessagePortManager manager_;
   flutter::PluginRegistrar *plugin_registrar_;
 };
 

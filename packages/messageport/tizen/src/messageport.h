@@ -28,8 +28,16 @@ struct MessagePortResult {
 
 class MessagePortManager {
  public:
+  static MessagePortManager& GetInstance() {
+    static MessagePortManager instance;
+    return instance;
+  }
+
   MessagePortManager();
   ~MessagePortManager();
+
+  MessagePortManager(MessagePortManager const&) = delete;
+  MessagePortManager& operator=(MessagePortManager const&) = delete;
 
   MessagePortResult CheckRemotePort(std::string& remote_app_id,
                                     std::string& port_name, bool is_trusted,
