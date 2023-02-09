@@ -13,6 +13,12 @@ dependencies:
   tizen_log: ^0.1.2
 ```
 
+Then you can import `tizen_log` in your Dart code:
+
+```dart
+import 'package:tizen_log/tizen_log.dart';
+```
+
 ### Simple logging
 
 ```dart
