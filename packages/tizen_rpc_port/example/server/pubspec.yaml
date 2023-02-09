@@ -1,0 +1,25 @@
+name: tizen_rpc_port_server_example
+description: Demonstrates how to use the tizen_rpc_port server API.
+publish_to: "none"
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  tizen_rpc_port:
+    path: ../../
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen:
+    path: ../../../integration_test/
+
+flutter:
+  uses-material-design: true

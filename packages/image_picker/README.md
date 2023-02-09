@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/image_picker_tizen.svg)](https://pub.dev/packages/image_picker_tizen)
 
-The Tizen implementation of [`image_picker`](https://github.com/flutter/plugins/tree/master/packages/image_picker).
+The Tizen implementation of [`image_picker`](https://github.com/flutter/plugins/tree/main/packages/image_picker).
 
 ## Usage
 
@@ -10,8 +10,8 @@ To use this plugin, add `image_picker` and `image_picker_tizen` as [dependencies
 
 ```yaml
 dependencies:
-  image_picker: ^0.8.4
-  image_picker_tizen: ^2.1.0
+  image_picker: ^0.8.6
+  image_picker_tizen: ^2.2.0
 ```
 
 Then you can import `image_picker` in your Dart code.

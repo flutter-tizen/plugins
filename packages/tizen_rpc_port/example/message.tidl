@@ -1,0 +1,7 @@
+interface Message {
+  void NotifyCallback(string sender, string message) delegate;
+
+  int Register(string name, NotifyCallback callback);
+  void Unregister() async;
+  int Send(string message);
+}

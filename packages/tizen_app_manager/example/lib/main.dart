@@ -53,11 +53,14 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('App Manager Demo'),
-          bottom: const TabBar(tabs: <Tab>[
-            Tab(text: 'This app'),
-            Tab(text: 'App list'),
-            Tab(text: 'App events'),
-          ]),
+          bottom: const TabBar(
+            isScrollable: true,
+            tabs: <Tab>[
+              Tab(text: 'This app'),
+              Tab(text: 'App list'),
+              Tab(text: 'App events'),
+            ],
+          ),
         ),
         body: const TabBarView(
           children: <Widget>[
@@ -110,6 +113,8 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
               _infoTile('State', appContext.appState.name),
             ],
           );
+        } else if (snapshot.hasError) {
+          return Center(child: Text(snapshot.error.toString()));
         } else {
           return const Center(child: CircularProgressIndicator());
         }
@@ -125,9 +130,15 @@ class _AppListScreen extends StatefulWidget {
   State<_AppListScreen> createState() => _AppListScreenState();
 }
 
-class _AppListScreenState extends State<_AppListScreen> {
+class _AppListScreenState extends State<_AppListScreen>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return FutureBuilder<List<AppInfo>>(
       future: AppManager.getInstalledApps(),
       builder: (BuildContext context, AsyncSnapshot<List<AppInfo>> snapshot) {
@@ -150,11 +161,13 @@ class _AppListScreenState extends State<_AppListScreen> {
                 subtitle: Text(appInfo.packageId),
                 trailing: Text(
                   appInfo.appType,
-                  style: Theme.of(context).textTheme.caption,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               );
             },
           );
+        } else if (snapshot.hasError) {
+          return Center(child: Text(snapshot.error.toString()));
         } else {
           return const Center(child: CircularProgressIndicator());
         }
@@ -182,11 +195,15 @@ class _AppEventsScreen extends StatefulWidget {
   State<_AppEventsScreen> createState() => _AppEventsScreenState();
 }
 
-class _AppEventsScreenState extends State<_AppEventsScreen> {
+class _AppEventsScreenState extends State<_AppEventsScreen>
+    with AutomaticKeepAliveClientMixin {
   late final StreamSubscription<AppRunningContext>? _launchSubscription;
   late final StreamSubscription<AppRunningContext>? _terminateSubscription;
   final List<_AppEvent> _appEvents = <_AppEvent>[];
   String _settingsAppId = settingsAppId;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -230,6 +247,8 @@ class _AppEventsScreenState extends State<_AppEventsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
@@ -252,7 +271,7 @@ class _AppEventsScreenState extends State<_AppEventsScreen> {
                 subtitle: Text('Process ID: ${event.processId}'),
                 trailing: Text(
                   event.event,
-                  style: Theme.of(context).textTheme.caption,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               );
             },

@@ -89,7 +89,6 @@ class Profile {
   /// Profile.fromString('wearable')
   /// // Wearable device with Tizen 5.5.
   /// Profile.fromString('wearable-5.5')
-  ///
   /// ```
   ///
   /// To see all supported device types, see [DeviceType].
@@ -111,8 +110,9 @@ class Profile {
     }
     if (matchingDeviceType == null) {
       throw ArgumentError(
-          'Profile string must start with one of ${DeviceType.values}.',
-          'value');
+        'Profile string must start with one of ${DeviceType.values}.',
+        'value',
+      );
     }
     Version? version;
     if (versionString != null && versionString.isNotEmpty) {
@@ -124,8 +124,9 @@ class Profile {
         version = Version.parse(segments.join('.'));
       } on FormatException {
         throw ArgumentError(
-            'Platform version cannot be parsed from profile string $value.',
-            'value');
+          'Platform version cannot be parsed from profile string $value.',
+          'value',
+        );
       }
     }
     return Profile(matchingDeviceType, version);
@@ -176,8 +177,9 @@ class TizenSdk {
     }
     if (tizenHomeDir == null || !tizenHomeDir.existsSync()) {
       print(
-          'Error: Cannot find tizen sdk, make sure to set the path of tizen sdk '
-          'to the environment variable $_kTizenSdk.');
+        'Error: Unable to locate Tizen SDK.\n'
+        'If the Tizen SDK has been installed to a custom location, set $_kTizenSdk to that location.',
+      );
       throw ToolExit(exitCommandFoundErrors);
     }
     return TizenSdk._(
@@ -269,7 +271,8 @@ String? findEmulatorPid(String name) {
   final io.ProcessResult result = processRunner.runSync('ps', <String>['aux']);
 
   if (result.exitCode != 0) {
-    throw ToolExit(1);
+    print('Error: Unable to list running processes.');
+    throw ToolExit(result.exitCode);
   }
 
   final List<String> lines = LineSplitter.split(result.stdout as String)

@@ -20,7 +20,7 @@ jobs:
       - name: Dry run on pull request
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          ./tools/tools_runner.sh publish-plugin \
+          ./tools/tools_runner.sh publish \
             --all-changed \
             --pub-publish-flags=--dry-run \
             --base-sha=HEAD~
@@ -34,12 +34,12 @@ jobs:
           wait-interval: 180 # seconds
           allowed-conclusions: success
           verbose: false
-      - name: Publish plugins
+      - name: Publish packages
         if: ${{ github.event_name == 'push' }}
         env:
           PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
         run: |
-          ./tools/tools_runner.sh publish-plugin \
+          ./tools/tools_runner.sh publish \
             --all-changed \
             --base-sha=HEAD~ \
             --skip-confirmation

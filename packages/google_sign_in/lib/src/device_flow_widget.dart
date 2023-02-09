@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 /// The [GlobalKey] that identifies a [NavigatorState].
 ///
@@ -33,43 +34,74 @@ void showDeviceFlowWidget({
     context: navigatorKey.currentContext!,
     barrierDismissible: false,
     builder: (BuildContext context) {
+      final TextStyle bodyStyle =
+          Theme.of(context).textTheme.bodyLarge!.copyWith(color: Colors.black);
+      final TextStyle titleStyle = Theme.of(context)
+          .textTheme
+          .titleLarge!
+          .copyWith(color: Colors.black, fontWeight: FontWeight.bold);
+
       return AlertDialog(
-        title: const Text('Google Sign In'),
+        scrollable: true,
+        contentPadding: const EdgeInsets.all(20),
         content: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const Text('From a PC, phone, or tablet go to:'),
-            Text(
-              '$verificationUrl',
-              textScaleFactor: 1.5,
+            FittedBox(
+              child: Text(
+                'From a PC, phone, or tablet go to:',
+                style: bodyStyle,
+              ),
             ),
-            const Text('Then enter the code below:'),
-            Text(
-              code,
-              textScaleFactor: 2.5,
+            const SizedBox(height: 5),
+            FittedBox(
+              child: Text('$verificationUrl', style: titleStyle),
             ),
-            const Text('Code will expire in:'),
+            const SizedBox(height: 15),
+            FittedBox(
+              child: Text(
+                'Or scan the following QR code:',
+                style: bodyStyle,
+              ),
+            ),
+            const SizedBox(height: 5),
+            SvgPicture.asset(
+              'assets/images/qrcode.svg',
+              package: 'google_sign_in_tizen',
+              width: 100,
+              height: 100,
+            ),
+            const SizedBox(height: 15),
+            FittedBox(
+              child: Text('Then enter the code below:', style: bodyStyle),
+            ),
+            const SizedBox(height: 5),
+            FittedBox(
+              child: Text(code, style: titleStyle),
+            ),
+            const SizedBox(height: 15),
+            FittedBox(
+              child: Text('Code will expire in:', style: bodyStyle),
+            ),
+            const SizedBox(height: 5),
             _CountdownTimer(
-              expiresIn,
+              const Duration(minutes: 30),
+              style: bodyStyle,
               onFinished: () {
                 onExpired?.call();
                 closeDeviceFlowWidget();
               },
             ),
+            const SizedBox(height: 15),
+            ElevatedButton(
+              onPressed: () {
+                onCanceled?.call();
+                closeDeviceFlowWidget();
+              },
+              child: const Text('Cancel'),
+            ),
           ],
         ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              onCanceled?.call();
-              closeDeviceFlowWidget();
-            },
-            child: const Text(
-              'Cancel',
-              textAlign: TextAlign.end,
-            ),
-          )
-        ],
       );
     },
   );
@@ -78,10 +110,12 @@ void showDeviceFlowWidget({
 class _CountdownTimer extends StatefulWidget {
   const _CountdownTimer(
     this.duration, {
+    required this.style,
     required this.onFinished,
   });
 
   final Duration duration;
+  final TextStyle style;
   final VoidCallback? onFinished;
 
   @override
@@ -114,7 +148,7 @@ class _CountdownTimerState extends State<_CountdownTimer> {
     final String minutes = _remaining.inMinutes.toString().padLeft(2, '0');
     final String seconds =
         _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return Text('$minutes:$seconds');
+    return FittedBox(child: Text('$minutes:$seconds', style: widget.style));
   }
 
   @override

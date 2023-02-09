@@ -1,3 +1,26 @@
+## 0.6.3
+
+* Use only error type names defined in `web_resource_error.dart`.
+* Remove unused dependencies.
+
+## 0.6.2
+
+* Remove the use of internal API `ewk_settings_viewport_meta_tag_set`.
+* Fix crash when JavaScript evaluation result is null.
+* Change the project type to staticLib.
+* Enable back key navigation.
+* Implement `WebSettings.javascriptMode` and `WebViewController.clearCache`.
+* Redirect console messages to stdout/stderr.
+* Minor code cleanups.
+
+## 0.6.1
+
+* Fix canGoBack/Forward error.
+
+## 0.6.0
+
+* Change the backing web engine from LWE to EFL WebKit (EWK).
+
 ## 0.5.6
 
 * Update LWE binary (9af6ea4101d173935fe6e6cd3f2c91ca17ed451e).

@@ -1,0 +1,14 @@
+name: firebase_core_tizen_example
+description: An example application demonstrating calls to Firebase Core.
+publish_to: "none"
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+  flutter: ">=2.5.0"
+
+dependencies:
+  firebase_core: ^2.4.0
+  firebase_core_tizen:
+    path: ../
+  flutter:
+    sdk: flutter

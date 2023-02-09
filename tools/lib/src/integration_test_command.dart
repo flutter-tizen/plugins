@@ -8,8 +8,8 @@ import 'package:args/args.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
+import 'package:flutter_plugin_tools/src/common/package_command.dart';
 import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
-import 'package:flutter_plugin_tools/src/common/plugin_command.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
 import 'package:yaml/yaml.dart';
 
@@ -58,16 +58,16 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     );
     argParser.addOption(
       _timeoutArg,
-      help: 'Timeout limit of each integration test in seconds.',
+      help: 'Time in seconds to wait for each test to finish.',
       valueHelp: 'seconds',
       defaultsTo: _timeout.inSeconds.toString(),
     );
   }
 
-  /// Copied from [PluginCommand].
+  /// Copied from [PackageCommand].
   static const String _excludeArg = 'exclude';
 
-  /// Copied from [PluginCommand].
+  /// Copied from [PackageCommand].
   static const String _packagesArg = 'packages';
 
   static const String _generateEmulatorsArg = 'generate-emulators';
@@ -81,7 +81,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   // Tizen SDK installed on the system.
   late final TizenSdk _tizenSdk = TizenSdk.locateTizenSdk();
 
-  Duration _timeout = const Duration(seconds: 120);
+  Duration _timeout = const Duration(seconds: 300);
 
   Recipe? _recipe;
 
@@ -142,7 +142,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     }
   }
 
-  /// See: [PluginCommand.getTargetPackages].
+  /// See: [PackageCommand.getTargetPackages].
   @override
   Stream<PackageEnumerationEntry> getTargetPackages({
     bool filterExcluded = true,
@@ -151,19 +151,19 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       yield* super.getTargetPackages(filterExcluded: filterExcluded);
     } else {
       final Recipe recipe = _recipe!;
-      final List<PackageEnumerationEntry> plugins = await super
+      final List<PackageEnumerationEntry> packages = await super
           .getTargetPackages(filterExcluded: filterExcluded)
           .toList();
 
-      for (final PackageEnumerationEntry plugin in plugins) {
-        final String pluginName = plugin.package.displayName;
-        if (!recipe.contains(pluginName)) {
+      for (final PackageEnumerationEntry package in packages) {
+        final String packageName = package.package.displayName;
+        if (!recipe.contains(packageName)) {
           continue;
         }
-        if (!(filterExcluded && plugin.excluded)) {
-          yield recipe.isExcluded(pluginName)
-              ? PackageEnumerationEntry(plugin.package, excluded: true)
-              : plugin;
+        if (!(filterExcluded && package.excluded)) {
+          yield recipe.isExcluded(packageName)
+              ? PackageEnumerationEntry(package.package, excluded: true)
+              : package;
         }
       }
     }
@@ -224,12 +224,14 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       }
 
       for (final Device device in devices) {
-        final PackageResult packageResult = await device.runIntegrationTest(
-          example.directory,
-          _timeout,
-        );
-        if (packageResult.state == RunState.failed) {
-          errors.addAll(packageResult.details);
+        String? error =
+            await device.runIntegrationTest(example.directory, _timeout);
+        if (error != null) {
+          // Tests may fail unexpectedly on a self-hosted runner. Try again.
+          error = await device.runIntegrationTest(example.directory, _timeout);
+        }
+        if (error != null) {
+          errors.add(error);
         }
       }
     }

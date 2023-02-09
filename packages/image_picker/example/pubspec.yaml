@@ -5,7 +5,7 @@ publish_to: "none"
 dependencies:
   flutter:
     sdk: flutter
-  image_picker: ^0.8.4
+  image_picker: ^0.8.6
   image_picker_tizen:
     path: ../
   video_player: ^2.1.4

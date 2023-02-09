@@ -6,6 +6,8 @@
 
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -186,6 +188,24 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
     });
   }
 
+  Future<void> _toggleDraggable(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        draggableParam: !marker.draggable,
+      );
+    });
+  }
+
+  Future<void> _toggleFlat(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        flatParam: !marker.flat,
+      );
+    });
+  }
+
   Future<void> _changeInfo(MarkerId markerId) async {
     final Marker marker = markers[markerId]!;
     final String newSnippet = '${marker.infoWindow.snippet!}*';
@@ -208,6 +228,16 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
     });
   }
 
+  Future<void> _changeRotation(MarkerId markerId) async {
+    final Marker marker = markers[markerId]!;
+    final double current = marker.rotation;
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        rotationParam: current == 330.0 ? 0.0 : current + 30.0,
+      );
+    });
+  }
+
   Future<void> _toggleVisible(MarkerId markerId) async {
     final Marker marker = markers[markerId]!;
     setState(() {
@@ -225,6 +255,37 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
         zIndexParam: current == 12.0 ? 0.0 : current + 1.0,
       );
     });
+  }
+
+  void _setMarkerIcon(MarkerId markerId, BitmapDescriptor assetIcon) {
+    final Marker marker = markers[markerId]!;
+    setState(() {
+      markers[markerId] = marker.copyWith(
+        iconParam: assetIcon,
+      );
+    });
+  }
+
+  Future<BitmapDescriptor> _getAssetIcon(BuildContext context) async {
+    final Completer<BitmapDescriptor> bitmapIcon =
+        Completer<BitmapDescriptor>();
+    final ImageConfiguration config = createLocalImageConfiguration(context);
+
+    const AssetImage('assets/red_square.png')
+        .resolve(config)
+        .addListener(ImageStreamListener((ImageInfo image, bool sync) async {
+      final ByteData? bytes =
+          await image.image.toByteData(format: ImageByteFormat.png);
+      if (bytes == null) {
+        bitmapIcon.completeError(Exception('Unable to encode icon'));
+        return;
+      }
+      final BitmapDescriptor bitmap =
+          BitmapDescriptor.fromBytes(bytes.buffer.asUint8List());
+      bitmapIcon.complete(bitmap);
+    }));
+
+    return bitmapIcon.future;
   }
 
   @override
@@ -286,8 +347,25 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
               TextButton(
                 onPressed: selectedId == null
                     ? null
+                    : () => _toggleDraggable(selectedId),
+                child: const Text('toggle draggable'),
+              ),
+              TextButton(
+                onPressed:
+                    selectedId == null ? null : () => _toggleFlat(selectedId),
+                child: const Text('toggle flat'),
+              ),
+              TextButton(
+                onPressed: selectedId == null
+                    ? null
                     : () => _changePosition(selectedId),
                 child: const Text('change position'),
+              ),
+              TextButton(
+                onPressed: selectedId == null
+                    ? null
+                    : () => _changeRotation(selectedId),
+                child: const Text('change rotation'),
               ),
               TextButton(
                 onPressed: selectedId == null
@@ -299,6 +377,18 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
                 onPressed:
                     selectedId == null ? null : () => _changeZIndex(selectedId),
                 child: const Text('change zIndex'),
+              ),
+              TextButton(
+                onPressed: selectedId == null
+                    ? null
+                    : () {
+                        _getAssetIcon(context).then(
+                          (BitmapDescriptor icon) {
+                            _setMarkerIcon(selectedId, icon);
+                          },
+                        );
+                      },
+                child: const Text('set marker icon'),
               ),
             ],
           ),

@@ -3,12 +3,15 @@ plugins:
   battery_plus: ["wearable-5.5"]
   connectivity_plus: ["wearable-5.5", "tv-6.5"]
   device_info_plus: ["wearable-5.5", "tv-6.5"]
+  flutter_app_badger: ["wearable-5.5"]
+  flutter_secure_storage: ["wearable-5.5", "tv-6.5"]
   flutter_tts: ["wearable-5.5", "tv-6.5"]
-  google_sign_in: ["wearable-5.5", "tv-6.5"]
+  google_maps_flutter: ["wearable-5.5", "tv-6.5"]
   integration_test: ["wearable-5.5", "tv-6.5"]
   messageport: ["wearable-5.5", "tv-6.5"]
   package_info_plus: ["wearable-5.5", "tv-6.5"]
-  path_provider: ["tv-6.5"]
+  path_provider: ["wearable-5.5", "tv-6.5"]
+  permission_handler: ["wearable-5.5"]
   sensors_plus: ["wearable-5.5"]
   shared_preferences: ["wearable-5.5", "tv-6.5"]
   sqflite: ["wearable-5.5", "tv-6.5"]
@@ -16,27 +19,31 @@ plugins:
   tizen_audio_manager: ["wearable-5.5", "tv-6.5"]
   tizen_bundle: ["wearable-5.5", "tv-6.5"]
   tizen_package_manager: ["wearable-5.5", "tv-6.5"]
+  tizen_rpc_port: ["tv-6.5"]
   url_launcher: ["wearable-5.5", "tv-6.5"]
   wakelock: ["wearable-5.5"]
 
-  # Not supported by emulators.
-  camera: []
-  google_maps_flutter: []
-  network_info_plus: []
-  webview_flutter: []
-
   # No tests.
+  google_sign_in: []
   image_picker: []
+  firebase_core: []
   tizen_log: []
   tizen_notification: []
   wearable_rotary: []
 
-  # Permission cannot be granted without manual interaction.
+  # Functionality not available on emulator.
+  camera: []
+  flutter_webrtc: []
   geolocator: []
-  permission_handler: []
+  network_info_plus: []
 
   # Only testable with the drive command: https://github.com/flutter-tizen/plugins/issues/272
   tizen_app_control: []
 
   # Test frequently breaks due to memory issue: https://github.com/flutter-tizen/plugins/issues/135
   video_player: []
+
+  # Temporarily disabled due to test_api error. Testable with the drive command.
+  # https://github.com/flutter-tizen/plugins/pull/397#issuecomment-1139299838
+  webview_flutter: []
+  webview_flutter_lwe: []

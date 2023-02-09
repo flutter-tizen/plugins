@@ -88,6 +88,8 @@ class SqflitePlugin : public flutter::Plugin {
       OnCloseDatabaseCall(method_call, std::move(result));
     } else if (method_name == sqflite_constants::kMethodDeleteDatabase) {
       OnDeleteDatabase(method_call, std::move(result));
+    } else if (method_name == sqflite_constants::kMethodDatabaseExists) {
+      OnDatabaseExistsCall(method_call, std::move(result));
     } else if (method_name == sqflite_constants::kMethodGetDatabasesPath) {
       OnGetDatabasesPathCall(method_call, std::move(result));
     } else if (method_name == sqflite_constants::kMethodOptions) {
@@ -512,6 +514,19 @@ class SqflitePlugin : public flutter::Plugin {
     std::filesystem::remove(path);
     result->Success();
   }
+
+  void OnDatabaseExistsCall(
+      const flutter::MethodCall<flutter::EncodableValue> &method_call,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    flutter::EncodableMap arguments =
+        std::get<flutter::EncodableMap>(*method_call.arguments());
+    std::string path;
+    GetValueFromEncodableMap(arguments, sqflite_constants::kParamPath, path);
+
+    std::filesystem::path filesystem_path(path);
+    bool exists = std::filesystem::exists(filesystem_path);
+    result->Success(flutter::EncodableValue(exists));
+  };
 
   flutter::EncodableValue MakeOpenResult(int database_id, bool recovered,
                                          bool recovered_in_transaction) {

@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/google_sign_in_tizen.svg)](https://pub.dev/packages/google_sign_in_tizen)
 
-The Tizen implementation of [`google_sign_in`](https://github.com/flutter/plugins/tree/master_archive/packages/google_sign_in/google_sign_in).
+The Tizen implementation of [`google_sign_in`](https://github.com/flutter/plugins/tree/main/packages/google_sign_in/google_sign_in).
 
 ## Usage
 
@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `google_sign_in`. Therefore,
 ```yaml
 dependencies:
   google_sign_in: ^5.4.1
-  google_sign_in_tizen: ^0.1.1
+  google_sign_in_tizen: ^0.1.3
 ```
 
 For detailed usage on how to use `google_sign_in`, see https://pub.dev/packages/google_sign_in#usage.

@@ -4,6 +4,7 @@
 
 #include "permission_manager.h"
 
+#ifndef TV_PROFILE
 #include <privacy_privilege_manager.h>
 
 #include "log.h"
@@ -27,12 +28,14 @@ const char* PermissionToString(Permission permission) {
       return nullptr;
   }
 }
+#endif
 
 void PermissionManager::RequestPermission(Permission permission,
                                           const OnSuccess& on_success,
                                           const OnFailure& on_failure) {
-  LOG_DEBUG("enter");
-
+#ifdef TV_PROFILE
+  on_success();
+#else
   ppm_check_result_e result;
   const char* permission_string = PermissionToString(permission);
   int error = ppm_check_permission(permission_string, &result);
@@ -77,5 +80,5 @@ void PermissionManager::RequestPermission(Permission permission,
         break;
     }
   }
-  return;
+#endif  // TV_PROFILE
 }
