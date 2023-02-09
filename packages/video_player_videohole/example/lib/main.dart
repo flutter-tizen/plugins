@@ -233,7 +233,9 @@ class Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(text: _controller.value.caption.text),
+                  ClosedCaption(
+                      text: _controller.value.subtitleText,
+                      isSubtitle: _controller.value.isSubtitle),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -413,6 +415,10 @@ class _ControlsOverlay extends StatelessWidget {
     5.0,
     10.0,
   ];
+  static const List<bool> _exampleSubtitleStatus = <bool>[
+    true,
+    false,
+  ];
 
   final VideoPlayerController controller;
 
@@ -497,6 +503,36 @@ class _ControlsOverlay extends StatelessWidget {
                 horizontal: 16,
               ),
               child: Text('${controller.value.playbackSpeed}x'),
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: PopupMenuButton<bool>(
+            initialValue: controller.value.isSubtitle,
+            tooltip: 'Subtitle status',
+            onSelected: (bool onoff) {
+              controller.setSubtitleStatus(onoff);
+            },
+            itemBuilder: (BuildContext context) {
+              return <PopupMenuItem<bool>>[
+                for (final bool onoff in _exampleSubtitleStatus)
+                  PopupMenuItem<bool>(
+                    value: onoff,
+                    child: Text('Subtitle:${onoff ? "on" : "off"}'),
+                  )
+              ];
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                // Using less vertical padding as the text is also longer
+                // horizontally, so it feels like it would need more spacing
+                // horizontally (matching the aspect ratio of the video).
+                vertical: 12,
+                horizontal: 16,
+              ),
+              child: Text(
+                  'Subtitle:${controller.value.isSubtitle ? "on" : "off"}'),
             ),
           ),
         ),

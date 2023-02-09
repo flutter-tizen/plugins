@@ -10,7 +10,6 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 import 'src/hole.dart';
 import 'src/closed_caption_file.dart';
@@ -49,6 +48,8 @@ class VideoPlayerValue {
     this.volume = 1.0,
     this.playbackSpeed = 1.0,
     this.errorDescription,
+    this.isSubtitle = true,
+    this.subtitleText = "",
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -108,6 +109,12 @@ class VideoPlayerValue {
   /// If [hasError] is false this is `null`.
   final String? errorDescription;
 
+  /// True if the video subtitle is displaying.
+  final bool isSubtitle;
+
+  /// The [subtitleText] of the currently loaded video.
+  final String? subtitleText;
+
   /// The [size] of the currently loaded video.
   final Size size;
 
@@ -151,6 +158,8 @@ class VideoPlayerValue {
     double? volume,
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
+    bool? isSubtitle,
+    String? subtitleText,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -168,6 +177,8 @@ class VideoPlayerValue {
       errorDescription: errorDescription != _defaultErrorDescription
           ? errorDescription
           : this.errorDescription,
+      isSubtitle: isSubtitle ?? this.isSubtitle,
+      subtitleText: subtitleText ?? this.subtitleText,
     );
   }
 
@@ -186,7 +197,9 @@ class VideoPlayerValue {
         'isBuffering: $isBuffering, '
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
-        'errorDescription: $errorDescription)';
+        'errorDescription: $errorDescription,'
+        'isSubtitle: $isSubtitle,'
+        'text:$subtitleText)';
   }
 }
 
@@ -418,6 +431,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
           break;
+        case VideoEventType.subtitleUpdate:
+          value = value.copyWith(subtitleText: event.text);
+          break;
         case VideoEventType.unknown:
           break;
       }
@@ -623,6 +639,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     value = value.copyWith(playbackSpeed: speed);
     await _applyPlaybackSpeed();
+  }
+
+  /// Sets the subtitle status.
+  ///
+  /// The [onoff] will be used when set subtitle display or not.
+  Future<void> setSubtitleStatus(bool onoff) async {
+    value = value.copyWith(isSubtitle: onoff);
   }
 
   /// Sets the caption offset.
@@ -1132,7 +1155,8 @@ class ClosedCaption extends StatelessWidget {
   /// [VideoPlayerValue.caption].
   ///
   /// If [text] is null or empty, nothing will be displayed.
-  const ClosedCaption({Key? key, this.text, this.textStyle}) : super(key: key);
+  const ClosedCaption({Key? key, this.text, this.textStyle, this.isSubtitle})
+      : super(key: key);
 
   /// The text that will be shown in the closed caption, or null if no caption
   /// should be shown.
@@ -1145,10 +1169,16 @@ class ClosedCaption extends StatelessWidget {
   /// font colored white.
   final TextStyle? textStyle;
 
+  /// If [isSubtitle] is true, [text] will be shown.
+  /// If it is false, [text] will be hide.
+  final bool? isSubtitle;
+
   @override
   Widget build(BuildContext context) {
     final String? text = this.text;
-    if (text == null || text.isEmpty) {
+    final bool? isSubtitle = this.isSubtitle;
+
+    if (text == null || text.isEmpty || !isSubtitle!) {
       return const SizedBox.shrink();
     }
 

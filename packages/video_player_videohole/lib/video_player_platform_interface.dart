@@ -221,6 +221,7 @@ class VideoEvent {
     this.duration,
     this.size,
     this.buffered,
+    this.text,
   });
 
   /// The type of the event.
@@ -241,6 +242,11 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.bufferingUpdate].
   final int? buffered;
 
+  /// Subtitle text of the video.
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
+  final String? text;
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -249,7 +255,8 @@ class VideoEvent {
             eventType == other.eventType &&
             duration == other.duration &&
             size == other.size &&
-            buffered == other.buffered;
+            buffered == other.buffered &&
+            text == other.text;
   }
 
   @override
@@ -257,7 +264,8 @@ class VideoEvent {
       eventType.hashCode ^
       duration.hashCode ^
       size.hashCode ^
-      buffered.hashCode;
+      buffered.hashCode ^
+      text.hashCode;
 }
 
 /// Type of the event.
@@ -279,6 +287,9 @@ enum VideoEventType {
 
   /// The video stopped to buffer.
   bufferingEnd,
+
+  /// Update subtitle text of video.
+  subtitleUpdate,
 
   /// An unknown event has been received.
   unknown,
