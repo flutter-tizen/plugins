@@ -49,6 +49,7 @@ class VideoPlayer {
   void SendBufferingStart();
   void SendBufferingUpdate(int position);
   void SendBufferingEnd();
+  void SendSubtitleUpdate(int duration, char *text);
   bool Open(const std::string &uri);
   void ParseCreateMessage(const CreateMessage &create_message);
   bool SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref);
@@ -56,9 +57,10 @@ class VideoPlayer {
   static void OnBuffering(int percent, void *data);
   static void OnSeekCompleted(void *data);
   static void OnPlayCompleted(void *data);
-  static void OnPlaying(void *data);
   static void OnError(int error_code, void *user_data);
   static void onInterrupted(player_interrupted_code_e code, void *data);
+  static void OnSubtitleUpdated(unsigned long duration, char *text,
+                                void *user_data);
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
