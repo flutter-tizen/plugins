@@ -10,20 +10,20 @@
 #include <message_port.h>
 
 #include <map>
-#include <set>
 
 typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 
 class MessagePortError {
  public:
-  explicit MessagePortError(int error_code) : error_code_(error_code) {}
+  explicit MessagePortError(int error_code)
+      : error_code_(error_code),
+        error_message_(get_error_message(error_code_)) {}
 
-  const std::string& message() const {
-    return std::string(get_error_message(error_code_));
-  }
+  const std::string& message() const { return error_message_; }
 
  private:
   int error_code_;
+  std::string error_message_;
 };
 
 template <class T>
@@ -72,14 +72,17 @@ class MessagePortManager {
   MessagePortManager(MessagePortManager const&) = delete;
   MessagePortManager& operator=(MessagePortManager const&) = delete;
 
-  ErrorOr<bool> CheckRemotePort(std::string& remote_app_id,
-                                std::string& port_name, bool is_trusted);
+  ErrorOr<bool> CheckRemotePort(const std::string& remote_app_id,
+                                const std::string& port_name, bool is_trusted);
 
-  ErrorOr<int> RegisterLocalPort(const std::string& port_name,
-                                 std::unique_ptr<FlEventSink> sink,
-                                 bool is_trusted);
+  bool IsRegisteredLocalPort(const std::string& port_name, bool is_trusted);
 
-  std::optional<MessagePortError> UnregisterLocalPort(int local_port_id);
+  std::optional<MessagePortError> RegisterLocalPort(
+      const std::string& port_name, std::unique_ptr<FlEventSink> sink,
+      bool is_trusted);
+
+  std::optional<MessagePortError> UnregisterLocalPort(
+      const std::string& port_name, bool is_trusted);
 
   std::optional<MessagePortError> Send(std::string& remote_app_id,
                                        std::string& port_name,
@@ -89,7 +92,9 @@ class MessagePortManager {
   std::optional<MessagePortError> Send(std::string& remote_app_id,
                                        std::string& port_name,
                                        flutter::EncodableValue& message,
-                                       bool is_trusted, int local_port);
+                                       bool is_trusted,
+                                       const std::string& local_port_name,
+                                       bool local_is_trusted);
 
  private:
   static void OnMessageReceived(int local_port_id, const char* remote_app_id,
@@ -99,8 +104,14 @@ class MessagePortManager {
 
   ErrorOr<bundle*> PrepareBundle(flutter::EncodableValue& message);
 
+  ErrorOr<int> GetRegisteredLocalPort(const std::string& port_name,
+                                      bool is_trusted);
+
+  // map<port, event_sink>
   std::map<int, std::unique_ptr<FlEventSink>> sinks_;
-  std::set<int> trusted_ports_;
+
+  // map<pair<port_name, trused>, port>
+  std::map<std::pair<std::string, bool>, int> local_ports_;
 };
 
 #endif  // MESSAGEPORT_H

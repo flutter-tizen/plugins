@@ -11,13 +11,12 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
-#include <map>
-#include <memory>
+#include <set>
 #include <sstream>
 #include <string>
 
 #include "log.h"
-#include "messageport.h"
+#include "messageport_manager.h"
 
 typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
 typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
@@ -29,6 +28,39 @@ typedef flutter::StreamHandlerError<flutter::EncodableValue>
     FlStreamHandlerError;
 
 namespace {
+
+class LocalPortStreamHandler : public FlStreamHandler {
+ public:
+  LocalPortStreamHandler(const std::string &port_name, bool is_trusted)
+      : port_name_(port_name), is_trusted_(is_trusted) {}
+
+  std::unique_ptr<FlStreamHandlerError> OnListenInternal(
+      const flutter::EncodableValue *arguments,
+      std::unique_ptr<FlEventSink> &&events) override {
+    std::optional<MessagePortError> error =
+        MessagePortManager::GetInstance().RegisterLocalPort(
+            port_name_, std::move(events), is_trusted_);
+    if (error.has_value()) {
+      LOG_ERROR("Error OnListen: %s", error.value().message().c_str());
+    }
+    return nullptr;
+  }
+
+  std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
+      const flutter::EncodableValue *arguments) override {
+    std::optional<MessagePortError> error =
+        MessagePortManager::GetInstance().UnregisterLocalPort(port_name_,
+                                                              is_trusted_);
+    if (error.has_value()) {
+      LOG_ERROR("Error OnCancel: %s", error.value().message().c_str());
+    }
+    return nullptr;
+  }
+
+ private:
+  std::string port_name_;
+  bool is_trusted_;
+};
 
 class MessageportTizenPlugin : public flutter::Plugin {
  public:
@@ -65,7 +97,6 @@ class MessageportTizenPlugin : public flutter::Plugin {
           return true;
         }
       }
-      LOG_DEBUG("Key %s not found", key);
     }
     return false;
   }
@@ -101,7 +132,6 @@ class MessageportTizenPlugin : public flutter::Plugin {
 
   void CheckForRemote(const flutter::EncodableValue *args,
                       std::unique_ptr<FlMethodResult> result) {
-    LOG_DEBUG("CheckForRemote");
     std::string remote_app_id = "";
     std::string port_name = "";
     bool trusted = false;
@@ -123,7 +153,6 @@ class MessageportTizenPlugin : public flutter::Plugin {
 
   void CreateLocal(const flutter::EncodableValue *args,
                    std::unique_ptr<FlMethodResult> result) {
-    LOG_DEBUG("CreateLocal");
     std::string port_name = "";
     bool trusted = false;
     if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
@@ -132,63 +161,24 @@ class MessageportTizenPlugin : public flutter::Plugin {
       return;
     }
 
-    auto key = std::make_pair(port_name, trusted);
-    if (native_ports_.find(key) != native_ports_.end()) {
-      LOG_DEBUG("Stream handler for %s, already registered", port_name.c_str());
+    if (MessagePortManager::GetInstance().IsRegisteredLocalPort(port_name,
+                                                                trusted)) {
       result->Success();
       return;
     }
 
     std::stringstream event_channel_name;
+    event_channel_name << "tizen/messageport/" << port_name;
     if (trusted) {
-      event_channel_name << "tizen/messageport/" << port_name << "_trusted";
-    } else {
-      event_channel_name << "tizen/messageport/" << port_name;
+      event_channel_name << "_trusted";
     }
 
     auto event_channel = std::make_unique<FlEventChannel>(
         plugin_registrar_->messenger(), event_channel_name.str(),
         &flutter::StandardMethodCodec::GetInstance());
-
-    auto event_channel_handler =
-        std::make_unique<flutter::StreamHandlerFunctions<>>(
-            [this, key](const flutter::EncodableValue *arguments,
-                        std::unique_ptr<FlEventSink> &&events)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_DEBUG("OnListen: %s", key.first.c_str());
-              ErrorOr<int> ret =
-                  MessagePortManager::GetInstance().RegisterLocalPort(
-                      key.first, std::move(events), key.second);
-              if (!ret.has_error()) {
-                native_ports_[key] = ret.value();
-              }
-              return nullptr;
-            },
-            [this, key](const flutter::EncodableValue *arguments)
-                -> std::unique_ptr<flutter::StreamHandlerError<>> {
-              LOG_DEBUG("OnCancel: %s", key.first.c_str());
-              if (native_ports_.find(key) == native_ports_.end()) {
-                LOG_ERROR("Error OnCancel: Could not find port to unregister");
-                return nullptr;
-              }
-
-              std::optional<MessagePortError> ret =
-                  MessagePortManager::GetInstance().UnregisterLocalPort(
-                      native_ports_[key]);
-              if (!ret.has_value()) {
-                native_ports_.erase(key);
-                return nullptr;
-              }
-              LOG_ERROR("Error OnCancel: %s", ret.value().message().c_str());
-              return nullptr;
-            });
-
-    event_channel->SetStreamHandler(std::move(event_channel_handler));
+    event_channel->SetStreamHandler(
+        std::make_unique<LocalPortStreamHandler>(port_name, trusted));
     event_channels_.insert(std::move(event_channel));
-    LOG_DEBUG(
-        "Successfully registered stream for local port, port_name: %s, "
-        "trusted: %s",
-        port_name.c_str(), trusted ? "yes " : "no");
     result->Success();
   }
 
@@ -208,37 +198,26 @@ class MessageportTizenPlugin : public flutter::Plugin {
 
     std::string local_port_name;
     bool local_port_trusted = false;
+    std::optional<MessagePortError> error = std::nullopt;
     if (GetValueFromArgs<std::string>(args, "localPort", local_port_name) &&
         GetValueFromArgs<bool>(args, "localPortTrusted", local_port_trusted)) {
-      LOG_DEBUG("localPort: %s, trusted: %s", local_port_name.c_str(),
-                local_port_trusted ? "yes" : "no");
-      auto key = std::make_pair(local_port_name, local_port_trusted);
-      if (native_ports_.find(key) == native_ports_.end()) {
-        result->Error("Could not send message",
-                      "Local port is not registered.");
-        return;
-      }
-
-      std::optional<MessagePortError> ret =
-          MessagePortManager::GetInstance().Send(
-              remote_app_id, port_name, message, trusted, native_ports_[key]);
-      if (ret.has_value()) {
-        result->Error("Could not send message", ret.value().message());
-      }
+      error = MessagePortManager::GetInstance().Send(
+          remote_app_id, port_name, message, trusted, local_port_name,
+          local_port_trusted);
     } else {
-      std::optional<MessagePortError> ret =
-          MessagePortManager::GetInstance().Send(remote_app_id, port_name,
-                                                 message, trusted);
-      if (ret.has_value()) {
-        result->Error("Could not send message", ret.value().message());
-      }
+      error = MessagePortManager::GetInstance().Send(remote_app_id, port_name,
+                                                     message, trusted);
+    }
+
+    if (error.has_value()) {
+      result->Error("Could not send message", error.value().message());
+      return;
     }
 
     result->Success();
   }
 
   // < channel_name, is_trusted > -> native number >
-  std::map<std::pair<std::string, bool>, int> native_ports_;
   std::set<std::unique_ptr<FlEventChannel>> event_channels_;
   flutter::PluginRegistrar *plugin_registrar_;
 };
