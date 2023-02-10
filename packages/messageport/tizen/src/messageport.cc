@@ -32,7 +32,6 @@ MessagePortManager::~MessagePortManager() {
 static bool ConvertEncodableValueToBundle(flutter::EncodableValue& value,
                                           bundle* bundle) {
   if (!bundle) {
-    LOG_ERROR("Invalid bundle handle");
     return false;
   }
   std::unique_ptr<std::vector<uint8_t>> encoded =
