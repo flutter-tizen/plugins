@@ -112,14 +112,12 @@ class MessageportTizenPlugin : public flutter::Plugin {
       return;
     }
 
-    bool port_check = false;
-    MessagePortResult native_result =
-        MessagePortManager::GetInstance().CheckRemotePort(
-            remote_app_id, port_name, trusted, &port_check);
-    if (native_result) {
-      result->Success(flutter::EncodableValue(port_check));
+    ErrorOr<bool> ret = MessagePortManager::GetInstance().CheckRemotePort(
+        remote_app_id, port_name, trusted);
+    if (ret.has_error()) {
+      result->Error("Could not create remote port", ret.error().message());
     } else {
-      result->Error("Could not create remote port", native_result.message());
+      result->Success(flutter::EncodableValue(ret.value()));
     }
   }
 
@@ -155,16 +153,14 @@ class MessageportTizenPlugin : public flutter::Plugin {
     auto event_channel_handler =
         std::make_unique<flutter::StreamHandlerFunctions<>>(
             [this, key](const flutter::EncodableValue *arguments,
-                        std::unique_ptr<flutter::EventSink<>> &&events)
+                        std::unique_ptr<FlEventSink> &&events)
                 -> std::unique_ptr<flutter::StreamHandlerError<>> {
               LOG_DEBUG("OnListen: %s", key.first.c_str());
-              int port = -1;
-
-              MessagePortResult native_result =
+              ErrorOr<int> ret =
                   MessagePortManager::GetInstance().RegisterLocalPort(
-                      key.first, std::move(events), key.second, &port);
-              if (native_result) {
-                native_ports_[key] = port;
+                      key.first, std::move(events), key.second);
+              if (!ret.has_error()) {
+                native_ports_[key] = ret.value();
               }
               return nullptr;
             },
@@ -176,14 +172,14 @@ class MessageportTizenPlugin : public flutter::Plugin {
                 return nullptr;
               }
 
-              MessagePortResult native_result =
+              std::optional<MessagePortError> ret =
                   MessagePortManager::GetInstance().UnregisterLocalPort(
                       native_ports_[key]);
-              if (native_result) {
+              if (!ret.has_value()) {
                 native_ports_.erase(key);
                 return nullptr;
               }
-              LOG_ERROR("Error OnCancel: %s", native_result.message().c_str());
+              LOG_ERROR("Error OnCancel: %s", ret.value().message().c_str());
               return nullptr;
             });
 
@@ -212,7 +208,6 @@ class MessageportTizenPlugin : public flutter::Plugin {
 
     std::string local_port_name;
     bool local_port_trusted = false;
-    MessagePortResult native_result;
     if (GetValueFromArgs<std::string>(args, "localPort", local_port_name) &&
         GetValueFromArgs<bool>(args, "localPortTrusted", local_port_trusted)) {
       LOG_DEBUG("localPort: %s, trusted: %s", local_port_name.c_str(),
@@ -224,18 +219,22 @@ class MessageportTizenPlugin : public flutter::Plugin {
         return;
       }
 
-      native_result = MessagePortManager::GetInstance().Send(
-          remote_app_id, port_name, message, trusted, native_ports_[key]);
+      std::optional<MessagePortError> ret =
+          MessagePortManager::GetInstance().Send(
+              remote_app_id, port_name, message, trusted, native_ports_[key]);
+      if (ret.has_value()) {
+        result->Error("Could not send message", ret.value().message());
+      }
     } else {
-      native_result = MessagePortManager::GetInstance().Send(
-          remote_app_id, port_name, message, trusted);
+      std::optional<MessagePortError> ret =
+          MessagePortManager::GetInstance().Send(remote_app_id, port_name,
+                                                 message, trusted);
+      if (ret.has_value()) {
+        result->Error("Could not send message", ret.value().message());
+      }
     }
 
-    if (native_result) {
-      result->Success();
-    } else {
-      result->Error("Could not send message", native_result.message());
-    }
+    result->Success();
   }
 
   // < channel_name, is_trusted > -> native number >

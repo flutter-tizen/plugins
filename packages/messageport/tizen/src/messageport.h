@@ -12,18 +12,51 @@
 #include <map>
 #include <set>
 
-typedef std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> EventSink;
+typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 
-struct MessagePortResult {
-  MessagePortResult() : error_code(MESSAGE_PORT_ERROR_NONE){};
-  MessagePortResult(int code) : error_code(code) {}
+class MessagePortError {
+ public:
+  explicit MessagePortError(int error_code) : error_code_(error_code) {}
 
-  // Returns false on error
-  operator bool() const { return MESSAGE_PORT_ERROR_NONE == error_code; }
+  const std::string& message() const {
+    return std::string(get_error_message(error_code_));
+  }
 
-  std::string message() { return get_error_message(error_code); }
+ private:
+  int error_code_;
+};
 
-  int error_code;
+template <class T>
+class ErrorOr {
+ public:
+  ErrorOr(const T& other) { new (&vlaue_or_error_) T(other); }
+
+  ErrorOr(const T&& other) { vlaue_or_error_ = std::move(other); }
+
+  ErrorOr(const MessagePortError& other) {
+    new (&vlaue_or_error_) MessagePortError(other);
+  }
+
+  ErrorOr(const MessagePortError&& other) {
+    vlaue_or_error_ = std::move(other);
+  }
+
+  bool has_error() const {
+    return std::holds_alternative<MessagePortError>(vlaue_or_error_);
+  }
+
+  const T& value() const { return std::get<T>(vlaue_or_error_); };
+
+  const MessagePortError& error() const {
+    return std::get<MessagePortError>(vlaue_or_error_);
+  };
+
+ private:
+  ErrorOr() = default;
+
+  T TakeValue() && { return std::get<T>(std::move(vlaue_or_error_)); }
+
+  std::variant<T, MessagePortError> vlaue_or_error_;
 };
 
 class MessagePortManager {
@@ -39,18 +72,24 @@ class MessagePortManager {
   MessagePortManager(MessagePortManager const&) = delete;
   MessagePortManager& operator=(MessagePortManager const&) = delete;
 
-  MessagePortResult CheckRemotePort(std::string& remote_app_id,
-                                    std::string& port_name, bool is_trusted,
-                                    bool* result);
-  MessagePortResult RegisterLocalPort(const std::string& port_name,
-                                      EventSink sink, bool is_trusted,
-                                      int* local_port);
-  MessagePortResult UnregisterLocalPort(int local_port_id);
-  MessagePortResult Send(std::string& remote_app_id, std::string& port_name,
-                         flutter::EncodableValue& message, bool is_trusted);
-  MessagePortResult Send(std::string& remote_app_id, std::string& port_name,
-                         flutter::EncodableValue& message, bool is_trusted,
-                         int local_port);
+  ErrorOr<bool> CheckRemotePort(std::string& remote_app_id,
+                                std::string& port_name, bool is_trusted);
+
+  ErrorOr<int> RegisterLocalPort(const std::string& port_name,
+                                 std::unique_ptr<FlEventSink> sink,
+                                 bool is_trusted);
+
+  std::optional<MessagePortError> UnregisterLocalPort(int local_port_id);
+
+  std::optional<MessagePortError> Send(std::string& remote_app_id,
+                                       std::string& port_name,
+                                       flutter::EncodableValue& message,
+                                       bool is_trusted);
+
+  std::optional<MessagePortError> Send(std::string& remote_app_id,
+                                       std::string& port_name,
+                                       flutter::EncodableValue& message,
+                                       bool is_trusted, int local_port);
 
  private:
   static void OnMessageReceived(int local_port_id, const char* remote_app_id,
@@ -58,10 +97,9 @@ class MessagePortManager {
                                 bool trusted_remote_port, bundle* message,
                                 void* user_data);
 
-  MessagePortResult CreateResult(int return_code);
-  MessagePortResult PrepareBundle(flutter::EncodableValue& message, bundle*& b);
+  ErrorOr<bundle*> PrepareBundle(flutter::EncodableValue& message);
 
-  std::map<int, EventSink> sinks_;
+  std::map<int, std::unique_ptr<FlEventSink>> sinks_;
   std::set<int> trusted_ports_;
 };
 
