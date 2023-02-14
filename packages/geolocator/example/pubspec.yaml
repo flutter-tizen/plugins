@@ -28,7 +28,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - res/images/baseflow_logo_def_light-02.png
-    - res/images/poweredByBaseflowLogoLight@3x.png
     - packages/baseflow_plugin_template/logo.png
     - packages/baseflow_plugin_template/poweredByBaseflow.png
+    - packages/baseflow_plugin_template/assets/logo.png
+    - packages/baseflow_plugin_template/assets/poweredByBaseflow.png
