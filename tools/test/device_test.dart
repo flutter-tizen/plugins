@@ -108,11 +108,11 @@ void main() {
       expect(error!.contains('Device was disconnected during test'), true);
     });
 
-    test('correctly parses log "All tests passed!"', () async {
+    test('correctly parses log when all tests passed', () async {
       Future<void>.delayed(
         const Duration(seconds: 1),
         () {
-          controller.add('00:00 +0: All tests passed!');
+          controller.add('🎉 10 tests passed');
           completer.complete(0);
           controller.close();
         },
@@ -124,11 +124,11 @@ void main() {
       expect(error, isNull);
     });
 
-    test('correctly parses log "Some tests failed"', () async {
+    test('correctly parses log when tests failed', () async {
       Future<void>.delayed(
         const Duration(seconds: 1),
         () {
-          controller.add('00:00 +0 -1: Some tests failed');
+          controller.add('::error::8 tests passed, 2 failed.');
           completer.complete(0);
           controller.close();
         },
