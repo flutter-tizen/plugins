@@ -27,6 +27,7 @@ plugins:
   google_sign_in: []
   image_picker: []
   firebase_core: []
+  firebase_auth: []
   tizen_log: []
   tizen_notification: []
   wearable_rotary: []

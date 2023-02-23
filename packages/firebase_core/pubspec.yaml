@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   firebase_core_dart: ^1.0.1
-  firebase_core_platform_interface: ^4.5.2
+  firebase_core_platform_interface: 4.5.1
   flutter:
     sdk: flutter
 

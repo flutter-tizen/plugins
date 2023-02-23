@@ -1,0 +1,36 @@
+name: firebase_auth_tizen_example
+description: Firebase Auth for Tizen example.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  crypto: ^3.0.1
+  desktop_webview_auth: ^0.0.9
+  firebase_auth: ^3.4.1
+  firebase_auth_tizen:
+    path: ..
+  firebase_core: ^1.19.1
+  firebase_core_tizen:
+    path: ../../firebase_core
+  flutter:
+    sdk: flutter
+  flutter_signin_button: ^2.0.0
+  sign_in_with_apple: ^3.3.0
+  yaru: ^0.2.0
+  webview_auth_tizen:
+    git:
+      url: https://github.com/JRazek/webview_auth_tizen
+      ref: d0e2450f5a6b421eaa3567449db04024e7817db8
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

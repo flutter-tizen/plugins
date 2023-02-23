@@ -1,0 +1,32 @@
+name: firebase_auth_tizen
+description: Firebase Auth for Tizen
+version: 0.1.0
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/firebase_auth
+
+environment:
+  sdk: '>=2.18.4 <3.0.0'
+  flutter: ">=2.5.0"
+
+dependencies:
+  firebase_auth: ^3.6.0
+  firebase_auth_dart: ^1.0.1
+  firebase_auth_platform_interface: ^6.5.1
+  firebase_core: ^1.20.0
+  firebase_core_dart: ^1.0.1
+  flutter:
+    sdk: flutter
+  meta: ^1.8.0
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        dartPluginClass: FirebaseAuthDesktop
+
+false_secrets:
+  - /example/lib/main.dart
+  - /example/lib/auth_service.dart
