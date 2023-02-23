@@ -1,0 +1,28 @@
+name: firebase_functions_tizen
+description: Firebase Functions for Tizen
+version: 0.1.0
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/firebase_functions
+
+environment:
+  sdk: '>=2.18.0 <3.0.0'
+  flutter: ">=2.5.0"
+
+dependencies:
+  cloud_functions: ^3.3.1
+  cloud_functions_platform_interface: ^5.1.10
+  firebase_core: ^1.19.1
+  firebase_core_dart: ^1.0.1
+  firebase_functions_dart: ^0.1.1+2
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        dartPluginClass: FirebaseFunctionsDesktop
+
+false_secrets:
+  - /example/lib/main.dart

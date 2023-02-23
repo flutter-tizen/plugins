@@ -20,6 +20,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**connectivity_plus_tizen**](packages/connectivity_plus) | [connectivity_plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/connectivity_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/connectivity_plus_tizen.svg)](https://pub.dev/packages/connectivity_plus_tizen) | No |
 | [**device_info_plus_tizen**](packages/device_info_plus) | [device_info_plus](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/device_info_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/device_info_plus_tizen.svg)](https://pub.dev/packages/device_info_plus_tizen) | No |
 | [**firebase_core_tizen**](packages/firebase_core) | [firebase_core](https://github.com/firebase/flutterfire/tree/master/packages/firebase_core) | [![pub package](https://img.shields.io/pub/v/firebase_core_tizen.svg)](https://pub.dev/packages/firebase_core_tizen) | No |
+| [**firebase_functions_tizen**](packages/firebase_functions) | [firebase_functions](https://github.com/firebase/flutterfire/tree/master/packages/cloud_functions) | [![pub package](https://img.shields.io/pub/v/firebase_functions_tizen.svg)](https://pub.dev/packages/firebase_functions_tizen) | No |
 | [**flutter_app_badger_tizen**](packages/flutter_app_badger) | [flutter_app_badger](https://github.com/g123k/flutter_app_badger) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_app_badger_tizen.svg)](https://pub.dev/packages/flutter_app_badger_tizen) | No |
 | [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | [flutter_secure_storage](https://github.com/mogol/flutter_secure_storage) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_secure_storage_tizen.svg)](https://pub.dev/packages/flutter_secure_storage_tizen) | No |
 | [**flutter_tts_tizen**](packages/flutter_tts) | [flutter_tts](https://github.com/dlutton/flutter_tts) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen) | No |
@@ -62,6 +63,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**connectivity_plus_tizen**](packages/connectivity_plus) | 4.0 | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
 | [**device_info_plus_tizen**](packages/device_info_plus) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**firebase_core**](packages/firebase_core) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**firebase_functions**](packages/firebase_functions) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_app_badger_tizen**](packages/flutter_app_badger) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | API not supported |
 | [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_tts_tizen**](packages/flutter_tts) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
