@@ -12,7 +12,7 @@ class TizenWebViewCookieManager extends PlatformWebViewCookieManager {
   /// Creates a new [TizenWebViewCookieManager].
   TizenWebViewCookieManager(super.params)
       : _cookieManagerChannel =
-            const MethodChannel('plugins.flutter.io/cookie_manager'),
+            const MethodChannel('plugins.flutter.io/tizen_cookie_manager'),
         super.implementation();
 
   final MethodChannel _cookieManagerChannel;
@@ -29,7 +29,9 @@ class TizenWebViewCookieManager extends PlatformWebViewCookieManager {
       throw ArgumentError(
           'The path property for the provided cookie was not given a legal value.');
     }
-    return await _cookieManagerChannel.invokeMethod<void>('setCookie');
+    throw UnimplementedError(
+        'This version of `TizenWebViewCookieManager` currently has no '
+        'implementation for setCookie method.');
   }
 
   bool _isValidPath(String path) {

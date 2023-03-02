@@ -2,6 +2,7 @@
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -15,7 +16,7 @@ class TizenWebViewController extends PlatformWebViewController {
   /// Constructs a [TizenWebViewController].
   TizenWebViewController(super.params)
       : _controllerChannel =
-            const MethodChannel('plugins.flutter.io/webview_controller'),
+            const MethodChannel('plugins.flutter.io/tizen_webview_controller'),
         super.implementation() {
     _controllerChannel.setMethodCallHandler(_onMethodCall);
   }
@@ -83,31 +84,13 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> loadFile(String absoluteFilePath) async {
     assert(absoluteFilePath != null);
-
-    try {
-      _controllerChannel.invokeMethod<void>('loadFile', absoluteFilePath);
-    } on PlatformException catch (ex) {
-      if (ex.code == 'loadFile_failed') {
-        throw ArgumentError(ex.message);
-      }
-
-      rethrow;
-    }
+    _controllerChannel.invokeMethod<void>('loadFile', absoluteFilePath);
   }
 
   @override
   Future<void> loadFlutterAsset(String key) async {
     assert(key.isNotEmpty);
-
-    try {
-      _controllerChannel.invokeMethod<void>('loadFlutterAsset', key);
-    } on PlatformException catch (ex) {
-      if (ex.code == 'loadFlutterAsset_invalidKey') {
-        throw ArgumentError(ex.message);
-      }
-
-      rethrow;
-    }
+    _controllerChannel.invokeMethod<void>('loadFlutterAsset', key);
   }
 
   @override
@@ -410,7 +393,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
   /// Creates a new [TizenNavigationDelegate].
   TizenNavigationDelegate(super.params)
       : _navigationDelegateChannel = const MethodChannel(
-            'plugins.flutter.io/webview_navigation_delegate'),
+            'plugins.flutter.io/tizen_webview_navigation_delegate'),
         super.implementation() {
     _navigationDelegateChannel.setMethodCallHandler(_onMethodCall);
   }

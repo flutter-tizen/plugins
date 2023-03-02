@@ -132,7 +132,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   controller_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(),
-      "plugins.flutter.io/webview_controller",
+      "plugins.flutter.io/tizen_webview_controller",
       &flutter::StandardMethodCodec::GetInstance());
 
   controller_channel_->SetMethodCallHandler(
@@ -142,11 +142,12 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   navigation_delegate_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(),
-      "plugins.flutter.io/webview_navigation_delegate",
+      "plugins.flutter.io/tizen_webview_navigation_delegate",
       &flutter::StandardMethodCodec::GetInstance());
 
   auto cookie_channel = std::make_unique<FlMethodChannel>(
-      GetPluginRegistrar()->messenger(), "plugins.flutter.io/cookie_manager",
+      GetPluginRegistrar()->messenger(),
+      "plugins.flutter.io/tizen_cookie_manager",
       &flutter::StandardMethodCodec::GetInstance());
   cookie_channel->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
@@ -478,8 +479,6 @@ void WebView::HandleControllerMethodCall(
           *color & 0xff, *color >> 24 & 0xff);
       result->Success();
     }
-  } else if (method_name == "setCookie") {
-    result->NotImplemented();
   } else if (method_name == "userAgent") {
     const auto* userAgent = std::get_if<std::string>(arguments);
     if (userAgent) {
