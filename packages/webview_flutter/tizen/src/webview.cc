@@ -163,7 +163,6 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
  * message over a method channel to the Dart code.
  */
 void WebView::RegisterJavaScriptChannelName(const std::string& name) {
-  LOG_DEBUG("Register a JavaScript channel: %s", name.c_str());
   ewk_view_javascript_message_handler_add(
       webview_instance_, &WebView::OnJavaScriptMessage, name.c_str());
 }
@@ -339,7 +338,6 @@ void WebView::HandleControllerMethodCall(
 
   const std::string& method_name = method_call.method_name();
   const flutter::EncodableValue* arguments = method_call.arguments();
-
   // Settings
   if (method_name == "javaScriptMode") {
     const auto* mode = std::get_if<int32_t>(arguments);
@@ -391,7 +389,7 @@ void WebView::HandleControllerMethodCall(
     } else {
       result->Error("Invalid argument", "The argument must be a string.");
     }
-  } else if (method_name == "addJavascriptChannel") {
+  } else if (method_name == "addJavaScriptChannel") {
     const auto* channel = std::get_if<std::string>(arguments);
     if (channel) {
       RegisterJavaScriptChannelName(*channel);
@@ -671,7 +669,7 @@ void WebView::OnJavaScriptMessage(Evas_Object* obj,
            flutter::EncodableValue(message_body)},
       };
       webview->controller_channel_->InvokeMethod(
-          "javascriptChannelMessage",
+          "javaScriptChannelMessage",
           std::make_unique<flutter::EncodableValue>(args));
     }
   }
