@@ -534,7 +534,7 @@ class GoogleMapsController {
 
   Future<String> _callMethod(
       WebViewController mapView, String method, List<Object?> args) async {
-    return await mapView.runJavascriptReturningResult(
+    return mapView.runJavascriptReturningResult(
         'JSON.stringify(map.$method.apply(map, $args))');
   }
 
@@ -651,7 +651,7 @@ class GoogleMapsController {
       JSON.stringify(getPixelToLatLng());
     ''';
 
-    return await (await controller).runJavascriptReturningResult(command);
+    return (await controller).runJavascriptReturningResult(command);
   }
 
   Future<String> _latLngToPoint(LatLng latLng) async {
@@ -671,12 +671,12 @@ class GoogleMapsController {
       JSON.stringify(getLatLngToPixel());
     ''';
 
-    return await (await controller).runJavascriptReturningResult(command);
+    return (await controller).runJavascriptReturningResult(command);
   }
 
   /// Returns the zoom level of the current viewport.
   Future<double> getZoomLevel() async {
-    return await _getZoom(await controller);
+    return _getZoom(await controller);
   }
 
   // Geometry manipulation
