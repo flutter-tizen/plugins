@@ -25,7 +25,7 @@ To register callback to be called when message arrives to the local port, use `L
 
 ```dart
 void onMessage(Object message, [RemotePort remotePort]) {
-  print('Message received: $message');
+  // Handle the received message.
 }
 ...
 localPort.register(onMessage);
@@ -53,11 +53,7 @@ To send message to remote applcation, use `RemotePort.send()` method.
 
 ```dart
 final message = {'a': 1, 'b': 2, 'c': 3};
-try{
-  await remotePort.send(message);
-} catch (error) {
-  print('Could not send message: $error');
-}
+await remotePort.send(message);
 ```
 
 ### Send message with local port
@@ -66,11 +62,7 @@ To send message with local port information, use `RemotePort.send()` method. Loc
 
 ```dart
 final message = 'This is a string message';
-try{
-  await remotePort.sendWithLocalPort(message, localPort);
-} catch (error) {
-  print('Could not send message: $error');
-}
+await remotePort.sendWithLocalPort(message, localPort);
 ```
 
 ### Supported data types
