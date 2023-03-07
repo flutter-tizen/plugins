@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/flutter_secure_storage_tizen.svg)](https://pub.dev/packages/flutter_secure_storage_tizen)
 
-The Tizen implementation of [`flutter_secure_storage`](https://github.com/mogol/flutter_secure_storage).
+The Tizen implementation of [`flutter_secure_storage`](https://pub.dev/packages/flutter_secure_storage).
 
 ## Getting Started
 

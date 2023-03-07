@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/wakelock_tizen.svg)](https://pub.dev/packages/wakelock_tizen)
 
-The Tizen implementation of [`wakelock`](https://github.com/creativecreatorormaybenot/wakelock).
+The Tizen implementation of [`wakelock`](https://pub.dev/packages/wakelock).
 
 ## Usage
 

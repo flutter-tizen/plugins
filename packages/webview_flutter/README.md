@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen)
 
-The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/main/packages/webview_flutter) for Tizen TV devices.
+The Tizen implementation of [`webview_flutter`](https://pub.dev/packages/webview_flutter) for Tizen TV devices.
 
 The WebView widget is backed by the EFL WebKit (EWK) on Tizen.
 
