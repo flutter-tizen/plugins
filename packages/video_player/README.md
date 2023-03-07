@@ -2,7 +2,11 @@
 
 [![pub package](https://img.shields.io/pub/v/video_player_tizen.svg)](https://pub.dev/packages/video_player_tizen)
 
-The Tizen implementation of [`video_player`](https://github.com/flutter/plugins/tree/main/packages/video_player).
+The Tizen implementation of [`video_player`](https://pub.dev/packages/video_player) based on the Tizen [Media Player](https://docs.tizen.org/application/native/api/iot-headed/latest/group__CAPI__MEDIA__PLAYER__MODULE.html) API.
+
+## Supported devices
+
+This plugin is **NOT** supported on TV emulators. This plugin is supported on Galaxy Watch devices and Smart TVs running Tizen 4.0 or above.
 
 ## Required privileges
 
@@ -29,7 +33,7 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 ```yaml
 dependencies:
   video_player: ^2.4.2
-  video_player_tizen: ^2.4.4
+  video_player_tizen: ^2.4.5
 ```
 
 Then you can import `video_player` in your Dart code:
