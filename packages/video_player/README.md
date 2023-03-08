@@ -8,24 +8,6 @@ The Tizen implementation of [`video_player`](https://pub.dev/packages/video_play
 
 This plugin is **NOT** supported on TV emulators. This plugin is supported on Galaxy Watch devices and Smart TVs running Tizen 4.0 or above.
 
-## Required privileges
-
-To use this plugin in a Tizen application, you may need to declare the following privileges in your `tizen-manifest.xml` file.
-
-```xml
-<privileges>
-  <privilege>http://tizen.org/privilege/mediastorage</privilege>
-  <privilege>http://tizen.org/privilege/externalstorage</privilege>
-  <privilege>http://tizen.org/privilege/internet</privilege>
-</privileges>
-```
-
-- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) is required to play video files located in the internal storage.
-- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) is required to play video files located in the external storage.
-- The internet privilege (`http://tizen.org/privilege/internet`) is required to play any URLs from network.
-
-For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
-
 ## Usage
 
 This package is not an _endorsed_ implementation of `video_player`. Therefore, you have to include `video_player_tizen` alongside `video_player` as dependencies in your `pubspec.yaml` file.
@@ -43,6 +25,24 @@ import 'package:video_player/video_player.dart';
 ```
 
 For detailed usage, see https://pub.dev/packages/video_player#example.
+
+## Required privileges
+
+To use this plugin in a Tizen application, you may need to declare the following privileges in your `tizen-manifest.xml` file.
+
+```xml
+<privileges>
+  <privilege>http://tizen.org/privilege/mediastorage</privilege>
+  <privilege>http://tizen.org/privilege/externalstorage</privilege>
+  <privilege>http://tizen.org/privilege/internet</privilege>
+</privileges>
+```
+
+- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) is required to play video files located in the internal storage.
+- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) is required to play video files located in the external storage.
+- The internet privilege (`http://tizen.org/privilege/internet`) is required to play any URLs from network.
+
+For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
 
 ## Limitations
 
