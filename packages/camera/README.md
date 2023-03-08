@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/camera_tizen.svg)](https://pub.dev/packages/camera_tizen)
 
-The Tizen implementation of [`camera`](https://github.com/flutter/plugins/tree/main/packages/camera).
+The Tizen implementation of [`camera`](https://pub.dev/packages/camera).
 
 ## Supported devices
 

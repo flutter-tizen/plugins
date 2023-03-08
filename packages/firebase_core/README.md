@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/firebase_core_tizen.svg)](https://pub.dev/packages/firebase_core_tizen)
 
-The Tizen implementation of [`firebase_core`](https://github.com/firebase/flutterfire/tree/master/packages/firebase_core).
+The Tizen implementation of [`firebase_core`](https://pub.dev/packages/firebase_core).
 
 ## Usage
 
@@ -14,8 +14,14 @@ dependencies:
   firebase_core_tizen: ^0.1.1
 ```
 
+Then you can import `firebase_core` in your Dart code:
+
+```dart
+import 'package:firebase_core/firebase_core.dart';
+```
+
 For detailed usage, see https://github.com/invertase/flutterfire_desktop#flutterfire-desktop.
 
 ## Tizen integration
 
-The implementation of `firebase_core_tizen` is based on [FlutterFire Desktop Core](https://github.com/invertase/flutterfire_desktop/tree/main/packages/firebase_core/firebase_core_desktop). FlutterFire Desktop provides Dart implementation of the Firebase modules.
+The implementation of `firebase_core_tizen` is based on [FlutterFire Desktop Core](https://pub.dev/packages/firebase_core_desktop). FlutterFire Desktop provides Dart implementations of the Firebase modules.

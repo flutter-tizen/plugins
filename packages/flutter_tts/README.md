@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen)
 
-The Tizen implementation of [`flutter_tts`](https://github.com/dlutton/flutter_tts).
+The Tizen implementation of [`flutter_tts`](https://pub.dev/packages/flutter_tts).
 
 ## Getting Started
 
