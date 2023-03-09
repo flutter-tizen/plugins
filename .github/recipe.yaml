@@ -18,6 +18,7 @@ plugins:
   tizen_app_manager: ["wearable-5.5", "tv-6.5"]
   tizen_audio_manager: ["wearable-5.5", "tv-6.5"]
   tizen_bundle: ["wearable-5.5", "tv-6.5"]
+  tizen_cion: ["tv-6.5"]
   tizen_package_manager: ["wearable-5.5", "tv-6.5"]
   tizen_rpc_port: ["tv-6.5"]
   url_launcher: ["wearable-5.5", "tv-6.5"]

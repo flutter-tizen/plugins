@@ -41,6 +41,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_app_manager**](packages/tizen_app_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_app_manager.svg)](https://pub.dev/packages/tizen_app_manager) | N/A |
 | [**tizen_audio_manager**](packages/tizen_audio_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_audio_manager.svg)](https://pub.dev/packages/tizen_audio_manager) | N/A |
 | [**tizen_bundle**](packages/tizen_bundle) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_bundle.svg)](https://pub.dev/packages/tizen_bundle) | N/A |
+| [**tizen_cion**](packages/tizen_cion) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_cion.svg)](https://pub.dev/packages/tizen_cion) | N/A |
 | [**tizen_log**](packages/tizen_log) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_log.svg)](https://pub.dev/packages/tizen_log) | N/A |
 | [**tizen_notification**](packages/tizen_notification) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_notification.svg)](https://pub.dev/packages/tizen_notification) | N/A |
 | [**tizen_package_manager**](packages/tizen_package_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_package_manager.svg)](https://pub.dev/packages/tizen_package_manager) | N/A |
@@ -83,6 +84,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_app_manager**](packages/tizen_app_manager) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_audio_manager**](packages/tizen_audio_manager) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_bundle**](packages/tizen_bundle) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_cion**](packages/tizen_cion) | 6.5 | ✔️ | ❌ | ✔️ | ❌ | Not support for emulator |
 | [**tizen_log**](packages/tizen_log) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**tizen_notification**](packages/tizen_notification) | 4.0 | ❌ | ✔️ | ✔️ | ✔️ | API not supported |
 | [**tizen_package_manager**](packages/tizen_package_manager) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
