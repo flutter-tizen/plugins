@@ -102,9 +102,8 @@ class Message extends ProxyBase {
     final Parcel parcel = Parcel.fromPort(port);
     final int cmd = parcel.readInt32();
     if (cmd != _MethodId.result.id) {
-      print('Received parcel is invalid. $cmd');
+      throw Exception('The received parcel is invalid ($cmd).');
     }
-
     return parcel;
   }
 

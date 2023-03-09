@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:tizen_interop/6.5/tizen.dart';
 
@@ -101,7 +102,7 @@ abstract class StubBase {
         final Parcel parcel = Parcel.fromRaw(rawData);
         await onReceivedEvent(sender, instance, parcel);
       } else {
-        print('Unknown event: $event');
+        debugPrint('Unknown event: $event');
       }
     }, onError: onError);
   }

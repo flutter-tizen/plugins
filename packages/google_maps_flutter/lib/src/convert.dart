@@ -171,7 +171,7 @@ LatLngBounds _convertToBounds(String value) {
           northeast: LatLng(bound['north'] as double, bound['east'] as double));
     }
   } catch (e) {
-    print('Javascript Error: $e');
+    debugPrint('Javascript Error: $e');
   }
   return util.nullLatLngBounds;
 }
@@ -184,7 +184,7 @@ LatLng _convertToLatLng(String value) {
       return LatLng((latlng['lat'] as num) + 0.0, (latlng['lng'] as num) + 0.0);
     }
   } catch (e) {
-    print('Javascript Error: $e');
+    debugPrint('Javascript Error: $e');
   }
   return util.nullLatLng;
 }
@@ -205,7 +205,7 @@ ScreenCoordinate _convertToPoint(String value) {
       return ScreenCoordinate(x: x, y: y);
     }
   } catch (e) {
-    print('Javascript Error: $e');
+    debugPrint('Javascript Error: $e');
   }
   return util.nullScreenCoordinate;
 }

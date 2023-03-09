@@ -76,9 +76,7 @@ void main() {
     final LocalPort localPort = await LocalPort.create(kTestPort);
     final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
     localPort.register((dynamic message, [RemotePort? remotePort]) {
-      if (completer.isCompleted) {
-        print('WARNING: additional message received: $message');
-      } else {
+      if (!completer.isCompleted) {
         completer.complete(<dynamic>[message, remotePort]);
       }
     });

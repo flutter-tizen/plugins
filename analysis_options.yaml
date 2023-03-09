@@ -1,4 +1,5 @@
-# This file is a copy of analysis_options.yaml from flutter/packages repo.
+# This file is a copy of analysis_options.yaml from flutter/packages repo
+# as of 2022-12-15.
 
 analyzer:
   language:
