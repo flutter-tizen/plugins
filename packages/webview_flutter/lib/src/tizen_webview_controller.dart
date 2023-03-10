@@ -122,8 +122,7 @@ class TizenWebViewController extends PlatformWebViewController {
   Future<void> scrollBy(int x, int y) => _webview.scrollBy(x, y);
 
   @override
-  Future<Offset> getScrollPosition() =>
-      _webview.getScrollPosition().then((Offset? result) => result!);
+  Future<Offset> getScrollPosition() => _webview.getScrollPosition();
 
   @override
   Future<void> setBackgroundColor(Color color) =>
@@ -146,9 +145,8 @@ class TizenWebViewController extends PlatformWebViewController {
       _webview.runJavaScript(javaScript);
 
   @override
-  Future<Object> runJavaScriptReturningResult(String javaScript) => _webview
-      .runJavaScriptReturningResult(javaScript)
-      .then((Object? result) => result!);
+  Future<Object> runJavaScriptReturningResult(String javaScript) =>
+      _webview.runJavaScriptReturningResult(javaScript);
 
   @override
   Future<void> setUserAgent(String? userAgent) =>
