@@ -106,7 +106,7 @@ class NotifyCallback extends _Delegate {
 
 typedef ServiceBuilder = ServiceBase Function(String sender, String instance);
 
-typedef _MehodHandler = Future<void> Function(ServiceBase, Port, Parcel);
+typedef _MethodHandler = Future<void> Function(ServiceBase, Port, Parcel);
 
 class Message extends StubBase {
   Message({required ServiceBuilder serviceBuilder})
@@ -118,7 +118,7 @@ class Message extends StubBase {
   }
 
   final List<ServiceBase> services = <ServiceBase>[];
-  final Map<int, _MehodHandler> _methodHandlers = <int, _MehodHandler>{};
+  final Map<int, _MethodHandler> _methodHandlers = <int, _MethodHandler>{};
   final ServiceBuilder _serviceBuilder;
 
   @override
