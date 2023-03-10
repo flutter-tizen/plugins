@@ -12,11 +12,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-// #docregion platform_imports
-// Import for Tizen features.
-// ignore: unused_import
-import 'package:webview_flutter_tizen/webview_flutter_tizen.dart';
-// #enddocregion platform_imports
 
 void main() => runApp(const MaterialApp(home: WebViewExample()));
 
@@ -83,21 +78,13 @@ class WebViewExample extends StatefulWidget {
 }
 
 class _WebViewExampleState extends State<WebViewExample> {
-  late final WebViewController _controller;
+  final WebViewController _controller = WebViewController();
 
   @override
   void initState() {
     super.initState();
 
-    // #docregion platform_features
-    late final PlatformWebViewControllerCreationParams params;
-    params = const PlatformWebViewControllerCreationParams();
-
-    final WebViewController controller =
-        WebViewController.fromPlatformCreationParams(params);
-    // #enddocregion platform_features
-
-    controller
+    _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
       ..setNavigationDelegate(
@@ -139,8 +126,6 @@ Page resource error:
         },
       )
       ..loadRequest(Uri.parse('https://flutter.dev'));
-
-    _controller = controller;
   }
 
   @override
@@ -350,7 +335,7 @@ class SampleMenu extends StatelessWidget {
 
   Future<void> _onClearCache(BuildContext context) async {
     await webViewController.clearCache();
-    // This is unimplemented in webView_flutter_tizen.
+    // This is unimplemented in webview_flutter_tizen.
     // await webViewController.clearLocalStorage();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

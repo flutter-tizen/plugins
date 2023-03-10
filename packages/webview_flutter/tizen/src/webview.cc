@@ -25,6 +25,9 @@ typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
 
 constexpr size_t kBufferPoolSize = 5;
 constexpr char kEwkInstance[] = "ewk_instance";
+constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
+constexpr char kTizenNavigationDelegateChannelName[] =
+    "plugins.flutter.io/tizen_webview_navigation_delegate_";
 
 class NavigationRequestResult : public FlMethodResult {
  public:
@@ -130,19 +133,17 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   InitWebView();
 
-  controller_channel_ = std::make_unique<FlMethodChannel>(
-      GetPluginRegistrar()->messenger(),
-      "plugins.flutter.io/tizen_webview_controller",
+  tizen_webview_channel_ = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(), GetTizenWebViewChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
 
-  controller_channel_->SetMethodCallHandler(
+  tizen_webview_channel_->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
-        webview->HandleControllerMethodCall(call, std::move(result));
+        webview->HandleTizenWebViewMethodCall(call, std::move(result));
       });
 
   navigation_delegate_channel_ = std::make_unique<FlMethodChannel>(
-      GetPluginRegistrar()->messenger(),
-      "plugins.flutter.io/tizen_webview_navigation_delegate",
+      GetPluginRegistrar()->messenger(), GetNavigationDelegateChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
 
   auto cookie_channel = std::make_unique<FlMethodChannel>(
@@ -168,6 +169,15 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
 }
 
 WebView::~WebView() { Dispose(); }
+
+std::string WebView::GetTizenWebViewChannelName() {
+  return std::string(kTizenWebViewChannelName) + std::to_string(GetViewId());
+}
+
+std::string WebView::GetNavigationDelegateChannelName() {
+  return std::string(kTizenNavigationDelegateChannelName) +
+         std::to_string(GetViewId());
+}
 
 void WebView::Dispose() {
   texture_registrar_->UnregisterTexture(GetTextureId());
@@ -328,7 +338,7 @@ void WebView::InitWebView() {
   evas_object_data_set(webview_instance_, kEwkInstance, this);
 }
 
-void WebView::HandleControllerMethodCall(
+void WebView::HandleTizenWebViewMethodCall(
     const FlMethodCall& method_call, std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
     result->Error("Invalid operation",
@@ -338,7 +348,7 @@ void WebView::HandleControllerMethodCall(
 
   const std::string& method_name = method_call.method_name();
   const flutter::EncodableValue* arguments = method_call.arguments();
-  // Settings
+
   if (method_name == "javaScriptMode") {
     const auto* mode = std::get_if<int32_t>(arguments);
     if (mode) {
@@ -347,7 +357,7 @@ void WebView::HandleControllerMethodCall(
           ewk_view_settings_get(webview_instance_), enabled);
     }
     result->Success();
-  } else if (method_name == "setNavigationDelegate") {
+  } else if (method_name == "hasNavigationDelegate") {
     const auto* has_navigation_delegate = std::get_if<bool>(arguments);
     if (has_navigation_delegate) {
       has_navigation_delegate_ = *has_navigation_delegate;
@@ -426,7 +436,7 @@ void WebView::HandleControllerMethodCall(
     int32_t x = 0, y = 0;
     // TODO(jsuya) : ewk_view_scroll_pos_get() returns the position set in
     // ewk_view_scroll_set(). Therefore, it currently does not work as intended.
-    bool check = ewk_view_scroll_pos_get(webview_instance_, &x, &y);
+    ewk_view_scroll_pos_get(webview_instance_, &x, &y);
     flutter::EncodableMap args = {
         {flutter::EncodableValue("x"),
          flutter::EncodableValue(static_cast<double>(x))},
@@ -658,7 +668,7 @@ void WebView::OnJavaScriptMessage(Evas_Object* obj,
   if (obj) {
     WebView* webview =
         static_cast<WebView*>(evas_object_data_get(obj, kEwkInstance));
-    if (webview->controller_channel_) {
+    if (webview->tizen_webview_channel_) {
       std::string channel_name(message.name);
       std::string message_body(static_cast<char*>(message.body));
 
@@ -668,7 +678,7 @@ void WebView::OnJavaScriptMessage(Evas_Object* obj,
           {flutter::EncodableValue("message"),
            flutter::EncodableValue(message_body)},
       };
-      webview->controller_channel_->InvokeMethod(
+      webview->tizen_webview_channel_->InvokeMethod(
           "javaScriptChannelMessage",
           std::make_unique<flutter::EncodableValue>(args));
     }

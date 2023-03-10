@@ -15,12 +15,10 @@ flutter:
         pluginClass: WebviewFlutterTizenPlugin
         fileName: webview_flutter_tizen_plugin.h
         dartPluginClass: TizenWebViewPlatform
-        package: io.flutter.plugins.webviewflutter
 
 dependencies:
   flutter:
     sdk: flutter
   flutter_tizen: ^0.2.0
-  tizen_log: ^0.1.2
   webview_flutter: ^4.0.2
   webview_flutter_platform_interface: ^2.0.1

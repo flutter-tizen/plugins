@@ -10,12 +10,10 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 /// Handles all cookie operations for the Tizen platform.
 class TizenWebViewCookieManager extends PlatformWebViewCookieManager {
   /// Creates a new [TizenWebViewCookieManager].
-  TizenWebViewCookieManager(super.params)
-      : _cookieManagerChannel =
-            const MethodChannel('plugins.flutter.io/tizen_cookie_manager'),
-        super.implementation();
+  TizenWebViewCookieManager(super.params) : super.implementation();
 
-  final MethodChannel _cookieManagerChannel;
+  static const MethodChannel _cookieManagerChannel =
+      MethodChannel('plugins.flutter.io/tizen_cookie_manager');
 
   @override
   Future<bool> clearCookies() async {

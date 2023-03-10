@@ -9,45 +9,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tizen/widgets.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
-import 'tizen_webview.dart' as tizen_webview;
+
+import 'tizen_webview.dart';
+
+/// The channel name of [TizenNavigationDelegate].
+const String kTizenNavigationDelegateChannelName =
+    'plugins.flutter.io/tizen_webview_navigation_delegate_';
 
 /// An implementation of [PlatformWebViewController] using Flutter for Web API.
 class TizenWebViewController extends PlatformWebViewController {
   /// Constructs a [TizenWebViewController].
   TizenWebViewController(super.params)
-      : _webview = tizen_webview.TizenWebview(),
+      : _webview = TizenWebView(),
         super.implementation();
 
-  final tizen_webview.TizenWebview _webview;
+  final TizenWebView _webview;
+  late TizenNavigationDelegate _tizenNavigationDelegate;
 
   /// Called when [TizenView] is created.
-  void onCreate() {
-    _webview.onCreate();
+  void onCreate(int viewId) {
+    if (_webview.hasNavigationDelegate) {
+      _tizenNavigationDelegate.onCreate(viewId);
+    }
+    _webview.onCreate(viewId);
   }
 
   @override
-  Future<void> loadFile(String absoluteFilePath) async {
+  Future<void> loadFile(String absoluteFilePath) {
     assert(absoluteFilePath != null);
-    _webview.loadFile(absoluteFilePath);
+    return _webview.loadFile(absoluteFilePath);
   }
 
   @override
-  Future<void> loadFlutterAsset(String key) async {
+  Future<void> loadFlutterAsset(String key) {
     assert(key.isNotEmpty);
-    _webview.loadFlutterAsset(key);
+    return _webview.loadFlutterAsset(key);
   }
 
   @override
   Future<void> loadHtmlString(
     String html, {
     String? baseUrl,
-  }) async {
+  }) {
     assert(html != null);
-    _webview.loadHtmlString(html, baseUrl: baseUrl);
+    return _webview.loadHtmlString(html, baseUrl: baseUrl);
   }
 
   @override
-  Future<void> loadRequest(LoadRequestParams params) async {
+  Future<void> loadRequest(LoadRequestParams params) {
     if (!params.uri.hasScheme) {
       throw ArgumentError(
           'LoadRequestParams#uri is required to have a scheme.');
@@ -55,8 +64,7 @@ class TizenWebViewController extends PlatformWebViewController {
 
     switch (params.method) {
       case LoadRequestMethod.get:
-        _webview.loadRequest(params.uri.toString());
-        return;
+        return _webview.loadRequest(params.uri.toString());
       case LoadRequestMethod.post:
         break;
     }
@@ -76,12 +84,10 @@ class TizenWebViewController extends PlatformWebViewController {
   Future<String?> currentUrl() => _webview.currentUrl();
 
   @override
-  Future<bool> canGoBack() =>
-      _webview.canGoBack().then((bool? result) => result!);
+  Future<bool> canGoBack() => _webview.canGoBack();
 
   @override
-  Future<bool> canGoForward() =>
-      _webview.canGoForward().then((bool? result) => result!);
+  Future<bool> canGoForward() => _webview.canGoForward();
 
   @override
   Future<void> goBack() => _webview.goBack();
@@ -107,8 +113,7 @@ class TizenWebViewController extends PlatformWebViewController {
       _webview.setJavaScriptMode(javaScriptMode.index);
 
   @override
-  Future<String?> getTitle() =>
-      _webview.getTitle().then((String? result) => result!);
+  Future<String?> getTitle() => _webview.getTitle();
 
   @override
   Future<void> scrollTo(int x, int y) => _webview.scrollTo(x, y);
@@ -127,17 +132,14 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> setPlatformNavigationDelegate(
       covariant TizenNavigationDelegate handler) async {
-    handler.setMethodCallHandler(_webview);
-    handler.setOnLoadRequest(loadRequest);
-    _webview.setHasNavigationDelegate(true);
+    _tizenNavigationDelegate = handler;
+    _webview.hasNavigationDelegate = true;
   }
 
   @override
   Future<void> addJavaScriptChannel(
-    JavaScriptChannelParams javaScriptChannelParams,
-  ) async {
-    _webview.addJavaScriptChannel(javaScriptChannelParams);
-  }
+          JavaScriptChannelParams javaScriptChannelParams) =>
+      _webview.addJavaScriptChannel(javaScriptChannelParams);
 
   @override
   Future<void> runJavaScript(String javaScript) =>
@@ -153,9 +155,9 @@ class TizenWebViewController extends PlatformWebViewController {
       _webview.setUserAgent(userAgent);
 }
 
-/// An implementation of [PlatformWebViewWidget] with the WebKit api.
+/// An implementation of [PlatformWebViewWidget] with the Tizen WebView API.
 class TizenWebViewWidget extends PlatformWebViewWidget {
-  /// Constructs a [WebKitWebViewWidget].
+  /// Constructs a [TizenWebViewWidget].
   TizenWebViewWidget(super.params) : super.implementation();
 
   @override
@@ -163,20 +165,16 @@ class TizenWebViewWidget extends PlatformWebViewWidget {
     return TizenView(
       key: params.key,
       viewType: 'plugins.flutter.io/webview',
-      onPlatformViewCreated: (_) {
+      onPlatformViewCreated: (int id) {
         final TizenWebViewController controller =
             params.controller as TizenWebViewController;
-        controller.onCreate();
+        controller.onCreate(id);
       },
       layoutDirection: params.layoutDirection,
       gestureRecognizers: params.gestureRecognizers,
     );
   }
 }
-
-/// Signature for the `loadRequest` callback responsible for loading the [url]
-/// after a navigation request has been approved.
-typedef LoadRequestCallback = Future<void> Function(LoadRequestParams params);
 
 /// Error returned in `WebView.onWebResourceError` when a web resource loading error has occurred.
 @immutable
@@ -187,69 +185,67 @@ class TizenWebResourceError extends WebResourceError {
     required super.description,
     super.isForMainFrame,
     this.failingUrl,
-  }) : super(
-          errorType: _errorCodeToErrorType(errorCode),
-        );
+  }) : super(errorType: _errorCodeToErrorType(errorCode));
 
   /// Unknown error.
-  static const int errorUnknown = 0;
+  static const int unknown = 0;
 
   /// Failed to file I/O.
-  static const int errorFailedFileIO = 3;
+  static const int failedFileIO = 3;
 
   /// Cannot connect to Network.
-  static const int errorCantConnect = 4;
+  static const int cantConnect = 4;
 
   /// Fail to look up host from DNS.
-  static const int errorCantHostLookup = 5;
+  static const int cantHostLookup = 5;
 
   /// Fail to SSL/TLS handshake.
-  static const int errorFailedSslHandshake = 6;
+  static const int failedSslHandshake = 6;
 
   /// Connection timeout.
-  static const int errorRequestTimeout = 8;
+  static const int requestTimeout = 8;
 
   /// Too many redirects.
-  static const int errorTooManyRedirect = 9;
+  static const int tooManyRedirect = 9;
 
   /// Too many requests during this load.
-  static const int errorTooManyRequests = 10;
+  static const int tooManyRequests = 10;
 
   /// Malformed url.
-  static const int errorBadUrl = 11;
+  static const int badUrl = 11;
 
   /// Unsupported scheme
-  static const int errorUnsupportedScheme = 12;
+  static const int unsupportedScheme = 12;
 
   /// User authentication failed on server.
-  static const int errorAuthentication = 13;
+  static const int authenticationFailed = 13;
 
   /// Gets the URL for which the failing resource request was made.
   final String? failingUrl;
 
   static WebResourceErrorType? _errorCodeToErrorType(int errorCode) {
     switch (errorCode) {
-      case errorUnknown:
+      case unknown:
         return WebResourceErrorType.unknown;
-      case errorFailedFileIO:
+      case failedFileIO:
         return WebResourceErrorType.file;
-      case errorCantConnect:
+      case cantConnect:
         return WebResourceErrorType.connect;
-      case errorCantHostLookup:
+      case cantHostLookup:
         return WebResourceErrorType.hostLookup;
-      case errorFailedSslHandshake:
+      case failedSslHandshake:
         return WebResourceErrorType.failedSslHandshake;
-      case errorRequestTimeout:
+      case requestTimeout:
         return WebResourceErrorType.timeout;
-      case errorTooManyRedirect:
+      case tooManyRedirect:
         return WebResourceErrorType.redirectLoop;
-      case errorTooManyRequests:
+      case tooManyRequests:
         return WebResourceErrorType.tooManyRequests;
-      case errorBadUrl:
+      case badUrl:
         return WebResourceErrorType.badUrl;
-      case errorUnsupportedScheme:
+      case unsupportedScheme:
         return WebResourceErrorType.unsupportedScheme;
-      case errorAuthentication:
+      case authenticationFailed:
         return WebResourceErrorType.authentication;
     }
 
@@ -260,40 +256,45 @@ class TizenWebResourceError extends WebResourceError {
 }
 
 /// A place to register callback methods responsible to handle navigation events
-/// triggered by the [android_webview.WebView].
+/// triggered by the [TizenWebView].
 class TizenNavigationDelegate extends PlatformNavigationDelegate {
   /// Creates a new [TizenNavigationDelegate].
   TizenNavigationDelegate(super.params) : super.implementation();
 
-  /// Set the method call handler.
-  void setMethodCallHandler(tizen_webview.TizenWebview webview) {
-    webview.setNavigationDelegateMethodCallHandler((MethodCall call) async {
-      final TizenNavigationDelegate navigationDelegate = this;
+  late final MethodChannel _navigationDelegateChannel;
+  PageEventCallback? _onPageFinished;
+  PageEventCallback? _onPageStarted;
+  ProgressCallback? _onProgress;
+  WebResourceErrorCallback? _onWebResourceError;
+  NavigationRequestCallback? _onNavigationRequest;
+
+  /// Called when [TizenView] is created.
+  void onCreate(int viewId) {
+    _navigationDelegateChannel =
+        MethodChannel(kTizenNavigationDelegateChannelName + viewId.toString());
+    _navigationDelegateChannel.setMethodCallHandler((MethodCall call) async {
       switch (call.method) {
         case 'navigationRequest':
-          return navigationDelegate._handleNavigation(
-              call.arguments['url']! as String,
+          return _handleNavigation(call.arguments['url']! as String,
               isForMainFrame: call.arguments['isForMainFrame']! as bool);
         case 'onPageFinished':
-          if (navigationDelegate._onPageFinished != null) {
-            navigationDelegate
-                ._onPageFinished!(call.arguments['url']! as String);
+          if (_onPageFinished != null) {
+            _onPageFinished!(call.arguments['url']! as String);
           }
           return null;
         case 'onProgress':
-          if (navigationDelegate._onProgress != null) {
-            navigationDelegate._onProgress!(call.arguments['progress']! as int);
+          if (_onProgress != null) {
+            _onProgress!(call.arguments['progress']! as int);
           }
           return null;
         case 'onPageStarted':
-          if (navigationDelegate._onPageStarted != null) {
-            navigationDelegate
-                ._onPageStarted!(call.arguments['url']! as String);
+          if (_onPageStarted != null) {
+            _onPageStarted!(call.arguments['url']! as String);
           }
           return null;
         case 'onWebResourceError':
-          if (navigationDelegate._onWebResourceError != null) {
-            navigationDelegate._onWebResourceError!(TizenWebResourceError._(
+          if (_onWebResourceError != null) {
+            _onWebResourceError!(TizenWebResourceError._(
               errorCode: call.arguments['errorCode']! as int,
               description: call.arguments['description']! as String,
               failingUrl: call.arguments['failingUrl']! as String,
@@ -309,22 +310,12 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
     });
   }
 
-  PageEventCallback? _onPageFinished;
-  PageEventCallback? _onPageStarted;
-  ProgressCallback? _onProgress;
-  WebResourceErrorCallback? _onWebResourceError;
-  NavigationRequestCallback? _onNavigationRequest;
-  LoadRequestCallback? _onLoadRequest;
-
-  bool _handleNavigation(String url, {required bool isForMainFrame}) {
-    final LoadRequestCallback? onLoadRequest = _onLoadRequest;
+  Future<bool> _handleNavigation(String url,
+      {required bool isForMainFrame}) async {
     final NavigationRequestCallback? onNavigationRequest = _onNavigationRequest;
 
     if (onNavigationRequest == null) {
       return true;
-    }
-    if (onLoadRequest == null) {
-      return false;
     }
 
     final FutureOr<NavigationDecision> returnValue =
@@ -337,20 +328,13 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
         returnValue == NavigationDecision.navigate) {
       return true;
     } else if (returnValue is Future<NavigationDecision>) {
-      returnValue.then((NavigationDecision shouldLoadUrl) {
+      await returnValue.then((NavigationDecision shouldLoadUrl) {
         if (shouldLoadUrl == NavigationDecision.navigate) {
           return true;
         }
       });
     }
     return false;
-  }
-
-  /// Invoked when loading the url after a navigation request is approved.
-  Future<void> setOnLoadRequest(
-    LoadRequestCallback onLoadRequest,
-  ) async {
-    _onLoadRequest = onLoadRequest;
   }
 
   @override

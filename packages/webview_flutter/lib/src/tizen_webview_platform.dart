@@ -8,7 +8,7 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 import 'tizen_webview_controller.dart';
 import 'tizen_webview_cookie_manager.dart';
 
-/// An implementation of [WebViewPlatform] using Flutter for Web API.
+/// An implementation of [WebViewPlatform] using the EFL WebKit API.
 class TizenWebViewPlatform extends WebViewPlatform {
   @override
   PlatformWebViewController createPlatformWebViewController(

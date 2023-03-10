@@ -52,7 +52,7 @@ class WebView : public PlatformView {
                                                        size_t height);
 
  private:
-  void HandleControllerMethodCall(
+  void HandleTizenWebViewMethodCall(
       const flutter::MethodCall<flutter::EncodableValue>& method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   void HandleCookieMethodCall(
@@ -60,7 +60,8 @@ class WebView : public PlatformView {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
   void RegisterJavaScriptChannelName(const std::string& name);
-  std::string GetChannelName();
+  std::string GetTizenWebViewChannelName();
+  std::string GetNavigationDelegateChannelName();
 
   void InitWebView();
 
@@ -77,17 +78,16 @@ class WebView : public PlatformView {
   static void OnJavaScriptMessage(Evas_Object* obj, Ewk_Script_Message message);
 
   Evas_Object* webview_instance_ = nullptr;
-  void* window_ = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
   double width_ = 0.0;
   double height_ = 0.0;
+  void* window_ = nullptr;
   BufferUnit* working_surface_ = nullptr;
   BufferUnit* candidate_surface_ = nullptr;
   BufferUnit* rendered_surface_ = nullptr;
   bool has_navigation_delegate_ = false;
-  bool has_progress_tracking_ = false;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
-      controller_channel_;
+      tizen_webview_channel_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
