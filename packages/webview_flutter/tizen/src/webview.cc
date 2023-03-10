@@ -389,9 +389,9 @@ void WebView::HandleTizenWebViewMethodCall(
   } else if (method_name == "currentUrl") {
     result->Success(
         flutter::EncodableValue(ewk_view_url_get(webview_instance_)));
-  } else if (method_name == "evaluateJavascript" ||
-             method_name == "runJavascriptReturningResult" ||
-             method_name == "runJavascript") {
+  } else if (method_name == "evaluateJavaScript" ||
+             method_name == "runJavaScriptReturningResult" ||
+             method_name == "runJavaScript") {
     const auto* javascript = std::get_if<std::string>(arguments);
     if (javascript) {
       ewk_view_script_execute(webview_instance_, javascript->c_str(),

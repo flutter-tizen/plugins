@@ -178,12 +178,12 @@ class TizenWebView {
 
   /// Runs the given JavaScript in the context of the current page.
   Future<void> runJavaScript(String javaScript) =>
-      _invokeChannelMethod<void>('runJavascript', javaScript);
+      _invokeChannelMethod<void>('runJavaScript', javaScript);
 
   /// Runs the given JavaScript in the context of the current page, and returns the result.
   Future<Object> runJavaScriptReturningResult(String javaScript) async {
     final String? result = await _invokeChannelMethod<String?>(
-        'runJavascriptReturningResult', javaScript);
+        'runJavaScriptReturningResult', javaScript);
     if (result == null) {
       return '';
     } else if (result == 'true') {

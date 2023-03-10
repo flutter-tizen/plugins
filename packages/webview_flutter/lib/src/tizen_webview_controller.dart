@@ -16,7 +16,7 @@ import 'tizen_webview.dart';
 const String kTizenNavigationDelegateChannelName =
     'plugins.flutter.io/tizen_webview_navigation_delegate_';
 
-/// An implementation of [PlatformWebViewController] using Flutter for Web API.
+/// An implementation of [PlatformWebViewController] the Tizen WebView API.
 class TizenWebViewController extends PlatformWebViewController {
   /// Constructs a [TizenWebViewController].
   TizenWebViewController(super.params)
@@ -308,8 +308,10 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
     });
   }
 
-  Future<bool> _handleNavigation(String url,
-      {required bool isForMainFrame}) async {
+  Future<bool> _handleNavigation(
+    String url, {
+    required bool isForMainFrame,
+  }) async {
     final NavigationRequestCallback? onNavigationRequest = _onNavigationRequest;
 
     if (onNavigationRequest == null) {
@@ -326,10 +328,11 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
         returnValue == NavigationDecision.navigate) {
       return true;
     } else if (returnValue is Future<NavigationDecision>) {
-      await returnValue.then((NavigationDecision shouldLoadUrl) {
+      return returnValue.then((NavigationDecision shouldLoadUrl) {
         if (shouldLoadUrl == NavigationDecision.navigate) {
           return true;
         }
+        return false;
       });
     }
     return false;
