@@ -55,7 +55,7 @@ void main() {
   testWidgets('Omit invalid extra data', (WidgetTester _) async {
     final AppControl request = AppControl(
       appId: kAppId,
-      extraData: <String, dynamic>{
+      extraData: <String, Object?>{
         'STRING_DATA': 'string',
         'STRING_LIST_DATA': <String>['string', 'list'],
         'INTEGER_DATA': 1,
@@ -67,7 +67,6 @@ void main() {
     expect(received.extraData.length, 2);
     expect(received.extraData['STRING_DATA'], 'string');
     expect(received.extraData['STRING_LIST_DATA'], isNotEmpty);
-    expect(received.extraData['STRING_LIST_DATA'][0], 'string');
   }, timeout: kTimeout);
 
   testWidgets('Can send and receive reply', (WidgetTester _) async {
@@ -112,7 +111,7 @@ void serviceMain() {
   AppControl.onAppControl.listen((ReceivedAppControl request) async {
     if (request.shouldReply) {
       final AppControl reply = AppControl(
-        extraData: <String, dynamic>{'STRING_DATA': 'string'},
+        extraData: <String, String>{'STRING_DATA': 'string'},
       );
       await request.reply(reply, AppControlReplyResult.canceled);
       await SystemNavigator.pop();

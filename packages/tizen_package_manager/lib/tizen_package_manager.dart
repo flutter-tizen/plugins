@@ -89,22 +89,23 @@ class PackageManager {
     if (packageId.isEmpty) {
       throw ArgumentError('Must not be empty', 'packageId');
     }
-    final Map<String, dynamic>? map = await _channel
-        .invokeMapMethod<String, dynamic>(
-            'getPackage', <String, String>{'packageId': packageId});
-    return PackageInfo.fromMap(map);
+
+    final Map<String, dynamic>? package =
+        await _channel.invokeMapMethod<String, dynamic>(
+      'getPackage',
+      <String, String>{'packageId': packageId},
+    );
+    return PackageInfo.fromMap(package!);
   }
 
   /// Retrieves the package information of all installed packages.
   static Future<List<PackageInfo>> getPackagesInfo() async {
-    final List<dynamic>? packages =
-        await _channel.invokeMethod<List<dynamic>>('getPackages');
+    final List<Map<dynamic, dynamic>>? packages =
+        await _channel.invokeListMethod<Map<dynamic, dynamic>>('getPackages');
 
     final List<PackageInfo> list = <PackageInfo>[];
-    if (packages != null) {
-      for (final dynamic package in packages) {
-        list.add(PackageInfo.fromMap(package));
-      }
+    for (final Map<dynamic, dynamic> package in packages!) {
+      list.add(PackageInfo.fromMap(package.cast<String, dynamic>()));
     }
     return list;
   }
@@ -136,22 +137,23 @@ class PackageManager {
   /// A stream of events occurring when a package is getting installed
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onInstallProgressChanged =>
-      _installEventChannel
-          .receiveBroadcastStream()
-          .map((dynamic event) => PackageEvent.fromMap(event));
+      _installEventChannel.receiveBroadcastStream().map((dynamic event) =>
+          PackageEvent.fromMap(
+              (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
 
   /// A stream of events occurring when a package is getting uninstalled
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onUninstallProgressChanged =>
-      _uninstallEventChannel
-          .receiveBroadcastStream()
-          .map((dynamic event) => PackageEvent.fromMap(event));
+      _uninstallEventChannel.receiveBroadcastStream().map((dynamic event) =>
+          PackageEvent.fromMap(
+              (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
 
   /// A stream of events occurring when a package is getting updated
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onUpdateProgressChanged => _updateEventChannel
       .receiveBroadcastStream()
-      .map((dynamic event) => PackageEvent.fromMap(event));
+      .map((dynamic event) => PackageEvent.fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
 }
 
 /// Represents information of specific package.
@@ -197,7 +199,7 @@ class PackageInfo {
   final bool isRemovable;
 
   /// Creates an instance of [PackageInfo] from the [map].
-  static PackageInfo fromMap(dynamic map) {
+  static PackageInfo fromMap(Map<String, dynamic> map) {
     return PackageInfo(
       packageId: map['packageId'] as String,
       label: map['label'] as String,
@@ -240,7 +242,7 @@ class PackageEvent {
   final int progress;
 
   /// Creates an instance of [PackageEvent] from the [map].
-  static PackageEvent fromMap(dynamic map) {
+  static PackageEvent fromMap(Map<String, dynamic> map) {
     return PackageEvent(
       packageId: map['packageId'] as String,
       packageType: PackageType.values.byName(map['type'] as String),

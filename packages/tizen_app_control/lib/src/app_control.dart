@@ -72,7 +72,7 @@ class AppControl {
     }
   }
 
-  AppControl._fromMap(dynamic map)
+  AppControl._fromMap(Map<String, dynamic> map)
       : _id = map['id'] as int,
         appId = map['appId'] as String?,
         operation = map['operation'] as String?,
@@ -80,8 +80,8 @@ class AppControl {
         mime = map['mime'] as String?,
         category = map['category'] as String?,
         launchMode = LaunchMode.values.byName(map['launchMode'] as String),
-        extraData = Map<String, dynamic>.from(
-            map['extraData'] as Map<dynamic, dynamic>) {
+        extraData = (map['extraData'] as Map<dynamic, dynamic>)
+            .cast<String, dynamic>() {
     if (!nativeAttachAppControl(_id, this)) {
       throw Exception('Could not find an instance of AppControl with ID $_id.');
     }
@@ -137,7 +137,7 @@ class AppControl {
   static final Stream<ReceivedAppControl> onAppControl = _eventChannel
       .receiveBroadcastStream()
       .map((dynamic event) => ReceivedAppControl._fromMap(
-          Map<String, dynamic>.from(event as Map<dynamic, dynamic>)));
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
 
   /// Returns a list of installed applications that can handle this request.
   Future<List<String>> getMatchedAppIds() async {
@@ -146,7 +146,7 @@ class AppControl {
     final Map<String, dynamic> args = <String, dynamic>{'id': _id};
     final dynamic response =
         await _methodChannel.invokeMethod<dynamic>('getMatchedAppIds', args);
-    return List<String>.from(response as List<dynamic>);
+    return (response as List<dynamic>).cast<String>();
   }
 
   /// Sends a launch request to an application.
@@ -177,11 +177,12 @@ class AppControl {
       final dynamic response =
           await _methodChannel.invokeMethod<dynamic>('sendLaunchRequest', args);
       final Map<String, dynamic> responseMap =
-          Map<String, dynamic>.from(response as Map<dynamic, dynamic>);
+          (response as Map<dynamic, dynamic>).cast<String, dynamic>();
       final AppControlReplyResult result =
           AppControlReplyResult.values.byName(responseMap['result'] as String);
-      final Map<String, dynamic> replyMap = Map<String, dynamic>.from(
-          responseMap['reply'] as Map<dynamic, dynamic>);
+      final Map<String, dynamic> replyMap =
+          (responseMap['reply'] as Map<dynamic, dynamic>)
+              .cast<String, dynamic>();
       final AppControl reply = AppControl._fromMap(replyMap);
       await replyCallback(this, reply, result);
     }
@@ -220,7 +221,7 @@ class AppControl {
 
 /// Represents a received [AppControl] message.
 class ReceivedAppControl extends AppControl {
-  ReceivedAppControl._fromMap(dynamic map)
+  ReceivedAppControl._fromMap(Map<String, dynamic> map)
       : callerAppId = map['callerAppId'] as String?,
         shouldReply = map['shouldReply'] as bool,
         super._fromMap(map);

@@ -132,7 +132,10 @@ class _MyAppState extends State<MyApp> {
         String? imagePath;
         if (result == AppControlReplyResult.succeeded &&
             reply.extraData.containsKey(kAppControlDataSelected)) {
-          imagePath = reply.extraData[kAppControlDataSelected][0] as String;
+          final List<String> imagePaths =
+              (reply.extraData[kAppControlDataSelected] as List<Object?>)
+                  .cast<String>();
+          imagePath = imagePaths[0];
         }
         _messengerKey.currentState!.showSnackBar(
           SnackBar(content: Text(imagePath ?? 'No image selected.')),

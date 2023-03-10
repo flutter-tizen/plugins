@@ -34,7 +34,7 @@ abstract class _Delegate extends Parcelable {
   int id = 0;
   bool once = false;
   int sequenceId = 0;
-  Function? callback;
+  Function callback;
   static int sequenceNum = 0;
 
   Future<void> onReceivedEvent(Parcel parcel);
@@ -65,7 +65,7 @@ class _NotifyCallback extends _Delegate {
     final String sender = parcel.readString();
     final String message = parcel.readString();
 
-    callback?.call(sender, message);
+    (callback as NotifyCallback)(sender, message);
   }
 }
 

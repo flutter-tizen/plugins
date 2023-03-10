@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Widget _textButton(String text, Function onPressed, bool enabled) {
+  Widget _textButton(String text, void Function() onPressed, bool enabled) {
     return Container(
       margin: const EdgeInsets.all(5),
       child: ElevatedButton(
