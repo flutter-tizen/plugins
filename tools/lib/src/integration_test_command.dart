@@ -135,10 +135,11 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     final io.ProcessResult processResult = await processRunner.run(
       'flutter-tizen',
       <String>['precache', '--tizen'],
+      logOnError: true,
     );
     if (processResult.exitCode != 0) {
-      print('Cannot cache tizen artifacts used for integration-test.');
-      throw ToolExit(exitCommandFoundErrors);
+      print('Cannot precache Tizen artifacts for integration test.');
+      throw ToolExit(processResult.exitCode);
     }
   }
 
