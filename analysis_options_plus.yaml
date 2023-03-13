@@ -1,4 +1,5 @@
-# This file was copied from plus_plugins/analysis_options.yaml.
+# This file is a copy of analysis_options.yaml from plus_plugins repo
+# as of 2023-03-07.
 
 include: package:flutter_lints/flutter.yaml
 

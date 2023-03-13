@@ -50,7 +50,7 @@ You can listen for app state changes by subscribing to `AppManager.onAppLaunched
 
 ```dart
 var subscription = AppManager.onAppLaunched.listen((AppRunningContext context) {
-  print('Launched ${context.appId}');
+  String appId = context.appId;
 });
 ...
 subscription.cancel();
