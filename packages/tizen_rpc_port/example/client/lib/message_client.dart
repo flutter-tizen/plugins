@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: public_member_api_docs
+// ignore_for_file: public_member_api_docs, omit_local_variable_types
 
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
@@ -104,6 +104,7 @@ class Message extends ProxyBase {
     if (cmd != _MethodId.result.id) {
       throw Exception('The received parcel is invalid ($cmd).');
     }
+
     return parcel;
   }
 
