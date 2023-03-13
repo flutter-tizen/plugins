@@ -324,12 +324,10 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
     List<LatLng> holePath = polygon.holes[i];
     if (_isPolygonClockwise(holePath) == polygonDirection) {
       holePath = holePath.reversed.toList();
-      if (kDebugMode) {
-        print(
-            'Hole [$holeIndex] in Polygon [${polygon.polygonId.value}] has been reversed.'
-            ' Ensure holes in polygons are "wound in the opposite direction to the outer path."'
-            ' More info: https://github.com/flutter/flutter/issues/74096');
-      }
+      debugPrint(
+          'Hole [$holeIndex] in Polygon [${polygon.polygonId.value}] has been reversed.'
+          ' Ensure holes in polygons are "wound in the opposite direction to the outer path."'
+          ' More info: https://github.com/flutter/flutter/issues/74096');
     }
     paths.add(holePath);
     holeIndex++;
