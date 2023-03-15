@@ -15,17 +15,22 @@
 MessagePort::MessagePort() {}
 
 MessagePort::~MessagePort() {
-  for (const auto& [key, value] : local_ports_) {
-    bool is_trusted = key.second;
+  for (const auto& [name, port] : local_ports_) {
     int ret = MESSAGE_PORT_ERROR_NONE;
-    if (is_trusted) {
-      ret = message_port_unregister_trusted_local_port(value);
-    } else {
-      ret = message_port_unregister_local_port(value);
-    }
+    ret = message_port_unregister_local_port(port);
 
     if (ret != MESSAGE_PORT_ERROR_NONE) {
-      LOG_ERROR("Failed to unregister port: %s", get_error_message(ret));
+      LOG_ERROR("Failed to unregister local port: %s", get_error_message(ret));
+    }
+  }
+
+  for (const auto& [name, port] : trusted_local_ports_) {
+    int ret = MESSAGE_PORT_ERROR_NONE;
+    ret = message_port_unregister_trusted_local_port(port);
+
+    if (ret != MESSAGE_PORT_ERROR_NONE) {
+      LOG_ERROR("Failed to unregister trusted local port: %s",
+                get_error_message(ret));
     }
   }
 }
@@ -88,20 +93,20 @@ std::optional<MessagePortError> MessagePort::RegisterLocalPort(
   if (is_trusted) {
     ret = message_port_register_trusted_local_port(port_name.c_str(),
                                                    OnMessageReceived, this);
+    if (ret < MESSAGE_PORT_ERROR_NONE) {
+      return MessagePortError(ret);
+    }
+    trusted_local_ports_[port_name] = ret;
   } else {
     ret = message_port_register_local_port(port_name.c_str(), OnMessageReceived,
                                            this);
+    if (ret < MESSAGE_PORT_ERROR_NONE) {
+      return MessagePortError(ret);
+    }
+    local_ports_[port_name] = ret;
   }
 
-  if (ret < MESSAGE_PORT_ERROR_NONE) {
-    return MessagePortError(ret);
-  }
-
-  int local_port = ret;
-  std::pair<std::string, bool> key = std::make_pair(port_name, is_trusted);
-  local_ports_[key] = local_port;
-  sinks_[local_port] = std::move(sink);
-
+  sinks_[ret] = std::move(sink);
   return std::nullopt;
 }
 
@@ -116,16 +121,19 @@ std::optional<MessagePortError> MessagePort::UnregisterLocalPort(
   int ret = -1;
   if (is_trusted) {
     ret = message_port_unregister_trusted_local_port(local_port);
+    if (ret != MESSAGE_PORT_ERROR_NONE) {
+      return MessagePortError(ret);
+    }
+    trusted_local_ports_.erase(port_name);
   } else {
     ret = message_port_unregister_local_port(local_port);
-  }
-
-  if (ret != MESSAGE_PORT_ERROR_NONE) {
-    return MessagePortError(ret);
+    if (ret != MESSAGE_PORT_ERROR_NONE) {
+      return MessagePortError(ret);
+    }
+    local_ports_.erase(port_name);
   }
 
   sinks_.erase(local_port);
-  local_ports_.erase(std::make_pair(port_name, is_trusted));
   return std::nullopt;
 }
 
@@ -150,20 +158,33 @@ ErrorOr<bool> MessagePort::CheckRemotePort(const std::string& remote_app_id,
 
 bool MessagePort::IsRegisteredLocalPort(const std::string& port_name,
                                         bool is_trusted) {
-  auto key = std::make_pair(port_name, is_trusted);
-  if (local_ports_.find(key) != local_ports_.end()) {
-    return true;
+  if (is_trusted) {
+    if (trusted_local_ports_.find(port_name) != trusted_local_ports_.end()) {
+      return true;
+    }
+  } else {
+    if (local_ports_.find(port_name) != local_ports_.end()) {
+      return true;
+    }
   }
+
   return false;
 }
 
 ErrorOr<int> MessagePort::GetRegisteredLocalPort(const std::string& port_name,
                                                  bool is_trusted) {
-  auto key = std::make_pair(port_name, is_trusted);
-  auto iter = local_ports_.find(key);
-  if (iter != local_ports_.end()) {
-    return iter->second;
+  if (is_trusted) {
+    auto iter = trusted_local_ports_.find(port_name);
+    if (iter != trusted_local_ports_.end()) {
+      return iter->second;
+    }
+  } else {
+    auto iter = local_ports_.find(port_name);
+    if (iter != local_ports_.end()) {
+      return iter->second;
+    }
   }
+
   return MessagePortError(MESSAGE_PORT_ERROR_PORT_NOT_FOUND);
 }
 

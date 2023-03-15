@@ -116,8 +116,8 @@ class MessagePort {
   // map<port, event_sink>
   std::map<int, std::unique_ptr<FlEventSink>> sinks_;
 
-  // map<pair<port_name, trused>, port>
-  std::map<std::pair<std::string, bool>, int> local_ports_;
+  std::map<std::string, int> local_ports_;
+  std::map<std::string, int> trusted_local_ports_;
 };
 
 #endif  // FLUTTER_PLUGIN_MESSAGEPORT_H_
