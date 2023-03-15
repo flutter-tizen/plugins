@@ -2,14 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef MESSAGEPORT_H
-#define MESSAGEPORT_H
+#ifndef FLUTTER_PLUGIN_MESSAGEPORT_H_
+#define FLUTTER_PLUGIN_MESSAGEPORT_H_
 
 #include <flutter/event_channel.h>
 #include <flutter/standard_method_codec.h>
 #include <message_port.h>
 
 #include <map>
+#include <optional>
+#include <string>
+#include <variant>
 
 typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 
@@ -20,6 +23,8 @@ class MessagePortError {
         error_message_(get_error_message(error_code_)) {}
 
   const std::string& message() const { return error_message_; }
+
+  int code() { return error_code_; }
 
  private:
   int error_code_;
@@ -59,18 +64,17 @@ class ErrorOr {
   std::variant<T, MessagePortError> vlaue_or_error_;
 };
 
-class MessagePortManager {
+class MessagePort {
  public:
-  static MessagePortManager& GetInstance() {
-    static MessagePortManager instance;
+  static MessagePort& GetInstance() {
+    static MessagePort instance;
     return instance;
   }
 
-  MessagePortManager();
-  ~MessagePortManager();
+  ~MessagePort();
 
-  MessagePortManager(MessagePortManager const&) = delete;
-  MessagePortManager& operator=(MessagePortManager const&) = delete;
+  MessagePort(MessagePort const&) = delete;
+  MessagePort& operator=(MessagePort const&) = delete;
 
   ErrorOr<bool> CheckRemotePort(const std::string& remote_app_id,
                                 const std::string& port_name, bool is_trusted);
@@ -97,6 +101,8 @@ class MessagePortManager {
                                        bool local_is_trusted);
 
  private:
+  MessagePort();
+
   static void OnMessageReceived(int local_port_id, const char* remote_app_id,
                                 const char* remote_port,
                                 bool trusted_remote_port, bundle* message,
@@ -114,4 +120,4 @@ class MessagePortManager {
   std::map<std::pair<std::string, bool>, int> local_ports_;
 };
 
-#endif  // MESSAGEPORT_H
+#endif  // FLUTTER_PLUGIN_MESSAGEPORT_H_

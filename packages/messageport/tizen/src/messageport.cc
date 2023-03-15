@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "messageport_manager.h"
+#include "messageport.h"
 
 #include <bundle.h>
 #include <flutter/standard_message_codec.h>
@@ -12,20 +12,19 @@
 
 #include "log.h"
 
-MessagePortManager::MessagePortManager() {}
+MessagePort::MessagePort() {}
 
-MessagePortManager::~MessagePortManager() {
-  for (auto& pair : local_ports_) {
-    int port = pair.second;
-    bool is_trusted = pair.first.second;
+MessagePort::~MessagePort() {
+  for (const auto& [key, value] : local_ports_) {
+    bool is_trusted = key.second;
     int ret = MESSAGE_PORT_ERROR_NONE;
     if (is_trusted) {
-      ret = message_port_unregister_trusted_local_port(port);
+      ret = message_port_unregister_trusted_local_port(value);
     } else {
-      ret = message_port_unregister_local_port(port);
+      ret = message_port_unregister_local_port(value);
     }
 
-    if (MESSAGE_PORT_ERROR_NONE != ret) {
+    if (ret != MESSAGE_PORT_ERROR_NONE) {
       LOG_ERROR("Failed to unregister port: %s", get_error_message(ret));
     }
   }
@@ -46,12 +45,12 @@ static bool ConvertEncodableValueToBundle(flutter::EncodableValue& value,
   return true;
 }
 
-void MessagePortManager::OnMessageReceived(int local_port_id,
-                                           const char* remote_app_id,
-                                           const char* remote_port,
-                                           bool trusted_remote_port,
-                                           bundle* message, void* user_data) {
-  MessagePortManager* manager = static_cast<MessagePortManager*>(user_data);
+void MessagePort::OnMessageReceived(int local_port_id,
+                                    const char* remote_app_id,
+                                    const char* remote_port,
+                                    bool trusted_remote_port, bundle* message,
+                                    void* user_data) {
+  MessagePort* manager = static_cast<MessagePort*>(user_data);
   if (manager->sinks_.find(local_port_id) != manager->sinks_.end()) {
     uint8_t* byte_array = nullptr;
     size_t size = 0;
@@ -59,6 +58,7 @@ void MessagePortManager::OnMessageReceived(int local_port_id,
                               reinterpret_cast<void**>(&byte_array), &size);
     if (ret != BUNDLE_ERROR_NONE) {
       manager->sinks_[local_port_id]->Error("Failed to parse a response");
+      return;
     }
 
     std::vector<uint8_t> encoded(byte_array, byte_array + size);
@@ -81,7 +81,7 @@ void MessagePortManager::OnMessageReceived(int local_port_id,
   }
 }
 
-std::optional<MessagePortError> MessagePortManager::RegisterLocalPort(
+std::optional<MessagePortError> MessagePort::RegisterLocalPort(
     const std::string& port_name, std::unique_ptr<FlEventSink> sink,
     bool is_trusted) {
   int ret = -1;
@@ -105,7 +105,7 @@ std::optional<MessagePortError> MessagePortManager::RegisterLocalPort(
   return std::nullopt;
 }
 
-std::optional<MessagePortError> MessagePortManager::UnregisterLocalPort(
+std::optional<MessagePortError> MessagePort::UnregisterLocalPort(
     const std::string& port_name, bool is_trusted) {
   ErrorOr<int> maybe_local_port = GetRegisteredLocalPort(port_name, is_trusted);
   if (maybe_local_port.has_error()) {
@@ -129,9 +129,9 @@ std::optional<MessagePortError> MessagePortManager::UnregisterLocalPort(
   return std::nullopt;
 }
 
-ErrorOr<bool> MessagePortManager::CheckRemotePort(
-    const std::string& remote_app_id, const std::string& port_name,
-    bool is_trusted) {
+ErrorOr<bool> MessagePort::CheckRemotePort(const std::string& remote_app_id,
+                                           const std::string& port_name,
+                                           bool is_trusted) {
   int ret = MESSAGE_PORT_ERROR_NONE;
   bool exist = false;
   if (is_trusted) {
@@ -148,8 +148,8 @@ ErrorOr<bool> MessagePortManager::CheckRemotePort(
   return exist;
 }
 
-bool MessagePortManager::IsRegisteredLocalPort(const std::string& port_name,
-                                               bool is_trusted) {
+bool MessagePort::IsRegisteredLocalPort(const std::string& port_name,
+                                        bool is_trusted) {
   auto key = std::make_pair(port_name, is_trusted);
   if (local_ports_.find(key) != local_ports_.end()) {
     return true;
@@ -157,8 +157,8 @@ bool MessagePortManager::IsRegisteredLocalPort(const std::string& port_name,
   return false;
 }
 
-ErrorOr<int> MessagePortManager::GetRegisteredLocalPort(
-    const std::string& port_name, bool is_trusted) {
+ErrorOr<int> MessagePort::GetRegisteredLocalPort(const std::string& port_name,
+                                                 bool is_trusted) {
   auto key = std::make_pair(port_name, is_trusted);
   auto iter = local_ports_.find(key);
   if (iter != local_ports_.end()) {
@@ -167,7 +167,7 @@ ErrorOr<int> MessagePortManager::GetRegisteredLocalPort(
   return MessagePortError(MESSAGE_PORT_ERROR_PORT_NOT_FOUND);
 }
 
-std::optional<MessagePortError> MessagePortManager::Send(
+std::optional<MessagePortError> MessagePort::Send(
     std::string& remote_app_id, std::string& port_name,
     flutter::EncodableValue& message, bool is_trusted) {
   ErrorOr<bundle*> maybe_bundle = PrepareBundle(message);
@@ -193,7 +193,7 @@ std::optional<MessagePortError> MessagePortManager::Send(
   return std::nullopt;
 }
 
-std::optional<MessagePortError> MessagePortManager::Send(
+std::optional<MessagePortError> MessagePort::Send(
     std::string& remote_app_id, std::string& port_name,
     flutter::EncodableValue& message, bool is_trusted,
     const std::string& local_port_name, bool local_port_is_trusted) {
@@ -227,8 +227,7 @@ std::optional<MessagePortError> MessagePortManager::Send(
   return std::nullopt;
 }
 
-ErrorOr<bundle*> MessagePortManager::PrepareBundle(
-    flutter::EncodableValue& message) {
+ErrorOr<bundle*> MessagePort::PrepareBundle(flutter::EncodableValue& message) {
   bundle* bundle = bundle_create();
   if (!bundle) {
     return MessagePortError(MESSAGE_PORT_ERROR_OUT_OF_MEMORY);

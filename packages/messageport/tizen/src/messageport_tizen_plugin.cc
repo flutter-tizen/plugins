@@ -16,7 +16,7 @@
 #include <string>
 
 #include "log.h"
-#include "messageport_manager.h"
+#include "messageport.h"
 
 typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
 typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
@@ -29,6 +29,19 @@ typedef flutter::StreamHandlerError<flutter::EncodableValue>
 
 namespace {
 
+template <typename T>
+bool GetValueFromEncodableMap(const flutter::EncodableMap *map, const char *key,
+                              T &out) {
+  auto iter = map->find(flutter::EncodableValue(key));
+  if (iter != map->end() && !iter->second.IsNull()) {
+    if (auto *value = std::get_if<T>(&iter->second)) {
+      out = *value;
+      return true;
+    }
+  }
+  return false;
+}
+
 class LocalPortStreamHandler : public FlStreamHandler {
  public:
   LocalPortStreamHandler(const std::string &port_name, bool is_trusted)
@@ -38,7 +51,7 @@ class LocalPortStreamHandler : public FlStreamHandler {
       const flutter::EncodableValue *arguments,
       std::unique_ptr<FlEventSink> &&events) override {
     std::optional<MessagePortError> error =
-        MessagePortManager::GetInstance().RegisterLocalPort(
+        MessagePort::GetInstance().RegisterLocalPort(
             port_name_, std::move(events), is_trusted_);
     if (error.has_value()) {
       LOG_ERROR("Error OnListen: %s", error.value().message().c_str());
@@ -49,8 +62,7 @@ class LocalPortStreamHandler : public FlStreamHandler {
   std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
       const flutter::EncodableValue *arguments) override {
     std::optional<MessagePortError> error =
-        MessagePortManager::GetInstance().UnregisterLocalPort(port_name_,
-                                                              is_trusted_);
+        MessagePort::GetInstance().UnregisterLocalPort(port_name_, is_trusted_);
     if (error.has_value()) {
       LOG_ERROR("Error OnCancel: %s", error.value().message().c_str());
     }
@@ -79,90 +91,64 @@ class MessageportTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  MessageportTizenPlugin(flutter::PluginRegistrar *pluginRegistrar)
-      : plugin_registrar_(pluginRegistrar) {}
+  MessageportTizenPlugin(flutter::PluginRegistrar *plugin_registrar)
+      : plugin_registrar_(plugin_registrar) {}
 
   virtual ~MessageportTizenPlugin() {}
 
  private:
-  template <typename T>
-  bool GetValueFromArgs(const flutter::EncodableValue *args, const char *key,
-                        T &out) {
-    if (std::holds_alternative<flutter::EncodableMap>(*args)) {
-      flutter::EncodableMap map = std::get<flutter::EncodableMap>(*args);
-      if (map.find(flutter::EncodableValue(key)) != map.end()) {
-        flutter::EncodableValue value = map[flutter::EncodableValue(key)];
-        if (std::holds_alternative<T>(value)) {
-          out = std::get<T>(value);
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  bool GetEncodableValueFromArgs(const flutter::EncodableValue *args,
-                                 const char *key,
-                                 flutter::EncodableValue &out) {
-    if (std::holds_alternative<flutter::EncodableMap>(*args)) {
-      flutter::EncodableMap map = std::get<flutter::EncodableMap>(*args);
-      if (map.find(flutter::EncodableValue(key)) != map.end()) {
-        out = map[flutter::EncodableValue(key)];
-        return true;
-      }
-    }
-    return false;
-  }
-
   void HandleMethodCall(const FlMethodCall &method_call,
                         std::unique_ptr<FlMethodResult> result) {
     const auto &method_name = method_call.method_name();
-    const flutter::EncodableValue *args = method_call.arguments();
+    const auto *arguments =
+        std::get_if<flutter::EncodableMap>(method_call.arguments());
 
     if (method_name == "createLocal") {
-      CreateLocal(args, std::move(result));
+      CreateLocal(arguments, std::move(result));
     } else if (method_name == "checkForRemote") {
-      CheckForRemote(args, std::move(result));
+      CheckForRemote(arguments, std::move(result));
     } else if (method_name == "send") {
-      Send(args, std::move(result));
+      Send(arguments, std::move(result));
     } else {
       result->NotImplemented();
     }
   }
 
-  void CheckForRemote(const flutter::EncodableValue *args,
+  void CheckForRemote(const flutter::EncodableMap *arguments,
                       std::unique_ptr<FlMethodResult> result) {
-    std::string remote_app_id = "";
-    std::string port_name = "";
+    std::string remote_app_id;
+    std::string port_name;
     bool trusted = false;
-    if (!GetValueFromArgs<std::string>(args, "remoteAppId", remote_app_id) ||
-        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
-        !GetValueFromArgs<bool>(args, "trusted", trusted)) {
-      result->Error("Invalid parameter");
+
+    if (!GetValueFromEncodableMap(arguments, "remoteAppId", remote_app_id) ||
+        !GetValueFromEncodableMap(arguments, "portName", port_name) ||
+        !GetValueFromEncodableMap(arguments, "trusted", trusted)) {
+      result->Error("Invalid arguments");
       return;
     }
 
-    ErrorOr<bool> ret = MessagePortManager::GetInstance().CheckRemotePort(
+    ErrorOr<bool> ret = MessagePort::GetInstance().CheckRemotePort(
         remote_app_id, port_name, trusted);
     if (ret.has_error()) {
-      result->Error("Could not create remote port", ret.error().message());
+      MessagePortError error = ret.error();
+      result->Error(std::to_string(error.code()), error.message());
     } else {
       result->Success(flutter::EncodableValue(ret.value()));
     }
   }
 
-  void CreateLocal(const flutter::EncodableValue *args,
+  void CreateLocal(const flutter::EncodableMap *arguments,
                    std::unique_ptr<FlMethodResult> result) {
-    std::string port_name = "";
+    std::string port_name;
     bool trusted = false;
-    if (!GetValueFromArgs<std::string>(args, "portName", port_name) ||
-        !GetValueFromArgs<bool>(args, "trusted", trusted)) {
-      result->Error("Could not create local port", "Invalid parameter");
+
+    if (!GetValueFromEncodableMap(arguments, "portName", port_name) ||
+        !GetValueFromEncodableMap(arguments, "trusted", trusted)) {
+      result->Error("Invalid arguments");
       return;
     }
 
-    if (MessagePortManager::GetInstance().IsRegisteredLocalPort(port_name,
-                                                                trusted)) {
+    if (MessagePort::GetInstance().IsRegisteredLocalPort(port_name, trusted)) {
       result->Success();
       return;
     }
@@ -182,42 +168,52 @@ class MessageportTizenPlugin : public flutter::Plugin {
     result->Success();
   }
 
-  void Send(const flutter::EncodableValue *args,
+  void Send(const flutter::EncodableMap *arguments,
             std::unique_ptr<FlMethodResult> result) {
-    flutter::EncodableValue message(nullptr);
-    std::string remote_app_id = "";
-    std::string port_name = "";
+    flutter::EncodableValue message;
+    std::string remote_app_id;
+    std::string port_name;
     bool trusted = false;
-    if (!GetEncodableValueFromArgs(args, "message", message) ||
-        !GetValueFromArgs<std::string>(args, "remoteAppId", remote_app_id) ||
-        !GetValueFromArgs<std::string>(args, "portName", port_name) ||
-        !GetValueFromArgs<bool>(args, "trusted", trusted)) {
-      result->Error("Could not send message", "Invalid parameter");
+
+    auto iter = arguments->find(flutter::EncodableValue("message"));
+    if (iter != arguments->end() && !iter->second.IsNull()) {
+      message = iter->second;
+    } else {
+      result->Error("Invalid arguments");
+      return;
+    }
+
+    if (!GetValueFromEncodableMap(arguments, "remoteAppId", remote_app_id) ||
+        !GetValueFromEncodableMap(arguments, "portName", port_name) ||
+        !GetValueFromEncodableMap(arguments, "trusted", trusted)) {
+      result->Error("Invalid arguments");
       return;
     }
 
     std::string local_port_name;
     bool local_port_trusted = false;
     std::optional<MessagePortError> error = std::nullopt;
-    if (GetValueFromArgs<std::string>(args, "localPort", local_port_name) &&
-        GetValueFromArgs<bool>(args, "localPortTrusted", local_port_trusted)) {
-      error = MessagePortManager::GetInstance().Send(
-          remote_app_id, port_name, message, trusted, local_port_name,
-          local_port_trusted);
+    if (GetValueFromEncodableMap(arguments, "localPort", local_port_name) &&
+        GetValueFromEncodableMap(arguments, "localPortTrusted",
+                                 local_port_trusted)) {
+      error = MessagePort::GetInstance().Send(remote_app_id, port_name, message,
+                                              trusted, local_port_name,
+                                              local_port_trusted);
     } else {
-      error = MessagePortManager::GetInstance().Send(remote_app_id, port_name,
-                                                     message, trusted);
+      error = MessagePort::GetInstance().Send(remote_app_id, port_name, message,
+                                              trusted);
     }
 
     if (error.has_value()) {
-      result->Error("Could not send message", error.value().message());
+      MessagePortError message_port_error = error.value();
+      result->Error(std::to_string(message_port_error.code()),
+                    message_port_error.message());
       return;
     }
 
     result->Success();
   }
 
-  // < channel_name, is_trusted > -> native number >
   std::set<std::unique_ptr<FlEventChannel>> event_channels_;
   flutter::PluginRegistrar *plugin_registrar_;
 };
