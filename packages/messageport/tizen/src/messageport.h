@@ -6,15 +6,13 @@
 #define FLUTTER_PLUGIN_MESSAGEPORT_H_
 
 #include <flutter/event_channel.h>
-#include <flutter/standard_method_codec.h>
 #include <message_port.h>
 
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
 #include <variant>
-
-typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 
 class MessagePortError {
  public:
@@ -64,6 +62,17 @@ class ErrorOr {
   std::variant<T, MessagePortError> vlaue_or_error_;
 };
 
+struct Message {
+  int local_port_id = -1;
+  const std::string remote_app_id;
+  const std::string remote_port;
+  bool trusted_remote_port = false;
+  bundle* bundle = nullptr;
+  void* user_data = nullptr;
+};
+
+typedef std::function<void(const Message&)> OnMessage;
+
 class MessagePort {
  public:
   static MessagePort& GetInstance() {
@@ -82,8 +91,7 @@ class MessagePort {
   bool IsRegisteredLocalPort(const std::string& port_name, bool is_trusted);
 
   std::optional<MessagePortError> RegisterLocalPort(
-      const std::string& port_name, std::unique_ptr<FlEventSink> sink,
-      bool is_trusted);
+      const std::string& port_name, bool is_trusted, OnMessage on_message);
 
   std::optional<MessagePortError> UnregisterLocalPort(
       const std::string& port_name, bool is_trusted);
@@ -113,8 +121,7 @@ class MessagePort {
   ErrorOr<int> GetRegisteredLocalPort(const std::string& port_name,
                                       bool is_trusted);
 
-  // map<port, event_sink>
-  std::map<int, std::unique_ptr<FlEventSink>> sinks_;
+  std::map<int, OnMessage> on_messages_;
 
   std::map<std::string, int> local_ports_;
   std::map<std::string, int> trusted_local_ports_;

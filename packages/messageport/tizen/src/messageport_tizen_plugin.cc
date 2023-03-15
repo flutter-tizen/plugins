@@ -9,6 +9,7 @@
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
+#include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
 
 #include <set>
@@ -50,12 +51,44 @@ class LocalPortStreamHandler : public FlStreamHandler {
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
       const flutter::EncodableValue *arguments,
       std::unique_ptr<FlEventSink> &&events) override {
+    event_sink_ = std::move(events);
     std::optional<MessagePortError> error =
         MessagePort::GetInstance().RegisterLocalPort(
-            port_name_, std::move(events), is_trusted_);
+            port_name_, is_trusted_, [this](const Message &message) {
+              uint8_t *byte_array = nullptr;
+              size_t size = 0;
+              int ret = bundle_get_byte(message.bundle, "bytes",
+                                        reinterpret_cast<void **>(&byte_array),
+                                        &size);
+              if (ret != BUNDLE_ERROR_NONE) {
+                event_sink_->Error("Failed to parse a response");
+                return;
+              }
+
+              flutter::EncodableMap map;
+              std::vector<uint8_t> encoded(byte_array, byte_array + size);
+              auto value =
+                  flutter::StandardMessageCodec::GetInstance().DecodeMessage(
+                      encoded);
+              map[flutter::EncodableValue("message")] = *(value.get());
+              if (message.remote_app_id.size()) {
+                map[flutter::EncodableValue("remoteAppId")] =
+                    flutter::EncodableValue(message.remote_app_id);
+              }
+              if (message.remote_port.size()) {
+                map[flutter::EncodableValue("remotePort")] =
+                    flutter::EncodableValue(message.remote_port);
+              }
+              map[flutter::EncodableValue("trusted")] =
+                  flutter::EncodableValue(message.trusted_remote_port);
+
+              event_sink_->Success(flutter::EncodableValue(map));
+            });
+
     if (error.has_value()) {
       LOG_ERROR("Error OnListen: %s", error.value().message().c_str());
     }
+
     return nullptr;
   }
 
@@ -72,6 +105,7 @@ class LocalPortStreamHandler : public FlStreamHandler {
  private:
   std::string port_name_;
   bool is_trusted_;
+  std::unique_ptr<FlEventSink> event_sink_;
 };
 
 class MessageportTizenPlugin : public flutter::Plugin {

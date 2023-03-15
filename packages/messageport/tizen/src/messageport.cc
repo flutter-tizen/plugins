@@ -53,42 +53,23 @@ static bool ConvertEncodableValueToBundle(flutter::EncodableValue& value,
 void MessagePort::OnMessageReceived(int local_port_id,
                                     const char* remote_app_id,
                                     const char* remote_port,
-                                    bool trusted_remote_port, bundle* message,
+                                    bool trusted_remote_port, bundle* bundle,
                                     void* user_data) {
   MessagePort* manager = static_cast<MessagePort*>(user_data);
-  if (manager->sinks_.find(local_port_id) != manager->sinks_.end()) {
-    uint8_t* byte_array = nullptr;
-    size_t size = 0;
-    int ret = bundle_get_byte(message, "bytes",
-                              reinterpret_cast<void**>(&byte_array), &size);
-    if (ret != BUNDLE_ERROR_NONE) {
-      manager->sinks_[local_port_id]->Error("Failed to parse a response");
-      return;
-    }
-
-    std::vector<uint8_t> encoded(byte_array, byte_array + size);
-    auto value =
-        flutter::StandardMessageCodec::GetInstance().DecodeMessage(encoded);
-
-    flutter::EncodableMap map;
-    map[flutter::EncodableValue("message")] = *(value.get());
-    if (remote_port) {
-      map[flutter::EncodableValue("remotePort")] =
-          flutter::EncodableValue(std::string(remote_port));
-    }
-    map[flutter::EncodableValue("remoteAppId")] =
-        flutter::EncodableValue(remote_app_id);
-
-    map[flutter::EncodableValue("trusted")] =
-        flutter::EncodableValue(trusted_remote_port);
-
-    manager->sinks_[local_port_id]->Success(flutter::EncodableValue(map));
+  if (manager->on_messages_.find(local_port_id) !=
+      manager->on_messages_.end()) {
+    Message message{local_port_id,
+                    remote_app_id ? remote_app_id : "",
+                    remote_port ? remote_port : "",
+                    trusted_remote_port,
+                    bundle,
+                    user_data};
+    manager->on_messages_[local_port_id](message);
   }
 }
 
 std::optional<MessagePortError> MessagePort::RegisterLocalPort(
-    const std::string& port_name, std::unique_ptr<FlEventSink> sink,
-    bool is_trusted) {
+    const std::string& port_name, bool is_trusted, OnMessage on_message) {
   int ret = -1;
   if (is_trusted) {
     ret = message_port_register_trusted_local_port(port_name.c_str(),
@@ -106,7 +87,7 @@ std::optional<MessagePortError> MessagePort::RegisterLocalPort(
     local_ports_[port_name] = ret;
   }
 
-  sinks_[ret] = std::move(sink);
+  on_messages_[ret] = std::move(on_message);
   return std::nullopt;
 }
 
@@ -132,8 +113,7 @@ std::optional<MessagePortError> MessagePort::UnregisterLocalPort(
     }
     local_ports_.erase(port_name);
   }
-
-  sinks_.erase(local_port);
+  on_messages_.erase(local_port);
   return std::nullopt;
 }
 
