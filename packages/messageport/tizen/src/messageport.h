@@ -5,11 +5,11 @@
 #ifndef FLUTTER_PLUGIN_MESSAGEPORT_H_
 #define FLUTTER_PLUGIN_MESSAGEPORT_H_
 
-#include <flutter/event_channel.h>
 #include <message_port.h>
 
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <variant>
@@ -96,17 +96,14 @@ class MessagePort {
   std::optional<MessagePortError> UnregisterLocalPort(
       const std::string& port_name, bool is_trusted);
 
-  std::optional<MessagePortError> Send(std::string& remote_app_id,
-                                       std::string& port_name,
-                                       flutter::EncodableValue& message,
-                                       bool is_trusted);
+  std::optional<MessagePortError> Send(
+      std::string& remote_app_id, std::string& port_name,
+      std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted);
 
-  std::optional<MessagePortError> Send(std::string& remote_app_id,
-                                       std::string& port_name,
-                                       flutter::EncodableValue& message,
-                                       bool is_trusted,
-                                       const std::string& local_port_name,
-                                       bool local_is_trusted);
+  std::optional<MessagePortError> Send(
+      std::string& remote_app_id, std::string& port_name,
+      std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted,
+      const std::string& local_port_name, bool local_is_trusted);
 
  private:
   MessagePort();
@@ -116,7 +113,7 @@ class MessagePort {
                                 bool trusted_remote_port, bundle* message,
                                 void* user_data);
 
-  ErrorOr<bundle*> PrepareBundle(flutter::EncodableValue& message);
+  ErrorOr<bundle*> PrepareBundle(std::vector<uint8_t>* encoded_message);
 
   ErrorOr<int> GetRegisteredLocalPort(const std::string& port_name,
                                       bool is_trusted);

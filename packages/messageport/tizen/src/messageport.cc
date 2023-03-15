@@ -5,7 +5,6 @@
 #include "messageport.h"
 
 #include <bundle.h>
-#include <flutter/standard_message_codec.h>
 
 #include <cstdint>
 #include <vector>
@@ -33,21 +32,6 @@ MessagePort::~MessagePort() {
                 get_error_message(ret));
     }
   }
-}
-
-static bool ConvertEncodableValueToBundle(flutter::EncodableValue& value,
-                                          bundle* bundle) {
-  if (!bundle) {
-    return false;
-  }
-  std::unique_ptr<std::vector<uint8_t>> encoded =
-      flutter::StandardMessageCodec::GetInstance().EncodeMessage(value);
-
-  int ret = bundle_add_byte(bundle, "bytes", encoded->data(), encoded->size());
-  if (ret != BUNDLE_ERROR_NONE) {
-    return false;
-  }
-  return true;
 }
 
 void MessagePort::OnMessageReceived(int local_port_id,
@@ -170,8 +154,8 @@ ErrorOr<int> MessagePort::GetRegisteredLocalPort(const std::string& port_name,
 
 std::optional<MessagePortError> MessagePort::Send(
     std::string& remote_app_id, std::string& port_name,
-    flutter::EncodableValue& message, bool is_trusted) {
-  ErrorOr<bundle*> maybe_bundle = PrepareBundle(message);
+    std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted) {
+  ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message.get());
   if (maybe_bundle.has_error()) {
     return maybe_bundle.error();
   }
@@ -196,7 +180,7 @@ std::optional<MessagePortError> MessagePort::Send(
 
 std::optional<MessagePortError> MessagePort::Send(
     std::string& remote_app_id, std::string& port_name,
-    flutter::EncodableValue& message, bool is_trusted,
+    std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted,
     const std::string& local_port_name, bool local_port_is_trusted) {
   ErrorOr<int> maybe_local_port =
       GetRegisteredLocalPort(local_port_name, local_port_is_trusted);
@@ -205,7 +189,7 @@ std::optional<MessagePortError> MessagePort::Send(
   }
   int local_port = maybe_local_port.value();
 
-  ErrorOr<bundle*> maybe_bundle = PrepareBundle(message);
+  ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message.get());
   if (maybe_bundle.has_error()) {
     return maybe_bundle.error();
   }
@@ -228,14 +212,17 @@ std::optional<MessagePortError> MessagePort::Send(
   return std::nullopt;
 }
 
-ErrorOr<bundle*> MessagePort::PrepareBundle(flutter::EncodableValue& message) {
+ErrorOr<bundle*> MessagePort::PrepareBundle(
+    std::vector<uint8_t>* encoded_message) {
   bundle* bundle = bundle_create();
   if (!bundle) {
     return MessagePortError(MESSAGE_PORT_ERROR_OUT_OF_MEMORY);
   }
 
-  bool result = ConvertEncodableValueToBundle(message, bundle);
-  if (!result) {
+  int ret = bundle_add_byte(bundle, "bytes", encoded_message->data(),
+                            encoded_message->size());
+
+  if (ret != BUNDLE_ERROR_NONE) {
     bundle_free(bundle);
     return MessagePortError(MESSAGE_PORT_ERROR_INVALID_PARAMETER);
   }

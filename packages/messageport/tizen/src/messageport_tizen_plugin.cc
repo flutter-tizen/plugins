@@ -226,16 +226,19 @@ class MessageportTizenPlugin : public flutter::Plugin {
 
     std::string local_port_name;
     bool local_port_trusted = false;
+    std::unique_ptr<std::vector<uint8_t>> encoded_message =
+        flutter::StandardMessageCodec::GetInstance().EncodeMessage(message);
+
     std::optional<MessagePortError> error = std::nullopt;
     if (GetValueFromEncodableMap(arguments, "localPort", local_port_name) &&
         GetValueFromEncodableMap(arguments, "localPortTrusted",
                                  local_port_trusted)) {
-      error = MessagePort::GetInstance().Send(remote_app_id, port_name, message,
-                                              trusted, local_port_name,
-                                              local_port_trusted);
+      error = MessagePort::GetInstance().Send(
+          remote_app_id, port_name, std::move(encoded_message), trusted,
+          local_port_name, local_port_trusted);
     } else {
-      error = MessagePort::GetInstance().Send(remote_app_id, port_name, message,
-                                              trusted);
+      error = MessagePort::GetInstance().Send(
+          remote_app_id, port_name, std::move(encoded_message), trusted);
     }
 
     if (error.has_value()) {
