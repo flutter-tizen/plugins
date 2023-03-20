@@ -490,7 +490,7 @@ void WebView::HandleTizenWebViewMethodCall(
   } else if (method_name == "userAgent") {
     const auto* userAgent = std::get_if<std::string>(arguments);
     if (userAgent) {
-      ewk_view_user_agent_set(webview_instance_, (*userAgent).c_str());
+      ewk_view_user_agent_set(webview_instance_, userAgent->c_str());
     }
     result->Success();
   } else {
