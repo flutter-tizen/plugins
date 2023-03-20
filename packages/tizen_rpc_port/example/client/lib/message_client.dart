@@ -98,16 +98,6 @@ class Message extends ProxyBase {
     }
   }
 
-  Parcel _consumeCommand(Port port) {
-    final Parcel parcel = Parcel.fromPort(port);
-    final int cmd = parcel.readInt32();
-    if (cmd != _MethodId.result.id) {
-      throw Exception('The received parcel is invalid ($cmd).');
-    }
-
-    return parcel;
-  }
-
   void disposeCallback(Function callback) {
     _delegates
         .removeWhere((_Delegate delegate) => delegate.callback == callback);
@@ -136,7 +126,7 @@ class Message extends ProxyBase {
 
     late Parcel parcelReceived;
     while (true) {
-      parcelReceived = _consumeCommand(port);
+      parcelReceived = Parcel.fromPort(port);
       final ParcelHeader headerReceived = parcelReceived.header;
       if (headerReceived.tag.isEmpty) {
         break;
@@ -181,7 +171,7 @@ class Message extends ProxyBase {
 
     late Parcel parcelReceived;
     while (true) {
-      parcelReceived = _consumeCommand(port);
+      parcelReceived = Parcel.fromPort(port);
       final ParcelHeader headerReceived = parcelReceived.header;
       if (headerReceived.tag.isEmpty) {
         break;
