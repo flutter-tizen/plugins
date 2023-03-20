@@ -17,7 +17,6 @@ MessagePort::~MessagePort() {
   for (const auto& [name, port] : local_ports_) {
     int ret = MESSAGE_PORT_ERROR_NONE;
     ret = message_port_unregister_local_port(port);
-
     if (ret != MESSAGE_PORT_ERROR_NONE) {
       LOG_ERROR("Failed to unregister local port: %s", get_error_message(ret));
     }
@@ -26,7 +25,6 @@ MessagePort::~MessagePort() {
   for (const auto& [name, port] : trusted_local_ports_) {
     int ret = MESSAGE_PORT_ERROR_NONE;
     ret = message_port_unregister_trusted_local_port(port);
-
     if (ret != MESSAGE_PORT_ERROR_NONE) {
       LOG_ERROR("Failed to unregister trusted local port: %s",
                 get_error_message(ret));
@@ -39,21 +37,29 @@ void MessagePort::OnMessageReceived(int local_port_id,
                                     const char* remote_port,
                                     bool trusted_remote_port, bundle* bundle,
                                     void* user_data) {
-  MessagePort* manager = static_cast<MessagePort*>(user_data);
-  if (manager->on_messages_.find(local_port_id) !=
-      manager->on_messages_.end()) {
-    Message message{local_port_id,
-                    remote_app_id ? remote_app_id : "",
-                    remote_port ? remote_port : "",
-                    trusted_remote_port,
-                    bundle,
-                    user_data};
-    manager->on_messages_[local_port_id](message);
+  MessagePort* self = static_cast<MessagePort*>(user_data);
+  if (self->message_callbacks_.find(local_port_id) !=
+      self->message_callbacks_.end()) {
+    uint8_t* byte_array = nullptr;
+    size_t size = 0;
+    int ret = bundle_get_byte(bundle, "bytes",
+                              reinterpret_cast<void**>(&byte_array), &size);
+    if (ret != BUNDLE_ERROR_NONE) {
+      Message message{error : "Failed to get data from bundle"};
+      self->message_callbacks_[local_port_id](message);
+    } else {
+      std::unique_ptr<std::vector<uint8_t>> encoded_message =
+          std::make_unique<std::vector<uint8_t>>(byte_array, byte_array + size);
+      Message message{remote_app_id ? remote_app_id : "",
+                      remote_port ? remote_port : "", trusted_remote_port,
+                      std::move(encoded_message)};
+      self->message_callbacks_[local_port_id](message);
+    }
   }
 }
 
 std::optional<MessagePortError> MessagePort::RegisterLocalPort(
-    const std::string& port_name, bool is_trusted, OnMessage on_message) {
+    const std::string& port_name, bool is_trusted, OnMessage message_callback) {
   int ret = -1;
   if (is_trusted) {
     ret = message_port_register_trusted_local_port(port_name.c_str(),
@@ -71,7 +77,7 @@ std::optional<MessagePortError> MessagePort::RegisterLocalPort(
     local_ports_[port_name] = ret;
   }
 
-  on_messages_[ret] = std::move(on_message);
+  message_callbacks_[ret] = std::move(message_callback);
   return std::nullopt;
 }
 
@@ -97,7 +103,7 @@ std::optional<MessagePortError> MessagePort::UnregisterLocalPort(
     }
     local_ports_.erase(port_name);
   }
-  on_messages_.erase(local_port);
+  message_callbacks_.erase(local_port);
   return std::nullopt;
 }
 
@@ -153,7 +159,7 @@ ErrorOr<int> MessagePort::GetRegisteredLocalPort(const std::string& port_name,
 }
 
 std::optional<MessagePortError> MessagePort::Send(
-    std::string& remote_app_id, std::string& port_name,
+    std::string& remote_app_id, std::string& remort_port_name,
     std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted) {
   ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message.get());
   if (maybe_bundle.has_error()) {
@@ -164,10 +170,10 @@ std::optional<MessagePortError> MessagePort::Send(
   int ret = MESSAGE_PORT_ERROR_NONE;
   if (is_trusted) {
     ret = message_port_send_trusted_message(remote_app_id.c_str(),
-                                            port_name.c_str(), bundle);
+                                            remort_port_name.c_str(), bundle);
   } else {
-    ret = message_port_send_message(remote_app_id.c_str(), port_name.c_str(),
-                                    bundle);
+    ret = message_port_send_message(remote_app_id.c_str(),
+                                    remort_port_name.c_str(), bundle);
   }
   bundle_free(bundle);
 
@@ -179,7 +185,7 @@ std::optional<MessagePortError> MessagePort::Send(
 }
 
 std::optional<MessagePortError> MessagePort::Send(
-    std::string& remote_app_id, std::string& port_name,
+    std::string& remote_app_id, std::string& remort_port_name,
     std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted,
     const std::string& local_port_name, bool local_port_is_trusted) {
   ErrorOr<int> maybe_local_port =
@@ -198,10 +204,10 @@ std::optional<MessagePortError> MessagePort::Send(
   int ret = MESSAGE_PORT_ERROR_NONE;
   if (is_trusted) {
     ret = message_port_send_trusted_message_with_local_port(
-        remote_app_id.c_str(), port_name.c_str(), bundle, local_port);
+        remote_app_id.c_str(), remort_port_name.c_str(), bundle, local_port);
   } else {
     ret = message_port_send_message_with_local_port(
-        remote_app_id.c_str(), port_name.c_str(), bundle, local_port);
+        remote_app_id.c_str(), remort_port_name.c_str(), bundle, local_port);
   }
   bundle_free(bundle);
 

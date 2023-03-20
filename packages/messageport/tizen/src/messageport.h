@@ -57,18 +57,15 @@ class ErrorOr {
  private:
   ErrorOr() = default;
 
-  T TakeValue() && { return std::get<T>(std::move(vlaue_or_error_)); }
-
   std::variant<T, MessagePortError> vlaue_or_error_;
 };
 
 struct Message {
-  int local_port_id = -1;
   const std::string remote_app_id;
   const std::string remote_port;
   bool trusted_remote_port = false;
-  bundle* bundle = nullptr;
-  void* user_data = nullptr;
+  std::unique_ptr<std::vector<uint8_t>> encoded_message;
+  const std::string error;
 };
 
 typedef std::function<void(const Message&)> OnMessage;
@@ -91,17 +88,18 @@ class MessagePort {
   bool IsRegisteredLocalPort(const std::string& port_name, bool is_trusted);
 
   std::optional<MessagePortError> RegisterLocalPort(
-      const std::string& port_name, bool is_trusted, OnMessage on_message);
+      const std::string& port_name, bool is_trusted,
+      OnMessage message_callback);
 
   std::optional<MessagePortError> UnregisterLocalPort(
       const std::string& port_name, bool is_trusted);
 
   std::optional<MessagePortError> Send(
-      std::string& remote_app_id, std::string& port_name,
+      std::string& remote_app_id, std::string& remort_port_name,
       std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted);
 
   std::optional<MessagePortError> Send(
-      std::string& remote_app_id, std::string& port_name,
+      std::string& remote_app_id, std::string& remort_port_name,
       std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted,
       const std::string& local_port_name, bool local_is_trusted);
 
@@ -118,7 +116,7 @@ class MessagePort {
   ErrorOr<int> GetRegisteredLocalPort(const std::string& port_name,
                                       bool is_trusted);
 
-  std::map<int, OnMessage> on_messages_;
+  std::map<int, OnMessage> message_callbacks_;
 
   std::map<std::string, int> local_ports_;
   std::map<std::string, int> trusted_local_ports_;

@@ -43,6 +43,20 @@ bool GetValueFromEncodableMap(const flutter::EncodableMap *map, const char *key,
   return false;
 }
 
+class LocalPortStreamHandlerHandlerError : public FlStreamHandlerError {
+ public:
+  LocalPortStreamHandlerHandlerError(
+      const std::string &error_code, const std::string &error_message,
+      const flutter::EncodableValue *error_details)
+      : error_code_(error_code),
+        error_message_(error_message),
+        FlStreamHandlerError(error_code_, error_message_, error_details) {}
+
+ private:
+  std::string error_code_;
+  std::string error_message_;
+};
+
 class LocalPortStreamHandler : public FlStreamHandler {
  public:
   LocalPortStreamHandler(const std::string &port_name, bool is_trusted)
@@ -55,21 +69,15 @@ class LocalPortStreamHandler : public FlStreamHandler {
     std::optional<MessagePortError> error =
         MessagePort::GetInstance().RegisterLocalPort(
             port_name_, is_trusted_, [this](const Message &message) {
-              uint8_t *byte_array = nullptr;
-              size_t size = 0;
-              int ret = bundle_get_byte(message.bundle, "bytes",
-                                        reinterpret_cast<void **>(&byte_array),
-                                        &size);
-              if (ret != BUNDLE_ERROR_NONE) {
-                event_sink_->Error("Failed to parse a response");
+              if (message.error.size()) {
+                event_sink_->Error(message.error);
                 return;
               }
 
               flutter::EncodableMap map;
-              std::vector<uint8_t> encoded(byte_array, byte_array + size);
               auto value =
                   flutter::StandardMessageCodec::GetInstance().DecodeMessage(
-                      encoded);
+                      *message.encoded_message.get());
               map[flutter::EncodableValue("message")] = *(value.get());
               if (message.remote_app_id.size()) {
                 map[flutter::EncodableValue("remoteAppId")] =
@@ -86,7 +94,9 @@ class LocalPortStreamHandler : public FlStreamHandler {
             });
 
     if (error.has_value()) {
-      LOG_ERROR("Error OnListen: %s", error.value().message().c_str());
+      return std::make_unique<LocalPortStreamHandlerHandlerError>(
+          std::to_string(error.value().code()), error.value().message().c_str(),
+          nullptr);
     }
 
     return nullptr;
