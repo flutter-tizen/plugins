@@ -70,56 +70,59 @@ struct Message {
 
 typedef std::function<void(const Message&)> OnMessage;
 
-class MessagePort {
+class LocalPort {
  public:
-  static MessagePort& GetInstance() {
-    static MessagePort instance;
-    return instance;
-  }
+  LocalPort(const std::string name, const bool is_trusted)
+      : name_(name), is_trusted_(is_trusted) {}
+  ~LocalPort();
 
-  ~MessagePort();
+  std::optional<MessagePortError> Register(OnMessage message_callback);
 
-  MessagePort(MessagePort const&) = delete;
-  MessagePort& operator=(MessagePort const&) = delete;
+  std::optional<MessagePortError> Unregister();
 
-  ErrorOr<bool> CheckRemotePort(const std::string& remote_app_id,
-                                const std::string& port_name, bool is_trusted);
+  std::string name() { return name_; }
 
-  bool IsRegisteredLocalPort(const std::string& port_name, bool is_trusted);
+  bool is_trusted() { return is_trusted_; }
 
-  std::optional<MessagePortError> RegisterLocalPort(
-      const std::string& port_name, bool is_trusted,
-      OnMessage message_callback);
-
-  std::optional<MessagePortError> UnregisterLocalPort(
-      const std::string& port_name, bool is_trusted);
-
-  std::optional<MessagePortError> Send(
-      std::string& remote_app_id, std::string& remort_port_name,
-      std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted);
-
-  std::optional<MessagePortError> Send(
-      std::string& remote_app_id, std::string& remort_port_name,
-      std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted,
-      const std::string& local_port_name, bool local_is_trusted);
+  int port() { return port_; }
 
  private:
-  MessagePort();
-
   static void OnMessageReceived(int local_port_id, const char* remote_app_id,
                                 const char* remote_port,
                                 bool trusted_remote_port, bundle* message,
                                 void* user_data);
+  const std::string name_;
+  const bool is_trusted_ = false;
+  OnMessage message_callback_;
+  int port_ = -1;
+};
 
+class RemotePort {
+ public:
+  RemotePort(const std::string app_id, const std::string name,
+             const bool is_trusted)
+      : app_id_(app_id), name_(name), is_trusted_(is_trusted) {}
+
+  ErrorOr<bool> CheckRemotePort();
+  std::optional<MessagePortError> Send(
+      std::unique_ptr<std::vector<uint8_t>> encoded_message);
+
+  std::optional<MessagePortError> Send(
+      std::unique_ptr<std::vector<uint8_t>> encoded_message,
+      LocalPort* local_port);
+
+  std::string app_id() { return app_id_; }
+
+  std::string name() { return name_; }
+
+  bool is_trusted() { return is_trusted_; }
+
+ private:
   ErrorOr<bundle*> PrepareBundle(std::vector<uint8_t>* encoded_message);
 
-  ErrorOr<int> GetRegisteredLocalPort(const std::string& port_name,
-                                      bool is_trusted);
-
-  std::map<int, OnMessage> message_callbacks_;
-
-  std::map<std::string, int> local_ports_;
-  std::map<std::string, int> trusted_local_ports_;
+  const std::string app_id_;
+  const std::string name_;
+  const bool is_trusted_ = false;
 };
 
 #endif  // FLUTTER_PLUGIN_MESSAGEPORT_H_

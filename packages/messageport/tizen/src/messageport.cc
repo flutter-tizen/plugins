@@ -11,113 +11,83 @@
 
 #include "log.h"
 
-MessagePort::MessagePort() {}
-
-MessagePort::~MessagePort() {
-  for (const auto& [name, port] : local_ports_) {
-    int ret = MESSAGE_PORT_ERROR_NONE;
-    ret = message_port_unregister_local_port(port);
-    if (ret != MESSAGE_PORT_ERROR_NONE) {
-      LOG_ERROR("Failed to unregister local port: %s", get_error_message(ret));
-    }
-  }
-
-  for (const auto& [name, port] : trusted_local_ports_) {
-    int ret = MESSAGE_PORT_ERROR_NONE;
-    ret = message_port_unregister_trusted_local_port(port);
-    if (ret != MESSAGE_PORT_ERROR_NONE) {
-      LOG_ERROR("Failed to unregister trusted local port: %s",
-                get_error_message(ret));
-    }
-  }
-}
-
-void MessagePort::OnMessageReceived(int local_port_id,
-                                    const char* remote_app_id,
-                                    const char* remote_port,
-                                    bool trusted_remote_port, bundle* bundle,
-                                    void* user_data) {
-  MessagePort* self = static_cast<MessagePort*>(user_data);
-  if (self->message_callbacks_.find(local_port_id) !=
-      self->message_callbacks_.end()) {
-    uint8_t* byte_array = nullptr;
-    size_t size = 0;
-    int ret = bundle_get_byte(bundle, "bytes",
-                              reinterpret_cast<void**>(&byte_array), &size);
-    if (ret != BUNDLE_ERROR_NONE) {
-      Message message{error : "Failed to get data from bundle"};
-      self->message_callbacks_[local_port_id](message);
-    } else {
-      std::unique_ptr<std::vector<uint8_t>> encoded_message =
-          std::make_unique<std::vector<uint8_t>>(byte_array, byte_array + size);
-      Message message{remote_app_id ? remote_app_id : "",
-                      remote_port ? remote_port : "", trusted_remote_port,
-                      std::move(encoded_message)};
-      self->message_callbacks_[local_port_id](message);
-    }
+void LocalPort::OnMessageReceived(int local_port_id, const char* remote_app_id,
+                                  const char* remote_port,
+                                  bool trusted_remote_port, bundle* bundle,
+                                  void* user_data) {
+  LocalPort* self = static_cast<LocalPort*>(user_data);
+  uint8_t* byte_array = nullptr;
+  size_t size = 0;
+  int ret = bundle_get_byte(bundle, "bytes",
+                            reinterpret_cast<void**>(&byte_array), &size);
+  if (ret != BUNDLE_ERROR_NONE) {
+    Message message{error : "Failed to get data from bundle"};
+    self->message_callback_(message);
+  } else {
+    std::unique_ptr<std::vector<uint8_t>> encoded_message =
+        std::make_unique<std::vector<uint8_t>>(byte_array, byte_array + size);
+    Message message{remote_app_id ? remote_app_id : "",
+                    remote_port ? remote_port : "", trusted_remote_port,
+                    std::move(encoded_message)};
+    self->message_callback_(message);
   }
 }
 
-std::optional<MessagePortError> MessagePort::RegisterLocalPort(
-    const std::string& port_name, bool is_trusted, OnMessage message_callback) {
+LocalPort::~LocalPort() {
+  if (port_ != -1) {
+    Unregister();
+  }
+}
+
+std::optional<MessagePortError> LocalPort::Register(
+    OnMessage message_callback) {
   int ret = -1;
-  if (is_trusted) {
-    ret = message_port_register_trusted_local_port(port_name.c_str(),
+  if (is_trusted_) {
+    ret = message_port_register_trusted_local_port(name_.c_str(),
                                                    OnMessageReceived, this);
     if (ret < MESSAGE_PORT_ERROR_NONE) {
       return MessagePortError(ret);
     }
-    trusted_local_ports_[port_name] = ret;
+    port_ = ret;
   } else {
-    ret = message_port_register_local_port(port_name.c_str(), OnMessageReceived,
+    ret = message_port_register_local_port(name_.c_str(), OnMessageReceived,
                                            this);
     if (ret < MESSAGE_PORT_ERROR_NONE) {
       return MessagePortError(ret);
     }
-    local_ports_[port_name] = ret;
+    port_ = ret;
   }
 
-  message_callbacks_[ret] = std::move(message_callback);
+  message_callback_ = std::move(message_callback);
   return std::nullopt;
 }
 
-std::optional<MessagePortError> MessagePort::UnregisterLocalPort(
-    const std::string& port_name, bool is_trusted) {
-  ErrorOr<int> maybe_local_port = GetRegisteredLocalPort(port_name, is_trusted);
-  if (maybe_local_port.has_error()) {
-    return maybe_local_port.error();
-  }
-  int local_port = maybe_local_port.value();
-
+std::optional<MessagePortError> LocalPort::Unregister() {
   int ret = -1;
-  if (is_trusted) {
-    ret = message_port_unregister_trusted_local_port(local_port);
+  if (is_trusted_) {
+    ret = message_port_unregister_trusted_local_port(port_);
     if (ret != MESSAGE_PORT_ERROR_NONE) {
       return MessagePortError(ret);
     }
-    trusted_local_ports_.erase(port_name);
   } else {
-    ret = message_port_unregister_local_port(local_port);
+    ret = message_port_unregister_local_port(port_);
     if (ret != MESSAGE_PORT_ERROR_NONE) {
       return MessagePortError(ret);
     }
-    local_ports_.erase(port_name);
   }
-  message_callbacks_.erase(local_port);
+  port_ = -1;
   return std::nullopt;
 }
 
-ErrorOr<bool> MessagePort::CheckRemotePort(const std::string& remote_app_id,
-                                           const std::string& port_name,
-                                           bool is_trusted) {
+ErrorOr<bool> RemotePort::CheckRemotePort() {
   int ret = MESSAGE_PORT_ERROR_NONE;
   bool exist = false;
-  if (is_trusted) {
-    ret = message_port_check_trusted_remote_port(remote_app_id.c_str(),
-                                                 port_name.c_str(), &exist);
+  if (is_trusted_) {
+    ret = message_port_check_trusted_remote_port(app_id_.c_str(), name_.c_str(),
+                                                 &exist);
   } else {
-    ret = message_port_check_remote_port(remote_app_id.c_str(),
-                                         port_name.c_str(), &exist);
+    ret =
+        message_port_check_remote_port(app_id_.c_str(), name_.c_str(), &exist);
   }
 
   if (ret != MESSAGE_PORT_ERROR_NONE) {
@@ -126,41 +96,8 @@ ErrorOr<bool> MessagePort::CheckRemotePort(const std::string& remote_app_id,
   return exist;
 }
 
-bool MessagePort::IsRegisteredLocalPort(const std::string& port_name,
-                                        bool is_trusted) {
-  if (is_trusted) {
-    if (trusted_local_ports_.find(port_name) != trusted_local_ports_.end()) {
-      return true;
-    }
-  } else {
-    if (local_ports_.find(port_name) != local_ports_.end()) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-ErrorOr<int> MessagePort::GetRegisteredLocalPort(const std::string& port_name,
-                                                 bool is_trusted) {
-  if (is_trusted) {
-    auto iter = trusted_local_ports_.find(port_name);
-    if (iter != trusted_local_ports_.end()) {
-      return iter->second;
-    }
-  } else {
-    auto iter = local_ports_.find(port_name);
-    if (iter != local_ports_.end()) {
-      return iter->second;
-    }
-  }
-
-  return MessagePortError(MESSAGE_PORT_ERROR_PORT_NOT_FOUND);
-}
-
-std::optional<MessagePortError> MessagePort::Send(
-    std::string& remote_app_id, std::string& remort_port_name,
-    std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted) {
+std::optional<MessagePortError> RemotePort::Send(
+    std::unique_ptr<std::vector<uint8_t>> encoded_message) {
   ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message.get());
   if (maybe_bundle.has_error()) {
     return maybe_bundle.error();
@@ -168,12 +105,11 @@ std::optional<MessagePortError> MessagePort::Send(
   bundle* bundle = maybe_bundle.value();
 
   int ret = MESSAGE_PORT_ERROR_NONE;
-  if (is_trusted) {
-    ret = message_port_send_trusted_message(remote_app_id.c_str(),
-                                            remort_port_name.c_str(), bundle);
+  if (is_trusted_) {
+    ret = message_port_send_trusted_message(app_id_.c_str(), name_.c_str(),
+                                            bundle);
   } else {
-    ret = message_port_send_message(remote_app_id.c_str(),
-                                    remort_port_name.c_str(), bundle);
+    ret = message_port_send_message(app_id_.c_str(), name_.c_str(), bundle);
   }
   bundle_free(bundle);
 
@@ -184,17 +120,9 @@ std::optional<MessagePortError> MessagePort::Send(
   return std::nullopt;
 }
 
-std::optional<MessagePortError> MessagePort::Send(
-    std::string& remote_app_id, std::string& remort_port_name,
-    std::unique_ptr<std::vector<uint8_t>> encoded_message, bool is_trusted,
-    const std::string& local_port_name, bool local_port_is_trusted) {
-  ErrorOr<int> maybe_local_port =
-      GetRegisteredLocalPort(local_port_name, local_port_is_trusted);
-  if (maybe_local_port.has_error()) {
-    return maybe_local_port.error();
-  }
-  int local_port = maybe_local_port.value();
-
+std::optional<MessagePortError> RemotePort::Send(
+    std::unique_ptr<std::vector<uint8_t>> encoded_message,
+    LocalPort* local_port) {
   ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message.get());
   if (maybe_bundle.has_error()) {
     return maybe_bundle.error();
@@ -202,12 +130,12 @@ std::optional<MessagePortError> MessagePort::Send(
   bundle* bundle = maybe_bundle.value();
 
   int ret = MESSAGE_PORT_ERROR_NONE;
-  if (is_trusted) {
+  if (is_trusted_) {
     ret = message_port_send_trusted_message_with_local_port(
-        remote_app_id.c_str(), remort_port_name.c_str(), bundle, local_port);
+        app_id_.c_str(), name_.c_str(), bundle, local_port->port());
   } else {
     ret = message_port_send_message_with_local_port(
-        remote_app_id.c_str(), remort_port_name.c_str(), bundle, local_port);
+        app_id_.c_str(), name_.c_str(), bundle, local_port->port());
   }
   bundle_free(bundle);
 
@@ -218,7 +146,7 @@ std::optional<MessagePortError> MessagePort::Send(
   return std::nullopt;
 }
 
-ErrorOr<bundle*> MessagePort::PrepareBundle(
+ErrorOr<bundle*> RemotePort::PrepareBundle(
     std::vector<uint8_t>* encoded_message) {
   bundle* bundle = bundle_create();
   if (!bundle) {
