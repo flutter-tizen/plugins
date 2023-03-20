@@ -127,6 +127,10 @@ class Message extends ProxyBase {
     late Parcel parcelReceived;
     while (true) {
       parcelReceived = Parcel.fromPort(port);
+      final int cmd = parcelReceived.readInt32();
+      if (cmd != _MethodId.result.id) {
+        continue;
+      }
       final ParcelHeader headerReceived = parcelReceived.header;
       if (headerReceived.tag.isEmpty) {
         break;
@@ -172,6 +176,10 @@ class Message extends ProxyBase {
     late Parcel parcelReceived;
     while (true) {
       parcelReceived = Parcel.fromPort(port);
+      final int cmd = parcelReceived.readInt32();
+      if (cmd != _MethodId.result.id) {
+        continue;
+      }
       final ParcelHeader headerReceived = parcelReceived.header;
       if (headerReceived.tag.isEmpty) {
         break;
