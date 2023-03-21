@@ -43,11 +43,11 @@ bool GetValueFromEncodableMap(const flutter::EncodableMap *map, const char *key,
   return false;
 }
 
-class LocalPortStreamHandlerHandlerError : public FlStreamHandlerError {
+class LocalPortStreamHandlerError : public FlStreamHandlerError {
  public:
-  LocalPortStreamHandlerHandlerError(
-      const std::string &error_code, const std::string &error_message,
-      const flutter::EncodableValue *error_details)
+  LocalPortStreamHandlerError(const std::string &error_code,
+                              const std::string &error_message,
+                              const flutter::EncodableValue *error_details)
       : error_code_(error_code),
         error_message_(error_message),
         FlStreamHandlerError(error_code_, error_message_, error_details) {}
@@ -75,25 +75,24 @@ class LocalPortStreamHandler : public FlStreamHandler {
           flutter::EncodableMap map;
           auto value =
               flutter::StandardMessageCodec::GetInstance().DecodeMessage(
-                  *message.encoded_message.get());
+                  message.encoded_message);
           map[flutter::EncodableValue("message")] = *(value.get());
-          if (message.remote_app_id.size()) {
+          if (message.remort_port.app_id().size() &&
+              message.remort_port.name().size()) {
             map[flutter::EncodableValue("remoteAppId")] =
-                flutter::EncodableValue(message.remote_app_id);
-          }
-          if (message.remote_port.size()) {
+                flutter::EncodableValue(message.remort_port.app_id());
             map[flutter::EncodableValue("remotePort")] =
-                flutter::EncodableValue(message.remote_port);
+                flutter::EncodableValue(message.remort_port.name());
+            map[flutter::EncodableValue("trusted")] =
+                flutter::EncodableValue(message.remort_port.is_trusted());
           }
-          map[flutter::EncodableValue("trusted")] =
-              flutter::EncodableValue(message.trusted_remote_port);
 
           event_sink_->Success(flutter::EncodableValue(map));
         });
 
     if (error.has_value()) {
-      return std::make_unique<LocalPortStreamHandlerHandlerError>(
-          std::to_string(error.value().code()), error.value().message().c_str(),
+      return std::make_unique<LocalPortStreamHandlerError>(
+          std::to_string(error.value().code()), error.value().message(),
           nullptr);
     }
 
@@ -104,7 +103,9 @@ class LocalPortStreamHandler : public FlStreamHandler {
       const flutter::EncodableValue *arguments) override {
     std::optional<MessagePortError> error = local_port_->Unregister();
     if (error.has_value()) {
-      LOG_ERROR("Error OnCancel: %s", error.value().message().c_str());
+      return std::make_unique<LocalPortStreamHandlerError>(
+          std::to_string(error.value().code()), error.value().message(),
+          nullptr);
     }
     return nullptr;
   }
@@ -249,9 +250,9 @@ class MessageportTizenPlugin : public flutter::Plugin {
         result->Error("Invalid arguments");
         return;
       }
-      error = remote_port.Send(std::move(encoded_message), local_port);
+      error = remote_port.SendWithLocalPort(*encoded_message, local_port);
     } else {
-      error = remote_port.Send(std::move(encoded_message));
+      error = remote_port.Send(*encoded_message);
     }
 
     if (error.has_value()) {

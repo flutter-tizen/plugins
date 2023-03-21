@@ -24,11 +24,9 @@ void LocalPort::OnMessageReceived(int local_port_id, const char* remote_app_id,
     Message message{error : "Failed to get data from bundle"};
     self->message_callback_(message);
   } else {
-    std::unique_ptr<std::vector<uint8_t>> encoded_message =
-        std::make_unique<std::vector<uint8_t>>(byte_array, byte_array + size);
-    Message message{remote_app_id ? remote_app_id : "",
-                    remote_port ? remote_port : "", trusted_remote_port,
-                    std::move(encoded_message)};
+    RemotePort port(remote_app_id ? remote_app_id : "",
+                    remote_port ? remote_port : "", trusted_remote_port);
+    Message message{port, std::vector<uint8_t>(byte_array, byte_array + size)};
     self->message_callback_(message);
   }
 }
@@ -63,14 +61,13 @@ std::optional<MessagePortError> LocalPort::Register(
 }
 
 std::optional<MessagePortError> LocalPort::Unregister() {
-  int ret = -1;
   if (is_trusted_) {
-    ret = message_port_unregister_trusted_local_port(port_);
+    int ret = message_port_unregister_trusted_local_port(port_);
     if (ret != MESSAGE_PORT_ERROR_NONE) {
       return MessagePortError(ret);
     }
   } else {
-    ret = message_port_unregister_local_port(port_);
+    int ret = message_port_unregister_local_port(port_);
     if (ret != MESSAGE_PORT_ERROR_NONE) {
       return MessagePortError(ret);
     }
@@ -80,25 +77,27 @@ std::optional<MessagePortError> LocalPort::Unregister() {
 }
 
 ErrorOr<bool> RemotePort::CheckRemotePort() {
-  int ret = MESSAGE_PORT_ERROR_NONE;
   bool exist = false;
   if (is_trusted_) {
-    ret = message_port_check_trusted_remote_port(app_id_.c_str(), name_.c_str(),
-                                                 &exist);
+    int ret = message_port_check_trusted_remote_port(app_id_.c_str(),
+                                                     name_.c_str(), &exist);
+    if (ret != MESSAGE_PORT_ERROR_NONE) {
+      return MessagePortError(ret);
+    }
   } else {
-    ret =
+    int ret =
         message_port_check_remote_port(app_id_.c_str(), name_.c_str(), &exist);
+    if (ret != MESSAGE_PORT_ERROR_NONE) {
+      return MessagePortError(ret);
+    }
   }
 
-  if (ret != MESSAGE_PORT_ERROR_NONE) {
-    return MessagePortError(ret);
-  }
   return exist;
 }
 
 std::optional<MessagePortError> RemotePort::Send(
-    std::unique_ptr<std::vector<uint8_t>> encoded_message) {
-  ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message.get());
+    const std::vector<uint8_t>& encoded_message) {
+  ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message);
   if (maybe_bundle.has_error()) {
     return maybe_bundle.error();
   }
@@ -120,10 +119,9 @@ std::optional<MessagePortError> RemotePort::Send(
   return std::nullopt;
 }
 
-std::optional<MessagePortError> RemotePort::Send(
-    std::unique_ptr<std::vector<uint8_t>> encoded_message,
-    LocalPort* local_port) {
-  ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message.get());
+std::optional<MessagePortError> RemotePort::SendWithLocalPort(
+    const std::vector<uint8_t>& encoded_message, LocalPort* local_port) {
+  ErrorOr<bundle*> maybe_bundle = PrepareBundle(encoded_message);
   if (maybe_bundle.has_error()) {
     return maybe_bundle.error();
   }
@@ -147,14 +145,14 @@ std::optional<MessagePortError> RemotePort::Send(
 }
 
 ErrorOr<bundle*> RemotePort::PrepareBundle(
-    std::vector<uint8_t>* encoded_message) {
+    const std::vector<uint8_t>& encoded_message) {
   bundle* bundle = bundle_create();
   if (!bundle) {
     return MessagePortError(MESSAGE_PORT_ERROR_OUT_OF_MEMORY);
   }
 
-  int ret = bundle_add_byte(bundle, "bytes", encoded_message->data(),
-                            encoded_message->size());
+  int ret = bundle_add_byte(bundle, "bytes", encoded_message.data(),
+                            encoded_message.size());
 
   if (ret != BUNDLE_ERROR_NONE) {
     bundle_free(bundle);
