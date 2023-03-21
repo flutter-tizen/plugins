@@ -153,10 +153,9 @@ ErrorOr<bundle*> RemotePort::PrepareBundle(
 
   int ret = bundle_add_byte(bundle, "bytes", encoded_message.data(),
                             encoded_message.size());
-
   if (ret != BUNDLE_ERROR_NONE) {
     bundle_free(bundle);
-    return MessagePortError(MESSAGE_PORT_ERROR_INVALID_PARAMETER);
+    return MessagePortError(ret);
   }
 
   return bundle;
