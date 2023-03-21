@@ -21,12 +21,22 @@ void LocalPort::OnMessageReceived(int local_port_id, const char* remote_app_id,
   int ret = bundle_get_byte(bundle, "bytes",
                             reinterpret_cast<void**>(&byte_array), &size);
   if (ret != BUNDLE_ERROR_NONE) {
-    Message message{error : "Failed to get data from bundle"};
+    Message message{
+      error : "Failed to get data from bundle",
+    };
+    self->message_callback_(message);
+  } else if (remote_port) {
+    Message message{
+      remote_port :
+          RemotePort{remote_app_id ? remote_app_id : "",
+                     remote_port ? remote_port : "", trusted_remote_port},
+      encoded_message : std::vector<uint8_t>(byte_array, byte_array + size)
+    };
     self->message_callback_(message);
   } else {
-    RemotePort port(remote_app_id ? remote_app_id : "",
-                    remote_port ? remote_port : "", trusted_remote_port);
-    Message message{port, std::vector<uint8_t>(byte_array, byte_array + size)};
+    Message message{
+      encoded_message : std::vector<uint8_t>(byte_array, byte_array + size)
+    };
     self->message_callback_(message);
   }
 }

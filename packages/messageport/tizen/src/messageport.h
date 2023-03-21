@@ -64,9 +64,8 @@ class LocalPort;
 
 class RemotePort {
  public:
-  RemotePort() = default;
-  RemotePort(const std::string& app_id, const std::string& name,
-             bool is_trusted)
+  explicit RemotePort(const std::string& app_id, const std::string& name,
+                      bool is_trusted)
       : app_id_(app_id), name_(name), is_trusted_(is_trusted) {}
 
   ErrorOr<bool> CheckRemotePort();
@@ -92,7 +91,7 @@ class RemotePort {
 };
 
 struct Message {
-  const RemotePort remort_port;
+  std::optional<const RemotePort> remote_port = std::nullopt;
   const std::vector<uint8_t> encoded_message;
   const std::string error;
 };

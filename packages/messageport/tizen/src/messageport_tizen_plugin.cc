@@ -77,14 +77,14 @@ class LocalPortStreamHandler : public FlStreamHandler {
               flutter::StandardMessageCodec::GetInstance().DecodeMessage(
                   message.encoded_message);
           map[flutter::EncodableValue("message")] = *decoded_message;
-          if (message.remort_port.app_id().size() &&
-              message.remort_port.name().size()) {
+          if (message.remote_port.has_value()) {
+            const RemotePort &remote_port = message.remote_port.value();
             map[flutter::EncodableValue("remoteAppId")] =
-                flutter::EncodableValue(message.remort_port.app_id());
+                flutter::EncodableValue(remote_port.app_id());
             map[flutter::EncodableValue("remotePort")] =
-                flutter::EncodableValue(message.remort_port.name());
+                flutter::EncodableValue(remote_port.name());
             map[flutter::EncodableValue("trusted")] =
-                flutter::EncodableValue(message.remort_port.is_trusted());
+                flutter::EncodableValue(remote_port.is_trusted());
           }
 
           event_sink_->Success(flutter::EncodableValue(map));
