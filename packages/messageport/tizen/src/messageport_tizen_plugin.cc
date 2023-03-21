@@ -73,10 +73,10 @@ class LocalPortStreamHandler : public FlStreamHandler {
           }
 
           flutter::EncodableMap map;
-          auto value =
+          std::unique_ptr<flutter::EncodableValue> decoded_message =
               flutter::StandardMessageCodec::GetInstance().DecodeMessage(
                   message.encoded_message);
-          map[flutter::EncodableValue("message")] = *(value.get());
+          map[flutter::EncodableValue("message")] = *decoded_message;
           if (message.remort_port.app_id().size() &&
               message.remort_port.name().size()) {
             map[flutter::EncodableValue("remoteAppId")] =
