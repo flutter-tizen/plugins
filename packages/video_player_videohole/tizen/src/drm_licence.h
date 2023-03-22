@@ -21,33 +21,33 @@ typedef long DRM_RESULT;
 
 class DrmLicenseHelper {
  public:
-  enum EDrmType {
+  enum DrmType {
     DRM_TYPE_NONE = 0,
     DRM_TYPE_PLAYREADY,
     DRM_TYPE_WIDEVINE,
   };
 
   struct SExtensionCtxTZ {
-    char* p_soap_header;
-    char* p_http_header;
-    char* p_user_agent;
+    char* http_soap_header;
+    char* http_header;
+    char* http_user_agent;
     bool cancel_request;
 
     SExtensionCtxTZ() {
-      p_soap_header = nullptr;
-      p_http_header = nullptr;
-      p_user_agent = nullptr;
+      http_soap_header = nullptr;
+      http_header = nullptr;
+      http_user_agent = nullptr;
       cancel_request = false;
     }
   };
 
-  static DRM_RESULT DoTransactionTZ(const char* p_server_url,
-                                    const void* pb_challenge,
-                                    unsigned long cb_challenge,
-                                    unsigned char** ppb_response,
-                                    unsigned long* pcb_response, EDrmType type,
-                                    const char* p_cookie,
-                                    SExtensionCtxTZ* p_ext_ctx);
+  static DRM_RESULT DoTransactionTZ(const char* http_server_url,
+                                    const void* challenge,
+                                    unsigned long challenge_len,
+                                    unsigned char** response,
+                                    unsigned long* response_len, DrmType type,
+                                    const char* http_cookie,
+                                    SExtensionCtxTZ* http_ext_ctx);
 };
 
 #endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENCE_H_
