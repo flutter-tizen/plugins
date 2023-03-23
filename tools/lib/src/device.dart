@@ -95,9 +95,6 @@ class Device {
     return _serial != null;
   }
 
-  static final RegExp _logPattern =
-      RegExp(r'\d\d:\d\d\s+([(\+\d+\s+)|(~\d+\s+)|(\-\d+\s+)]+):\s+(.*)');
-
   String? _findSerial() {
     final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
     for (final SdbDeviceInfo deviceInfo in deviceInfos) {
@@ -163,19 +160,16 @@ class Device {
           'If you expect the test to finish before timeout, check if the tests '
           'require device screen to be awake or if they require manually '
           'clicking the UI button for permissions.';
-    } else if (lastLine.startsWith('No tests ran')) {
+    } else if (lastLine.contains('No tests ran')) {
       error =
           'Missing integration tests (use --exclude if this is intentional).';
-    } else if (lastLine.startsWith('No devices found')) {
+    } else if (lastLine.contains('No devices found')) {
       error = 'Device was disconnected during test.';
-    } else {
-      final RegExpMatch? match = _logPattern.firstMatch(lastLine);
-      if (match == null || match.group(2) == null) {
-        error = 'Could not parse the log output.';
-      } else if (!match.group(2)!.startsWith('All tests passed!')) {
-        error = 'flutter-tizen test integration_test failed, see the output '
-            'above for details.';
-      }
+    } else if (lastLine.contains('failed')) {
+      error = 'flutter-tizen test integration_test failed, see the output '
+          'above for details.';
+    } else if (!lastLine.contains('passed')) {
+      error = 'Could not parse the log output.';
     }
     return error;
   }

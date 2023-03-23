@@ -84,7 +84,7 @@ class _CurrentAppScreen extends StatefulWidget {
 class _CurrentAppScreenState extends State<_CurrentAppScreen> {
   final Future<AppInfo> _appInfo = () async {
     final String appId = await AppManager.currentAppId;
-    return await AppManager.getAppInfo(appId);
+    return AppManager.getAppInfo(appId);
   }();
 
   Widget _infoTile(String title, String subtitle) {

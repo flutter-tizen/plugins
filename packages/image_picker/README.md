@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/image_picker_tizen.svg)](https://pub.dev/packages/image_picker_tizen)
 
-The Tizen implementation of [`image_picker`](https://github.com/flutter/plugins/tree/main/packages/image_picker).
+The Tizen implementation of [`image_picker`](https://pub.dev/packages/image_picker).
 
 ## Usage
 

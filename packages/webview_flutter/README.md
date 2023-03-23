@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen)
 
-The Tizen implementation of [`webview_flutter`](https://github.com/flutter/plugins/tree/main/packages/webview_flutter) for Tizen TV devices.
+The Tizen implementation of [`webview_flutter`](https://pub.dev/packages/webview_flutter) for Tizen TV devices.
 
 The WebView widget is backed by the EFL WebKit (EWK) on Tizen.
 
@@ -22,8 +22,8 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 
 ```yaml
 dependencies:
-  webview_flutter: ^3.0.4
-  webview_flutter_tizen: ^0.6.3
+  webview_flutter: ^4.0.2
+  webview_flutter_tizen: ^0.7.0
 ```
 
 ## Example
@@ -32,16 +32,27 @@ dependencies:
 import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewExample extends StatefulWidget {
-  const WebViewExample({Key? key}) : super(key: key);
+  const WebViewExample({super.key});
 
   @override
-  WebViewExampleState createState() => WebViewExampleState();
+  State<WebViewExample> createState() => _WebViewExampleState();
 }
 
-class WebViewExampleState extends State<WebViewExample> {
+class _WebViewExampleState extends State<WebViewExample> {
+  final WebViewController _controller = WebViewController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller.loadRequest(Uri.parse('https://flutter.dev'));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return WebView(initialUrl: 'https://flutter.dev');
+    return Scaffold(
+      body: WebViewWidget(controller: _controller),
+    );
   }
 }
 ```

@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/flutter_app_badger_tizen.svg)](https://pub.dev/packages/flutter_app_badger_tizen)
 
-The Tizen implementation of [`flutter_app_badger`](https://github.com/g123k/flutter_app_badger).
+The Tizen implementation of [`flutter_app_badger`](https://pub.dev/packages/flutter_app_badger).
 
 ## Usage
 

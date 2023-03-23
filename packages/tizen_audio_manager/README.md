@@ -40,9 +40,10 @@ You can detect volume changes using `AudioManager.volumeController.onChanged`.
 
 ```dart
 _subscription = AudioManager.volumeController.onChanged.listen((event) {
-    final mediaType = event.type;
-    final newLevel = event.level;
+  final mediaType = event.type;
+  final newLevel = event.level;
 });
+...
 _subscription.cancel();
 ```
 
@@ -51,8 +52,7 @@ _subscription.cancel();
 Use the following code to get currently playing playback type:
 
 ```dart
-final type = await AudioManager.volumeController.currentPlaybackType;
-print(type);
+final playbackType = await AudioManager.volumeController.currentPlaybackType;
 ```
 
 ### Available types

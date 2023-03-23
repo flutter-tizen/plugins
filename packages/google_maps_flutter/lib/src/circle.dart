@@ -25,10 +25,10 @@ class CircleController {
   /// Circle component's tap event.
   ui.VoidCallback? tapEvent;
 
-  Future<void> _addCircleEvent(Future<WebViewController>? _controller) async {
+  Future<void> _addCircleEvent(Future<WebViewController>? controller) async {
     final String command =
         "$_circle.addListener('click', (event) => CircleClick.postMessage(JSON.stringify(${_circle?.id})));";
-    await (await _controller!).runJavascript(command);
+    await (await controller!).runJavascript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.
