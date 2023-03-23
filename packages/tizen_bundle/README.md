@@ -35,17 +35,17 @@ To get data from a bundle or update their values, use the `[]` operator.
 ```dart
 var stringValue = bundle['string'];
 if (stringValue is String) {
-  print('string: $stringValue');
+  // The value is a string.
 }
 
 var stringsValue = bundle['strings'];
 if (stringsValue is List<String>) {
-  print('strings: $stringsValue');
+  // The value is a string list.
 }
 
 var bytesValue = bundle['bytes'];
 if (bytesValue is Uint8List) {
-  print('bytes: $bytesValue');
+  // The value is a byte list.
 }
 ```
 
@@ -67,6 +67,4 @@ bundle['key'] = 'value';
 
 var encoded = bundle.encode();
 var newBundle = Bundle.decode(encoded);
-
-print(newBundle['key']);
 ```

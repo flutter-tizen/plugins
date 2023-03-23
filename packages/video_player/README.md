@@ -2,7 +2,29 @@
 
 [![pub package](https://img.shields.io/pub/v/video_player_tizen.svg)](https://pub.dev/packages/video_player_tizen)
 
-The Tizen implementation of [`video_player`](https://github.com/flutter/plugins/tree/main/packages/video_player).
+The Tizen implementation of [`video_player`](https://pub.dev/packages/video_player) based on the Tizen [Media Player](https://docs.tizen.org/application/native/api/iot-headed/latest/group__CAPI__MEDIA__PLAYER__MODULE.html) API.
+
+## Supported devices
+
+This plugin is **NOT** supported on TV emulators. This plugin is supported on Galaxy Watch devices and Smart TVs running Tizen 4.0 or above.
+
+## Usage
+
+This package is not an _endorsed_ implementation of `video_player`. Therefore, you have to include `video_player_tizen` alongside `video_player` as dependencies in your `pubspec.yaml` file.
+
+```yaml
+dependencies:
+  video_player: ^2.4.2
+  video_player_tizen: ^2.4.5
+```
+
+Then you can import `video_player` in your Dart code:
+
+```dart
+import 'package:video_player/video_player.dart';
+```
+
+For detailed usage, see https://pub.dev/packages/video_player#example.
 
 ## Required privileges
 
@@ -21,24 +43,6 @@ To use this plugin in a Tizen application, you may need to declare the following
 - The internet privilege (`http://tizen.org/privilege/internet`) is required to play any URLs from network.
 
 For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
-
-## Usage
-
-This package is not an _endorsed_ implementation of `video_player`. Therefore, you have to include `video_player_tizen` alongside `video_player` as dependencies in your `pubspec.yaml` file.
-
-```yaml
-dependencies:
-  video_player: ^2.4.2
-  video_player_tizen: ^2.4.4
-```
-
-Then you can import `video_player` in your Dart code:
-
-```dart
-import 'package:video_player/video_player.dart';
-```
-
-For detailed usage, see https://pub.dev/packages/video_player#example.
 
 ## Limitations
 

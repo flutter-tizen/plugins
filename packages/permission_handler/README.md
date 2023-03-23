@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/permission_handler_tizen.svg)](https://pub.dev/packages/permission_handler_tizen)
 
-The Tizen implementation of [`permisson_handler`](https://github.com/Baseflow/flutter-permission-handler).
+The Tizen implementation of [`permisson_handler`](https://pub.dev/packages/permission_handler).
 
 You can use this plugin to ask the user for runtime permissions if your app performs security-sensitive operations or access restricted data.
 

@@ -56,26 +56,26 @@ class FirebaseCore extends FirebasePlatform {
 
     /// Ensures the name isn't null, in case no name
     /// passed, [defaultFirebaseAppName] will be used
-    final String _name = name ?? defaultFirebaseAppName;
+    name ??= defaultFirebaseAppName;
 
     try {
       // Initialize the app in firebase_core_dart
-      final core_dart.FirebaseOptions _dartOptions =
+      final core_dart.FirebaseOptions dartOptions =
           core_dart.FirebaseOptions.fromMap(options!.asMap);
-      final core_dart.FirebaseApp _dartApp =
+      final core_dart.FirebaseApp dartApp =
           await core_dart.Firebase.initializeApp(
-        name: _name,
-        options: _dartOptions,
+        name: name,
+        options: dartOptions,
       );
 
-      return _mapDartToPlatfromApp(_dartApp);
+      return _mapDartToPlatfromApp(dartApp);
     } on core_dart.FirebaseException catch (e) {
       switch (e.code) {
         case 'no-app':
-          throw noAppExists(_name);
+          throw noAppExists(name);
 
         case 'duplicate-app':
-          throw duplicateApp(_name);
+          throw duplicateApp(name);
       }
 
       rethrow;

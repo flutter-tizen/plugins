@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/network_info_plus_tizen.svg)](https://pub.dev/packages/network_info_plus_tizen)
 
-The Tizen implementation of [`network_info_plus`](https://github.com/fluttercommunity/plus_plugins/tree/main/packages/network_info_plus).
+The Tizen implementation of [`network_info_plus`](https://pub.dev/packages/network_info_plus).
 
 ## Usage
 

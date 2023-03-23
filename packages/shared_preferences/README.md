@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/shared_preferences_tizen.svg)](https://pub.dev/packages/shared_preferences_tizen)
 
-The Tizen implementation of [`shared_preferences`](https://github.com/flutter/plugins/tree/main/packages/shared_preferences).
+The Tizen implementation of [`shared_preferences`](https://pub.dev/packages/shared_preferences).
 
 ## Usage
 

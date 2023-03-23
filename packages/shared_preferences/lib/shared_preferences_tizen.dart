@@ -120,8 +120,7 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
                 .toNativeChar(allocator: arena),
           );
         default:
-          print('Not implemented: valueType[$valueType]');
-          return -1;
+          throw UnimplementedError('Not supported type: $valueType');
       }
     });
     if (ret == 0) {

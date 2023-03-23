@@ -564,19 +564,19 @@ Future<WebViewController>? webController;
 Future<String> getProperty(Object o, String property) async {
   assert(webController != null, 'mapController is null!!');
   final String command = "JSON.stringify($o['$property'])";
-  return await (await webController!).runJavascriptReturningResult(command);
+  return (await webController!).runJavascriptReturningResult(command);
 }
 
 /// Sets the value to property of the object.
 Future<String> setProperty(Object o, String property, Object? value) async {
   assert(webController != null, 'mapController is null!!');
   final String command = "JSON.stringify($o['$property'] = $value)";
-  return await (await webController!).runJavascriptReturningResult(command);
+  return (await webController!).runJavascriptReturningResult(command);
 }
 
 /// Calls the method of the object with the args.
 Future<String> callMethod(Object o, String method, List<Object?> args) async {
   assert(webController != null, 'webController is null!!');
   final String command = 'JSON.stringify($o.$method.apply($o, $args))';
-  return await (await webController!).runJavascriptReturningResult(command);
+  return (await webController!).runJavascriptReturningResult(command);
 }

@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:wearable_rotary/wearable_rotary.dart';
+
+import 'wearable_rotary_base.dart';
 
 /// A [ScrollController] that responds to [RotaryEvent]s.
 class RotaryScrollController extends ScrollController {
