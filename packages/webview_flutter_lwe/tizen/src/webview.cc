@@ -20,6 +20,9 @@
 #include "webview_factory.h"
 
 static constexpr size_t kBufferPoolSize = 5;
+constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
+constexpr char kTizenNavigationDelegateChannelName[] =
+    "plugins.flutter.io/tizen_webview_navigation_delegate_";
 
 extern "C" size_t LWE_EXPORT createWebViewInstance(
     unsigned x, unsigned y, unsigned width, unsigned height,
@@ -30,8 +33,7 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
     const std::function<void(::LWE::WebContainer*, bool needsFlush)>& flushCb,
     bool useSWBackend);
 
-class NavigationRequestResult
-    : public flutter::MethodResult<flutter::EncodableValue> {
+class NavigationRequestResult : public FlMethodResult {
  public:
   NavigationRequestResult(std::string url, WebView* webview)
       : url_(url), webview_(webview) {}
@@ -176,83 +178,47 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   InitWebView();
 
-  channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-      GetPluginRegistrar()->messenger(), GetChannelName(),
+  tizen_webview_channel_ = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(), GetTizenWebViewChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
-  channel_->SetMethodCallHandler(
+  tizen_webview_channel_->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
-        webview->HandleMethodCall(call, std::move(result));
+        webview->HandleTizenWebViewMethodCall(call, std::move(result));
       });
 
-  auto cookie_channel =
-      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          GetPluginRegistrar()->messenger(),
-          "plugins.flutter.io/cookie_manager",
-          &flutter::StandardMethodCodec::GetInstance());
+  navigation_delegate_channel_ = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(), GetNavigationDelegateChannelName(),
+      &flutter::StandardMethodCodec::GetInstance());
+
+  auto cookie_channel = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(),
+      "plugins.flutter.io/tizen_cookie_manager",
+      &flutter::StandardMethodCodec::GetInstance());
   cookie_channel->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
         webview->HandleCookieMethodCall(call, std::move(result));
       });
 
-  std::string url;
-  if (!GetValueFromEncodableMap(&params, "initialUrl", &url)) {
-    url = "about:blank";
-  }
-
-  int32_t color;
-  if (GetValueFromEncodableMap(&params, "backgroundColor", &color)) {
-    LWE::Settings settings = webview_instance_->GetSettings();
-    settings.SetBaseBackgroundColor(color >> 16 & 0xff, color >> 8 & 0xff,
-                                    color & 0xff, color >> 24 & 0xff);
-    webview_instance_->SetSettings(settings);
-  }
-
-  flutter::EncodableMap settings;
-  if (GetValueFromEncodableMap(&params, "settings", &settings)) {
-    ApplySettings(settings);
-  }
-
-  flutter::EncodableList names;
-  if (GetValueFromEncodableMap(&params, "javascriptChannelNames", &names)) {
-    for (flutter::EncodableValue name : names) {
-      if (std::holds_alternative<std::string>(name)) {
-        RegisterJavaScriptChannelName(std::get<std::string>(name));
-      }
-    }
-  }
-
-  // TODO: Implement autoMediaPlaybackPolicy.
-
-  std::string user_agent;
-  if (GetValueFromEncodableMap(&params, "userAgent", &user_agent)) {
-    LWE::Settings settings = webview_instance_->GetSettings();
-    settings.SetUserAgentString(user_agent);
-    webview_instance_->SetSettings(settings);
-  }
-
   webview_instance_->RegisterOnPageStartedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
-        channel_->InvokeMethod("onPageStarted",
-                               std::make_unique<flutter::EncodableValue>(args));
+        navigation_delegate_channel_->InvokeMethod(
+            "onPageStarted", std::make_unique<flutter::EncodableValue>(args));
       });
   webview_instance_->RegisterOnPageLoadedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
-        channel_->InvokeMethod("onPageFinished",
-                               std::make_unique<flutter::EncodableValue>(args));
+        navigation_delegate_channel_->InvokeMethod(
+            "onPageFinished", std::make_unique<flutter::EncodableValue>(args));
       });
   webview_instance_->RegisterOnProgressChangedHandler(
       [this](LWE::WebContainer* container, int progress) {
-        if (!has_progress_tracking_) {
-          return;
-        }
         flutter::EncodableMap args = {{flutter::EncodableValue("progress"),
                                        flutter::EncodableValue(progress)}};
-        channel_->InvokeMethod("onProgress",
-                               std::make_unique<flutter::EncodableValue>(args));
+        navigation_delegate_channel_->InvokeMethod(
+            "onProgress", std::make_unique<flutter::EncodableValue>(args));
       });
   webview_instance_->RegisterOnReceivedErrorHandler(
       [this](LWE::WebContainer* container, LWE::ResourceError error) {
@@ -266,8 +232,9 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
             {flutter::EncodableValue("failingUrl"),
              flutter::EncodableValue(error.GetUrl())},
         };
-        channel_->InvokeMethod("onWebResourceError",
-                               std::make_unique<flutter::EncodableValue>(args));
+        navigation_delegate_channel_->InvokeMethod(
+            "onWebResourceError",
+            std::make_unique<flutter::EncodableValue>(args));
       });
   webview_instance_->RegisterShouldOverrideUrlLoadingHandler(
       [this](LWE::WebContainer* view, const std::string& url) -> bool {
@@ -280,48 +247,11 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
              flutter::EncodableValue(true)},
         };
         auto result = std::make_unique<NavigationRequestResult>(url, this);
-        channel_->InvokeMethod("navigationRequest",
-                               std::make_unique<flutter::EncodableValue>(args),
-                               std::move(result));
+        navigation_delegate_channel_->InvokeMethod(
+            "navigationRequest",
+            std::make_unique<flutter::EncodableValue>(args), std::move(result));
         return true;
       });
-
-  webview_instance_->LoadURL(url);
-}
-
-void WebView::ApplySettings(const flutter::EncodableMap& settings) {
-  for (const auto& [key, value] : settings) {
-    if (std::holds_alternative<std::string>(key)) {
-      std::string string_key = std::get<std::string>(key);
-      if (string_key == "jsMode") {
-        // NOTE: Not supported by LWE on Tizen.
-      } else if (string_key == "hasNavigationDelegate") {
-        if (std::holds_alternative<bool>(value)) {
-          has_navigation_delegate_ = std::get<bool>(value);
-        }
-      } else if (string_key == "hasProgressTracking") {
-        if (std::holds_alternative<bool>(value)) {
-          has_progress_tracking_ = std::get<bool>(value);
-        }
-      } else if (string_key == "debuggingEnabled") {
-        // NOTE: Not supported by LWE on Tizen.
-      } else if (string_key == "gestureNavigationEnabled") {
-        // NOTE: Not supported by LWE on Tizen.
-      } else if (string_key == "allowsInlineMediaPlayback") {
-        // no-op inline media playback is always allowed on Tizen.
-      } else if (string_key == "userAgent") {
-        if (std::holds_alternative<std::string>(value)) {
-          LWE::Settings settings = webview_instance_->GetSettings();
-          settings.SetUserAgentString(std::get<std::string>(value));
-          webview_instance_->SetSettings(settings);
-        }
-      } else if (string_key == "zoomEnabled") {
-        // NOTE: Not supported by LWE on Tizen.
-      } else {
-        LOG_WARN("Unknown settings key: %s", string_key.c_str());
-      }
-    }
-  }
 }
 
 /**
@@ -332,16 +262,14 @@ void WebView::ApplySettings(const flutter::EncodableMap& settings) {
  * message over a method channel to the Dart code.
  */
 void WebView::RegisterJavaScriptChannelName(const std::string& name) {
-  LOG_DEBUG("Register a JavaScript channel: %s", name.c_str());
-
   auto on_message = [this, name](const std::string& message) -> std::string {
-    LOG_DEBUG("JavaScript channel message: %s", message.c_str());
     flutter::EncodableMap args = {
         {flutter::EncodableValue("channel"), flutter::EncodableValue(name)},
         {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
     };
-    channel_->InvokeMethod("javascriptChannelMessage",
-                           std::make_unique<flutter::EncodableValue>(args));
+    tizen_webview_channel_->InvokeMethod(
+        "javaScriptChannelMessage",
+        std::make_unique<flutter::EncodableValue>(args));
     return "success";
   };
   webview_instance_->AddJavaScriptInterface(name, "postMessage", on_message);
@@ -349,8 +277,13 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
 
 WebView::~WebView() { Dispose(); }
 
-std::string WebView::GetChannelName() {
-  return "plugins.flutter.io/webview_" + std::to_string(GetViewId());
+std::string WebView::GetTizenWebViewChannelName() {
+  return std::string(kTizenWebViewChannelName) + std::to_string(GetViewId());
+}
+
+std::string WebView::GetNavigationDelegateChannelName() {
+  return std::string(kTizenNavigationDelegateChannelName) +
+         std::to_string(GetViewId());
 }
 
 void WebView::Dispose() {
@@ -684,9 +617,8 @@ void WebView::InitWebView() {
 #endif
 }
 
-void WebView::HandleMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue>& method_call,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+void WebView::HandleTizenWebViewMethodCall(
+    const FlMethodCall& method_call, std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
     result->Error("Invalid operation",
                   "The webview instance has not been initialized.");
@@ -696,9 +628,16 @@ void WebView::HandleMethodCall(
   const std::string& method_name = method_call.method_name();
   const flutter::EncodableValue* arguments = method_call.arguments();
 
-  LOG_DEBUG("Handle a method call: %s", method_name.c_str());
-
-  if (method_name == "loadUrl") {
+  if (method_name == "javaScriptMode") {
+    // NOTE: Not supported by LWE on Tizen.
+    result->Success();
+  } else if (method_name == "hasNavigationDelegate") {
+    const auto* has_navigation_delegate = std::get_if<bool>(arguments);
+    if (has_navigation_delegate) {
+      has_navigation_delegate_ = *has_navigation_delegate;
+    }
+    result->Success();
+  } else if (method_name == "loadRequest") {
     std::string url;
     if (GetValueFromEncodableMap(arguments, "url", &url)) {
       webview_instance_->LoadURL(url);
@@ -706,12 +645,6 @@ void WebView::HandleMethodCall(
     } else {
       result->Error("Invalid argument", "No url provided.");
     }
-  } else if (method_name == "updateSettings") {
-    const auto* settings = std::get_if<flutter::EncodableMap>(arguments);
-    if (settings) {
-      ApplySettings(*settings);
-    }
-    result->Success();
   } else if (method_name == "canGoBack") {
     result->Success(flutter::EncodableValue(webview_instance_->CanGoBack()));
   } else if (method_name == "canGoForward") {
@@ -727,15 +660,14 @@ void WebView::HandleMethodCall(
     result->Success();
   } else if (method_name == "currentUrl") {
     result->Success(flutter::EncodableValue(webview_instance_->GetURL()));
-  } else if (method_name == "evaluateJavascript" ||
-             method_name == "runJavascriptReturningResult" ||
-             method_name == "runJavascript") {
+  } else if (method_name == "evaluateJavaScript" ||
+             method_name == "runJavaScriptReturningResult" ||
+             method_name == "runJavaScript") {
     const auto* javascript = std::get_if<std::string>(arguments);
     if (javascript) {
-      bool should_return = method_name != "runJavascript";
+      bool should_return = method_name != "runJavaScript";
       auto on_result = [result = result.release(),
                         should_return](std::string value) {
-        LOG_DEBUG("JavaScript evaluation result: %s", value.c_str());
         if (result) {
           if (should_return) {
             result->Success(flutter::EncodableValue(value));
@@ -749,25 +681,10 @@ void WebView::HandleMethodCall(
     } else {
       result->Error("Invalid argument", "The argument must be a string.");
     }
-  } else if (method_name == "addJavascriptChannels") {
-    const auto* channels = std::get_if<flutter::EncodableList>(arguments);
-    if (channels) {
-      for (flutter::EncodableValue channel : *channels) {
-        if (std::holds_alternative<std::string>(channel)) {
-          RegisterJavaScriptChannelName(std::get<std::string>(channel));
-        }
-      }
-    }
-    result->Success();
-  } else if (method_name == "removeJavascriptChannels") {
-    const auto* channels = std::get_if<flutter::EncodableList>(arguments);
-    if (channels) {
-      for (flutter::EncodableValue channel : *channels) {
-        if (std::holds_alternative<std::string>(channel)) {
-          webview_instance_->RemoveJavascriptInterface(
-              std::get<std::string>(channel), "postMessage");
-        }
-      }
+  } else if (method_name == "addJavaScriptChannel") {
+    const auto* channel = std::get_if<std::string>(arguments);
+    if (channel) {
+      RegisterJavaScriptChannelName(*channel);
     }
     result->Success();
   } else if (method_name == "clearCache") {
@@ -834,8 +751,23 @@ void WebView::HandleMethodCall(
     } else {
       result->Error("Invalid argument", "The argument must be a string.");
     }
-  } else if (method_name == "loadRequest") {
-    result->NotImplemented();
+  } else if (method_name == "backgroundColor") {
+    const auto* color = std::get_if<int32_t>(arguments);
+    if (color) {
+      LWE::Settings settings = webview_instance_->GetSettings();
+      settings.SetBaseBackgroundColor(*color >> 16 & 0xff, *color >> 8 & 0xff,
+                                      *color & 0xff, *color >> 24 & 0xff);
+      webview_instance_->SetSettings(settings);
+      result->Success();
+    }
+  } else if (method_name == "userAgent") {
+    const auto* userAgent = std::get_if<std::string>(arguments);
+    if (userAgent) {
+      LWE::Settings settings = webview_instance_->GetSettings();
+      settings.SetUserAgentString(*userAgent);
+      webview_instance_->SetSettings(settings);
+    }
+    result->Success();
   } else if (method_name == "setCookie") {
     result->NotImplemented();
   } else {
@@ -843,9 +775,8 @@ void WebView::HandleMethodCall(
   }
 }
 
-void WebView::HandleCookieMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue>& method_call,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
+                                     std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
     result->Error("Invalid operation",
                   "The webview instance has not been initialized.");
