@@ -199,8 +199,8 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
         license_url, reinterpret_cast<const void *>(&challenge_data[0]),
         static_cast<unsigned long>(challenge_data.length()), &ppb_response_,
         &pb_response_len_,
-        static_cast<DrmLicenseHelper::EDrmType>(drm_manager->drm_type_),
-        nullptr, nullptr);
+        static_cast<DrmLicenseHelper::DrmType>(drm_manager->drm_type_), nullptr,
+        nullptr);
     LOG_INFO("[DrmManager] drm_result: 0x%lx", drm_result);
     LOG_INFO("[DrmManager] ppb_response_: %s", ppb_response_);
     LOG_INFO("[DrmManager] pbResponse_len: %ld", pb_response_len_);
