@@ -29,8 +29,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
                          flutter::PluginRegistrar *plugin_registrar);
   virtual ~VideoPlayerTizenPlugin();
   std::optional<FlutterError> Initialize() override;
-  ErrorOr<std::unique_ptr<PlayerMessage>> Create(
-      const CreateMessage &createMsg) override;
+  ErrorOr<PlayerMessage> Create(const CreateMessage &createMsg) override;
   std::optional<FlutterError> Dispose(const PlayerMessage &playerMsg) override;
   std::optional<FlutterError> SetLooping(
       const LoopingMessage &loopingMsg) override;
@@ -40,8 +39,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
       const PlaybackSpeedMessage &speedMsg) override;
   std::optional<FlutterError> Play(const PlayerMessage &playerMsg) override;
   std::optional<FlutterError> Pause(const PlayerMessage &playerMsg) override;
-  ErrorOr<std::unique_ptr<PositionMessage>> Position(
-      const PlayerMessage &playerMsg) override;
+  ErrorOr<PositionMessage> Position(const PlayerMessage &playerMsg) override;
   std::optional<FlutterError> SeekTo(
       const PositionMessage &positionMsg) override;
   std::optional<FlutterError> SetMixWithOthers(
@@ -88,19 +86,18 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
   return {};
 }
 
-ErrorOr<std::unique_ptr<PlayerMessage>> VideoPlayerTizenPlugin::Create(
+ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     const CreateMessage &createMsg) {
   std::unique_ptr<VideoPlayer> player =
       std::make_unique<VideoPlayer>(registrar_ref_, createMsg);
   DrmManager::GetChallengeData(ChallengeCb);
-  std::unique_ptr<PlayerMessage> player_message =
-      std::make_unique<PlayerMessage>();
+  PlayerMessage player_message;
   int64_t playerId = player->Create();
   if (playerId != -1) {
     players_[playerId] = std::move(player);
-    player_message->set_player_id(playerId);
+    player_message.set_player_id(playerId);
   }
-  return ErrorOr<PlayerMessage>::MakeWithUniquePtr(std::move(player_message));
+  return player_message;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
@@ -158,15 +155,15 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
   return {};
 }
 
-ErrorOr<std::unique_ptr<PositionMessage>> VideoPlayerTizenPlugin::Position(
+ErrorOr<PositionMessage> VideoPlayerTizenPlugin::Position(
     const PlayerMessage &playerMsg) {
-  std::unique_ptr<PositionMessage> result = std::make_unique<PositionMessage>();
+  PositionMessage result;
   auto iter = players_.find(playerMsg.player_id());
   if (iter != players_.end()) {
-    result->set_player_id(playerMsg.player_id());
-    result->set_position(iter->second->GetPosition());
+    result.set_player_id(playerMsg.player_id());
+    result.set_position(iter->second->GetPosition());
   }
-  return ErrorOr<PositionMessage>::MakeWithUniquePtr(std::move(result));
+  return result;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
