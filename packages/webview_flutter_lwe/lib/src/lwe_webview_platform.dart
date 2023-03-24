@@ -5,37 +5,37 @@
 
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-import 'tizen_webview_controller.dart';
-import 'tizen_webview_cookie_manager.dart';
+import 'lwe_webview_controller.dart';
+import 'lwe_webview_cookie_manager.dart';
 
-/// An implementation of [WebViewPlatform] using the Tizen WebView API.
+/// An implementation of [WebViewPlatform] using the Lightweight Web Engine API.
 class LweWebViewPlatform extends WebViewPlatform {
   @override
   PlatformWebViewController createPlatformWebViewController(
     PlatformWebViewControllerCreationParams params,
   ) {
-    return TizenWebViewController(params);
+    return LweWebViewController(params);
   }
 
   @override
   PlatformNavigationDelegate createPlatformNavigationDelegate(
     PlatformNavigationDelegateCreationParams params,
   ) {
-    return TizenNavigationDelegate(params);
+    return LweNavigationDelegate(params);
   }
 
   @override
   PlatformWebViewWidget createPlatformWebViewWidget(
     PlatformWebViewWidgetCreationParams params,
   ) {
-    return TizenWebViewWidget(params);
+    return LweWebViewWidget(params);
   }
 
   @override
   PlatformWebViewCookieManager createPlatformCookieManager(
     PlatformWebViewCookieManagerCreationParams params,
   ) {
-    return TizenWebViewCookieManager(params);
+    return LweWebViewCookieManager(params);
   }
 
   /// Gets called when the plugin is registered.

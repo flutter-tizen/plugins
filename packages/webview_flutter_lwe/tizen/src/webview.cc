@@ -19,10 +19,12 @@
 #include "lwe/PlatformIntegrationData.h"
 #include "webview_factory.h"
 
-static constexpr size_t kBufferPoolSize = 5;
-constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
-constexpr char kTizenNavigationDelegateChannelName[] =
-    "plugins.flutter.io/tizen_webview_navigation_delegate_";
+namespace {
+
+constexpr size_t kBufferPoolSize = 5;
+constexpr char kLweWebViewChannelName[] = "plugins.flutter.io/lwe_webview_";
+constexpr char kLweNavigationDelegateChannelName[] =
+    "plugins.flutter.io/lwe_webview_navigation_delegate_";
 
 extern "C" size_t LWE_EXPORT createWebViewInstance(
     unsigned x, unsigned y, unsigned width, unsigned height,
@@ -153,6 +155,8 @@ static bool IsRunningOnEmulator() {
   return result;
 }
 
+}  // namespace
+
 WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
                  flutter::TextureRegistrar* texture_registrar, double width,
                  double height, const flutter::EncodableValue& params)
@@ -178,12 +182,12 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   InitWebView();
 
-  tizen_webview_channel_ = std::make_unique<FlMethodChannel>(
-      GetPluginRegistrar()->messenger(), GetTizenWebViewChannelName(),
+  webview_channel_ = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(), GetWebViewChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
-  tizen_webview_channel_->SetMethodCallHandler(
+  webview_channel_->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
-        webview->HandleTizenWebViewMethodCall(call, std::move(result));
+        webview->HandleWebViewMethodCall(call, std::move(result));
       });
 
   navigation_delegate_channel_ = std::make_unique<FlMethodChannel>(
@@ -192,7 +196,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   auto cookie_channel = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(),
-      "plugins.flutter.io/tizen_cookie_manager",
+      "plugins.flutter.io/lwe_cookie_manager",
       &flutter::StandardMethodCodec::GetInstance());
   cookie_channel->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
@@ -267,7 +271,7 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
         {flutter::EncodableValue("channel"), flutter::EncodableValue(name)},
         {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
     };
-    tizen_webview_channel_->InvokeMethod(
+    webview_channel_->InvokeMethod(
         "javaScriptChannelMessage",
         std::make_unique<flutter::EncodableValue>(args));
     return "success";
@@ -277,12 +281,12 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
 
 WebView::~WebView() { Dispose(); }
 
-std::string WebView::GetTizenWebViewChannelName() {
-  return std::string(kTizenWebViewChannelName) + std::to_string(GetViewId());
+std::string WebView::GetWebViewChannelName() {
+  return std::string(kLweWebViewChannelName) + std::to_string(GetViewId());
 }
 
 std::string WebView::GetNavigationDelegateChannelName() {
-  return std::string(kTizenNavigationDelegateChannelName) +
+  return std::string(kLweNavigationDelegateChannelName) +
          std::to_string(GetViewId());
 }
 
@@ -617,8 +621,8 @@ void WebView::InitWebView() {
 #endif
 }
 
-void WebView::HandleTizenWebViewMethodCall(
-    const FlMethodCall& method_call, std::unique_ptr<FlMethodResult> result) {
+void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
+                                      std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
     result->Error("Invalid operation",
                   "The webview instance has not been initialized.");
@@ -761,10 +765,10 @@ void WebView::HandleTizenWebViewMethodCall(
       result->Success();
     }
   } else if (method_name == "userAgent") {
-    const auto* userAgent = std::get_if<std::string>(arguments);
-    if (userAgent) {
+    const auto* user_agent = std::get_if<std::string>(arguments);
+    if (user_agent) {
       LWE::Settings settings = webview_instance_->GetSettings();
-      settings.SetUserAgentString(*userAgent);
+      settings.SetUserAgentString(*user_agent);
       webview_instance_->SetSettings(settings);
     }
     result->Success();

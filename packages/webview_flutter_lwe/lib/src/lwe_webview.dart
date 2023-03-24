@@ -9,17 +9,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tizen/widgets.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-/// The channel name of [TizenWebView].
-const String kTizenWebViewChannelName = 'plugins.flutter.io/tizen_webview_';
+/// The channel name of [LweWebView].
+const String kLweWebViewChannelName = 'plugins.flutter.io/lwe_webview_';
 
-/// A Tizen webview that displays web pages.
-class TizenWebView {
-  /// Whether the [TizenNavigationDelegate] is set by the [PlatformWebViewController].
+/// A lwe webview that displays web pages.
+class LweWebView {
+  /// Whether the [LweNavigationDelegate] is set by the [PlatformWebViewController].
   ///
   /// Defaults to false.
   bool hasNavigationDelegate = false;
 
-  late final MethodChannel _tizenWebViewChannel;
+  late final MethodChannel _lweWebViewChannel;
   bool _isCreated = false;
 
   final Map<String, JavaScriptChannelParams> _javaScriptChannelParams =
@@ -52,15 +52,15 @@ class TizenWebView {
       return null;
     }
 
-    return _tizenWebViewChannel.invokeMethod<T>(method, arguments);
+    return _lweWebViewChannel.invokeMethod<T>(method, arguments);
   }
 
-  /// Called when [TizenView] is created. Invokes the requested method call before [TizenWebView] is created.
+  /// Called when [TizenView] is created. Invokes the requested method call before [LweWebView] is created.
   void onCreate(int viewId) {
     _isCreated = true;
-    _tizenWebViewChannel =
-        MethodChannel(kTizenWebViewChannelName + viewId.toString());
-    _tizenWebViewChannel.setMethodCallHandler(_onMethodCall);
+    _lweWebViewChannel =
+        MethodChannel(kLweWebViewChannelName + viewId.toString());
+    _lweWebViewChannel.setMethodCallHandler(_onMethodCall);
 
     _callPendingMethodCalls();
   }
@@ -73,7 +73,7 @@ class TizenWebView {
     }
 
     _pendingMethodCalls.forEach((String method, dynamic arguments) {
-      _tizenWebViewChannel.invokeMethod<void>(method, arguments);
+      _lweWebViewChannel.invokeMethod<void>(method, arguments);
     });
     _pendingMethodCalls.clear();
   }

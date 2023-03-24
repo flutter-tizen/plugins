@@ -54,13 +54,13 @@ class WebView : public PlatformView {
                                                        size_t height);
 
  private:
-  void HandleTizenWebViewMethodCall(const FlMethodCall& method_call,
-                                    std::unique_ptr<FlMethodResult> result);
+  void HandleWebViewMethodCall(const FlMethodCall& method_call,
+                               std::unique_ptr<FlMethodResult> result);
   void HandleCookieMethodCall(const FlMethodCall& method_call,
                               std::unique_ptr<FlMethodResult> result);
 
   void RegisterJavaScriptChannelName(const std::string& name);
-  std::string GetTizenWebViewChannelName();
+  std::string GetWebViewChannelName();
   std::string GetNavigationDelegateChannelName();
 
   void InitWebView();
@@ -74,7 +74,7 @@ class WebView : public PlatformView {
   BufferUnit* rendered_surface_ = nullptr;
   bool is_mouse_lbutton_down_ = false;
   bool has_navigation_delegate_ = false;
-  std::unique_ptr<FlMethodChannel> tizen_webview_channel_;
+  std::unique_ptr<FlMethodChannel> webview_channel_;
   std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;

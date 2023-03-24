@@ -7,13 +7,13 @@ import 'package:flutter/services.dart';
 
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-/// Handles all cookie operations for the Tizen platform.
-class TizenWebViewCookieManager extends PlatformWebViewCookieManager {
-  /// Creates a new [TizenWebViewCookieManager].
-  TizenWebViewCookieManager(super.params) : super.implementation();
+/// Handles all cookie operations for the current platform.
+class LweWebViewCookieManager extends PlatformWebViewCookieManager {
+  /// Creates a new [LweWebViewCookieManager].
+  LweWebViewCookieManager(super.params) : super.implementation();
 
   static const MethodChannel _cookieManagerChannel =
-      MethodChannel('plugins.flutter.io/tizen_cookie_manager');
+      MethodChannel('plugins.flutter.io/lwe_cookie_manager');
 
   @override
   Future<bool> clearCookies() async {
@@ -28,7 +28,7 @@ class TizenWebViewCookieManager extends PlatformWebViewCookieManager {
           'The path property for the provided cookie was not given a legal value.');
     }
     throw UnimplementedError(
-        'This version of `TizenWebViewCookieManager` currently has no '
+        'This version of `LweWebViewCookieManager` currently has no '
         'implementation for setCookie method.');
   }
 

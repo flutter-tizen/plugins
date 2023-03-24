@@ -10,26 +10,26 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tizen/widgets.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-import 'tizen_webview.dart';
+import 'lwe_webview.dart';
 
-/// The channel name of [TizenNavigationDelegate].
-const String kTizenNavigationDelegateChannelName =
-    'plugins.flutter.io/tizen_webview_navigation_delegate_';
+/// The channel name of [LweNavigationDelegate].
+const String kLweNavigationDelegateChannelName =
+    'plugins.flutter.io/lwe_webview_navigation_delegate_';
 
-/// An implementation of [PlatformWebViewController] the Tizen WebView API.
-class TizenWebViewController extends PlatformWebViewController {
-  /// Constructs a [TizenWebViewController].
-  TizenWebViewController(super.params)
-      : _webview = TizenWebView(),
+/// An implementation of [PlatformWebViewController] using the Lightweight Web Engine API.
+class LweWebViewController extends PlatformWebViewController {
+  /// Constructs a [LweWebViewController].
+  LweWebViewController(super.params)
+      : _webview = LweWebView(),
         super.implementation();
 
-  final TizenWebView _webview;
-  late TizenNavigationDelegate _tizenNavigationDelegate;
+  final LweWebView _webview;
+  late LweNavigationDelegate _lweNavigationDelegate;
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
     if (_webview.hasNavigationDelegate) {
-      _tizenNavigationDelegate.onCreate(viewId);
+      _lweNavigationDelegate.onCreate(viewId);
     }
     _webview.onCreate(viewId);
   }
@@ -75,7 +75,7 @@ class TizenWebViewController extends PlatformWebViewController {
     // so that the linter will flag the switch as needing an update.
     // ignore: dead_code
     throw UnimplementedError(
-        'This version of `TizenWebViewController` currently has no '
+        'This version of `LweWebViewController` currently has no '
         'implementation for HTTP method ${params.method.serialize()} in '
         'loadRequest.');
   }
@@ -104,7 +104,7 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> clearLocalStorage() {
     throw UnimplementedError(
-        'This version of `TizenWebViewController` currently has no '
+        'This version of `LweWebViewController` currently has no '
         'implementation.');
   }
 
@@ -130,8 +130,8 @@ class TizenWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setPlatformNavigationDelegate(
-      covariant TizenNavigationDelegate handler) async {
-    _tizenNavigationDelegate = handler;
+      covariant LweNavigationDelegate handler) async {
+    _lweNavigationDelegate = handler;
     _webview.hasNavigationDelegate = true;
   }
 
@@ -153,10 +153,10 @@ class TizenWebViewController extends PlatformWebViewController {
       _webview.setUserAgent(userAgent);
 }
 
-/// An implementation of [PlatformWebViewWidget] with the Tizen WebView API.
-class TizenWebViewWidget extends PlatformWebViewWidget {
-  /// Constructs a [TizenWebViewWidget].
-  TizenWebViewWidget(super.params) : super.implementation();
+/// An implementation of [PlatformWebViewWidget] with the Lightweight Web Engine API.
+class LweWebViewWidget extends PlatformWebViewWidget {
+  /// Constructs a [LweWebViewWidget].
+  LweWebViewWidget(super.params) : super.implementation();
 
   @override
   Widget build(BuildContext context) {
@@ -164,8 +164,8 @@ class TizenWebViewWidget extends PlatformWebViewWidget {
       key: params.key,
       viewType: 'plugins.flutter.io/webview',
       onPlatformViewCreated: (int id) {
-        final TizenWebViewController controller =
-            params.controller as TizenWebViewController;
+        final LweWebViewController controller =
+            params.controller as LweWebViewController;
         controller.onCreate(id);
       },
       layoutDirection: params.layoutDirection,
@@ -176,9 +176,9 @@ class TizenWebViewWidget extends PlatformWebViewWidget {
 
 /// Error returned in `WebView.onWebResourceError` when a web resource loading error has occurred.
 @immutable
-class TizenWebResourceError extends WebResourceError {
-  /// Creates a new [TizenWebResourceError].
-  TizenWebResourceError._({
+class LweWebResourceError extends WebResourceError {
+  /// Creates a new [LweWebResourceError].
+  LweWebResourceError._({
     required super.errorCode,
     required super.description,
     super.isForMainFrame,
@@ -254,10 +254,10 @@ class TizenWebResourceError extends WebResourceError {
 }
 
 /// A place to register callback methods responsible to handle navigation events
-/// triggered by the [TizenWebView].
-class TizenNavigationDelegate extends PlatformNavigationDelegate {
-  /// Creates a new [TizenNavigationDelegate].
-  TizenNavigationDelegate(super.params) : super.implementation();
+/// triggered by the [LweWebView].
+class LweNavigationDelegate extends PlatformNavigationDelegate {
+  /// Creates a new [LweNavigationDelegate].
+  LweNavigationDelegate(super.params) : super.implementation();
 
   late final MethodChannel _navigationDelegateChannel;
   PageEventCallback? _onPageFinished;
@@ -269,7 +269,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
     _navigationDelegateChannel =
-        MethodChannel(kTizenNavigationDelegateChannelName + viewId.toString());
+        MethodChannel(kLweNavigationDelegateChannelName + viewId.toString());
     _navigationDelegateChannel.setMethodCallHandler((MethodCall call) async {
       final Map<String, Object?> arguments =
           (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
@@ -294,7 +294,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
           return null;
         case 'onWebResourceError':
           if (_onWebResourceError != null) {
-            _onWebResourceError!(TizenWebResourceError._(
+            _onWebResourceError!(LweWebResourceError._(
               errorCode: arguments['errorCode']! as int,
               description: arguments['description']! as String,
               failingUrl: arguments['failingUrl']! as String,

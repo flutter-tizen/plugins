@@ -16,7 +16,7 @@ import 'tizen_webview.dart';
 const String kTizenNavigationDelegateChannelName =
     'plugins.flutter.io/tizen_webview_navigation_delegate_';
 
-/// An implementation of [PlatformWebViewController] the Tizen WebView API.
+/// An implementation of [PlatformWebViewController] using the Tizen WebView API.
 class TizenWebViewController extends PlatformWebViewController {
   /// Constructs a [TizenWebViewController].
   TizenWebViewController(super.params)
