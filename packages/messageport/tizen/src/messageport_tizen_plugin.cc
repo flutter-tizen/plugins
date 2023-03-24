@@ -143,6 +143,10 @@ class MessageportTizenPlugin : public flutter::Plugin {
     const auto &method_name = method_call.method_name();
     const auto *arguments =
         std::get_if<flutter::EncodableMap>(method_call.arguments());
+    if (!arguments) {
+      result->Error("Invalid arguments", "No arguments provided.");
+      return;
+    }
 
     if (method_name == "createLocal") {
       CreateLocal(arguments, std::move(result));
