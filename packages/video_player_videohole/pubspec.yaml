@@ -25,5 +25,4 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pigeon:
-  ffigen: ^4.1.0
+  pigeon: ^6.0.1

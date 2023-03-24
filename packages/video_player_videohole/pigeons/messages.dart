@@ -5,11 +5,10 @@
 import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(PigeonOptions(
-    dartOut: 'lib/src/messages.dart',
-    dartTestOut: 'test/test_api.dart',
-    //cppHeaderOut: 'tizen/src/messages.h',
-    //cppSourceOut: 'tizen/src/messages.cc',
-    copyrightHeader: 'pigeons/copyright.txt'))
+  dartOut: 'lib/src/messages.dart',
+  cppHeaderOut: 'tizen/src/messages.h',
+  cppSourceOut: 'tizen/src/messages.cc',
+))
 class PlayerMessage {
   PlayerMessage(this.playerId);
   int playerId;
@@ -64,7 +63,7 @@ class GeometryMessage {
   int h;
 }
 
-@HostApi(dartHostTestHandler: 'TestHostVideoPlayerApi')
+@HostApi()
 abstract class VideoPlayerApi {
   void initialize();
   PlayerMessage create(CreateMessage msg);
