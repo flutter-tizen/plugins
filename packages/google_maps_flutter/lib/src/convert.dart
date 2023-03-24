@@ -3,6 +3,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: avoid_dynamic_calls
+
 part of google_maps_flutter_tizen;
 
 // Indices in the plugin side don't match with the ones

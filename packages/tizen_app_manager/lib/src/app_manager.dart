@@ -46,9 +46,9 @@ class AppManager {
 
   /// The app ID of the currently running app.
   static Future<String> get currentAppId async {
-    final String appId =
-        await _channel.invokeMethod<String>('getCurrentAppId') ?? '';
-    return appId;
+    final String? appId =
+        await _channel.invokeMethod<String>('getCurrentAppId');
+    return appId!;
   }
 
   /// Gets the information of app specified by the [appId].
@@ -57,23 +57,22 @@ class AppManager {
       throw ArgumentError('Must not be empty', 'appId');
     }
 
-    final dynamic map = await _channel.invokeMapMethod<String, dynamic>(
-            'getAppInfo', <String, String>{'appId': appId}) ??
-        <String, dynamic>{};
-
-    return AppInfo.fromMap(map);
+    final Map<String, dynamic>? app =
+        await _channel.invokeMapMethod<String, dynamic>(
+      'getAppInfo',
+      <String, String>{'appId': appId},
+    );
+    return AppInfo.fromMap(app!);
   }
 
   /// Gets the information of all apps installed on a device.
   static Future<List<AppInfo>> getInstalledApps() async {
-    final List<dynamic>? apps =
-        await _channel.invokeMethod<List<dynamic>>('getInstalledApps');
+    final List<Map<dynamic, dynamic>>? apps = await _channel
+        .invokeListMethod<Map<dynamic, dynamic>>('getInstalledApps');
 
     final List<AppInfo> list = <AppInfo>[];
-    if (apps != null) {
-      for (final dynamic app in apps) {
-        list.add(AppInfo.fromMap(app));
-      }
+    for (final Map<dynamic, dynamic> app in apps!) {
+      list.add(AppInfo.fromMap(app.cast<String, dynamic>()));
     }
     return list;
   }
@@ -84,21 +83,22 @@ class AppManager {
       throw ArgumentError('Must not be empty', 'appId');
     }
 
-    final bool isRunning = await _channel.invokeMethod<bool>(
-            'isRunning', <String, String>{'appId': appId}) ??
-        false;
-    return isRunning;
+    final bool? isRunning = await _channel
+        .invokeMethod<bool>('isRunning', <String, String>{'appId': appId});
+    return isRunning ?? false;
   }
 
   /// A stream of events occurring when any application is launched.
   static Stream<AppRunningContext> get onAppLaunched => _launchEventChannel
       .receiveBroadcastStream()
-      .map((dynamic map) => AppRunningContext.fromMap(map));
+      .map((dynamic event) => AppRunningContext.fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
 
   /// A stream of events occurring when any application is terminated.
   static Stream<AppRunningContext> get onAppTerminated => _terminateEventChannel
       .receiveBroadcastStream()
-      .map((dynamic map) => AppRunningContext.fromMap(map));
+      .map((dynamic event) => AppRunningContext.fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
 }
 
 /// Represents general information on an installed application.
@@ -144,7 +144,7 @@ class AppInfo {
   final Map<dynamic, dynamic> metadata;
 
   /// Creates an instance of [AppInfo] with the map parameter.
-  static AppInfo fromMap(dynamic map) {
+  static AppInfo fromMap(Map<String, dynamic> map) {
     return AppInfo(
       appId: map['appId'] as String,
       packageId: map['packageId'] as String,
@@ -189,7 +189,7 @@ class AppRunningContext {
   AppState get appState => AppState.values[_context.getAppState()];
 
   /// Creates an instance of [AppRunningContext] with map.
-  static AppRunningContext fromMap(dynamic map) {
+  static AppRunningContext fromMap(Map<String, dynamic> map) {
     final String appId = map['appId'] as String;
     final int handle = map['handle'] as int;
     return AppRunningContext(appId: appId, handleAddress: handle);

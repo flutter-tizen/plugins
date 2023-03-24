@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: public_member_api_docs
+// ignore_for_file: public_member_api_docs, omit_local_variable_types
 
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
@@ -34,7 +34,7 @@ abstract class _Delegate extends Parcelable {
   int id = 0;
   bool once = false;
   int sequenceId = 0;
-  Function? callback;
+  Function callback;
   static int sequenceNum = 0;
 
   Future<void> onReceivedEvent(Parcel parcel);
@@ -65,7 +65,7 @@ class _NotifyCallback extends _Delegate {
     final String sender = parcel.readString();
     final String message = parcel.readString();
 
-    callback?.call(sender, message);
+    (callback as NotifyCallback)(sender, message);
   }
 }
 
@@ -98,15 +98,6 @@ class Message extends ProxyBase {
     }
   }
 
-  Parcel _consumeCommand(Port port) {
-    final Parcel parcel = Parcel.fromPort(port);
-    final int cmd = parcel.readInt32();
-    if (cmd != _MethodId.result.id) {
-      throw Exception('The received parcel is invalid ($cmd).');
-    }
-    return parcel;
-  }
-
   void disposeCallback(Function callback) {
     _delegates
         .removeWhere((_Delegate delegate) => delegate.callback == callback);
@@ -135,7 +126,11 @@ class Message extends ProxyBase {
 
     late Parcel parcelReceived;
     while (true) {
-      parcelReceived = _consumeCommand(port);
+      parcelReceived = Parcel.fromPort(port);
+      final int cmd = parcelReceived.readInt32();
+      if (cmd != _MethodId.result.id) {
+        continue;
+      }
       final ParcelHeader headerReceived = parcelReceived.header;
       if (headerReceived.tag.isEmpty) {
         break;
@@ -180,7 +175,11 @@ class Message extends ProxyBase {
 
     late Parcel parcelReceived;
     while (true) {
-      parcelReceived = _consumeCommand(port);
+      parcelReceived = Parcel.fromPort(port);
+      final int cmd = parcelReceived.readInt32();
+      if (cmd != _MethodId.result.id) {
+        continue;
+      }
       final ParcelHeader headerReceived = parcelReceived.header;
       if (headerReceived.tag.isEmpty) {
         break;

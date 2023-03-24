@@ -12,10 +12,6 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 /// The channel name of [TizenWebView].
 const String kTizenWebViewChannelName = 'plugins.flutter.io/tizen_webview_';
 
-/// Signature for callbacks that report a method calls by navigation delegate method channel.
-typedef NavigationDelegateMethodChannelCallback = Future<dynamic> Function(
-    MethodCall method);
-
 /// A Tizen webview that displays web pages.
 class TizenWebView {
   /// Whether the [TizenNavigationDelegate] is set by the [PlatformWebViewController].
@@ -33,8 +29,10 @@ class TizenWebView {
   Future<bool?> _onMethodCall(MethodCall call) async {
     switch (call.method) {
       case 'javaScriptChannelMessage':
-        final String channel = call.arguments['channel']! as String;
-        final String message = call.arguments['message']! as String;
+        final Map<String, Object?> arguments =
+            (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
+        final String channel = arguments['channel']! as String;
+        final String message = arguments['message']! as String;
         if (_javaScriptChannelParams.containsKey(channel)) {
           _javaScriptChannelParams[channel]
               ?.onMessageReceived(JavaScriptMessage(message: message));
@@ -95,7 +93,7 @@ class TizenWebView {
     String html, {
     String? baseUrl,
   }) {
-    return _invokeChannelMethod<void>('loadHtmlString', <String, dynamic>{
+    return _invokeChannelMethod<void>('loadHtmlString', <String, Object?>{
       'html': html,
       'baseUrl': baseUrl,
     });
@@ -139,28 +137,29 @@ class TizenWebView {
   /// Returns the title of the currently loaded page.
   Future<String?> getTitle() => _invokeChannelMethod<String>('getTitle');
 
-  /// Set the scrolled position of this view.
+  /// Sets the scrolled position of this view.
   Future<void> scrollTo(int x, int y) =>
       _invokeChannelMethod<void>('scrollTo', <String, int>{
         'x': x,
         'y': y,
       });
 
-  /// Move the scrolled position of this view.
+  /// Moves the scrolled position of this view.
   Future<void> scrollBy(int x, int y) =>
       _invokeChannelMethod<void>('scrollBy', <String, int>{
         'x': x,
         'y': y,
       });
 
-  /// Return the set scroll position of this view.
+  /// Returns the scroll position of this view set by [scrollTo].
   Future<Offset> getScrollPosition() async {
-    final dynamic position =
-        await _invokeChannelMethod<dynamic>('getScrollPosition');
+    final Map<String, Object?>? position =
+        (await _invokeChannelMethod<Map<Object?, Object?>>('getScrollPosition'))
+            ?.cast<String, Object?>();
     if (position == null) {
       return Offset.zero;
     }
-    return Offset(position['x'] as double, position['y'] as double);
+    return Offset(position['x']! as double, position['y']! as double);
   }
 
   /// Sets the background color of this WebView.

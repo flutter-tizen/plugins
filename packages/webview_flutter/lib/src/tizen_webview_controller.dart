@@ -271,31 +271,33 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
     _navigationDelegateChannel =
         MethodChannel(kTizenNavigationDelegateChannelName + viewId.toString());
     _navigationDelegateChannel.setMethodCallHandler((MethodCall call) async {
+      final Map<String, Object?> arguments =
+          (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
       switch (call.method) {
         case 'navigationRequest':
-          return _handleNavigation(call.arguments['url']! as String,
-              isForMainFrame: call.arguments['isForMainFrame']! as bool);
+          return _handleNavigation(arguments['url']! as String,
+              isForMainFrame: arguments['isForMainFrame']! as bool);
         case 'onPageFinished':
           if (_onPageFinished != null) {
-            _onPageFinished!(call.arguments['url']! as String);
+            _onPageFinished!(arguments['url']! as String);
           }
           return null;
         case 'onProgress':
           if (_onProgress != null) {
-            _onProgress!(call.arguments['progress']! as int);
+            _onProgress!(arguments['progress']! as int);
           }
           return null;
         case 'onPageStarted':
           if (_onPageStarted != null) {
-            _onPageStarted!(call.arguments['url']! as String);
+            _onPageStarted!(arguments['url']! as String);
           }
           return null;
         case 'onWebResourceError':
           if (_onWebResourceError != null) {
             _onWebResourceError!(TizenWebResourceError._(
-              errorCode: call.arguments['errorCode']! as int,
-              description: call.arguments['description']! as String,
-              failingUrl: call.arguments['failingUrl']! as String,
+              errorCode: arguments['errorCode']! as int,
+              description: arguments['description']! as String,
+              failingUrl: arguments['failingUrl']! as String,
               isForMainFrame: true,
             ));
           }

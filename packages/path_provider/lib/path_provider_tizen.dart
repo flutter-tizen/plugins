@@ -61,7 +61,7 @@ class PathProviderPlugin extends PathProviderPlatform {
       case StorageDirectory.podcasts:
       case StorageDirectory.alarms:
       case StorageDirectory.notifications:
-      default:
+      case null:
         dirType = storage_directory_e.STORAGE_DIRECTORY_OTHERS;
         break;
     }
