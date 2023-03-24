@@ -1,3 +1,7 @@
+## Next
+
+* Refactor the C++ code.
+
 ## 0.2.0
 
 * Deprecate `TizenMessagePort.createLocalPort` and `TizenMessagePort.connectToRemotePort`
