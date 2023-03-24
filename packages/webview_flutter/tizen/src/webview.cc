@@ -19,10 +19,6 @@
 
 namespace {
 
-typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
-typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
-typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
-
 constexpr size_t kBufferPoolSize = 5;
 constexpr char kEwkInstance[] = "ewk_instance";
 constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
@@ -139,7 +135,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   webview_channel_->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
-        webview->HandleTizenWebViewMethodCall(call, std::move(result));
+        webview->HandleWebViewMethodCall(call, std::move(result));
       });
 
   navigation_delegate_channel_ = std::make_unique<FlMethodChannel>(
@@ -338,8 +334,8 @@ void WebView::InitWebView() {
   evas_object_data_set(webview_instance_, kEwkInstance, this);
 }
 
-void WebView::HandleTizenWebViewMethodCall(
-    const FlMethodCall& method_call, std::unique_ptr<FlMethodResult> result) {
+void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
+                                      std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
     result->Error("Invalid operation",
                   "The webview instance has not been initialized.");
