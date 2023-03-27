@@ -11,7 +11,7 @@ dependencies:
   cupertino_icons: ^1.0.3
   flutter:
     sdk: flutter
-  flutter_webrtc: ^0.9.18
+  flutter_webrtc: ^0.9.23
   flutter_webrtc_tizen:
     path: ../../
   http: ^0.13.3
