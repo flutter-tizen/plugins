@@ -151,7 +151,7 @@ class LweWebView {
         'y': y,
       });
 
-  /// Returns the scroll position of this view set by [scrollTo].
+  /// Returns the current scroll position of this view.
   Future<Offset> getScrollPosition() async {
     final Map<String, Object?>? position =
         (await _invokeChannelMethod<Map<Object?, Object?>>('getScrollPosition'))

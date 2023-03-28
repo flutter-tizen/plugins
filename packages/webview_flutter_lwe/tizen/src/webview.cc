@@ -69,63 +69,6 @@ class NavigationRequestResult : public FlMethodResult {
   WebView* webview_;
 };
 
-enum class ResourceErrorType {
-  NoError,
-  UnknownError,
-  HostLookupError,
-  UnsupportedAuthSchemeError,
-  AuthenticationError,
-  ProxyAuthenticationError,
-  ConnectError,
-  IOError,
-  TimeoutError,
-  RedirectLoopError,
-  UnsupportedSchemeError,
-  FailedSSLHandshakeError,
-  BadURLError,
-  FileError,
-  FileNotFoundError,
-  TooManyRequestError,
-};
-
-static std::string ErrorCodeToString(int error_code) {
-  switch (ResourceErrorType(error_code)) {
-    case ResourceErrorType::AuthenticationError:
-      return "authentication";
-    case ResourceErrorType::BadURLError:
-      return "badUrl";
-    case ResourceErrorType::ConnectError:
-      return "connect";
-    case ResourceErrorType::FailedSSLHandshakeError:
-      return "failedSslHandshake";
-    case ResourceErrorType::FileError:
-      return "file";
-    case ResourceErrorType::FileNotFoundError:
-      return "fileNotFound";
-    case ResourceErrorType::HostLookupError:
-      return "hostLookup";
-    case ResourceErrorType::IOError:
-      return "io";
-    case ResourceErrorType::ProxyAuthenticationError:
-      return "proxyAuthentication";
-    case ResourceErrorType::RedirectLoopError:
-      return "redirectLoop";
-    case ResourceErrorType::TimeoutError:
-      return "timeout";
-    case ResourceErrorType::TooManyRequestError:
-      return "tooManyRequests";
-    case ResourceErrorType::UnknownError:
-      return "unknown";
-    case ResourceErrorType::UnsupportedAuthSchemeError:
-      return "unsupportedAuthScheme";
-    case ResourceErrorType::UnsupportedSchemeError:
-      return "unsupportedScheme";
-    default:
-      LOG_ERROR("Unknown error type: %d", error_code);
-      return "unknown";
-  }
-}
-
 template <typename T>
 static bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
                                      std::string key, T* out) {
@@ -231,8 +174,6 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
              flutter::EncodableValue(error.GetErrorCode())},
             {flutter::EncodableValue("description"),
              flutter::EncodableValue(error.GetDescription())},
-            {flutter::EncodableValue("errorType"),
-             flutter::EncodableValue(ErrorCodeToString(error.GetErrorCode()))},
             {flutter::EncodableValue("failingUrl"),
              flutter::EncodableValue(error.GetUrl())},
         };
