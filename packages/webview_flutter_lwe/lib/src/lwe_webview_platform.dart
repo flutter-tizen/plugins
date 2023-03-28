@@ -8,7 +8,7 @@ import 'package:webview_flutter_platform_interface/webview_flutter_platform_inte
 import 'lwe_webview_controller.dart';
 import 'lwe_webview_cookie_manager.dart';
 
-/// An implementation of [WebViewPlatform] using the Lightweight Web Engine API.
+/// An implementation of [WebViewPlatform] using the Lightweight Web Engine.
 class LweWebViewPlatform extends WebViewPlatform {
   @override
   PlatformWebViewController createPlatformWebViewController(

@@ -16,7 +16,7 @@ import 'lwe_webview.dart';
 const String kLweNavigationDelegateChannelName =
     'plugins.flutter.io/lwe_webview_navigation_delegate_';
 
-/// An implementation of [PlatformWebViewController] using the Lightweight Web Engine API.
+/// An implementation of [PlatformWebViewController] using the Lightweight Web Engine.
 class LweWebViewController extends PlatformWebViewController {
   /// Constructs a [LweWebViewController].
   LweWebViewController(super.params)
@@ -153,7 +153,7 @@ class LweWebViewController extends PlatformWebViewController {
       _webview.setUserAgent(userAgent);
 }
 
-/// An implementation of [PlatformWebViewWidget] with the Lightweight Web Engine API.
+/// An implementation of [PlatformWebViewWidget] with the Lightweight Web Engine.
 class LweWebViewWidget extends PlatformWebViewWidget {
   /// Constructs a [LweWebViewWidget].
   LweWebViewWidget(super.params) : super.implementation();
