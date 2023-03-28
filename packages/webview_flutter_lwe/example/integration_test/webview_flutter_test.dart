@@ -9,13 +9,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-// TODO(a14n): remove this import once Flutter 3.1 or later reaches stable (including flutter/flutter#104231)
-// ignore: unnecessary_import
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -41,7 +37,6 @@ Future<void> main() async {
   final String prefixUrl = 'http://${server.address.address}:${server.port}';
   final String primaryUrl = '$prefixUrl/hello.txt';
   final String secondaryUrl = '$prefixUrl/secondary.txt';
-  final String headersUrl = '$prefixUrl/headers';
 
   testWidgets('loadRequest', (WidgetTester tester) async {
     final Completer<void> pageFinished = Completer<void>();
