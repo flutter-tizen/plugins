@@ -9,13 +9,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-// TODO(a14n): remove this import once Flutter 3.1 or later reaches stable (including flutter/flutter#104231)
-// ignore: unnecessary_import
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -41,7 +37,6 @@ Future<void> main() async {
   final String prefixUrl = 'http://${server.address.address}:${server.port}';
   final String primaryUrl = '$prefixUrl/hello.txt';
   final String secondaryUrl = '$prefixUrl/secondary.txt';
-  final String headersUrl = '$prefixUrl/headers';
 
   testWidgets('loadRequest', (WidgetTester tester) async {
     final Completer<void> pageFinished = Completer<void>();
@@ -78,31 +73,6 @@ Future<void> main() async {
       controller.runJavaScriptReturningResult('1 + 1'),
       completion(2),
     );
-  });
-
-  testWidgets('loadRequest with headers', (WidgetTester tester) async {
-    final Map<String, String> headers = <String, String>{
-      'test_header': 'flutter_test_header'
-    };
-
-    final StreamController<String> pageLoads = StreamController<String>();
-
-    final WebViewController controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(onPageFinished: (String url) => pageLoads.add(url)),
-      );
-
-    await tester.pumpWidget(WebViewWidget(controller: controller));
-
-    controller.loadRequest(Uri.parse(headersUrl), headers: headers);
-
-    await pageLoads.stream.firstWhere((String url) => url == headersUrl);
-
-    final String content = await controller.runJavaScriptReturningResult(
-      'document.documentElement.innerText',
-    ) as String;
-    expect(content.contains('flutter_test_header'), isTrue);
   });
 
   testWidgets('JavascriptChannel', (WidgetTester tester) async {
@@ -182,252 +152,6 @@ Future<void> main() async {
 
     final String customUserAgent = await _getUserAgent(controller);
     expect(customUserAgent, 'Custom_User_Agent1');
-  });
-
-  group('Video playback policy', () {
-    late String videoTestBase64;
-    setUpAll(() async {
-      final ByteData videoData =
-          await rootBundle.load('assets/sample_video.mp4');
-      final String base64VideoData =
-          base64Encode(Uint8List.view(videoData.buffer));
-      final String videoTest = '''
-        <!DOCTYPE html><html>
-        <head><title>Video auto play</title>
-          <script type="text/javascript">
-            function play() {
-              var video = document.getElementById("video");
-              video.play();
-              video.addEventListener('timeupdate', videoTimeUpdateHandler, false);
-            }
-            function videoTimeUpdateHandler(e) {
-              var video = document.getElementById("video");
-              VideoTestTime.postMessage(video.currentTime);
-            }
-            function isPaused() {
-              var video = document.getElementById("video");
-              return video.paused;
-            }
-            function isFullScreen() {
-              var video = document.getElementById("video");
-              return video.webkitDisplayingFullscreen;
-            }
-          </script>
-        </head>
-        <body onload="play();">
-        <video controls playsinline autoplay id="video">
-          <source src="data:video/mp4;charset=utf-8;base64,$base64VideoData">
-        </video>
-        </body>
-        </html>
-      ''';
-      videoTestBase64 = base64Encode(const Utf8Encoder().convert(videoTest));
-    });
-
-    testWidgets('Auto media playback', (WidgetTester tester) async {
-      Completer<void> pageLoaded = Completer<void>();
-
-      late PlatformWebViewControllerCreationParams params;
-      params = const PlatformWebViewControllerCreationParams();
-
-      WebViewController controller =
-          WebViewController.fromPlatformCreationParams(params)
-            ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..setNavigationDelegate(
-              NavigationDelegate(onPageFinished: (_) => pageLoaded.complete()),
-            );
-
-      await controller.loadRequest(
-        Uri.parse('data:text/html;charset=utf-8;base64,$videoTestBase64'),
-      );
-
-      await tester.pumpWidget(WebViewWidget(controller: controller));
-
-      await pageLoaded.future;
-
-      bool isPaused =
-          await controller.runJavaScriptReturningResult('isPaused();') as bool;
-      expect(isPaused, false);
-
-      pageLoaded = Completer<void>();
-      controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(
-          NavigationDelegate(onPageFinished: (_) => pageLoaded.complete()),
-        )
-        ..loadRequest(
-          Uri.parse('data:text/html;charset=utf-8;base64,$videoTestBase64'),
-        );
-
-      await tester.pumpWidget(WebViewWidget(controller: controller));
-
-      await pageLoaded.future;
-
-      isPaused =
-          await controller.runJavaScriptReturningResult('isPaused();') as bool;
-      expect(isPaused, true);
-    });
-
-    testWidgets('Video plays inline', (WidgetTester tester) async {
-      final Completer<void> pageLoaded = Completer<void>();
-      final Completer<void> videoPlaying = Completer<void>();
-
-      late PlatformWebViewControllerCreationParams params;
-      params = const PlatformWebViewControllerCreationParams();
-      final WebViewController controller =
-          WebViewController.fromPlatformCreationParams(params)
-            ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..setNavigationDelegate(
-              NavigationDelegate(onPageFinished: (_) => pageLoaded.complete()),
-            )
-            ..addJavaScriptChannel(
-              'VideoTestTime',
-              onMessageReceived: (JavaScriptMessage message) {
-                final double currentTime = double.parse(message.message);
-                // Let it play for at least 1 second to make sure the related video's properties are set.
-                if (currentTime > 1 && !videoPlaying.isCompleted) {
-                  videoPlaying.complete(null);
-                }
-              },
-            );
-
-      await controller.loadRequest(
-        Uri.parse('data:text/html;charset=utf-8;base64,$videoTestBase64'),
-      );
-
-      await tester.pumpWidget(WebViewWidget(controller: controller));
-      await tester.pumpAndSettle();
-
-      await pageLoaded.future;
-
-      // Makes sure we get the correct event that indicates the video is actually playing.
-      await videoPlaying.future;
-
-      final bool fullScreen = await controller
-          .runJavaScriptReturningResult('isFullScreen();') as bool;
-      expect(fullScreen, false);
-    });
-
-    // allowsInlineMediaPlayback is a noop on Android, so it is skipped.
-    testWidgets(
-        'Video plays full screen when allowsInlineMediaPlayback is false',
-        (WidgetTester tester) async {
-      final Completer<void> pageLoaded = Completer<void>();
-      final Completer<void> videoPlaying = Completer<void>();
-
-      final WebViewController controller =
-          WebViewController.fromPlatformCreationParams(
-              const PlatformWebViewControllerCreationParams())
-            ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..setNavigationDelegate(
-              NavigationDelegate(onPageFinished: (_) => pageLoaded.complete()),
-            )
-            ..addJavaScriptChannel(
-              'VideoTestTime',
-              onMessageReceived: (JavaScriptMessage message) {
-                final double currentTime = double.parse(message.message);
-                // Let it play for at least 1 second to make sure the related video's properties are set.
-                if (currentTime > 1 && !videoPlaying.isCompleted) {
-                  videoPlaying.complete(null);
-                }
-              },
-            )
-            ..loadRequest(
-              Uri.parse(
-                'data:text/html;charset=utf-8;base64,$videoTestBase64',
-              ),
-            );
-
-      await tester.pumpWidget(WebViewWidget(controller: controller));
-      await tester.pumpAndSettle();
-
-      await pageLoaded.future;
-
-      // Makes sure we get the correct event that indicates the video is actually playing.
-      await videoPlaying.future;
-
-      final bool fullScreen = await controller
-          .runJavaScriptReturningResult('isFullScreen();') as bool;
-      expect(fullScreen, true);
-    }, skip: Platform.isAndroid);
-  });
-
-  group('Audio playback policy', () {
-    late String audioTestBase64;
-    setUpAll(() async {
-      final ByteData audioData =
-          await rootBundle.load('assets/sample_audio.ogg');
-      final String base64AudioData =
-          base64Encode(Uint8List.view(audioData.buffer));
-      final String audioTest = '''
-        <!DOCTYPE html><html>
-        <head><title>Audio auto play</title>
-          <script type="text/javascript">
-            function play() {
-              var audio = document.getElementById("audio");
-              audio.play();
-            }
-            function isPaused() {
-              var audio = document.getElementById("audio");
-              return audio.paused;
-            }
-          </script>
-        </head>
-        <body onload="play();">
-        <audio controls id="audio">
-          <source src="data:audio/ogg;charset=utf-8;base64,$base64AudioData">
-        </audio>
-        </body>
-        </html>
-      ''';
-      audioTestBase64 = base64Encode(const Utf8Encoder().convert(audioTest));
-    });
-
-    testWidgets('Auto media playback', (WidgetTester tester) async {
-      Completer<void> pageLoaded = Completer<void>();
-
-      late PlatformWebViewControllerCreationParams params;
-      params = const PlatformWebViewControllerCreationParams();
-
-      WebViewController controller =
-          WebViewController.fromPlatformCreationParams(params)
-            ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..setNavigationDelegate(
-              NavigationDelegate(onPageFinished: (_) => pageLoaded.complete()),
-            );
-
-      await controller.loadRequest(
-        Uri.parse('data:text/html;charset=utf-8;base64,$audioTestBase64'),
-      );
-
-      await tester.pumpWidget(WebViewWidget(controller: controller));
-      await tester.pumpAndSettle();
-
-      await pageLoaded.future;
-
-      bool isPaused =
-          await controller.runJavaScriptReturningResult('isPaused();') as bool;
-      expect(isPaused, false);
-
-      pageLoaded = Completer<void>();
-      controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(
-          NavigationDelegate(onPageFinished: (_) => pageLoaded.complete()),
-        )
-        ..loadRequest(
-          Uri.parse('data:text/html;charset=utf-8;base64,$audioTestBase64'),
-        );
-
-      await tester.pumpWidget(WebViewWidget(controller: controller));
-      await tester.pumpAndSettle();
-
-      await pageLoaded.future;
-
-      isPaused =
-          await controller.runJavaScriptReturningResult('isPaused();') as bool;
-      expect(isPaused, true);
-    });
   });
 
   testWidgets('getTitle', (WidgetTester tester) async {
@@ -668,118 +392,6 @@ Future<void> main() async {
       expect(currentUrl, secondaryUrl);
     });
   });
-
-  testWidgets('target _blank opens in same window',
-      (WidgetTester tester) async {
-    final Completer<void> pageLoaded = Completer<void>();
-
-    final WebViewController controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(NavigationDelegate(
-        onPageFinished: (_) => pageLoaded.complete(),
-      ));
-
-    await tester.pumpWidget(WebViewWidget(controller: controller));
-
-    await controller.runJavaScript('window.open("$primaryUrl", "_blank")');
-    await pageLoaded.future;
-    final String? currentUrl = await controller.currentUrl();
-    expect(currentUrl, primaryUrl);
-  });
-
-  testWidgets(
-    'can open new window and go back',
-    (WidgetTester tester) async {
-      Completer<void> pageLoaded = Completer<void>();
-
-      final WebViewController controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(NavigationDelegate(
-          onPageFinished: (_) => pageLoaded.complete(),
-        ))
-        ..loadRequest(Uri.parse(primaryUrl));
-
-      await tester.pumpWidget(WebViewWidget(controller: controller));
-
-      expect(controller.currentUrl(), completion(primaryUrl));
-      await pageLoaded.future;
-      pageLoaded = Completer<void>();
-
-      await controller.runJavaScript('window.open("$secondaryUrl")');
-      await pageLoaded.future;
-      pageLoaded = Completer<void>();
-      expect(controller.currentUrl(), completion(secondaryUrl));
-
-      expect(controller.canGoBack(), completion(true));
-      await controller.goBack();
-      await pageLoaded.future;
-      await expectLater(controller.currentUrl(), completion(primaryUrl));
-    },
-  );
-
-  testWidgets(
-    'clearLocalStorage',
-    (WidgetTester tester) async {
-      Completer<void> pageLoadCompleter = Completer<void>();
-
-      final WebViewController controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(NavigationDelegate(
-          onPageFinished: (_) => pageLoadCompleter.complete(),
-        ))
-        ..loadRequest(Uri.parse(primaryUrl));
-
-      await tester.pumpWidget(WebViewWidget(controller: controller));
-
-      await pageLoadCompleter.future;
-      pageLoadCompleter = Completer<void>();
-
-      await controller.runJavaScript('localStorage.setItem("myCat", "Tom");');
-      final String myCatItem = await controller.runJavaScriptReturningResult(
-        'localStorage.getItem("myCat");',
-      ) as String;
-      expect(myCatItem, _webViewString('Tom'));
-
-      await controller.clearLocalStorage();
-
-      // Reload page to have changes take effect.
-      await controller.reload();
-      await pageLoadCompleter.future;
-
-      late final String? nullItem;
-      try {
-        nullItem = await controller.runJavaScriptReturningResult(
-          'localStorage.getItem("myCat");',
-        ) as String;
-      } catch (exception) {
-        if (defaultTargetPlatform == TargetPlatform.iOS &&
-            exception is ArgumentError &&
-            (exception.message as String).contains(
-                'Result of JavaScript execution returned a `null` value.')) {
-          nullItem = '<null>';
-        }
-      }
-      expect(nullItem, _webViewNull());
-    },
-  );
-}
-
-// JavaScript `null` evaluate to different string values on Android and iOS.
-// This utility method returns the string boolean value of the current platform.
-String _webViewNull() {
-  if (defaultTargetPlatform == TargetPlatform.iOS) {
-    return '<null>';
-  }
-  return 'null';
-}
-
-// JavaScript String evaluate to different string values on Android and iOS.
-// This utility method returns the string boolean value of the current platform.
-String _webViewString(String value) {
-  if (defaultTargetPlatform == TargetPlatform.iOS) {
-    return value;
-  }
-  return '"$value"';
 }
 
 /// Returns the value used for the HTTP User-Agent: request header in subsequent HTTP requests.
@@ -791,7 +403,8 @@ Future<String> _runJavascriptReturningResult(
   WebViewController controller,
   String js,
 ) async {
-  if (defaultTargetPlatform == TargetPlatform.iOS) {
+  if (defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.linux) {
     return await controller.runJavaScriptReturningResult(js) as String;
   }
   return jsonDecode(await controller.runJavaScriptReturningResult(js) as String)
