@@ -17,22 +17,16 @@ void LocalPort::OnMessageReceived(int local_port_id, const char* remote_app_id,
   int ret =
       bundle_get_byte(bundle, "bytes", reinterpret_cast<void**>(&bytes), &size);
   if (ret != BUNDLE_ERROR_NONE) {
-    if (self->error_callback_) {
-      self->error_callback_(ret, "Failed to get data from bundle.");
-    }
+    self->error_callback_(ret, "Failed to get data from bundle.");
     return;
   }
 
   std::vector<uint8_t> message(bytes, bytes + size);
   if (remote_port) {
     RemotePort port(remote_app_id, remote_port, trusted_remote_port);
-    if (self->message_callback_) {
-      self->message_callback_(message, &port);
-    }
+    self->message_callback_(message, &port);
   } else {
-    if (self->message_callback_) {
-      self->message_callback_(message, nullptr);
-    }
+    self->message_callback_(message, nullptr);
   }
 }
 
@@ -78,9 +72,6 @@ std::optional<MessagePortError> LocalPort::Unregister() {
     }
   }
   port_ = -1;
-
-  message_callback_ = nullptr;
-  error_callback_ = nullptr;
   return std::nullopt;
 }
 
