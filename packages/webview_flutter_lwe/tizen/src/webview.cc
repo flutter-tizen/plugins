@@ -714,10 +714,15 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     } else {
       result->Error("Invalid argument", "No x or y provided.");
     }
-  } else if (method_name == "getScrollX") {
-    result->Success(flutter::EncodableValue(webview_instance_->GetScrollX()));
-  } else if (method_name == "getScrollY") {
-    result->Success(flutter::EncodableValue(webview_instance_->GetScrollY()));
+  } else if (method_name == "getScrollPosition") {
+    int x = webview_instance_->GetScrollX();
+    int y = webview_instance_->GetScrollY();
+    flutter::EncodableMap args = {
+        {flutter::EncodableValue("x"),
+         flutter::EncodableValue(static_cast<double>(x))},
+        {flutter::EncodableValue("y"),
+         flutter::EncodableValue(static_cast<double>(y))}};
+    result->Success(flutter::EncodableValue(args));
   } else if (method_name == "loadFlutterAsset") {
     const auto* key = std::get_if<std::string>(arguments);
     if (key) {
