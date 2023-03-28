@@ -12,11 +12,14 @@
 #include <flutter/standard_message_codec.h>
 #include <flutter/standard_method_codec.h>
 
+#include <cstdint>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
+#include <variant>
+#include <vector>
 
-#include "log.h"
 #include "messageport.h"
 
 typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
@@ -65,31 +68,28 @@ class LocalPortStreamHandler : public FlStreamHandler {
       const flutter::EncodableValue *arguments,
       std::unique_ptr<FlEventSink> &&events) override {
     event_sink_ = std::move(events);
-    std::optional<MessagePortError> error =
-        local_port_->Register([this](const Message &message) {
-          if (message.error.size()) {
-            event_sink_->Error(message.error);
-            return;
-          }
 
+    std::optional<MessagePortError> error = local_port_->Register(
+        [this](const std::vector<uint8_t> &encoded_message,
+               RemotePort *remote_port) {
           flutter::EncodableMap map;
           std::unique_ptr<flutter::EncodableValue> decoded_message =
               flutter::StandardMessageCodec::GetInstance().DecodeMessage(
-                  message.encoded_message);
+                  encoded_message);
           map[flutter::EncodableValue("message")] = *decoded_message;
-          if (message.remote_port.has_value()) {
-            const RemotePort &remote_port = message.remote_port.value();
+          if (remote_port) {
             map[flutter::EncodableValue("remoteAppId")] =
-                flutter::EncodableValue(remote_port.app_id());
+                flutter::EncodableValue(remote_port->app_id());
             map[flutter::EncodableValue("remotePort")] =
-                flutter::EncodableValue(remote_port.name());
+                flutter::EncodableValue(remote_port->name());
             map[flutter::EncodableValue("trusted")] =
-                flutter::EncodableValue(remote_port.is_trusted());
+                flutter::EncodableValue(remote_port->is_trusted());
           }
-
           event_sink_->Success(flutter::EncodableValue(map));
+        },
+        [this](int error_code, const std::string &error_message) {
+          event_sink_->Error(std::to_string(error_code), error_message);
         });
-
     if (error.has_value()) {
       return std::make_unique<LocalPortStreamHandlerError>(
           std::to_string(error.value().code()), error.value().message(),
@@ -214,6 +214,7 @@ class MessageportTizenPlugin : public flutter::Plugin {
         std::make_unique<LocalPortStreamHandler>(local_port.get()));
     event_channels_.insert(std::move(event_channel));
     local_ports_.push_back(std::move(local_port));
+
     result->Success();
   }
 
@@ -250,8 +251,8 @@ class MessageportTizenPlugin : public flutter::Plugin {
                                  local_port_trusted)) {
       LocalPort *local_port =
           FindLocalPort(local_port_name, local_port_trusted);
-      if (local_port == nullptr) {
-        result->Error("Invalid arguments");
+      if (!local_port) {
+        result->Error("Invalid arguments", "Local port not found.");
         return;
       }
       error = remote_port.SendWithLocalPort(*encoded_message, local_port);
@@ -260,22 +261,19 @@ class MessageportTizenPlugin : public flutter::Plugin {
     }
 
     if (error.has_value()) {
-      MessagePortError message_port_error = error.value();
-      result->Error(std::to_string(message_port_error.code()),
-                    message_port_error.message());
+      result->Error(std::to_string(error.value().code()),
+                    error.value().message());
       return;
     }
-
     result->Success();
   }
 
   LocalPort *FindLocalPort(const std::string &port_name, bool is_trusted) {
-    for (auto &port : local_ports_) {
+    for (const auto &port : local_ports_) {
       if (port->name() == port_name && port->is_trusted() == is_trusted) {
         return port.get();
       }
     }
-
     return nullptr;
   }
 

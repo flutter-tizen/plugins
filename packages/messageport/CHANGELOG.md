@@ -1,6 +1,8 @@
-## Next
+## 0.3.0
 
+* Remove the deprecated class `TizenMessagePort`.
 * Refactor the C++ code.
+* Code cleanups.
 
 ## 0.2.0
 

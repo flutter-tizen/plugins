@@ -7,12 +7,13 @@
 
 #include <message_port.h>
 
+#include <cstdint>
 #include <functional>
-#include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <variant>
+#include <vector>
 
 class MessagePortError {
  public:
@@ -67,14 +68,14 @@ class RemotePort {
   explicit RemotePort(const std::string& app_id, const std::string& name,
                       bool is_trusted)
       : app_id_(app_id), name_(name), is_trusted_(is_trusted) {}
+  ~RemotePort() {}
 
   ErrorOr<bool> CheckRemotePort();
 
-  std::optional<MessagePortError> Send(
-      const std::vector<uint8_t>& encoded_message);
+  std::optional<MessagePortError> Send(const std::vector<uint8_t>& message);
 
   std::optional<MessagePortError> SendWithLocalPort(
-      const std::vector<uint8_t>& encoded_message, LocalPort* local_port);
+      const std::vector<uint8_t>& message, LocalPort* local_port);
 
   std::string app_id() const { return app_id_; }
 
@@ -83,28 +84,27 @@ class RemotePort {
   bool is_trusted() const { return is_trusted_; }
 
  private:
-  ErrorOr<bundle*> PrepareBundle(const std::vector<uint8_t>& encoded_message);
+  ErrorOr<bundle*> PrepareBundle(const std::vector<uint8_t>& message);
 
   const std::string app_id_;
   const std::string name_;
   const bool is_trusted_ = false;
 };
 
-struct Message {
-  std::optional<const RemotePort> remote_port = std::nullopt;
-  const std::vector<uint8_t> encoded_message;
-  const std::string error;
-};
-
-typedef std::function<void(const Message&)> OnMessage;
+typedef std::function<void(const std::vector<uint8_t>& message,
+                           RemotePort* remote_port)>
+    MessageCallback;
+typedef std::function<void(int error_code, const std::string& error_message)>
+    ErrorCallback;
 
 class LocalPort {
  public:
-  LocalPort(const std::string& name, bool is_trusted)
+  explicit LocalPort(const std::string& name, bool is_trusted)
       : name_(name), is_trusted_(is_trusted) {}
   ~LocalPort();
 
-  std::optional<MessagePortError> Register(OnMessage message_callback);
+  std::optional<MessagePortError> Register(MessageCallback on_message,
+                                           ErrorCallback on_error);
 
   std::optional<MessagePortError> Unregister();
 
@@ -122,7 +122,8 @@ class LocalPort {
 
   const std::string name_;
   const bool is_trusted_ = false;
-  OnMessage message_callback_;
+  MessageCallback message_callback_;
+  ErrorCallback error_callback_;
   int port_ = -1;
 };
 
