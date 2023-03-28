@@ -62,6 +62,14 @@ class LweWebViewController extends PlatformWebViewController {
           'LoadRequestParams#uri is required to have a scheme.');
     }
 
+    if (params.headers.isNotEmpty) {
+      throw ArgumentError('LoadRequestParams#headers is not supported.');
+    }
+
+    if (params.body != null) {
+      throw ArgumentError('LoadRequestParams#body is not supported.');
+    }
+
     switch (params.method) {
       case LoadRequestMethod.get:
         return _webview.loadRequest(params.uri.toString());
@@ -186,37 +194,49 @@ class LweWebResourceError extends WebResourceError {
   }) : super(errorType: _errorCodeToErrorType(errorCode));
 
   /// Unknown error.
-  static const int unknown = 0;
+  static const int unknown = 1;
 
-  /// Failed to file I/O.
-  static const int failedFileIO = 3;
+  /// Server or proxy hostname lookup failed.
+  static const int hostLookup = 2;
 
-  /// Cannot connect to Network.
-  static const int cantConnect = 4;
-
-  /// Fail to look up host from DNS.
-  static const int cantHostLookup = 5;
-
-  /// Fail to SSL/TLS handshake.
-  static const int failedSslHandshake = 6;
-
-  /// Connection timeout.
-  static const int requestTimeout = 8;
-
-  /// Too many redirects.
-  static const int tooManyRedirect = 9;
-
-  /// Too many requests during this load.
-  static const int tooManyRequests = 10;
-
-  /// Malformed url.
-  static const int badUrl = 11;
-
-  /// Unsupported scheme
-  static const int unsupportedScheme = 12;
+  /// Unsupported authentication scheme (not basic or digest).
+  static const int unsupportedAuthScheme = 3;
 
   /// User authentication failed on server.
-  static const int authenticationFailed = 13;
+  static const int authentication = 4;
+
+  /// User authentication failed on proxy.
+  static const int proxyAuthentication = 5;
+
+  /// Failed to connect to the server.
+  static const int connect = 6;
+
+  /// Failed to read or write to the server.
+  static const int io = 7;
+
+  /// Connection timed out.
+  static const int timeout = 8;
+
+  /// Too many redirects.
+  static const int redirectLoop = 9;
+
+  /// Unsupported URI scheme.
+  static const int unsupportedScheme = 10;
+
+  /// Failed to perform SSL handshake.
+  static const int failedSSLHandshake = 11;
+
+  /// Malformed URL.
+  static const int badURL = 12;
+
+  /// Generic file error.
+  static const int file = 13;
+
+  /// File not found.
+  static const int fileNotFound = 14;
+
+  /// Too many requests during this load.
+  static const int tooManyRequests = 15;
 
   /// Gets the URL for which the failing resource request was made.
   final String? failingUrl;
@@ -225,26 +245,34 @@ class LweWebResourceError extends WebResourceError {
     switch (errorCode) {
       case unknown:
         return WebResourceErrorType.unknown;
-      case failedFileIO:
-        return WebResourceErrorType.file;
-      case cantConnect:
-        return WebResourceErrorType.connect;
-      case cantHostLookup:
+      case hostLookup:
         return WebResourceErrorType.hostLookup;
-      case failedSslHandshake:
-        return WebResourceErrorType.failedSslHandshake;
-      case requestTimeout:
+      case unsupportedAuthScheme:
+        return WebResourceErrorType.unsupportedAuthScheme;
+      case authentication:
+        return WebResourceErrorType.authentication;
+      case proxyAuthentication:
+        return WebResourceErrorType.proxyAuthentication;
+      case connect:
+        return WebResourceErrorType.connect;
+      case io:
+        return WebResourceErrorType.io;
+      case timeout:
         return WebResourceErrorType.timeout;
-      case tooManyRedirect:
+      case redirectLoop:
         return WebResourceErrorType.redirectLoop;
-      case tooManyRequests:
-        return WebResourceErrorType.tooManyRequests;
-      case badUrl:
-        return WebResourceErrorType.badUrl;
       case unsupportedScheme:
         return WebResourceErrorType.unsupportedScheme;
-      case authenticationFailed:
-        return WebResourceErrorType.authentication;
+      case failedSSLHandshake:
+        return WebResourceErrorType.failedSslHandshake;
+      case badURL:
+        return WebResourceErrorType.badUrl;
+      case file:
+        return WebResourceErrorType.file;
+      case fileNotFound:
+        return WebResourceErrorType.fileNotFound;
+      case tooManyRequests:
+        return WebResourceErrorType.tooManyRequests;
     }
 
     throw ArgumentError(
