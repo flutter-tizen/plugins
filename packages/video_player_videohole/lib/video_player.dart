@@ -319,15 +319,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   StreamSubscription<dynamic>? _eventSubscription;
   _VideoAppLifeCycleObserver? _lifeCycleObserver;
 
-  /// The id of a texture that hasn't been initialized.
+  /// The id of a player that hasn't been initialized.
   @visibleForTesting
-  static const int kUninitializedTextureId = -1;
-  int _textureId = kUninitializedTextureId;
+  static const int kUninitializedPlayerId = -1;
+  int _playerId = kUninitializedPlayerId;
 
   /// This is just exposed for testing. It shouldn't be used by anyone depending
   /// on the plugin.
   @visibleForTesting
-  int get textureId => _textureId;
+  int get playerId => _playerId;
 
   /// Attempts to open the given [dataSource] and load metadata about the video.
   /// Get the window geometry through window_channel.
@@ -391,8 +391,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           .setMixWithOthers(videoPlayerOptions!.mixWithOthers);
     }
 
-    _textureId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
-        kUninitializedTextureId;
+    _playerId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
+        kUninitializedPlayerId;
     _creatingCompleter!.complete(null);
 
     final Completer<void> initializingCompleter = Completer<void>();
@@ -454,7 +454,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
 
     _eventSubscription = _videoPlayerPlatform
-        .videoEventsFor(_textureId)
+        .videoEventsFor(_playerId)
         .listen(eventListener, onError: errorListener);
     return initializingCompleter.future;
   }
@@ -467,7 +467,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         _isDisposed = true;
         _timer?.cancel();
         await _eventSubscription?.cancel();
-        await _videoPlayerPlatform.dispose(_textureId);
+        await _videoPlayerPlatform.dispose(_playerId);
       }
       _lifeCycleObserver?.dispose();
     }
@@ -507,7 +507,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposedOrNotInitialized) {
       return;
     }
-    await _videoPlayerPlatform.setLooping(_textureId, value.isLooping);
+    await _videoPlayerPlatform.setLooping(_playerId, value.isLooping);
   }
 
   Future<void> _applyPlayPause() async {
@@ -515,7 +515,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
     if (value.isPlaying) {
-      await _videoPlayerPlatform.play(_textureId);
+      await _videoPlayerPlatform.play(_playerId);
 
       // Cancel previous timer.
       _timer?.cancel();
@@ -539,7 +539,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       await _applyPlaybackSpeed();
     } else {
       _timer?.cancel();
-      await _videoPlayerPlatform.pause(_textureId);
+      await _videoPlayerPlatform.pause(_playerId);
     }
   }
 
@@ -547,7 +547,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposedOrNotInitialized) {
       return;
     }
-    await _videoPlayerPlatform.setVolume(_textureId, value.volume);
+    await _videoPlayerPlatform.setVolume(_playerId, value.volume);
   }
 
   Future<void> _setDisplayRoi(int texureId, int x, int y, int w, int h) async {
@@ -567,7 +567,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
 
     await _videoPlayerPlatform.setPlaybackSpeed(
-      _textureId,
+      _playerId,
       value.playbackSpeed,
     );
   }
@@ -577,7 +577,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposed) {
       return null;
     }
-    return await _videoPlayerPlatform.getPosition(_textureId);
+    return await _videoPlayerPlatform.getPosition(_playerId);
   }
 
   /// Sets the video's current timestamp to be at [moment]. The next
@@ -594,7 +594,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     } else if (position < const Duration()) {
       position = const Duration();
     }
-    await _videoPlayerPlatform.seekTo(_textureId, position);
+    await _videoPlayerPlatform.seekTo(_playerId, position);
     _updatePosition(position);
   }
 
@@ -817,10 +817,10 @@ class _Geometry {
 class _VideoPlayerState extends State<VideoPlayer> {
   _VideoPlayerState() {
     _listener = () {
-      final int newTextureId = widget.controller.textureId;
-      if (newTextureId != _textureId) {
+      final int newPlayerId = widget.controller.playerId;
+      if (newPlayerId != _playerId) {
         setState(() {
-          _textureId = newTextureId;
+          _playerId = newPlayerId;
         });
       }
     };
@@ -828,7 +828,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   late VoidCallback _listener;
 
-  late int _textureId;
+  late int _playerId;
   late _Geometry _geometry = _Geometry();
   late GlobalKey videoBoxKey = GlobalKey();
 
@@ -836,8 +836,8 @@ class _VideoPlayerState extends State<VideoPlayer> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
-    _textureId = widget.controller.textureId;
-    // Need to listen for initialization events since the actual texture ID
+    _playerId = widget.controller.playerId;
+    // Need to listen for initialization events since the actual player ID
     // becomes available after asynchronous initialization finishes.
     widget.controller.addListener(_listener);
   }
@@ -846,7 +846,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     if (checkPositionChange() && widget.controller.value.isInitialized) {
       updateGeometry();
       widget.controller._setDisplayRoi(
-          _textureId, _geometry.x, _geometry.y, _geometry.w, _geometry.h);
+          _playerId, _geometry.x, _geometry.y, _geometry.w, _geometry.h);
     }
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
@@ -901,7 +901,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
   void didUpdateWidget(VideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     oldWidget.controller.removeListener(_listener);
-    _textureId = widget.controller.textureId;
+    _playerId = widget.controller.playerId;
     widget.controller.addListener(_listener);
   }
 
