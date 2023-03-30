@@ -337,6 +337,46 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     } else {
       result->Error("Invalid argument", "No url provided.");
     }
+  } else if (method_name == "loadRequestWithParams") {
+    std::string url;
+    if (!GetValueFromEncodableMap(arguments, "url", &url)) {
+      result->Error("Invalid argument", "No url provided.");
+      return;
+    }
+    Ewk_Http_Method ewk_method = EWK_HTTP_METHOD_GET;
+    int32_t method;
+    GetValueFromEncodableMap(arguments, "method", &method);
+    if (method == 1) {  // Post request.
+      ewk_method = EWK_HTTP_METHOD_POST;
+    }
+    Eina_Hash* ewk_headers = eina_hash_new(
+        EINA_KEY_LENGTH(&WebView::OnLoadRequestHashKeyLength),
+        EINA_KEY_CMP(&WebView::OnPostLoadRequestHashKeyCompare),
+        EINA_KEY_HASH(eina_hash_superfast), [](void* data) { free(data); }, 10);
+
+    flutter::EncodableMap headers_map;
+    GetValueFromEncodableMap(arguments, "headers", &headers_map);
+    for (const auto& headers : headers_map) {
+      auto key = std::get_if<std::string>(&headers.first);
+      auto value = std::get_if<std::string>(&headers.second);
+      if (key && value) {
+        eina_hash_add(ewk_headers, key->c_str(), strdup(value->c_str()));
+      }
+    }
+
+    std::vector<uint8_t> body;
+    GetValueFromEncodableMap(arguments, "body", &body);
+    body.push_back('\0');
+
+    bool ret = ewk_view_url_request_set(webview_instance_, url.c_str(),
+                                        ewk_method, ewk_headers,
+                                        reinterpret_cast<char*>(body.data()));
+    eina_hash_free(ewk_headers);
+    if (ret) {
+      result->Success();
+    } else {
+      result->Error("Invalid argument", "Failed to url request.");
+    }
   } else if (method_name == "canGoBack") {
     result->Success(flutter::EncodableValue(
         static_cast<bool>(ewk_view_back_possible(webview_instance_))));
@@ -647,4 +687,14 @@ void WebView::OnJavaScriptMessage(Evas_Object* obj,
           std::make_unique<flutter::EncodableValue>(args));
     }
   }
+}
+
+unsigned int WebView::OnLoadRequestHashKeyLength(const char* key) {
+  return key ? strlen(key) + 1 : 0;
+}
+
+int WebView::OnPostLoadRequestHashKeyCompare(const char* key1, int key1_length,
+                                             const char* key2,
+                                             int key2_length) {
+  return strcmp(key1, key2);
 }

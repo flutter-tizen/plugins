@@ -105,6 +105,17 @@ class TizenWebView {
         'loadRequest', <String?, String?>{'url': uri});
   }
 
+  /// Makes a specific HTTP request with params ands loads the response in the webview.
+  Future<void> loadRequestWithParams(LoadRequestParams params) {
+    return _invokeChannelMethod<void>(
+        'loadRequestWithParams', <String?, Object?>{
+      'url': params.uri.toString(),
+      'body': params.body,
+      'method': params.method.index,
+      'headers': params.headers,
+    });
+  }
+
   /// Accessor to the current URL that the WebView is displaying.
   Future<String?> currentUrl() => _invokeChannelMethod<String>('currentUrl');
 

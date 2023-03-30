@@ -62,20 +62,19 @@ class TizenWebViewController extends PlatformWebViewController {
           'LoadRequestParams#uri is required to have a scheme.');
     }
 
-    if (params.headers.isNotEmpty) {
-      throw ArgumentError('LoadRequestParams#headers is not supported.');
-    }
-
-    if (params.body != null) {
-      throw ArgumentError('LoadRequestParams#body is not supported.');
-    }
-
     switch (params.method) {
       case LoadRequestMethod.get:
+        if (params.headers.isNotEmpty) {
+          return _webview.loadRequestWithParams(params);
+        }
         return _webview.loadRequest(params.uri.toString());
       case LoadRequestMethod.post:
-        break;
+        if (params.headers.isNotEmpty || params.body != null) {
+          return _webview.loadRequestWithParams(params);
+        }
+        return _webview.loadRequest(params.uri.toString());
     }
+
     // The enum comes from a different package, which could get a new value at
     // any time, so a fallback case is necessary. Since there is no reasonable
     // default behavior, throw to alert the client that they need an updated

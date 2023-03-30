@@ -1,7 +1,7 @@
-## NEXT
-
+## 0.7.1
 * Remove unnecessary integration test.
 * Remove unused code.
+* Implements `LoadRequestMethod.post` of `PlatformWebViewController.loadRequest`.
 
 ## 0.7.0
 
