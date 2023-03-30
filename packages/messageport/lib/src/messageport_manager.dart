@@ -12,8 +12,12 @@ import '../messageport_tizen.dart';
 
 const MethodChannel _channel = MethodChannel('tizen/messageport');
 
-class TizenMessagePortManager {
-  TizenMessagePortManager();
+class MessagePortManager {
+  MessagePortManager();
+
+  final Map<String, Stream<dynamic>> _localPorts = <String, Stream<dynamic>>{};
+  final Map<String, Stream<dynamic>> _trustedLocalPorts =
+      <String, Stream<dynamic>>{};
 
   Future<void> createLocalPort(String portName, bool trusted) async {
     final Map<String, dynamic> args = <String, dynamic>{};
@@ -74,8 +78,4 @@ class TizenMessagePortManager {
     }
     return _localPorts[localPort.portName]!;
   }
-
-  final Map<String, Stream<dynamic>> _localPorts = <String, Stream<dynamic>>{};
-  final Map<String, Stream<dynamic>> _trustedLocalPorts =
-      <String, Stream<dynamic>>{};
 }

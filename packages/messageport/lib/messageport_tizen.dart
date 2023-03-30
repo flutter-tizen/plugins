@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'src/messageport_manager.dart';
 
-TizenMessagePortManager _manager = TizenMessagePortManager();
+MessagePortManager _manager = MessagePortManager();
 
 /// Called when a message is received on message port.
 ///
@@ -134,27 +134,4 @@ class RemotePort {
 
   /// Whether the remote port is trusted.
   final bool trusted;
-}
-
-// ignore: avoid_classes_with_only_static_members
-/// API for accessing MessagePorts in Tizen.
-class TizenMessagePort {
-  /// Creates a local port.
-  @Deprecated('Use LocalPort.create instead.')
-  static Future<LocalPort> createLocalPort(
-    String portName, {
-    bool trusted = true,
-  }) async {
-    return LocalPort.create(portName, trusted: trusted);
-  }
-
-  /// Connects to a remote port named [portName].
-  @Deprecated('Use RemotePort.connect instead.')
-  static Future<RemotePort> connectToRemotePort(
-    String remoteAppId,
-    String portName, {
-    bool trusted = true,
-  }) async {
-    return RemotePort.connect(remoteAppId, portName, trusted: trusted);
-  }
 }

@@ -8,7 +8,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   messageport_tizen:
     path: ../
 
