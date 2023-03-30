@@ -17,6 +17,10 @@
 #include <mutex>
 #include <string>
 
+typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
+typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
+typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
+
 namespace LWE {
 class WebContainer;
 }
@@ -50,16 +54,14 @@ class WebView : public PlatformView {
                                                        size_t height);
 
  private:
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue>& method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  void HandleCookieMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue>& method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void HandleWebViewMethodCall(const FlMethodCall& method_call,
+                               std::unique_ptr<FlMethodResult> result);
+  void HandleCookieMethodCall(const FlMethodCall& method_call,
+                              std::unique_ptr<FlMethodResult> result);
 
-  void ApplySettings(const flutter::EncodableMap& settings);
   void RegisterJavaScriptChannelName(const std::string& name);
-  std::string GetChannelName();
+  std::string GetWebViewChannelName();
+  std::string GetNavigationDelegateChannelName();
 
   void InitWebView();
 
@@ -72,8 +74,8 @@ class WebView : public PlatformView {
   BufferUnit* rendered_surface_ = nullptr;
   bool is_mouse_lbutton_down_ = false;
   bool has_navigation_delegate_ = false;
-  bool has_progress_tracking_ = false;
-  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
+  std::unique_ptr<FlMethodChannel> webview_channel_;
+  std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;

@@ -10,26 +10,26 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tizen/widgets.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
-import 'tizen_webview.dart';
+import 'lwe_webview.dart';
 
-/// The channel name of [TizenNavigationDelegate].
-const String kTizenNavigationDelegateChannelName =
-    'plugins.flutter.io/tizen_webview_navigation_delegate_';
+/// The channel name of [LweNavigationDelegate].
+const String kLweNavigationDelegateChannelName =
+    'plugins.flutter.io/lwe_webview_navigation_delegate_';
 
-/// An implementation of [PlatformWebViewController] using the Tizen WebView API.
-class TizenWebViewController extends PlatformWebViewController {
-  /// Constructs a [TizenWebViewController].
-  TizenWebViewController(super.params)
-      : _webview = TizenWebView(),
+/// An implementation of [PlatformWebViewController] using the Lightweight Web Engine.
+class LweWebViewController extends PlatformWebViewController {
+  /// Constructs a [LweWebViewController].
+  LweWebViewController(super.params)
+      : _webview = LweWebView(),
         super.implementation();
 
-  final TizenWebView _webview;
-  late TizenNavigationDelegate _tizenNavigationDelegate;
+  final LweWebView _webview;
+  late LweNavigationDelegate _lweNavigationDelegate;
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
     if (_webview.hasNavigationDelegate) {
-      _tizenNavigationDelegate.onCreate(viewId);
+      _lweNavigationDelegate.onCreate(viewId);
     }
     _webview.onCreate(viewId);
   }
@@ -62,6 +62,14 @@ class TizenWebViewController extends PlatformWebViewController {
           'LoadRequestParams#uri is required to have a scheme.');
     }
 
+    if (params.headers.isNotEmpty) {
+      throw ArgumentError('LoadRequestParams#headers is not supported.');
+    }
+
+    if (params.body != null) {
+      throw ArgumentError('LoadRequestParams#body is not supported.');
+    }
+
     switch (params.method) {
       case LoadRequestMethod.get:
         return _webview.loadRequest(params.uri.toString());
@@ -75,7 +83,7 @@ class TizenWebViewController extends PlatformWebViewController {
     // so that the linter will flag the switch as needing an update.
     // ignore: dead_code
     throw UnimplementedError(
-        'This version of `TizenWebViewController` currently has no '
+        'This version of `LweWebViewController` currently has no '
         'implementation for HTTP method ${params.method.serialize()} in '
         'loadRequest.');
   }
@@ -104,7 +112,7 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> clearLocalStorage() {
     throw UnimplementedError(
-        'This version of `TizenWebViewController` currently has no '
+        'This version of `LweWebViewController` currently has no '
         'implementation.');
   }
 
@@ -130,8 +138,8 @@ class TizenWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setPlatformNavigationDelegate(
-      covariant TizenNavigationDelegate handler) async {
-    _tizenNavigationDelegate = handler;
+      covariant LweNavigationDelegate handler) async {
+    _lweNavigationDelegate = handler;
     _webview.hasNavigationDelegate = true;
   }
 
@@ -153,10 +161,10 @@ class TizenWebViewController extends PlatformWebViewController {
       _webview.setUserAgent(userAgent);
 }
 
-/// An implementation of [PlatformWebViewWidget] with the Tizen WebView API.
-class TizenWebViewWidget extends PlatformWebViewWidget {
-  /// Constructs a [TizenWebViewWidget].
-  TizenWebViewWidget(super.params) : super.implementation();
+/// An implementation of [PlatformWebViewWidget] with the Lightweight Web Engine.
+class LweWebViewWidget extends PlatformWebViewWidget {
+  /// Constructs a [LweWebViewWidget].
+  LweWebViewWidget(super.params) : super.implementation();
 
   @override
   Widget build(BuildContext context) {
@@ -164,8 +172,8 @@ class TizenWebViewWidget extends PlatformWebViewWidget {
       key: params.key,
       viewType: 'plugins.flutter.io/webview',
       onPlatformViewCreated: (int id) {
-        final TizenWebViewController controller =
-            params.controller as TizenWebViewController;
+        final LweWebViewController controller =
+            params.controller as LweWebViewController;
         controller.onCreate(id);
       },
       layoutDirection: params.layoutDirection,
@@ -176,9 +184,9 @@ class TizenWebViewWidget extends PlatformWebViewWidget {
 
 /// Error returned in `WebView.onWebResourceError` when a web resource loading error has occurred.
 @immutable
-class TizenWebResourceError extends WebResourceError {
-  /// Creates a new [TizenWebResourceError].
-  TizenWebResourceError._({
+class LweWebResourceError extends WebResourceError {
+  /// Creates a new [LweWebResourceError].
+  LweWebResourceError._({
     required super.errorCode,
     required super.description,
     super.isForMainFrame,
@@ -186,37 +194,49 @@ class TizenWebResourceError extends WebResourceError {
   }) : super(errorType: _errorCodeToErrorType(errorCode));
 
   /// Unknown error.
-  static const int unknown = 0;
+  static const int unknown = 1;
 
-  /// Failed to file I/O.
-  static const int failedFileIO = 3;
+  /// Server or proxy hostname lookup failed.
+  static const int hostLookup = 2;
 
-  /// Cannot connect to Network.
-  static const int cantConnect = 4;
-
-  /// Fail to look up host from DNS.
-  static const int cantHostLookup = 5;
-
-  /// Fail to SSL/TLS handshake.
-  static const int failedSslHandshake = 6;
-
-  /// Connection timeout.
-  static const int requestTimeout = 8;
-
-  /// Too many redirects.
-  static const int tooManyRedirect = 9;
-
-  /// Too many requests during this load.
-  static const int tooManyRequests = 10;
-
-  /// Malformed url.
-  static const int badUrl = 11;
-
-  /// Unsupported scheme
-  static const int unsupportedScheme = 12;
+  /// Unsupported authentication scheme (not basic or digest).
+  static const int unsupportedAuthScheme = 3;
 
   /// User authentication failed on server.
-  static const int authenticationFailed = 13;
+  static const int authentication = 4;
+
+  /// User authentication failed on proxy.
+  static const int proxyAuthentication = 5;
+
+  /// Failed to connect to the server.
+  static const int connect = 6;
+
+  /// Failed to read or write to the server.
+  static const int io = 7;
+
+  /// Connection timed out.
+  static const int timeout = 8;
+
+  /// Too many redirects.
+  static const int redirectLoop = 9;
+
+  /// Unsupported URI scheme.
+  static const int unsupportedScheme = 10;
+
+  /// Failed to perform SSL handshake.
+  static const int failedSSLHandshake = 11;
+
+  /// Malformed URL.
+  static const int badURL = 12;
+
+  /// Generic file error.
+  static const int file = 13;
+
+  /// File not found.
+  static const int fileNotFound = 14;
+
+  /// Too many requests during this load.
+  static const int tooManyRequests = 15;
 
   /// Gets the URL for which the failing resource request was made.
   final String? failingUrl;
@@ -225,26 +245,34 @@ class TizenWebResourceError extends WebResourceError {
     switch (errorCode) {
       case unknown:
         return WebResourceErrorType.unknown;
-      case failedFileIO:
-        return WebResourceErrorType.file;
-      case cantConnect:
-        return WebResourceErrorType.connect;
-      case cantHostLookup:
+      case hostLookup:
         return WebResourceErrorType.hostLookup;
-      case failedSslHandshake:
-        return WebResourceErrorType.failedSslHandshake;
-      case requestTimeout:
+      case unsupportedAuthScheme:
+        return WebResourceErrorType.unsupportedAuthScheme;
+      case authentication:
+        return WebResourceErrorType.authentication;
+      case proxyAuthentication:
+        return WebResourceErrorType.proxyAuthentication;
+      case connect:
+        return WebResourceErrorType.connect;
+      case io:
+        return WebResourceErrorType.io;
+      case timeout:
         return WebResourceErrorType.timeout;
-      case tooManyRedirect:
+      case redirectLoop:
         return WebResourceErrorType.redirectLoop;
-      case tooManyRequests:
-        return WebResourceErrorType.tooManyRequests;
-      case badUrl:
-        return WebResourceErrorType.badUrl;
       case unsupportedScheme:
         return WebResourceErrorType.unsupportedScheme;
-      case authenticationFailed:
-        return WebResourceErrorType.authentication;
+      case failedSSLHandshake:
+        return WebResourceErrorType.failedSslHandshake;
+      case badURL:
+        return WebResourceErrorType.badUrl;
+      case file:
+        return WebResourceErrorType.file;
+      case fileNotFound:
+        return WebResourceErrorType.fileNotFound;
+      case tooManyRequests:
+        return WebResourceErrorType.tooManyRequests;
     }
 
     throw ArgumentError(
@@ -254,10 +282,10 @@ class TizenWebResourceError extends WebResourceError {
 }
 
 /// A place to register callback methods responsible to handle navigation events
-/// triggered by the [TizenWebView].
-class TizenNavigationDelegate extends PlatformNavigationDelegate {
-  /// Creates a new [TizenNavigationDelegate].
-  TizenNavigationDelegate(super.params) : super.implementation();
+/// triggered by the [LweWebView].
+class LweNavigationDelegate extends PlatformNavigationDelegate {
+  /// Creates a new [LweNavigationDelegate].
+  LweNavigationDelegate(super.params) : super.implementation();
 
   late final MethodChannel _navigationDelegateChannel;
   PageEventCallback? _onPageFinished;
@@ -269,7 +297,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
     _navigationDelegateChannel =
-        MethodChannel(kTizenNavigationDelegateChannelName + viewId.toString());
+        MethodChannel(kLweNavigationDelegateChannelName + viewId.toString());
     _navigationDelegateChannel.setMethodCallHandler((MethodCall call) async {
       final Map<String, Object?> arguments =
           (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
@@ -294,7 +322,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
           return null;
         case 'onWebResourceError':
           if (_onWebResourceError != null) {
-            _onWebResourceError!(TizenWebResourceError._(
+            _onWebResourceError!(LweWebResourceError._(
               errorCode: arguments['errorCode']! as int,
               description: arguments['description']! as String,
               failingUrl: arguments['failingUrl']! as String,

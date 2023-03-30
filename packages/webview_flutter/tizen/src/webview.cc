@@ -19,10 +19,6 @@
 
 namespace {
 
-typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
-typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
-typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
-
 constexpr size_t kBufferPoolSize = 5;
 constexpr char kEwkInstance[] = "ewk_instance";
 constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
@@ -133,13 +129,13 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   InitWebView();
 
-  tizen_webview_channel_ = std::make_unique<FlMethodChannel>(
-      GetPluginRegistrar()->messenger(), GetTizenWebViewChannelName(),
+  webview_channel_ = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(), GetWebViewChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
 
-  tizen_webview_channel_->SetMethodCallHandler(
+  webview_channel_->SetMethodCallHandler(
       [webview = this](const auto& call, auto result) {
-        webview->HandleTizenWebViewMethodCall(call, std::move(result));
+        webview->HandleWebViewMethodCall(call, std::move(result));
       });
 
   navigation_delegate_channel_ = std::make_unique<FlMethodChannel>(
@@ -170,7 +166,7 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
 
 WebView::~WebView() { Dispose(); }
 
-std::string WebView::GetTizenWebViewChannelName() {
+std::string WebView::GetWebViewChannelName() {
   return std::string(kTizenWebViewChannelName) + std::to_string(GetViewId());
 }
 
@@ -338,8 +334,8 @@ void WebView::InitWebView() {
   evas_object_data_set(webview_instance_, kEwkInstance, this);
 }
 
-void WebView::HandleTizenWebViewMethodCall(
-    const FlMethodCall& method_call, std::unique_ptr<FlMethodResult> result) {
+void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
+                                      std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
     result->Error("Invalid operation",
                   "The webview instance has not been initialized.");
@@ -668,7 +664,7 @@ void WebView::OnJavaScriptMessage(Evas_Object* obj,
   if (obj) {
     WebView* webview =
         static_cast<WebView*>(evas_object_data_get(obj, kEwkInstance));
-    if (webview->tizen_webview_channel_) {
+    if (webview->webview_channel_) {
       std::string channel_name(message.name);
       std::string message_body(static_cast<char*>(message.body));
 
@@ -678,7 +674,7 @@ void WebView::OnJavaScriptMessage(Evas_Object* obj,
           {flutter::EncodableValue("message"),
            flutter::EncodableValue(message_body)},
       };
-      webview->tizen_webview_channel_->InvokeMethod(
+      webview->webview_channel_->InvokeMethod(
           "javaScriptChannelMessage",
           std::make_unique<flutter::EncodableValue>(args));
     }
