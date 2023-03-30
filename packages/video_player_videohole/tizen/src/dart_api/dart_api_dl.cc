@@ -4,26 +4,19 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
-// This is a hack.
-// This file was copied from flutter-tizen/flutter/bin/cache/dart-sdk/include/dart_api_dl.c.
-// We need to link to this file from tizen_native_plugin.cc.
-// This file caused a build error when flutter-tizen build was used.
-// The workaround was to copy this file here and make changes
-// to make building possible.
-// See FindFunctionPointer() function for details.
+// This file was copied from
+// flutter-tizen/flutter/bin/cache/dart-sdk/include/dart_api_dl.c. We need to
+// link to this file from video_player_tizen_plugin.cc. This file caused a build
+// error when flutter-tizen build was used. The workaround was to copy this file
+// here and make changes to make building possible. See FindFunctionPointer()
+// function for details.
 
-// To make this file work we had to change #includes,
-// the original ones are below.
-// #include "dart_api_dl.h"               /* NOLINT */
-// #include "dart_version.h"              /* NOLINT */
-// #include "internal/dart_api_dl_impl.h" /* NOLINT */
-// Here are the modified ones:
-#include <../../../../../dart-sdk/include/dart_api_dl.h>  /* NOLINT */
-#include <../../../../../dart-sdk/include/dart_version.h> /* NOLINT */
-#include <../../../../../dart-sdk/include/internal/dart_api_dl_impl.h> /* NOLINT */
-
+#include "dart_api_dl.h" /* NOLINT */
 
 #include <string.h>
+
+#include "dart_version.h"              /* NOLINT */
+#include "internal/dart_api_dl_impl.h" /* NOLINT */
 
 #define DART_API_DL_DEFINITIONS(name, R, A) name##_Type name##_DL = NULL;
 
@@ -39,11 +32,13 @@ DartApiEntry_function FindFunctionPointer(const DartApiEntry* entries,
     // This is the original line:
     // if (strcmp(entries->name, name) == 0) return entries->function;
     // The generated error is:
-    // src/dart_api_dl.c:30:50: error: cannot initialize return object of type 'DartApiEntry_function' (aka 'void *') with an lvalue of type 'void (*const)()'
-    // if (strcmp(entries->name, name) == 0) return entries->function;
+    // src/dart_api_dl.c:30:50: error: cannot initialize return object of type
+    // 'DartApiEntry_function' (aka 'void *') with an lvalue of type 'void
+    // (*const)()' if (strcmp(entries->name, name) == 0) return
+    // entries->function;
     //                                              ^~~~~~~~~~~~~~~~~
     // Cast to (void *) was used to compile.
-    if (strcmp(entries->name, name) == 0) return (void *)entries->function;
+    if (strcmp(entries->name, name) == 0) return (void*)entries->function;
     entries++;
   }
   return NULL;
@@ -71,8 +66,8 @@ intptr_t Dart_InitializeApiDL(void* data) {
 
   const DartApiEntry* dart_api_function_pointers = dart_api_data->functions;
 
-#define DART_API_DL_INIT(name, R, A)                                           \
-  name##_DL =                                                                  \
+#define DART_API_DL_INIT(name, R, A) \
+  name##_DL =                        \
       (name##_Type)(FindFunctionPointer(dart_api_function_pointers, #name));
   DART_API_ALL_DL_SYMBOLS(DART_API_DL_INIT)
 #undef DART_API_DL_INIT

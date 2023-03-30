@@ -1,7 +1,7 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_TIZEN_PLUGIN_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_TIZEN_PLUGIN_H_
 
-#include <../../../../../dart-sdk/include/dart_api.h>
+#include "../src/dart_api/dart_api.h"
 #include <flutter_plugin_registrar.h>
 
 #include <functional>

@@ -6,7 +6,7 @@ type = sharedLib
 profile = common-4.0
 
 # Source files
-USER_SRCS += src/*.cc
+USER_SRCS += src/*.cc src/dart_api/*.cc
 
 # User defines
 USER_DEFS = ABC DEF
@@ -19,6 +19,6 @@ USER_CFLAGS_MISC =
 USER_CPPFLAGS_MISC =
 
 # User includes
-USER_INC_DIRS = inc src
+USER_INC_DIRS = inc src src/dart_api
 USER_INC_FILES =
 USER_CPP_INC_FILES =
