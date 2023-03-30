@@ -189,7 +189,7 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   LOG_INFO("[DrmManager] license_url: %s", license_url);
   LOG_INFO("[DrmManager] challenge data length: %d", msg_len);
   std::string challenge_data(msg_len, 0);
-  memcpy(&challenge_data[0], (char *)msg, msg_len);
+  memcpy(&challenge_data[0], reinterpret_cast<char *>(msg), msg_len);
   // Get the license from the DRM Server
   SetDataParam_t *license_param =
       reinterpret_cast<SetDataParam_t *>(malloc(sizeof(SetDataParam_t)));

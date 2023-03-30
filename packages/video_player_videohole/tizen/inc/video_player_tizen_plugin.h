@@ -1,10 +1,11 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_TIZEN_PLUGIN_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_TIZEN_PLUGIN_H_
 
-#include "../src/dart_api/dart_api.h"
 #include <flutter_plugin_registrar.h>
 
 #include <functional>
+
+#include "../src/dart_api/dart_api.h"
 
 #ifdef FLUTTER_PLUGIN_IMPL
 #define FLUTTER_PLUGIN_EXPORT __attribute__((visibility("default")))

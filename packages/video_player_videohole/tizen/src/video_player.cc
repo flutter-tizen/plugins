@@ -187,21 +187,21 @@ int64_t VideoPlayer::Create() {
   }
   SetDisplayRoi(0, 0, 1, 1);
 
-  int ret = player_set_buffering_cb(player_, OnBuffering, (void *)this);
+  int ret = player_set_buffering_cb(player_, OnBuffering, this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_buffering_cb failed: %s",
               get_error_message(ret));
   }
 
-  ret = player_set_completed_cb(player_, OnPlayCompleted, (void *)this);
+  ret = player_set_completed_cb(player_, OnPlayCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_completed_cb failed: %s",
               get_error_message(ret));
   }
 
-  ret = player_set_interrupted_cb(player_, onInterrupted, (void *)this);
+  ret = player_set_interrupted_cb(player_, onInterrupted, this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_interrupted_cb failed: %s",
@@ -215,22 +215,21 @@ int64_t VideoPlayer::Create() {
               get_error_message(ret));
   }
 
-  ret = player_set_error_cb(player_, OnError, (void *)this);
+  ret = player_set_error_cb(player_, OnError, this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_error_cb failed: %s",
               get_error_message(ret));
   }
 
-  ret = player_prepare_async(player_, OnPrepared, (void *)this);
+  ret = player_prepare_async(player_, OnPrepared, this);
   if (ret != PLAYER_ERROR_NONE) {
     player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_prepare_async failed: %s",
               get_error_message(ret));
   }
 
-  ret =
-      player_set_subtitle_updated_cb(player_, OnSubtitleUpdated, (void *)this);
+  ret = player_set_subtitle_updated_cb(player_, OnSubtitleUpdated, this);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer] player_set_subtitle_updated_cb failed: %s",
               get_error_message(ret));
