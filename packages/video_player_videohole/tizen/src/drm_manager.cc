@@ -72,9 +72,6 @@ bool DrmManager::InitializeDrmSession(const std::string &url) {
   int ret = DMGRSetData(drm_session_, "Initialize", nullptr);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] initialize drm session failed");
-    CloseDrmManager(drm_manager_handle_);
-    drm_manager_handle_ = nullptr;
-    drm_session_ = nullptr;
     return false;
   }
   return true;
@@ -156,6 +153,7 @@ bool DrmManager::SetChallengeCondition() {
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] eme_request_key_callback failed: %s",
               get_error_message(ret));
+    return false;
   }
   if (challenge_data_param) {
     free(challenge_data_param);

@@ -114,6 +114,7 @@ bool VideoPlayer::Open(const std::string &uri) {
         std::make_unique<DrmManager>(drm_type_, license_url_, player_);
     if (!drm_manager_->InitializeDrmSession(uri_)) {
       LOG_ERROR("[VideoPlayer] initial drm session failed");
+      drm_manager_->ReleaseDrmSession();
     }
   }
 
