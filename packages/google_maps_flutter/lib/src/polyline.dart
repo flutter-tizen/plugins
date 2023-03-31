@@ -28,7 +28,7 @@ class PolylineController {
   Future<void> _addPolylineEvent(Future<WebViewController>? controller) async {
     final String command =
         "$_polyline.addListener('click', (event) => PolylineClick.postMessage(JSON.stringify(${_polyline?.id})));";
-    await (await controller!).runJavascript(command);
+    await (await controller!).runJavaScript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

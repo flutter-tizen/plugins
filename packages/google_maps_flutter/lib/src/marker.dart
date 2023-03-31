@@ -44,7 +44,7 @@ class MarkerController {
     final String command = '''
         $marker.addListener("click", (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));
         $marker.addListener("dragend", (event) => MarkerDragEnd.postMessage(JSON.stringify({id:${marker?.id}, event:event})));''';
-    await (await controller!).runJavascript(command);
+    await (await controller!).runJavaScript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

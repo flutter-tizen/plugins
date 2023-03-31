@@ -1,3 +1,7 @@
+## 0.1.6
+
+* Update webview_flutter_lwe to 0.2.0.
+
 ## 0.1.5
 
 * Update the example app (`9990a4b1d72158a14924d712e89d4efef3f178d2`).

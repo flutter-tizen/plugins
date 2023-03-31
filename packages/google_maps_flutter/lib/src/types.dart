@@ -17,13 +17,13 @@ typedef LatLngCallback = void Function(LatLng latLng);
 /// instance and our internal `mapId` value.
 abstract class GeometryController {
   /// The WebView instance that this controller operates on.
-  late WebView webview;
+  late WebViewWidget webview;
 
   /// The map ID for events.
   late int mapId;
 
   /// Binds a `mapId` and the map instance to this controller.
-  void bindToMap(int mapId, WebView webview) {
+  void bindToMap(int mapId, WebViewWidget webview) {
     this.mapId = mapId;
     this.webview = webview;
   }

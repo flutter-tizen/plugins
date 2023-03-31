@@ -47,7 +47,7 @@ class GoogleMapsController {
   // Caching this allows us to re-create the map faithfully when needed.
   Map<String, dynamic> _rawMapOptions = <String, dynamic>{};
 
-  WebView? _widget;
+  WebViewWidget? _widget;
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
 
@@ -57,8 +57,8 @@ class GoogleMapsController {
   /// Returns min-max zoom levels. Test only.
   @visibleForTesting
   Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
-    final String value = await (await controller).runJavascriptReturningResult(
-        'JSON.stringify([map.minZoom, map.maxZoom])');
+    final String value = await (await controller).runJavaScriptReturningResult(
+        'JSON.stringify([map.minZoom, map.maxZoom])') as String;
     final dynamic bound = json.decode(value);
     double min = 0, max = 0;
     if (bound is List<dynamic>) {
@@ -81,7 +81,7 @@ class GoogleMapsController {
   @visibleForTesting
   Future<bool> isZoomGesturesEnabled() async {
     final String value = await (await controller)
-        .runJavascriptReturningResult('map.gestureHandling');
+        .runJavaScriptReturningResult('map.gestureHandling') as String;
     return value != 'none';
   }
 
@@ -90,7 +90,7 @@ class GoogleMapsController {
   /// Returns if zoomControls property is enabled. Test only.
   Future<bool> isZoomControlsEnabled() async {
     final String value = await (await controller)
-        .runJavascriptReturningResult('map.zoomControl');
+        .runJavaScriptReturningResult('map.zoomControl') as String;
     return value != 'false';
   }
 
@@ -98,7 +98,7 @@ class GoogleMapsController {
   @visibleForTesting
   Future<bool> isScrollGesturesEnabled() async {
     final String value = await (await controller)
-        .runJavascriptReturningResult('map.gestureHandling');
+        .runJavaScriptReturningResult('map.gestureHandling') as String;
     return value != 'none';
   }
 
@@ -108,48 +108,59 @@ class GoogleMapsController {
     return _isTrafficLayerEnabled(_rawMapOptions);
   }
 
-  late WebViewController _temp;
+  late WebViewController _webviewController;
   void _getWebview() {
     // If the variable does not exist, we must find other alternatives.
+    const String scheme = 'file:///';
     String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
     path += '/res/flutter_assets/assets/map.html';
 
-    _widget = WebView(
-      initialUrl: path,
-      javascriptMode: JavascriptMode.unrestricted,
-      onWebViewCreated: (WebViewController webViewController) async {
-        _temp = webViewController;
-      },
-      javascriptChannels: <JavascriptChannel>{
-        _onBoundsChanged(),
-        _onIdle(),
-        _onTilesloaded(),
-        _onClick(),
-        _onRightClick(),
-        _onMarkerClick(),
-        _onMarkerDragEnd(),
-        _onPolylineClick(),
-        _onPolygonClick(),
-        _onCircleClick(),
-      },
-      onPageFinished: (String url) async {
-        _controller.complete(_temp);
-      },
-      gestureNavigationEnabled: true,
-    );
+    _webviewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+          NavigationDelegate(onPageFinished: (String url) async {
+        _controller.complete(_webviewController);
+      }))
+      ..loadRequest(Uri.parse(scheme + path));
+
+    _widget = WebViewWidget(controller: _webviewController);
+  }
+
+  Future<void> _addJavaScriptChannels() async {
+    await (await controller).addJavaScriptChannel('BoundsChanged',
+        onMessageReceived: _onBoundsChanged);
+    await (await controller)
+        .addJavaScriptChannel('Idle', onMessageReceived: _onIdle);
+    await (await controller)
+        .addJavaScriptChannel('Tilesloaded', onMessageReceived: _onTilesloaded);
+    await (await controller)
+        .addJavaScriptChannel('Click', onMessageReceived: _onClick);
+    await (await controller)
+        .addJavaScriptChannel('RightClick', onMessageReceived: _onRightClick);
+    await (await controller)
+        .addJavaScriptChannel('MarkerClick', onMessageReceived: _onMarkerClick);
+    await (await controller).addJavaScriptChannel('MarkerDragEnd',
+        onMessageReceived: _onMarkerDragEnd);
+    await (await controller).addJavaScriptChannel('PolylineClick',
+        onMessageReceived: _onPolylineClick);
+    await (await controller).addJavaScriptChannel('PolygonClick',
+        onMessageReceived: _onPolygonClick);
+    await (await controller)
+        .addJavaScriptChannel('CircleClick', onMessageReceived: _onCircleClick);
   }
 
   Future<void> _createMap() async {
     final String options = _createOptions();
     final String command = '''
       map = new google.maps.Map(document.getElementById('map'), $options);
-      map.addListener('bounds_changed', BoundChanged.postMessage);
+      map.addListener('bounds_changed', BoundsChanged.postMessage);
       map.addListener('idle', Idle.postMessage);
       map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
       map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
       map.addListener('tilesloaded', Tilesloaded.postMessage);
     ''';
-    await (await controller).runJavascript(command);
+    await _addJavaScriptChannels();
+    await (await controller).runJavaScript(command);
   }
 
   /// The Flutter widget that will contain the rendered Map. Used for caching.
@@ -184,225 +195,182 @@ class GoogleMapsController {
   // Keeps track if the map is moving or not.
   bool _mapIsMoving = false;
 
-  JavascriptChannel _onBoundsChanged() {
-    return JavascriptChannel(
-        name: 'BoundChanged',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          final LatLng center = await getCenter();
-          final double zoom = await getZoomLevel();
+  Future<void> _onBoundsChanged(JavaScriptMessage message) async {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    final LatLng center = await getCenter();
+    final double zoom = await getZoomLevel();
 
-          if (!_streamController.isClosed) {
-            if (!_mapIsMoving) {
-              _mapIsMoving = true;
-              _streamController.add(CameraMoveStartedEvent(_mapId));
-            }
+    if (!_streamController.isClosed) {
+      if (!_mapIsMoving) {
+        _mapIsMoving = true;
+        _streamController.add(CameraMoveStartedEvent(_mapId));
+      }
 
-            _streamController.add(
-              CameraMoveEvent(
-                  _mapId, CameraPosition(target: center, zoom: zoom)),
-            );
-          }
-        });
+      _streamController.add(
+        CameraMoveEvent(_mapId, CameraPosition(target: center, zoom: zoom)),
+      );
+    }
   }
 
-  JavascriptChannel _onIdle() {
-    return JavascriptChannel(
-        name: 'Idle',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          _mapIsMoving = false;
-          _streamController.add(CameraIdleEvent(_mapId));
-        });
+  void _onIdle(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    _mapIsMoving = false;
+    _streamController.add(CameraIdleEvent(_mapId));
   }
 
-  JavascriptChannel _onTilesloaded() {
-    return JavascriptChannel(
-        name: 'Tilesloaded',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null || _isFirst) {
-            return;
-          }
-          try {
-            _streamController.add(MapReadyEvent(_mapId));
-            _isFirst = true;
-          } catch (e) {
-            debugPrint('Javascript Error: $e');
-          }
-        });
+  void _onTilesloaded(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null || _isFirst) {
+      return;
+    }
+    try {
+      _streamController.add(MapReadyEvent(_mapId));
+      _isFirst = true;
+    } catch (e) {
+      debugPrint('Javascript Error: $e');
+    }
   }
 
-  JavascriptChannel _onClick() {
-    return JavascriptChannel(
-        name: 'Click',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          try {
-            final dynamic event = json.decode(message.message);
-            if (event is Map<String, dynamic>) {
-              assert(event['latLng'] != null);
-              final LatLng position = LatLng(event['latLng']['lat'] as double,
-                  event['latLng']['lng'] as double);
-              _streamController.add(MapTapEvent(_mapId, position));
-            }
-          } catch (e) {
-            debugPrint('Javascript Error: $e');
-          }
-        });
+  void _onClick(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    try {
+      final dynamic event = json.decode(message.message);
+      if (event is Map<String, dynamic>) {
+        assert(event['latLng'] != null);
+        final LatLng position = LatLng(
+            event['latLng']['lat'] as double, event['latLng']['lng'] as double);
+        _streamController.add(MapTapEvent(_mapId, position));
+      }
+    } catch (e) {
+      debugPrint('Javascript Error: $e');
+    }
   }
 
-  JavascriptChannel _onRightClick() {
-    // LWE does not support a long press event yet.
-    return JavascriptChannel(
-        name: 'RightClick',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          try {
-            final dynamic event = json.decode(message.message);
-            if (event is Map<String, dynamic>) {
-              assert(event['latLng'] != null);
-              final LatLng position = LatLng(event['latLng']['lat'] as double,
-                  event['latLng']['lng'] as double);
-              _streamController.add(MapLongPressEvent(_mapId, position));
-            }
-          } catch (e) {
-            debugPrint('Javascript Error: $e');
-          }
-        });
+  void _onRightClick(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    try {
+      final dynamic event = json.decode(message.message);
+      if (event is Map<String, dynamic>) {
+        assert(event['latLng'] != null);
+        final LatLng position = LatLng(
+            event['latLng']['lat'] as double, event['latLng']['lng'] as double);
+        _streamController.add(MapLongPressEvent(_mapId, position));
+      }
+    } catch (e) {
+      debugPrint('Javascript Error: $e');
+    }
   }
 
-  JavascriptChannel _onMarkerClick() {
-    return JavascriptChannel(
-        name: 'MarkerClick',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          try {
-            final dynamic id = json.decode(message.message);
-            if (_markersController != null && id is int) {
-              final MarkerId? markerId = _markersController!._idToMarkerId[id];
-              final MarkerController? marker =
-                  _markersController!._markerIdToController[markerId];
-              if (marker?.tapEvent != null) {
-                marker?.tapEvent!();
-              }
-            }
-          } catch (e) {
-            debugPrint('Javascript Error: $e');
-          }
-        });
+  void _onMarkerClick(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    try {
+      final dynamic id = json.decode(message.message);
+      if (_markersController != null && id is int) {
+        final MarkerId? markerId = _markersController!._idToMarkerId[id];
+        final MarkerController? marker =
+            _markersController!._markerIdToController[markerId];
+        if (marker?.tapEvent != null) {
+          marker?.tapEvent!();
+        }
+      }
+    } catch (e) {
+      debugPrint('Javascript Error: $e');
+    }
   }
 
-  JavascriptChannel _onMarkerDragEnd() {
-    return JavascriptChannel(
-        name: 'MarkerDragEnd',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          try {
-            final dynamic result = json.decode(message.message);
-            if (result is Map<String, dynamic>) {
-              assert(result['id'] != null && result['event'] != null);
-              if (_markersController != null && result['id'] is int) {
-                final MarkerId? markerId =
-                    _markersController!._idToMarkerId[result['id']];
-                final MarkerController? marker =
-                    _markersController!._markerIdToController[markerId];
+  void _onMarkerDragEnd(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    try {
+      final dynamic result = json.decode(message.message);
+      if (result is Map<String, dynamic>) {
+        assert(result['id'] != null && result['event'] != null);
+        if (_markersController != null && result['id'] is int) {
+          final MarkerId? markerId =
+              _markersController!._idToMarkerId[result['id']];
+          final MarkerController? marker =
+              _markersController!._markerIdToController[markerId];
 
-                final LatLng position = LatLng(
-                    result['event']['latLng']['lat'] as double,
-                    result['event']['latLng']['lng'] as double);
+          final LatLng position = LatLng(
+              result['event']['latLng']['lat'] as double,
+              result['event']['latLng']['lng'] as double);
 
-                if (marker?.dragEndEvent != null) {
-                  marker?.dragEndEvent!(position);
-                }
-              }
-            }
-          } catch (e) {
-            debugPrint('Javascript Error: $e');
+          if (marker?.dragEndEvent != null) {
+            marker?.dragEndEvent!(position);
           }
-        });
+        }
+      }
+    } catch (e) {
+      debugPrint('Javascript Error: $e');
+    }
   }
 
-  JavascriptChannel _onPolylineClick() {
-    return JavascriptChannel(
-        name: 'PolylineClick',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          try {
-            final dynamic id = json.decode(message.message);
-            if (_polylinesController != null && id is int) {
-              final PolylineId? polylineId =
-                  _polylinesController!._idToPolylineId[id];
-              final PolylineController? polyline =
-                  _polylinesController!._polylineIdToController[polylineId];
-              if (polyline?.tapEvent != null) {
-                polyline?.tapEvent!();
-              }
-            }
-          } catch (e) {
-            debugPrint('Javascript Error: $e');
-          }
-        });
+  void _onPolylineClick(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    try {
+      final dynamic id = json.decode(message.message);
+      if (_polylinesController != null && id is int) {
+        final PolylineId? polylineId =
+            _polylinesController!._idToPolylineId[id];
+        final PolylineController? polyline =
+            _polylinesController!._polylineIdToController[polylineId];
+        if (polyline?.tapEvent != null) {
+          polyline?.tapEvent!();
+        }
+      }
+    } catch (e) {
+      debugPrint('Javascript Error: $e');
+    }
   }
 
-  JavascriptChannel _onPolygonClick() {
-    return JavascriptChannel(
-        name: 'PolygonClick',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          try {
-            final dynamic id = json.decode(message.message);
-            if (_polygonsController != null && id is int) {
-              final PolygonId? polygonId =
-                  _polygonsController!._idToPolygonId[id];
-              final PolygonController? polygon =
-                  _polygonsController!._polygonIdToController[polygonId];
-              if (polygon?.tapEvent != null) {
-                polygon?.tapEvent!();
-              }
-            }
-          } catch (e) {
-            debugPrint('Javascript Error: $e');
-          }
-        });
+  void _onPolygonClick(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    try {
+      final dynamic id = json.decode(message.message);
+      if (_polygonsController != null && id is int) {
+        final PolygonId? polygonId = _polygonsController!._idToPolygonId[id];
+        final PolygonController? polygon =
+            _polygonsController!._polygonIdToController[polygonId];
+        if (polygon?.tapEvent != null) {
+          polygon?.tapEvent!();
+        }
+      }
+    } catch (e) {
+      debugPrint('Javascript Error: $e');
+    }
   }
 
-  JavascriptChannel _onCircleClick() {
-    return JavascriptChannel(
-        name: 'CircleClick',
-        onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
-            return;
-          }
-          try {
-            final dynamic id = json.decode(message.message);
-            if (_polygonsController != null && id is int) {
-              final CircleId? circleId = _circlesController!._idToCircleId[id];
-              final CircleController? circle =
-                  _circlesController!._circleIdToController[circleId];
-              if (circle?.tapEvent != null) {
-                circle?.tapEvent!();
-              }
-            }
-          } catch (e) {
-            debugPrint('Javascript Error: $e');
-          }
-        });
+  void _onCircleClick(JavaScriptMessage message) {
+    if (_widget == null || _streamController == null) {
+      return;
+    }
+    try {
+      final dynamic id = json.decode(message.message);
+      if (_polygonsController != null && id is int) {
+        final CircleId? circleId = _circlesController!._idToCircleId[id];
+        final CircleController? circle =
+            _circlesController!._circleIdToController[circleId];
+        if (circle?.tapEvent != null) {
+          circle?.tapEvent!();
+        }
+      }
+    } catch (e) {
+      debugPrint('Javascript Error: $e');
+    }
   }
 
   /// Initializes the map from the stored `rawOptions`.
@@ -515,7 +483,7 @@ class GoogleMapsController {
         console.log('trafficLayer detached!!');
       }
     ''';
-    await (await controller).runJavascript(command);
+    await (await controller).runJavaScript(command);
   }
 
   Future<void> _setMoveCamera(String options) async {
@@ -534,31 +502,31 @@ class GoogleMapsController {
     await _callMethod(await controller, 'fitBounds', <String>[options]);
   }
 
-  Future<String> _callMethod(
+  Future<Object> _callMethod(
       WebViewController mapView, String method, List<Object?> args) async {
-    return mapView.runJavascriptReturningResult(
+    return mapView.runJavaScriptReturningResult(
         'JSON.stringify(map.$method.apply(map, $args))');
   }
 
-  Future<double> _getZoom(WebViewController c) async {
+  Future<int> _getZoom(WebViewController c) async {
     try {
-      return double.parse(await _callMethod(c, 'getZoom', <String>[]));
+      return await _callMethod(c, 'getZoom', <String>[]) as int;
     } catch (e) {
       debugPrint('Javascript Error: $e');
-      return 0.0;
+      return 0;
     }
   }
 
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
     return _convertToBounds(
-        await _callMethod(await controller, 'getBounds', <String>[]));
+        await _callMethod(await controller, 'getBounds', <String>[]) as String);
   }
 
   /// Returns the [LatLng] at the center of the map.
   Future<LatLng> getCenter() async {
     return _convertToLatLng(
-        await _callMethod(await controller, 'getCenter', <String>[]));
+        await _callMethod(await controller, 'getCenter', <String>[]) as String);
   }
 
   /// Returns the [ScreenCoordinate] for a given viewport [LatLng].
@@ -653,7 +621,7 @@ class GoogleMapsController {
       JSON.stringify(getPixelToLatLng());
     ''';
 
-    return (await controller).runJavascriptReturningResult(command);
+    return (await controller).runJavaScriptReturningResult(command) as String;
   }
 
   Future<String> _latLngToPoint(LatLng latLng) async {
@@ -673,12 +641,12 @@ class GoogleMapsController {
       JSON.stringify(getLatLngToPixel());
     ''';
 
-    return (await controller).runJavascriptReturningResult(command);
+    return (await controller).runJavaScriptReturningResult(command) as String;
   }
 
   /// Returns the zoom level of the current viewport.
   Future<double> getZoomLevel() async {
-    return _getZoom(await controller);
+    return (await _getZoom(await controller)).toDouble();
   }
 
   // Geometry manipulation
