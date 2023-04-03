@@ -711,22 +711,29 @@ class CppRequest {
   final int? pendingCall;
   final String method;
   final Uint8List data;
+  final int playerId;
 
   factory CppRequest.fromCppMessage(List message) {
-    return CppRequest._(message[0], message[1], message[2], message[3]);
+    return CppRequest._(
+        message[0], message[1], message[2], message[3], message[4]);
   }
 
-  CppRequest._(this.replyPort, this.pendingCall, this.method, this.data);
-  String toString() => 'CppRequest(method: $method, ${data.length} bytes)';
+  CppRequest._(
+      this.replyPort, this.pendingCall, this.method, this.data, this.playerId);
+  String toString() =>
+      'CppRequest(method: $method, ${data.length} bytes,playerId:$playerId)';
 }
 
 class CppResponse {
   final int pendingCall;
   final Uint8List data;
+  final int playerId;
 
-  CppResponse(this.pendingCall, this.data);
-  List toCppMessage() => List.from([pendingCall, data], growable: false);
-  String toString() => 'CppResponse(message: ${data.length})';
+  CppResponse(this.pendingCall, this.data, this.playerId);
+  List toCppMessage() =>
+      List.from([pendingCall, data, playerId], growable: false);
+  String toString() =>
+      'CppResponse(message: ${data.length},playerId:$playerId)';
 }
 
 typedef Future<Uint8List> LicenseCallback(Uint8List challenge);
@@ -756,7 +763,8 @@ class FFIController {
     if (cppRequest.method == 'ChallengeCb') {
       final Uint8List argument = cppRequest.data;
       final Uint8List result = await drmLicenseCb(argument);
-      final cppResponse = CppResponse(cppRequest.pendingCall!, result);
+      final cppResponse =
+          CppResponse(cppRequest.pendingCall!, result, cppRequest.playerId);
       print('Responding: $cppResponse');
       cppRequest.replyPort!.send(cppResponse.toCppMessage());
     }

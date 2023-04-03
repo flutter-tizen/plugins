@@ -41,6 +41,8 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int position);
   void SetVolume(double volume);
+  void GetChallengeData(FuncLicenseCB callback);
+  void SetLicenseData(void *response_data, size_t response_len);
 
  private:
   void Initialize();
@@ -79,6 +81,7 @@ class VideoPlayer {
   int y_ = 0;
   int width_ = 0;
   int height_ = 0;
+  FuncLicenseCB get_challenge_cb_ = nullptr;
 };
 
 #endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_

@@ -21,13 +21,14 @@ FLUTTER_PLUGIN_EXPORT void VideoPlayerTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 // FFI native function
 typedef std::function<void()> CallbackWrapper;
-typedef intptr_t (*FuncLicenseCB)(uint8_t *challenge_data,
-                                  size_t challenge_len);
+typedef intptr_t (*FuncLicenseCB)(uint8_t *challenge_data, size_t challenge_len,
+                                  int64_t player_id);
 FuncLicenseCB challenge_cb_ = nullptr;
 Dart_Port send_port_;
 FLUTTER_PLUGIN_EXPORT intptr_t InitDartApiDL(void *data);
 FLUTTER_PLUGIN_EXPORT void RegisterSendPort(Dart_Port send_port);
-intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len);
+intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len,
+                     int64_t player_id);
 #if defined(__cplusplus)
 }  // extern "C"
 #endif

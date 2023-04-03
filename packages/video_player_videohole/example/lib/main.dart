@@ -270,6 +270,7 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
           .then((response) => response.bodyBytes);
     }
 
+    //If request drm license by app, use [ffi_controller = FFIController(_getlicense)]
     ffi_controller = FFIController(_getlicense);
     ffi_controller.FFIgetLicense();
 
@@ -279,6 +280,7 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
       drmConfigs: {
         'drmType': 2,
+        //If request license by player, use [licenseServerUrl]
         //'licenseServerUrl': 'https://proxy.uat.widevine.com/proxy'
       },
     );

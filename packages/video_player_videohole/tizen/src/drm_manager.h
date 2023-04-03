@@ -14,17 +14,18 @@
 #include "drm_manager_service_proxy.h"
 #include "player.h"
 
-typedef intptr_t (*FuncLicenseCB)(uint8_t *challenge_data,
-                                  size_t challenge_len);
+typedef intptr_t (*FuncLicenseCB)(uint8_t *challenge_data, size_t challenge_len,
+                                  int64_t player_id);
 
 class DrmManager {
  public:
-  DrmManager(int drmType, const std::string &licenseUrl, player_h player);
+  DrmManager(int drmType, const std::string &licenseUrl, player_h player,
+             int64_t player_id);
   ~DrmManager();
   bool InitializeDrmSession(const std::string &url);
   void ReleaseDrmSession();
-  static void SetLicenseData(void *response_data, size_t response_len);
-  static void GetChallengeData(FuncLicenseCB callback);
+  void SetLicenseData(void *response_data, size_t response_len);
+  void GetChallengeData(FuncLicenseCB callback);
 
  private:
   bool CreateDrmSession(void);
@@ -43,6 +44,10 @@ class DrmManager {
   int drm_type_ = DRM_TYPE_NONE;
   std::string license_url_;
   player_h player_;
+  FuncLicenseCB get_challenge_cb_ = nullptr;
+  unsigned char *ppb_response_ = nullptr;
+  unsigned long pb_response_len_ = 0;
+  int64_t player_id_ = -1;
 };
 
 #endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_H_

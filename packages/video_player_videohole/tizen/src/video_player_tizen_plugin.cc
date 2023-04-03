@@ -46,6 +46,8 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
       const MixWithOthersMessage &mixWithOthersMsg) override;
   std::optional<FlutterError> SetDisplayRoi(
       const GeometryMessage &geometryMsg) override;
+  void SetLicenseData(void *response_data, size_t response_len,
+                      int64_t player_id);
 
  private:
   void DisposeAllPlayers();
@@ -55,12 +57,13 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   std::map<int64_t, std::unique_ptr<VideoPlayer>> players_;
 };
 
+std::unique_ptr<VideoPlayerTizenPlugin> plugin_;
+
 void VideoPlayerTizenPlugin::RegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar_ref,
     flutter::PluginRegistrar *plugin_registrar) {
-  auto plugin =
+  plugin_ =
       std::make_unique<VideoPlayerTizenPlugin>(registrar_ref, plugin_registrar);
-  plugin_registrar->AddPlugin(std::move(plugin));
 }
 
 VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
@@ -71,6 +74,15 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
+
+void VideoPlayerTizenPlugin::SetLicenseData(void *response_data,
+                                            size_t response_len,
+                                            int64_t player_id) {
+  auto iter = players_.find(player_id);
+  if (iter != players_.end()) {
+    iter->second->SetLicenseData(response_data, response_len);
+  }
+}
 
 void VideoPlayerTizenPlugin::DisposeAllPlayers() {
   auto iter = players_.begin();
@@ -90,12 +102,12 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     const CreateMessage &createMsg) {
   std::unique_ptr<VideoPlayer> player =
       std::make_unique<VideoPlayer>(registrar_ref_, createMsg);
-  DrmManager::GetChallengeData(ChallengeCb);
+  player->GetChallengeData(ChallengeCb);
   PlayerMessage player_message;
-  int64_t playerId = player->Create();
-  if (playerId != -1) {
-    players_[playerId] = std::move(player);
-    player_message.set_player_id(playerId);
+  int64_t player_id = player->Create();
+  if (player_id != -1) {
+    players_[player_id] = std::move(player);
+    player_message.set_player_id(player_id);
   }
   return player_message;
 }
@@ -207,8 +219,10 @@ static void FreeFinalizer(void *, void *value) { free(value); }
 
 class PendingCall {
  public:
-  PendingCall(void **buffer, size_t *length)
-      : response_buffer_(buffer), response_length_(length) {
+  PendingCall(void **buffer, size_t *length, int64_t *player_id)
+      : response_buffer_(buffer),
+        response_length_(length),
+        player_id_(player_id) {
     receive_port_ =
         Dart_NewNativePort_DL("cpp-response", &PendingCall::HandleResponse,
                               /*handle_concurrently=*/false);
@@ -221,10 +235,11 @@ class PendingCall {
     std::unique_lock<std::mutex> lock(mutex);
     const bool success = Dart_PostCObject_DL(send_port_, object);
     if (!success) {
-      LOG_ERROR("Failed to send message, invalid port or isolate died.\n");
+      LOG_ERROR("Failed to send message, invalid port or isolate died");
+      return;
     }
 
-    LOG_INFO("Waiting for result.\n");
+    LOG_INFO("Waiting for result");
     while (!notified) {
       cv.wait(lock);
     }
@@ -232,12 +247,13 @@ class PendingCall {
 
   static void HandleResponse(Dart_Port p, Dart_CObject *message) {
     if (message->type != Dart_CObject_kArray) {
-      LOG_ERROR("Wrong Data: message->type != Dart_CObject_kArray.\n");
+      LOG_ERROR("Wrong Data: message->type != Dart_CObject_kArray");
     }
     Dart_CObject **c_response_args = message->value.as_array.values;
     Dart_CObject *c_pending_call = c_response_args[0];
     Dart_CObject *c_message = c_response_args[1];
-    LOG_INFO("HandleResponse (call: %d).\n",
+    Dart_CObject *c_player_id = c_response_args[2];
+    LOG_INFO("HandleResponse (call: %d)",
              reinterpret_cast<intptr_t>(c_pending_call));
 
     auto pending_call = reinterpret_cast<PendingCall *>(
@@ -245,16 +261,16 @@ class PendingCall {
             ? c_pending_call->value.as_int64
             : c_pending_call->value.as_int32);
 
-    pending_call->ResolveCall(c_message);
+    pending_call->ResolveCall(c_message, c_player_id);
   }
 
  private:
   static bool NonEmptyBuffer(void **value) { return *value != nullptr; }
 
-  void ResolveCall(Dart_CObject *bytes) {
+  void ResolveCall(Dart_CObject *bytes, Dart_CObject *c_player_id) {
     assert(bytes->type == Dart_CObject_kTypedData);
     if (bytes->type != Dart_CObject_kTypedData) {
-      LOG_ERROR("C Wrong Data: bytes->type != Dart_CObject_kTypedData.\n");
+      LOG_ERROR("C Wrong Data: bytes->type != Dart_CObject_kTypedData");
     }
     const intptr_t response_length = bytes->value.as_typed_data.length;
     const uint8_t *response_buffer = bytes->value.as_typed_data.values;
@@ -264,6 +280,13 @@ class PendingCall {
 
     *response_buffer_ = buffer;
     *response_length_ = response_length;
+
+    assert(c_player_id->type == Dart_CObject_kInt64 ||
+           c_player_id->type == Dart_CObject_kInt32);
+    int64_t id;
+    c_player_id->type == Dart_CObject_kInt64 ? id = c_player_id->value.as_int64
+                                             : id = c_player_id->value.as_int32;
+    *player_id_ = id;
 
     notified = true;
     cv.notify_one();
@@ -276,9 +299,11 @@ class PendingCall {
   Dart_Port receive_port_;
   void **response_buffer_;
   size_t *response_length_;
+  int64_t *player_id_;
 };
 
-intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len) {
+intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len,
+                     int64_t player_id) {
   const char *methodname = "ChallengeCb";
   intptr_t result = 0;
   size_t request_length = challenge_len;
@@ -287,8 +312,10 @@ intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len) {
 
   void *response_buffer = nullptr;
   size_t response_length = 0;
+  int64_t response_player_id = -1;
 
-  PendingCall pending_call(&response_buffer, &response_length);
+  PendingCall pending_call(&response_buffer, &response_length,
+                           &response_player_id);
 
   Dart_CObject c_send_port;
   c_send_port.type = Dart_CObject_kSendPort;
@@ -312,8 +339,13 @@ intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len) {
   c_request_data.value.as_external_typed_data.peer = request_buffer;
   c_request_data.value.as_external_typed_data.callback = FreeFinalizer;
 
+  Dart_CObject c_player_id;
+  c_player_id.type = Dart_CObject_kInt64;
+  c_player_id.value.as_int64 = reinterpret_cast<int64_t>(player_id);
+
   Dart_CObject *c_request_arr[] = {&c_send_port, &c_pending_call,
-                                   &c_method_name, &c_request_data};
+                                   &c_method_name, &c_request_data,
+                                   &c_player_id};
   Dart_CObject c_request;
   c_request.type = Dart_CObject_kArray;
   c_request.value.as_array.values = c_request_arr;
@@ -321,9 +353,9 @@ intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len) {
       sizeof(c_request_arr) / sizeof(c_request_arr[0]);
 
   pending_call.PostAndWait(send_port_, &c_request);
-  LOG_INFO("Received result.\n");
+  LOG_INFO("Received result");
 
-  DrmManager::SetLicenseData(response_buffer, response_length);
+  plugin_->SetLicenseData(response_buffer, response_length, response_player_id);
   if (response_length != 0) {
     result = 1;
   }

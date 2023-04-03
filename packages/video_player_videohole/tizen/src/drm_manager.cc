@@ -26,8 +26,11 @@ static std::string GetDrmSubType(int dm_type) {
 }
 
 DrmManager::DrmManager(int drmType, const std::string &licenseUrl,
-                       player_h player)
-    : drm_type_(drmType), license_url_(licenseUrl), player_(player) {}
+                       player_h player, int64_t player_id)
+    : drm_type_(drmType),
+      license_url_(licenseUrl),
+      player_(player),
+      player_id_(player_id) {}
 
 DrmManager::~DrmManager() {}
 
@@ -161,10 +164,6 @@ bool DrmManager::SetChallengeCondition() {
   return true;
 }
 
-FuncLicenseCB get_challenge_cb_;
-unsigned char *ppb_response_ = nullptr;
-unsigned long pb_response_len_ = 0;
-
 void DrmManager::GetChallengeData(FuncLicenseCB callback) {
   get_challenge_cb_ = callback;
 }
@@ -195,25 +194,26 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
     LOG_INFO("[DrmManager] get license by player");
     DRM_RESULT drm_result = DrmLicenseHelper::DoTransactionTZ(
         license_url, reinterpret_cast<const void *>(&challenge_data[0]),
-        static_cast<unsigned long>(challenge_data.length()), &ppb_response_,
-        &pb_response_len_,
+        static_cast<unsigned long>(challenge_data.length()),
+        &drm_manager->ppb_response_, &drm_manager->pb_response_len_,
         static_cast<DrmLicenseHelper::DrmType>(drm_manager->drm_type_), nullptr,
         nullptr);
     LOG_INFO("[DrmManager] drm_result: 0x%lx", drm_result);
-    LOG_INFO("[DrmManager] ppb_response_: %s", ppb_response_);
-    LOG_INFO("[DrmManager] pbResponse_len: %ld", pb_response_len_);
+    LOG_INFO("[DrmManager] ppb_response_: %s", drm_manager->ppb_response_);
+    LOG_INFO("[DrmManager] pbResponse_len: %ld", drm_manager->pb_response_len_);
   } else {
     LOG_INFO("[DrmManager] get license by dart callback");
-    intptr_t ret =
-        get_challenge_cb_(reinterpret_cast<uint8_t *>(&challenge_data[0]),
-                          static_cast<size_t>(challenge_data.length()));
+    intptr_t ret = drm_manager->get_challenge_cb_(
+        reinterpret_cast<uint8_t *>(&challenge_data[0]),
+        static_cast<size_t>(challenge_data.length()), drm_manager->player_id_);
     if (ret == 0) {
       LOG_ERROR("[DrmManager] request license failed");
     }
   }
   license_param->param1 = session_id;
-  license_param->param2 = ppb_response_;
-  license_param->param3 = reinterpret_cast<void *>(pb_response_len_);
+  license_param->param2 = drm_manager->ppb_response_;
+  license_param->param3 =
+      reinterpret_cast<void *>(drm_manager->pb_response_len_);
   int ret = DMGRSetData(drm_manager->drm_session_, "install_eme_key",
                         reinterpret_cast<void *>(license_param));
   if (ret != DM_ERROR_NONE) {
@@ -223,8 +223,8 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
   if (license_param) {
     free(license_param);
   }
-  free(ppb_response_);
-  ppb_response_ = nullptr;
+  free(drm_manager->ppb_response_);
+  drm_manager->ppb_response_ = nullptr;
 
   return 0;
 }
