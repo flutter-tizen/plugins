@@ -1,10 +1,11 @@
+// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:ffi' as ffi;
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
@@ -48,8 +49,6 @@ class VideoPlayerValue {
     this.volume = 1.0,
     this.playbackSpeed = 1.0,
     this.errorDescription,
-    this.isSubtitle = true,
-    this.subtitleText = "",
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -86,7 +85,7 @@ class VideoPlayerValue {
   /// Defaults to Duration.zero.
   final Duration captionOffset;
 
-  /// The currently buffered ranges.
+  /// The currently buffered size.
   final int buffered;
 
   /// True if the video is playing. False if it's paused.
@@ -108,12 +107,6 @@ class VideoPlayerValue {
   ///
   /// If [hasError] is false this is `null`.
   final String? errorDescription;
-
-  /// True if the video subtitle is displaying.
-  final bool isSubtitle;
-
-  /// The [subtitleText] of the currently loaded video.
-  final String? subtitleText;
 
   /// The [size] of the currently loaded video.
   final Size size;
@@ -158,8 +151,6 @@ class VideoPlayerValue {
     double? volume,
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
-    bool? isSubtitle,
-    String? subtitleText,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -177,8 +168,6 @@ class VideoPlayerValue {
       errorDescription: errorDescription != _defaultErrorDescription
           ? errorDescription
           : this.errorDescription,
-      isSubtitle: isSubtitle ?? this.isSubtitle,
-      subtitleText: subtitleText ?? this.subtitleText,
     );
   }
 
@@ -197,9 +186,7 @@ class VideoPlayerValue {
         'isBuffering: $isBuffering, '
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
-        'errorDescription: $errorDescription,'
-        'isSubtitle: $isSubtitle,'
-        'text:$subtitleText)';
+        'errorDescription: $errorDescription)';
   }
 }
 
@@ -237,14 +224,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// the video format detection code.
   /// [httpHeaders] option allows to specify HTTP headers
   /// for the request to the [dataSource].
-  VideoPlayerController.network(this.dataSource,
-      {this.formatHint,
-      this.closedCaptionFile,
-      this.videoPlayerOptions,
-      this.httpHeaders = const <String, String>{},
-      this.drmConfigs = const <String, Object>{},
-      this.geometryConfigs = const <String, Object>{}})
-      : dataSourceType = DataSourceType.network,
+  VideoPlayerController.network(
+    this.dataSource, {
+    this.formatHint,
+    this.closedCaptionFile,
+    this.videoPlayerOptions,
+    this.httpHeaders = const <String, String>{},
+    this.drmConfigs = const <String, Object>{},
+    this.geometryConfigs = const <String, Object>{},
+  })  : dataSourceType = DataSourceType.network,
         package = null,
         super(VideoPlayerValue(duration: Duration.zero));
 
@@ -333,6 +321,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Get the window geometry through window_channel.
   final MethodChannel _kChannel = const MethodChannel('tizen/internal/window');
   Map<String, Object> geometryConfigs;
+
   Future<void> initialize() async {
     final map = await _kChannel.invokeMethod('getWindowGeometry');
     if (map != null) {
@@ -394,7 +383,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _playerId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
         kUninitializedPlayerId;
     _creatingCompleter!.complete(null);
-
     final Completer<void> initializingCompleter = Completer<void>();
 
     void eventListener(VideoEvent event) {
@@ -432,7 +420,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isBuffering: false);
           break;
         case VideoEventType.subtitleUpdate:
-          value = value.copyWith(subtitleText: event.text);
+          final caption = Caption(
+            number: 0,
+            start: value.position,
+            end: value.position + (event.duration ?? Duration.zero),
+            text: event.text ?? '',
+          );
+          value = value.copyWith(caption: caption);
           break;
         case VideoEventType.unknown:
           break;
@@ -641,13 +635,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyPlaybackSpeed();
   }
 
-  /// Sets the subtitle status.
-  ///
-  /// The [onoff] will be used when set subtitle display or not.
-  Future<void> setSubtitleStatus(bool onoff) async {
-    value = value.copyWith(isSubtitle: onoff);
-  }
-
   /// Sets the caption offset.
   ///
   /// The [offset] will be used when getting the correct caption for a specific position.
@@ -673,7 +660,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [Caption].
   Caption _getCaptionAt(Duration position) {
     if (_closedCaptionFile == null) {
-      return Caption.none;
+      return value.caption;
     }
 
     final Duration delayedPosition = position + value.captionOffset;
@@ -1163,8 +1150,7 @@ class ClosedCaption extends StatelessWidget {
   /// [VideoPlayerValue.caption].
   ///
   /// If [text] is null or empty, nothing will be displayed.
-  const ClosedCaption({Key? key, this.text, this.textStyle, this.isSubtitle})
-      : super(key: key);
+  const ClosedCaption({Key? key, this.text, this.textStyle}) : super(key: key);
 
   /// The text that will be shown in the closed caption, or null if no caption
   /// should be shown.
@@ -1177,16 +1163,10 @@ class ClosedCaption extends StatelessWidget {
   /// font colored white.
   final TextStyle? textStyle;
 
-  /// If [isSubtitle] is true, [text] will be shown.
-  /// If it is false, [text] will be hide.
-  final bool? isSubtitle;
-
   @override
   Widget build(BuildContext context) {
     final String? text = this.text;
-    final bool? isSubtitle = this.isSubtitle;
-
-    if (text == null || text.isEmpty || !isSubtitle!) {
+    if (text == null || text.isEmpty) {
       return const SizedBox.shrink();
     }
 

@@ -6,11 +6,9 @@
 
 /// An example of using the plugin, controlling lifecycle and playback of the
 /// video.
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player_videohole/video_player.dart';
-import 'package:video_player_videohole/video_player_platform_interface.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -72,7 +70,7 @@ class _App extends StatelessWidget {
 
 class _HlsRomoteVideo extends StatefulWidget {
   @override
-  _HlsRomoteVideoState createState() => _HlsRomoteVideoState();
+  State<_HlsRomoteVideo> createState() => _HlsRomoteVideoState();
 }
 
 class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
@@ -82,9 +80,7 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-    );
+        'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8');
 
     _controller.addListener(() {
       setState(() {});
@@ -117,6 +113,7 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
+                  ClosedCaption(text: _controller.value.caption.text),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -131,7 +128,7 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
 
 class _DashRomoteVideo extends StatefulWidget {
   @override
-  _DashRomoteVideoState createState() => _DashRomoteVideoState();
+  State<_DashRomoteVideo> createState() => _DashRomoteVideoState();
 }
 
 class _DashRomoteVideoState extends State<_DashRomoteVideo> {
@@ -141,9 +138,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-      'https://dash.akamaized.net/dash264/TestCasesUHD/2b/11/MultiRate.mpd',
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-    );
+        'https://dash.akamaized.net/dash264/TestCasesUHD/2b/11/MultiRate.mpd');
 
     _controller.addListener(() {
       setState(() {});
@@ -176,6 +171,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
+                  ClosedCaption(text: _controller.value.caption.text),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -190,19 +186,17 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
 
 class _Mp4RemoteVideo extends StatefulWidget {
   @override
-  Mp4RemoteVideoState createState() => Mp4RemoteVideoState();
+  State<_Mp4RemoteVideo> createState() => _Mp4RemoteVideoState();
 }
 
-class Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
+class _Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
   late VideoPlayerController _controller;
 
   @override
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-      'https://media.w3.org/2010/05/bunny/trailer.mp4',
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-    );
+        'https://media.w3.org/2010/05/bunny/trailer.mp4');
 
     _controller.addListener(() {
       setState(() {});
@@ -233,9 +227,7 @@ class Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(
-                      text: _controller.value.subtitleText,
-                      isSubtitle: _controller.value.isSubtitle),
+                  ClosedCaption(text: _controller.value.caption.text),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -250,7 +242,7 @@ class Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
 
 class _DrmRemoteVideo extends StatefulWidget {
   @override
-  _DrmRemoteVideoState createState() => _DrmRemoteVideoState();
+  State<_DrmRemoteVideo> createState() => _DrmRemoteVideoState();
 }
 
 class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
@@ -277,7 +269,6 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
     _controller = VideoPlayerController.network(
       //widevine
       'https://storage.googleapis.com/wvmedia/cenc/hevc/tears/tears.mpd',
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
       drmConfigs: {
         'drmType': 2,
         //If request license by player, use [licenseServerUrl]
@@ -329,7 +320,7 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
 
 class _DrmRemoteVideo2 extends StatefulWidget {
   @override
-  _DrmRemoteVideoState2 createState() => _DrmRemoteVideoState2();
+  State<_DrmRemoteVideo2> createState() => _DrmRemoteVideoState2();
 }
 
 class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
@@ -342,7 +333,6 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
     _controller = VideoPlayerController.network(
       //playready
       'https://test.playready.microsoft.com/smoothstreaming/SSWSS720H264PR/SuperSpeedway_720.ism/Manifest',
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
       drmConfigs: {
         'drmType': 1,
         'licenseServerUrl':
@@ -416,10 +406,6 @@ class _ControlsOverlay extends StatelessWidget {
     3.0,
     5.0,
     10.0,
-  ];
-  static const List<bool> _exampleSubtitleStatus = <bool>[
-    true,
-    false,
   ];
 
   final VideoPlayerController controller;
@@ -505,36 +491,6 @@ class _ControlsOverlay extends StatelessWidget {
                 horizontal: 16,
               ),
               child: Text('${controller.value.playbackSpeed}x'),
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: PopupMenuButton<bool>(
-            initialValue: controller.value.isSubtitle,
-            tooltip: 'Subtitle status',
-            onSelected: (bool onoff) {
-              controller.setSubtitleStatus(onoff);
-            },
-            itemBuilder: (BuildContext context) {
-              return <PopupMenuItem<bool>>[
-                for (final bool onoff in _exampleSubtitleStatus)
-                  PopupMenuItem<bool>(
-                    value: onoff,
-                    child: Text('Subtitle:${onoff ? "on" : "off"}'),
-                  )
-              ];
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                // Using less vertical padding as the text is also longer
-                // horizontally, so it feels like it would need more spacing
-                // horizontally (matching the aspect ratio of the video).
-                vertical: 12,
-                horizontal: 16,
-              ),
-              child: Text(
-                  'Subtitle:${controller.value.isSubtitle ? "on" : "off"}'),
             ),
           ),
         ),

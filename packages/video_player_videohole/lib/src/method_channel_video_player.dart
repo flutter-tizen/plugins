@@ -129,8 +129,9 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
           return VideoEvent(eventType: VideoEventType.bufferingEnd);
         case 'subtitleUpdate':
           return VideoEvent(
-              eventType: VideoEventType.subtitleUpdate,
-              text: map['text']! as String);
+            eventType: VideoEventType.subtitleUpdate,
+            text: map['text']! as String,
+          );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
       }

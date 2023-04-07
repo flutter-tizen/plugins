@@ -237,7 +237,7 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.initialized].
   final Size? size;
 
-  /// Buffered parts of the video.
+  /// Buffered size of the video.
   ///
   /// Only used if [eventType] is [VideoEventType.bufferingUpdate].
   final int? buffered;
@@ -288,7 +288,7 @@ enum VideoEventType {
   /// The video stopped to buffer.
   bufferingEnd,
 
-  /// Update subtitle text of video.
+  /// Updated the video subtitle text.
   subtitleUpdate,
 
   /// An unknown event has been received.
