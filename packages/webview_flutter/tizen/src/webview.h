@@ -78,9 +78,6 @@ class WebView : public PlatformView {
   static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data);
   static void OnJavaScriptMessage(Evas_Object* obj, Ewk_Script_Message message);
-  static unsigned int OnLoadRequestHashKeyLength(const char* key);
-  static int OnPostLoadRequestHashKeyCompare(const char* key1, int key1_length,
-                                             const char* key2, int key2_length);
 
   Evas_Object* webview_instance_ = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
