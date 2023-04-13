@@ -132,13 +132,22 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       }
     }
 
-    final io.ProcessResult processResult = await processRunner.run(
-      'flutter-tizen',
-      <String>['precache', '--tizen'],
-      logOnError: true,
-    );
+    late io.ProcessResult processResult;
+    for (int attempts = 0; attempts < 5; attempts++) {
+      // This operation often fails with an exit code 128.
+      processResult = await processRunner.run(
+        'flutter-tizen',
+        <String>['precache', '--tizen'],
+      );
+      if (processResult.exitCode == 0) {
+        break;
+      }
+      print('Waiting 5 seconds before trying again...');
+      await Future<void>.delayed(const Duration(seconds: 5));
+    }
     if (processResult.exitCode != 0) {
-      print('Cannot precache Tizen artifacts for integration test.');
+      print('Cannot precache Tizen artifacts for integration test:\n'
+          '${processResult.stderr}');
       throw ToolExit(processResult.exitCode);
     }
   }
