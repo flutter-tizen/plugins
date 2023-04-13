@@ -226,7 +226,7 @@ class MessageportTizenPlugin : public flutter::Plugin {
     bool trusted = false;
 
     auto iter = arguments->find(flutter::EncodableValue("message"));
-    if (iter != arguments->end() && !iter->second.IsNull()) {
+    if (iter != arguments->end()) {
       message = iter->second;
     } else {
       result->Error("Invalid arguments");

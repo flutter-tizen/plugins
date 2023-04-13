@@ -62,21 +62,36 @@ void main() {
     expect(await remotePort.check(), isFalse);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
-  testWidgets('Send simple message', (WidgetTester tester) async {
+  testWidgets('Send null message', (WidgetTester tester) async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
-    final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
+    final Completer<dynamic> completer = Completer<dynamic>();
     localPort.register((dynamic message, [RemotePort? remotePort]) {
-      completer.complete(<dynamic>[message, remotePort]);
+      expect(remotePort, isNull);
+      completer.complete(message);
+    });
+
+    final RemotePort port = await RemotePort.connect(kTestAppId, kTestPort);
+    await port.send(null);
+
+    final dynamic message = await completer.future;
+    expect(message, isNull);
+
+    await localPort.unregister();
+  }, timeout: const Timeout(Duration(seconds: 5)));
+
+  testWidgets('Send string message', (WidgetTester tester) async {
+    final LocalPort localPort = await LocalPort.create(kTestPort);
+    final Completer<dynamic> completer = Completer<dynamic>();
+    localPort.register((dynamic message, [RemotePort? remotePort]) {
+      expect(remotePort, isNull);
+      completer.complete(message);
     });
 
     final RemotePort port = await RemotePort.connect(kTestAppId, kTestPort);
     await port.send('Test message 1');
 
-    final List<dynamic> value = await completer.future;
-    final String message = value[0] as String;
-    final RemotePort? remotePort = value[1] as RemotePort?;
+    final dynamic message = await completer.future;
     expect(message, equals('Test message 1'));
-    expect(remotePort, isNull);
 
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
