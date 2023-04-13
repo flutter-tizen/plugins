@@ -55,36 +55,6 @@ class NavigationRequestResult : public FlMethodResult {
   WebView* webview_;
 };
 
-std::string ErrorCodeToString(int error_code) {
-  switch (error_code) {
-    case EWK_ERROR_CODE_AUTHENTICATION:
-      return "authentication";
-    case EWK_ERROR_CODE_BAD_URL:
-      return "badUrl";
-    case EWK_ERROR_CODE_CANT_CONNECT:
-      return "connect";
-    case EWK_ERROR_CODE_FAILED_TLS_HANDSHAKE:
-      return "failedSslHandshake";
-    case EWK_ERROR_CODE_FAILED_FILE_IO:
-      return "file";
-    case EWK_ERROR_CODE_CANT_LOOKUP_HOST:
-      return "hostLookup";
-    case EWK_ERROR_CODE_TOO_MANY_REDIRECTS:
-      return "redirectLoop";
-    case EWK_ERROR_CODE_REQUEST_TIMEOUT:
-      return "timeout";
-    case EWK_ERROR_CODE_TOO_MANY_REQUESTS:
-      return "tooManyRequests";
-    case EWK_ERROR_CODE_UNKNOWN:
-      return "unknown";
-    case EWK_ERROR_CODE_UNSUPPORTED_SCHEME:
-      return "unsupportedScheme";
-    default:
-      LOG_ERROR("Unknown error type: %d", error_code);
-      return "unknown";
-  }
-}
-
 template <typename T>
 bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
                               std::string key, T* out) {
@@ -597,8 +567,6 @@ void WebView::OnLoadError(void* data, Evas_Object* obj, void* event_info) {
        flutter::EncodableValue(ewk_error_code_get(error))},
       {flutter::EncodableValue("description"),
        flutter::EncodableValue(ewk_error_description_get(error))},
-      {flutter::EncodableValue("errorType"),
-       flutter::EncodableValue(ErrorCodeToString(ewk_error_code_get(error)))},
       {flutter::EncodableValue("failingUrl"),
        flutter::EncodableValue(ewk_error_url_get(error))},
   };

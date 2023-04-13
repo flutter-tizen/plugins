@@ -62,6 +62,14 @@ class TizenWebViewController extends PlatformWebViewController {
           'LoadRequestParams#uri is required to have a scheme.');
     }
 
+    if (params.headers.isNotEmpty) {
+      throw ArgumentError('LoadRequestParams#headers is not supported.');
+    }
+
+    if (params.body != null) {
+      throw ArgumentError('LoadRequestParams#body is not supported.');
+    }
+
     switch (params.method) {
       case LoadRequestMethod.get:
         return _webview.loadRequest(params.uri.toString());
