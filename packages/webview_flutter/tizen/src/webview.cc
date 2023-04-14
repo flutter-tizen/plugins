@@ -345,7 +345,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     }
 
     Ewk_Http_Method ewk_method = EWK_HTTP_METHOD_GET;
-    int32_t method;
+    int32_t method = 0;
     GetValueFromEncodableMap(arguments, "method", &method);
     if (method == 1) {  // Post request.
       ewk_method = EWK_HTTP_METHOD_POST;
@@ -372,8 +372,9 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     }
 
     std::vector<uint8_t> body;
-    GetValueFromEncodableMap(arguments, "body", &body);
-    body.push_back('\0');
+    if (GetValueFromEncodableMap(arguments, "body", &body)) {
+      body.push_back('\0');
+    }
 
     bool ret = ewk_view_url_request_set(
         webview_instance_, url.c_str(), ewk_method, ewk_headers,
