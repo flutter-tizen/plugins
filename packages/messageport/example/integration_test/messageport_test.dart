@@ -62,24 +62,7 @@ void main() {
     expect(await remotePort.check(), isFalse);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
-  testWidgets('Send null message', (WidgetTester tester) async {
-    final LocalPort localPort = await LocalPort.create(kTestPort);
-    final Completer<dynamic> completer = Completer<dynamic>();
-    localPort.register((dynamic message, [RemotePort? remotePort]) {
-      expect(remotePort, isNull);
-      completer.complete(message);
-    });
-
-    final RemotePort port = await RemotePort.connect(kTestAppId, kTestPort);
-    await port.send(null);
-
-    final dynamic message = await completer.future;
-    expect(message, isNull);
-
-    await localPort.unregister();
-  }, timeout: const Timeout(Duration(seconds: 5)));
-
-  testWidgets('Send string message', (WidgetTester tester) async {
+  testWidgets('Send simple message', (WidgetTester tester) async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
     final Completer<dynamic> completer = Completer<dynamic>();
     localPort.register((dynamic message, [RemotePort? remotePort]) {
@@ -121,18 +104,19 @@ void main() {
   group('Types test', () {
     late LocalPort localPort;
     late RemotePort remotePort;
-    late Completer<List<dynamic>> completer;
+    late Completer<dynamic> completer;
 
     setUpAll(() async {
       localPort = await LocalPort.create(kTestPort);
       localPort.register((dynamic message, [RemotePort? remotePort]) {
-        completer.complete(<dynamic>[message, remotePort]);
+        expect(remotePort, isNull);
+        completer.complete(message);
       });
       remotePort = await RemotePort.connect(kTestAppId, kTestPort);
     });
 
     setUp(() {
-      completer = Completer<List<dynamic>>();
+      completer = Completer<dynamic>();
     });
 
     tearDownAll(() async {
@@ -142,12 +126,13 @@ void main() {
     Future<void> checkForMessage<T>(T message) async {
       await remotePort.send(message);
 
-      final List<dynamic> value = await completer.future;
-      final dynamic receivedMessage = value[0];
-      final RemotePort? receivedPort = value[1] as RemotePort?;
+      final T receivedMessage = await completer.future as T;
       expect(receivedMessage, equals(message));
-      expect(receivedPort, isNull);
     }
+
+    testWidgets('null', (WidgetTester tester) async {
+      await checkForMessage(null);
+    }, timeout: const Timeout(Duration(seconds: 5)));
 
     testWidgets('bool', (WidgetTester tester) async {
       const bool value = true;
