@@ -405,7 +405,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isBuffering: false);
           break;
         case VideoEventType.subtitleUpdate:
-          final caption = Caption(
+          final Caption caption = Caption(
             number: 0,
             start: value.position,
             end: value.position + (event.duration ?? Duration.zero),
@@ -463,7 +463,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// finished.
   Future<void> play() async {
     if (value.position == value.duration) {
-      await seekTo(const Duration());
+      await seekTo(Duration.zero);
     }
     value = value.copyWith(isPlaying: true);
     await _applyPlayPause();
@@ -556,7 +556,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposed) {
       return null;
     }
-    return await _videoPlayerPlatform.getPosition(_playerId);
+    return _videoPlayerPlatform.getPosition(_playerId);
   }
 
   /// Sets the video's current timestamp to be at [moment]. The next
@@ -570,8 +570,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
     if (position > value.duration) {
       position = value.duration;
-    } else if (position < const Duration()) {
-      position = const Duration();
+    } else if (position < Duration.zero) {
+      position = Duration.zero;
     }
     await _videoPlayerPlatform.seekTo(_playerId, position);
     _updatePosition(position);
@@ -1015,10 +1015,11 @@ class VideoProgressIndicator extends StatefulWidget {
   /// to `top: 5.0`.
   const VideoProgressIndicator(
     this.controller, {
+    Key? key,
     this.colors = const VideoProgressColors(),
     required this.allowScrubbing,
     this.padding = const EdgeInsets.only(top: 5.0),
-  });
+  }) : super(key: key);
 
   /// The [VideoPlayerController] that actually associates a video with this
   /// widget.
@@ -1042,7 +1043,7 @@ class VideoProgressIndicator extends StatefulWidget {
   final EdgeInsets padding;
 
   @override
-  _VideoProgressIndicatorState createState() => _VideoProgressIndicatorState();
+  State<VideoProgressIndicator> createState() => _VideoProgressIndicatorState();
 }
 
 class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
@@ -1092,7 +1093,6 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
       );
     } else {
       progressIndicator = LinearProgressIndicator(
-        value: null,
         valueColor: AlwaysStoppedAnimation<Color>(colors.playedColor),
         backgroundColor: colors.backgroundColor,
       );
@@ -1103,8 +1103,8 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
     );
     if (widget.allowScrubbing) {
       return _VideoScrubber(
-        child: paddedProgressIndicator,
         controller: controller,
+        child: paddedProgressIndicator,
       );
     } else {
       return paddedProgressIndicator;

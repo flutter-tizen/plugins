@@ -9,14 +9,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  http: ^0.13.0
   video_player_videohole:
     path: ../
-  http: ^0.13.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   flutter_driver:
+    sdk: flutter
+  flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter

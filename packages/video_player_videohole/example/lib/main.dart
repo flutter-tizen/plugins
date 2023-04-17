@@ -8,8 +8,8 @@
 /// video.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:video_player_videohole/video_player.dart';
 import 'package:http/http.dart' as http;
+import 'package:video_player_videohole/video_player.dart';
 
 void main() {
   runApp(
@@ -33,23 +33,23 @@ class _App extends StatelessWidget {
             tabs: <Widget>[
               Tab(
                 icon: Icon(Icons.cloud),
-                text: "Mp4",
+                text: 'Mp4',
               ),
               Tab(
                 icon: Icon(Icons.cloud),
-                text: "Hls",
+                text: 'Hls',
               ),
               Tab(
                 icon: Icon(Icons.cloud),
-                text: "Dash",
+                text: 'Dash',
               ),
               Tab(
                 icon: Icon(Icons.cloud),
-                text: "Drm widevine",
+                text: 'Drm widevine',
               ),
               Tab(
                 icon: Icon(Icons.cloud),
-                text: "Drm playready",
+                text: 'Drm playready',
               ),
             ],
           ),
@@ -247,24 +247,24 @@ class _DrmRemoteVideo extends StatefulWidget {
 
 class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
   late VideoPlayerController _controller;
-  late FFIController ffi_controller;
+  late FFIController ffiController;
 
   @override
   void initState() {
     super.initState();
 
-    Future<Uint8List> _getlicense(Uint8List challenge) {
+    Future<Uint8List> getlicense(Uint8List challenge) {
       return http
           .post(
             Uri.parse('https://proxy.uat.widevine.com/proxy'),
             body: challenge,
           )
-          .then((response) => response.bodyBytes);
+          .then((http.Response response) => response.bodyBytes);
     }
 
     // License requests are handled by the app.
-    ffi_controller = FFIController(_getlicense);
-    ffi_controller.FFIgetLicense();
+    ffiController = FFIController(getlicense);
+    ffiController.FFIgetLicense();
 
     _controller = VideoPlayerController.network(
       'https://storage.googleapis.com/wvmedia/cenc/hevc/tears/tears.mpd',
@@ -389,7 +389,7 @@ class _ControlsOverlay extends StatelessWidget {
     Duration(seconds: -3),
     Duration(seconds: -1, milliseconds: -500),
     Duration(milliseconds: -250),
-    Duration(milliseconds: 0),
+    Duration.zero,
     Duration(milliseconds: 250),
     Duration(seconds: 1, milliseconds: 500),
     Duration(seconds: 3),

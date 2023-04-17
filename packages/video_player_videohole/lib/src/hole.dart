@@ -45,13 +45,13 @@ class HoleBox extends RenderBox {
 
 ///A composite layer that draw a rect with blend mode.
 class HoleLayer extends Layer {
-  ///Repesent position of hole widget.
-  final Rect rect;
-
   ///The constructor of hole layer.
   HoleLayer({
     required this.rect,
   });
+
+  ///Repesent position of hole widget.
+  final Rect rect;
 
   @override
   void addToScene(SceneBuilder builder, [Offset layerOffset = Offset.zero]) {
@@ -59,9 +59,9 @@ class HoleLayer extends Layer {
   }
 
   Picture _createHolePicture(Rect holeRect) {
-    PictureRecorder recorder = PictureRecorder();
-    Canvas canvas = Canvas(recorder);
-    Paint paint = Paint();
+    final PictureRecorder recorder = PictureRecorder();
+    final Canvas canvas = Canvas(recorder);
+    final Paint paint = Paint();
     paint.color = Colors.transparent;
     paint.blendMode = BlendMode.src;
     canvas.drawRect(
