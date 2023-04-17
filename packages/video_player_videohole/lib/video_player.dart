@@ -12,10 +12,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'src/hole.dart';
 import 'src/closed_caption_file.dart';
+import 'src/drm_configs.dart';
+import 'src/hole.dart';
 import 'video_player_platform_interface.dart';
+
 export 'src/closed_caption_file.dart';
+export 'src/drm_configs.dart';
 
 VideoPlayerPlatform? _lastVideoPlayerPlatform;
 
@@ -211,7 +214,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       : dataSourceType = DataSourceType.asset,
         formatHint = null,
         httpHeaders = const <String, String>{},
-        drmConfigs = const <String, Object>{},
+        drmConfigs = null,
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// Constructs a [VideoPlayerController] playing a video from obtained from
@@ -229,7 +232,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.closedCaptionFile,
     this.videoPlayerOptions,
     this.httpHeaders = const <String, String>{},
-    this.drmConfigs = const <String, Object>{},
+    this.drmConfigs,
   })  : dataSourceType = DataSourceType.network,
         package = null,
         super(VideoPlayerValue(duration: Duration.zero));
@@ -245,7 +248,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         package = null,
         formatHint = null,
         httpHeaders = const <String, String>{},
-        drmConfigs = const <String, Object>{},
+        drmConfigs = null,
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// Constructs a [VideoPlayerController] playing a video from a contentUri.
@@ -261,7 +264,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         package = null,
         formatHint = null,
         httpHeaders = const <String, String>{},
-        drmConfigs = const <String, Object>{},
+        drmConfigs = null,
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// The URI to the video file. This will be in different formats depending on
@@ -273,7 +276,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Always empty for other video types.
   final Map<String, String> httpHeaders;
 
-  final Map<String, Object> drmConfigs;
+  /// Configurations for playing DRM content (optional).
+  /// Only for [VideoPlayerController.network].
+  final DrmConfigs? drmConfigs;
 
   /// **Android only**. Will override the platform's generic file format
   /// detection with whatever is set here.

@@ -1,3 +1,4 @@
+// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -6,8 +7,8 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:video_player_videohole/video_player_platform_interface.dart';
 
+import '../video_player_platform_interface.dart';
 import 'messages.dart';
 
 /// An implementation of [VideoPlayerPlatform] that uses method channels.
@@ -41,7 +42,7 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
         message.uri = dataSource.uri;
         message.formatHint = _videoFormatStringMap[dataSource.formatHint];
         message.httpHeaders = dataSource.httpHeaders;
-        message.drmConfigs = dataSource.drmConfigs;
+        message.drmConfigs = dataSource.drmConfigs?.toMap();
         break;
       case DataSourceType.file:
         message.uri = dataSource.uri;

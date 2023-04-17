@@ -262,18 +262,17 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
           .then((response) => response.bodyBytes);
     }
 
-    //If request drm license by app, use [ffi_controller = FFIController(_getlicense)]
+    // License requests are handled by the app.
     ffi_controller = FFIController(_getlicense);
     ffi_controller.FFIgetLicense();
 
     _controller = VideoPlayerController.network(
-      //widevine
       'https://storage.googleapis.com/wvmedia/cenc/hevc/tears/tears.mpd',
-      drmConfigs: {
-        'drmType': 2,
-        //If request license by player, use [licenseServerUrl]
-        //'licenseServerUrl': 'https://proxy.uat.widevine.com/proxy'
-      },
+      drmConfigs: const DrmConfigs(
+        type: DrmType.widevine,
+        // License requests are handled by the player.
+        // licenseServerUrl: 'https://proxy.uat.widevine.com/proxy',
+      ),
     );
 
     _controller.addListener(() {
@@ -331,13 +330,12 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
     super.initState();
 
     _controller = VideoPlayerController.network(
-      //playready
       'https://test.playready.microsoft.com/smoothstreaming/SSWSS720H264PR/SuperSpeedway_720.ism/Manifest',
-      drmConfigs: {
-        'drmType': 1,
-        'licenseServerUrl':
-            'http://test.playready.microsoft.com/service/rightsmanager.asmx'
-      },
+      drmConfigs: const DrmConfigs(
+        type: DrmType.playready,
+        licenseServerUrl:
+            'http://test.playready.microsoft.com/service/rightsmanager.asmx',
+      ),
     );
 
     _controller.addListener(() {

@@ -1,3 +1,4 @@
+// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -6,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'src/drm_configs.dart';
 import 'src/method_channel_video_player.dart';
 
 /// The interface that implementations of video_player must implement.
@@ -133,7 +135,7 @@ class DataSource {
     this.asset,
     this.package,
     this.httpHeaders = const <String, String>{},
-    this.drmConfigs = const <String, String>{},
+    this.drmConfigs,
   });
 
   /// The way in which the video was originally loaded.
@@ -164,8 +166,8 @@ class DataSource {
   /// [DataSourceType.asset] videos.
   final String? package;
 
-  ///Drm configs used for the play drm content.
-  Map<String, Object> drmConfigs;
+  /// Configurations for playing DRM content.
+  DrmConfigs? drmConfigs;
 }
 
 /// The way in which the video was originally loaded.
