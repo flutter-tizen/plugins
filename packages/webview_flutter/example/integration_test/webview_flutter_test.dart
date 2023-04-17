@@ -37,6 +37,7 @@ Future<void> main() async {
   final String prefixUrl = 'http://${server.address.address}:${server.port}';
   final String primaryUrl = '$prefixUrl/hello.txt';
   final String secondaryUrl = '$prefixUrl/secondary.txt';
+  final String headersUrl = '$prefixUrl/headers';
 
   testWidgets('loadRequest', (WidgetTester tester) async {
     final Completer<void> pageFinished = Completer<void>();
@@ -73,6 +74,31 @@ Future<void> main() async {
       controller.runJavaScriptReturningResult('1 + 1'),
       completion(2),
     );
+  });
+
+  testWidgets('loadRequest with headers', (WidgetTester tester) async {
+    final Map<String, String> headers = <String, String>{
+      'test_header': 'flutter_test_header'
+    };
+
+    final StreamController<String> pageLoads = StreamController<String>();
+
+    final WebViewController controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(onPageFinished: (String url) => pageLoads.add(url)),
+      );
+
+    await tester.pumpWidget(WebViewWidget(controller: controller));
+
+    controller.loadRequest(Uri.parse(headersUrl), headers: headers);
+
+    await pageLoads.stream.firstWhere((String url) => url == headersUrl);
+
+    final String content = await controller.runJavaScriptReturningResult(
+      'document.documentElement.innerText',
+    ) as String;
+    expect(content.contains('flutter_test_header'), isTrue);
   });
 
   testWidgets('JavascriptChannel', (WidgetTester tester) async {

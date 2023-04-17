@@ -337,6 +337,55 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     } else {
       result->Error("Invalid argument", "No url provided.");
     }
+  } else if (method_name == "loadRequestWithParams") {
+    std::string url;
+    if (!GetValueFromEncodableMap(arguments, "url", &url)) {
+      result->Error("Invalid argument", "No url provided.");
+      return;
+    }
+
+    Ewk_Http_Method ewk_method = EWK_HTTP_METHOD_GET;
+    int32_t method = 0;
+    GetValueFromEncodableMap(arguments, "method", &method);
+    if (method == 1) {  // Post request.
+      ewk_method = EWK_HTTP_METHOD_POST;
+    }
+
+    Eina_Hash* ewk_headers = eina_hash_new(
+        [](const void* key) -> unsigned int {
+          return key ? strlen(static_cast<const char*>(key)) + 1 : 0;
+        },
+        [](const void* key1, int key1_length, const void* key2,
+           int key2_length) -> int {
+          return strcmp(static_cast<const char*>(key1),
+                        static_cast<const char*>(key2));
+        },
+        EINA_KEY_HASH(eina_hash_superfast), [](void* data) { free(data); }, 10);
+    flutter::EncodableMap headers;
+    GetValueFromEncodableMap(arguments, "headers", &headers);
+    for (const auto& header : headers) {
+      auto key = std::get_if<std::string>(&header.first);
+      auto value = std::get_if<std::string>(&header.second);
+      if (key && value) {
+        eina_hash_add(ewk_headers, key->c_str(), strdup(value->c_str()));
+      }
+    }
+
+    std::vector<uint8_t> body;
+    if (GetValueFromEncodableMap(arguments, "body", &body)) {
+      body.push_back('\0');
+    }
+
+    bool ret = ewk_view_url_request_set(
+        webview_instance_, url.c_str(), ewk_method, ewk_headers,
+        reinterpret_cast<const char*>(body.data()));
+    eina_hash_free(ewk_headers);
+    if (ret) {
+      result->Success();
+    } else {
+      result->Error("Operation failed",
+                    "Failed to load request with parameters.");
+    }
   } else if (method_name == "canGoBack") {
     result->Success(flutter::EncodableValue(
         static_cast<bool>(ewk_view_back_possible(webview_instance_))));
