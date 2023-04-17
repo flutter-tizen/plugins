@@ -1,3 +1,7 @@
+## 0.3.1
+
+* Fix unexpected `PlatformException` when sending a null message.
+
 ## 0.3.0
 
 * Remove the deprecated class `TizenMessagePort`.
