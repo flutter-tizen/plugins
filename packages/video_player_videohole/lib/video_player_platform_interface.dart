@@ -126,15 +126,15 @@ class DataSource {
   ///
   /// The [package] argument must be non-null when the asset comes from a
   /// package and null otherwise.
-  DataSource(
-      {required this.sourceType,
-      this.uri,
-      this.formatHint,
-      this.asset,
-      this.package,
-      this.httpHeaders = const <String, String>{},
-      this.drmConfigs = const <String, String>{},
-      this.geometryConfigs = const <String, String>{}});
+  DataSource({
+    required this.sourceType,
+    this.uri,
+    this.formatHint,
+    this.asset,
+    this.package,
+    this.httpHeaders = const <String, String>{},
+    this.drmConfigs = const <String, String>{},
+  });
 
   /// The way in which the video was originally loaded.
   ///
@@ -166,8 +166,6 @@ class DataSource {
 
   ///Drm configs used for the play drm content.
   Map<String, Object> drmConfigs;
-
-  Map<String, Object> geometryConfigs;
 }
 
 /// The way in which the video was originally loaded.

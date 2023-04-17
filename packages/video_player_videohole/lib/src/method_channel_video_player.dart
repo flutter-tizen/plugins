@@ -42,7 +42,6 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
         message.formatHint = _videoFormatStringMap[dataSource.formatHint];
         message.httpHeaders = dataSource.httpHeaders;
         message.drmConfigs = dataSource.drmConfigs;
-        message.geometryConfigs = dataSource.geometryConfigs;
         break;
       case DataSourceType.file:
         message.uri = dataSource.uri;

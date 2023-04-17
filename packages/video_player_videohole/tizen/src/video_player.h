@@ -20,6 +20,8 @@
 
 using SeekCompletedCb = std::function<void()>;
 
+typedef void (*FuncEcoreWl2WindowGeometryGet)(void *window, int *x, int *y,
+                                              int *width, int *height);
 typedef int (*FuncPlayerSetEcoreWlDisplay)(player_h player,
                                            player_display_type_e type,
                                            void *ecore_wl_window, int x, int y,
@@ -77,10 +79,6 @@ class VideoPlayer {
   bool is_initialized_ = false;
   bool is_interrupted_ = false;
   bool is_buffering_ = false;
-  int x_ = 0;
-  int y_ = 0;
-  int width_ = 0;
-  int height_ = 0;
   FuncLicenseCB get_challenge_cb_ = nullptr;
 };
 

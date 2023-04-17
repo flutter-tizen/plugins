@@ -141,7 +141,6 @@ class CreateMessage {
     this.formatHint,
     this.httpHeaders,
     this.drmConfigs,
-    this.geometryConfigs,
   });
 
   String? asset;
@@ -156,8 +155,6 @@ class CreateMessage {
 
   Map<Object?, Object?>? drmConfigs;
 
-  Map<Object?, Object?>? geometryConfigs;
-
   Object encode() {
     return <Object?>[
       asset,
@@ -166,7 +163,6 @@ class CreateMessage {
       formatHint,
       httpHeaders,
       drmConfigs,
-      geometryConfigs,
     ];
   }
 
@@ -181,8 +177,6 @@ class CreateMessage {
           (result[4] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
       drmConfigs:
           (result[5] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
-      geometryConfigs:
-          (result[6] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
     );
   }
 }

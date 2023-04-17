@@ -235,20 +235,6 @@ void CreateMessage::set_drm_configs(const flutter::EncodableMap& value_arg) {
   drm_configs_ = value_arg;
 }
 
-const flutter::EncodableMap* CreateMessage::geometry_configs() const {
-  return geometry_configs_ ? &(*geometry_configs_) : nullptr;
-}
-void CreateMessage::set_geometry_configs(
-    const flutter::EncodableMap* value_arg) {
-  geometry_configs_ = value_arg
-                          ? std::optional<flutter::EncodableMap>(*value_arg)
-                          : std::nullopt;
-}
-void CreateMessage::set_geometry_configs(
-    const flutter::EncodableMap& value_arg) {
-  geometry_configs_ = value_arg;
-}
-
 flutter::EncodableList CreateMessage::ToEncodableList() const {
   return flutter::EncodableList{
       asset_ ? flutter::EncodableValue(*asset_) : flutter::EncodableValue(),
@@ -261,8 +247,6 @@ flutter::EncodableList CreateMessage::ToEncodableList() const {
                     : flutter::EncodableValue(),
       drm_configs_ ? flutter::EncodableValue(*drm_configs_)
                    : flutter::EncodableValue(),
-      geometry_configs_ ? flutter::EncodableValue(*geometry_configs_)
-                        : flutter::EncodableValue(),
   };
 }
 
@@ -298,11 +282,6 @@ CreateMessage::CreateMessage(const flutter::EncodableList& list) {
   if (const flutter::EncodableMap* pointer_drm_configs =
           std::get_if<flutter::EncodableMap>(&encodable_drm_configs)) {
     drm_configs_ = *pointer_drm_configs;
-  }
-  auto& encodable_geometry_configs = list[6];
-  if (const flutter::EncodableMap* pointer_geometry_configs =
-          std::get_if<flutter::EncodableMap>(&encodable_geometry_configs)) {
-    geometry_configs_ = *pointer_geometry_configs;
   }
 }
 

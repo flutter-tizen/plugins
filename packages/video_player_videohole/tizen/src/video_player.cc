@@ -53,47 +53,6 @@ void VideoPlayer::ParseCreateMessage(const CreateMessage &create_message) {
     }
   }
   LOG_INFO("[VideoPlayer] player uri: %s", uri_.c_str());
-
-  const flutter::EncodableMap *geometry_configs =
-      create_message.geometry_configs();
-  if (geometry_configs) {
-    auto geometry_configs_iter =
-        geometry_configs->find(flutter::EncodableValue("x"));
-    if (geometry_configs_iter != geometry_configs->end()) {
-      if (std::holds_alternative<int>(
-              geometry_configs->at(flutter::EncodableValue("x")))) {
-        x_ = std::get<int>(geometry_configs->at(flutter::EncodableValue("x")));
-      }
-    }
-    geometry_configs_iter =
-        geometry_configs->find(flutter::EncodableValue("y"));
-    if (geometry_configs_iter != geometry_configs->end()) {
-      if (std::holds_alternative<int>(
-              geometry_configs->at(flutter::EncodableValue("y")))) {
-        y_ = std::get<int>(geometry_configs->at(flutter::EncodableValue("y")));
-      }
-    }
-    geometry_configs_iter =
-        geometry_configs->find(flutter::EncodableValue("width"));
-    if (geometry_configs_iter != geometry_configs->end()) {
-      if (std::holds_alternative<int>(
-              geometry_configs->at(flutter::EncodableValue("width")))) {
-        width_ = std::get<int>(
-            geometry_configs->at(flutter::EncodableValue("width")));
-      }
-    }
-    geometry_configs_iter =
-        geometry_configs->find(flutter::EncodableValue("height"));
-    if (geometry_configs_iter != geometry_configs->end()) {
-      if (std::holds_alternative<int>(
-              geometry_configs->at(flutter::EncodableValue("height")))) {
-        height_ = std::get<int>(
-            geometry_configs->at(flutter::EncodableValue("height")));
-      }
-    }
-  }
-  LOG_INFO("[VideoPlayer] geometry of window,x:%d,y:%d,width:%d,height:%d", x_,
-           y_, width_, height_);
 }
 
 VideoPlayer::VideoPlayer(FlutterDesktopPluginRegistrarRef registrar_ref,
@@ -144,38 +103,59 @@ bool VideoPlayer::Open(const std::string &uri) {
 bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
   FlutterDesktopViewRef view_ref =
       FlutterDesktopPluginRegistrarGetView(registrar_ref);
-  if (view_ref == nullptr) {
-    LOG_ERROR("[VideoPlayer] could not get window view handle");
+  if (!view_ref) {
+    LOG_ERROR("[VideoPlayer] Could not get a Flutter view handle.");
+    return false;
+  }
+  void *window = FlutterDesktopViewGetNativeHandle(view_ref);
+  if (!view_ref) {
+    LOG_ERROR("[VideoPlayer] Could not get a native window handle.");
     return false;
   }
 
-  int ret = 0;
-  void *lib_handle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
-  if (lib_handle) {
+  int x = 0, y = 0, w = 0, h = 0;
+  void *ecore_lib_handle = dlopen("libecore_wl2.so.1", RTLD_LAZY);
+  if (ecore_lib_handle) {
+    FuncEcoreWl2WindowGeometryGet ecore_wl2_window_geometry_get =
+        reinterpret_cast<FuncEcoreWl2WindowGeometryGet>(
+            dlsym(ecore_lib_handle, "ecore_wl2_window_geometry_get"));
+    if (ecore_wl2_window_geometry_get) {
+      ecore_wl2_window_geometry_get(window, &x, &y, &w, &h);
+    } else {
+      LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
+      dlclose(ecore_lib_handle);
+      return false;
+    }
+    dlclose(ecore_lib_handle);
+  } else {
+    LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
+    return false;
+  }
+
+  void *player_lib_handle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
+  if (player_lib_handle) {
     FuncPlayerSetEcoreWlDisplay player_set_ecore_wl_display =
         reinterpret_cast<FuncPlayerSetEcoreWlDisplay>(
-            dlsym(lib_handle, "player_set_ecore_wl_display"));
+            dlsym(player_lib_handle, "player_set_ecore_wl_display"));
     if (player_set_ecore_wl_display) {
-      ret = player_set_ecore_wl_display(
-          player_, PLAYER_DISPLAY_TYPE_OVERLAY,
-          FlutterDesktopViewGetNativeHandle(view_ref), x_, y_, width_, height_);
+      int ret = player_set_ecore_wl_display(
+          player_, PLAYER_DISPLAY_TYPE_OVERLAY, window, x, y, w, h);
+      if (ret != PLAYER_ERROR_NONE) {
+        LOG_ERROR("[VideoPlayer] player_set_ecore_wl_display failed: %s",
+                  get_error_message(ret));
+        dlclose(player_lib_handle);
+        return false;
+      }
     } else {
       LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
     }
-    dlclose(lib_handle);
+    dlclose(player_lib_handle);
   } else {
     LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
   }
 
+  int ret = player_set_display_mode(player_, PLAYER_DISPLAY_MODE_DST_ROI);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
-    LOG_ERROR("[VideoPlayer] player_set_ecore_wl_display failed: %s",
-              get_error_message(ret));
-    return false;
-  }
-  ret = player_set_display_mode(player_, PLAYER_DISPLAY_MODE_DST_ROI);
-  if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_display_mode failed: %s",
               get_error_message(ret));
     return false;
