@@ -529,10 +529,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _videoPlayerPlatform.setVolume(_playerId, value.volume);
   }
 
-  Future<void> _setDisplayRoi(int texureId, int x, int y, int w, int h) async {
-    await _videoPlayerPlatform.setDisplayGeometry(texureId, x, y, w, h);
-  }
-
   Future<void> _applyPlaybackSpeed() async {
     if (_isDisposedOrNotInitialized) {
       return;
@@ -755,17 +751,13 @@ class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.paused:
-        _wasPlayingBeforePause = _controller.value.isPlaying;
-        _controller.pause();
-        break;
-      case AppLifecycleState.resumed:
-        if (_wasPlayingBeforePause) {
-          _controller.play();
-        }
-        break;
-      default:
+    if (state == AppLifecycleState.paused) {
+      _wasPlayingBeforePause = _controller.value.isPlaying;
+      _controller.pause();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_wasPlayingBeforePause) {
+        _controller.play();
+      }
     }
   }
 
@@ -777,21 +769,36 @@ class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {
 /// Widget that displays the video controlled by [controller].
 class VideoPlayer extends StatefulWidget {
   /// Uses the given [controller] for all video rendered in this widget.
-  const VideoPlayer(this.controller);
+  const VideoPlayer(this.controller, {Key? key}) : super(key: key);
 
   /// The [VideoPlayerController] responsible for the video being rendered in
   /// this widget.
   final VideoPlayerController controller;
 
   @override
-  _VideoPlayerState createState() => _VideoPlayerState();
+  State<VideoPlayer> createState() => _VideoPlayerState();
 }
 
+@immutable
 class _Geometry {
-  int x = 0;
-  int y = 0;
-  int w = 0;
-  int h = 0;
+  const _Geometry(this.x, this.y, this.width, this.height);
+
+  final int x;
+  final int y;
+  final int width;
+  final int height;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _Geometry &&
+      other.x == x &&
+      other.y == y &&
+      other.width == width &&
+      other.height == height;
+
+  @override
+  int get hashCode =>
+      x.hashCode ^ y.hashCode ^ width.hashCode ^ height.hashCode;
 }
 
 class _VideoPlayerState extends State<VideoPlayer> {
@@ -809,72 +816,57 @@ class _VideoPlayerState extends State<VideoPlayer> {
   late VoidCallback _listener;
 
   late int _playerId;
-  late _Geometry _geometry = _Geometry();
-  late GlobalKey videoBoxKey = GlobalKey();
+
+  final GlobalKey _videoBoxKey = GlobalKey();
+  _Geometry? _playerGeometry;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
     _playerId = widget.controller.playerId;
     // Need to listen for initialization events since the actual player ID
     // becomes available after asynchronous initialization finishes.
     widget.controller.addListener(_listener);
+
+    WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
 
   void _afterFrameLayout(_) {
-    if (checkPositionChange() && widget.controller.value.isInitialized) {
-      updateGeometry();
-      widget.controller._setDisplayRoi(
-          _playerId, _geometry.x, _geometry.y, _geometry.w, _geometry.h);
+    if (widget.controller.value.isInitialized) {
+      final _Geometry? geometry = _getWidgetGeometry();
+      if (geometry != null && geometry != _playerGeometry) {
+        _videoPlayerPlatform.setDisplayGeometry(
+          _playerId,
+          geometry.x,
+          geometry.y,
+          geometry.width,
+          geometry.height,
+        );
+        _playerGeometry = geometry;
+      }
     }
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
 
-  bool checkPositionChange() {
-    var devicePixelRatio =
-        MediaQueryData.fromWindow(WidgetsBinding.instance.window)
-            .devicePixelRatio;
-    RenderObject? renderObject = videoBoxKey.currentContext?.findRenderObject();
+  _Geometry? _getWidgetGeometry() {
+    final RenderObject? renderObject =
+        _videoBoxKey.currentContext?.findRenderObject();
     if (renderObject == null) {
-      return false;
+      return null;
     }
-    RenderBox videoRenderBox = renderObject as RenderBox;
-    double dx = videoRenderBox.localToGlobal(Offset.zero).dx;
-    double dy = videoRenderBox.localToGlobal(Offset.zero).dy;
-    dx *= devicePixelRatio;
-    dy *= devicePixelRatio;
-    int x = dx.toInt();
-    int y = dy.toInt();
-    final Size size = videoRenderBox.size;
-    int w = (size.width * devicePixelRatio).toInt();
-    int h = (size.height * devicePixelRatio).toInt();
-    return x != _geometry.x ||
-        y != _geometry.y ||
-        w != _geometry.w ||
-        h != _geometry.h;
-  }
 
-  void updateGeometry() {
-    var devicePixelRatio =
-        MediaQueryData.fromWindow(WidgetsBinding.instance.window)
-            .devicePixelRatio;
-    RenderObject? renderObject = videoBoxKey.currentContext?.findRenderObject();
-    if (renderObject == null) {
-      return;
-    }
-    RenderBox videoRenderBox = renderObject as RenderBox;
-    double dx = videoRenderBox.localToGlobal(Offset.zero).dx;
-    double dy = videoRenderBox.localToGlobal(Offset.zero).dy;
-    dx *= devicePixelRatio;
-    dy *= devicePixelRatio;
-    final Size size = videoRenderBox.size;
-    double w = size.width * devicePixelRatio;
-    double h = size.height * devicePixelRatio;
-    _geometry.x = dx.toInt();
-    _geometry.y = dy.toInt();
-    _geometry.w = w.toInt();
-    _geometry.h = h.toInt();
+    final RenderBox renderBox = renderObject as RenderBox;
+    final double dx = renderBox.localToGlobal(Offset.zero).dx;
+    final double dy = renderBox.localToGlobal(Offset.zero).dy;
+    final Size size = renderBox.size;
+    final double pixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
+
+    return _Geometry(
+      (dx * pixelRatio).toInt(),
+      (dy * pixelRatio).toInt(),
+      (size.width * pixelRatio).toInt(),
+      (size.height * pixelRatio).toInt(),
+    );
   }
 
   @override
@@ -893,7 +885,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(key: videoBoxKey, child: const Hole());
+    return Container(key: _videoBoxKey, child: const Hole());
   }
 }
 
