@@ -47,7 +47,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
       const PositionMessage &positionMsg) override;
   std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage &mixWithOthersMsg) override;
-  std::optional<FlutterError> SetDisplayRoi(
+  std::optional<FlutterError> SetDisplayGeometry(
       const GeometryMessage &geometryMsg) override;
   void SetLicenseData(void *response_data, size_t response_len,
                       int64_t player_id);
@@ -190,12 +190,12 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
   return {};
 }
 
-std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayRoi(
+std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(
     const GeometryMessage &geometryMsg) {
   auto iter = players_.find(geometryMsg.player_id());
   if (iter != players_.end()) {
     iter->second->SetDisplayRoi(geometryMsg.x(), geometryMsg.y(),
-                                geometryMsg.w(), geometryMsg.h());
+                                geometryMsg.width(), geometryMsg.height());
   }
   return {};
 }

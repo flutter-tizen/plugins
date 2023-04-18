@@ -82,7 +82,7 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
     assert(speed > 0);
 
     return _api.setPlaybackSpeed(
-        PlaybackSpeedMessage(speed: speed, playerId: playerId));
+        PlaybackSpeedMessage(playerId: playerId, speed: speed));
   }
 
   @override
@@ -117,10 +117,10 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
             eventType: VideoEventType.completed,
           );
         case 'bufferingUpdate':
-          final int values = map['values']! as int;
+          final int value = map['value']! as int;
 
           return VideoEvent(
-            buffered: values,
+            buffered: value,
             eventType: VideoEventType.bufferingUpdate,
           );
         case 'bufferingStart':
@@ -150,9 +150,20 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
-  Future<void> setDisplayGeometry(int playerId, int x, int y, int w, int h) {
-    return _api.setDisplayRoi(
-        GeometryMessage(playerId: playerId, x: x, y: y, w: w, h: h));
+  Future<void> setDisplayGeometry(
+    int playerId,
+    int x,
+    int y,
+    int width,
+    int height,
+  ) {
+    return _api.setDisplayGeometry(GeometryMessage(
+      playerId: playerId,
+      x: x,
+      y: y,
+      width: width,
+      height: height,
+    ));
   }
 
   EventChannel _eventChannelFor(int playerId) {

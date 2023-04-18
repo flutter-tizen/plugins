@@ -207,8 +207,8 @@ class GeometryMessage {
     required this.playerId,
     required this.x,
     required this.y,
-    required this.w,
-    required this.h,
+    required this.width,
+    required this.height,
   });
 
   int playerId;
@@ -217,17 +217,17 @@ class GeometryMessage {
 
   int y;
 
-  int w;
+  int width;
 
-  int h;
+  int height;
 
   Object encode() {
     return <Object?>[
       playerId,
       x,
       y,
-      w,
-      h,
+      width,
+      height,
     ];
   }
 
@@ -237,8 +237,8 @@ class GeometryMessage {
       playerId: result[0]! as int,
       x: result[1]! as int,
       y: result[2]! as int,
-      w: result[3]! as int,
-      h: result[4]! as int,
+      width: result[3]! as int,
+      height: result[4]! as int,
     );
   }
 }
@@ -570,12 +570,12 @@ class VideoPlayerApi {
     }
   }
 
-  Future<void> setDisplayRoi(GeometryMessage arg_arg) async {
+  Future<void> setDisplayGeometry(GeometryMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.VideoPlayerApi.setDisplayRoi', codec,
+        'dev.flutter.pigeon.VideoPlayerApi.setDisplayGeometry', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_arg]) as List<Object?>?;
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

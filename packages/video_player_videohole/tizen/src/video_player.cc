@@ -458,7 +458,7 @@ void VideoPlayer::SendBufferingUpdate(int position) {
     flutter::EncodableMap encodables = {
         {flutter::EncodableValue("event"),
          flutter::EncodableValue("bufferingUpdate")},
-        {flutter::EncodableValue("values"), flutter::EncodableValue(position)}};
+        {flutter::EncodableValue("value"), flutter::EncodableValue(position)}};
     flutter::EncodableValue eventValue(encodables);
     LOG_INFO("[VideoPlayer] send bufferingUpdate event");
     event_sink_->Success(eventValue);

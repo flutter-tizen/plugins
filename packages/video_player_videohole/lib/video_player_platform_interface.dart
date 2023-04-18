@@ -101,13 +101,19 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('buildView() has not been implemented.');
   }
 
-  /// Sets the audio mode to mix with other sources
+  /// Sets the audio mode to mix with other sources.
   Future<void> setMixWithOthers(bool mixWithOthers) {
     throw UnimplementedError('setMixWithOthers() has not been implemented.');
   }
 
-  /// Sets the video display geometry
-  Future<void> setDisplayGeometry(int playerId, int x, int y, int w, int h) {
+  /// Sets the video display geometry.
+  Future<void> setDisplayGeometry(
+    int playerId,
+    int x,
+    int y,
+    int width,
+    int height,
+  ) {
     throw UnimplementedError('setDisplayGeometry() has not been implemented.');
   }
 }

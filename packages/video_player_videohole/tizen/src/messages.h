@@ -213,11 +213,11 @@ class GeometryMessage {
   int64_t y() const;
   void set_y(int64_t value_arg);
 
-  int64_t w() const;
-  void set_w(int64_t value_arg);
+  int64_t width() const;
+  void set_width(int64_t value_arg);
 
-  int64_t h() const;
-  void set_h(int64_t value_arg);
+  int64_t height() const;
+  void set_height(int64_t value_arg);
 
  private:
   GeometryMessage(const flutter::EncodableList& list);
@@ -227,8 +227,8 @@ class GeometryMessage {
   int64_t player_id_;
   int64_t x_;
   int64_t y_;
-  int64_t w_;
-  int64_t h_;
+  int64_t width_;
+  int64_t height_;
 };
 
 class VideoPlayerApiCodecSerializer : public flutter::StandardCodecSerializer {
@@ -269,8 +269,8 @@ class VideoPlayerApi {
   virtual std::optional<FlutterError> Pause(const PlayerMessage& msg) = 0;
   virtual std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage& msg) = 0;
-  virtual std::optional<FlutterError> SetDisplayRoi(
-      const GeometryMessage& arg) = 0;
+  virtual std::optional<FlutterError> SetDisplayGeometry(
+      const GeometryMessage& msg) = 0;
 
   // The codec used by VideoPlayerApi.
   static const flutter::StandardMessageCodec& GetCodec();

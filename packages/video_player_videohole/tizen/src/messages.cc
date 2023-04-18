@@ -321,17 +321,17 @@ void GeometryMessage::set_x(int64_t value_arg) { x_ = value_arg; }
 int64_t GeometryMessage::y() const { return y_; }
 void GeometryMessage::set_y(int64_t value_arg) { y_ = value_arg; }
 
-int64_t GeometryMessage::w() const { return w_; }
-void GeometryMessage::set_w(int64_t value_arg) { w_ = value_arg; }
+int64_t GeometryMessage::width() const { return width_; }
+void GeometryMessage::set_width(int64_t value_arg) { width_ = value_arg; }
 
-int64_t GeometryMessage::h() const { return h_; }
-void GeometryMessage::set_h(int64_t value_arg) { h_ = value_arg; }
+int64_t GeometryMessage::height() const { return height_; }
+void GeometryMessage::set_height(int64_t value_arg) { height_ = value_arg; }
 
 flutter::EncodableList GeometryMessage::ToEncodableList() const {
   return flutter::EncodableList{
       flutter::EncodableValue(player_id_), flutter::EncodableValue(x_),
-      flutter::EncodableValue(y_),         flutter::EncodableValue(w_),
-      flutter::EncodableValue(h_),
+      flutter::EncodableValue(y_),         flutter::EncodableValue(width_),
+      flutter::EncodableValue(height_),
   };
 }
 
@@ -355,16 +355,18 @@ GeometryMessage::GeometryMessage(const flutter::EncodableList& list) {
     y_ = *pointer_y;
   else if (const int64_t* pointer_y_64 = std::get_if<int64_t>(&encodable_y))
     y_ = *pointer_y_64;
-  auto& encodable_w = list[3];
-  if (const int32_t* pointer_w = std::get_if<int32_t>(&encodable_w))
-    w_ = *pointer_w;
-  else if (const int64_t* pointer_w_64 = std::get_if<int64_t>(&encodable_w))
-    w_ = *pointer_w_64;
-  auto& encodable_h = list[4];
-  if (const int32_t* pointer_h = std::get_if<int32_t>(&encodable_h))
-    h_ = *pointer_h;
-  else if (const int64_t* pointer_h_64 = std::get_if<int64_t>(&encodable_h))
-    h_ = *pointer_h_64;
+  auto& encodable_width = list[3];
+  if (const int32_t* pointer_width = std::get_if<int32_t>(&encodable_width))
+    width_ = *pointer_width;
+  else if (const int64_t* pointer_width_64 =
+               std::get_if<int64_t>(&encodable_width))
+    width_ = *pointer_width_64;
+  auto& encodable_height = list[4];
+  if (const int32_t* pointer_height = std::get_if<int32_t>(&encodable_height))
+    height_ = *pointer_height;
+  else if (const int64_t* pointer_height_64 =
+               std::get_if<int64_t>(&encodable_height))
+    height_ = *pointer_height_64;
 }
 
 VideoPlayerApiCodecSerializer::VideoPlayerApiCodecSerializer() {}
@@ -852,22 +854,23 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.setDisplayRoi",
-        &GetCodec());
+        binary_messenger,
+        "dev.flutter.pigeon.VideoPlayerApi.setDisplayGeometry", &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
           [api](const flutter::EncodableValue& message,
                 const flutter::MessageReply<flutter::EncodableValue>& reply) {
             try {
               const auto& args = std::get<flutter::EncodableList>(message);
-              const auto& encodable_arg_arg = args.at(0);
-              if (encodable_arg_arg.IsNull()) {
-                reply(WrapError("arg_arg unexpectedly null."));
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
                 return;
               }
-              const auto& arg_arg = std::any_cast<const GeometryMessage&>(
-                  std::get<flutter::CustomEncodableValue>(encodable_arg_arg));
-              std::optional<FlutterError> output = api->SetDisplayRoi(arg_arg);
+              const auto& msg_arg = std::any_cast<const GeometryMessage&>(
+                  std::get<flutter::CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output =
+                  api->SetDisplayGeometry(msg_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;

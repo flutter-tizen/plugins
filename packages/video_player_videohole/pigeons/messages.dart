@@ -54,12 +54,12 @@ class MixWithOthersMessage {
 }
 
 class GeometryMessage {
-  GeometryMessage(this.playerId, this.x, this.y, this.w, this.h);
+  GeometryMessage(this.playerId, this.x, this.y, this.width, this.height);
   int playerId;
   int x;
   int y;
-  int w;
-  int h;
+  int width;
+  int height;
 }
 
 @HostApi()
@@ -75,5 +75,5 @@ abstract class VideoPlayerApi {
   void seekTo(PositionMessage msg);
   void pause(PlayerMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);
-  void setDisplayRoi(GeometryMessage arg);
+  void setDisplayGeometry(GeometryMessage msg);
 }
