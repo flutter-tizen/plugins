@@ -7,17 +7,17 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-///The widget which punch a hole on flutter UI
+/// A widget that creates a transparent hole in the Flutter UI.
 class Hole extends LeafRenderObjectWidget {
-  ///The constructor of Hole widget
+  /// Creates a [Hole].
   const Hole({Key? key}) : super(key: key);
 
   @override
-  HoleBox createRenderObject(BuildContext context) => HoleBox();
+  RenderBox createRenderObject(BuildContext context) => _HoleBox();
 }
 
-///The render object of Hole widget
-class HoleBox extends RenderBox {
+/// A render object of the [Hole] widget.
+class _HoleBox extends RenderBox {
   @override
   bool get sizedByParent => true;
 
@@ -39,18 +39,14 @@ class HoleBox extends RenderBox {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    context.addLayer(HoleLayer(rect: offset & size));
+    context.addLayer(_HoleLayer(rect: offset & size));
   }
 }
 
-///A composite layer that draw a rect with blend mode.
-class HoleLayer extends Layer {
-  ///The constructor of hole layer.
-  HoleLayer({
-    required this.rect,
-  });
+/// A composite layer that draws a rect with blend mode.
+class _HoleLayer extends Layer {
+  _HoleLayer({required this.rect});
 
-  ///Repesent position of hole widget.
   final Rect rect;
 
   @override
@@ -64,10 +60,7 @@ class HoleLayer extends Layer {
     final Paint paint = Paint();
     paint.color = Colors.transparent;
     paint.blendMode = BlendMode.src;
-    canvas.drawRect(
-        Rect.fromLTWH(holeRect.topLeft.dx, holeRect.topLeft.dy, holeRect.width,
-            holeRect.height),
-        paint);
+    canvas.drawRect(rect, paint);
     return recorder.endRecording();
   }
 }

@@ -771,28 +771,6 @@ class VideoPlayer extends StatefulWidget {
   State<VideoPlayer> createState() => _VideoPlayerState();
 }
 
-@immutable
-class _Geometry {
-  const _Geometry(this.x, this.y, this.width, this.height);
-
-  final int x;
-  final int y;
-  final int width;
-  final int height;
-
-  @override
-  bool operator ==(Object other) =>
-      other is _Geometry &&
-      other.x == x &&
-      other.y == y &&
-      other.width == width &&
-      other.height == height;
-
-  @override
-  int get hashCode =>
-      x.hashCode ^ y.hashCode ^ width.hashCode ^ height.hashCode;
-}
-
 class _VideoPlayerState extends State<VideoPlayer> {
   _VideoPlayerState() {
     _listener = () {
@@ -810,7 +788,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
   late int _playerId;
 
   final GlobalKey _videoBoxKey = GlobalKey();
-  _Geometry? _playerGeometry;
+  Rect _playerRect = Rect.zero;
 
   @override
   void initState() {
@@ -825,40 +803,32 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   void _afterFrameLayout(_) {
     if (widget.controller.value.isInitialized) {
-      final _Geometry? geometry = _getWidgetGeometry();
-      if (geometry != null && geometry != _playerGeometry) {
+      final Rect currentRect = _currentRect;
+      if (currentRect != Rect.zero && _playerRect != currentRect) {
         _videoPlayerPlatform.setDisplayGeometry(
           _playerId,
-          geometry.x,
-          geometry.y,
-          geometry.width,
-          geometry.height,
+          currentRect.left.toInt(),
+          currentRect.top.toInt(),
+          currentRect.width.toInt(),
+          currentRect.height.toInt(),
         );
-        _playerGeometry = geometry;
+        _playerRect = currentRect;
       }
     }
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
 
-  _Geometry? _getWidgetGeometry() {
+  Rect get _currentRect {
     final RenderObject? renderObject =
         _videoBoxKey.currentContext?.findRenderObject();
     if (renderObject == null) {
-      return null;
+      return Rect.zero;
     }
-
-    final RenderBox renderBox = renderObject as RenderBox;
-    final double dx = renderBox.localToGlobal(Offset.zero).dx;
-    final double dy = renderBox.localToGlobal(Offset.zero).dy;
-    final Size size = renderBox.size;
     final double pixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
-
-    return _Geometry(
-      (dx * pixelRatio).toInt(),
-      (dy * pixelRatio).toInt(),
-      (size.width * pixelRatio).toInt(),
-      (size.height * pixelRatio).toInt(),
-    );
+    final RenderBox renderBox = renderObject as RenderBox;
+    final Offset offset = renderBox.localToGlobal(Offset.zero) * pixelRatio;
+    final Size size = renderBox.size * pixelRatio;
+    return offset & size;
   }
 
   @override
