@@ -4,7 +4,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:ffi' as ffi;
+import 'dart:ffi' hide Size;
 import 'dart:io';
 import 'dart:isolate';
 
@@ -191,6 +191,34 @@ class VideoPlayerValue {
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription)';
   }
+}
+
+typedef _InitDartApi = int Function(Pointer<Void>);
+typedef _InitDartApiNative = IntPtr Function(Pointer<Void>);
+
+typedef _RegisterSendPort = void Function(int, int);
+typedef _RegisterSendPortNative = Void Function(Int64, Int64);
+
+class _CppRequest {
+  _CppRequest.fromList(List<Object?> message)
+      : replyPort = message[0]! as SendPort,
+        pendingCall = message[1]! as int,
+        method = message[2]! as String,
+        data = message[3]! as Uint8List;
+
+  final SendPort replyPort;
+  final int pendingCall;
+  final String method;
+  final Uint8List data;
+}
+
+class _CppResponse {
+  _CppResponse(this.pendingCall, this.data);
+
+  final int pendingCall;
+  final Uint8List data;
+
+  List<Object?> toList() => <Object?>[pendingCall, data];
 }
 
 /// Controls a platform video player, and provides updates when the state is
@@ -421,6 +449,35 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (closedCaptionFile != null) {
       _closedCaptionFile ??= await closedCaptionFile;
       value = value.copyWith(caption: _getCaptionAt(value.position));
+    }
+
+    if (drmConfigs?.licenseCallback != null) {
+      final DynamicLibrary process = DynamicLibrary.process();
+      final _InitDartApi initDartApi =
+          process.lookupFunction<_InitDartApiNative, _InitDartApi>(
+              'VideoPlayerTizenPluginInitDartApi');
+      initDartApi(NativeApi.initializeApiDLData);
+
+      final ReceivePort receivePort = ReceivePort();
+      receivePort.listen((dynamic message) async {
+        final _CppRequest request =
+            _CppRequest.fromList(message as List<Object?>);
+
+        if (request.method == 'onLicenseChallenge') {
+          final Uint8List challenge = request.data;
+          final Uint8List result =
+              await drmConfigs!.licenseCallback!(challenge);
+
+          final _CppResponse response =
+              _CppResponse(request.pendingCall, result);
+          request.replyPort.send(response.toList());
+        }
+      });
+
+      final _RegisterSendPort registerSendPort =
+          process.lookupFunction<_RegisterSendPortNative, _RegisterSendPort>(
+              'VideoPlayerTizenPluginRegisterSendPort');
+      registerSendPort(_playerId, receivePort.sendPort.nativePort);
     }
 
     void errorListener(Object obj) {
@@ -672,71 +729,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   bool get _isDisposedOrNotInitialized => _isDisposed || !value.isInitialized;
-}
-
-class CppRequest {
-  final SendPort? replyPort;
-  final int? pendingCall;
-  final String method;
-  final Uint8List data;
-  final int playerId;
-
-  factory CppRequest.fromCppMessage(List message) {
-    return CppRequest._(
-        message[0], message[1], message[2], message[3], message[4]);
-  }
-
-  CppRequest._(
-      this.replyPort, this.pendingCall, this.method, this.data, this.playerId);
-  String toString() =>
-      'CppRequest(method: $method, ${data.length} bytes,playerId:$playerId)';
-}
-
-class CppResponse {
-  final int pendingCall;
-  final Uint8List data;
-  final int playerId;
-
-  CppResponse(this.pendingCall, this.data, this.playerId);
-  List toCppMessage() =>
-      List.from([pendingCall, data, playerId], growable: false);
-  String toString() =>
-      'CppResponse(message: ${data.length},playerId:$playerId)';
-}
-
-typedef Future<Uint8List> LicenseCallback(Uint8List challenge);
-
-class FFIController {
-  final ffi.DynamicLibrary nativeApi = ffi.DynamicLibrary.process();
-  final LicenseCallback drmLicenseCb;
-  FFIController(this.drmLicenseCb);
-
-  void FFIgetLicense() {
-    final initApi = nativeApi.lookupFunction<
-        ffi.IntPtr Function(ffi.Pointer<ffi.Void>),
-        int Function(ffi.Pointer<ffi.Void>)>("InitDartApiDL");
-    initApi(ffi.NativeApi.initializeApiDLData);
-
-    final receivePort = ReceivePort()..listen(handleNativeMessage);
-    final registerSendPort = nativeApi.lookupFunction<
-        ffi.Void Function(ffi.Int64 sendPort),
-        void Function(int sendPort)>('RegisterSendPort');
-    registerSendPort(receivePort.sendPort.nativePort);
-  }
-
-  void handleNativeMessage(dynamic message) async {
-    final CppRequest cppRequest = CppRequest.fromCppMessage(message);
-    print('Got message: $cppRequest');
-
-    if (cppRequest.method == 'ChallengeCb') {
-      final Uint8List argument = cppRequest.data;
-      final Uint8List result = await drmLicenseCb(argument);
-      final cppResponse =
-          CppResponse(cppRequest.pendingCall!, result, cppRequest.playerId);
-      print('Responding: $cppResponse');
-      cppRequest.replyPort!.send(cppResponse.toCppMessage());
-    }
-  }
 }
 
 class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {

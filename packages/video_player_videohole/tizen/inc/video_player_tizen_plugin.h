@@ -3,9 +3,9 @@
 
 #include <flutter_plugin_registrar.h>
 
-#include <functional>
+#include <cstdint>
 
-#include "../src/dart_api/dart_api.h"
+#include "../src/dart_api/dart_api_dl.h"
 
 #ifdef FLUTTER_PLUGIN_IMPL
 #define FLUTTER_PLUGIN_EXPORT __attribute__((visibility("default")))
@@ -19,16 +19,15 @@ extern "C" {
 
 FLUTTER_PLUGIN_EXPORT void VideoPlayerTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
-// FFI native function
-typedef std::function<void()> CallbackWrapper;
-typedef intptr_t (*FuncLicenseCB)(uint8_t *challenge_data, size_t challenge_len,
-                                  int64_t player_id);
-FuncLicenseCB challenge_cb_ = nullptr;
-Dart_Port send_port_;
-FLUTTER_PLUGIN_EXPORT intptr_t InitDartApiDL(void *data);
-FLUTTER_PLUGIN_EXPORT void RegisterSendPort(Dart_Port send_port);
+
+FLUTTER_PLUGIN_EXPORT intptr_t VideoPlayerTizenPluginInitDartApi(void *data);
+
+FLUTTER_PLUGIN_EXPORT void VideoPlayerTizenPluginRegisterSendPort(
+    int64_t player_id, Dart_Port send_port);
+
 intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len,
                      int64_t player_id);
+
 #if defined(__cplusplus)
 }  // extern "C"
 #endif

@@ -247,31 +247,22 @@ class _DrmRemoteVideo extends StatefulWidget {
 
 class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
   late VideoPlayerController _controller;
-  late FFIController ffiController;
 
   @override
   void initState() {
     super.initState();
 
-    Future<Uint8List> getlicense(Uint8List challenge) {
-      return http
-          .post(
-            Uri.parse('https://proxy.uat.widevine.com/proxy'),
-            body: challenge,
-          )
-          .then((http.Response response) => response.bodyBytes);
-    }
-
-    // License requests are handled by the app.
-    ffiController = FFIController(getlicense);
-    ffiController.FFIgetLicense();
-
     _controller = VideoPlayerController.network(
       'https://storage.googleapis.com/wvmedia/cenc/hevc/tears/tears.mpd',
-      drmConfigs: const DrmConfigs(
+      drmConfigs: DrmConfigs(
         type: DrmType.widevine,
-        // License requests are handled by the player.
-        // licenseServerUrl: 'https://proxy.uat.widevine.com/proxy',
+        licenseCallback: (Uint8List challenge) async {
+          final http.Response response = await http.post(
+            Uri.parse('https://proxy.uat.widevine.com/proxy'),
+            body: challenge,
+          );
+          return response.bodyBytes;
+        },
       ),
     );
 
