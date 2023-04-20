@@ -92,7 +92,6 @@ bool VideoPlayer::Open(const std::string &uri) {
 
   ret = player_set_uri(player_, uri.c_str());
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_uri failed: %s",
               get_error_message(ret));
     return false;
@@ -183,42 +182,36 @@ int64_t VideoPlayer::Create() {
 
   int ret = player_set_buffering_cb(player_, OnBuffering, this);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_buffering_cb failed: %s",
               get_error_message(ret));
   }
 
   ret = player_set_completed_cb(player_, OnPlayCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_completed_cb failed: %s",
               get_error_message(ret));
   }
 
   ret = player_set_interrupted_cb(player_, onInterrupted, this);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_interrupted_cb failed: %s",
               get_error_message(ret));
   }
 
   ret = player_set_display_visible(player_, true);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_display_visible failed: %s",
               get_error_message(ret));
   }
 
   ret = player_set_error_cb(player_, OnError, this);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_error_cb failed: %s",
               get_error_message(ret));
   }
 
   ret = player_prepare_async(player_, OnPrepared, this);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_prepare_async failed: %s",
               get_error_message(ret));
   }
@@ -239,7 +232,6 @@ int64_t VideoPlayer::Create() {
 void VideoPlayer::SetDisplayRoi(int x, int y, int w, int h) {
   int ret = player_set_display_roi_area(player_, x, y, w, h);
   if (ret != PLAYER_ERROR_NONE) {
-    player_destroy(player_);
     LOG_ERROR("[VideoPlayer] player_set_display_roi_area failed: %s",
               get_error_message(ret));
   }
