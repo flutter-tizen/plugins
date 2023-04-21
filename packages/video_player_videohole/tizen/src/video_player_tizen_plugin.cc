@@ -30,28 +30,27 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   virtual ~VideoPlayerTizenPlugin();
 
   std::optional<FlutterError> Initialize() override;
-  ErrorOr<PlayerMessage> Create(const CreateMessage &createMsg) override;
-  std::optional<FlutterError> Dispose(const PlayerMessage &playerMsg) override;
-  std::optional<FlutterError> SetLooping(
-      const LoopingMessage &loopingMsg) override;
-  std::optional<FlutterError> SetVolume(
-      const VolumeMessage &volumeMsg) override;
+  ErrorOr<PlayerMessage> Create(const CreateMessage &msg) override;
+  std::optional<FlutterError> Dispose(const PlayerMessage &msg) override;
+  std::optional<FlutterError> SetLooping(const LoopingMessage &msg) override;
+  std::optional<FlutterError> SetVolume(const VolumeMessage &msg) override;
   std::optional<FlutterError> SetPlaybackSpeed(
-      const PlaybackSpeedMessage &speedMsg) override;
-  std::optional<FlutterError> Play(const PlayerMessage &playerMsg) override;
-  std::optional<FlutterError> Pause(const PlayerMessage &playerMsg) override;
-  ErrorOr<PositionMessage> Position(const PlayerMessage &playerMsg) override;
-  std::optional<FlutterError> SeekTo(
-      const PositionMessage &positionMsg) override;
+      const PlaybackSpeedMessage &msg) override;
+  std::optional<FlutterError> Play(const PlayerMessage &msg) override;
+  ErrorOr<PositionMessage> Position(const PlayerMessage &msg) override;
+  std::optional<FlutterError> SeekTo(const PositionMessage &msg) override;
+  std::optional<FlutterError> Pause(const PlayerMessage &msg) override;
   std::optional<FlutterError> SetMixWithOthers(
-      const MixWithOthersMessage &mixWithOthersMsg) override;
+      const MixWithOthersMessage &msg) override;
   std::optional<FlutterError> SetDisplayGeometry(
-      const GeometryMessage &geometryMsg) override;
+      const GeometryMessage &msg) override;
+
   void SetLicenseData(void *response_data, size_t response_len,
                       int64_t player_id);
 
  private:
   void DisposeAllPlayers();
+
   FlutterDesktopPluginRegistrarRef registrar_ref_;
   flutter::PluginRegistrar *plugin_registrar_;
   VideoPlayerOptions options_;
@@ -76,15 +75,6 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
 
-void VideoPlayerTizenPlugin::SetLicenseData(void *response_data,
-                                            size_t response_len,
-                                            int64_t player_id) {
-  auto iter = players_.find(player_id);
-  if (iter != players_.end()) {
-    iter->second->SetLicenseData(response_data, response_len);
-  }
-}
-
 void VideoPlayerTizenPlugin::DisposeAllPlayers() {
   auto iter = players_.begin();
   while (iter != players_.end()) {
@@ -100,7 +90,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
 }
 
 ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
-    const CreateMessage &createMsg) {
+    const CreateMessage &msg) {
   FlutterDesktopViewRef flutter_view =
       FlutterDesktopPluginRegistrarGetView(registrar_ref_);
   if (!flutter_view) {
@@ -111,8 +101,8 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     return FlutterError("Operation failed",
                         "Could not get a native window handle.");
   }
-  std::unique_ptr<VideoPlayer> player = std::make_unique<VideoPlayer>(
-      plugin_registrar_, native_window, createMsg);
+  std::unique_ptr<VideoPlayer> player =
+      std::make_unique<VideoPlayer>(plugin_registrar_, native_window, msg);
   player->GetChallengeData(ChallengeCb);
   PlayerMessage player_message;
   int64_t player_id = player->Create();
@@ -124,8 +114,8 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
-    const PlayerMessage &playerMsg) {
-  auto iter = players_.find(playerMsg.player_id());
+    const PlayerMessage &msg) {
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
     iter->second->Dispose();
     players_.erase(iter);
@@ -134,35 +124,35 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
-    const LoopingMessage &loopingMsg) {
-  auto iter = players_.find(loopingMsg.player_id());
+    const LoopingMessage &msg) {
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
-    iter->second->SetLooping(loopingMsg.is_looping());
+    iter->second->SetLooping(msg.is_looping());
   }
   return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
-    const VolumeMessage &volumeMsg) {
-  auto iter = players_.find(volumeMsg.player_id());
+    const VolumeMessage &msg) {
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
-    iter->second->SetVolume(volumeMsg.volume());
+    iter->second->SetVolume(msg.volume());
   }
   return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
-    const PlaybackSpeedMessage &speedMsg) {
-  auto iter = players_.find(speedMsg.player_id());
+    const PlaybackSpeedMessage &msg) {
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
-    iter->second->SetPlaybackSpeed(speedMsg.speed());
+    iter->second->SetPlaybackSpeed(msg.speed());
   }
   return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
-    const PlayerMessage &playerMsg) {
-  auto iter = players_.find(playerMsg.player_id());
+    const PlayerMessage &msg) {
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
     iter->second->Play();
   }
@@ -170,8 +160,8 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
-    const PlayerMessage &playerMsg) {
-  auto iter = players_.find(playerMsg.player_id());
+    const PlayerMessage &msg) {
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
     iter->second->Pause();
   }
@@ -179,39 +169,47 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
 }
 
 ErrorOr<PositionMessage> VideoPlayerTizenPlugin::Position(
-    const PlayerMessage &playerMsg) {
+    const PlayerMessage &msg) {
   PositionMessage result;
-  auto iter = players_.find(playerMsg.player_id());
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
-    result.set_player_id(playerMsg.player_id());
+    result.set_player_id(msg.player_id());
     result.set_position(iter->second->GetPosition());
   }
   return result;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
-    const PositionMessage &positionMsg) {
-  auto iter = players_.find(positionMsg.player_id());
+    const PositionMessage &msg) {
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
-    iter->second->SeekTo(positionMsg.position());
+    iter->second->SeekTo(msg.position());
   }
   return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(
-    const GeometryMessage &geometryMsg) {
-  auto iter = players_.find(geometryMsg.player_id());
+    const GeometryMessage &msg) {
+  auto iter = players_.find(msg.player_id());
   if (iter != players_.end()) {
-    iter->second->SetDisplayRoi(geometryMsg.x(), geometryMsg.y(),
-                                geometryMsg.width(), geometryMsg.height());
+    iter->second->SetDisplayRoi(msg.x(), msg.y(), msg.width(), msg.height());
   }
   return {};
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
-    const MixWithOthersMessage &mixWithOthersMsg) {
-  options_.SetMixWithOthers(mixWithOthersMsg.mix_with_others());
+    const MixWithOthersMessage &msg) {
+  options_.SetMixWithOthers(msg.mix_with_others());
   return {};
+}
+
+void VideoPlayerTizenPlugin::SetLicenseData(void *response_data,
+                                            size_t response_len,
+                                            int64_t player_id) {
+  auto iter = players_.find(player_id);
+  if (iter != players_.end()) {
+    iter->second->SetLicenseData(response_data, response_len);
+  }
 }
 
 std::map<int64_t, Dart_Port> send_ports_;
