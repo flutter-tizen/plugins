@@ -8,12 +8,11 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen.h>
 
-#include <condition_variable>
+#include <cstdint>
 #include <map>
-#include <mutex>
 
-#include "log.h"
 #include "messages.h"
+#include "pending_call.h"
 #include "video_player.h"
 #include "video_player_options.h"
 
@@ -251,82 +250,6 @@ void VideoPlayerTizenPluginRegisterSendPort(int64_t player_id,
   send_ports_[player_id] = send_port;
 }
 
-static void FreeFinalizer(void *, void *value) { free(value); }
-
-class PendingCall {
- public:
-  PendingCall(void **buffer, size_t *length)
-      : response_buffer_(buffer), response_length_(length) {
-    receive_port_ =
-        Dart_NewNativePort_DL("cpp-response", &PendingCall::HandleResponse,
-                              /*handle_concurrently=*/false);
-  }
-  ~PendingCall() { Dart_CloseNativePort_DL(receive_port_); }
-
-  Dart_Port port() const { return receive_port_; }
-
-  void PostAndWait(Dart_Port port, Dart_CObject *object) {
-    std::unique_lock<std::mutex> lock(mutex);
-    const bool success = Dart_PostCObject_DL(port, object);
-    if (!success) {
-      LOG_ERROR("Failed to send message, invalid port or isolate died");
-      return;
-    }
-
-    LOG_INFO("Waiting for result");
-    while (!notified) {
-      cv.wait(lock);
-    }
-  }
-
-  static void HandleResponse(Dart_Port p, Dart_CObject *message) {
-    if (message->type != Dart_CObject_kArray) {
-      LOG_ERROR("Wrong Data: message->type != Dart_CObject_kArray");
-    }
-    Dart_CObject **c_response_args = message->value.as_array.values;
-    Dart_CObject *c_pending_call = c_response_args[0];
-    Dart_CObject *c_message = c_response_args[1];
-    LOG_INFO("HandleResponse (call: %d)",
-             reinterpret_cast<intptr_t>(c_pending_call));
-
-    auto pending_call = reinterpret_cast<PendingCall *>(
-        c_pending_call->type == Dart_CObject_kInt64
-            ? c_pending_call->value.as_int64
-            : c_pending_call->value.as_int32);
-
-    pending_call->ResolveCall(c_message);
-  }
-
- private:
-  static bool NonEmptyBuffer(void **value) { return *value != nullptr; }
-
-  void ResolveCall(Dart_CObject *bytes) {
-    assert(bytes->type == Dart_CObject_kTypedData);
-    if (bytes->type != Dart_CObject_kTypedData) {
-      LOG_ERROR("C Wrong Data: bytes->type != Dart_CObject_kTypedData");
-    }
-    const intptr_t response_length = bytes->value.as_typed_data.length;
-    const uint8_t *response_buffer = bytes->value.as_typed_data.values;
-
-    void *buffer = malloc(response_length);
-    memmove(buffer, response_buffer, response_length);
-
-    *response_buffer_ = buffer;
-    *response_length_ = response_length;
-
-    notified = true;
-    cv.notify_one();
-  }
-
-  std::mutex mutex;
-  std::condition_variable cv;
-  bool notified = false;
-
-  Dart_Port receive_port_;
-  void **response_buffer_;
-  size_t *response_length_;
-};
-
 intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len,
                      int64_t player_id) {
   auto iter = send_ports_.find(player_id);
@@ -366,7 +289,8 @@ intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len,
   c_request_data.value.as_external_typed_data.data =
       static_cast<uint8_t *>(request_buffer);
   c_request_data.value.as_external_typed_data.peer = request_buffer;
-  c_request_data.value.as_external_typed_data.callback = FreeFinalizer;
+  c_request_data.value.as_external_typed_data.callback =
+      [](void *isolate_callback_data, void *peer) { free(peer); };
 
   Dart_CObject *c_request_arr[] = {
       &c_send_port,
