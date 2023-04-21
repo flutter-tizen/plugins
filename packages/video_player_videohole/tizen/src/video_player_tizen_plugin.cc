@@ -15,7 +15,6 @@
 #include <map>
 #include <mutex>
 
-#include "dart_api/dart_api_dl.h"
 #include "log.h"
 #include "messages.h"
 #include "video_player.h"
