@@ -4,15 +4,14 @@
 
 #include "video_player_tizen_plugin.h"
 
-#include <app_common.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen.h>
 
 #include <cstdint>
 #include <map>
+#include <optional>
 
 #include "messages.h"
-#include "pending_call.h"
 #include "video_player.h"
 #include "video_player_options.h"
 
@@ -44,8 +43,13 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   std::optional<FlutterError> SetDisplayGeometry(
       const GeometryMessage &msg) override;
 
-  void SetLicenseData(void *response_data, size_t response_len,
-                      int64_t player_id);
+  static VideoPlayer *FindPlayerById(int64_t player_id) {
+    auto iter = players_.find(player_id);
+    if (iter != players_.end()) {
+      return iter->second.get();
+    }
+    return nullptr;
+  }
 
  private:
   void DisposeAllPlayers();
@@ -53,16 +57,16 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   FlutterDesktopPluginRegistrarRef registrar_ref_;
   flutter::PluginRegistrar *plugin_registrar_;
   VideoPlayerOptions options_;
-  std::map<int64_t, std::unique_ptr<VideoPlayer>> players_;
-};
 
-std::unique_ptr<VideoPlayerTizenPlugin> plugin_;
+  static inline std::map<int64_t, std::unique_ptr<VideoPlayer>> players_;
+};
 
 void VideoPlayerTizenPlugin::RegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar_ref,
     flutter::PluginRegistrar *plugin_registrar) {
-  plugin_ =
+  auto plugin =
       std::make_unique<VideoPlayerTizenPlugin>(registrar_ref, plugin_registrar);
+  plugin_registrar->AddPlugin(std::move(plugin));
 }
 
 VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
@@ -102,8 +106,6 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   }
   std::unique_ptr<VideoPlayer> player =
       std::make_unique<VideoPlayer>(plugin_registrar_, native_window, msg);
-  player->GetChallengeData(ChallengeCb);
-
   int64_t player_id = player->Create();
   if (player_id == -1) {
     return FlutterError("Operation failed", "Failed to create a player.");
@@ -221,17 +223,6 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
   return std::nullopt;
 }
 
-void VideoPlayerTizenPlugin::SetLicenseData(void *response_data,
-                                            size_t response_len,
-                                            int64_t player_id) {
-  auto iter = players_.find(player_id);
-  if (iter != players_.end()) {
-    iter->second->SetLicenseData(response_data, response_len);
-  }
-}
-
-std::map<int64_t, Dart_Port> send_ports_;
-
 }  // namespace
 
 void VideoPlayerTizenPluginRegisterWithRegistrar(
@@ -247,70 +238,8 @@ intptr_t VideoPlayerTizenPluginInitDartApi(void *data) {
 
 void VideoPlayerTizenPluginRegisterSendPort(int64_t player_id,
                                             Dart_Port send_port) {
-  send_ports_[player_id] = send_port;
-}
-
-intptr_t ChallengeCb(uint8_t *challenge_data, size_t challenge_len,
-                     int64_t player_id) {
-  auto iter = send_ports_.find(player_id);
-  if (iter == send_ports_.end()) {
-    return 0;
+  VideoPlayer *player = VideoPlayerTizenPlugin::FindPlayerById(player_id);
+  if (player) {
+    player->RegisterSendPort(send_port);
   }
-  Dart_Port send_port = iter->second;
-
-  const char *methodname = "onLicenseChallenge";
-  intptr_t result = 0;
-  size_t request_length = challenge_len;
-  void *request_buffer = malloc(request_length);
-  memcpy(request_buffer, challenge_data, challenge_len);
-
-  void *response_buffer = nullptr;
-  size_t response_length = 0;
-
-  PendingCall pending_call(&response_buffer, &response_length);
-
-  Dart_CObject c_send_port;
-  c_send_port.type = Dart_CObject_kSendPort;
-  c_send_port.value.as_send_port.id = pending_call.port();
-  c_send_port.value.as_send_port.origin_id = ILLEGAL_PORT;
-
-  Dart_CObject c_pending_call;
-  c_pending_call.type = Dart_CObject_kInt64;
-  c_pending_call.value.as_int64 = reinterpret_cast<int64_t>(&pending_call);
-
-  Dart_CObject c_method_name;
-  c_method_name.type = Dart_CObject_kString;
-  c_method_name.value.as_string = const_cast<char *>(methodname);
-
-  Dart_CObject c_request_data;
-  c_request_data.type = Dart_CObject_kExternalTypedData;
-  c_request_data.value.as_external_typed_data.type = Dart_TypedData_kUint8;
-  c_request_data.value.as_external_typed_data.length = request_length;
-  c_request_data.value.as_external_typed_data.data =
-      static_cast<uint8_t *>(request_buffer);
-  c_request_data.value.as_external_typed_data.peer = request_buffer;
-  c_request_data.value.as_external_typed_data.callback =
-      [](void *isolate_callback_data, void *peer) { free(peer); };
-
-  Dart_CObject *c_request_arr[] = {
-      &c_send_port,
-      &c_pending_call,
-      &c_method_name,
-      &c_request_data,
-  };
-  Dart_CObject c_request;
-  c_request.type = Dart_CObject_kArray;
-  c_request.value.as_array.values = c_request_arr;
-  c_request.value.as_array.length =
-      sizeof(c_request_arr) / sizeof(c_request_arr[0]);
-
-  pending_call.PostAndWait(send_port, &c_request);
-  LOG_INFO("Received result");
-
-  plugin_->SetLicenseData(response_buffer, response_length, player_id);
-  if (response_length != 0) {
-    result = 1;
-  }
-
-  return result;
 }

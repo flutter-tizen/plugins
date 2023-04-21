@@ -16,6 +16,7 @@
 
 #include "drm_licence.h"
 #include "log.h"
+#include "pending_call.h"
 
 static int64_t gPlayerIndex = 1;
 
@@ -62,10 +63,6 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
   ParseCreateMessage(create_message);
 }
 
-void VideoPlayer::GetChallengeData(FuncLicenseCB callback) {
-  get_challenge_cb_ = callback;
-}
-
 void VideoPlayer::SetLicenseData(void *response_data, size_t response_len) {
   if (drm_manager_) {
     drm_manager_->SetLicenseData(response_data, response_len);
@@ -80,11 +77,13 @@ bool VideoPlayer::Open(const std::string &uri) {
   }
 
   if (drm_type_ != DRM_TYPE_NONE) {
-    drm_manager_ = std::make_unique<DrmManager>(drm_type_, license_url_,
-                                                player_, player_id_);
-    if (get_challenge_cb_) {
-      drm_manager_->GetChallengeData(get_challenge_cb_);
-    }
+    drm_manager_ =
+        std::make_unique<DrmManager>(drm_type_, license_url_, player_);
+    drm_manager_->SetChallengeCallback(
+        [this](uint8_t *challenge_data, size_t challenge_len) -> intptr_t {
+          return OnLicenseChallenge(challenge_data, challenge_len);
+        });
+
     if (!drm_manager_->InitializeDrmSession(uri_)) {
       LOG_ERROR("[VideoPlayer] initial drm session failed");
       drm_manager_->ReleaseDrmSession();
@@ -537,4 +536,59 @@ void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
     player->event_sink_->Error("Player interrupted",
                                "Video player has been interrupted.");
   }
+}
+
+intptr_t VideoPlayer::OnLicenseChallenge(uint8_t *challenge_data,
+                                         size_t challenge_len) {
+  const char *methodname = "onLicenseChallenge";
+  intptr_t result = 0;
+  size_t request_length = challenge_len;
+  void *request_buffer = malloc(request_length);
+  memcpy(request_buffer, challenge_data, challenge_len);
+
+  void *response_buffer = nullptr;
+  size_t response_length = 0;
+
+  PendingCall pending_call(&response_buffer, &response_length);
+
+  Dart_CObject c_send_port;
+  c_send_port.type = Dart_CObject_kSendPort;
+  c_send_port.value.as_send_port.id = pending_call.port();
+  c_send_port.value.as_send_port.origin_id = ILLEGAL_PORT;
+
+  Dart_CObject c_pending_call;
+  c_pending_call.type = Dart_CObject_kInt64;
+  c_pending_call.value.as_int64 = reinterpret_cast<int64_t>(&pending_call);
+
+  Dart_CObject c_method_name;
+  c_method_name.type = Dart_CObject_kString;
+  c_method_name.value.as_string = const_cast<char *>(methodname);
+
+  Dart_CObject c_request_data;
+  c_request_data.type = Dart_CObject_kExternalTypedData;
+  c_request_data.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+  c_request_data.value.as_external_typed_data.length = request_length;
+  c_request_data.value.as_external_typed_data.data =
+      static_cast<uint8_t *>(request_buffer);
+  c_request_data.value.as_external_typed_data.peer = request_buffer;
+  c_request_data.value.as_external_typed_data.callback =
+      [](void *isolate_callback_data, void *peer) { free(peer); };
+
+  Dart_CObject *c_request_arr[] = {&c_send_port, &c_pending_call,
+                                   &c_method_name, &c_request_data};
+  Dart_CObject c_request;
+  c_request.type = Dart_CObject_kArray;
+  c_request.value.as_array.values = c_request_arr;
+  c_request.value.as_array.length =
+      sizeof(c_request_arr) / sizeof(c_request_arr[0]);
+
+  pending_call.PostAndWait(send_port_, &c_request);
+  LOG_INFO("[ffi] Received result.");
+
+  SetLicenseData(response_buffer, response_length);
+  if (response_length != 0) {
+    result = 1;
+  }
+
+  return result;
 }

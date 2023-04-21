@@ -26,11 +26,8 @@ static std::string GetDrmSubType(int dm_type) {
 }
 
 DrmManager::DrmManager(int drmType, const std::string &licenseUrl,
-                       player_h player, int64_t player_id)
-    : drm_type_(drmType),
-      license_url_(licenseUrl),
-      player_(player),
-      player_id_(player_id) {}
+                       player_h player)
+    : drm_type_(drmType), license_url_(licenseUrl), player_(player) {}
 
 DrmManager::~DrmManager() {}
 
@@ -164,10 +161,6 @@ bool DrmManager::SetChallengeCondition() {
   return true;
 }
 
-void DrmManager::GetChallengeData(FuncLicenseCB callback) {
-  get_challenge_cb_ = callback;
-}
-
 void DrmManager::SetLicenseData(void *response_data, size_t response_len) {
   ppb_response_ = reinterpret_cast<unsigned char *>(response_data);
   pb_response_len_ = response_len;
@@ -203,9 +196,9 @@ int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
     LOG_INFO("[DrmManager] pbResponse_len: %ld", drm_manager->pb_response_len_);
   } else {
     LOG_INFO("[DrmManager] get license by dart callback");
-    intptr_t ret = drm_manager->get_challenge_cb_(
+    intptr_t ret = drm_manager->challenge_callback_(
         reinterpret_cast<uint8_t *>(&challenge_data[0]),
-        static_cast<size_t>(challenge_data.length()), drm_manager->player_id_);
+        static_cast<size_t>(challenge_data.length()));
     if (ret == 0) {
       LOG_ERROR("[DrmManager] request license failed");
     }

@@ -5,6 +5,7 @@
 #ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_
 #define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_
 
+#include <dart_api_dl.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -43,8 +44,9 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int position);
   void SetVolume(double volume);
-  void GetChallengeData(FuncLicenseCB callback);
   void SetLicenseData(void *response_data, size_t response_len);
+
+  void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
 
  private:
   void Initialize();
@@ -57,6 +59,7 @@ class VideoPlayer {
   bool Open(const std::string &uri);
   void ParseCreateMessage(const CreateMessage &create_message);
   bool SetDisplay();
+
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
   static void OnSeekCompleted(void *data);
@@ -65,6 +68,9 @@ class VideoPlayer {
   static void onInterrupted(player_interrupted_code_e code, void *data);
   static void OnSubtitleUpdated(unsigned long duration, char *text,
                                 void *user_data);
+
+  intptr_t OnLicenseChallenge(uint8_t *challenge_data, size_t challenge_len);
+
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
@@ -80,7 +86,8 @@ class VideoPlayer {
   bool is_initialized_ = false;
   bool is_interrupted_ = false;
   bool is_buffering_ = false;
-  FuncLicenseCB get_challenge_cb_ = nullptr;
+
+  Dart_Port send_port_;
 };
 
 #endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_
