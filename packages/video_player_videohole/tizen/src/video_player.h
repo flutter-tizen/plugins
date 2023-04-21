@@ -29,7 +29,7 @@ typedef int (*FuncPlayerSetEcoreWlDisplay)(player_h player,
 
 class VideoPlayer {
  public:
-  VideoPlayer(FlutterDesktopPluginRegistrarRef registrar_ref,
+  VideoPlayer(flutter::PluginRegistrar *plugin_registrar, void *native_window,
               const CreateMessage &create_message);
   ~VideoPlayer();
 
@@ -56,7 +56,7 @@ class VideoPlayer {
   void SendSubtitleUpdate(int duration, char *text);
   bool Open(const std::string &uri);
   void ParseCreateMessage(const CreateMessage &create_message);
-  bool SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref);
+  bool SetDisplay();
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
   static void OnSeekCompleted(void *data);
@@ -70,7 +70,8 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
   SeekCompletedCb on_seek_completed_;
   player_h player_;
-  FlutterDesktopPluginRegistrarRef registrar_ref_ = nullptr;
+  flutter::PluginRegistrar *plugin_registrar_;
+  void *native_window_;
   std::unique_ptr<DrmManager> drm_manager_;
   std::string uri_;
   std::string license_url_;

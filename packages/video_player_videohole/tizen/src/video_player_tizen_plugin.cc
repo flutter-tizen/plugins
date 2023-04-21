@@ -5,10 +5,7 @@
 #include "video_player_tizen_plugin.h"
 
 #include <app_common.h>
-#include <flutter/event_channel.h>
-#include <flutter/event_stream_handler_functions.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter/standard_method_codec.h>
 #include <flutter_tizen.h>
 
 #include <condition_variable>
@@ -27,9 +24,11 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
   static void RegisterWithRegistrar(
       FlutterDesktopPluginRegistrarRef registrar_ref,
       flutter::PluginRegistrar *plugin_registrar);
+
   VideoPlayerTizenPlugin(FlutterDesktopPluginRegistrarRef registrar_ref,
                          flutter::PluginRegistrar *plugin_registrar);
   virtual ~VideoPlayerTizenPlugin();
+
   std::optional<FlutterError> Initialize() override;
   ErrorOr<PlayerMessage> Create(const CreateMessage &createMsg) override;
   std::optional<FlutterError> Dispose(const PlayerMessage &playerMsg) override;
@@ -54,8 +53,8 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
  private:
   void DisposeAllPlayers();
   FlutterDesktopPluginRegistrarRef registrar_ref_;
-  VideoPlayerOptions options_;
   flutter::PluginRegistrar *plugin_registrar_;
+  VideoPlayerOptions options_;
   std::map<int64_t, std::unique_ptr<VideoPlayer>> players_;
 };
 
@@ -72,7 +71,7 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
     FlutterDesktopPluginRegistrarRef registrar_ref,
     flutter::PluginRegistrar *plugin_registrar)
     : registrar_ref_(registrar_ref), plugin_registrar_(plugin_registrar) {
-  VideoPlayerApi::SetUp(plugin_registrar_->messenger(), this);
+  VideoPlayerApi::SetUp(plugin_registrar->messenger(), this);
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
@@ -102,8 +101,18 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
 
 ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     const CreateMessage &createMsg) {
-  std::unique_ptr<VideoPlayer> player =
-      std::make_unique<VideoPlayer>(registrar_ref_, createMsg);
+  FlutterDesktopViewRef flutter_view =
+      FlutterDesktopPluginRegistrarGetView(registrar_ref_);
+  if (!flutter_view) {
+    return FlutterError("Operation failed", "Could not get a Flutter view.");
+  }
+  void *native_window = FlutterDesktopViewGetNativeHandle(flutter_view);
+  if (!native_window) {
+    return FlutterError("Operation failed",
+                        "Could not get a native window handle.");
+  }
+  std::unique_ptr<VideoPlayer> player = std::make_unique<VideoPlayer>(
+      plugin_registrar_, native_window, createMsg);
   player->GetChallengeData(ChallengeCb);
   PlayerMessage player_message;
   int64_t player_id = player->Create();

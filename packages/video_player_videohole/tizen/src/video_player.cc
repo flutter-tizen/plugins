@@ -55,9 +55,10 @@ void VideoPlayer::ParseCreateMessage(const CreateMessage &create_message) {
   LOG_INFO("[VideoPlayer] player uri: %s", uri_.c_str());
 }
 
-VideoPlayer::VideoPlayer(FlutterDesktopPluginRegistrarRef registrar_ref,
+VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
+                         void *native_window,
                          const CreateMessage &create_message)
-    : registrar_ref_(registrar_ref) {
+    : plugin_registrar_(plugin_registrar), native_window_(native_window) {
   ParseCreateMessage(create_message);
 }
 
@@ -99,19 +100,7 @@ bool VideoPlayer::Open(const std::string &uri) {
   return true;
 }
 
-bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
-  FlutterDesktopViewRef view_ref =
-      FlutterDesktopPluginRegistrarGetView(registrar_ref);
-  if (!view_ref) {
-    LOG_ERROR("[VideoPlayer] Could not get a Flutter view handle.");
-    return false;
-  }
-  void *window = FlutterDesktopViewGetNativeHandle(view_ref);
-  if (!view_ref) {
-    LOG_ERROR("[VideoPlayer] Could not get a native window handle.");
-    return false;
-  }
-
+bool VideoPlayer::SetDisplay() {
   int x = 0, y = 0, w = 0, h = 0;
   void *ecore_lib_handle = dlopen("libecore_wl2.so.1", RTLD_LAZY);
   if (ecore_lib_handle) {
@@ -119,7 +108,7 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
         reinterpret_cast<FuncEcoreWl2WindowGeometryGet>(
             dlsym(ecore_lib_handle, "ecore_wl2_window_geometry_get"));
     if (ecore_wl2_window_geometry_get) {
-      ecore_wl2_window_geometry_get(window, &x, &y, &w, &h);
+      ecore_wl2_window_geometry_get(native_window_, &x, &y, &w, &h);
     } else {
       LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
       dlclose(ecore_lib_handle);
@@ -138,7 +127,7 @@ bool VideoPlayer::SetDisplay(FlutterDesktopPluginRegistrarRef registrar_ref) {
             dlsym(player_lib_handle, "player_set_ecore_wl_display"));
     if (player_set_ecore_wl_display) {
       int ret = player_set_ecore_wl_display(
-          player_, PLAYER_DISPLAY_TYPE_OVERLAY, window, x, y, w, h);
+          player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window_, x, y, w, h);
       if (ret != PLAYER_ERROR_NONE) {
         LOG_ERROR("[VideoPlayer] player_set_ecore_wl_display failed: %s",
                   get_error_message(ret));
@@ -174,7 +163,7 @@ int64_t VideoPlayer::Create() {
     return -1;
   }
 
-  if (!SetDisplay(registrar_ref_)) {
+  if (!SetDisplay()) {
     LOG_ERROR("[VideoPlayer] fail to set display");
     return -1;
   }
@@ -222,10 +211,7 @@ int64_t VideoPlayer::Create() {
               get_error_message(ret));
   }
 
-  flutter::PluginRegistrar *plugin_registrar =
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar_ref_);
-  SetupEventChannel(plugin_registrar->messenger());
+  SetupEventChannel(plugin_registrar_->messenger());
   return player_id_;
 }
 
