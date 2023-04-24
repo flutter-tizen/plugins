@@ -12,7 +12,7 @@
 
 class BillingManager {
  public:
-  BillingManager(FlutterDesktopPluginRegistrarRef registrar_ref);
+  BillingManager(flutter::PluginRegistrar *plugin_registrar);
   ~BillingManager(){};
   void Init();
   bool BillingIsAvailable();
@@ -35,5 +35,5 @@ class BillingManager {
   void *billing_api_handle_ = nullptr;
   std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
       method_result_ = nullptr;
-  FlutterDesktopPluginRegistrarRef registrar_ref_ = nullptr;
+  flutter::PluginRegistrar *plugin_registrar_ = nullptr;
 };

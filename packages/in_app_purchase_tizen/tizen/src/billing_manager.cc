@@ -147,12 +147,8 @@ bool BillingManager::BuyItem(const flutter::EncodableValue *args) {
   return true;
 }
 
-BillingManager::BillingManager(FlutterDesktopPluginRegistrarRef registrar_ref)
-    : registrar_ref_(registrar_ref) {
-  flutter::PluginRegistrar *plugin_registrar =
-      flutter::PluginRegistrarManager::GetInstance()
-          ->GetRegistrar<flutter::PluginRegistrar>(registrar_ref_);
-
+BillingManager::BillingManager(flutter::PluginRegistrar *plugin_registrar)
+    : plugin_registrar_(plugin_registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           plugin_registrar->messenger(),
