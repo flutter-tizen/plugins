@@ -79,10 +79,8 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
 
 void VideoPlayerTizenPlugin::DisposeAllPlayers() {
-  auto iter = players_.begin();
-  while (iter != players_.end()) {
-    iter->second->Dispose();
-    iter++;
+  for (const auto &[id, player] : players_) {
+    player->Dispose();
   }
   players_.clear();
 }
@@ -129,90 +127,90 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
     const LoopingMessage &msg) {
-  auto iter = players_.find(msg.player_id());
-  if (iter == players_.end()) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  iter->second->SetLooping(msg.is_looping());
+  player->SetLooping(msg.is_looping());
 
   return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
     const VolumeMessage &msg) {
-  auto iter = players_.find(msg.player_id());
-  if (iter == players_.end()) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  iter->second->SetVolume(msg.volume());
+  player->SetVolume(msg.volume());
 
   return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
     const PlaybackSpeedMessage &msg) {
-  auto iter = players_.find(msg.player_id());
-  if (iter == players_.end()) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  iter->second->SetPlaybackSpeed(msg.speed());
+  player->SetPlaybackSpeed(msg.speed());
 
   return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
     const PlayerMessage &msg) {
-  auto iter = players_.find(msg.player_id());
-  if (iter == players_.end()) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  iter->second->Play();
+  player->Play();
 
   return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
     const PlayerMessage &msg) {
-  auto iter = players_.find(msg.player_id());
-  if (iter == players_.end()) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  iter->second->Pause();
+  player->Pause();
 
   return std::nullopt;
 }
 
 ErrorOr<PositionMessage> VideoPlayerTizenPlugin::Position(
     const PlayerMessage &msg) {
-  auto iter = players_.find(msg.player_id());
-  if (iter == players_.end()) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
 
   PositionMessage result;
   result.set_player_id(msg.player_id());
-  result.set_position(iter->second->GetPosition());
+  result.set_position(player->GetPosition());
   return result;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
     const PositionMessage &msg) {
-  auto iter = players_.find(msg.player_id());
-  if (iter == players_.end()) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  iter->second->SeekTo(msg.position());
+  player->SeekTo(msg.position());
 
   return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(
     const GeometryMessage &msg) {
-  auto iter = players_.find(msg.player_id());
-  if (iter == players_.end()) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  iter->second->SetDisplayRoi(msg.x(), msg.y(), msg.width(), msg.height());
+  player->SetDisplayRoi(msg.x(), msg.y(), msg.width(), msg.height());
 
   return std::nullopt;
 }
