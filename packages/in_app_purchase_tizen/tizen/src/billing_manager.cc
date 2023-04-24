@@ -24,17 +24,19 @@ static server_type ConvertServerType(const char *server_type_string) {
     return SERVERTYPE_NONE;
 }
 
-void BillingManager::Init() {
+bool BillingManager::Init() {
   billing_api_handle_ = OpenBillingApi();
   if (billing_api_handle_ == nullptr) {
     LOG_ERROR("Fail to open billing api");
+    return false;
   }
 
   int init_billing_api = InitBillingApi(billing_api_handle_);
-  LOG_INFO("init_billing_api:%d", init_billing_api);
   if (init_billing_api == 0) {
-    LOG_ERROR(" Fail to init billing api");
+    LOG_ERROR("Fail to init billing api");
+    return false;
   }
+  return true;
 }
 
 bool BillingManager::GetProductList(const flutter::EncodableValue *args) {
@@ -253,7 +255,6 @@ bool BillingManager::OnBuyItem(const char *payResult, const char *detailInfo,
 
 void BillingManager::Dispose() {
   LOG_INFO("dispose");
-
   // close dlopen handle.
   CloseBillingApi(billing_api_handle_);
   billing_api_handle_ = nullptr;

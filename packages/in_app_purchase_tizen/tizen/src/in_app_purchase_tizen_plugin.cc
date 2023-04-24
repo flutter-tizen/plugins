@@ -14,15 +14,15 @@ class InAppPurchaseTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *plugin_registrar);
   InAppPurchaseTizenPlugin(flutter::PluginRegistrar *plugin_registrar);
-  virtual ~InAppPurchaseTizenPlugin() { DisposeAllPlayers(); }
+  virtual ~InAppPurchaseTizenPlugin() { Dispose(); }
 
  private:
-  void DisposeAllPlayers();
+  void Dispose();
   flutter::PluginRegistrar *plugin_registrar_ = nullptr;
   std::unique_ptr<BillingManager> billing_ = nullptr;
 };
 
-void InAppPurchaseTizenPlugin::DisposeAllPlayers() {
+void InAppPurchaseTizenPlugin::Dispose() {
   if (billing_) {
     billing_->Dispose();
   }
@@ -39,7 +39,9 @@ InAppPurchaseTizenPlugin::InAppPurchaseTizenPlugin(
     flutter::PluginRegistrar *plugin_registrar)
     : plugin_registrar_(plugin_registrar) {
   billing_ = std::make_unique<BillingManager>(plugin_registrar_);
-  billing_->Init();
+  if (!billing_->Init()) {
+    Dispose();
+  }
 }
 
 void InAppPurchaseTizenPluginRegisterWithRegistrar(

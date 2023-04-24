@@ -54,6 +54,7 @@ int InitBillingApi(void *handle) {
   if (service_billing_set_buyitem_cb == nullptr) {
     return 0;
   }
+  return 1;
 }
 
 int CloseBillingApi(void *handle) {

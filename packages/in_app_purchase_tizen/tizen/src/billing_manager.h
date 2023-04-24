@@ -14,7 +14,7 @@ class BillingManager {
  public:
   BillingManager(flutter::PluginRegistrar *plugin_registrar);
   ~BillingManager(){};
-  void Init();
+  bool Init();
   bool BillingIsAvailable();
   bool GetProductList(const flutter::EncodableValue *args);
   bool GetPurchaseList(const flutter::EncodableValue *args);
