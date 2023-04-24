@@ -4,8 +4,6 @@
 
 #include "video_player.h"
 
-#include <app_common.h>
-#include <app_manager.h>
 #include <dlfcn.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/standard_method_codec.h>
@@ -20,78 +18,9 @@
 
 static int64_t gPlayerIndex = 1;
 
-void VideoPlayer::ParseCreateMessage(const CreateMessage &create_message) {
-  if (create_message.uri() != nullptr && !create_message.uri()->empty()) {
-    uri_ = *create_message.uri();
-    const flutter::EncodableMap *drm_configs = create_message.drm_configs();
-    if (drm_configs) {
-      auto drm_configs_iter =
-          drm_configs->find(flutter::EncodableValue("drmType"));
-      if (drm_configs_iter != drm_configs->end()) {
-        if (std::holds_alternative<int>(
-                drm_configs->at(flutter::EncodableValue("drmType")))) {
-          drm_type_ = std::get<int>(
-              drm_configs->at(flutter::EncodableValue("drmType")));
-        }
-      }
-      drm_configs_iter =
-          drm_configs->find(flutter::EncodableValue("licenseServerUrl"));
-      if (drm_configs_iter != drm_configs->end()) {
-        if (std::holds_alternative<std::string>(
-                drm_configs->at(flutter::EncodableValue("licenseServerUrl")))) {
-          license_url_ = std::get<std::string>(
-              drm_configs->at(flutter::EncodableValue("licenseServerUrl")));
-        }
-      }
-    }
-  } else {
-    char *res_path = app_get_resource_path();
-    if (res_path) {
-      uri_ = uri_ + res_path + "flutter_assets/" + *create_message.asset();
-      free(res_path);
-    } else {
-      LOG_ERROR("[VideoPlayer] Failed to get resource path.");
-    }
-  }
-  LOG_INFO("[VideoPlayer] player uri: %s", uri_.c_str());
-}
-
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
-                         void *native_window,
-                         const CreateMessage &create_message)
-    : plugin_registrar_(plugin_registrar), native_window_(native_window) {
-  ParseCreateMessage(create_message);
-}
-
-bool VideoPlayer::Open(const std::string &uri) {
-  int ret = player_create(&player_);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_create failed: %s", get_error_message(ret));
-    return false;
-  }
-
-  if (drm_type_ != DRM_TYPE_NONE) {
-    drm_manager_ =
-        std::make_unique<DrmManager>(drm_type_, license_url_, player_);
-    drm_manager_->SetChallengeCallback(
-        [this](const std::vector<uint8_t> &challenge) -> std::vector<uint8_t> {
-          return OnLicenseChallenge(challenge);
-        });
-
-    if (!drm_manager_->InitializeDrmSession(uri_)) {
-      LOG_ERROR("[VideoPlayer] initial drm session failed");
-      drm_manager_->ReleaseDrmSession();
-    }
-  }
-
-  ret = player_set_uri(player_, uri.c_str());
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_set_uri failed: %s",
-              get_error_message(ret));
-    return false;
-  }
-  return true;
-}
+                         void *native_window)
+    : plugin_registrar_(plugin_registrar), native_window_(native_window) {}
 
 bool VideoPlayer::SetDisplay() {
   int x = 0, y = 0, w = 0, h = 0;
@@ -144,15 +73,39 @@ bool VideoPlayer::SetDisplay() {
   return true;
 }
 
-int64_t VideoPlayer::Create() {
+int64_t VideoPlayer::Create(const std::string &uri, int drm_type,
+                            const std::string &license_server_url) {
   player_id_ = gPlayerIndex++;
-  if (uri_.empty()) {
-    LOG_ERROR("[VideoPlayer] uri is empty");
+
+  if (uri.empty()) {
+    LOG_ERROR("[VideoPlayer] The uri must not be empty.");
     return -1;
   }
 
-  if (!Open(uri_)) {
-    LOG_ERROR("[VideoPlayer] open failed, uri : %s", uri_.c_str());
+  int ret = player_create(&player_);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[VideoPlayer] player_create failed: %s", get_error_message(ret));
+    return -1;
+  }
+
+  if (drm_type != DRM_TYPE_NONE) {
+    drm_manager_ =
+        std::make_unique<DrmManager>(drm_type, license_server_url, player_);
+    drm_manager_->SetChallengeCallback(
+        [this](const std::vector<uint8_t> &challenge) -> std::vector<uint8_t> {
+          return OnLicenseChallenge(challenge);
+        });
+
+    if (!drm_manager_->InitializeDrmSession(uri)) {
+      LOG_ERROR("[VideoPlayer] Failed to initialize the DRM session.");
+      drm_manager_->ReleaseDrmSession();
+    }
+  }
+
+  ret = player_set_uri(player_, uri.c_str());
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[VideoPlayer] player_set_uri failed: %s",
+              get_error_message(ret));
     return -1;
   }
 
@@ -162,7 +115,7 @@ int64_t VideoPlayer::Create() {
   }
   SetDisplayRoi(0, 0, 1, 1);
 
-  int ret = player_set_buffering_cb(player_, OnBuffering, this);
+  ret = player_set_buffering_cb(player_, OnBuffering, this);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer] player_set_buffering_cb failed: %s",
               get_error_message(ret));
@@ -495,10 +448,6 @@ void VideoPlayer::OnBuffering(int percent, void *data) {
 void VideoPlayer::OnSeekCompleted(void *data) {
   VideoPlayer *player = reinterpret_cast<VideoPlayer *>(data);
   LOG_INFO("[VideoPlayer] completed to seek");
-  if (player->on_seek_completed_) {
-    player->on_seek_completed_();
-    player->on_seek_completed_ = nullptr;
-  }
 }
 
 void VideoPlayer::OnPlayCompleted(void *data) {

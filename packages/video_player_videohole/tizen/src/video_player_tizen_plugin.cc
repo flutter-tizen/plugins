@@ -4,12 +4,16 @@
 
 #include "video_player_tizen_plugin.h"
 
+#include <app_common.h>
+#include <flutter/encodable_value.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen.h>
 
 #include <cstdint>
 #include <map>
 #include <optional>
+#include <string>
+#include <variant>
 
 #include "messages.h"
 #include "video_player.h"
@@ -103,8 +107,43 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
                         "Could not get a native window handle.");
   }
   std::unique_ptr<VideoPlayer> player =
-      std::make_unique<VideoPlayer>(plugin_registrar_, native_window, msg);
-  int64_t player_id = player->Create();
+      std::make_unique<VideoPlayer>(plugin_registrar_, native_window);
+
+  std::string uri;
+  int32_t drm_type = 0;  // DRM_TYPE_NONE
+  std::string license_server_url;
+
+  if (msg.asset() && !msg.asset()->empty()) {
+    char *res_path = app_get_resource_path();
+    if (res_path) {
+      uri = uri + res_path + "flutter_assets/" + *msg.asset();
+      free(res_path);
+    } else {
+      return FlutterError("Internal error", "Failed to get resource path.");
+    }
+  } else if (msg.uri() && !msg.uri()->empty()) {
+    uri = *msg.uri();
+
+    const flutter::EncodableMap *drm_configs = msg.drm_configs();
+    if (drm_configs) {
+      auto iter = drm_configs->find(flutter::EncodableValue("drmType"));
+      if (iter != drm_configs->end()) {
+        if (std::holds_alternative<int32_t>(iter->second)) {
+          drm_type = std::get<int32_t>(iter->second);
+        }
+      }
+      iter = drm_configs->find(flutter::EncodableValue("licenseServerUrl"));
+      if (iter != drm_configs->end()) {
+        if (std::holds_alternative<std::string>(iter->second)) {
+          license_server_url = std::get<std::string>(iter->second);
+        }
+      }
+    }
+  } else {
+    return FlutterError("Invalid argument", "Either asset or uri must be set.");
+  }
+
+  int64_t player_id = player->Create(uri, drm_type, license_server_url);
   if (player_id == -1) {
     return FlutterError("Operation failed", "Failed to create a player.");
   }

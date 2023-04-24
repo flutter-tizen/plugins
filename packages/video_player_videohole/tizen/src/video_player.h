@@ -9,7 +9,6 @@
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter_tizen.h>
 #include <player.h>
 
 #include <memory>
@@ -17,10 +16,7 @@
 #include <vector>
 
 #include "drm_manager.h"
-#include "messages.h"
 #include "video_player_options.h"
-
-using SeekCompletedCb = std::function<void()>;
 
 typedef void (*FuncEcoreWl2WindowGeometryGet)(void *window, int *x, int *y,
                                               int *width, int *height);
@@ -31,11 +27,12 @@ typedef int (*FuncPlayerSetEcoreWlDisplay)(player_h player,
 
 class VideoPlayer {
  public:
-  VideoPlayer(flutter::PluginRegistrar *plugin_registrar, void *native_window,
-              const CreateMessage &create_message);
+  explicit VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
+                       void *native_window);
   ~VideoPlayer();
 
-  int64_t Create();
+  int64_t Create(const std::string &uri, int drm_type,
+                 const std::string &license_server_url);
   void Dispose();
   int GetPosition();
   void Play();
@@ -56,8 +53,6 @@ class VideoPlayer {
   void SendBufferingUpdate(int position);
   void SendBufferingEnd();
   void SendSubtitleUpdate(int duration, char *text);
-  bool Open(const std::string &uri);
-  void ParseCreateMessage(const CreateMessage &create_message);
   bool SetDisplay();
 
   static void OnPrepared(void *data);
@@ -75,15 +70,11 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
-  SeekCompletedCb on_seek_completed_;
   player_h player_;
   flutter::PluginRegistrar *plugin_registrar_;
   void *native_window_;
   std::unique_ptr<DrmManager> drm_manager_;
-  std::string uri_;
-  std::string license_url_;
   int64_t player_id_ = -1;
-  int drm_type_ = DRM_TYPE_NONE;
   bool is_initialized_ = false;
   bool is_interrupted_ = false;
   bool is_buffering_ = false;
