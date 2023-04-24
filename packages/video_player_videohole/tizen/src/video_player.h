@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "drm_manager.h"
 #include "messages.h"
@@ -44,7 +45,6 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int position);
   void SetVolume(double volume);
-  void SetLicenseData(void *response_data, size_t response_len);
 
   void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
 
@@ -69,7 +69,8 @@ class VideoPlayer {
   static void OnSubtitleUpdated(unsigned long duration, char *text,
                                 void *user_data);
 
-  intptr_t OnLicenseChallenge(uint8_t *challenge_data, size_t challenge_len);
+  std::vector<uint8_t> OnLicenseChallenge(
+      const std::vector<uint8_t> &challenge);
 
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;

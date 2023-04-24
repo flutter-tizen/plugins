@@ -161,63 +161,48 @@ bool DrmManager::SetChallengeCondition() {
   return true;
 }
 
-void DrmManager::SetLicenseData(void *response_data, size_t response_len) {
-  ppb_response_ = reinterpret_cast<unsigned char *>(response_data);
-  pb_response_len_ = response_len;
-  LOG_INFO("[DrmManager] ppb_response_: %s", ppb_response_);
-  LOG_INFO("[DrmManager] pbResponse_len: %ld", pb_response_len_);
-}
+int DrmManager::OnChallengeData(void *session_id, int msg_type,
+                                void *challenge_data, int challenge_length,
+                                void *user_data) {
+  LOG_INFO("[DrmManager] session_id: %s", session_id);
+  DrmManager *self = static_cast<DrmManager *>(user_data);
 
-int DrmManager::OnChallengeData(void *session_id, int msg_type, void *msg,
-                                int msg_len, void *user_data) {
-  LOG_INFO("[DrmManager] session_id is [%s]", session_id);
-  DrmManager *drm_manager = static_cast<DrmManager *>(user_data);
+  LOG_INFO("[DrmManager] drm_type: %d", self->drm_type_);
+  LOG_INFO("[DrmManager] license_url: %s", self->license_url_.c_str());
+  LOG_INFO("[DrmManager] Challenge length: %d", challenge_length);
 
-  char license_url[128] = {0};
-  strcpy(license_url, drm_manager->license_url_.c_str());
-  LOG_INFO("[DrmManager] drm_type_: %d", drm_manager->drm_type_);
-  LOG_INFO("[DrmManager] license_url: %s", license_url);
-  LOG_INFO("[DrmManager] challenge data length: %d", msg_len);
-  std::string challenge_data(msg_len, 0);
-  memcpy(&challenge_data[0], reinterpret_cast<char *>(msg), msg_len);
-  // Get the license from the DRM Server
-  SetDataParam_t *license_param =
-      reinterpret_cast<SetDataParam_t *>(malloc(sizeof(SetDataParam_t)));
-  if (!drm_manager->license_url_.empty()) {
-    LOG_INFO("[DrmManager] get license by player");
-    DRM_RESULT drm_result = DrmLicenseHelper::DoTransactionTZ(
-        license_url, reinterpret_cast<const void *>(&challenge_data[0]),
-        static_cast<unsigned long>(challenge_data.length()),
-        &drm_manager->ppb_response_, &drm_manager->pb_response_len_,
-        static_cast<DrmLicenseHelper::DrmType>(drm_manager->drm_type_), nullptr,
+  std::vector<uint8_t> response;
+  if (!self->license_url_.empty()) {
+    // Get license via the license server.
+    unsigned char *response_data = nullptr;
+    unsigned long response_length = 0;
+    DRM_RESULT ret = DrmLicenseHelper::DoTransactionTZ(
+        self->license_url_.c_str(), challenge_data, challenge_length,
+        &response_data, &response_length,
+        static_cast<DrmLicenseHelper::DrmType>(self->drm_type_), nullptr,
         nullptr);
-    LOG_INFO("[DrmManager] drm_result: 0x%lx", drm_result);
-    LOG_INFO("[DrmManager] ppb_response_: %s", drm_manager->ppb_response_);
-    LOG_INFO("[DrmManager] pbResponse_len: %ld", drm_manager->pb_response_len_);
+    LOG_INFO("[DrmManager] Transaction result: 0x%lx", ret);
+    response =
+        std::vector<uint8_t>(response_data, response_data + response_length);
+    free(response_data);
   } else {
-    LOG_INFO("[DrmManager] get license by dart callback");
-    intptr_t ret = drm_manager->challenge_callback_(
-        reinterpret_cast<uint8_t *>(&challenge_data[0]),
-        static_cast<size_t>(challenge_data.length()));
-    if (ret == 0) {
-      LOG_ERROR("[DrmManager] request license failed");
-    }
+    // Get license via the Dart callback.
+    std::vector<uint8_t> challenge(
+        static_cast<uint8_t *>(challenge_data),
+        static_cast<uint8_t *>(challenge_data) + challenge_length);
+    response = self->challenge_callback_(challenge);
   }
-  license_param->param1 = session_id;
-  license_param->param2 = drm_manager->ppb_response_;
-  license_param->param3 =
-      reinterpret_cast<void *>(drm_manager->pb_response_len_);
-  int ret = DMGRSetData(drm_manager->drm_session_, "install_eme_key",
-                        reinterpret_cast<void *>(license_param));
+  LOG_INFO("[DrmManager] Response length: %d", response.size());
+
+  SetDataParam_t license_param = {};
+  license_param.param1 = session_id;
+  license_param.param2 = response.data();
+  license_param.param3 = reinterpret_cast<void *>(response.size());
+  int ret = DMGRSetData(self->drm_session_, "install_eme_key", &license_param);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] install_eme_key failed: %s",
               get_error_message(ret));
   }
-  if (license_param) {
-    free(license_param);
-  }
-  free(drm_manager->ppb_response_);
-  drm_manager->ppb_response_ = nullptr;
 
   return 0;
 }

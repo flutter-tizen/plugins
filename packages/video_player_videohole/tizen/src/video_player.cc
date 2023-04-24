@@ -50,7 +50,7 @@ void VideoPlayer::ParseCreateMessage(const CreateMessage &create_message) {
       uri_ = uri_ + res_path + "flutter_assets/" + *create_message.asset();
       free(res_path);
     } else {
-      LOG_ERROR("[VideoPlayer] Internal error", "Failed to get resource path.");
+      LOG_ERROR("[VideoPlayer] Failed to get resource path.");
     }
   }
   LOG_INFO("[VideoPlayer] player uri: %s", uri_.c_str());
@@ -61,12 +61,6 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          const CreateMessage &create_message)
     : plugin_registrar_(plugin_registrar), native_window_(native_window) {
   ParseCreateMessage(create_message);
-}
-
-void VideoPlayer::SetLicenseData(void *response_data, size_t response_len) {
-  if (drm_manager_) {
-    drm_manager_->SetLicenseData(response_data, response_len);
-  }
 }
 
 bool VideoPlayer::Open(const std::string &uri) {
@@ -80,8 +74,8 @@ bool VideoPlayer::Open(const std::string &uri) {
     drm_manager_ =
         std::make_unique<DrmManager>(drm_type_, license_url_, player_);
     drm_manager_->SetChallengeCallback(
-        [this](uint8_t *challenge_data, size_t challenge_len) -> intptr_t {
-          return OnLicenseChallenge(challenge_data, challenge_len);
+        [this](const std::vector<uint8_t> &challenge) -> std::vector<uint8_t> {
+          return OnLicenseChallenge(challenge);
         });
 
     if (!drm_manager_->InitializeDrmSession(uri_)) {
@@ -538,17 +532,15 @@ void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
   }
 }
 
-intptr_t VideoPlayer::OnLicenseChallenge(uint8_t *challenge_data,
-                                         size_t challenge_len) {
-  const char *methodname = "onLicenseChallenge";
-  intptr_t result = 0;
-  size_t request_length = challenge_len;
+std::vector<uint8_t> VideoPlayer::OnLicenseChallenge(
+    const std::vector<uint8_t> &challenge) {
+  const char *method_name = "onLicenseChallenge";
+  size_t request_length = challenge.size();
   void *request_buffer = malloc(request_length);
-  memcpy(request_buffer, challenge_data, challenge_len);
+  memcpy(request_buffer, challenge.data(), challenge.size());
 
   void *response_buffer = nullptr;
   size_t response_length = 0;
-
   PendingCall pending_call(&response_buffer, &response_length);
 
   Dart_CObject c_send_port;
@@ -562,7 +554,7 @@ intptr_t VideoPlayer::OnLicenseChallenge(uint8_t *challenge_data,
 
   Dart_CObject c_method_name;
   c_method_name.type = Dart_CObject_kString;
-  c_method_name.value.as_string = const_cast<char *>(methodname);
+  c_method_name.value.as_string = const_cast<char *>(method_name);
 
   Dart_CObject c_request_data;
   c_request_data.type = Dart_CObject_kExternalTypedData;
@@ -583,12 +575,9 @@ intptr_t VideoPlayer::OnLicenseChallenge(uint8_t *challenge_data,
       sizeof(c_request_arr) / sizeof(c_request_arr[0]);
 
   pending_call.PostAndWait(send_port_, &c_request);
-  LOG_INFO("[ffi] Received result.");
+  LOG_INFO("[ffi] Received result (size: %d)", response_length);
 
-  SetLicenseData(response_buffer, response_length);
-  if (response_length != 0) {
-    result = 1;
-  }
-
-  return result;
+  return std::vector<uint8_t>(
+      static_cast<uint8_t *>(response_buffer),
+      static_cast<uint8_t *>(response_buffer) + response_length);
 }

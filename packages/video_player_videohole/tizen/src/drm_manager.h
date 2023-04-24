@@ -12,11 +12,13 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "drm_manager_service_proxy.h"
 #include "player.h"
 
-typedef std::function<intptr_t(uint8_t *challenge_data, size_t challenge_len)>
+typedef std::function<std::vector<uint8_t>(
+    const std::vector<uint8_t> &challenge)>
     ChallengeCallback;
 
 class DrmManager {
@@ -25,7 +27,6 @@ class DrmManager {
   ~DrmManager();
   bool InitializeDrmSession(const std::string &url);
   void ReleaseDrmSession();
-  void SetLicenseData(void *response_data, size_t response_len);
 
   void SetChallengeCallback(ChallengeCallback callback) {
     challenge_callback_ = callback;
@@ -36,8 +37,9 @@ class DrmManager {
   bool SetChallengeCondition();
   bool SetPlayerDrm(const std::string &url);
   static void OnDrmManagerError(long errCode, char *errMsg, void *userData);
-  static int OnChallengeData(void *session_id, int msgType, void *msg,
-                             int msgLen, void *userData);
+  static int OnChallengeData(void *session_id, int msg_type,
+                             void *challenge_data, int challenge_length,
+                             void *user_data);
   static int UpdatePsshDataCB(drm_init_data_type type, void *data, int length,
                               void *user_data);
 
@@ -49,8 +51,6 @@ class DrmManager {
   std::string license_url_;
   player_h player_;
   ChallengeCallback challenge_callback_;
-  unsigned char *ppb_response_ = nullptr;
-  unsigned long pb_response_len_ = 0;
 };
 
 #endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_H_
