@@ -6,6 +6,7 @@
 
 /// An example of using the plugin, controlling lifecycle and playback of the
 /// video.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -31,26 +32,11 @@ class _App extends StatelessWidget {
           bottom: const TabBar(
             isScrollable: true,
             tabs: <Widget>[
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: 'Mp4',
-              ),
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: 'Hls',
-              ),
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: 'Dash',
-              ),
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: 'Drm widevine',
-              ),
-              Tab(
-                icon: Icon(Icons.cloud),
-                text: 'Drm playready',
-              ),
+              Tab(icon: Icon(Icons.cloud), text: 'MP4'),
+              Tab(icon: Icon(Icons.cloud), text: 'HLS'),
+              Tab(icon: Icon(Icons.cloud), text: 'Dash'),
+              Tab(icon: Icon(Icons.cloud), text: 'DRM Widevine'),
+              Tab(icon: Icon(Icons.cloud), text: 'DRM PlayReady'),
             ],
           ),
         ),
@@ -159,9 +145,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
-          Container(
-            padding: const EdgeInsets.only(top: 20.0),
-          ),
+          Container(padding: const EdgeInsets.only(top: 20.0)),
           const Text('With Dash'),
           Container(
             padding: const EdgeInsets.all(20),
@@ -286,7 +270,7 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
       child: Column(
         children: <Widget>[
           Container(padding: const EdgeInsets.only(top: 20.0)),
-          const Text('Play DRM widevine'),
+          const Text('Play DRM Widevine'),
           Container(
             padding: const EdgeInsets.all(20),
             child: AspectRatio(
@@ -349,7 +333,7 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
       child: Column(
         children: <Widget>[
           Container(padding: const EdgeInsets.only(top: 20.0)),
-          const Text('Play DRM playready'),
+          const Text('Play DRM PlayReady'),
           Container(
             padding: const EdgeInsets.all(20),
             child: AspectRatio(
