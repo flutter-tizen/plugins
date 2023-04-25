@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:async';
 import 'dart:convert' show json;
 
@@ -47,13 +49,13 @@ class BillingClient {
       List<String> requestparameters) async {
     final String? productResponse =
         await channel.invokeMethod<String?>('getProductList', {
-      'appId': requestparameters.asMap()[0] as String,
-      'countryCode': requestparameters.asMap()[1] as String,
-      'itemType': requestparameters.asMap()[2] as String,
-      'pageSize': int.parse(requestparameters.asMap()[3]!),
-      'pageNum': int.parse(requestparameters.asMap()[4]!),
-      'serverType': requestparameters.asMap()[5] as String,
-      'checkValue': requestparameters.asMap()[6] as String,
+      'appId': requestparameters[0],
+      'countryCode': requestparameters[1],
+      'itemType': requestparameters[2],
+      'pageSize': int.parse(requestparameters[3]),
+      'pageNum': int.parse(requestparameters[4]),
+      'serverType': requestparameters[5],
+      'checkValue': requestparameters[6],
     });
 
     if (productResponse == null) {
@@ -69,12 +71,12 @@ class BillingClient {
       String? costomId, List<String> requestparameters) async {
     final String? purchaseResponse =
         await channel.invokeMethod<String?>('getPurchaseList', {
-      'appId': requestparameters.asMap()[0] as String,
+      'appId': requestparameters[0],
       'customId': costomId as String,
-      'countryCode': requestparameters.asMap()[1] as String,
-      'pageNum': int.parse(requestparameters.asMap()[4]!),
-      'serverType': requestparameters.asMap()[5] as String,
-      'checkValue': requestparameters.asMap()[7] as String,
+      'countryCode': requestparameters[1],
+      'pageNum': int.parse(requestparameters[4]),
+      'serverType': requestparameters[5],
+      'checkValue': requestparameters[7],
     });
     if (purchaseResponse == null) {
       throw PlatformException(

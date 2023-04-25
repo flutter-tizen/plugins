@@ -14,16 +14,6 @@ const String kPurchaseErrorCode = 'purchase_error';
 
 const String kIAPSource = 'samsung_checkout';
 
-late String appId;
-
-late String serverType;
-
-late Set<String> identifiers_;
-
-/// An [InAppPurchasePlatform] that wraps Android BillingClient.
-///
-/// This translates various `BillingClient` calls and responses into the
-/// generic plugin API.
 class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   InAppPurchaseTizenPlatform();
   InAppPurchaseTizenPlatform._() {
@@ -42,6 +32,9 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
   static late StreamController<List<PurchaseDetails>>
       _purchaseUpdatedController;
+  static late String _appId;
+  static late String _serverType;
+  static late Set<String> _identifiers;
 
   @override
   Stream<List<PurchaseDetails>> get purchaseStream =>
@@ -62,9 +55,9 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       Set<String> identifiers) async {
     ProductsListApiResult response;
     PlatformException? exception;
-    identifiers_ = identifiers;
-    appId = identifiers.toList().asMap()[0] as String;
-    serverType = identifiers.toList().asMap()[6] as String;
+    _identifiers = identifiers;
+    _appId = identifiers.toList()[0];
+    _serverType = identifiers.toList()[5];
     try {
       response = await billingClient.requestProducts(identifiers.toList());
     } on PlatformException catch (e) {
@@ -116,7 +109,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     List<PurchaseListAPIResult> responses;
 
     responses = await Future.wait(<Future<PurchaseListAPIResult>>[
-      billingClient.requestPurchases(applicationUserName, identifiers_.toList())
+      billingClient.requestPurchases(applicationUserName, _identifiers.toList())
     ]);
 
     final List<PurchaseDetails> pastPurchases =
@@ -136,8 +129,8 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
     final BillingResultWrapper billingResultWrapper =
         await billingClient.butItem(
-            appId: appId,
-            serverType: serverType,
+            appId: _appId,
+            serverType: _serverType,
             orderItemId: purchaseParam.productDetails.id,
             orderTitle: purchaseParam.productDetails.title,
             orderTotal: purchaseParam.productDetails.price,
