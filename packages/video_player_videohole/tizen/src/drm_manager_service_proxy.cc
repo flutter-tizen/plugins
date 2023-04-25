@@ -6,8 +6,6 @@
 
 #include <dlfcn.h>
 
-#include "log.h"
-
 FuncDMGRSetData DMGRSetData = nullptr;
 FuncDMGRGetData DMGRGetData = nullptr;
 FuncDMGRCreateDRMSession DMGRCreateDRMSession = nullptr;
@@ -17,14 +15,6 @@ FuncPlayerSetDrmHandle player_set_drm_handle = nullptr;
 FuncPlayerSetDrmInitCompleteCB player_set_drm_init_complete_cb = nullptr;
 FuncPlayerSetDrmInitDataCB player_set_drm_init_data_cb = nullptr;
 
-void* Dlsym(void* handle, const char* name) {
-  if (!handle) {
-    LOG_ERROR("[DrmManagerService] dlsym failed, handle is null");
-    return nullptr;
-  }
-  return dlsym(handle, name);
-}
-
 void* OpenDrmManager() { return dlopen("libdrmmanager.so.0", RTLD_LAZY); }
 
 void* OpenMediaPlayer() {
@@ -32,32 +22,36 @@ void* OpenMediaPlayer() {
 }
 
 int InitDrmManager(void* handle) {
-  DMGRSetData = reinterpret_cast<FuncDMGRSetData>(Dlsym(handle, "DMGRSetData"));
-  if (DMGRSetData == nullptr) {
-    return DM_ERROR_UNKOWN;
+  if (!handle) {
+    return DM_ERROR_INVALID_PARAM;
   }
 
-  DMGRGetData = reinterpret_cast<FuncDMGRGetData>(Dlsym(handle, "DMGRGetData"));
-  if (DMGRGetData == nullptr) {
-    return DM_ERROR_UNKOWN;
+  DMGRSetData = reinterpret_cast<FuncDMGRSetData>(dlsym(handle, "DMGRSetData"));
+  if (!DMGRSetData) {
+    return DM_ERROR_DL;
+  }
+
+  DMGRGetData = reinterpret_cast<FuncDMGRGetData>(dlsym(handle, "DMGRGetData"));
+  if (!DMGRGetData) {
+    return DM_ERROR_DL;
   }
 
   DMGRCreateDRMSession = reinterpret_cast<FuncDMGRCreateDRMSession>(
-      Dlsym(handle, "DMGRCreateDRMSession"));
-  if (DMGRCreateDRMSession == nullptr) {
-    return DM_ERROR_UNKOWN;
+      dlsym(handle, "DMGRCreateDRMSession"));
+  if (!DMGRCreateDRMSession) {
+    return DM_ERROR_DL;
   }
 
   DMGRSecurityInitCompleteCB = reinterpret_cast<FuncDMGRSecurityInitCompleteCB>(
-      Dlsym(handle, "DMGRSecurityInitCompleteCB"));
-  if (DMGRSecurityInitCompleteCB == nullptr) {
-    return DM_ERROR_UNKOWN;
+      dlsym(handle, "DMGRSecurityInitCompleteCB"));
+  if (!DMGRSecurityInitCompleteCB) {
+    return DM_ERROR_DL;
   }
 
   DMGRReleaseDRMSession = reinterpret_cast<FuncDMGRReleaseDRMSession>(
-      Dlsym(handle, "DMGRReleaseDRMSession"));
-  if (DMGRReleaseDRMSession == nullptr) {
-    return DM_ERROR_UNKOWN;
+      dlsym(handle, "DMGRReleaseDRMSession"));
+  if (!DMGRReleaseDRMSession) {
+    return DM_ERROR_DL;
   }
 
   return DM_ERROR_NONE;
@@ -65,39 +59,35 @@ int InitDrmManager(void* handle) {
 
 int InitMediaPlayer(void* handle) {
   player_set_drm_handle = reinterpret_cast<FuncPlayerSetDrmHandle>(
-      Dlsym(handle, "player_set_drm_handle"));
-  if (player_set_drm_handle == nullptr) {
-    return DM_ERROR_UNKOWN;
+      dlsym(handle, "player_set_drm_handle"));
+  if (!player_set_drm_handle) {
+    return DM_ERROR_DL;
   }
 
   player_set_drm_init_complete_cb =
       reinterpret_cast<FuncPlayerSetDrmInitCompleteCB>(
-          Dlsym(handle, "player_set_drm_init_complete_cb"));
-  if (player_set_drm_init_complete_cb == nullptr) {
-    return DM_ERROR_UNKOWN;
+          dlsym(handle, "player_set_drm_init_complete_cb"));
+  if (!player_set_drm_init_complete_cb) {
+    return DM_ERROR_DL;
   }
 
   player_set_drm_init_data_cb = reinterpret_cast<FuncPlayerSetDrmInitDataCB>(
       dlsym(handle, "player_set_drm_init_data_cb"));
-  if (player_set_drm_init_data_cb == nullptr) {
-    return DM_ERROR_UNKOWN;
+  if (!player_set_drm_init_data_cb) {
+    return DM_ERROR_DL;
   }
 
   return DM_ERROR_NONE;
 }
 
-int CloseDrmManager(void* handle) {
-  if (handle == nullptr) {
-    LOG_ERROR("[DrmManagerService] handle is null");
-    return -1;
+void CloseDrmManager(void* handle) {
+  if (handle) {
+    dlclose(handle);
   }
-  return dlclose(handle);
 }
 
-int CloseMediaPlayer(void* handle) {
-  if (handle == nullptr) {
-    LOG_ERROR("[DrmManagerService] handle is null");
-    return -1;
+void CloseMediaPlayer(void* handle) {
+  if (handle) {
+    dlclose(handle);
   }
-  return dlclose(handle);
 }

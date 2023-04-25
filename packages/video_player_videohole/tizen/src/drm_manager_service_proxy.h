@@ -4,7 +4,8 @@
 
 #ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
 #define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
-#include "player.h"
+
+#include <player.h>
 
 typedef enum {
   DM_ERROR_NONE = 0,                /**< Success */
@@ -125,6 +126,7 @@ typedef enum {
 } drm_init_data_type;
 
 typedef void* DRMSessionHandle_t;
+
 typedef bool (*security_init_complete_cb)(int* drmhandle, unsigned int length,
                                           unsigned char* psshdata,
                                           void* user_data);
@@ -149,12 +151,14 @@ typedef int (*FuncPlayerSetDrmInitCompleteCB)(
 typedef int (*FuncPlayerSetDrmInitDataCB)(player_h player,
                                           set_drm_init_data_cb callback,
                                           void* user_data);
+
 void* OpenDrmManager();
 void* OpenMediaPlayer();
-int CloseDrmManager(void* handle);
-int CloseMediaPlayer(void* handle);
 int InitDrmManager(void* handle);
 int InitMediaPlayer(void* handle);
+void CloseDrmManager(void* handle);
+void CloseMediaPlayer(void* handle);
+
 extern FuncDMGRSetData DMGRSetData;
 extern FuncDMGRGetData DMGRGetData;
 extern FuncDMGRCreateDRMSession DMGRCreateDRMSession;
