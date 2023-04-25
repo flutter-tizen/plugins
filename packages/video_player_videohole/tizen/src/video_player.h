@@ -34,35 +34,35 @@ class VideoPlayer {
   int64_t Create(const std::string &uri, int drm_type,
                  const std::string &license_server_url);
   void Dispose();
-  int GetPosition();
+
+  void SetDisplayRoi(int32_t x, int32_t y, int32_t width, int32_t height);
   void Play();
   void Pause();
-  void SetDisplayRoi(int x, int y, int w, int h);
   void SetLooping(bool is_looping);
-  void SetPlaybackSpeed(double speed);
-  void SeekTo(int position);
   void SetVolume(double volume);
+  void SetPlaybackSpeed(double speed);
+  void SeekTo(int32_t position);
+  int32_t GetPosition();
 
   void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
 
  private:
+  bool SetDisplay();
+  void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void Initialize();
-  void SetupEventChannel(flutter::BinaryMessenger *messenger);
+
   void SendInitialized();
   void SendBufferingStart();
-  void SendBufferingUpdate(int position);
+  void SendBufferingUpdate(int32_t value);
   void SendBufferingEnd();
-  void SendSubtitleUpdate(int duration, char *text);
-  bool SetDisplay();
+  void SendSubtitleUpdate(int32_t duration, const std::string &text);
 
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
-  static void OnSeekCompleted(void *data);
   static void OnPlayCompleted(void *data);
-  static void OnError(int error_code, void *user_data);
+  static void OnError(int error_code, void *data);
   static void onInterrupted(player_interrupted_code_e code, void *data);
-  static void OnSubtitleUpdated(unsigned long duration, char *text,
-                                void *user_data);
+  static void OnSubtitleUpdated(unsigned long duration, char *text, void *data);
 
   std::vector<uint8_t> OnLicenseChallenge(
       const std::vector<uint8_t> &challenge);
@@ -70,11 +70,13 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
-  player_h player_;
+
+  player_h player_ = nullptr;
   flutter::PluginRegistrar *plugin_registrar_;
   void *native_window_;
-  std::unique_ptr<DrmManager> drm_manager_;
   int64_t player_id_ = -1;
+  std::unique_ptr<DrmManager> drm_manager_;
+
   bool is_initialized_ = false;
   bool is_interrupted_ = false;
   bool is_buffering_ = false;
