@@ -1,3 +1,10 @@
+// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#ifndef FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
+#define FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
+
 #define SSO_API_MAX_STRING_LEN 128
 
 typedef enum server_type {
@@ -42,3 +49,5 @@ extern FuncBillingBuyItem service_billing_buyitem;
 extern FuncBillingSetBuyItemCb service_billing_set_buyitem_cb;
 extern FuncServiceBillingIsServiceAvailable
     service_billing_is_service_available;
+
+#endif  // FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_

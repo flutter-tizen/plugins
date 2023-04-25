@@ -1,3 +1,10 @@
+// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#ifndef FLUTTER_PLUGIN_BILLING_MANAGER_H
+#define FLUTTER_PLUGIN_BILLING_MANAGER_H
+
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -38,3 +45,5 @@ class BillingManager {
       method_result_ = nullptr;
   flutter::PluginRegistrar *plugin_registrar_ = nullptr;
 };
+
+#endif  // FLUTTER_PLUGIN_BILLING_MANAGER_H

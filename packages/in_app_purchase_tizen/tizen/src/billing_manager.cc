@@ -1,3 +1,7 @@
+// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #include "billing_manager.h"
 
 #include <flutter/standard_method_codec.h>
