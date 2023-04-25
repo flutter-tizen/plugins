@@ -1,15 +1,16 @@
 #ifndef FLUTTER_WEBRTC_BASE_HXX
 #define FLUTTER_WEBRTC_BASE_HXX
 
-#include <string.h>
+#include "flutter_common.h"
 
+#include <string.h>
 #include <list>
 #include <map>
 #include <memory>
 #include <mutex>
 
-#include "flutter_common.h"
 #include "libwebrtc.h"
+
 #include "rtc_audio_device.h"
 #include "rtc_dtmf_sender.h"
 #include "rtc_media_stream.h"
@@ -18,6 +19,7 @@
 #include "rtc_peerconnection.h"
 #include "rtc_peerconnection_factory.h"
 #include "rtc_video_device.h"
+
 #include "uuidxx.h"
 
 namespace flutter_webrtc_plugin {
@@ -57,7 +59,8 @@ class FlutterWebRTCBase {
   void RemovePeerConnectionObserversForId(const std::string& id);
 
   scoped_refptr<RTCMediaStream> MediaStreamForId(
-      const std::string& id, std::string peerConnectionId = std::string());
+      const std::string& id,
+      std::string peerConnectionId = std::string());
 
   void RemoveStreamForId(const std::string& id);
 

@@ -14,10 +14,12 @@ class FlutterMediaStream {
                     std::unique_ptr<MethodResultProxy> result);
 
   void GetUserAudio(const EncodableMap& constraints,
-                    scoped_refptr<RTCMediaStream> stream, EncodableMap& params);
+                    scoped_refptr<RTCMediaStream> stream,
+                    EncodableMap& params);
 
   void GetUserVideo(const EncodableMap& constraints,
-                    scoped_refptr<RTCMediaStream> stream, EncodableMap& params);
+                    scoped_refptr<RTCMediaStream> stream,
+                    EncodableMap& params);
 
   void GetSources(std::unique_ptr<MethodResultProxy> result);
 

@@ -3,6 +3,7 @@
 
 #include "base/refcount.h"
 #include "base/scoped_ref_ptr.h"
+
 #include "rtc_types.h"
 
 namespace libwebrtc {
@@ -232,8 +233,8 @@ struct RTCRtpParameters : public RefCountInterface {
   virtual void set_rtcp_parameters(
       scoped_refptr<RTCRtcpParameters> rtcp_parameters) = 0;
 
-  // virtual DegradationPreference GetDegradationPreference() = 0;
-  // virtual void SetDegradationPreference(DegradationPreference value) = 0;
+  virtual RTCDegradationPreference GetDegradationPreference() = 0;
+  virtual void SetDegradationPreference(RTCDegradationPreference value) = 0;
 
   virtual bool operator==(scoped_refptr<RTCRtpParameters> o) const = 0;
   virtual bool operator!=(scoped_refptr<RTCRtpParameters> o) const = 0;

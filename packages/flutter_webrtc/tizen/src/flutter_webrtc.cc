@@ -1,8 +1,3 @@
-// Copyright (c) 2018 湖北捷智云技术有限公司. All rights reserved.
-//
-// Distributed under the MIT software license, see the accompanying
-// file LICENSE.
-
 #include "flutter_webrtc.h"
 
 #include "log.h"
@@ -61,7 +56,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
 
     const EncodableList types = findList(params, "types");
-    if (types == EncodableList()) {
+    if (types.empty()) {
       result->Error("Bad Arguments", "Types is required");
       return;
     }
@@ -76,7 +71,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
 
     const EncodableList types = findList(params, "types");
-    if (types == EncodableList()) {
+    if (types.empty()) {
       result->Error("Bad Arguments", "Types is required");
       return;
     }
@@ -96,7 +91,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     const EncodableMap thumbnailSize = findMap(params, "thumbnailSize");
-    if (thumbnailSize != EncodableMap()) {
+    if (!thumbnailSize.empty()) {
       result->NotImplemented();
     } else {
       result->Error("Bad Arguments", "Bad arguments received");
@@ -705,14 +700,46 @@ void FlutterWebRTC::HandleMethodCall(
     RTCMediaTrack* track = MediaTrackForId(trackId);
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
-    if (0 < rtpSenderId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpSenderSetTrack",
-                      "rtpSenderSetTrack() rtpSenderId is null or empty");
-        return;
-      }
+    if (rtpSenderId.empty()) {
+      result->Error("rtpSenderSetTrack",
+                    "rtpSenderSetTrack() rtpSenderId is null or empty");
+      return;
     }
     RtpSenderSetTrack(pc, track, rtpSenderId, std::move(result));
+  } else if (method_call.method_name().compare("rtpSenderSetStreams") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("rtpSenderSetStream",
+                    "rtpSenderSetStream() peerConnection is null");
+      return;
+    }
+
+    const EncodableList encodableStreamIds = findList(params, "streamIds");
+    if (encodableStreamIds.empty()) {
+      result->Error("rtpSenderSetStream",
+                    "rtpSenderSetStream() streamId is null or empty");
+      return;
+    }
+    std::list<std::string> streamIds{};
+    for (EncodableValue value : encodableStreamIds) {
+      streamIds.push_back(GetValue<std::string>(value));
+    }
+
+    const std::string rtpSenderId = findString(params, "rtpSenderId");
+    if (rtpSenderId.empty()) {
+      result->Error("rtpSenderSetStream",
+                    "rtpSenderSetStream() rtpSenderId is null or empty");
+      return;
+    }
+    RtpSenderSetStream(pc, streamIds, rtpSenderId, std::move(result));
   } else if (method_call.method_name().compare("rtpSenderReplaceTrack") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -733,12 +760,10 @@ void FlutterWebRTC::HandleMethodCall(
     RTCMediaTrack* track = MediaTrackForId(trackId);
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
-    if (0 < rtpSenderId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpSenderReplaceTrack",
-                      "rtpSenderReplaceTrack() rtpSenderId is null or empty");
-        return;
-      }
+    if (rtpSenderId.empty()) {
+      result->Error("rtpSenderReplaceTrack",
+                    "rtpSenderReplaceTrack() rtpSenderId is null or empty");
+      return;
     }
     RtpSenderReplaceTrack(pc, track, rtpSenderId, std::move(result));
   } else if (method_call.method_name().compare("rtpSenderSetParameters") == 0) {
@@ -758,12 +783,10 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
-    if (0 < rtpSenderId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpSenderSetParameters",
-                      "rtpSenderSetParameters() rtpSenderId is null or empty");
-        return;
-      }
+    if (rtpSenderId.empty()) {
+      result->Error("rtpSenderSetParameters",
+                    "rtpSenderSetParameters() rtpSenderId is null or empty");
+      return;
     }
 
     const EncodableMap parameters = findMap(params, "parameters");
@@ -791,12 +814,10 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string rtpTransceiverId = findString(params, "rtpTransceiverId");
-    if (0 < rtpTransceiverId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpTransceiverStop",
-                      "rtpTransceiverStop() rtpTransceiverId is null or empty");
-        return;
-      }
+    if (rtpTransceiverId.empty()) {
+      result->Error("rtpTransceiverStop",
+                    "rtpTransceiverStop() rtpTransceiverId is null or empty");
+      return;
     }
 
     RtpTransceiverStop(pc, rtpTransceiverId, std::move(result));
@@ -818,14 +839,12 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    const std::string rtpTransceiverId = findString(params, "rtpTransceiverId");
-    if (0 < rtpTransceiverId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpTransceiverGetCurrentDirection",
-                      "rtpTransceiverGetCurrentDirection() rtpTransceiverId is "
-                      "null or empty");
-        return;
-      }
+    const std::string rtpTransceiverId = findString(params, "transceiverId");
+    if (rtpTransceiverId.empty()) {
+      result->Error("rtpTransceiverGetCurrentDirection",
+                    "rtpTransceiverGetCurrentDirection() rtpTransceiverId is "
+                    "null or empty");
+      return;
     }
 
     RtpTransceiverGetCurrentDirection(pc, rtpTransceiverId, std::move(result));
@@ -847,23 +866,18 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string rtpTransceiverId = findString(params, "transceiverId");
-    if (0 < rtpTransceiverId.size()) {
-      if (pc == nullptr) {
-        result->Error("rtpTransceiverGetCurrentDirection",
-                      "rtpTransceiverGetCurrentDirection() transceiverId is "
-                      "null or empty");
-        return;
-      }
+    if (rtpTransceiverId.empty()) {
+      result->Error("rtpTransceiverSetDirection",
+                    "rtpTransceiverSetDirection() transceiverId is "
+                    "null or empty");
+      return;
     }
 
     const std::string direction = findString(params, "direction");
-    if (0 < rtpTransceiverId.size()) {
-      if (pc == nullptr) {
-        result->Error(
-            "rtpTransceiverGetCurrentDirection",
-            "rtpTransceiverGetCurrentDirection() direction is null or empty");
-        return;
-      }
+    if (rtpTransceiverId.empty()) {
+      result->Error("rtpTransceiverSetDirection",
+                    "rtpTransceiverSetDirection() direction is null or empty");
+      return;
     }
 
     RtpTransceiverSetDirection(pc, rtpTransceiverId, direction,
@@ -885,12 +899,10 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const EncodableMap configuration = findMap(params, "configuration");
-    if (0 < configuration.size()) {
-      if (pc == nullptr) {
-        result->Error("setConfiguration",
-                      "setConfiguration() configuration is null or empty");
-        return;
-      }
+    if (configuration.empty()) {
+      result->Error("setConfiguration",
+                    "setConfiguration() configuration is null or empty");
+      return;
     }
     SetConfiguration(pc, configuration, std::move(result));
   } else if (method_call.method_name().compare("captureFrame") == 0) {
@@ -902,7 +914,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
 
     const std::string path = findString(params, "path");
-    if (0 < path.size()) {
+    if (path.empty()) {
       result->Error("captureFrame", "captureFrame() path is null or empty");
       return;
     }
@@ -1069,17 +1081,14 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string rtpTransceiverId = findString(params, "transceiverId");
-    if (0 < rtpTransceiverId.size()) {
-      if (pc == nullptr) {
-        result->Error(
-            "setCodecPreferences",
-            "setCodecPreferences() rtpTransceiverId is null or empty");
-        return;
-      }
+    if (rtpTransceiverId.empty()) {
+      result->Error("setCodecPreferences",
+                    "setCodecPreferences() rtpTransceiverId is null or empty");
+      return;
     }
 
     const EncodableList codecs = findList(params, "codecs");
-    if (codecs == EncodableList()) {
+    if (codecs.empty()) {
       result->Error("Bad Arguments", "Codecs is required");
       return;
     }
