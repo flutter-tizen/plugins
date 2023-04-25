@@ -1,3 +1,4 @@
+#include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 
@@ -16,9 +17,9 @@ class BillingManager {
   ~BillingManager(){};
   bool Init();
   bool BillingIsAvailable();
-  bool GetProductList(const flutter::EncodableValue *args);
-  bool GetPurchaseList(const flutter::EncodableValue *args);
-  bool BuyItem(const flutter::EncodableValue *args);
+  bool GetProductList(const flutter::EncodableMap *encodables);
+  bool GetPurchaseList(const flutter::EncodableMap *encodables);
+  bool BuyItem(const flutter::EncodableMap *encodables);
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
