@@ -10,7 +10,6 @@
 
 #include <algorithm>
 
-#include "drm_licence.h"
 #include "log.h"
 #include "pending_call.h"
 

@@ -4,7 +4,7 @@
 
 #include "drm_manager.h"
 
-#include "drm_licence.h"
+#include "drm_license_helper.h"
 #include "log.h"
 
 static std::string GetDrmSubType(int drm_type) {

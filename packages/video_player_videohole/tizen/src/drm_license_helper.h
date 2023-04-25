@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENCE_H_
-#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENCE_H_
+#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENSE_HELPER_H_
+#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENSE_HELPER_H_
+
 typedef long DRM_RESULT;
 
 const DRM_RESULT DRM_SUCCESS = 0x00000000L;
@@ -22,9 +23,9 @@ const DRM_RESULT DRM_E_NETWORK_CANCELED = 0x91000008L;
 class DrmLicenseHelper {
  public:
   enum DrmType {
-    DRM_TYPE_NONE = 0,
-    DRM_TYPE_PLAYREADY,
-    DRM_TYPE_WIDEVINE,
+    kNone = 0,
+    kPlayReady,
+    kWidevine,
   };
 
   struct SExtensionCtxTZ {
@@ -50,4 +51,4 @@ class DrmLicenseHelper {
                                     SExtensionCtxTZ* http_ext_ctx);
 };
 
-#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENCE_H_
+#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENSE_HELPER_H_

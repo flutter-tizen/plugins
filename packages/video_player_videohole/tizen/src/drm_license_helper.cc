@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "drm_licence.h"
+#include "drm_license_helper.h"
 
+#include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 
-#include "curl/curl.h"
 #include "log.h"
 
 #define DEFAULT_USER_AGENT_PLAYREADY "User-Agent: PlayReadyClient"
@@ -30,10 +30,19 @@
     INFO("REQ Headers: END");                      \
   }
 
+#define CHECK_CURL_FAIL(expr)      \
+  {                                \
+    if (expr != CURLE_OK) {        \
+      INFO("Error %d ", __LINE__); \
+      goto ErrorExit;              \
+    }                              \
+  }
+
 #define MAX_POPUP_MESSAGE_LENGTH (1024)
 #define ERROR_TITLE_LICENSE_FETCHING_FAILURE "Fetching License Failed"
 
 namespace {
+
 struct SDynamicBuf {
   unsigned char* data;
   size_t size;
@@ -57,9 +66,8 @@ static size_t ReceiveBody(void* ptr, size_t size, size_t nmemb, void* stream);
 static size_t SendBody(void* ptr, size_t size, size_t nmemb, void* stream);
 static bool AppendData(SDynamicBuf* append_buf, const void* append_data,
                        size_t append_size);
-static char* GetRedirectLocation(const char* append_headers,
-                                 bool support_https);
-static struct curl_slist* CurlSlistAppend(struct curl_slist* append_list,
+static char* GetRedirectLocation(const char* headers, bool support_https);
+static struct curl_slist* CurlSlistAppend(struct curl_slist* list,
                                           const char* append_string);
 static DRM_RESULT ComposePostDataTZ(SHttpSession* http_session,
                                     const char* post_data, int post_data_len,
@@ -80,48 +88,38 @@ static DRM_RESULT HttpStartTransaction(
     const char* http_header, const char* http_user_agent,
     bool* http_cancel_request);
 static void HttpClose(SHttpSession* http_session);
-static void CheckCurlFail(CURLcode expr, struct curl_slist* headers);
 
-static void CheckCurlFail(CURLcode expr, struct curl_slist* headers) {
-  if (expr != CURLE_OK) {
-    INFO("Error %d", __LINE__);
-    if (headers != nullptr) {
-      INFO_CURL_HEADERS(headers);
-      curl_slist_free_all(headers);
-    }
-  }
-}
-
-bool AppendData(SDynamicBuf* append_buf, const void* append_data,
+bool AppendData(SDynamicBuf* buffer, const void* append_data,
                 size_t append_size) {
-  size_t new_size = append_buf->size + append_size;
-  if (append_buf->allocated < new_size) {
+  size_t new_size = buffer->size + append_size;
+  if (buffer->allocated < new_size) {
     new_size += 1024;
     unsigned char* buf =
-        reinterpret_cast<unsigned char*>(realloc(append_buf->data, new_size));
+        static_cast<unsigned char*>(realloc(buffer->data, new_size));
     if (!buf) {
-      LOG_ERROR("[DrmLicence] AppendData : realloc fail ");
+      LOG_ERROR("[DrmLicenseHelper] AppendData: realloc fail");
       return false;
     }
-    append_buf->data = buf;
-    append_buf->allocated = new_size;
+    buffer->data = buf;
+    buffer->allocated = new_size;
     LOG_DEBUG(
-        "[DrmLicence] AppendData : realloc append_size(%d), size(%d) "
-        "append_buf->allocated(%d)",
-        append_size, append_buf->size, append_buf->allocated);
+        "[DrmLicenseHelper] AppendData: realloc append_size(%d), size(%d) "
+        "buffer->allocated(%d)",
+        append_size, buffer->size, buffer->allocated);
   }
-  memcpy(append_buf->data + append_buf->size, append_data, append_size);
-  append_buf->size += append_size;
+  memcpy(buffer->data + buffer->size, append_data, append_size);
+  buffer->size += append_size;
 
   return true;
 }
 
-char* GetRedirectLocation(const char* append_headers, bool support_https) {
-  if (!append_headers) {
+char* GetRedirectLocation(const char* headers, bool support_https) {
+  if (!headers) {
     return nullptr;
   }
-  // Get the header's location value
-  const char* location = strcasestr(append_headers, "Location");
+
+  // Get the header's location value.
+  const char* location = strcasestr(headers, "Location");
   if (!location) {
     return nullptr;
   }
@@ -182,16 +180,15 @@ char* GetRedirectLocation(const char* append_headers, bool support_https) {
   }
 }
 
-struct curl_slist* CurlSlistAppend(struct curl_slist* append_list,
+struct curl_slist* CurlSlistAppend(struct curl_slist* list,
                                    const char* append_string) {
-  if (!append_list) {
+  if (!list) {
     return nullptr;
   }
 
-  struct curl_slist* new_list = nullptr;
-  new_list = curl_slist_append(append_list, append_string);
-  if (!new_list) {
-    curl_slist_free_all(append_list);
+  struct curl_slist* new_list = curl_slist_append(list, append_string);
+  if (!new_list) {  // allocation failed
+    curl_slist_free_all(list);
   }
 
   return new_list;
@@ -205,20 +202,27 @@ DRM_RESULT ComposePostDataTZ(SHttpSession* http_session, const char* post_data,
   int dest_len;
   int remain;
 
+  free(http_session->post_data);
+  http_session->post_data = nullptr;
+  http_session->post_data_len = 0;
+
   int soap_header_len = soap_header ? strlen(soap_header) : 0;
+
   dest_len = post_data_len;
 
-  http_session->post_data =
-      reinterpret_cast<unsigned char*>(malloc(dest_len + 1));
+  if (soap_header_len > 0) {
+    dest_len += soap_header_len + sizeof("<soap:Header>\r\n</soap:Header>\r");
+  }
+
+  http_session->post_data = static_cast<unsigned char*>(malloc(dest_len + 1));
   if (http_session->post_data == nullptr) {
-    LOG_ERROR("[DrmLicence] Failed to alloc post data.");
+    LOG_ERROR("[DrmLicenseHelper] Failed to alloc post data.");
     return DRM_E_POINTER;
   }
   dest = reinterpret_cast<char*>(http_session->post_data);
   remain = post_data_len;
 
   if (soap_header_len > 0) {
-    dest_len += soap_header_len + sizeof("<soap:Header>\r\n</soap:Header>\r");
     /* append to the last in an existing soap header */
     pointer = strstr(post_data, "</soap:Header>");
     if (pointer > post_data && pointer < post_data + remain) {
@@ -274,7 +278,7 @@ DRM_RESULT ComposePostDataTZ(SHttpSession* http_session, const char* post_data,
   http_session->post_data_len =
       dest - reinterpret_cast<char*>(http_session->post_data);
   if (soap_header_len > 0) {
-    LOG_INFO("[DrmLicence] [soap header added %d ] %s ",
+    LOG_INFO("[DrmLicenseHelper] [soap header added %d] %s",
              http_session->post_data_len, http_session->post_data);
   }
 
@@ -290,16 +294,16 @@ struct curl_slist* SetHttpHeader(CURL* http_curl,
   const char* header = nullptr;
 
   switch (type) {
-    case DrmLicenseHelper::DRM_TYPE_PLAYREADY:
+    case DrmLicenseHelper::kPlayReady:
       user_agent = DEFAULT_USER_AGENT_PLAYREADY;
       header = HTTP_HEADER_PLAYREADY_LICGET;
       break;
-    case DrmLicenseHelper::DRM_TYPE_WIDEVINE:
+    case DrmLicenseHelper::kWidevine:
       user_agent = DEFAULT_USER_AGENT_WIDEVINE;
       header = HTTP_HEADER_WIDEVINE_LICGET;
       break;
     default:
-      LOG_ERROR("[DrmLicence] Invalid DRM Type");
+      LOG_ERROR("[DrmLicenseHelper] Invalid DRM Type");
       return nullptr;
   }
 
@@ -312,7 +316,7 @@ struct curl_slist* SetHttpHeader(CURL* http_curl,
     char* user_agent_string =
         static_cast<char*>(malloc(prefix_len + user_agent_len + 1));
     if (nullptr == user_agent_string) {
-      LOG_ERROR("[DrmLicence] Memory allocation failed.");
+      LOG_ERROR("[DrmLicenseHelper] Memory allocation failed.");
       return nullptr;
     }
 
@@ -320,7 +324,7 @@ struct curl_slist* SetHttpHeader(CURL* http_curl,
     memcpy(user_agent_string + prefix_len, http_user_agent, user_agent_len);
     user_agent_string[prefix_len + user_agent_len] = 0;
     LOG_INFO(
-        "[DrmLicence] SetHttpHeader :  user-agent added to header --- (%s)",
+        "[DrmLicenseHelper] SetHttpHeader: user-agent added to header --- (%s)",
         user_agent_string);
 
     headers = curl_slist_append(nullptr, user_agent_string);
@@ -330,12 +334,12 @@ struct curl_slist* SetHttpHeader(CURL* http_curl,
   }
 
   if (nullptr == headers) {
-    LOG_ERROR("[DrmLicence] UserAgent attach failed.");
+    LOG_ERROR("[DrmLicenseHelper] UserAgent attach failed.");
     return nullptr;
   }
 
   LOG_DEBUG(
-      "[DrmLicence] SetHttpHeader : type(%d), http_cookie(%s), "
+      "[DrmLicenseHelper] SetHttpHeader: type(%d), http_cookie(%s), "
       "http_header(%s)",
       type, http_cookie, http_header);
 
@@ -355,8 +359,9 @@ struct curl_slist* SetHttpHeader(CURL* http_curl,
 
       headers = CurlSlistAppend(headers, cookie);
 
-      LOG_INFO("[DrmLicence] SetHttpHeader :  cookie added to header --- (%s)",
-               cookie);
+      LOG_INFO(
+          "[DrmLicenseHelper] SetHttpHeader: cookie added to header --- (%s)",
+          cookie);
 
       free(cookie);
     }
@@ -364,7 +369,7 @@ struct curl_slist* SetHttpHeader(CURL* http_curl,
 
   if (http_header) {
     LOG_INFO(
-        "[DrmLicence] SetHttpHeader :  HttpHeader added to header --- (%s)",
+        "[DrmLicenseHelper] SetHttpHeader: HttpHeader added to header --- (%s)",
         http_header);
     headers = CurlSlistAppend(headers, http_header);
   }
@@ -381,8 +386,7 @@ static SHttpSession* HttpOpen(void) {
 
   CURL* http_curl = curl_easy_init();
   if (http_curl) {
-    http_session =
-        reinterpret_cast<SHttpSession*>(malloc(sizeof(SHttpSession)));
+    http_session = static_cast<SHttpSession*>(malloc(sizeof(SHttpSession)));
     if (http_session) {
       memset(http_session, 0, sizeof(SHttpSession));
       http_session->curl_handle = http_curl;
@@ -390,20 +394,21 @@ static SHttpSession* HttpOpen(void) {
     }
     curl_easy_cleanup(http_curl);
   }
-  LOG_ERROR("[DrmLicence] Can't create CURL object, curl_global_init missed");
+  LOG_ERROR(
+      "[DrmLicenseHelper] Can't create CURL object, curl_global_init missed");
   return nullptr;
 }
 
 int CbCurlProgress(void* ptr, double total_to_download, double now_downloaded,
                    double total_to_upload, double now_uploaded) {
-  bool* http_cancel_qequest = static_cast<bool*>(ptr);
+  bool* http_cancel_request = static_cast<bool*>(ptr);
 
-  if (http_cancel_qequest) {
-    LOG_INFO("[DrmLicence] http_cancel_qequest : (%d)", *http_cancel_qequest);
+  if (http_cancel_request) {
+    LOG_INFO("[DrmLicenseHelper] http_cancel_request: (%d)",
+             *http_cancel_request);
 
-    if (*http_cancel_qequest) {
-      LOG_INFO("[DrmLicence] %s:%d curl works canceled.", __FUNCTION__,
-               __LINE__);
+    if (*http_cancel_request) {
+      LOG_INFO("[DrmLicenseHelper] %s:%d curl works canceled.");
       return 1;
     }
   }
@@ -427,9 +432,9 @@ DRM_RESULT HttpStartTransaction(
   http_session->body.size = 0;
   http_session->header.size = 0;
 
-  LOG_INFO("[DrmLicence] HttpStartTransaction : type(%d)", type);
+  LOG_INFO("[DrmLicenseHelper] HttpStartTransaction: type(%d)", type);
   if (http_url) {
-    LOG_INFO("[DrmLicence] http_url : %s", http_url);
+    LOG_INFO("[DrmLicenseHelper] http_url: %s", http_url);
   }
 
   // 2. Set Header type
@@ -437,7 +442,7 @@ DRM_RESULT HttpStartTransaction(
   headers =
       SetHttpHeader(http_curl, type, http_cookie, http_header, http_user_agent);
   if (!headers) {
-    LOG_ERROR("[DrmLicence] Failed to set HTTP header.");
+    LOG_ERROR("[DrmLicenseHelper] Failed to set HTTP header.");
     return DRM_E_NETWORK_HEADER;
   }
 
@@ -447,9 +452,7 @@ DRM_RESULT HttpStartTransaction(
   curl_easy_setopt(http_curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 
   int soap_flag = 0;
-  free(http_session->post_data);
-  http_session->post_data = nullptr;
-  http_session->post_data_len = 0;
+
   if (post_data && post_data_len > 0) {
     if (http_soap_header != nullptr) {
       DRM_RESULT drm_result =
@@ -457,7 +460,7 @@ DRM_RESULT HttpStartTransaction(
                             post_data_len, http_soap_header);
       if (drm_result != DRM_SUCCESS) {
         LOG_ERROR(
-            "[DrmLicence] Failed to compose post data, drm_result : 0x%lx",
+            "[DrmLicenseHelper] Failed to compose post data, drm_result: 0x%lx",
             drm_result);
         return drm_result;
       } else if (drm_result == DRM_SUCCESS) {
@@ -466,15 +469,15 @@ DRM_RESULT HttpStartTransaction(
     }
 
     res = curl_easy_setopt(http_curl, CURLOPT_POST, 1L);
-    CheckCurlFail(res, headers);
+    CHECK_CURL_FAIL(res);
 
     if (soap_flag == 0) {
       if (!(http_session->post_data =
-                reinterpret_cast<unsigned char*>(malloc(post_data_len)))) {
+                static_cast<unsigned char*>(malloc(post_data_len)))) {
         if (headers != nullptr) {
           curl_slist_free_all(headers);
         }
-        LOG_ERROR("[DrmLicence] Failed to alloc post data.");
+        LOG_ERROR("[DrmLicenseHelper] Failed to alloc post data.");
         return DRM_E_POINTER;
       }
 
@@ -485,14 +488,14 @@ DRM_RESULT HttpStartTransaction(
     }
 
     res = curl_easy_setopt(http_curl, CURLOPT_READFUNCTION, SendBody);
-    CheckCurlFail(res, headers);
+    CHECK_CURL_FAIL(res);
 
     res = curl_easy_setopt(http_curl, CURLOPT_POSTFIELDSIZE,
                            http_session->post_data_len);
-    CheckCurlFail(res, headers);
+    CHECK_CURL_FAIL(res);
 
     res = curl_easy_setopt(http_curl, CURLOPT_READDATA, http_session);
-    CheckCurlFail(res, headers);
+    CHECK_CURL_FAIL(res);
   } else {
     curl_easy_setopt(http_curl, CURLOPT_HTTPGET, 1L);
   }
@@ -505,69 +508,73 @@ DRM_RESULT HttpStartTransaction(
   curl_easy_setopt(http_curl, CURLOPT_TIMEOUT, 10);
 
   res = curl_easy_setopt(http_curl, CURLOPT_URL, http_url);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
 
   res = curl_easy_setopt(http_curl, CURLOPT_NOPROGRESS, 0L);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
   res = curl_easy_setopt(http_curl, CURLOPT_PROGRESSFUNCTION, CbCurlProgress);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
   res = curl_easy_setopt(http_curl, CURLOPT_PROGRESSDATA, http_cancel_request);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
 
   res = curl_easy_setopt(http_curl, CURLOPT_HEADERFUNCTION, ReceiveHeader);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
 
   res = curl_easy_setopt(http_curl, CURLOPT_BUFFERSIZE, 1024L * 20L);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
 
   res = curl_easy_setopt(http_curl, CURLOPT_WRITEFUNCTION, ReceiveBody);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
 
   res = curl_easy_setopt(http_curl, CURLOPT_WRITEHEADER, http_session);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
 
   res = curl_easy_setopt(http_curl, CURLOPT_WRITEDATA, http_session);
-  CheckCurlFail(res, headers);
+  CHECK_CURL_FAIL(res);
 
-  res = curl_easy_setopt(
-      http_curl, CURLOPT_NOSIGNAL,
-      1);  // Add by SJKIM 2013.12.18 for signal safe [according to guide]
-  CheckCurlFail(res, headers);
+  res = curl_easy_setopt(http_curl, CURLOPT_NOSIGNAL, 1);
+  CHECK_CURL_FAIL(res);
 
   res = curl_easy_perform(http_curl);
 
   if (res == CURLE_OK) {
-    LOG_INFO("[DrmLicence] after curl_easy_perform : res(%d)", res);
+    LOG_INFO("[DrmLicenseHelper] after curl_easy_perform: res(%d)", res);
     curl_easy_getinfo(http_curl, CURLINFO_RESPONSE_CODE,
-                      static_cast<long*>(&http_session->res_code));
+                      &http_session->res_code);
     LOG_INFO(
-        "[DrmLicence] after curl_easy_perform : http_session->res_code(%ld)",
+        "[DrmLicenseHelper] after curl_easy_perform: "
+        "http_session->res_code(%ld)",
         http_session->res_code);
-  } else if (res == CURLE_PARTIAL_FILE) {
-    LOG_INFO("[DrmLicence] after curl_easy_perform : res(%d)", res);
+  }
+  // Secure Clock Petition Server returns wrong size ..
+  else if (res == CURLE_PARTIAL_FILE) {
+    LOG_INFO("[DrmLicenseHelper] after curl_easy_perform: res(%d)", res);
     curl_easy_getinfo(http_curl, CURLINFO_RESPONSE_CODE,
-                      static_cast<long*>(&http_session->res_code));
+                      &http_session->res_code);
     LOG_INFO(
-        "[DrmLicence] after curl_easy_perform : http_session->res_code(%ld)",
+        "[DrmLicenseHelper] after curl_easy_perform: "
+        "http_session->res_code(%ld)",
         http_session->res_code);
     res = CURLE_OK;
   } else if (res == CURLE_SEND_ERROR) {
-    LOG_INFO("[DrmLicence] after curl_easy_perform : res(%d)", res);
+    LOG_INFO("[DrmLicenseHelper] after curl_easy_perform: res(%d)", res);
     curl_easy_getinfo(http_curl, CURLINFO_RESPONSE_CODE,
-                      static_cast<long*>(&http_session->res_code));
+                      &http_session->res_code);
     LOG_INFO(
-        "[DrmLicence] after curl_easy_perform : http_session->res_code(%ld)",
+        "[DrmLicenseHelper] after curl_easy_perform: "
+        "http_session->res_code(%ld)",
         http_session->res_code);
     res = CURLE_OK;
   } else {
-    LOG_INFO("[DrmLicence] after curl_easy_perform : res(%d)", res);
+    LOG_INFO("[DrmLicenseHelper] after curl_easy_perform: res(%d)", res);
     curl_easy_getinfo(http_curl, CURLINFO_RESPONSE_CODE,
-                      static_cast<long*>(&http_session->res_code));
+                      &http_session->res_code);
     LOG_INFO(
-        "[DrmLicence] after curl_easy_perform : http_session->res_code(%ld)",
+        "[DrmLicenseHelper] after curl_easy_perform: "
+        "http_session->res_code(%ld)",
         http_session->res_code);
     if (res == CURLE_OPERATION_TIMEDOUT) {
-      LOG_INFO("[DrmLicence] CURLE_OPERATION_TIMEDOUT occurred");
+      LOG_INFO("[DrmLicenseHelper] CURLE_OPERATION_TIMEDOUT occurred");
     }
 
     if (headers != nullptr) {
@@ -575,25 +582,31 @@ DRM_RESULT HttpStartTransaction(
     }
 
     if (res == CURLE_OUT_OF_MEMORY) {
-      LOG_ERROR("[DrmLicence] Failed to alloc from curl.");
+      LOG_ERROR("[DrmLicenseHelper] Failed to alloc from curl.");
       return DRM_E_POINTER;
     } else if (res == CURLE_ABORTED_BY_CALLBACK) {
       *http_cancel_request = false;
-      LOG_ERROR("[DrmLicence] Network job canceled by caller.");
+      LOG_ERROR("[DrmLicenseHelper] Network job canceled by caller.");
       return DRM_E_NETWORK_CANCELED;
     } else {
-      LOG_ERROR("[DrmLicence] Failed from curl, curl message : %s",
+      LOG_ERROR("[DrmLicenseHelper] Failed from curl, curl message: %s",
                 curl_easy_strerror(res));
       return DRM_E_NETWORK_CURL;
     }
   }
 
+ErrorExit:
+  if (headers != nullptr) {
+    INFO_CURL_HEADERS(headers);
+    curl_slist_free_all(headers);
+  }
+
   if (res != CURLE_OK) {
     if (res == CURLE_OUT_OF_MEMORY) {
-      LOG_ERROR("[DrmLicence] Failed to alloc from curl.");
+      LOG_ERROR("[DrmLicenseHelper] Failed to alloc from curl.");
       return DRM_E_POINTER;
     } else {
-      LOG_ERROR("[DrmLicence] Failed from curl, curl message : %s",
+      LOG_ERROR("[DrmLicenseHelper] Failed from curl, curl message: %s",
                 curl_easy_strerror(res));
       return DRM_E_NETWORK_CURL;
     }
@@ -627,7 +640,7 @@ void HttpClose(SHttpSession* http_session) {
 }
 
 size_t ReceiveHeader(void* ptr, size_t size, size_t nmemb, void* stream) {
-  LOG_DEBUG("[DrmLicence] size:%d nmemb:%d", (int)size, (int)nmemb);
+  LOG_DEBUG("[DrmLicenseHelper] size:%d nmemb:%d", size, nmemb);
 
   size_t data_size = size * nmemb;
 
@@ -642,7 +655,7 @@ size_t ReceiveHeader(void* ptr, size_t size, size_t nmemb, void* stream) {
 }
 
 size_t ReceiveBody(void* ptr, size_t size, size_t nmemb, void* stream) {
-  LOG_DEBUG("[DrmLicence] size:%d nmemb:%d", (int)size, (int)nmemb);
+  LOG_DEBUG("[DrmLicenseHelper] size:%d nmemb:%d", size, nmemb);
 
   size_t data_size = size * nmemb;
 
@@ -657,7 +670,7 @@ size_t ReceiveBody(void* ptr, size_t size, size_t nmemb, void* stream) {
 }
 
 size_t SendBody(void* ptr, size_t size, size_t nmemb, void* stream) {
-  LOG_DEBUG("[DrmLicence] size:%d nmemb:%d", (int)size, (int)nmemb);
+  LOG_DEBUG("[DrmLicenseHelper] size:%d nmemb:%d", size, nmemb);
 
   SHttpSession* http_session = reinterpret_cast<SHttpSession*>(stream);
 
@@ -674,15 +687,17 @@ size_t SendBody(void* ptr, size_t size, size_t nmemb, void* stream) {
 
   memcpy(ptr, http_session->post_data + http_session->send_data_len, can_send);
   http_session->send_data_len += can_send;
+
   return can_send;
 }
+
 }  // namespace
 
 DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
     const char* http_server_url, const void* challenge,
     unsigned long challenge_len, unsigned char** response,
-    unsigned long* response_len, DrmLicenseHelper::DrmType type,
-    const char* http_cookie, SExtensionCtxTZ* http_ext_ctx) {
+    unsigned long* response_len, DrmType type, const char* http_cookie,
+    SExtensionCtxTZ* http_ext_ctx) {
   *response = nullptr;
   *response_len = 0;
 
@@ -695,7 +710,7 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
   // Redirection 3 times..
   for (int i = 0; i < 3; i++) {
     if (!(http_session = HttpOpen())) {
-      LOG_ERROR("[DrmLicence] Failed to open HTTP session.");
+      LOG_ERROR("[DrmLicenseHelper] Failed to open HTTP session.");
       break;
     }
 
@@ -725,8 +740,8 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
         soap_header, http_header, user_agent, cancel_request);
     if (drm_result != DRM_SUCCESS) {
       LOG_ERROR(
-          "[DrmLicence] Failed on network transaction(%d/%d), drm_result : "
-          "0x%lx",
+          "[DrmLicenseHelper] Failed on network transaction(%d/%d), "
+          "drm_result: 0x%lx",
           i + 1, 3, drm_result);
       break;
     }
@@ -739,15 +754,16 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
       HttpClose(http_session);
       http_session = nullptr;
       if (!redirect_url) {
-        LOG_ERROR("[DrmLicence] Failed to get redirect URL");
+        LOG_ERROR("[DrmLicenseHelper] Failed to get redirect URL");
         break;
       }
       http_url = redirect_url;
     } else {
       if (http_session->res_code != 200) {
-        LOG_ERROR("[DrmLicence] Server returns response Code %ld [%s][%d]",
-                  http_session->res_code, http_session->body.data,
-                  http_session->body.size);
+        LOG_ERROR(
+            "[DrmLicenseHelper] Server returns response Code %ld [%s][%d]",
+            http_session->res_code, http_session->body.data,
+            http_session->body.size);
 
         if (http_session->res_code >= 400 && http_session->res_code < 500) {
           drm_result = DRM_E_NETWORK_CLIENT;
@@ -779,8 +795,9 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
   HttpClose(http_session);
 
   if (drm_result != DRM_SUCCESS) {
-    LOG_ERROR("[DrmLicence] Failed on network transaction, drm_result : 0x%lx",
-              drm_result);
+    LOG_ERROR(
+        "[DrmLicenseHelper] Failed on network transaction, drm_result: 0x%lx",
+        drm_result);
   }
 
   return drm_result;
