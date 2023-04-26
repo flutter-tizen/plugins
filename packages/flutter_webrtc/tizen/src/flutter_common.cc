@@ -42,8 +42,7 @@ class MethodResultProxyImpl : public MethodResultProxy {
   }
 
   // Reports an error.
-  void Error(const std::string& error_code,
-             const std::string& error_message,
+  void Error(const std::string& error_code, const std::string& error_message,
              const EncodableValue& error_details) override {
     method_result_->Error(error_code, error_message, error_details);
   }
@@ -70,8 +69,7 @@ class EventChannelProxyImpl : public EventChannelProxy {
   EventChannelProxyImpl(BinaryMessenger* messenger,
                         const std::string& channelName)
       : channel_(std::make_unique<EventChannel>(
-            messenger,
-            channelName,
+            messenger, channelName,
             &flutter::StandardMethodCodec::GetInstance())) {
     auto handler = std::make_unique<
         flutter::StreamHandlerFunctions<EncodableValue>>(
@@ -113,7 +111,6 @@ class EventChannelProxyImpl : public EventChannelProxy {
 };
 
 std::unique_ptr<EventChannelProxy> EventChannelProxy::Create(
-    BinaryMessenger* messenger,
-    const std::string& channelName) {
+    BinaryMessenger* messenger, const std::string& channelName) {
   return std::make_unique<EventChannelProxyImpl>(messenger, channelName);
 }

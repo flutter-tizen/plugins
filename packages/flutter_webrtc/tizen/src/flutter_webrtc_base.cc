@@ -17,9 +17,7 @@ FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
   event_channel_ = EventChannelProxy::Create(messenger_, kEventChannelName);
 }
 
-FlutterWebRTCBase::~FlutterWebRTCBase() {
-  LibWebRTC::Terminate();
-}
+FlutterWebRTCBase::~FlutterWebRTCBase() { LibWebRTC::Terminate(); }
 
 EventChannelProxy* FlutterWebRTCBase::event_channel() {
   return event_channel_ ? event_channel_.get() : nullptr;
@@ -33,29 +31,25 @@ RTCPeerConnection* FlutterWebRTCBase::PeerConnectionForId(
     const std::string& id) {
   auto it = peerconnections_.find(id);
 
-  if (it != peerconnections_.end())
-    return (*it).second.get();
+  if (it != peerconnections_.end()) return (*it).second.get();
 
   return nullptr;
 }
 
 void FlutterWebRTCBase::RemovePeerConnectionForId(const std::string& id) {
   auto it = peerconnections_.find(id);
-  if (it != peerconnections_.end())
-    peerconnections_.erase(it);
+  if (it != peerconnections_.end()) peerconnections_.erase(it);
 }
 
 RTCMediaTrack* FlutterWebRTCBase ::MediaTrackForId(const std::string& id) {
   auto it = local_tracks_.find(id);
 
-  if (it != local_tracks_.end())
-    return (*it).second.get();
+  if (it != local_tracks_.end()) return (*it).second.get();
 
   for (auto kv : peerconnection_observers_) {
     auto pco = kv.second.get();
     auto track = pco->MediaTrackForId(id);
-    if (track != nullptr)
-      return track;
+    if (track != nullptr) return track;
   }
 
   return nullptr;
@@ -63,16 +57,14 @@ RTCMediaTrack* FlutterWebRTCBase ::MediaTrackForId(const std::string& id) {
 
 void FlutterWebRTCBase::RemoveMediaTrackForId(const std::string& id) {
   auto it = local_tracks_.find(id);
-  if (it != local_tracks_.end())
-    local_tracks_.erase(it);
+  if (it != local_tracks_.end()) local_tracks_.erase(it);
 }
 
 FlutterPeerConnectionObserver* FlutterWebRTCBase::PeerConnectionObserversForId(
     const std::string& id) {
   auto it = peerconnection_observers_.find(id);
 
-  if (it != peerconnection_observers_.end())
-    return (*it).second.get();
+  if (it != peerconnection_observers_.end()) return (*it).second.get();
 
   return nullptr;
 }
@@ -85,9 +77,7 @@ void FlutterWebRTCBase::RemovePeerConnectionObserversForId(
 }
 
 scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
-    const std::string& id,
-    std::string peerConnectionId /* = std::string()*/) {
-
+    const std::string& id, std::string peerConnectionId /* = std::string()*/) {
   if (!peerConnectionId.empty()) {
     auto pco = peerconnection_observers_.find(peerConnectionId);
     if (peerconnection_observers_.end() != pco) {
@@ -101,8 +91,7 @@ scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
   for (auto kv : peerconnection_observers_) {
     auto pco = kv.second.get();
     auto stream = pco->MediaStreamForId(id);
-    if (stream != nullptr)
-      return stream;
+    if (stream != nullptr) return stream;
   }
 
   auto it = local_streams_.find(id);
@@ -115,8 +104,7 @@ scoped_refptr<RTCMediaStream> FlutterWebRTCBase::MediaStreamForId(
 
 void FlutterWebRTCBase::RemoveStreamForId(const std::string& id) {
   auto it = local_streams_.find(id);
-  if (it != local_streams_.end())
-    local_streams_.erase(it);
+  if (it != local_streams_.end()) local_streams_.erase(it);
 }
 
 bool FlutterWebRTCBase::ParseConstraints(const EncodableMap& constraints,
@@ -323,8 +311,7 @@ scoped_refptr<RTCMediaTrack> FlutterWebRTCBase::MediaTracksForId(
 
 void FlutterWebRTCBase::RemoveTracksForId(const std::string& id) {
   auto it = local_tracks_.find(id);
-  if (it != local_tracks_.end())
-    local_tracks_.erase(it);
+  if (it != local_tracks_.end()) local_tracks_.erase(it);
 }
 
 }  // namespace flutter_webrtc_plugin

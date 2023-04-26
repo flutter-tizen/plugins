@@ -42,8 +42,7 @@ inline const T GetValue(EncodableValue val) {
 inline EncodableValue findEncodableValue(const EncodableMap& map,
                                          const std::string& key) {
   auto it = map.find(EncodableValue(key));
-  if (it != map.end())
-    return it->second;
+  if (it != map.end()) return it->second;
   return EncodableValue();
 }
 
@@ -147,8 +146,7 @@ class MethodResultProxy {
 class EventChannelProxy {
  public:
   static std::unique_ptr<EventChannelProxy> Create(
-      BinaryMessenger* messenger,
-      const std::string& channelName);
+      BinaryMessenger* messenger, const std::string& channelName);
 
   virtual ~EventChannelProxy() = default;
 

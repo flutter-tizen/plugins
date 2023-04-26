@@ -20,8 +20,7 @@ FlutterVideoRenderer::FlutterVideoRenderer(TextureRegistrar* registrar,
 }
 
 const FlutterDesktopPixelBuffer* FlutterVideoRenderer::CopyPixelBuffer(
-    size_t width,
-    size_t height) const {
+    size_t width, size_t height) const {
   mutex_.lock();
   if (pixel_buffer_.get() && frame_.get()) {
     if (pixel_buffer_->width != frame_->width() ||
@@ -84,13 +83,11 @@ void FlutterVideoRenderer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
 
 void FlutterVideoRenderer::SetVideoTrack(scoped_refptr<RTCVideoTrack> track) {
   if (track_ != track) {
-    if (track_)
-      track_->RemoveRenderer(this);
+    if (track_) track_->RemoveRenderer(this);
     track_ = track;
     last_frame_size_ = {0, 0};
     first_frame_rendered = false;
-    if (track_)
-      track_->AddRenderer(this);
+    if (track_) track_->AddRenderer(this);
   }
 }
 
@@ -124,8 +121,7 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
 }
 
 void FlutterVideoRendererManager::SetMediaStream(
-    int64_t texture_id,
-    const std::string& stream_id,
+    int64_t texture_id, const std::string& stream_id,
     const std::string& peerConnectionId) {
   scoped_refptr<RTCMediaStream> stream =
       base_->MediaStreamForId(stream_id, peerConnectionId);
@@ -146,8 +142,7 @@ void FlutterVideoRendererManager::SetMediaStream(
 }
 
 void FlutterVideoRendererManager::VideoRendererDispose(
-    int64_t texture_id,
-    std::unique_ptr<MethodResultProxy> result) {
+    int64_t texture_id, std::unique_ptr<MethodResultProxy> result) {
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
     base_->textures_->UnregisterTexture(texture_id);

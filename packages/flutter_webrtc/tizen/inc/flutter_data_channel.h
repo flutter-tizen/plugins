@@ -34,8 +34,7 @@ class FlutterDataChannel {
                          RTCPeerConnection* pc,
                          std::unique_ptr<MethodResultProxy>);
 
-  void DataChannelSend(RTCDataChannel* data_channel,
-                       const std::string& type,
+  void DataChannelSend(RTCDataChannel* data_channel, const std::string& type,
                        const EncodableValue& data,
                        std::unique_ptr<MethodResultProxy>);
 

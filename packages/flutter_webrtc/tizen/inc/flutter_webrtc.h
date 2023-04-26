@@ -2,12 +2,10 @@
 #define PLUGINS_FLUTTER_WEBRTC_HXX
 
 #include "flutter_common.h"
-
 #include "flutter_data_channel.h"
 #include "flutter_media_stream.h"
 #include "flutter_peerconnection.h"
 #include "flutter_video_renderer.h"
-
 #include "libwebrtc.h"
 
 namespace flutter_webrtc_plugin {

@@ -1,13 +1,12 @@
 #ifndef FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX
 #define FLUTTER_WEBRTC_RTC_VIDEO_RENDERER_HXX
 
+#include <mutex>
+
 #include "flutter_common.h"
 #include "flutter_webrtc_base.h"
-
 #include "rtc_video_frame.h"
 #include "rtc_video_renderer.h"
-
-#include <mutex>
 
 namespace flutter_webrtc_plugin {
 
@@ -58,8 +57,7 @@ class FlutterVideoRendererManager {
 
   void CreateVideoRendererTexture(std::unique_ptr<MethodResultProxy> result);
 
-  void SetMediaStream(int64_t texture_id,
-                      const std::string& stream_id,
+  void SetMediaStream(int64_t texture_id, const std::string& stream_id,
                       const std::string& peerConnectionId);
 
   void VideoRendererDispose(int64_t texture_id,
