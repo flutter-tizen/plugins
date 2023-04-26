@@ -19,6 +19,12 @@
 
 namespace {
 
+#ifdef TV_PROFILE
+constexpr double kProfileFactor = 1.6;
+#else
+constexpr double kProfileFactor = 1.0;
+#endif
+
 constexpr size_t kBufferPoolSize = 5;
 constexpr char kEwkInstance[] = "ewk_instance";
 constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
@@ -78,8 +84,8 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
                  void* window)
     : PlatformView(registrar, view_id, nullptr),
       texture_registrar_(texture_registrar),
-      width_(width),
-      height_(height),
+      width_(width * kProfileFactor),
+      height_(height * kProfileFactor),
       window_(window) {
   if (!EwkInternalApiBinding::GetInstance().Initialize()) {
     LOG_ERROR("Failed to initialize EWK internal APIs.");
@@ -169,6 +175,14 @@ void WebView::Dispose() {
   }
 }
 
+void WebView::Offset(double left, double top) {
+  left_ = left * kProfileFactor;
+  top_ = top * kProfileFactor;
+
+  evas_object_move(webview_instance_, static_cast<int32_t>(left_),
+                   static_cast<int32_t>(top_));
+}
+
 void WebView::Resize(double width, double height) {
   width_ = width;
   height_ = height;
@@ -201,8 +215,8 @@ void WebView::Touch(int type, int button, double x, double y, double dx,
   Eina_List* points = 0;
   Ewk_Touch_Point* point = new Ewk_Touch_Point;
   point->id = 0;
-  point->x = x;
-  point->y = y;
+  point->x = x * kProfileFactor + left_;
+  point->y = y * kProfileFactor + top_;
   point->state = state;
   points = eina_list_append(points, point);
 
@@ -282,6 +296,11 @@ void WebView::InitWebView() {
                                                          window_);
   EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(
       webview_instance_, true);
+
+#ifdef TV_PROFILE
+  EwkInternalApiBinding::GetInstance().view.SupportVideoHoleSet(
+      webview_instance_, window_, true, false);
+#endif
 
   evas_object_smart_callback_add(webview_instance_, "offscreen,frame,rendered",
                                  &WebView::OnFrameRendered, this);

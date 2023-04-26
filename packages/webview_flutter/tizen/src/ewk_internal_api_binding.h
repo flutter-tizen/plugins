@@ -49,7 +49,7 @@ typedef struct {
       nullptr;
   EwkViewImeWindowSetFnPtr ImeWindowSet = nullptr;
   EwkViewKeyEventsEnabledSetFnPtr KeyEventsEnabledSet = nullptr;
-  EwkViewSupportVideoHoleSetFnPtr SetSupportVideoHole = nullptr;
+  EwkViewSupportVideoHoleSetFnPtr SupportVideoHoleSet = nullptr;
 } EwkViewProcTable;
 
 typedef void (*EwkSetArgumentsFnPtr)(int argc, char** argv);

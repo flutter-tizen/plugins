@@ -35,7 +35,7 @@ bool EwkInternalApiBinding::Initialize() {
       dlsym(handle_, "ewk_view_ime_window_set"));
   view.KeyEventsEnabledSet = reinterpret_cast<EwkViewKeyEventsEnabledSetFnPtr>(
       dlsym(handle_, "ewk_view_key_events_enabled_set"));
-  view.SetSupportVideoHole = reinterpret_cast<EwkViewSupportVideoHoleSetFnPtr>(
+  view.SupportVideoHoleSet = reinterpret_cast<EwkViewSupportVideoHoleSetFnPtr>(
       dlsym(handle_, "ewk_view_set_support_video_hole"));
 
   // ewk_main
@@ -59,7 +59,7 @@ bool EwkInternalApiBinding::Initialize() {
 
   return view.SetBackgroundColor && view.FeedTouchEvent && view.SendKeyEvent &&
          view.OffscreenRenderingEnabledSet && view.ImeWindowSet &&
-         view.KeyEventsEnabledSet && view.SetSupportVideoHole &&
+         view.KeyEventsEnabledSet && view.SupportVideoHoleSet &&
          main.SetArguments && settings.ImePanelEnabledSet &&
          console_message.LevelGet && console_message.TextGet &&
          console_message.LineGet && console_message.SourceGet;
