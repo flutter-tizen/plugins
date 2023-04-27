@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_OPTIONS_H_
-#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_OPTIONS_H_
+#ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_OPTIONS_H_
+#define FLUTTER_PLUGIN_VIDEO_PLAYER_OPTIONS_H_
 
 class VideoPlayerOptions {
  public:
@@ -22,4 +22,4 @@ class VideoPlayerOptions {
   bool mix_with_others_ = true;
 };
 
-#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_OPTIONS_H_
+#endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_OPTIONS_H_

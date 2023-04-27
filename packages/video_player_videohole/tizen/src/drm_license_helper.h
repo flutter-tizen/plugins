@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENSE_HELPER_H_
-#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENSE_HELPER_H_
+#ifndef FLUTTER_PLUGIN_DRM_LICENSE_HELPER_H_
+#define FLUTTER_PLUGIN_DRM_LICENSE_HELPER_H_
 
 typedef long DRM_RESULT;
 
@@ -51,4 +51,4 @@ class DrmLicenseHelper {
                                     SExtensionCtxTZ* http_ext_ctx);
 };
 
-#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_LICENSE_HELPER_H_
+#endif  // FLUTTER_PLUGIN_DRM_LICENSE_HELPER_H_

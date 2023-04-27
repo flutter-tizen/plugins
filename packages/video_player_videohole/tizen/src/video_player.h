@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_
-#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_
+#ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
+#define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
 #include <dart_api_dl.h>
 #include <flutter/encodable_value.h>
@@ -88,4 +88,4 @@ class VideoPlayer {
   Dart_Port send_port_;
 };
 
-#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_VIDEO_PLAYER_H_
+#endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_

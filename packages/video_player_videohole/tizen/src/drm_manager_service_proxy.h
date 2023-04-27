@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
-#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
+#ifndef FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
+#define FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
 
 #include <player.h>
 
@@ -168,4 +168,4 @@ extern FuncPlayerSetDrmHandle player_set_drm_handle;
 extern FuncPlayerSetDrmInitCompleteCB player_set_drm_init_complete_cb;
 extern FuncPlayerSetDrmInitDataCB player_set_drm_init_data_cb;
 
-#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_
+#endif  // FLUTTER_PLUGIN_DRM_MANAGER_SERVICE_PROXY_H_

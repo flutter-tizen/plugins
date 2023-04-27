@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_H_
-#define VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_H_
+#ifndef FLUTTER_PLUGIN_DRM_MANAGER_H_
+#define FLUTTER_PLUGIN_DRM_MANAGER_H_
 
 #include <player.h>
 
@@ -56,4 +56,4 @@ class DrmManager {
   ChallengeCallback challenge_callback_;
 };
 
-#endif  // VIDEO_PLAYER_VIDEOHOLE_PLUGIN_DRM_MANAGER_H_
+#endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_
