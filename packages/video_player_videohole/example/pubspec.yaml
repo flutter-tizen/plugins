@@ -2,10 +2,6 @@ name: video_player_videohole_example
 description: Demonstrates how to use the video_player_videohole plugin.
 publish_to: "none"
 
-environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=3.0.0"
-
 dependencies:
   flutter:
     sdk: flutter
@@ -20,9 +16,19 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  path_provider: ^2.0.2
-  path_provider_tizen: ^2.0.1
+  integration_test_tizen:
+    path: ../../integration_test/
+  path_provider: ^2.0.6
+  path_provider_tizen:
+    path: ../../path_provider/
   test: any
 
 flutter:
+  assets:
+    - assets/Butterfly-209.mp4
+    - assets/Audio.mp3
   uses-material-design: true
+
+environment:
+  flutter: ">=3.0.0"
+  sdk: ">=2.12.0 <3.0.0"

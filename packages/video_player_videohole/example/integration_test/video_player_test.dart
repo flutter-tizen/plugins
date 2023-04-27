@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -54,7 +55,7 @@ void main() {
       (WidgetTester tester) async {
         final VideoPlayerController networkController =
             VideoPlayerController.network(
-          'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8',
+          'https://flutter.github.io/assets-for-api-docs/assets/videos/hls/bee.m3u8',
         );
         await networkController.initialize();
 
@@ -123,19 +124,19 @@ void main() {
         // Mute to allow playing without DOM interaction on Web.
         // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
         await controller.setVolume(0);
-        final Duration tenMillisBeforeEnd =
-            controller.value.duration - const Duration(milliseconds: 10);
-        await controller.seekTo(tenMillisBeforeEnd);
+        final Duration timeBeforeEnd =
+            controller.value.duration - const Duration(milliseconds: 500);
+        await controller.seekTo(timeBeforeEnd);
         await controller.play();
         await tester.pumpAndSettle(_playDuration);
         expect(controller.value.isPlaying, false);
         expect(controller.value.position, controller.value.duration);
 
-        await controller.seekTo(tenMillisBeforeEnd);
+        await controller.seekTo(timeBeforeEnd);
         await tester.pumpAndSettle(_playDuration);
 
         expect(controller.value.isPlaying, false);
-        expect(controller.value.position, tenMillisBeforeEnd);
+        expect(controller.value.position, timeBeforeEnd);
       },
     );
 
@@ -147,7 +148,7 @@ void main() {
         // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
         await controller.setVolume(0);
         await controller.seekTo(
-            controller.value.duration - const Duration(milliseconds: 10));
+            controller.value.duration - const Duration(milliseconds: 500));
         await controller.play();
         await tester.pumpAndSettle(_playDuration);
         expect(controller.value.isPlaying, false);
@@ -226,13 +227,8 @@ void main() {
 
   group('network videos', () {
     setUp(() {
-      // TODO(stuartmorgan): Remove this conditional and update the hash in
-      // getUrlForAssetAsNetworkSource as a follow-up, once the webm asset is
-      // checked in.
-      final String videoUrl = kIsWeb
-          ? 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm'
-          : getUrlForAssetAsNetworkSource(_videoAssetKey);
-      controller = VideoPlayerController.network(videoUrl);
+      controller = VideoPlayerController.network(
+          getUrlForAssetAsNetworkSource(_videoAssetKey));
     });
 
     testWidgets(
