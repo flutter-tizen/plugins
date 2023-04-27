@@ -47,6 +47,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_rpc_port**](packages/tizen_rpc_port) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_rpc_port.svg)](https://pub.dev/packages/tizen_rpc_port) | N/A |
 | [**url_launcher_tizen**](packages/url_launcher) | [url_launcher](https://pub.dev/packages/url_launcher) (1st-party) | [![pub package](https://img.shields.io/pub/v/url_launcher_tizen.svg)](https://pub.dev/packages/url_launcher_tizen) | No |
 | [**video_player_tizen**](packages/video_player) | [video_player](https://pub.dev/packages/video_player) (1st-party) | [![pub package](https://img.shields.io/pub/v/video_player_tizen.svg)](https://pub.dev/packages/video_player_tizen) | No |
+| [**video_player_videohole**](packages/video_player_videohole) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/video_player_videohole.svg)](https://pub.dev/packages/video_player_videohole) | N/A |
 | [**wakelock_tizen**](packages/wakelock) | [wakelock](https://pub.dev/packages/wakelock) (3rd-party) | [![pub package](https://img.shields.io/pub/v/wakelock_tizen.svg)](https://pub.dev/packages/wakelock_tizen) | No |
 | [**wearable_rotary**](packages/wearable_rotary) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/wearable_rotary.svg)](https://pub.dev/packages/wearable_rotary) | N/A |
 | [**webview_flutter_lwe**](packages/webview_flutter_lwe) | [webview_flutter](https://pub.dev/packages/webview_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/webview_flutter_lwe.svg)](https://pub.dev/packages/webview_flutter_lwe) | No |
@@ -56,7 +57,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 
 | Package name | API level | Watch | Watch<br>emulator | TV | TV<br>emulator | Remarks |
 |-|:-:|:-:|:-:|:-:|:-:|-|
-| [**audioplayers_tizen**](packages/audioplayers) | 4.0 | ✔️ | ✔️ | ⚠️ | ⚠️ | Functional limitations |
+| [**audioplayers_tizen**](packages/audioplayers) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**battery_plus_tizen**](packages/battery_plus) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | No battery |
 | [**camera_tizen**](packages/camera) | 4.0 | ❌ | ❌ | ❌ | ❌ | No camera |
 | [**connectivity_plus_tizen**](packages/connectivity_plus) | 4.0 | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
@@ -88,9 +89,9 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_package_manager**](packages/tizen_package_manager) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_rpc_port**](packages/tizen_rpc_port) | 6.5 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**url_launcher_tizen**](packages/url_launcher) | 4.0 | ✔️ | ❌ | ✔️ | ❌ | No browser app |
-| [**video_player_tizen**](packages/video_player) | 4.0 | ✔️ | ✔️ | ⚠️ | ❌ | Functional limitations,<br>TV emulator issue |
+| [**video_player_tizen**](packages/video_player) | 4.0 | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
+| [**video_player_videohole**](packages/video_player_videohole) | 4.0 | ❌ | ❌ | ✔️ | ❌ | Only for TV devices |
 | [**wakelock_tizen**](packages/wakelock) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Cannot override system settings |
 | [**wearable_rotary**](packages/wearable_rotary) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**webview_flutter_lwe**](packages/webview_flutter_lwe) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ | Not for production use |
 | [**webview_flutter_tizen**](packages/webview_flutter) | 5.5 | ❌ | ❌ | ✔️ | ✔️ | API not supported |
-
