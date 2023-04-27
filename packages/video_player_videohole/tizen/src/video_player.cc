@@ -76,6 +76,8 @@ bool VideoPlayer::SetDisplay() {
 
 int64_t VideoPlayer::Create(const std::string &uri, int drm_type,
                             const std::string &license_server_url) {
+  LOG_INFO("[VideoPlayer] uri: %s, drm_type: %d", uri.c_str(), drm_type);
+
   player_id_ = player_index++;
 
   if (uri.empty()) {
@@ -263,10 +265,12 @@ void VideoPlayer::SetPlaybackSpeed(double speed) {
   }
 }
 
-void VideoPlayer::SeekTo(int32_t position) {
+void VideoPlayer::SeekTo(int32_t position, SeekCompletedCallback callback) {
   LOG_INFO("[VideoPlayer] position: %d", position);
 
-  int ret = player_set_play_position(player_, position, true, nullptr, nullptr);
+  on_seek_completed_ = std::move(callback);
+  int ret =
+      player_set_play_position(player_, position, true, OnSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer] player_set_play_position failed: %d", position);
   }
@@ -461,6 +465,16 @@ void VideoPlayer::OnBuffering(int percent, void *data) {
   }
 }
 
+void VideoPlayer::OnSeekCompleted(void *data) {
+  LOG_INFO("[VideoPlayer] Seek completed.");
+
+  VideoPlayer *player = static_cast<VideoPlayer *>(data);
+  if (player->on_seek_completed_) {
+    player->on_seek_completed_();
+    player->on_seek_completed_ = nullptr;
+  }
+}
+
 void VideoPlayer::OnPlayCompleted(void *data) {
   LOG_INFO("[VideoPlayer] Play completed.");
 
@@ -476,7 +490,7 @@ void VideoPlayer::OnPlayCompleted(void *data) {
 }
 
 void VideoPlayer::OnError(int error_code, void *data) {
-  LOG_ERROR("[VideoPlayer] Error code: %s", get_error_message(error_code));
+  LOG_ERROR("[VideoPlayer] Error code: %d", error_code);
 
   VideoPlayer *player = static_cast<VideoPlayer *>(data);
   if (player->event_sink_) {

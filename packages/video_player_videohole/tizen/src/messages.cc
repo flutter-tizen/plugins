@@ -369,8 +369,8 @@ GeometryMessage::GeometryMessage(const flutter::EncodableList& list) {
     height_ = *pointer_height_64;
 }
 
-VideoPlayerApiCodecSerializer::VideoPlayerApiCodecSerializer() {}
-flutter::EncodableValue VideoPlayerApiCodecSerializer::ReadValueOfType(
+TizenVideoPlayerApiCodecSerializer::TizenVideoPlayerApiCodecSerializer() {}
+flutter::EncodableValue TizenVideoPlayerApiCodecSerializer::ReadValueOfType(
     uint8_t type, flutter::ByteStreamReader* stream) const {
   switch (type) {
     case 128:
@@ -410,7 +410,7 @@ flutter::EncodableValue VideoPlayerApiCodecSerializer::ReadValueOfType(
   }
 }
 
-void VideoPlayerApiCodecSerializer::WriteValue(
+void TizenVideoPlayerApiCodecSerializer::WriteValue(
     const flutter::EncodableValue& value,
     flutter::ByteStreamWriter* stream) const {
   if (const flutter::CustomEncodableValue* custom_value =
@@ -483,19 +483,19 @@ void VideoPlayerApiCodecSerializer::WriteValue(
   flutter::StandardCodecSerializer::WriteValue(value, stream);
 }
 
-/// The codec used by VideoPlayerApi.
-const flutter::StandardMessageCodec& VideoPlayerApi::GetCodec() {
+/// The codec used by TizenVideoPlayerApi.
+const flutter::StandardMessageCodec& TizenVideoPlayerApi::GetCodec() {
   return flutter::StandardMessageCodec::GetInstance(
-      &VideoPlayerApiCodecSerializer::GetInstance());
+      &TizenVideoPlayerApiCodecSerializer::GetInstance());
 }
 
-// Sets up an instance of `VideoPlayerApi` to handle messages through the
+// Sets up an instance of `TizenVideoPlayerApi` to handle messages through the
 // `binary_messenger`.
-void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                           VideoPlayerApi* api) {
+void TizenVideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
+                                TizenVideoPlayerApi* api) {
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.initialize",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.initialize",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -520,7 +520,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.create",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.create",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -554,7 +554,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.dispose",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.dispose",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -587,7 +587,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.setLooping",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.setLooping",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -620,7 +620,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.setVolume",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.setVolume",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -653,8 +653,8 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.setPlaybackSpeed",
-        &GetCodec());
+        binary_messenger,
+        "dev.flutter.pigeon.TizenVideoPlayerApi.setPlaybackSpeed", &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
           [api](const flutter::EncodableValue& message,
@@ -687,7 +687,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.play",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.play",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -720,7 +720,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.position",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.position",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -754,7 +754,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.seekTo",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.seekTo",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -769,14 +769,16 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const auto& msg_arg = std::any_cast<const PositionMessage&>(
                   std::get<flutter::CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output = api->SeekTo(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              flutter::EncodableList wrapped;
-              wrapped.push_back(flutter::EncodableValue());
-              reply(flutter::EncodableValue(std::move(wrapped)));
+              api->SeekTo(msg_arg,
+                          [reply](std::optional<FlutterError>&& output) {
+                            if (output.has_value()) {
+                              reply(WrapError(output.value()));
+                              return;
+                            }
+                            flutter::EncodableList wrapped;
+                            wrapped.push_back(flutter::EncodableValue());
+                            reply(flutter::EncodableValue(std::move(wrapped)));
+                          });
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
             }
@@ -787,7 +789,7 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.pause",
+        binary_messenger, "dev.flutter.pigeon.TizenVideoPlayerApi.pause",
         &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
@@ -820,8 +822,8 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
-        binary_messenger, "dev.flutter.pigeon.VideoPlayerApi.setMixWithOthers",
-        &GetCodec());
+        binary_messenger,
+        "dev.flutter.pigeon.TizenVideoPlayerApi.setMixWithOthers", &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
           [api](const flutter::EncodableValue& message,
@@ -855,7 +857,8 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     auto channel = std::make_unique<flutter::BasicMessageChannel<>>(
         binary_messenger,
-        "dev.flutter.pigeon.VideoPlayerApi.setDisplayGeometry", &GetCodec());
+        "dev.flutter.pigeon.TizenVideoPlayerApi.setDisplayGeometry",
+        &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
           [api](const flutter::EncodableValue& message,
@@ -888,13 +891,14 @@ void VideoPlayerApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   }
 }
 
-flutter::EncodableValue VideoPlayerApi::WrapError(
+flutter::EncodableValue TizenVideoPlayerApi::WrapError(
     std::string_view error_message) {
   return flutter::EncodableValue(flutter::EncodableList{
       flutter::EncodableValue(std::string(error_message)),
       flutter::EncodableValue("Error"), flutter::EncodableValue()});
 }
-flutter::EncodableValue VideoPlayerApi::WrapError(const FlutterError& error) {
+flutter::EncodableValue TizenVideoPlayerApi::WrapError(
+    const FlutterError& error) {
   return flutter::EncodableValue(flutter::EncodableList{
       flutter::EncodableValue(error.message()),
       flutter::EncodableValue(error.code()), error.details()});

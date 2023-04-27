@@ -46,7 +46,7 @@ class ErrorOr {
   const FlutterError& error() const { return std::get<FlutterError>(v_); };
 
  private:
-  friend class VideoPlayerApi;
+  friend class TizenVideoPlayerApi;
   ErrorOr() = default;
   T TakeValue() && { return std::get<T>(std::move(v_)); }
 
@@ -63,8 +63,8 @@ class PlayerMessage {
  private:
   PlayerMessage(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerApi;
-  friend class VideoPlayerApiCodecSerializer;
+  friend class TizenVideoPlayerApi;
+  friend class TizenVideoPlayerApiCodecSerializer;
   int64_t player_id_;
 };
 
@@ -81,8 +81,8 @@ class LoopingMessage {
  private:
   LoopingMessage(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerApi;
-  friend class VideoPlayerApiCodecSerializer;
+  friend class TizenVideoPlayerApi;
+  friend class TizenVideoPlayerApiCodecSerializer;
   int64_t player_id_;
   bool is_looping_;
 };
@@ -100,8 +100,8 @@ class VolumeMessage {
  private:
   VolumeMessage(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerApi;
-  friend class VideoPlayerApiCodecSerializer;
+  friend class TizenVideoPlayerApi;
+  friend class TizenVideoPlayerApiCodecSerializer;
   int64_t player_id_;
   double volume_;
 };
@@ -119,8 +119,8 @@ class PlaybackSpeedMessage {
  private:
   PlaybackSpeedMessage(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerApi;
-  friend class VideoPlayerApiCodecSerializer;
+  friend class TizenVideoPlayerApi;
+  friend class TizenVideoPlayerApiCodecSerializer;
   int64_t player_id_;
   double speed_;
 };
@@ -138,8 +138,8 @@ class PositionMessage {
  private:
   PositionMessage(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerApi;
-  friend class VideoPlayerApiCodecSerializer;
+  friend class TizenVideoPlayerApi;
+  friend class TizenVideoPlayerApiCodecSerializer;
   int64_t player_id_;
   int64_t position_;
 };
@@ -175,8 +175,8 @@ class CreateMessage {
  private:
   CreateMessage(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerApi;
-  friend class VideoPlayerApiCodecSerializer;
+  friend class TizenVideoPlayerApi;
+  friend class TizenVideoPlayerApiCodecSerializer;
   std::optional<std::string> asset_;
   std::optional<std::string> uri_;
   std::optional<std::string> package_name_;
@@ -195,8 +195,8 @@ class MixWithOthersMessage {
  private:
   MixWithOthersMessage(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerApi;
-  friend class VideoPlayerApiCodecSerializer;
+  friend class TizenVideoPlayerApi;
+  friend class TizenVideoPlayerApiCodecSerializer;
   bool mix_with_others_;
 };
 
@@ -222,8 +222,8 @@ class GeometryMessage {
  private:
   GeometryMessage(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerApi;
-  friend class VideoPlayerApiCodecSerializer;
+  friend class TizenVideoPlayerApi;
+  friend class TizenVideoPlayerApiCodecSerializer;
   int64_t player_id_;
   int64_t x_;
   int64_t y_;
@@ -231,14 +231,15 @@ class GeometryMessage {
   int64_t height_;
 };
 
-class VideoPlayerApiCodecSerializer : public flutter::StandardCodecSerializer {
+class TizenVideoPlayerApiCodecSerializer
+    : public flutter::StandardCodecSerializer {
  public:
-  inline static VideoPlayerApiCodecSerializer& GetInstance() {
-    static VideoPlayerApiCodecSerializer sInstance;
+  inline static TizenVideoPlayerApiCodecSerializer& GetInstance() {
+    static TizenVideoPlayerApiCodecSerializer sInstance;
     return sInstance;
   }
 
-  VideoPlayerApiCodecSerializer();
+  TizenVideoPlayerApiCodecSerializer();
 
  public:
   void WriteValue(const flutter::EncodableValue& value,
@@ -251,11 +252,11 @@ class VideoPlayerApiCodecSerializer : public flutter::StandardCodecSerializer {
 
 // Generated interface from Pigeon that represents a handler of messages from
 // Flutter.
-class VideoPlayerApi {
+class TizenVideoPlayerApi {
  public:
-  VideoPlayerApi(const VideoPlayerApi&) = delete;
-  VideoPlayerApi& operator=(const VideoPlayerApi&) = delete;
-  virtual ~VideoPlayerApi(){};
+  TizenVideoPlayerApi(const TizenVideoPlayerApi&) = delete;
+  TizenVideoPlayerApi& operator=(const TizenVideoPlayerApi&) = delete;
+  virtual ~TizenVideoPlayerApi(){};
   virtual std::optional<FlutterError> Initialize() = 0;
   virtual ErrorOr<PlayerMessage> Create(const CreateMessage& msg) = 0;
   virtual std::optional<FlutterError> Dispose(const PlayerMessage& msg) = 0;
@@ -265,23 +266,25 @@ class VideoPlayerApi {
       const PlaybackSpeedMessage& msg) = 0;
   virtual std::optional<FlutterError> Play(const PlayerMessage& msg) = 0;
   virtual ErrorOr<PositionMessage> Position(const PlayerMessage& msg) = 0;
-  virtual std::optional<FlutterError> SeekTo(const PositionMessage& msg) = 0;
+  virtual void SeekTo(
+      const PositionMessage& msg,
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
   virtual std::optional<FlutterError> Pause(const PlayerMessage& msg) = 0;
   virtual std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage& msg) = 0;
   virtual std::optional<FlutterError> SetDisplayGeometry(
       const GeometryMessage& msg) = 0;
 
-  // The codec used by VideoPlayerApi.
+  // The codec used by TizenVideoPlayerApi.
   static const flutter::StandardMessageCodec& GetCodec();
-  // Sets up an instance of `VideoPlayerApi` to handle messages through the
+  // Sets up an instance of `TizenVideoPlayerApi` to handle messages through the
   // `binary_messenger`.
   static void SetUp(flutter::BinaryMessenger* binary_messenger,
-                    VideoPlayerApi* api);
+                    TizenVideoPlayerApi* api);
   static flutter::EncodableValue WrapError(std::string_view error_message);
   static flutter::EncodableValue WrapError(const FlutterError& error);
 
  protected:
-  VideoPlayerApi() = default;
+  TizenVideoPlayerApi() = default;
 };
 #endif  // PIGEON_MESSAGES_H_

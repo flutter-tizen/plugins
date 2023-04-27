@@ -21,7 +21,8 @@
 
 namespace {
 
-class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
+class VideoPlayerTizenPlugin : public flutter::Plugin,
+                               public TizenVideoPlayerApi {
  public:
   static void RegisterWithRegistrar(
       FlutterDesktopPluginRegistrarRef registrar_ref,
@@ -40,7 +41,9 @@ class VideoPlayerTizenPlugin : public flutter::Plugin, public VideoPlayerApi {
       const PlaybackSpeedMessage &msg) override;
   std::optional<FlutterError> Play(const PlayerMessage &msg) override;
   ErrorOr<PositionMessage> Position(const PlayerMessage &msg) override;
-  std::optional<FlutterError> SeekTo(const PositionMessage &msg) override;
+  void SeekTo(
+      const PositionMessage &msg,
+      std::function<void(std::optional<FlutterError> reply)> result) override;
   std::optional<FlutterError> Pause(const PlayerMessage &msg) override;
   std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage &msg) override;
@@ -77,7 +80,7 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
     FlutterDesktopPluginRegistrarRef registrar_ref,
     flutter::PluginRegistrar *plugin_registrar)
     : registrar_ref_(registrar_ref), plugin_registrar_(plugin_registrar) {
-  VideoPlayerApi::SetUp(plugin_registrar->messenger(), this);
+  TizenVideoPlayerApi::SetUp(plugin_registrar->messenger(), this);
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
@@ -232,15 +235,15 @@ ErrorOr<PositionMessage> VideoPlayerTizenPlugin::Position(
   return result;
 }
 
-std::optional<FlutterError> VideoPlayerTizenPlugin::SeekTo(
-    const PositionMessage &msg) {
+void VideoPlayerTizenPlugin::SeekTo(
+    const PositionMessage &msg,
+    std::function<void(std::optional<FlutterError> reply)> result) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+    result(FlutterError("Invalid argument", "Player not found."));
+    return;
   }
-  player->SeekTo(msg.position());
-
-  return std::nullopt;
+  player->SeekTo(msg.position(), [result]() -> void { result(std::nullopt); });
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(

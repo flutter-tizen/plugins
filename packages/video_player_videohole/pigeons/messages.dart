@@ -5,7 +5,7 @@
 import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/src/messages.dart',
+  dartOut: 'lib/src/messages.g.dart',
   cppHeaderOut: 'tizen/src/messages.h',
   cppSourceOut: 'tizen/src/messages.cc',
 ))
@@ -63,7 +63,7 @@ class GeometryMessage {
 }
 
 @HostApi()
-abstract class VideoPlayerApi {
+abstract class TizenVideoPlayerApi {
   void initialize();
   PlayerMessage create(CreateMessage msg);
   void dispose(PlayerMessage msg);
@@ -72,6 +72,7 @@ abstract class VideoPlayerApi {
   void setPlaybackSpeed(PlaybackSpeedMessage msg);
   void play(PlayerMessage msg);
   PositionMessage position(PlayerMessage msg);
+  @async
   void seekTo(PositionMessage msg);
   void pause(PlayerMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);

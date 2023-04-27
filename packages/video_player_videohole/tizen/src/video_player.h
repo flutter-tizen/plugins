@@ -27,6 +27,8 @@ typedef int (*FuncPlayerSetEcoreWlDisplay)(player_h player,
 
 class VideoPlayer {
  public:
+  using SeekCompletedCallback = std::function<void()>;
+
   explicit VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                        void *native_window);
   ~VideoPlayer();
@@ -41,7 +43,7 @@ class VideoPlayer {
   void SetLooping(bool is_looping);
   void SetVolume(double volume);
   void SetPlaybackSpeed(double speed);
-  void SeekTo(int32_t position);
+  void SeekTo(int32_t position, SeekCompletedCallback callback);
   int32_t GetPosition();
 
   void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
@@ -59,6 +61,7 @@ class VideoPlayer {
 
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
+  static void OnSeekCompleted(void *data);
   static void OnPlayCompleted(void *data);
   static void OnError(int error_code, void *data);
   static void onInterrupted(player_interrupted_code_e code, void *data);
@@ -81,6 +84,7 @@ class VideoPlayer {
   bool is_interrupted_ = false;
   bool is_buffering_ = false;
 
+  SeekCompletedCallback on_seek_completed_;
   Dart_Port send_port_;
 };
 
