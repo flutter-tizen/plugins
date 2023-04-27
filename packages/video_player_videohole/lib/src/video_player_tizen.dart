@@ -11,12 +11,9 @@ import 'package:flutter/widgets.dart';
 import '../video_player_platform_interface.dart';
 import 'messages.g.dart';
 
-/// An implementation of [VideoPlayerPlatform] that uses method channels.
-///
-/// This is the default implementation, for compatibility with existing
-/// third-party implementations. It is not used by other implementations in
-/// this repository.
-class MethodChannelVideoPlayer extends VideoPlayerPlatform {
+/// An implementation of [VideoPlayerPlatform] that uses the
+/// Pigeon-generated [TizenVideoPlayerApi].
+class VideoPlayerTizen extends VideoPlayerPlatform {
   final TizenVideoPlayerApi _api = TizenVideoPlayerApi();
 
   @override

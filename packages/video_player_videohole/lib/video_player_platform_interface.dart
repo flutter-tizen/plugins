@@ -8,7 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'src/drm_configs.dart';
-import 'src/method_channel_video_player.dart';
+import 'src/video_player_tizen.dart';
 
 /// The interface that implementations of video_player must implement.
 ///
@@ -23,11 +23,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static VideoPlayerPlatform _instance = MethodChannelVideoPlayer();
+  static VideoPlayerPlatform _instance = VideoPlayerTizen();
 
   /// The default instance of [VideoPlayerPlatform] to use.
   ///
-  /// Defaults to [MethodChannelVideoPlayer].
+  /// Defaults to [VideoPlayerTizen].
   static VideoPlayerPlatform get instance => _instance;
 
   /// Platform-specific plugins should override this with their own
