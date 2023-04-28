@@ -569,10 +569,11 @@ Future<String> getProperty(Object o, String property) async {
 }
 
 /// Sets the value to property of the object.
-Future<void> setProperty(Object o, String property, Object? value) async {
+Future<String> setProperty(Object o, String property, Object? value) async {
   assert(webController != null, 'mapController is null!!');
   final String command = "JSON.stringify($o['$property'] = $value)";
-  (await webController!).runJavaScript(command);
+  return await (await webController!).runJavaScriptReturningResult(command)
+      as String;
 }
 
 /// Calls the method of the object with the args.

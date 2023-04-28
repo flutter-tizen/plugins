@@ -89,9 +89,8 @@ class GoogleMapsController {
 
   /// Returns if zoomControls property is enabled. Test only.
   Future<bool> isZoomControlsEnabled() async {
-    final String value = await (await controller)
-        .runJavaScriptReturningResult('map.zoomControl') as String;
-    return value != 'false';
+    return await (await controller)
+        .runJavaScriptReturningResult('map.zoomControl') as bool;
   }
 
   /// Returns if scrollGestures property is enabled. Test only.
@@ -621,7 +620,8 @@ class GoogleMapsController {
       JSON.stringify(getPixelToLatLng());
     ''';
 
-    return (await controller).runJavaScriptReturningResult(command) as String;
+    return await (await controller).runJavaScriptReturningResult(command)
+        as String;
   }
 
   Future<String> _latLngToPoint(LatLng latLng) async {
@@ -641,7 +641,8 @@ class GoogleMapsController {
       JSON.stringify(getLatLngToPixel());
     ''';
 
-    return (await controller).runJavaScriptReturningResult(command) as String;
+    return await (await controller).runJavaScriptReturningResult(command)
+        as String;
   }
 
   /// Returns the zoom level of the current viewport.
