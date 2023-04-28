@@ -16,7 +16,7 @@ enum DrmType {
   widevine,
 }
 
-/// Callback type for handling DRM license issuance.
+/// Callback that returns a DRM license from the given [challenge] data.
 typedef LicenseCallback = Future<Uint8List> Function(Uint8List challenge);
 
 /// Configurations for playing DRM content.
@@ -37,10 +37,15 @@ class DrmConfigs {
   /// specified.
   final String? licenseServerUrl;
 
-  /// A function to be called to retrieve a DRM license.
+  /// A callback to retrieve a DRM license.
   ///
   /// This is optional. Either [licenseServerUrl] or [licenseCallback] can be
   /// specified.
+  ///
+  /// This callback is called multiple times while the video is playing. Note
+  /// that the platform thread (main thread) is blocked while this callback is
+  /// running. If the execution of this callback is delayed, the program may
+  /// hang or fail to process user input.
   final LicenseCallback? licenseCallback;
 
   /// Converts to a map.
