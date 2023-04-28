@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: public_member_api_docs
+// ignore_for_file: public_member_api_docs, avoid_print
 
 /// An example of using the plugin, controlling lifecycle and playback of the
 /// video.
@@ -69,6 +69,9 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
         'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8');
 
     _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
       setState(() {});
     });
     _controller.setLooping(true);
@@ -127,6 +130,9 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
         'https://dash.akamaized.net/dash264/TestCasesUHD/2b/11/MultiRate.mpd');
 
     _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
       setState(() {});
     });
     _controller.setLooping(true);
@@ -183,6 +189,9 @@ class _Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
         'https://media.w3.org/2010/05/bunny/trailer.mp4');
 
     _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
       setState(() {});
     });
     _controller.setLooping(true);
@@ -251,6 +260,9 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
     );
 
     _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
       setState(() {});
     });
     _controller.setLooping(true);
@@ -314,6 +326,9 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
     );
 
     _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
       setState(() {});
     });
     _controller.setLooping(true);

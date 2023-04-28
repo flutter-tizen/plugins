@@ -139,7 +139,7 @@ int64_t VideoPlayer::Create(const std::string &uri, int drm_type,
     return -1;
   }
 
-  ret = player_set_interrupted_cb(player_, onInterrupted, this);
+  ret = player_set_interrupted_cb(player_, OnInterrupted, this);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer] player_set_interrupted_cb failed: %s",
               get_error_message(ret));
@@ -272,7 +272,8 @@ void VideoPlayer::SeekTo(int32_t position, SeekCompletedCallback callback) {
   int ret =
       player_set_play_position(player_, position, true, OnSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_set_play_position failed: %d", position);
+    LOG_ERROR("[VideoPlayer] player_set_play_position failed: %s",
+              get_error_message(ret));
   }
 }
 
@@ -490,7 +491,8 @@ void VideoPlayer::OnPlayCompleted(void *data) {
 }
 
 void VideoPlayer::OnError(int error_code, void *data) {
-  LOG_ERROR("[VideoPlayer] Error code: %d", error_code);
+  LOG_ERROR("[VideoPlayer] Error code: %d (%s)", error_code,
+            get_error_message(error_code));
 
   VideoPlayer *player = static_cast<VideoPlayer *>(data);
   if (player->event_sink_) {
@@ -499,7 +501,7 @@ void VideoPlayer::OnError(int error_code, void *data) {
   }
 }
 
-void VideoPlayer::onInterrupted(player_interrupted_code_e code, void *data) {
+void VideoPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
   LOG_ERROR("[VideoPlayer] Interrupt code: %d", code);
 
   VideoPlayer *player = static_cast<VideoPlayer *>(data);

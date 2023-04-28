@@ -64,7 +64,7 @@ class VideoPlayer {
   static void OnSeekCompleted(void *data);
   static void OnPlayCompleted(void *data);
   static void OnError(int error_code, void *data);
-  static void onInterrupted(player_interrupted_code_e code, void *data);
+  static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnSubtitleUpdated(unsigned long duration, char *text, void *data);
 
   std::vector<uint8_t> OnLicenseChallenge(
