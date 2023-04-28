@@ -1,61 +1,57 @@
 # video_player_videohole
 
-A video_player_videohole flutter plugin only for Tizen TV devices, supports play DRM(playready & widevine).
+[![pub package](https://img.shields.io/pub/v/video_player_videohole.svg)](https://pub.dev/packages/video_player_videohole)
 
-## Required privileges
+A fork of the [`video_player`](https://pub.dev/packages/video_player) plugin to support playback of DRM streams (Widevine and PlayReady) on Tizen TV devices.
 
-To use this plugin in a Tizen application, you may need to add the following privileges in your `tizen-manifest.xml` file.
+This plugin is only supported on Tizen TV devices. If you are targeting other device types or don't plan to play DRM content in your app, use [`video_player`](https://pub.dev/packages/video_player) and [`video_player_tizen`](https://pub.dev/packages/video_player_tizen) instead.
 
-```xml
-<privileges>
-  <privilege>http://tizen.org/privilege/mediastorage</privilege>
-  <privilege>http://tizen.org/privilege/externalstorage</privilege>
-  <privilege>http://tizen.org/privilege/internet</privilege>
-  <privilege>http://tizen.org/privilege/network.get</privilege>
-  <privilege>http://tizen.org/privilege/download</privilege>
-  <privilege>http://tizen.org/privilege/push</privilege>
-  <privilege>http://developer.samsung.com/privilege/drmplay</privilege>
-</privileges>
+## Usage
+
+To use this package, add `video_player_videohole` as a dependency in your `pubspec.yaml` file.
+
+```yaml
+dependencies:
+  video_player_videohole: ^0.1.0
 ```
 
-- The mediastorage privilege (http://tizen.org/privilege/mediastorage) is required to play video files located in the internal storage.
-- The externalstorage privilege (http://tizen.org/privilege/externalstorage) is required to play video files located in the external storage.
-- The internet privilege (http://tizen.org/privilege/internet) is required to play any URLs from network.
-- The drmplay privilege (http://developer.samsung.com/privilege/drmplay) is required to play DRM video files.
-
-To play DRM with this streaming player, you need to have [partner level certificate](https://developer.samsung.com/tv-seller-office/guides/membership/becoming-partner.html).
-
-For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges/).
-
-## Example
+Then you can import `video_player_videohole` in your Dart code:
 
 ```dart
 import 'package:video_player_videohole/video_player.dart';
+```
+
+Note that `video_player_videohole` is not compatible with the original `video_player` plugin. If you're writing a cross-platform app for Tizen and other platforms, it is recommended to create two separate source files and import `video_player` and `video_player_videohole` in the files respectively.
+
+### Example
+
+```dart
 import 'package:flutter/material.dart';
+import 'package:video_player_videohole/video_player.dart';
 
-void main() => runApp(VideoApp());
+class RemoteVideo extends StatefulWidget {
+  const RemoteVideo({Key? key}) : super(key: key);
 
-class VideoApp extends StatefulWidget {
   @override
-  _VideoAppState createState() => _VideoAppState();
+  State<RemoteVideo> createState() => _RemoteVideoState();
 }
 
-class _VideoAppState extends State<VideoApp> {
-  VideoPlayerController _controller;
+class _RemoteVideoState extends State<RemoteVideo> {
+  late VideoPlayerController _controller;
 
   @override
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
       'https://media.w3.org/2010/05/bunny/trailer.mp4',
+      drmConfigs: const DrmConfigs(
+        type: DrmType.playready,
+        licenseServerUrl:
+            'http://test.playready.microsoft.com/service/rightsmanager.asmx',
+      ),
     );
-
-    _controller.addListener(() {
-      setState(() {});
-    });
-    _controller.setLooping(true);
+    _controller.addListener(() => setState(() {}));
     _controller.initialize().then((_) => setState(() {}));
-    _controller.play();
   }
 
   @override
@@ -66,56 +62,63 @@ class _VideoAppState extends State<VideoApp> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: <Widget>[
-          Container(padding: const EdgeInsets.only(top: 20.0)),
-          const Text('Video Demo'),
-          Container(
-            padding: const EdgeInsets.all(20),
-            child: AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: <Widget>[
-                  VideoPlayer(_controller),
-                  // Set internal subtitle from stream.
-                  ClosedCaption(
-                      text: _controller.value.subtitleText,
-                      isSubtitle: _controller.value.isSubtitle),
-                  _ControlsOverlay(controller: _controller),
-                  VideoProgressIndicator(_controller, allowScrubbing: true),
-                ],
-              ),
+    return Center(
+      child: AspectRatio(
+        aspectRatio: _controller.value.aspectRatio,
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: <Widget>[
+            VideoPlayer(_controller),
+            ClosedCaption(text: _controller.value.caption.text),
+            GestureDetector(
+              onTap: () {
+                _controller.value.isPlaying
+                    ? _controller.pause()
+                    : _controller.play();
+              },
             ),
-          ),
-        ],
+            VideoProgressIndicator(_controller, allowScrubbing: true),
+          ],
+        ),
       ),
     );
   }
 }
 ```
 
-## Usage
+## Required privileges
 
-```yaml
-dependencies:
-  video_player_videohole: ^1.0.0
+To use this plugin, you may need to declare the following privileges in your `tizen-manifest.xml` file.
+
+```xml
+<privileges>
+  <privilege>http://tizen.org/privilege/mediastorage</privilege>
+  <privilege>http://tizen.org/privilege/externalstorage</privilege>
+  <privilege>http://tizen.org/privilege/internet</privilege>
+  <privilege>http://developer.samsung.com/privilege/drmplay</privilege>
+</privileges>
 ```
 
-Then you can import `video_player_videohole` in your Dart code:
+- The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) is required to play video files located in the internal storage.
+- The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) is required to play video files located in the external storage.
+- The internet privilege (`http://tizen.org/privilege/internet`) is required to play any URL from the network.
+- The drmplay privilege (`http://developer.samsung.com/privilege/drmplay`) is required to play DRM content. The app must be signed with a [partner-level certificate](https://docs.tizen.org/application/dotnet/get-started/certificates/creating-certificates) to use this privilege.
 
-```dart
-import 'package:video_player_videhole/video_player.dart';
-```
+For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
 
 ## Limitations
 
-The 'httpheaders' option for 'VideoPlayerController.network' and 'mixWithOthers' option of 'VideoPlayerOptions' will be silently ignored in Tizen platform.
+This plugin is not supported on TV emulators.
 
-This plugin has some limitations on TV:
+The following options are not currently supported.
 
-- The 'setPlaybackSpeed' method will fail if triggered within last 3 seconds.
-- The playback speed will reset to 1.0 when video is replayed in loop mode.
-- The 'seekTo' method works only when playback speed is 1.0, and it sets video position to the nearest key frame which may differ from the passed argument.
-- The 'player_set_subtitle_updated_cb' can't support Dash sidecar subtitle on Tizen 6.0/6.5, but support on Tizen 7.0.
+- The `httpHeaders` option of `VideoPlayerController.network`
+- `VideoPlayerOptions.allowBackgroundPlayback`
+- `VideoPlayerOptions.mixWithOthers`
+
+This plugin has the following limitations.
+
+- The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
+- The playback speed will reset to 1.0 when the video is replayed in loop mode.
+- The `seekTo` method works only when the playback speed is 1.0, and it sets the video position to the nearest keyframe, not the exact value passed.
+- Dash sidecar subtitles are only supported on Tizen 7.0 and later.
