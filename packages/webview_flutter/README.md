@@ -23,7 +23,7 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 ```yaml
 dependencies:
   webview_flutter: ^4.0.2
-  webview_flutter_tizen: ^0.7.1
+  webview_flutter_tizen: ^0.7.2
 ```
 
 ## Example
@@ -59,4 +59,8 @@ class _WebViewExampleState extends State<WebViewExample> {
 
 ## Supported devices
 
-This plugin is only supported on Tizen TV devices running Tizen 5.5 or later.  
+This plugin is only supported on Tizen TV devices running Tizen 5.5 or later.
+
+## Note
+
+To play Youtube, make app's background color to transparent.

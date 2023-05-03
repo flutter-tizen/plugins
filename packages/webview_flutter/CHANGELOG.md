@@ -1,5 +1,7 @@
-## NEXT
+## 0.7.2
 
+* Fix bug on playing youtube on TV
+* Apply PlatformView API change.
 * Increase the minimum Flutter version to 3.3.
 
 ## 0.7.1

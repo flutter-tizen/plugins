@@ -21,9 +21,11 @@ WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
 }
 
 PlatformView* WebViewFactory::Create(int view_id, double width, double height,
+                                     double pixel_ratio,
                                      const ByteMessage& params) {
   return new WebView(GetPluginRegistrar(), view_id, texture_registrar_, width,
-                     height, *GetCodec().DecodeMessage(params), window_);
+                     height, pixel_ratio, *GetCodec().DecodeMessage(params),
+                     window_);
 }
 
 void WebViewFactory::Dispose() {}

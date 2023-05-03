@@ -16,6 +16,7 @@ class WebViewFactory : public PlatformViewFactory {
   WebViewFactory(flutter::PluginRegistrar* registrar, void* window);
 
   virtual PlatformView* Create(int view_id, double width, double height,
+                               double pixel_ratio,
                                const ByteMessage& params) override;
 
   virtual void Dispose() override;

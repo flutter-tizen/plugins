@@ -19,12 +19,6 @@
 
 namespace {
 
-#ifdef TV_PROFILE
-constexpr double kProfileFactor = 1.6;
-#else
-constexpr double kProfileFactor = 1.0;
-#endif
-
 constexpr size_t kBufferPoolSize = 5;
 constexpr char kEwkInstance[] = "ewk_instance";
 constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
@@ -80,12 +74,13 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
 
 WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
                  flutter::TextureRegistrar* texture_registrar, double width,
-                 double height, const flutter::EncodableValue& params,
-                 void* window)
+                 double height, double pixel_ratio,
+                 const flutter::EncodableValue& params, void* window)
     : PlatformView(registrar, view_id, nullptr),
       texture_registrar_(texture_registrar),
-      width_(width * kProfileFactor),
-      height_(height * kProfileFactor),
+      width_(width * pixel_ratio),
+      height_(height * pixel_ratio),
+      pixel_ratio_(pixel_ratio),
       window_(window) {
   if (!EwkInternalApiBinding::GetInstance().Initialize()) {
     LOG_ERROR("Failed to initialize EWK internal APIs.");
@@ -176,8 +171,8 @@ void WebView::Dispose() {
 }
 
 void WebView::Offset(double left, double top) {
-  left_ = left * kProfileFactor;
-  top_ = top * kProfileFactor;
+  left_ = left * pixel_ratio_;
+  top_ = top * pixel_ratio_;
 
   evas_object_move(webview_instance_, static_cast<int32_t>(left_),
                    static_cast<int32_t>(top_));
@@ -215,8 +210,8 @@ void WebView::Touch(int type, int button, double x, double y, double dx,
   Eina_List* points = 0;
   Ewk_Touch_Point* point = new Ewk_Touch_Point;
   point->id = 0;
-  point->x = x * kProfileFactor + left_;
-  point->y = y * kProfileFactor + top_;
+  point->x = x * pixel_ratio_ + left_;
+  point->y = y * pixel_ratio_ + top_;
   point->state = state;
   points = eina_list_append(points, point);
 
