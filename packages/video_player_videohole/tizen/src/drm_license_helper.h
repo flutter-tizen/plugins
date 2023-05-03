@@ -29,17 +29,10 @@ class DrmLicenseHelper {
   };
 
   struct SExtensionCtxTZ {
-    char* http_soap_header;
-    char* http_header;
-    char* http_user_agent;
-    bool cancel_request;
-
-    SExtensionCtxTZ() {
-      http_soap_header = nullptr;
-      http_header = nullptr;
-      http_user_agent = nullptr;
-      cancel_request = false;
-    }
+    char* http_soap_header = nullptr;
+    char* http_header = nullptr;
+    char* http_user_agent = nullptr;
+    bool cancel_request = false;
   };
 
   static DRM_RESULT DoTransactionTZ(const char* http_server_url,

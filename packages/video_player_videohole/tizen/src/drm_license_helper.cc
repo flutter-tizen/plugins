@@ -725,7 +725,7 @@ DRM_RESULT DrmLicenseHelper::DoTransactionTZ(
       }
 
       if (http_ext_ctx->http_header) {
-        soap_header = http_ext_ctx->http_header;
+        http_header = http_ext_ctx->http_header;
       }
 
       if (http_ext_ctx->http_user_agent) {
