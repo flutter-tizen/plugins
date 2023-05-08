@@ -6,13 +6,9 @@
 
 import 'dart:async';
 
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_tizen/billing_client_wrappers.dart';
 import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
-// import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -213,7 +209,7 @@ class _MyAppState extends State<_MyApp> {
           title: Text('Not connected',
               style: TextStyle(color: ThemeData.light().colorScheme.error)),
           subtitle: const Text(
-              'Unable to connect to the payments processor. Has this app been configured correctly? See the example README for instructions.'),
+              'Unable to connect to the payments processor. Please login Samsung Account in your device. See README for instructions.'),
         ),
       ]);
     }

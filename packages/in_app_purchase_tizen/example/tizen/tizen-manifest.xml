@@ -11,8 +11,6 @@
     </tv-info>
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <privileges>
-        <privilege>http://developer.samsung.com/privilege/sso.partner</privilege>
-        <privilege>http://developer.samsung.com/privilege/productinfo</privilege>
         <privilege>http://developer.samsung.com/privilege/billing</privilege>
         <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
     </privileges>
