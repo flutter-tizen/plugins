@@ -307,7 +307,7 @@ void VideoPlayer::Dispose() {
 
 void VideoPlayer::SetUpEventChannel(flutter::BinaryMessenger *messenger) {
   std::string channel_name =
-      "flutter.io/videoPlayer/videoEvents" + std::to_string(player_id_);
+      "tizen/video_player/video_events_" + std::to_string(player_id_);
   auto channel =
       std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
           messenger, channel_name,

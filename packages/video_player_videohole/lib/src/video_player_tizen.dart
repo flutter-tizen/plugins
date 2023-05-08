@@ -164,7 +164,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   EventChannel _eventChannelFor(int playerId) {
-    return EventChannel('flutter.io/videoPlayer/videoEvents$playerId');
+    return EventChannel('tizen/video_player/video_events_$playerId');
   }
 
   static const Map<VideoFormat, String> _videoFormatStringMap =
