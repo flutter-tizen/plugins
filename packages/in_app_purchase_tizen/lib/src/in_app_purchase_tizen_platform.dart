@@ -8,16 +8,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
-import '../billing_client_wrappers.dart';
+import '../billing_manager_wrappers.dart';
 
+/// [IAPError.code] code for failed purchases.
 const String kPurchaseErrorCode = 'purchase_error';
 
+/// Indicates store front is Samsung Checkout
 const String kIAPSource = 'samsung_checkout';
 
+/// An [InAppPurchasePlatform] that wraps BillingManager.
+///
+/// This translates various `BillingManager` calls and responses into the
+/// generic plugin API.
 class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   InAppPurchaseTizenPlatform();
   InAppPurchaseTizenPlatform._() {
-    billingClient = BillingClient();
+    billingManager = BillingManager();
 
     _purchaseUpdatedController =
         StreamController<List<PurchaseDetails>>.broadcast();
@@ -32,22 +38,31 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
   static late StreamController<List<PurchaseDetails>>
       _purchaseUpdatedController;
-  static late String _appId;
-  static late String _serverType;
-  static late Set<String> _identifiers;
 
   @override
   Stream<List<PurchaseDetails>> get purchaseStream =>
       _purchaseUpdatedController.stream;
 
+  /// The [_appId] is used for [queryProductDetails] and [buyNonConsumable] and [buyConsumable].
+  static late String _appId;
+
+  /// The [_serverType] is used for [buyNonConsumable] and [buyConsumable].
+  static late String _serverType;
+
+  /// The [_identifiers] is used for [restorePurchases].
+  static late Set<String> _identifiers;
+
+  /// The [BillingManager] that's abstracted by Samsung Checkout.
+  ///
+  /// This field should not be used out of test code.
   @visibleForTesting
-  late final BillingClient billingClient;
+  late final BillingManager billingManager;
 
   static final Set<String> _productIdsToConsume = <String>{};
 
   @override
   Future<bool> isAvailable() async {
-    return await billingClient.isAvailable();
+    return await billingManager.isAvailable();
   }
 
   @override
@@ -59,24 +74,22 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     _appId = identifiers.toList()[0];
     _serverType = identifiers.toList()[5];
     try {
-      response = await billingClient.requestProducts(identifiers.toList());
+      response = await billingManager.requestProducts(identifiers.toList());
     } on PlatformException catch (e) {
       exception = e;
       response = const ProductsListApiResult(
           cPStatus: 'fail to receive response',
           cPResult: 'fail to receive response',
-          itemDetails: <ProductWrapper>[]);
-    }
-    if (response.result != '') {
-      throw PlatformException(
-          code: response.result!, message: response.resultTitle);
+          checkValue: 'fail to receive response',
+          totalCount: 0,
+          itemDetails: <ItemDetails>[]);
     }
 
     List<SamsungCheckoutProductDetails> productDetailsList =
         <SamsungCheckoutProductDetails>[];
 
     productDetailsList = response.itemDetails
-        .map((ProductWrapper productWrapper) =>
+        .map((ItemDetails productWrapper) =>
             SamsungCheckoutProductDetails.fromProduct(productWrapper))
         .toList();
     List<String> invalidMessage;
@@ -107,16 +120,17 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   Future<void> restorePurchases({
     String? applicationUserName,
   }) async {
-    List<PurchaseListAPIResult> responses;
+    List<GetUserPurchaseListAPIResult> responses;
 
-    responses = await Future.wait(<Future<PurchaseListAPIResult>>[
-      billingClient.requestPurchases(applicationUserName, _identifiers.toList())
+    responses = await Future.wait(<Future<GetUserPurchaseListAPIResult>>[
+      billingManager.requestPurchases(
+          applicationUserName, _identifiers.toList())
     ]);
 
     final List<PurchaseDetails> pastPurchases =
-        responses.expand((PurchaseListAPIResult response) {
+        responses.expand((GetUserPurchaseListAPIResult response) {
       return response.invoiceDetails;
-    }).map((PurchaseWrapper purchaseWrapper) {
+    }).map((InvoiceDetails purchaseWrapper) {
       final SamsungCheckoutPurchaseDetails purchaseDetails =
           SamsungCheckoutPurchaseDetails.fromPurchase(purchaseWrapper);
 
@@ -128,14 +142,13 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
   @override
   Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
-    final BillingResultWrapper billingResultWrapper =
-        await billingClient.butItem(
-            appId: _appId,
-            serverType: _serverType,
-            orderItemId: purchaseParam.productDetails.id,
-            orderTitle: purchaseParam.productDetails.title,
-            orderTotal: purchaseParam.productDetails.price,
-            orderCurrencyId: purchaseParam.productDetails.currencyCode);
+    final BillingBuyData billingResultWrapper = await billingManager.buyItem(
+        appId: _appId,
+        serverType: _serverType,
+        orderItemId: purchaseParam.productDetails.id,
+        orderTitle: purchaseParam.productDetails.title,
+        orderTotal: purchaseParam.productDetails.price,
+        orderCurrencyId: purchaseParam.productDetails.currencyCode);
     if (billingResultWrapper.payResult == 'SUCCESS') {
       return true;
     } else {
