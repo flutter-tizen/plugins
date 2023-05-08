@@ -54,4 +54,5 @@ dependencies:
 |    Unified-Plan    | :heavy_check_mark: |
 |     Simulcast      | :heavy_check_mark: |
 |   MediaRecorder    |       [WIP]        |
+|SFrame/FrameCryptor | :heavy_check_mark: |
 | Insertable Streams |       [WIP]        |
