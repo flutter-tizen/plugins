@@ -2,7 +2,7 @@ name: video_player_videohole
 description: Flutter plugin for displaying inline video.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/video_player_videohole
-version: 0.1.0
+version: 0.1.1
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -25,4 +25,4 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pigeon: ^6.0.1
+  pigeon: ^10.0.0

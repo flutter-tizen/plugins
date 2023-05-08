@@ -22,7 +22,7 @@
 namespace {
 
 class VideoPlayerTizenPlugin : public flutter::Plugin,
-                               public TizenVideoPlayerApi {
+                               public VideoPlayerVideoholeApi {
  public:
   static void RegisterWithRegistrar(
       FlutterDesktopPluginRegistrarRef registrar_ref,
@@ -80,7 +80,7 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
     FlutterDesktopPluginRegistrarRef registrar_ref,
     flutter::PluginRegistrar *plugin_registrar)
     : registrar_ref_(registrar_ref), plugin_registrar_(plugin_registrar) {
-  TizenVideoPlayerApi::SetUp(plugin_registrar->messenger(), this);
+  VideoPlayerVideoholeApi::SetUp(plugin_registrar->messenger(), this);
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
@@ -152,8 +152,7 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   }
   players_[player_id] = std::move(player);
 
-  PlayerMessage result;
-  result.set_player_id(player_id);
+  PlayerMessage result(player_id);
   return result;
 }
 
@@ -229,9 +228,7 @@ ErrorOr<PositionMessage> VideoPlayerTizenPlugin::Position(
     return FlutterError("Invalid argument", "Player not found.");
   }
 
-  PositionMessage result;
-  result.set_player_id(msg.player_id());
-  result.set_position(player->GetPosition());
+  PositionMessage result(msg.player_id(), player->GetPosition());
   return result;
 }
 
