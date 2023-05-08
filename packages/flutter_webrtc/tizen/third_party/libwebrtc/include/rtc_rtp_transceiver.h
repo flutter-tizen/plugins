@@ -57,6 +57,8 @@ class RTCRtpTransceiver : public RefCountInterface {
 
   virtual void SetCodecPreferences(
       vector<scoped_refptr<RTCRtpCodecCapability>> codecs) = 0;
+
+  virtual const string transceiver_id() const = 0;
 };
 
 }  // namespace libwebrtc

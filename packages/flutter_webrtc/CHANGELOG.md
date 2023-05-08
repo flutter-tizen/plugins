@@ -1,7 +1,8 @@
 ## 0.1.2
 
-* Update flutter_webrtc to 0.9.26.
+* Update flutter_webrtc to 0.9.28.
 * Fix the data channel does not work in flutter_webrtc_demo.
+* Support frame cryptor.
 
 ## 0.1.1
 
