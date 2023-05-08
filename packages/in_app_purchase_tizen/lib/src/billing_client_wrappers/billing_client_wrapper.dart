@@ -2,19 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: non_constant_identifier_names
-
 import 'dart:async';
 import 'dart:convert' show json;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'dart:convert';
 
 import '../in_app_purchase_tizen_platform.dart';
 import '../channel.dart';
 
+// WARNING: Changes to `@JsonSerializable` classes need to be reflected in the
+// below generated file. Run `flutter-tizen packages pub run build_runner watch` to
+// rebuild and watch for further changes.
 part 'billing_client_wrapper.g.dart';
 
 class BillingClient {
@@ -39,8 +40,6 @@ class BillingClient {
         break;
       default:
         resultRet = false;
-        throw PlatformException(
-            code: isAvailable.result, message: isAvailable.resultTitle);
     }
     return resultRet;
   }
@@ -114,8 +113,9 @@ class BillingClient {
 }
 
 @JsonSerializable()
+@immutable
 class IsAvailableResult {
-  IsAvailableResult({
+  const IsAvailableResult({
     required this.status,
     required this.result,
     this.serviceYn,
@@ -131,30 +131,32 @@ class IsAvailableResult {
   @JsonKey(defaultValue: '')
   final String? resultTitle;
 
-  factory IsAvailableResult.fromJson(Map<String, dynamic> map) {
-    return _$IsAvailableResultFromJson(map);
-  }
+  factory IsAvailableResult.fromJson(Map<String, dynamic> map) =>
+      _$IsAvailableResultFromJson(map);
+
+  Map<String, dynamic> toJson() => _$IsAvailableResultToJson(this);
 }
 
 @JsonSerializable()
+@immutable
 class ProductsListApiResult {
-  ProductsListApiResult({
-    required this.CPStatus,
-    required this.CPResult,
-    required this.ItemDetails,
+  const ProductsListApiResult({
+    required this.cPStatus,
+    required this.cPResult,
+    required this.itemDetails,
     this.result,
     this.resultTitle,
     this.status,
     this.checkValue,
     this.totalCount,
   });
-  @JsonKey(defaultValue: '')
-  final String CPStatus;
-  @JsonKey(defaultValue: '')
-  final String CPResult;
-  @JsonKey(defaultValue: 0)
+  @JsonKey(defaultValue: '', name: 'CPStatus')
+  final String cPStatus;
+  @JsonKey(defaultValue: '', name: 'CPResult')
+  final String cPResult;
+  @JsonKey(defaultValue: 0, name: 'TotalCount')
   final int? totalCount;
-  @JsonKey(defaultValue: '')
+  @JsonKey(defaultValue: '', name: 'CheckValue')
   final String? checkValue;
   @JsonKey(defaultValue: '')
   final String? result;
@@ -162,62 +164,67 @@ class ProductsListApiResult {
   final String? resultTitle;
   @JsonKey(defaultValue: '')
   final String? status;
-  @JsonKey(defaultValue: <ProductWrapper>[])
-  List<ProductWrapper> ItemDetails;
+  @JsonKey(defaultValue: <ProductWrapper>[], name: 'ItemDetails')
+  final List<ProductWrapper> itemDetails;
 
-  factory ProductsListApiResult.fromJson(Map<String, dynamic> map) {
-    return _$ProductsListApiResultFromJson(map);
-  }
+  factory ProductsListApiResult.fromJson(Map<String, dynamic> map) =>
+      _$ProductsListApiResultFromJson(map);
+
+  Map<String, dynamic> toJson() => _$ProductsListApiResultToJson(this);
 }
 
 @JsonSerializable()
+@immutable
 class ProductWrapper {
-  ProductWrapper({
-    this.Seq,
-    required this.ItemID,
-    required this.ItemTitle,
-    required this.ItemDesc,
-    required this.ItemType,
-    required this.Price,
-    required this.CurrencyID,
+  const ProductWrapper({
+    this.seq,
+    required this.itemID,
+    required this.itemTitle,
+    required this.itemDesc,
+    required this.itemType,
+    required this.price,
+    required this.currencyID,
   });
-  @JsonKey(defaultValue: 0)
-  final int? Seq;
-  @JsonKey(defaultValue: 0)
-  final int? ItemType;
-  @JsonKey(defaultValue: '')
-  final String ItemID;
-  @JsonKey(defaultValue: '')
-  final String ItemTitle;
-  @JsonKey(defaultValue: '')
-  final String ItemDesc;
-  @JsonKey(defaultValue: 0)
-  final num Price;
-  @JsonKey(defaultValue: '')
-  final String CurrencyID;
+  @JsonKey(defaultValue: 0, name: 'Seq')
+  final int? seq;
+  @JsonKey(defaultValue: 0, name: 'ItemType')
+  final int? itemType;
+  @JsonKey(defaultValue: '', name: 'ItemID')
+  final String itemID;
+  @JsonKey(defaultValue: '', name: 'ItemTitle')
+  final String itemTitle;
+  @JsonKey(defaultValue: '', name: 'ItemDesc')
+  final String itemDesc;
+  @JsonKey(defaultValue: 0, name: 'Price')
+  final num price;
+  @JsonKey(defaultValue: '', name: 'CurrencyID')
+  final String currencyID;
 
-  factory ProductWrapper.fromJson(Map<String, dynamic> map) {
-    return _$ProductWrapperFromJson(map);
-  }
+  factory ProductWrapper.fromJson(Map<String, dynamic> map) =>
+      _$ProductWrapperFromJson(map);
+
+  Map<String, dynamic> toJson() => _$ProductWrapperToJson(this);
 }
 
 @JsonSerializable()
+@immutable
 class ProductSubscriptionInfo {
-  ProductSubscriptionInfo({
-    required this.PaymentCycle,
-    required this.PaymentCycleFrq,
-    required this.PaymentCyclePeriod,
+  const ProductSubscriptionInfo({
+    required this.paymentCycle,
+    required this.paymentCycleFrq,
+    required this.paymentCyclePeriod,
   });
-  @JsonKey(defaultValue: '')
-  final String PaymentCyclePeriod;
-  @JsonKey(defaultValue: 0)
-  final int PaymentCycleFrq;
-  @JsonKey(defaultValue: 0)
-  final int PaymentCycle;
+  @JsonKey(defaultValue: '', name: 'PaymentCyclePeriod')
+  final String paymentCyclePeriod;
+  @JsonKey(defaultValue: 0, name: 'PaymentCycleFrq')
+  final int paymentCycleFrq;
+  @JsonKey(defaultValue: 0, name: 'PaymentCycle')
+  final int paymentCycle;
 
-  factory ProductSubscriptionInfo.fromJson(Map<String, dynamic> map) {
-    return _$ProductSubscriptionInfoFromJson(map);
-  }
+  factory ProductSubscriptionInfo.fromJson(Map<String, dynamic> map) =>
+      _$ProductSubscriptionInfoFromJson(map);
+
+  Map<String, dynamic> toJson() => _$ProductSubscriptionInfoToJson(this);
 }
 
 class SamsungCheckoutProductDetails extends ProductDetails {
@@ -236,125 +243,135 @@ class SamsungCheckoutProductDetails extends ProductDetails {
 
   factory SamsungCheckoutProductDetails.fromProduct(ProductWrapper product) {
     return SamsungCheckoutProductDetails(
-      id: product.ItemID,
-      title: product.ItemTitle,
-      description: product.ItemDesc,
-      price: product.Price.toString(),
-      currencyCode: product.CurrencyID,
+      id: product.itemID,
+      title: product.itemTitle,
+      description: product.itemDesc,
+      price: product.price.toString(),
+      currencyCode: product.currencyID,
       productWrapper: product,
     );
   }
 }
 
 @JsonSerializable()
+@immutable
 class BillingResultWrapper {
-  BillingResultWrapper({required this.payResult, this.payDetails});
+  const BillingResultWrapper({required this.payResult, this.payDetails});
   @JsonKey(defaultValue: '')
   final String payResult;
   @JsonKey(defaultValue: <PaymentDetails>[])
   final List<PaymentDetails>? payDetails;
 
-  factory BillingResultWrapper.fromJson(Map<String, dynamic>? map) {
-    return _$BillingResultWrapperFromJson(map!);
-  }
+  factory BillingResultWrapper.fromJson(Map<String, dynamic> map) =>
+      _$BillingResultWrapperFromJson(map);
+
+  Map<String, dynamic> toJson() => _$BillingResultWrapperToJson(this);
 }
 
 @JsonSerializable()
+@immutable
 class PaymentDetails {
-  PaymentDetails(
-      {this.OrderItemID,
-      this.OrderTitle,
-      this.OrderTotal,
-      this.OrderCurrencyID,
-      this.InvoiceId});
-  @JsonKey(defaultValue: '')
-  final String? OrderItemID;
-  @JsonKey(defaultValue: '')
-  final String? OrderTitle;
-  @JsonKey(defaultValue: '')
-  final String? OrderTotal;
-  @JsonKey(defaultValue: '')
-  final String? OrderCurrencyID;
-  @JsonKey(defaultValue: '')
-  final String? InvoiceId;
+  const PaymentDetails(
+      {this.orderItemID,
+      this.orderTitle,
+      this.orderTotal,
+      this.orderCurrencyID,
+      this.invoiceId});
+  @JsonKey(defaultValue: '', name: 'OrderItemID')
+  final String? orderItemID;
+  @JsonKey(defaultValue: '', name: 'OrderTitle')
+  final String? orderTitle;
+  @JsonKey(defaultValue: '', name: 'OrderTotal')
+  final String? orderTotal;
+  @JsonKey(defaultValue: '', name: 'OrderCurrencyID')
+  final String? orderCurrencyID;
+  @JsonKey(defaultValue: '', name: 'InvoiceId')
+  final String? invoiceId;
 
-  factory PaymentDetails.fromJson(Map<String, dynamic> map) {
-    return _$PaymentDetailsFromJson(map);
-  }
+  factory PaymentDetails.fromJson(Map<String, dynamic> map) =>
+      _$PaymentDetailsFromJson(map);
+
+  Map<String, dynamic> toJson() => _$PaymentDetailsToJson(this);
 }
 
 @JsonSerializable()
+@immutable
 class PurchaseListAPIResult {
-  PurchaseListAPIResult(
-      {required this.CPResult,
-      required this.CPStatus,
-      required this.InvoiceDetails,
-      this.TotalCount,
-      this.CheckValue});
-  @JsonKey(defaultValue: '')
-  final String CPStatus;
-  @JsonKey(defaultValue: '')
-  final String CPResult;
-  @JsonKey(defaultValue: 0)
-  final int? TotalCount;
-  @JsonKey(defaultValue: '')
-  final String? CheckValue;
+  const PurchaseListAPIResult(
+      {required this.cPResult,
+      required this.cPStatus,
+      required this.invoiceDetails,
+      this.totalCount,
+      this.checkValue});
+  @JsonKey(defaultValue: '', name: 'CPStatus')
+  final String cPStatus;
+  @JsonKey(defaultValue: '', name: 'CPResult')
+  final String cPResult;
+  @JsonKey(defaultValue: 0, name: 'TotalCount')
+  final int? totalCount;
+  @JsonKey(defaultValue: '', name: 'CheckValue')
+  final String? checkValue;
   @JsonKey(defaultValue: <PurchaseWrapper>[])
-  final List<PurchaseWrapper> InvoiceDetails;
+  final List<PurchaseWrapper> invoiceDetails;
 
   factory PurchaseListAPIResult.fromJson(Map<String, dynamic> map) =>
       _$PurchaseListAPIResultFromJson(map);
+
+  Map<String, dynamic> toJson() => _$PurchaseListAPIResultToJson(this);
 }
 
 @JsonSerializable()
+@immutable
 class PurchaseWrapper {
-  PurchaseWrapper({
-    required this.ItemType,
-    required this.InvoiceID,
-    required this.ItemID,
-    required this.ItemTitle,
-    required this.Price,
-    required this.OrderCurrencyID,
-    required this.OrderTime,
-    required this.AppliedStatus,
-    required this.CancelStatus,
-    this.AppliedTime,
-    this.Seq,
-    this.Period,
-    this.LimitEndTime,
-    this.RemainTime,
+  const PurchaseWrapper({
+    required this.itemType,
+    required this.invoiceID,
+    required this.itemID,
+    required this.itemTitle,
+    required this.price,
+    required this.orderCurrencyID,
+    required this.orderTime,
+    required this.appliedStatus,
+    required this.cancelStatus,
+    this.appliedTime,
+    this.seq,
+    this.period,
+    this.limitEndTime,
+    this.remainTime,
   });
-  @JsonKey(defaultValue: 0)
-  final int? Seq;
-  @JsonKey(defaultValue: '')
-  final String InvoiceID;
-  @JsonKey(defaultValue: '')
-  final String ItemID;
-  @JsonKey(defaultValue: '')
-  final String ItemTitle;
-  @JsonKey(defaultValue: 0)
-  final int ItemType;
-  @JsonKey(defaultValue: '')
-  final String OrderTime;
-  @JsonKey(defaultValue: 0)
-  final int? Period;
-  @JsonKey(defaultValue: 0)
-  final num Price;
-  @JsonKey(defaultValue: '')
-  final String OrderCurrencyID;
-  @JsonKey(defaultValue: false)
-  final bool CancelStatus;
-  @JsonKey(defaultValue: false)
-  final bool AppliedStatus;
-  @JsonKey(defaultValue: '')
-  final String? AppliedTime;
-  @JsonKey(defaultValue: '')
-  final String? LimitEndTime;
-  @JsonKey(defaultValue: '')
-  final String? RemainTime;
+  @JsonKey(defaultValue: 0, name: 'Seq')
+  final int? seq;
+  @JsonKey(defaultValue: '', name: 'InvoiceID')
+  final String invoiceID;
+  @JsonKey(defaultValue: '', name: 'ItemID')
+  final String itemID;
+  @JsonKey(defaultValue: '', name: 'ItemTitle')
+  final String itemTitle;
+  @JsonKey(defaultValue: 0, name: 'ItemType')
+  final int itemType;
+  @JsonKey(defaultValue: '', name: 'OrderTime')
+  final String orderTime;
+  @JsonKey(defaultValue: 0, name: 'Period')
+  final int? period;
+  @JsonKey(defaultValue: 0, name: 'Price')
+  final num price;
+  @JsonKey(defaultValue: '', name: 'OrderCurrencyID')
+  final String orderCurrencyID;
+  @JsonKey(defaultValue: false, name: 'CancelStatus')
+  final bool cancelStatus;
+  @JsonKey(defaultValue: false, name: 'AppliedStatus')
+  final bool appliedStatus;
+  @JsonKey(defaultValue: '', name: 'AppliedTime')
+  final String? appliedTime;
+  @JsonKey(defaultValue: '', name: 'LimitEndTime')
+  final String? limitEndTime;
+  @JsonKey(defaultValue: '', name: 'RemainTime')
+  final String? remainTime;
 
   factory PurchaseWrapper.fromJson(Map<String, dynamic> map) =>
       _$PurchaseWrapperFromJson(map);
+
+  Map<String, dynamic> toJson() => _$PurchaseWrapperToJson(this);
 }
 
 class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
@@ -373,15 +390,15 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
       PurchaseWrapper purchase) {
     final SamsungCheckoutPurchaseDetails purchaseDetails =
         SamsungCheckoutPurchaseDetails(
-      purchaseID: purchase.InvoiceID,
-      productID: purchase.ItemID,
+      purchaseID: purchase.invoiceID,
+      productID: purchase.itemID,
       verificationData: PurchaseVerificationData(
-          localVerificationData: purchase.InvoiceID,
-          serverVerificationData: purchase.InvoiceID,
+          localVerificationData: purchase.invoiceID,
+          serverVerificationData: purchase.invoiceID,
           source: kIAPSource),
-      transactionDate: purchase.OrderTime.toString(),
+      transactionDate: purchase.orderTime.toString(),
       status: const PurchaseStateConverter()
-          .toPurchaseStatus(purchase.AppliedStatus),
+          .toPurchaseStatus(purchase.appliedStatus),
       purchaseWrapper: purchase,
     );
 
@@ -398,24 +415,27 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
 }
 
 @JsonSerializable()
+@immutable
 class PurchaseSubscriptionInfo {
-  PurchaseSubscriptionInfo({
-    required this.SubscriptionId,
-    required this.SubsStartTime,
-    required this.SubsEndTime,
-    required this.SubsStatus,
+  const PurchaseSubscriptionInfo({
+    required this.subscriptionId,
+    required this.subsStartTime,
+    required this.subsEndTime,
+    required this.subsStatus,
   });
-  @JsonKey(defaultValue: '')
-  String SubscriptionId;
-  @JsonKey(defaultValue: '')
-  String SubsStartTime;
-  @JsonKey(defaultValue: '')
-  String SubsEndTime;
-  @JsonKey(defaultValue: '')
-  String SubsStatus;
+  @JsonKey(defaultValue: '', name: 'SubscriptionId')
+  final String subscriptionId;
+  @JsonKey(defaultValue: '', name: 'SubsStartTime')
+  final String subsStartTime;
+  @JsonKey(defaultValue: '', name: 'SubsEndTime')
+  final String subsEndTime;
+  @JsonKey(defaultValue: '', name: 'SubsStatus')
+  final String subsStatus;
 
   factory PurchaseSubscriptionInfo.fromJson(Map<String, dynamic> map) =>
       _$PurchaseSubscriptionInfoFromJson(map);
+
+  Map<String, dynamic> toJson() => _$PurchaseSubscriptionInfoToJson(this);
 }
 
 class PurchaseStateConverter {

@@ -62,10 +62,10 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       response = await billingClient.requestProducts(identifiers.toList());
     } on PlatformException catch (e) {
       exception = e;
-      response = ProductsListApiResult(
-          CPStatus: 'fail to receive response',
-          CPResult: 'fail to receive response',
-          ItemDetails: const <ProductWrapper>[]);
+      response = const ProductsListApiResult(
+          cPStatus: 'fail to receive response',
+          cPResult: 'fail to receive response',
+          itemDetails: <ProductWrapper>[]);
     }
     if (response.result != '') {
       throw PlatformException(
@@ -75,16 +75,17 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     List<SamsungCheckoutProductDetails> productDetailsList =
         <SamsungCheckoutProductDetails>[];
 
-    productDetailsList = response.ItemDetails.map(
-        (ProductWrapper productWrapper) =>
-            SamsungCheckoutProductDetails.fromProduct(productWrapper)).toList();
+    productDetailsList = response.itemDetails
+        .map((ProductWrapper productWrapper) =>
+            SamsungCheckoutProductDetails.fromProduct(productWrapper))
+        .toList();
     List<String> invalidMessage;
-    switch (response.CPStatus) {
+    switch (response.cPStatus) {
       case "100000":
         invalidMessage = [];
         break;
       default:
-        invalidMessage = [response.CPStatus, response.CPResult];
+        invalidMessage = [response.cPStatus, response.cPResult];
     }
 
     final ProductDetailsResponse productDetailsResponse =
@@ -114,7 +115,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
     final List<PurchaseDetails> pastPurchases =
         responses.expand((PurchaseListAPIResult response) {
-      return response.InvoiceDetails;
+      return response.invoiceDetails;
     }).map((PurchaseWrapper purchaseWrapper) {
       final SamsungCheckoutPurchaseDetails purchaseDetails =
           SamsungCheckoutPurchaseDetails.fromPurchase(purchaseWrapper);

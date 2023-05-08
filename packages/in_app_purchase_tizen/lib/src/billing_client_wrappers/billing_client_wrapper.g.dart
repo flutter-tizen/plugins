@@ -25,68 +25,68 @@ Map<String, dynamic> _$IsAvailableResultToJson(IsAvailableResult instance) =>
 ProductsListApiResult _$ProductsListApiResultFromJson(
         Map<String, dynamic> json) =>
     ProductsListApiResult(
-      CPStatus: json['CPStatus'] as String? ?? '',
-      CPResult: json['CPResult'] as String? ?? '',
-      ItemDetails: (json['ItemDetails'] as List<dynamic>?)
+      cPStatus: json['CPStatus'] as String? ?? '',
+      cPResult: json['CPResult'] as String? ?? '',
+      itemDetails: (json['ItemDetails'] as List<dynamic>?)
               ?.map((e) => ProductWrapper.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
       result: json['result'] as String? ?? '',
       resultTitle: json['resultTitle'] as String? ?? '',
       status: json['status'] as String? ?? '',
-      checkValue: json['checkValue'] as String? ?? '',
-      totalCount: json['totalCount'] as int? ?? 0,
+      checkValue: json['CheckValue'] as String? ?? '',
+      totalCount: json['TotalCount'] as int? ?? 0,
     );
 
 Map<String, dynamic> _$ProductsListApiResultToJson(
         ProductsListApiResult instance) =>
     <String, dynamic>{
-      'CPStatus': instance.CPStatus,
-      'CPResult': instance.CPResult,
-      'totalCount': instance.totalCount,
-      'checkValue': instance.checkValue,
+      'CPStatus': instance.cPStatus,
+      'CPResult': instance.cPResult,
+      'TotalCount': instance.totalCount,
+      'CheckValue': instance.checkValue,
       'result': instance.result,
       'resultTitle': instance.resultTitle,
       'status': instance.status,
-      'ItemDetails': instance.ItemDetails,
+      'ItemDetails': instance.itemDetails,
     };
 
 ProductWrapper _$ProductWrapperFromJson(Map<String, dynamic> json) =>
     ProductWrapper(
-      Seq: json['Seq'] as int? ?? 0,
-      ItemID: json['ItemID'] as String? ?? '',
-      ItemTitle: json['ItemTitle'] as String? ?? '',
-      ItemDesc: json['ItemDesc'] as String? ?? '',
-      ItemType: json['ItemType'] as int? ?? 0,
-      Price: json['Price'] as num? ?? 0,
-      CurrencyID: json['CurrencyID'] as String? ?? '',
+      seq: json['Seq'] as int? ?? 0,
+      itemID: json['ItemID'] as String? ?? '',
+      itemTitle: json['ItemTitle'] as String? ?? '',
+      itemDesc: json['ItemDesc'] as String? ?? '',
+      itemType: json['ItemType'] as int? ?? 0,
+      price: json['Price'] as num? ?? 0,
+      currencyID: json['CurrencyID'] as String? ?? '',
     );
 
 Map<String, dynamic> _$ProductWrapperToJson(ProductWrapper instance) =>
     <String, dynamic>{
-      'Seq': instance.Seq,
-      'ItemType': instance.ItemType,
-      'ItemID': instance.ItemID,
-      'ItemTitle': instance.ItemTitle,
-      'ItemDesc': instance.ItemDesc,
-      'Price': instance.Price,
-      'CurrencyID': instance.CurrencyID,
+      'Seq': instance.seq,
+      'ItemType': instance.itemType,
+      'ItemID': instance.itemID,
+      'ItemTitle': instance.itemTitle,
+      'ItemDesc': instance.itemDesc,
+      'Price': instance.price,
+      'CurrencyID': instance.currencyID,
     };
 
 ProductSubscriptionInfo _$ProductSubscriptionInfoFromJson(
         Map<String, dynamic> json) =>
     ProductSubscriptionInfo(
-      PaymentCycle: json['PaymentCycle'] as int? ?? 0,
-      PaymentCycleFrq: json['PaymentCycleFrq'] as int? ?? 0,
-      PaymentCyclePeriod: json['PaymentCyclePeriod'] as String? ?? '',
+      paymentCycle: json['PaymentCycle'] as int? ?? 0,
+      paymentCycleFrq: json['PaymentCycleFrq'] as int? ?? 0,
+      paymentCyclePeriod: json['PaymentCyclePeriod'] as String? ?? '',
     );
 
 Map<String, dynamic> _$ProductSubscriptionInfoToJson(
         ProductSubscriptionInfo instance) =>
     <String, dynamic>{
-      'PaymentCyclePeriod': instance.PaymentCyclePeriod,
-      'PaymentCycleFrq': instance.PaymentCycleFrq,
-      'PaymentCycle': instance.PaymentCycle,
+      'PaymentCyclePeriod': instance.paymentCyclePeriod,
+      'PaymentCycleFrq': instance.paymentCycleFrq,
+      'PaymentCycle': instance.paymentCycle,
     };
 
 BillingResultWrapper _$BillingResultWrapperFromJson(
@@ -108,95 +108,95 @@ Map<String, dynamic> _$BillingResultWrapperToJson(
 
 PaymentDetails _$PaymentDetailsFromJson(Map<String, dynamic> json) =>
     PaymentDetails(
-      OrderItemID: json['OrderItemID'] as String? ?? '',
-      OrderTitle: json['OrderTitle'] as String? ?? '',
-      OrderTotal: json['OrderTotal'] as String? ?? '',
-      OrderCurrencyID: json['OrderCurrencyID'] as String? ?? '',
-      InvoiceId: json['InvoiceId'] as String? ?? '',
+      orderItemID: json['OrderItemID'] as String? ?? '',
+      orderTitle: json['OrderTitle'] as String? ?? '',
+      orderTotal: json['OrderTotal'] as String? ?? '',
+      orderCurrencyID: json['OrderCurrencyID'] as String? ?? '',
+      invoiceId: json['InvoiceId'] as String? ?? '',
     );
 
 Map<String, dynamic> _$PaymentDetailsToJson(PaymentDetails instance) =>
     <String, dynamic>{
-      'OrderItemID': instance.OrderItemID,
-      'OrderTitle': instance.OrderTitle,
-      'OrderTotal': instance.OrderTotal,
-      'OrderCurrencyID': instance.OrderCurrencyID,
-      'InvoiceId': instance.InvoiceId,
+      'OrderItemID': instance.orderItemID,
+      'OrderTitle': instance.orderTitle,
+      'OrderTotal': instance.orderTotal,
+      'OrderCurrencyID': instance.orderCurrencyID,
+      'InvoiceId': instance.invoiceId,
     };
 
 PurchaseListAPIResult _$PurchaseListAPIResultFromJson(
         Map<String, dynamic> json) =>
     PurchaseListAPIResult(
-      CPResult: json['CPResult'] as String? ?? '',
-      CPStatus: json['CPStatus'] as String? ?? '',
-      InvoiceDetails: (json['InvoiceDetails'] as List<dynamic>?)
+      cPResult: json['CPResult'] as String? ?? '',
+      cPStatus: json['CPStatus'] as String? ?? '',
+      invoiceDetails: (json['invoiceDetails'] as List<dynamic>?)
               ?.map((e) => PurchaseWrapper.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      TotalCount: json['TotalCount'] as int? ?? 0,
-      CheckValue: json['CheckValue'] as String? ?? '',
+      totalCount: json['TotalCount'] as int? ?? 0,
+      checkValue: json['CheckValue'] as String? ?? '',
     );
 
 Map<String, dynamic> _$PurchaseListAPIResultToJson(
         PurchaseListAPIResult instance) =>
     <String, dynamic>{
-      'CPStatus': instance.CPStatus,
-      'CPResult': instance.CPResult,
-      'TotalCount': instance.TotalCount,
-      'CheckValue': instance.CheckValue,
-      'InvoiceDetails': instance.InvoiceDetails,
+      'CPStatus': instance.cPStatus,
+      'CPResult': instance.cPResult,
+      'TotalCount': instance.totalCount,
+      'CheckValue': instance.checkValue,
+      'invoiceDetails': instance.invoiceDetails,
     };
 
 PurchaseWrapper _$PurchaseWrapperFromJson(Map<String, dynamic> json) =>
     PurchaseWrapper(
-      ItemType: json['ItemType'] as int? ?? 0,
-      InvoiceID: json['InvoiceID'] as String? ?? '',
-      ItemID: json['ItemID'] as String? ?? '',
-      ItemTitle: json['ItemTitle'] as String? ?? '',
-      Price: json['Price'] as num? ?? 0,
-      OrderCurrencyID: json['OrderCurrencyID'] as String? ?? '',
-      OrderTime: json['OrderTime'] as String? ?? '',
-      AppliedStatus: json['AppliedStatus'] as bool? ?? false,
-      CancelStatus: json['CancelStatus'] as bool? ?? false,
-      AppliedTime: json['AppliedTime'] as String? ?? '',
-      Seq: json['Seq'] as int? ?? 0,
-      Period: json['Period'] as int? ?? 0,
-      LimitEndTime: json['LimitEndTime'] as String? ?? '',
-      RemainTime: json['RemainTime'] as String? ?? '',
+      itemType: json['ItemType'] as int? ?? 0,
+      invoiceID: json['InvoiceID'] as String? ?? '',
+      itemID: json['ItemID'] as String? ?? '',
+      itemTitle: json['ItemTitle'] as String? ?? '',
+      price: json['Price'] as num? ?? 0,
+      orderCurrencyID: json['OrderCurrencyID'] as String? ?? '',
+      orderTime: json['OrderTime'] as String? ?? '',
+      appliedStatus: json['AppliedStatus'] as bool? ?? false,
+      cancelStatus: json['CancelStatus'] as bool? ?? false,
+      appliedTime: json['AppliedTime'] as String? ?? '',
+      seq: json['Seq'] as int? ?? 0,
+      period: json['Period'] as int? ?? 0,
+      limitEndTime: json['LimitEndTime'] as String? ?? '',
+      remainTime: json['RemainTime'] as String? ?? '',
     );
 
 Map<String, dynamic> _$PurchaseWrapperToJson(PurchaseWrapper instance) =>
     <String, dynamic>{
-      'Seq': instance.Seq,
-      'InvoiceID': instance.InvoiceID,
-      'ItemID': instance.ItemID,
-      'ItemTitle': instance.ItemTitle,
-      'ItemType': instance.ItemType,
-      'OrderTime': instance.OrderTime,
-      'Period': instance.Period,
-      'Price': instance.Price,
-      'OrderCurrencyID': instance.OrderCurrencyID,
-      'CancelStatus': instance.CancelStatus,
-      'AppliedStatus': instance.AppliedStatus,
-      'AppliedTime': instance.AppliedTime,
-      'LimitEndTime': instance.LimitEndTime,
-      'RemainTime': instance.RemainTime,
+      'Seq': instance.seq,
+      'InvoiceID': instance.invoiceID,
+      'ItemID': instance.itemID,
+      'ItemTitle': instance.itemTitle,
+      'ItemType': instance.itemType,
+      'OrderTime': instance.orderTime,
+      'Period': instance.period,
+      'Price': instance.price,
+      'OrderCurrencyID': instance.orderCurrencyID,
+      'CancelStatus': instance.cancelStatus,
+      'AppliedStatus': instance.appliedStatus,
+      'AppliedTime': instance.appliedTime,
+      'LimitEndTime': instance.limitEndTime,
+      'RemainTime': instance.remainTime,
     };
 
 PurchaseSubscriptionInfo _$PurchaseSubscriptionInfoFromJson(
         Map<String, dynamic> json) =>
     PurchaseSubscriptionInfo(
-      SubscriptionId: json['SubscriptionId'] as String? ?? '',
-      SubsStartTime: json['SubsStartTime'] as String? ?? '',
-      SubsEndTime: json['SubsEndTime'] as String? ?? '',
-      SubsStatus: json['SubsStatus'] as String? ?? '',
+      subscriptionId: json['SubscriptionId'] as String? ?? '',
+      subsStartTime: json['SubsStartTime'] as String? ?? '',
+      subsEndTime: json['SubsEndTime'] as String? ?? '',
+      subsStatus: json['SubsStatus'] as String? ?? '',
     );
 
 Map<String, dynamic> _$PurchaseSubscriptionInfoToJson(
         PurchaseSubscriptionInfo instance) =>
     <String, dynamic>{
-      'SubscriptionId': instance.SubscriptionId,
-      'SubsStartTime': instance.SubsStartTime,
-      'SubsEndTime': instance.SubsEndTime,
-      'SubsStatus': instance.SubsStatus,
+      'SubscriptionId': instance.subscriptionId,
+      'SubsStartTime': instance.subsStartTime,
+      'SubsEndTime': instance.subsEndTime,
+      'SubsStatus': instance.subsStatus,
     };
