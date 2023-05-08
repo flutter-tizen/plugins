@@ -15,7 +15,7 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 ```yaml
 dependencies:
   video_player: ^2.4.2
-  video_player_tizen: ^2.4.6
+  video_player_tizen: ^2.4.7
 ```
 
 Then you can import `video_player` in your Dart code:
@@ -40,11 +40,13 @@ To use this plugin in a Tizen application, you may need to declare the following
 
 - The mediastorage privilege (`http://tizen.org/privilege/mediastorage`) is required to play video files located in the internal storage.
 - The externalstorage privilege (`http://tizen.org/privilege/externalstorage`) is required to play video files located in the external storage.
-- The internet privilege (`http://tizen.org/privilege/internet`) is required to play any URLs from network.
+- The internet privilege (`http://tizen.org/privilege/internet`) is required to play any URL from the network.
 
 For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
 
 ## Limitations
+
+This plugin is not supported on TV emulators.
 
 The following options are not supported on Tizen.
 
@@ -54,6 +56,6 @@ The following options are not supported on Tizen.
 
 This plugin has some limitations on TV devices.
 
-- The `setPlaybackSpeed` method will fail if triggered within last 3 seconds.
-- The playback speed will reset to 1.0 when video is replayed in loop mode.
-- The `seekTo` method works only when playback speed is 1.0, and it sets video position to the nearest key frame which may differ from the passed argument.
+- The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
+- The playback speed will reset to 1.0 when the video is replayed in loop mode.
+- The `seekTo` method works only when the playback speed is 1.0, and it sets the video position to the nearest keyframe, not the exact value passed.
