@@ -15,32 +15,34 @@
 #include <vector>
 
 #include "billing_service_proxy.h"
-// #include "hmac.h"
-// #include "messages.h"
 
 class BillingManager {
  public:
-  BillingManager(flutter::PluginRegistrar *plugin_registrar);
+  explicit BillingManager(flutter::PluginRegistrar *plugin_registrar);
   ~BillingManager(){};
+
   bool Init();
+  void Dispose();
+
+ private:
   bool BillingIsAvailable();
+  bool BuyItem(const flutter::EncodableMap *encodables);
   bool GetProductList(const flutter::EncodableMap *encodables);
   bool GetPurchaseList(const flutter::EncodableMap *encodables);
-  bool BuyItem(const flutter::EncodableMap *encodables);
+
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  void Dispose();
   void SendResult(const flutter::EncodableValue &result);
 
- private:
-  static void OnProducts(const char *detailResult, void *pUser);
-  static void OnPurchase(const char *detailResult, void *pUser);
-  static bool OnBuyItem(const char *payResult, const char *detailInfo,
-                        void *pUser);
-  static void OnAvailable(const char *detailResult, void *pUser);
+  static void OnProducts(const char *detail_result, void *user_data);
+  static void OnPurchase(const char *detail_result, void *user_data);
+  static bool OnBuyItem(const char *pay_result, const char *detail_info,
+                        void *user_data);
+  static void OnAvailable(const char *detail_result, void *user_data);
 
   void *billing_api_handle_ = nullptr;
+
   std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
       method_result_ = nullptr;
   flutter::PluginRegistrar *plugin_registrar_ = nullptr;
