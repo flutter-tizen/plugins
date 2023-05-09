@@ -21,7 +21,6 @@ const String kIAPSource = 'samsung_checkout';
 /// This translates various `BillingManager` calls and responses into the
 /// generic plugin API.
 class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
-  InAppPurchaseTizenPlatform();
   InAppPurchaseTizenPlatform._() {
     billingManager = BillingManager();
 
@@ -62,7 +61,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
   @override
   Future<bool> isAvailable() async {
-    return await billingManager.isAvailable();
+    return billingManager.isAvailable();
   }
 
   @override
@@ -92,13 +91,12 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
         .map((ItemDetails productWrapper) =>
             SamsungCheckoutProductDetails.fromProduct(productWrapper))
         .toList();
-    List<String> invalidMessage;
+    final List<String> invalidMessage = <String>[];
     switch (response.cPStatus) {
-      case "100000":
-        invalidMessage = [];
+      case '100000':
         break;
       default:
-        invalidMessage = [response.cPStatus, response.cPResult];
+        invalidMessage.add(response.toJson().toString());
     }
 
     final ProductDetailsResponse productDetailsResponse =

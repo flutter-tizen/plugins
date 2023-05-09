@@ -10,8 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../in_app_purchase_tizen_platform.dart';
 import '../channel.dart';
+import '../in_app_purchase_tizen_platform.dart';
 
 // WARNING: Changes to `@JsonSerializable` classes need to be reflected in the
 // below generated file. Run `flutter-tizen packages pub run build_runner watch` to
@@ -40,7 +40,8 @@ class BillingManager {
       );
     }
     final ServiceAvailableAPIResult isAvailable =
-        ServiceAvailableAPIResult.fromJson(json.decode(isAvailableResult));
+        ServiceAvailableAPIResult.fromJson(
+            json.decode(isAvailableResult) as Map<String, dynamic>);
     final bool resultRet;
     switch (isAvailable.result) {
       case 'Success':
@@ -57,8 +58,7 @@ class BillingManager {
   /// to retrieves the list of products registered on the Billing (DPI) server.
   Future<ProductsListApiResult> requestProducts(
       List<String> requestparameters) async {
-    final String? productResponse =
-        await channel.invokeMethod<String?>('getProductList', {
+    final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': requestparameters[0],
       'countryCode': requestparameters[1],
       'itemType': requestparameters[2],
@@ -66,15 +66,18 @@ class BillingManager {
       'pageNum': int.parse(requestparameters[4]),
       'serverType': requestparameters[5],
       'checkValue': requestparameters[6],
-    });
+    };
 
+    final String? productResponse =
+        await channel.invokeMethod<String?>('getProductList', arguments);
     if (productResponse == null) {
       throw PlatformException(
         code: 'no_response',
         message: 'Failed to get response from platform.',
       );
     }
-    return ProductsListApiResult.fromJson(json.decode(productResponse));
+    return ProductsListApiResult.fromJson(
+        json.decode(productResponse) as Map<String, dynamic>);
   }
 
   /// Calls
@@ -82,22 +85,25 @@ class BillingManager {
   /// to retrieves the user's purchase list.
   Future<GetUserPurchaseListAPIResult> requestPurchases(
       String? costomId, List<String> requestparameters) async {
-    final String? purchaseResponse =
-        await channel.invokeMethod<String?>('getPurchaseList', {
+    final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': requestparameters[0],
-      'customId': costomId as String,
+      'customId': costomId,
       'countryCode': requestparameters[1],
       'pageNum': int.parse(requestparameters[4]),
       'serverType': requestparameters[5],
       'checkValue': requestparameters[7],
-    });
+    };
+
+    final String? purchaseResponse =
+        await channel.invokeMethod<String?>('getPurchaseList', arguments);
     if (purchaseResponse == null) {
       throw PlatformException(
         code: 'no_response',
         message: 'Failed to get response from platform.',
       );
     }
-    return GetUserPurchaseListAPIResult.fromJson(json.decode(purchaseResponse));
+    return GetUserPurchaseListAPIResult.fromJson(
+        json.decode(purchaseResponse) as Map<String, dynamic>);
   }
 
   /// Calls
@@ -119,12 +125,13 @@ class BillingManager {
       'OrderCurrencyID': orderCurrencyId
     };
 
+    final Map<String, dynamic> arguments = <String, dynamic>{
+      'appId': appId,
+      'serverType': serverType,
+      'payDetails': json.encode(orderDetails)
+    };
     final Map<String, dynamic> map =
-        await channel.invokeMapMethod<String, dynamic>('buyItem', {
-              "appId": appId,
-              "serverType": serverType,
-              "payDetails": json.encode(orderDetails)
-            }) ??
+        await channel.invokeMapMethod<String, dynamic>('buyItem', arguments) ??
             <String, dynamic>{};
     return BillingBuyData.fromJson(map);
   }
@@ -137,6 +144,7 @@ class BillingManager {
 @JsonSerializable()
 @immutable
 class ServiceAvailableAPIResult {
+  /// Creates a [ServiceAvailableAPIResult] with the given purchase details.
   const ServiceAvailableAPIResult({
     required this.status,
     required this.result,
@@ -150,6 +158,7 @@ class ServiceAvailableAPIResult {
   factory ServiceAvailableAPIResult.fromJson(Map<String, dynamic> json) =>
       _$ServiceAvailableAPIResultFromJson(json);
 
+  /// Constructs an instance of this to a json string.
   Map<String, dynamic> toJson() => _$ServiceAvailableAPIResultToJson(this);
 
   /// The result code of connecting to billing server.
@@ -175,6 +184,7 @@ class ServiceAvailableAPIResult {
 @JsonSerializable()
 @immutable
 class ProductsListApiResult {
+  /// Creates a [ProductsListApiResult] with the given purchase details.
   const ProductsListApiResult({
     required this.cPStatus,
     required this.cPResult,
@@ -190,6 +200,7 @@ class ProductsListApiResult {
   factory ProductsListApiResult.fromJson(Map<String, dynamic> json) =>
       _$ProductsListApiResultFromJson(json);
 
+  /// Constructs an instance of this to a json string.
   Map<String, dynamic> toJson() => _$ProductsListApiResultToJson(this);
 
   /// DPI result code.
@@ -224,6 +235,7 @@ class ProductsListApiResult {
 @JsonSerializable()
 @immutable
 class ItemDetails {
+  /// Creates a [ItemDetails] with the given purchase details.
   const ItemDetails({
     required this.seq,
     required this.itemID,
@@ -241,6 +253,7 @@ class ItemDetails {
   factory ItemDetails.fromJson(Map<String, dynamic> json) =>
       _$ItemDetailsFromJson(json);
 
+  /// Constructs an instance of this to a json string.
   Map<String, dynamic> toJson() => _$ItemDetailsToJson(this);
 
   /// Sequence number (1 ~ TotalCount).
@@ -283,6 +296,7 @@ class ItemDetails {
 @JsonSerializable()
 @immutable
 class ProductSubscriptionInfo {
+  /// Creates a [ProductSubscriptionInfo] with the given purchase details.
   const ProductSubscriptionInfo({
     required this.paymentCycle,
     required this.paymentCycleFrq,
@@ -296,6 +310,7 @@ class ProductSubscriptionInfo {
   factory ProductSubscriptionInfo.fromJson(Map<String, dynamic> json) =>
       _$ProductSubscriptionInfoFromJson(json);
 
+  /// Constructs an instance of this to a json string.
   Map<String, dynamic> toJson() => _$ProductSubscriptionInfoToJson(this);
 
   /// Subscription payment period:
@@ -314,30 +329,37 @@ class ProductSubscriptionInfo {
   final int paymentCycle;
 }
 
+/// The class represents the information of a product as registered in at
+/// Samsung Checkout DPI portal.
 class SamsungCheckoutProductDetails extends ProductDetails {
+  /// Creates a new Samsung Checkout specific product details object with the
+  /// provided details.
   SamsungCheckoutProductDetails({
     required super.id,
     required super.title,
     required super.description,
     required super.price,
     required super.currencyCode,
-    required this.productWrapper,
+    required this.itemDetails,
     super.rawPrice = 0.0,
     super.currencySymbol,
   });
 
-  final ItemDetails productWrapper;
-
-  factory SamsungCheckoutProductDetails.fromProduct(ItemDetails product) {
+  /// Generate a [SamsungCheckoutProductDetails] object based on [ItemDetails] object.
+  factory SamsungCheckoutProductDetails.fromProduct(ItemDetails itemDetails) {
     return SamsungCheckoutProductDetails(
-      id: product.itemID,
-      title: product.itemTitle,
-      description: product.itemDesc,
-      price: product.price.toString(),
-      currencyCode: product.currencyID,
-      productWrapper: product,
+      id: itemDetails.itemID,
+      title: itemDetails.itemTitle,
+      description: itemDetails.itemDesc,
+      price: itemDetails.price.toString(),
+      currencyCode: itemDetails.currencyID,
+      itemDetails: itemDetails,
     );
   }
+
+  /// Points back to the [ItemDetails] object that was used to generate
+  /// this [SamsungCheckoutProductDetails] object.
+  final ItemDetails itemDetails;
 }
 
 /// Dart wrapper around [`BillingBuyData`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingBuyData).
@@ -346,6 +368,7 @@ class SamsungCheckoutProductDetails extends ProductDetails {
 @JsonSerializable()
 @immutable
 class BillingBuyData {
+  /// Creates a [BillingBuyData] with the given purchase details.
   const BillingBuyData({required this.payResult, required this.payDetails});
 
   /// Constructs an instance of this from a json string.
@@ -355,6 +378,7 @@ class BillingBuyData {
   factory BillingBuyData.fromJson(Map<String, dynamic> json) =>
       _$BillingBuyDataFromJson(json);
 
+  /// Constructs an instance of this to a json string.
   Map<String, dynamic> toJson() => _$BillingBuyDataToJson(this);
 
   /// The payment result
@@ -373,6 +397,7 @@ class BillingBuyData {
 @JsonSerializable()
 @immutable
 class GetUserPurchaseListAPIResult {
+  /// Creates a [GetUserPurchaseListAPIResult] with the given purchase details.
   const GetUserPurchaseListAPIResult(
       {required this.cPResult,
       required this.cPStatus,
@@ -387,6 +412,7 @@ class GetUserPurchaseListAPIResult {
   factory GetUserPurchaseListAPIResult.fromJson(Map<String, dynamic> json) =>
       _$GetUserPurchaseListAPIResultFromJson(json);
 
+  /// Constructs an instance of this to a json string.
   Map<String, dynamic> toJson() => _$GetUserPurchaseListAPIResultToJson(this);
 
   /// It returns "100000" in success and other codes in failure. Refer to DPI Error Code.
@@ -409,7 +435,7 @@ class GetUserPurchaseListAPIResult {
   final String? checkValue;
 
   /// InvoiceDetailsin JSON format.
-  @JsonKey(defaultValue: <InvoiceDetails>[])
+  @JsonKey(defaultValue: <InvoiceDetails>[], name: 'InvoiceDetails')
   final List<InvoiceDetails> invoiceDetails;
 }
 
@@ -420,6 +446,7 @@ class GetUserPurchaseListAPIResult {
 @JsonSerializable()
 @immutable
 class InvoiceDetails {
+  /// Creates a [InvoiceDetails] with the given purchase details.
   const InvoiceDetails({
     required this.seq,
     required this.invoiceID,
@@ -444,6 +471,7 @@ class InvoiceDetails {
   factory InvoiceDetails.fromJson(Map<String, dynamic> json) =>
       _$InvoiceDetailsFromJson(json);
 
+  /// Constructs an instance of this to a json string.
   Map<String, dynamic> toJson() => _$InvoiceDetailsToJson(this);
 
   /// Sequence number (1 ~ TotalCount).
@@ -518,6 +546,7 @@ class InvoiceDetails {
 @JsonSerializable()
 @immutable
 class PurchaseSubscriptionInfo {
+  /// Creates a [PurchaseSubscriptionInfo] with the given purchase details.
   const PurchaseSubscriptionInfo({
     required this.subscriptionId,
     required this.subsStartTime,
@@ -532,6 +561,7 @@ class PurchaseSubscriptionInfo {
   factory PurchaseSubscriptionInfo.fromJson(Map<String, dynamic> json) =>
       _$PurchaseSubscriptionInfoFromJson(json);
 
+  /// Constructs an instance of this to a json string.
   Map<String, dynamic> toJson() => _$PurchaseSubscriptionInfoToJson(this);
 
   /// ID of subscription history.
@@ -557,31 +587,34 @@ class PurchaseSubscriptionInfo {
   final String subsStatus;
 }
 
+/// The class represents the information of a purchase made using Samsung Checkout.
 class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
+  /// Creates a new Samsung Checkout specific purchase details object with the
+  /// provided details.
   SamsungCheckoutPurchaseDetails({
     required super.productID, //itemID
     required super.purchaseID,
     required super.status,
     required super.transactionDate,
     required super.verificationData,
-    required this.purchaseWrapper, //invoiceID
+    required this.invoiceDetails, //invoiceID
   });
 
-  final InvoiceDetails purchaseWrapper;
-
-  factory SamsungCheckoutPurchaseDetails.fromPurchase(InvoiceDetails purchase) {
+  /// Generate a [SamsungCheckoutPurchaseDetails] object based on [PurchaseDetails] object.
+  factory SamsungCheckoutPurchaseDetails.fromPurchase(
+      InvoiceDetails invoiceDetails) {
     final SamsungCheckoutPurchaseDetails purchaseDetails =
         SamsungCheckoutPurchaseDetails(
-      purchaseID: purchase.invoiceID,
-      productID: purchase.itemID,
+      purchaseID: invoiceDetails.invoiceID,
+      productID: invoiceDetails.itemID,
       verificationData: PurchaseVerificationData(
-          localVerificationData: purchase.invoiceID,
-          serverVerificationData: purchase.invoiceID,
+          localVerificationData: invoiceDetails.invoiceID,
+          serverVerificationData: invoiceDetails.invoiceID,
           source: kIAPSource),
-      transactionDate: purchase.orderTime.toString(),
+      transactionDate: invoiceDetails.orderTime,
       status: const PurchaseStateConverter()
-          .toPurchaseStatus(purchase.appliedStatus),
-      purchaseWrapper: purchase,
+          .toPurchaseStatus(invoiceDetails.appliedStatus),
+      invoiceDetails: invoiceDetails,
     );
 
     if (purchaseDetails.status == PurchaseStatus.error) {
@@ -594,12 +627,18 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
 
     return purchaseDetails;
   }
+
+  /// Points back to the [InvoiceDetails] which was used to generate this
+  /// [SamsungCheckoutPurchaseDetails] object.
+  final InvoiceDetails invoiceDetails;
 }
 
+/// Convert bool value to purchase status.ll
 class PurchaseStateConverter {
   /// Default const constructor.
   const PurchaseStateConverter();
 
+  /// Converts the purchase state stored in `object` to a [PurchaseStatus].
   PurchaseStatus toPurchaseStatus(bool object) {
     switch (object) {
       case false:
