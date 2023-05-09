@@ -302,7 +302,6 @@ class _MyAppState extends State<_MyApp> {
 
   Future<void> deliverProduct(PurchaseDetails purchaseDetails) async {
     // IMPORTANT!! Always verify purchase details before delivering the product.
-    // todo: deliverProduct
     setState(() {
       _purchases.add(purchaseDetails);
       _purchasePending = false;
