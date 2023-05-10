@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `sqflite`. Therefore, you ha
 
 ```yaml
 dependencies:
-  sqflite: ^2.0.1
-  sqflite_tizen: ^0.1.1
+  sqflite: ^2.2.8
+  sqflite_tizen: ^0.1.2
 ```
 
 Then you can import `sqflite` in your Dart code:

@@ -10,7 +10,7 @@ dependencies:
   collection: any
   flutter:
     sdk: flutter
-  sqflite: ^2.0.0
+  sqflite: ^2.2.8
   sqflite_common:
   sqflite_tizen:
     path: ../
