@@ -14,14 +14,18 @@
 #include "billing_manager.h"
 #include "log.h"
 
+namespace {
+
 class InAppPurchaseTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *plugin_registrar);
+
   InAppPurchaseTizenPlugin(flutter::PluginRegistrar *plugin_registrar);
   virtual ~InAppPurchaseTizenPlugin() { Dispose(); }
 
  private:
   void Dispose();
+
   flutter::PluginRegistrar *plugin_registrar_ = nullptr;
   std::unique_ptr<BillingManager> billing_ = nullptr;
 };
@@ -47,6 +51,8 @@ InAppPurchaseTizenPlugin::InAppPurchaseTizenPlugin(
     Dispose();
   }
 }
+
+}  // namespace
 
 void InAppPurchaseTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {

@@ -6,8 +6,6 @@
 
 #include <dlfcn.h>
 
-#include "log.h"
-
 FuncGetProductslist service_billing_get_products_list = nullptr;
 FuncGetpurchaselist service_billing_get_purchase_list = nullptr;
 FuncServiceBillingIsServiceAvailable service_billing_is_service_available =
@@ -15,56 +13,49 @@ FuncServiceBillingIsServiceAvailable service_billing_is_service_available =
 FuncBillingBuyItem service_billing_buyitem = nullptr;
 FuncBillingSetBuyItemCb service_billing_set_buyitem_cb = nullptr;
 
-void *Dlsym(void *handle, const char *name) {
-  if (!handle) {
-    LOG_ERROR("[DrmManagerService] dlsym failed, handle is null");
-    return nullptr;
-  }
-  return dlsym(handle, name);
-}
-
 void *OpenBillingApi() { return dlopen("libbilling_api.so", RTLD_LAZY); }
 
-void *OpenSsoApi() { return dlopen("libsso_api.so", RTLD_LAZY); }
-
 int InitBillingApi(void *handle) {
+  if (!handle) {
+    return 0;
+  }
+
   service_billing_get_products_list = reinterpret_cast<FuncGetProductslist>(
-      Dlsym(handle, "service_billing_get_products_list"));
-  if (service_billing_get_products_list == nullptr) {
+      dlsym(handle, "service_billing_get_products_list"));
+  if (!service_billing_get_products_list) {
     return 0;
   }
 
   service_billing_get_purchase_list = reinterpret_cast<FuncGetpurchaselist>(
-      Dlsym(handle, "service_billing_get_purchase_list"));
-  if (service_billing_get_purchase_list == nullptr) {
+      dlsym(handle, "service_billing_get_purchase_list"));
+  if (!service_billing_get_purchase_list) {
     return 0;
   }
 
   service_billing_is_service_available =
       reinterpret_cast<FuncServiceBillingIsServiceAvailable>(
-          Dlsym(handle, "service_billing_is_service_available"));
-  if (service_billing_is_service_available == nullptr) {
+          dlsym(handle, "service_billing_is_service_available"));
+  if (!service_billing_is_service_available) {
     return 0;
   }
 
   service_billing_buyitem = reinterpret_cast<FuncBillingBuyItem>(
-      Dlsym(handle, "service_billing_buyitem"));
-  if (service_billing_buyitem == nullptr) {
+      dlsym(handle, "service_billing_buyitem"));
+  if (!service_billing_buyitem) {
     return 0;
   }
 
   service_billing_set_buyitem_cb = reinterpret_cast<FuncBillingSetBuyItemCb>(
-      Dlsym(handle, "service_billing_set_buyitem_cb"));
-  if (service_billing_set_buyitem_cb == nullptr) {
+      dlsym(handle, "service_billing_set_buyitem_cb"));
+  if (!service_billing_set_buyitem_cb) {
     return 0;
   }
+
   return 1;
 }
 
-int CloseBillingApi(void *handle) {
-  if (handle == nullptr) {
-    LOG_ERROR("[BillingApi] handle is null");
-    return -1;
+void CloseBillingApi(void *handle) {
+  if (handle) {
+    dlclose(handle);
   }
-  return dlclose(handle);
 }
