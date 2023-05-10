@@ -1,8 +1,3 @@
-// Copyright (c) 2018 湖北捷智云技术有限公司. All rights reserved.
-//
-// Distributed under the MIT software license, see the accompanying
-// file LICENSE.
-
 #include "flutter_video_renderer.h"
 
 namespace flutter_webrtc_plugin {
@@ -125,11 +120,12 @@ void FlutterVideoRendererManager::CreateVideoRendererTexture(
   result->Success(EncodableValue(params));
 }
 
-void FlutterVideoRendererManager::SetMediaStream(
-    int64_t texture_id, const std::string& stream_id,
-    const std::string& peerConnectionId) {
+void FlutterVideoRendererManager::SetMediaStream(int64_t texture_id,
+                                                 const std::string& stream_id,
+                                                 const std::string& ownerTag) {
   scoped_refptr<RTCMediaStream> stream =
-      base_->MediaStreamForId(stream_id, peerConnectionId);
+      base_->MediaStreamForId(stream_id, ownerTag);
+
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
     FlutterVideoRenderer* renderer = it->second.get();

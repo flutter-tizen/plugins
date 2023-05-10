@@ -185,7 +185,7 @@ class _CallSampleState extends State<CallSample> {
 
   void _accept() {
     if (_session != null) {
-      _signaling?.accept(_session!.sid);
+      _signaling?.accept(_session!.sid, 'video');
     }
   }
 
