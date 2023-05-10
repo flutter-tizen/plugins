@@ -4,7 +4,7 @@ The Tizen implementation of [`in_app_purchase`](https://pub.dev/packages/in_app_
 
 ## Supported devices
 
-This plugin is supported only on Smart TVs running Tizen 4.0 or above.
+This plugin is supported only on Smart TVs running Tizen 4.0 and above.
 
 ## Required privileges
 
@@ -29,8 +29,11 @@ There is a list of steps before start in-app purchase:
 
 1. Registering your application at the [Samsung Apps TV Seller Office](https://seller.samsungapps.com/tv/).You do not need to complete the registration with your source code at this point. To be able to use the DPI portal, you need to proceed to the second step of the App Registration Page and set the "Billing Info" field to "Use" and the "Samsung Checkout" field to "Yes".You can save the registration at this point and return to it later when your source code is complete.You can see more information in [Application Publication Process](https://developer.samsung.com/tv-seller-office/application-publication-process.html).
 
-2. Login to [Samsung Checkout DPI portal](https://dpi.samsungcheckout.com/) and configure product.You can see more information in [Samsung Checkout DPI Portal](https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/samsung-checkout-dpi-portal.html#Overview).
+2. Login to [Samsung Checkout DPI portal](https://dpi.samsungcheckout.com/) and configure product.You can find the following aruments in example:
+   -`_kAppId`: The APP ID in [APP Details Setting](https://dpi.samsungcheckout.com/settings/appdetails).
+   -`_kSecurityKey`: The Security Key in [APP Details Setting](https://dpi.samsungcheckout.com/settings/appdetails).
 
+See [here](https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/implementing-the-purchase-process.html#Prerequisites) for more prerequisites information.
 
 ## Usage
 
@@ -39,7 +42,7 @@ This package is not an _endorsed_ implementation of `in_app_purchase`. Therefore
 ```yaml
 dependencies:
   in_app_purchase: ^3.1.4
-  in_app_purchase_tizen: ^1.0.0
+  in_app_purchase_tizen: ^0.1.0
 ```
 
 Then you can import in_app_purchase and in_app_purchase_tizen in your Dart code:
@@ -51,10 +54,10 @@ import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 
 ## Supported APIs
 
-- [x] `purchaseStream` (update purchase list)
-- [x] `isAvailable` (return true if billing client is available)
-- [x] `queryProductDetails` (request product list)
-- [x] `buyNonConsumable` (items can only be bought once)
-- [x] `buyConsumable` (items can be bought additional times)
+- [x] `purchaseStream`
+- [x] `isAvailable`
+- [x] `queryProductDetails`
+- [x] `buyNonConsumable`
+- [x] `buyConsumable`
 - [ ] `completePurchase` (Andriod/IOS-only)
-- [x] `restorePurchases` (restore previous purchase)
+- [x] `restorePurchases`
