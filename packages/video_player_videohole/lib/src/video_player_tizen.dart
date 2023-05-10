@@ -14,7 +14,7 @@ import 'messages.g.dart';
 /// An implementation of [VideoPlayerPlatform] that uses the
 /// Pigeon-generated [TizenVideoPlayerApi].
 class VideoPlayerTizen extends VideoPlayerPlatform {
-  final TizenVideoPlayerApi _api = TizenVideoPlayerApi();
+  final VideoPlayerVideoholeApi _api = VideoPlayerVideoholeApi();
 
   @override
   Future<void> init() {
@@ -164,7 +164,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   EventChannel _eventChannelFor(int playerId) {
-    return EventChannel('flutter.io/videoPlayer/videoEvents$playerId');
+    return EventChannel('tizen/video_player/video_events_$playerId');
   }
 
   static const Map<VideoFormat, String> _videoFormatStringMap =
