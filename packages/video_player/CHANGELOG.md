@@ -1,3 +1,7 @@
+## 2.4.6
+
+* Fix memory leak issue.
+
 ## 2.4.5
 
 * Update README with supported devices information.
