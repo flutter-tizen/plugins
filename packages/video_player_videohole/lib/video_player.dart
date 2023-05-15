@@ -824,8 +824,8 @@ class _VideoPlayerState extends State<VideoPlayer> {
     if (renderObject == null) {
       return Rect.zero;
     }
-    final double pixelRatio =
-        View.of(_videoBoxKey.currentContext!).devicePixelRatio;
+    // ignore: deprecated_member_use
+    final double pixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
     final RenderBox renderBox = renderObject as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero) * pixelRatio;
     final Size size = renderBox.size * pixelRatio;
