@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 0.2.2
 
 * Add threading to `AppManager.getInstalledApps` to prevent app freezing.

@@ -1,6 +1,6 @@
 ## NEXT
 
-* Remove unused flutter_lints dependency.
+* Increase the minimum Flutter version to 3.3.
 
 ## 0.1.1
 

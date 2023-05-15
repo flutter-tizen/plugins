@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 2.0.0
 
 * Add audioplayers_platform_interface dependency and update method calls.

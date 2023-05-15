@@ -1,5 +1,6 @@
 ## NEXT
 
+* Increase the minimum Flutter version to 3.3.
 * Replace effective_dart dependency with flutter_lints.
 
 ## 1.2.1

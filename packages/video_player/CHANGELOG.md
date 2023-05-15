@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 2.4.5
 
 * Update README with supported devices information.

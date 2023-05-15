@@ -1,6 +1,7 @@
 ## NEXT
 
-* Remove use of the deprecated API `WidgetsBinding.instance.window`.
+* Increase the minimum Flutter version to 3.3.
+* Remove use of deprecated `WidgetsBinding.instance.window`.
 
 ## 0.1.1
 

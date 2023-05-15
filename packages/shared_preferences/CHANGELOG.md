@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 2.1.0
 
 * Migrate FFI implementation to tizen_interop.

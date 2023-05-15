@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 1.3.0
 
 * Limit the range of `setSpeechRate` to be between 0.0 and 1.0.

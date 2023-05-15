@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 0.1.5
 
 * Update the example app (`9990a4b1d72158a14924d712e89d4efef3f178d2`).
