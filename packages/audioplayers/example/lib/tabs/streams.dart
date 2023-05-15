@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 class StreamsTab extends StatefulWidget {
   final AudioPlayer player;
 
-  const StreamsTab({Key? key, required this.player}) : super(key: key);
+  const StreamsTab({super.key, required this.player});
 
   @override
   State<StreamsTab> createState() => _StreamsTabState();

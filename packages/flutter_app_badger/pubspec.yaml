@@ -1,8 +1,12 @@
 name: flutter_app_badger_tizen
-description: Tizen implementation of the flutter_app_badger plugin
+description: Tizen implementation of the flutter_app_badger plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_app_badger_tizen
 version: 0.1.0
+
+environment:
+  sdk: ">=2.17.0 <4.0.0"
+  flutter: ">=3.0.0"
 
 flutter:
   plugin:
@@ -14,7 +18,3 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-
-environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=2.5.0"

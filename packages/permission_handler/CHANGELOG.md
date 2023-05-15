@@ -1,3 +1,7 @@
+## NEXT
+
+* Replace effective_dart dependency with flutter_lints.
+
 ## 1.2.1
 
 * Code refactoring.

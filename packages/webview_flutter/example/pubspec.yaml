@@ -1,9 +1,9 @@
 name: webview_flutter_tizen_example
 description: Demonstrates how to use the webview_flutter_tizen plugin.
-publish_to: none
+publish_to: "none"
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
   flutter: ">=3.0.0"
 
 dependencies:

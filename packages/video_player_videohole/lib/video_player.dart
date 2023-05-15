@@ -761,7 +761,7 @@ class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {
 /// Widget that displays the video controlled by [controller].
 class VideoPlayer extends StatefulWidget {
   /// Uses the given [controller] for all video rendered in this widget.
-  const VideoPlayer(this.controller, {Key? key}) : super(key: key);
+  const VideoPlayer(this.controller, {super.key});
 
   /// The [VideoPlayerController] responsible for the video being rendered in
   /// this widget.
@@ -803,7 +803,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   void _afterFrameLayout(_) {
     if (widget.controller.value.isInitialized) {
-      final Rect currentRect = _currentRect;
+      final Rect currentRect = _getCurrentRect();
       if (currentRect != Rect.zero && _playerRect != currentRect) {
         _videoPlayerPlatform.setDisplayGeometry(
           _playerId,
@@ -818,13 +818,14 @@ class _VideoPlayerState extends State<VideoPlayer> {
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
 
-  Rect get _currentRect {
+  Rect _getCurrentRect() {
     final RenderObject? renderObject =
         _videoBoxKey.currentContext?.findRenderObject();
     if (renderObject == null) {
       return Rect.zero;
     }
-    final double pixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
+    final double pixelRatio =
+        View.of(_videoBoxKey.currentContext!).devicePixelRatio;
     final RenderBox renderBox = renderObject as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero) * pixelRatio;
     final Size size = renderBox.size * pixelRatio;
@@ -969,11 +970,11 @@ class VideoProgressIndicator extends StatefulWidget {
   /// to `top: 5.0`.
   const VideoProgressIndicator(
     this.controller, {
-    Key? key,
+    super.key,
     this.colors = const VideoProgressColors(),
     required this.allowScrubbing,
     this.padding = const EdgeInsets.only(top: 5.0),
-  }) : super(key: key);
+  });
 
   /// The [VideoPlayerController] that actually associates a video with this
   /// widget.
@@ -1089,7 +1090,7 @@ class ClosedCaption extends StatelessWidget {
   /// [VideoPlayerValue.caption].
   ///
   /// If [text] is null or empty, nothing will be displayed.
-  const ClosedCaption({Key? key, this.text, this.textStyle}) : super(key: key);
+  const ClosedCaption({super.key, this.text, this.textStyle});
 
   /// The text that will be shown in the closed caption, or null if no caption
   /// should be shown.

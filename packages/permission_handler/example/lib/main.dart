@@ -61,7 +61,7 @@ class _PermissionHandlerWidgetState extends State<PermissionHandlerWidget> {
                       permission != Permission.criticalAlerts;
                 }
               })
-              .map((permission) => PermissionWidget(permission))
+              .map(PermissionWidget.new)
               .toList()),
     );
   }

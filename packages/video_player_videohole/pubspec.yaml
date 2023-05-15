@@ -1,11 +1,11 @@
 name: video_player_videohole
-description: Flutter plugin for displaying inline video.
+description: Flutter plugin for displaying inline video on Tizen TV devices.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/video_player_videohole
 version: 0.1.1
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
   flutter: ">=3.0.0"
 
 flutter:

@@ -4,6 +4,10 @@ homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/google_maps_flutter
 version: 0.1.5
 
+environment:
+  sdk: ">=2.17.0 <4.0.0"
+  flutter: ">=3.0.0"
+
 flutter:
   plugin:
     platforms:
@@ -17,7 +21,3 @@ dependencies:
   stream_transform: ^2.0.0
   webview_flutter: ^3.0.4
   webview_flutter_lwe: ^0.1.0
-
-environment:
-  sdk: ">=2.17.0 <3.0.0"
-  flutter: ">=2.0.0"

@@ -1,12 +1,12 @@
 name: tizen_package_manager
-description: Tizen package manager APIs. Used for getting installed package info.
+description: Tizen package manager APIs. Used to get information about packages installed on a Tizen device.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_package_manager
 version: 0.2.1
 
 environment:
-  sdk: ">=2.15.1 <3.0.0"
-  flutter: ">=2.5.0"
+  sdk: ">=2.17.0 <4.0.0"
+  flutter: ">=3.0.0"
 
 dependencies:
   flutter:
