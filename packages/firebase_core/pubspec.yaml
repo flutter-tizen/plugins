@@ -5,8 +5,8 @@ repository: https://github.com/flutter-tizen/plugins/tree/master/packages/fireba
 version: 0.1.1
 
 environment:
-  sdk: ">=2.17.0 <4.0.0"
-  flutter: ">=3.0.0"
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
 
 dependencies:
   firebase_core_dart: ^1.0.1
