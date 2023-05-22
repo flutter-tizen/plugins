@@ -1,5 +1,6 @@
-## NEXT
+## 0.2.3
 
+* Add static `AppControl.setAutoRestart` method.
 * Increase the minimum Flutter version to 3.3.
 * Update README.
 * Remove unused code and clean up.
