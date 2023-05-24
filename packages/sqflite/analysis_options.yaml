@@ -11,10 +11,6 @@ include: package:flutter_lints/flutter.yaml
 # https://github.com/flutter/flutter/blob/master/analysis_options.yaml
 
 analyzer:
-  # Strong mode is sometimes harder to keep
-  strong-mode:
-    implicit-casts: false
-
   errors:
     # treat missing required parameters as a warning (not a hint)
     missing_required_param: warning
@@ -88,7 +84,6 @@ linter:
     - prefer_adjacent_string_concatenation
     - prefer_collection_literals
     - prefer_contains
-    - prefer_equal_for_default_values
     - slash_for_doc_comments
     - type_init_formals
     - unnecessary_const

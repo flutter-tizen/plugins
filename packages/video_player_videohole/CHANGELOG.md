@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 0.1.1
 
 * Update pigeon to 10.0.0.

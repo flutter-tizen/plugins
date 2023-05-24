@@ -1,5 +1,6 @@
 ## NEXT
 
+* Increase the minimum Flutter version to 3.3.
 * Update README.
 * Remove unused code and clean up.
 

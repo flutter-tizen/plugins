@@ -1,8 +1,12 @@
 name: geolocator_tizen
-description: Geolocation plugin for Flutter. This plugin provides the Tizen implementation for the geolocator.
+description: Tizen implementation of the geolocator plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/geolocator
 version: 1.0.5
+
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
 
 flutter:
   plugin:
@@ -16,7 +20,3 @@ dependencies:
     sdk: flutter
   flutter_lints: ^1.0.4
   geolocator_platform_interface: ^3.0.0
-
-environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=1.20.0"

@@ -221,10 +221,10 @@ class AppControl {
 
 /// Represents a received [AppControl] message.
 class ReceivedAppControl extends AppControl {
-  ReceivedAppControl._fromMap(Map<String, dynamic> map)
+  ReceivedAppControl._fromMap(super.map)
       : callerAppId = map['callerAppId'] as String?,
         shouldReply = map['shouldReply'] as bool,
-        super._fromMap(map);
+        super._fromMap();
 
   /// The caller application ID.
   final String? callerAppId;

@@ -2,6 +2,10 @@ name: tizen_app_control_example
 description: Demonstrates how to use the tizen_app_control plugin.
 publish_to: "none"
 
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
+
 dependencies:
   flutter:
     sdk: flutter
@@ -21,6 +25,3 @@ dev_dependencies:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
-
-environment:
-  sdk: ">=2.13.0 <3.0.0"
