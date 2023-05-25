@@ -1,5 +1,6 @@
-## NEXT
+## 1.0.6
 
+* Remove unnecessary `StreamHandlerError` implementation.
 * Increase the minimum Flutter version to 3.3.
 
 ## 1.0.5

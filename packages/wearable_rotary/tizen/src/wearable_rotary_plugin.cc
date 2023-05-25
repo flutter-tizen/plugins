@@ -13,7 +13,6 @@
 #include <flutter/standard_method_codec.h>
 
 #include <memory>
-#include <string>
 
 #include "log.h"
 
@@ -25,20 +24,6 @@ typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
 typedef flutter::StreamHandlerError<flutter::EncodableValue>
     FlStreamHandlerError;
 
-class WearableRotaryStreamHandlerError : public FlStreamHandlerError {
- public:
-  WearableRotaryStreamHandlerError(const std::string &error_code,
-                                   const std::string &error_message,
-                                   const flutter::EncodableValue *error_details)
-      : error_code_(error_code),
-        error_message_(error_message),
-        FlStreamHandlerError(error_code_, error_message_, error_details) {}
-
- private:
-  std::string error_code_;
-  std::string error_message_;
-};
-
 class WearableRotaryStreamHandler : public FlStreamHandler {
  public:
   WearableRotaryStreamHandler() {}
@@ -48,9 +33,10 @@ class WearableRotaryStreamHandler : public FlStreamHandler {
       const flutter::EncodableValue *arguments,
       std::unique_ptr<FlEventSink> &&events) override {
     events_ = std::move(events);
+
     Eina_Bool ret = eext_rotary_event_handler_add(RotaryEventCallBack, this);
     if (ret == EINA_FALSE) {
-      return std::make_unique<WearableRotaryStreamHandlerError>(
+      return std::make_unique<FlStreamHandlerError>(
           "Operation failed", "Failed to add rotary event handler", nullptr);
     }
     return nullptr;
@@ -66,7 +52,7 @@ class WearableRotaryStreamHandler : public FlStreamHandler {
  private:
   static Eina_Bool RotaryEventCallBack(void *data,
                                        Eext_Rotary_Event_Info *info) {
-    auto *self = reinterpret_cast<WearableRotaryStreamHandler *>(data);
+    auto *self = static_cast<WearableRotaryStreamHandler *>(data);
     bool clockwise = (info->direction == EEXT_ROTARY_DIRECTION_CLOCKWISE);
     self->events_->Success(flutter::EncodableValue(clockwise));
     return EINA_TRUE;
