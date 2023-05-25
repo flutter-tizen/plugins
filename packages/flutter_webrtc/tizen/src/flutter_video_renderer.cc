@@ -145,7 +145,7 @@ void FlutterVideoRendererManager::VideoRendererDispose(
     int64_t texture_id, std::unique_ptr<MethodResultProxy> result) {
   auto it = renderers_.find(texture_id);
   if (it != renderers_.end()) {
-    base_->textures_->UnregisterTexture(texture_id);
+    base_->textures_->UnregisterTexture(texture_id, nullptr);
     renderers_.erase(it);
     result->Success();
     return;

@@ -146,7 +146,7 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
-  texture_registrar_->UnregisterTexture(GetTextureId());
+  texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
 
   if (webview_instance_) {
     evas_object_smart_callback_del(webview_instance_,
