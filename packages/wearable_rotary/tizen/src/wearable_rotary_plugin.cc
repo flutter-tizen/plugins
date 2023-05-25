@@ -34,24 +34,23 @@ class WearableRotaryStreamHandler : public FlStreamHandler {
       std::unique_ptr<FlEventSink> &&events) override {
     events_ = std::move(events);
 
-    Eina_Bool ret = eext_rotary_event_handler_add(RotaryEventCallBack, this);
+    Eina_Bool ret = eext_rotary_event_handler_add(OnRotaryEvent, this);
     if (ret == EINA_FALSE) {
       return std::make_unique<FlStreamHandlerError>(
-          "Operation failed", "Failed to add rotary event handler", nullptr);
+          "Operation failed", "Failed to add rotary event handler.", nullptr);
     }
     return nullptr;
   }
 
   std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
       const flutter::EncodableValue *arguments) override {
-    eext_rotary_event_handler_del(RotaryEventCallBack);
+    eext_rotary_event_handler_del(OnRotaryEvent);
     events_.reset();
     return nullptr;
   }
 
  private:
-  static Eina_Bool RotaryEventCallBack(void *data,
-                                       Eext_Rotary_Event_Info *info) {
+  static Eina_Bool OnRotaryEvent(void *data, Eext_Rotary_Event_Info *info) {
     auto *self = static_cast<WearableRotaryStreamHandler *>(data);
     bool clockwise = (info->direction == EEXT_ROTARY_DIRECTION_CLOCKWISE);
     self->events_->Success(flutter::EncodableValue(clockwise));
@@ -65,22 +64,19 @@ class WearableRotaryPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto plugin = std::make_unique<WearableRotaryPlugin>();
-    plugin->SetupEventChannel(registrar);
+
+    plugin->event_channel_ = std::make_unique<FlEventChannel>(
+        registrar->messenger(), "flutter.wearable_rotary.channel",
+        &flutter::StandardMethodCodec::GetInstance());
+    plugin->event_channel_->SetStreamHandler(
+        std::make_unique<WearableRotaryStreamHandler>());
+
     registrar->AddPlugin(std::move(plugin));
   }
 
   WearableRotaryPlugin() {}
 
   virtual ~WearableRotaryPlugin() {}
-
- private:
-  void SetupEventChannel(flutter::PluginRegistrar *registrar) {
-    event_channel_ = std::make_unique<FlEventChannel>(
-        registrar->messenger(), "flutter.wearable_rotary.channel",
-        &flutter::StandardMethodCodec::GetInstance());
-    event_channel_->SetStreamHandler(
-        std::make_unique<WearableRotaryStreamHandler>());
-  }
 
  private:
   std::unique_ptr<FlEventChannel> event_channel_;
