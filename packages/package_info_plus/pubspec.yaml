@@ -2,7 +2,7 @@ name: package_info_plus_tizen
 description: Tizen implementation of the package_info_plus plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/package_info_plus
-version: 1.0.2
+version: 1.0.3
 
 environment:
   sdk: ">=2.18.0 <4.0.0"
@@ -18,7 +18,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  package_info_plus_platform_interface: ^1.0.2
+  package_info_plus_platform_interface: ^2.0.1
 
 dev_dependencies:
-  flutter_lints: ^1.0.4
+  flutter_lints: ^2.0.1
