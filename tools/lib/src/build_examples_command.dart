@@ -11,15 +11,16 @@ class BuildExamplesCommand extends PackageLoopingCommand {
   BuildExamplesCommand(super.packagesDir);
 
   @override
-  String get description => 'Builds all example apps.\n\n'
-      'This command requires "flutter-tizen" to be in your path.';
+  final String name = 'build-examples';
 
   @override
-  String get name => 'build-examples';
+  final String description = 'Builds all example apps.\n\n'
+      'This command requires "flutter-tizen" to be in your path.';
 
   @override
   Future<PackageResult> runForPackage(RepositoryPackage package) async {
     final List<String> errors = <String>[];
+
     bool builtSomething = false;
     for (final RepositoryPackage example in package.getExamples()) {
       int exitCode = await processRunner.runAndStream(

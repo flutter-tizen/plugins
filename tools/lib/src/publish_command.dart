@@ -73,10 +73,10 @@ class PublishCommand extends PackageLoopingCommand {
   static const String _pubCredentialName = 'PUB_CREDENTIALS';
 
   @override
-  String get name => 'publish';
+  final String name = 'publish';
 
   @override
-  String get description => 'Attempts to publish the given packages to pub.\n'
+  final String description = 'Attempts to publish the given packages to pub.\n'
       'If running this on CI, an environment variable named $_pubCredentialName must be set to a String that represents the pub credential JSON.\n'
       'WARNING: Do not check in the content of pub credential JSON, it should only come from secure sources.';
 
