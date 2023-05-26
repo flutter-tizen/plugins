@@ -47,22 +47,17 @@ class WakelockTizenPlugin : public flutter::Plugin {
       const auto &arguments = *method_call.arguments();
       if (std::holds_alternative<bool>(arguments)) {
         bool enable = std::get<bool>(arguments);
+        int ret = DEVICE_ERROR_NONE;
         if (enable) {
-          int ret = device_power_request_lock(POWER_LOCK_DISPLAY, 0);
-          if (ret == DEVICE_ERROR_NONE) {
-            enabled_ = true;
-            result->Success();
-          } else {
-            result->Error(std::to_string(ret), get_error_message(ret));
-          }
+          ret = device_power_request_lock(POWER_LOCK_DISPLAY, 0);
         } else {
-          int ret = device_power_release_lock(POWER_LOCK_DISPLAY);
-          if (ret == DEVICE_ERROR_NONE) {
-            enabled_ = false;
-            result->Success();
-          } else {
-            result->Error(std::to_string(ret), get_error_message(ret));
-          }
+          ret = device_power_release_lock(POWER_LOCK_DISPLAY);
+        }
+        if (ret == DEVICE_ERROR_NONE) {
+          enabled_ = enable;
+          result->Success();
+        } else {
+          result->Error(std::to_string(ret), get_error_message(ret));
         }
       } else {
         result->Error("Invalid argument",
