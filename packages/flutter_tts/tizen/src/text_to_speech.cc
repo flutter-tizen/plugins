@@ -131,6 +131,41 @@ std::vector<std::string> &TextToSpeech::GetSupportedLanaguages() {
   return supported_lanaguages_;
 }
 
+std::optional<std::string> TextToSpeech::GetDefaultVoice() {
+  char *language = nullptr;
+  int32_t voice_type = 0;
+  int ret = tts_get_default_voice(tts_, &language, &voice_type);
+  if (language) free(language);
+
+  if (ret != TTS_ERROR_NONE) {
+    LOG_ERROR("tts_get_default_voice failed: %s", get_error_message(ret));
+    return std::nullopt;
+  }
+
+  switch (voice_type) {
+    case TTS_VOICE_TYPE_AUTO:
+      return "auto";
+    case TTS_VOICE_TYPE_MALE:
+      return "male";
+    case TTS_VOICE_TYPE_FEMALE:
+      return "female";
+    case TTS_VOICE_TYPE_CHILD:
+      return "child";
+    default:
+      return "unknown";
+  }
+}
+
+std::optional<int32_t> TextToSpeech::GetMaxSpeechInputLength() {
+  unsigned int size = 0;
+  int ret = tts_get_max_text_size(tts_, &size);
+  if (ret != TTS_ERROR_NONE) {
+    LOG_ERROR("tts_get_max_text_size failed: %s", get_error_message(ret));
+    return std::nullopt;
+  }
+  return static_cast<int32_t>(size);
+}
+
 std::optional<TtsState> TextToSpeech::GetState() {
   tts_state_e state;
   int ret = tts_get_state(tts_, &state);
