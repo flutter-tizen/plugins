@@ -2,7 +2,7 @@
 
  [![pub package](https://img.shields.io/pub/v/tizen_package_manager.svg)](https://pub.dev/packages/tizen_package_manager)
 
-Tizen package manager APIs. Used for getting information of packages installed on a Tizen device.
+Tizen package manager APIs. Used to get information about packages installed on a Tizen device.
 
 ## Usage
 

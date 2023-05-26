@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 0.3.4
 
 * Switch to an internal method channel implementation.

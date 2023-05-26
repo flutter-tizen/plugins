@@ -11,7 +11,7 @@ void main() {
 }
 
 class ItemsWidget extends StatefulWidget {
-  const ItemsWidget({Key? key}) : super(key: key);
+  const ItemsWidget({super.key});
 
   @override
   ItemsWidgetState createState() => ItemsWidgetState();

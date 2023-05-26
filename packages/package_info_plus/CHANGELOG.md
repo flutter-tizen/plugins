@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 1.0.2
 
 * Update package_info_plus to 1.3.1.

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -15,7 +13,7 @@ void main() {
   testWidgets('Can subscript to accelerometerEvents and get non-null events',
       (WidgetTester tester) async {
     final completer = Completer<AccelerometerEvent>();
-    StreamSubscription<AccelerometerEvent> subscription;
+    late StreamSubscription<AccelerometerEvent> subscription;
     subscription = accelerometerEvents.listen((AccelerometerEvent event) {
       completer.complete(event);
       subscription.cancel();

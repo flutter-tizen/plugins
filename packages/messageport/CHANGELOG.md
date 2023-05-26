@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 0.3.1
 
 * Fix unexpected `PlatformException` when sending a null message.

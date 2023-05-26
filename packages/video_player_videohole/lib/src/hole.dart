@@ -10,7 +10,7 @@ import 'package:flutter/rendering.dart';
 /// A widget that creates a transparent hole in the Flutter UI.
 class Hole extends LeafRenderObjectWidget {
   /// Creates a [Hole].
-  const Hole({Key? key}) : super(key: key);
+  const Hole({super.key});
 
   @override
   RenderBox createRenderObject(BuildContext context) => _HoleBox();

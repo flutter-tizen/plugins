@@ -6,18 +6,18 @@ class Tgl extends StatelessWidget {
   final void Function(int) onChange;
 
   const Tgl({
-    Key? key,
+    super.key,
     required this.options,
     required this.selected,
     required this.onChange,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return ToggleButtons(
       isSelected: options.asMap().keys.map((it) => it == selected).toList(),
       onPressed: onChange,
-      children: options.map((it) => Text(it)).toList(),
+      children: options.map(Text.new).toList(),
     );
   }
 }
@@ -28,11 +28,11 @@ class EnumTgl<T extends Enum> extends StatelessWidget {
   final void Function(T) onChange;
 
   const EnumTgl({
-    Key? key,
+    super.key,
     required this.options,
     required this.selected,
     required this.onChange,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

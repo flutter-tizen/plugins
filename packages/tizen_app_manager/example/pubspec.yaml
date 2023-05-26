@@ -1,9 +1,10 @@
 name: tizen_app_manager_example
 description: Demonstrates how to use the tizen_app_manager plugin.
-publish_to: 'none' 
+publish_to: "none"
 
 environment:
-  sdk: ">=2.14.1 <3.0.0"
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
 
 dependencies:
   device_info_plus_tizen:

@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/tizen_app_control.svg)](https://pub.dev/packages/tizen_app_control)
 
-Tizen application control APIs. Used for launching and terminating applications on a Tizen device.
+Tizen application control APIs. Used to launch apps on a Tizen device.
 
 ## Usage
 

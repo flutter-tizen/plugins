@@ -1,3 +1,7 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 1.1.1
 
 * Hold memory of StreamHandlerError's member to prevent crash.

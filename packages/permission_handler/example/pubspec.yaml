@@ -2,6 +2,10 @@ name: permission_handler_example
 description: Demonstrates how to use the permission_handler_tizen plugin.
 publish_to: "none"
 
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
+
 dependencies:
   baseflow_plugin_template: ^2.1.1
   flutter:
@@ -22,7 +26,6 @@ dev_dependencies:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
-  effective_dart: ^1.3.0
 
 flutter:
   uses-material-design: true
@@ -31,7 +34,3 @@ flutter:
     - packages/baseflow_plugin_template/poweredByBaseflow.png
     - packages/baseflow_plugin_template/assets/logo.png
     - packages/baseflow_plugin_template/assets/poweredByBaseflow.png
-
-environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.0"
