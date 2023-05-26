@@ -13,8 +13,6 @@
 #include <memory>
 #include <string>
 
-#include "log.h"
-
 namespace {
 
 class PackageInfoPlusTizenPlugin : public flutter::Plugin {
@@ -55,7 +53,7 @@ class PackageInfoPlusTizenPlugin : public flutter::Plugin {
     char *id = nullptr;
     int ret = app_get_id(&id);
     if (ret != APP_ERROR_NONE) {
-      result->Error(std::to_string(ret), "Failed to get find the app ID.",
+      result->Error(std::to_string(ret), "Failed to find the app ID.",
                     flutter::EncodableValue(get_error_message(ret)));
       return;
     }
@@ -107,9 +105,6 @@ class PackageInfoPlusTizenPlugin : public flutter::Plugin {
         flutter::EncodableValue(std::string(version));
     free(version);
     package_info_destroy(package_info);
-
-    map[flutter::EncodableValue("buildNumber")] =
-        flutter::EncodableValue("Not supported property");
 
     result->Success(flutter::EncodableValue(map));
   }

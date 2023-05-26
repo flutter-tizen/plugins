@@ -29,3 +29,4 @@ For detailed usage, see https://pub.dev/packages/package_info_plus#usage.
 - [x] `PackageInfo.version`
 - [ ] `PackageInfo.buildNumber`
 - [ ] `PackageInfo.buildSignature`
+- [ ] `PackageInfo.installerStore`
