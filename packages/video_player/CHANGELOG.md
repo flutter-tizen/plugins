@@ -1,9 +1,6 @@
 ## 2.4.6
 
 * Fix memory leak issue.
-
-## NEXT
-
 * Increase the minimum Flutter version to 3.3.
 
 ## 2.4.5
