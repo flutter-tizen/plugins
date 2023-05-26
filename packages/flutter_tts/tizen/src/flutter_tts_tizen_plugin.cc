@@ -204,21 +204,25 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   void OnGetDefaultVoice() {
-    std::optional<std::string> voice = tts_->GetDefaultVoice();
-    if (!voice.has_value()) {
-      result_->Error("Operation failed",
-                     "Failed to get TTS engine's default voice.");
-      result_ = nullptr;
+    std::optional<std::pair<std::string, std::string>> default_voice =
+        tts_->GetDefaultVoice();
+    if (!default_voice.has_value()) {
+      SendResult(flutter::EncodableValue(flutter::EncodableMap()));
       return;
     }
-    SendResult(flutter::EncodableValue(*voice));
+
+    flutter::EncodableMap default_voice_map = {
+        {flutter::EncodableValue("locale"),
+         flutter::EncodableValue(default_voice->first)},
+        {flutter::EncodableValue("name"),
+         flutter::EncodableValue(default_voice->second)}};
+    SendResult(flutter::EncodableValue(default_voice_map));
   }
 
   void OnGetMaxSpeechInputLength() {
     std::optional<int32_t> length = tts_->GetMaxSpeechInputLength();
     if (!length.has_value()) {
-      result_->Error("Operation failed",
-                     "Failed to get TTS engine's max speech input length.");
+      result_->Success();
       result_ = nullptr;
       return;
     }

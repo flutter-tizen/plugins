@@ -42,7 +42,7 @@ class TextToSpeech {
 
   std::vector<std::string> &GetSupportedLanaguages();
 
-  std::optional<std::string> GetDefaultVoice();
+  std::optional<std::pair<std::string, std::string>> GetDefaultVoice();
 
   std::optional<int32_t> GetMaxSpeechInputLength();
 

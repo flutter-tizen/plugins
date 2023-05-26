@@ -1,4 +1,4 @@
-## 1.3.1
+## 1.4.0
 
 * Update flutter_tts to 3.6.3.
 * Update the example app.
