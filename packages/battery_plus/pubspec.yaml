@@ -16,9 +16,9 @@ flutter:
         fileName: battery_plus_tizen_plugin.h
 
 dependencies:
-  battery_plus_platform_interface: ^1.2.1
+  battery_plus_platform_interface: ^1.2.2
   flutter:
     sdk: flutter
 
 dev_dependencies:
-  flutter_lints: ^1.0.4
+  flutter_lints: ^2.0.1
