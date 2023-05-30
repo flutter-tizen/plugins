@@ -57,8 +57,6 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   @visibleForTesting
   late final BillingManager billingManager;
 
-  static final Set<String> _productIdsToConsume = <String>{};
-
   @override
   Future<bool> isAvailable() async {
     return billingManager.isAvailable();
@@ -157,9 +155,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   @override
   Future<bool> buyConsumable(
       {required PurchaseParam purchaseParam, bool autoConsume = true}) {
-    if (autoConsume) {
-      _productIdsToConsume.add(purchaseParam.productDetails.id);
-    }
+    assert(autoConsume == true, 'On Tizen, we should always auto consume');
     return buyNonConsumable(purchaseParam: purchaseParam);
   }
 }

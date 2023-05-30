@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_tizen/billing_manager_wrappers.dart';
 import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 
 void main() {
@@ -17,6 +18,15 @@ void main() {
   runApp(_MyApp());
 }
 
+// To try without auto-consume, change `true` to `false` here.
+const bool _kAutoConsume = true;
+
+/// [_kConsumableType]'s value:
+/// "1": CONSUMABLE
+/// "2": NON-CONSUMABLE
+/// "3": LIMITED-PERIOD
+/// "4": SUBSCRIPTION
+const int _kConsumableType = 1;
 const String _kAppId = '3201504002021';
 const String _kCustumId = '810000047372';
 const String _kServerType = 'DEV';
@@ -255,7 +265,18 @@ class _MyAppState extends State<_MyApp> {
                 final PurchaseParam purchaseParam = PurchaseParam(
                   productDetails: productDetails,
                 );
-                _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+
+                if (productDetails is SamsungCheckoutProductDetails) {
+                  if (productDetails.itemDetails.itemType == _kConsumableType) {
+                    _inAppPurchase.buyConsumable(
+                        purchaseParam: purchaseParam,
+                        // ignore: avoid_redundant_argument_values
+                        autoConsume: _kAutoConsume);
+                  } else {
+                    _inAppPurchase.buyNonConsumable(
+                        purchaseParam: purchaseParam);
+                  }
+                }
               },
               child: Text(productDetails.price),
             ));
