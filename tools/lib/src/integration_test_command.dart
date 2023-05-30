@@ -86,12 +86,12 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   Recipe? _recipe;
 
   @override
-  String get description =>
-      'Runs integration tests for plugin example apps.\n\n'
-      'This command requires "flutter-tizen" to be in your path.';
+  final String name = 'integration-test';
 
   @override
-  String get name => 'integration-test';
+  final String description =
+      'Runs integration tests for plugin example apps.\n\n'
+      'This command requires "flutter-tizen" to be in your path.';
 
   @override
   Future<void> initializeRun() async {
