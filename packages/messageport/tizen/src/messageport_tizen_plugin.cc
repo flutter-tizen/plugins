@@ -46,20 +46,6 @@ bool GetValueFromEncodableMap(const flutter::EncodableMap *map, const char *key,
   return false;
 }
 
-class LocalPortStreamHandlerError : public FlStreamHandlerError {
- public:
-  LocalPortStreamHandlerError(const std::string &error_code,
-                              const std::string &error_message,
-                              const flutter::EncodableValue *error_details)
-      : error_code_(error_code),
-        error_message_(error_message),
-        FlStreamHandlerError(error_code_, error_message_, error_details) {}
-
- private:
-  std::string error_code_;
-  std::string error_message_;
-};
-
 class LocalPortStreamHandler : public FlStreamHandler {
  public:
   LocalPortStreamHandler(LocalPort *local_port) : local_port_(local_port) {}
@@ -91,7 +77,7 @@ class LocalPortStreamHandler : public FlStreamHandler {
           event_sink_->Error(std::to_string(error_code), error_message);
         });
     if (error.has_value()) {
-      return std::make_unique<LocalPortStreamHandlerError>(
+      return std::make_unique<FlStreamHandlerError>(
           std::to_string(error.value().code()), error.value().message(),
           nullptr);
     }
@@ -103,7 +89,7 @@ class LocalPortStreamHandler : public FlStreamHandler {
       const flutter::EncodableValue *arguments) override {
     std::optional<MessagePortError> error = local_port_->Unregister();
     if (error.has_value()) {
-      return std::make_unique<LocalPortStreamHandlerError>(
+      return std::make_unique<FlStreamHandlerError>(
           std::to_string(error.value().code()), error.value().message(),
           nullptr);
     }
