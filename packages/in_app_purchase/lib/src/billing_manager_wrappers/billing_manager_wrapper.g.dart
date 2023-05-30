@@ -99,7 +99,7 @@ GetUserPurchaseListAPIResult _$GetUserPurchaseListAPIResultFromJson(
     GetUserPurchaseListAPIResult(
       cPResult: json['CPResult'] as String? ?? '',
       cPStatus: json['CPStatus'] as String? ?? '',
-      invoiceDetails: (json['invoiceDetails'] as List<dynamic>?)
+      invoiceDetails: (json['InvoiceDetails'] as List<dynamic>?)
               ?.map((e) => InvoiceDetails.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -114,7 +114,7 @@ Map<String, dynamic> _$GetUserPurchaseListAPIResultToJson(
       'CPResult': instance.cPResult,
       'TotalCount': instance.totalCount,
       'CheckValue': instance.checkValue,
-      'invoiceDetails': instance.invoiceDetails,
+      'InvoiceDetails': instance.invoiceDetails,
     };
 
 InvoiceDetails _$InvoiceDetailsFromJson(Map<String, dynamic> json) =>
