@@ -386,8 +386,8 @@ class BillingBuyData {
   final String payResult;
 
   /// The payment information. It is same with paymentDetails param of buyItem.
-  @JsonKey(defaultValue: '')
-  final String payDetails;
+  @JsonKey(defaultValue: <String, String>{})
+  final Map<String, String> payDetails;
 }
 
 /// Dart wrapper around [`GetUserPurchaseListAPIResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).

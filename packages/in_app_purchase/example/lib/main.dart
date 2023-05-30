@@ -21,7 +21,7 @@ void main() {
 // To try without auto-consume, change `true` to `false` here.
 const bool _kAutoConsume = true;
 
-/// [_kConsumableType]'s value:
+/// The [_kConsumableType]'s value:
 /// "1": CONSUMABLE
 /// "2": NON-CONSUMABLE
 /// "3": LIMITED-PERIOD
@@ -49,6 +49,8 @@ String _kProductCheckValue = 'sbKzQJrFdeLkfXTQUdjjq4jt7ykx79QmJno9ZLam+SM=';
 /// var hmacSha256 = Hmac(sha256, utf8.encode(_kSecurityKey));
 /// String _kPurchaseCheckValue = base64Url.encode(hmacSha256.convert(utf8.encode(_kAppId + _kCustumId + _kCountryCode + _kItemType)).bytes);
 String _kPurchaseCheckValue = 'eAKHVR/FUfgEmDb3KmtgkozWAKyEb1OWXKdvkUV4km0=';
+
+// WARNING: Don't change order of `_kRequestParams`.
 List<String> _kRequestParams = <String>[
   _kAppId,
   _kCountryCode,
@@ -58,6 +60,7 @@ List<String> _kRequestParams = <String>[
   _kServerType,
   _kProductCheckValue,
   _kPurchaseCheckValue,
+  _kCustumId,
 ];
 
 class _MyApp extends StatefulWidget {
@@ -362,10 +365,6 @@ class _MyAppState extends State<_MyApp> {
             _handleInvalidPurchase(purchaseDetails);
             return;
           }
-        }
-
-        if (purchaseDetails.pendingCompletePurchase) {
-          await _inAppPurchase.completePurchase(purchaseDetails);
         }
       }
     }

@@ -85,7 +85,10 @@ Map<String, dynamic> _$ProductSubscriptionInfoToJson(
 BillingBuyData _$BillingBuyDataFromJson(Map<String, dynamic> json) =>
     BillingBuyData(
       payResult: json['payResult'] as String? ?? '',
-      payDetails: json['payDetails'] as String? ?? '',
+      payDetails: (json['payDetails'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          {},
     );
 
 Map<String, dynamic> _$BillingBuyDataToJson(BillingBuyData instance) =>
