@@ -69,7 +69,7 @@ class AppControl {
     this.extraData = const <String, dynamic>{},
   }) {
     _id = nativeCreateAppControl(this);
-    if (_id < 0) {
+    if (_id == -1) {
       throw Exception('Could not create an instance of AppControl.');
     }
   }
@@ -228,6 +228,8 @@ class AppControl {
   /// This API is for platform developers only. The app must be signed with a
   /// platform-level certificate to use this API.
   static Future<void> setAutoRestart(AppControl appControl) async {
+    await appControl._setAppControlData();
+
     final Map<String, dynamic> args = <String, dynamic>{'id': appControl._id};
     final int? handleAddress =
         await _methodChannel.invokeMethod<int>('getHandle', args);
