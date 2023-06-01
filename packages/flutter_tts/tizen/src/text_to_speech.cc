@@ -139,7 +139,6 @@ TextToSpeech::GetDefaultVoice() {
 
   if (ret != TTS_ERROR_NONE) {
     LOG_ERROR("tts_get_default_voice failed: %s", get_error_message(ret));
-    if (language) free(language);
     return std::nullopt;
   }
 
