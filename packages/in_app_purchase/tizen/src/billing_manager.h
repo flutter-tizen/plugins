@@ -29,6 +29,7 @@ class BillingManager {
   bool BuyItem(const flutter::EncodableMap *encodables);
   bool GetProductList(const flutter::EncodableMap *encodables);
   bool GetPurchaseList(const flutter::EncodableMap *encodables);
+  bool VerifyInvoice(const flutter::EncodableMap *encodables);
 
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
@@ -40,6 +41,7 @@ class BillingManager {
   static bool OnBuyItem(const char *pay_result, const char *detail_info,
                         void *user_data);
   static void OnAvailable(const char *detail_result, void *user_data);
+  static void OnVerify(const char *detail_result, void *user_data);
 
   void *billing_api_handle_ = nullptr;
 

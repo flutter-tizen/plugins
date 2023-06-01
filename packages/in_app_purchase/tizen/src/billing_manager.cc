@@ -139,6 +139,26 @@ bool BillingManager::BuyItem(const flutter::EncodableMap *encodables) {
   return true;
 }
 
+bool BillingManager::VerifyInvoice(const flutter::EncodableMap *encodables) {
+  LOG_INFO("[BillingManager] Start verify invoice");
+  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
+  std::string custom_id = GetRequiredArg<std::string>(encodables, "customId");
+  std::string invoice_id = GetRequiredArg<std::string>(encodables, "invoiceId");
+  std::string country_code =
+      GetRequiredArg<std::string>(encodables, "countryCode");
+  std::string server_type =
+      GetRequiredArg<std::string>(encodables, "serverType");
+  bool ret = service_billing_verify_invoice(
+      app_id.c_str(), custom_id.c_str(), invoice_id.c_str(),
+      country_code.c_str(), ConvertServerType(server_type.c_str()), OnVerify,
+      this);
+  if (!ret) {
+    LOG_ERROR("[BillingManager] service_billing_verify_invoice failed.");
+    return false;
+  }
+  return true;
+}
+
 BillingManager::BillingManager(flutter::PluginRegistrar *plugin_registrar)
     : plugin_registrar_(plugin_registrar) {
   auto channel =
@@ -200,6 +220,13 @@ void BillingManager::HandleMethodCall(
         result->Error("isAvailable failed");
         return;
       }
+    } else if (method_name == "verifyInvoice") {
+      if (VerifyInvoice(encodables)) {
+        method_result_ = std::move(result);
+      } else {
+        result->Error("verifyInvoice failed");
+        return;
+      }
     } else {
       result->NotImplemented();
     }
@@ -259,6 +286,13 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
        flutter::EncodableValue(pay_result)},
   };
   billing->SendResult(flutter::EncodableValue(result_map));
+}
+
+void BillingManager::OnVerify(const char *detail_result, void *user_data) {
+  LOG_INFO("[BillingManager] verify details: %s", detail_result);
+
+  BillingManager *billing = reinterpret_cast<BillingManager *>(user_data);
+  billing->SendResult(flutter::EncodableValue(std::string(detail_result)));
 }
 
 void BillingManager::Dispose() {

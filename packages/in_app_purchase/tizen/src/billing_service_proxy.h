@@ -35,6 +35,10 @@ typedef void (*FuncBillingSetBuyItemCb)(billing_buyitem_cb callback,
                                         void *user_data);
 typedef bool (*FuncServiceBillingIsServiceAvailable)(
     SERVERTYPE server_type, billing_payment_api_cb callback, void *user_data);
+typedef bool (*FuncServiceBillingVerifyInvoice)(
+    const char *app_id, const char *custom_id, const char *invoice_id,
+    const char *country_code, SERVERTYPE server_type,
+    billing_payment_api_cb callback, void *user_data);
 
 void *OpenBillingApi();
 void CloseBillingApi(void *handle);
@@ -46,5 +50,6 @@ extern FuncBillingBuyItem service_billing_buyitem;
 extern FuncBillingSetBuyItemCb service_billing_set_buyitem_cb;
 extern FuncServiceBillingIsServiceAvailable
     service_billing_is_service_available;
+extern FuncServiceBillingVerifyInvoice service_billing_verify_invoice;
 
 #endif  // FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_

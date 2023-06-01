@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:in_app_purchase_tizen/billing_manager_wrappers.dart';
 import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 
@@ -341,7 +342,14 @@ class _MyAppState extends State<_MyApp> {
   Future<bool> _verifyPurchase(PurchaseDetails purchaseDetails) {
     // IMPORTANT!! Always verify a purchase before delivering the product.
     // For the purpose of an example, we directly return true.
-    return Future<bool>.value(true);
+    // return Future<bool>.value(true);
+    // Tizen specific verify purchase:
+    // when 'cancelStatus' of 'InvoiceDetails' is false, need do verify purchase.
+    final InAppPurchaseTizenPlatformAddition addition =
+        InAppPurchasePlatformAddition.instance!
+            as InAppPurchaseTizenPlatformAddition;
+    return addition.verifyPurchase(
+        purchaseDetails, _kAppId, _kCustumId, _kCountryCode, _kServerType);
   }
 
   void _handleInvalidPurchase(PurchaseDetails purchaseDetails) {

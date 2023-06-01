@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
 import '../billing_manager_wrappers.dart';
+import '../in_app_purchase_tizen.dart';
 
 /// [IAPError.code] code for failed purchases.
 const String kPurchaseErrorCode = 'purchase_error';
@@ -23,6 +24,10 @@ const String kIAPSource = 'samsung_checkout';
 class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   InAppPurchaseTizenPlatform._() {
     billingManager = BillingManager();
+
+    // Register [InAppPurchaseTizenPlatformAddition].
+    InAppPurchasePlatformAddition.instance =
+        InAppPurchaseTizenPlatformAddition(billingManager);
 
     _purchaseUpdatedController =
         StreamController<List<PurchaseDetails>>.broadcast();
@@ -167,8 +172,8 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
                         responses.invoiceDetails[i].invoiceID,
                     source: kIAPSource),
                 transactionDate: responses.invoiceDetails[i].orderTime,
-                status: const PurchaseStateConverter().toPurchaseStatus(
-                    responses.invoiceDetails[i].appliedStatus),
+                status: const PurchaseStateConverter()
+                    .toPurchaseStatus(responses.invoiceDetails[i].cancelStatus),
               ));
 
               _purchaseUpdatedController.add(purchases);

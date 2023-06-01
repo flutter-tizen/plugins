@@ -12,6 +12,7 @@ FuncServiceBillingIsServiceAvailable service_billing_is_service_available =
     nullptr;
 FuncBillingBuyItem service_billing_buyitem = nullptr;
 FuncBillingSetBuyItemCb service_billing_set_buyitem_cb = nullptr;
+FuncServiceBillingVerifyInvoice service_billing_verify_invoice = nullptr;
 
 void *OpenBillingApi() { return dlopen("libbilling_api.so", RTLD_LAZY); }
 
@@ -48,6 +49,13 @@ int InitBillingApi(void *handle) {
   service_billing_set_buyitem_cb = reinterpret_cast<FuncBillingSetBuyItemCb>(
       dlsym(handle, "service_billing_set_buyitem_cb"));
   if (!service_billing_set_buyitem_cb) {
+    return 0;
+  }
+
+  service_billing_verify_invoice =
+      reinterpret_cast<FuncServiceBillingVerifyInvoice>(
+          dlsym(handle, "service_billing_verify_invoice"));
+  if (!service_billing_verify_invoice) {
     return 0;
   }
 

@@ -173,3 +173,21 @@ Map<String, dynamic> _$PurchaseSubscriptionInfoToJson(
       'SubsEndTime': instance.subsEndTime,
       'SubsStatus': instance.subsStatus,
     };
+
+VerifyInvoiceAPIResult _$VerifyInvoiceAPIResultFromJson(
+        Map<String, dynamic> json) =>
+    VerifyInvoiceAPIResult(
+      cpStatus: json['CPStatus'] as String? ?? '',
+      cpResult: json['CPResult'] as String? ?? '',
+      appId: json['AppID'] as String? ?? '',
+      invoiceId: json['InvoiceID'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$VerifyInvoiceAPIResultToJson(
+        VerifyInvoiceAPIResult instance) =>
+    <String, dynamic>{
+      'CPStatus': instance.cpStatus,
+      'CPResult': instance.cpResult,
+      'AppID': instance.appId,
+      'InvoiceID': instance.invoiceId,
+    };

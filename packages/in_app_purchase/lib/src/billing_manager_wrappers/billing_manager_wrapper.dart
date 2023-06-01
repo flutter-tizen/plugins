@@ -135,6 +135,30 @@ class BillingManager {
             <String, dynamic>{};
     return BillingBuyData.fromJson(map);
   }
+
+  /// Calls
+  /// [`BillingManager-verifyInvoice`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-verifyInvoice)
+  /// to enables implementing the Samsung Checkout Client module within the application.
+  /// Checks whether a purchase, corresponding to a specific "InvoiceID", was successful.
+  Future<VerifyInvoiceAPIResult> verifyInvoice(
+      {required String appId,
+      required String? invoiceId,
+      required String? customId,
+      required String? countryCode,
+      required String? serverType}) async {
+    final Map<String, dynamic> arguments = <String, dynamic>{
+      'appId': appId,
+      'invoiceId': invoiceId,
+      'customId': customId,
+      'countryCode': countryCode,
+      'serverType': serverType
+    };
+    final String verifyInvoiceResult =
+        await channel.invokeMethod<String>('verifyInvoice', arguments) ?? '';
+
+    return VerifyInvoiceAPIResult.fromJson(
+        json.decode(verifyInvoiceResult) as Map<String, dynamic>);
+  }
 }
 
 /// Dart wrapper around [`ServiceAvailableAPIResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
@@ -613,7 +637,7 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
           source: kIAPSource),
       transactionDate: invoiceDetails.orderTime,
       status: const PurchaseStateConverter()
-          .toPurchaseStatus(invoiceDetails.appliedStatus),
+          .toPurchaseStatus(invoiceDetails.cancelStatus),
       invoiceDetails: invoiceDetails,
     );
 
@@ -633,6 +657,48 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
   final InvoiceDetails invoiceDetails;
 }
 
+/// Dart wrapper around [`VerifyInvoiceAPIResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
+///
+/// This only can be used in [BillingManager.verifyInvoice].
+@JsonSerializable()
+@immutable
+class VerifyInvoiceAPIResult {
+  /// Creates a [VerifyInvoiceAPIResult] with the given purchase details.
+  const VerifyInvoiceAPIResult({
+    required this.cpStatus,
+    this.cpResult,
+    required this.appId,
+    required this.invoiceId,
+  });
+
+  /// Constructs an instance of this from a json string.
+  ///
+  /// The json needs to have named string keys with values matching the names and
+  /// types of all of the members on this class.
+  factory VerifyInvoiceAPIResult.fromJson(Map<String, dynamic> json) =>
+      _$VerifyInvoiceAPIResultFromJson(json);
+
+  /// Constructs an instance of this to a json string.
+  Map<String, dynamic> toJson() => _$VerifyInvoiceAPIResultToJson(this);
+
+  /// DPI result code. Returns "100000" on success and other codes on failure.
+  @JsonKey(defaultValue: '', name: 'CPStatus')
+  final String cpStatus;
+
+  /// The result message:
+  /// "SUCCESS" and Other error message, depending on the DPI result code.
+  @JsonKey(defaultValue: '', name: 'CPResult')
+  final String? cpResult;
+
+  /// The application ID.
+  @JsonKey(defaultValue: '', name: 'AppID')
+  final String appId;
+
+  /// Invoice ID that you want to verify whether a purchase was successful.
+  @JsonKey(defaultValue: '', name: 'InvoiceID')
+  final String invoiceId;
+}
+
 /// Convert bool value to purchase status.ll
 class PurchaseStateConverter {
   /// Default const constructor.
@@ -642,9 +708,9 @@ class PurchaseStateConverter {
   PurchaseStatus toPurchaseStatus(bool object) {
     switch (object) {
       case false:
-        return PurchaseStatus.pending;
-      case true:
         return PurchaseStatus.purchased;
+      case true:
+        return PurchaseStatus.canceled;
       default:
         return PurchaseStatus.error;
     }
