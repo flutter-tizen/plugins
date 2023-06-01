@@ -149,27 +149,39 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     if (billingResultWrapper.payResult == 'SUCCESS') {
       final String invoiceId =
           billingResultWrapper.payDetails['InvoiceID'] ?? '';
-      final GetUserPurchaseListAPIResult responses = await billingManager
-          .requestPurchases(_identifiers.toList()[8], _identifiers.toList());
 
-      for (int i = 0; i < responses.invoiceDetails.length; i++) {
-        if (responses.invoiceDetails[i].invoiceID != invoiceId) {
-          final List<PurchaseDetails> purchases = <PurchaseDetails>[];
-          purchases.add(PurchaseDetails(
-            purchaseID: responses.invoiceDetails[i].invoiceID,
-            productID: responses.invoiceDetails[i].itemID,
-            verificationData: PurchaseVerificationData(
-                localVerificationData: responses.invoiceDetails[i].invoiceID,
-                serverVerificationData: responses.invoiceDetails[i].invoiceID,
-                source: kIAPSource),
-            transactionDate: responses.invoiceDetails[i].orderTime,
-            status: const PurchaseStateConverter()
-                .toPurchaseStatus(responses.invoiceDetails[i].appliedStatus),
-          ));
+      billingManager
+          .requestPurchases(_identifiers.toList()[8], _identifiers.toList())
+          .then((GetUserPurchaseListAPIResult responses) {
+        try {
+          for (int i = 0; i < responses.invoiceDetails.length; i++) {
+            if (responses.invoiceDetails[i].invoiceID == invoiceId) {
+              final List<PurchaseDetails> purchases = <PurchaseDetails>[];
+              purchases.add(PurchaseDetails(
+                purchaseID: responses.invoiceDetails[i].invoiceID,
+                productID: responses.invoiceDetails[i].itemID,
+                verificationData: PurchaseVerificationData(
+                    localVerificationData:
+                        responses.invoiceDetails[i].invoiceID,
+                    serverVerificationData:
+                        responses.invoiceDetails[i].invoiceID,
+                    source: kIAPSource),
+                transactionDate: responses.invoiceDetails[i].orderTime,
+                status: const PurchaseStateConverter().toPurchaseStatus(
+                    responses.invoiceDetails[i].appliedStatus),
+              ));
 
-          _purchaseUpdatedController.add(purchases);
+              _purchaseUpdatedController.add(purchases);
+            }
+          }
+        } on PlatformException {
+          responses = const GetUserPurchaseListAPIResult(
+              cPStatus: 'fail to receive response',
+              cPResult: 'fail to receive response',
+              invoiceDetails: <InvoiceDetails>[]);
         }
-      }
+      });
+
       return true;
     } else {
       return false;
