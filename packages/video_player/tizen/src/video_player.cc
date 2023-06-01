@@ -158,7 +158,19 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
   SetUpEventChannel(plugin_registrar->messenger());
 }
 
-VideoPlayer::~VideoPlayer() { Dispose(); }
+VideoPlayer::~VideoPlayer() {
+  if (player_) {
+    player_unset_media_packet_video_frame_decoded_cb(player_);
+    player_unset_buffering_cb(player_);
+    player_unset_completed_cb(player_);
+    player_unset_interrupted_cb(player_);
+    player_unset_error_cb(player_);
+    player_unprepare(player_);
+    player_stop(player_);
+    player_destroy(player_);
+    player_ = nullptr;
+  }
+}
 
 void VideoPlayer::Play() {
   LOG_DEBUG("[VideoPlayer] start player");
@@ -252,7 +264,7 @@ int VideoPlayer::GetPosition() {
 
 void VideoPlayer::Dispose() {
   LOG_DEBUG("[VideoPlayer] dispose player");
-
+  std::lock_guard<std::mutex> lock(mutex_);
   is_initialized_ = false;
   event_sink_ = nullptr;
   event_channel_->SetStreamHandler(nullptr);
@@ -271,17 +283,6 @@ void VideoPlayer::Dispose() {
     media_packet_destroy(previous_media_packet_);
     previous_media_packet_ = nullptr;
   }
-  if (player_) {
-    player_unprepare(player_);
-    player_unset_media_packet_video_frame_decoded_cb(player_);
-    player_unset_buffering_cb(player_);
-    player_unset_completed_cb(player_);
-    player_unset_interrupted_cb(player_);
-    player_unset_error_cb(player_);
-    player_destroy(player_);
-    player_ = 0;
-  }
-
   if (texture_registrar_) {
     texture_registrar_->UnregisterTexture(texture_id_);
     texture_registrar_ = nullptr;
@@ -436,6 +437,11 @@ void VideoPlayer::OnError(int code, void *data) {
 void VideoPlayer::OnVideoFrameDecoded(media_packet_h packet, void *data) {
   auto *player = reinterpret_cast<VideoPlayer *>(data);
   std::lock_guard<std::mutex> lock(player->mutex_);
+  if (!player->is_initialized_) {
+    LOG_INFO("[VideoPlayer] player not initialized.");
+    media_packet_destroy(packet);
+    return;
+  }
   player->packet_queue_.push(packet);
   player->RequestRendering();
 }
