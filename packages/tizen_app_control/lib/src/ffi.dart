@@ -31,12 +31,21 @@ final AttachAppControl nativeAttachAppControl =
     _processLib.lookupFunction<_AttachAppControlNative, AttachAppControl>(
         'NativeAttachAppControl');
 
+typedef _SetAutoRestartNative = Int32 Function(Pointer<Void>);
+typedef SetAutoRestart = int Function(Pointer<Void>);
+typedef _UnsetAutoRestartNative = Int32 Function();
+typedef UnsetAutoRestart = int Function();
+
+final SetAutoRestart appControlSetAutoRestart =
+    _processLib.lookupFunction<_SetAutoRestartNative, SetAutoRestart>(
+        'app_control_set_auto_restart');
+final UnsetAutoRestart appControlUnsetAutoRestart =
+    _processLib.lookupFunction<_UnsetAutoRestartNative, UnsetAutoRestart>(
+        'app_control_unset_auto_restart');
+
 typedef _GetErrorMessageNative = Pointer<Utf8> Function(Int);
 typedef GetErrorMessage = Pointer<Utf8> Function(int);
 
-final DynamicLibrary _libBaseCommon =
-    DynamicLibrary.open('libcapi-base-common.so.0');
-
 final GetErrorMessage getErrorMessage =
-    _libBaseCommon.lookupFunction<_GetErrorMessageNative, GetErrorMessage>(
+    _processLib.lookupFunction<_GetErrorMessageNative, GetErrorMessage>(
         'get_error_message');
