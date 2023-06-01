@@ -221,12 +221,8 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
 
   void OnGetMaxSpeechInputLength() {
     std::optional<int32_t> length = tts_->GetMaxSpeechInputLength();
-    if (!length.has_value()) {
-      result_->Success();
-      result_ = nullptr;
-      return;
-    }
-    SendResult(flutter::EncodableValue(*length));
+    SendResult(length.has_value() ? flutter::EncodableValue(*length)
+                                  : flutter::EncodableValue());
   }
 
   void OnSetVolume(const flutter::EncodableValue &arguments) {
