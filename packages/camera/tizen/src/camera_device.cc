@@ -439,7 +439,7 @@ void CameraDevice::Dispose() {
   }
 
   if (texture_id_ != 0) {
-    registrar_->texture_registrar()->UnregisterTexture(texture_id_);
+    registrar_->texture_registrar()->UnregisterTexture(texture_id_, nullptr);
   }
 
   if (current_packet_) {

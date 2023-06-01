@@ -232,7 +232,7 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
-  texture_registrar_->UnregisterTexture(GetTextureId());
+  texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
 
   if (webview_instance_) {
     webview_instance_->Destroy();

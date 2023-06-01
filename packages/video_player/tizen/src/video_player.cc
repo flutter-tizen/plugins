@@ -282,7 +282,7 @@ void VideoPlayer::Dispose() {
     previous_media_packet_ = nullptr;
   }
   if (texture_registrar_) {
-    texture_registrar_->UnregisterTexture(texture_id_);
+    texture_registrar_->UnregisterTexture(texture_id_, nullptr);
     texture_registrar_ = nullptr;
   }
 }
