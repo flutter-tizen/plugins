@@ -1,3 +1,8 @@
+## 2.4.7
+
+* Update pigeon to 10.0.0.
+* Minor cleanups.
+
 ## 2.4.6
 
 * Fix memory leak issue.
