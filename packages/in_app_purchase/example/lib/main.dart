@@ -22,12 +22,6 @@ void main() {
 // To try without auto-consume, change `true` to `false` here.
 const bool _kAutoConsume = true;
 
-/// The [_kConsumableType]'s value:
-/// "1": CONSUMABLE
-/// "2": NON-CONSUMABLE
-/// "3": LIMITED-PERIOD
-/// "4": SUBSCRIPTION
-const int _kConsumableType = 1;
 const String _kAppId = '3201504002021';
 const String _kCustumId = '810000047372';
 const String _kServerType = 'DEV';
@@ -271,7 +265,8 @@ class _MyAppState extends State<_MyApp> {
                 );
 
                 if (productDetails is SamsungCheckoutProductDetails) {
-                  if (productDetails.itemDetails.itemType == _kConsumableType) {
+                  if (productDetails.itemDetails.itemType ==
+                      ItemType.consumable) {
                     _inAppPurchase.buyConsumable(
                         purchaseParam: purchaseParam,
                         // ignore: avoid_redundant_argument_values

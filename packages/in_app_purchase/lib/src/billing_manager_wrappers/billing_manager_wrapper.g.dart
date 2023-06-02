@@ -50,7 +50,8 @@ ItemDetails _$ItemDetailsFromJson(Map<String, dynamic> json) => ItemDetails(
       itemID: json['ItemID'] as String? ?? '',
       itemTitle: json['ItemTitle'] as String? ?? '',
       itemDesc: json['ItemDesc'] as String? ?? '',
-      itemType: json['ItemType'] as int? ?? 0,
+      itemType: $enumDecodeNullable(_$ItemTypeEnumMap, json['ItemType']) ??
+          ItemType.none,
       price: json['Price'] as num? ?? 0,
       currencyID: json['CurrencyID'] as String? ?? '',
     );
@@ -61,10 +62,18 @@ Map<String, dynamic> _$ItemDetailsToJson(ItemDetails instance) =>
       'ItemID': instance.itemID,
       'ItemTitle': instance.itemTitle,
       'ItemDesc': instance.itemDesc,
-      'ItemType': instance.itemType,
+      'ItemType': _$ItemTypeEnumMap[instance.itemType]!,
       'Price': instance.price,
       'CurrencyID': instance.currencyID,
     };
+
+const _$ItemTypeEnumMap = {
+  ItemType.none: 0,
+  ItemType.consumable: 1,
+  ItemType.nonComsumabel: 2,
+  ItemType.limitedPeriod: 3,
+  ItemType.subscription: 4,
+};
 
 ProductSubscriptionInfo _$ProductSubscriptionInfoFromJson(
         Map<String, dynamic> json) =>
@@ -126,7 +135,8 @@ InvoiceDetails _$InvoiceDetailsFromJson(Map<String, dynamic> json) =>
       invoiceID: json['InvoiceID'] as String? ?? '',
       itemID: json['ItemID'] as String? ?? '',
       itemTitle: json['ItemTitle'] as String? ?? '',
-      itemType: json['ItemType'] as int? ?? 0,
+      itemType: $enumDecodeNullable(_$ItemTypeEnumMap, json['ItemType']) ??
+          ItemType.none,
       orderTime: json['OrderTime'] as String? ?? '',
       price: json['Price'] as num? ?? 0,
       orderCurrencyID: json['OrderCurrencyID'] as String? ?? '',
@@ -144,7 +154,7 @@ Map<String, dynamic> _$InvoiceDetailsToJson(InvoiceDetails instance) =>
       'InvoiceID': instance.invoiceID,
       'ItemID': instance.itemID,
       'ItemTitle': instance.itemTitle,
-      'ItemType': instance.itemType,
+      'ItemType': _$ItemTypeEnumMap[instance.itemType]!,
       'OrderTime': instance.orderTime,
       'Period': instance.period,
       'Price': instance.price,

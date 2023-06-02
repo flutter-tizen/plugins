@@ -297,12 +297,8 @@ class ItemDetails {
   final String itemDesc;
 
   /// The type of product.
-  /// "1": CONSUMABLE
-  /// "2": NON-CONSUMABLE
-  /// "3": LIMITED-PERIOD
-  /// "4": SUBSCRIPTION
-  @JsonKey(defaultValue: 0, name: 'ItemType')
-  final int? itemType;
+  @JsonKey(defaultValue: ItemType.none, name: 'ItemType')
+  final ItemType itemType;
 
   /// The price of product, in "xxxx.yy" format.
   @JsonKey(defaultValue: 0, name: 'Price')
@@ -514,13 +510,9 @@ class InvoiceDetails {
   @JsonKey(defaultValue: '', name: 'ItemTitle')
   final String itemTitle;
 
-  /// The type of product:
-  /// "1": CONSUMABLE
-  /// "2": NON-CONSUMABLE
-  /// "3": LIMITED-PERIOD
-  /// "4": SUBSCRIPTION
-  @JsonKey(defaultValue: 0, name: 'ItemType')
-  final int itemType;
+  /// The type of product.
+  @JsonKey(defaultValue: ItemType.none, name: 'ItemType')
+  final ItemType itemType;
 
   /// Payment time, in 14-digit UTC time.
   @JsonKey(defaultValue: '', name: 'OrderTime')
@@ -715,4 +707,32 @@ class PurchaseStateConverter {
         return PurchaseStatus.error;
     }
   }
+}
+
+/// The type of product.
+/// Enum representing potential [ItemDetails.itemType]s and [InvoiceDetails.itemType]s.
+/// Wraps
+/// [`Product`]（https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/samsung-checkout-dpi-portal.html#Product)
+/// See the linked documentation for an explanation of the different constants.
+@JsonEnum(alwaysCreate: true)
+enum ItemType {
+  /// None type.
+  @JsonValue(0)
+  none,
+
+  /// Consumers can purchase this type of product anytime.
+  @JsonValue(1)
+  consumable,
+
+  /// Consumers can purchase this type of product only once.
+  @JsonValue(2)
+  nonComsumabel,
+
+  /// Once this type of product is purchased, repurchase cannot be made during the time when the product effect set by CP lasts.
+  @JsonValue(3)
+  limitedPeriod,
+
+  /// DPI system processes automatic payment on a certain designated cycle.
+  @JsonValue(4)
+  subscription
 }
