@@ -7,7 +7,7 @@ environment:
   flutter: ">=3.3.0"
 
 dependencies:
-  baseflow_plugin_template: ^2.1.1
+  baseflow_plugin_template: ^2.1.2
   flutter:
     sdk: flutter
   permission_handler: ^8.3.0
@@ -29,8 +29,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - packages/baseflow_plugin_template/logo.png
-    - packages/baseflow_plugin_template/poweredByBaseflow.png
-    - packages/baseflow_plugin_template/assets/logo.png
-    - packages/baseflow_plugin_template/assets/poweredByBaseflow.png
