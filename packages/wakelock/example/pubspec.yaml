@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  wakelock: ^0.5.6
+  wakelock: ^0.6.2
   wakelock_tizen:
     path: ../
 
@@ -22,4 +22,3 @@ dev_dependencies:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
-  pedantic: ^1.11.0
