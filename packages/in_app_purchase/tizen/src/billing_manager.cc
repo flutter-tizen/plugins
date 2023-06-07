@@ -77,7 +77,6 @@ bool BillingManager::GetProductList(const flutter::EncodableMap *encodables) {
   std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
   std::string country_code =
       GetRequiredArg<std::string>(encodables, "countryCode");
-  std::string item_type = GetRequiredArg<std::string>(encodables, "itemType");
   int64_t page_size = GetRequiredArg<int>(encodables, "pageSize");
   int64_t page_num = GetRequiredArg<int>(encodables, "pageNum");
   std::string check_value =
@@ -110,7 +109,7 @@ bool BillingManager::GetPurchaseList(const flutter::EncodableMap *encodables) {
       GetRequiredArg<std::string>(encodables, "serverType");
 
   bool ret = service_billing_get_purchase_list(
-      app_id.c_str(), "810000047372", country_code.c_str(), page_num,
+      app_id.c_str(), custom_id.c_str(), country_code.c_str(), page_num,
       check_value.c_str(), ConvertServerType(server_type.c_str()), OnPurchase,
       (void *)this);
   if (!ret) {

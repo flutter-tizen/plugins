@@ -15,17 +15,37 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
 
   final BillingManager _billingManager;
 
+  /// Set all request parameters that SamsungCheckout DPI Portal needed.
+  void setRequestParameters({
+    required String appId,
+    required String countryCode,
+    required String pageSize,
+    required String pageNum,
+    required String itemType,
+    required String serverType,
+    required String customId,
+    required String securityKey,
+  }) {
+    final Map<String, dynamic> requestParameters = <String, dynamic>{
+      'appId': appId,
+      'countryCode': countryCode,
+      'pageSize': pageSize,
+      'pageNum': pageNum,
+      'itemType': itemType,
+      'serverType': serverType,
+      'customId': customId,
+      'securityKey': securityKey,
+    };
+    _billingManager.setRequestParameters(requestParameters);
+  }
+
   /// Check whether a purchase, corresponding to the requested "InvoiceID", was successful.
-  Future<bool> verifyPurchase(PurchaseDetails purchaseDetails, String appId,
-      String customId, String countryCode, String serverType) async {
+  Future<bool> verifyPurchase(
+      {required PurchaseDetails purchaseDetails}) async {
     VerifyInvoiceAPIResult verifyPurchaseResult;
     try {
       verifyPurchaseResult = await _billingManager.verifyInvoice(
-          invoiceId: purchaseDetails.verificationData.serverVerificationData,
-          appId: appId,
-          customId: customId,
-          countryCode: countryCode,
-          serverType: serverType);
+          invoiceId: purchaseDetails.verificationData.serverVerificationData);
     } on PlatformException {
       verifyPurchaseResult = const VerifyInvoiceAPIResult(
           appId: 'error appId',

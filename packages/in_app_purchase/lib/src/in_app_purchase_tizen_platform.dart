@@ -47,15 +47,6 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   Stream<List<PurchaseDetails>> get purchaseStream =>
       _purchaseUpdatedController.stream;
 
-  /// The [_appId] is used for [queryProductDetails] and [buyNonConsumable] and [buyConsumable].
-  static late String _appId;
-
-  /// The [_serverType] is used for [buyNonConsumable] and [buyConsumable].
-  static late String _serverType;
-
-  /// The [_identifiers] is used for [restorePurchases].
-  static late Set<String> _identifiers;
-
   /// The [BillingManager] that's abstracted by Samsung Checkout.
   ///
   /// This field should not be used out of test code.
@@ -72,9 +63,6 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       Set<String> identifiers) async {
     ProductsListApiResult response;
     PlatformException? exception;
-    _identifiers = identifiers;
-    _appId = identifiers.toList()[0];
-    _serverType = identifiers.toList()[5];
     try {
       response = await billingManager.requestProducts(identifiers.toList());
     } on PlatformException catch (e) {
@@ -124,8 +112,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     List<GetUserPurchaseListAPIResult> responses;
 
     responses = await Future.wait(<Future<GetUserPurchaseListAPIResult>>[
-      billingManager.requestPurchases(
-          applicationUserName, _identifiers.toList())
+      billingManager.requestPurchases()
     ]);
 
     final List<PurchaseDetails> pastPurchases =
@@ -144,8 +131,6 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   @override
   Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
     final BillingBuyData billingResultWrapper = await billingManager.buyItem(
-        appId: _appId,
-        serverType: _serverType,
         orderItemId: purchaseParam.productDetails.id,
         orderTitle: purchaseParam.productDetails.title,
         orderTotal: purchaseParam.productDetails.price,
@@ -156,7 +141,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
           billingResultWrapper.payDetails['InvoiceID'] ?? '';
 
       billingManager
-          .requestPurchases(_identifiers.toList()[8], _identifiers.toList())
+          .requestPurchases()
           .then((GetUserPurchaseListAPIResult responses) {
         for (int i = 0; i < responses.invoiceDetails.length; i++) {
           if (responses.invoiceDetails[i].invoiceID == invoiceId) {

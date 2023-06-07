@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show json;
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -26,6 +27,14 @@ part 'billing_manager_wrapper.g.dart';
 class BillingManager {
   /// Creates a billing manager.
   BillingManager();
+
+  static late Map<String, dynamic> _requestParameters;
+
+  /// Call this to set tizen specific parameters.
+  // ignore: use_setters_to_change_properties
+  void setRequestParameters(Map<String, dynamic> requestParameters) {
+    _requestParameters = requestParameters;
+  }
 
   /// Calls
   /// [`BillingManager-isServiceAvailable`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-isServiceAvailable)
@@ -58,22 +67,35 @@ class BillingManager {
   /// to retrieves the list of products registered on the Billing (DPI) server.
   Future<ProductsListApiResult> requestProducts(
       List<String> requestparameters) async {
-    final Map<String, dynamic> arguments = <String, dynamic>{
-      'appId': requestparameters[0],
-      'countryCode': requestparameters[1],
-      'itemType': requestparameters[2],
-      'pageSize': int.parse(requestparameters[3]),
-      'pageNum': int.parse(requestparameters[4]),
-      'serverType': requestparameters[5],
-      'checkValue': requestparameters[6],
-    };
+    final Map<String, dynamic>? arguments;
+    if (_requestParameters == null) {
+      throw PlatformException(
+        code: 'request parameters null',
+        message: 'failed to get response from platform.',
+      );
+    } else {
+      final String checkValue = base64.encode(
+          Hmac(sha256, utf8.encode(_requestParameters['securityKey'] as String))
+              .convert(utf8.encode((_requestParameters['appId'] as String) +
+                  (_requestParameters['countryCode'] as String)))
+              .bytes);
+
+      arguments = <String, dynamic>{
+        'appId': _requestParameters['appId'] as String,
+        'countryCode': _requestParameters['countryCode'] as String,
+        'pageSize': int.parse(_requestParameters['pageSize'] as String),
+        'pageNum': int.parse(_requestParameters['pageNum'] as String),
+        'serverType': _requestParameters['serverType'] as String,
+        'checkValue': checkValue,
+      };
+    }
 
     final String? productResponse =
         await channel.invokeMethod<String?>('getProductList', arguments);
     if (productResponse == null) {
       throw PlatformException(
         code: 'no_response',
-        message: 'Failed to get response from platform.',
+        message: 'failed to get response from platform.',
       );
     }
     return ProductsListApiResult.fromJson(
@@ -84,22 +106,40 @@ class BillingManager {
   /// [`BillingManager-getUserPurchaseList`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-getUserPurchaseList)
   /// to retrieves the user's purchase list.
   Future<GetUserPurchaseListAPIResult> requestPurchases(
-      String? costomId, List<String> requestparameters) async {
-    final Map<String, dynamic> arguments = <String, dynamic>{
-      'appId': requestparameters[0],
-      'customId': costomId,
-      'countryCode': requestparameters[1],
-      'pageNum': int.parse(requestparameters[4]),
-      'serverType': requestparameters[5],
-      'checkValue': requestparameters[7],
-    };
+      {String? customId}) async {
+    final Map<String, dynamic>? arguments;
+    if (_requestParameters == null) {
+      throw PlatformException(
+        code: 'request parameters null',
+        message: 'failed to get response from platform.',
+      );
+    } else {
+      final String checkValue = base64.encode(
+          Hmac(sha256, utf8.encode(_requestParameters['securityKey'] as String))
+              .convert(utf8.encode((_requestParameters['appId'] as String) +
+                  (_requestParameters['customId'] as String) +
+                  (_requestParameters['countryCode'] as String) +
+                  (_requestParameters['itemType'] as String) +
+                  (_requestParameters['pageNum'] as String)))
+              .bytes);
+
+      arguments = <String, dynamic>{
+        'appId': _requestParameters['appId'] as String,
+        'customId': _requestParameters['customId'] as String,
+        'countryCode': _requestParameters['countryCode'] as String,
+        'pageNum': int.parse(_requestParameters['pageNum'] as String),
+        'itemType': _requestParameters['itemType'] as String,
+        'serverType': _requestParameters['serverType'] as String,
+        'checkValue': checkValue,
+      };
+    }
 
     final String? purchaseResponse =
         await channel.invokeMethod<String?>('getPurchaseList', arguments);
     if (purchaseResponse == null) {
       throw PlatformException(
         code: 'no_response',
-        message: 'Failed to get response from platform.',
+        message: 'failed to get response from platform.',
       );
     }
     return GetUserPurchaseListAPIResult.fromJson(
@@ -111,8 +151,6 @@ class BillingManager {
   /// to enables implementing the Samsung Checkout Client module within the application.
   /// After authenticating the purchase information through the application, the user can proceed to purchase payment.
   Future<BillingBuyData> buyItem({
-    required String appId,
-    required String serverType,
     required String orderItemId,
     required String orderTitle,
     required String orderTotal,
@@ -124,16 +162,28 @@ class BillingManager {
       'OrderTotal': orderTotal,
       'OrderCurrencyID': orderCurrencyId
     };
-
-    final Map<String, dynamic> arguments = <String, dynamic>{
-      'appId': appId,
-      'serverType': serverType,
-      'payDetails': json.encode(orderDetails)
-    };
-    final Map<String, dynamic> map =
-        await channel.invokeMapMethod<String, dynamic>('buyItem', arguments) ??
-            <String, dynamic>{};
-    return BillingBuyData.fromJson(map);
+    final Map<String, dynamic>? arguments;
+    if (_requestParameters == null) {
+      throw PlatformException(
+        code: 'request parameters null',
+        message: 'failed to get response from platform.',
+      );
+    } else {
+      arguments = <String, dynamic>{
+        'appId': _requestParameters['appId'] as String,
+        'serverType': _requestParameters['serverType'] as String,
+        'payDetails': json.encode(orderDetails)
+      };
+    }
+    final Map<String, dynamic>? buyResult =
+        await channel.invokeMapMethod<String, dynamic>('buyItem', arguments);
+    if (buyResult == null) {
+      throw PlatformException(
+        code: 'request parameters null',
+        message: 'failed to get response from platform.',
+      );
+    }
+    return BillingBuyData.fromJson(buyResult);
   }
 
   /// Calls
@@ -141,21 +191,31 @@ class BillingManager {
   /// to enables implementing the Samsung Checkout Client module within the application.
   /// Checks whether a purchase, corresponding to a specific "InvoiceID", was successful.
   Future<VerifyInvoiceAPIResult> verifyInvoice(
-      {required String appId,
-      required String? invoiceId,
-      required String? customId,
-      required String? countryCode,
-      required String? serverType}) async {
-    final Map<String, dynamic> arguments = <String, dynamic>{
-      'appId': appId,
-      'invoiceId': invoiceId,
-      'customId': customId,
-      'countryCode': countryCode,
-      'serverType': serverType
-    };
-    final String verifyInvoiceResult =
-        await channel.invokeMethod<String>('verifyInvoice', arguments) ?? '';
+      {required String invoiceId}) async {
+    final Map<String, dynamic>? arguments;
+    if (_requestParameters == null) {
+      throw PlatformException(
+        code: 'request parameters null',
+        message: 'failed to get response from platform.',
+      );
+    } else {
+      arguments = <String, dynamic>{
+        'invoiceId': invoiceId,
+        'appId': _requestParameters['appId'] as String,
+        'customId': _requestParameters['customId'] as String,
+        'countryCode': _requestParameters['countryCode'] as String,
+        'serverType': _requestParameters['serverType'] as String
+      };
+    }
 
+    final String? verifyInvoiceResult =
+        await channel.invokeMethod<String>('verifyInvoice', arguments);
+    if (verifyInvoiceResult == null) {
+      throw PlatformException(
+        code: 'no_response',
+        message: 'failed to get response from platform.',
+      );
+    }
     return VerifyInvoiceAPIResult.fromJson(
         json.decode(verifyInvoiceResult) as Map<String, dynamic>);
   }
