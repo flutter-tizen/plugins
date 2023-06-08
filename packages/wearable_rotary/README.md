@@ -59,4 +59,4 @@ ListView(controller: RotaryScrollController());
 ## Supported devices
 
 - Wear OS devices with rotary input (Galaxy Watch 4, Pixel Watch, etc.)
-- Galaxy Watch series (running Tizen 4.0 or later)
+- Galaxy Watch series (running Tizen 5.5)

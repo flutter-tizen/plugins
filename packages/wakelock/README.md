@@ -34,4 +34,4 @@ To use the wakelock plugin in a Tizen application, the display privilege must be
 
 ## Supported devices
 
-- Galaxy Watch series (running Tizen 4.0 or later)
+- Galaxy Watch series (running Tizen 5.5)

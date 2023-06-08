@@ -3,7 +3,7 @@
 
 APPNAME = tizen_audio_manager_plugin
 type = staticLib
-profile = common-4.0
+profile = common-5.5
 
 # Source files
 USER_SRCS += src/*.cc
