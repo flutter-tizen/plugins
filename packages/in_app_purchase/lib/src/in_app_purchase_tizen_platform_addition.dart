@@ -18,20 +18,18 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
   /// Set all request parameters that SamsungCheckout DPI Portal needed.
   void setRequestParameters({
     required String appId,
-    required String countryCode,
-    required String pageSize,
-    required String pageNum,
-    required String itemType,
-    required String serverType,
-    required String customId,
-    required String securityKey,
+    String? countryCode,
+    int? pageSize,
+    int? pageNum,
+    String? serverType,
+    String? customId,
+    String? securityKey,
   }) {
     final Map<String, dynamic> requestParameters = <String, dynamic>{
       'appId': appId,
       'countryCode': countryCode,
       'pageSize': pageSize,
       'pageNum': pageNum,
-      'itemType': itemType,
       'serverType': serverType,
       'customId': customId,
       'securityKey': securityKey,

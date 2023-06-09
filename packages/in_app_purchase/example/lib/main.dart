@@ -24,19 +24,12 @@ const String _kAppId = '3201504002021';
 const String _kCustomId = '810000047372';
 const String _kServerType = 'DEV';
 const String _kCountryCode = 'US';
-const String _kItemType = '2';
-const String _kPageSize = '20';
-const String _kPageNum = '1';
+const int _kPageSize = 20;
+const int _kPageNum = 1;
 const String _kSecurityKey = 'YxE757K+aDWHJXa0QMnL5AJmItefoEizvv8L7WPJAMs=';
 
-const List<String> _kRequestParams = <String>[
-  _kAppId,
-  _kCountryCode,
-  _kPageSize,
-  _kPageNum,
-  _kServerType,
-  _kSecurityKey,
-];
+// For tizen platform, [_kRequestParams] is not used, set it null.
+const List<String> _kRequestParams = <String>[];
 
 class _MyApp extends StatefulWidget {
   @override
@@ -94,7 +87,6 @@ class _MyAppState extends State<_MyApp> {
         countryCode: _kCountryCode,
         pageSize: _kPageSize,
         pageNum: _kPageNum,
-        itemType: _kItemType,
         serverType: _kServerType,
         customId: _kCustomId,
         securityKey: _kSecurityKey);

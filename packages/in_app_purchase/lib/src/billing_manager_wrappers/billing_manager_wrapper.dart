@@ -4,8 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:crypto/crypto.dart';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
@@ -28,13 +28,18 @@ class BillingManager {
   /// Creates a billing manager.
   BillingManager();
 
-  static late Map<String, dynamic> _requestParameters;
+  late Map<String, dynamic> _requestParameters = <String, dynamic>{};
 
   /// Call this to set tizen specific parameters.
   // ignore: use_setters_to_change_properties
   void setRequestParameters(Map<String, dynamic> requestParameters) {
     _requestParameters = requestParameters;
   }
+
+  /// This is different from response [ItemType]. The value `2` means `all items`.
+  ///
+  /// [_requestItemType] is only used for [BillingManager.requestPurchases].
+  static const String _requestItemType = '2';
 
   /// Calls
   /// [`BillingManager-isServiceAvailable`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-isServiceAvailable)
@@ -67,28 +72,20 @@ class BillingManager {
   /// to retrieves the list of products registered on the Billing (DPI) server.
   Future<ProductsListApiResult> requestProducts(
       List<String> requestparameters) async {
-    final Map<String, dynamic>? arguments;
-    if (_requestParameters == null) {
-      throw PlatformException(
-        code: 'request parameters null',
-        message: 'failed to get response from platform.',
-      );
-    } else {
-      final String checkValue = base64.encode(
-          Hmac(sha256, utf8.encode(_requestParameters['securityKey'] as String))
-              .convert(utf8.encode((_requestParameters['appId'] as String) +
-                  (_requestParameters['countryCode'] as String)))
-              .bytes);
+    final String checkValue = base64.encode(Hmac(sha256,
+            utf8.encode(_requestParameters['securityKey'] as String? ?? ''))
+        .convert(utf8.encode((_requestParameters['appId'] as String? ?? '') +
+            (_requestParameters['countryCode'] as String? ?? '')))
+        .bytes);
 
-      arguments = <String, dynamic>{
-        'appId': _requestParameters['appId'] as String,
-        'countryCode': _requestParameters['countryCode'] as String,
-        'pageSize': int.parse(_requestParameters['pageSize'] as String),
-        'pageNum': int.parse(_requestParameters['pageNum'] as String),
-        'serverType': _requestParameters['serverType'] as String,
-        'checkValue': checkValue,
-      };
-    }
+    final Map<String, dynamic> arguments = <String, dynamic>{
+      'appId': _requestParameters['appId'],
+      'countryCode': _requestParameters['countryCode'],
+      'pageSize': _requestParameters['pageSize'],
+      'pageNum': _requestParameters['pageNum'],
+      'serverType': _requestParameters['serverType'],
+      'checkValue': checkValue,
+    };
 
     final String? productResponse =
         await channel.invokeMethod<String?>('getProductList', arguments);
@@ -107,32 +104,23 @@ class BillingManager {
   /// to retrieves the user's purchase list.
   Future<GetUserPurchaseListAPIResult> requestPurchases(
       {String? customId}) async {
-    final Map<String, dynamic>? arguments;
-    if (_requestParameters == null) {
-      throw PlatformException(
-        code: 'request parameters null',
-        message: 'failed to get response from platform.',
-      );
-    } else {
-      final String checkValue = base64.encode(
-          Hmac(sha256, utf8.encode(_requestParameters['securityKey'] as String))
-              .convert(utf8.encode((_requestParameters['appId'] as String) +
-                  (_requestParameters['customId'] as String) +
-                  (_requestParameters['countryCode'] as String) +
-                  (_requestParameters['itemType'] as String) +
-                  (_requestParameters['pageNum'] as String)))
-              .bytes);
+    final String checkValue = base64.encode(Hmac(sha256,
+            utf8.encode(_requestParameters['securityKey'] as String? ?? ''))
+        .convert(utf8.encode((_requestParameters['appId'] as String? ?? '') +
+            (_requestParameters['customId'] as String? ?? '') +
+            (_requestParameters['countryCode'] as String? ?? '') +
+            _requestItemType +
+            (_requestParameters['pageNum'] as int? ?? -1).toString()))
+        .bytes);
 
-      arguments = <String, dynamic>{
-        'appId': _requestParameters['appId'] as String,
-        'customId': _requestParameters['customId'] as String,
-        'countryCode': _requestParameters['countryCode'] as String,
-        'pageNum': int.parse(_requestParameters['pageNum'] as String),
-        'itemType': _requestParameters['itemType'] as String,
-        'serverType': _requestParameters['serverType'] as String,
-        'checkValue': checkValue,
-      };
-    }
+    final Map<String, dynamic> arguments = <String, dynamic>{
+      'appId': _requestParameters['appId'],
+      'customId': _requestParameters['customId'],
+      'countryCode': _requestParameters['countryCode'],
+      'pageNum': _requestParameters['pageNum'],
+      'serverType': _requestParameters['serverType'],
+      'checkValue': checkValue,
+    };
 
     final String? purchaseResponse =
         await channel.invokeMethod<String?>('getPurchaseList', arguments);
@@ -162,19 +150,12 @@ class BillingManager {
       'OrderTotal': orderTotal,
       'OrderCurrencyID': orderCurrencyId
     };
-    final Map<String, dynamic>? arguments;
-    if (_requestParameters == null) {
-      throw PlatformException(
-        code: 'request parameters null',
-        message: 'failed to get response from platform.',
-      );
-    } else {
-      arguments = <String, dynamic>{
-        'appId': _requestParameters['appId'] as String,
-        'serverType': _requestParameters['serverType'] as String,
-        'payDetails': json.encode(orderDetails)
-      };
-    }
+    final Map<String, dynamic> arguments = <String, dynamic>{
+      'appId': _requestParameters['appId'],
+      'serverType': _requestParameters['serverType'],
+      'payDetails': json.encode(orderDetails)
+    };
+
     final Map<String, dynamic>? buyResult =
         await channel.invokeMapMethod<String, dynamic>('buyItem', arguments);
     if (buyResult == null) {
@@ -192,21 +173,13 @@ class BillingManager {
   /// Checks whether a purchase, corresponding to a specific "InvoiceID", was successful.
   Future<VerifyInvoiceAPIResult> verifyInvoice(
       {required String invoiceId}) async {
-    final Map<String, dynamic>? arguments;
-    if (_requestParameters == null) {
-      throw PlatformException(
-        code: 'request parameters null',
-        message: 'failed to get response from platform.',
-      );
-    } else {
-      arguments = <String, dynamic>{
-        'invoiceId': invoiceId,
-        'appId': _requestParameters['appId'] as String,
-        'customId': _requestParameters['customId'] as String,
-        'countryCode': _requestParameters['countryCode'] as String,
-        'serverType': _requestParameters['serverType'] as String
-      };
-    }
+    final Map<String, dynamic> arguments = <String, dynamic>{
+      'invoiceId': invoiceId,
+      'appId': _requestParameters['appId'],
+      'customId': _requestParameters['customId'],
+      'countryCode': _requestParameters['countryCode'],
+      'serverType': _requestParameters['serverType']
+    };
 
     final String? verifyInvoiceResult =
         await channel.invokeMethod<String>('verifyInvoice', arguments);

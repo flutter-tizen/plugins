@@ -161,10 +161,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
             _purchaseUpdatedController.add(purchases);
           }
         }
-      }).catchError((Object error) {
-        throw PlatformException(
-            code: 'Failed to get response from platform:$error');
-      });
+      }).catchError((Object error) {});
 
       return true;
     } else {
