@@ -22,8 +22,8 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 
 ```yaml
 dependencies:
-  webview_flutter: ^4.0.2
-  webview_flutter_tizen: ^0.7.2
+  webview_flutter: ^4.2.2
+  webview_flutter_tizen: ^0.8.0
 ```
 
 ## Example
@@ -64,3 +64,15 @@ This plugin is only supported on Tizen TV devices running Tizen 5.5 or later.
 ## Note
 
 To play Youtube, make app's background color to transparent.
+
+```diff
+--- a/packages/webview_flutter/example/lib/main.dart
++++ b/packages/webview_flutter/example/lib/main.dart
+   @override
+   Widget build(BuildContext context) {
+     return Scaffold(
+-       backgroundColor: Colors.green,
++       backgroundColor: Color.fromARGB(0, 0, 0, 0),
+       appBar: AppBar(
+         title: const Text('Flutter WebView example'),
+```

@@ -1,8 +1,10 @@
-## 0.7.2
+## 0.8.0
 
 * Fix bug on playing youtube on TV
 * Apply PlatformView API change.
 * Increase the minimum Flutter version to 3.3.
+* Update webview_flutter to 4.2.2
+* Update webview_flutter_platform_interface to 2.3.0
 
 ## 0.7.1
 

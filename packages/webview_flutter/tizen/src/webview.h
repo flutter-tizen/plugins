@@ -76,6 +76,7 @@ class WebView : public PlatformView {
   static void OnConsoleMessage(void* data, Evas_Object* obj, void* event_info);
   static void OnNavigationPolicy(void* data, Evas_Object* obj,
                                  void* event_info);
+  static void OnUrlChanged(void* data, Evas_Object* obj, void* event_info);
   static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data);
   static void OnJavaScriptMessage(Evas_Object* obj, Ewk_Script_Message message);
