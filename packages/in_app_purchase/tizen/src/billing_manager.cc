@@ -19,12 +19,8 @@ const char *kInvalidArgument = "Invalid argument";
 static server_type ConvertServerType(const char *server_type_string) {
   if (strcasecmp("DEV", server_type_string) == 0) {
     return SERVERTYPE_DEV;
-  } else if (strcasecmp("OPERATE", server_type_string) == 0) {
+  } else if (strcasecmp("PRD", server_type_string) == 0) {
     return SERVERTYPE_OPERATE;
-  } else if (strcasecmp("WORKING", server_type_string) == 0) {
-    return SERVERTYPE_WORKING;
-  } else if (strcasecmp("DUMMY", server_type_string) == 0) {
-    return SERVERTYPE_DUMMY;
   } else
     return SERVERTYPE_NONE;
 }
@@ -58,13 +54,13 @@ bool BillingManager::Init() {
   LOG_INFO("[BillingManager] Init billing api.");
 
   billing_api_handle_ = OpenBillingApi();
-  if (billing_api_handle_ == nullptr) {
+  if (!billing_api_handle_) {
     LOG_ERROR("[BillingManager] Fail to open billing api.");
     return false;
   }
 
-  int init_billing_api = InitBillingApi(billing_api_handle_);
-  if (init_billing_api == 0) {
+  int ret = InitBillingApi(billing_api_handle_);
+  if (ret == 0) {
     LOG_ERROR("[BillingManager] Fail to init billing api.");
     return false;
   }
@@ -121,6 +117,7 @@ bool BillingManager::GetPurchaseList(const flutter::EncodableMap *encodables) {
 
 bool BillingManager::BuyItem(const flutter::EncodableMap *encodables) {
   LOG_INFO("[BillingManager] Start buy item");
+
   std::string pay_details =
       GetRequiredArg<std::string>(encodables, "payDetails");
   std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
@@ -140,6 +137,7 @@ bool BillingManager::BuyItem(const flutter::EncodableMap *encodables) {
 
 bool BillingManager::VerifyInvoice(const flutter::EncodableMap *encodables) {
   LOG_INFO("[BillingManager] Start verify invoice");
+
   std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
   std::string custom_id = GetRequiredArg<std::string>(encodables, "customId");
   std::string invoice_id = GetRequiredArg<std::string>(encodables, "invoiceId");
@@ -288,7 +286,7 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
 }
 
 void BillingManager::OnVerify(const char *detail_result, void *user_data) {
-  LOG_INFO("[BillingManager] verify details: %s", detail_result);
+  LOG_INFO("[BillingManager] Verify details: %s", detail_result);
 
   BillingManager *billing = reinterpret_cast<BillingManager *>(user_data);
   billing->SendResult(flutter::EncodableValue(std::string(detail_result)));

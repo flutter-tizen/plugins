@@ -44,7 +44,6 @@ class BillingManager {
   static void OnVerify(const char *detail_result, void *user_data);
 
   void *billing_api_handle_ = nullptr;
-
   std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
       method_result_ = nullptr;
   flutter::PluginRegistrar *plugin_registrar_ = nullptr;

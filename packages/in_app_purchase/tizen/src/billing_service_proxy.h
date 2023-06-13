@@ -41,8 +41,8 @@ typedef bool (*FuncServiceBillingVerifyInvoice)(
     billing_payment_api_cb callback, void *user_data);
 
 void *OpenBillingApi();
-void CloseBillingApi(void *handle);
 int InitBillingApi(void *handle);
+void CloseBillingApi(void *handle);
 
 extern FuncGetProductslist service_billing_get_products_list;
 extern FuncGetpurchaselist service_billing_get_purchase_list;
