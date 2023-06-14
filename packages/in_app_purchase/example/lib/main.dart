@@ -21,7 +21,6 @@ void main() {
 const bool _kAutoConsume = true;
 
 const String _kAppId = '3201504002021';
-const String _kCustomId = '810000047372';
 const String _kServerType = 'DEV';
 const String _kCountryCode = 'US';
 const int _kPageSize = 20;
@@ -83,13 +82,13 @@ class _MyAppState extends State<_MyApp> {
         InAppPurchasePlatformAddition.instance!
             as InAppPurchaseTizenPlatformAddition;
     addition.setRequestParameters(
-        appId: _kAppId,
-        countryCode: _kCountryCode,
-        pageSize: _kPageSize,
-        pageNum: _kPageNum,
-        serverType: _kServerType,
-        customId: _kCustomId,
-        securityKey: _kSecurityKey);
+      appId: _kAppId,
+      countryCode: _kCountryCode,
+      pageSize: _kPageSize,
+      pageNum: _kPageNum,
+      serverType: _kServerType,
+      securityKey: _kSecurityKey,
+    );
 
     final ProductDetailsResponse productDetailResponse =
         await _inAppPurchase.queryProductDetails(_kRequestParams.toSet());

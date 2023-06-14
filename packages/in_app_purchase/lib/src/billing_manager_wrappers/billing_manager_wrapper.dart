@@ -100,11 +100,12 @@ class BillingManager {
   /// [`BillingManager-getUserPurchaseList`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-getUserPurchaseList)
   /// to retrieves the user's purchase list.
   Future<GetUserPurchaseListAPIResult> requestPurchases(
-      {String? customId}) async {
+      {String? applicationUserName}) async {
+    final String? customId = await channel.invokeMethod<String?>('GetCustomId');
     final String checkValue = base64.encode(Hmac(sha256,
             utf8.encode(_requestParameters['securityKey'] as String? ?? ''))
         .convert(utf8.encode((_requestParameters['appId'] as String? ?? '') +
-            (_requestParameters['customId'] as String? ?? '') +
+            (customId ?? '') +
             (_requestParameters['countryCode'] as String? ?? '') +
             _requestItemType +
             (_requestParameters['pageNum'] as int? ?? -1).toString()))
@@ -112,7 +113,7 @@ class BillingManager {
 
     final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': _requestParameters['appId'],
-      'customId': _requestParameters['customId'],
+      'customId': customId,
       'countryCode': _requestParameters['countryCode'],
       'pageNum': _requestParameters['pageNum'],
       'serverType': _requestParameters['serverType'],
@@ -170,10 +171,11 @@ class BillingManager {
   /// Checks whether a purchase, corresponding to a specific "InvoiceID", was successful.
   Future<VerifyInvoiceAPIResult> verifyInvoice(
       {required String invoiceId}) async {
+    final String? customId = await channel.invokeMethod<String?>('GetCustomId');
     final Map<String, dynamic> arguments = <String, dynamic>{
       'invoiceId': invoiceId,
       'appId': _requestParameters['appId'],
-      'customId': _requestParameters['customId'],
+      'customId': customId,
       'countryCode': _requestParameters['countryCode'],
       'serverType': _requestParameters['serverType']
     };

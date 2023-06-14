@@ -64,7 +64,26 @@ bool BillingManager::Init() {
     LOG_ERROR("[BillingManager] Fail to init billing api.");
     return false;
   }
+
+  sso_api_handle_ = OpenSsoApi();
+  if (sso_api_handle_ == nullptr) {
+    LOG_ERROR("[BillingManager] Fail to open sso api");
+  }
+
+  ret = InitSsoApi(sso_api_handle_);
+  if (ret == 0) {
+    LOG_ERROR("[BillingManager] Fail to init sso api");
+  }
+
   return true;
+}
+
+std::string BillingManager::GetCustomId() {
+  sso_login_info_s login_info;
+  if (!sso_get_login_info(&login_info)) {
+    return login_info.uid;
+  }
+  return "";
 }
 
 bool BillingManager::GetProductList(const flutter::EncodableMap *encodables) {
@@ -224,6 +243,8 @@ void BillingManager::HandleMethodCall(
         result->Error("verifyInvoice failed");
         return;
       }
+    } else if (method_name == "GetCustomId") {
+      result->Success(flutter::EncodableValue(std::string(GetCustomId())));
     } else {
       result->NotImplemented();
     }
@@ -295,6 +316,8 @@ void BillingManager::OnVerify(const char *detail_result, void *user_data) {
 void BillingManager::Dispose() {
   LOG_INFO("[BillingManager] Dispose billing.");
 
-  CloseBillingApi(billing_api_handle_);
+  CloseApi(billing_api_handle_);
   billing_api_handle_ = nullptr;
+  CloseApi(sso_api_handle_);
+  sso_api_handle_ = nullptr;
 }

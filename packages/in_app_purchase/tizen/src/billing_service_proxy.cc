@@ -13,8 +13,10 @@ FuncServiceBillingIsServiceAvailable service_billing_is_service_available =
 FuncBillingBuyItem service_billing_buyitem = nullptr;
 FuncBillingSetBuyItemCb service_billing_set_buyitem_cb = nullptr;
 FuncServiceBillingVerifyInvoice service_billing_verify_invoice = nullptr;
+FuncSsoGetLoginInfo sso_get_login_info = nullptr;
 
 void *OpenBillingApi() { return dlopen("libbilling_api.so", RTLD_LAZY); }
+void *OpenSsoApi() { return dlopen("libsso_api.so", RTLD_LAZY); }
 
 int InitBillingApi(void *handle) {
   if (!handle) {
@@ -62,7 +64,16 @@ int InitBillingApi(void *handle) {
   return 1;
 }
 
-void CloseBillingApi(void *handle) {
+int InitSsoApi(void *handle) {
+  sso_get_login_info = reinterpret_cast<FuncSsoGetLoginInfo>(
+      dlsym(handle, "sso_get_login_info"));
+  if (!sso_get_login_info) {
+    return 0;
+  }
+  return 1;
+}
+
+void CloseApi(void *handle) {
   if (handle) {
     dlclose(handle);
   }

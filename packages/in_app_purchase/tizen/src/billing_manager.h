@@ -30,6 +30,7 @@ class BillingManager {
   bool GetProductList(const flutter::EncodableMap *encodables);
   bool GetPurchaseList(const flutter::EncodableMap *encodables);
   bool VerifyInvoice(const flutter::EncodableMap *encodables);
+  std::string GetCustomId();
 
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
@@ -44,6 +45,7 @@ class BillingManager {
   static void OnVerify(const char *detail_result, void *user_data);
 
   void *billing_api_handle_ = nullptr;
+  void *sso_api_handle_ = nullptr;
   std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
       method_result_ = nullptr;
   flutter::PluginRegistrar *plugin_registrar_ = nullptr;

@@ -22,7 +22,6 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
     int? pageSize,
     int? pageNum,
     String? serverType,
-    String? customId,
     String? securityKey,
   }) {
     final Map<String, dynamic> requestParameters = <String, dynamic>{
@@ -31,7 +30,6 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
       'pageSize': pageSize,
       'pageNum': pageNum,
       'serverType': serverType,
-      'customId': customId,
       'securityKey': securityKey,
     };
     _billingManager.setRequestParameters(requestParameters);

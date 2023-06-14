@@ -5,6 +5,8 @@
 #ifndef FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
 #define FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
 
+#define SSO_API_MAX_STRING_LEN 128
+
 typedef enum server_type {
   SERVERTYPE_OPERATE = 10005,
   SERVERTYPE_DEV,
@@ -12,6 +14,14 @@ typedef enum server_type {
   SERVERTYPE_DUMMY,
   SERVERTYPE_NONE
 } SERVERTYPE;
+
+typedef struct sso_login_info {
+  char login_id[SSO_API_MAX_STRING_LEN];
+  char login_pwd[SSO_API_MAX_STRING_LEN];
+  char login_guid[SSO_API_MAX_STRING_LEN];
+  char uid[SSO_API_MAX_STRING_LEN];
+  char user_icon[SSO_API_MAX_STRING_LEN * 8];
+} sso_login_info_s;
 
 typedef void (*billing_payment_api_cb)(const char *detail_result,
                                        void *user_data);
@@ -39,10 +49,14 @@ typedef bool (*FuncServiceBillingVerifyInvoice)(
     const char *app_id, const char *custom_id, const char *invoice_id,
     const char *country_code, SERVERTYPE server_type,
     billing_payment_api_cb callback, void *user_data);
+typedef bool (*FuncSsoGetLoginInfo)(sso_login_info_s *login_info);
 
 void *OpenBillingApi();
+void *OpenSsoApi();
+
 int InitBillingApi(void *handle);
-void CloseBillingApi(void *handle);
+int InitSsoApi(void *handle);
+void CloseApi(void *handle);
 
 extern FuncGetProductslist service_billing_get_products_list;
 extern FuncGetpurchaselist service_billing_get_purchase_list;
@@ -51,5 +65,6 @@ extern FuncBillingSetBuyItemCb service_billing_set_buyitem_cb;
 extern FuncServiceBillingIsServiceAvailable
     service_billing_is_service_available;
 extern FuncServiceBillingVerifyInvoice service_billing_verify_invoice;
+extern FuncSsoGetLoginInfo sso_get_login_info;
 
 #endif  // FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
