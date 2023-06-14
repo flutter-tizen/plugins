@@ -53,18 +53,15 @@ class BillingManager {
         message: 'Failed to get response from platform.',
       );
     }
+
     final ServiceAvailableAPIResult isAvailable =
         ServiceAvailableAPIResult.fromJson(
             json.decode(isAvailableResult) as Map<String, dynamic>);
-    final bool resultRet;
-    switch (isAvailable.result) {
-      case 'Success':
-        resultRet = true;
-        break;
-      default:
-        resultRet = false;
+    if (isAvailable.status == '100000') {
+      return true;
+    } else {
+      return false;
     }
-    return resultRet;
   }
 
   /// Calls
@@ -243,8 +240,8 @@ class ServiceAvailableAPIResult {
 class ProductsListApiResult {
   /// Creates a [ProductsListApiResult] with the given purchase details.
   const ProductsListApiResult({
-    required this.cPStatus,
-    required this.cPResult,
+    required this.cpStatus,
+    this.cpResult,
     required this.checkValue,
     required this.totalCount,
     required this.itemDetails,
@@ -263,14 +260,14 @@ class ProductsListApiResult {
   /// DPI result code.
   /// Returns "100000" on success and other codes on failure.
   @JsonKey(defaultValue: '', name: 'CPStatus')
-  final String cPStatus;
+  final String cpStatus;
 
   /// The result message.
   /// "EOF":Last page of the product list.
   /// "hasNext:TRUE" Product list has further pages.
   /// Other error message, depending on the DPI result code.
   @JsonKey(defaultValue: '', name: 'CPResult')
-  final String cPResult;
+  final String? cpResult;
 
   /// Total number of invoices.
   @JsonKey(defaultValue: 0, name: 'TotalCount')
@@ -295,12 +292,12 @@ class ItemDetails {
   /// Creates a [ItemDetails] with the given purchase details.
   const ItemDetails({
     required this.seq,
-    required this.itemID,
+    required this.itemId,
     required this.itemTitle,
     required this.itemDesc,
     required this.itemType,
     required this.price,
-    required this.currencyID,
+    required this.currencyId,
   });
 
   /// Constructs an instance of this from a json string.
@@ -319,7 +316,7 @@ class ItemDetails {
 
   /// The ID of Product.
   @JsonKey(defaultValue: '', name: 'ItemID')
-  final String itemID;
+  final String itemId;
 
   /// The name of product.
   @JsonKey(defaultValue: '', name: 'ItemTitle')
@@ -339,7 +336,7 @@ class ItemDetails {
 
   /// The currency code
   @JsonKey(defaultValue: '', name: 'CurrencyID')
-  final String currencyID;
+  final String currencyId;
 }
 
 /// Dart wrapper around [`ProductSubscriptionInfo`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
@@ -401,11 +398,11 @@ class SamsungCheckoutProductDetails extends ProductDetails {
   /// Generate a [SamsungCheckoutProductDetails] object based on [ItemDetails] object.
   factory SamsungCheckoutProductDetails.fromProduct(ItemDetails itemDetails) {
     return SamsungCheckoutProductDetails(
-      id: itemDetails.itemID,
+      id: itemDetails.itemId,
       title: itemDetails.itemTitle,
       description: itemDetails.itemDesc,
       price: itemDetails.price.toString(),
-      currencyCode: itemDetails.currencyID,
+      currencyCode: itemDetails.currencyId,
       itemDetails: itemDetails,
     );
   }
@@ -422,7 +419,10 @@ class SamsungCheckoutProductDetails extends ProductDetails {
 @immutable
 class BillingBuyData {
   /// Creates a [BillingBuyData] with the given purchase details.
-  const BillingBuyData({required this.payResult, required this.payDetails});
+  const BillingBuyData({
+    required this.payResult,
+    required this.payDetails,
+  });
 
   /// Constructs an instance of this from a json string.
   ///
@@ -451,12 +451,13 @@ class BillingBuyData {
 @immutable
 class GetUserPurchaseListAPIResult {
   /// Creates a [GetUserPurchaseListAPIResult] with the given purchase details.
-  const GetUserPurchaseListAPIResult(
-      {required this.cPResult,
-      required this.cPStatus,
-      required this.invoiceDetails,
-      this.totalCount,
-      this.checkValue});
+  const GetUserPurchaseListAPIResult({
+    required this.cpStatus,
+    this.cpResult,
+    required this.invoiceDetails,
+    required this.totalCount,
+    required this.checkValue,
+  });
 
   /// Constructs an instance of this from a json string.
   ///
@@ -470,14 +471,14 @@ class GetUserPurchaseListAPIResult {
 
   /// It returns "100000" in success and other codes in failure. Refer to DPI Error Code.
   @JsonKey(defaultValue: '', name: 'CPStatus')
-  final String cPStatus;
+  final String cpStatus;
 
   /// The result message:
   /// "EOF":Last page of the product list
   /// "hasNext:TRUE" Product list has further pages
   /// Other error message, depending on the DPI result code
   @JsonKey(defaultValue: '', name: 'CPResult')
-  final String cPResult;
+  final String? cpResult;
 
   /// Total number of invoices.
   @JsonKey(defaultValue: 0, name: 'TotalCount')
@@ -502,13 +503,13 @@ class InvoiceDetails {
   /// Creates a [InvoiceDetails] with the given purchase details.
   const InvoiceDetails({
     required this.seq,
-    required this.invoiceID,
-    required this.itemID,
+    required this.invoiceId,
+    required this.itemId,
     required this.itemTitle,
     required this.itemType,
     required this.orderTime,
     required this.price,
-    required this.orderCurrencyID,
+    required this.orderCurrencyId,
     required this.appliedStatus,
     required this.cancelStatus,
     this.appliedTime,
@@ -533,11 +534,11 @@ class InvoiceDetails {
 
   /// Invoice ID of this purchase history.
   @JsonKey(defaultValue: '', name: 'InvoiceID')
-  final String invoiceID;
+  final String invoiceId;
 
   /// The ID of product.
   @JsonKey(defaultValue: '', name: 'ItemID')
-  final String itemID;
+  final String itemId;
 
   /// The name of product.
   @JsonKey(defaultValue: '', name: 'ItemTitle')
@@ -561,7 +562,7 @@ class InvoiceDetails {
 
   /// Currency code.
   @JsonKey(defaultValue: '', name: 'OrderCurrencyID')
-  final String orderCurrencyID;
+  final String orderCurrencyId;
 
   /// Cancellation status:
   /// "true": Sale canceled
@@ -641,12 +642,12 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
   /// Creates a new Samsung Checkout specific purchase details object with the
   /// provided details.
   SamsungCheckoutPurchaseDetails({
-    required super.productID, //itemID
+    required super.productID,
     required super.purchaseID,
     required super.status,
     required super.transactionDate,
     required super.verificationData,
-    required this.invoiceDetails, //invoiceID
+    required this.invoiceDetails,
   });
 
   /// Generate a [SamsungCheckoutPurchaseDetails] object based on [PurchaseDetails] object.
@@ -654,11 +655,11 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
       InvoiceDetails invoiceDetails) {
     final SamsungCheckoutPurchaseDetails purchaseDetails =
         SamsungCheckoutPurchaseDetails(
-      purchaseID: invoiceDetails.invoiceID,
-      productID: invoiceDetails.itemID,
+      purchaseID: invoiceDetails.invoiceId,
+      productID: invoiceDetails.itemId,
       verificationData: PurchaseVerificationData(
-          localVerificationData: invoiceDetails.invoiceID,
-          serverVerificationData: invoiceDetails.invoiceID,
+          localVerificationData: invoiceDetails.invoiceId,
+          serverVerificationData: invoiceDetails.invoiceId,
           source: kIAPSource),
       transactionDate: invoiceDetails.orderTime,
       status: const PurchaseStateConverter()

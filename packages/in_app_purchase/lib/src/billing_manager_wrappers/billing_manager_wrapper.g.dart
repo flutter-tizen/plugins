@@ -25,8 +25,8 @@ Map<String, dynamic> _$ServiceAvailableAPIResultToJson(
 ProductsListApiResult _$ProductsListApiResultFromJson(
         Map<String, dynamic> json) =>
     ProductsListApiResult(
-      cPStatus: json['CPStatus'] as String? ?? '',
-      cPResult: json['CPResult'] as String? ?? '',
+      cpStatus: json['CPStatus'] as String? ?? '',
+      cpResult: json['CPResult'] as String? ?? '',
       checkValue: json['CheckValue'] as String? ?? '',
       totalCount: json['TotalCount'] as int? ?? 0,
       itemDetails: (json['ItemDetails'] as List<dynamic>?)
@@ -38,8 +38,8 @@ ProductsListApiResult _$ProductsListApiResultFromJson(
 Map<String, dynamic> _$ProductsListApiResultToJson(
         ProductsListApiResult instance) =>
     <String, dynamic>{
-      'CPStatus': instance.cPStatus,
-      'CPResult': instance.cPResult,
+      'CPStatus': instance.cpStatus,
+      'CPResult': instance.cpResult,
       'TotalCount': instance.totalCount,
       'CheckValue': instance.checkValue,
       'ItemDetails': instance.itemDetails,
@@ -47,24 +47,24 @@ Map<String, dynamic> _$ProductsListApiResultToJson(
 
 ItemDetails _$ItemDetailsFromJson(Map<String, dynamic> json) => ItemDetails(
       seq: json['Seq'] as int? ?? 0,
-      itemID: json['ItemID'] as String? ?? '',
+      itemId: json['ItemID'] as String? ?? '',
       itemTitle: json['ItemTitle'] as String? ?? '',
       itemDesc: json['ItemDesc'] as String? ?? '',
       itemType: $enumDecodeNullable(_$ItemTypeEnumMap, json['ItemType']) ??
           ItemType.none,
       price: json['Price'] as num? ?? 0,
-      currencyID: json['CurrencyID'] as String? ?? '',
+      currencyId: json['CurrencyID'] as String? ?? '',
     );
 
 Map<String, dynamic> _$ItemDetailsToJson(ItemDetails instance) =>
     <String, dynamic>{
       'Seq': instance.seq,
-      'ItemID': instance.itemID,
+      'ItemID': instance.itemId,
       'ItemTitle': instance.itemTitle,
       'ItemDesc': instance.itemDesc,
       'ItemType': _$ItemTypeEnumMap[instance.itemType]!,
       'Price': instance.price,
-      'CurrencyID': instance.currencyID,
+      'CurrencyID': instance.currencyId,
     };
 
 const _$ItemTypeEnumMap = {
@@ -109,8 +109,8 @@ Map<String, dynamic> _$BillingBuyDataToJson(BillingBuyData instance) =>
 GetUserPurchaseListAPIResult _$GetUserPurchaseListAPIResultFromJson(
         Map<String, dynamic> json) =>
     GetUserPurchaseListAPIResult(
-      cPResult: json['CPResult'] as String? ?? '',
-      cPStatus: json['CPStatus'] as String? ?? '',
+      cpStatus: json['CPStatus'] as String? ?? '',
+      cpResult: json['CPResult'] as String? ?? '',
       invoiceDetails: (json['InvoiceDetails'] as List<dynamic>?)
               ?.map((e) => InvoiceDetails.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -122,8 +122,8 @@ GetUserPurchaseListAPIResult _$GetUserPurchaseListAPIResultFromJson(
 Map<String, dynamic> _$GetUserPurchaseListAPIResultToJson(
         GetUserPurchaseListAPIResult instance) =>
     <String, dynamic>{
-      'CPStatus': instance.cPStatus,
-      'CPResult': instance.cPResult,
+      'CPStatus': instance.cpStatus,
+      'CPResult': instance.cpResult,
       'TotalCount': instance.totalCount,
       'CheckValue': instance.checkValue,
       'InvoiceDetails': instance.invoiceDetails,
@@ -132,14 +132,14 @@ Map<String, dynamic> _$GetUserPurchaseListAPIResultToJson(
 InvoiceDetails _$InvoiceDetailsFromJson(Map<String, dynamic> json) =>
     InvoiceDetails(
       seq: json['Seq'] as int? ?? 0,
-      invoiceID: json['InvoiceID'] as String? ?? '',
-      itemID: json['ItemID'] as String? ?? '',
+      invoiceId: json['InvoiceID'] as String? ?? '',
+      itemId: json['ItemID'] as String? ?? '',
       itemTitle: json['ItemTitle'] as String? ?? '',
       itemType: $enumDecodeNullable(_$ItemTypeEnumMap, json['ItemType']) ??
           ItemType.none,
       orderTime: json['OrderTime'] as String? ?? '',
       price: json['Price'] as num? ?? 0,
-      orderCurrencyID: json['OrderCurrencyID'] as String? ?? '',
+      orderCurrencyId: json['OrderCurrencyID'] as String? ?? '',
       appliedStatus: json['AppliedStatus'] as bool? ?? false,
       cancelStatus: json['CancelStatus'] as bool? ?? false,
       appliedTime: json['AppliedTime'] as String? ?? '',
@@ -151,14 +151,14 @@ InvoiceDetails _$InvoiceDetailsFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$InvoiceDetailsToJson(InvoiceDetails instance) =>
     <String, dynamic>{
       'Seq': instance.seq,
-      'InvoiceID': instance.invoiceID,
-      'ItemID': instance.itemID,
+      'InvoiceID': instance.invoiceId,
+      'ItemID': instance.itemId,
       'ItemTitle': instance.itemTitle,
       'ItemType': _$ItemTypeEnumMap[instance.itemType]!,
       'OrderTime': instance.orderTime,
       'Period': instance.period,
       'Price': instance.price,
-      'OrderCurrencyID': instance.orderCurrencyID,
+      'OrderCurrencyID': instance.orderCurrencyId,
       'CancelStatus': instance.cancelStatus,
       'AppliedStatus': instance.appliedStatus,
       'AppliedTime': instance.appliedTime,

@@ -68,8 +68,8 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     } on PlatformException catch (e) {
       exception = e;
       response = const ProductsListApiResult(
-          cPStatus: 'fail to receive response',
-          cPResult: 'fail to receive response',
+          cpStatus: 'fail to receive response',
+          cpResult: 'fail to receive response',
           checkValue: 'fail to receive response',
           totalCount: 0,
           itemDetails: <ItemDetails>[]);
@@ -77,17 +77,15 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
     List<SamsungCheckoutProductDetails> productDetailsList =
         <SamsungCheckoutProductDetails>[];
-
-    productDetailsList = response.itemDetails
-        .map((ItemDetails productWrapper) =>
-            SamsungCheckoutProductDetails.fromProduct(productWrapper))
-        .toList();
     final List<String> invalidMessage = <String>[];
-    switch (response.cPStatus) {
-      case '100000':
-        break;
-      default:
-        invalidMessage.add(response.toJson().toString());
+
+    if (response.cpStatus == '100000') {
+      productDetailsList = response.itemDetails
+          .map((ItemDetails productWrapper) =>
+              SamsungCheckoutProductDetails.fromProduct(productWrapper))
+          .toList();
+    } else {
+      invalidMessage.add(response.toJson().toString());
     }
 
     final ProductDetailsResponse productDetailsResponse =
@@ -117,7 +115,11 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
     final List<PurchaseDetails> pastPurchases =
         responses.expand((GetUserPurchaseListAPIResult response) {
-      return response.invoiceDetails;
+      if (response.cpStatus == '100000') {
+        return response.invoiceDetails;
+      } else {
+        return <InvoiceDetails>[];
+      }
     }).map((InvoiceDetails purchaseWrapper) {
       final SamsungCheckoutPurchaseDetails purchaseDetails =
           SamsungCheckoutPurchaseDetails.fromPurchase(purchaseWrapper);
@@ -144,14 +146,14 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
           .requestPurchases()
           .then((GetUserPurchaseListAPIResult responses) {
         for (int i = 0; i < responses.invoiceDetails.length; i++) {
-          if (responses.invoiceDetails[i].invoiceID == invoiceId) {
+          if (responses.invoiceDetails[i].invoiceId == invoiceId) {
             final List<PurchaseDetails> purchases = <PurchaseDetails>[];
             purchases.add(PurchaseDetails(
-              purchaseID: responses.invoiceDetails[i].invoiceID,
-              productID: responses.invoiceDetails[i].itemID,
+              purchaseID: responses.invoiceDetails[i].invoiceId,
+              productID: responses.invoiceDetails[i].itemId,
               verificationData: PurchaseVerificationData(
-                  localVerificationData: responses.invoiceDetails[i].invoiceID,
-                  serverVerificationData: responses.invoiceDetails[i].invoiceID,
+                  localVerificationData: responses.invoiceDetails[i].invoiceId,
+                  serverVerificationData: responses.invoiceDetails[i].invoiceId,
                   source: kIAPSource),
               transactionDate: responses.invoiceDetails[i].orderTime,
               status: const PurchaseStateConverter()
