@@ -28,6 +28,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**google_maps_flutter_tizen**](packages/google_maps_flutter) | [google_maps_flutter](https://pub.dev/packages/google_maps_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/google_maps_flutter_tizen.svg)](https://pub.dev/packages/google_maps_flutter_tizen) | No |
 | [**google_sign_in_tizen**](packages/google_sign_in) | [google_sign_in](https://pub.dev/packages/google_sign_in) (1st-party) | [![pub package](https://img.shields.io/pub/v/google_sign_in_tizen.svg)](https://pub.dev/packages/google_sign_in_tizen) | No |
 | [**image_picker_tizen**](packages/image_picker) | [image_picker](https://pub.dev/packages/image_picker) (1st-party) | [![pub package](https://img.shields.io/pub/v/image_picker_tizen.svg)](https://pub.dev/packages/image_picker_tizen) | No |
+| [**in_app_purchase_tizen**](packages/in_app_purchase) | [in_app_purchase](https://pub.dev/packages/in_app_purchase) (1st-party) | [![pub package](https://img.shields.io/pub/v/in_app_purchase_tizen.svg)](https://pub.dev/packages/in_app_purchase_tizen) | No |
 | [**integration_test_tizen**](packages/integration_test) | [integration_test](https://github.com/flutter/flutter/tree/main/packages/integration_test) (1st-party) | [![pub package](https://img.shields.io/pub/v/integration_test_tizen.svg)](https://pub.dev/packages/integration_test_tizen) | No |
 | [**messageport_tizen**](packages/messageport) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/messageport_tizen.svg)](https://pub.dev/packages/messageport_tizen) | N/A |
 | [**network_info_plus_tizen**](packages/network_info_plus) | [network_info_plus](https://pub.dev/packages/network_info_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/network_info_plus_tizen.svg)](https://pub.dev/packages/network_info_plus_tizen) | No |
@@ -71,6 +72,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**google_maps_flutter_tizen**](packages/google_maps_flutter) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**google_sign_in_tizen**](packages/google_sign_in) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**image_picker_tizen**](packages/image_picker) | 5.5 | ⚠️ | ❌ | ❌ | ❌ | No camera,<br>No file manager app |
+| [**in_app_purchase_tizen**](packages/in_app_purchase) | 5.5 | ❌ | ❌ | ✔️ | ❌ | Only applicable for TV |
 | [**integration_test_tizen**](packages/integration_test) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**messageport_tizen**](packages/messageport) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**network_info_plus_tizen**](packages/network_info_plus) | 4.0 | ✔️ | ❌ | ✔️ | ❌ | API not supported on emulator |
