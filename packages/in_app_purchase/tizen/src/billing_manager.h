@@ -25,7 +25,7 @@ class BillingManager {
   void Dispose();
 
  private:
-  bool BillingIsAvailable();
+  bool BillingIsAvailable(const flutter::EncodableMap *encodables);
   bool BuyItem(const flutter::EncodableMap *encodables);
   bool GetProductList(const flutter::EncodableMap *encodables);
   bool GetPurchaseList(const flutter::EncodableMap *encodables);

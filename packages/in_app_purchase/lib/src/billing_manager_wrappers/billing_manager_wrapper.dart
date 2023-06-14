@@ -45,8 +45,10 @@ class BillingManager {
   /// [`BillingManager-isServiceAvailable`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-isServiceAvailable)
   /// to check whether the Billing server is available.
   Future<bool> isAvailable() async {
-    final String? isAvailableResult =
-        await channel.invokeMethod<String>('isAvailable');
+    final String? isAvailableResult = await channel.invokeMethod<String>(
+      'isAvailable',
+      <String, dynamic>{'serverType': _requestParameters['serverType']},
+    );
     if (isAvailableResult == null) {
       throw PlatformException(
         code: 'no_response',

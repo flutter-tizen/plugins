@@ -63,19 +63,6 @@ class _MyAppState extends State<_MyApp> {
   }
 
   Future<void> initStoreInfo() async {
-    final bool isAvailable = await _inAppPurchase.isAvailable();
-    if (!isAvailable) {
-      setState(() {
-        _isAvailable = isAvailable;
-        _products = <ProductDetails>[];
-        _purchases = <PurchaseDetails>[];
-        _notFoundIds = <String>[];
-        _purchasePending = false;
-        _loading = false;
-      });
-      return;
-    }
-
     // Tizen specific api.
     // You must use `setRequestParameters` before query product and purchase.
     final InAppPurchaseTizenPlatformAddition addition =
@@ -89,6 +76,19 @@ class _MyAppState extends State<_MyApp> {
       serverType: _kServerType,
       securityKey: _kSecurityKey,
     );
+
+    final bool isAvailable = await _inAppPurchase.isAvailable();
+    if (!isAvailable) {
+      setState(() {
+        _isAvailable = isAvailable;
+        _products = <ProductDetails>[];
+        _purchases = <PurchaseDetails>[];
+        _notFoundIds = <String>[];
+        _purchasePending = false;
+        _loading = false;
+      });
+      return;
+    }
 
     final ProductDetailsResponse productDetailResponse =
         await _inAppPurchase.queryProductDetails(_kRequestParams.toSet());

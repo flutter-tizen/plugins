@@ -86,6 +86,22 @@ std::string BillingManager::GetCustomId() {
   return "";
 }
 
+bool BillingManager::BillingIsAvailable(
+    const flutter::EncodableMap *encodables) {
+  LOG_INFO("[BillingManager] Check billing server is available.");
+
+  std::string server_type =
+      GetRequiredArg<std::string>(encodables, "serverType");
+
+  bool ret = service_billing_is_service_available(
+      ConvertServerType(server_type.c_str()), OnAvailable, this);
+  if (!ret) {
+    LOG_ERROR("[BillingManager] service_billing_is_service_available failed.");
+    return false;
+  }
+  return true;
+}
+
 bool BillingManager::GetProductList(const flutter::EncodableMap *encodables) {
   LOG_INFO("[BillingManager] Start get product list.");
 
@@ -230,13 +246,21 @@ void BillingManager::HandleMethodCall(
         return;
       }
     } else if (method_name == "isAvailable") {
-      if (BillingIsAvailable()) {
+      if (!encodables) {
+        result->Error(kInvalidArgument, "No arguments provided");
+        return;
+      }
+      if (BillingIsAvailable(encodables)) {
         method_result_ = std::move(result);
       } else {
         result->Error("isAvailable failed");
         return;
       }
     } else if (method_name == "verifyInvoice") {
+      if (!encodables) {
+        result->Error(kInvalidArgument, "No arguments provided");
+        return;
+      }
       if (VerifyInvoice(encodables)) {
         method_result_ = std::move(result);
       } else {
@@ -258,18 +282,6 @@ void BillingManager::SendResult(const flutter::EncodableValue &result) {
     method_result_->Success(result);
     method_result_ = nullptr;
   }
-}
-
-bool BillingManager::BillingIsAvailable() {
-  LOG_INFO("[BillingManager] Check billing server is available.");
-
-  bool ret =
-      service_billing_is_service_available(SERVERTYPE_DEV, OnAvailable, this);
-  if (!ret) {
-    LOG_ERROR("[BillingManager] service_billing_is_service_available failed.");
-    return false;
-  }
-  return true;
 }
 
 void BillingManager::OnAvailable(const char *detail_result, void *user_data) {
