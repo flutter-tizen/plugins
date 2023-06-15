@@ -1,14 +1,14 @@
 # in_app_purchase_tizen
 
-The Tizen implementation of [`in_app_purchase`](https://pub.dev/packages/in_app_purchase) based on the Tizen [Samsung Checkout](https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/samsung-checkout.html) API.
+The Tizen implementation of [`in_app_purchase`](https://pub.dev/packages/in_app_purchase) based on the [Samsung Checkout](https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/samsung-checkout.html) API.
 
 ## Supported devices
 
-This plugin is supported only on Smart TVs running Tizen 4.0 and above.
+This plugin is only supported on Smart TVs running Tizen 4.0 and above.
 
 ## Required privileges
 
-To use this plugin in a Tizen application, you may need to declare the following privileges in your `tizen-manifest.xml` file.
+To use this plugin in a Tizen application, you need to declare the following privileges in your `tizen-manifest.xml` file.
 
 ```xml
 <privileges>
@@ -17,23 +17,13 @@ To use this plugin in a Tizen application, you may need to declare the following
 </privileges>
 ```
 
-- The billing privilege (`http://developer.samsung.com/privilege/billing`) is required to connect to billing client.
-- The appmanager.launch privilege (`http://tizen.org/privilege/appmanager.launch`) is required to allow the application to open other applications.
-
-For detailed information on Tizen privileges and billing privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges) and [Billing API](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#).
-
 ## Preparation
 
-This plugin relies on [Samsung Checkout DPI(Digital Product Inventory) portal](https://dpi.samsungcheckout.com/) for making in-app purchases.
-There is a list of steps before start in-app purchase:
+Follow these steps before setting up in-app purchases for your application:
 
-1. Registering your application at the [Samsung Apps TV Seller Office](https://seller.samsungapps.com/tv/).You do not need to complete the registration with your source code at this point. To be able to use the DPI portal, you need to proceed to the second step of the App Registration Page and set the "Billing Info" field to "Use" and the "Samsung Checkout" field to "Yes".You can save the registration at this point and return to it later when your source code is complete.You can see more information in [Application Publication Process](https://developer.samsung.com/tv-seller-office/application-publication-process.html).
+1. [Register your application](https://github.com/flutter-tizen/flutter-tizen/blob/master/doc/publish-app.md) at the [Samsung Apps TV Seller Office](https://seller.samsungapps.com/tv) if you haven't registered yet. You do not need to complete the registration process at this point. Go to the **Billing Info** page of the app and set the **Samsung Checkout** checkbox to ON. You can return back to this page and finish the registration process when the final version of your app is ready.
 
-2. Login to [Samsung Checkout DPI portal](https://dpi.samsungcheckout.com/) and configure product.You can find the following aruments in example:
-   -`_kAppId`: The APP ID in [APP Details Setting](https://dpi.samsungcheckout.com/settings/appdetails).
-   -`_kSecurityKey`: The Security Key in [APP Details Setting](https://dpi.samsungcheckout.com/settings/appdetails).
-
-See [here](https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/implementing-the-purchase-process.html#Prerequisites) for more prerequisites information.
+2. Log in to the [Samsung Checkout DPI Portal](https://dpi.samsungcheckout.com) and register your in-app items. You can find your **App ID** and **Security Key** in the [**App Details Setting**](https://dpi.samsungcheckout.com/settings/appdetails) page. These values will be used as request parameters in your app code.
 
 ## Usage
 
@@ -45,19 +35,44 @@ dependencies:
   in_app_purchase_tizen: ^0.1.0
 ```
 
-Then you can import in_app_purchase and in_app_purchase_tizen in your Dart code:
+Then you can import `in_app_purchase` and `in_app_purchase_tizen` in your Dart code:
 
 ```dart
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 ```
 
+You must call `setRequestParameters` to set required parameters before making any plugin API call.
+
+```dart
+final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
+    .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+platformAddition.setRequestParameters(
+  appId: 'your_app_id',
+  countryCode: 'US',
+  pageSize: 20,
+  pageNum: 1,
+  serverType: 'DEV',
+  securityKey: 'your_security_key',
+);
+
+final ProductDetailsResponse response =
+    await _inAppPurchase.queryProductDetails(<String>{});
+```
+
+For detailed usage, see https://pub.dev/packages/in_app_purchase#usage and the [example](example/lib) app.
+
+For more information on the Samsung Checkout API, visit the following pages.
+
+- [Samsung Developers: Implementing the Purchase Process](https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/implementing-the-purchase-process.html)
+- [Samsung Developers: Billing API References](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html)
+
 ## Supported APIs
 
-- [x] `purchaseStream`
-- [x] `isAvailable`
-- [x] `queryProductDetails`
-- [x] `buyNonConsumable`
-- [x] `buyConsumable`
-- [ ] `completePurchase` (Andriod/IOS-only)
-- [x] `restorePurchases`
+- [x] `InAppPurchase.purchaseStream`
+- [x] `InAppPurchase.isAvailable`
+- [x] `InAppPurchase.queryProductDetails`
+- [x] `InAppPurchase.buyNonConsumable`
+- [x] `InAppPurchase.buyConsumable`
+- [ ] `InAppPurchase.completePurchase` (Andriod/iOS-only)
+- [x] `InAppPurchase.restorePurchases`
