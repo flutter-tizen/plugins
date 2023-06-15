@@ -6,14 +6,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:in_app_purchase_tizen/billing_manager_wrappers.dart';
 import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  InAppPurchaseTizenPlatform.registerPlatform();
   runApp(_MyApp());
 }
 
@@ -26,9 +24,6 @@ const String _kCountryCode = 'US';
 const int _kPageSize = 20;
 const int _kPageNum = 1;
 const String _kSecurityKey = 'YxE757K+aDWHJXa0QMnL5AJmItefoEizvv8L7WPJAMs=';
-
-// For tizen platform, [_kRequestParams] is not used, set it null.
-const List<String> _kRequestParams = <String>[];
 
 class _MyApp extends StatefulWidget {
   @override
@@ -63,12 +58,11 @@ class _MyAppState extends State<_MyApp> {
   }
 
   Future<void> initStoreInfo() async {
-    // Tizen specific api.
-    // You must use `setRequestParameters` before query product and purchase.
-    final InAppPurchaseTizenPlatformAddition addition =
-        InAppPurchasePlatformAddition.instance!
-            as InAppPurchaseTizenPlatformAddition;
-    addition.setRequestParameters(
+    // Tizen specific API:
+    // You need to set necessary parameters before calling any plugin API.
+    final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
+        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    platformAddition.setRequestParameters(
       appId: _kAppId,
       countryCode: _kCountryCode,
       pageSize: _kPageSize,
@@ -90,11 +84,13 @@ class _MyAppState extends State<_MyApp> {
       return;
     }
 
+    // The `identifiers` argument is not used on Tizen.
+    // Use `InAppPurchaseTizenPlatformAddition.setRequestParameters` instead.
     final ProductDetailsResponse productDetailResponse =
-        await _inAppPurchase.queryProductDetails(_kRequestParams.toSet());
+        await _inAppPurchase.queryProductDetails(<String>{});
     if (productDetailResponse.error != null) {
       setState(() {
-        _queryProductError = productDetailResponse.error?.message;
+        _queryProductError = productDetailResponse.error!.message;
         _isAvailable = isAvailable;
         _products = productDetailResponse.productDetails;
         _purchases = <PurchaseDetails>[];
@@ -143,7 +139,6 @@ class _MyAppState extends State<_MyApp> {
             _buildConnectionCheckTile(),
             _buildProductList(),
             _buildRestoreButton(),
-            // _buildConsumableBox(),
           ],
         ),
       );
@@ -203,7 +198,7 @@ class _MyAppState extends State<_MyApp> {
           title: Text('Not connected',
               style: TextStyle(color: ThemeData.light().colorScheme.error)),
           subtitle: const Text(
-              'Unable to connect to the payments processor. Please login Samsung Account in your device. See README for instructions.'),
+              'Unable to connect to the payments processor. Are you signed in with your Samsung account on this device?'),
         ),
       ]);
     }
@@ -224,10 +219,10 @@ class _MyAppState extends State<_MyApp> {
     final List<ListTile> productList = <ListTile>[];
     if (_notFoundIds.isNotEmpty) {
       productList.add(ListTile(
-          title: Text('[${_notFoundIds.join(", ")}]',
+          title: Text('[${_notFoundIds.join(", ")}] not found',
               style: TextStyle(color: ThemeData.light().colorScheme.error)),
           subtitle: const Text(
-              'This app needs special configuration to run. Please see example/README.md for instructions.')));
+              'This app needs special configuration to run. Please see README.md for instructions.')));
     }
 
     productList.addAll(_products.map(
@@ -286,13 +281,10 @@ class _MyAppState extends State<_MyApp> {
           TextButton(
             style: TextButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
-              // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
               // ignore: deprecated_member_use
               primary: Colors.white,
             ),
-            onPressed: () {
-              _inAppPurchase.restorePurchases();
-            },
+            onPressed: () => _inAppPurchase.restorePurchases(),
             child: const Text('Restore purchases'),
           ),
         ],
@@ -322,14 +314,12 @@ class _MyAppState extends State<_MyApp> {
 
   Future<bool> _verifyPurchase(PurchaseDetails purchaseDetails) {
     // IMPORTANT!! Always verify a purchase before delivering the product.
-    // For the purpose of an example, we directly return true.
-    // return Future<bool>.value(true);
+
     // Tizen specific verify purchase:
-    // when 'cancelStatus' of 'InvoiceDetails' is false, need do verify purchase.
-    final InAppPurchaseTizenPlatformAddition addition =
-        InAppPurchasePlatformAddition.instance!
-            as InAppPurchaseTizenPlatformAddition;
-    return addition.verifyPurchase(purchaseDetails: purchaseDetails);
+    // If `PurchaseDetails.status` is `purchased`, need to verify purchase.
+    final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
+        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    return platformAddition.verifyPurchase(purchaseDetails: purchaseDetails);
   }
 
   void _handleInvalidPurchase(PurchaseDetails purchaseDetails) {

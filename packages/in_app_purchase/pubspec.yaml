@@ -1,5 +1,5 @@
 name: in_app_purchase_tizen
-description: Tizen implementation of the in_app_purchase plugin for Samsung Smart TVs.
+description: Tizen implementation of the in_app_purchase plugin for Samsung Smart TV.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/in_app_purchase
 version: 0.1.0
@@ -14,7 +14,7 @@ flutter:
       tizen:
         pluginClass: InAppPurchaseTizenPlugin
         fileName: in_app_purchase_tizen_plugin.h
-        dartPlugin: InAppPurchaseTizen
+        dartPluginClass: InAppPurchaseTizenPlatform
 
 dependencies:
   crypto: ^3.0.2
