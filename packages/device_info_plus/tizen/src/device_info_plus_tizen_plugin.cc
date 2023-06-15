@@ -22,7 +22,7 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
     auto channel =
         std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "dev.fluttercommunity.plus/device_info",
+            registrar->messenger(), "tizen/device_info_plus",
             &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin = std::make_unique<DeviceInfoPlusTizenPlugin>();

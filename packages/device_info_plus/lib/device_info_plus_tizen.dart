@@ -86,7 +86,7 @@ class TizenDeviceInfo {
   /// http://tizen.org/system/tizenid
   final String? tizenId;
 
-  /// Deserializes from the message received from [_kChannel].
+  /// Creates a [TizenDeviceInfo] from the [map].
   static TizenDeviceInfo fromMap(Map<String, dynamic> map) {
     return TizenDeviceInfo(
       modelName: map['modelName'],
@@ -109,12 +109,33 @@ class TizenDeviceInfo {
       tizenId: map['tizenId'],
     );
   }
+
+  /// Device information data.
+  Map<String, dynamic> get data => {
+        'modelName': modelName,
+        'cpuArch': cpuArch,
+        'nativeApiVersion': nativeApiVersion,
+        'platformVersion': platformVersion,
+        'webApiVersion': webApiVersion,
+        'profile': profile,
+        'buildDate': buildDate,
+        'buildId': buildId,
+        'buildString': buildString,
+        'buildTime': buildTime,
+        'buildType': buildType,
+        'buildVariant': buildVariant,
+        'buildRelease': buildRelease,
+        'deviceType': deviceType,
+        'manufacturer': manufacturer,
+        'platformName': platformName,
+        'platformProcessor': platformProcessor,
+        'tizenId': tizenId,
+      };
 }
 
 class _MethodChannelDeviceInfo {
   /// The method channel used to interact with the native platform.
-  MethodChannel channel =
-      const MethodChannel('dev.fluttercommunity.plus/device_info');
+  MethodChannel channel = const MethodChannel('tizen/device_info_plus');
 
   /// Method channel for Tizen devices.
   Future<TizenDeviceInfo> tizenInfo() async {
