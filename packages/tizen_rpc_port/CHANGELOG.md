@@ -1,3 +1,8 @@
+## 0.1.3
+
+* Remove unnecessary `StreamHandlerError` implementation.
+* Increase the minimum Flutter version to 3.3.
+
 ## 0.1.2
 
 * Update the TIDLC version to 1.10.6.

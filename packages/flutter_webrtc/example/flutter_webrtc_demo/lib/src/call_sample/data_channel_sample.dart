@@ -26,6 +26,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   Session? _session;
   Timer? _timer;
   var _text = '';
+  bool _waitAccept = false;
 
   @override
   void initState() {
@@ -38,6 +39,55 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     super.deactivate();
     _signaling?.close();
     _timer?.cancel();
+  }
+
+  Future<bool?> _showAcceptDialog() {
+    return showDialog<bool?>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('title'),
+          content: Text('accept?'),
+          actions: <Widget>[
+            MaterialButton(
+              child: Text(
+                'Reject',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            MaterialButton(
+              child: Text(
+                'Accept',
+                style: TextStyle(color: Colors.green),
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool?> _showInvateDialog() {
+    return showDialog<bool?>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('title'),
+          content: Text('waiting'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                _hangUp();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _connect(BuildContext context) async {
@@ -66,33 +116,53 @@ class _DataChannelSampleState extends State<DataChannelSample> {
       }
     };
 
-    _signaling?.onCallStateChange = (Session session, CallState state) {
+    _signaling?.onCallStateChange = (Session session, CallState state) async {
       switch (state) {
         case CallState.CallStateNew:
-          {
+          setState(() {
+            _session = session;
+          });
+          _timer = Timer.periodic(Duration(seconds: 1), _handleDataChannelTest);
+          break;
+        case CallState.CallStateBye:
+          if (_waitAccept) {
+            _waitAccept = false;
+            Navigator.of(context).pop(false);
+          }
+          setState(() {
+            _inCalling = false;
+          });
+          _timer?.cancel();
+          _dataChannel = null;
+          _inCalling = false;
+          _session = null;
+          _text = '';
+          break;
+        case CallState.CallStateInvite:
+          _waitAccept = true;
+          await _showInvateDialog();
+          break;
+        case CallState.CallStateConnected:
+          if (_waitAccept) {
+            _waitAccept = false;
+            Navigator.of(context).pop(false);
+          }
+          setState(() {
+            _inCalling = true;
+          });
+          break;
+        case CallState.CallStateRinging:
+          var accept = await _showAcceptDialog();
+          if (accept!) {
+            _accept();
             setState(() {
-              _session = session;
               _inCalling = true;
             });
-            _timer =
-                Timer.periodic(Duration(seconds: 1), _handleDataChannelTest);
-            break;
+          } else {
+            _reject();
           }
-        case CallState.CallStateBye:
-          {
-            setState(() {
-              _inCalling = false;
-            });
-            _timer?.cancel();
-            _dataChannel = null;
-            _inCalling = false;
-            _session = null;
-            _text = '';
-            break;
-          }
-        case CallState.CallStateInvite:
-        case CallState.CallStateConnected:
-        case CallState.CallStateRinging:
+
+          break;
       }
     };
 
@@ -102,6 +172,18 @@ class _DataChannelSampleState extends State<DataChannelSample> {
         _peers = event['peers'];
       });
     };
+  }
+
+  void _accept() {
+    if (_session != null) {
+      _signaling?.accept(_session!.sid, 'data');
+    }
+  }
+
+  void _reject() {
+    if (_session != null) {
+      _signaling?.reject(_session!.sid);
+    }
   }
 
   Future<void> _handleDataChannelTest(Timer timer) async {

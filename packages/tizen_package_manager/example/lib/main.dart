@@ -17,7 +17,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -66,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class _CurrentPackageScreen extends StatefulWidget {
-  const _CurrentPackageScreen({Key? key}) : super(key: key);
+  const _CurrentPackageScreen();
 
   @override
   State<_CurrentPackageScreen> createState() => _CurrentPackageScreenState();
@@ -107,7 +107,7 @@ class _CurrentPackageScreenState extends State<_CurrentPackageScreen> {
 }
 
 class _PackageListScreen extends StatefulWidget {
-  const _PackageListScreen({Key? key}) : super(key: key);
+  const _PackageListScreen();
 
   @override
   State<_PackageListScreen> createState() => _PackageListScreenState();
@@ -158,7 +158,7 @@ class _PackageListScreenState extends State<_PackageListScreen>
 }
 
 class _PackageEventsScreen extends StatefulWidget {
-  const _PackageEventsScreen({Key? key}) : super(key: key);
+  const _PackageEventsScreen();
 
   @override
   State<_PackageEventsScreen> createState() => _PackageEventsScreenState();

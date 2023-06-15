@@ -1,3 +1,10 @@
+## 1.4.0
+
+* Update flutter_tts to 3.6.3.
+* Update the example app.
+* Add support for `getDefaultVoice` and `getMaxSpeechInputLength`.
+* Increase the minimum Flutter version to 3.3.
+
 ## 1.3.0
 
 * Limit the range of `setSpeechRate` to be between 0.0 and 1.0.

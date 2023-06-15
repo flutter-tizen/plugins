@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
   @override
@@ -20,7 +18,10 @@ class _MyAppState extends State<MyApp> {
   double volume = 0.5;
   double pitch = 1.0;
   double rate = 0.5;
+
   String? _newVoiceText;
+  int? _inputLength;
+
   TtsState ttsState = TtsState.stopped;
 
   get isPlaying => ttsState == TtsState.playing;
@@ -29,7 +30,7 @@ class _MyAppState extends State<MyApp> {
   get isContinued => ttsState == TtsState.continued;
 
   @override
-  void initState() {
+  initState() {
     super.initState();
     initTts();
   }
@@ -38,6 +39,8 @@ class _MyAppState extends State<MyApp> {
     flutterTts = FlutterTts();
 
     _setAwaitOptions();
+
+    _getDefaultVoice();
 
     flutterTts.setStartHandler(() {
       setState(() {
@@ -83,6 +86,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<dynamic> _getLanguages() => flutterTts.getLanguages;
+
+  Future _getDefaultVoice() async {
+    var voice = await flutterTts.getDefaultVoice;
+    if (voice != null) {
+      print(voice);
+    }
+  }
 
   Future _speak() async {
     await flutterTts.setVolume(volume);
@@ -146,13 +156,17 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Flutter TTS Tizen example app'),
         ),
         body: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Column(children: [
+          scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
               _inputSection(),
               _btnSection(),
               _futureBuilder(),
-              _buildSliders()
-            ])),
+              _buildSliders(),
+              _getMaxSpeechInputLengthSection(),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -172,6 +186,8 @@ class _MyAppState extends State<MyApp> {
       alignment: Alignment.topCenter,
       padding: EdgeInsets.only(top: 25.0, left: 25.0, right: 25.0),
       child: TextField(
+        maxLines: 11,
+        minLines: 6,
         onChanged: (String value) {
           _onChange(value);
         },
@@ -179,25 +195,29 @@ class _MyAppState extends State<MyApp> {
 
   Widget _btnSection() {
     return Container(
-        padding: EdgeInsets.only(top: 50.0),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+      padding: EdgeInsets.only(top: 50.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
           _buildButtonColumn(Colors.green, Colors.greenAccent, Icons.play_arrow,
               'PLAY', _speak),
           _buildButtonColumn(
               Colors.red, Colors.redAccent, Icons.stop, 'STOP', _stop),
           _buildButtonColumn(
               Colors.blue, Colors.blueAccent, Icons.pause, 'PAUSE', _pause),
-        ]));
+        ],
+      ),
+    );
   }
 
   Widget _languageDropDownSection(dynamic languages) => Container(
-      padding: EdgeInsets.only(top: 50.0),
+      padding: EdgeInsets.only(top: 10.0),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         DropdownButton(
           value: language,
           items: getLanguageDropDownMenuItems(languages),
           onChanged: changedLanguageDropDownItem,
-        )
+        ),
       ]));
 
   Column _buildButtonColumn(Color color, Color splashColor, IconData icon,
@@ -219,6 +239,22 @@ class _MyAppState extends State<MyApp> {
                       fontWeight: FontWeight.w400,
                       color: color)))
         ]);
+  }
+
+  Widget _getMaxSpeechInputLengthSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+          child: Text('Get max speech input length'),
+          onPressed: () async {
+            _inputLength = await flutterTts.getMaxSpeechInputLength;
+            setState(() {});
+          },
+        ),
+        Text("$_inputLength characters"),
+      ],
+    );
   }
 
   Widget _buildSliders() {

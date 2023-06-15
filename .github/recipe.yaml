@@ -35,6 +35,7 @@ plugins:
   flutter_webrtc: []
   geolocator: []
   network_info_plus: []
+  video_player_videohole: []
 
   # Only testable with the drive command: https://github.com/flutter-tizen/plugins/issues/272
   tizen_app_control: []

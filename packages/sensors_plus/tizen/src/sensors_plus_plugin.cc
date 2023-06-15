@@ -10,6 +10,8 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include <memory>
+
 #include "device_sensor.h"
 
 typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
@@ -17,20 +19,6 @@ typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
 typedef flutter::StreamHandlerError<flutter::EncodableValue>
     FlStreamHandlerError;
-
-class DeviceSensorStreamHandlerError : public FlStreamHandlerError {
- public:
-  DeviceSensorStreamHandlerError(const std::string &error_code,
-                                 const std::string &error_message,
-                                 const flutter::EncodableValue *error_details)
-      : error_code_(error_code),
-        error_message_(error_message),
-        FlStreamHandlerError(error_code_, error_message_, error_details) {}
-
- private:
-  std::string error_code_;
-  std::string error_message_;
-};
 
 class DeviceSensorStreamHandler : public FlStreamHandler {
  public:
@@ -46,7 +34,7 @@ class DeviceSensorStreamHandler : public FlStreamHandler {
       events_->Success(flutter::EncodableValue(sensor_event));
     };
     if (!sensor_.StartListen(callback)) {
-      return std::make_unique<DeviceSensorStreamHandlerError>(
+      return std::make_unique<FlStreamHandlerError>(
           std::to_string(sensor_.GetLastError()), sensor_.GetLastErrorString(),
           nullptr);
     }

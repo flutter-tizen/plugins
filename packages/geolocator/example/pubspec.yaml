@@ -3,10 +3,11 @@ description: Demonstrates how to use the geolocator_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
 
 dependencies:
-  baseflow_plugin_template: ^2.1.1
+  baseflow_plugin_template: ^2.1.2
   cupertino_icons: ^1.0.1+1
   flutter:
     sdk: flutter
@@ -27,8 +28,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - packages/baseflow_plugin_template/logo.png
-    - packages/baseflow_plugin_template/poweredByBaseflow.png
-    - packages/baseflow_plugin_template/assets/logo.png
-    - packages/baseflow_plugin_template/assets/poweredByBaseflow.png

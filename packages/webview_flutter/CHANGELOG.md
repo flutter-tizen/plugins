@@ -1,5 +1,10 @@
+## NEXT
+
+* Increase the minimum Flutter version to 3.3.
+
 ## 0.7.1
-* Remove unnecessary integration test.
+
+* Remove inapplicable integration test cases.
 * Remove unused code.
 * Implements `LoadRequestMethod.post` of `PlatformWebViewController.loadRequest`.
 

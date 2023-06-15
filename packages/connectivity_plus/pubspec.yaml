@@ -2,7 +2,11 @@ name: connectivity_plus_tizen
 description: Tizen implementation of the connectivity_plus plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/connectivity_plus
-version: 1.1.2
+version: 1.1.3
+
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
 
 flutter:
   plugin:
@@ -18,7 +22,3 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: ^1.0.4
-
-environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=2.0.0"

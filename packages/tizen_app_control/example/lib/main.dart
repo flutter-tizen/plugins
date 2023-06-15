@@ -54,7 +54,7 @@ void serviceMain() {
 /// The main UI app widget.
 class MyApp extends StatefulWidget {
   /// The main UI app widget.
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();

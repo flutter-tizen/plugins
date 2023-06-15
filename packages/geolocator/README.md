@@ -11,7 +11,7 @@ The Tizen implementation of [`geolocator`](https://pub.dev/packages/geolocator).
  ```yaml
 dependencies:
   geolocator: ^8.0.0
-  geolocator_tizen: ^1.0.5
+  geolocator_tizen: ^1.0.6
 ```
 
 Then you can import `geolocator` in your Dart code:

@@ -1,3 +1,8 @@
+## 2.0.1
+
+* Remove unnecessary `StreamHandlerError` implementation.
+* Increase the minimum Flutter version to 3.3.
+
 ## 2.0.0
 
 * [BREAKING] `RotaryEvent` is now a class with `direction` and `magnitude` properties.

@@ -75,7 +75,7 @@ void LocationManager::GetCurrentPosition(LocationCallback on_location,
         if (error != LOCATIONS_ERROR_NONE && self->error_callback_) {
           self->error_callback_(LocationManagerError(error));
         } else if (self->location_callback_) {
-          Position position;
+          Position position = {};
           position.latitude = latitude;
           position.longitude = longitude;
           position.altitude = altitude;

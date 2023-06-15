@@ -50,7 +50,7 @@ bool TextToSpeech::Initialize() {
 
 void TextToSpeech::Prepare() {
   char *language = nullptr;
-  int32_t voice_type = 0;
+  int voice_type = 0;
   int ret = tts_get_default_voice(tts_, &language, &voice_type);
   if (ret == TTS_ERROR_NONE) {
     default_language_ = language;
@@ -129,6 +129,53 @@ std::vector<std::string> &TextToSpeech::GetSupportedLanaguages() {
         supported_lanaguages_.end());
   }
   return supported_lanaguages_;
+}
+
+std::optional<std::pair<std::string, std::string>>
+TextToSpeech::GetDefaultVoice() {
+  char *language = nullptr;
+  int voice_type = 0;
+  int ret = tts_get_default_voice(tts_, &language, &voice_type);
+
+  if (ret != TTS_ERROR_NONE) {
+    LOG_ERROR("tts_get_default_voice failed: %s", get_error_message(ret));
+    return std::nullopt;
+  }
+
+  std::pair<std::string, std::string> default_voice;
+  if (language) {
+    default_voice.first = language;
+    free(language);
+  }
+
+  switch (voice_type) {
+    case TTS_VOICE_TYPE_AUTO:
+      default_voice.second = "auto";
+      break;
+    case TTS_VOICE_TYPE_MALE:
+      default_voice.second = "male";
+      break;
+    case TTS_VOICE_TYPE_FEMALE:
+      default_voice.second = "female";
+      break;
+    case TTS_VOICE_TYPE_CHILD:
+      default_voice.second = "child";
+      break;
+    default:
+      default_voice.second = "unknown";
+      break;
+  }
+  return default_voice;
+}
+
+std::optional<int32_t> TextToSpeech::GetMaxSpeechInputLength() {
+  unsigned int size = 0;
+  int ret = tts_get_max_text_size(tts_, &size);
+  if (ret != TTS_ERROR_NONE) {
+    LOG_ERROR("tts_get_max_text_size failed: %s", get_error_message(ret));
+    return std::nullopt;
+  }
+  return static_cast<int32_t>(size);
 }
 
 std::optional<TtsState> TextToSpeech::GetState() {
@@ -214,7 +261,7 @@ void TextToSpeech::SwitchVolumeOnStateChange(tts_state_e previous,
 }
 
 int32_t TextToSpeech::GetSpeechVolumeInternal() {
-  int32_t volume;
+  int volume;
   int ret = sound_manager_get_volume(SOUND_TYPE_VOICE, &volume);
   if (ret != SOUND_MANAGER_ERROR_NONE) {
     LOG_ERROR("sound_manager_get_volume failed: %s", get_error_message(ret));

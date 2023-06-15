@@ -4,6 +4,10 @@ homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/url_launcher
 version: 2.1.2
 
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
+
 flutter:
   plugin:
     platforms:
@@ -15,7 +19,3 @@ dependencies:
     sdk: flutter
   tizen_app_control: ^0.2.2
   url_launcher_platform_interface: ^2.0.5
-
-environment:
-  sdk: ">=2.13.0 <3.0.0"
-  flutter: ">=2.2.0"

@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
 
 import 'ffi.dart';
@@ -67,7 +69,7 @@ class AppControl {
     this.extraData = const <String, dynamic>{},
   }) {
     _id = nativeCreateAppControl(this);
-    if (_id < 0) {
+    if (_id == -1) {
       throw Exception('Could not create an instance of AppControl.');
     }
   }
@@ -217,14 +219,48 @@ class AppControl {
     };
     await _methodChannel.invokeMethod<void>('setAppControlData', args);
   }
+
+  /// Enables the auto restart setting.
+  ///
+  /// Calling this API makes the current app be automatically restarted upon
+  /// termination. The given [appControl] is passed to the restarting app.
+  ///
+  /// This API is for platform developers only. The app must be signed with a
+  /// platform-level certificate to use this API.
+  static Future<void> setAutoRestart(AppControl appControl) async {
+    await appControl._setAppControlData();
+
+    final Map<String, dynamic> args = <String, dynamic>{'id': appControl._id};
+    final int? handleAddress =
+        await _methodChannel.invokeMethod<int>('getHandle', args);
+    final Pointer<Void> handle = Pointer<Void>.fromAddress(handleAddress!);
+
+    final int ret = appControlSetAutoRestart(handle);
+    if (ret != 0) {
+      final String message = getErrorMessage(ret).toDartString();
+      throw PlatformException(code: ret.toString(), message: message);
+    }
+  }
+
+  /// Disables the auto restart setting. See [setAutoRestart] for details.
+  ///
+  /// This API is for platform developers only. The app must be signed with a
+  /// platform-level certificate to use this API.
+  static Future<void> unsetAutoRestart() async {
+    final int ret = appControlUnsetAutoRestart();
+    if (ret != 0) {
+      final String message = getErrorMessage(ret).toDartString();
+      throw PlatformException(code: ret.toString(), message: message);
+    }
+  }
 }
 
 /// Represents a received [AppControl] message.
 class ReceivedAppControl extends AppControl {
-  ReceivedAppControl._fromMap(Map<String, dynamic> map)
+  ReceivedAppControl._fromMap(super.map)
       : callerAppId = map['callerAppId'] as String?,
         shouldReply = map['shouldReply'] as bool,
-        super._fromMap(map);
+        super._fromMap();
 
   /// The caller application ID.
   final String? callerAppId;

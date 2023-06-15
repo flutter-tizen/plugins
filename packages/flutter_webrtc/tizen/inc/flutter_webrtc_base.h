@@ -35,6 +35,7 @@ class FlutterWebRTCBase {
   friend class FlutterVideoRendererManager;
   friend class FlutterDataChannel;
   friend class FlutterPeerConnectionObserver;
+  friend class FlutterFrameCryptor;
   enum ParseConstraintType { kMandatory, kOptional };
 
  public:
@@ -57,7 +58,7 @@ class FlutterWebRTCBase {
   void RemovePeerConnectionObserversForId(const std::string& id);
 
   scoped_refptr<RTCMediaStream> MediaStreamForId(
-      const std::string& id, std::string peerConnectionId = std::string());
+      const std::string& id, std::string ownerTag = std::string());
 
   void RemoveStreamForId(const std::string& id);
 
@@ -76,6 +77,12 @@ class FlutterWebRTCBase {
 
   EventChannelProxy* event_channel();
 
+  libwebrtc::scoped_refptr<libwebrtc::RTCRtpSender> GetRtpSenderById(
+      RTCPeerConnection* pc, std::string id);
+
+  libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> GetRtpReceiverById(
+      RTCPeerConnection* pc, std::string id);
+
  private:
   void ParseConstraints(const EncodableMap& src,
                         scoped_refptr<RTCMediaConstraints> mediaConstraints,
@@ -93,6 +100,7 @@ class FlutterWebRTCBase {
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
+  std::map<std::string, scoped_refptr<RTCVideoCapturer>> video_capturers_;
   std::map<int64_t, std::shared_ptr<FlutterVideoRenderer>> renders_;
   std::map<std::string, std::shared_ptr<FlutterRTCDataChannelObserver>>
       data_channel_observers_;

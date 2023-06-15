@@ -7,6 +7,7 @@
 #include <app_common.h>
 #include <flutter/plugin_registrar.h>
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -27,23 +28,20 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   VideoPlayerTizenPlugin(flutter::PluginRegistrar *registrar);
   virtual ~VideoPlayerTizenPlugin();
 
-  virtual std::optional<FlutterError> Initialize() override;
-  virtual ErrorOr<TextureMessage> Create(const CreateMessage &msg) override;
-  virtual std::optional<FlutterError> Dispose(
-      const TextureMessage &msg) override;
-  virtual std::optional<FlutterError> SetLooping(
-      const LoopingMessage &msg) override;
-  virtual std::optional<FlutterError> SetVolume(
-      const VolumeMessage &msg) override;
-  virtual std::optional<FlutterError> SetPlaybackSpeed(
+  std::optional<FlutterError> Initialize() override;
+  ErrorOr<TextureMessage> Create(const CreateMessage &msg) override;
+  std::optional<FlutterError> Dispose(const TextureMessage &msg) override;
+  std::optional<FlutterError> SetLooping(const LoopingMessage &msg) override;
+  std::optional<FlutterError> SetVolume(const VolumeMessage &msg) override;
+  std::optional<FlutterError> SetPlaybackSpeed(
       const PlaybackSpeedMessage &msg) override;
-  virtual std::optional<FlutterError> Play(const TextureMessage &msg) override;
-  virtual ErrorOr<PositionMessage> Position(const TextureMessage &msg) override;
-  virtual void SeekTo(
+  std::optional<FlutterError> Play(const TextureMessage &msg) override;
+  ErrorOr<PositionMessage> Position(const TextureMessage &msg) override;
+  void SeekTo(
       const PositionMessage &msg,
       std::function<void(std::optional<FlutterError> reply)> result) override;
-  virtual std::optional<FlutterError> Pause(const TextureMessage &msg) override;
-  virtual std::optional<FlutterError> SetMixWithOthers(
+  std::optional<FlutterError> Pause(const TextureMessage &msg) override;
+  std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage &msg) override;
 
  private:
@@ -80,7 +78,6 @@ void VideoPlayerTizenPlugin::DisposeAllPlayers() {
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
   DisposeAllPlayers();
-
   return std::nullopt;
 }
 
@@ -112,29 +109,22 @@ ErrorOr<TextureMessage> VideoPlayerTizenPlugin::Create(
     return FlutterError(error.code(), error.message());
   }
 
-  TextureMessage result;
-  result.set_texture_id(texture_id);
+  TextureMessage result(texture_id);
   return result;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
     const TextureMessage &msg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", msg.texture_id());
-
   auto iter = players_.find(msg.texture_id());
   if (iter != players_.end()) {
     iter->second->Dispose();
     players_.erase(iter);
   }
-
   return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
     const LoopingMessage &msg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", msg.texture_id());
-  LOG_DEBUG("[VideoPlayerTizenPlugin] isLooping: %d", msg.is_looping());
-
   auto iter = players_.find(msg.texture_id());
   if (iter == players_.end()) {
     return FlutterError("Invalid argument", "Player not found.");
@@ -150,9 +140,6 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
     const VolumeMessage &msg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", msg.texture_id());
-  LOG_DEBUG("[VideoPlayerTizenPlugin] volume: %f", msg.volume());
-
   auto iter = players_.find(msg.texture_id());
   if (iter == players_.end()) {
     return FlutterError("Invalid argument", "Player not found.");
@@ -168,9 +155,6 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
     const PlaybackSpeedMessage &msg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", msg.texture_id());
-  LOG_DEBUG("[VideoPlayerTizenPlugin] speed: %f", msg.speed());
-
   auto iter = players_.find(msg.texture_id());
   if (iter == players_.end()) {
     return FlutterError("Invalid argument", "Player not found.");
@@ -186,8 +170,6 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
     const TextureMessage &msg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", msg.texture_id());
-
   auto iter = players_.find(msg.texture_id());
   if (iter == players_.end()) {
     return FlutterError("Invalid argument", "Player not found.");
@@ -203,8 +185,6 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
     const TextureMessage &msg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", msg.texture_id());
-
   auto iter = players_.find(msg.texture_id());
   if (iter == players_.end()) {
     return FlutterError("Invalid argument", "Player not found.");
@@ -220,29 +200,25 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
 
 ErrorOr<PositionMessage> VideoPlayerTizenPlugin::Position(
     const TextureMessage &msg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", msg.texture_id());
-
   auto iter = players_.find(msg.texture_id());
   if (iter == players_.end()) {
     return FlutterError("Invalid argument", "Player not found.");
   }
 
-  PositionMessage result;
-  result.set_texture_id(msg.texture_id());
+  int32_t position = 0;
   try {
-    result.set_position(iter->second->GetPosition());
+    position = iter->second->GetPosition();
   } catch (const VideoPlayerError &error) {
     return FlutterError(error.code(), error.message());
   }
+
+  PositionMessage result(msg.texture_id(), position);
   return result;
 }
 
 void VideoPlayerTizenPlugin::SeekTo(
     const PositionMessage &msg,
     std::function<void(std::optional<FlutterError> reply)> result) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] textureId: %ld", msg.texture_id());
-  LOG_DEBUG("[VideoPlayerTizenPlugin] position: %ld", msg.position());
-
   auto iter = players_.find(msg.texture_id());
   if (iter == players_.end()) {
     result(FlutterError("Invalid argument", "Player not found."));
@@ -258,11 +234,7 @@ void VideoPlayerTizenPlugin::SeekTo(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &msg) {
-  LOG_DEBUG("[VideoPlayerTizenPlugin] mixWithOthers: %d",
-            msg.mix_with_others());
-
   options_.SetMixWithOthers(msg.mix_with_others());
-
   return std::nullopt;
 }
 

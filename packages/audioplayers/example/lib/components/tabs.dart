@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Tabs extends StatelessWidget {
   final Map<String, Widget> tabs;
-  const Tabs({Key? key, required this.tabs}) : super(key: key);
+  const Tabs({super.key, required this.tabs});
 
   @override
   Widget build(BuildContext context) {

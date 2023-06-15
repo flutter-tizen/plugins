@@ -30,7 +30,7 @@ To use this plugin, add `wearable_rotary` as a dependency in your `pubspec.yaml`
 
 ```yaml
 dependencies:
-  wearable_rotary: ^2.0.0
+  wearable_rotary: ^2.0.1
 ```
 
 Then, import `wearable_rotary` in your Dart code.

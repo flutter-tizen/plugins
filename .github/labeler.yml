@@ -65,6 +65,8 @@
   - packages/url_launcher/**/*
 "p: video_player":
   - packages/video_player/**/*
+"p: video_player_videohole":
+  - packages/video_player_videohole/**/*
 "p: wakelock":
   - packages/wakelock/**/*
 "p: wearable_rotary":

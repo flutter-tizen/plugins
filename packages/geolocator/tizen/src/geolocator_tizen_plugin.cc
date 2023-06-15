@@ -31,33 +31,20 @@ typedef flutter::StreamHandlerError<flutter::EncodableValue>
 
 constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
 
-class LocationStreamHandlerError : public FlStreamHandlerError {
- public:
-  LocationStreamHandlerError(const std::string &error_code,
-                             const std::string &error_message,
-                             const flutter::EncodableValue *error_details)
-      : error_code_(error_code),
-        error_message_(error_message),
-        FlStreamHandlerError(error_code_, error_message_, error_details) {}
-
- private:
-  std::string error_code_;
-  std::string error_message_;
-};
-
 class LocationStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
       const flutter::EncodableValue *arguments,
       std::unique_ptr<FlEventSink> &&events) override {
     events_ = std::move(events);
+
     LocationCallback callback = [this](Position position) -> void {
       events_->Success(position.ToEncodableValue());
     };
     try {
       location_manager_.StartListenLocationUpdate(callback);
     } catch (const LocationManagerError &error) {
-      return std::make_unique<LocationStreamHandlerError>(
+      return std::make_unique<FlStreamHandlerError>(
           std::to_string(error.GetErrorCode()), error.GetErrorString(),
           nullptr);
     }
@@ -69,7 +56,7 @@ class LocationStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StopListenLocationUpdate();
     } catch (const LocationManagerError &error) {
-      return std::make_unique<LocationStreamHandlerError>(
+      return std::make_unique<FlStreamHandlerError>(
           std::to_string(error.GetErrorCode()), error.GetErrorString(),
           nullptr);
     }
@@ -88,13 +75,14 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
       const flutter::EncodableValue *arguments,
       std::unique_ptr<FlEventSink> &&events) override {
     events_ = std::move(events);
+
     ServiceStatusCallback callback = [this](ServiceStatus status) -> void {
       events_->Success(flutter::EncodableValue(static_cast<int>(status)));
     };
     try {
       location_manager_.StartListenServiceStatusUpdate(callback);
     } catch (const LocationManagerError &error) {
-      return std::make_unique<LocationStreamHandlerError>(
+      return std::make_unique<FlStreamHandlerError>(
           std::to_string(error.GetErrorCode()), error.GetErrorString(),
           nullptr);
     }
@@ -106,7 +94,7 @@ class ServiceStatusStreamHandler : public FlStreamHandler {
     try {
       location_manager_.StopListenServiceStatusUpdate();
     } catch (const LocationManagerError &error) {
-      return std::make_unique<LocationStreamHandlerError>(
+      return std::make_unique<FlStreamHandlerError>(
           std::to_string(error.GetErrorCode()), error.GetErrorString(),
           nullptr);
     }

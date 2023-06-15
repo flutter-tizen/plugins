@@ -42,20 +42,6 @@ static bool GetValueFromEncodableMap(const flutter::EncodableMap* map,
   return false;
 }
 
-class RpcStreamHandlerError : public FlStreamHandlerError {
- public:
-  RpcStreamHandlerError(const std::string& error_code,
-                        const std::string& error_message,
-                        const flutter::EncodableValue* error_details = nullptr)
-      : error_code_(error_code),
-        error_message_(error_message),
-        FlStreamHandlerError(error_code_, error_message_, error_details) {}
-
- private:
-  std::string error_code_;
-  std::string error_message_;
-};
-
 class RpcProxyStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
@@ -65,8 +51,8 @@ class RpcProxyStreamHandler : public FlStreamHandler {
 
     const auto* args = std::get_if<flutter::EncodableMap>(arguments);
     if (!args) {
-      return std::make_unique<RpcStreamHandlerError>(
-          "Invalid arguments", "The argument must be a map.");
+      return std::make_unique<FlStreamHandlerError>(
+          "Invalid arguments", "The argument must be a map.", nullptr);
     }
     rpc_port_proxy_h handle = nullptr;
     std::string appid, port_name;
@@ -74,14 +60,15 @@ class RpcProxyStreamHandler : public FlStreamHandler {
                                   reinterpret_cast<int64_t&>(handle)) ||
         !GetValueFromEncodableMap(args, "appid", appid) ||
         !GetValueFromEncodableMap(args, "portName", port_name)) {
-      return std::make_unique<RpcStreamHandlerError>(
-          "Invalid arguments", "No handle, appid, or portName provided.");
+      return std::make_unique<FlStreamHandlerError>(
+          "Invalid arguments", "No handle, appid, or portName provided.",
+          nullptr);
     }
 
     auto ret = RpcPortProxyManager::Connect(handle, appid, port_name);
     if (!ret) {
-      return std::make_unique<RpcStreamHandlerError>(
-          std::to_string(ret.error_code), ret.message());
+      return std::make_unique<FlStreamHandlerError>(
+          std::to_string(ret.error_code), ret.message(), nullptr);
     }
     return nullptr;
   }
@@ -101,20 +88,20 @@ class RpcStubStreamHandler : public FlStreamHandler {
 
     const auto* args = std::get_if<flutter::EncodableMap>(arguments);
     if (!args) {
-      return std::make_unique<RpcStreamHandlerError>(
-          "Invalid arguments", "The argument must be a map.");
+      return std::make_unique<FlStreamHandlerError>(
+          "Invalid arguments", "The argument must be a map.", nullptr);
     }
     rpc_port_stub_h handle = nullptr;
     if (!GetValueFromEncodableMap(args, "handle",
                                   reinterpret_cast<int64_t&>(handle))) {
-      return std::make_unique<RpcStreamHandlerError>("Invalid arguments",
-                                                     "No handle provided.");
+      return std::make_unique<FlStreamHandlerError>(
+          "Invalid arguments", "No handle provided.", nullptr);
     }
 
     auto ret = RpcPortStubManager::Listen(handle);
     if (!ret) {
-      return std::make_unique<RpcStreamHandlerError>(
-          std::to_string(ret.error_code), ret.message());
+      return std::make_unique<FlStreamHandlerError>(
+          std::to_string(ret.error_code), ret.message(), nullptr);
     }
     return nullptr;
   }

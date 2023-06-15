@@ -36,6 +36,7 @@ jobs:
           verbose: false
       - name: Publish packages
         if: ${{ github.event_name == 'push' }}
+        timeout-minutes: 5
         env:
           PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
         run: |
