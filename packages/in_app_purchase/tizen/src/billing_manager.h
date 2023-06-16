@@ -16,6 +16,18 @@
 
 #include "billing_service_proxy.h"
 
+#define SSO_API_MAX_STRING_LEN 128
+
+typedef struct sso_login_info {
+  char login_id[SSO_API_MAX_STRING_LEN];
+  char login_pwd[SSO_API_MAX_STRING_LEN];
+  char login_guid[SSO_API_MAX_STRING_LEN];
+  char uid[SSO_API_MAX_STRING_LEN];
+  char user_icon[SSO_API_MAX_STRING_LEN * 8];
+} sso_login_info_s;
+
+typedef bool (*FuncSsoGetLoginInfo)(sso_login_info_s *login_info);
+
 class BillingManager {
  public:
   explicit BillingManager(flutter::PluginRegistrar *plugin_registrar);
@@ -44,11 +56,10 @@ class BillingManager {
   static void OnAvailable(const char *detail_result, void *user_data);
   static void OnVerify(const char *detail_result, void *user_data);
 
-  void *billing_api_handle_ = nullptr;
-  void *sso_api_handle_ = nullptr;
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
+      method_channel_ = nullptr;
   std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
       method_result_ = nullptr;
-  flutter::PluginRegistrar *plugin_registrar_ = nullptr;
 };
 
 #endif  // FLUTTER_PLUGIN_BILLING_MANAGER_H

@@ -4,6 +4,7 @@
 
 #include "billing_manager.h"
 
+#include <dlfcn.h>
 #include <flutter/standard_method_codec.h>
 
 #include <cassert>
@@ -53,37 +54,31 @@ static T GetRequiredArg(const flutter::EncodableMap *arguments,
 bool BillingManager::Init() {
   LOG_INFO("[BillingManager] Init billing api.");
 
-  billing_api_handle_ = OpenBillingApi();
-  if (!billing_api_handle_) {
-    LOG_ERROR("[BillingManager] Fail to open billing api.");
+  if (!BillingWrapper::GetInstance().Initialize()) {
+    LOG_ERROR("[BillingManager] Fail to initialize billing APIs.");
     return false;
   }
-
-  int ret = InitBillingApi(billing_api_handle_);
-  if (ret == 0) {
-    LOG_ERROR("[BillingManager] Fail to init billing api.");
-    return false;
-  }
-
-  sso_api_handle_ = OpenSsoApi();
-  if (sso_api_handle_ == nullptr) {
-    LOG_ERROR("[BillingManager] Fail to open sso api");
-  }
-
-  ret = InitSsoApi(sso_api_handle_);
-  if (ret == 0) {
-    LOG_ERROR("[BillingManager] Fail to init sso api");
-  }
-
   return true;
 }
 
 std::string BillingManager::GetCustomId() {
-  sso_login_info_s login_info;
-  if (!sso_get_login_info(&login_info)) {
-    return login_info.uid;
+  void *handle = dlopen("libsso_api.so", RTLD_LAZY);
+  std::string custom_id = "";
+  if (!handle) {
+    LOG_ERROR("[BillingManager] Fail to open sso APIs.");
+  } else {
+    FuncSsoGetLoginInfo sso_get_login_info =
+        reinterpret_cast<FuncSsoGetLoginInfo>(
+            dlsym(handle, "sso_get_login_info"));
+    if (sso_get_login_info) {
+      sso_login_info_s login_info;
+      if (!sso_get_login_info(&login_info)) {
+        custom_id = login_info.uid;
+      }
+    }
+    dlclose(handle);
   }
-  return "";
+  return custom_id;
 }
 
 bool BillingManager::BillingIsAvailable(
@@ -93,7 +88,7 @@ bool BillingManager::BillingIsAvailable(
   std::string server_type =
       GetRequiredArg<std::string>(encodables, "serverType");
 
-  bool ret = service_billing_is_service_available(
+  bool ret = BillingWrapper::GetInstance().service_billing_is_service_available(
       ConvertServerType(server_type.c_str()), OnAvailable, this);
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_is_service_available failed.");
@@ -115,7 +110,7 @@ bool BillingManager::GetProductList(const flutter::EncodableMap *encodables) {
   std::string server_type =
       GetRequiredArg<std::string>(encodables, "serverType");
 
-  bool ret = service_billing_get_products_list(
+  bool ret = BillingWrapper::GetInstance().service_billing_get_products_list(
       app_id.c_str(), country_code.c_str(), page_size, page_num,
       check_value.c_str(), ConvertServerType(server_type.c_str()), OnProducts,
       (void *)this);
@@ -139,7 +134,7 @@ bool BillingManager::GetPurchaseList(const flutter::EncodableMap *encodables) {
   std::string server_type =
       GetRequiredArg<std::string>(encodables, "serverType");
 
-  bool ret = service_billing_get_purchase_list(
+  bool ret = BillingWrapper::GetInstance().service_billing_get_purchase_list(
       app_id.c_str(), custom_id.c_str(), country_code.c_str(), page_num,
       check_value.c_str(), ConvertServerType(server_type.c_str()), OnPurchase,
       (void *)this);
@@ -160,9 +155,9 @@ bool BillingManager::BuyItem(const flutter::EncodableMap *encodables) {
       GetRequiredArg<std::string>(encodables, "serverType");
   LOG_INFO("[BillingManager] BuyItem detail: %s", pay_details.c_str());
 
-  bool ret = service_billing_buyitem(app_id.c_str(), server_type.c_str(),
-                                     pay_details.c_str());
-  service_billing_set_buyitem_cb(OnBuyItem, this);
+  bool ret = BillingWrapper::GetInstance().service_billing_buyitem(
+      app_id.c_str(), server_type.c_str(), pay_details.c_str());
+  BillingWrapper::GetInstance().service_billing_set_buyitem_cb(OnBuyItem, this);
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_buyitem failed.");
     return false;
@@ -180,7 +175,7 @@ bool BillingManager::VerifyInvoice(const flutter::EncodableMap *encodables) {
       GetRequiredArg<std::string>(encodables, "countryCode");
   std::string server_type =
       GetRequiredArg<std::string>(encodables, "serverType");
-  bool ret = service_billing_verify_invoice(
+  bool ret = BillingWrapper::GetInstance().service_billing_verify_invoice(
       app_id.c_str(), custom_id.c_str(), invoice_id.c_str(),
       country_code.c_str(), ConvertServerType(server_type.c_str()), OnVerify,
       this);
@@ -191,8 +186,7 @@ bool BillingManager::VerifyInvoice(const flutter::EncodableMap *encodables) {
   return true;
 }
 
-BillingManager::BillingManager(flutter::PluginRegistrar *plugin_registrar)
-    : plugin_registrar_(plugin_registrar) {
+BillingManager::BillingManager(flutter::PluginRegistrar *plugin_registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           plugin_registrar->messenger(),
@@ -203,6 +197,7 @@ BillingManager::BillingManager(flutter::PluginRegistrar *plugin_registrar)
       [this](const flutter::MethodCall<flutter::EncodableValue> &call,
              std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
                  result) { this->HandleMethodCall(call, std::move(result)); });
+  method_channel_ = std::move(channel);
 }
 
 void BillingManager::HandleMethodCall(
@@ -328,8 +323,5 @@ void BillingManager::OnVerify(const char *detail_result, void *user_data) {
 void BillingManager::Dispose() {
   LOG_INFO("[BillingManager] Dispose billing.");
 
-  CloseApi(billing_api_handle_);
-  billing_api_handle_ = nullptr;
-  CloseApi(sso_api_handle_);
-  sso_api_handle_ = nullptr;
+  method_channel_->SetMethodCallHandler(nullptr);
 }

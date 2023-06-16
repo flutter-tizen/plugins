@@ -5,8 +5,6 @@
 #ifndef FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
 #define FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
 
-#define SSO_API_MAX_STRING_LEN 128
-
 typedef enum server_type {
   SERVERTYPE_OPERATE = 10005,
   SERVERTYPE_DEV,
@@ -14,14 +12,6 @@ typedef enum server_type {
   SERVERTYPE_DUMMY,
   SERVERTYPE_NONE
 } SERVERTYPE;
-
-typedef struct sso_login_info {
-  char login_id[SSO_API_MAX_STRING_LEN];
-  char login_pwd[SSO_API_MAX_STRING_LEN];
-  char login_guid[SSO_API_MAX_STRING_LEN];
-  char uid[SSO_API_MAX_STRING_LEN];
-  char user_icon[SSO_API_MAX_STRING_LEN * 8];
-} sso_login_info_s;
 
 typedef void (*billing_payment_api_cb)(const char *detail_result,
                                        void *user_data);
@@ -49,22 +39,32 @@ typedef bool (*FuncServiceBillingVerifyInvoice)(
     const char *app_id, const char *custom_id, const char *invoice_id,
     const char *country_code, SERVERTYPE server_type,
     billing_payment_api_cb callback, void *user_data);
-typedef bool (*FuncSsoGetLoginInfo)(sso_login_info_s *login_info);
 
-void *OpenBillingApi();
-void *OpenSsoApi();
+class BillingWrapper {
+ public:
+  static BillingWrapper &GetInstance() {
+    static BillingWrapper instance = BillingWrapper();
+    return instance;
+  }
 
-int InitBillingApi(void *handle);
-int InitSsoApi(void *handle);
-void CloseApi(void *handle);
+  ~BillingWrapper();
 
-extern FuncGetProductslist service_billing_get_products_list;
-extern FuncGetpurchaselist service_billing_get_purchase_list;
-extern FuncBillingBuyItem service_billing_buyitem;
-extern FuncBillingSetBuyItemCb service_billing_set_buyitem_cb;
-extern FuncServiceBillingIsServiceAvailable
-    service_billing_is_service_available;
-extern FuncServiceBillingVerifyInvoice service_billing_verify_invoice;
-extern FuncSsoGetLoginInfo sso_get_login_info;
+  BillingWrapper(const BillingWrapper &) = delete;
+  BillingWrapper &operator=(const BillingWrapper &) = delete;
+
+  bool Initialize();
+  FuncGetProductslist service_billing_get_products_list = nullptr;
+  FuncGetpurchaselist service_billing_get_purchase_list = nullptr;
+  FuncBillingBuyItem service_billing_buyitem = nullptr;
+  FuncBillingSetBuyItemCb service_billing_set_buyitem_cb = nullptr;
+  FuncServiceBillingIsServiceAvailable service_billing_is_service_available =
+      nullptr;
+  FuncServiceBillingVerifyInvoice service_billing_verify_invoice = nullptr;
+
+ private:
+  BillingWrapper();
+
+  void *handle_ = nullptr;
+};
 
 #endif  // FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
