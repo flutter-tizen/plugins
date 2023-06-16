@@ -13,9 +13,16 @@ To use this plugin in a Tizen application, you need to declare the following pri
 ```xml
 <privileges>
   <privilege>http://developer.samsung.com/privilege/billing</privilege>
+  <privilege>http://developer.samsung.com/privilege/sso.partner</privilege>
   <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
 </privileges>
 ```
+
+- The billing privilege (`http://developer.samsung.com/privilege/billing`) is required to connect to billing client.
+- The sso.partner privilege (`http://developer.samsung.com/privilege/sso.partner`) is required to use sso APIs.
+- The appmanager.launch privilege (`http://tizen.org/privilege/appmanager.launch`) is required to allow the application to open other applications.
+
+For detailed information on Tizen privileges, see Tizen Docs: API Privileges.
 
 ## Preparation
 
@@ -43,6 +50,7 @@ import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 ```
 
 You must call `setRequestParameters` to set required parameters before making any plugin API call.
+You can find your `countryCode` in [Samsung Developers: Implementing the Purchase Process](https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/implementing-the-purchase-process.html#Country-and-Currency-Codes) and `serverType` in [Samsung Developers: Billing API References](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#1.-Type-Definitions)
 
 ```dart
 final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase

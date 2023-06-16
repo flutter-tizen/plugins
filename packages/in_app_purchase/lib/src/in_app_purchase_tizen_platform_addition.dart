@@ -16,12 +16,30 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
   final BillingManager _billingManager;
 
   /// Set all request parameters that SamsungCheckout DPI Portal needed.
+  ///
+  /// The `appId` is your application id, must be required.
+  ///
+  /// The `serverType` is Billing server type, must be required.
+  ///
+  /// The `countryCode` is your device country code.
+  /// Use it when call `queryProductDetails`, `restorePurchases`, `buyConsumable` and `buyNonConsumable`.
+  ///
+  /// The `pageSize` is the number of products retrieved per page, more than 1 and less than 100.
+  /// Use it when call `queryProductDetails`.
+  ///
+  /// The `pageNum` is the requested page number, more than 1.
+  /// Use it when call `queryProductDetails` and `restorePurchases`.
+  ///
+  /// The `securityKey` is DPI security key.
+  /// Use it when call `queryProductDetails` and `restorePurchases`.
+  ///
+  /// See README.md file to find how to get these values.
   void setRequestParameters({
     required String appId,
+    required String serverType,
     String? countryCode,
     int? pageSize,
     int? pageNum,
-    String? serverType,
     String? securityKey,
   }) {
     final Map<String, dynamic> requestParameters = <String, dynamic>{

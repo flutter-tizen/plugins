@@ -23,6 +23,7 @@ const String _kServerType = 'DEV';
 const String _kCountryCode = 'US';
 const int _kPageSize = 20;
 const int _kPageNum = 1;
+// Do not expose your DPI security key. You can use a key management server to retrieve it for greater security.
 const String _kSecurityKey = 'YxE757K+aDWHJXa0QMnL5AJmItefoEizvv8L7WPJAMs=';
 
 class _MyApp extends StatefulWidget {
