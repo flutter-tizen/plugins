@@ -1,0 +1,27 @@
+name: flutter_reactive_ble_tizen
+description: Tizen implementation of the flutter_reactive_ble plugin.
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_reactive_ble
+version: 0.1.0
+
+environment:
+  sdk: ">=2.18.0 <3.0.0"
+  flutter: ">=2.5.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  reactive_ble_platform_interface: ^5.0.3
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        dartPluginClass: ReactiveBleTizen
+        pluginClass: FlutterReactiveBleTizenPlugin
+        fileName: flutter_reactive_ble_tizen_plugin.h

@@ -21,6 +21,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**device_info_plus_tizen**](packages/device_info_plus) | [device_info_plus](https://pub.dev/packages/device_info_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/device_info_plus_tizen.svg)](https://pub.dev/packages/device_info_plus_tizen) | No |
 | [**firebase_core_tizen**](packages/firebase_core) | [firebase_core](https://pub.dev/packages/firebase_core) | [![pub package](https://img.shields.io/pub/v/firebase_core_tizen.svg)](https://pub.dev/packages/firebase_core_tizen) | No |
 | [**flutter_app_badger_tizen**](packages/flutter_app_badger) | [flutter_app_badger](https://pub.dev/packages/flutter_app_badger) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_app_badger_tizen.svg)](https://pub.dev/packages/flutter_app_badger_tizen) | No |
+| [**flutter_reactive_ble_tizen**](packages/flutter_reactive_ble) | [flutter_reactive_ble](https://pub.dev/packages/flutter_reactive_ble) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_reactive_ble_tizen.svg)](https://pub.dev/packages/flutter_reactive_ble_tizen) | No |
 | [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_secure_storage_tizen.svg)](https://pub.dev/packages/flutter_secure_storage_tizen) | No |
 | [**flutter_tts_tizen**](packages/flutter_tts) | [flutter_tts](https://pub.dev/packages/flutter_tts) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen) | No |
 | [**flutter_webrtc_tizen**](packages/flutter_webrtc) | [flutter_webrtc](https://pub.dev/packages/flutter_webrtc) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_webrtc_tizen.svg)](https://pub.dev/packages/flutter_webrtc_tizen) | No |
@@ -64,6 +65,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**device_info_plus_tizen**](packages/device_info_plus) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**firebase_core**](packages/firebase_core) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_app_badger_tizen**](packages/flutter_app_badger) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | API not supported |
+| [**flutter_reactive_ble_tizen**](packages/flutter_reactive_ble) | 4.0 | ✔️ | ❌ | ✔️ | ❌ | API not supported on emulator |
 | [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_tts_tizen**](packages/flutter_tts) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_webrtc_tizen**](packages/flutter_webrtc) | 6.0 | ❌ | ❌ | ✔️ | ❌ | No camera |

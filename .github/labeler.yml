@@ -13,6 +13,8 @@
   - packages/firebase_core/**/*
 "p: flutter_app_badger":
   - packages/flutter_app_badger/**/*
+"p: flutter_reactive_ble":
+  - packages/flutter_reactive_ble/**/*
 "p: flutter_secure_storage":
   - packages/flutter_secure_storage/**/*
 "p: flutter_tts":
