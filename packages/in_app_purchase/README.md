@@ -18,11 +18,7 @@ To use this plugin in a Tizen application, you need to declare the following pri
 </privileges>
 ```
 
-- The billing privilege (`http://developer.samsung.com/privilege/billing`) is required to connect to billing client.
-- The sso.partner privilege (`http://developer.samsung.com/privilege/sso.partner`) is required to use sso APIs.
-- The appmanager.launch privilege (`http://tizen.org/privilege/appmanager.launch`) is required to allow the application to open other applications.
-
-For detailed information on Tizen privileges, see Tizen Docs: API Privileges.
+The sso.partner privilege is required by the [Sso API](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/sso-api.html) to internally obtain the user's custom ID (UID). Your app must be signed with a [partner-level certificate](https://docs.tizen.org/application/dotnet/get-started/certificates/creating-certificates) to use this privilege.
 
 ## Preparation
 
