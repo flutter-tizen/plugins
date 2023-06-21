@@ -56,3 +56,7 @@ dependencies:
 |   MediaRecorder    |       [WIP]        |
 |SFrame/FrameCryptor | :heavy_check_mark: |
 | Insertable Streams |       [WIP]        |
+
+## Supported devices
+
+This plugin is supported on Tizen devices running Tizen 6.0 or later.
