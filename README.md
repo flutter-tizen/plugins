@@ -57,41 +57,41 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 
 | Package name | API level | Watch | Watch<br>emulator | TV | TV<br>emulator | Remarks |
 |-|:-:|:-:|:-:|:-:|:-:|-|
-| [**audioplayers_tizen**](packages/audioplayers) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**battery_plus_tizen**](packages/battery_plus) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | No battery |
-| [**camera_tizen**](packages/camera) | 4.0 | ❌ | ❌ | ❌ | ❌ | No camera |
-| [**connectivity_plus_tizen**](packages/connectivity_plus) | 4.0 | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
-| [**device_info_plus_tizen**](packages/device_info_plus) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**firebase_core**](packages/firebase_core) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**flutter_app_badger_tizen**](packages/flutter_app_badger) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | API not supported |
-| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**flutter_tts_tizen**](packages/flutter_tts) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**audioplayers_tizen**](packages/audioplayers) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**battery_plus_tizen**](packages/battery_plus) | 5.5 | ✔️ | ✔️ | ❌ | ❌ | No battery |
+| [**camera_tizen**](packages/camera) | 5.5 | ❌ | ❌ | ❌ | ❌ | No camera |
+| [**connectivity_plus_tizen**](packages/connectivity_plus) | 5.5 | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
+| [**device_info_plus_tizen**](packages/device_info_plus) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**firebase_core**](packages/firebase_core) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**flutter_app_badger_tizen**](packages/flutter_app_badger) | 5.5 | ✔️ | ✔️ | ❌ | ❌ | API not supported |
+| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**flutter_tts_tizen**](packages/flutter_tts) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**flutter_webrtc_tizen**](packages/flutter_webrtc) | 6.0 | ❌ | ❌ | ✔️ | ❌ | No camera |
-| [**geolocator_tizen**](packages/geolocator) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
+| [**geolocator_tizen**](packages/geolocator) | 5.5 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**google_maps_flutter_tizen**](packages/google_maps_flutter) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**google_sign_in_tizen**](packages/google_sign_in) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**google_sign_in_tizen**](packages/google_sign_in) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**image_picker_tizen**](packages/image_picker) | 5.5 | ⚠️ | ❌ | ❌ | ❌ | No camera,<br>No file manager app |
-| [**integration_test_tizen**](packages/integration_test) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**messageport_tizen**](packages/messageport) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**network_info_plus_tizen**](packages/network_info_plus) | 4.0 | ✔️ | ❌ | ✔️ | ❌ | API not supported on emulator |
-| [**package_info_plus_tizen**](packages/package_info_plus) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**path_provider_tizen**](packages/path_provider) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**permission_handler_tizen**](packages/permission_handler) | 4.0 | ✔️ | ✔️ | ⚠️ | ⚠️ | Not applicable for TV |
-| [**sensors_plus_tizen**](packages/sensors_plus) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | No sensor hardware |
-| [**shared_preferences_tizen**](packages/shared_preferences) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**sqflite_tizen**](packages/sqflite) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_app_control**](packages/tizen_app_control) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_app_manager**](packages/tizen_app_manager) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_audio_manager**](packages/tizen_audio_manager) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_bundle**](packages/tizen_bundle) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_log**](packages/tizen_log) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
-| [**tizen_notification**](packages/tizen_notification) | 4.0 | ❌ | ✔️ | ✔️ | ✔️ | API not supported |
-| [**tizen_package_manager**](packages/tizen_package_manager) | 4.0 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**integration_test_tizen**](packages/integration_test) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**messageport_tizen**](packages/messageport) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**network_info_plus_tizen**](packages/network_info_plus) | 5.5 | ✔️ | ❌ | ✔️ | ❌ | API not supported on emulator |
+| [**package_info_plus_tizen**](packages/package_info_plus) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**path_provider_tizen**](packages/path_provider) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**permission_handler_tizen**](packages/permission_handler) | 5.5 | ✔️ | ✔️ | ⚠️ | ⚠️ | Not applicable for TV |
+| [**sensors_plus_tizen**](packages/sensors_plus) | 5.5 | ✔️ | ✔️ | ❌ | ❌ | No sensor hardware |
+| [**shared_preferences_tizen**](packages/shared_preferences) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**sqflite_tizen**](packages/sqflite) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_app_control**](packages/tizen_app_control) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_app_manager**](packages/tizen_app_manager) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_audio_manager**](packages/tizen_audio_manager) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_bundle**](packages/tizen_bundle) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
+| [**tizen_log**](packages/tizen_log) | 5.5 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
+| [**tizen_notification**](packages/tizen_notification) | 5.5 | ❌ | ✔️ | ✔️ | ✔️ | API not supported |
+| [**tizen_package_manager**](packages/tizen_package_manager) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_rpc_port**](packages/tizen_rpc_port) | 6.5 | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**url_launcher_tizen**](packages/url_launcher) | 4.0 | ✔️ | ❌ | ✔️ | ❌ | No browser app |
-| [**video_player_tizen**](packages/video_player) | 4.0 | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
-| [**video_player_videohole**](packages/video_player_videohole) | 4.0 | ❌ | ❌ | ✔️ | ❌ | Only for TV devices |
-| [**wakelock_tizen**](packages/wakelock) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Cannot override system settings |
-| [**wearable_rotary**](packages/wearable_rotary) | 4.0 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
+| [**url_launcher_tizen**](packages/url_launcher) | 5.5 | ✔️ | ❌ | ✔️ | ❌ | No browser app |
+| [**video_player_tizen**](packages/video_player) | 5.5 | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
+| [**video_player_videohole**](packages/video_player_videohole) | 5.5 | ❌ | ❌ | ✔️ | ❌ | Only for TV devices |
+| [**wakelock_tizen**](packages/wakelock) | 5.5 | ✔️ | ✔️ | ❌ | ❌ | Cannot override system settings |
+| [**wearable_rotary**](packages/wearable_rotary) | 5.5 | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**webview_flutter_lwe**](packages/webview_flutter_lwe) | 5.5 | ✔️ | ✔️ | ✔️ | ✔️ | Not for production use |
 | [**webview_flutter_tizen**](packages/webview_flutter) | 5.5 | ❌ | ❌ | ✔️ | ✔️ | API not supported |

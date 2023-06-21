@@ -24,7 +24,7 @@ For detailed usage, see https://pub.dev/packages/sensors_plus#usage.
 
 ## Supported devices
 
-- Galaxy Watch series (running Tizen 4.0 or later)
+- Galaxy Watch series (running Tizen 5.5)
 
 ## Supported APIs
 

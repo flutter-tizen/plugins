@@ -31,4 +31,4 @@ For detailed usage, see https://pub.dev/packages/battery_plus#usage.
 
 ## Supported devices
 
-- Galaxy Watch series (running Tizen 4.0 or later)
+- Galaxy Watch series (running Tizen 5.5)
