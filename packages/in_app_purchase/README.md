@@ -4,7 +4,7 @@ The Tizen implementation of [`in_app_purchase`](https://pub.dev/packages/in_app_
 
 ## Supported devices
 
-This plugin is only supported on Smart TVs running Tizen 4.0 and above.
+This plugin is only supported on Samsung Smart TVs running Tizen 5.5 and above.
 
 ## Required privileges
 
@@ -52,11 +52,11 @@ You can find your `countryCode` in [Samsung Developers: Implementing the Purchas
 final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
     .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
 platformAddition.setRequestParameters(
-  appId: 'your_app_id',
+  appId: 'your_dpi_app_id',
+  serverType: 'DEV',
   countryCode: 'US',
   pageSize: 20,
   pageNum: 1,
-  serverType: 'DEV',
   securityKey: 'your_security_key',
 );
 
