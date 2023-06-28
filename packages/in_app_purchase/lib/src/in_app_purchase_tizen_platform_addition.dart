@@ -17,17 +17,17 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
 
   /// Set all request parameters that SamsungCheckout DPI Portal needed.
   ///
-  /// The `appId` is your application id, must be required.
+  /// The `appId` is your application id, it is required.
   ///
-  /// The `serverType` is Billing server type, must be required.
+  /// The `serverType` is Billing server type, it is required.
   ///
   /// The `countryCode` is your device country code.
   /// Use it when call `queryProductDetails`, `restorePurchases`, `buyConsumable` and `buyNonConsumable`.
   ///
-  /// The `pageSize` is the number of products retrieved per page, more than 1 and less than 100.
+  /// The `pageSize` is the number of products retrieved per page.(>=1,<=100)
   /// Use it when call `queryProductDetails`.
   ///
-  /// The `pageNum` is the requested page number, more than 1.
+  /// The `pageNum` is the requested page number.(>=1)
   /// Use it when call `queryProductDetails` and `restorePurchases`.
   ///
   /// The `securityKey` is DPI security key.
