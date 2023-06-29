@@ -5,13 +5,13 @@
 #ifndef FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
 #define FLUTTER_PLUGIN_BILLING_SERVICE_PROXY_H_
 
-typedef enum server_type {
+typedef enum {
   SERVERTYPE_OPERATE = 10005,
   SERVERTYPE_DEV,
   SERVERTYPE_WORKING,
   SERVERTYPE_DUMMY,
   SERVERTYPE_NONE
-} SERVERTYPE;
+} billing_server_type;
 
 typedef void (*billing_payment_api_cb)(const char *detail_result,
                                        void *user_data);
@@ -20,13 +20,13 @@ typedef bool (*billing_buyitem_cb)(const char *pay_result,
 typedef bool (*FuncGetProductslist)(const char *app_id,
                                     const char *country_code, int page_size,
                                     int page_number, const char *check_value,
-                                    SERVERTYPE server_type,
+                                    billing_server_type server_type,
                                     billing_payment_api_cb callback,
                                     void *user_data);
 typedef bool (*FuncGetpurchaselist)(const char *app_id, const char *custom_id,
                                     const char *country_code, int page_number,
                                     const char *check_value,
-                                    SERVERTYPE server_type,
+                                    billing_server_type server_type,
                                     billing_payment_api_cb callback,
                                     void *user_data);
 typedef bool (*FuncBillingBuyItem)(const char *app_id, const char *server_type,
@@ -34,10 +34,11 @@ typedef bool (*FuncBillingBuyItem)(const char *app_id, const char *server_type,
 typedef void (*FuncBillingSetBuyItemCb)(billing_buyitem_cb callback,
                                         void *user_data);
 typedef bool (*FuncServiceBillingIsServiceAvailable)(
-    SERVERTYPE server_type, billing_payment_api_cb callback, void *user_data);
+    billing_server_type server_type, billing_payment_api_cb callback,
+    void *user_data);
 typedef bool (*FuncServiceBillingVerifyInvoice)(
     const char *app_id, const char *custom_id, const char *invoice_id,
-    const char *country_code, SERVERTYPE server_type,
+    const char *country_code, billing_server_type server_type,
     billing_payment_api_cb callback, void *user_data);
 
 class BillingWrapper {

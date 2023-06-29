@@ -36,18 +36,14 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
   /// See README.md file to find how to get these values.
   void setRequestParameters({
     required String appId,
-    required String serverType,
-    String? countryCode,
     int? pageSize,
     int? pageNum,
     String? securityKey,
   }) {
     final Map<String, dynamic> requestParameters = <String, dynamic>{
       'appId': appId,
-      'countryCode': countryCode,
       'pageSize': pageSize,
       'pageNum': pageNum,
-      'serverType': serverType,
       'securityKey': securityKey,
     };
     _billingManager.setRequestParameters(requestParameters);

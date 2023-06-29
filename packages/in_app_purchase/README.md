@@ -50,17 +50,14 @@ import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 ```
 
 You must call `setRequestParameters` to set required parameters before making any plugin API call.
-You can find your `countryCode` in [Samsung Developers: Implementing the Purchase Process](https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/implementing-the-purchase-process.html#Country-and-Currency-Codes) and `serverType` in [Samsung Developers: Billing API References](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#1.-Type-Definitions)
 
 ```dart
 final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
     .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
 platformAddition.setRequestParameters(
   appId: 'your_app_id',
-  countryCode: 'US',
   pageSize: 20,
   pageNum: 1,
-  serverType: 'DEV',
   securityKey: 'your_security_key',
 );
 

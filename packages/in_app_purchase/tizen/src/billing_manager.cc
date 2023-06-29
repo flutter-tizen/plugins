@@ -17,13 +17,18 @@
 
 const char *kInvalidArgument = "Invalid argument";
 
-static server_type ConvertServerType(const char *server_type_string) {
-  if (strcasecmp("DEV", server_type_string) == 0) {
-    return SERVERTYPE_DEV;
-  } else if (strcasecmp("PRD", server_type_string) == 0) {
-    return SERVERTYPE_OPERATE;
-  } else
-    return SERVERTYPE_NONE;
+static std::string ServerTypeToString(billing_server_type server_type) {
+  switch (server_type) {
+    case SERVERTYPE_OPERATE:
+      return "PRD";
+      break;
+    case SERVERTYPE_DEV:
+      return "DEV";
+      break;
+    default:
+      return "NONE";
+      break;
+  }
 }
 
 template <typename T>
@@ -81,15 +86,60 @@ std::string BillingManager::GetCustomId() {
   return custom_id;
 }
 
-bool BillingManager::BillingIsAvailable(
-    const flutter::EncodableMap *encodables) {
+std::string BillingManager::GetCountryCode() {
+  void *handle = dlopen("libvconf.so.0.3.1", RTLD_LAZY);
+  char *country_code = "";
+  if (!handle) {
+    LOG_ERROR("[BillingManager] Fail to open vconf APIs.");
+  } else {
+    FuncVconfGetStr vconf_get_str =
+        reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
+    if (vconf_get_str) {
+      country_code = vconf_get_str("db/comss/countrycode");
+    }
+    dlclose(handle);
+  }
+  return country_code;
+}
+
+bool BillingManager::BillingIsAvailable() {
   LOG_INFO("[BillingManager] Check billing server is available.");
 
-  std::string server_type =
-      GetRequiredArg<std::string>(encodables, "serverType");
+  void *handle = dlopen("libcapi-system-info.so.0.2.1", RTLD_LAZY);
+  if (!handle) {
+    LOG_ERROR("[BillingManager] Fail to open system APIs.");
+  } else {
+    FuncSystemInfGetValueInt system_info_get_value_int =
+        reinterpret_cast<FuncSystemInfGetValueInt>(
+            dlsym(handle, "system_info_get_value_int"));
+    if (system_info_get_value_int) {
+      int tv_server_type = 0;
+      int ret = system_info_get_value_int(SYSTEM_INFO_KEY_INFO_LINK_SERVER_TYPE,
+                                          &tv_server_type);
+      if (ret == SYSTEM_INFO_ERROR_NONE) {
+        switch (tv_server_type) {
+          case PRD:
+            billing_server_type_ = SERVERTYPE_OPERATE;
+            break;
+          case DEV:
+            billing_server_type_ = SERVERTYPE_DEV;
+            break;
+          default:
+            billing_server_type_ = SERVERTYPE_NONE;
+            break;
+        }
+        LOG_INFO("[BillingManager] Billing_Server_Type is %d",
+                 billing_server_type_);
+      } else {
+        LOG_ERROR("[BillingManager] Fail to get TV server type.");
+        return false;
+      }
+    }
+    dlclose(handle);
+  }
 
   bool ret = BillingWrapper::GetInstance().service_billing_is_service_available(
-      ConvertServerType(server_type.c_str()), OnAvailable, this);
+      billing_server_type_, OnAvailable, this);
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_is_service_available failed.");
     return false;
@@ -107,13 +157,10 @@ bool BillingManager::GetProductList(const flutter::EncodableMap *encodables) {
   int64_t page_num = GetRequiredArg<int>(encodables, "pageNum");
   std::string check_value =
       GetRequiredArg<std::string>(encodables, "checkValue");
-  std::string server_type =
-      GetRequiredArg<std::string>(encodables, "serverType");
 
   bool ret = BillingWrapper::GetInstance().service_billing_get_products_list(
       app_id.c_str(), country_code.c_str(), page_size, page_num,
-      check_value.c_str(), ConvertServerType(server_type.c_str()), OnProducts,
-      (void *)this);
+      check_value.c_str(), billing_server_type_, OnProducts, this);
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_get_products_list failed.");
     return false;
@@ -131,13 +178,10 @@ bool BillingManager::GetPurchaseList(const flutter::EncodableMap *encodables) {
   int64_t page_num = GetRequiredArg<int>(encodables, "pageNum");
   std::string check_value =
       GetRequiredArg<std::string>(encodables, "checkValue");
-  std::string server_type =
-      GetRequiredArg<std::string>(encodables, "serverType");
 
   bool ret = BillingWrapper::GetInstance().service_billing_get_purchase_list(
       app_id.c_str(), custom_id.c_str(), country_code.c_str(), page_num,
-      check_value.c_str(), ConvertServerType(server_type.c_str()), OnPurchase,
-      (void *)this);
+      check_value.c_str(), billing_server_type_, OnPurchase, this);
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_get_purchase_list failed.");
     return false;
@@ -151,12 +195,10 @@ bool BillingManager::BuyItem(const flutter::EncodableMap *encodables) {
   std::string pay_details =
       GetRequiredArg<std::string>(encodables, "payDetails");
   std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
-  std::string server_type =
-      GetRequiredArg<std::string>(encodables, "serverType");
-  LOG_INFO("[BillingManager] BuyItem detail: %s", pay_details.c_str());
 
   bool ret = BillingWrapper::GetInstance().service_billing_buyitem(
-      app_id.c_str(), server_type.c_str(), pay_details.c_str());
+      app_id.c_str(), ServerTypeToString(billing_server_type_).c_str(),
+      pay_details.c_str());
   BillingWrapper::GetInstance().service_billing_set_buyitem_cb(OnBuyItem, this);
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_buyitem failed.");
@@ -173,12 +215,10 @@ bool BillingManager::VerifyInvoice(const flutter::EncodableMap *encodables) {
   std::string invoice_id = GetRequiredArg<std::string>(encodables, "invoiceId");
   std::string country_code =
       GetRequiredArg<std::string>(encodables, "countryCode");
-  std::string server_type =
-      GetRequiredArg<std::string>(encodables, "serverType");
+
   bool ret = BillingWrapper::GetInstance().service_billing_verify_invoice(
       app_id.c_str(), custom_id.c_str(), invoice_id.c_str(),
-      country_code.c_str(), ConvertServerType(server_type.c_str()), OnVerify,
-      this);
+      country_code.c_str(), billing_server_type_, OnVerify, this);
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_verify_invoice failed.");
     return false;
@@ -241,11 +281,7 @@ void BillingManager::HandleMethodCall(
         return;
       }
     } else if (method_name == "isAvailable") {
-      if (!encodables) {
-        result->Error(kInvalidArgument, "No arguments provided");
-        return;
-      }
-      if (BillingIsAvailable(encodables)) {
+      if (BillingIsAvailable()) {
         method_result_ = std::move(result);
       } else {
         result->Error("isAvailable failed");
@@ -264,6 +300,8 @@ void BillingManager::HandleMethodCall(
       }
     } else if (method_name == "GetCustomId") {
       result->Success(flutter::EncodableValue(std::string(GetCustomId())));
+    } else if (method_name == "GetCountryCode") {
+      result->Success(flutter::EncodableValue(std::string(GetCountryCode())));
     } else {
       result->NotImplemented();
     }

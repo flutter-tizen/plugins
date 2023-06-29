@@ -19,8 +19,6 @@ void main() {
 const bool _kAutoConsume = true;
 
 const String _kAppId = '3201504002021';
-const String _kServerType = 'DEV';
-const String _kCountryCode = 'US';
 const int _kPageSize = 20;
 const int _kPageNum = 1;
 // Do not expose your DPI security key. You can use a key management server to retrieve it for greater security.
@@ -65,10 +63,8 @@ class _MyAppState extends State<_MyApp> {
         .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
     platformAddition.setRequestParameters(
       appId: _kAppId,
-      countryCode: _kCountryCode,
       pageSize: _kPageSize,
       pageNum: _kPageNum,
-      serverType: _kServerType,
       securityKey: _kSecurityKey,
     );
 

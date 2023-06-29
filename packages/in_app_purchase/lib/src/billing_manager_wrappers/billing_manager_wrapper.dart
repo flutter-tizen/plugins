@@ -45,10 +45,8 @@ class BillingManager {
   /// [`BillingManager-isServiceAvailable`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-isServiceAvailable)
   /// to check whether the Billing server is available.
   Future<bool> isAvailable() async {
-    final String? isAvailableResult = await channel.invokeMethod<String>(
-      'isAvailable',
-      <String, dynamic>{'serverType': _requestParameters['serverType']},
-    );
+    final String? isAvailableResult =
+        await channel.invokeMethod<String>('isAvailable');
     if (isAvailableResult == null) {
       throw PlatformException(
         code: 'no_response',
@@ -71,18 +69,19 @@ class BillingManager {
   /// to retrieves the list of products registered on the Billing (DPI) server.
   Future<ProductsListApiResult> requestProducts(
       List<String> requestparameters) async {
+    final String? countryCode =
+        await channel.invokeMethod<String?>('GetCountryCode');
     final String checkValue = base64.encode(Hmac(sha256,
             utf8.encode(_requestParameters['securityKey'] as String? ?? ''))
         .convert(utf8.encode((_requestParameters['appId'] as String? ?? '') +
-            (_requestParameters['countryCode'] as String? ?? '')))
+            (countryCode ?? '')))
         .bytes);
 
     final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': _requestParameters['appId'],
-      'countryCode': _requestParameters['countryCode'],
+      'countryCode': countryCode,
       'pageSize': _requestParameters['pageSize'],
       'pageNum': _requestParameters['pageNum'],
-      'serverType': _requestParameters['serverType'],
       'checkValue': checkValue,
     };
 
@@ -104,11 +103,13 @@ class BillingManager {
   Future<GetUserPurchaseListAPIResult> requestPurchases(
       {String? applicationUserName}) async {
     final String? customId = await channel.invokeMethod<String?>('GetCustomId');
+    final String? countryCode =
+        await channel.invokeMethod<String?>('GetCountryCode');
     final String checkValue = base64.encode(Hmac(sha256,
             utf8.encode(_requestParameters['securityKey'] as String? ?? ''))
         .convert(utf8.encode((_requestParameters['appId'] as String? ?? '') +
             (customId ?? '') +
-            (_requestParameters['countryCode'] as String? ?? '') +
+            (countryCode ?? '') +
             _requestItemType +
             (_requestParameters['pageNum'] as int? ?? -1).toString()))
         .bytes);
@@ -116,9 +117,8 @@ class BillingManager {
     final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': _requestParameters['appId'],
       'customId': customId,
-      'countryCode': _requestParameters['countryCode'],
+      'countryCode': countryCode,
       'pageNum': _requestParameters['pageNum'],
-      'serverType': _requestParameters['serverType'],
       'checkValue': checkValue,
     };
 
@@ -152,7 +152,6 @@ class BillingManager {
     };
     final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': _requestParameters['appId'],
-      'serverType': _requestParameters['serverType'],
       'payDetails': json.encode(orderDetails)
     };
 
@@ -174,12 +173,13 @@ class BillingManager {
   Future<VerifyInvoiceAPIResult> verifyInvoice(
       {required String invoiceId}) async {
     final String? customId = await channel.invokeMethod<String?>('GetCustomId');
+    final String? countryCode =
+        await channel.invokeMethod<String?>('GetCountryCode');
     final Map<String, dynamic> arguments = <String, dynamic>{
       'invoiceId': invoiceId,
       'appId': _requestParameters['appId'],
       'customId': customId,
-      'countryCode': _requestParameters['countryCode'],
-      'serverType': _requestParameters['serverType']
+      'countryCode': countryCode,
     };
 
     final String? verifyInvoiceResult =
