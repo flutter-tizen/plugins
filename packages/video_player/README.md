@@ -6,7 +6,7 @@ The Tizen implementation of [`video_player`](https://pub.dev/packages/video_play
 
 ## Supported devices
 
-This plugin is **NOT** supported on TV emulators. This plugin is supported on Galaxy Watch devices and Smart TVs running Tizen 4.0 or above.
+This plugin is **NOT** supported on TV emulators. This plugin is supported on Galaxy Watch devices and Smart TVs running Tizen 5.5 or above.
 
 ## Usage
 

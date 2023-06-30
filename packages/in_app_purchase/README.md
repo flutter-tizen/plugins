@@ -4,7 +4,7 @@ The Tizen implementation of [`in_app_purchase`](https://pub.dev/packages/in_app_
 
 ## Supported devices
 
-This plugin is only supported on Smart TVs running Tizen 4.0 and above.
+This plugin is only supported on Samsung Smart TVs running Tizen 5.5 and above.
 
 ## Required privileges
 
@@ -18,11 +18,7 @@ To use this plugin in a Tizen application, you need to declare the following pri
 </privileges>
 ```
 
-- The billing privilege (`http://developer.samsung.com/privilege/billing`) is required to connect to billing client.
-- The sso.partner privilege (`http://developer.samsung.com/privilege/sso.partner`) is required to use sso APIs.
-- The appmanager.launch privilege (`http://tizen.org/privilege/appmanager.launch`) is required to allow the application to open other applications.
-
-For detailed information on Tizen privileges, see Tizen Docs: API Privileges.
+The sso.partner privilege is required by the [Sso API](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/sso-api.html) to internally obtain the user's custom ID (UID). Your app must be signed with a [partner-level certificate](https://docs.tizen.org/application/dotnet/get-started/certificates/creating-certificates) to use this privilege.
 
 ## Preparation
 
@@ -55,7 +51,7 @@ You must call `setRequestParameters` to set required parameters before making an
 final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
     .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
 platformAddition.setRequestParameters(
-  appId: 'your_app_id',
+  appId: 'your_dpi_app_id',
   pageSize: 20,
   pageNum: 1,
   securityKey: 'your_security_key',

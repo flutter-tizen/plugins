@@ -4,7 +4,7 @@
 
 A fork of the [`video_player`](https://pub.dev/packages/video_player) plugin to support playback of DRM streams (Widevine and PlayReady) on Tizen TV devices.
 
-This plugin is only supported on Tizen TV devices. If you are targeting other device types or don't plan to play DRM content in your app, use [`video_player`](https://pub.dev/packages/video_player) and [`video_player_tizen`](https://pub.dev/packages/video_player_tizen) instead.
+This plugin is only supported on Tizen TV devices. If you are targeting other types of devices or are not interested in playing DRM content in your app, use [`video_player`](https://pub.dev/packages/video_player) and [`video_player_tizen`](https://pub.dev/packages/video_player_tizen) instead.
 
 ## Usage
 
@@ -108,7 +108,7 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 ## Limitations
 
-This plugin is not supported on TV emulators.
+TV emulator support is experimental. DRM content playback is not supported on TV emulators.
 
 The following options are not currently supported.
 

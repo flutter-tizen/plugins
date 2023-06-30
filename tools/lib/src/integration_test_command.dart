@@ -52,7 +52,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
           'plugins:\n'
           '  a: [wearable-5.5, tv-6.0]\n'
           '  b: [mobile-6.0]\n'
-          '  c: [wearable-4.0]\n'
+          '  c: [wearable-5.5]\n'
           '  d: [] # explicitly excluded\n',
       valueHelp: 'recipe.yaml',
     );
