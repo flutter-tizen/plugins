@@ -43,4 +43,5 @@ android {
     defaultConfig {
         minSdkVersion 18
     }
+    namespace "com.samsung.wearable_rotary"
 }
