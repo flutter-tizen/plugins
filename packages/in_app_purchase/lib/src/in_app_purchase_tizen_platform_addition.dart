@@ -19,11 +19,6 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
   ///
   /// The `appId` is your application id, it is required.
   ///
-  /// The `serverType` is Billing server type, it is required.
-  ///
-  /// The `countryCode` is your device country code.
-  /// Use it when call `queryProductDetails`, `restorePurchases`, `buyConsumable` and `buyNonConsumable`.
-  ///
   /// The `pageSize` is the number of products retrieved per page.(>=1,<=100)
   /// Use it when call `queryProductDetails`.
   ///
