@@ -18,6 +18,24 @@ class ImagePickerTizen extends ImagePickerPlatform {
   }
 
   @override
+  Future<XFile?> getImage({
+    required ImageSource source,
+    double? maxWidth,
+    double? maxHeight,
+    int? imageQuality,
+    CameraDevice preferredCameraDevice = CameraDevice.rear,
+  }) async {
+    final String? path = await _getImagePath(
+      source: source,
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+      imageQuality: imageQuality,
+      preferredCameraDevice: preferredCameraDevice,
+    );
+    return path != null ? XFile(path) : null;
+  }
+
+  @override
   Future<XFile?> getImageFromSource({
     required ImageSource source,
     ImagePickerOptions options = const ImagePickerOptions(),
@@ -55,7 +73,7 @@ class ImagePickerTizen extends ImagePickerPlatform {
     }
 
     return _channel.invokeMethod<String>(
-      'pickImage',
+      'getImage',
       <String, dynamic>{
         'source': source.index,
         'maxWidth': maxWidth,
@@ -104,7 +122,7 @@ class ImagePickerTizen extends ImagePickerPlatform {
     }
 
     return _channel.invokeMethod<List<dynamic>?>(
-      'pickMultiImage',
+      'getMultiImage',
       <String, dynamic>{
         'maxWidth': maxWidth,
         'maxHeight': maxHeight,
@@ -134,7 +152,7 @@ class ImagePickerTizen extends ImagePickerPlatform {
     Duration? maxDuration,
   }) {
     return _channel.invokeMethod<String>(
-      'pickVideo',
+      'getVideo',
       <String, dynamic>{
         'source': source.index,
         'maxDuration': maxDuration?.inSeconds,

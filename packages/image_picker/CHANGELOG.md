@@ -1,5 +1,7 @@
-## NEXT
+## 2.3.0
 
+* Update image_picker to 1.0.1.
+* Update image_picker_platform_interface to 2.8.0.
 * Increase the minimum Flutter version to 3.3.
 * Update example app pubspec.
 

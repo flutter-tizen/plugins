@@ -73,7 +73,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
     }
     result_ = std::move(result);
 
-    if (method_name == "pickImage" || method_name == "pickMultiImage") {
+    if (method_name == "getImage" || method_name == "getMultiImage") {
       const auto *arguments =
           std::get_if<flutter::EncodableMap>(method_call.arguments());
       assert(arguments);
@@ -94,12 +94,12 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
         // TODO: we need to check this feature after webcam is prepared
         SendErrorResult("Not supported", "Not supported on this device.");
       } else if (source == ImageSource::kGallery) {
-        multi_image_ = method_name == "pickMultiImage";
+        multi_image_ = method_name == "getMultiImage";
         PickContent("image/*");
       } else {
         SendErrorResult("Invalid arguments", "Invalid image source.");
       }
-    } else if (method_name == "pickVideo") {
+    } else if (method_name == "getVideo") {
       const auto *arguments =
           std::get_if<flutter::EncodableMap>(method_call.arguments());
       assert(arguments);
