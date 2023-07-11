@@ -5,6 +5,14 @@
 #include "audio_player.h"
 
 #include "audio_player_error.h"
+#include "log.h"
+
+typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
+typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
+typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
+typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
+typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
+typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
 
 AudioPlayer::AudioPlayer(const std::string &player_id,
                          PreparedListener prepared_listener,
@@ -335,7 +343,8 @@ void AudioPlayer::OnPrepared(void *data) {
         player->preparing_ = false;
 
         try {
-          player->prepared_listener_(player->player_id_, player->GetDuration());
+          player->duration_listener_(player->player_id_, player->GetDuration());
+          player->prepared_listener_(player->player_id_, true);
         } catch (const AudioPlayerError &error) {
           player->error_listener_(player->player_id_, error.code());
           return;
@@ -390,6 +399,7 @@ void AudioPlayer::OnPlayCompleted(void *data) {
       [](void *data) {
         auto *player = reinterpret_cast<AudioPlayer *>(data);
         try {
+          player->Seek(0);
           player->Stop();
           player->play_completed_listener_(player->player_id_);
         } catch (const AudioPlayerError &error) {
@@ -440,3 +450,5 @@ Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
   player->timer_ = nullptr;
   return ECORE_CALLBACK_CANCEL;
 }
+
+void AudioPlayer::OnDurationUpdate(void *data) {}

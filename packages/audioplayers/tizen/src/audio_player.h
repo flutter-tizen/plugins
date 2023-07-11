@@ -6,6 +6,12 @@
 #define FLUTTER_PLUGIN_AUDIO_PLAYER_H_
 
 #include <Ecore.h>
+#include <flutter/event_channel.h>
+#include <flutter/event_sink.h>
+#include <flutter/event_stream_handler_functions.h>
+#include <flutter/method_channel.h>
+#include <flutter/plugin_registrar.h>
+#include <flutter/standard_method_codec.h>
 #include <player.h>
 
 #include <functional>
@@ -15,6 +21,8 @@
 enum class ReleaseMode { kRelease, kLoop, kStop };
 
 using PreparedListener =
+    std::function<void(const std::string &player_id, bool is_prepared)>;
+using DurationListener =
     std::function<void(const std::string &player_id, int32_t duration)>;
 using UpdatePositionListener =
     std::function<void(const std::string &player_id, const int32_t duration,
@@ -24,6 +32,8 @@ using PlayCompletedListener = std::function<void(const std::string &player_id)>;
 using ErrorListener = std::function<void(const std::string &player_id,
                                          const std::string &message)>;
 
+typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
+
 class AudioPlayer {
  public:
   AudioPlayer(const std::string &player_id, PreparedListener prepared_listener,
@@ -31,6 +41,7 @@ class AudioPlayer {
               SeekCompletedListener seek_completed_listener,
               PlayCompletedListener play_completed_listener,
               ErrorListener error_listener);
+
   ~AudioPlayer();
 
   void Play();
@@ -68,6 +79,7 @@ class AudioPlayer {
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
+  static void OnDurationUpdate(void *data);
   static Eina_Bool OnPositionUpdate(void *data);
 
   player_h player_ = nullptr;
@@ -86,6 +98,7 @@ class AudioPlayer {
   UpdatePositionListener update_position_listener_;
   SeekCompletedListener seek_completed_listener_;
   PlayCompletedListener play_completed_listener_;
+  DurationListener duration_listener_;
   ErrorListener error_listener_;
 };
 
