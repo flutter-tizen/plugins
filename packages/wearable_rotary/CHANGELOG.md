@@ -1,3 +1,7 @@
+## 2.0.2
+
+* Adds namespace to `build.gradle` for compatibility with Gradle 8
+
 ## 2.0.1
 
 * Remove unnecessary `StreamHandlerError` implementation.
