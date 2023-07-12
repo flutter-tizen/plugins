@@ -3,7 +3,6 @@
 * Increase the minimum Flutter version to 3.3.
 * Update example app pubspec.
 
-
 ## 2.2.0
 
 * Switch to an internal method channel implementation.
