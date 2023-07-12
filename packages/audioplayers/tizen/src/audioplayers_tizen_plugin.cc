@@ -19,7 +19,6 @@
 
 #include "audio_player.h"
 #include "audio_player_error.h"
-#include "log.h"
 
 namespace {
 
@@ -150,8 +149,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         CreateAudioPlayer(player_id);
         result->Success();
         return;
-      } else if (method_name == "despose") {
-        DesposeAudioPlayer(player_id);
+      } else if (method_name == "dispose") {
+        DisposeAudioPlayer(player_id);
         result->Success();
         return;
       }
@@ -271,7 +270,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         [this](const std::string &player_id) {
           flutter::EncodableMap map = {
               {flutter::EncodableValue("event"),
-               flutter::EncodableValue(kAudioCompleteEvent)}};
+               flutter::EncodableValue(kAudioSeekCompleteEvent)}};
           event_sinks_[player_id]->Success(flutter::EncodableValue(map));
         };
 
@@ -309,7 +308,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     audio_players_[player_id] = std::move(player);
   }
 
-  void DesposeAudioPlayer(const std::string &player_id) {
+  void DisposeAudioPlayer(const std::string &player_id) {
     audio_players_.erase(player_id);
     event_channels_.erase(player_id);
     event_sinks_.erase(player_id);
