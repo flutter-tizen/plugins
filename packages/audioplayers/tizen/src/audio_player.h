@@ -71,7 +71,6 @@ class AudioPlayer {
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
-  static void OnDurationUpdate(void *data);
   static Eina_Bool OnPositionUpdate(void *data);
 
   player_h player_ = nullptr;

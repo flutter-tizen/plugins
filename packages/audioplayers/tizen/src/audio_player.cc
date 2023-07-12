@@ -447,5 +447,3 @@ Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
   player->timer_ = nullptr;
   return ECORE_CALLBACK_CANCEL;
 }
-
-void AudioPlayer::OnDurationUpdate(void *data) {}

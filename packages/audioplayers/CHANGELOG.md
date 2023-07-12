@@ -1,5 +1,9 @@
-## NEXT
+## 3.0.0
 
+* Update audioplayers to 4.1.0.
+* Update audioplayers_platform_interface to 5.0.1.
+* Update example app.
+* Update README.
 * Increase the minimum Flutter version to 3.3.
 
 ## 2.0.0

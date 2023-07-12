@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 
 ```yaml
 dependencies:
-  audioplayers: ^1.0.1
-  audioplayers_tizen: ^2.0.0
+  audioplayers: ^4.1.0
+  audioplayers_tizen: ^3.0.0
 
 ```
 
@@ -62,8 +62,8 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 - [x] `AudioPlayer.getDuration`
 - [x] `AudioPlayer.getCurrentPosition`
 - [x] `AudioPlayer.dispose`
-- [ ] `AudioPlayer.global.changeLogLevel` (not supported)
-- [ ] `AudioPlayer.global.setGlobalAudioContext` (not supported)
+- [ ] `AudioLogger.logLevel` (not supported)
+- [ ] `AudioPlayer.global.setAudioContext` (not supported)
 
 ## Limitations
 
