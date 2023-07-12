@@ -16,9 +16,9 @@ flutter:
         fileName: audioplayers_tizen_plugin.h
 
 dependencies:
-  audioplayers_platform_interface: ^1.0.0
+  audioplayers_platform_interface: ^5.0.1
   flutter:
     sdk: flutter
 
 dev_dependencies:
-  flame_lint: ^0.1.0
+  flame_lint: ^1.0.0
