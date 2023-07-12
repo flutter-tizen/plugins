@@ -12,7 +12,7 @@ dependencies:
   image_picker: ^0.8.6
   image_picker_tizen:
     path: ../
-  video_player: ^2.1.4
+  video_player: ">=2.1.4 <2.7.0"
 
 dev_dependencies:
   flutter_driver:
