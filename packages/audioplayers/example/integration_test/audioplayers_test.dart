@@ -131,18 +131,19 @@ void main() {
         (WidgetTester tester) async {
       final player = AudioPlayer();
       final initialized = Completer<void>();
-      final seek = Completer<void>();
       player.onDurationChanged.listen((duration) {
         if (!initialized.isCompleted) {
           initialized.complete();
         }
       });
-      player.onSeekComplete.listen((event) => seek.complete());
 
       await player.setSourceAsset(_kAssetAudio);
       await initialized.future;
       final duration = await player.getDuration();
       expect(duration, isNotNull);
+
+      final seek = Completer<void>();
+      player.onSeekComplete.listen((event) => seek.complete());
       await player.seek(duration! - const Duration(milliseconds: 500));
       await seek.future;
 
