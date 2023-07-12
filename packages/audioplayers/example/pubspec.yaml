@@ -7,10 +7,11 @@ environment:
   flutter: ">=3.3.0"
 
 dependencies:
-  file_picker: ^5.0.1
   audioplayers: ^4.1.0
   audioplayers_tizen:
     path: ../
+  collection: ^1.16.0
+  file_picker: ^5.0.1
   flutter:
     sdk: flutter
   http: ^0.13.6
