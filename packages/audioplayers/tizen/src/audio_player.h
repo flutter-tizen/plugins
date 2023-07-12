@@ -6,12 +6,6 @@
 #define FLUTTER_PLUGIN_AUDIO_PLAYER_H_
 
 #include <Ecore.h>
-#include <flutter/event_channel.h>
-#include <flutter/event_sink.h>
-#include <flutter/event_stream_handler_functions.h>
-#include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
-#include <flutter/standard_method_codec.h>
 #include <player.h>
 
 #include <functional>
@@ -24,23 +18,21 @@ using PreparedListener =
     std::function<void(const std::string &player_id, bool is_prepared)>;
 using DurationListener =
     std::function<void(const std::string &player_id, int32_t duration)>;
-using UpdatePositionListener =
-    std::function<void(const std::string &player_id, const int32_t duration,
-                       const int32_t position)>;
+using CurrentPositionListener =
+    std::function<void(const std::string &player_id, const int32_t position)>;
 using SeekCompletedListener = std::function<void(const std::string &player_id)>;
 using PlayCompletedListener = std::function<void(const std::string &player_id)>;
-using ErrorListener = std::function<void(const std::string &player_id,
-                                         const std::string &message)>;
-
-typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
+using LogListener = std::function<void(const std::string &player_id,
+                                       const std::string &message)>;
 
 class AudioPlayer {
  public:
   AudioPlayer(const std::string &player_id, PreparedListener prepared_listener,
-              UpdatePositionListener update_position_listener,
+              CurrentPositionListener current_position_listener,
+              DurationListener duration_listener,
               SeekCompletedListener seek_completed_listener,
               PlayCompletedListener play_completed_listener,
-              ErrorListener error_listener);
+              LogListener log_listener);
 
   ~AudioPlayer();
 
@@ -94,12 +86,13 @@ class AudioPlayer {
   bool seeking_ = false;
   bool should_play_ = false;
   Ecore_Timer *timer_ = nullptr;
+
   PreparedListener prepared_listener_;
-  UpdatePositionListener update_position_listener_;
+  CurrentPositionListener current_position_listener_;
+  DurationListener duration_listener_;
   SeekCompletedListener seek_completed_listener_;
   PlayCompletedListener play_completed_listener_;
-  DurationListener duration_listener_;
-  ErrorListener error_listener_;
+  LogListener log_listener_;
 };
 
 #endif  // FLUTTER_PLUGIN_AUDIO_PLAYER_H_

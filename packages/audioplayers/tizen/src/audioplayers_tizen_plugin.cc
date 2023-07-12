@@ -104,10 +104,9 @@ class AudioPlayerStreamHandler : public FlStreamHandler {
 class AudioplayersTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar) {
-    auto channel =
-        std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-            registrar->messenger(), "xyz.luan/audioplayers",
-            &flutter::StandardMethodCodec::GetInstance());
+    auto channel = std::make_unique<FlMethodChannel>(
+        registrar->messenger(), "xyz.luan/audioplayers",
+        &flutter::StandardMethodCodec::GetInstance());
 
     auto plugin = std::make_unique<AudioplayersTizenPlugin>(registrar);
 
@@ -130,9 +129,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
   }
 
  private:
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  void HandleMethodCall(const FlMethodCall &method_call,
+                        std::unique_ptr<FlMethodResult> result) {
     const auto *arguments =
         std::get_if<flutter::EncodableMap>(method_call.arguments());
     if (!arguments) {
@@ -277,24 +275,14 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
           event_sinks_[player_id]->Success(flutter::EncodableValue(map));
         };
 
-    UpdatePositionListener update_position_listener =
-        [this](const std::string &player_id, const int32_t duration,
-               const int32_t position) {
-          flutter::EncodableMap duration_wrapped = {
-              {flutter::EncodableValue("event"),
-               flutter::EncodableValue(kAudioDurationEvent)},
-              {flutter::EncodableValue("value"),
-               flutter::EncodableValue(duration)}};
-          event_sinks_[player_id]->Success(
-              flutter::EncodableValue(duration_wrapped));
-
-          flutter::EncodableMap position_wrapped = {
+    CurrentPositionListener current_position_listener =
+        [this](const std::string &player_id, const int32_t position) {
+          flutter::EncodableMap map = {
               {flutter::EncodableValue("event"),
                flutter::EncodableValue(kAudioCurrentPositionEvent)},
               {flutter::EncodableValue("value"),
                flutter::EncodableValue(position)}};
-          event_sinks_[player_id]->Success(
-              flutter::EncodableValue(position_wrapped));
+          event_sinks_[player_id]->Success(flutter::EncodableValue(map));
         };
 
     PlayCompletedListener play_completed_listener =
@@ -305,8 +293,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
           event_sinks_[player_id]->Success(flutter::EncodableValue(map));
         };
 
-    ErrorListener error_listener = [this](const std::string &player_id,
-                                          const std::string &message) {
+    LogListener log_listener = [this](const std::string &player_id,
+                                      const std::string &message) {
       flutter::EncodableMap map = {
           {flutter::EncodableValue("event"),
            flutter::EncodableValue(kAudioLogEvent)},
@@ -315,8 +303,9 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     };
 
     auto player = std::make_unique<AudioPlayer>(
-        player_id, prepared_listener, update_position_listener,
-        seek_completed_listener, play_completed_listener, error_listener);
+        player_id, prepared_listener, current_position_listener,
+        duration_listener, seek_completed_listener, play_completed_listener,
+        log_listener);
     audio_players_[player_id] = std::move(player);
   }
 
@@ -326,7 +315,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     event_sinks_.erase(player_id);
   }
 
-  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
+  std::unique_ptr<FlMethodChannel> channel_;
 
   std::map<std::string, std::unique_ptr<AudioPlayer>> audio_players_;
   std::map<std::string, std::unique_ptr<FlEventChannel>> event_channels_;
