@@ -1,6 +1,7 @@
 ## NEXT
 
 * Increase the minimum Flutter version to 3.3.
+* Update example app pubspec.
 
 ## 2.2.0
 
