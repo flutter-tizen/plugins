@@ -153,18 +153,26 @@ class BillingManager {
   void Dispose();
 
  private:
-  bool BillingIsAvailable();
-  bool BuyItem(const flutter::EncodableMap *encodables);
-  bool GetProductList(const flutter::EncodableMap *encodables);
-  bool GetPurchaseList(const flutter::EncodableMap *encodables);
-  bool VerifyInvoice(const flutter::EncodableMap *encodables);
+  bool BillingIsAvailable(
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  bool BuyItem(
+      const flutter::EncodableMap *encodables,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  bool GetProductList(
+      const flutter::EncodableMap *encodables,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  bool GetPurchaseList(
+      const flutter::EncodableMap *encodables,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  bool VerifyInvoice(
+      const flutter::EncodableMap *encodables,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   std::string GetCustomId();
   std::string GetCountryCode();
 
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  void SendResult(const flutter::EncodableValue &result);
 
   static void OnProducts(const char *detail_result, void *user_data);
   static void OnPurchase(const char *detail_result, void *user_data);
@@ -175,8 +183,6 @@ class BillingManager {
 
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       method_channel_ = nullptr;
-  std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>>
-      method_result_ = nullptr;
   billing_server_type billing_server_type_;
 };
 

@@ -102,7 +102,8 @@ std::string BillingManager::GetCountryCode() {
   return country_code;
 }
 
-bool BillingManager::BillingIsAvailable() {
+bool BillingManager::BillingIsAvailable(
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Check billing server is available.");
 
   void *handle = dlopen("libcapi-system-info.so.0.2.1", RTLD_LAZY);
@@ -128,10 +129,11 @@ bool BillingManager::BillingIsAvailable() {
             billing_server_type_ = SERVERTYPE_NONE;
             break;
         }
-        LOG_INFO("[BillingManager] Billing_Server_Type is %d",
+        LOG_INFO("[BillingManager] Billing Server Type is %d",
                  billing_server_type_);
       } else {
         LOG_ERROR("[BillingManager] Fail to get TV server type.");
+        dlclose(handle);
         return false;
       }
     }
@@ -139,7 +141,7 @@ bool BillingManager::BillingIsAvailable() {
   }
 
   bool ret = BillingWrapper::GetInstance().service_billing_is_service_available(
-      billing_server_type_, OnAvailable, this);
+      billing_server_type_, OnAvailable, result.release());
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_is_service_available failed.");
     return false;
@@ -147,7 +149,9 @@ bool BillingManager::BillingIsAvailable() {
   return true;
 }
 
-bool BillingManager::GetProductList(const flutter::EncodableMap *encodables) {
+bool BillingManager::GetProductList(
+    const flutter::EncodableMap *encodables,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Start get product list.");
 
   std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
@@ -160,7 +164,7 @@ bool BillingManager::GetProductList(const flutter::EncodableMap *encodables) {
 
   bool ret = BillingWrapper::GetInstance().service_billing_get_products_list(
       app_id.c_str(), country_code.c_str(), page_size, page_num,
-      check_value.c_str(), billing_server_type_, OnProducts, this);
+      check_value.c_str(), billing_server_type_, OnProducts, result.release());
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_get_products_list failed.");
     return false;
@@ -168,7 +172,9 @@ bool BillingManager::GetProductList(const flutter::EncodableMap *encodables) {
   return true;
 }
 
-bool BillingManager::GetPurchaseList(const flutter::EncodableMap *encodables) {
+bool BillingManager::GetPurchaseList(
+    const flutter::EncodableMap *encodables,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Start get purchase list.");
 
   std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
@@ -181,7 +187,7 @@ bool BillingManager::GetPurchaseList(const flutter::EncodableMap *encodables) {
 
   bool ret = BillingWrapper::GetInstance().service_billing_get_purchase_list(
       app_id.c_str(), custom_id.c_str(), country_code.c_str(), page_num,
-      check_value.c_str(), billing_server_type_, OnPurchase, this);
+      check_value.c_str(), billing_server_type_, OnPurchase, result.release());
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_get_purchase_list failed.");
     return false;
@@ -189,7 +195,9 @@ bool BillingManager::GetPurchaseList(const flutter::EncodableMap *encodables) {
   return true;
 }
 
-bool BillingManager::BuyItem(const flutter::EncodableMap *encodables) {
+bool BillingManager::BuyItem(
+    const flutter::EncodableMap *encodables,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Start buy item");
 
   std::string pay_details =
@@ -199,7 +207,8 @@ bool BillingManager::BuyItem(const flutter::EncodableMap *encodables) {
   bool ret = BillingWrapper::GetInstance().service_billing_buyitem(
       app_id.c_str(), ServerTypeToString(billing_server_type_).c_str(),
       pay_details.c_str());
-  BillingWrapper::GetInstance().service_billing_set_buyitem_cb(OnBuyItem, this);
+  BillingWrapper::GetInstance().service_billing_set_buyitem_cb(
+      OnBuyItem, result.release());
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_buyitem failed.");
     return false;
@@ -207,7 +216,9 @@ bool BillingManager::BuyItem(const flutter::EncodableMap *encodables) {
   return true;
 }
 
-bool BillingManager::VerifyInvoice(const flutter::EncodableMap *encodables) {
+bool BillingManager::VerifyInvoice(
+    const flutter::EncodableMap *encodables,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Start verify invoice");
 
   std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
@@ -218,7 +229,7 @@ bool BillingManager::VerifyInvoice(const flutter::EncodableMap *encodables) {
 
   bool ret = BillingWrapper::GetInstance().service_billing_verify_invoice(
       app_id.c_str(), custom_id.c_str(), invoice_id.c_str(),
-      country_code.c_str(), billing_server_type_, OnVerify, this);
+      country_code.c_str(), billing_server_type_, OnVerify, result.release());
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_verify_invoice failed.");
     return false;
@@ -252,9 +263,7 @@ void BillingManager::HandleMethodCall(
         result->Error(kInvalidArgument, "No arguments provided");
         return;
       }
-      if (GetProductList(encodables)) {
-        method_result_ = std::move(result);
-      } else {
+      if (!GetProductList(encodables, std::move(result))) {
         result->Error("getProductList failed");
         return;
       }
@@ -263,9 +272,7 @@ void BillingManager::HandleMethodCall(
         result->Error(kInvalidArgument, "No arguments provided");
         return;
       }
-      if (GetPurchaseList(encodables)) {
-        method_result_ = std::move(result);
-      } else {
+      if (!GetPurchaseList(encodables, std::move(result))) {
         result->Error("getPurchaseList failed");
         return;
       }
@@ -274,16 +281,12 @@ void BillingManager::HandleMethodCall(
         result->Error(kInvalidArgument, "No arguments provided");
         return;
       }
-      if (BuyItem(encodables)) {
-        method_result_ = std::move(result);
-      } else {
+      if (!BuyItem(encodables, std::move(result))) {
         result->Error("buyItem failed");
         return;
       }
     } else if (method_name == "isAvailable") {
-      if (BillingIsAvailable()) {
-        method_result_ = std::move(result);
-      } else {
+      if (!BillingIsAvailable(std::move(result))) {
         result->Error("isAvailable failed");
         return;
       }
@@ -292,9 +295,7 @@ void BillingManager::HandleMethodCall(
         result->Error(kInvalidArgument, "No arguments provided");
         return;
       }
-      if (VerifyInvoice(encodables)) {
-        method_result_ = std::move(result);
-      } else {
+      if (!VerifyInvoice(encodables, std::move(result))) {
         result->Error("verifyInvoice failed");
         return;
       }
@@ -310,32 +311,46 @@ void BillingManager::HandleMethodCall(
   }
 }
 
-void BillingManager::SendResult(const flutter::EncodableValue &result) {
-  if (method_result_) {
-    method_result_->Success(result);
-    method_result_ = nullptr;
-  }
-}
-
 void BillingManager::OnAvailable(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Billing server detail_result: %s", detail_result);
 
-  BillingManager *billing = reinterpret_cast<BillingManager *>(user_data);
-  billing->SendResult(flutter::EncodableValue(std::string(detail_result)));
+  flutter::MethodResult<flutter::EncodableValue> *result =
+      reinterpret_cast<flutter::MethodResult<flutter::EncodableValue> *>(
+          user_data);
+  if (result) {
+    result->Success(flutter::EncodableValue(std::string(detail_result)));
+  } else {
+    result->Error("OnAvailable Failed", "method result is null !");
+  }
+  delete (result);
 }
 
 void BillingManager::OnProducts(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Productlist: %s", detail_result);
 
-  BillingManager *billing = reinterpret_cast<BillingManager *>(user_data);
-  billing->SendResult(flutter::EncodableValue(std::string(detail_result)));
+  flutter::MethodResult<flutter::EncodableValue> *result =
+      reinterpret_cast<flutter::MethodResult<flutter::EncodableValue> *>(
+          user_data);
+  if (result) {
+    result->Success(flutter::EncodableValue(std::string(detail_result)));
+  } else {
+    result->Error("OnProducts Failed", "method result is null !");
+  }
+  delete (result);
 }
 
 void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Purchaselist: %s", detail_result);
 
-  BillingManager *billing = reinterpret_cast<BillingManager *>(user_data);
-  billing->SendResult(flutter::EncodableValue(std::string(detail_result)));
+  flutter::MethodResult<flutter::EncodableValue> *result =
+      reinterpret_cast<flutter::MethodResult<flutter::EncodableValue> *>(
+          user_data);
+  if (result) {
+    result->Success(flutter::EncodableValue(std::string(detail_result)));
+  } else {
+    result->Error("OnPurchase Failed", "method result is null !");
+  }
+  delete (result);
 }
 
 bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
@@ -343,19 +358,34 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
   LOG_INFO("[BillingManager] Buy items result: %s, result details: %s",
            pay_result, detail_info);
 
-  BillingManager *billing = reinterpret_cast<BillingManager *>(user_data);
   flutter::EncodableMap result_map = {
       {flutter::EncodableValue("PayResult"),
        flutter::EncodableValue(pay_result)},
   };
-  billing->SendResult(flutter::EncodableValue(result_map));
+
+  flutter::MethodResult<flutter::EncodableValue> *result =
+      reinterpret_cast<flutter::MethodResult<flutter::EncodableValue> *>(
+          user_data);
+  if (result) {
+    result->Success(flutter::EncodableValue(result_map));
+  } else {
+    result->Error("OnBuyItem Failed", "method result is null !");
+  }
+  delete (result);
 }
 
 void BillingManager::OnVerify(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Verify details: %s", detail_result);
 
-  BillingManager *billing = reinterpret_cast<BillingManager *>(user_data);
-  billing->SendResult(flutter::EncodableValue(std::string(detail_result)));
+  flutter::MethodResult<flutter::EncodableValue> *result =
+      reinterpret_cast<flutter::MethodResult<flutter::EncodableValue> *>(
+          user_data);
+  if (result) {
+    result->Success(flutter::EncodableValue(std::string(detail_result)));
+  } else {
+    result->Error("OnVerify Failed", "method result is null !");
+  }
+  delete (result);
 }
 
 void BillingManager::Dispose() {
