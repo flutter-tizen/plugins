@@ -73,7 +73,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
     }
     result_ = std::move(result);
 
-    if (method_name == "getImage" || method_name == "getMultiImage") {
+    if (method_name == "pickImage" || method_name == "pickMultiImage") {
       const auto *arguments =
           std::get_if<flutter::EncodableMap>(method_call.arguments());
       assert(arguments);
@@ -94,12 +94,12 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
         // TODO: we need to check this feature after webcam is prepared
         SendErrorResult("Not supported", "Not supported on this device.");
       } else if (source == ImageSource::kGallery) {
-        multi_image_ = method_name == "getMultiImage";
+        multi_image_ = method_name == "pickMultiImage";
         PickContent("image/*");
       } else {
         SendErrorResult("Invalid arguments", "Invalid image source.");
       }
-    } else if (method_name == "getVideo") {
+    } else if (method_name == "pickVideo") {
       const auto *arguments =
           std::get_if<flutter::EncodableMap>(method_call.arguments());
       assert(arguments);
@@ -112,9 +112,38 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
         // TODO: we need to check this feature after webcam is prepared
         SendErrorResult("Not supported", "Not supported on this device.");
       } else if (source == ImageSource::kGallery) {
+        multi_image_ = false;
         PickContent("video/*");
       } else {
         SendErrorResult("Invalid arguments", "Invalid video source.");
+      }
+    } else if (method_name == "pickMedia") {
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
+      assert(arguments);
+
+      int source_index = static_cast<int>(ImageSource::kGallery);
+      double max_width = 0.0, max_height = 0.0;
+      int32_t quality = 0;
+      bool multiple = false;
+      GetValueFromEncodableMap(arguments, "source", source_index);
+      GetValueFromEncodableMap(arguments, "maxWidth", max_width);
+      GetValueFromEncodableMap(arguments, "maxHeight", max_height);
+      GetValueFromEncodableMap(arguments, "imageQuality", quality);
+      GetValueFromEncodableMap(arguments, "allowMultiple", multiple);
+
+      image_resize_.SetSize(static_cast<uint32_t>(max_width),
+                            static_cast<uint32_t>(max_height), quality);
+
+      ImageSource source = ImageSource(source_index);
+      if (source == ImageSource::kCamera) {
+        // TODO: we need to check this feature after webcam is prepared
+        SendErrorResult("Not supported", "Not supported on this device.");
+      } else if (source == ImageSource::kGallery) {
+        multi_image_ = multiple;
+        PickContent("image/*, video/*");
+      } else {
+        SendErrorResult("Invalid arguments", "Invalid image source.");
       }
     } else {
       result_->NotImplemented();

@@ -31,10 +31,12 @@ For detailed usage, see https://pub.dev/packages/image_picker#example.
 
 ## Supported APIs
 
-- [x] `ImagePicker.getImage` (only `ImageSource.gallery` is available as `source`)
-- [x] `ImagePicker.getMultiImage`
-- [ ] `ImagePicker.getVideo` (no file manager app available)
-- [ ] `ImagePicker.getLostData` (Android-only)
+- [x] `ImagePicker.pickImage` (only `ImageSource.gallery` is available as `source`)
+- [x] `ImagePicker.pickMultiImage`
+- [x] `ImagePicker.pickMedia`
+- [ ] `ImagePicker.pickVideo` (no file manager app available)
+- [ ] `ImagePicker.retrieveLostData` (Android-only)
+- [x] `ImagePicker.supportsImageSource` (only `ImageSource.gallery` is available as `source`)
 
 ## Required privileges
 

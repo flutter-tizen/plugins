@@ -11,7 +11,7 @@ const MethodChannel _channel =
     MethodChannel('plugins.flutter.io/image_picker_tizen');
 
 /// A Tizen implementation of [ImagePickerPlatform].
-class ImagePickerTizen extends ImagePickerPlatform {
+class ImagePickerTizen extends CameraDelegatingImagePickerPlatform {
   /// Registers this class as the default platform implementation.
   static void register() {
     ImagePickerPlatform.instance = ImagePickerTizen();
@@ -73,7 +73,7 @@ class ImagePickerTizen extends ImagePickerPlatform {
     }
 
     return _channel.invokeMethod<String>(
-      'getImage',
+      'pickImage',
       <String, dynamic>{
         'source': source.index,
         'maxWidth': maxWidth,
@@ -83,6 +83,24 @@ class ImagePickerTizen extends ImagePickerPlatform {
         'requestFullMetadata': requestFullMetadata,
       },
     );
+  }
+
+  @override
+  Future<List<XFile>?> getMultiImage({
+    double? maxWidth,
+    double? maxHeight,
+    int? imageQuality,
+  }) async {
+    final List<dynamic>? paths = await _getMultiImagePath(
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+      imageQuality: imageQuality,
+    );
+    if (paths == null) {
+      return null;
+    }
+
+    return paths.map((dynamic path) => XFile(path as String)).toList();
   }
 
   @override
@@ -122,7 +140,7 @@ class ImagePickerTizen extends ImagePickerPlatform {
     }
 
     return _channel.invokeMethod<List<dynamic>?>(
-      'getMultiImage',
+      'pickMultiImage',
       <String, dynamic>{
         'maxWidth': maxWidth,
         'maxHeight': maxHeight,
@@ -130,6 +148,30 @@ class ImagePickerTizen extends ImagePickerPlatform {
         'requestFullMetadata': requestFullMetadata,
       },
     );
+  }
+
+  @override
+  Future<List<XFile>> getMedia({
+    required MediaOptions options,
+  }) async {
+    final ImageOptions imageOptions = options.imageOptions;
+
+    final Map<String, dynamic> args = <String, dynamic>{
+      'maxImageWidth': imageOptions.maxWidth,
+      'maxImageHeight': imageOptions.maxHeight,
+      'imageQuality': imageOptions.imageQuality,
+      'allowMultiple': options.allowMultiple,
+    };
+
+    final List<XFile>? paths = await _channel
+        .invokeMethod<List<dynamic>?>(
+          'pickMedia',
+          args,
+        )
+        .then((List<dynamic>? paths) =>
+            paths?.map((dynamic path) => XFile(path as String)).toList());
+
+    return paths ?? <XFile>[];
   }
 
   @override
@@ -152,12 +194,17 @@ class ImagePickerTizen extends ImagePickerPlatform {
     Duration? maxDuration,
   }) {
     return _channel.invokeMethod<String>(
-      'getVideo',
+      'pickVideo',
       <String, dynamic>{
         'source': source.index,
         'maxDuration': maxDuration?.inSeconds,
         'cameraDevice': preferredCameraDevice.index
       },
     );
+  }
+
+  @override
+  bool supportsImageSource(ImageSource source) {
+    return source == ImageSource.gallery;
   }
 }
