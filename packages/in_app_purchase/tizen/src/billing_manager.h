@@ -146,13 +146,12 @@ typedef int (*FuncSystemInfGetValueInt)(system_info_key_e key, int *value);
 
 class BillingManager {
  public:
-  explicit BillingManager(flutter::PluginRegistrar *plugin_registrar);
+  explicit BillingManager() {}
   ~BillingManager(){};
 
   bool Init();
   void Dispose();
 
- private:
   bool BillingIsAvailable(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   bool BuyItem(
@@ -170,10 +169,7 @@ class BillingManager {
   std::string GetCustomId();
   std::string GetCountryCode();
 
-  void HandleMethodCall(
-      const flutter::MethodCall<flutter::EncodableValue> &method_call,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-
+ private:
   static void OnProducts(const char *detail_result, void *user_data);
   static void OnPurchase(const char *detail_result, void *user_data);
   static bool OnBuyItem(const char *pay_result, const char *detail_info,
