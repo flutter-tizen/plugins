@@ -87,14 +87,16 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   Future<bool> clearWithParameters(ClearParameters parameters) async {
     final PreferencesFilter filter = parameters.filter;
     final List<String> keys = List<String>.of(_preferences.keys);
-    bool failed = false;
+
     for (final String key in keys) {
       if (key.startsWith(filter.prefix) &&
           (filter.allowList == null || filter.allowList!.contains(key))) {
-        failed |= !(await remove(key));
+        if (!(await remove(key))) {
+          return false;
+        }
       }
     }
-    return !failed;
+    return true;
   }
 
   @override
