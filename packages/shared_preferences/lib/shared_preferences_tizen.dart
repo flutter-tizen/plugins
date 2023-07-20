@@ -17,6 +17,8 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
     SharedPreferencesStorePlatform.instance = SharedPreferencesPlugin();
   }
 
+  static const String _defaultPrefix = 'flutter.';
+
   static Map<String, Object>? _cachedPreferences;
   static const String _separator = '␞';
 
@@ -78,9 +80,9 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
 
   @override
   Future<bool> clear() async {
-    _preferences.clear();
-
-    return tizen.preference_remove_all() == 0;
+    return clearWithParameters(ClearParameters(
+      filter: PreferencesFilter(prefix: _defaultPrefix),
+    ));
   }
 
   @override
@@ -100,7 +102,11 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   }
 
   @override
-  Future<Map<String, Object>> getAll() async => _preferences;
+  Future<Map<String, Object>> getAll() async {
+    return getAllWithParameters(
+      GetAllParameters(filter: PreferencesFilter(prefix: _defaultPrefix)),
+    );
+  }
 
   @override
   Future<Map<String, Object>> getAllWithParameters(
