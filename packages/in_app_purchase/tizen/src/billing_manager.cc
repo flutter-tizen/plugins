@@ -150,21 +150,14 @@ bool BillingManager::BillingIsAvailable(
 }
 
 bool BillingManager::GetProductList(
-    const flutter::EncodableMap *encodables,
+    const char *app_id, const char *country_code, int page_size,
+    int page_number, const char *check_value,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Start get product list.");
 
-  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
-  std::string country_code =
-      GetRequiredArg<std::string>(encodables, "countryCode");
-  int64_t page_size = GetRequiredArg<int>(encodables, "pageSize");
-  int64_t page_num = GetRequiredArg<int>(encodables, "pageNum");
-  std::string check_value =
-      GetRequiredArg<std::string>(encodables, "checkValue");
-
   bool ret = BillingWrapper::GetInstance().service_billing_get_products_list(
-      app_id.c_str(), country_code.c_str(), page_size, page_num,
-      check_value.c_str(), billing_server_type_, OnProducts, result.release());
+      app_id, country_code, page_size, page_number, check_value,
+      billing_server_type_, OnProducts, result.release());
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_get_products_list failed.");
     return false;
@@ -173,21 +166,14 @@ bool BillingManager::GetProductList(
 }
 
 bool BillingManager::GetPurchaseList(
-    const flutter::EncodableMap *encodables,
+    const char *app_id, const char *custom_id, const char *country_code,
+    int page_number, const char *check_value,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Start get purchase list.");
 
-  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
-  std::string custom_id = GetRequiredArg<std::string>(encodables, "customId");
-  std::string country_code =
-      GetRequiredArg<std::string>(encodables, "countryCode");
-  int64_t page_num = GetRequiredArg<int>(encodables, "pageNum");
-  std::string check_value =
-      GetRequiredArg<std::string>(encodables, "checkValue");
-
   bool ret = BillingWrapper::GetInstance().service_billing_get_purchase_list(
-      app_id.c_str(), custom_id.c_str(), country_code.c_str(), page_num,
-      check_value.c_str(), billing_server_type_, OnPurchase, result.release());
+      app_id, custom_id, country_code, page_number, check_value,
+      billing_server_type_, OnPurchase, result.release());
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_get_purchase_list failed.");
     return false;
@@ -196,17 +182,12 @@ bool BillingManager::GetPurchaseList(
 }
 
 bool BillingManager::BuyItem(
-    const flutter::EncodableMap *encodables,
+    const char *app_id, const char *detail_info,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Start buy item");
 
-  std::string pay_details =
-      GetRequiredArg<std::string>(encodables, "payDetails");
-  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
-
   bool ret = BillingWrapper::GetInstance().service_billing_buyitem(
-      app_id.c_str(), ServerTypeToString(billing_server_type_).c_str(),
-      pay_details.c_str());
+      app_id, ServerTypeToString(billing_server_type_).c_str(), detail_info);
   BillingWrapper::GetInstance().service_billing_set_buyitem_cb(
       OnBuyItem, result.release());
   if (!ret) {
@@ -217,19 +198,14 @@ bool BillingManager::BuyItem(
 }
 
 bool BillingManager::VerifyInvoice(
-    const flutter::EncodableMap *encodables,
+    const char *app_id, const char *custom_id, const char *invoice_id,
+    const char *country_code,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   LOG_INFO("[BillingManager] Start verify invoice");
 
-  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
-  std::string custom_id = GetRequiredArg<std::string>(encodables, "customId");
-  std::string invoice_id = GetRequiredArg<std::string>(encodables, "invoiceId");
-  std::string country_code =
-      GetRequiredArg<std::string>(encodables, "countryCode");
-
   bool ret = BillingWrapper::GetInstance().service_billing_verify_invoice(
-      app_id.c_str(), custom_id.c_str(), invoice_id.c_str(),
-      country_code.c_str(), billing_server_type_, OnVerify, result.release());
+      app_id, custom_id, invoice_id, country_code, billing_server_type_,
+      OnVerify, result.release());
   if (!ret) {
     LOG_ERROR("[BillingManager] service_billing_verify_invoice failed.");
     return false;

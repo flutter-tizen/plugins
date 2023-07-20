@@ -18,11 +18,36 @@ namespace {
 
 const char *kInvalidArgument = "Invalid argument";
 
+template <typename T>
+static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
+                                     const char *key, T &out) {
+  auto iter = map->find(flutter::EncodableValue(key));
+  if (iter != map->end() && !iter->second.IsNull()) {
+    if (auto *value = std::get_if<T>(&iter->second)) {
+      out = *value;
+      return true;
+    }
+  }
+  return false;
+}
+
+template <typename T>
+static T GetRequiredArg(const flutter::EncodableMap *arguments,
+                        const char *key) {
+  T value;
+  if (GetValueFromEncodableMap(arguments, key, value)) {
+    return value;
+  }
+  std::string message =
+      "No " + std::string(key) + " provided or has invalid type or value.";
+  throw std::invalid_argument(message);
+}
+
 class InAppPurchaseTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *plugin_registrar);
 
-  InAppPurchaseTizenPlugin(flutter::PluginRegistrar *plugin_registrar);
+  InAppPurchaseTizenPlugin();
   virtual ~InAppPurchaseTizenPlugin() { Dispose(); }
 
  private:
@@ -30,10 +55,28 @@ class InAppPurchaseTizenPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void GetProductList(
+      const flutter::EncodableMap *encodables,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void GetPurchaseList(
+      const flutter::EncodableMap *encodables,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void BuyItem(
+      const flutter::EncodableMap *encodables,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  void VerifyInvoice(
+      const flutter::EncodableMap *encodables,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
-  flutter::PluginRegistrar *plugin_registrar_ = nullptr;
   std::unique_ptr<BillingManager> billing_ = nullptr;
 };
+
+InAppPurchaseTizenPlugin::InAppPurchaseTizenPlugin() {
+  billing_ = std::make_unique<BillingManager>();
+  if (!billing_->Init()) {
+    Dispose();
+  }
+}
 
 void InAppPurchaseTizenPlugin::Dispose() {
   if (billing_) {
@@ -50,7 +93,7 @@ void InAppPurchaseTizenPlugin::RegisterWithRegistrar(
           "plugins.flutter.tizen.io/in_app_purchase",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto plugin = std::make_unique<InAppPurchaseTizenPlugin>(plugin_registrar);
+  auto plugin = std::make_unique<InAppPurchaseTizenPlugin>();
 
   channel->SetMethodCallHandler(
       [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -65,47 +108,35 @@ void InAppPurchaseTizenPlugin::HandleMethodCall(
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   const auto *encodables =
       std::get_if<flutter::EncodableMap>(method_call.arguments());
+  const auto &method_name = method_call.method_name();
+
   try {
-    const auto &method_name = method_call.method_name();
     if (method_name == "getProductList") {
       if (!encodables) {
         result->Error(kInvalidArgument, "No arguments provided");
         return;
       }
-      if (!billing_->GetProductList(encodables, std::move(result))) {
-        result->Error("getProductList failed");
-        return;
-      }
+      GetProductList(encodables, std::move(result));
     } else if (method_name == "getPurchaseList") {
       if (!encodables) {
         result->Error(kInvalidArgument, "No arguments provided");
         return;
       }
-      if (!billing_->GetPurchaseList(encodables, std::move(result))) {
-        result->Error("getPurchaseList failed");
-        return;
-      }
+      GetPurchaseList(encodables, std::move(result));
     } else if (method_name == "buyItem") {
       if (!encodables) {
         result->Error(kInvalidArgument, "No arguments provided");
         return;
       }
-      if (!billing_->BuyItem(encodables, std::move(result))) {
-        result->Error("buyItem failed");
-        return;
-      }
-    } else if (method_name == "isAvailable") {
-      if (!billing_->BillingIsAvailable(std::move(result))) {
-        result->Error("isAvailable failed");
-        return;
-      }
+      BuyItem(encodables, std::move(result));
     } else if (method_name == "verifyInvoice") {
       if (!encodables) {
         result->Error(kInvalidArgument, "No arguments provided");
         return;
       }
-      if (!billing_->VerifyInvoice(encodables, std::move(result))) {
-        result->Error("verifyInvoice failed");
+      VerifyInvoice(encodables, std::move(result));
+    } else if (method_name == "isAvailable") {
+      if (!billing_->BillingIsAvailable(std::move(result))) {
         return;
       }
     } else if (method_name == "GetCustomId") {
@@ -122,11 +153,68 @@ void InAppPurchaseTizenPlugin::HandleMethodCall(
   }
 }
 
-InAppPurchaseTizenPlugin::InAppPurchaseTizenPlugin(
-    flutter::PluginRegistrar *plugin_registrar) {
-  billing_ = std::make_unique<BillingManager>();
-  if (!billing_->Init()) {
-    Dispose();
+void InAppPurchaseTizenPlugin::GetProductList(
+    const flutter::EncodableMap *encodables,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
+  std::string country_code =
+      GetRequiredArg<std::string>(encodables, "countryCode");
+  int64_t page_size = GetRequiredArg<int>(encodables, "pageSize");
+  int64_t page_num = GetRequiredArg<int>(encodables, "pageNum");
+  std::string check_value =
+      GetRequiredArg<std::string>(encodables, "checkValue");
+
+  if (!billing_->GetProductList(app_id.c_str(), country_code.c_str(), page_size,
+                                page_num, check_value.c_str(),
+                                std::move(result))) {
+    return;
+  }
+}
+
+void InAppPurchaseTizenPlugin::GetPurchaseList(
+    const flutter::EncodableMap *encodables,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
+  std::string custom_id = GetRequiredArg<std::string>(encodables, "customId");
+  std::string country_code =
+      GetRequiredArg<std::string>(encodables, "countryCode");
+  int64_t page_num = GetRequiredArg<int>(encodables, "pageNum");
+  std::string check_value =
+      GetRequiredArg<std::string>(encodables, "checkValue");
+
+  if (!billing_->GetPurchaseList(app_id.c_str(), custom_id.c_str(),
+                                 country_code.c_str(), page_num,
+                                 check_value.c_str(), std::move(result))) {
+    return;
+  }
+}
+
+void InAppPurchaseTizenPlugin::BuyItem(
+    const flutter::EncodableMap *encodables,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string pay_details =
+      GetRequiredArg<std::string>(encodables, "payDetails");
+  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
+
+  if (!billing_->BuyItem(app_id.c_str(), pay_details.c_str(),
+                         std::move(result))) {
+    return;
+  }
+}
+
+void InAppPurchaseTizenPlugin::VerifyInvoice(
+    const flutter::EncodableMap *encodables,
+    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+  std::string app_id = GetRequiredArg<std::string>(encodables, "appId");
+  std::string custom_id = GetRequiredArg<std::string>(encodables, "customId");
+  std::string invoice_id = GetRequiredArg<std::string>(encodables, "invoiceId");
+  std::string country_code =
+      GetRequiredArg<std::string>(encodables, "countryCode");
+
+  if (!billing_->VerifyInvoice(app_id.c_str(), custom_id.c_str(),
+                               invoice_id.c_str(), country_code.c_str(),
+                               std::move(result))) {
+    return;
   }
 }
 

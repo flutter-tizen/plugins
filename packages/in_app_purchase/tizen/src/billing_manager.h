@@ -151,20 +151,22 @@ class BillingManager {
 
   bool Init();
   void Dispose();
-
   bool BillingIsAvailable(
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   bool BuyItem(
-      const flutter::EncodableMap *encodables,
+      const char *app_id, const char *detail_info,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   bool GetProductList(
-      const flutter::EncodableMap *encodables,
+      const char *app_id, const char *country_code, int page_size,
+      int page_number, const char *check_value,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   bool GetPurchaseList(
-      const flutter::EncodableMap *encodables,
+      const char *app_id, const char *custom_id, const char *country_code,
+      int page_number, const char *check_value,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   bool VerifyInvoice(
-      const flutter::EncodableMap *encodables,
+      const char *app_id, const char *custom_id, const char *invoice_id,
+      const char *country_code,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
   std::string GetCustomId();
   std::string GetCountryCode();
