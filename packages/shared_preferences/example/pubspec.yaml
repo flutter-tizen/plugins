@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.0.9
+  shared_preferences: ^2.2.0
   shared_preferences_tizen:
     path: ../
 

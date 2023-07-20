@@ -18,5 +18,5 @@ dependencies:
   ffi: ^2.0.1
   flutter:
     sdk: flutter
-  shared_preferences_platform_interface: ^2.0.0
+  shared_preferences_platform_interface: ^2.3.0
   tizen_interop: ^0.2.0

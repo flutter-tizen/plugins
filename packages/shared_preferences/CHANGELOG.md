@@ -1,6 +1,9 @@
-## NEXT
+## 2.1.1
 
 * Increase the minimum Flutter version to 3.3.
+* Update shared_preferences to 2.2.0.
+* Update shared_preferences_interface to 2.3.0.
+* Update integration_test.
 
 ## 2.1.0
 

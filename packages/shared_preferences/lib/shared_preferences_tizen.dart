@@ -7,6 +7,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import 'package:shared_preferences_platform_interface/types.dart';
 import 'package:tizen_interop/4.0/tizen.dart';
 
 /// The Tizen implementation of [SharedPreferencesStorePlatform].
@@ -83,7 +84,32 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   }
 
   @override
+  Future<bool> clearWithParameters(ClearParameters parameters) async {
+    final PreferencesFilter filter = parameters.filter;
+    final List<String> keys = List<String>.of(_preferences.keys);
+    bool failed = false;
+    for (final String key in keys) {
+      if (key.startsWith(filter.prefix) &&
+          (filter.allowList == null || filter.allowList!.contains(key))) {
+        failed |= !(await remove(key));
+      }
+    }
+    return failed;
+  }
+
+  @override
   Future<Map<String, Object>> getAll() async => _preferences;
+
+  @override
+  Future<Map<String, Object>> getAllWithParameters(
+      GetAllParameters parameters) async {
+    final PreferencesFilter filter = parameters.filter;
+    final Map<String, Object> withPrefix =
+        Map<String, Object>.from(_preferences);
+    withPrefix.removeWhere((String key, _) => !(key.startsWith(filter.prefix) &&
+        (filter.allowList?.contains(key) ?? true)));
+    return withPrefix;
+  }
 
   @override
   Future<bool> remove(String key) async {
