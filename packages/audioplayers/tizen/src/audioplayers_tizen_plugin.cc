@@ -39,6 +39,9 @@ const char kAudioSeekCompleteEvent[] = "audio.onSeekComplete";
 const char kAudioCompleteEvent[] = "audio.onComplete";
 const char kAudioLogEvent[] = "audio.onLog";
 
+using OnSetEventSink =
+    std::function<void(std::unique_ptr<FlEventSink> event_sink)>;
+
 template <typename T>
 bool GetValueFromEncodableMap(const flutter::EncodableMap *map, const char *key,
                               T &out) {
@@ -73,10 +76,6 @@ ReleaseMode StringToReleaseMode(std::string release_mode) {
   }
   throw std::invalid_argument("Invalid release mode.");
 }
-
-#include <variant>
-using OnSetEventSink =
-    std::function<void(std::unique_ptr<FlEventSink> event_sink)>;
 
 class AudioPlayerStreamHandler : public FlStreamHandler {
  public:
@@ -236,14 +235,10 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     auto event_channel = std::make_unique<FlEventChannel>(
         registrar_->messenger(), "xyz.luan/audioplayers/events/" + player_id,
         &flutter::StandardMethodCodec::GetInstance());
-    event_sinks_[player_id];
-    OnSetEventSink on_set_event_sink =
+    event_channel->SetStreamHandler(std::make_unique<AudioPlayerStreamHandler>(
         [this, id = player_id](std::unique_ptr<FlEventSink> event_sink) {
           this->event_sinks_[id] = std::move(event_sink);
-        };
-
-    event_channel->SetStreamHandler(
-        std::make_unique<AudioPlayerStreamHandler>(on_set_event_sink));
+        }));
     event_channels_[player_id] = std::move(event_channel);
 
     PreparedListener prepared_listener = [this](const std::string &player_id,
