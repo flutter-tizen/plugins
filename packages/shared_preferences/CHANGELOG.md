@@ -1,4 +1,4 @@
-## 2.1.1
+## 2.2.0
 
 * Increase the minimum Flutter version to 3.3.
 * Update shared_preferences to 2.2.0.
