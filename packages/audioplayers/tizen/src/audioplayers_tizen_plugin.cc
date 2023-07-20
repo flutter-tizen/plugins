@@ -239,7 +239,6 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         [this, id = player_id](std::unique_ptr<FlEventSink> event_sink) {
           this->event_sinks_[id] = std::move(event_sink);
         }));
-    event_channels_[player_id] = std::move(event_channel);
 
     PreparedListener prepared_listener = [this](const std::string &player_id,
                                                 bool is_prepared) {
@@ -305,14 +304,12 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
 
   void DisposeAudioPlayer(const std::string &player_id) {
     audio_players_.erase(player_id);
-    event_channels_.erase(player_id);
     event_sinks_.erase(player_id);
   }
 
   std::unique_ptr<FlMethodChannel> channel_;
 
   std::map<std::string, std::unique_ptr<AudioPlayer>> audio_players_;
-  std::map<std::string, std::unique_ptr<FlEventChannel>> event_channels_;
   std::map<std::string, std::unique_ptr<FlEventSink>> event_sinks_;
 
   flutter::PluginRegistrar *registrar_;
