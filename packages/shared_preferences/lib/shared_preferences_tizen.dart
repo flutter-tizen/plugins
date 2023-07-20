@@ -94,7 +94,7 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
         failed |= !(await remove(key));
       }
     }
-    return failed;
+    return !failed;
   }
 
   @override
