@@ -274,6 +274,7 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
     result->Error("OnBuyItem Failed", "method result is null !");
   }
   delete (result);
+  return true;
 }
 
 void BillingManager::OnVerify(const char *detail_result, void *user_data) {
