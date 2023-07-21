@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `connectivity_plus`. Therefo
 
 ```yaml
 dependencies:
-  connectivity_plus: ^2.3.0
-  connectivity_plus_tizen: ^1.1.3
+  connectivity_plus: ^4.0.1
+  connectivity_plus_tizen: ^1.1.4
 ```
 
 Then you can import `connectivity_plus` in your Dart code:
