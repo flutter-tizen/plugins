@@ -1,3 +1,9 @@
+## 1.1.3
+
+* Update sensors_plus to 3.0.2.
+* Update sensors_plus_platform_interface to 1.1.3.
+* Update the example app.
+
 ## 1.1.2
 
 * Remove unnecessary `StreamHandlerError` implementation.
