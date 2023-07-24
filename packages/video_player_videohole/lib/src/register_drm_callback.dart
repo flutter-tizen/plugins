@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:isolate';
 import 'package:flutter/foundation.dart';
-import 'package:video_player_videohole/src/drm_configs.dart';
+import 'drm_configs.dart';
 
 typedef _InitDartApi = int Function(Pointer<Void>);
 typedef _InitDartApiNative = IntPtr Function(Pointer<Void>);

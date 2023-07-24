@@ -1,4 +1,4 @@
-import 'package:video_player_videohole/src/drm_configs.dart';
+import 'drm_configs.dart';
 
 /// Register DRM callback function (No-op implementation).
 ///
