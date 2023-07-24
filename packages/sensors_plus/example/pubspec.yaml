@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  sensors_plus: ^1.2.1
+  sensors_plus: ^3.0.2
   sensors_plus_tizen:
     path: ../
 
@@ -20,7 +20,7 @@ dev_dependencies:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
-  flutter_lints: ^1.0.4
+  flutter_lints: ^2.0.1
 
 flutter:
   uses-material-design: true
