@@ -27,6 +27,8 @@
   - packages/google_sign_in/**/*
 "p: image_picker":
   - packages/image_picker/**/*
+"p: in_app_purchase":
+  - packages/in_app_purchase/**/*
 "p: integration_test":
   - packages/integration_test/**/*
 "p: messageport":

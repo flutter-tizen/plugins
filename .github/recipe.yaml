@@ -34,6 +34,7 @@ plugins:
   camera: []
   flutter_webrtc: []
   geolocator: []
+  in_app_purchase: []
   network_info_plus: []
   video_player_videohole: []
 
