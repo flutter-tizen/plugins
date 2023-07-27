@@ -7,6 +7,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
+import 'package:shared_preferences_platform_interface/types.dart';
 import 'package:tizen_interop/4.0/tizen.dart';
 
 /// The Tizen implementation of [SharedPreferencesStorePlatform].
@@ -15,6 +16,8 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   static void register() {
     SharedPreferencesStorePlatform.instance = SharedPreferencesPlugin();
   }
+
+  static const String _defaultPrefix = 'flutter.';
 
   static Map<String, Object>? _cachedPreferences;
   static const String _separator = '␞';
@@ -77,13 +80,44 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
 
   @override
   Future<bool> clear() async {
-    _preferences.clear();
-
-    return tizen.preference_remove_all() == 0;
+    return clearWithParameters(ClearParameters(
+      filter: PreferencesFilter(prefix: _defaultPrefix),
+    ));
   }
 
   @override
-  Future<Map<String, Object>> getAll() async => _preferences;
+  Future<bool> clearWithParameters(ClearParameters parameters) async {
+    final PreferencesFilter filter = parameters.filter;
+    final List<String> keys = List<String>.of(_preferences.keys);
+
+    for (final String key in keys) {
+      if (key.startsWith(filter.prefix) &&
+          (filter.allowList == null || filter.allowList!.contains(key))) {
+        if (!(await remove(key))) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  @override
+  Future<Map<String, Object>> getAll() async {
+    return getAllWithParameters(
+      GetAllParameters(filter: PreferencesFilter(prefix: _defaultPrefix)),
+    );
+  }
+
+  @override
+  Future<Map<String, Object>> getAllWithParameters(
+      GetAllParameters parameters) async {
+    final PreferencesFilter filter = parameters.filter;
+    final Map<String, Object> withPrefix =
+        Map<String, Object>.from(_preferences);
+    withPrefix.removeWhere((String key, _) => !(key.startsWith(filter.prefix) &&
+        (filter.allowList?.contains(key) ?? true)));
+    return withPrefix;
+  }
 
   @override
   Future<bool> remove(String key) async {
