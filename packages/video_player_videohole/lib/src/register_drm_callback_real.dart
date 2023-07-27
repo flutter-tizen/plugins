@@ -1,6 +1,12 @@
+// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'dart:ffi';
 import 'dart:isolate';
+
 import 'package:flutter/foundation.dart';
+
 import 'drm_configs.dart';
 
 typedef _InitDartApi = int Function(Pointer<Void>);
@@ -47,37 +53,34 @@ class _CppResponse {
 ///
 /// Example usage:
 /// ```dart
-/// registerDrmCallback(drmConfigs, _playerId);
+/// registerDrmCallback(licenseCallback, _playerId);
 /// ```
 ///
 /// Note: This function should not be called directly outside the [initialize] method,
 /// and it requires proper configuration and setup of the native C/C++ code to handle
 /// DRM operations.
-void registerDrmCallback(DrmConfigs? drmConfigs, int playerId) {
-  if (drmConfigs?.licenseCallback != null) {
-    final DynamicLibrary process = DynamicLibrary.process();
-    final _InitDartApi initDartApi =
-        process.lookupFunction<_InitDartApiNative, _InitDartApi>(
-            'VideoPlayerTizenPluginInitDartApi');
-    initDartApi(NativeApi.initializeApiDLData);
+void registerDrmCallback(LicenseCallback licenseCallback, int playerId) {
+  final DynamicLibrary process = DynamicLibrary.process();
+  final _InitDartApi initDartApi =
+      process.lookupFunction<_InitDartApiNative, _InitDartApi>(
+          'VideoPlayerTizenPluginInitDartApi');
+  initDartApi(NativeApi.initializeApiDLData);
 
-    final ReceivePort receivePort = ReceivePort();
-    receivePort.listen((dynamic message) async {
-      final _CppRequest request =
-          _CppRequest.fromList(message as List<Object?>);
+  final ReceivePort receivePort = ReceivePort();
+  receivePort.listen((dynamic message) async {
+    final _CppRequest request = _CppRequest.fromList(message as List<Object?>);
 
-      if (request.method == 'onLicenseChallenge') {
-        final Uint8List challenge = request.data;
-        final Uint8List result = await drmConfigs!.licenseCallback!(challenge);
+    if (request.method == 'onLicenseChallenge') {
+      final Uint8List challenge = request.data;
+      final Uint8List result = await licenseCallback(challenge);
 
-        final _CppResponse response = _CppResponse(request.pendingCall, result);
-        request.replyPort.send(response.toList());
-      }
-    });
+      final _CppResponse response = _CppResponse(request.pendingCall, result);
+      request.replyPort.send(response.toList());
+    }
+  });
 
-    final _RegisterSendPort registerSendPort =
-        process.lookupFunction<_RegisterSendPortNative, _RegisterSendPort>(
-            'VideoPlayerTizenPluginRegisterSendPort');
-    registerSendPort(playerId, receivePort.sendPort.nativePort);
-  }
+  final _RegisterSendPort registerSendPort =
+      process.lookupFunction<_RegisterSendPortNative, _RegisterSendPort>(
+          'VideoPlayerTizenPluginRegisterSendPort');
+  registerSendPort(playerId, receivePort.sendPort.nativePort);
 }

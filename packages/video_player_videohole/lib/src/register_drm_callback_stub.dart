@@ -1,3 +1,7 @@
+// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 import 'drm_configs.dart';
 
 /// Register DRM callback function (No-op implementation).
@@ -6,11 +10,6 @@ import 'drm_configs.dart';
 /// and communication channel to handle license challenges for video playback. It does not
 /// perform any actual DRM operations but serves as a placeholder to maintain consistency
 /// in the codebase when DRM functionality is not required.
-///
-/// The [drmConfigs] parameter contains configuration details for DRM operations, if any.
-/// If DRM capabilities are not needed, this parameter can be set to null.
-///
-/// The [playerId] parameter represents the unique identifier of the video player.
 ///
 /// This function does not perform any communication with the native side or any DRM-related
 /// operations. It can be used when DRM functionality is not required, or when a specific DRM
@@ -24,4 +23,4 @@ import 'drm_configs.dart';
 /// Note: This function does not have any DRM functionality and should only be used in cases
 /// where DRM support is not necessary or when using a DRM plugin that does not require native
 /// communication for license handling.
-void registerDrmCallback(DrmConfigs? drmConfigs, int playerId) {}
+void registerDrmCallback(LicenseCallback licenseCallback, int playerId) {}
