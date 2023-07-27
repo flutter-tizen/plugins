@@ -137,7 +137,11 @@ void main() {
           initialized.complete();
         }
       });
-      player.onSeekComplete.listen((event) => seek.complete());
+      player.onSeekComplete.listen((event) {
+        if (!seek.isCompleted) {
+          seek.complete();
+        }
+      });
 
       await player.setSourceAsset(_kAssetAudio);
       await initialized.future;

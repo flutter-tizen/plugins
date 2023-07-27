@@ -2,34 +2,38 @@ import 'package:audioplayers_tizen_example/components/btn.dart';
 import 'package:flutter/material.dart';
 
 class SimpleDlg extends StatelessWidget {
-  final String message, action;
+  final String message;
+  final String action;
 
   const SimpleDlg({
-    super.key,
     required this.message,
     required this.action,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Dlg(
-      children: [
-        Text(message),
-        Btn(
-          txt: action,
-          onPressed: Navigator.of(context).pop,
-        ),
-      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message),
+          Btn(
+            txt: action,
+            onPressed: Navigator.of(context).pop,
+          ),
+        ],
+      ),
     );
   }
 }
 
 class Dlg extends StatelessWidget {
-  final List<Widget> children;
+  final Widget child;
 
   const Dlg({
+    required this.child,
     super.key,
-    required this.children,
   });
 
   @override
@@ -48,9 +52,6 @@ class Dlg extends StatelessWidget {
   }
 
   Widget contentBox(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: children,
-    );
+    return child;
   }
 }

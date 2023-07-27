@@ -4,13 +4,18 @@ class Btn extends StatelessWidget {
   final String txt;
   final VoidCallback onPressed;
 
-  const Btn({super.key, required this.txt, required this.onPressed});
+  const Btn({
+    required this.txt,
+    required this.onPressed,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ButtonTheme(
-      minWidth: 48.0,
+    return Padding(
+      padding: const EdgeInsets.all(4),
       child: ElevatedButton(
+        style: ElevatedButton.styleFrom(minimumSize: const Size(48, 36)),
         onPressed: onPressed,
         child: Text(txt),
       ),
