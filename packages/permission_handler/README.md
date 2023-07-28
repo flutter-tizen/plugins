@@ -21,7 +21,7 @@ You can use this plugin to ask the user for runtime permissions if your app perf
    ```yaml
    dependencies:
      permission_handler: ^10.4.3
-     permission_handler_tizen: ^1.2.2
+     permission_handler_tizen: ^1.3.0
    ```
 
    Then you can import `permission_handler` in your Dart code:
@@ -49,7 +49,7 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 
 The following permissions are not applicable for Tizen:
 
-- Android-only: `accessMediaLocation`, `accessNotificationPolicy`, `activityRecognition`, `bluetoothAdvertise`, `bluetoothConnect`, `bluetoothScan`, `manageExternalStorage`, `requestInstallPackages`, `systemAlertWindow`
+- Android-only: `accessMediaLocation`, `accessNotificationPolicy`, `activityRecognition`, `bluetoothAdvertise`, `bluetoothConnect`, `bluetoothScan`, `manageExternalStorage`, `requestInstallPackages`, `systemAlertWindow`, `nearbyWifiDevices`, `videos`, `audio`, `kScheduleExactAlarm`, `sensorsAlways`
 - iOS-only: `appTrackingTransparency`, `bluetooth`, `criticalAlerts`, `photos`, `photosAddOnly`, `reminders`, `speech`
 
 On Tizen, your app can use some security-sensitive features (such as bluetooth) without explicitly acquiring permissions. However, you might need to declare relevant privileges in its `tizen-manifest.xml` file. For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
