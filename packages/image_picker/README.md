@@ -10,8 +10,8 @@ To use this plugin, add `image_picker` and `image_picker_tizen` as [dependencies
 
 ```yaml
 dependencies:
-  image_picker: ^0.8.6
-  image_picker_tizen: ^2.2.0
+  image_picker: ^1.0.1
+  image_picker_tizen: ^2.3.0
 ```
 
 Then you can import `image_picker` in your Dart code.
@@ -33,8 +33,10 @@ For detailed usage, see https://pub.dev/packages/image_picker#example.
 
 - [x] `ImagePicker.pickImage` (only `ImageSource.gallery` is available as `source`)
 - [x] `ImagePicker.pickMultiImage`
+- [x] `ImagePicker.pickMedia`
 - [ ] `ImagePicker.pickVideo` (no file manager app available)
 - [ ] `ImagePicker.retrieveLostData` (Android-only)
+- [x] `ImagePicker.supportsImageSource` (only `ImageSource.gallery` is available as `source`)
 
 ## Required privileges
 
