@@ -20,8 +20,8 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 
    ```yaml
    dependencies:
-     permission_handler: ^8.3.0
-     permission_handler_tizen: ^1.2.1
+     permission_handler: ^10.4.3
+     permission_handler_tizen: ^1.2.2
    ```
 
    Then you can import `permission_handler` in your Dart code:
