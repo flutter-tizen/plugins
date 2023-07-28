@@ -4,9 +4,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:ffi' hide Size;
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +13,8 @@ import 'package:flutter/services.dart';
 import 'src/closed_caption_file.dart';
 import 'src/drm_configs.dart';
 import 'src/hole.dart';
+import 'src/register_drm_callback_stub.dart'
+    if (dart.library.ffi) 'src/register_drm_callback_real.dart';
 import 'video_player_platform_interface.dart';
 
 export 'src/closed_caption_file.dart';
@@ -191,34 +191,6 @@ class VideoPlayerValue {
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription)';
   }
-}
-
-typedef _InitDartApi = int Function(Pointer<Void>);
-typedef _InitDartApiNative = IntPtr Function(Pointer<Void>);
-
-typedef _RegisterSendPort = void Function(int, int);
-typedef _RegisterSendPortNative = Void Function(Int64, Int64);
-
-class _CppRequest {
-  _CppRequest.fromList(List<Object?> message)
-      : replyPort = message[0]! as SendPort,
-        pendingCall = message[1]! as int,
-        method = message[2]! as String,
-        data = message[3]! as Uint8List;
-
-  final SendPort replyPort;
-  final int pendingCall;
-  final String method;
-  final Uint8List data;
-}
-
-class _CppResponse {
-  _CppResponse(this.pendingCall, this.data);
-
-  final int pendingCall;
-  final Uint8List data;
-
-  List<Object?> toList() => <Object?>[pendingCall, data];
 }
 
 /// Controls a platform video player, and provides updates when the state is
@@ -452,32 +424,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
 
     if (drmConfigs?.licenseCallback != null) {
-      final DynamicLibrary process = DynamicLibrary.process();
-      final _InitDartApi initDartApi =
-          process.lookupFunction<_InitDartApiNative, _InitDartApi>(
-              'VideoPlayerTizenPluginInitDartApi');
-      initDartApi(NativeApi.initializeApiDLData);
-
-      final ReceivePort receivePort = ReceivePort();
-      receivePort.listen((dynamic message) async {
-        final _CppRequest request =
-            _CppRequest.fromList(message as List<Object?>);
-
-        if (request.method == 'onLicenseChallenge') {
-          final Uint8List challenge = request.data;
-          final Uint8List result =
-              await drmConfigs!.licenseCallback!(challenge);
-
-          final _CppResponse response =
-              _CppResponse(request.pendingCall, result);
-          request.replyPort.send(response.toList());
-        }
-      });
-
-      final _RegisterSendPort registerSendPort =
-          process.lookupFunction<_RegisterSendPortNative, _RegisterSendPort>(
-              'VideoPlayerTizenPluginRegisterSendPort');
-      registerSendPort(_playerId, receivePort.sendPort.nativePort);
+      registerDrmCallback(drmConfigs!.licenseCallback!, _playerId);
     }
 
     void errorListener(Object obj) {
