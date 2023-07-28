@@ -143,7 +143,7 @@ class ImagePickerTizenPlugin : public flutter::Plugin {
         multi_image_ = multiple;
         PickContent("image/*, video/*");
       } else {
-        SendErrorResult("Invalid arguments", "Invalid image source.");
+        SendErrorResult("Invalid arguments", "Invalid media source.");
       }
     } else {
       result_->NotImplemented();
