@@ -418,6 +418,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       }
     }
 
+    if (closedCaptionFile != null) {
+      _closedCaptionFile ??= await closedCaptionFile;
+      value = value.copyWith(caption: _getCaptionAt(value.position));
+    }
+
     if (drmConfigs?.licenseCallback != null) {
       registerDrmCallback(drmConfigs!.licenseCallback!, _playerId);
     }
