@@ -35,7 +35,7 @@ class _PermissionHandlerWidgetState extends State<PermissionHandlerWidget> {
       child: ListView(
           children: Permission.values
               .where((permission) {
-                /// Permissions not applicable for Tizen
+                // Permissions not applicable for Tizen.
                 return permission != Permission.unknown &&
                     permission != Permission.photos &&
                     permission != Permission.photosAddOnly &&
