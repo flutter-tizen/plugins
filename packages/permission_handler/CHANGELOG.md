@@ -5,6 +5,7 @@
 * Update permission_handler to 10.4.3.
 * Update permission_handler_platform_interface to 3.11.0.
 * Update the example app.
+* Map `sensorsAlways` to `http://tizen.org/privilege/healthinfo` 
 
 ## 1.2.1
 
