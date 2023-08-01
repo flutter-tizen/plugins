@@ -43,14 +43,14 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 | `Permission.mediaLibrary` | Storage | `http://tizen.org/privilege/mediastorage` |
 | `Permission.microphone` | Microphone | `http://tizen.org/privilege/recorder` |
 | `Permission.phone` | Call | `http://tizen.org/privilege/call` |
-| `Permission.sensors` | Sensor | `http://tizen.org/privilege/healthinfo` |
+| `Permission.sensors`<br>`Permission.sensorsAlways` | Sensor | `http://tizen.org/privilege/healthinfo` |
 | `Permission.sms` | Message | `http://tizen.org/privilege/message.read`<br>`http://tizen.org/privilege/message.write` |
 | `Permission.storage` | Storage | `http://tizen.org/privilege/externalstorage` |
 
 The following permissions are not applicable for Tizen:
 
-- Android-only: `accessMediaLocation`, `accessNotificationPolicy`, `activityRecognition`, `bluetoothAdvertise`, `bluetoothConnect`, `bluetoothScan`, `manageExternalStorage`, `requestInstallPackages`, `systemAlertWindow`, `nearbyWifiDevices`, `videos`, `audio`, `kScheduleExactAlarm`, `sensorsAlways`
-- iOS-only: `appTrackingTransparency`, `bluetooth`, `criticalAlerts`, `photos`, `photosAddOnly`, `reminders`, `speech`
+- Android-only: `accessMediaLocation`, `accessNotificationPolicy`, `activityRecognition`, `audio`, `bluetoothAdvertise`, `bluetoothConnect`, `bluetoothScan`, `ignoreBatteryOptimizations`, `manageExternalStorage`, `nearbyWifiDevices`, `requestInstallPackages`, `scheduleExactAlarm`, `systemAlertWindow`, `videos`
+- iOS-only: `appTrackingTransparency`, `criticalAlerts`, `photosAddOnly`, `reminders`, `speech`
 
 On Tizen, your app can use some security-sensitive features (such as bluetooth) without explicitly acquiring permissions. However, you might need to declare relevant privileges in its `tizen-manifest.xml` file. For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
 
