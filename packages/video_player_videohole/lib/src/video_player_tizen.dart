@@ -89,6 +89,77 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<List<TrackSelection>> getTrackSelections(int playerId) async {
+    final TrackSelectionsMessage response =
+        await _api.trackSelections(PlayerMessage(playerId: playerId));
+
+    final List<TrackSelection> trackSelections = <TrackSelection>[];
+
+    for (final Map<Object?, Object?>? trackSelectionMap
+        in response.trackSelections) {
+      final TrackSelectionType trackSelectionType =
+          _intTrackSelectionTypeMap[trackSelectionMap!['trackType']]!;
+      final bool isUnknown = trackSelectionMap['isUnknown']! as bool;
+      final int trackId = trackSelectionMap['trackId']! as int;
+
+      if (isUnknown) {
+        trackSelections.add(TrackSelection(
+          trackId: trackId,
+          trackType: trackSelectionType,
+        ));
+      } else {
+        switch (trackSelectionType) {
+          case TrackSelectionType.video:
+            {
+              final int bitrate = trackSelectionMap['bitrate']! as int;
+              final int width = trackSelectionMap['width']! as int;
+              final int height = trackSelectionMap['height']! as int;
+
+              trackSelections.add(TrackSelection(
+                trackId: trackId,
+                trackType: trackSelectionType,
+                width: width,
+                height: height,
+                bitrate: bitrate == 0 ? null : bitrate,
+              ));
+              break;
+            }
+          case TrackSelectionType.audio:
+            {
+              // TODO:implement get audio track.
+              break;
+            }
+          case TrackSelectionType.text:
+            {
+              // TODO:implement get text track.
+              break;
+            }
+        }
+      }
+    }
+
+    return trackSelections;
+  }
+
+  @override
+  Future<void> setTrackSelection(int playerId, TrackSelection trackSelection) {
+    final List<Map<Object?, Object?>?> list = <Map<Object?, Object?>?>[
+      <Object?, Object?>{
+        'trackId': trackSelection.trackId,
+        'trackType': _intTrackSelectionTypeMap.keys.firstWhere(
+            (int key) =>
+                _intTrackSelectionTypeMap[key] == trackSelection.trackType,
+            orElse: () => -1),
+      }
+    ];
+
+    return _api.setTrackSelection(TrackSelectionsMessage(
+      playerId: playerId,
+      trackSelections: list,
+    ));
+  }
+
+  @override
   Future<Duration> getPosition(int playerId) async {
     final PositionMessage response =
         await _api.position(PlayerMessage(playerId: playerId));
@@ -173,5 +244,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',
     VideoFormat.other: 'other',
+  };
+
+  static const Map<int, TrackSelectionType> _intTrackSelectionTypeMap =
+      <int, TrackSelectionType>{
+    1: TrackSelectionType.audio,
+    2: TrackSelectionType.video,
+    3: TrackSelectionType.text,
   };
 }

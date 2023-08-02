@@ -44,6 +44,7 @@ class VideoPlayerValue {
     this.position = Duration.zero,
     this.caption = Caption.none,
     this.captionOffset = Duration.zero,
+    this.trackSelections = const <TrackSelection>[],
     this.buffered = 0,
     this.isInitialized = false,
     this.isPlaying = false,
@@ -106,6 +107,9 @@ class VideoPlayerValue {
   /// The current speed of the playback.
   final double playbackSpeed;
 
+  /// The current playback track selections.
+  final List<TrackSelection> trackSelections;
+
   /// A description of the error if present.
   ///
   /// If [hasError] is false this is `null`.
@@ -146,6 +150,7 @@ class VideoPlayerValue {
     Duration? position,
     Caption? caption,
     Duration? captionOffset,
+    List<TrackSelection>? trackSelections,
     int? buffered,
     bool? isInitialized,
     bool? isPlaying,
@@ -161,6 +166,7 @@ class VideoPlayerValue {
       position: position ?? this.position,
       caption: caption ?? this.caption,
       captionOffset: captionOffset ?? this.captionOffset,
+      trackSelections: trackSelections ?? this.trackSelections,
       buffered: buffered ?? this.buffered,
       isInitialized: isInitialized ?? this.isInitialized,
       isPlaying: isPlaying ?? this.isPlaying,
@@ -182,6 +188,7 @@ class VideoPlayerValue {
         'position: $position, '
         'caption: $caption, '
         'captionOffset: $captionOffset, '
+        'trackSelections: $trackSelections, '
         'buffered: $buffered, '
         'isInitialized: $isInitialized, '
         'isPlaying: $isPlaying, '
@@ -575,6 +582,22 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
     await _videoPlayerPlatform.seekTo(_playerId, position);
     _updatePosition(position);
+  }
+
+  /// The track selections in the current video.
+  Future<List<TrackSelection>?> get trackSelections async {
+    if (!value.isInitialized || _isDisposed) {
+      return null;
+    }
+    return _videoPlayerPlatform.getTrackSelections(_playerId);
+  }
+
+  /// Sets the selected video track selection.
+  Future<void> setTrackSelection(TrackSelection trackSelection) async {
+    if (!value.isInitialized || _isDisposed) {
+      return;
+    }
+    await _videoPlayerPlatform.setTrackSelection(_playerId, trackSelection);
   }
 
   /// Sets the audio volume of [this].

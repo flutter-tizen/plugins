@@ -18,12 +18,60 @@
 #include "drm_manager.h"
 #include "video_player_options.h"
 
+#define MAX_STRING_NAME_LEN 255
+#define MMPLAYER_FOUR_CC_LEN 14
+#define PLAYER_LANG_NAME_SIZE 10
+
+typedef struct {
+  char fourCC[MMPLAYER_FOUR_CC_LEN + 1]; /**< codec fourcc */
+  char name[MAX_STRING_NAME_LEN]; /**< name: video/audio, it maybe not exit in
+                                     some track*/
+  /*dynamic infos in hls,ss,dash streams*/
+  int width;    /**< resolution width */
+  int height;   /**< resolution height */
+  int bit_rate; /**< bitrate in bps */
+} player_video_track_info_v2;
+
+typedef struct {
+  char fourCC[MMPLAYER_FOUR_CC_LEN + 1]; /**< codec fourcc */
+  char language[PLAYER_LANG_NAME_SIZE];  /**< language info*/
+  /*dynamic infos in hls,ss,dash streams*/
+  int sample_rate; /**< sample rate in this track*/
+  int channel;     /**< channel in this track*/
+  int bit_rate;    /**< bitrate  in this track*/
+} player_audio_track_info_v2;
+
+typedef struct {
+  char fourCC[MMPLAYER_FOUR_CC_LEN + 1]; /**< codec fourcc */
+  char language[PLAYER_LANG_NAME_SIZE];  /**< language info*/
+  int subtitle_type; /**< text subtitle = 0, picture subtitle = 1 */
+} player_subtitle_track_info_v2;
+
+typedef struct {
+  int track;
+  int adaptation_index;
+  int alternate_index;
+  player_stream_type_e trackType;
+  player_video_track_info_v2 videoInfo;
+  player_audio_track_info_v2 audioInfo;
+  player_subtitle_track_info_v2 textInfo;
+} StreamInformation;
+
 typedef void (*FuncEcoreWl2WindowGeometryGet)(void *window, int *x, int *y,
                                               int *width, int *height);
 typedef int (*FuncPlayerSetEcoreWlDisplay)(player_h player,
                                            player_display_type_e type,
                                            void *ecore_wl_window, int x, int y,
                                            int width, int height);
+typedef int (*FuncPlayerGetTrackCountV2)(player_h player,
+                                         player_stream_type_e type,
+                                         int *pcount);
+typedef int (*FuncPlayerGetVideoTrackInfoV2)(
+    player_h player, int index, player_video_track_info_v2 **track_info);
+typedef int (*FuncPlayerGetAudioTrackInfoV2)(
+    player_h player, int index, player_audio_track_info_v2 **track_info);
+typedef int (*FuncPlayerGetSubtitleTrackInfoV2)(
+    player_h player, int index, player_subtitle_track_info_v2 **track_info);
 
 class VideoPlayer {
  public:
@@ -45,6 +93,8 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int32_t position, SeekCompletedCallback callback);
   int32_t GetPosition();
+  flutter::EncodableList getTotalTrackInfo();
+  void SetTrackSelection(const flutter::EncodableList &list);
 
   void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
 

@@ -86,6 +86,18 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('seekTo() has not been implemented.');
   }
 
+  /// Gets the video [TrackSelection]s. For convenience if the video file has at
+  /// least one [TrackSelection] for a specific type, the auto track selection will
+  /// be added to this list with that type.
+  Future<List<TrackSelection>> getTrackSelections(int playerId) {
+    throw UnimplementedError('getTrackSelection() has not been implemented.');
+  }
+
+  /// Sets the selected video track selection.
+  Future<void> setTrackSelection(int playerId, TrackSelection trackSelection) {
+    throw UnimplementedError('setTrackSelection() has not been implemented.');
+  }
+
   /// Sets the playback speed to a [speed] value indicating the playback rate.
   Future<void> setPlaybackSpeed(int playerId, double speed) {
     throw UnimplementedError('setPlaybackSpeed() has not been implemented.');
@@ -389,4 +401,89 @@ class VideoPlayerOptions {
   /// Note: This option will be silently ignored in the web platform (there is
   /// currently no way to implement this feature in this platform).
   final bool mixWithOthers;
+}
+
+/// A representation of a single track selection.
+///
+/// A typical video file will include several [TrackSelection]s. For convenience
+/// the auto track selection will be added to this list of [getTrackSelections].
+@immutable
+class TrackSelection {
+  /// Creates an instance of [VideoEvent].
+  ///
+  /// The [trackId] and [trackType] argument is required.
+  ///
+  const TrackSelection({
+    required this.trackId,
+    required this.trackType,
+    this.width,
+    this.height,
+    this.bitrate,
+  });
+
+  /// The track id of track selection that uses to determine track selection.
+  final int trackId;
+
+  /// The type of the track selection.
+  final TrackSelectionType trackType;
+
+  /// The width of video track selection. This will be null if the [trackType]
+  /// is not [TrackSelectionType.video] or an unknowntrack selection.
+  ///
+  /// If the track selection doesn't specify the width this may be null.
+  final int? width;
+
+  /// The height of video track selection. This will be null if the [trackType]
+  /// is not [TrackSelectionType.video] or an unknown track selection.
+  ///
+  /// If the track selection doesn't specify the height this may be null.
+  final int? height;
+
+  /// The label of track selection. This will be null if the [trackType]
+  /// is not [TrackSelectionType.video] and [TrackSelectionType.audio] or an unknown
+  /// track selection.
+  ///
+  /// If the track selection doesn't specify the bitrate this may be null.
+  final int? bitrate;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'TrackSelection')}('
+        'trackId: $trackId, '
+        'trackType: $trackType, '
+        'width: $width, '
+        'height: $height, '
+        'bitrate: $bitrate)';
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TrackSelection &&
+          runtimeType == other.runtimeType &&
+          trackId == other.trackId &&
+          trackType == other.trackType &&
+          width == other.width &&
+          height == other.height &&
+          bitrate == other.bitrate;
+
+  @override
+  int get hashCode =>
+      trackId.hashCode ^
+      trackType.hashCode ^
+      width.hashCode ^
+      height.hashCode ^
+      bitrate.hashCode;
+}
+
+/// Type of the track selection.
+enum TrackSelectionType {
+  /// The video track selection.
+  video,
+
+  /// The audio track selection.
+  audio,
+
+  /// The text track selection.
+  text,
 }

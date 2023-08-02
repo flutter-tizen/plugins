@@ -135,6 +135,29 @@ class PlaybackSpeedMessage {
 };
 
 // Generated class from Pigeon that represents data sent in messages.
+class TrackSelectionsMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit TrackSelectionsMessage(
+      int64_t player_id, const flutter::EncodableList& track_selections);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  const flutter::EncodableList& track_selections() const;
+  void set_track_selections(const flutter::EncodableList& value_arg);
+
+ private:
+  static TrackSelectionsMessage FromEncodableList(
+      const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerVideoholeApi;
+  friend class VideoPlayerVideoholeApiCodecSerializer;
+  int64_t player_id_;
+  flutter::EncodableList track_selections_;
+};
+
+// Generated class from Pigeon that represents data sent in messages.
 class PositionMessage {
  public:
   // Constructs an object setting all fields.
@@ -293,6 +316,10 @@ class VideoPlayerVideoholeApi {
   virtual void SeekTo(
       const PositionMessage& msg,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;
+  virtual ErrorOr<TrackSelectionsMessage> TrackSelections(
+      const PlayerMessage& msg) = 0;
+  virtual std::optional<FlutterError> SetTrackSelection(
+      const TrackSelectionsMessage& msg) = 0;
   virtual std::optional<FlutterError> Pause(const PlayerMessage& msg) = 0;
   virtual std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage& msg) = 0;

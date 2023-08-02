@@ -32,6 +32,12 @@ class PlaybackSpeedMessage {
   double speed;
 }
 
+class TrackSelectionsMessage {
+  TrackSelectionsMessage(this.playerId, this.trackSelections);
+  int playerId;
+  List<Map<Object?, Object?>?> trackSelections;
+}
+
 class PositionMessage {
   PositionMessage(this.playerId, this.position);
   int playerId;
@@ -74,6 +80,8 @@ abstract class VideoPlayerVideoholeApi {
   PositionMessage position(PlayerMessage msg);
   @async
   void seekTo(PositionMessage msg);
+  TrackSelectionsMessage trackSelections(PlayerMessage msg);
+  void setTrackSelection(TrackSelectionsMessage msg);
   void pause(PlayerMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);
   void setDisplayGeometry(GeometryMessage msg);
