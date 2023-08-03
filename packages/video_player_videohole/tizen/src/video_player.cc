@@ -372,7 +372,15 @@ flutter::EncodableList VideoPlayer::getTotalTrackInfo() {
               audio_track_info->language, audio_track_info->channel,
               audio_track_info->sample_rate, audio_track_info->bit_rate);
 
-          // TODO:implement audio info
+          streamInfo[stream_counter].track = audio_index;
+          streamInfo[stream_counter].trackType = PLAYER_STREAM_TYPE_AUDIO;
+          strcpy(streamInfo[stream_counter].audioInfo.language,
+                 audio_track_info->language);
+          streamInfo[stream_counter].audioInfo.channel =
+              audio_track_info->channel;
+          streamInfo[stream_counter].audioInfo.bit_rate =
+              audio_track_info->bit_rate;
+          stream_counter++;
         }
       }
 
@@ -429,7 +437,15 @@ flutter::EncodableList VideoPlayer::getTotalTrackInfo() {
              flutter::EncodableValue(streamInfo[index].videoInfo.bit_rate)});
         break;
       case PLAYER_STREAM_TYPE_AUDIO:
-        // TODO:implement audio info
+        trackSelection.insert(
+            {flutter::EncodableValue("language"),
+             flutter::EncodableValue(std::string(streamInfo[index].audioInfo.language))});
+        trackSelection.insert(
+            {flutter::EncodableValue("channel"),
+             flutter::EncodableValue(streamInfo[index].audioInfo.channel)});
+        trackSelection.insert(
+            {flutter::EncodableValue("bitrate"),
+             flutter::EncodableValue(streamInfo[index].audioInfo.bit_rate)});
         break;
       case PLAYER_STREAM_TYPE_TEXT:
         // TODO:implement subtitle info

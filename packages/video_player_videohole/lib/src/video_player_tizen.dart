@@ -126,7 +126,17 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             }
           case TrackSelectionType.audio:
             {
-              // TODO:implement get audio track.
+              final String language = trackSelectionMap['language']! as String;
+              final TrackSelectionChannelType channelType =
+                  _intChannelTypeMap[trackSelectionMap['channel']]!;
+              final int bitrate = trackSelectionMap['bitrate']! as int;
+              trackSelections.add(TrackSelection(
+                trackId: trackId,
+                trackType: trackSelectionType,
+                language: language.isEmpty ? null : language,
+                channel: channelType,
+                bitrate: bitrate == 0 ? null : bitrate,
+              ));
               break;
             }
           case TrackSelectionType.text:
@@ -251,5 +261,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     1: TrackSelectionType.audio,
     2: TrackSelectionType.video,
     3: TrackSelectionType.text,
+  };
+
+  static const Map<int, TrackSelectionChannelType> _intChannelTypeMap =
+      <int, TrackSelectionChannelType>{
+    1: TrackSelectionChannelType.mono,
+    2: TrackSelectionChannelType.stereo,
+    3: TrackSelectionChannelType.surround,
   };
 }

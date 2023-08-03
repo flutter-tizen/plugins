@@ -419,6 +419,8 @@ class TrackSelection {
     this.width,
     this.height,
     this.bitrate,
+    this.language,
+    this.channel,
   });
 
   /// The track id of track selection that uses to determine track selection.
@@ -446,6 +448,19 @@ class TrackSelection {
   /// If the track selection doesn't specify the bitrate this may be null.
   final int? bitrate;
 
+  /// The language of track selection. This will be null if the [trackType]
+  /// is not [TrackSelectionType.audio] and [TrackSelectionType.text] or an unknown
+  /// track selection.
+  ///
+  /// If the track selection doesn't specify the language this may be null.
+  final String? language;
+
+  /// The channelCount of track selection. This will be null if the [trackType]
+  /// is not [TrackSelectionType.audio] or an unknown track selection.
+  ///
+  /// If the track selection doesn't specify the channelCount this may be null.
+  final TrackSelectionChannelType? channel;
+
   @override
   String toString() {
     return '${objectRuntimeType(this, 'TrackSelection')}('
@@ -453,6 +468,8 @@ class TrackSelection {
         'trackType: $trackType, '
         'width: $width, '
         'height: $height, '
+        'language: $language, '
+        'channel: $channel, '
         'bitrate: $bitrate)';
   }
 
@@ -465,6 +482,8 @@ class TrackSelection {
           trackType == other.trackType &&
           width == other.width &&
           height == other.height &&
+          language == other.language &&
+          channel == other.channel &&
           bitrate == other.bitrate;
 
   @override
@@ -473,6 +492,8 @@ class TrackSelection {
       trackType.hashCode ^
       width.hashCode ^
       height.hashCode ^
+      language.hashCode ^
+      channel.hashCode ^
       bitrate.hashCode;
 }
 
@@ -486,4 +507,16 @@ enum TrackSelectionType {
 
   /// The text track selection.
   text,
+}
+
+/// Type of the track selection channel for [TrackSelectionType.audio].
+enum TrackSelectionChannelType {
+  /// The mono channel.
+  mono,
+
+  /// The stereo channel.
+  stereo,
+
+  /// The surround channel.
+  surround,
 }
