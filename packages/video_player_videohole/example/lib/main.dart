@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:video_player_videohole/video_player.dart';
+import 'package:video_player_videohole/video_player_platform_interface.dart';
 
 void main() {
   runApp(
@@ -37,6 +38,7 @@ class _App extends StatelessWidget {
               Tab(icon: Icon(Icons.cloud), text: 'Dash'),
               Tab(icon: Icon(Icons.cloud), text: 'DRM Widevine'),
               Tab(icon: Icon(Icons.cloud), text: 'DRM PlayReady'),
+              Tab(icon: Icon(Icons.cloud), text: 'Track Selections'),
             ],
           ),
         ),
@@ -47,6 +49,7 @@ class _App extends StatelessWidget {
             _DashRomoteVideo(),
             _DrmRemoteVideo(),
             _DrmRemoteVideo2(),
+            _TrackSelectionTest(),
           ],
         ),
       ),
@@ -370,6 +373,67 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
   }
 }
 
+class _TrackSelectionTest extends StatefulWidget {
+  @override
+  State<_TrackSelectionTest> createState() => _TrackSelectionTestState2();
+}
+
+class _TrackSelectionTestState2 extends State<_TrackSelectionTest> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = VideoPlayerController.network(
+        'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8');
+
+    _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
+      setState(() {});
+    });
+    _controller.setLooping(true);
+    _controller.initialize().then((_) => setState(() {}));
+    _controller.play();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          Container(padding: const EdgeInsets.only(top: 20.0)),
+          const Text('track selections test'),
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: <Widget>[
+                  VideoPlayer(_controller),
+                  ClosedCaption(text: _controller.value.caption.text),
+                  _ControlsOverlay(controller: _controller),
+                  VideoProgressIndicator(_controller, allowScrubbing: true),
+                ],
+              ),
+            ),
+          ),
+          _GetTrackSelectionButton(controller: _controller),
+        ],
+      ),
+    );
+  }
+}
+
 class _ControlsOverlay extends StatelessWidget {
   const _ControlsOverlay({required this.controller});
 
@@ -482,6 +546,127 @@ class _ControlsOverlay extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _GetTrackSelectionButton extends StatelessWidget {
+  const _GetTrackSelectionButton({required this.controller});
+
+  final VideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20.0),
+      child: MaterialButton(
+          child: const Text('Get Track Selection'),
+          onPressed: () async {
+            final List<TrackSelection>? tracks =
+                await controller.trackSelections;
+            if (tracks == null) {
+              return;
+            }
+            // ignore: use_build_context_synchronously
+            await showDialog(
+              context: context,
+              builder: (_) => _TrackSelectionDialog(
+                controller: controller,
+                videoTrackSelections: tracks
+                    .where((TrackSelection track) =>
+                        track.trackType == TrackSelectionType.video)
+                    .toList(),
+                audioTrackSelections: tracks
+                    .where((TrackSelection track) =>
+                        track.trackType == TrackSelectionType.audio)
+                    .toList(),
+                textTrackSelections: tracks
+                    .where((TrackSelection track) =>
+                        track.trackType == TrackSelectionType.text)
+                    .toList(),
+              ),
+            );
+          }),
+    );
+  }
+}
+
+class _TrackSelectionDialog extends StatelessWidget {
+  const _TrackSelectionDialog({
+    required this.controller,
+    required this.videoTrackSelections,
+    required this.audioTrackSelections,
+    required this.textTrackSelections,
+  });
+
+  final VideoPlayerController controller;
+  final List<TrackSelection> videoTrackSelections;
+  final List<TrackSelection> audioTrackSelections;
+  final List<TrackSelection> textTrackSelections;
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 3,
+      child: AlertDialog(
+        titlePadding: EdgeInsets.zero,
+        contentPadding: EdgeInsets.zero,
+        title: TabBar(
+          labelColor: Colors.black,
+          tabs: <Widget>[
+            if (videoTrackSelections.isNotEmpty) const Tab(text: 'Video'),
+            if (audioTrackSelections.isNotEmpty) const Tab(text: 'Audio'),
+            if (textTrackSelections.isNotEmpty) const Tab(text: 'Text'),
+          ],
+        ),
+        content: SizedBox(
+          height: 200,
+          width: 200,
+          child: TabBarView(
+            children: <Widget>[
+              if (videoTrackSelections.isNotEmpty)
+                ListView.builder(
+                    itemCount: videoTrackSelections.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return ListTile(
+                        title: Text(
+                            '${videoTrackSelections[index].width}x${videoTrackSelections[index].height},${(videoTrackSelections[index].bitrate! / 1000000).toStringAsFixed(2)}Mbps'),
+                        onTap: () {
+                          controller
+                              .setTrackSelection(videoTrackSelections[index]);
+                        },
+                      );
+                    }),
+              if (audioTrackSelections.isNotEmpty)
+                ListView.builder(
+                    itemCount: audioTrackSelections.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return ListTile(
+                        title: Text(
+                            'language:${audioTrackSelections[index].language}'),
+                        onTap: () {
+                          controller
+                              .setTrackSelection(audioTrackSelections[index]);
+                        },
+                      );
+                    }),
+              if (textTrackSelections.isNotEmpty)
+                ListView.builder(
+                    itemCount: textTrackSelections.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return ListTile(
+                        title: Text(
+                            'language:${textTrackSelections[index].language}'),
+                        onTap: () {
+                          controller
+                              .setTrackSelection(textTrackSelections[index]);
+                        },
+                      );
+                    }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
