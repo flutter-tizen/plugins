@@ -421,6 +421,7 @@ class TrackSelection {
     this.bitrate,
     this.language,
     this.channel,
+    this.subtitleType,
   });
 
   /// The track id of track selection that uses to determine track selection.
@@ -461,6 +462,12 @@ class TrackSelection {
   /// If the track selection doesn't specify the channelCount this may be null.
   final TrackSelectionChannelType? channel;
 
+  /// The subtitle type of track selection. This will be null if the [trackType]
+  /// is not [TrackSelectionType.text] or an unknown track selection.
+  ///
+  /// If the track selection doesn't specify the subtitle type this may be null.
+  final TrackSelectionSubtitleType? subtitleType;
+
   @override
   String toString() {
     return '${objectRuntimeType(this, 'TrackSelection')}('
@@ -470,6 +477,7 @@ class TrackSelection {
         'height: $height, '
         'language: $language, '
         'channel: $channel, '
+        'subtitleType: $subtitleType, '
         'bitrate: $bitrate)';
   }
 
@@ -484,6 +492,7 @@ class TrackSelection {
           height == other.height &&
           language == other.language &&
           channel == other.channel &&
+          subtitleType == other.subtitleType &&
           bitrate == other.bitrate;
 
   @override
@@ -494,6 +503,7 @@ class TrackSelection {
       height.hashCode ^
       language.hashCode ^
       channel.hashCode ^
+      subtitleType.hashCode ^
       bitrate.hashCode;
 }
 
@@ -519,4 +529,13 @@ enum TrackSelectionChannelType {
 
   /// The surround channel.
   surround,
+}
+
+/// Type of the track selection channel for [TrackSelectionType.text].
+enum TrackSelectionSubtitleType {
+  /// The text subtitle.
+  text,
+
+  /// The picture subtitle.
+  picture,
 }

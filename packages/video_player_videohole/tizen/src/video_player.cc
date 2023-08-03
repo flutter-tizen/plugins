@@ -394,11 +394,17 @@ flutter::EncodableList VideoPlayer::getTotalTrackInfo() {
                 get_error_message(ret));
           }
           LOG_INFO(
-              "[VideoPlayer] subtitle track info: track_lang[%s], "
+              "[VideoPlayer] subtitle track info: language[%s], "
               "subtitle_type[%d]",
               sub_track_info->language, sub_track_info->subtitle_type);
 
-          // TODO:implement subtitle info
+          streamInfo[stream_counter].track = sub_index;
+          streamInfo[stream_counter].trackType = PLAYER_STREAM_TYPE_TEXT;
+          strcpy(streamInfo[stream_counter].textInfo.language,
+                 sub_track_info->language);
+          streamInfo[stream_counter].textInfo.subtitle_type =
+              sub_track_info->subtitle_type;
+          stream_counter++;
         }
       }
     } else {
@@ -437,9 +443,9 @@ flutter::EncodableList VideoPlayer::getTotalTrackInfo() {
              flutter::EncodableValue(streamInfo[index].videoInfo.bit_rate)});
         break;
       case PLAYER_STREAM_TYPE_AUDIO:
-        trackSelection.insert(
-            {flutter::EncodableValue("language"),
-             flutter::EncodableValue(std::string(streamInfo[index].audioInfo.language))});
+        trackSelection.insert({flutter::EncodableValue("language"),
+                               flutter::EncodableValue(std::string(
+                                   streamInfo[index].audioInfo.language))});
         trackSelection.insert(
             {flutter::EncodableValue("channel"),
              flutter::EncodableValue(streamInfo[index].audioInfo.channel)});
@@ -448,7 +454,12 @@ flutter::EncodableList VideoPlayer::getTotalTrackInfo() {
              flutter::EncodableValue(streamInfo[index].audioInfo.bit_rate)});
         break;
       case PLAYER_STREAM_TYPE_TEXT:
-        // TODO:implement subtitle info
+        trackSelection.insert({flutter::EncodableValue("language"),
+                               flutter::EncodableValue(std::string(
+                                   streamInfo[index].textInfo.language))});
+        trackSelection.insert({flutter::EncodableValue("subtitleType"),
+                               flutter::EncodableValue(
+                                   streamInfo[index].textInfo.subtitle_type)});
         break;
       default:
         trackSelection.insert({flutter::EncodableValue("isUnknown"),

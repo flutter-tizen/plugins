@@ -141,7 +141,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             }
           case TrackSelectionType.text:
             {
-              // TODO:implement get text track.
+              final String language = trackSelectionMap['language']! as String;
+              final TrackSelectionSubtitleType subtitleType =
+                  _intSubtitleTypeMap[trackSelectionMap['subtitleType']]!;
+              trackSelections.add(TrackSelection(
+                trackId: trackId,
+                trackType: trackSelectionType,
+                language: language.isEmpty ? null : language,
+                subtitleType: subtitleType,
+              ));
               break;
             }
         }
@@ -268,5 +276,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     1: TrackSelectionChannelType.mono,
     2: TrackSelectionChannelType.stereo,
     3: TrackSelectionChannelType.surround,
+  };
+
+  static const Map<int, TrackSelectionSubtitleType> _intSubtitleTypeMap =
+      <int, TrackSelectionSubtitleType>{
+    0: TrackSelectionSubtitleType.text,
+    1: TrackSelectionSubtitleType.picture,
   };
 }
