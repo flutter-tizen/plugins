@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:baseflow_plugin_template/baseflow_plugin_template.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -37,31 +35,32 @@ class _PermissionHandlerWidgetState extends State<PermissionHandlerWidget> {
       child: ListView(
           children: Permission.values
               .where((permission) {
-                if (Platform.isIOS) {
-                  return permission != Permission.unknown &&
-                      permission != Permission.sms &&
-                      permission != Permission.storage &&
-                      permission != Permission.ignoreBatteryOptimizations &&
-                      permission != Permission.accessMediaLocation &&
-                      permission != Permission.activityRecognition &&
-                      permission != Permission.manageExternalStorage &&
-                      permission != Permission.systemAlertWindow &&
-                      permission != Permission.requestInstallPackages &&
-                      permission != Permission.accessNotificationPolicy &&
-                      permission != Permission.bluetoothScan &&
-                      permission != Permission.bluetoothAdvertise &&
-                      permission != Permission.bluetoothConnect;
-                } else {
-                  return permission != Permission.unknown &&
-                      permission != Permission.mediaLibrary &&
-                      permission != Permission.photos &&
-                      permission != Permission.photosAddOnly &&
-                      permission != Permission.reminders &&
-                      permission != Permission.appTrackingTransparency &&
-                      permission != Permission.criticalAlerts;
-                }
+                // Permissions not applicable for Tizen.
+                return permission != Permission.unknown &&
+                    permission != Permission.photos &&
+                    permission != Permission.photosAddOnly &&
+                    permission != Permission.reminders &&
+                    permission != Permission.speech &&
+                    permission != Permission.ignoreBatteryOptimizations &&
+                    permission != Permission.notification &&
+                    permission != Permission.accessMediaLocation &&
+                    permission != Permission.activityRecognition &&
+                    permission != Permission.bluetooth &&
+                    permission != Permission.manageExternalStorage &&
+                    permission != Permission.systemAlertWindow &&
+                    permission != Permission.requestInstallPackages &&
+                    permission != Permission.appTrackingTransparency &&
+                    permission != Permission.criticalAlerts &&
+                    permission != Permission.accessNotificationPolicy &&
+                    permission != Permission.bluetoothScan &&
+                    permission != Permission.bluetoothAdvertise &&
+                    permission != Permission.bluetoothConnect &&
+                    permission != Permission.nearbyWifiDevices &&
+                    permission != Permission.videos &&
+                    permission != Permission.audio &&
+                    permission != Permission.scheduleExactAlarm;
               })
-              .map(PermissionWidget.new)
+              .map((permission) => PermissionWidget(permission))
               .toList()),
     );
   }

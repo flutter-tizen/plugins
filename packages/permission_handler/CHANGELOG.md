@@ -1,7 +1,11 @@
-## NEXT
+## 1.3.0
 
 * Increase the minimum Flutter version to 3.3.
 * Replace effective_dart dependency with flutter_lints.
+* Update permission_handler to 10.4.3.
+* Update permission_handler_platform_interface to 3.11.0.
+* Update the example app.
+* Map `sensorsAlways` to `http://tizen.org/privilege/healthinfo` 
 
 ## 1.2.1
 
