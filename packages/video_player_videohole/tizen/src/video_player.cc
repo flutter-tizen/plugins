@@ -271,152 +271,153 @@ flutter::EncodableList VideoPlayer::getTotalTrackInfo() {
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer] player_get_state failed: %s",
               get_error_message(ret));
+    return {};
   }
   if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
     LOG_ERROR("[VideoPlayer] Player not ready.");
     return {};
   }
 
-  int video_count = 0;
-  int audio_count = 0;
-  int subtitle_count = 0;
-  int stream_counter = 0;
-  int total_count = 0;
-
-  player_video_track_info_v2 *video_track_info = NULL;
-  player_audio_track_info_v2 *audio_track_info = NULL;
-  player_subtitle_track_info_v2 *sub_track_info = NULL;
-  StreamInformation *streamInfo = NULL;
-
   void *player_lib_handle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
-  if (player_lib_handle) {
-    FuncPlayerGetTrackCountV2 player_get_track_count_v2 =
-        reinterpret_cast<FuncPlayerGetTrackCountV2>(
-            dlsym(player_lib_handle, "player_get_track_count_v2"));
-    FuncPlayerGetVideoTrackInfoV2 player_get_video_track_info_v2 =
-        reinterpret_cast<FuncPlayerGetVideoTrackInfoV2>(
-            dlsym(player_lib_handle, "player_get_video_track_info_v2"));
-    FuncPlayerGetAudioTrackInfoV2 player_get_audio_track_info_v2 =
-        reinterpret_cast<FuncPlayerGetAudioTrackInfoV2>(
-            dlsym(player_lib_handle, "player_get_audio_track_info_v2"));
-    FuncPlayerGetSubtitleTrackInfoV2 player_get_subtitle_track_info_v2 =
-        reinterpret_cast<FuncPlayerGetSubtitleTrackInfoV2>(
-            dlsym(player_lib_handle, "player_get_subtitle_track_info_v2"));
-
-    ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_VIDEO,
-                                    &video_count);
-    if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[VideoPlayer] player_get_video_track_count failed: %s",
-                get_error_message(ret));
-    }
-
-    ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_AUDIO,
-                                    &audio_count);
-    if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[VideoPlayer] player_get_audio_track_count failed: %s",
-                get_error_message(ret));
-    }
-
-    ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_TEXT,
-                                    &subtitle_count);
-    if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[VideoPlayer] player_get_subtitle_track_count failed: %s",
-                get_error_message(ret));
-    }
-
-    total_count = video_count + audio_count + subtitle_count;
-    LOG_INFO(
-        "[VideoPlayer] video_count: %d, audio_count: %d, subtitle_count:%d, "
-        "total_count: %d",
-        video_count, audio_count, subtitle_count, total_count);
-    streamInfo = new StreamInformation[total_count];
-
-    if (player_get_video_track_info_v2 || player_get_audio_track_info_v2 ||
-        player_get_subtitle_track_info_v2) {
-      if (video_count > 0) {
-        for (int video_index = 0; video_index < video_count; video_index++) {
-          ret = player_get_video_track_info_v2(player_, video_index,
-                                               &video_track_info);
-          if (ret != PLAYER_ERROR_NONE) {
-            LOG_ERROR("[VideoPlayer] player_get_video_track_info_v2 failed: %s",
-                      get_error_message(ret));
-          }
-          LOG_INFO(
-              "[VideoPlayer] video track info: width[%d], height[%d], "
-              "bitrate[%d]",
-              video_track_info->width, video_track_info->height,
-              video_track_info->bit_rate);
-
-          streamInfo[stream_counter].track = video_index;
-          streamInfo[stream_counter].trackType = PLAYER_STREAM_TYPE_VIDEO;
-          streamInfo[stream_counter].videoInfo.width = video_track_info->width;
-          streamInfo[stream_counter].videoInfo.height =
-              video_track_info->height;
-          streamInfo[stream_counter].videoInfo.bit_rate =
-              video_track_info->bit_rate;
-          stream_counter++;
-        }
-      }
-
-      if (audio_count > 0) {
-        for (int audio_index = 0; audio_index < audio_count; audio_index++) {
-          ret = player_get_audio_track_info_v2(player_, audio_index,
-                                               &audio_track_info);
-          if (ret != PLAYER_ERROR_NONE) {
-            LOG_ERROR("[VideoPlayer] player_get_audio_track_info_v2 failed: %s",
-                      get_error_message(ret));
-          }
-          LOG_INFO(
-              "[VideoPlayer] audio track info: language[%s], channel[%d], "
-              "sample_rate[%d], bitrate[%d]",
-              audio_track_info->language, audio_track_info->channel,
-              audio_track_info->sample_rate, audio_track_info->bit_rate);
-
-          streamInfo[stream_counter].track = audio_index;
-          streamInfo[stream_counter].trackType = PLAYER_STREAM_TYPE_AUDIO;
-          strcpy(streamInfo[stream_counter].audioInfo.language,
-                 audio_track_info->language);
-          streamInfo[stream_counter].audioInfo.channel =
-              audio_track_info->channel;
-          streamInfo[stream_counter].audioInfo.bit_rate =
-              audio_track_info->bit_rate;
-          stream_counter++;
-        }
-      }
-
-      if (subtitle_count > 0) {
-        for (int sub_index = 0; sub_index < subtitle_count; sub_index++) {
-          ret = player_get_subtitle_track_info_v2(player_, sub_index,
-                                                  &sub_track_info);
-          if (ret != PLAYER_ERROR_NONE) {
-            LOG_ERROR(
-                "[VideoPlayer] player_get_subtitle_track_info_v2 failed: %s",
-                get_error_message(ret));
-          }
-          LOG_INFO(
-              "[VideoPlayer] subtitle track info: language[%s], "
-              "subtitle_type[%d]",
-              sub_track_info->language, sub_track_info->subtitle_type);
-
-          streamInfo[stream_counter].track = sub_index;
-          streamInfo[stream_counter].trackType = PLAYER_STREAM_TYPE_TEXT;
-          strcpy(streamInfo[stream_counter].textInfo.language,
-                 sub_track_info->language);
-          streamInfo[stream_counter].textInfo.subtitle_type =
-              sub_track_info->subtitle_type;
-          stream_counter++;
-        }
-      }
-    } else {
-      LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
-      dlclose(player_lib_handle);
-      return {};
-    }
-    dlclose(player_lib_handle);
-  } else {
+  if (!player_lib_handle) {
     LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
     return {};
   }
+
+  FuncPlayerGetTrackCountV2 player_get_track_count_v2 =
+      reinterpret_cast<FuncPlayerGetTrackCountV2>(
+          dlsym(player_lib_handle, "player_get_track_count_v2"));
+  FuncPlayerGetVideoTrackInfoV2 player_get_video_track_info_v2 =
+      reinterpret_cast<FuncPlayerGetVideoTrackInfoV2>(
+          dlsym(player_lib_handle, "player_get_video_track_info_v2"));
+  FuncPlayerGetAudioTrackInfoV2 player_get_audio_track_info_v2 =
+      reinterpret_cast<FuncPlayerGetAudioTrackInfoV2>(
+          dlsym(player_lib_handle, "player_get_audio_track_info_v2"));
+  FuncPlayerGetSubtitleTrackInfoV2 player_get_subtitle_track_info_v2 =
+      reinterpret_cast<FuncPlayerGetSubtitleTrackInfoV2>(
+          dlsym(player_lib_handle, "player_get_subtitle_track_info_v2"));
+  if (!player_get_track_count_v2 || !player_get_video_track_info_v2 ||
+      !player_get_audio_track_info_v2 || !player_get_subtitle_track_info_v2) {
+    LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
+    dlclose(player_lib_handle);
+    return {};
+  }
+
+  int video_count = 0;
+  ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_VIDEO,
+                                  &video_count);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[VideoPlayer] player_get_video_track_count failed: %s",
+              get_error_message(ret));
+    return {};
+  }
+
+  int audio_count = 0;
+  ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_AUDIO,
+                                  &audio_count);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[VideoPlayer] player_get_audio_track_count failed: %s",
+              get_error_message(ret));
+    return {};
+  }
+
+  int subtitle_count = 0;
+  ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_TEXT,
+                                  &subtitle_count);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[VideoPlayer] player_get_subtitle_track_count failed: %s",
+              get_error_message(ret));
+    return {};
+  }
+
+  int total_count = video_count + audio_count + subtitle_count;
+  LOG_INFO(
+      "[VideoPlayer] video_count: %d, audio_count: %d, subtitle_count:%d, "
+      "total_count: %d",
+      video_count, audio_count, subtitle_count, total_count);
+
+  int stream_counter = 0;
+  StreamInformation *streamInfo = NULL;
+  streamInfo = new StreamInformation[total_count];
+
+  player_video_track_info_v2 *video_track_info = NULL;
+  if (video_count > 0) {
+    for (int video_index = 0; video_index < video_count; video_index++) {
+      ret = player_get_video_track_info_v2(player_, video_index,
+                                           &video_track_info);
+      if (ret != PLAYER_ERROR_NONE) {
+        LOG_ERROR("[VideoPlayer] player_get_video_track_info_v2 failed: %s",
+                  get_error_message(ret));
+        return {};
+      }
+      LOG_INFO(
+          "[VideoPlayer] video track info: width[%d], height[%d], "
+          "bitrate[%d]",
+          video_track_info->width, video_track_info->height,
+          video_track_info->bit_rate);
+
+      streamInfo[stream_counter].track = video_index;
+      streamInfo[stream_counter].trackType = PLAYER_STREAM_TYPE_VIDEO;
+      streamInfo[stream_counter].videoInfo.width = video_track_info->width;
+      streamInfo[stream_counter].videoInfo.height = video_track_info->height;
+      streamInfo[stream_counter].videoInfo.bit_rate =
+          video_track_info->bit_rate;
+      stream_counter++;
+    }
+  }
+
+  player_audio_track_info_v2 *audio_track_info = NULL;
+  if (audio_count > 0) {
+    for (int audio_index = 0; audio_index < audio_count; audio_index++) {
+      ret = player_get_audio_track_info_v2(player_, audio_index,
+                                           &audio_track_info);
+      if (ret != PLAYER_ERROR_NONE) {
+        LOG_ERROR("[VideoPlayer] player_get_audio_track_info_v2 failed: %s",
+                  get_error_message(ret));
+        return {};
+      }
+      LOG_INFO(
+          "[VideoPlayer] audio track info: language[%s], channel[%d], "
+          "sample_rate[%d], bitrate[%d]",
+          audio_track_info->language, audio_track_info->channel,
+          audio_track_info->sample_rate, audio_track_info->bit_rate);
+
+      streamInfo[stream_counter].track = audio_index;
+      streamInfo[stream_counter].trackType = PLAYER_STREAM_TYPE_AUDIO;
+      strcpy(streamInfo[stream_counter].audioInfo.language,
+             audio_track_info->language);
+      streamInfo[stream_counter].audioInfo.channel = audio_track_info->channel;
+      streamInfo[stream_counter].audioInfo.bit_rate =
+          audio_track_info->bit_rate;
+      stream_counter++;
+    }
+  }
+
+  player_subtitle_track_info_v2 *sub_track_info = NULL;
+  if (subtitle_count > 0) {
+    for (int sub_index = 0; sub_index < subtitle_count; sub_index++) {
+      ret = player_get_subtitle_track_info_v2(player_, sub_index,
+                                              &sub_track_info);
+      if (ret != PLAYER_ERROR_NONE) {
+        LOG_ERROR("[VideoPlayer] player_get_subtitle_track_info_v2 failed: %s",
+                  get_error_message(ret));
+        return {};
+      }
+      LOG_INFO(
+          "[VideoPlayer] subtitle track info: language[%s], "
+          "subtitle_type[%d]",
+          sub_track_info->language, sub_track_info->subtitle_type);
+
+      streamInfo[stream_counter].track = sub_index;
+      streamInfo[stream_counter].trackType = PLAYER_STREAM_TYPE_TEXT;
+      strcpy(streamInfo[stream_counter].textInfo.language,
+             sub_track_info->language);
+      streamInfo[stream_counter].textInfo.subtitle_type =
+          sub_track_info->subtitle_type;
+      stream_counter++;
+    }
+  }
+  dlclose(player_lib_handle);
 
   flutter::EncodableList trackSelections;
   for (int index = 0; index < stream_counter; index++) {
@@ -468,6 +469,12 @@ flutter::EncodableList VideoPlayer::getTotalTrackInfo() {
 
     trackSelections.push_back(flutter::EncodableValue(trackSelection));
   }
+
+  if (streamInfo) {
+    free(streamInfo);
+    streamInfo = nullptr;
+  }
+
   return trackSelections;
 }
 
