@@ -44,10 +44,9 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   void SeekTo(
       const PositionMessage &msg,
       std::function<void(std::optional<FlutterError> reply)> result) override;
-  ErrorOr<TrackSelectionsMessage> TrackSelections(
-      const PlayerMessage &msg) override;
+  ErrorOr<TrackMessage> TrackSelections(const PlayerMessage &msg) override;
   std::optional<FlutterError> SetTrackSelection(
-      const TrackSelectionsMessage &msg) override;
+      const SelectedTracksMessage &msg) override;
   std::optional<FlutterError> Pause(const PlayerMessage &msg) override;
   std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage &msg) override;
@@ -247,24 +246,24 @@ void VideoPlayerTizenPlugin::SeekTo(
   player->SeekTo(msg.position(), [result]() -> void { result(std::nullopt); });
 }
 
-ErrorOr<TrackSelectionsMessage> VideoPlayerTizenPlugin::TrackSelections(
+ErrorOr<TrackMessage> VideoPlayerTizenPlugin::TrackSelections(
     const PlayerMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
 
   if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  TrackSelectionsMessage result(msg.player_id(), player->getTotalTrackInfo());
+  TrackMessage result(msg.player_id(), player->getTotalTrackInfo());
   return result;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetTrackSelection(
-    const TrackSelectionsMessage &msg) {
+    const SelectedTracksMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
     return FlutterError("Invalid argument", "Player not found.");
   }
-  player->SetTrackSelection(msg.track_selections());
+  player->SetTrackSelection(msg.track_id(), msg.track_type());
 
   return std::nullopt;
 }

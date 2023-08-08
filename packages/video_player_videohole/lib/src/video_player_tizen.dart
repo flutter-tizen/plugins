@@ -90,7 +90,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<TrackSelection>> getTrackSelections(int playerId) async {
-    final TrackSelectionsMessage response =
+    final TrackMessage response =
         await _api.trackSelections(PlayerMessage(playerId: playerId));
 
     final List<TrackSelection> trackSelections = <TrackSelection>[];
@@ -161,19 +161,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> setTrackSelection(int playerId, TrackSelection trackSelection) {
-    final List<Map<Object?, Object?>?> list = <Map<Object?, Object?>?>[
-      <Object?, Object?>{
-        'trackId': trackSelection.trackId,
-        'trackType': _intTrackSelectionTypeMap.keys.firstWhere(
-            (int key) =>
-                _intTrackSelectionTypeMap[key] == trackSelection.trackType,
-            orElse: () => -1),
-      }
-    ];
-
-    return _api.setTrackSelection(TrackSelectionsMessage(
+    return _api.setTrackSelection(SelectedTracksMessage(
       playerId: playerId,
-      trackSelections: list,
+      trackId: trackSelection.trackId,
+      trackType: _intTrackSelectionTypeMap.keys.firstWhere(
+          (int key) =>
+              _intTrackSelectionTypeMap[key] == trackSelection.trackType,
+          orElse: () => -1),
     ));
   }
 

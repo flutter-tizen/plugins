@@ -478,29 +478,20 @@ flutter::EncodableList VideoPlayer::getTotalTrackInfo() {
   return trackSelections;
 }
 
-void VideoPlayer::SetTrackSelection(const flutter::EncodableList &list) {
+void VideoPlayer::SetTrackSelection(int32_t track_id, int32_t track_type) {
+  LOG_INFO("[VideoPlayer] track_id: %d,track_type: %d", track_id, track_type);
+
   player_state_e state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &state);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[VideoPlayer] player_get_state failed: %s",
               get_error_message(ret));
+    return;
   }
   if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
     LOG_ERROR("[VideoPlayer] Player not ready.");
     return;
   }
-
-  flutter::EncodableMap track_map;
-  if (!list.empty()) {
-    for (auto &map : list) {
-      track_map = std::get<flutter::EncodableMap>(map);
-    }
-  }
-
-  int track_id = std::get<int>(track_map[flutter::EncodableValue("trackId")]);
-  int track_type =
-      std::get<int>(track_map[flutter::EncodableValue("trackType")]);
-  LOG_INFO("[VideoPlayer] track_id: %d,track_type: %d", track_id, track_type);
 
   ret =
       player_select_track(player_, (player_stream_type_e)track_type, track_id);

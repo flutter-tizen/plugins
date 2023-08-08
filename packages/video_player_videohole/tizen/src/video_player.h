@@ -94,7 +94,7 @@ class VideoPlayer {
   void SeekTo(int32_t position, SeekCompletedCallback callback);
   int32_t GetPosition();
   flutter::EncodableList getTotalTrackInfo();
-  void SetTrackSelection(const flutter::EncodableList &list);
+  void SetTrackSelection(int32_t track_id, int32_t track_type);
 
   void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
 

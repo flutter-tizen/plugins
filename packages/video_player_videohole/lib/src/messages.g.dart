@@ -107,8 +107,8 @@ class PlaybackSpeedMessage {
   }
 }
 
-class TrackSelectionsMessage {
-  TrackSelectionsMessage({
+class TrackMessage {
+  TrackMessage({
     required this.playerId,
     required this.trackSelections,
   });
@@ -124,12 +124,43 @@ class TrackSelectionsMessage {
     ];
   }
 
-  static TrackSelectionsMessage decode(Object result) {
+  static TrackMessage decode(Object result) {
     result as List<Object?>;
-    return TrackSelectionsMessage(
+    return TrackMessage(
       playerId: result[0]! as int,
       trackSelections:
           (result[1] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
+    );
+  }
+}
+
+class SelectedTracksMessage {
+  SelectedTracksMessage({
+    required this.playerId,
+    required this.trackId,
+    required this.trackType,
+  });
+
+  int playerId;
+
+  int trackId;
+
+  int trackType;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      trackId,
+      trackType,
+    ];
+  }
+
+  static SelectedTracksMessage decode(Object result) {
+    result as List<Object?>;
+    return SelectedTracksMessage(
+      playerId: result[0]! as int,
+      trackId: result[1]! as int,
+      trackType: result[2]! as int,
     );
   }
 }
@@ -295,11 +326,14 @@ class _VideoPlayerVideoholeApiCodec extends StandardMessageCodec {
     } else if (value is PositionMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else if (value is TrackSelectionsMessage) {
+    } else if (value is SelectedTracksMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is TrackMessage) {
       buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(137);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -324,8 +358,10 @@ class _VideoPlayerVideoholeApiCodec extends StandardMessageCodec {
       case 134:
         return PositionMessage.decode(readValue(buffer)!);
       case 135:
-        return TrackSelectionsMessage.decode(readValue(buffer)!);
+        return SelectedTracksMessage.decode(readValue(buffer)!);
       case 136:
+        return TrackMessage.decode(readValue(buffer)!);
+      case 137:
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -550,7 +586,7 @@ class VideoPlayerVideoholeApi {
     }
   }
 
-  Future<TrackSelectionsMessage> trackSelections(PlayerMessage arg_msg) async {
+  Future<TrackMessage> trackSelections(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.VideoPlayerVideoholeApi.trackSelections', codec,
         binaryMessenger: _binaryMessenger);
@@ -573,11 +609,11 @@ class VideoPlayerVideoholeApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (replyList[0] as TrackSelectionsMessage?)!;
+      return (replyList[0] as TrackMessage?)!;
     }
   }
 
-  Future<void> setTrackSelection(TrackSelectionsMessage arg_msg) async {
+  Future<void> setTrackSelection(SelectedTracksMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.VideoPlayerVideoholeApi.setTrackSelection', codec,
         binaryMessenger: _binaryMessenger);

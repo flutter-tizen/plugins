@@ -123,28 +123,25 @@ PlaybackSpeedMessage PlaybackSpeedMessage::FromEncodableList(
   return decoded;
 }
 
-// TrackSelectionsMessage
+// TrackMessage
 
-TrackSelectionsMessage::TrackSelectionsMessage(
-    int64_t player_id, const EncodableList& track_selections)
+TrackMessage::TrackMessage(int64_t player_id,
+                           const EncodableList& track_selections)
     : player_id_(player_id), track_selections_(track_selections) {}
 
-int64_t TrackSelectionsMessage::player_id() const { return player_id_; }
+int64_t TrackMessage::player_id() const { return player_id_; }
 
-void TrackSelectionsMessage::set_player_id(int64_t value_arg) {
-  player_id_ = value_arg;
-}
+void TrackMessage::set_player_id(int64_t value_arg) { player_id_ = value_arg; }
 
-const EncodableList& TrackSelectionsMessage::track_selections() const {
+const EncodableList& TrackMessage::track_selections() const {
   return track_selections_;
 }
 
-void TrackSelectionsMessage::set_track_selections(
-    const EncodableList& value_arg) {
+void TrackMessage::set_track_selections(const EncodableList& value_arg) {
   track_selections_ = value_arg;
 }
 
-EncodableList TrackSelectionsMessage::ToEncodableList() const {
+EncodableList TrackMessage::ToEncodableList() const {
   EncodableList list;
   list.reserve(2);
   list.push_back(EncodableValue(player_id_));
@@ -152,10 +149,49 @@ EncodableList TrackSelectionsMessage::ToEncodableList() const {
   return list;
 }
 
-TrackSelectionsMessage TrackSelectionsMessage::FromEncodableList(
+TrackMessage TrackMessage::FromEncodableList(const EncodableList& list) {
+  TrackMessage decoded(list[0].LongValue(), std::get<EncodableList>(list[1]));
+  return decoded;
+}
+
+// SelectedTracksMessage
+
+SelectedTracksMessage::SelectedTracksMessage(int64_t player_id,
+                                             int64_t track_id,
+                                             int64_t track_type)
+    : player_id_(player_id), track_id_(track_id), track_type_(track_type) {}
+
+int64_t SelectedTracksMessage::player_id() const { return player_id_; }
+
+void SelectedTracksMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
+
+int64_t SelectedTracksMessage::track_id() const { return track_id_; }
+
+void SelectedTracksMessage::set_track_id(int64_t value_arg) {
+  track_id_ = value_arg;
+}
+
+int64_t SelectedTracksMessage::track_type() const { return track_type_; }
+
+void SelectedTracksMessage::set_track_type(int64_t value_arg) {
+  track_type_ = value_arg;
+}
+
+EncodableList SelectedTracksMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(3);
+  list.push_back(EncodableValue(player_id_));
+  list.push_back(EncodableValue(track_id_));
+  list.push_back(EncodableValue(track_type_));
+  return list;
+}
+
+SelectedTracksMessage SelectedTracksMessage::FromEncodableList(
     const EncodableList& list) {
-  TrackSelectionsMessage decoded(list[0].LongValue(),
-                                 std::get<EncodableList>(list[1]));
+  SelectedTracksMessage decoded(list[0].LongValue(), list[1].LongValue(),
+                                list[2].LongValue());
   return decoded;
 }
 
@@ -424,9 +460,12 @@ EncodableValue VideoPlayerVideoholeApiCodecSerializer::ReadValueOfType(
       return CustomEncodableValue(PositionMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 135:
-      return CustomEncodableValue(TrackSelectionsMessage::FromEncodableList(
+      return CustomEncodableValue(SelectedTracksMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 136:
+      return CustomEncodableValue(TrackMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    case 137:
       return CustomEncodableValue(VolumeMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     default:
@@ -494,16 +533,24 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
           stream);
       return;
     }
-    if (custom_value->type() == typeid(TrackSelectionsMessage)) {
+    if (custom_value->type() == typeid(SelectedTracksMessage)) {
       stream->WriteByte(135);
       WriteValue(
-          EncodableValue(std::any_cast<TrackSelectionsMessage>(*custom_value)
+          EncodableValue(std::any_cast<SelectedTracksMessage>(*custom_value)
                              .ToEncodableList()),
           stream);
       return;
     }
-    if (custom_value->type() == typeid(VolumeMessage)) {
+    if (custom_value->type() == typeid(TrackMessage)) {
       stream->WriteByte(136);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<TrackMessage>(*custom_value).ToEncodableList()),
+          stream);
+      return;
+    }
+    if (custom_value->type() == typeid(VolumeMessage)) {
+      stream->WriteByte(137);
       WriteValue(
           EncodableValue(
               std::any_cast<VolumeMessage>(*custom_value).ToEncodableList()),
@@ -837,8 +884,7 @@ void VideoPlayerVideoholeApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const auto& msg_arg = std::any_cast<const PlayerMessage&>(
                   std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<TrackSelectionsMessage> output =
-                  api->TrackSelections(msg_arg);
+              ErrorOr<TrackMessage> output = api->TrackSelections(msg_arg);
               if (output.has_error()) {
                 reply(WrapError(output.error()));
                 return;
@@ -871,9 +917,8 @@ void VideoPlayerVideoholeApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 reply(WrapError("msg_arg unexpectedly null."));
                 return;
               }
-              const auto& msg_arg =
-                  std::any_cast<const TrackSelectionsMessage&>(
-                      std::get<CustomEncodableValue>(encodable_msg_arg));
+              const auto& msg_arg = std::any_cast<const SelectedTracksMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
               std::optional<FlutterError> output =
                   api->SetTrackSelection(msg_arg);
               if (output.has_value()) {
