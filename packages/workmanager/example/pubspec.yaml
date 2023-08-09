@@ -9,15 +9,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.0.9
-  shared_preferences_tizen: ^2.1.0
   intl: ^0.18.1
   path_provider: ^2.0.7
   path_provider_tizen: ^2.1.0
+  shared_preferences: ^2.0.9
+  shared_preferences_tizen: ^2.1.0
+  tizen_log: ^0.1.2
   workmanager: ^0.5.1
   workmanager_tizen:
     path: ../
-  tizen_log:
 
 dev_dependencies:
   flutter_test:
