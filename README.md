@@ -53,6 +53,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**wearable_rotary**](packages/wearable_rotary) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/wearable_rotary.svg)](https://pub.dev/packages/wearable_rotary) | N/A |
 | [**webview_flutter_lwe**](packages/webview_flutter_lwe) | [webview_flutter](https://pub.dev/packages/webview_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/webview_flutter_lwe.svg)](https://pub.dev/packages/webview_flutter_lwe) | No |
 | [**webview_flutter_tizen**](packages/webview_flutter) | [webview_flutter](https://pub.dev/packages/webview_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen) | No |
+| [**workmanager_tizen**](packages/webview_flutter) | [webview_flutter](https://pub.dev/packages/workmanager_tizen) (3rd-party) | [![pub package](https://img.shields.io/pub/v/workmanager_tizen.svg)](https://pub.dev/packages/workmanager_tizen) | No |
 
 ## Device limitations
 
@@ -97,3 +98,4 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**wearable_rotary**](packages/wearable_rotary) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
 | [**webview_flutter_lwe**](packages/webview_flutter_lwe) | ✔️ | ✔️ | ✔️ | ✔️ | Not for production use |
 | [**webview_flutter_tizen**](packages/webview_flutter) | ❌ | ❌ | ✔️ | ✔️ | API not supported |
+| [**workmanager_tizen**](packages/workmanager) | ✔️ | ✔️ | ❌ | ❌ | API not supported |

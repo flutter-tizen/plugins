@@ -77,6 +77,8 @@
   - packages/webview_flutter/**/*
 "p: webview_flutter_lwe":
   - packages/webview_flutter_lwe/**/*
+"p: workmanager":
+  - packages/workmanager/**/*
 
 # Tools
 "tools":
