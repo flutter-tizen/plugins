@@ -1,7 +1,8 @@
 name: workmanager_tizen
 description: Tizen plugin of WorkManager.
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/workmanager
 version: 0.1.0
-homepage:
 
 environment:
   sdk: '>=2.18.0 <4.0.0'
