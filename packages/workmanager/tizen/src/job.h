@@ -40,29 +40,29 @@ constexpr const char* kPayload = "inputData";
 constexpr const char* kIsPeriodic = "isPeriodic";
 
 struct JobInfo {
-    JobInfo(bool is_debug_mode, std::string unique_name, std::string task_name,
-            ExistingWorkPolicy existing_work_policy,
-            int32_t initial_delay_seconds, Constraints constraints,
-            int32_t frequency_seconds = 0, std::string payload = "",
-            bool is_periodic = false)
-        : is_debug_mode(is_debug_mode),
-          unique_name(unique_name),
-          task_name(task_name),
-          initial_delay_seconds(initial_delay_seconds),
-          constraints(constraints),
-          payload(payload),
-          frequency_seconds(frequency_seconds),
-          is_periodic(is_periodic){};
+  JobInfo(bool is_debug_mode, std::string unique_name, std::string task_name,
+          ExistingWorkPolicy existing_work_policy,
+          int32_t initial_delay_seconds, Constraints constraints,
+          int32_t frequency_seconds = 0, std::string payload = "",
+          bool is_periodic = false)
+      : is_debug_mode(is_debug_mode),
+        unique_name(unique_name),
+        task_name(task_name),
+        initial_delay_seconds(initial_delay_seconds),
+        constraints(constraints),
+        payload(payload),
+        frequency_seconds(frequency_seconds),
+        is_periodic(is_periodic){};
 
-    bool is_debug_mode;
-    std::string unique_name;
-    std::string task_name;
-    int32_t initial_delay_seconds;
-    Constraints constraints;
-    std::string payload;
-    ExistingWorkPolicy existing_work_policy;
-    int32_t frequency_seconds;
-    bool is_periodic;
+  bool is_debug_mode;
+  std::string unique_name;
+  std::string task_name;
+  int32_t initial_delay_seconds;
+  Constraints constraints;
+  std::string payload;
+  ExistingWorkPolicy existing_work_policy;
+  int32_t frequency_seconds;
+  bool is_periodic;
 };
 
 void AddJobInfoToBundle(bundle* bund, const JobInfo& job_info);

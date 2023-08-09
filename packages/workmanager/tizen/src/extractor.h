@@ -38,7 +38,7 @@ constexpr const char* kKeep = "keep";
 constexpr const char* kAppend = "append";
 constexpr const char* kUpdate = "update";
 
-ExistingWorkPolicy StringToExistingWorkPolicy(const std::string &str);
+ExistingWorkPolicy StringToExistingWorkPolicy(const std::string& str);
 
 NetworkType StringToNetworkType(const std::string& str);
 

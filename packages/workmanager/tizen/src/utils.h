@@ -12,26 +12,26 @@
 template <typename T>
 bool GetValueFromEncodableMap(const flutter::EncodableMap *map, const char *key,
                               T &out) {
-    auto iter = map->find(flutter::EncodableValue(key));
-    if (iter != map->end() && !iter->second.IsNull()) {
-        if (auto *value = std::get_if<T>(&iter->second)) {
-            out = *value;
-            return true;
-        }
+  auto iter = map->find(flutter::EncodableValue(key));
+  if (iter != map->end() && !iter->second.IsNull()) {
+    if (auto *value = std::get_if<T>(&iter->second)) {
+      out = *value;
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
 template <typename T>
 std::optional<T> GetOrNullFromEncodableMap(const flutter::EncodableMap *map,
                                            const char *key) {
-    auto iter = map->find(flutter::EncodableValue(key));
-    if (iter != map->end() && !iter->second.IsNull()) {
-        if (auto *value = std::get_if<T>(&iter->second)) {
-            return *value;
-        }
+  auto iter = map->find(flutter::EncodableValue(key));
+  if (iter != map->end() && !iter->second.IsNull()) {
+    if (auto *value = std::get_if<T>(&iter->second)) {
+      return *value;
     }
-    return std::nullopt;
+  }
+  return std::nullopt;
 }
 
 #endif  // FLUTTER_PLUGIN_WORKMANAGER_UTILS_H_
