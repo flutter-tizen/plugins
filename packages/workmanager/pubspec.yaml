@@ -1,0 +1,25 @@
+name: workmanager_tizen
+description: Tizen plugin of WorkManager.
+version: 0.1.0
+homepage:
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: WorkmanagerTizenPlugin
+        fileName: workmanager_tizen_plugin.h

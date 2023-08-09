@@ -1,0 +1,30 @@
+name: workmanager_tizen_example
+description: Demonstrates how to use the workmanager_tizen plugin.
+publish_to: 'none'
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.0.9
+  shared_preferences_tizen: ^2.1.0
+  intl: ^0.18.1
+  path_provider: ^2.0.7
+  path_provider_tizen: ^2.1.0
+  workmanager: ^0.5.1
+  workmanager_tizen:
+    path: ../
+  tizen_log:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

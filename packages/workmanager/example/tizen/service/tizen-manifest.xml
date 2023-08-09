@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="org.tizen.workmanager_tizen_example" version="1.0.0" api-version="4.0" xmlns="http://tizen.org/ns/packages">
+    <profile name="wearable"/>
+    <service-application appid="org.tizen.workmanager_tizen_example_service" exec="runner_service" type="capp" multiple="false" nodisplay="true" taskmanage="false" auto-restart="false">
+        <label>workmanager_tizen_example_service</label>
+        <icon>ic_launcher.png</icon>
+        <background-category value="media"/>
+    </service-application>
+    <privileges>
+            <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
+    </privileges>
+    <feature name="http://tizen.org/feature/screen.size.all"/>
+</manifest>
