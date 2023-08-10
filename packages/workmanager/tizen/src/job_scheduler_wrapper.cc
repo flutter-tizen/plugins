@@ -48,6 +48,11 @@ int JobScheduler::SetJobConstraints(job_info_h job_info,
 
 void JobScheduler::RegisterJob(const JobInfo& job_info,
                                job_service_callback_s* callback) {
+  if (!callback) {
+    LOG_ERROR("callback in RegisterJob should not be nullptr");
+    return;
+  }
+
   job_info_h job_handle;
   int ret = job_info_create(&job_handle);
   if (ret != JOB_ERROR_NONE) {
@@ -103,9 +108,6 @@ void JobScheduler::RegisterJob(const JobInfo& job_info,
             LOG_ERROR("Failed to schedule job: %s", get_error_message(ret));
           } else {
             SaveJobInfo(job_info);
-            if (!callback) {
-              break;
-            }
             SetCallback(job_info.unique_name.c_str(), callback);
           }
           break;
@@ -118,9 +120,7 @@ void JobScheduler::RegisterJob(const JobInfo& job_info,
     }
   } else {
     SaveJobInfo(job_info);
-    if (callback) {
-      SetCallback(job_info.unique_name.c_str(), callback);
-    }
+    SetCallback(job_info.unique_name.c_str(), callback);
   }
 
   job_info_destroy(job_handle);
