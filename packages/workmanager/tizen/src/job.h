@@ -66,6 +66,6 @@ struct JobInfo {
 };
 
 void AddJobInfoToBundle(bundle* bund, const JobInfo& job_info);
-JobInfo GetFromBundle(bundle* bund);
+JobInfo GetJobInfoFromBundle(bundle* bund);
 
 #endif  // FLUTTER_PLUGIN_WORKMANAGER_JOB_INFO_H_

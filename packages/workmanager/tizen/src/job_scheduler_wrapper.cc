@@ -219,7 +219,7 @@ std::optional<JobInfo> JobScheduler::LoadJobInfo(const std::string& job_name) {
     LOG_ERROR("Failed load JobInfo %s", job_name.c_str());
     return std::nullopt;
   }
-  return GetFromBundle(bund);
+  return GetJobInfoFromBundle(bund);
 }
 
 std::string JobScheduler::GetJobInfoKey(const std::string& job_name) {

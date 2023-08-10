@@ -32,7 +32,7 @@ void AddJobInfoToBundle(bundle *bund, const JobInfo &job_info) {
   bundle_add_byte(bund, kIsPeriodic, &job_info.is_periodic, sizeof(bool));
 }
 
-JobInfo GetFromBundle(bundle *bund) {
+JobInfo GetJobInfoFromBundle(bundle *bund) {
   size_t size = 0;
 
   bool *is_debug_mode = nullptr;

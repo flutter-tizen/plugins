@@ -404,7 +404,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
     if (method_name_str == kRegisterOneOffTask ||
         method_name_str == kRegisterPeriodicTask) {
-      JobInfo job_info = GetFromBundle(event_data);
+      JobInfo job_info = GetJobInfoFromBundle(event_data);
 
       if (job_info.is_periodic) {
         job_service_callback_s callback = {StartJobCallback, StopJobCallback};
