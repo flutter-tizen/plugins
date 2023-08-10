@@ -26,11 +26,11 @@ constexpr const char* kBackgroundChannelInitialized =
     "backgroundChannelInitialized";
 
 constexpr const char* kIsInDebugMode = "isInDebugMode";
-constexpr const char* kCallbackhandle = "callbackHandle";
+constexpr const char* kCallbackHandle = "callbackHandle";
 constexpr const char* kFrequencySeconds = "frequency";
 constexpr const char* kCancelTaskUniqueName = "uniqueName";
 
-constexpr const char* kUniquename = "uniqueName";
+constexpr const char* kUniqueName = "uniqueName";
 constexpr const char* kNameValue = "taskName";
 
 constexpr const char* kConstraintsBundle = "constraintsBundle";

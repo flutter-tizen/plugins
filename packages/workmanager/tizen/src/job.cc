@@ -6,7 +6,7 @@
 
 void AddJobInfoToBundle(bundle *bund, const JobInfo &job_info) {
   bundle_add_byte(bund, kIsInDebugMode, &job_info.is_debug_mode, sizeof(bool));
-  bundle_add_str(bund, kUniquename, job_info.unique_name.c_str());
+  bundle_add_str(bund, kUniqueName, job_info.unique_name.c_str());
   bundle_add_str(bund, kNameValue, job_info.task_name.c_str());
   bundle_add_byte(bund, kExistingWorkpolicy, &job_info.existing_work_policy,
                   sizeof(ExistingWorkPolicy));
@@ -40,7 +40,7 @@ JobInfo GetJobInfoFromBundle(bundle *bund) {
   Constraints *constraints = nullptr;
 
   bundle_get_byte(bund, kIsInDebugMode, (void **)&is_debug_mode, &size);
-  bundle_get_str(bund, kUniquename, &unique_name);
+  bundle_get_str(bund, kUniqueName, &unique_name);
   bundle_get_str(bund, kNameValue, &task_name);
   bundle_get_byte(bund, kExistingWorkpolicy, (void **)&existing_work_policy,
                   &size);

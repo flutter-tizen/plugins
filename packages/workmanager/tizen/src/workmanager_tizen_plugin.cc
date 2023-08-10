@@ -236,7 +236,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
           std::get<bool>(map[flutter::EncodableValue(kIsInDebugMode)]);
 
       int64_t handle =
-          std::get<int64_t>(map[flutter::EncodableValue(kCallbackhandle)]);
+          std::get<int64_t>(map[flutter::EncodableValue(kCallbackHandle)]);
 
       preference_set_int(kDispatcherHandle, handle);
 
@@ -252,7 +252,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
       bool is_debug_mode =
           std::get<bool>(map[flutter::EncodableValue(kIsInDebugMode)]);
       std::string unique_name =
-          std::get<std::string>(map[flutter::EncodableValue(kUniquename)]);
+          std::get<std::string>(map[flutter::EncodableValue(kUniqueName)]);
       std::string task_name =
           std::get<std::string>(map[flutter::EncodableValue(kNameValue)]);
       ExistingWorkPolicy existing_work_policy =
@@ -452,7 +452,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
     } else if (method_name_str == kCancelTaskByUniqueName) {
       char *unique_name;
-      int ret = bundle_get_str(event_data, kUniquename, &unique_name);
+      int ret = bundle_get_str(event_data, kUniqueName, &unique_name);
       if (ret != BUNDLE_ERROR_NONE) {
         return;
       }
