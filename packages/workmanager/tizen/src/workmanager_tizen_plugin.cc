@@ -118,10 +118,13 @@ bool CheckIsServiceApp() {
     LOG_ERROR("Failed to get app id: %s", get_error_message(ret));
     return false;
   }
+
   app_info_h app_info;
   app_info_app_component_type_e app_type;
   app_info_create(app_id, &app_info);
   app_info_get_app_component_type(app_info, &app_type);
+  free(app_id);
+
   return app_type == APP_INFO_APP_COMPONENT_TYPE_SERVICE_APP;
 }
 

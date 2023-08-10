@@ -203,6 +203,7 @@ void JobScheduler::SaveJobInfo(const JobInfo& job_info) {
   preference_set_string(jobinfo_key.c_str(), (char*)encoded_bund);
   preference_set_int(jobinfo_size_key.c_str(), size);
   free(encoded_bund);
+  bundle_free(bund);
 }
 
 std::optional<JobInfo> JobScheduler::LoadJobInfo(const std::string& job_name) {
@@ -219,7 +220,10 @@ std::optional<JobInfo> JobScheduler::LoadJobInfo(const std::string& job_name) {
     LOG_ERROR("Failed load JobInfo %s", job_name.c_str());
     return std::nullopt;
   }
-  return GetJobInfoFromBundle(bund);
+
+  JobInfo job_info = GetJobInfoFromBundle(bund);
+  bundle_free(bund);
+  return job_info;
 }
 
 std::string JobScheduler::GetJobInfoKey(const std::string& job_name) {
