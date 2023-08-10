@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "log.h"
-#include "options.h"
 
 JobScheduler::JobScheduler() { job_scheduler_init(); }
 

@@ -8,7 +8,6 @@
 #include <bundle.h>
 
 #include <string>
-#include <variant>
 
 #include "extractor.h"
 #include "log.h"

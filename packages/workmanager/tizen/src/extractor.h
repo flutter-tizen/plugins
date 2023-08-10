@@ -6,14 +6,10 @@
 #define FLUTTER_PLUGIN_WORKMANAGER_EXTRACTOR_H_
 
 #include <flutter/encodable_value.h>
-#include <flutter/method_call.h>
 
 #include <string>
 
 #include "options.h"
-#include "utils.h"
-
-typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 
 constexpr const char* kInitialDelaySeconds = "initialDelaySeconds";
 constexpr const char* kExistingWorkpolicy = "existingWorkPolicy";

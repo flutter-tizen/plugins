@@ -4,15 +4,6 @@
 
 #include "job.h"
 
-#include <bundle.h>
-
-#include <string>
-#include <variant>
-
-#include "extractor.h"
-#include "log.h"
-#include "options.h"
-
 void AddJobInfoToBundle(bundle *bund, const JobInfo &job_info) {
   bundle_add_byte(bund, kIsInDebugMode, &job_info.is_debug_mode, sizeof(bool));
   bundle_add_str(bund, kUniquename, job_info.unique_name.c_str());

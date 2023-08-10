@@ -4,12 +4,6 @@
 
 #include "extractor.h"
 
-#include <flutter/encodable_value.h>
-#include <flutter/method_call.h>
-
-#include <string>
-
-#include "options.h"
 #include "utils.h"
 
 ExistingWorkPolicy StringToExistingWorkPolicy(const std::string &str) {

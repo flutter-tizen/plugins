@@ -14,19 +14,17 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
-#include <job_scheduler.h>
 #include <net_connection.h>
 #include <system_info.h>
-#include <tizen.h>
 #include <unistd.h>
 
-#include <memory>
 #include <string>
 
 #include "extractor.h"
 #include "job.h"
 #include "job_scheduler_wrapper.h"
 #include "log.h"
+#include "utils.h"
 
 namespace {
 
