@@ -454,6 +454,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
       char *unique_name;
       int ret = bundle_get_str(event_data, kUniqueName, &unique_name);
       if (ret != BUNDLE_ERROR_NONE) {
+        LOG_ERROR("Failed get unique_name from bundle");
         return;
       }
 
