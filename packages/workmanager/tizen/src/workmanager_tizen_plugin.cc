@@ -140,7 +140,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
       background_channel_.value()->SetMethodCallHandler(
           [plugin_pointer = plugin.get()](const auto &call, auto result) {
-            plugin_pointer->HandleBackground(call, std::move(result));
+            plugin_pointer->HandleBackgroundMethodCall(call, std::move(result));
           });
 
       event_handler_h handler;
@@ -170,7 +170,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
     foreground_channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
-          plugin_pointer->HandleWorkmanagerCall(call, std::move(result));
+          plugin_pointer->HandleMethodCall(call, std::move(result));
         });
 
     registrar->AddPlugin(std::move(plugin));
@@ -186,7 +186,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
   static job_service_callback_s callback_;
   static bool is_background_initialized_;  // Only in service app
 
-  void HandleWorkmanagerCall(const FlMethodCall &call,
+  void HandleMethodCall(const FlMethodCall &call,
                              std::unique_ptr<FlMethodResult> result) {
     const std::string method_name = call.method_name();
     const flutter::EncodableValue &arguments = *call.arguments();
@@ -231,7 +231,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
     flutter::EncodableMap map = std::get<flutter::EncodableMap>(arguments);
 
     if (method_name == kInitialize) {
-      bool isDebugMode =
+      bool is_debug_mode =
           std::get<bool>(map[flutter::EncodableValue(kIsInDebugMode)]);
 
       int64_t handle =
@@ -334,7 +334,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void HandleBackground(const FlMethodCall &call,
+  void HandleBackgroundMethodCall(const FlMethodCall &call,
                         std::unique_ptr<FlMethodResult> result) {
     if (call.method_name() == kBackgroundChannelInitialized) {
       is_background_initialized_ = true;
