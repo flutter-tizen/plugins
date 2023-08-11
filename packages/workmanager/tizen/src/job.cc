@@ -10,14 +10,11 @@ void AddJobInfoToBundle(bundle *bund, const JobInfo &job_info) {
   bundle_add_str(bund, kNameValue, job_info.task_name.c_str());
   bundle_add_byte(bund, kExistingWorkpolicy, &job_info.existing_work_policy,
                   sizeof(ExistingWorkPolicy));
-
   bundle_add_byte(bund, kInitialDelaySeconds, &job_info.initial_delay_seconds,
                   sizeof(int32_t));
   bundle_add_byte(bund, kFrequencySeconds, &job_info.frequency_seconds,
                   sizeof(int32_t));
-
   bundle_add_str(bund, kPayload, job_info.payload.c_str());
-
   bundle_add_byte(bund, kConstraintsBundle, &job_info.constraints,
                   sizeof(Constraints));
   bundle_add_byte(bund, kIsPeriodic, &job_info.is_periodic, sizeof(bool));
@@ -44,13 +41,11 @@ JobInfo GetJobInfoFromBundle(bundle *bund) {
   bundle_get_str(bund, kNameValue, &task_name);
   bundle_get_byte(bund, kExistingWorkpolicy, (void **)&existing_work_policy,
                   &size);
-
   bundle_get_byte(bund, kInitialDelaySeconds, (void **)&initial_delay_seconds,
                   &size);
   bundle_get_byte(bund, kFrequencySeconds, (void **)&frequency_seconds, &size);
   bundle_get_str(bund, kPayload, &payload);
   bundle_get_byte(bund, kIsPeriodic, (void **)&is_periodic, &size);
-
   bundle_get_byte(bund, kConstraintsBundle, (void **)&constraints, &size);
   bundle_get_byte(bund, kIsPeriodic, (void **)&is_periodic, &size);
 

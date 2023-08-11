@@ -202,7 +202,6 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
         LOG_ERROR("Failed create bundle");
         result->Error(kOperationFailed, "Failed Creating bundle.");
       }
-
       bundle_add_str(bund, kMethodNameKey, method_name.c_str());
 
       if (is_service_app_) {
@@ -265,15 +264,12 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
               .value_or(0);
 
       Constraints constraints_config = ExtractConstraintConfigFromMap(map);
-
       std::string payload =
           GetOrNullFromEncodableMap<std::string>(&map, kPayload).value_or("");
-
       JobInfo job_info(is_debug_mode, unique_name, task_name,
                        existing_work_policy, initial_delay_seconds,
                        constraints_config, frequency_seconds, payload,
                        is_periodic);
-
       bundle *bund = bundle_create();
 
       if (!bund) {
@@ -330,7 +326,6 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
           return;
         }
       }
-
       bundle_free(bund);
 
       result->Success();
@@ -388,7 +383,6 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
     if (ret == APP_MANAGER_ERROR_NONE) {
       return std::string(app_id);
     }
-
     return std::nullopt;
   }
 
@@ -400,7 +394,6 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
     bundle_get_str(event_data, kMethodNameKey, &method_name);
 
     std::string method_name_str(method_name);
-
     JobScheduler &job_scheduler = JobScheduler::instance();
 
     if (method_name_str == kRegisterOneOffTask ||
@@ -409,9 +402,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
       if (job_info.is_periodic) {
         job_service_callback_s callback = {StartJobCallback, StopJobCallback};
-
         job_scheduler.RegisterJob(job_info, &callback);
-
       } else {
         if (job_info.constraints.battery_not_low) {
           device_battery_level_e level;
@@ -459,7 +450,6 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
       }
 
       job_scheduler.CancelByUniqueName(unique_name);
-
     } else if (method_name_str == kCancelAllTasks) {
       job_scheduler.CancelAll();
     }
