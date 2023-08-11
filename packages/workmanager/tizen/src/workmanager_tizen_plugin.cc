@@ -388,7 +388,6 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
   static void TaskInfoCallback(const char *event_name, bundle *event_data,
                                void *user_data) {
-    size_t size;
     char *method_name = nullptr;
 
     bundle_get_str(event_data, kMethodNameKey, &method_name);
