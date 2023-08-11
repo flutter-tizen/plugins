@@ -6,6 +6,7 @@
 
 #include <app_preference.h>
 
+#include <utility>
 #include <vector>
 
 #include "log.h"
@@ -208,7 +209,8 @@ void JobScheduler::SaveJobInfo(const JobInfo& job_info) {
   AddJobInfoToBundle(bund, job_info);
   bundle_encode(bund, &encoded_bund, &size);
 
-  preference_set_string(jobinfo_key.c_str(), (char*)encoded_bund);
+  preference_set_string(jobinfo_key.c_str(),
+                        reinterpret_cast<char*>(encoded_bund));
   preference_set_int(jobinfo_size_key.c_str(), size);
   free(encoded_bund);
   bundle_free(bund);
@@ -222,7 +224,7 @@ std::optional<JobInfo> JobScheduler::LoadJobInfo(const std::string& job_name) {
   preference_get_string(jobinfo_key.c_str(), &base64);
   preference_get_int((kTaskInfoPreferenceSizePrefix + job_name).c_str(), &size);
 
-  bundle* bund = bundle_decode((bundle_raw*)base64, size);
+  bundle* bund = bundle_decode(reinterpret_cast<bundle_raw*>(base64), size);
 
   if (!bund) {
     LOG_ERROR("Failed load JobInfo %s.", job_name.c_str());

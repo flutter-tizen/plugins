@@ -36,18 +36,23 @@ JobInfo GetJobInfoFromBundle(bundle *bund) {
 
   Constraints *constraints = nullptr;
 
-  bundle_get_byte(bund, kIsInDebugMode, (void **)&is_debug_mode, &size);
+  bundle_get_byte(bund, kIsInDebugMode,
+                  reinterpret_cast<void **>(&is_debug_mode), &size);
   bundle_get_str(bund, kUniqueName, &unique_name);
   bundle_get_str(bund, kNameValue, &task_name);
-  bundle_get_byte(bund, kExistingWorkpolicy, (void **)&existing_work_policy,
-                  &size);
-  bundle_get_byte(bund, kInitialDelaySeconds, (void **)&initial_delay_seconds,
-                  &size);
-  bundle_get_byte(bund, kFrequencySeconds, (void **)&frequency_seconds, &size);
+  bundle_get_byte(bund, kExistingWorkpolicy,
+                  reinterpret_cast<void **>(&existing_work_policy), &size);
+  bundle_get_byte(bund, kInitialDelaySeconds,
+                  reinterpret_cast<void **>(&initial_delay_seconds), &size);
+  bundle_get_byte(bund, kFrequencySeconds,
+                  reinterpret_cast<void **>(&frequency_seconds), &size);
   bundle_get_str(bund, kPayload, &payload);
-  bundle_get_byte(bund, kIsPeriodic, (void **)&is_periodic, &size);
-  bundle_get_byte(bund, kConstraintsBundle, (void **)&constraints, &size);
-  bundle_get_byte(bund, kIsPeriodic, (void **)&is_periodic, &size);
+  bundle_get_byte(bund, kIsPeriodic, reinterpret_cast<void **>(&is_periodic),
+                  &size);
+  bundle_get_byte(bund, kConstraintsBundle,
+                  reinterpret_cast<void **>(&constraints), &size);
+  bundle_get_byte(bund, kIsPeriodic, reinterpret_cast<void **>(&is_periodic),
+                  &size);
 
   return JobInfo(*is_debug_mode, unique_name, task_name, *existing_work_policy,
                  *initial_delay_seconds, *constraints, *frequency_seconds,

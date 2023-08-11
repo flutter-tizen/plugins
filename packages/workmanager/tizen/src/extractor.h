@@ -45,4 +45,4 @@ NetworkType ExtractNetworkTypeFromMap(const flutter::EncodableMap& args);
 
 Constraints ExtractConstraintConfigFromMap(const flutter::EncodableMap& map);
 
-#endif
+#endif  // FLUTTER_PLUGIN_WORKMANAGER_EXTRACTOR_H_

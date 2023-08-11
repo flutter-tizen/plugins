@@ -51,7 +51,7 @@ struct JobInfo {
         constraints(constraints),
         payload(payload),
         frequency_seconds(frequency_seconds),
-        is_periodic(is_periodic){};
+        is_periodic(is_periodic) {}
 
   bool is_debug_mode;
   std::string unique_name;
