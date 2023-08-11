@@ -18,7 +18,7 @@ int JobScheduler::SetJobConstraints(job_info_h job_info,
   if (constraints.battery_not_low) {
     ret = job_info_set_requires_battery_not_low(job_info, true);
     if (ret != JOB_ERROR_NONE) {
-      LOG_ERROR("Failed to set job info battery_not_low: %s",
+      LOG_ERROR("Failed to set job info battery_not_low. Error message: %s",
                 get_error_message(ret));
       return ret;
     }
@@ -27,7 +27,8 @@ int JobScheduler::SetJobConstraints(job_info_h job_info,
   if (constraints.charging) {
     ret = job_info_set_requires_charging(job_info, true);
     if (ret != JOB_ERROR_NONE) {
-      LOG_ERROR("Failed to set job info charging: %s", get_error_message(ret));
+      LOG_ERROR("Failed to set job info charging. Error message: %s",
+                get_error_message(ret));
       return ret;
     }
   }
@@ -37,7 +38,7 @@ int JobScheduler::SetJobConstraints(job_info_h job_info,
     case NetworkType::kUnmetered:
       ret = job_info_set_requires_wifi_connection(job_info, true);
       if (ret != JOB_ERROR_NONE) {
-        LOG_ERROR("Failed to set job info wifi_connection: %s",
+        LOG_ERROR("Failed to set job info wifi_connection. Error message: %s",
                   get_error_message(ret));
         return ret;
       }
@@ -49,14 +50,15 @@ int JobScheduler::SetJobConstraints(job_info_h job_info,
 void JobScheduler::RegisterJob(const JobInfo& job_info,
                                job_service_callback_s* callback) {
   if (!callback) {
-    LOG_ERROR("callback in RegisterJob should not be nullptr");
+    LOG_ERROR("callback in RegisterJob should not be nullptr.");
     return;
   }
 
   job_info_h job_handle;
   int ret = job_info_create(&job_handle);
   if (ret != JOB_ERROR_NONE) {
-    LOG_ERROR("Failed to create job info: %s", get_error_message(ret));
+    LOG_ERROR("Failed to create job info. Error message: %s",
+              get_error_message(ret));
     return;
   }
 
@@ -69,13 +71,14 @@ void JobScheduler::RegisterJob(const JobInfo& job_info,
   if (job_info.is_periodic) {
     ret = job_info_set_periodic(job_handle, job_info.frequency_seconds / 60);
     if (ret != JOB_ERROR_NONE) {
-      LOG_ERROR("Failed to set job info periodic: %s", get_error_message(ret));
+      LOG_ERROR("Failed to set job info periodic. Error message: %s",
+                get_error_message(ret));
       job_info_destroy(job_handle);
       return;
     }
     ret = job_info_set_persistent(job_handle, true);
     if (ret != JOB_ERROR_NONE) {
-      LOG_ERROR("Failed to set job info persistent: %s",
+      LOG_ERROR("Failed to set job info persistent. Error message: %s",
                 get_error_message(ret));
       job_info_destroy(job_handle);
       return;
@@ -83,13 +86,15 @@ void JobScheduler::RegisterJob(const JobInfo& job_info,
   } else {
     ret = job_info_set_once(job_handle, true);
     if (ret != JOB_ERROR_NONE) {
-      LOG_ERROR("Failed to set job info once: %s", get_error_message(ret));
+      LOG_ERROR("Failed to set job info once. Error message: %s",
+                get_error_message(ret));
       job_info_destroy(job_handle);
       return;
     }
     ret = job_info_set_persistent(job_handle, false);
     if (ret != JOB_ERROR_NONE) {
-      LOG_ERROR("Failed to set job non-persistent: %s", get_error_message(ret));
+      LOG_ERROR("Failed to set job non-persistent. Error message: %s",
+                get_error_message(ret));
       job_info_destroy(job_handle);
       return;
     }
@@ -105,7 +110,8 @@ void JobScheduler::RegisterJob(const JobInfo& job_info,
           ret =
               job_scheduler_schedule(job_handle, job_info.unique_name.c_str());
           if (ret != JOB_ERROR_NONE) {
-            LOG_ERROR("Failed to schedule job: %s", get_error_message(ret));
+            LOG_ERROR("Failed to schedule job. Error message: %s",
+                      get_error_message(ret));
           } else {
             SaveJobInfo(job_info);
             SetCallback(job_info.unique_name.c_str(), callback);
@@ -116,7 +122,8 @@ void JobScheduler::RegisterJob(const JobInfo& job_info,
                    job_info.unique_name.c_str());
       }
     } else {
-      LOG_ERROR("Failed to schedule job: %s", get_error_message(ret));
+      LOG_ERROR("Failed to schedule job. Error message: %s",
+                get_error_message(ret));
     }
   } else {
     SaveJobInfo(job_info);
@@ -129,8 +136,8 @@ void JobScheduler::RegisterJob(const JobInfo& job_info,
 void JobScheduler::CancelByUniqueName(const std::string& name) {
   int ret = job_scheduler_cancel(name.c_str());
   if (ret != JOB_ERROR_NONE) {
-    LOG_ERROR("Failed to cancel job with name %s: %s", name.c_str(),
-              get_error_message(ret));
+    LOG_ERROR("Failed to cancel job with name %s. Error message: %s",
+              name.c_str(), get_error_message(ret));
     return;
   }
   preference_remove(GetJobInfoKey(name).c_str());
@@ -160,7 +167,8 @@ job_service_h JobScheduler::SetCallback(const char* job_name,
   job_service_h service = nullptr;
   int ret = job_scheduler_service_add(job_name, callback, nullptr, &service);
   if (ret != JOB_ERROR_NONE) {
-    LOG_ERROR("Failed to add service to job: %s", get_error_message(ret));
+    LOG_ERROR("Failed to add service to job. Error message: %s",
+              get_error_message(ret));
     return nullptr;
   }
 
@@ -217,7 +225,7 @@ std::optional<JobInfo> JobScheduler::LoadJobInfo(const std::string& job_name) {
   bundle* bund = bundle_decode((bundle_raw*)base64, size);
 
   if (!bund) {
-    LOG_ERROR("Failed load JobInfo %s", job_name.c_str());
+    LOG_ERROR("Failed load JobInfo %s.", job_name.c_str());
     return std::nullopt;
   }
 

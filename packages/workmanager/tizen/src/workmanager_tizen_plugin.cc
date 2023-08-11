@@ -113,7 +113,8 @@ bool CheckIsServiceApp() {
   char *app_id;
   int ret = app_manager_get_app_id(getpid(), &app_id);
   if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("Failed to get app id: %s", get_error_message(ret));
+    LOG_ERROR("Failed to get app id. Error message: %s",
+              get_error_message(ret));
     return false;
   }
 
@@ -187,7 +188,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
   static bool is_background_initialized_;  // Only in service app
 
   void HandleMethodCall(const FlMethodCall &call,
-                             std::unique_ptr<FlMethodResult> result) {
+                        std::unique_ptr<FlMethodResult> result) {
     const std::string method_name = call.method_name();
     const flutter::EncodableValue &arguments = *call.arguments();
 
@@ -196,10 +197,10 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
     const std::string service_app_id = GetAppId().value() + "_service";
 
-    if (call.method_name() == kCancelAllTasks) {
+    if (method_name == kCancelAllTasks) {
       bundle *bund = bundle_create();
       if (!bund) {
-        LOG_ERROR("Failed create bundle");
+        LOG_ERROR("Failed create bundle.");
         result->Error(kOperationFailed, "Failed Creating bundle.");
       }
       bundle_add_str(bund, kMethodNameKey, method_name.c_str());
@@ -210,9 +211,10 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
         int ret = event_publish_app_event(event_id.c_str(), bund);
 
         if (ret != EVENT_ERROR_NONE) {
-          LOG_ERROR("Failed publich app event: %s", get_error_message(ret));
+          LOG_ERROR("Failed publich app event. Error message: %s",
+                    get_error_message(ret));
 
-          result->Error(kOperationFailed, "Failed publish app event");
+          result->Error(kOperationFailed, "Failed publish app event.");
           bundle_free(bund);
           return;
         }
@@ -224,7 +226,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
     }
 
     if (!std::holds_alternative<flutter::EncodableMap>(arguments)) {
-      result->Error(kInvalidArg, "No argument provided");
+      result->Error(kInvalidArg, "No argument provided.");
       return;
     }
 
@@ -273,7 +275,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
       bundle *bund = bundle_create();
 
       if (!bund) {
-        LOG_ERROR("Failed create bundle");
+        LOG_ERROR("Failed create bundle.");
         result->Error(kOperationFailed, "Failed Creating bundle.");
       }
 
@@ -286,7 +288,8 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
       } else {
         int ret = event_publish_app_event(event_id.c_str(), bund);
         if (ret != EVENT_ERROR_NONE) {
-          LOG_ERROR("Failed publish event: %s", get_error_message(ret));
+          LOG_ERROR("Failed publish event. Error message: %s",
+                    get_error_message(ret));
           result->Error(kOperationFailed, "Error occured.");
 
           bundle_free(bund);
@@ -300,13 +303,13 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
       std::optional<std::string> name =
           GetOrNullFromEncodableMap<std::string>(&map, kCancelTaskUniqueName);
       if (!name.has_value()) {
-        result->Error(kInvalidArg, "No name provided");
+        result->Error(kInvalidArg, "No name provided.");
         return;
       }
 
       bundle *bund = bundle_create();
       if (!bund) {
-        LOG_ERROR("Failed create bundle");
+        LOG_ERROR("Failed create bundle.");
         result->Error(kOperationFailed, "Failed Creating bundle.");
       }
 
@@ -319,7 +322,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
         int ret = event_publish_app_event(event_id.c_str(), bund);
 
         if (ret != BUNDLE_ERROR_NONE) {
-          LOG_ERROR("Failed publish event: %s", get_error_message(ret));
+          LOG_ERROR("Failed publish event. : %s", get_error_message(ret));
           result->Error(kOperationFailed, "Failed Publish event.");
 
           bundle_free(bund);
@@ -335,7 +338,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
   }
 
   void HandleBackgroundMethodCall(const FlMethodCall &call,
-                        std::unique_ptr<FlMethodResult> result) {
+                                  std::unique_ptr<FlMethodResult> result) {
     if (call.method_name() == kBackgroundChannelInitialized) {
       is_background_initialized_ = true;
     }
@@ -444,7 +447,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
       char *unique_name;
       int ret = bundle_get_str(event_data, kUniqueName, &unique_name);
       if (ret != BUNDLE_ERROR_NONE) {
-        LOG_ERROR("Failed get unique_name from bundle");
+        LOG_ERROR("Failed get unique_name from bundle.");
         return;
       }
 
