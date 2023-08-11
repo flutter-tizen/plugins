@@ -1,5 +1,5 @@
 name: workmanager_tizen
-description: Tizen plugin of WorkManager.
+description: Tizen implementation of the workmanager plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/workmanager
 version: 0.1.0
@@ -10,12 +10,6 @@ environment:
 
 dependencies:
   flutter:
-    sdk: flutter
-  plugin_platform_interface: ^2.0.2
-
-dev_dependencies:
-  flutter_lints: ^2.0.0
-  flutter_test:
     sdk: flutter
 
 flutter:
