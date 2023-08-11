@@ -151,11 +151,11 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
       event_add_event_handler(event_id.c_str(), TaskInfoCallback, nullptr,
                               &handler);
 
-      auto &scheduler = JobScheduler::instance();
-      auto job_names = scheduler.GetAllJobs();
+      JobScheduler &scheduler = JobScheduler::instance();
+      std::vector<std::string> job_names = scheduler.GetAllJobs();
       job_service_callback_s callback = {StartJobCallback, StopJobCallback};
-      for (const auto &name : job_names) {
-        auto info = scheduler.LoadJobInfo(name);
+      for (const std::string &name : job_names) {
+        std::optional<JobInfo> info = scheduler.LoadJobInfo(name);
         if (!info.has_value()) {
           continue;
         }
@@ -188,8 +188,8 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
   void HandleWorkmanagerCall(const FlMethodCall &call,
                              std::unique_ptr<FlMethodResult> result) {
-    const auto method_name = call.method_name();
-    const auto &arguments = *call.arguments();
+    const std::string method_name = call.method_name();
+    const flutter::EncodableValue &arguments = *call.arguments();
 
     std::string app_id = GetAppId().value();
     std::string event_id = "event." + app_id + "." + kEventName;
@@ -301,7 +301,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
       result->Success();
     } else if (method_name == kCancelTaskByUniqueName) {
-      auto name =
+      std::optional<std::string> name =
           GetOrNullFromEncodableMap<std::string>(&map, kCancelTaskUniqueName);
       if (!name.has_value()) {
         result->Error(kInvalidArg, "No name provided");
@@ -372,8 +372,8 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
   static void StartJobCallback(job_info_h job_info, void *user_data) {
     char *job_id = nullptr;
     job_info_get_job_id(job_info, &job_id);
-    auto &scheduler = JobScheduler::instance();
-    auto task_info = scheduler.LoadJobInfo(job_id).value();
+    JobScheduler &scheduler = JobScheduler::instance();
+    JobInfo task_info = scheduler.LoadJobInfo(job_id).value();
 
     RunBackgroundCallback(task_info.task_name, task_info.payload);
   }
@@ -401,7 +401,7 @@ class WorkmanagerTizenPlugin : public flutter::Plugin {
 
     std::string method_name_str(method_name);
 
-    auto &job_scheduler = JobScheduler::instance();
+    JobScheduler &job_scheduler = JobScheduler::instance();
 
     if (method_name_str == kRegisterOneOffTask ||
         method_name_str == kRegisterPeriodicTask) {

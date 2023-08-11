@@ -140,15 +140,16 @@ void JobScheduler::CancelByUniqueName(const std::string& name) {
 }
 
 void JobScheduler::CancelAll() {
-  auto job_names = GetAllJobs();
+  std::vector<std::string> job_names = GetAllJobs();
 
   job_scheduler_cancel_all();
 
-  for (const auto& name : job_names) {
+  for (const std::string& name : job_names) {
     preference_remove(GetJobInfoKey(name).c_str());
   }
 
-  for (const auto& items : job_service_handles_) {
+  for (const std::pair<std::string, job_service_h>& items :
+       job_service_handles_) {
     job_scheduler_service_remove(items.second);
   }
   job_service_handles_.clear();
