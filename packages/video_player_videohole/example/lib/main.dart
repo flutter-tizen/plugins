@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// ignore_for_file: public_member_api_docs, avoid_print
+// ignore_for_file: public_member_api_docs, avoid_print, use_build_context_synchronously
 
 /// An example of using the plugin, controlling lifecycle and playback of the
 /// video.
@@ -38,7 +38,7 @@ class _App extends StatelessWidget {
               Tab(icon: Icon(Icons.cloud), text: 'Dash'),
               Tab(icon: Icon(Icons.cloud), text: 'DRM Widevine'),
               Tab(icon: Icon(Icons.cloud), text: 'DRM PlayReady'),
-              Tab(icon: Icon(Icons.cloud), text: 'Track Selections'),
+              Tab(icon: Icon(Icons.cloud), text: 'Track'),
             ],
           ),
         ),
@@ -49,7 +49,7 @@ class _App extends StatelessWidget {
             _DashRomoteVideo(),
             _DrmRemoteVideo(),
             _DrmRemoteVideo2(),
-            _TrackSelectionTest(),
+            _TrackTest(),
           ],
         ),
       ),
@@ -373,12 +373,12 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
   }
 }
 
-class _TrackSelectionTest extends StatefulWidget {
+class _TrackTest extends StatefulWidget {
   @override
-  State<_TrackSelectionTest> createState() => _TrackSelectionTestState2();
+  State<_TrackTest> createState() => _TrackTestState();
 }
 
-class _TrackSelectionTestState2 extends State<_TrackSelectionTest> {
+class _TrackTestState extends State<_TrackTest> {
   late VideoPlayerController _controller;
 
   @override
@@ -427,7 +427,9 @@ class _TrackSelectionTestState2 extends State<_TrackSelectionTest> {
               ),
             ),
           ),
-          _GetTrackSelectionButton(controller: _controller),
+          _GetVideoTrackButton(controller: _controller),
+          _GetAudioTrackButton(controller: _controller),
+          _GetTextTrackButton(controller: _controller),
         ],
       ),
     );
@@ -550,8 +552,8 @@ class _ControlsOverlay extends StatelessWidget {
   }
 }
 
-class _GetTrackSelectionButton extends StatelessWidget {
-  const _GetTrackSelectionButton({required this.controller});
+class _GetVideoTrackButton extends StatelessWidget {
+  const _GetVideoTrackButton({required this.controller});
 
   final VideoPlayerController controller;
 
@@ -560,113 +562,123 @@ class _GetTrackSelectionButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 20.0),
       child: MaterialButton(
-          child: const Text('Get Track Selection'),
+          child: const Text('Get Video Track'),
           onPressed: () async {
-            final List<TrackSelection>? tracks =
-                await controller.trackSelections;
-            if (tracks == null) {
+            final List<VideoTrack>? videotracks = await controller.videoTracks;
+            if (videotracks == null) {
               return;
             }
-            // ignore: use_build_context_synchronously
             await showDialog(
-              context: context,
-              builder: (_) => _TrackSelectionDialog(
-                controller: controller,
-                videoTrackSelections: tracks
-                    .where((TrackSelection track) =>
-                        track.trackType == TrackSelectionType.video)
-                    .toList(),
-                audioTrackSelections: tracks
-                    .where((TrackSelection track) =>
-                        track.trackType == TrackSelectionType.audio)
-                    .toList(),
-                textTrackSelections: tracks
-                    .where((TrackSelection track) =>
-                        track.trackType == TrackSelectionType.text)
-                    .toList(),
-              ),
-            );
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Video'),
+                    content: SizedBox(
+                        height: 200,
+                        width: 200,
+                        child: ListView.builder(
+                          itemCount: videotracks.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return ListTile(
+                              title: Text(
+                                  '${videotracks[index].width}x${videotracks[index].height},${(videotracks[index].bitrate / 1000000).toStringAsFixed(2)}Mbps'),
+                              onTap: () {
+                                controller
+                                    .setTrackSelection(videotracks[index]);
+                              },
+                            );
+                          },
+                        )),
+                  );
+                });
           }),
     );
   }
 }
 
-class _TrackSelectionDialog extends StatelessWidget {
-  const _TrackSelectionDialog({
-    required this.controller,
-    required this.videoTrackSelections,
-    required this.audioTrackSelections,
-    required this.textTrackSelections,
-  });
+class _GetAudioTrackButton extends StatelessWidget {
+  const _GetAudioTrackButton({required this.controller});
 
   final VideoPlayerController controller;
-  final List<TrackSelection> videoTrackSelections;
-  final List<TrackSelection> audioTrackSelections;
-  final List<TrackSelection> textTrackSelections;
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: AlertDialog(
-        titlePadding: EdgeInsets.zero,
-        contentPadding: EdgeInsets.zero,
-        title: TabBar(
-          labelColor: Colors.black,
-          tabs: <Widget>[
-            if (videoTrackSelections.isNotEmpty) const Tab(text: 'Video'),
-            if (audioTrackSelections.isNotEmpty) const Tab(text: 'Audio'),
-            if (textTrackSelections.isNotEmpty) const Tab(text: 'Text'),
-          ],
-        ),
-        content: SizedBox(
-          height: 200,
-          width: 200,
-          child: TabBarView(
-            children: <Widget>[
-              if (videoTrackSelections.isNotEmpty)
-                ListView.builder(
-                    itemCount: videoTrackSelections.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ListTile(
-                        title: Text(
-                            '${videoTrackSelections[index].width}x${videoTrackSelections[index].height},${(videoTrackSelections[index].bitrate! / 1000000).toStringAsFixed(2)}Mbps'),
-                        onTap: () {
-                          controller
-                              .setTrackSelection(videoTrackSelections[index]);
-                        },
-                      );
-                    }),
-              if (audioTrackSelections.isNotEmpty)
-                ListView.builder(
-                    itemCount: audioTrackSelections.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ListTile(
-                        title: Text(
-                            'language:${audioTrackSelections[index].language}'),
-                        onTap: () {
-                          controller
-                              .setTrackSelection(audioTrackSelections[index]);
-                        },
-                      );
-                    }),
-              if (textTrackSelections.isNotEmpty)
-                ListView.builder(
-                    itemCount: textTrackSelections.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ListTile(
-                        title: Text(
-                            'language:${textTrackSelections[index].language}'),
-                        onTap: () {
-                          controller
-                              .setTrackSelection(textTrackSelections[index]);
-                        },
-                      );
-                    }),
-            ],
-          ),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 20.0),
+      child: MaterialButton(
+          child: const Text('Get Audio Track'),
+          onPressed: () async {
+            final List<AudioTrack>? audioTracks = await controller.audioTracks;
+            if (audioTracks == null) {
+              return;
+            }
+            await showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Audio'),
+                    content: SizedBox(
+                        height: 200,
+                        width: 200,
+                        child: ListView.builder(
+                          itemCount: audioTracks.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return ListTile(
+                              title: Text(
+                                  'language:${audioTracks[index].language}'),
+                              onTap: () {
+                                controller
+                                    .setTrackSelection(audioTracks[index]);
+                              },
+                            );
+                          },
+                        )),
+                  );
+                });
+          }),
+    );
+  }
+}
+
+class _GetTextTrackButton extends StatelessWidget {
+  const _GetTextTrackButton({required this.controller});
+
+  final VideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20.0),
+      child: MaterialButton(
+          child: const Text('Get Text Track'),
+          onPressed: () async {
+            final List<TextTrack>? textTracks = await controller.textTracks;
+            if (textTracks == null) {
+              return;
+            }
+            await showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Text'),
+                    content: SizedBox(
+                        height: 200,
+                        width: 200,
+                        child: ListView.builder(
+                          itemCount: textTracks.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return ListTile(
+                              title: Text(
+                                  'language:${textTracks[index].language}'),
+                              onTap: () {
+                                controller.setTrackSelection(textTracks[index]);
+                              },
+                            );
+                          },
+                        )),
+                  );
+                });
+          }),
     );
   }
 }

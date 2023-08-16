@@ -44,7 +44,7 @@ class VideoPlayerValue {
     this.position = Duration.zero,
     this.caption = Caption.none,
     this.captionOffset = Duration.zero,
-    this.trackSelections = const <TrackSelection>[],
+    this.tracks = const <Track>[],
     this.buffered = 0,
     this.isInitialized = false,
     this.isPlaying = false,
@@ -107,8 +107,8 @@ class VideoPlayerValue {
   /// The current speed of the playback.
   final double playbackSpeed;
 
-  /// The current playback track selections.
-  final List<TrackSelection> trackSelections;
+  /// The current playback tracks.
+  final List<Track> tracks;
 
   /// A description of the error if present.
   ///
@@ -150,7 +150,7 @@ class VideoPlayerValue {
     Duration? position,
     Caption? caption,
     Duration? captionOffset,
-    List<TrackSelection>? trackSelections,
+    List<Track>? tracks,
     int? buffered,
     bool? isInitialized,
     bool? isPlaying,
@@ -166,7 +166,7 @@ class VideoPlayerValue {
       position: position ?? this.position,
       caption: caption ?? this.caption,
       captionOffset: captionOffset ?? this.captionOffset,
-      trackSelections: trackSelections ?? this.trackSelections,
+      tracks: tracks ?? this.tracks,
       buffered: buffered ?? this.buffered,
       isInitialized: isInitialized ?? this.isInitialized,
       isPlaying: isPlaying ?? this.isPlaying,
@@ -188,7 +188,7 @@ class VideoPlayerValue {
         'position: $position, '
         'caption: $caption, '
         'captionOffset: $captionOffset, '
-        'trackSelections: $trackSelections, '
+        'tracks: $tracks, '
         'buffered: $buffered, '
         'isInitialized: $isInitialized, '
         'isPlaying: $isPlaying, '
@@ -584,20 +584,36 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _updatePosition(position);
   }
 
-  /// The track selections in the current video.
-  Future<List<TrackSelection>?> get trackSelections async {
+  /// The video tracks in the current video.
+  Future<List<VideoTrack>?> get videoTracks async {
     if (!value.isInitialized || _isDisposed) {
       return null;
     }
-    return _videoPlayerPlatform.getTrackSelections(_playerId);
+    return _videoPlayerPlatform.getVideoTracks(_playerId);
   }
 
-  /// Sets the selected video track selection.
-  Future<void> setTrackSelection(TrackSelection trackSelection) async {
+  /// The audio tracks in the current video.
+  Future<List<AudioTrack>?> get audioTracks async {
+    if (!value.isInitialized || _isDisposed) {
+      return null;
+    }
+    return _videoPlayerPlatform.getAudioTracks(_playerId);
+  }
+
+  /// The text tracks in the current video.
+  Future<List<TextTrack>?> get textTracks async {
+    if (!value.isInitialized || _isDisposed) {
+      return null;
+    }
+    return _videoPlayerPlatform.getTextTracks(_playerId);
+  }
+
+  /// Sets the selected tracks.
+  Future<void> setTrackSelection(Track track) async {
     if (!value.isInitialized || _isDisposed) {
       return;
     }
-    await _videoPlayerPlatform.setTrackSelection(_playerId, trackSelection);
+    await _videoPlayerPlatform.setTrackSelection(_playerId, track);
   }
 
   /// Sets the audio volume of [this].

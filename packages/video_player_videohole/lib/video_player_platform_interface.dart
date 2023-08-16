@@ -86,15 +86,23 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('seekTo() has not been implemented.');
   }
 
-  /// Gets the video [TrackSelection]s. For convenience if the video file has at
-  /// least one [TrackSelection] for a specific type, the auto track selection will
-  /// be added to this list with that type.
-  Future<List<TrackSelection>> getTrackSelections(int playerId) {
-    throw UnimplementedError('getTrackSelection() has not been implemented.');
+  /// Gets the video tracks as a list of [VideoTrack].
+  Future<List<VideoTrack>> getVideoTracks(int playerId) {
+    throw UnimplementedError('getVideoTracks() has not been implemented.');
+  }
+
+  /// Gets the video tracks as a list of [AudioTrack].
+  Future<List<AudioTrack>> getAudioTracks(int playerId) {
+    throw UnimplementedError('getAudioTracks() has not been implemented.');
+  }
+
+  /// Gets the video tracks as a list of [TextTrack].
+  Future<List<TextTrack>> getTextTracks(int playerId) {
+    throw UnimplementedError('getTextTracks() has not been implemented.');
   }
 
   /// Sets the selected video track selection.
-  Future<void> setTrackSelection(int playerId, TrackSelection trackSelection) {
+  Future<void> setTrackSelection(int playerId, Track track) {
     throw UnimplementedError('setTrackSelection() has not been implemented.');
   }
 
@@ -403,124 +411,20 @@ class VideoPlayerOptions {
   final bool mixWithOthers;
 }
 
-/// A representation of a single track selection.
-///
-/// A typical video file will include several [TrackSelection]s. For convenience
-/// the auto track selection will be added to this list of [getTrackSelections].
-@immutable
-class TrackSelection {
-  /// Creates an instance of [VideoEvent].
-  ///
-  /// The [trackId] and [trackType] argument is required.
-  ///
-  const TrackSelection({
-    required this.trackId,
-    required this.trackType,
-    this.width,
-    this.height,
-    this.bitrate,
-    this.language,
-    this.channel,
-    this.subtitleType,
-  });
-
-  /// The track id of track selection that uses to determine track selection.
-  final int trackId;
-
-  /// The type of the track selection.
-  final TrackSelectionType trackType;
-
-  /// The width of video track selection. This will be null if the [trackType]
-  /// is not [TrackSelectionType.video] or an unknowntrack selection.
-  ///
-  /// If the track selection doesn't specify the width this may be null.
-  final int? width;
-
-  /// The height of video track selection. This will be null if the [trackType]
-  /// is not [TrackSelectionType.video] or an unknown track selection.
-  ///
-  /// If the track selection doesn't specify the height this may be null.
-  final int? height;
-
-  /// The label of track selection. This will be null if the [trackType]
-  /// is not [TrackSelectionType.video] and [TrackSelectionType.audio] or an unknown
-  /// track selection.
-  ///
-  /// If the track selection doesn't specify the bitrate this may be null.
-  final int? bitrate;
-
-  /// The language of track selection. This will be null if the [trackType]
-  /// is not [TrackSelectionType.audio] and [TrackSelectionType.text] or an unknown
-  /// track selection.
-  ///
-  /// If the track selection doesn't specify the language this may be null.
-  final String? language;
-
-  /// The channelCount of track selection. This will be null if the [trackType]
-  /// is not [TrackSelectionType.audio] or an unknown track selection.
-  ///
-  /// If the track selection doesn't specify the channelCount this may be null.
-  final TrackSelectionChannelType? channel;
-
-  /// The subtitle type of track selection. This will be null if the [trackType]
-  /// is not [TrackSelectionType.text] or an unknown track selection.
-  ///
-  /// If the track selection doesn't specify the subtitle type this may be null.
-  final TrackSelectionSubtitleType? subtitleType;
-
-  @override
-  String toString() {
-    return '${objectRuntimeType(this, 'TrackSelection')}('
-        'trackId: $trackId, '
-        'trackType: $trackType, '
-        'width: $width, '
-        'height: $height, '
-        'language: $language, '
-        'channel: $channel, '
-        'subtitleType: $subtitleType, '
-        'bitrate: $bitrate)';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TrackSelection &&
-          runtimeType == other.runtimeType &&
-          trackId == other.trackId &&
-          trackType == other.trackType &&
-          width == other.width &&
-          height == other.height &&
-          language == other.language &&
-          channel == other.channel &&
-          subtitleType == other.subtitleType &&
-          bitrate == other.bitrate;
-
-  @override
-  int get hashCode =>
-      trackId.hashCode ^
-      trackType.hashCode ^
-      width.hashCode ^
-      height.hashCode ^
-      language.hashCode ^
-      channel.hashCode ^
-      subtitleType.hashCode ^
-      bitrate.hashCode;
-}
-
-/// Type of the track selection.
-enum TrackSelectionType {
-  /// The video track selection.
+/// Type of the track.
+enum TrackType {
+  /// The video track.
   video,
 
-  /// The audio track selection.
+  /// The audio track.
   audio,
 
-  /// The text track selection.
+  /// The text track.
   text,
 }
 
-/// Type of the track selection channel for [TrackSelectionType.audio].
-enum TrackSelectionChannelType {
+/// Type of the track audio channel for [TrackType.audio].
+enum AudioTrackChannelType {
   /// The mono channel.
   mono,
 
@@ -531,11 +435,102 @@ enum TrackSelectionChannelType {
   surround,
 }
 
-/// Type of the track selection channel for [TrackSelectionType.text].
-enum TrackSelectionSubtitleType {
+/// Type of the track subtitle type for [TrackType.text].
+enum TextTrackSubtitleType {
   /// The text subtitle.
   text,
 
   /// The picture subtitle.
   picture,
+}
+
+/// A representation of a single track.
+///
+/// A typical video file will include several [Track]s.Such as [VideoTrack]s, [AudioTrack]s, [TextTrack]s.
+class Track {
+  /// Creates an instance of [Track].
+  ///
+  /// The [trackId] argument is required.
+  ///
+  const Track({
+    required this.trackId,
+    required this.trackType,
+  });
+
+  /// The track id of track that uses to determine track.
+  final int trackId;
+
+  /// The type of the track.
+  final TrackType trackType;
+}
+
+/// A representation of a video track.
+class VideoTrack extends Track {
+  /// Creates an instance of [VideoTrack].
+  ///
+  /// The [width], [height] and [bitrate] argument is required.
+  ///
+  /// [trackType] is [TrackType.video].
+  VideoTrack({
+    required super.trackId,
+    super.trackType = TrackType.video,
+    required this.width,
+    required this.height,
+    required this.bitrate,
+  });
+
+  /// The width of video track.
+  final int width;
+
+  /// The height of video track.
+  final int height;
+
+  /// The bitrate of video track.
+  final int bitrate;
+}
+
+/// A representation of a audio track.
+class AudioTrack extends Track {
+  /// Creates an instance of [AudioTrack].
+  ///
+  /// The [language], [channel] argument is required.
+  ///
+  /// [trackType] is [TrackType.audio].
+  AudioTrack({
+    required super.trackId,
+    super.trackType = TrackType.audio,
+    required this.language,
+    required this.channel,
+    required this.bitrate,
+  });
+
+  /// The language of audio track.
+  final String language;
+
+  /// The channel of audio track.
+  final AudioTrackChannelType channel;
+
+  /// The bitrate of audio track.
+  final int bitrate;
+}
+
+/// A representation of a text track.
+class TextTrack extends Track {
+  /// Creates an instance of [TextTrack].
+  ///
+  /// The [language] argument is required.
+  ///
+  /// [trackType] is [TrackType.text].
+  TextTrack({
+    required super.trackId,
+    super.trackType = TrackType.text,
+    required this.language,
+    required this.subtitleType,
+  });
+
+  /// The language of text track.
+  final String language;
+
+  /// The subtitle type of track.
+  final TextTrackSubtitleType subtitleType;
 }

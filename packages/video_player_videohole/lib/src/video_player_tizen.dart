@@ -89,84 +89,80 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Future<List<TrackSelection>> getTrackSelections(int playerId) async {
-    final TrackMessage response =
-        await _api.trackSelections(PlayerMessage(playerId: playerId));
+  Future<List<VideoTrack>> getVideoTracks(int playerId) async {
+    final VideoTrackMessage response =
+        await _api.videoTrack(PlayerMessage(playerId: playerId));
 
-    final List<TrackSelection> trackSelections = <TrackSelection>[];
+    final List<VideoTrack> videoTracks = <VideoTrack>[];
+    for (final Map<Object?, Object?>? trackMap in response.videoTracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final int bitrate = trackMap['bitrate']! as int;
+      final int width = trackMap['width']! as int;
+      final int height = trackMap['height']! as int;
 
-    for (final Map<Object?, Object?>? trackSelectionMap
-        in response.trackSelections) {
-      final TrackSelectionType trackSelectionType =
-          _intTrackSelectionTypeMap[trackSelectionMap!['trackType']]!;
-      final bool isUnknown = trackSelectionMap['isUnknown']! as bool;
-      final int trackId = trackSelectionMap['trackId']! as int;
-
-      if (isUnknown) {
-        trackSelections.add(TrackSelection(
-          trackId: trackId,
-          trackType: trackSelectionType,
-        ));
-      } else {
-        switch (trackSelectionType) {
-          case TrackSelectionType.video:
-            {
-              final int bitrate = trackSelectionMap['bitrate']! as int;
-              final int width = trackSelectionMap['width']! as int;
-              final int height = trackSelectionMap['height']! as int;
-
-              trackSelections.add(TrackSelection(
-                trackId: trackId,
-                trackType: trackSelectionType,
-                width: width,
-                height: height,
-                bitrate: bitrate == 0 ? null : bitrate,
-              ));
-              break;
-            }
-          case TrackSelectionType.audio:
-            {
-              final String language = trackSelectionMap['language']! as String;
-              final TrackSelectionChannelType channelType =
-                  _intChannelTypeMap[trackSelectionMap['channel']]!;
-              final int bitrate = trackSelectionMap['bitrate']! as int;
-              trackSelections.add(TrackSelection(
-                trackId: trackId,
-                trackType: trackSelectionType,
-                language: language.isEmpty ? null : language,
-                channel: channelType,
-                bitrate: bitrate == 0 ? null : bitrate,
-              ));
-              break;
-            }
-          case TrackSelectionType.text:
-            {
-              final String language = trackSelectionMap['language']! as String;
-              final TrackSelectionSubtitleType subtitleType =
-                  _intSubtitleTypeMap[trackSelectionMap['subtitleType']]!;
-              trackSelections.add(TrackSelection(
-                trackId: trackId,
-                trackType: trackSelectionType,
-                language: language.isEmpty ? null : language,
-                subtitleType: subtitleType,
-              ));
-              break;
-            }
-        }
-      }
+      videoTracks.add(VideoTrack(
+        trackId: trackId,
+        width: width,
+        height: height,
+        bitrate: bitrate,
+      ));
     }
 
-    return trackSelections;
+    return videoTracks;
   }
 
   @override
-  Future<void> setTrackSelection(int playerId, TrackSelection trackSelection) {
+  Future<List<AudioTrack>> getAudioTracks(int playerId) async {
+    final AudioTrackMessage response =
+        await _api.audioTrack(PlayerMessage(playerId: playerId));
+
+    final List<AudioTrack> audioTracks = <AudioTrack>[];
+    for (final Map<Object?, Object?>? trackMap in response.audioTracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final String language = trackMap['language']! as String;
+      final AudioTrackChannelType channelType =
+          _intChannelTypeMap[trackMap['channel']]!;
+      final int bitrate = trackMap['bitrate']! as int;
+      audioTracks.add(AudioTrack(
+        trackId: trackId,
+        language: language,
+        channel: channelType,
+        bitrate: bitrate,
+      ));
+    }
+
+    return audioTracks;
+  }
+
+  @override
+  Future<List<TextTrack>> getTextTracks(int playerId) async {
+    final TextTrackMessage response =
+        await _api.textTrack(PlayerMessage(playerId: playerId));
+
+    final List<TextTrack> textTracks = <TextTrack>[];
+    for (final Map<Object?, Object?>? trackMap in response.textTracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final String language = trackMap['language']! as String;
+      final TextTrackSubtitleType subtitleType =
+          _intSubtitleTypeMap[trackMap['subtitleType']]!;
+
+      textTracks.add(TextTrack(
+        trackId: trackId,
+        language: language,
+        subtitleType: subtitleType,
+      ));
+    }
+
+    return textTracks;
+  }
+
+  @override
+  Future<void> setTrackSelection(int playerId, Track track) {
     return _api.setTrackSelection(SelectedTracksMessage(
       playerId: playerId,
-      trackId: trackSelection.trackId,
-      trackType: _intTrackSelectionTypeMap.keys.firstWhere(
-          (int key) =>
-              _intTrackSelectionTypeMap[key] == trackSelection.trackType,
+      trackId: track.trackId,
+      trackType: _intTrackTypeMap.keys.firstWhere(
+          (int key) => _intTrackTypeMap[key] == track.trackType,
           orElse: () => -1),
     ));
   }
@@ -258,23 +254,22 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     VideoFormat.other: 'other',
   };
 
-  static const Map<int, TrackSelectionType> _intTrackSelectionTypeMap =
-      <int, TrackSelectionType>{
-    1: TrackSelectionType.audio,
-    2: TrackSelectionType.video,
-    3: TrackSelectionType.text,
+  static const Map<int, TrackType> _intTrackTypeMap = <int, TrackType>{
+    1: TrackType.audio,
+    2: TrackType.video,
+    3: TrackType.text,
   };
 
-  static const Map<int, TrackSelectionChannelType> _intChannelTypeMap =
-      <int, TrackSelectionChannelType>{
-    1: TrackSelectionChannelType.mono,
-    2: TrackSelectionChannelType.stereo,
-    3: TrackSelectionChannelType.surround,
+  static const Map<int, AudioTrackChannelType> _intChannelTypeMap =
+      <int, AudioTrackChannelType>{
+    1: AudioTrackChannelType.mono,
+    2: AudioTrackChannelType.stereo,
+    3: AudioTrackChannelType.surround,
   };
 
-  static const Map<int, TrackSelectionSubtitleType> _intSubtitleTypeMap =
-      <int, TrackSelectionSubtitleType>{
-    0: TrackSelectionSubtitleType.text,
-    1: TrackSelectionSubtitleType.picture,
+  static const Map<int, TextTrackSubtitleType> _intSubtitleTypeMap =
+      <int, TextTrackSubtitleType>{
+    0: TextTrackSubtitleType.text,
+    1: TextTrackSubtitleType.picture,
   };
 }

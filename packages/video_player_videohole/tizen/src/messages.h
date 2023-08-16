@@ -135,25 +135,71 @@ class PlaybackSpeedMessage {
 };
 
 // Generated class from Pigeon that represents data sent in messages.
-class TrackMessage {
+class VideoTrackMessage {
  public:
   // Constructs an object setting all fields.
-  explicit TrackMessage(int64_t player_id,
-                        const flutter::EncodableList& track_selections);
+  explicit VideoTrackMessage(int64_t player_id,
+                             const flutter::EncodableList& video_tracks);
 
   int64_t player_id() const;
   void set_player_id(int64_t value_arg);
 
-  const flutter::EncodableList& track_selections() const;
-  void set_track_selections(const flutter::EncodableList& value_arg);
+  const flutter::EncodableList& video_tracks() const;
+  void set_video_tracks(const flutter::EncodableList& value_arg);
 
  private:
-  static TrackMessage FromEncodableList(const flutter::EncodableList& list);
+  static VideoTrackMessage FromEncodableList(
+      const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
   friend class VideoPlayerVideoholeApi;
   friend class VideoPlayerVideoholeApiCodecSerializer;
   int64_t player_id_;
-  flutter::EncodableList track_selections_;
+  flutter::EncodableList video_tracks_;
+};
+
+// Generated class from Pigeon that represents data sent in messages.
+class AudioTrackMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit AudioTrackMessage(int64_t player_id,
+                             const flutter::EncodableList& audio_tracks);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  const flutter::EncodableList& audio_tracks() const;
+  void set_audio_tracks(const flutter::EncodableList& value_arg);
+
+ private:
+  static AudioTrackMessage FromEncodableList(
+      const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerVideoholeApi;
+  friend class VideoPlayerVideoholeApiCodecSerializer;
+  int64_t player_id_;
+  flutter::EncodableList audio_tracks_;
+};
+
+// Generated class from Pigeon that represents data sent in messages.
+class TextTrackMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit TextTrackMessage(int64_t player_id,
+                            const flutter::EncodableList& text_tracks);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  const flutter::EncodableList& text_tracks() const;
+  void set_text_tracks(const flutter::EncodableList& value_arg);
+
+ private:
+  static TextTrackMessage FromEncodableList(const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerVideoholeApi;
+  friend class VideoPlayerVideoholeApiCodecSerializer;
+  int64_t player_id_;
+  flutter::EncodableList text_tracks_;
 };
 
 // Generated class from Pigeon that represents data sent in messages.
@@ -342,7 +388,9 @@ class VideoPlayerVideoholeApi {
   virtual void SeekTo(
       const PositionMessage& msg,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;
-  virtual ErrorOr<TrackMessage> TrackSelections(const PlayerMessage& msg) = 0;
+  virtual ErrorOr<VideoTrackMessage> VideoTrack(const PlayerMessage& msg) = 0;
+  virtual ErrorOr<AudioTrackMessage> AudioTrack(const PlayerMessage& msg) = 0;
+  virtual ErrorOr<TextTrackMessage> TextTrack(const PlayerMessage& msg) = 0;
   virtual std::optional<FlutterError> SetTrackSelection(
       const SelectedTracksMessage& msg) = 0;
   virtual std::optional<FlutterError> Pause(const PlayerMessage& msg) = 0;

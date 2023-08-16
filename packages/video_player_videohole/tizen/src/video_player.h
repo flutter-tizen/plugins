@@ -47,16 +47,6 @@ typedef struct {
   int subtitle_type; /**< text subtitle = 0, picture subtitle = 1 */
 } player_subtitle_track_info_v2;
 
-typedef struct {
-  int track;
-  int adaptation_index;
-  int alternate_index;
-  player_stream_type_e trackType;
-  player_video_track_info_v2 videoInfo;
-  player_audio_track_info_v2 audioInfo;
-  player_subtitle_track_info_v2 textInfo;
-} StreamInformation;
-
 typedef void (*FuncEcoreWl2WindowGeometryGet)(void *window, int *x, int *y,
                                               int *width, int *height);
 typedef int (*FuncPlayerSetEcoreWlDisplay)(player_h player,
@@ -93,7 +83,9 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int32_t position, SeekCompletedCallback callback);
   int32_t GetPosition();
-  flutter::EncodableList getTotalTrackInfo();
+  flutter::EncodableList getVideoTrackInfo();
+  flutter::EncodableList getAudioTrackInfo();
+  flutter::EncodableList getTextTrackInfo();
   void SetTrackSelection(int32_t track_id, int32_t track_type);
 
   void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }

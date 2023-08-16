@@ -123,34 +123,108 @@ PlaybackSpeedMessage PlaybackSpeedMessage::FromEncodableList(
   return decoded;
 }
 
-// TrackMessage
+// VideoTrackMessage
 
-TrackMessage::TrackMessage(int64_t player_id,
-                           const EncodableList& track_selections)
-    : player_id_(player_id), track_selections_(track_selections) {}
+VideoTrackMessage::VideoTrackMessage(int64_t player_id,
+                                     const EncodableList& video_tracks)
+    : player_id_(player_id), video_tracks_(video_tracks) {}
 
-int64_t TrackMessage::player_id() const { return player_id_; }
+int64_t VideoTrackMessage::player_id() const { return player_id_; }
 
-void TrackMessage::set_player_id(int64_t value_arg) { player_id_ = value_arg; }
-
-const EncodableList& TrackMessage::track_selections() const {
-  return track_selections_;
+void VideoTrackMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
 }
 
-void TrackMessage::set_track_selections(const EncodableList& value_arg) {
-  track_selections_ = value_arg;
+const EncodableList& VideoTrackMessage::video_tracks() const {
+  return video_tracks_;
 }
 
-EncodableList TrackMessage::ToEncodableList() const {
+void VideoTrackMessage::set_video_tracks(const EncodableList& value_arg) {
+  video_tracks_ = value_arg;
+}
+
+EncodableList VideoTrackMessage::ToEncodableList() const {
   EncodableList list;
   list.reserve(2);
   list.push_back(EncodableValue(player_id_));
-  list.push_back(EncodableValue(track_selections_));
+  list.push_back(EncodableValue(video_tracks_));
   return list;
 }
 
-TrackMessage TrackMessage::FromEncodableList(const EncodableList& list) {
-  TrackMessage decoded(list[0].LongValue(), std::get<EncodableList>(list[1]));
+VideoTrackMessage VideoTrackMessage::FromEncodableList(
+    const EncodableList& list) {
+  VideoTrackMessage decoded(list[0].LongValue(),
+                            std::get<EncodableList>(list[1]));
+  return decoded;
+}
+
+// AudioTrackMessage
+
+AudioTrackMessage::AudioTrackMessage(int64_t player_id,
+                                     const EncodableList& audio_tracks)
+    : player_id_(player_id), audio_tracks_(audio_tracks) {}
+
+int64_t AudioTrackMessage::player_id() const { return player_id_; }
+
+void AudioTrackMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
+
+const EncodableList& AudioTrackMessage::audio_tracks() const {
+  return audio_tracks_;
+}
+
+void AudioTrackMessage::set_audio_tracks(const EncodableList& value_arg) {
+  audio_tracks_ = value_arg;
+}
+
+EncodableList AudioTrackMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(2);
+  list.push_back(EncodableValue(player_id_));
+  list.push_back(EncodableValue(audio_tracks_));
+  return list;
+}
+
+AudioTrackMessage AudioTrackMessage::FromEncodableList(
+    const EncodableList& list) {
+  AudioTrackMessage decoded(list[0].LongValue(),
+                            std::get<EncodableList>(list[1]));
+  return decoded;
+}
+
+// TextTrackMessage
+
+TextTrackMessage::TextTrackMessage(int64_t player_id,
+                                   const EncodableList& text_tracks)
+    : player_id_(player_id), text_tracks_(text_tracks) {}
+
+int64_t TextTrackMessage::player_id() const { return player_id_; }
+
+void TextTrackMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
+
+const EncodableList& TextTrackMessage::text_tracks() const {
+  return text_tracks_;
+}
+
+void TextTrackMessage::set_text_tracks(const EncodableList& value_arg) {
+  text_tracks_ = value_arg;
+}
+
+EncodableList TextTrackMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(2);
+  list.push_back(EncodableValue(player_id_));
+  list.push_back(EncodableValue(text_tracks_));
+  return list;
+}
+
+TextTrackMessage TextTrackMessage::FromEncodableList(
+    const EncodableList& list) {
+  TextTrackMessage decoded(list[0].LongValue(),
+                           std::get<EncodableList>(list[1]));
   return decoded;
 }
 
@@ -439,33 +513,39 @@ EncodableValue VideoPlayerVideoholeApiCodecSerializer::ReadValueOfType(
     uint8_t type, flutter::ByteStreamReader* stream) const {
   switch (type) {
     case 128:
-      return CustomEncodableValue(CreateMessage::FromEncodableList(
+      return CustomEncodableValue(AudioTrackMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 129:
-      return CustomEncodableValue(GeometryMessage::FromEncodableList(
+      return CustomEncodableValue(CreateMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 130:
-      return CustomEncodableValue(LoopingMessage::FromEncodableList(
+      return CustomEncodableValue(GeometryMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 131:
-      return CustomEncodableValue(MixWithOthersMessage::FromEncodableList(
+      return CustomEncodableValue(LoopingMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 132:
-      return CustomEncodableValue(PlaybackSpeedMessage::FromEncodableList(
+      return CustomEncodableValue(MixWithOthersMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 133:
-      return CustomEncodableValue(PlayerMessage::FromEncodableList(
+      return CustomEncodableValue(PlaybackSpeedMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 134:
-      return CustomEncodableValue(PositionMessage::FromEncodableList(
+      return CustomEncodableValue(PlayerMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 135:
-      return CustomEncodableValue(SelectedTracksMessage::FromEncodableList(
+      return CustomEncodableValue(PositionMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 136:
-      return CustomEncodableValue(TrackMessage::FromEncodableList(
+      return CustomEncodableValue(SelectedTracksMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 137:
+      return CustomEncodableValue(TextTrackMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    case 138:
+      return CustomEncodableValue(VideoTrackMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    case 139:
       return CustomEncodableValue(VolumeMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     default:
@@ -477,8 +557,15 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
     const EncodableValue& value, flutter::ByteStreamWriter* stream) const {
   if (const CustomEncodableValue* custom_value =
           std::get_if<CustomEncodableValue>(&value)) {
-    if (custom_value->type() == typeid(CreateMessage)) {
+    if (custom_value->type() == typeid(AudioTrackMessage)) {
       stream->WriteByte(128);
+      WriteValue(EncodableValue(std::any_cast<AudioTrackMessage>(*custom_value)
+                                    .ToEncodableList()),
+                 stream);
+      return;
+    }
+    if (custom_value->type() == typeid(CreateMessage)) {
+      stream->WriteByte(129);
       WriteValue(
           EncodableValue(
               std::any_cast<CreateMessage>(*custom_value).ToEncodableList()),
@@ -486,7 +573,7 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(GeometryMessage)) {
-      stream->WriteByte(129);
+      stream->WriteByte(130);
       WriteValue(
           EncodableValue(
               std::any_cast<GeometryMessage>(*custom_value).ToEncodableList()),
@@ -494,7 +581,7 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(LoopingMessage)) {
-      stream->WriteByte(130);
+      stream->WriteByte(131);
       WriteValue(
           EncodableValue(
               std::any_cast<LoopingMessage>(*custom_value).ToEncodableList()),
@@ -502,7 +589,7 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(MixWithOthersMessage)) {
-      stream->WriteByte(131);
+      stream->WriteByte(132);
       WriteValue(
           EncodableValue(std::any_cast<MixWithOthersMessage>(*custom_value)
                              .ToEncodableList()),
@@ -510,7 +597,7 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(PlaybackSpeedMessage)) {
-      stream->WriteByte(132);
+      stream->WriteByte(133);
       WriteValue(
           EncodableValue(std::any_cast<PlaybackSpeedMessage>(*custom_value)
                              .ToEncodableList()),
@@ -518,7 +605,7 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(PlayerMessage)) {
-      stream->WriteByte(133);
+      stream->WriteByte(134);
       WriteValue(
           EncodableValue(
               std::any_cast<PlayerMessage>(*custom_value).ToEncodableList()),
@@ -526,7 +613,7 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(PositionMessage)) {
-      stream->WriteByte(134);
+      stream->WriteByte(135);
       WriteValue(
           EncodableValue(
               std::any_cast<PositionMessage>(*custom_value).ToEncodableList()),
@@ -534,23 +621,30 @@ void VideoPlayerVideoholeApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(SelectedTracksMessage)) {
-      stream->WriteByte(135);
+      stream->WriteByte(136);
       WriteValue(
           EncodableValue(std::any_cast<SelectedTracksMessage>(*custom_value)
                              .ToEncodableList()),
           stream);
       return;
     }
-    if (custom_value->type() == typeid(TrackMessage)) {
-      stream->WriteByte(136);
+    if (custom_value->type() == typeid(TextTrackMessage)) {
+      stream->WriteByte(137);
       WriteValue(
           EncodableValue(
-              std::any_cast<TrackMessage>(*custom_value).ToEncodableList()),
+              std::any_cast<TextTrackMessage>(*custom_value).ToEncodableList()),
           stream);
       return;
     }
+    if (custom_value->type() == typeid(VideoTrackMessage)) {
+      stream->WriteByte(138);
+      WriteValue(EncodableValue(std::any_cast<VideoTrackMessage>(*custom_value)
+                                    .ToEncodableList()),
+                 stream);
+      return;
+    }
     if (custom_value->type() == typeid(VolumeMessage)) {
-      stream->WriteByte(137);
+      stream->WriteByte(139);
       WriteValue(
           EncodableValue(
               std::any_cast<VolumeMessage>(*custom_value).ToEncodableList()),
@@ -869,8 +963,7 @@ void VideoPlayerVideoholeApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,
-        "dev.flutter.pigeon.VideoPlayerVideoholeApi.trackSelections",
-        &GetCodec());
+        "dev.flutter.pigeon.VideoPlayerVideoholeApi.videoTrack", &GetCodec());
     if (api != nullptr) {
       channel->SetMessageHandler(
           [api](const EncodableValue& message,
@@ -884,7 +977,75 @@ void VideoPlayerVideoholeApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               const auto& msg_arg = std::any_cast<const PlayerMessage&>(
                   std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<TrackMessage> output = api->TrackSelections(msg_arg);
+              ErrorOr<VideoTrackMessage> output = api->VideoTrack(msg_arg);
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(
+                  CustomEncodableValue(std::move(output).TakeValue()));
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel->SetMessageHandler(nullptr);
+    }
+  }
+  {
+    auto channel = std::make_unique<BasicMessageChannel<>>(
+        binary_messenger,
+        "dev.flutter.pigeon.VideoPlayerVideoholeApi.audioTrack", &GetCodec());
+    if (api != nullptr) {
+      channel->SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<AudioTrackMessage> output = api->AudioTrack(msg_arg);
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(
+                  CustomEncodableValue(std::move(output).TakeValue()));
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel->SetMessageHandler(nullptr);
+    }
+  }
+  {
+    auto channel = std::make_unique<BasicMessageChannel<>>(
+        binary_messenger,
+        "dev.flutter.pigeon.VideoPlayerVideoholeApi.textTrack", &GetCodec());
+    if (api != nullptr) {
+      channel->SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<TextTrackMessage> output = api->TextTrack(msg_arg);
               if (output.has_error()) {
                 reply(WrapError(output.error()));
                 return;
