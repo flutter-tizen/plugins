@@ -19,6 +19,7 @@ import 'video_player_platform_interface.dart';
 
 export 'src/closed_caption_file.dart';
 export 'src/drm_configs.dart';
+export 'video_player_platform_interface.dart';
 
 VideoPlayerPlatform? _lastVideoPlayerPlatform;
 
