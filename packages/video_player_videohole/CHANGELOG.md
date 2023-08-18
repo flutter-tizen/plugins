@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Implement function of selecting video, audio and text traks.
+
 ## 0.1.2
 
 * Increase the minimum Flutter version to 3.3.
