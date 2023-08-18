@@ -15,11 +15,12 @@ import 'src/drm_configs.dart';
 import 'src/hole.dart';
 import 'src/register_drm_callback_stub.dart'
     if (dart.library.ffi) 'src/register_drm_callback_real.dart';
+import 'src/tracks.dart';
 import 'video_player_platform_interface.dart';
 
 export 'src/closed_caption_file.dart';
 export 'src/drm_configs.dart';
-export 'video_player_platform_interface.dart';
+export 'src/tracks.dart';
 
 VideoPlayerPlatform? _lastVideoPlayerPlatform;
 
