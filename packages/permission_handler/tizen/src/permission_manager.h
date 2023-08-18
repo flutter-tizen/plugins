@@ -17,7 +17,8 @@ enum class PermissionStatus {
   kRestricted = 2,
   kLimited = 3,
   kPermanentlyDenied = 4,
-  kError = 5,
+  kProvisional = 5,
+  kError = 6
 };
 
 class PermissionManager {

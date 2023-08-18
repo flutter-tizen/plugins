@@ -39,7 +39,12 @@ enum class Permission {
   kAccessNotificationPolicy = 27,
   kBluetoothScan = 28,
   kBluetoothAdvertise = 29,
-  kBluetoothConnect = 30
+  kBluetoothConnect = 30,
+  kNearbyWifiDevices = 31,
+  kVideos = 32,
+  kAudio = 33,
+  kScheduleExactAlarm = 34,
+  kSensorsAlways = 35
 };
 
 #endif  // FLUTTER_PLUGIN_PERMISSIONS_H_

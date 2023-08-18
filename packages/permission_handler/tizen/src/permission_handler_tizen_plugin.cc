@@ -36,6 +36,7 @@ std::string PermissionToPrivilege(Permission permission) {
     case Permission::kPhone:
       return "http://tizen.org/privilege/call";
     case Permission::kSensors:
+    case Permission::kSensorsAlways:
       return "http://tizen.org/privilege/healthinfo";
     case Permission::kSMS:
       return "http://tizen.org/privilege/message.read";
