@@ -266,6 +266,19 @@ void VideoPlayer::SetPlaybackSpeed(double speed) {
 }
 
 flutter::EncodableList VideoPlayer::getVideoTrackInfo() {
+  return getTrackInfo(PLAYER_STREAM_TYPE_VIDEO);
+}
+
+flutter::EncodableList VideoPlayer::getAudioTrackInfo() {
+  return getTrackInfo(PLAYER_STREAM_TYPE_AUDIO);
+}
+
+flutter::EncodableList VideoPlayer::getTextTrackInfo() {
+  return getTrackInfo(PLAYER_STREAM_TYPE_TEXT);
+}
+
+flutter::EncodableList VideoPlayer::getTrackInfo(
+    player_stream_type_e track_type) {
   player_state_e state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &state);
   if (ret != PLAYER_ERROR_NONE) {
@@ -290,221 +303,176 @@ flutter::EncodableList VideoPlayer::getVideoTrackInfo() {
   FuncPlayerGetVideoTrackInfoV2 player_get_video_track_info_v2 =
       reinterpret_cast<FuncPlayerGetVideoTrackInfoV2>(
           dlsym(player_lib_handle, "player_get_video_track_info_v2"));
-
-  if (!player_get_track_count_v2 || !player_get_video_track_info_v2) {
-    LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
-    dlclose(player_lib_handle);
-    return {};
-  }
-
-  int video_count = 0;
-  ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_VIDEO,
-                                  &video_count);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_get_video_track_count failed: %s",
-              get_error_message(ret));
-    return {};
-  }
-  LOG_INFO("[VideoPlayer] video_count: %d", video_count);
-
-  player_video_track_info_v2 *video_track_info = NULL;
-  flutter::EncodableList trackSelections;
-
-  if (video_count > 0) {
-    for (int video_index = 0; video_index < video_count; video_index++) {
-      flutter::EncodableMap trackSelection = {};
-      ret = player_get_video_track_info_v2(player_, video_index,
-                                           &video_track_info);
-      if (ret != PLAYER_ERROR_NONE) {
-        LOG_ERROR("[VideoPlayer] player_get_video_track_info_v2 failed: %s",
-                  get_error_message(ret));
-        return {};
-      }
-      LOG_INFO(
-          "[VideoPlayer] video track info: width[%d], height[%d], "
-          "bitrate[%d]",
-          video_track_info->width, video_track_info->height,
-          video_track_info->bit_rate);
-
-      trackSelection.insert(
-          {flutter::EncodableValue("trackType"),
-           flutter::EncodableValue(PLAYER_STREAM_TYPE_VIDEO)});
-      trackSelection.insert({flutter::EncodableValue("trackId"),
-                             flutter::EncodableValue(video_index)});
-
-      trackSelection.insert({flutter::EncodableValue("width"),
-                             flutter::EncodableValue(video_track_info->width)});
-      trackSelection.insert(
-          {flutter::EncodableValue("height"),
-           flutter::EncodableValue(video_track_info->height)});
-      trackSelection.insert(
-          {flutter::EncodableValue("bitrate"),
-           flutter::EncodableValue(video_track_info->bit_rate)});
-
-      trackSelections.push_back(flutter::EncodableValue(trackSelection));
-    }
-  }
-  dlclose(player_lib_handle);
-  return trackSelections;
-}
-
-flutter::EncodableList VideoPlayer::getAudioTrackInfo() {
-  player_state_e state = PLAYER_STATE_NONE;
-  int ret = player_get_state(player_, &state);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_get_state failed: %s",
-              get_error_message(ret));
-    return {};
-  }
-  if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
-    LOG_ERROR("[VideoPlayer] Player not ready.");
-    return {};
-  }
-
-  void *player_lib_handle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
-  if (!player_lib_handle) {
-    LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
-    return {};
-  }
-
-  FuncPlayerGetTrackCountV2 player_get_track_count_v2 =
-      reinterpret_cast<FuncPlayerGetTrackCountV2>(
-          dlsym(player_lib_handle, "player_get_track_count_v2"));
   FuncPlayerGetAudioTrackInfoV2 player_get_audio_track_info_v2 =
       reinterpret_cast<FuncPlayerGetAudioTrackInfoV2>(
           dlsym(player_lib_handle, "player_get_audio_track_info_v2"));
-
-  if (!player_get_track_count_v2 || !player_get_audio_track_info_v2) {
-    LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
-    dlclose(player_lib_handle);
-    return {};
-  }
-
-  int audio_count = 0;
-  ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_AUDIO,
-                                  &audio_count);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_get_audio_track_count failed: %s",
-              get_error_message(ret));
-    return {};
-  }
-  LOG_INFO("[VideoPlayer] audio_count: %d", audio_count);
-
-  player_audio_track_info_v2 *audio_track_info = NULL;
-  flutter::EncodableList trackSelections;
-
-  if (audio_count > 0) {
-    for (int audio_index = 0; audio_index < audio_count; audio_index++) {
-      flutter::EncodableMap trackSelection = {};
-      ret = player_get_audio_track_info_v2(player_, audio_index,
-                                           &audio_track_info);
-      if (ret != PLAYER_ERROR_NONE) {
-        LOG_ERROR("[VideoPlayer] player_get_audio_track_info_v2 failed: %s",
-                  get_error_message(ret));
-        return {};
-      }
-      LOG_INFO(
-          "[VideoPlayer] audio track info: language[%s], channel[%d], "
-          "sample_rate[%d], bitrate[%d]",
-          audio_track_info->language, audio_track_info->channel,
-          audio_track_info->sample_rate, audio_track_info->bit_rate);
-
-      trackSelection.insert(
-          {flutter::EncodableValue("trackType"),
-           flutter::EncodableValue(PLAYER_STREAM_TYPE_AUDIO)});
-      trackSelection.insert({flutter::EncodableValue("trackId"),
-                             flutter::EncodableValue(audio_index)});
-      trackSelection.insert(
-          {flutter::EncodableValue("language"),
-           flutter::EncodableValue(std::string(audio_track_info->language))});
-      trackSelection.insert(
-          {flutter::EncodableValue("channel"),
-           flutter::EncodableValue(audio_track_info->channel)});
-      trackSelection.insert(
-          {flutter::EncodableValue("bitrate"),
-           flutter::EncodableValue(audio_track_info->bit_rate)});
-
-      trackSelections.push_back(flutter::EncodableValue(trackSelection));
-    }
-  }
-  dlclose(player_lib_handle);
-  return trackSelections;
-}
-
-flutter::EncodableList VideoPlayer::getTextTrackInfo() {
-  player_state_e state = PLAYER_STATE_NONE;
-  int ret = player_get_state(player_, &state);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_get_state failed: %s",
-              get_error_message(ret));
-    return {};
-  }
-  if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
-    LOG_ERROR("[VideoPlayer] Player not ready.");
-    return {};
-  }
-
-  void *player_lib_handle = dlopen("libcapi-media-player.so.0", RTLD_LAZY);
-  if (!player_lib_handle) {
-    LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
-    return {};
-  }
-
-  FuncPlayerGetTrackCountV2 player_get_track_count_v2 =
-      reinterpret_cast<FuncPlayerGetTrackCountV2>(
-          dlsym(player_lib_handle, "player_get_track_count_v2"));
   FuncPlayerGetSubtitleTrackInfoV2 player_get_subtitle_track_info_v2 =
       reinterpret_cast<FuncPlayerGetSubtitleTrackInfoV2>(
           dlsym(player_lib_handle, "player_get_subtitle_track_info_v2"));
 
-  if (!player_get_track_count_v2 || !player_get_subtitle_track_info_v2) {
+  if (!player_get_track_count_v2) {
     LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
     dlclose(player_lib_handle);
     return {};
   }
 
-  int subtitle_count = 0;
-  ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_TEXT,
-                                  &subtitle_count);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[VideoPlayer] player_get_subtitle_track_count failed: %s",
-              get_error_message(ret));
-    return {};
-  }
-  LOG_INFO("[VideoPlayer] subtitle_count: %d", subtitle_count);
-
-  player_subtitle_track_info_v2 *sub_track_info = NULL;
   flutter::EncodableList trackSelections;
+  if (track_type == PLAYER_STREAM_TYPE_VIDEO) {
+    int video_count = 0;
+    ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_VIDEO,
+                                    &video_count);
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[VideoPlayer] player_get_video_track_count failed: %s",
+                get_error_message(ret));
+      return {};
+    }
+    LOG_INFO("[VideoPlayer] video_count: %d", video_count);
 
-  if (subtitle_count > 0) {
-    for (int sub_index = 0; sub_index < subtitle_count; sub_index++) {
-      flutter::EncodableMap trackSelection = {};
-      ret = player_get_subtitle_track_info_v2(player_, sub_index,
-                                              &sub_track_info);
-      if (ret != PLAYER_ERROR_NONE) {
-        LOG_ERROR("[VideoPlayer] player_get_subtitle_track_info_v2 failed: %s",
-                  get_error_message(ret));
-        return {};
+    if (!player_get_video_track_info_v2) {
+      LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
+      dlclose(player_lib_handle);
+      return {};
+    }
+    player_video_track_info_v2 *video_track_info = NULL;
+
+    if (video_count > 0) {
+      for (int video_index = 0; video_index < video_count; video_index++) {
+        flutter::EncodableMap trackSelection = {};
+        ret = player_get_video_track_info_v2(player_, video_index,
+                                             &video_track_info);
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR("[VideoPlayer] player_get_video_track_info_v2 failed: %s",
+                    get_error_message(ret));
+          return {};
+        }
+        LOG_INFO(
+            "[VideoPlayer] video track info: width[%d], height[%d], "
+            "bitrate[%d]",
+            video_track_info->width, video_track_info->height,
+            video_track_info->bit_rate);
+
+        trackSelection.insert(
+            {flutter::EncodableValue("trackType"),
+             flutter::EncodableValue(PLAYER_STREAM_TYPE_VIDEO)});
+        trackSelection.insert({flutter::EncodableValue("trackId"),
+                               flutter::EncodableValue(video_index)});
+
+        trackSelection.insert(
+            {flutter::EncodableValue("width"),
+             flutter::EncodableValue(video_track_info->width)});
+        trackSelection.insert(
+            {flutter::EncodableValue("height"),
+             flutter::EncodableValue(video_track_info->height)});
+        trackSelection.insert(
+            {flutter::EncodableValue("bitrate"),
+             flutter::EncodableValue(video_track_info->bit_rate)});
+
+        trackSelections.push_back(flutter::EncodableValue(trackSelection));
       }
-      LOG_INFO(
-          "[VideoPlayer] subtitle track info: language[%s], "
-          "subtitle_type[%d]",
-          sub_track_info->language, sub_track_info->subtitle_type);
+    }
+  } else if (track_type == PLAYER_STREAM_TYPE_AUDIO) {
+    int audio_count = 0;
+    ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_AUDIO,
+                                    &audio_count);
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[VideoPlayer] player_get_audio_track_count failed: %s",
+                get_error_message(ret));
+      return {};
+    }
+    LOG_INFO("[VideoPlayer] audio_count: %d", audio_count);
 
-      trackSelection.insert({flutter::EncodableValue("trackType"),
-                             flutter::EncodableValue(PLAYER_STREAM_TYPE_TEXT)});
-      trackSelection.insert({flutter::EncodableValue("trackId"),
-                             flutter::EncodableValue(sub_index)});
-      trackSelection.insert(
-          {flutter::EncodableValue("language"),
-           flutter::EncodableValue(std::string(sub_track_info->language))});
-      trackSelection.insert(
-          {flutter::EncodableValue("subtitleType"),
-           flutter::EncodableValue(sub_track_info->subtitle_type)});
+    if (!player_get_audio_track_info_v2) {
+      LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
+      dlclose(player_lib_handle);
+      return {};
+    }
+    player_audio_track_info_v2 *audio_track_info = NULL;
 
-      trackSelections.push_back(flutter::EncodableValue(trackSelection));
+    if (audio_count > 0) {
+      for (int audio_index = 0; audio_index < audio_count; audio_index++) {
+        flutter::EncodableMap trackSelection = {};
+        ret = player_get_audio_track_info_v2(player_, audio_index,
+                                             &audio_track_info);
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR("[VideoPlayer] player_get_audio_track_info_v2 failed: %s",
+                    get_error_message(ret));
+          return {};
+        }
+        LOG_INFO(
+            "[VideoPlayer] audio track info: language[%s], channel[%d], "
+            "sample_rate[%d], bitrate[%d]",
+            audio_track_info->language, audio_track_info->channel,
+            audio_track_info->sample_rate, audio_track_info->bit_rate);
+
+        trackSelection.insert(
+            {flutter::EncodableValue("trackType"),
+             flutter::EncodableValue(PLAYER_STREAM_TYPE_AUDIO)});
+        trackSelection.insert({flutter::EncodableValue("trackId"),
+                               flutter::EncodableValue(audio_index)});
+        trackSelection.insert(
+            {flutter::EncodableValue("language"),
+             flutter::EncodableValue(std::string(audio_track_info->language))});
+        trackSelection.insert(
+            {flutter::EncodableValue("channel"),
+             flutter::EncodableValue(audio_track_info->channel)});
+        trackSelection.insert(
+            {flutter::EncodableValue("bitrate"),
+             flutter::EncodableValue(audio_track_info->bit_rate)});
+
+        trackSelections.push_back(flutter::EncodableValue(trackSelection));
+      }
+    }
+  } else if (track_type == PLAYER_STREAM_TYPE_TEXT) {
+    int subtitle_count = 0;
+    ret = player_get_track_count_v2(player_, PLAYER_STREAM_TYPE_TEXT,
+                                    &subtitle_count);
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[VideoPlayer] player_get_subtitle_track_count failed: %s",
+                get_error_message(ret));
+      return {};
+    }
+    LOG_INFO("[VideoPlayer] subtitle_count: %d", subtitle_count);
+
+    if (!player_get_subtitle_track_info_v2) {
+      LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
+      dlclose(player_lib_handle);
+      return {};
+    }
+    player_subtitle_track_info_v2 *sub_track_info = NULL;
+
+    if (subtitle_count > 0) {
+      for (int sub_index = 0; sub_index < subtitle_count; sub_index++) {
+        flutter::EncodableMap trackSelection = {};
+        ret = player_get_subtitle_track_info_v2(player_, sub_index,
+                                                &sub_track_info);
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR(
+              "[VideoPlayer] player_get_subtitle_track_info_v2 failed: %s",
+              get_error_message(ret));
+          return {};
+        }
+        LOG_INFO(
+            "[VideoPlayer] subtitle track info: language[%s], "
+            "subtitle_type[%d]",
+            sub_track_info->language, sub_track_info->subtitle_type);
+
+        trackSelection.insert(
+            {flutter::EncodableValue("trackType"),
+             flutter::EncodableValue(PLAYER_STREAM_TYPE_TEXT)});
+        trackSelection.insert({flutter::EncodableValue("trackId"),
+                               flutter::EncodableValue(sub_index)});
+        trackSelection.insert(
+            {flutter::EncodableValue("language"),
+             flutter::EncodableValue(std::string(sub_track_info->language))});
+        trackSelection.insert(
+            {flutter::EncodableValue("subtitleType"),
+             flutter::EncodableValue(sub_track_info->subtitle_type)});
+
+        trackSelections.push_back(flutter::EncodableValue(trackSelection));
+      }
     }
   }
+
   dlclose(player_lib_handle);
   return trackSelections;
 }
