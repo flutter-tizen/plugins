@@ -4,6 +4,7 @@
 
 #include "video_player.h"
 
+#include <dlfcn.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/standard_method_codec.h>
 
@@ -188,6 +189,49 @@ void VideoPlayer::Play() {
   if (ret != PLAYER_ERROR_NONE) {
     throw VideoPlayerError("player_start failed", get_error_message(ret));
   }
+
+  timer = ecore_timer_add(30, ScreenSaverBlock, NULL);
+}
+
+Eina_Bool VideoPlayer::ScreenSaverBlock(void *data) {
+  LOG_DEBUG("[VideoPlayer] Screen saver blocking.");
+
+  void *handle = dlopen("libcapi-screensaver.so", RTLD_LAZY);
+  if (!handle) {
+    LOG_INFO("[VideoPlayer] dlopen failed: %s", dlerror());
+    return ECORE_CALLBACK_CANCEL;
+  }
+
+  ScreensaverOverrideReset screensaver_override_reset =
+      reinterpret_cast<ScreensaverOverrideReset>(
+          dlsym(handle, "screensaver_override_reset"));
+  if (!screensaver_override_reset) {
+    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+    dlclose(handle);
+    return ECORE_CALLBACK_CANCEL;
+  }
+  int ret = screensaver_override_reset(false);
+  if (ret != 0) {
+    throw VideoPlayerError("screensaver_override_reset failed",
+                           get_error_message(ret));
+  }
+
+  ScreensaverResetTimeout screensaver_reset_timeout =
+      reinterpret_cast<ScreensaverResetTimeout>(
+          dlsym(handle, "screensaver_reset_timeout"));
+  if (!screensaver_reset_timeout) {
+    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+    dlclose(handle);
+    return ECORE_CALLBACK_CANCEL;
+  }
+  ret = screensaver_reset_timeout();
+  if (ret != 0) {
+    throw VideoPlayerError("screensaver_reset_timeout failed",
+                           get_error_message(ret));
+  }
+
+  dlclose(handle);
+  return ECORE_CALLBACK_RENEW;
 }
 
 void VideoPlayer::Pause() {
@@ -205,6 +249,11 @@ void VideoPlayer::Pause() {
   ret = player_pause(player_);
   if (ret != PLAYER_ERROR_NONE) {
     throw VideoPlayerError("player_pause failed", get_error_message(ret));
+  }
+
+  if (timer) {
+    LOG_DEBUG("[VideoPlayer] Delete ecore timer.");
+    ecore_timer_del(timer);
   }
 }
 

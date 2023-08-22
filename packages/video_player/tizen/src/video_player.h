@@ -5,6 +5,7 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
+#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -18,6 +19,9 @@
 #include <string>
 
 #include "video_player_options.h"
+
+typedef int (*ScreensaverResetTimeout)(void);
+typedef int (*ScreensaverOverrideReset)(bool onoff);
 
 class VideoPlayer {
  public:
@@ -55,6 +59,7 @@ class VideoPlayer {
   static void OnError(int error_code, void *data);
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
   static void ReleaseMediaPacket(void *packet);
+  static Eina_Bool ScreenSaverBlock(void *data);
 
   void RequestRendering();
   void OnRenderingCompleted();
@@ -79,6 +84,7 @@ class VideoPlayer {
   std::queue<media_packet_h> packet_queue_;
 
   SeekCompletedCallback on_seek_completed_;
+  Ecore_Timer *timer;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_
