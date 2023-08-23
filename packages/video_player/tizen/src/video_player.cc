@@ -79,6 +79,31 @@ FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuSurface(
   return gpu_surface_.get();
 }
 
+void VideoPlayer::InitScreenSaverApi() {
+  screensaver_handle_ = dlopen("libcapi-screensaver.so", RTLD_LAZY);
+  if (!screensaver_handle_) {
+    LOG_INFO("[VideoPlayer] dlopen failed: %s", dlerror());
+    return;
+  }
+
+  ScreensaverOverrideReset screensaver_override_reset =
+      reinterpret_cast<ScreensaverOverrideReset>(
+          dlsym(screensaver_handle_, "screensaver_override_reset"));
+  screensaver_reset_timeout_ = reinterpret_cast<ScreensaverResetTimeout>(
+      dlsym(screensaver_handle_, "screensaver_reset_timeout"));
+
+  if (!screensaver_override_reset) {
+    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+    dlclose(screensaver_handle_);
+    return;
+  }
+  int ret = screensaver_override_reset(false);
+  if (ret != 0) {
+    throw VideoPlayerError("screensaver_override_reset failed",
+                           get_error_message(ret));
+  }
+}
+
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          flutter::TextureRegistrar *texture_registrar,
                          const std::string &uri, VideoPlayerOptions &options) {
@@ -156,6 +181,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                            get_error_message(ret));
   }
 
+  InitScreenSaverApi();
   SetUpEventChannel(plugin_registrar->messenger());
 }
 
@@ -190,48 +216,7 @@ void VideoPlayer::Play() {
     throw VideoPlayerError("player_start failed", get_error_message(ret));
   }
 
-  timer = ecore_timer_add(30, ScreenSaverBlock, NULL);
-}
-
-Eina_Bool VideoPlayer::ScreenSaverBlock(void *data) {
-  LOG_DEBUG("[VideoPlayer] Screen saver blocking.");
-
-  void *handle = dlopen("libcapi-screensaver.so", RTLD_LAZY);
-  if (!handle) {
-    LOG_INFO("[VideoPlayer] dlopen failed: %s", dlerror());
-    return ECORE_CALLBACK_CANCEL;
-  }
-
-  ScreensaverOverrideReset screensaver_override_reset =
-      reinterpret_cast<ScreensaverOverrideReset>(
-          dlsym(handle, "screensaver_override_reset"));
-  if (!screensaver_override_reset) {
-    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
-    dlclose(handle);
-    return ECORE_CALLBACK_CANCEL;
-  }
-  int ret = screensaver_override_reset(false);
-  if (ret != 0) {
-    throw VideoPlayerError("screensaver_override_reset failed",
-                           get_error_message(ret));
-  }
-
-  ScreensaverResetTimeout screensaver_reset_timeout =
-      reinterpret_cast<ScreensaverResetTimeout>(
-          dlsym(handle, "screensaver_reset_timeout"));
-  if (!screensaver_reset_timeout) {
-    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
-    dlclose(handle);
-    return ECORE_CALLBACK_CANCEL;
-  }
-  ret = screensaver_reset_timeout();
-  if (ret != 0) {
-    throw VideoPlayerError("screensaver_reset_timeout failed",
-                           get_error_message(ret));
-  }
-
-  dlclose(handle);
-  return ECORE_CALLBACK_RENEW;
+  timer = ecore_timer_add(30, ScreenSaverBlock, this);
 }
 
 void VideoPlayer::Pause() {
@@ -334,6 +319,10 @@ void VideoPlayer::Dispose() {
     texture_registrar_->UnregisterTexture(texture_id_, nullptr);
     texture_registrar_ = nullptr;
   }
+
+  if (screensaver_handle_) {
+    dlclose(screensaver_handle_);
+  }
 }
 
 void VideoPlayer::SetUpEventChannel(flutter::BinaryMessenger *messenger) {
@@ -420,6 +409,26 @@ void VideoPlayer::SendInitialized() {
     };
     event_sink_->Success(flutter::EncodableValue(result));
   }
+}
+
+Eina_Bool VideoPlayer::ScreenSaverBlock(void *data) {
+  LOG_DEBUG("[VideoPlayer] Screen saver blocking.");
+
+  auto *player = static_cast<VideoPlayer *>(data);
+  if (!player->screensaver_reset_timeout_) {
+    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+    dlclose(player->screensaver_handle_);
+    return ECORE_CALLBACK_CANCEL;
+  }
+
+  int ret = player->screensaver_reset_timeout_();
+  if (ret != 0) {
+    LOG_INFO("screensaver_reset_timeout failed", get_error_message(ret));
+    dlclose(player->screensaver_handle_);
+    return ECORE_CALLBACK_CANCEL;
+  }
+
+  return ECORE_CALLBACK_RENEW;
 }
 
 void VideoPlayer::OnPrepared(void *data) {

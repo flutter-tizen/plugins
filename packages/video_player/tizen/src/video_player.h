@@ -50,6 +50,7 @@ class VideoPlayer {
   void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void Initialize();
   void SendInitialized();
+  void InitScreenSaverApi();
 
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
@@ -84,6 +85,9 @@ class VideoPlayer {
   std::queue<media_packet_h> packet_queue_;
 
   SeekCompletedCallback on_seek_completed_;
+
+  void *screensaver_handle_;
+  ScreensaverResetTimeout screensaver_reset_timeout_;
   Ecore_Timer *timer;
 };
 
