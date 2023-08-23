@@ -6,18 +6,18 @@ import 'package:audioplayers_tizen_example/utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 
 final localhost = kIsWeb || !Platform.isAndroid ? 'localhost' : '10.0.2.2';
 const host = 'https://luan.xyz';
 
-const wavUrl1 = '$host/files/audio/coins.wav';
-const wavUrl2 = '$host/files/audio/laser.wav';
-const mp3Url1 = '$host/files/audio/ambient_c_motion.mp3';
-const mp3Url2 = '$host/files/audio/nasa_on_a_mission.mp3';
-const m3u8StreamUrl =
+final wavUrl1 = '$host/files/audio/coins.wav';
+final wavUrl2 = '$host/files/audio/laser.wav';
+final mp3Url1 = '$host/files/audio/ambient_c_motion.mp3';
+final mp3Url2 = '$host/files/audio/nasa_on_a_mission.mp3';
+final m3u8StreamUrl =
     'https://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/nonuk/sbr_low/ak/bbc_radio_one.m3u8';
-const mpgaStreamUrl = 'https://timesradio.wireless.radio/stream';
+final mpgaStreamUrl = 'https://timesradio.wireless.radio/stream';
 
 const wavAsset = 'laser.wav';
 const mp3Asset = 'nasa_on_a_mission.mp3';
@@ -86,7 +86,7 @@ class _SourcesTabState extends State<SourcesTab>
     Future<void> Function(Source) fun, {
     required String url,
   }) async {
-    final bytes = await readBytes(Uri.parse(url));
+    final bytes = await http.readBytes(Uri.parse(url));
     await fun(BytesSource(bytes));
   }
 
@@ -117,7 +117,7 @@ class _SourcesTabState extends State<SourcesTab>
         ),
         _createSourceTile(
           setSourceKey: const Key('setSource-url-remote-mp3-1'),
-          title: 'Remote URL MP3 1',
+          title: 'Remote URL MP3 1 (VBR)',
           subtitle: 'ambient_c_motion.mp3',
           source: UrlSource(mp3Url1),
         ),
