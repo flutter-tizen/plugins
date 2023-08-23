@@ -7,6 +7,7 @@
 #include <dlfcn.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/standard_method_codec.h>
+#include <system_info.h>
 
 #include <algorithm>
 
@@ -41,6 +42,18 @@ static std::string StateToString(player_state_e state) {
       return "PLAYER_STATE_PAUSED";
   }
   return std::string();
+}
+
+static std::string GetPlatformVersion() {
+  char *version = nullptr;
+  std::string value;
+  const char *key = "http://tizen.org/feature/platform.version";
+  int ret = system_info_get_platform_string(key, &version);
+  if (ret == SYSTEM_INFO_ERROR_NONE) {
+    value = std::string(version);
+    free(version);
+  }
+  return value;
 }
 
 void VideoPlayer::ReleaseMediaPacket(void *data) {
@@ -86,21 +99,25 @@ void VideoPlayer::InitScreenSaverApi() {
     return;
   }
 
-  ScreensaverOverrideReset screensaver_override_reset =
-      reinterpret_cast<ScreensaverOverrideReset>(
-          dlsym(screensaver_handle_, "screensaver_override_reset"));
   screensaver_reset_timeout_ = reinterpret_cast<ScreensaverResetTimeout>(
       dlsym(screensaver_handle_, "screensaver_reset_timeout"));
 
-  if (!screensaver_override_reset) {
-    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
-    dlclose(screensaver_handle_);
-    return;
-  }
-  int ret = screensaver_override_reset(false);
-  if (ret != 0) {
-    throw VideoPlayerError("screensaver_override_reset failed",
-                           get_error_message(ret));
+  double version = atof(GetPlatformVersion().c_str());
+  if (version > 6.0) {
+    ScreensaverOverrideReset screensaver_override_reset =
+        reinterpret_cast<ScreensaverOverrideReset>(
+            dlsym(screensaver_handle_, "screensaver_override_reset"));
+
+    if (!screensaver_override_reset) {
+      LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+      dlclose(screensaver_handle_);
+      return;
+    }
+    int ret = screensaver_override_reset(false);
+    if (ret != 0) {
+      throw VideoPlayerError("screensaver_override_reset failed",
+                             get_error_message(ret));
+    }
   }
 }
 
@@ -181,7 +198,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                            get_error_message(ret));
   }
 
+#ifdef TV_PROFILE
   InitScreenSaverApi();
+#endif
   SetUpEventChannel(plugin_registrar->messenger());
 }
 
@@ -215,8 +234,9 @@ void VideoPlayer::Play() {
   if (ret != PLAYER_ERROR_NONE) {
     throw VideoPlayerError("player_start failed", get_error_message(ret));
   }
-
-  timer = ecore_timer_add(30, ScreenSaverBlock, this);
+#ifdef TV_PROFILE
+  timer_ = ecore_timer_add(30, ResetScreensaverTimeout, this);
+#endif
 }
 
 void VideoPlayer::Pause() {
@@ -236,9 +256,9 @@ void VideoPlayer::Pause() {
     throw VideoPlayerError("player_pause failed", get_error_message(ret));
   }
 
-  if (timer) {
+  if (timer_) {
     LOG_DEBUG("[VideoPlayer] Delete ecore timer.");
-    ecore_timer_del(timer);
+    ecore_timer_del(timer_);
   }
 }
 
@@ -322,6 +342,10 @@ void VideoPlayer::Dispose() {
 
   if (screensaver_handle_) {
     dlclose(screensaver_handle_);
+  }
+
+  if (timer_) {
+    ecore_timer_del(timer_);
   }
 }
 
@@ -411,8 +435,8 @@ void VideoPlayer::SendInitialized() {
   }
 }
 
-Eina_Bool VideoPlayer::ScreenSaverBlock(void *data) {
-  LOG_DEBUG("[VideoPlayer] Screen saver blocking.");
+Eina_Bool VideoPlayer::ResetScreensaverTimeout(void *data) {
+  LOG_DEBUG("[VideoPlayer] Reset screen saver timeout.");
 
   auto *player = static_cast<VideoPlayer *>(data);
   if (!player->screensaver_reset_timeout_) {

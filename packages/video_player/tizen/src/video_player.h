@@ -60,7 +60,7 @@ class VideoPlayer {
   static void OnError(int error_code, void *data);
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
   static void ReleaseMediaPacket(void *packet);
-  static Eina_Bool ScreenSaverBlock(void *data);
+  static Eina_Bool ResetScreensaverTimeout(void *data);
 
   void RequestRendering();
   void OnRenderingCompleted();
@@ -88,7 +88,7 @@ class VideoPlayer {
 
   void *screensaver_handle_;
   ScreensaverResetTimeout screensaver_reset_timeout_;
-  Ecore_Timer *timer;
+  Ecore_Timer *timer_;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_
