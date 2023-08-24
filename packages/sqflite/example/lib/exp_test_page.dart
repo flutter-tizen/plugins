@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -9,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common/sqflite_dev.dart';
+import 'package:sqflite_tizen_example/src/common_import.dart';
+import 'package:sqflite_tizen_example/utils.dart';
 
 import 'test_page.dart';
 
@@ -63,6 +62,7 @@ class ExpTestPage extends TestPage {
     });
 
     test('in', () async {
+      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('simple_exp.db');
       final db = await openDatabase(path);
 
@@ -101,6 +101,7 @@ class ExpTestPage extends TestPage {
     });
 
     test('Raw escaping', () async {
+      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('raw_escaping_fields.db');
       final db = await openDatabase(path);
 
@@ -129,6 +130,7 @@ class ExpTestPage extends TestPage {
     });
 
     test('Escaping fields', () async {
+      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('escaping_fields.db');
       final db = await openDatabase(path);
 
@@ -155,6 +157,7 @@ class ExpTestPage extends TestPage {
     });
 
     test('Functions', () async {
+      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('exp_functions.db');
       final db = await openDatabase(path);
 
@@ -199,6 +202,7 @@ class ExpTestPage extends TestPage {
     });
 
     test('Alias', () async {
+      //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('exp_alias.db');
       final db = await openDatabase(path);
 
@@ -221,6 +225,7 @@ class ExpTestPage extends TestPage {
     });
 
     test('Dart2 query', () async {
+      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('exp_dart2_query.db');
       final db = await openDatabase(path);
 
@@ -280,6 +285,7 @@ class ExpTestPage extends TestPage {
     return rawResult;
     */
     test('Issue#48', () async {
+      // Sqflite.devSetDebugModeOn(true);
       // devPrint('issue #48');
       // Try to query on a non-indexed field
       final path = await initDeleteDb('exp_issue_48.db');
@@ -339,10 +345,10 @@ class ExpTestPage extends TestPage {
       await deleteDatabase(path);
 
       // Copy from asset
-      final data = await rootBundle.load(join('assets', 'issue_64.db'));
+      final data = await rootBundle.load(url.join('assets', 'issue_64.db'));
       final bytes =
           data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-      await File(path).writeAsBytes(bytes);
+      await databaseFactory.writeDatabaseBytes(path, bytes);
 
       // open the database
       final db = await openDatabase(path);
@@ -387,17 +393,29 @@ INSERT INTO test (value) VALUES (1);
 INSERT INTO test (value) VALUES (10);
 ''';
         await db.execute(sql);
-
         // that should be the expected result
         // var expectedResult = [
         //   {'value': 1},
         //   {'value': 10}
         // ];
         final result = await db.rawQuery('SELECT * FROM $table');
+        print(json.encode(result));
+
         // However (at least on Android)
         // result is empty, only the first statement is executed
-        print(json.encode(result));
-        expect(result, []);
+        // Ok when using ffi...
+        if (platform.isLinux) {
+          // Ok when using ffi linux implementation
+          // TODO check windows and mac.
+          // that should be the expected result
+          var expectedResult = [
+            {'value': 1},
+            {'value': 10}
+          ];
+          expect(result, expectedResult);
+        } else {
+          expect(result, isEmpty);
+        }
       } finally {
         await db.close();
       }
@@ -470,45 +488,79 @@ CREATE TABLE test (
       }
     });
 
-    test('Issue#206', () async {
-      final path = await initDeleteDb('issue_206.db');
+    test('ATTACH database', () async {
+      final db1Path = await initDeleteDb('attach1.db');
+      final db2Path = await initDeleteDb('attach2.db');
 
-      final db = await openDatabase(path);
+      // Create some data on db1 and close it
+      var db1 = await databaseFactory.openDatabase(db1Path);
       try {
-        final sqls = LineSplitter.split(
-            '''CREATE VIRTUAL TABLE Food using fts4(description TEXT)
-        INSERT Into Food (description) VALUES ('banana')
-        INSERT Into Food (description) VALUES ('apple')''');
-        final batch = db.batch();
-        for (var sql in sqls) {
-          batch.execute(sql);
-        }
+        var batch = db1.batch();
+        batch.execute('CREATE TABLE table1 (col1 INTEGER)');
+        batch.insert('table1', {'col1': 1234});
         await batch.commit();
-
-        final results = await db.rawQuery(
-            'SELECT description, matchinfo(Food) as matchinfo FROM Food WHERE Food MATCH ?',
-            ['ban*']);
-        print(results);
-        // matchinfo is currently returned as binary bloc
-        expect(results.length, 1);
-        final map = results.first;
-        final matchInfo = map['matchinfo'] as Uint8List;
-
-        // Convert to Uint32List
-        final uint32ListLength = matchInfo.length ~/ 4;
-        final uint32List = Uint32List(uint32ListLength);
-        final data = ByteData.view(
-            matchInfo.buffer, matchInfo.offsetInBytes, matchInfo.length);
-        for (var i = 0; i < uint32ListLength; i++) {
-          uint32List[i] = data.getUint32(i * 4, Endian.host);
-        }
-        // print(uint32List);
-        expect(uint32List, [1, 1, 1, 1, 1]);
-        expect(map['matchinfo'], const TypeMatcher<Uint8List>());
       } finally {
-        await db.close();
+        await db1.close();
+      }
+
+      // Open a new db2 database, attach db1 and query it
+
+      var db2 = await databaseFactory.openDatabase(db2Path);
+      try {
+        await db2.execute('ATTACH DATABASE \'$db1Path\' AS db1');
+        var rows = await db2.query('db1.table1');
+        expect(rows, [
+          {'col1': 1234}
+        ]);
+      } finally {
+        await db2.close();
       }
     });
+
+    /// fts4
+    var fts4Supports = supportsCompatMode;
+    if (fts4Supports) {
+      test('Issue#206', () async {
+        //await Sqflite.devSetDebugModeOn(true);
+        final path = await initDeleteDb('issue_206.db');
+
+        final db = await openDatabase(path);
+        try {
+          final sqls = LineSplitter.split(
+              '''CREATE VIRTUAL TABLE Food using fts4(description TEXT)
+        INSERT Into Food (description) VALUES ('banana')
+        INSERT Into Food (description) VALUES ('apple')''');
+          final batch = db.batch();
+          for (var sql in sqls) {
+            batch.execute(sql);
+          }
+          await batch.commit();
+
+          final results = await db.rawQuery(
+              'SELECT description, matchinfo(Food) as matchinfo FROM Food WHERE Food MATCH ?',
+              ['ban*']);
+          print(results);
+          // matchinfo is currently returned as binary bloc
+          expect(results.length, 1);
+          final map = results.first;
+          final matchInfo = map['matchinfo'] as Uint8List;
+
+          // Convert to Uint32List
+          final uint32ListLength = matchInfo.length ~/ 4;
+          final uint32List = Uint32List(uint32ListLength);
+          final data = ByteData.view(
+              matchInfo.buffer, matchInfo.offsetInBytes, matchInfo.length);
+          for (var i = 0; i < uint32ListLength; i++) {
+            uint32List[i] = data.getUint32(i * 4, Endian.host);
+          }
+          // print(uint32List);
+          expect(uint32List, [1, 1, 1, 1, 1]);
+          expect(map['matchinfo'], const TypeMatcher<Uint8List>());
+        } finally {
+          await db.close();
+        }
+      });
+    }
 
     test('Log level', () async {
       // test setting log level
@@ -533,11 +585,81 @@ CREATE TABLE test (
       }
     });
 
+    Future<void> testBigBlog(int size) async {
+      // await Sqflite.devSetDebugModeOn(true);
+      final path = await initDeleteDb('big_blob.db');
+      var db = await openDatabase(path, version: 1,
+          onCreate: (Database db, int version) async {
+        await db
+            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value BLOB)');
+      });
+      try {
+        var blob =
+            Uint8List.fromList(List.generate(size, (index) => index % 256));
+        var id = await db.insert('Test', {'value': blob});
+
+        /// Get the value field from a given id
+        Future<Uint8List> getValue(int id) async {
+          return ((await db.query('Test', where: 'id = $id')).first)['value']
+              as Uint8List;
+        }
+
+        expect((await getValue(id)).length, blob.length);
+      } finally {
+        await db.close();
+      }
+    }
+
+    // We don't test automatically above as it crashes seriously on Android
+    test('big blob 800 Ko', () async {
+      await testBigBlog(800000);
+    });
+
+    Future<void> testBigText(int size) async {
+      // await Sqflite.devSetDebugModeOn(true);
+      final path = await initDeleteDb('big_text.db');
+      var db = await openDatabase(path, version: 1,
+          onCreate: (Database db, int version) async {
+        await db
+            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value TEXT)');
+      });
+      try {
+        var text = List.generate(size, (index) => 'A').join();
+        var id = await db.insert('Test', {'value': text});
+
+        /// Get the value field from a given id
+        Future<String> getValue(int id) async {
+          return ((await db.query('Test', where: 'id = $id')).first)['value']
+              as String;
+        }
+
+        expect((await getValue(id)).length, text.length);
+      } finally {
+        await db.close();
+      }
+    }
+
+    // We don't test automatically above as it crashes seriously on Android
+    test('big text 800 Ko', () async {
+      await testBigText(800000);
+    });
+    /*
+    test('big blob 1500 Ko (fails on Android sqlite)', () async {
+      await testBigBlog(1500000);
+    });
+    test('big blob 2 Mo (fails on Android sqlite)', () async {
+      await testBigBlog(2000000);
+    });
+    test('big blob 15 Mo (fails on Android sqlite)', () async {
+      await testBigBlog(15000000);
+    });
+    */
     /*
     test('Isolate', () async {
       // This test does not work yet
       // Need background registration. I Kept the code for future reference
       await Future.sync(() async {
+        // await Sqflite.devSetDebugModeOn(true);
         final path = await initDeleteDb('isolate.db');
 
         // Open the db in the main isolate
@@ -558,7 +680,7 @@ CREATE TABLE test (
           int index = 0;
           SendPort sendPort;
           List<Map<String, Object?>> results;
-          var completer = Completer();
+          var completer = Completer<void>();
           var subscription = receivePort.listen((data) {
             switch (index++) {
               case 0:
@@ -588,6 +710,40 @@ CREATE TABLE test (
       }).timeout(Duration(seconds: 3));
     });
     */
+    test('missing parameter', () async {
+      var db = await openDatabase(inMemoryDatabasePath);
+      await db.execute(
+          'CREATE TABLE IF NOT EXISTS foo (id int primary key, name text)');
+      var missingParameterShouldFail = !supportsCompatMode;
+      try {
+        await db.rawQuery('SELECT * FROM foo WHERE id=?');
+      } catch (e) {
+        expect(missingParameterShouldFail, isTrue);
+      }
+      await db.close();
+    });
+    // Issue https://github.com/tekartik/sqflite/issues/929
+    // Pragma has to use rawQuery...why, on sqflite Android
+    test('wal', () async {
+      // await Sqflite.devSetDebugModeOn(true);
+      var db = await openDatabase(inMemoryDatabasePath);
+      try {
+        await db.execute('PRAGMA journal_mode=WAL');
+      } catch (e) {
+        print(e);
+        await db.rawQuery('PRAGMA journal_mode=WAL');
+      }
+      await db.execute('CREATE TABLE test (id INTEGER)');
+      await db.insert('test', <String, Object?>{'id': 1});
+      try {
+        var resultSet = await db.rawQuery('SELECT id FROM test');
+        expect(resultSet, [
+          {'id': 1},
+        ]);
+      } finally {
+        await db.close();
+      }
+    });
   }
 }
 
