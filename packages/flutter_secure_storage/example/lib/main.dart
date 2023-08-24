@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -19,7 +21,7 @@ class ItemsWidget extends StatefulWidget {
 
 enum _Actions { deleteAll }
 
-enum _ItemActions { delete, edit, containsKey }
+enum _ItemActions { delete, edit, containsKey, read }
 
 class ItemsWidgetState extends State<ItemsWidget> {
   final _storage = const FlutterSecureStorage();
@@ -153,6 +155,13 @@ class ItemsWidgetState extends State<ItemsWidget> {
                           key: Key('contains_row_$index'),
                         ),
                       ),
+                      PopupMenuItem(
+                        value: _ItemActions.read,
+                        child: Text(
+                          'Read',
+                          key: Key('contains_row_$index'),
+                        ),
+                      ),
                     ],
                   ),
                   title: Text(
@@ -202,15 +211,54 @@ class ItemsWidgetState extends State<ItemsWidget> {
         }
         break;
       case _ItemActions.containsKey:
-        final result = await _storage.containsKey(key: item.key);
+        final key = await _displayTextInputDialog(context, item.key);
+        final result = await _storage.containsKey(key: key);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Contains Key: $result'),
+            content: Text('Contains Key: $result, key checked: $key'),
+            backgroundColor: result ? Colors.green : Colors.red,
+          ),
+        );
+        break;
+      case _ItemActions.read:
+        final key = await _displayTextInputDialog(context, item.key);
+        final result =
+            await _storage.read(key: key, aOptions: _getAndroidOptions());
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('value: $result'),
           ),
         );
         break;
     }
+  }
+
+  Future<String> _displayTextInputDialog(
+    BuildContext context,
+    String key,
+  ) async {
+    final controller = TextEditingController();
+    controller.text = key;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Check if key exists'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+          content: TextField(
+            controller: controller,
+          ),
+        );
+      },
+    );
+    return controller.text;
   }
 
   String _randomValue() {
