@@ -5,7 +5,7 @@ repository: https://github.com/flutter-tizen/plugins/tree/master/packages/sqflit
 version: 0.1.2
 
 environment:
-  sdk: ">=2.18.0 <4.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=3.3.0"
 
 flutter:
@@ -19,7 +19,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  sqflite: ^2.2.8
+  sqflite: ^2.3.0
 
 dev_dependencies:
   flutter_lints: ^1.0.4
