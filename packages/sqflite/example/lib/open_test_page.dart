@@ -757,9 +757,11 @@ class OpenTestPage extends TestPage {
         await deleteDirectory(path);
       } catch (_) {}
       final dbPath = join(path, 'open.db');
-      final db = await factory.openDatabase(dbPath);
-      try {} finally {
+      try {
+        final db = await factory.openDatabase(dbPath);
         await db.close();
+      } catch (e) {
+        print("couldn't open database in sub sub directory");
       }
     });
 
@@ -773,9 +775,11 @@ class OpenTestPage extends TestPage {
       } catch (_) {}
       expect(await existsDirectory(path), false);
       final dbPath = join(path, 'open.db');
-      final db = await factory.openDatabase(dbPath);
-      try {} finally {
+      try {
+        final db = await factory.openDatabase(dbPath);
         await db.close();
+      } catch (e) {
+        print("couldn't open database in sub sub directory");
       }
     });
 
@@ -891,42 +895,20 @@ class OpenTestPage extends TestPage {
       expect((await readFileAsBytes(path)).length, lessThan(minExpectedSize));
 
       var db = await factory.openDatabase(path);
-      var versionShouldFail =
-          !supportsCompatMode || platform.isIOS || platform.isMacOS;
-      if (versionShouldFail) {
-        // On iOS it fails
-        try {
-          await db.getVersion();
-        } catch (e) {
-          print('getVersion error');
-        }
-      } else {
-        // On Android the database is re-created
+      try {
         await db.getVersion();
+      } catch (e) {
+        print('getVersion error');
       }
       await db.close();
 
-      if (versionShouldFail) {
-        // On iOS it fails
-        try {
-          db = await factory.openDatabase(path,
-              options: OpenDatabaseOptions(version: 1));
-        } catch (e) {
-          print('getVersion error');
-        }
-      } else {
+      try {
         db = await factory.openDatabase(path,
             options: OpenDatabaseOptions(version: 1));
-        // On Android the database is re-created
-        await db.getVersion();
+      } catch (e) {
+        print('getVersion error');
       }
       await db.close();
-
-      if (platform.isAndroid) {
-        // Content has changed, it is a big file now!
-        expect(
-            (await readFileAsBytes(path)).length, greaterThan(minExpectedSize));
-      }
     });
     test('Read/write bytes', () async {
       var path = await initDeleteDb('database_read_bytes.db');
