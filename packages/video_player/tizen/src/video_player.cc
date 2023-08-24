@@ -44,18 +44,6 @@ static std::string StateToString(player_state_e state) {
   return std::string();
 }
 
-static std::string GetPlatformVersion() {
-  char *version = nullptr;
-  std::string value;
-  const char *key = "http://tizen.org/feature/platform.version";
-  int ret = system_info_get_platform_string(key, &version);
-  if (ret == SYSTEM_INFO_ERROR_NONE) {
-    value = std::string(version);
-    free(version);
-  }
-  return value;
-}
-
 void VideoPlayer::ReleaseMediaPacket(void *data) {
   auto *player = static_cast<VideoPlayer *>(data);
 
@@ -101,23 +89,23 @@ void VideoPlayer::InitScreenSaverApi() {
 
   screensaver_reset_timeout_ = reinterpret_cast<ScreensaverResetTimeout>(
       dlsym(screensaver_handle_, "screensaver_reset_timeout"));
+  if (!screensaver_reset_timeout_) {
+    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+    return;
+  }
 
-  double version = atof(GetPlatformVersion().c_str());
-  if (version > 6.0) {
-    ScreensaverOverrideReset screensaver_override_reset =
-        reinterpret_cast<ScreensaverOverrideReset>(
-            dlsym(screensaver_handle_, "screensaver_override_reset"));
+  ScreensaverOverrideReset screensaver_override_reset =
+      reinterpret_cast<ScreensaverOverrideReset>(
+          dlsym(screensaver_handle_, "screensaver_override_reset"));
+  if (!screensaver_override_reset) {
+    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+    return;
+  }
 
-    if (!screensaver_override_reset) {
-      LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
-      dlclose(screensaver_handle_);
-      return;
-    }
-    int ret = screensaver_override_reset(false);
-    if (ret != 0) {
-      throw VideoPlayerError("screensaver_override_reset failed",
-                             get_error_message(ret));
-    }
+  int ret = screensaver_override_reset(false);
+  if (ret != 0) {
+    LOG_INFO("screensaver_override_reset failed", get_error_message(ret));
+    return;
   }
 }
 
@@ -259,6 +247,7 @@ void VideoPlayer::Pause() {
   if (timer_) {
     LOG_DEBUG("[VideoPlayer] Delete ecore timer.");
     ecore_timer_del(timer_);
+    timer_ = nullptr;
   }
 }
 
@@ -342,10 +331,12 @@ void VideoPlayer::Dispose() {
 
   if (screensaver_handle_) {
     dlclose(screensaver_handle_);
+    screensaver_handle_ = nullptr;
   }
 
   if (timer_) {
     ecore_timer_del(timer_);
+    timer_ = nullptr;
   }
 }
 
@@ -440,15 +431,11 @@ Eina_Bool VideoPlayer::ResetScreensaverTimeout(void *data) {
 
   auto *player = static_cast<VideoPlayer *>(data);
   if (!player->screensaver_reset_timeout_) {
-    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
-    dlclose(player->screensaver_handle_);
     return ECORE_CALLBACK_CANCEL;
   }
-
   int ret = player->screensaver_reset_timeout_();
   if (ret != 0) {
     LOG_INFO("screensaver_reset_timeout failed", get_error_message(ret));
-    dlclose(player->screensaver_handle_);
     return ECORE_CALLBACK_CANCEL;
   }
 
