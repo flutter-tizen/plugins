@@ -7,7 +7,6 @@
 #include <dlfcn.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/standard_method_codec.h>
-#include <system_info.h>
 
 #include <algorithm>
 
@@ -83,14 +82,14 @@ FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuSurface(
 void VideoPlayer::InitScreenSaverApi() {
   screensaver_handle_ = dlopen("libcapi-screensaver.so", RTLD_LAZY);
   if (!screensaver_handle_) {
-    LOG_INFO("[VideoPlayer] dlopen failed: %s", dlerror());
+    LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
     return;
   }
 
   screensaver_reset_timeout_ = reinterpret_cast<ScreensaverResetTimeout>(
       dlsym(screensaver_handle_, "screensaver_reset_timeout"));
   if (!screensaver_reset_timeout_) {
-    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+    LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
     return;
   }
 
@@ -98,13 +97,13 @@ void VideoPlayer::InitScreenSaverApi() {
       reinterpret_cast<ScreensaverOverrideReset>(
           dlsym(screensaver_handle_, "screensaver_override_reset"));
   if (!screensaver_override_reset) {
-    LOG_INFO("[VideoPlayer] Symbol not found: %s", dlerror());
+    LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
     return;
   }
 
   int ret = screensaver_override_reset(false);
   if (ret != 0) {
-    LOG_INFO("screensaver_override_reset failed", get_error_message(ret));
+    LOG_ERROR("screensaver_override_reset failed: %s", get_error_message(ret));
     return;
   }
 }
@@ -435,7 +434,7 @@ Eina_Bool VideoPlayer::ResetScreensaverTimeout(void *data) {
   }
   int ret = player->screensaver_reset_timeout_();
   if (ret != 0) {
-    LOG_INFO("screensaver_reset_timeout failed", get_error_message(ret));
+    LOG_ERROR("screensaver_reset_timeout failed: %s", get_error_message(ret));
     return ECORE_CALLBACK_CANCEL;
   }
 
