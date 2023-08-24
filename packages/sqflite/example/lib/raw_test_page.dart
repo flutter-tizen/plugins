@@ -297,33 +297,6 @@ class RawTestPage extends TestPage {
       }
     });
 
-    if (supportsCompatMode) {
-      test('Debug mode (log)', () async {
-        //await Sqflite.devSetDebugModeOn(false);
-        final path = await initDeleteDb('debug_mode.db');
-        final db = await openDatabase(path);
-        try {
-          // ignore: deprecated_member_use
-          final debugModeOn = await Sqflite.getDebugModeOn();
-          // ignore: deprecated_member_use
-          await Sqflite.setDebugModeOn(true);
-          await db.setVersion(1);
-          // ignore: deprecated_member_use
-          await Sqflite.setDebugModeOn(false);
-          // this message should not appear
-          await db.setVersion(2);
-          // ignore: deprecated_member_use
-          await Sqflite.setDebugModeOn(true);
-          await db.setVersion(3);
-          // restore
-          // ignore: deprecated_member_use
-          await Sqflite.setDebugModeOn(debugModeOn);
-        } finally {
-          await db.close();
-        }
-      });
-    }
-
     test('Demo', () async {
       // await Sqflite.devSetDebugModeOn();
       final path = await initDeleteDb('simple_demo.db');
@@ -513,23 +486,10 @@ class RawTestPage extends TestPage {
         await db
             .execute('CREATE TABLE Test (name TEXT PRIMARY KEY) WITHOUT ROWID');
         var id = await db.insert('Test', {'name': 'test'});
+        expect(id, 0);
 
-        // it seems to always return 1 on Android, 0 on iOS..., 0 using ffi
-        var rowIdAlways0 =
-            (!supportsCompatMode || (platform.isIOS || platform.isMacOS));
-
-        if (rowIdAlways0) {
-          expect(id, 0);
-        } else {
-          expect(id, 1);
-        }
         id = await db.insert('Test', {'name': 'other'});
-        // it seems to always return 1
-        if (rowIdAlways0) {
-          expect(id, 0);
-        } else {
-          expect(id, 1);
-        }
+        expect(id, 0);
 
         // Insert conflict
         // Only tested on Android for now...

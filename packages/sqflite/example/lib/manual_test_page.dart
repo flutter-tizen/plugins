@@ -48,9 +48,9 @@ class _ManualTestPageState extends State<ManualTestPage> {
   }
 
   Future _incrementVersion() async {
-    final version = await database!.getVersion();
+    final version = await database?.getVersion() ?? 0;
     print('version $version');
-    await database!.setVersion(version + 1);
+    await database?.setVersion(version + 1);
   }
 
   late List<SqfMenuItem> items;
