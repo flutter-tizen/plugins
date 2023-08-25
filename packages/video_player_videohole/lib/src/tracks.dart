@@ -41,7 +41,7 @@ enum TextTrackSubtitleType {
 class Track {
   /// Creates an instance of [Track].
   ///
-  /// The [trackId] argument is required.
+  /// The [trackId] and [trackType] arguments are required.
   ///
   const Track({
     required this.trackId,
@@ -84,7 +84,7 @@ class VideoTrack extends Track {
 class AudioTrack extends Track {
   /// Creates an instance of [AudioTrack].
   ///
-  /// The [language], [channel] argument is required.
+  /// The [language], [channel] and [bitrate] arguments are required.
   ///
   /// [trackType] is [TrackType.audio].
   AudioTrack({
@@ -109,7 +109,7 @@ class AudioTrack extends Track {
 class TextTrack extends Track {
   /// Creates an instance of [TextTrack].
   ///
-  /// The [language] argument is required.
+  /// The [language] and [subtitleType] arguments are required.
   ///
   /// [trackType] is [TrackType.text].
   TextTrack({

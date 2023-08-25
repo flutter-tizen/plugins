@@ -124,6 +124,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       final AudioTrackChannelType channelType =
           _intChannelTypeMap[trackMap['channel']]!;
       final int bitrate = trackMap['bitrate']! as int;
+
       audioTracks.add(AudioTrack(
         trackId: trackId,
         language: language,

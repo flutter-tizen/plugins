@@ -92,17 +92,17 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('getVideoTracks() has not been implemented.');
   }
 
-  /// Gets the video tracks as a list of [AudioTrack].
+  /// Gets the audio tracks as a list of [AudioTrack].
   Future<List<AudioTrack>> getAudioTracks(int playerId) {
     throw UnimplementedError('getAudioTracks() has not been implemented.');
   }
 
-  /// Gets the video tracks as a list of [TextTrack].
+  /// Gets the text tracks as a list of [TextTrack].
   Future<List<TextTrack>> getTextTracks(int playerId) {
     throw UnimplementedError('getTextTracks() has not been implemented.');
   }
 
-  /// Sets the selected video track selection.
+  /// Sets the selected track.
   Future<void> setTrackSelection(int playerId, Track track) {
     throw UnimplementedError('setTrackSelection() has not been implemented.');
   }
