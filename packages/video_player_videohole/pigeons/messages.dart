@@ -32,22 +32,16 @@ class PlaybackSpeedMessage {
   double speed;
 }
 
-class VideoTrackMessage {
-  VideoTrackMessage(this.playerId, this.videoTracks);
+class TrackMessage {
+  TrackMessage(this.playerId, this.tracks);
   int playerId;
-  List<Map<Object?, Object?>?> videoTracks;
+  List<Map<Object?, Object?>?> tracks;
 }
 
-class AudioTrackMessage {
-  AudioTrackMessage(this.playerId, this.audioTracks);
+class TrackTypeMessage {
+  TrackTypeMessage(this.playerId, this.trackType);
   int playerId;
-  List<Map<Object?, Object?>?> audioTracks;
-}
-
-class TextTrackMessage {
-  TextTrackMessage(this.playerId, this.textTracks);
-  int playerId;
-  List<Map<Object?, Object?>?> textTracks;
+  int trackType;
 }
 
 class SelectedTracksMessage {
@@ -99,9 +93,7 @@ abstract class VideoPlayerVideoholeApi {
   PositionMessage position(PlayerMessage msg);
   @async
   void seekTo(PositionMessage msg);
-  VideoTrackMessage videoTrack(PlayerMessage msg);
-  AudioTrackMessage audioTrack(PlayerMessage msg);
-  TextTrackMessage textTrack(PlayerMessage msg);
+  TrackMessage track(TrackTypeMessage msg);
   void setTrackSelection(SelectedTracksMessage msg);
   void pause(PlayerMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);

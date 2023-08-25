@@ -265,20 +265,7 @@ void VideoPlayer::SetPlaybackSpeed(double speed) {
   }
 }
 
-flutter::EncodableList VideoPlayer::getVideoTrackInfo() {
-  return getTrackInfo(PLAYER_STREAM_TYPE_VIDEO);
-}
-
-flutter::EncodableList VideoPlayer::getAudioTrackInfo() {
-  return getTrackInfo(PLAYER_STREAM_TYPE_AUDIO);
-}
-
-flutter::EncodableList VideoPlayer::getTextTrackInfo() {
-  return getTrackInfo(PLAYER_STREAM_TYPE_TEXT);
-}
-
-flutter::EncodableList VideoPlayer::getTrackInfo(
-    player_stream_type_e track_type) {
+flutter::EncodableList VideoPlayer::getTrackInfo(int32_t track_type) {
   player_state_e state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &state);
   if (ret != PLAYER_ERROR_NONE) {

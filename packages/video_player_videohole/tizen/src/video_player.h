@@ -83,10 +83,7 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int32_t position, SeekCompletedCallback callback);
   int32_t GetPosition();
-  flutter::EncodableList getVideoTrackInfo();
-  flutter::EncodableList getAudioTrackInfo();
-  flutter::EncodableList getTextTrackInfo();
-  flutter::EncodableList getTrackInfo(player_stream_type_e track_type);
+  flutter::EncodableList getTrackInfo(int32_t track_type);
   void SetTrackSelection(int32_t track_id, int32_t track_type);
 
   void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }

@@ -91,11 +91,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<VideoTrack>> getVideoTracks(int playerId) async {
-    final VideoTrackMessage response =
-        await _api.videoTrack(PlayerMessage(playerId: playerId));
+    final TrackMessage response = await _api.track(TrackTypeMessage(
+      playerId: playerId,
+      trackType: _intTrackTypeMap.keys.firstWhere(
+          (int key) => _intTrackTypeMap[key] == TrackType.video,
+          orElse: () => -1),
+    ));
 
     final List<VideoTrack> videoTracks = <VideoTrack>[];
-    for (final Map<Object?, Object?>? trackMap in response.videoTracks) {
+    for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
       final int bitrate = trackMap['bitrate']! as int;
       final int width = trackMap['width']! as int;
@@ -114,11 +118,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<AudioTrack>> getAudioTracks(int playerId) async {
-    final AudioTrackMessage response =
-        await _api.audioTrack(PlayerMessage(playerId: playerId));
+    final TrackMessage response = await _api.track(TrackTypeMessage(
+      playerId: playerId,
+      trackType: _intTrackTypeMap.keys.firstWhere(
+          (int key) => _intTrackTypeMap[key] == TrackType.audio,
+          orElse: () => -1),
+    ));
 
     final List<AudioTrack> audioTracks = <AudioTrack>[];
-    for (final Map<Object?, Object?>? trackMap in response.audioTracks) {
+    for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
       final String language = trackMap['language']! as String;
       final AudioTrackChannelType channelType =
@@ -138,11 +146,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<TextTrack>> getTextTracks(int playerId) async {
-    final TextTrackMessage response =
-        await _api.textTrack(PlayerMessage(playerId: playerId));
+    final TrackMessage response = await _api.track(TrackTypeMessage(
+      playerId: playerId,
+      trackType: _intTrackTypeMap.keys.firstWhere(
+          (int key) => _intTrackTypeMap[key] == TrackType.text,
+          orElse: () => -1),
+    ));
 
     final List<TextTrack> textTracks = <TextTrack>[];
-    for (final Map<Object?, Object?>? trackMap in response.textTracks) {
+    for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
       final String language = trackMap['language']! as String;
       final TextTrackSubtitleType subtitleType =
