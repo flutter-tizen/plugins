@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `sqflite`. Therefore, you ha
 ```yaml
 dependencies:
   sqflite: ^2.3.0
-  sqflite_tizen: ^0.2.0
+  sqflite_tizen: ^0.1.3
 ```
 
 Then you can import `sqflite` in your Dart code:

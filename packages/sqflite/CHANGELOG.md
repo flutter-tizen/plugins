@@ -1,4 +1,4 @@
-## 0.2.0
+## 0.1.3
 
 * Update sqflite to 2.3.0.
 * Increase the minimum Flutter version to 3.3.
