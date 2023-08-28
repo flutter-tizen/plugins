@@ -108,7 +108,7 @@ class ItemsWidgetState extends State<ItemsWidget> {
                   child: Text('Delete all'),
                 ),
               ],
-            )
+            ),
           ],
         ),
         body: Column(
@@ -186,6 +186,7 @@ class ItemsWidgetState extends State<ItemsWidget> {
 
         break;
       case _ItemActions.edit:
+        if (!mounted) return;
         final result = await showDialog<String>(
           context: context,
           builder: (context) => _EditItemWidget(item.value),
