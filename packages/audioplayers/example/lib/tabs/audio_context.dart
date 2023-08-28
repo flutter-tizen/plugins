@@ -27,7 +27,7 @@ class AudioContextTabState extends State<AudioContextTab>
   AudioContextConfig audioContextConfig = AudioContextConfig();
 
   /// Set config for each platform individually
-  AudioContext audioContext = AudioContext();
+  AudioContext audioContext = const AudioContext();
 
   @override
   Widget build(BuildContext context) {
