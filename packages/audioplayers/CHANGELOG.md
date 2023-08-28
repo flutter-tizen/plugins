@@ -3,7 +3,6 @@
 * Update audioplayers to 5.1.0.
 * Update audioplayers_platform_interface to 6.0.0.
 * Update example app.
-* Update README.
 
 ## 3.0.0
 
