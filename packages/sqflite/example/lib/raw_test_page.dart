@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/utils/utils.dart';
-import 'package:sqflite_tizen_example/utils.dart';
 
 import 'src/common_import.dart';
 import 'test_page.dart';
@@ -16,8 +15,6 @@ class RawTestPage extends TestPage {
   /// Raw test page.
   RawTestPage({Key? key}) : super('Raw tests', key: key) {
     test('Simple', () async {
-      // await Sqflite.devSetDebugModeOn(true);
-
       final path = await initDeleteDb('raw_simple.db');
       final db = await openDatabase(path);
       try {
@@ -45,8 +42,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Options', () async {
-      // Sqflite.devSetDebugModeOn(true);
-
       final path = await initDeleteDb('raw_query_format.db');
       final db = await openDatabase(path);
       try {
@@ -93,7 +88,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Transaction', () async {
-      //Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('simple_transaction.db');
       final db = await openDatabase(path);
       try {
@@ -125,7 +119,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Concurrency 1', () async {
-      // Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('simple_concurrency_1.db');
       final db = await openDatabase(path);
       try {
@@ -181,7 +174,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Concurrency 2', () async {
-      // Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('simple_concurrency_2.db');
       final db = await openDatabase(path);
       try {
@@ -362,11 +354,9 @@ class RawTestPage extends TestPage {
 
       // Make sure the directory exists
       try {
-        if (!kIsWeb) {
-          // ignore: avoid_slow_async_io
-          if (!await io.Directory(databasesPath).exists()) {
-            await io.Directory(databasesPath).create(recursive: true);
-          }
+        // ignore: avoid_slow_async_io
+        if (!await io.Directory(databasesPath).exists()) {
+          await io.Directory(databasesPath).create(recursive: true);
         }
       } catch (_) {}
 
@@ -428,7 +418,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Open twice', () async {
-      // Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('open_twice.db');
       final db = await openDatabase(path);
       Database? db2;
@@ -447,7 +436,6 @@ class RawTestPage extends TestPage {
     });
 
     test('text primary key', () async {
-      // Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('text_primary_key.db');
       final db = await openDatabase(path);
       try {
@@ -474,9 +462,6 @@ class RawTestPage extends TestPage {
     });
 
     test('Without rowid', () async {
-      // Sqflite.devSetDebugModeOn(true);
-      // this fails on iOS
-
       late Database db;
       try {
         final path = await initDeleteDb('without_rowid.db');
@@ -570,13 +555,13 @@ class RawTestPage extends TestPage {
         await db.insert('test', {'id': 1});
         await db.insert('test', {'id': 2});
         await db.insert('test', {'id': 3});
-        var resultsList = <List>[];
+        final resultsList = <List>[];
 
         // Use a cursor
         var cursor =
             await db.rawQueryCursor('SELECT * FROM test', null, bufferSize: 2);
         resultsList.clear();
-        var results = <Map<String, Object?>>[];
+        final results = <Map<String, Object?>>[];
         while (await cursor.moveNext()) {
           results.add(cursor.current);
         }
@@ -587,9 +572,9 @@ class RawTestPage extends TestPage {
         ]);
 
         // Multiple cursors a cursor
-        var cursor1 =
+        final cursor1 =
             await db.rawQueryCursor('SELECT * FROM test', null, bufferSize: 2);
-        var cursor2 =
+        final cursor2 =
             await db.rawQueryCursor('SELECT * FROM test', null, bufferSize: 1);
         await cursor1.moveNext();
         expect(cursor1.current.values, [1]);

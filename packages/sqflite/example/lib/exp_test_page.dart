@@ -225,7 +225,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('Dart2 query', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('exp_dart2_query.db');
       final db = await openDatabase(path);
 
@@ -338,7 +337,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('Issue#64', () async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('issue_64.db');
 
       // delete existing if any
@@ -380,8 +378,6 @@ class ExpTestPage extends TestPage {
     });
 
     test('sql dump file', () async {
-      // await Sqflite.devSetDebugModeOn(true);
-
       // try to import an sql dump file (not working)
       final path = await initDeleteDb('sql_file.db');
       final db = await openDatabase(path);
@@ -480,9 +476,9 @@ CREATE TABLE test (
       final db2Path = await initDeleteDb('attach2.db');
 
       // Create some data on db1 and close it
-      var db1 = await databaseFactory.openDatabase(db1Path);
+      final db1 = await databaseFactory.openDatabase(db1Path);
       try {
-        var batch = db1.batch();
+        final batch = db1.batch();
         batch.execute('CREATE TABLE table1 (col1 INTEGER)');
         batch.insert('table1', {'col1': 1234});
         await batch.commit();
@@ -492,10 +488,10 @@ CREATE TABLE test (
 
       // Open a new db2 database, attach db1 and query it
 
-      var db2 = await databaseFactory.openDatabase(db2Path);
+      final db2 = await databaseFactory.openDatabase(db2Path);
       try {
         await db2.execute('ATTACH DATABASE \'$db1Path\' AS db1');
-        var rows = await db2.query('db1.table1');
+        final rows = await db2.query('db1.table1');
         expect(rows, [
           {'col1': 1234}
         ]);
@@ -505,7 +501,7 @@ CREATE TABLE test (
     });
 
     /// fts4
-    var fts4Supports = supportsCompatMode;
+    final fts4Supports = supportsCompatMode;
     if (fts4Supports) {
       test('Issue#206', () async {
         //await Sqflite.devSetDebugModeOn(true);
@@ -573,17 +569,16 @@ CREATE TABLE test (
     });
 
     Future<void> testBigBlog(int size) async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('big_blob.db');
-      var db = await openDatabase(path, version: 1,
+      final db = await openDatabase(path, version: 1,
           onCreate: (Database db, int version) async {
         await db
             .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value BLOB)');
       });
       try {
-        var blob =
+        final blob =
             Uint8List.fromList(List.generate(size, (index) => index % 256));
-        var id = await db.insert('Test', {'value': blob});
+        final id = await db.insert('Test', {'value': blob});
 
         /// Get the value field from a given id
         Future<Uint8List> getValue(int id) async {
@@ -603,16 +598,15 @@ CREATE TABLE test (
     });
 
     Future<void> testBigText(int size) async {
-      // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('big_text.db');
-      var db = await openDatabase(path, version: 1,
+      final db = await openDatabase(path, version: 1,
           onCreate: (Database db, int version) async {
         await db
             .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value TEXT)');
       });
       try {
-        var text = List.generate(size, (index) => 'A').join();
-        var id = await db.insert('Test', {'value': text});
+        final text = List.generate(size, (index) => 'A').join();
+        final id = await db.insert('Test', {'value': text});
 
         /// Get the value field from a given id
         Future<String> getValue(int id) async {
@@ -630,7 +624,7 @@ CREATE TABLE test (
     test('big text 800 Ko', () async {
       await testBigText(800000);
     });
-    /*
+
     test('big blob 1500 Ko (fails on Android sqlite)', () async {
       await testBigBlog(1500000);
     });
@@ -640,7 +634,7 @@ CREATE TABLE test (
     test('big blob 15 Mo (fails on Android sqlite)', () async {
       await testBigBlog(15000000);
     });
-    */
+
     /*
     test('Isolate', () async {
       // This test does not work yet
@@ -698,10 +692,10 @@ CREATE TABLE test (
     });
     */
     test('missing parameter', () async {
-      var db = await openDatabase(inMemoryDatabasePath);
+      final db = await openDatabase(inMemoryDatabasePath);
       await db.execute(
           'CREATE TABLE IF NOT EXISTS foo (id int primary key, name text)');
-      var missingParameterShouldFail = !supportsCompatMode;
+      final missingParameterShouldFail = !supportsCompatMode;
       try {
         await db.rawQuery('SELECT * FROM foo WHERE id=?');
       } catch (e) {
@@ -713,7 +707,7 @@ CREATE TABLE test (
     // Pragma has to use rawQuery...why, on sqflite Android
     test('wal', () async {
       // await Sqflite.devSetDebugModeOn(true);
-      var db = await openDatabase(inMemoryDatabasePath);
+      final db = await openDatabase(inMemoryDatabasePath);
       try {
         await db.execute('PRAGMA journal_mode=WAL');
       } catch (e) {
@@ -723,7 +717,7 @@ CREATE TABLE test (
       await db.execute('CREATE TABLE test (id INTEGER)');
       await db.insert('test', <String, Object?>{'id': 1});
       try {
-        var resultSet = await db.rawQuery('SELECT id FROM test');
+        final resultSet = await db.rawQuery('SELECT id FROM test');
         expect(resultSet, [
           {'id': 1},
         ]);

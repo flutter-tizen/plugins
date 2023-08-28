@@ -9,7 +9,6 @@ import 'package:sqflite/src/database_mixin.dart' // ignore: implementation_impor
 import 'package:sqflite/src/factory_mixin.dart' // ignore: implementation_imports
     show
         SqfliteDatabaseFactoryMixin;
-import 'package:sqflite_tizen_example/utils.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'src/common_import.dart';
@@ -911,8 +910,8 @@ class OpenTestPage extends TestPage {
       await db.close();
     });
     test('Read/write bytes', () async {
-      var path = await initDeleteDb('database_read_bytes.db');
-      var writtenPath = await initDeleteDb('database_written_bytes.db');
+      final path = await initDeleteDb('database_read_bytes.db');
+      final writtenPath = await initDeleteDb('database_written_bytes.db');
       var db = await factory.openDatabase(path,
           options: OpenDatabaseOptions(
               version: 1,
@@ -920,13 +919,13 @@ class OpenTestPage extends TestPage {
                 await db.execute(
                     'CREATE TABLE Test(id INTEGER PRIMARY KEY, value TEXT)');
               }));
-      var textValue = 'value_to_read';
+      const textValue = 'value_to_read';
       await db.insert('Test', {'id': 1, 'value': textValue});
       expect(await db.query('Test'), [
         {'id': 1, 'value': textValue}
       ]);
       await db.close();
-      var bytes = await factory.readDatabaseBytes(path);
+      final bytes = await factory.readDatabaseBytes(path);
       //expect(bytes.length, 8192);
       expect(bytes.sublist(0, 4), [
         83,
