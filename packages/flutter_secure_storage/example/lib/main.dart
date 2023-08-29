@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -211,9 +209,10 @@ class ItemsWidgetState extends State<ItemsWidget> {
         }
         break;
       case _ItemActions.containsKey:
+        if (!mounted) return;
         final key = await _displayTextInputDialog(context, item.key);
         final result = await _storage.containsKey(key: key);
-        if (!mounted) return;
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Contains Key: $result, key checked: $key'),
@@ -222,10 +221,11 @@ class ItemsWidgetState extends State<ItemsWidget> {
         );
         break;
       case _ItemActions.read:
+        if (!mounted) return;
         final key = await _displayTextInputDialog(context, item.key);
         final result =
             await _storage.read(key: key, aOptions: _getAndroidOptions());
-        if (!mounted) return;
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('value: $result'),
