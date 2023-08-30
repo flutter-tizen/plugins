@@ -272,6 +272,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
   ProgressCallback? _onProgress;
   WebResourceErrorCallback? _onWebResourceError;
   NavigationRequestCallback? _onNavigationRequest;
+  UrlChangeCallback? _onUrlChange;
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
@@ -307,6 +308,11 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
               failingUrl: arguments['failingUrl']! as String,
               isForMainFrame: true,
             ));
+          }
+          return null;
+        case 'onUrlChange':
+          if (_onUrlChange != null) {
+            _onUrlChange!(UrlChange(url: arguments['url']! as String));
           }
           return null;
       }
@@ -380,5 +386,10 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
     WebResourceErrorCallback onWebResourceError,
   ) async {
     _onWebResourceError = onWebResourceError;
+  }
+
+  @override
+  Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {
+    _onUrlChange = onUrlChange;
   }
 }
