@@ -166,7 +166,7 @@ void WebView::Dispose() {
                                    "policy,navigation,decide",
                                    &WebView::OnNavigationPolicy);
     evas_object_smart_callback_del(webview_instance_, "url,changed",
-                                 &WebView::OnUrlChange);
+                                   &WebView::OnUrlChange);
     evas_object_del(webview_instance_);
   }
 }
@@ -669,8 +669,7 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
       std::move(result));
 }
 
-void WebView::OnUrlChange(void* data, Evas_Object* obj,
-                                 void* event_info) {
+void WebView::OnUrlChange(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
   std::string url = std::string(ewk_view_url_get(webview->webview_instance_));
   flutter::EncodableMap args = {
