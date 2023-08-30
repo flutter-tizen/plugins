@@ -165,6 +165,8 @@ void WebView::Dispose() {
     evas_object_smart_callback_del(webview_instance_,
                                    "policy,navigation,decide",
                                    &WebView::OnNavigationPolicy);
+    evas_object_smart_callback_del(webview_instance_, "url,changed",
+                                 &WebView::OnUrlChange);
     evas_object_del(webview_instance_);
   }
 }
@@ -298,7 +300,7 @@ void WebView::InitWebView() {
   evas_object_smart_callback_add(webview_instance_, "policy,navigation,decide",
                                  &WebView::OnNavigationPolicy, this);
   evas_object_smart_callback_add(webview_instance_, "url,changed",
-                                 &WebView::OnNavigationPolicy, this);
+                                 &WebView::OnUrlChange, this);
 
   Resize(width_, height_);
   evas_object_show(webview_instance_);

@@ -319,13 +319,14 @@ Future<void> main() async {
       final Completer<WebResourceError> errorCompleter =
           Completer<WebResourceError>();
 
-      final WebViewController controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(
-            NavigationDelegate(onWebResourceError: (WebResourceError error) {
-          errorCompleter.complete(error);
-        }))
-        ..loadRequest(Uri.parse('https://www.notawebsite..com'));
+      final WebViewController controller = WebViewController();
+      unawaited(controller.setJavaScriptMode(JavaScriptMode.unrestricted));
+      unawaited(controller.setNavigationDelegate(
+          NavigationDelegate(onWebResourceError: (WebResourceError error) {
+        errorCompleter.complete(error);
+      })));
+      unawaited(
+          controller.loadRequest(Uri.parse('https://www.notawebsite..com')));
 
       await tester.pumpWidget(WebViewWidget(controller: controller));
 
@@ -422,6 +423,7 @@ Future<void> main() async {
       final Completer<void> pageLoaded = Completer<void>();
 
       final WebViewController controller = WebViewController();
+      final Completer<String> urlChangeCompleter = Completer<String>();
       unawaited(controller.setJavaScriptMode(JavaScriptMode.unrestricted));
       unawaited(controller.setNavigationDelegate(NavigationDelegate(
         onPageFinished: (_) => pageLoaded.complete(),
@@ -432,13 +434,11 @@ Future<void> main() async {
 
       await pageLoaded.future;
 
-      final Completer<String> urlChangeCompleter = Completer<String>();
       await controller.setNavigationDelegate(NavigationDelegate(
         onUrlChange: (UrlChange change) {
           urlChangeCompleter.complete(change.url);
         },
       ));
-
       await controller.runJavaScript('location.href = "$primaryUrl"');
 
       await expectLater(urlChangeCompleter.future, completion(primaryUrl));
@@ -486,7 +486,8 @@ Future<String> _runJavascriptReturningResult(
   WebViewController controller,
   String js,
 ) async {
-  if (defaultTargetPlatform == TargetPlatform.iOS) {
+  if (defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.linux) {
     return await controller.runJavaScriptReturningResult(js) as String;
   }
   return jsonDecode(await controller.runJavaScriptReturningResult(js) as String)
