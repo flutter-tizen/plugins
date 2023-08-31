@@ -1,3 +1,9 @@
+## 3.0.1
+
+* Update audioplayers to 5.1.0.
+* Update audioplayers_platform_interface to 6.0.0.
+* Update example app.
+
 ## 3.0.0
 
 * Update audioplayers to 4.1.0.

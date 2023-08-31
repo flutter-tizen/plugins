@@ -6,7 +6,7 @@ import 'package:audioplayers_tizen_example/utils.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 
 final localhost = kIsWeb || !Platform.isAndroid ? 'localhost' : '10.0.2.2';
 const host = 'https://luan.xyz';
@@ -86,7 +86,7 @@ class _SourcesTabState extends State<SourcesTab>
     Future<void> Function(Source) fun, {
     required String url,
   }) async {
-    final bytes = await readBytes(Uri.parse(url));
+    final bytes = await http.readBytes(Uri.parse(url));
     await fun(BytesSource(bytes));
   }
 
@@ -117,7 +117,7 @@ class _SourcesTabState extends State<SourcesTab>
         ),
         _createSourceTile(
           setSourceKey: const Key('setSource-url-remote-mp3-1'),
-          title: 'Remote URL MP3 1',
+          title: 'Remote URL MP3 1 (VBR)',
           subtitle: 'ambient_c_motion.mp3',
           source: UrlSource(mp3Url1),
         ),

@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 
 ```yaml
 dependencies:
-  audioplayers: ^4.1.0
-  audioplayers_tizen: ^3.0.0
+  audioplayers: ^5.1.0
+  audioplayers_tizen: ^3.0.1
 
 ```
 
@@ -51,6 +51,7 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 - [x] `AudioPlayer.resume`
 - [x] `AudioPlayer.release`
 - [x] `AudioPlayer.seek`
+- [ ] `AudioPlayer.setBalance` (not supported)
 - [x] `AudioPlayer.setVolume`
 - [x] `AudioPlayer.setReleaseMode`
 - [x] `AudioPlayer.setPlaybackRate`
