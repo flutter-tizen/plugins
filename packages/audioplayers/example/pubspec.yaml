@@ -7,7 +7,7 @@ environment:
   flutter: ">=3.3.0"
 
 dependencies:
-  audioplayers: ^4.1.0
+  audioplayers: ^5.1.0
   audioplayers_tizen:
     path: ../
   collection: ^1.16.0
