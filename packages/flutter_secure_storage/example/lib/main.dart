@@ -186,7 +186,7 @@ class ItemsWidgetState extends State<ItemsWidget> {
 
         break;
       case _ItemActions.edit:
-        if (!mounted) return;
+        if (!context.mounted) return;
         final result = await showDialog<String>(
           context: context,
           builder: (context) => _EditItemWidget(item.value),
