@@ -148,9 +148,9 @@ class TypeTestPage extends TestPage {
           blob1234 = Uint8List.fromList(blob1234);
         }
         id = await insertValue(blob1234);
-        final value = (await getValue(id)) as List;
+        dynamic value = (await getValue(id)) as List;
         print(value);
-        print('${value.length}');
+        print('${(value as List).length}');
         expect(value, blob1234, reason: '${await getValue(id)}');
 
         // test hex feature on sqlite

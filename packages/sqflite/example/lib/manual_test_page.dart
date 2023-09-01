@@ -62,7 +62,7 @@ class _ManualTestPageState extends State<ManualTestPage> {
 
   Future<void> _addAndQuery({int? msDelay, bool? noSynchronized}) async {
     // await databaseFactory.debugSetLogLevel(sqfliteLogLevelVerbose);
-    final db = await _openDatabase();
+    var db = await _openDatabase();
 
     // ignore: invalid_use_of_visible_for_testing_member
     db.internalsDoNotUseSynchronized = noSynchronized ?? false;
@@ -71,7 +71,7 @@ class _ManualTestPageState extends State<ManualTestPage> {
           'CREATE TABLE IF NOT EXISTS Task(id INTEGER PRIMARY KEY, name TEXT)');
       await txn.execute('INSERT INTO Task(name) VALUES (?)',
           ['task ${DateTime.now().toIso8601String()}']);
-      final count =
+      var count =
           firstIntValue(await txn.query('Task', columns: [sqlCountColumn]));
       unawaited(showToast('$count task(s)'));
       if (msDelay != null) {
@@ -89,7 +89,7 @@ class _ManualTestPageState extends State<ManualTestPage> {
 
         final results = await db.rawQuery('select sqlite_version()');
         print('select sqlite_version(): $results');
-        final version = results.first.values.first;
+        var version = results.first.values.first;
         print('sqlite version: $version');
         await db.close();
         if (mounted) {
@@ -99,7 +99,7 @@ class _ManualTestPageState extends State<ManualTestPage> {
         }
       }, summary: 'select sqlite_version()'),
       SqfMenuItem('Factory information', () async {
-        final info = databaseFactory.toString();
+        var info = databaseFactory.toString();
         print('sqlite database factory: $info');
         unawaited(showToast(info));
       }, summary: 'toString()'),
@@ -169,15 +169,15 @@ class _ManualTestPageState extends State<ManualTestPage> {
 
   Future<void> testBigBlog(int size) async {
     // await Sqflite.devSetDebugModeOn(true);
-    final db = await openDatabase(inMemoryDatabasePath, version: 1,
+    var db = await openDatabase(inMemoryDatabasePath, version: 1,
         onCreate: (Database db, int version) async {
       await db
           .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value BLOB)');
     });
     try {
-      final blob =
+      var blob =
           Uint8List.fromList(List.generate(size, (index) => index % 256));
-      final id = await db.insert('Test', {'value': blob});
+      var id = await db.insert('Test', {'value': blob});
 
       /// Get the value field from a given id
       Future<Uint8List> getValue(int id) async {
@@ -185,7 +185,7 @@ class _ManualTestPageState extends State<ManualTestPage> {
             as Uint8List;
       }
 
-      final ok = (await getValue(id)).length == blob.length;
+      var ok = (await getValue(id)).length == blob.length;
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('$size: $ok')));
