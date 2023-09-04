@@ -2,7 +2,7 @@ name: flutter_secure_storage_tizen
 description: Tizen implementation of the flutter_secure_storage plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_secure_storage
-version: 0.1.0
+version: 0.1.1
 
 environment:
   sdk: ">=2.18.0 <4.0.0"
@@ -18,7 +18,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_secure_storage_platform_interface: ^1.0.0
+  flutter_secure_storage_platform_interface: ^1.0.1
 
 dev_dependencies:
   flutter_test:
