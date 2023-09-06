@@ -12,7 +12,6 @@ export 'package:matcher/matcher.dart';
 export 'package:sqflite_tizen_example/database/database.dart';
 
 export 'src/expect.dart' show expect, fail;
-
 // ignore_for_file: avoid_print
 
 /// Base test page.
@@ -71,7 +70,7 @@ bool? verify(bool? condition, [String? message]) {
 }
 
 /// Group.
-abstract class Group {
+abstract mixin class Group {
   /// List of tests.
   List<Test> get tests;
 

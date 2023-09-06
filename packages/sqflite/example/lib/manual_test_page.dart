@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
@@ -8,9 +8,10 @@ import 'package:sqflite/utils/utils.dart';
 import 'package:sqflite_tizen_example/src/item_widget.dart';
 import 'package:sqflite_tizen_example/utils.dart';
 
-import 'model/item.dart';
-
 // ignore_for_file: avoid_print
+
+import 'model/item.dart';
+import 'src/common_import.dart';
 
 /// Manual test page.
 class ManualTestPage extends StatefulWidget {
@@ -25,6 +26,13 @@ class ManualTestPage extends StatefulWidget {
 class _ManualTestPageState extends State<ManualTestPage> {
   Database? database;
   static const String dbName = 'manual_test.db';
+
+  Future<void> showToast(String message) async {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(
+          content: Text(message), duration: const Duration(milliseconds: 300)));
+  }
 
   Future<Database> _openDatabase() async {
     return database ??= await databaseFactory.openDatabase(dbName);
@@ -52,13 +60,59 @@ class _ManualTestPageState extends State<ManualTestPage> {
     return true;
   }
 
+  Future<void> _addAndQuery({int? msDelay, bool? noSynchronized}) async {
+    // await databaseFactory.debugSetLogLevel(sqfliteLogLevelVerbose);
+    var db = await _openDatabase();
+
+    // ignore: invalid_use_of_visible_for_testing_member
+    db.internalsDoNotUseSynchronized = noSynchronized ?? false;
+    await db.transaction((txn) async {
+      await txn.execute(
+          'CREATE TABLE IF NOT EXISTS Task(id INTEGER PRIMARY KEY, name TEXT)');
+      await txn.execute('INSERT INTO Task(name) VALUES (?)',
+          ['task ${DateTime.now().toIso8601String()}']);
+      var count =
+          firstIntValue(await txn.query('Task', columns: [sqlCountColumn]));
+      unawaited(showToast('$count task(s)'));
+      if (msDelay != null) {
+        await Future<void>.delayed(Duration(milliseconds: msDelay));
+      }
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     items = <SqfMenuItem>[
+      SqfMenuItem('SQLite version', () async {
+        final db = await openDatabase(inMemoryDatabasePath);
+
+        final results = await db.rawQuery('select sqlite_version()');
+        print('select sqlite_version(): $results');
+        var version = results.first.values.first;
+        print('sqlite version: $version');
+        await db.close();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('select sqlite_version(): $version'),
+          ));
+        }
+      }, summary: 'select sqlite_version()'),
+      SqfMenuItem('Factory information', () async {
+        var info = databaseFactory.toString();
+        print('sqlite database factory: $info');
+        unawaited(showToast(info));
+      }, summary: 'toString()'),
       SqfMenuItem('openDatabase', () async {
         await _openDatabase();
       }, summary: 'Open the database'),
+      SqfMenuItem('transaction add and query and pause', () async {
+        await _addAndQuery(msDelay: 5000);
+      }, summary: 'open/create table/add/query/pause'),
+      SqfMenuItem('transaction add and query and pause no synchronized',
+          () async {
+        await _addAndQuery(msDelay: 5000, noSynchronized: true);
+      }, summary: 'open/create table/add/query/pause'),
       SqfMenuItem('BEGIN EXCLUSIVE', () async {
         final db = await _openDatabase();
         await db.execute('BEGIN EXCLUSIVE');
@@ -99,14 +153,46 @@ class _ManualTestPageState extends State<ManualTestPage> {
         print(info.toString());
       }, summary: 'Implementation info (dev only)'),
       SqfMenuItem('Increment version', () async {
-        await _incrementVersion();
+        print(await _incrementVersion());
       }, summary: 'Implementation info (dev only)'),
       SqfMenuItem('Multiple db', () async {
-        await Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+        await Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) {
           return const MultipleDbTestPage();
         }));
-      }, summary: 'Open multiple databases')
+      }, summary: 'Open multiple databases'),
+      ...[800000, 1500000, 15000000, 150000000]
+          .map((size) => SqfMenuItem('Big blob $size', () async {
+                await testBigBlog(size);
+              }))
     ];
+  }
+
+  Future<void> testBigBlog(int size) async {
+    // await Sqflite.devSetDebugModeOn(true);
+    var db = await openDatabase(inMemoryDatabasePath, version: 1,
+        onCreate: (Database db, int version) async {
+      await db
+          .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value BLOB)');
+    });
+    try {
+      var blob =
+          Uint8List.fromList(List.generate(size, (index) => index % 256));
+      var id = await db.insert('Test', {'value': blob});
+
+      /// Get the value field from a given id
+      Future<Uint8List> getValue(int id) async {
+        return ((await db.query('Test', where: 'id = $id')).first)['value']
+            as Uint8List;
+      }
+
+      var ok = (await getValue(id)).length == blob.length;
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$size: $ok')));
+      }
+    } finally {
+      await db.close();
+    }
   }
 
   @override
@@ -154,7 +240,7 @@ class MultipleDbTestPage extends StatelessWidget {
       return ListTile(
         title: Text(name),
         onTap: () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+          Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) {
             return SimpleDbTestPage(
               dbName: name,
             );

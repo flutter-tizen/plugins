@@ -9,7 +9,7 @@ class BatchTestPage extends TestPage {
   BatchTestPage({Key? key}) : super('Batch tests', key: key) {
     test('BatchQuery', () async {
       // await Sqflite.devSetDebugModeOn();
-      final path = await initDeleteDb('batch.db');
+      final path = await initDeleteDb('batch_query.db');
       final db = await openDatabase(path);
 
       // empty batch
@@ -42,7 +42,7 @@ class BatchTestPage extends TestPage {
       await db.close();
     });
     test('Batch', () async {
-      // await Sqflite.devSetDebugModeOn();
+      // await databaseFactory.devSetDebugModeOn();
       final path = await initDeleteDb('batch.db');
       final db = await openDatabase(path);
 
@@ -50,7 +50,7 @@ class BatchTestPage extends TestPage {
       var batch = db.batch();
       var results = await batch.commit();
       expect(results.length, 0);
-      expect(results, []);
+      expect(results, isEmpty);
 
       // one create table
       batch = db.batch();
@@ -112,7 +112,7 @@ class BatchTestPage extends TestPage {
           where: 'name = ?', whereArgs: <String>['item']);
       batch.delete('Test', where: 'name = ?', whereArgs: ['item']);
       results = await batch.commit(noResult: true);
-      expect(results, []);
+      expect(results, isEmpty);
 
       await db.close();
     });
@@ -133,6 +133,47 @@ class BatchTestPage extends TestPage {
         expect(results, [null]);
 
         results = await batch2.commit();
+        expect(results, [1]);
+      });
+
+      await db.close();
+    });
+
+    test('Apply in database', () async {
+      // await Sqflite.devSetDebugModeOn();
+      final path = await initDeleteDb('apply_in_database.db');
+      final db = await openDatabase(path);
+
+      late List<Object?> results;
+
+      final batch1 = db.batch();
+      batch1.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+      final batch2 = db.batch();
+      batch2.rawInsert('INSERT INTO Test (name) VALUES (?)', ['item1']);
+      results = await batch1.apply();
+      expect(results, [null]);
+
+      results = await batch2.apply();
+      expect(results, [1]);
+      await db.close();
+    });
+
+    test('Apply in transaction', () async {
+      // await Sqflite.devSetDebugModeOn();
+      final path = await initDeleteDb('apply_in_transaction.db');
+      final db = await openDatabase(path);
+
+      late List<Object?> results;
+
+      await db.transaction((txn) async {
+        final batch1 = txn.batch();
+        batch1.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+        final batch2 = txn.batch();
+        batch2.rawInsert('INSERT INTO Test (name) VALUES (?)', ['item1']);
+        results = await batch1.apply();
+        expect(results, [null]);
+
+        results = await batch2.apply();
         expect(results, [1]);
       });
 
