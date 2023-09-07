@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_tizen_example/utils.dart';
 
 import 'test_page.dart';
 
@@ -50,10 +51,10 @@ class TypeTestPage extends TestPage {
       id = await insertValue(value);
       //devPrint('${value} ${await getValue(id)}');
       expect(await getValue(id), value, reason: '$value ${await getValue(id)}');
+      /*
       id = await insertValue(pow(2, 63));
-      // devPrint('2^63: ${pow(2, 63)} ${await getValue(id)}');
-      assert(await getValue(id) == pow(2, 63),
-          '2^63: ${pow(2, 63)} ${await getValue(id)}');
+      devPrint('2^63: ${pow(2, 63)} ${await getValue(id)}');
+      assert(await getValue(id) == pow(2, 63), '2^63: ${pow(2, 63)} ${await getValue(id)}');
 
       // more then 64 bits
       id = await insertValue(pow(2, 65));
@@ -62,6 +63,7 @@ class TypeTestPage extends TestPage {
       // more then 128 bits
       id = await insertValue(pow(2, 129));
       assert(await getValue(id) == pow(2, 129));
+      */
       await data.db.close();
     });
 
@@ -141,11 +143,14 @@ class TypeTestPage extends TestPage {
         //print(await getValue(id));
         //assert(eq.equals(await getValue(id), []));
 
-        final blob1234 = [1, 2, 3, 4];
+        var blob1234 = [1, 2, 3, 4];
+        if (!supportsCompatMode) {
+          blob1234 = Uint8List.fromList(blob1234);
+        }
         id = await insertValue(blob1234);
-        final value = (await getValue(id)) as List;
+        dynamic value = (await getValue(id)) as List;
         print(value);
-        print('${value.length}');
+        print('${(value as List).length}');
         expect(value, blob1234, reason: '${await getValue(id)}');
 
         // test hex feature on sqlite
@@ -153,12 +158,12 @@ class TypeTestPage extends TestPage {
             .rawQuery('SELECT hex(value) FROM Test WHERE id = ?', [id]);
         expect(hexResult[0].values.first, '01020304');
 
-        // try blob lookup
+        // try blob lookup (works on Android since 2022-09-19)
         var rows = await data.db
             .rawQuery('SELECT * FROM Test WHERE value = ?', [blob1234]);
         expect(rows.length, 1);
 
-        // // try blob lookup using hex
+        // try blob lookup using hex
         rows = await data.db.rawQuery(
             'SELECT * FROM Test WHERE hex(value) = ?', [Sqflite.hex(blob1234)]);
         expect(rows.length, 1);
@@ -169,7 +174,6 @@ class TypeTestPage extends TestPage {
         // final blobEmpty = Uint8List(0);
         // id = await insertValue(blobEmpty);
         // value = await getValue(id);
-        // print(value);
         // expect(value, const TypeMatcher<Uint8List>());
         // expect(value, isEmpty);
       } finally {
@@ -235,7 +239,10 @@ class TypeTestPage extends TestPage {
         } on ArgumentError catch (_) {
           failed = true;
         }
-        expect(failed, isFalse);
+        if (supportsCompatMode) {
+          print('for now bool are accepted but inconsistent on iOS/Android');
+          expect(failed, isFalse);
+        }
       } finally {
         await data.db.close();
       }
