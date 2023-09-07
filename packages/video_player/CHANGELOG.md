@@ -1,3 +1,7 @@
+## 2.4.8
+
+* Disable screensaver when player is playing.
+
 ## 2.4.7
 
 * Update pigeon to 10.0.0.
