@@ -3,7 +3,7 @@ description: Demonstrates how to use the sqflite_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ">=2.18.0 <4.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=3.3.0"
 
 dependencies:
@@ -11,7 +11,7 @@ dependencies:
   collection: any
   flutter:
     sdk: flutter
-  sqflite: ^2.2.8
+  sqflite: ^2.3.0
   sqflite_common:
   sqflite_tizen:
     path: ../
