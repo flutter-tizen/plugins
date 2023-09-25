@@ -207,6 +207,7 @@ class DataSource {
   /// Configurations for playing DRM content.
   DrmConfigs? drmConfigs;
 
+  /// Set additional optional player settings.
   Map<String, dynamic>? playerOptions;
 }
 
