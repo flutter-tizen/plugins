@@ -6,7 +6,7 @@
 #ifdef LOG_TAG
 #undef LOG_TAG
 #endif
-#define LOG_TAG "VideoPlayerVideoHolePlugin"
+#define LOG_TAG "VideoPlayerAVPlayerPlugin"
 
 #ifndef __MODULE__
 #define __MODULE__ strrchr("/" __FILE__, '/') + 1

@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/video_player_avplayer.svg)](https://pub.dev/packages/video_player_avplayer)
 
-A fork of the [`video_player`](https://pub.dev/packages/video_player) plugin to support playback of DRM streams (Widevine and PlayReady) on Tizen TV devices.
+A downloadable plugin which supports MMPlayer and PlusPlayer(PlusPlayer is a new multimedia player object-oriented designed) on Tizen TV devices.
 
 This plugin is only supported on Tizen TV devices. If you are targeting other types of devices or are not interested in playing DRM content in your app, use [`video_player`](https://pub.dev/packages/video_player) and [`video_player_tizen`](https://pub.dev/packages/video_player_tizen) instead.
 
@@ -22,6 +22,8 @@ import 'package:video_player_avplayer/video_player.dart';
 ```
 
 Note that `video_player_avplayer` is not compatible with the original `video_player` plugin. If you're writing a cross-platform app for Tizen and other platforms, it is recommended to create two separate source files and import `video_player` and `video_player_avplayer` in the files respectively.
+
+Note that `video_player_avplayer` uses a compiled dynamic library, the api-version in tizen-manifest.xml is your TV version.
 
 ### Example
 
@@ -121,4 +123,4 @@ This plugin has the following limitations.
 - The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
 - The playback speed will reset to 1.0 when the video is replayed in loop mode.
 - The `seekTo` method works only when the playback speed is 1.0, and it sets the video position to the nearest keyframe, not the exact value passed.
-- Dash sidecar subtitles are only supported on Tizen 7.0 and later.
+- 
