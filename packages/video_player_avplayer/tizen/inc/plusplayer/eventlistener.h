@@ -32,7 +32,6 @@
 #define PLUS_PLAYER_AI_DATA_COLLECTION
 #endif
 
-
 namespace plusplayer {
 
 /**
@@ -101,60 +100,62 @@ class EventListener {
                                                const MessageParam& msg,
                                                UserData userdata) {}
   /**
-* @brief     It will be invoked when queue in hls event triggered for cue
-* advetisment start
-* @param     [in] msgType : #event name
-* @param     [in] MessageParam : #MessageParam
-*/
-  virtual void OnCueEvent(const char *CueData,
-                                               UserData userdata) {}
+   * @brief     It will be invoked when queue in hls event triggered for cue
+   * advetisment start
+   * @param     [in] msgType : #event name
+   * @param     [in] MessageParam : #MessageParam
+   */
+  virtual void OnCueEvent(const char* CueData, UserData userdata) {}
   /**
-* @brief     It will be invoked when InteractiveAd event triggered 
-* @param     [in] msgType : #event name
-* @param     [in] MessageParam : #MessageParam
-*/
-  virtual void OnInteractiveAd(const char *InteractiveAdData,
-                                               UserData userdata) {}
-   /**
-* @brief     It will be invoked when InteractiveAd start 
-* @param     [in] msgType : #event name
-* @param     [in] MessageParam : #MessageParam
-*/
-  virtual void OnInteractiveAdStart(const char *InteractiveAdID,
-                                               UserData userdata) {}
+   * @brief     It will be invoked when InteractiveAd event triggered
+   * @param     [in] msgType : #event name
+   * @param     [in] MessageParam : #MessageParam
+   */
+  virtual void OnInteractiveAd(const char* InteractiveAdData,
+                               UserData userdata) {}
+  /**
+   * @brief     It will be invoked when InteractiveAd start
+   * @param     [in] msgType : #event name
+   * @param     [in] MessageParam : #MessageParam
+   */
+  virtual void OnInteractiveAdStart(const char* InteractiveAdID,
+                                    UserData userdata) {}
 
-     /**
-* @brief     It will be invoked when InteractiveAd stop reaches
-* @param     [in] msgType : #event name
-* @param     [in] MessageParam : #MessageParam
-*/
-  virtual void OnInteractiveAdStop(const char *InteractiveAdID,
-                                               UserData userdata) {}
+  /**
+   * @brief     It will be invoked when InteractiveAd stop reaches
+   * @param     [in] msgType : #event name
+   * @param     [in] MessageParam : #MessageParam
+   */
+  virtual void OnInteractiveAdStop(const char* InteractiveAdID,
+                                   UserData userdata) {}
 
   virtual void OnDateRangeEvent(const char* DateRangeData, UserData userdata) {}
   virtual void OnStopReachEvent(bool StopReach, UserData userdata) {}
 
   virtual void OnCueOutContEvent(const char* CueOutContData,
-                                 UserData userdata) {}     
-								 
-    virtual void OnSwitchDoneEvent(UserData userdata) {}                         
+                                 UserData userdata) {}
+
+  virtual void OnSwitchDoneEvent(UserData userdata) {}
   /**
    * @brief     It will be invoked when dash scte:35 cue event is parsed
    * @param     [in] Ad : # Ad information c_str ends with '\0'
-   * @pre       This callback will not be invoked before player prepare 
+   * @pre       This callback will not be invoked before player prepare
    * @post      None
    * @exception None
    */
   virtual void OnADEventFromDash(const char* ADData, UserData userdata) {}
 
   /**
-   * @brief     It will be invoked when HbbTV preselection case by using dashplusplayer with appid "org.tizen.hbbtv"
-   * @param     [in] ps_data : string stored preselection info followed json format
-   * @pre       This callback will not be invoked before player prepare 
+   * @brief     It will be invoked when HbbTV preselection case by using
+   * dashplusplayer with appid "org.tizen.hbbtv"
+   * @param     [in] ps_data : string stored preselection info followed json
+   * format
+   * @pre       This callback will not be invoked before player prepare
    * @post      None
    * @exception None
    */
-  virtual void OnAudioPreselectionInfoFromDash(const char * PsData, UserData userdata) {}
+  virtual void OnAudioPreselectionInfoFromDash(const char* PsData,
+                                               UserData userdata) {}
 
   /**
    * @brief     It will be invoked when player is prepared to be started
@@ -196,29 +197,30 @@ class EventListener {
                               SubtitleAttrListPtr attr_list,
                               UserData userdata) {}
   /**
-  * @brief      It will be invoked when player state was changed to playing
-  * @param      [in] userdata : userdata of event
-  * @pre        None
-  * @post       The player state will be #State::kPlaying
-  * @return     None
-  * @exception  None
-  */
+   * @brief      It will be invoked when player state was changed to playing
+   * @param      [in] userdata : userdata of event
+   * @pre        None
+   * @post       The player state will be #State::kPlaying
+   * @return     None
+   * @exception  None
+   */
   virtual void OnStateChangedToPlaying(UserData userdata) {}
-#ifdef DRM_MAPI_AARCH_64  
+#ifdef DRM_MAPI_AARCH_64
   virtual void OnDrmInitData(unsigned long* drmhandle, unsigned int len,
 #else
   virtual void OnDrmInitData(int* drmhandle, unsigned int len,
-#endif		  
+#endif
                              unsigned char* psshdata, TrackType type,
-                             UserData userdata) {}
+                             UserData userdata) {
+  }
 /**
-* @brief      It will be invoked to post AI data collection
-* @param      [in] userdata : userdata of event
-* @pre        None
-* @post       The player state will be #State::kPlaying
-* @return     None
-* @exception  None
-*/
+ * @brief      It will be invoked to post AI data collection
+ * @param      [in] userdata : userdata of event
+ * @pre        None
+ * @post       The player state will be #State::kPlaying
+ * @return     None
+ * @exception  None
+ */
 #ifdef PLUS_PLAYER_AI_DATA_COLLECTION
   virtual void OnAIDataCollection(std::unique_ptr<char[]> ai_data,
                                   UserData userdata) {}
@@ -230,44 +232,44 @@ class EventListener {
 #endif
 
   /**
-  * @brief      It will be invoked when demux found drm caps
-  * @param      [in] userdata : userdata of event
-  * @return     None
-  * @exception  None
-  */
+   * @brief      It will be invoked when demux found drm caps
+   * @param      [in] userdata : userdata of event
+   * @return     None
+   * @exception  None
+   */
   virtual void OnDrmType(plusplayer::drm::Type drmtype, UserData userdata) {}
 
   /**
-  * @brief      It will be invoked when pes data received from demux
-  * @param	   [in] pid : pkt indetifier
-  * @param	   [in] data : pes data
-  * @param	   [in] size : size of pes data
-  * @param	   [in] userdata : userdata of event
-  * @return     None
-  * @exception  None
-  */
-  virtual void OnPesData(int pid, std::unique_ptr<char[]> data, 
-                             const int size,UserData userdata) {}
-  
-  virtual void  OnPSSHData(const StreamingMessageType& type,
-                                  const MessageParam& msg, UserData userdata){}
-  
+   * @brief      It will be invoked when pes data received from demux
+   * @param	   [in] pid : pkt indetifier
+   * @param	   [in] data : pes data
+   * @param	   [in] size : size of pes data
+   * @param	   [in] userdata : userdata of event
+   * @return     None
+   * @exception  None
+   */
+  virtual void OnPesData(int pid, std::unique_ptr<char[]> data, const int size,
+                         UserData userdata) {}
+
+  virtual void OnPSSHData(const StreamingMessageType& type,
+                          const MessageParam& msg, UserData userdata) {}
+
   /**
-  * @brief      It will be invoked when section data received from demux
-  * @param	   [in] pid : pkt indetifier
-  * @param	   [in] data : section data
-  * @param	   [in] size : size of section data
-  * @param	   [in] userdata : userdata of event
-  * @return     None
-  * @exception  None
-  */
+   * @brief      It will be invoked when section data received from demux
+   * @param	   [in] pid : pkt indetifier
+   * @param	   [in] data : section data
+   * @param	   [in] size : size of section data
+   * @param	   [in] userdata : userdata of event
+   * @return     None
+   * @exception  None
+   */
 
   virtual void OnSectionData(int pid, std::unique_ptr<char[]> data,
-                             const int size,UserData userdata) {}
+                             const int size, UserData userdata) {}
 #ifdef PLUS_PLAYER_ENABLE_ERROR_FRAMEWORK
-  virtual void OnErrorFW(std::unique_ptr<char[]> error_data, UserData userdata){}
-#endif 
-
+  virtual void OnErrorFW(std::unique_ptr<char[]> error_data,
+                         UserData userdata) {}
+#endif
 };
 
 }  // namespace plusplayer

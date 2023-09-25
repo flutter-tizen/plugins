@@ -28,8 +28,8 @@
 namespace plusplayer {
 
 /**
-* @brief Player app information.
-*/
+ * @brief Player app information.
+ */
 struct PlayerAppInfo {
   std::string id;      /**< App id */
   std::string version; /**< App version */

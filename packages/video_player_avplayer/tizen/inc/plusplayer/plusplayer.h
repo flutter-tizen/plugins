@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-//plusplayer should disable mix feature temporarily.
+// plusplayer should disable mix feature temporarily.
 //#ifndef IS_AUDIO_PRODUCT
 //#include "mixer/mixer.h"
 //#endif
@@ -42,9 +42,9 @@
 #include "plusplayer/track.h"
 #include "plusplayer/types/buffer.h"
 #include "plusplayer/types/display.h"
+#include "plusplayer/types/picturequality.h"
 #include "plusplayer/types/resource.h"
 #include "plusplayer/types/source.h"
-#include "plusplayer/types/picturequality.h"
 
 //#ifndef PLUS_PLAYER_ENABLE_AI_ABR
 //#define PLUS_PLAYER_ENABLE_AI_ABR
@@ -82,7 +82,7 @@ struct PlayerMemento {
   double current_playback_rate = 1.0; /**< Playback rate of current player */
 };
 
- /**
+/**
  * @brief   Enumerations for player codec type
  */
 enum PlayerCodecType {
@@ -104,7 +104,7 @@ enum VideoResourceType {
    * @description   video resource(main), default type
    */
   kVideoResource,
- /**
+  /**
    * @description   sub video resource.
    */
   kVideoResourceSub,
@@ -118,7 +118,7 @@ enum PlayerType {
    * @description   default player type
    */
   kDefault,
- /**
+  /**
    * @description   for dash extened player.
    */
   kDASH,
@@ -408,13 +408,13 @@ class PlusPlayer : private boost::noncopyable {
   /**
    * @brief     Set stop point for playback.
    * @remarks   Only support hls. If stop position is set, media playeback will
-   * stop at time_millisecond instead of eos. 
+   * stop at time_millisecond instead of eos.
    * @param     [in] time_millisecond : the absolute position(playingtime) of
    * the stream in milliseconds
    * @pre       The player state must be one of #State::kTrackSourceReady,
    * #State::kReady, #State::kPlaying or #State::kPaused
    * @post      None
-   * @exception None 
+   * @exception None
    * @see       EventListener::OnStopReachEvent()
    */
   virtual void SetStopPosition(const uint64_t time_millisecond) { return; }
@@ -460,8 +460,10 @@ class PlusPlayer : private boost::noncopyable {
    * @param     [in] serface_id : resource id of window.
    * @param     [in] x : x param of display window
    * @param     [in] y : y param of display window
-   * @param     [in] w : width of display window. This value should be greater than 0.
-   * @param     [in] h : height of display window. This value should be greater than 0.
+   * @param     [in] w : width of display window. This value should be greater
+   * than 0.
+   * @param     [in] h : height of display window. This value should be greater
+   * than 0.
    * @pre       The player state can be all of #State except #State::kNone
    * @return    @c True on success, otherwise @c False
    * @see       DisplayType \n
@@ -490,8 +492,8 @@ class PlusPlayer : private boost::noncopyable {
    */
   virtual bool SetDisplay(const DisplayType& type, void* obj) { return false; }
 
-//plusplayer should disable mix feature temporarily.
-//#ifndef IS_AUDIO_PRODUCT
+  // plusplayer should disable mix feature temporarily.
+  //#ifndef IS_AUDIO_PRODUCT
   /**
    * @brief     Set the video display
    * @remarks   We are not supporting changing display.
@@ -508,10 +510,10 @@ class PlusPlayer : private boost::noncopyable {
    *            PlusPlayer::SetDisplayVisible()
    * @exception  None
    */
-//  virtual bool SetDisplay(const DisplayType& type, Mixer* handle) {
-//    return false;
-//  }
-//#endif
+  //  virtual bool SetDisplay(const DisplayType& type, Mixer* handle) {
+  //    return false;
+  //  }
+  //#endif
 
   /**
    * @brief     Set the video display mode
@@ -527,7 +529,8 @@ class PlusPlayer : private boost::noncopyable {
   /**
    * @brief     Set the ROI(Region Of Interest) area of display
    * @remarks   The minimum value of width and height are 1.
-   * @param     [in] roi : Roi Geometry. width and height value in Geometry should be greater than 0.
+   * @param     [in] roi : Roi Geometry. width and height value in Geometry
+   * should be greater than 0.
    * @pre       The player state can be all of #State except #State::kNone \n
    *            Before set display ROI, #DisplayMode::kDstRoi must be set with
    * PlusPlayer::SetDisplayMode().
@@ -588,7 +591,8 @@ class PlusPlayer : private boost::noncopyable {
   /**
    * @brief     Set the ROI(Region Of Interest) area of video
    * @remarks   The minimum value of width and height are 1.
-   * @param     [in] roi : Roi CropArea. width and height value in CropArea should be greater than 0.
+   * @param     [in] roi : Roi CropArea. width and height value in CropArea
+   * should be greater than 0.
    * @pre       The player state can be all of #State except #State::kNone
    * @post      None
    * @return    @c True on success, otherwise @c False
@@ -651,26 +655,25 @@ class PlusPlayer : private boost::noncopyable {
    */
   virtual std::vector<Track> GetTrackInfo() { return {}; }
   /**
-  * @brief     Get Caption track infomation of the associated media.
-  * @pre       The player can be one of #State::kTrackSourceReady, #State::kReady,
-  *            #State::kPlaying or #State::kPaused
-  * @return    std::vector of #CaptionTrack infomation of stream
-  */
-  virtual std::vector<CaptionTracks> GetCaptionTrackInfo() {
-    return {};
-  }
+   * @brief     Get Caption track infomation of the associated media.
+   * @pre       The player can be one of #State::kTrackSourceReady,
+   * #State::kReady, #State::kPlaying or #State::kPaused
+   * @return    std::vector of #CaptionTrack infomation of stream
+   */
+  virtual std::vector<CaptionTracks> GetCaptionTrackInfo() { return {}; }
   /**
-  * @brief     Get activated(selected) track infomation of the associated media.
-  * @remarks   In the case of Adaptive Streaming such as HLS,DASH,
-  *            Track.bitrate might be different from current bitrate
-  *            because it can be changed based on network bandwidth whenever.
-  *            If you need the current bitrate instantly,
-  *            you can get it from OnAdaptiveStreamingControlEvent().
-  * @pre       The player must be one of #State::kTrackSourceReady, #State::kReady,
-  *            #State::kPlaying or #State::kPaused
-  * @return    std::vector of activated(selected) #Track infomation of stream
-  * @see       EventListener::OnAdaptiveStreamingControlEvent(kBitrateChange)
-  */
+   * @brief     Get activated(selected) track infomation of the associated
+   * media.
+   * @remarks   In the case of Adaptive Streaming such as HLS,DASH,
+   *            Track.bitrate might be different from current bitrate
+   *            because it can be changed based on network bandwidth whenever.
+   *            If you need the current bitrate instantly,
+   *            you can get it from OnAdaptiveStreamingControlEvent().
+   * @pre       The player must be one of #State::kTrackSourceReady,
+   * #State::kReady, #State::kPlaying or #State::kPaused
+   * @return    std::vector of activated(selected) #Track infomation of stream
+   * @see       EventListener::OnAdaptiveStreamingControlEvent(kBitrateChange)
+   */
   virtual std::vector<Track> GetActiveTrackInfo() { return {}; }
   /**
    * @brief     Get the duration of the stream set by url.
@@ -799,7 +802,7 @@ class PlusPlayer : private boost::noncopyable {
   /**
    * @brief     api to support stand-alone-mode.
    */
-  virtual void SetWindowStandAloneMode() {return;}
+  virtual void SetWindowStandAloneMode() { return; }
 
   /**
    * @brief	  SetPreferredLanguage
@@ -827,25 +830,28 @@ class PlusPlayer : private boost::noncopyable {
   virtual bool GetMALOGStatus() { return false; }
 #endif
 
- /**
- * @brief	 Activates stream.
- * @param	 [in] type : track type
- * @pre 	 The player state can be all of #State except #State::kNone
- */
- virtual bool Activate(const TrackType type) {return false;}
- /**
- * @brief	 Deactivates stream.
- * @param	 [in] type : track type
- * @pre 	 The player state can be all of #State except #State::kNone
- */
- virtual bool Deactivate(const TrackType type) {return false;}
   /**
- * @brief	 Set decoder type
- * @param	 [in] type : track type
- * @param	 [in] DecoderType : hardware or software decoder type
- * @pre 	 The player state can be all of #State except #State::kNone
- */
- virtual bool SetCodecType(const TrackType type, const PlayerCodecType& DecoderType) {return false;};
+   * @brief	 Activates stream.
+   * @param	 [in] type : track type
+   * @pre 	 The player state can be all of #State except #State::kNone
+   */
+  virtual bool Activate(const TrackType type) { return false; }
+  /**
+   * @brief	 Deactivates stream.
+   * @param	 [in] type : track type
+   * @pre 	 The player state can be all of #State except #State::kNone
+   */
+  virtual bool Deactivate(const TrackType type) { return false; }
+  /**
+   * @brief	 Set decoder type
+   * @param	 [in] type : track type
+   * @param	 [in] DecoderType : hardware or software decoder type
+   * @pre 	 The player state can be all of #State except #State::kNone
+   */
+  virtual bool SetCodecType(const TrackType type,
+                            const PlayerCodecType& DecoderType) {
+    return false;
+  };
 
   /**
    * @brief     Set decoded video frame buffer type.
@@ -858,101 +864,102 @@ class PlusPlayer : private boost::noncopyable {
     return;
   }
 
- /**
-  * @brief     Get virtual resource id
-  * @param     [in] type : The resource type of virtual id.
-  * @param     [out] virtual_id : Stored virtual resource id value.
-  * @pre       The player state should be #State::kReady, #State::kPlaying or
-  *            #State::kPaused
-  * @post      None
-  * @return    @c True on success, otherwise @c False ("virtual_id" will be -1)
-  * @exception  None
-  * @remark    This function returns virtual resource id which player is
-  *            allocated from resource manager. For example, virtual scaler id is
-  *            required for an application to use capture API directly.  
-  */
- virtual bool GetVirtualRscId(const RscType type, int* virtual_id) {
-   return false;
- }
- /**
-  * @brief     Provided api for setting alternative video resource(sub decoder
-  *            and sub scaler)
-  * @param     [in] is_set : set alternative video resource
-  *            (@c 0 [defualt] = set all video resources(decoder/scaler) to
-  *                              main resources,
-  *             @c 1 = set all video resources(decoder/scaler) to sub
-  *                    resources,
-  *             @c 2 = set only decoder to sub resource,
-  *             @c 3 = set only scaler to sub resource)
-  * @pre       The player state should be #State::kIdle
-  * @return    @c True on success, otherwise @c False
-  */
+  /**
+   * @brief     Get virtual resource id
+   * @param     [in] type : The resource type of virtual id.
+   * @param     [out] virtual_id : Stored virtual resource id value.
+   * @pre       The player state should be #State::kReady, #State::kPlaying or
+   *            #State::kPaused
+   * @post      None
+   * @return    @c True on success, otherwise @c False ("virtual_id" will be -1)
+   * @exception  None
+   * @remark    This function returns virtual resource id which player is
+   *            allocated from resource manager. For example, virtual scaler id
+   * is required for an application to use capture API directly.
+   */
+  virtual bool GetVirtualRscId(const RscType type, int* virtual_id) {
+    return false;
+  }
+  /**
+   * @brief     Provided api for setting alternative video resource(sub decoder
+   *            and sub scaler)
+   * @param     [in] is_set : set alternative video resource
+   *            (@c 0 [defualt] = set all video resources(decoder/scaler) to
+   *                              main resources,
+   *             @c 1 = set all video resources(decoder/scaler) to sub
+   *                    resources,
+   *             @c 2 = set only decoder to sub resource,
+   *             @c 3 = set only scaler to sub resource)
+   * @pre       The player state should be #State::kIdle
+   * @return    @c True on success, otherwise @c False
+   */
   virtual bool SetAlternativeVideoResource(unsigned int rsc_type) {
     return false;
   }
-  
- /**
-  * @brief     Provided api for setting advanced picture quality type
-  * @param     [in] quality_type : value of picture quality type
-  *            (@c kTvPlus = TV Plus)
-  * @pre       The player state should be #State::kIdle
-  * @return    @c True on success, otherwise @c False
-  */
-  virtual bool SetAdvancedPictureQualityType(const AdvPictureQualityType quality_type) {
+
+  /**
+   * @brief     Provided api for setting advanced picture quality type
+   * @param     [in] quality_type : value of picture quality type
+   *            (@c kTvPlus = TV Plus)
+   * @pre       The player state should be #State::kIdle
+   * @return    @c True on success, otherwise @c False
+   */
+  virtual bool SetAdvancedPictureQualityType(
+      const AdvPictureQualityType quality_type) {
     return false;
   }
 
-
   /**
   * @brief	  Below apis used for open section and pes filter callback
-              from ts sgment 
+              from ts sgment
   * @param	  [in] pid : program id in ts pkt
   * @pre 	  The player state can be all of #State except #State::kNone
   */
 
-  virtual void OpenSecInfoCb(int pid){return ;}
-  virtual void OpenPesInfoCb(int pid){return ;}
+  virtual void OpenSecInfoCb(int pid) { return; }
+  virtual void OpenPesInfoCb(int pid) { return; }
 
   /**
-  * @brief	  Below apis used for closing the callback set in openSection/pes
-  * @param	  [in] pid : program id in ts pkt
-  * @pre 	  The player state should be #State::kReady, #State::kPlaying or #State::kPaused
-  */
-  virtual void CloseSecInfo(int pid){return ;}
-  virtual void ClosePesInfo(int pid){return ;}
+   * @brief	  Below apis used for closing the callback set in
+   * openSection/pes
+   * @param	  [in] pid : program id in ts pkt
+   * @pre 	  The player state should be #State::kReady, #State::kPlaying or
+   * #State::kPaused
+   */
+  virtual void CloseSecInfo(int pid) { return; }
+  virtual void ClosePesInfo(int pid) { return; }
 
   /**
-  * @brief	  Set audio easing to avoid acoustic shock at play starts.
-  * @pre 	  The player state can be all of #State except #State::kNone and #State::kPlaying
-  */
-  virtual bool SetAntiAcousticShock(){ return false; }
+   * @brief	  Set audio easing to avoid acoustic shock at play starts.
+   * @pre 	  The player state can be all of #State except #State::kNone and
+   * #State::kPlaying
+   */
+  virtual bool SetAntiAcousticShock() { return false; }
 
- 
- 
-  /** 
-  * @brief  Set audio volume level
-  * @pre 	  The player state can be  #State::kPlaying or #State::kPaused
-  * @param [in] volume  range  [0,100]
-  * @return If set action excuted sucessfully 
-  */
-  virtual bool SetVolume(int volume){ return false; }
- 
-  /** 
-  * @brief  Get audio volume level
-  * @pre 	  The player state can be  #State::kPlaying or #State::kPaused
-  * @param [out] volume  , 
-  * @return If Get action excuted sucessfully 
-  */
+  /**
+   * @brief  Set audio volume level
+   * @pre 	  The player state can be  #State::kPlaying or #State::kPaused
+   * @param [in] volume  range  [0,100]
+   * @return If set action excuted sucessfully
+   */
+  virtual bool SetVolume(int volume) { return false; }
+
+  /**
+   * @brief  Get audio volume level
+   * @pre 	  The player state can be  #State::kPlaying or #State::kPaused
+   * @param [out] volume  ,
+   * @return If Get action excuted sucessfully
+   */
   virtual bool GetVolume(int* volume) { return false; }
 
-  /** 
-  * @brief  Get audio muted state
-  * @pre 	  The player state can be any besides #State::kNone
-  * @return If audio muted 
-  */
-  virtual bool IsMuted()  { return false; }
+  /**
+   * @brief  Get audio muted state
+   * @pre 	  The player state can be any besides #State::kNone
+   * @return If audio muted
+   */
+  virtual bool IsMuted() { return false; }
 
-  virtual bool SwitchUri(int64_t ms){return false;}
+  virtual bool SwitchUri(int64_t ms) { return false; }
 
  protected:
   /**

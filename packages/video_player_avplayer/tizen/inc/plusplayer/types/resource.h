@@ -46,7 +46,7 @@ enum class RscAllocPolicy {
 };
 
 /**
- * @brief   Enumerations for audio resource type 
+ * @brief   Enumerations for audio resource type
  */
 enum PlayerAudioResourceType {
   /**
