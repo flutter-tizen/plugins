@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:video_player_avplayer/video_player.dart';
+import 'package:video_player_avplayer/video_player_platform_interface.dart';
 
 void main() {
   runApp(
@@ -129,7 +130,9 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-        'https://dash.akamaized.net/dash264/TestCasesUHD/2b/11/MultiRate.mpd');
+      'https://dash.akamaized.net/dash264/TestCasesUHD/2b/11/MultiRate.mpd',
+      formatHint: VideoFormat.dash,
+    );
 
     _controller.addListener(() {
       if (_controller.value.hasError) {
@@ -259,6 +262,7 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
           return response.bodyBytes;
         },
       ),
+      formatHint: VideoFormat.dash,
     );
 
     _controller.addListener(() {

@@ -17,7 +17,8 @@
 
 class PlusPlayer : public VideoPlayer, public plusplayer::EventListener {
  public:
-  explicit PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window);
+  explicit PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window,
+                      std::string &video_format);
   ~PlusPlayer();
 
   int64_t Create(const std::string &uri, int drm_type,
@@ -82,6 +83,7 @@ class PlusPlayer : public VideoPlayer, public plusplayer::EventListener {
   std::unique_ptr<plusplayer::PlusPlayer> player_;
   void *native_window_;
   std::unique_ptr<DrmManager> drm_manager_;
+  std::string video_format_;
   bool is_buffering_ = false;
   bool is_prebuffer_mode_ = false;
   SeekCompletedCallback on_seek_completed_;
