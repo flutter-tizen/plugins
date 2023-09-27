@@ -7,12 +7,13 @@
 
 #include <flutter/plugin_registrar.h>
 
-#include "drm_manager.h"
-#include "media_player_proxy.h"
-#include "video_player.h"
 #include <memory>
 #include <string>
 #include <utility>
+
+#include "drm_manager.h"
+#include "media_player_proxy.h"
+#include "video_player.h"
 
 class MediaPlayer : public VideoPlayer {
  public:
