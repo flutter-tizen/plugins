@@ -11,8 +11,11 @@
 
 #include "log.h"
 
-PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window)
-    : VideoPlayer(messenger), native_window_(native_window) {}
+PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window,
+                       std::string &video_format)
+    : VideoPlayer(messenger),
+      native_window_(native_window),
+      video_format_(video_format) {}
 
 PlusPlayer::~PlusPlayer() { Dispose(); }
 
@@ -20,7 +23,12 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
                            const std::string &license_server_url,
                            bool is_prebuffer_mode) {
   LOG_INFO("[PlusPlayer] Create player.");
-  player_ = plusplayer::PlusPlayer::Create();
+  if (!video_format_.compare("dash")) {
+    player_ = plusplayer::PlusPlayer::Create(plusplayer::PlayerType::kDASH);
+  } else {
+    player_ = plusplayer::PlusPlayer::Create();
+  }
+
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Fail to create player.");
     return -1;

@@ -119,6 +119,7 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   int32_t drm_type = 0;  // DRM_TYPE_NONE
   std::string license_server_url;
   bool prebuffer_mode;
+  std::string format;
 
   if (msg.asset() && !msg.asset()->empty()) {
     char *res_path = app_get_resource_path();
@@ -130,6 +131,9 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     }
   } else if (msg.uri() && !msg.uri()->empty()) {
     uri = *msg.uri();
+    if (msg.format_hint() && !msg.format_hint()->empty()) {
+      format = *msg.format_hint();
+    }
 
     const flutter::EncodableMap *drm_configs = msg.drm_configs();
     if (drm_configs) {
@@ -164,7 +168,7 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   int64_t player_id = 0;
   if (uri.substr(0, 4) == "http") {
     auto player = std::make_unique<PlusPlayer>(plugin_registrar_->messenger(),
-                                               native_window);
+                                               native_window, format);
     player_id =
         player->Create(uri, drm_type, license_server_url, prebuffer_mode);
     players_[player_id] = std::move(player);
