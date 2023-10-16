@@ -34,6 +34,7 @@ class DeviceSensorStreamHandler : public FlStreamHandler {
       events_->Success(flutter::EncodableValue(sensor_event));
     };
     if (!sensor_.StartListen(callback)) {
+      events_->Error(sensor_.GetLastErrorString());
       return std::make_unique<FlStreamHandlerError>(
           std::to_string(sensor_.GetLastError()), sensor_.GetLastErrorString(),
           nullptr);
@@ -67,30 +68,39 @@ class SensorsPlusPlugin : public flutter::Plugin {
 
  private:
   void SetupEventChannels(flutter::PluginRegistrar *registrar) {
-    accelerometer_channel_ = std::make_unique<FlEventChannel>(
-        registrar->messenger(),
-        "dev.fluttercommunity.plus/sensors/accelerometer",
-        &flutter::StandardMethodCodec::GetInstance());
-    accelerometer_channel_->SetStreamHandler(
+    std::unique_ptr<FlEventChannel> accelerometer_channel =
+        std::make_unique<FlEventChannel>(
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/sensors/accelerometer",
+            &flutter::StandardMethodCodec::GetInstance());
+    accelerometer_channel->SetStreamHandler(
         std::make_unique<DeviceSensorStreamHandler>(
             SensorType::kAccelerometer));
 
-    gyroscope_channel_ = std::make_unique<FlEventChannel>(
-        registrar->messenger(), "dev.fluttercommunity.plus/sensors/gyroscope",
-        &flutter::StandardMethodCodec::GetInstance());
-    gyroscope_channel_->SetStreamHandler(
+    std::unique_ptr<FlEventChannel> gyroscope_channel =
+        std::make_unique<FlEventChannel>(
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/sensors/gyroscope",
+            &flutter::StandardMethodCodec::GetInstance());
+    gyroscope_channel->SetStreamHandler(
         std::make_unique<DeviceSensorStreamHandler>(SensorType::kGyroscope));
 
-    user_accel_channel_ = std::make_unique<FlEventChannel>(
-        registrar->messenger(), "dev.fluttercommunity.plus/sensors/user_accel",
-        &flutter::StandardMethodCodec::GetInstance());
-    user_accel_channel_->SetStreamHandler(
+    std::unique_ptr<FlEventChannel> user_accel_channel =
+        std::make_unique<FlEventChannel>(
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/sensors/user_accel",
+            &flutter::StandardMethodCodec::GetInstance());
+    user_accel_channel->SetStreamHandler(
         std::make_unique<DeviceSensorStreamHandler>(SensorType::kUserAccel));
-  }
 
-  std::unique_ptr<FlEventChannel> accelerometer_channel_;
-  std::unique_ptr<FlEventChannel> gyroscope_channel_;
-  std::unique_ptr<FlEventChannel> user_accel_channel_;
+    std::unique_ptr<FlEventChannel> magnetometer_channel =
+        std::make_unique<FlEventChannel>(
+            registrar->messenger(),
+            "dev.fluttercommunity.plus/sensors/magnetometer",
+            &flutter::StandardMethodCodec::GetInstance());
+    magnetometer_channel->SetStreamHandler(
+        std::make_unique<DeviceSensorStreamHandler>(SensorType::kMagnetometer));
+  }
 };
 
 void SensorsPlusPluginRegisterWithRegistrar(

@@ -10,7 +10,7 @@ import 'package:integration_test/integration_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Can subscript to accelerometerEvents and get non-null events',
+  testWidgets('Can subscribe to accelerometerEvents and get non-null events',
       (WidgetTester tester) async {
     final completer = Completer<AccelerometerEvent>();
     late StreamSubscription<AccelerometerEvent> subscription;
