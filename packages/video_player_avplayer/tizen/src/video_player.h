@@ -41,9 +41,9 @@ class VideoPlayer {
   virtual void SetLooping(bool is_looping) = 0;
   virtual void SetVolume(double volume) = 0;
   virtual void SetPlaybackSpeed(double speed) = 0;
-  virtual void SeekTo(int32_t position, SeekCompletedCallback callback) = 0;
-  virtual int32_t GetPosition() = 0;
-  virtual int32_t GetDuration() = 0;
+  virtual void SeekTo(int64_t position, SeekCompletedCallback callback) = 0;
+  virtual int64_t GetPosition() = 0;
+  virtual int64_t GetDuration() = 0;
   virtual bool isReady() = 0;
   virtual flutter::EncodableList getTrackInfo(int32_t track_type) = 0;
   virtual bool SetTrackSelection(int32_t track_id, int32_t track_type) = 0;

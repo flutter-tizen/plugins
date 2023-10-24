@@ -33,9 +33,9 @@ class MediaPlayer : public VideoPlayer {
   void SetLooping(bool is_looping) override;
   void SetVolume(double volume) override;
   void SetPlaybackSpeed(double speed) override;
-  void SeekTo(int32_t position, SeekCompletedCallback callback) override;
-  int32_t GetPosition() override;
-  int32_t GetDuration() override;
+  void SeekTo(int64_t position, SeekCompletedCallback callback) override;
+  int64_t GetPosition() override;
+  int64_t GetDuration() override;
   void GetVideoSize(int32_t *width, int32_t *height) override;
   bool isReady() override;
   flutter::EncodableList getTrackInfo(int32_t track_type) override;

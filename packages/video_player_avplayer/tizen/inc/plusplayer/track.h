@@ -162,7 +162,10 @@ enum SubtitleAttrType {
   kSubAttrTypeNone
 };
 
-enum class SubtitleType { kText, kPicture, kInvalid };
+/**
+ * @brief Enumeration for  player supported subtitle types
+ */
+enum class SubtitleType { kText, kPicture, kTTMLRender, kInvalid };
 
 struct SubtitleAttr {
   explicit SubtitleAttr(const SubtitleAttrType _type,

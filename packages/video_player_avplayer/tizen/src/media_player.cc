@@ -223,7 +223,7 @@ void MediaPlayer::SetPlaybackSpeed(double speed) {
   }
 }
 
-void MediaPlayer::SeekTo(int32_t position, SeekCompletedCallback callback) {
+void MediaPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   LOG_INFO("[MediaPlayer] position: %d.", position);
 
   on_seek_completed_ = std::move(callback);
@@ -236,7 +236,7 @@ void MediaPlayer::SeekTo(int32_t position, SeekCompletedCallback callback) {
   }
 }
 
-int32_t MediaPlayer::GetPosition() {
+int64_t MediaPlayer::GetPosition() {
   int position = 0;
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
@@ -247,7 +247,7 @@ int32_t MediaPlayer::GetPosition() {
   return position;
 }
 
-int32_t MediaPlayer::GetDuration() {
+int64_t MediaPlayer::GetDuration() {
   int duration = 0;
   int ret = player_get_duration(player_, &duration);
   if (ret != PLAYER_ERROR_NONE) {

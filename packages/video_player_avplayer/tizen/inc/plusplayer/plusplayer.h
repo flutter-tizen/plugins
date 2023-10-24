@@ -937,6 +937,40 @@ class PlusPlayer : private boost::noncopyable {
   virtual bool SetAntiAcousticShock() { return false; }
 
   /**
+   * @brief  Set dashplusplayer properties via json string
+   * @version 6.0
+   * @pre 	  The player state required depends on the data that user try to
+   * Set, if multi keys are specified, the player state should satisfy all.
+   *
+   *         Key name         | Required state
+   *         ---------------- | -------------------------
+   *         "max-bandwidth"  |  #State::kTrackSourceReady
+   * @post   same as @pre
+   * @exception N/A
+   * @param  [in] Json formated string with { key1 : value1, key2 : value2 }
+   * pairs user MUST make sure all key:value pairs are valid.
+   * @note   @c data is case-sensitive. If multi keys specified, even invalid
+   * key found, dashpp will still try to set the rest.
+   * @return If ALL Set action excuted successfully.
+   */
+  virtual bool SetData(const std::string data) { return false; }
+
+  /**
+   * @brief  Get dashplusplayer properties via json string
+   * @version 6.0
+   * @pre 	  @see SetData()
+   * @post   same as @pre
+   * @exception N/A
+   * @param  data Json formated string with { key1 : value1, key2 : value2 }
+   * pairs, `keys` must be valid, `values` will be IGNORED as input and will be
+   * filled by dashplusplayer as output.
+   * @note   @c data is case-sensitive
+   * @return If ALL Get action excuted successfully, if @c false user can still
+   * check the data to see if any value successfully returned.
+   */
+  virtual bool GetData(std::string& data) { return false; }
+
+  /**
    * @brief  Set audio volume level
    * @pre 	  The player state can be  #State::kPlaying or #State::kPaused
    * @param [in] volume  range  [0,100]

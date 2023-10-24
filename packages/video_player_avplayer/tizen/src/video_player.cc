@@ -95,7 +95,7 @@ void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
 void VideoPlayer::SendInitialized() {
   if (!is_initialized_ && event_sink_) {
     int32_t width = 0, height = 0;
-    int32_t duration = GetDuration();
+    int64_t duration = GetDuration();
     GetVideoSize(&width, &height);
     is_initialized_ = true;
     flutter::EncodableMap result = {

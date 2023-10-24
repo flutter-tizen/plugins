@@ -9,7 +9,19 @@
 #include <system_info.h>
 #include <unistd.h>
 
+#include <sstream>
+
 #include "log.h"
+
+static std::vector<std::string> split(const std::string &s, char delim) {
+  std::stringstream ss(s);
+  std::string item;
+  std::vector<std::string> tokens;
+  while (getline(ss, item, delim)) {
+    tokens.push_back(item);
+  }
+  return tokens;
+}
 
 PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window,
                        std::string &video_format)
@@ -38,6 +50,7 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
     LOG_ERROR("[PlusPlayer] Fail to open uri :  %s.", uri.c_str());
     return -1;
   }
+  LOG_INFO("[PlusPlayer] Uri: %s", uri.c_str());
 
   char *appId = nullptr;
   int ret = app_manager_get_app_id(getpid(), &appId);
@@ -196,8 +209,8 @@ void PlusPlayer::SetPlaybackSpeed(double speed) {
   }
 }
 
-void PlusPlayer::SeekTo(int32_t position, SeekCompletedCallback callback) {
-  LOG_INFO("PlusPlayer seeks to position(%d)", position);
+void PlusPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
+  LOG_INFO("PlusPlayer seeks to position(%lld)", position);
   if (player_->GetState() < plusplayer::State::kReady) {
     LOG_ERROR("[PlusPlayer] Player is not ready.");
     return;
@@ -209,13 +222,39 @@ void PlusPlayer::SeekTo(int32_t position, SeekCompletedCallback callback) {
   }
 
   on_seek_completed_ = std::move(callback);
-  if (!player_->Seek(position)) {
-    on_seek_completed_ = nullptr;
-    LOG_ERROR("[PlusPlayer] Fail to seek.");
+  plusplayer::PlayerMemento memento;
+  if (!player_->GetMemento(&memento)) {
+    LOG_ERROR("[PlusPlayer] Fail to get player memento.");
+  }
+
+  if (memento.is_live) {
+    std::string str = player_->GetStreamingProperty("GET_LIVE_DURATION");
+    if (str.empty()) {
+      LOG_ERROR("[PlusPlayer] Fail to get live duration.");
+    }
+    std::vector<std::string> time_str = split(str, '|');
+    int64_t start_time = std::stoll(time_str[0].c_str());
+    int64_t end_time = std::stoll(time_str[1].c_str());
+
+    if (position < start_time || position > end_time) {
+      on_seek_completed_ = nullptr;
+      LOG_ERROR("[PlusPlayer] position out of range.");
+      return;
+    }
+
+    if (!player_->Seek(position)) {
+      on_seek_completed_ = nullptr;
+      LOG_ERROR("[PlusPlayer] Fail to seek.");
+    }
+  } else {
+    if (!player_->Seek(position)) {
+      on_seek_completed_ = nullptr;
+      LOG_ERROR("[PlusPlayer] Fail to seek.");
+    }
   }
 }
 
-int32_t PlusPlayer::GetPosition() {
+int64_t PlusPlayer::GetPosition() {
   uint64_t position = 0;
   plusplayer::State state = player_->GetState();
   if (state == plusplayer::State::kPlaying ||
@@ -224,17 +263,36 @@ int32_t PlusPlayer::GetPosition() {
       LOG_ERROR("[PlusPlayer] Fail to get the current playing time.");
     }
   }
-  return position;
+  return static_cast<int64_t>(position);
 }
 
-int32_t PlusPlayer::GetDuration() {
+int64_t PlusPlayer::GetDuration() {
   int64_t duration = 0;
   if (player_->GetState() >= plusplayer::State::kTrackSourceReady) {
-    if (!player_->GetDuration(&duration)) {
-      LOG_ERROR("[PlusPlayer] Fail to get the duration.");
+    plusplayer::PlayerMemento memento;
+    if (!player_->GetMemento(&memento)) {
+      LOG_ERROR("[PlusPlayer] Fail to get player memento.");
     }
-    LOG_INFO("[PlusPlayer] Video duration: %llu.", duration);
+
+    if (memento.is_live) {
+      std::string str = player_->GetStreamingProperty("GET_LIVE_DURATION");
+      if (str.empty()) {
+        LOG_ERROR("[PlusPlayer] Fail to get live duration.");
+        return duration;
+      }
+      std::vector<std::string> time_str = split(str, '|');
+      int64_t start_time = std::stoll(time_str[0].c_str());
+      int64_t end_time = std::stoll(time_str[1].c_str());
+
+      duration = end_time - start_time;
+    } else {
+      if (!player_->GetDuration(&duration)) {
+        LOG_ERROR("[PlusPlayer] Fail to get the duration.");
+      }
+    }
   }
+
+  LOG_INFO("[PlusPlayer] Video duration: %lld.", duration);
   return duration;
 }
 
@@ -497,7 +555,7 @@ bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
 }
 
 void PlusPlayer::OnPrepareDone(bool ret, UserData userdata) {
-  LOG_DEBUG("[PlusPlayer] Prepare done, result: %d.", ret);
+  LOG_INFO("[PlusPlayer] Prepare done, result: %d.", ret);
 
   if (!is_initialized_ && ret) {
     SendInitialized();
