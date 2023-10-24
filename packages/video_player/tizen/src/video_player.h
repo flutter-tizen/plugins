@@ -44,6 +44,10 @@ class VideoPlayer {
   int64_t GetTextureId() { return texture_id_; }
 
  private:
+  void ExecuteSinkEvents();
+  void PushEvent(flutter::EncodableValue encodable_value);
+  void SendError(const std::string &error_code,
+                 const std::string &error_message);
   FlutterDesktopGpuSurfaceDescriptor *ObtainGpuSurface(size_t width,
                                                        size_t height);
 
@@ -89,6 +93,11 @@ class VideoPlayer {
   void *screensaver_handle_;
   ScreensaverResetTimeout screensaver_reset_timeout_;
   Ecore_Timer *timer_;
+
+  Ecore_Pipe *sink_event_pipe_ = nullptr;
+  std::mutex queue_mutex_;
+  std::queue<flutter::EncodableValue> encodable_event_queue_;
+  std::queue<std::pair<std::string, std::string>> error_event_queue_;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_
