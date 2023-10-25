@@ -114,7 +114,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
   sink_event_pipe_ = ecore_pipe_add(
       [](void *data, void *buffer, unsigned int nbyte) -> void {
         auto *self = static_cast<VideoPlayer *>(data);
-        self->ExecuteSinkEvents();
+        self->SendPendingEvents();
       },
       this);
 
@@ -212,7 +212,7 @@ VideoPlayer::~VideoPlayer() {
   }
 }
 
-void VideoPlayer::ExecuteSinkEvents() {
+void VideoPlayer::SendPendingEvents() {
   std::lock_guard<std::mutex> lock(queue_mutex_);
   while (!encodable_event_queue_.empty()) {
     if (event_sink_) {
@@ -230,8 +230,8 @@ void VideoPlayer::ExecuteSinkEvents() {
   }
 }
 
-void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
-  if (event_sink_ == nullptr) {
+void VideoPlayer::PushEvent(const flutter::EncodableValue &encodable_value) {
+  if (!event_sink_) {
     LOG_ERROR("[VideoPlayer] event sink is nullptr.");
     return;
   }
@@ -242,7 +242,7 @@ void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
 
 void VideoPlayer::SendError(const std::string &error_code,
                             const std::string &error_message) {
-  if (event_sink_ == nullptr) {
+  if (!event_sink_) {
     LOG_ERROR("[VideoPlayer] event sink is nullptr.");
     return;
   }

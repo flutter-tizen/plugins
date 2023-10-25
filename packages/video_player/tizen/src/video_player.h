@@ -44,8 +44,8 @@ class VideoPlayer {
   int64_t GetTextureId() { return texture_id_; }
 
  private:
-  void ExecuteSinkEvents();
-  void PushEvent(flutter::EncodableValue encodable_value);
+  void SendPendingEvents();
+  void PushEvent(const flutter::EncodableValue &encodable_value);
   void SendError(const std::string &error_code,
                  const std::string &error_message);
   FlutterDesktopGpuSurfaceDescriptor *ObtainGpuSurface(size_t width,
