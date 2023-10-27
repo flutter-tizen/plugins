@@ -29,7 +29,8 @@ class VideoPlayer {
 
   virtual int64_t Create(const std::string &uri, int drm_type,
                          const std::string &license_server_url,
-                         bool is_prebuffer_mode) = 0;
+                         bool is_prebuffer_mode,
+                         flutter::EncodableMap &http_headers) = 0;
   virtual void Dispose() = 0;
 
   virtual void SetDisplayRoi(int32_t x, int32_t y, int32_t width,

@@ -32,7 +32,8 @@ MediaPlayer::~MediaPlayer() { Dispose(); }
 
 int64_t MediaPlayer::Create(const std::string &uri, int drm_type,
                             const std::string &license_server_url,
-                            bool is_prebuffer_mode) {
+                            bool is_prebuffer_mode,
+                            flutter::EncodableMap &http_headers) {
   LOG_INFO("[MediaPlayer] uri: %s, drm_type: %d.", uri.c_str(), drm_type);
 
   if (uri.empty()) {
@@ -45,6 +46,34 @@ int64_t MediaPlayer::Create(const std::string &uri, int drm_type,
     LOG_ERROR("[MediaPlayer] player_create failed: %s.",
               get_error_message(ret));
     return -1;
+  }
+
+  if (!http_headers.empty()) {
+    auto iter = http_headers.find(flutter::EncodableValue("Cookie"));
+    if (iter != http_headers.end()) {
+      if (std::holds_alternative<std::string>(iter->second)) {
+        std::string cookie = std::get<std::string>(iter->second);
+        ret =
+            player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
+                    get_error_message(ret));
+        }
+      }
+    }
+
+    iter = http_headers.find(flutter::EncodableValue("User-Agent"));
+    if (iter != http_headers.end()) {
+      if (std::holds_alternative<std::string>(iter->second)) {
+        std::string user_agent = std::get<std::string>(iter->second);
+        ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
+                                              user_agent.size());
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
+                    get_error_message(ret));
+        }
+      }
+    }
   }
 
   if (drm_type != 0) {

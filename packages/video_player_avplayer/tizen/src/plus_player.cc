@@ -33,7 +33,8 @@ PlusPlayer::~PlusPlayer() { Dispose(); }
 
 int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
                            const std::string &license_server_url,
-                           bool is_prebuffer_mode) {
+                           bool is_prebuffer_mode,
+                           flutter::EncodableMap &http_headers) {
   LOG_INFO("[PlusPlayer] Create player.");
   if (!video_format_.compare("dash")) {
     player_ = plusplayer::PlusPlayer::Create(plusplayer::PlayerType::kDASH);
@@ -44,6 +45,24 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Fail to create player.");
     return -1;
+  }
+
+  if (!http_headers.empty()) {
+    auto iter = http_headers.find(flutter::EncodableValue("Cookie"));
+    if (iter != http_headers.end()) {
+      if (std::holds_alternative<std::string>(iter->second)) {
+        std::string cookie = std::get<std::string>(iter->second);
+        player_->SetStreamingProperty("COOKIE", cookie);
+      }
+    }
+
+    iter = http_headers.find(flutter::EncodableValue("User-Agent"));
+    if (iter != http_headers.end()) {
+      if (std::holds_alternative<std::string>(iter->second)) {
+        std::string user_agent = std::get<std::string>(iter->second);
+        player_->SetStreamingProperty("USER_AGENT", user_agent);
+      }
+    }
   }
 
   if (!player_->Open(uri)) {

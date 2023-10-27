@@ -120,6 +120,7 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   std::string license_server_url;
   bool prebuffer_mode;
   std::string format;
+  flutter::EncodableMap http_headers = {};
 
   if (msg.asset() && !msg.asset()->empty()) {
     char *res_path = app_get_resource_path();
@@ -161,6 +162,12 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
         }
       }
     }
+
+    const flutter::EncodableMap *http_headers_map = msg.http_headers();
+    if (http_headers_map) {
+      http_headers = *http_headers_map;
+    }
+
   } else {
     return FlutterError("Invalid argument", "Either asset or uri must be set.");
   }
@@ -169,14 +176,14 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   if (uri.substr(0, 4) == "http") {
     auto player = std::make_unique<PlusPlayer>(plugin_registrar_->messenger(),
                                                native_window, format);
-    player_id =
-        player->Create(uri, drm_type, license_server_url, prebuffer_mode);
+    player_id = player->Create(uri, drm_type, license_server_url,
+                               prebuffer_mode, http_headers);
     players_[player_id] = std::move(player);
   } else {
     auto player = std::make_unique<MediaPlayer>(plugin_registrar_->messenger(),
                                                 native_window);
-    player_id =
-        player->Create(uri, drm_type, license_server_url, prebuffer_mode);
+    player_id = player->Create(uri, drm_type, license_server_url,
+                               prebuffer_mode, http_headers);
     players_[player_id] = std::move(player);
   }
 
