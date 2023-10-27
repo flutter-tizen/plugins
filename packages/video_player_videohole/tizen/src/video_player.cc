@@ -75,7 +75,8 @@ bool VideoPlayer::SetDisplay() {
 }
 
 int64_t VideoPlayer::Create(const std::string &uri, int drm_type,
-                            const std::string &license_server_url) {
+                            const std::string &license_server_url,
+                            flutter::EncodableMap &http_headers) {
   LOG_INFO("[VideoPlayer] uri: %s, drm_type: %d", uri.c_str(), drm_type);
 
   player_id_ = player_index++;
@@ -102,6 +103,34 @@ int64_t VideoPlayer::Create(const std::string &uri, int drm_type,
     if (!drm_manager_->InitializeDrmSession(uri)) {
       LOG_ERROR("[VideoPlayer] Failed to initialize the DRM session.");
       drm_manager_->ReleaseDrmSession();
+    }
+  }
+
+  if (!http_headers.empty()) {
+    auto iter = http_headers.find(flutter::EncodableValue("Cookie"));
+    if (iter != http_headers.end()) {
+      if (std::holds_alternative<std::string>(iter->second)) {
+        std::string cookie = std::get<std::string>(iter->second);
+        ret =
+            player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
+                    get_error_message(ret));
+        }
+      }
+    }
+
+    iter = http_headers.find(flutter::EncodableValue("User-Agent"));
+    if (iter != http_headers.end()) {
+      if (std::holds_alternative<std::string>(iter->second)) {
+        std::string user_agent = std::get<std::string>(iter->second);
+        ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
+                                              user_agent.size());
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
+                    get_error_message(ret));
+        }
+      }
     }
   }
 
