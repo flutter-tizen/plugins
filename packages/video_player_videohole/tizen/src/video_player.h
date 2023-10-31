@@ -5,6 +5,7 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
+#include <Ecore.h>
 #include <dart_api_dl.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
@@ -12,6 +13,8 @@
 #include <player.h>
 
 #include <memory>
+#include <mutex>
+#include <queue>
 #include <string>
 #include <vector>
 
@@ -49,6 +52,10 @@ class VideoPlayer {
   void RegisterSendPort(Dart_Port send_port) { send_port_ = send_port; }
 
  private:
+  void SendPendingEvents();
+  void PushEvent(const flutter::EncodableValue &encodable_value);
+  void SendError(const std::string &error_code,
+                 const std::string &error_message);
   bool SetDisplay();
   void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void Initialize();
@@ -86,6 +93,11 @@ class VideoPlayer {
 
   SeekCompletedCallback on_seek_completed_;
   Dart_Port send_port_;
+
+  Ecore_Pipe *sink_event_pipe_ = nullptr;
+  std::mutex queue_mutex_;
+  std::queue<flutter::EncodableValue> encodable_event_queue_;
+  std::queue<std::pair<std::string, std::string>> error_event_queue_;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_
