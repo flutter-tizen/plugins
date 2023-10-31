@@ -1,6 +1,7 @@
-## NEXT
+## 0.1.3
 
 * Increase the minimum Flutter version to 3.3.
+* Support the empty candidate for 'addIceCandidate' api.
 
 ## 0.1.2
 
