@@ -251,7 +251,7 @@ ErrorOr<TrackMessage> VideoPlayerTizenPlugin::Track(
     return FlutterError("Invalid argument", "Player not found");
   }
 
-  TrackMessage result(msg.player_id(), player->getTrackInfo(msg.track_type()));
+  TrackMessage result(msg.player_id(), player->GetTrackInfo(msg.track_type()));
   return result;
 }
 
@@ -351,16 +351,4 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
   VideoPlayerTizenPlugin::RegisterWithRegistrar(
       registrar, flutter::PluginRegistrarManager::GetInstance()
                      ->GetRegistrar<flutter::PluginRegistrar>(registrar));
-}
-
-intptr_t VideoPlayerTizenPluginInitDartApi(void *data) {
-  return Dart_InitializeApiDL(data);
-}
-
-void VideoPlayerTizenPluginRegisterSendPort(int64_t player_id,
-                                            Dart_Port send_port) {
-  VideoPlayer *player = VideoPlayerTizenPlugin::FindPlayerById(player_id);
-  if (player) {
-    player->RegisterSendPort(send_port);
-  }
 }

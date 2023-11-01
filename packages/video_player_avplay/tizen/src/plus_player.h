@@ -40,7 +40,7 @@ class PlusPlayer : public VideoPlayer, public plusplayer::EventListener {
   int64_t GetDuration() override;
   void GetVideoSize(int32_t *width, int32_t *height) override;
   bool IsReady() override;
-  flutter::EncodableList getTrackInfo(std::string track_type) override;
+  flutter::EncodableList GetTrackInfo(std::string track_type) override;
   bool SetTrackSelection(int32_t track_id, std::string track_type) override;
 
  private:
@@ -81,8 +81,9 @@ class PlusPlayer : public VideoPlayer, public plusplayer::EventListener {
   void OnStateChangedToPlaying(UserData userdata) override;
 
   std::unique_ptr<plusplayer::PlusPlayer> player_;
-  void *native_window_;
   std::unique_ptr<DrmManager> drm_manager_;
+
+  void *native_window_;
   std::string video_format_;
   bool is_buffering_ = false;
   bool is_prebuffer_mode_ = false;

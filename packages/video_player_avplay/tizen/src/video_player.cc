@@ -8,7 +8,6 @@
 #include <flutter/standard_method_codec.h>
 
 #include "log.h"
-#include "pending_call.h"
 
 static int64_t player_index = 1;
 
@@ -50,7 +49,7 @@ int64_t VideoPlayer::SetUpEventChannel() {
         if (IsReady()) {
           SendInitialized();
         } else {
-          LOG_INFO("Video Player is not ready.");
+          LOG_INFO("[VideoPlayer] Player is not ready.");
         }
         return nullptr;
       },
@@ -85,7 +84,7 @@ void VideoPlayer::ExecuteSinkEvents() {
 void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
   std::lock_guard<std::mutex> lock(queue_mutex_);
   if (event_sink_ == nullptr) {
-    LOG_ERROR("event sink is nullptr");
+    LOG_ERROR("[VideoPlayer] event sink is nullptr.");
     return;
   }
   encodable_event_queue_.push(encodable_value);
@@ -160,53 +159,4 @@ void VideoPlayer::SendError(const std::string &error_code,
     error_event_queue_.push(std::make_pair(error_code, error_message));
     ecore_pipe_write(sink_event_pipe_, nullptr, 0);
   }
-}
-
-void VideoPlayer::OnLicenseChallenge(const void *challenge,
-                                     unsigned long challenge_len,
-                                     void **response,
-                                     unsigned long *response_len) {
-  const char *method_name = "onLicenseChallenge";
-  size_t request_length = challenge_len;
-  void *request_buffer = malloc(request_length);
-  memcpy(request_buffer, challenge, challenge_len);
-
-  size_t response_length = 0;
-  PendingCall pending_call(response, &response_length);
-
-  Dart_CObject c_send_port;
-  c_send_port.type = Dart_CObject_kSendPort;
-  c_send_port.value.as_send_port.id = pending_call.port();
-  c_send_port.value.as_send_port.origin_id = ILLEGAL_PORT;
-
-  Dart_CObject c_pending_call;
-  c_pending_call.type = Dart_CObject_kInt64;
-  c_pending_call.value.as_int64 = reinterpret_cast<int64_t>(&pending_call);
-
-  Dart_CObject c_method_name;
-  c_method_name.type = Dart_CObject_kString;
-  c_method_name.value.as_string = const_cast<char *>(method_name);
-
-  Dart_CObject c_request_data;
-  c_request_data.type = Dart_CObject_kExternalTypedData;
-  c_request_data.value.as_external_typed_data.type = Dart_TypedData_kUint8;
-  c_request_data.value.as_external_typed_data.length = request_length;
-  c_request_data.value.as_external_typed_data.data =
-      static_cast<uint8_t *>(request_buffer);
-  c_request_data.value.as_external_typed_data.peer = request_buffer;
-  c_request_data.value.as_external_typed_data.callback =
-      [](void *isolate_callback_data, void *peer) { free(peer); };
-
-  Dart_CObject *c_request_arr[] = {&c_send_port, &c_pending_call,
-                                   &c_method_name, &c_request_data};
-  Dart_CObject c_request;
-  c_request.type = Dart_CObject_kArray;
-  c_request.value.as_array.values = c_request_arr;
-  c_request.value.as_array.length =
-      sizeof(c_request_arr) / sizeof(c_request_arr[0]);
-
-  pending_call.PostAndWait(send_port_, &c_request);
-  LOG_INFO("Received response of challenge (size: %d)", response_length);
-
-  *response_len = response_length;
 }

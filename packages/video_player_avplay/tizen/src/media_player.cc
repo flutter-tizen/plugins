@@ -370,7 +370,7 @@ bool MediaPlayer::SetDisplay() {
   return true;
 }
 
-flutter::EncodableList MediaPlayer::getTrackInfo(std::string track_type) {
+flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
   player_state_e state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &state);
   if (ret != PLAYER_ERROR_NONE) {
@@ -562,11 +562,7 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
   }
 
   if (license_server_url.empty()) {
-    bool success = drm_manager_->SetChallenge(
-        uri, [this](const void *challenge, unsigned long challenge_len,
-                    void **response, unsigned long *response_len) {
-          OnLicenseChallenge(challenge, challenge_len, response, response_len);
-        });
+    bool success = drm_manager_->SetChallenge(uri, binary_messenger_);
     if (!success) {
       LOG_ERROR("[MediaPlayer] Failed to set challenge.");
       return false;
