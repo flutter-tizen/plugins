@@ -1,5 +1,9 @@
-## NEXT
+## 0.8.0
 
+* Update webivew_flutter to 4.2.3.
+* Update webview_flutter_platform_interface to 2.3.0.
+* Update integration_test.
+* Implement `NavigationDelegate(onUrlChange)`.
 * Increase the minimum Flutter version to 3.3.
 
 ## 0.7.1

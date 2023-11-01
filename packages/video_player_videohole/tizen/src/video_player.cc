@@ -17,7 +17,53 @@ static int64_t player_index = 1;
 
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          void *native_window)
-    : plugin_registrar_(plugin_registrar), native_window_(native_window) {}
+    : plugin_registrar_(plugin_registrar), native_window_(native_window) {
+  sink_event_pipe_ = ecore_pipe_add(
+      [](void *data, void *buffer, unsigned int nbyte) -> void {
+        auto *self = static_cast<VideoPlayer *>(data);
+        self->SendPendingEvents();
+      },
+      this);
+}
+
+void VideoPlayer::SendPendingEvents() {
+  std::lock_guard<std::mutex> lock(queue_mutex_);
+  while (!encodable_event_queue_.empty()) {
+    if (event_sink_) {
+      event_sink_->Success(encodable_event_queue_.front());
+    }
+    encodable_event_queue_.pop();
+  }
+
+  while (!error_event_queue_.empty()) {
+    if (event_sink_) {
+      event_sink_->Error(error_event_queue_.front().first,
+                         error_event_queue_.front().second);
+    }
+    error_event_queue_.pop();
+  }
+}
+
+void VideoPlayer::PushEvent(const flutter::EncodableValue &encodable_value) {
+  if (!event_sink_) {
+    LOG_ERROR("[VideoPlayer] event sink is nullptr.");
+    return;
+  }
+  std::lock_guard<std::mutex> lock(queue_mutex_);
+  encodable_event_queue_.push(encodable_value);
+  ecore_pipe_write(sink_event_pipe_, nullptr, 0);
+}
+
+void VideoPlayer::SendError(const std::string &error_code,
+                            const std::string &error_message) {
+  if (!event_sink_) {
+    LOG_ERROR("[VideoPlayer] event sink is nullptr.");
+    return;
+  }
+  std::lock_guard<std::mutex> lock(queue_mutex_);
+  error_event_queue_.push(std::make_pair(error_code, error_message));
+  ecore_pipe_write(sink_event_pipe_, nullptr, 0);
+}
 
 bool VideoPlayer::SetDisplay() {
   int x = 0, y = 0, width = 0, height = 0;
@@ -293,6 +339,9 @@ void VideoPlayer::Dispose() {
   is_initialized_ = false;
   event_sink_ = nullptr;
   event_channel_->SetStreamHandler(nullptr);
+  if (sink_event_pipe_) {
+    ecore_pipe_del(sink_event_pipe_);
+  }
 
   if (player_) {
     player_unprepare(player_);
@@ -350,7 +399,7 @@ void VideoPlayer::SendInitialized() {
     int duration = 0;
     int ret = player_get_duration(player_, &duration);
     if (ret != PLAYER_ERROR_NONE) {
-      event_sink_->Error("player_get_duration failed", get_error_message(ret));
+      SendError("player_get_duration failed", get_error_message(ret));
       return;
     }
     LOG_INFO("[VideoPlayer] Video duration: %d", duration);
@@ -358,8 +407,7 @@ void VideoPlayer::SendInitialized() {
     int width = 0, height = 0;
     ret = player_get_video_size(player_, &width, &height);
     if (ret != PLAYER_ERROR_NONE) {
-      event_sink_->Error("player_get_video_size failed",
-                         get_error_message(ret));
+      SendError("player_get_video_size failed", get_error_message(ret));
       return;
     }
     LOG_INFO("[VideoPlayer] Video width: %d, height: %d", width, height);
@@ -367,8 +415,7 @@ void VideoPlayer::SendInitialized() {
     player_display_rotation_e rotation = PLAYER_DISPLAY_ROTATION_NONE;
     ret = player_get_display_rotation(player_, &rotation);
     if (ret != PLAYER_ERROR_NONE) {
-      event_sink_->Error("player_get_display_rotation failed",
-                         get_error_message(ret));
+      SendError("player_get_display_rotation failed", get_error_message(ret));
     } else {
       if (rotation == PLAYER_DISPLAY_ROTATION_90 ||
           rotation == PLAYER_DISPLAY_ROTATION_270) {
@@ -385,53 +432,44 @@ void VideoPlayer::SendInitialized() {
         {flutter::EncodableValue("width"), flutter::EncodableValue(width)},
         {flutter::EncodableValue("height"), flutter::EncodableValue(height)},
     };
-    event_sink_->Success(flutter::EncodableValue(result));
+    PushEvent(flutter::EncodableValue(result));
   }
 }
 
 void VideoPlayer::SendBufferingStart() {
-  if (event_sink_) {
-    flutter::EncodableMap result = {
-        {flutter::EncodableValue("event"),
-         flutter::EncodableValue("bufferingStart")},
-    };
-    event_sink_->Success(flutter::EncodableValue(result));
-  }
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"),
+       flutter::EncodableValue("bufferingStart")},
+  };
+  PushEvent(flutter::EncodableValue(result));
 }
 
 void VideoPlayer::SendBufferingUpdate(int32_t value) {
-  if (event_sink_) {
-    flutter::EncodableMap result = {
-        {flutter::EncodableValue("event"),
-         flutter::EncodableValue("bufferingUpdate")},
-        {flutter::EncodableValue("value"), flutter::EncodableValue(value)},
-    };
-    event_sink_->Success(flutter::EncodableValue(result));
-  }
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"),
+       flutter::EncodableValue("bufferingUpdate")},
+      {flutter::EncodableValue("value"), flutter::EncodableValue(value)},
+  };
+  PushEvent(flutter::EncodableValue(result));
 }
 
 void VideoPlayer::SendBufferingEnd() {
-  if (event_sink_) {
-    flutter::EncodableMap result = {
-        {flutter::EncodableValue("event"),
-         flutter::EncodableValue("bufferingEnd")},
-    };
-    event_sink_->Success(flutter::EncodableValue(result));
-  }
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"),
+       flutter::EncodableValue("bufferingEnd")},
+  };
+  PushEvent(flutter::EncodableValue(result));
 }
 
 void VideoPlayer::SendSubtitleUpdate(int32_t duration,
                                      const std::string &text) {
-  if (event_sink_) {
-    flutter::EncodableMap result = {
-        {flutter::EncodableValue("event"),
-         flutter::EncodableValue("subtitleUpdate")},
-        {flutter::EncodableValue("duration"),
-         flutter::EncodableValue(duration)},
-        {flutter::EncodableValue("text"), flutter::EncodableValue(text)},
-    };
-    event_sink_->Success(flutter::EncodableValue(result));
-  }
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"),
+       flutter::EncodableValue("subtitleUpdate")},
+      {flutter::EncodableValue("duration"), flutter::EncodableValue(duration)},
+      {flutter::EncodableValue("text"), flutter::EncodableValue(text)},
+  };
+  PushEvent(flutter::EncodableValue(result));
 }
 
 void VideoPlayer::OnSubtitleUpdated(unsigned long duration, char *text,
@@ -480,13 +518,11 @@ void VideoPlayer::OnPlayCompleted(void *data) {
   LOG_INFO("[VideoPlayer] Play completed.");
 
   VideoPlayer *player = static_cast<VideoPlayer *>(data);
-  if (player->event_sink_) {
-    flutter::EncodableMap result = {
-        {flutter::EncodableValue("event"),
-         flutter::EncodableValue("completed")},
-    };
-    player->event_sink_->Success(flutter::EncodableValue(result));
-  }
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"), flutter::EncodableValue("completed")},
+  };
+  player->PushEvent(flutter::EncodableValue(result));
+
   player->Pause();
 }
 
@@ -495,10 +531,8 @@ void VideoPlayer::OnError(int error_code, void *data) {
             get_error_message(error_code));
 
   VideoPlayer *player = static_cast<VideoPlayer *>(data);
-  if (player->event_sink_) {
-    player->event_sink_->Error(
-        "Player error", std::string("Error: ") + get_error_message(error_code));
-  }
+  player->SendError("Player error",
+                    std::string("Error: ") + get_error_message(error_code));
 }
 
 void VideoPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
@@ -506,10 +540,7 @@ void VideoPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
 
   VideoPlayer *player = static_cast<VideoPlayer *>(data);
   player->is_interrupted_ = true;
-  if (player->event_sink_) {
-    player->event_sink_->Error("Player interrupted",
-                               "Video player has been interrupted.");
-  }
+  player->SendError("Player interrupted", "Video player has been interrupted.");
 }
 
 std::vector<uint8_t> VideoPlayer::OnLicenseChallenge(

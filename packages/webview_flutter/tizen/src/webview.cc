@@ -165,6 +165,8 @@ void WebView::Dispose() {
     evas_object_smart_callback_del(webview_instance_,
                                    "policy,navigation,decide",
                                    &WebView::OnNavigationPolicy);
+    evas_object_smart_callback_del(webview_instance_, "url,changed",
+                                   &WebView::OnUrlChange);
     evas_object_del(webview_instance_);
   }
 }
@@ -297,6 +299,8 @@ void WebView::InitWebView() {
                                  &WebView::OnConsoleMessage, this);
   evas_object_smart_callback_add(webview_instance_, "policy,navigation,decide",
                                  &WebView::OnNavigationPolicy, this);
+  evas_object_smart_callback_add(webview_instance_, "url,changed",
+                                 &WebView::OnUrlChange, this);
 
   Resize(width_, height_);
   evas_object_show(webview_instance_);
@@ -663,6 +667,15 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   webview->navigation_delegate_channel_->InvokeMethod(
       "navigationRequest", std::make_unique<flutter::EncodableValue>(args),
       std::move(result));
+}
+
+void WebView::OnUrlChange(void* data, Evas_Object* obj, void* event_info) {
+  WebView* webview = static_cast<WebView*>(data);
+  std::string url = std::string(ewk_view_url_get(webview->webview_instance_));
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
+  webview->navigation_delegate_channel_->InvokeMethod(
+      "onUrlChange", std::make_unique<flutter::EncodableValue>(args));
 }
 
 void WebView::OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,

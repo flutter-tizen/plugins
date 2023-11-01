@@ -10,14 +10,14 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Connectivity test driver', () {
-    late Connectivity _connectivity;
+    late Connectivity connectivity;
 
     setUpAll(() async {
-      _connectivity = Connectivity();
+      connectivity = Connectivity();
     });
 
     testWidgets('test connectivity result', (WidgetTester tester) async {
-      final result = await _connectivity.checkConnectivity();
+      final result = await connectivity.checkConnectivity();
       expect(result, isNotNull);
     });
   });

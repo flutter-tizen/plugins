@@ -1,3 +1,9 @@
+## 1.1.4
+
+* Update connectivity_plus to 4.0.1.
+* Update connectivity_plus_platform_interface to 1.2.4.
+* Update the example app.
+
 ## 1.1.3
 
 * Remove unnecessary `StreamHandlerError` implementation.

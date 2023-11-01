@@ -18,6 +18,10 @@ class TizenWebView {
   ///
   /// Defaults to false.
   bool hasNavigationDelegate = false;
+  late int _viewId;
+
+  /// Get the if of tizen webview.
+  int get viewId => _viewId;
 
   late final MethodChannel _tizenWebViewChannel;
   bool _isCreated = false;
@@ -58,6 +62,7 @@ class TizenWebView {
   /// Called when [TizenView] is created. Invokes the requested method call before [TizenWebView] is created.
   void onCreate(int viewId) {
     _isCreated = true;
+    _viewId = viewId;
     _tizenWebViewChannel =
         MethodChannel(kTizenWebViewChannelName + viewId.toString());
     _tizenWebViewChannel.setMethodCallHandler(_onMethodCall);
