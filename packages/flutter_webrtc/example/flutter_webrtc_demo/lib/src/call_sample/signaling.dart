@@ -49,7 +49,7 @@ class Signaling {
   SimpleWebSocket? _socket;
   final BuildContext? _context;
   final String _host;
-  final int _port = 8086;
+  final _port = 8086;
   Map? _turnCredential;
   final Map<String, Session> _sessions = {};
   MediaStream? _localStream;
@@ -511,10 +511,8 @@ class Signaling {
 
   Future<void> _createDataChannel(Session session,
       {label = 'fileTransfer'}) async {
-    var dataChannelDict = RTCDataChannelInit()
-      ..maxRetransmits = 30;
-    var channel =
-        await session.pc!.createDataChannel(label, dataChannelDict);
+    var dataChannelDict = RTCDataChannelInit()..maxRetransmits = 30;
+    var channel = await session.pc!.createDataChannel(label, dataChannelDict);
     _addDataChannel(session, channel);
   }
 
