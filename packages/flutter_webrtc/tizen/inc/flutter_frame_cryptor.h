@@ -49,11 +49,25 @@ class FlutterFrameCryptor {
       const EncodableMap& constraints,
       std::unique_ptr<MethodResultProxy> result);
 
+  void KeyProviderSetSharedKey(const EncodableMap& constraints,
+                               std::unique_ptr<MethodResultProxy> result);
+
+  void KeyProviderRatchetSharedKey(const EncodableMap& constraints,
+                                   std::unique_ptr<MethodResultProxy> result);
+
+  void KeyProviderExportSharedKey(const EncodableMap& constraints,
+                                  std::unique_ptr<MethodResultProxy> result);
   void KeyProviderSetKey(const EncodableMap& constraints,
                          std::unique_ptr<MethodResultProxy> result);
 
   void KeyProviderRatchetKey(const EncodableMap& constraints,
                              std::unique_ptr<MethodResultProxy> result);
+
+  void KeyProviderExportKey(const EncodableMap& constraints,
+                            std::unique_ptr<MethodResultProxy> result);
+
+  void KeyProviderSetSifTrailer(const EncodableMap& constraints,
+                                std::unique_ptr<MethodResultProxy> result);
 
   void KeyProviderDispose(const EncodableMap& constraints,
                           std::unique_ptr<MethodResultProxy> result);
@@ -75,7 +89,7 @@ class FlutterFrameCryptor {
   FlutterWebRTCBase* base_;
   std::map<std::string, scoped_refptr<libwebrtc::RTCFrameCryptor>>
       frame_cryptors_;
-  std::map<std::string, std::unique_ptr<FlutterFrameCryptorObserver>>
+  std::map<std::string, scoped_refptr<FlutterFrameCryptorObserver>>
       frame_cryptor_observers_;
   std::map<std::string, scoped_refptr<libwebrtc::KeyProvider>> key_providers_;
 };
