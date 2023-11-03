@@ -2,7 +2,6 @@
 import 'dart:html';
 
 class SimpleWebSocket {
-
   SimpleWebSocket(this._url) {
     _url = _url.replaceAll('https:', 'wss:');
   }

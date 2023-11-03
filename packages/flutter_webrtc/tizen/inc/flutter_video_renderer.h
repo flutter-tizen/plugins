@@ -19,8 +19,7 @@ class FlutterVideoRenderer
   FlutterVideoRenderer() = default;
   ~FlutterVideoRenderer();
 
-  void initialize(TextureRegistrar* registrar,
-                  BinaryMessenger* messenger,
+  void initialize(TextureRegistrar* registrar, BinaryMessenger* messenger,
                   std::unique_ptr<flutter::TextureVariant> texture,
                   int64_t texture_id);
 
