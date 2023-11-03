@@ -63,7 +63,10 @@ class RTCDesktopCapturer : public RefCountInterface {
    *
    * @return The current capture state after attempting to start capture.
    */
-  virtual CaptureState Start(uint32_t fps, uint32_t x, uint32_t y, uint32_t w,
+  virtual CaptureState Start(uint32_t fps,
+                             uint32_t x,
+                             uint32_t y,
+                             uint32_t w,
                              uint32_t h) = 0;
 
   /**

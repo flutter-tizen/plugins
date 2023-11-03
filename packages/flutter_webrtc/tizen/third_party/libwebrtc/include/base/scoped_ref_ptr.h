@@ -73,16 +73,19 @@ class scoped_refptr {
   scoped_refptr() : ptr_(NULL) {}
 
   scoped_refptr(T* p) : ptr_(p) {
-    if (ptr_) ptr_->AddRef();
+    if (ptr_)
+      ptr_->AddRef();
   }
 
   scoped_refptr(const scoped_refptr<T>& r) : ptr_(r.ptr_) {
-    if (ptr_) ptr_->AddRef();
+    if (ptr_)
+      ptr_->AddRef();
   }
 
   template <typename U>
   scoped_refptr(const scoped_refptr<U>& r) : ptr_(r.get()) {
-    if (ptr_) ptr_->AddRef();
+    if (ptr_)
+      ptr_->AddRef();
   }
 
   // Move constructors.
@@ -92,7 +95,8 @@ class scoped_refptr {
   scoped_refptr(scoped_refptr<U>&& r) : ptr_(r.release()) {}
 
   ~scoped_refptr() {
-    if (ptr_) ptr_->Release();
+    if (ptr_)
+      ptr_->Release();
   }
 
   T* get() const { return ptr_; }
@@ -112,8 +116,10 @@ class scoped_refptr {
 
   scoped_refptr<T>& operator=(T* p) {
     // AddRef first so that self assignment should work
-    if (p) p->AddRef();
-    if (ptr_) ptr_->Release();
+    if (p)
+      p->AddRef();
+    if (ptr_)
+      ptr_->Release();
     ptr_ = p;
     return *this;
   }

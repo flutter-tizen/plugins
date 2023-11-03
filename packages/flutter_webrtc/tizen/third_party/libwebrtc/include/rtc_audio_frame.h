@@ -23,7 +23,8 @@ class AudioFrame {
    * @param num_channels: the number of audio channels.
    * @return AudioFrame*: a pointer to the newly created AudioFrame.
    */
-  MEDIA_MANAGER_API static AudioFrame* Create(int id, uint32_t timestamp,
+  MEDIA_MANAGER_API static AudioFrame* Create(int id,
+                                              uint32_t timestamp,
                                               const int16_t* data,
                                               size_t samples_per_channel,
                                               int sample_rate_hz,
@@ -44,8 +45,11 @@ class AudioFrame {
    * @param sample_rate_hz: the sample rate in Hz.
    * @param num_channels: the number of audio channels.
    */
-  virtual void UpdateFrame(int id, uint32_t timestamp, const int16_t* data,
-                           size_t samples_per_channel, int sample_rate_hz,
+  virtual void UpdateFrame(int id,
+                           uint32_t timestamp,
+                           const int16_t* data,
+                           size_t samples_per_channel,
+                           int sample_rate_hz,
                            size_t num_channels = 1) = 0;
 
   /**
