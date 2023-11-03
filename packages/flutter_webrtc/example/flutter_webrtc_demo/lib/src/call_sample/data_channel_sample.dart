@@ -153,7 +153,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
           });
           break;
         case CallState.CallStateRinging:
-          bool? accept = await _showAcceptDialog();
+          var accept = await _showAcceptDialog();
           if (accept!) {
             _accept();
             setState(() {
@@ -188,7 +188,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   }
 
   Future<void> _handleDataChannelTest(Timer timer) async {
-    String text = 'Say hello ${timer.tick} times, from [$_selfId]';
+    var text = 'Say hello ${timer.tick} times, from [$_selfId]';
     await _dataChannel
         ?.send(RTCDataChannelMessage.fromBinary(Uint8List(timer.tick + 1)));
     await _dataChannel?.send(RTCDataChannelMessage(text));
@@ -205,7 +205,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   }
 
   Widget _buildRow(context, peer) {
-    bool self = peer['id'] == _selfId;
+    var self = peer['id'] == _selfId;
     return ListBody(children: <Widget>[
       ListTile(
         title: Text(self

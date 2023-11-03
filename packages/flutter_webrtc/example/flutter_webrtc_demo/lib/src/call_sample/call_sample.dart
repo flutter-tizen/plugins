@@ -66,7 +66,7 @@ class _CallSampleState extends State<CallSample> {
           });
           break;
         case CallState.CallStateRinging:
-          bool? accept = await _showAcceptDialog();
+          var accept = await _showAcceptDialog();
           if (accept!) {
             _accept();
             setState(() {
@@ -213,7 +213,7 @@ class _CallSampleState extends State<CallSample> {
       );
       if (source != null) {
         try {
-          MediaStream stream =
+          var stream =
               await navigator.mediaDevices.getDisplayMedia(<String, dynamic>{
             'video': {
               'deviceId': {'exact': source.id},
@@ -244,7 +244,7 @@ class _CallSampleState extends State<CallSample> {
   }
 
   ListBody _buildRow(context, peer) {
-    bool self = peer['id'] == _selfId;
+    var self = peer['id'] == _selfId;
     return ListBody(children: <Widget>[
       ListTile(
         title: Text(self

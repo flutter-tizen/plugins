@@ -39,9 +39,9 @@ class SimpleWebSocket {
 
   Future<WebSocket> _connectForSelfSignedCert(url) async {
     try {
-      Random r = Random();
-      String key = base64.encode(List<int>.generate(8, (_) => r.nextInt(255)));
-      HttpClient client = HttpClient(context: SecurityContext());
+      var r = Random();
+      var key = base64.encode(List<int>.generate(8, (_) => r.nextInt(255)));
+      var client = HttpClient(context: SecurityContext());
       client.badCertificateCallback =
           (X509Certificate cert, String host, int port) {
         print(
@@ -49,7 +49,7 @@ class SimpleWebSocket {
         return true;
       };
 
-      HttpClientRequest request =
+      var request =
           await client.getUrl(Uri.parse(url)); // form the correct url here
       request.headers.add('Connection', 'Upgrade');
       request.headers.add('Upgrade', 'websocket');
@@ -57,10 +57,10 @@ class SimpleWebSocket {
           'Sec-WebSocket-Version', '13'); // insert the correct version here
       request.headers.add('Sec-WebSocket-Key', key.toLowerCase());
 
-      HttpClientResponse response = await request.close();
+      var response = await request.close();
       // ignore: close_sinks
-      Socket socket = await response.detachSocket();
-      WebSocket webSocket = WebSocket.fromUpgradedSocket(
+      var socket = await response.detachSocket();
+      var webSocket = WebSocket.fromUpgradedSocket(
         socket,
         protocol: 'signaling',
         serverSide: false,
