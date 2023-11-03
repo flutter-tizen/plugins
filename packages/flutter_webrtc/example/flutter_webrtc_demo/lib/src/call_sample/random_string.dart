@@ -33,7 +33,7 @@ const UPPER_ALPHA_END = 90;
 /// Generates a random integer where [from] <= [to].
 int randomBetween(int from, int to) {
   if (from > to) throw Exception('$from cannot be > $to');
-  var rand = Random();
+  Random rand = Random();
   return ((to - from) * rand.nextDouble()).toInt() + from;
 }
 

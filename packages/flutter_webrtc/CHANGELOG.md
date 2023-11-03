@@ -3,6 +3,7 @@
 * Increase the minimum Flutter version to 3.3.
 * Update libwebrtc to m114 version.
 * Update flutter_webrtc to 0.9.46.
+* Update and format flutter_webrtc_demo.
 * Support the empty candidate for 'addIceCandidate' api.
 
 ## 0.1.2

@@ -34,9 +34,9 @@ class _ThumbnailWidgetState extends State<ThumbnailWidget> {
 
   @override
   void deactivate() {
-    for (var element in _subscriptions) {
+    _subscriptions.forEach((element) {
       element.cancel();
-    }
+    });
     super.deactivate();
   }
 
@@ -124,18 +124,18 @@ class ScreenSelectDialog extends Dialog {
   Future<void> _getSources() async {
     try {
       var sources = await desktopCapturer.getSources(types: [_sourceType]);
-      for (var element in sources) {
+      sources.forEach((element) {
         print(
             'name: ${element.name}, id: ${element.id}, type: ${element.type}');
-      }
+      });
       _timer?.cancel();
       _timer = Timer.periodic(Duration(seconds: 3), (timer) {
         desktopCapturer.updateSources(types: [_sourceType]);
       });
       _sources.clear();
-      for (var element in sources) {
+      sources.forEach((element) {
         _sources[element.id] = element;
-      }
+      });
       _stateSetter?.call(() {});
       return;
     } catch (e) {

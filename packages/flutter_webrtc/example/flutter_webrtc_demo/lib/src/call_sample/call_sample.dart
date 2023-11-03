@@ -24,7 +24,6 @@ class _CallSampleState extends State<CallSample> {
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Session? _session;
-
   bool _waitAccept = false;
 
   @override
@@ -67,7 +66,7 @@ class _CallSampleState extends State<CallSample> {
           });
           break;
         case CallState.CallStateRinging:
-          var accept = await _showAcceptDialog();
+          bool? accept = await _showAcceptDialog();
           if (accept!) {
             _accept();
             setState(() {
@@ -92,7 +91,7 @@ class _CallSampleState extends State<CallSample> {
           break;
         case CallState.CallStateInvite:
           _waitAccept = true;
-          await _showInvateDialog();
+          await _showInviteDialog();
           break;
         case CallState.CallStateConnected:
           if (_waitAccept) {
@@ -156,7 +155,7 @@ class _CallSampleState extends State<CallSample> {
     );
   }
 
-  Future<bool?> _showInvateDialog() {
+  Future<bool?> _showInviteDialog() {
     return showDialog<bool?>(
       context: context,
       builder: (context) {
@@ -214,7 +213,7 @@ class _CallSampleState extends State<CallSample> {
       );
       if (source != null) {
         try {
-          var stream =
+          MediaStream stream =
               await navigator.mediaDevices.getDisplayMedia(<String, dynamic>{
             'video': {
               'deviceId': {'exact': source.id},
@@ -245,7 +244,7 @@ class _CallSampleState extends State<CallSample> {
   }
 
   ListBody _buildRow(context, peer) {
-    var self = peer['id'] == _selfId;
+    bool self = peer['id'] == _selfId;
     return ListBody(children: <Widget>[
       ListTile(
         title: Text(self
