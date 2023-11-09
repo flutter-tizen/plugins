@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of 'sensors_plus'. Therefore, y
 
 ```yaml
 dependencies:
-  sensors_plus: ^1.2.1
-  sensors_plus_tizen: ^1.1.2
+  sensors_plus: ^3.0.2
+  sensors_plus_tizen: ^1.1.3
 ```
 
 Then you can import `sensors_plus` in your Dart code:

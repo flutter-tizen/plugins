@@ -115,6 +115,9 @@ Page resource error:
             debugPrint('allowing navigation to ${request.url}');
             return NavigationDecision.navigate;
           },
+          onUrlChange: (UrlChange change) {
+            debugPrint('url change to ${change.url}');
+          },
         ),
       )
       ..addJavaScriptChannel(
@@ -407,7 +410,7 @@ class SampleMenu extends StatelessWidget {
   }
 
   Widget _getCookieList(String cookies) {
-    if (cookies == null || cookies == '""') {
+    if (cookies == '""') {
       return Container();
     }
     final List<String> cookieList = cookies.split(';');

@@ -5,6 +5,7 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
+#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -18,6 +19,9 @@
 #include <string>
 
 #include "video_player_options.h"
+
+typedef int (*ScreensaverResetTimeout)(void);
+typedef int (*ScreensaverOverrideReset)(bool onoff);
 
 class VideoPlayer {
  public:
@@ -40,12 +44,17 @@ class VideoPlayer {
   int64_t GetTextureId() { return texture_id_; }
 
  private:
+  void SendPendingEvents();
+  void PushEvent(const flutter::EncodableValue &encodable_value);
+  void SendError(const std::string &error_code,
+                 const std::string &error_message);
   FlutterDesktopGpuSurfaceDescriptor *ObtainGpuSurface(size_t width,
                                                        size_t height);
 
   void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void Initialize();
   void SendInitialized();
+  void InitScreenSaverApi();
 
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
@@ -55,6 +64,7 @@ class VideoPlayer {
   static void OnError(int error_code, void *data);
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
   static void ReleaseMediaPacket(void *packet);
+  static Eina_Bool ResetScreensaverTimeout(void *data);
 
   void RequestRendering();
   void OnRenderingCompleted();
@@ -79,6 +89,15 @@ class VideoPlayer {
   std::queue<media_packet_h> packet_queue_;
 
   SeekCompletedCallback on_seek_completed_;
+
+  void *screensaver_handle_;
+  ScreensaverResetTimeout screensaver_reset_timeout_;
+  Ecore_Timer *timer_;
+
+  Ecore_Pipe *sink_event_pipe_ = nullptr;
+  std::mutex queue_mutex_;
+  std::queue<flutter::EncodableValue> encodable_event_queue_;
+  std::queue<std::pair<std::string, std::string>> error_event_queue_;
 };
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_

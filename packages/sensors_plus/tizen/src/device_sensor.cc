@@ -14,6 +14,8 @@ sensor_type_e ToTizenSensorType(const SensorType &sensor_type) {
       return SENSOR_ACCELEROMETER;
     case SensorType::kGyroscope:
       return SENSOR_GYROSCOPE;
+    case SensorType::kMagnetometer:
+      return SENSOR_MAGNETIC;
     case SensorType::kUserAccel:
     default:
       return SENSOR_LINEAR_ACCELERATION;
@@ -37,6 +39,12 @@ DeviceSensor::~DeviceSensor() {
 }
 
 bool DeviceSensor::StartListen(SensorEventCallback callback) {
+  if (sensor_type_ == SensorType::kMagnetometer) {
+    LOG_ERROR("Not supported sensor type.");
+    last_error_ = SENSOR_ERROR_NOT_SUPPORTED;
+    return false;
+  }
+
   if (is_listening_) {
     LOG_WARN("Already listening.");
     last_error_ = SENSOR_ERROR_OPERATION_FAILED;

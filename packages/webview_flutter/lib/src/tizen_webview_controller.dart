@@ -28,10 +28,10 @@ class TizenWebViewController extends PlatformWebViewController {
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
-    if (_webview.hasNavigationDelegate) {
-      _tizenNavigationDelegate.onCreate(viewId);
-    }
     _webview.onCreate(viewId);
+    if (_webview.hasNavigationDelegate) {
+      _tizenNavigationDelegate.createNavigationDelegateChannel(viewId);
+    }
   }
 
   @override
@@ -139,7 +139,11 @@ class TizenWebViewController extends PlatformWebViewController {
   Future<void> setPlatformNavigationDelegate(
       covariant TizenNavigationDelegate handler) async {
     _tizenNavigationDelegate = handler;
-    _webview.hasNavigationDelegate = true;
+    if (_webview.hasNavigationDelegate) {
+      _tizenNavigationDelegate.createNavigationDelegateChannel(_webview.viewId);
+    } else {
+      _webview.hasNavigationDelegate = true;
+    }
   }
 
   @override
@@ -158,6 +162,17 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> setUserAgent(String? userAgent) =>
       _webview.setUserAgent(userAgent);
+
+  @override
+  Future<void> setOnPlatformPermissionRequest(
+    void Function(
+      PlatformWebViewPermissionRequest request,
+    ) onPermissionRequest,
+  ) async {
+    throw UnimplementedError(
+        'This version of `TizenWebViewController` currently has no '
+        'implementation.');
+  }
 }
 
 /// An implementation of [PlatformWebViewWidget] with the Tizen WebView API.
@@ -272,9 +287,10 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
   ProgressCallback? _onProgress;
   WebResourceErrorCallback? _onWebResourceError;
   NavigationRequestCallback? _onNavigationRequest;
+  UrlChangeCallback? _onUrlChange;
 
   /// Called when [TizenView] is created.
-  void onCreate(int viewId) {
+  void createNavigationDelegateChannel(int viewId) {
     _navigationDelegateChannel =
         MethodChannel(kTizenNavigationDelegateChannelName + viewId.toString());
     _navigationDelegateChannel.setMethodCallHandler((MethodCall call) async {
@@ -307,6 +323,11 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
               failingUrl: arguments['failingUrl']! as String,
               isForMainFrame: true,
             ));
+          }
+          return null;
+        case 'onUrlChange':
+          if (_onUrlChange != null) {
+            _onUrlChange!(UrlChange(url: arguments['url']! as String));
           }
           return null;
       }
@@ -380,5 +401,10 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
     WebResourceErrorCallback onWebResourceError,
   ) async {
     _onWebResourceError = onWebResourceError;
+  }
+
+  @override
+  Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {
+    _onUrlChange = onUrlChange;
   }
 }
