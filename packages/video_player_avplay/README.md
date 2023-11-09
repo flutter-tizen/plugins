@@ -23,7 +23,11 @@ import 'package:video_player_avplay/video_player.dart';
 
 Note that `video_player_avplay` is not compatible with the original `video_player` plugin. If you're writing a cross-platform app for Tizen and other platforms, it is recommended to create two separate source files and import `video_player` and `video_player_avplay` in the files respectively.
 
-Note that `video_player_avplay` uses a compiled dynamic library, the api-version in tizen-manifest.xml is your TV version.
+Note that `video_player_avplay` uses a compiled dynamic library, the api-version is your TV version, change it in tizen-manifest.xml:
+
+```xml
+<manifest package="xxx" version="1.0.0" api-version="6.0">
+```
 
 ### Example
 

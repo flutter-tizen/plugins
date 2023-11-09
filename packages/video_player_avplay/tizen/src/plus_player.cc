@@ -41,6 +41,20 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window,
 
 PlusPlayer::~PlusPlayer() { Dispose(); }
 
+void PlusPlayer::RegisterListener() {
+  listener_.buffering_callback = OnBufferStatus;
+  listener_.adaptive_streaming_control_callback =
+      OnAdaptiveStreamingControlEvent;
+  listener_.completed_callback = OnEos;
+  listener_.drm_init_data_callback = OnDrmInitData;
+  listener_.error_callback = OnError;
+  listener_.error_message_callback = OnErrorMsg;
+  listener_.prepared_callback = OnPrepareDone;
+  listener_.seek_completed_callback = OnSeekDone;
+  listener_.subtitle_data_callback = OnSubtitleData;
+  ::RegisterListener(player_, &listener_, this);
+}
+
 int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
                            const std::string &license_server_url,
                            bool is_prebuffer_mode,
@@ -48,9 +62,9 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
   LOG_INFO("[PlusPlayer] Create player.");
 
   if (video_format_ == "dash") {
-    player_ = plusplayer::PlusPlayer::Create(plusplayer::PlayerType::kDASH);
+    player_ = CreatePlayer(plusplayer::PlayerType::kDASH);
   } else {
-    player_ = plusplayer::PlusPlayer::Create();
+    player_ = CreatePlayer(plusplayer::PlayerType::kDefault);
   }
 
   if (!player_) {
@@ -63,7 +77,7 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
     if (iter != http_headers.end()) {
       if (std::holds_alternative<std::string>(iter->second)) {
         std::string cookie = std::get<std::string>(iter->second);
-        player_->SetStreamingProperty("COOKIE", cookie);
+        SetStreamingProperty(player_, "COOKIE", cookie);
       }
     }
 
@@ -71,12 +85,12 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
     if (iter != http_headers.end()) {
       if (std::holds_alternative<std::string>(iter->second)) {
         std::string user_agent = std::get<std::string>(iter->second);
-        player_->SetStreamingProperty("USER_AGENT", user_agent);
+        SetStreamingProperty(player_, "USER_AGENT", user_agent);
       }
     }
   }
 
-  if (!player_->Open(uri)) {
+  if (!Open(player_, uri)) {
     LOG_ERROR("[PlusPlayer] Fail to open uri :  %s.", uri.c_str());
     return -1;
   }
@@ -88,10 +102,10 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
     LOG_ERROR("[PlusPlayer] Fail to get app id: %s.", get_error_message(ret));
     return -1;
   }
-  player_->SetAppId(std::string(appId));
+  SetAppId(player_, std::string(appId));
   free(appId);
 
-  player_->RegisterListener(this);
+  RegisterListener();
 
   if (drm_type != 0) {
     if (!SetDrm(uri, drm_type, license_server_url)) {
@@ -108,11 +122,11 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
   SetDisplayRoi(0, 0, 1, 1);
 
   if (is_prebuffer_mode) {
-    player_->SetPrebufferMode(true);
+    SetPrebufferMode(player_, true);
     is_prebuffer_mode_ = true;
   }
 
-  if (!player_->PrepareAsync()) {
+  if (!PrepareAsync(player_)) {
     LOG_ERROR("[PlusPlayer] Player fail to prepare.");
     return -1;
   }
@@ -126,18 +140,21 @@ void PlusPlayer::Dispose() {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return;
   }
-  if (!player_->Stop()) {
+  if (!Stop(player_)) {
     LOG_INFO("[PlusPlayer] Player fail to stop.");
     return;
   }
 
-  plusplayer::State state = player_->GetState();
+  plusplayer::State state = GetState(player_);
   if (state == plusplayer::State::kIdle || state == plusplayer::State::kNone) {
-    if (!player_->Close()) {
+    if (!Close(player_)) {
       LOG_INFO("[PlusPlayer] Player fail to close.");
       return;
     }
   }
+  UnregisterListener(player_);
+  DestroyPlayer(player_);
+  player_ = nullptr;
 
   if (drm_manager_) {
     drm_manager_->ReleaseDrmSession();
@@ -151,7 +168,7 @@ void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
   roi.y = y;
   roi.w = width;
   roi.h = height;
-  if (!player_->SetDisplayRoi(roi)) {
+  if (!::SetDisplayRoi(player_, roi)) {
     LOG_ERROR("[PlusPlayer] Player fail to set display roi.");
   }
 }
@@ -159,20 +176,20 @@ void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
 bool PlusPlayer::Play() {
   LOG_INFO("[PlusPlayer] Player starting.");
 
-  plusplayer::State state = player_->GetState();
+  plusplayer::State state = GetState(player_);
   if (state < plusplayer::State::kTrackSourceReady) {
     LOG_ERROR("[PlusPlayer] Player is not ready.");
     return false;
   }
 
   if (state <= plusplayer::State::kReady) {
-    if (!player_->Start()) {
+    if (!Start(player_)) {
       LOG_ERROR("[PlusPlayer] Player fail to start.");
       return false;
     }
     return true;
   } else if (state == plusplayer::State::kPaused) {
-    if (!player_->Resume()) {
+    if (!Resume(player_)) {
       LOG_ERROR("[PlusPlayer] Player fail to resume.");
       return false;
     }
@@ -182,15 +199,15 @@ bool PlusPlayer::Play() {
 }
 
 bool PlusPlayer::Activate() {
-  if (!player_->Activate(plusplayer::kTrackTypeVideo)) {
+  if (!::Activate(player_, plusplayer::kTrackTypeVideo)) {
     LOG_ERROR("[PlusPlayer] Fail to activate video.");
     return false;
   }
-  if (!player_->Activate(plusplayer::kTrackTypeAudio)) {
+  if (!::Activate(player_, plusplayer::kTrackTypeAudio)) {
     LOG_ERROR("[PlusPlayer] Fail to activate audio.");
     return false;
   }
-  if (!player_->Activate(plusplayer::kTrackTypeSubtitle)) {
+  if (!::Activate(player_, plusplayer::kTrackTypeSubtitle)) {
     LOG_ERROR("[PlusPlayer] Fail to activate subtitle.");
   }
 
@@ -199,19 +216,19 @@ bool PlusPlayer::Activate() {
 
 bool PlusPlayer::Deactivate() {
   if (is_prebuffer_mode_) {
-    player_->Stop();
+    Stop(player_);
     return true;
   }
 
-  if (!player_->Deactivate(plusplayer::kTrackTypeVideo)) {
+  if (!::Deactivate(player_, plusplayer::kTrackTypeVideo)) {
     LOG_ERROR("[PlusPlayer] Fail to activate video.");
     return false;
   }
-  if (!player_->Deactivate(plusplayer::kTrackTypeAudio)) {
+  if (!::Deactivate(player_, plusplayer::kTrackTypeAudio)) {
     LOG_ERROR("[PlusPlayer] Fail to activate audio.");
     return false;
   }
-  if (!player_->Deactivate(plusplayer::kTrackTypeSubtitle)) {
+  if (!::Deactivate(player_, plusplayer::kTrackTypeSubtitle)) {
     LOG_ERROR("[PlusPlayer] Fail to activate subtitle.");
   }
 
@@ -221,7 +238,7 @@ bool PlusPlayer::Deactivate() {
 bool PlusPlayer::Pause() {
   LOG_INFO("[PlusPlayer] Player pausing.");
 
-  plusplayer::State state = player_->GetState();
+  plusplayer::State state = GetState(player_);
   if (state < plusplayer::State::kReady) {
     LOG_ERROR("[PlusPlayer] Player is not ready.");
     return false;
@@ -232,7 +249,7 @@ bool PlusPlayer::Pause() {
     return false;
   }
 
-  if (!player_->Pause()) {
+  if (!::Pause(player_)) {
     LOG_ERROR("[PlusPlayer] Player fail to pause.");
     return false;
   }
@@ -248,13 +265,13 @@ bool PlusPlayer::SetLooping(bool is_looping) {
 bool PlusPlayer::SetVolume(double volume) {
   LOG_INFO("[PlusPlayer] Volume: %f", volume);
 
-  if (player_->GetState() != plusplayer::State::kPlaying ||
-      player_->GetState() != plusplayer::State::kPaused) {
+  if (GetState(player_) != plusplayer::State::kPlaying ||
+      GetState(player_) != plusplayer::State::kPaused) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state");
     return false;
   }
 
-  if (!player_->SetVolume(volume)) {
+  if (!::SetVolume(player_, volume)) {
     LOG_ERROR("[PlusPlayer] Fail to set volume.");
     return false;
   }
@@ -264,11 +281,11 @@ bool PlusPlayer::SetVolume(double volume) {
 bool PlusPlayer::SetPlaybackSpeed(double speed) {
   LOG_INFO("[PlusPlayer] Speed: %f", speed);
 
-  if (player_->GetState() <= plusplayer::State::kIdle) {
+  if (GetState(player_) <= plusplayer::State::kIdle) {
     LOG_ERROR("[PlusPlayer] Player is not prepared.");
     return false;
   }
-  if (!player_->SetPlaybackRate(speed)) {
+  if (!SetPlaybackRate(player_, speed)) {
     LOG_ERROR("[PlusPlayer] Player fail to set playback rate.");
     return false;
   }
@@ -278,7 +295,7 @@ bool PlusPlayer::SetPlaybackSpeed(double speed) {
 bool PlusPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   LOG_INFO("[PlusPlayer] Seek to position: %lld", position);
 
-  if (player_->GetState() < plusplayer::State::kReady) {
+  if (GetState(player_) < plusplayer::State::kReady) {
     LOG_ERROR("[PlusPlayer] Player is not ready.");
     return false;
   }
@@ -290,12 +307,12 @@ bool PlusPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
 
   on_seek_completed_ = std::move(callback);
   plusplayer::PlayerMemento memento;
-  if (!player_->GetMemento(&memento)) {
+  if (!GetMemento(player_, &memento)) {
     LOG_ERROR("[PlusPlayer] Player fail to get memento.");
   }
 
   if (memento.is_live) {
-    std::string str = player_->GetStreamingProperty("GET_LIVE_DURATION");
+    std::string str = GetStreamingProperty(player_, "GET_LIVE_DURATION");
     if (str.empty()) {
       LOG_ERROR("[PlusPlayer] Player fail to get live duration.");
       return false;
@@ -310,13 +327,13 @@ bool PlusPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
       return false;
     }
 
-    if (!player_->Seek(position)) {
+    if (!Seek(player_, position)) {
       on_seek_completed_ = nullptr;
       LOG_ERROR("[PlusPlayer] Player fail to seek.");
       return false;
     }
   } else {
-    if (!player_->Seek(position)) {
+    if (!Seek(player_, position)) {
       on_seek_completed_ = nullptr;
       LOG_ERROR("[PlusPlayer] Player fail to seek.");
       return false;
@@ -327,10 +344,10 @@ bool PlusPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
 
 int64_t PlusPlayer::GetPosition() {
   uint64_t position = 0;
-  plusplayer::State state = player_->GetState();
+  plusplayer::State state = GetState(player_);
   if (state == plusplayer::State::kPlaying ||
       state == plusplayer::State::kPaused) {
-    if (!player_->GetPlayingTime(&position)) {
+    if (!GetPlayingTime(player_, &position)) {
       LOG_ERROR("[PlusPlayer] Player fail to get the current playing time.");
     }
   }
@@ -339,14 +356,14 @@ int64_t PlusPlayer::GetPosition() {
 
 int64_t PlusPlayer::GetDuration() {
   int64_t duration = 0;
-  if (player_->GetState() >= plusplayer::State::kTrackSourceReady) {
+  if (GetState(player_) >= plusplayer::State::kTrackSourceReady) {
     plusplayer::PlayerMemento memento;
-    if (!player_->GetMemento(&memento)) {
+    if (!GetMemento(player_, &memento)) {
       LOG_ERROR("[PlusPlayer] Player fail to get memento.");
     }
 
     if (memento.is_live) {
-      std::string str = player_->GetStreamingProperty("GET_LIVE_DURATION");
+      std::string str = GetStreamingProperty(player_, "GET_LIVE_DURATION");
       if (str.empty()) {
         LOG_ERROR("[PlusPlayer] Player fail to get live duration.");
         return duration;
@@ -357,7 +374,7 @@ int64_t PlusPlayer::GetDuration() {
 
       duration = end_time - start_time;
     } else {
-      if (!player_->GetDuration(&duration)) {
+      if (!::GetDuration(player_, &duration)) {
         LOG_ERROR("[PlusPlayer] Player fail to get the duration.");
       }
     }
@@ -368,9 +385,9 @@ int64_t PlusPlayer::GetDuration() {
 }
 
 void PlusPlayer::GetVideoSize(int32_t *width, int32_t *height) {
-  if (player_->GetState() >= plusplayer::State::kTrackSourceReady) {
+  if (GetState(player_) >= plusplayer::State::kTrackSourceReady) {
     bool found = false;
-    std::vector<plusplayer::Track> tracks = player_->GetActiveTrackInfo();
+    std::vector<plusplayer::Track> tracks = GetActiveTrackInfo(player_);
     for (auto track : tracks) {
       if (track.type == plusplayer::TrackType::kTrackTypeVideo) {
         *width = track.width;
@@ -388,7 +405,7 @@ void PlusPlayer::GetVideoSize(int32_t *width, int32_t *height) {
 }
 
 bool PlusPlayer::IsReady() {
-  return plusplayer::State::kReady == player_->GetState();
+  return plusplayer::State::kReady == GetState(player_);
 }
 
 bool PlusPlayer::SetDisplay() {
@@ -401,14 +418,14 @@ bool PlusPlayer::SetDisplay() {
     LOG_ERROR("[PlusPlayer] Fail to get surface id.");
     return false;
   }
-  bool ret = player_->SetDisplay(plusplayer::DisplayType::kOverlay, surface_id,
-                                 x, y, width, height);
+  bool ret = ::SetDisplay(player_, plusplayer::DisplayType::kOverlay,
+                          surface_id, x, y, width, height);
   if (!ret) {
     LOG_ERROR("[PlusPlayer] Player fail to set display.");
     return false;
   }
 
-  ret = player_->SetDisplayMode(plusplayer::DisplayMode::kDstRoi);
+  ret = SetDisplayMode(player_, plusplayer::DisplayMode::kDstRoi);
   if (!ret) {
     LOG_ERROR("[PlusPlayer] Player fail to set display mode.");
     return false;
@@ -423,7 +440,7 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
     return {};
   }
 
-  plusplayer::State state = player_->GetState();
+  plusplayer::State state = GetState(player_);
   if (state < plusplayer::State::kTrackSourceReady) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state.");
     return {};
@@ -431,12 +448,12 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
 
   plusplayer::TrackType type = ConvertTrackType(track_type);
 
-  int track_count = player_->GetTrackCount(type);
+  int track_count = GetTrackCount(player_, type);
   if (track_count <= 0) {
     return {};
   }
 
-  const std::vector<plusplayer::Track> track_info = player_->GetTrackInfo();
+  const std::vector<plusplayer::Track> track_info = ::GetTrackInfo(player_);
   if (track_info.empty()) {
     return {};
   }
@@ -517,13 +534,13 @@ bool PlusPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {
     return false;
   }
 
-  plusplayer::State state = player_->GetState();
+  plusplayer::State state = GetState(player_);
   if (state < plusplayer::State::kTrackSourceReady) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state.");
     return false;
   }
 
-  if (!player_->SelectTrack(ConvertTrackType(track_type), track_id)) {
+  if (!SelectTrack(player_, ConvertTrackType(track_type), track_id)) {
     LOG_ERROR("[PlusPlayer] Player fail to select track.");
     return false;
   }
@@ -565,7 +582,7 @@ bool PlusPlayer::SetDrm(const std::string &uri, int drm_type,
   property.license_acquired_userdata =
       reinterpret_cast<plusplayer::drm::UserData>(this);
   property.external_decryption = false;
-  player_->SetDrm(property);
+  ::SetDrm(player_, property);
 
   if (license_server_url.empty()) {
     bool success = drm_manager_->SetChallenge(uri, binary_messenger_);
@@ -585,8 +602,8 @@ bool PlusPlayer::SetDrm(const std::string &uri, int drm_type,
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
                                    unsigned char *pssh_data, void *user_data) {
   LOG_INFO("[PlusPlayer] License acquired.");
-
   PlusPlayer *self = static_cast<PlusPlayer *>(user_data);
+
   if (self->drm_manager_) {
     return self->drm_manager_->SecurityInitCompleteCB(drm_handle, length,
                                                       pssh_data, nullptr);
@@ -594,113 +611,126 @@ bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
   return false;
 }
 
-void PlusPlayer::OnPrepareDone(bool ret, UserData userdata) {
+void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
   LOG_INFO("[PlusPlayer] Prepare done, result: %d.", ret);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
-  if (!is_initialized_ && ret) {
-    SendInitialized();
+  if (!self->is_initialized_ && ret) {
+    self->SendInitialized();
   }
 }
 
-void PlusPlayer::OnBufferStatus(const int percent, UserData userdata) {
+void PlusPlayer::OnBufferStatus(int percent, void *user_data) {
   LOG_INFO("[PlusPlayer] Buffering percent: %d.", percent);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (percent == 100) {
-    SendBufferingEnd();
-    is_buffering_ = false;
-  } else if (!is_buffering_ && percent <= 5) {
-    SendBufferingStart();
-    is_buffering_ = true;
+    self->SendBufferingEnd();
+    self->is_buffering_ = false;
+  } else if (!self->is_buffering_ && percent <= 5) {
+    self->SendBufferingStart();
+    self->is_buffering_ = true;
   } else {
-    SendBufferingUpdate(percent);
+    self->SendBufferingUpdate(percent);
   }
 }
 
-void PlusPlayer::OnSeekDone(UserData userdata) {
+void PlusPlayer::OnSeekDone(void *user_data) {
   LOG_INFO("[PlusPlayer] Seek completed.");
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
-  if (on_seek_completed_) {
-    on_seek_completed_();
-    on_seek_completed_ = nullptr;
+  if (self->on_seek_completed_) {
+    self->on_seek_completed_();
+    self->on_seek_completed_ = nullptr;
   }
 }
 
-void PlusPlayer::OnEos(UserData userdata) {
+void PlusPlayer::OnEos(void *user_data) {
   LOG_INFO("[PlusPlayer] Play completed.");
-  SendPlayCompleted();
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
+
+  self->SendPlayCompleted();
 }
 
-void PlusPlayer::OnSubtitleData(std::unique_ptr<char[]> data, const int size,
+void PlusPlayer::OnSubtitleData(char *data, const int size,
                                 const plusplayer::SubtitleType &type,
-                                const uint64_t duration,
-                                plusplayer::SubtitleAttrListPtr attr_list,
-                                UserData userdata) {
+                                const uint64_t duration, void *user_data) {
   LOG_INFO("[PlusPlayer] Subtitle updated, duration: %llu, text: %s", duration,
-           data.get());
-  SendSubtitleUpdate(duration, data.get());
+           data);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
+
+  self->SendSubtitleUpdate(duration, data);
 }
 
-void PlusPlayer::OnResourceConflicted(UserData userdata) {
+void PlusPlayer::OnResourceConflicted(void *user_data) {
   LOG_ERROR("[PlusPlayer] Resource conflicted.");
-  SendError("PlusPlayer error", "Resource conflicted");
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
+
+  self->SendError("PlusPlayer error", "Resource conflicted");
 }
 
 void PlusPlayer::OnError(const plusplayer::ErrorType &error_code,
-                         UserData userdata) {
+                         void *user_data) {
   LOG_ERROR("[PlusPlayer] Error code: %d", error_code);
-  SendError("[PlusPlayer] OnError", "");
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
+
+  self->SendError("[PlusPlayer] OnError", "");
 }
 
 void PlusPlayer::OnErrorMsg(const plusplayer::ErrorType &error_code,
-                            const char *error_msg, UserData userdata) {
+                            const char *error_msg, void *user_data) {
   LOG_ERROR("[PlusPlayer] Error code: %d, message: %s.", error_code, error_msg);
-  SendError("PlusPlayer error", error_msg);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
+
+  self->SendError("PlusPlayer error", error_msg);
 }
 
-void PlusPlayer::OnDrmInitData(int *drmhandle, unsigned int len,
-                               unsigned char *psshdata,
-                               plusplayer::TrackType type, UserData userdata) {
-  LOG_INFO("[PlusPlayer] Drm init completed");
+void PlusPlayer::OnDrmInitData(int *drm_handle, unsigned int len,
+                               unsigned char *pssh_data,
+                               plusplayer::TrackType type, void *user_data) {
+  LOG_INFO("[PlusPlayer] Drm init completed.");
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
-  if (drm_manager_) {
-    if (drm_manager_->SecurityInitCompleteCB(drmhandle, len, psshdata,
-                                             nullptr)) {
-      player_->DrmLicenseAcquiredDone(type);
+  if (self->drm_manager_) {
+    if (self->drm_manager_->SecurityInitCompleteCB(drm_handle, len, pssh_data,
+                                                   nullptr)) {
+      DrmLicenseAcquiredDone(self->player_, type);
     }
   }
 }
 
 void PlusPlayer::OnAdaptiveStreamingControlEvent(
     const plusplayer::StreamingMessageType &type,
-    const plusplayer::MessageParam &msg, UserData userdata) {
+    const plusplayer::MessageParam &msg, void *user_data) {
   LOG_INFO("[PlusPlayer] Message type: %d, is DrmInitData (%d)", type,
            type == plusplayer::StreamingMessageType::kDrmInitData);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (type == plusplayer::StreamingMessageType::kDrmInitData) {
     if (msg.data.empty() || 0 == msg.size) {
-      LOG_ERROR("[PlusPlayer] Empty message");
+      LOG_ERROR("[PlusPlayer] Empty message.");
       return;
     }
 
-    if (drm_manager_) {
-      drm_manager_->UpdatePsshData(msg.data.data(), msg.size);
+    if (self->drm_manager_) {
+      self->drm_manager_->UpdatePsshData(msg.data.data(), msg.size);
     }
   }
 }
 
 void PlusPlayer::OnClosedCaptionData(std::unique_ptr<char[]> data,
-                                     const int size, UserData userdata) {}
+                                     const int size, void *user_data) {}
 
-void PlusPlayer::OnCueEvent(const char *CueData, UserData userdata) {}
+void PlusPlayer::OnCueEvent(const char *cue_data, void *user_data) {}
 
-void PlusPlayer::OnDateRangeEvent(const char *DateRangeData,
-                                  UserData userdata) {}
+void PlusPlayer::OnDateRangeEvent(const char *date_range_data,
+                                  void *user_data) {}
 
-void PlusPlayer::OnStopReachEvent(bool StopReach, UserData userdata) {}
+void PlusPlayer::OnStopReachEvent(bool stop_reach, void *user_data) {}
 
-void PlusPlayer::OnCueOutContEvent(const char *CueOutContData,
-                                   UserData userdata) {}
+void PlusPlayer::OnCueOutContEvent(const char *cue_out_cont_data,
+                                   void *user_data) {}
 
-void PlusPlayer::OnChangeSourceDone(bool ret, UserData userdata) {}
+void PlusPlayer::OnChangeSourceDone(bool ret, void *user_data) {}
 
-void PlusPlayer::OnStateChangedToPlaying(UserData userdata) {}
+void PlusPlayer::OnStateChangedToPlaying(void *user_data) {}

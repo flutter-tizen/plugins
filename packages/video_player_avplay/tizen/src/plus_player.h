@@ -11,11 +11,10 @@
 #include <string>
 
 #include "drm_manager.h"
-#include "plusplayer/plusplayer.h"
-#include "plusplayer/track.h"
+#include "plusplayer/plusplayer_wrapper.h"
 #include "video_player.h"
 
-class PlusPlayer : public VideoPlayer, public plusplayer::EventListener {
+class PlusPlayer : public VideoPlayer {
  public:
   explicit PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window,
                       std::string &video_format);
@@ -47,40 +46,38 @@ class PlusPlayer : public VideoPlayer, public plusplayer::EventListener {
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
+  void RegisterListener();
   static bool OnLicenseAcquired(int *drm_handle, unsigned int length,
                                 unsigned char *pssh_data, void *user_data);
 
-  // Implementer of plusplayer::EventListener
-  void OnPrepareDone(bool ret, UserData userdata) override;
-  void OnBufferStatus(const int percent, UserData userdata) override;
-  void OnSeekDone(UserData userdata) override;
-  void OnEos(UserData userdata) override;
-  void OnSubtitleData(std::unique_ptr<char[]> data, const int size,
-                      const plusplayer::SubtitleType &type,
-                      const uint64_t duration,
-                      plusplayer::SubtitleAttrListPtr attr_list,
-                      UserData userdata) override;
-  void OnResourceConflicted(UserData userdata) override;
-  void OnError(const plusplayer::ErrorType &error_code,
-               UserData userdata) override;
-  void OnErrorMsg(const plusplayer::ErrorType &error_code,
-                  const char *error_msg, UserData userdata) override;
-  void OnDrmInitData(int *drmhandle, unsigned int len, unsigned char *psshdata,
-                     plusplayer::TrackType type, UserData userdata) override;
-  void OnAdaptiveStreamingControlEvent(
+  static void OnPrepareDone(bool ret, void *user_data);
+  static void OnBufferStatus(const int percent, void *user_data);
+  static void OnSeekDone(void *user_data);
+  static void OnEos(void *user_data);
+  static void OnSubtitleData(char *data, const int size,
+                             const plusplayer::SubtitleType &type,
+                             const uint64_t duration, void *user_data);
+  static void OnResourceConflicted(void *user_data);
+  static void OnError(const plusplayer::ErrorType &error_code, void *user_data);
+  static void OnErrorMsg(const plusplayer::ErrorType &error_code,
+                         const char *error_msg, void *user_data);
+  static void OnDrmInitData(int *drm_andle, unsigned int len,
+                            unsigned char *pssh_data,
+                            plusplayer::TrackType type, void *user_data);
+  static void OnAdaptiveStreamingControlEvent(
       const plusplayer::StreamingMessageType &type,
-      const plusplayer::MessageParam &msg, UserData userdata) override;
-  void OnClosedCaptionData(std::unique_ptr<char[]> data, const int size,
-                           UserData userdata) override;
-  void OnCueEvent(const char *CueData, UserData userdata) override;
-  void OnDateRangeEvent(const char *DateRangeData, UserData userdata) override;
-  void OnStopReachEvent(bool StopReach, UserData userdata) override;
-  void OnCueOutContEvent(const char *CueOutContData,
-                         UserData userdata) override;
-  void OnChangeSourceDone(bool ret, UserData userdata) override;
-  void OnStateChangedToPlaying(UserData userdata) override;
+      const plusplayer::MessageParam &msg, void *user_data);
+  static void OnClosedCaptionData(std::unique_ptr<char[]> data, const int size,
+                                  void *user_data);
+  static void OnCueEvent(const char *cue_data, void *user_data);
+  static void OnDateRangeEvent(const char *date_range_data, void *user_data);
+  static void OnStopReachEvent(bool stop_reach, void *user_data);
+  static void OnCueOutContEvent(const char *cue_out_cont_data, void *user_data);
+  static void OnChangeSourceDone(bool ret, void *user_data);
+  static void OnStateChangedToPlaying(void *user_data);
 
-  std::unique_ptr<plusplayer::PlusPlayer> player_;
+  PlusplayerRef player_ = nullptr;
+  PlusplayerListener listener_;
   std::unique_ptr<DrmManager> drm_manager_;
 
   void *native_window_;
