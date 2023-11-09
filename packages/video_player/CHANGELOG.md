@@ -1,3 +1,7 @@
+## 2.4.9
+
+* Fix event channel issue, sending messages from native to Flutter on the platform thread.
+
 ## 2.4.8
 
 * Disable screensaver when player is playing.
