@@ -36,6 +36,7 @@ plugins:
   geolocator: []
   in_app_purchase: []
   network_info_plus: []
+  video_player_avplay: []
   video_player_videohole: []
 
   # Only testable with the drive command: https://github.com/flutter-tizen/plugins/issues/272
