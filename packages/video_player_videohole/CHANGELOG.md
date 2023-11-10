@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Implement functionality of selecting video, audio and text tracks.
+
 ## 0.1.3
 
 * Fix event channel issue, sending messages from native to Flutter on the platform thread.

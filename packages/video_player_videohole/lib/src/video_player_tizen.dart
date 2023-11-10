@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 
 import '../video_player_platform_interface.dart';
 import 'messages.g.dart';
+import 'tracks.dart';
 
 /// An implementation of [VideoPlayerPlatform] that uses the
 /// Pigeon-generated [TizenVideoPlayerApi].
@@ -86,6 +87,98 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<void> seekTo(int playerId, Duration position) {
     return _api.seekTo(
         PositionMessage(playerId: playerId, position: position.inMilliseconds));
+  }
+
+  @override
+  Future<List<VideoTrack>> getVideoTracks(int playerId) async {
+    final TrackMessage response = await _api.track(TrackTypeMessage(
+      playerId: playerId,
+      trackType: _intTrackTypeMap.keys.firstWhere(
+          (int key) => _intTrackTypeMap[key] == TrackType.video,
+          orElse: () => -1),
+    ));
+
+    final List<VideoTrack> videoTracks = <VideoTrack>[];
+    for (final Map<Object?, Object?>? trackMap in response.tracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final int bitrate = trackMap['bitrate']! as int;
+      final int width = trackMap['width']! as int;
+      final int height = trackMap['height']! as int;
+
+      videoTracks.add(VideoTrack(
+        trackId: trackId,
+        width: width,
+        height: height,
+        bitrate: bitrate,
+      ));
+    }
+
+    return videoTracks;
+  }
+
+  @override
+  Future<List<AudioTrack>> getAudioTracks(int playerId) async {
+    final TrackMessage response = await _api.track(TrackTypeMessage(
+      playerId: playerId,
+      trackType: _intTrackTypeMap.keys.firstWhere(
+          (int key) => _intTrackTypeMap[key] == TrackType.audio,
+          orElse: () => -1),
+    ));
+
+    final List<AudioTrack> audioTracks = <AudioTrack>[];
+    for (final Map<Object?, Object?>? trackMap in response.tracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final String language = trackMap['language']! as String;
+      final AudioTrackChannelType channelType =
+          _intChannelTypeMap[trackMap['channel']]!;
+      final int bitrate = trackMap['bitrate']! as int;
+
+      audioTracks.add(AudioTrack(
+        trackId: trackId,
+        language: language,
+        channel: channelType,
+        bitrate: bitrate,
+      ));
+    }
+
+    return audioTracks;
+  }
+
+  @override
+  Future<List<TextTrack>> getTextTracks(int playerId) async {
+    final TrackMessage response = await _api.track(TrackTypeMessage(
+      playerId: playerId,
+      trackType: _intTrackTypeMap.keys.firstWhere(
+          (int key) => _intTrackTypeMap[key] == TrackType.text,
+          orElse: () => -1),
+    ));
+
+    final List<TextTrack> textTracks = <TextTrack>[];
+    for (final Map<Object?, Object?>? trackMap in response.tracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final String language = trackMap['language']! as String;
+      final TextTrackSubtitleType subtitleType =
+          _intSubtitleTypeMap[trackMap['subtitleType']]!;
+
+      textTracks.add(TextTrack(
+        trackId: trackId,
+        language: language,
+        subtitleType: subtitleType,
+      ));
+    }
+
+    return textTracks;
+  }
+
+  @override
+  Future<void> setTrackSelection(int playerId, Track track) {
+    return _api.setTrackSelection(SelectedTracksMessage(
+      playerId: playerId,
+      trackId: track.trackId,
+      trackType: _intTrackTypeMap.keys.firstWhere(
+          (int key) => _intTrackTypeMap[key] == track.trackType,
+          orElse: () => -1),
+    ));
   }
 
   @override
@@ -173,5 +266,24 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',
     VideoFormat.other: 'other',
+  };
+
+  static const Map<int, TrackType> _intTrackTypeMap = <int, TrackType>{
+    1: TrackType.audio,
+    2: TrackType.video,
+    3: TrackType.text,
+  };
+
+  static const Map<int, AudioTrackChannelType> _intChannelTypeMap =
+      <int, AudioTrackChannelType>{
+    1: AudioTrackChannelType.mono,
+    2: AudioTrackChannelType.stereo,
+    3: AudioTrackChannelType.surround,
+  };
+
+  static const Map<int, TextTrackSubtitleType> _intSubtitleTypeMap =
+      <int, TextTrackSubtitleType>{
+    0: TextTrackSubtitleType.text,
+    1: TextTrackSubtitleType.picture,
   };
 }

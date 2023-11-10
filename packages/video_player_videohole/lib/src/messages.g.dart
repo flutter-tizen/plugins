@@ -107,6 +107,89 @@ class PlaybackSpeedMessage {
   }
 }
 
+class TrackMessage {
+  TrackMessage({
+    required this.playerId,
+    required this.tracks,
+  });
+
+  int playerId;
+
+  List<Map<Object?, Object?>?> tracks;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      tracks,
+    ];
+  }
+
+  static TrackMessage decode(Object result) {
+    result as List<Object?>;
+    return TrackMessage(
+      playerId: result[0]! as int,
+      tracks: (result[1] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
+    );
+  }
+}
+
+class TrackTypeMessage {
+  TrackTypeMessage({
+    required this.playerId,
+    required this.trackType,
+  });
+
+  int playerId;
+
+  int trackType;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      trackType,
+    ];
+  }
+
+  static TrackTypeMessage decode(Object result) {
+    result as List<Object?>;
+    return TrackTypeMessage(
+      playerId: result[0]! as int,
+      trackType: result[1]! as int,
+    );
+  }
+}
+
+class SelectedTracksMessage {
+  SelectedTracksMessage({
+    required this.playerId,
+    required this.trackId,
+    required this.trackType,
+  });
+
+  int playerId;
+
+  int trackId;
+
+  int trackType;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      trackId,
+      trackType,
+    ];
+  }
+
+  static SelectedTracksMessage decode(Object result) {
+    result as List<Object?>;
+    return SelectedTracksMessage(
+      playerId: result[0]! as int,
+      trackId: result[1]! as int,
+      trackType: result[2]! as int,
+    );
+  }
+}
+
 class PositionMessage {
   PositionMessage({
     required this.playerId,
@@ -268,8 +351,17 @@ class _VideoPlayerVideoholeApiCodec extends StandardMessageCodec {
     } else if (value is PositionMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is SelectedTracksMessage) {
       buffer.putUint8(135);
+      writeValue(buffer, value.encode());
+    } else if (value is TrackMessage) {
+      buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    } else if (value is TrackTypeMessage) {
+      buffer.putUint8(137);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(138);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -294,6 +386,12 @@ class _VideoPlayerVideoholeApiCodec extends StandardMessageCodec {
       case 134:
         return PositionMessage.decode(readValue(buffer)!);
       case 135:
+        return SelectedTracksMessage.decode(readValue(buffer)!);
+      case 136:
+        return TrackMessage.decode(readValue(buffer)!);
+      case 137:
+        return TrackTypeMessage.decode(readValue(buffer)!);
+      case 138:
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -499,6 +597,55 @@ class VideoPlayerVideoholeApi {
   Future<void> seekTo(PositionMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.VideoPlayerVideoholeApi.seekTo', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<TrackMessage> track(TrackTypeMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.VideoPlayerVideoholeApi.track', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as TrackMessage?)!;
+    }
+  }
+
+  Future<void> setTrackSelection(SelectedTracksMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.VideoPlayerVideoholeApi.setTrackSelection', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;

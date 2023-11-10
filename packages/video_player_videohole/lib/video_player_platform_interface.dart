@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'src/drm_configs.dart';
+import 'src/tracks.dart';
 import 'src/video_player_tizen.dart';
 
 /// The interface that implementations of video_player must implement.
@@ -84,6 +85,26 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   /// Sets the video position to a [Duration] from the start.
   Future<void> seekTo(int playerId, Duration position) {
     throw UnimplementedError('seekTo() has not been implemented.');
+  }
+
+  /// Gets the video tracks as a list of [VideoTrack].
+  Future<List<VideoTrack>> getVideoTracks(int playerId) {
+    throw UnimplementedError('getVideoTracks() has not been implemented.');
+  }
+
+  /// Gets the audio tracks as a list of [AudioTrack].
+  Future<List<AudioTrack>> getAudioTracks(int playerId) {
+    throw UnimplementedError('getAudioTracks() has not been implemented.');
+  }
+
+  /// Gets the text tracks as a list of [TextTrack].
+  Future<List<TextTrack>> getTextTracks(int playerId) {
+    throw UnimplementedError('getTextTracks() has not been implemented.');
+  }
+
+  /// Sets the selected track.
+  Future<void> setTrackSelection(int playerId, Track track) {
+    throw UnimplementedError('setTrackSelection() has not been implemented.');
   }
 
   /// Sets the playback speed to a [speed] value indicating the playback rate.
