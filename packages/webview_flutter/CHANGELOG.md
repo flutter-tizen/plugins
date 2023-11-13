@@ -1,3 +1,7 @@
+## Next
+
+* Adds pub topics to package metadata.
+
 ## 0.8.0
 
 * Update webivew_flutter to 4.2.3.
