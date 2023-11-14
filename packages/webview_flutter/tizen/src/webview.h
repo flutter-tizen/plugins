@@ -63,6 +63,7 @@ class WebView : public PlatformView {
 
   void RegisterJavaScriptChannelName(const std::string& name);
   std::string GetWebViewChannelName();
+  std::string GetWebViewControllerChannelName();
   std::string GetNavigationDelegateChannelName();
 
   void InitWebView();
@@ -90,6 +91,7 @@ class WebView : public PlatformView {
   BufferUnit* rendered_surface_ = nullptr;
   bool has_navigation_delegate_ = false;
   std::unique_ptr<FlMethodChannel> webview_channel_;
+  std::unique_ptr<FlMethodChannel> webview_controller_channel_;
   std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;

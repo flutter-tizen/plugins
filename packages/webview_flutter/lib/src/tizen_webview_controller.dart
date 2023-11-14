@@ -16,6 +16,10 @@ import 'tizen_webview.dart';
 const String kTizenNavigationDelegateChannelName =
     'plugins.flutter.io/tizen_webview_navigation_delegate_';
 
+/// The channel name of [TizenWebViewController].
+const String kTizenWebViewControllerChannelName =
+    'plugins.flutter.io/tizen_webview_controller_';
+
 /// An implementation of [PlatformWebViewController] using the Tizen WebView API.
 class TizenWebViewController extends PlatformWebViewController {
   /// Constructs a [TizenWebViewController].
@@ -26,12 +30,60 @@ class TizenWebViewController extends PlatformWebViewController {
   final TizenWebView _webview;
   late TizenNavigationDelegate _tizenNavigationDelegate;
 
+  void Function(JavaScriptConsoleMessage consoleMessage)? _onConsoleLogCallback;
+
+  late final MethodChannel _webviewControllerChannel;
+
+  /// Called when [TizenView] is created.
+  void createWebviewControllerChannel(int viewId) {
+    _webviewControllerChannel =
+        MethodChannel(kTizenWebViewControllerChannelName + viewId.toString());
+    _webviewControllerChannel.setMethodCallHandler((MethodCall call) async {
+      final Map<String, Object?> arguments =
+          (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
+      switch (call.method) {
+        case 'onConsoleMessage':
+          JavaScriptLogLevel level = JavaScriptLogLevel.log;
+          switch (arguments['level']! as String) {
+              case 'error':
+                level = JavaScriptLogLevel.error;
+                break;
+              case 'warning':
+                level = JavaScriptLogLevel.warning;
+                break;
+              case 'debug':
+                level = JavaScriptLogLevel.debug;
+                break;
+              case 'info':
+                level = JavaScriptLogLevel.info;
+                break;
+              case 'log':
+                level = JavaScriptLogLevel.log;
+                break;
+            }
+
+          if (_onConsoleLogCallback != null) {
+            _onConsoleLogCallback!(JavaScriptConsoleMessage(
+              level: level,
+              message: arguments['message']! as String,
+            ));
+          }
+          return null;
+      }
+
+      throw MissingPluginException(
+        '${call.method} was invoked but has no handler',
+      );
+    });
+  }
+
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
     _webview.onCreate(viewId);
     if (_webview.hasNavigationDelegate) {
       _tizenNavigationDelegate.createNavigationDelegateChannel(viewId);
     }
+    createWebviewControllerChannel(viewId);
   }
 
   @override
@@ -172,6 +224,15 @@ class TizenWebViewController extends PlatformWebViewController {
     throw UnimplementedError(
         'This version of `TizenWebViewController` currently has no '
         'implementation.');
+  }
+
+  /// Sets a callback that notifies the host application of any log messages
+  /// written to the JavaScript console.
+  @override
+  Future<void> setOnConsoleMessage(
+      void Function(JavaScriptConsoleMessage consoleMessage)
+          onConsoleMessage) async {
+    _onConsoleLogCallback = onConsoleMessage;
   }
 
   @override

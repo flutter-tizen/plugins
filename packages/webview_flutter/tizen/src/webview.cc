@@ -22,8 +22,29 @@ namespace {
 constexpr size_t kBufferPoolSize = 5;
 constexpr char kEwkInstance[] = "ewk_instance";
 constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
+constexpr char kTizenWebViewControllerChannelName[] =
+    "plugins.flutter.io/tizen_webview_controller_";
 constexpr char kTizenNavigationDelegateChannelName[] =
     "plugins.flutter.io/tizen_webview_navigation_delegate_";
+
+std::string ConvertLogLevelToString(Ewk_Console_Message_Level level) {
+  switch (level)
+  {
+  case EWK_CONSOLE_MESSAGE_LEVEL_NULL:
+  case EWK_CONSOLE_MESSAGE_LEVEL_LOG:
+    return "log";
+  case EWK_CONSOLE_MESSAGE_LEVEL_WARNING:
+    return "warning";
+  case EWK_CONSOLE_MESSAGE_LEVEL_ERROR:
+    return "error";
+  case EWK_CONSOLE_MESSAGE_LEVEL_DEBUG:
+    return "debug";
+  case EWK_CONSOLE_MESSAGE_LEVEL_INFO:
+    return "info";
+  default:
+    return "log";
+  }
+}
 
 class NavigationRequestResult : public FlMethodResult {
  public:
@@ -108,6 +129,10 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         webview->HandleWebViewMethodCall(call, std::move(result));
       });
 
+  webview_controller_channel_ = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(), GetWebViewControllerChannelName(),
+      &flutter::StandardMethodCodec::GetInstance());
+
   navigation_delegate_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetNavigationDelegateChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
@@ -138,6 +163,10 @@ WebView::~WebView() { Dispose(); }
 
 std::string WebView::GetWebViewChannelName() {
   return std::string(kTizenWebViewChannelName) + std::to_string(GetViewId());
+}
+
+std::string WebView::GetWebViewControllerChannelName() {
+  return std::string(kTizenWebViewControllerChannelName) + std::to_string(GetViewId());
 }
 
 std::string WebView::GetNavigationDelegateChannelName() {
@@ -647,6 +676,22 @@ void WebView::OnConsoleMessage(void* data, Evas_Object* obj, void* event_info) {
     stream << source << "(" << line << ") > ";
   }
   stream << text << std::endl;
+
+  if (obj) {
+    WebView* webview =
+        static_cast<WebView*>(evas_object_data_get(obj, kEwkInstance));
+    if (webview->webview_controller_channel_) {
+      flutter::EncodableMap args = {
+          {flutter::EncodableValue("level"),
+           flutter::EncodableValue(ConvertLogLevelToString(log_level))},
+          {flutter::EncodableValue("message"),
+           flutter::EncodableValue(text)},
+      };
+      webview->webview_controller_channel_->InvokeMethod(
+          "onConsoleMessage",
+          std::make_unique<flutter::EncodableValue>(args));
+    }
+  }
 }
 
 void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,

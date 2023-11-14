@@ -2,6 +2,7 @@
 
 * Adds pub topics to package metadata.
 * Adds support to retrieve the user agent. See `TizenWebViewController.getUserAgent`.
+* Adds support to register a callback to receive JavaScript console messages. See `TizenWebViewController.setOnConsoleMessage`.
 
 ## 0.8.0
 
