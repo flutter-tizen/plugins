@@ -1,6 +1,7 @@
 ## Next
 
 * Adds pub topics to package metadata.
+* Adds support to retrieve the user agent. See `TizenWebViewController.getUserAgent`.
 
 ## 0.8.0
 

@@ -173,6 +173,11 @@ class TizenWebViewController extends PlatformWebViewController {
         'This version of `TizenWebViewController` currently has no '
         'implementation.');
   }
+
+  @override
+  Future<String?> getUserAgent() {
+    return _webview.getUserAgent();
+  }
 }
 
 /// An implementation of [PlatformWebViewWidget] with the Tizen WebView API.

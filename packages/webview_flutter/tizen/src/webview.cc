@@ -506,12 +506,15 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
           *color & 0xff, *color >> 24 & 0xff);
       result->Success();
     }
-  } else if (method_name == "userAgent") {
+  } else if (method_name == "setUserAgent") {
     const auto* userAgent = std::get_if<std::string>(arguments);
     if (userAgent) {
       ewk_view_user_agent_set(webview_instance_, userAgent->c_str());
     }
     result->Success();
+  } else if (method_name == "getUserAgent") {
+    result->Success(flutter::EncodableValue(
+        std::string(ewk_view_user_agent_get(webview_instance_))));
   } else {
     result->NotImplemented();
   }
