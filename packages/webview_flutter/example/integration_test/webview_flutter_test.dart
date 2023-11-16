@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -176,7 +177,7 @@ Future<void> main() async {
 
     await pageFinished.future;
 
-    final String customUserAgent = await _getUserAgent(controller);
+    final String? customUserAgent = await controller.getUserAgent();
     expect(customUserAgent, 'Custom_User_Agent1');
   });
 
@@ -475,23 +476,6 @@ Future<void> main() async {
       await expectLater(urlChangeCompleter.future, completion(secondaryUrl));
     });
   });
-}
-
-/// Returns the value used for the HTTP User-Agent: request header in subsequent HTTP requests.
-Future<String> _getUserAgent(WebViewController controller) async {
-  return _runJavascriptReturningResult(controller, 'navigator.userAgent;');
-}
-
-Future<String> _runJavascriptReturningResult(
-  WebViewController controller,
-  String js,
-) async {
-  if (defaultTargetPlatform == TargetPlatform.iOS ||
-      defaultTargetPlatform == TargetPlatform.linux) {
-    return await controller.runJavaScriptReturningResult(js) as String;
-  }
-  return jsonDecode(await controller.runJavaScriptReturningResult(js) as String)
-      as String;
 }
 
 class ResizableWebView extends StatefulWidget {
