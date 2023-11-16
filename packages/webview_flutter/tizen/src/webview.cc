@@ -200,6 +200,14 @@ void WebView::Dispose() {
   }
 }
 
+void WebView::Offset(double left, double top) {
+  left_ = left;
+  top_ = top;
+
+  evas_object_move(webview_instance_, static_cast<int>(left_),
+                   static_cast<int>(top_));
+}
+
 void WebView::Resize(double width, double height) {
   width_ = width;
   height_ = height;
@@ -232,8 +240,8 @@ void WebView::Touch(int type, int button, double x, double y, double dx,
   Eina_List* points = 0;
   Ewk_Touch_Point* point = new Ewk_Touch_Point;
   point->id = 0;
-  point->x = x;
-  point->y = y;
+  point->x = x + left_;
+  point->y = y + top_;
   point->state = state;
   points = eina_list_append(points, point);
 
@@ -313,6 +321,10 @@ void WebView::InitWebView() {
                                                          window_);
   EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(
       webview_instance_, true);
+
+#ifdef TV_PROFILE
+  EwkInternalApiBinding::GetInstance().view.SupportVideoHoleSet(webview_instance_, window_, true, false);
+#endif
 
   evas_object_smart_callback_add(webview_instance_, "offscreen,frame,rendered",
                                  &WebView::OnFrameRendered, this);

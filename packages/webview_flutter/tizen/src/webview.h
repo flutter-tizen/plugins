@@ -35,6 +35,7 @@ class WebView : public PlatformView {
 
   virtual void Dispose() override;
 
+  virtual void Offset(double left, double top) override;
   virtual void Resize(double width, double height) override;
   virtual void Touch(int type, int button, double x, double y, double dx,
                      double dy) override;
@@ -85,6 +86,8 @@ class WebView : public PlatformView {
   flutter::TextureRegistrar* texture_registrar_;
   double width_ = 0.0;
   double height_ = 0.0;
+  double left_ = 0.0;
+  double top_ = 0.0;
   void* window_ = nullptr;
   BufferUnit* working_surface_ = nullptr;
   BufferUnit* candidate_surface_ = nullptr;
