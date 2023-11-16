@@ -1,0 +1,27 @@
+name: video_player_avplay
+description: Flutter plugin for displaying inline video on Tizen TV devices.
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/video_player_avplay
+version: 0.1.0
+
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: VideoPlayerTizenPlugin
+        fileName: video_player_tizen_plugin.h
+
+dependencies:
+  flutter:
+    sdk: flutter
+  html: ^0.15.0
+  plugin_platform_interface: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  pigeon: ^10.0.0

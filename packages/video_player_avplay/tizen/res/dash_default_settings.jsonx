@@ -1,0 +1,33 @@
+{
+    "debug": {
+        "curl_debug": false
+    },
+    "streaming": {
+        "multiQueueDuration": 0,
+        "engineBufferDurationMs": 0,
+        "maxConnectionTimeout": 10,
+        "MaxDownloadRetryCount": 10,
+        "L1ServerTimeUs": -1,
+        "lowLatencyEnabled": false,
+        "SwitchMode": "NORMAL_SENSITIVITY",
+        "DmgrInputBufferSize": 5242880,
+        "maxTransferVideoBufferByte": 10485760,
+        "maxTransferAudioBufferByte": 5242880,
+        "noSwitchForStartbitrateHighestUs": 10000000,
+        "abr": {
+            "rule_name": "abrDynamic",
+            "bandwidthSafetyFactor": 0.9,
+            "video_overhead_factor": 1.1
+        },
+        "bw_checker": {
+            "rule_name": "AVG"
+        },
+        "advertisement": {
+            "SCTE35": false
+        }
+    },
+    "accessibility": {
+        "audio_description": false
+    }
+}
+
