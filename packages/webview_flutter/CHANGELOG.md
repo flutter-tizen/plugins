@@ -1,8 +1,12 @@
-## Next
+## 0.9.0
 
+* Update webivew_flutter to 4.4.2.
+* Update webview_flutter_platform_interface to 2.6.0.
 * Adds pub topics to package metadata.
 * Adds support to retrieve the user agent. See `TizenWebViewController.getUserAgent`.
 * Adds support to register a callback to receive JavaScript console messages. See `TizenWebViewController.setOnConsoleMessage`.
+* Apply PlatformView API change.
+* Fix bug on playing youtube on TV.
 
 ## 0.8.0
 
