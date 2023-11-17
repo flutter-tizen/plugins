@@ -28,21 +28,20 @@ constexpr char kTizenNavigationDelegateChannelName[] =
     "plugins.flutter.io/tizen_webview_navigation_delegate_";
 
 std::string ConvertLogLevelToString(Ewk_Console_Message_Level level) {
-  switch (level)
-  {
-  case EWK_CONSOLE_MESSAGE_LEVEL_NULL:
-  case EWK_CONSOLE_MESSAGE_LEVEL_LOG:
-    return "log";
-  case EWK_CONSOLE_MESSAGE_LEVEL_WARNING:
-    return "warning";
-  case EWK_CONSOLE_MESSAGE_LEVEL_ERROR:
-    return "error";
-  case EWK_CONSOLE_MESSAGE_LEVEL_DEBUG:
-    return "debug";
-  case EWK_CONSOLE_MESSAGE_LEVEL_INFO:
-    return "info";
-  default:
-    return "log";
+  switch (level) {
+    case EWK_CONSOLE_MESSAGE_LEVEL_NULL:
+    case EWK_CONSOLE_MESSAGE_LEVEL_LOG:
+      return "log";
+    case EWK_CONSOLE_MESSAGE_LEVEL_WARNING:
+      return "warning";
+    case EWK_CONSOLE_MESSAGE_LEVEL_ERROR:
+      return "error";
+    case EWK_CONSOLE_MESSAGE_LEVEL_DEBUG:
+      return "debug";
+    case EWK_CONSOLE_MESSAGE_LEVEL_INFO:
+      return "info";
+    default:
+      return "log";
   }
 }
 
@@ -166,7 +165,8 @@ std::string WebView::GetWebViewChannelName() {
 }
 
 std::string WebView::GetWebViewControllerChannelName() {
-  return std::string(kTizenWebViewControllerChannelName) + std::to_string(GetViewId());
+  return std::string(kTizenWebViewControllerChannelName) +
+         std::to_string(GetViewId());
 }
 
 std::string WebView::GetNavigationDelegateChannelName() {
@@ -323,7 +323,8 @@ void WebView::InitWebView() {
       webview_instance_, true);
 
 #ifdef TV_PROFILE
-  EwkInternalApiBinding::GetInstance().view.SupportVideoHoleSet(webview_instance_, window_, true, false);
+  EwkInternalApiBinding::GetInstance().view.SupportVideoHoleSet(
+      webview_instance_, window_, true, false);
 #endif
 
   evas_object_smart_callback_add(webview_instance_, "offscreen,frame,rendered",
@@ -696,12 +697,10 @@ void WebView::OnConsoleMessage(void* data, Evas_Object* obj, void* event_info) {
       flutter::EncodableMap args = {
           {flutter::EncodableValue("level"),
            flutter::EncodableValue(ConvertLogLevelToString(log_level))},
-          {flutter::EncodableValue("message"),
-           flutter::EncodableValue(text)},
+          {flutter::EncodableValue("message"), flutter::EncodableValue(text)},
       };
       webview->webview_controller_channel_->InvokeMethod(
-          "onConsoleMessage",
-          std::make_unique<flutter::EncodableValue>(args));
+          "onConsoleMessage", std::make_unique<flutter::EncodableValue>(args));
     }
   }
 }

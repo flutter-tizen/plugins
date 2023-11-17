@@ -59,8 +59,8 @@ bool EwkInternalApiBinding::Initialize() {
 
   return view.SetBackgroundColor && view.FeedTouchEvent && view.SendKeyEvent &&
          view.OffscreenRenderingEnabledSet && view.ImeWindowSet &&
-         view.KeyEventsEnabledSet && view.SupportVideoHoleSet && main.SetArguments &&
-         settings.ImePanelEnabledSet && console_message.LevelGet &&
-         console_message.TextGet && console_message.LineGet &&
-         console_message.SourceGet;
+         view.KeyEventsEnabledSet && view.SupportVideoHoleSet &&
+         main.SetArguments && settings.ImePanelEnabledSet &&
+         console_message.LevelGet && console_message.TextGet &&
+         console_message.LineGet && console_message.SourceGet;
 }

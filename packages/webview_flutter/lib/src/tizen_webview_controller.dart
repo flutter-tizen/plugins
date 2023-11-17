@@ -45,22 +45,22 @@ class TizenWebViewController extends PlatformWebViewController {
         case 'onConsoleMessage':
           JavaScriptLogLevel level = JavaScriptLogLevel.log;
           switch (arguments['level']! as String) {
-              case 'error':
-                level = JavaScriptLogLevel.error;
-                break;
-              case 'warning':
-                level = JavaScriptLogLevel.warning;
-                break;
-              case 'debug':
-                level = JavaScriptLogLevel.debug;
-                break;
-              case 'info':
-                level = JavaScriptLogLevel.info;
-                break;
-              case 'log':
-                level = JavaScriptLogLevel.log;
-                break;
-            }
+            case 'error':
+              level = JavaScriptLogLevel.error;
+              break;
+            case 'warning':
+              level = JavaScriptLogLevel.warning;
+              break;
+            case 'debug':
+              level = JavaScriptLogLevel.debug;
+              break;
+            case 'info':
+              level = JavaScriptLogLevel.info;
+              break;
+            case 'log':
+              level = JavaScriptLogLevel.log;
+              break;
+          }
 
           if (_onConsoleLogCallback != null) {
             _onConsoleLogCallback!(JavaScriptConsoleMessage(

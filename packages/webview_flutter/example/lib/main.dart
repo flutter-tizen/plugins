@@ -104,7 +104,6 @@ const String kLogExamplePage = '''
 </html>
 ''';
 
-
 class WebViewExample extends StatefulWidget {
   const WebViewExample({super.key});
 
