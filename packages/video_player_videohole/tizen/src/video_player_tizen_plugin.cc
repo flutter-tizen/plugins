@@ -44,6 +44,9 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   void SeekTo(
       const PositionMessage &msg,
       std::function<void(std::optional<FlutterError> reply)> result) override;
+  virtual ErrorOr<TrackMessage> Track(const TrackTypeMessage &msg) override;
+  std::optional<FlutterError> SetTrackSelection(
+      const SelectedTracksMessage &msg) override;
   std::optional<FlutterError> Pause(const PlayerMessage &msg) override;
   std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage &msg) override;
@@ -248,6 +251,29 @@ void VideoPlayerTizenPlugin::SeekTo(
     return;
   }
   player->SeekTo(msg.position(), [result]() -> void { result(std::nullopt); });
+}
+
+ErrorOr<TrackMessage> VideoPlayerTizenPlugin::Track(
+    const TrackTypeMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+
+  TrackMessage result(msg.player_id(), player->getTrackInfo(msg.track_type()));
+  return result;
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::SetTrackSelection(
+    const SelectedTracksMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+  player->SetTrackSelection(msg.track_id(), msg.track_type());
+
+  return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(

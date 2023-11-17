@@ -15,10 +15,12 @@ import 'src/drm_configs.dart';
 import 'src/hole.dart';
 import 'src/register_drm_callback_stub.dart'
     if (dart.library.ffi) 'src/register_drm_callback_real.dart';
+import 'src/tracks.dart';
 import 'video_player_platform_interface.dart';
 
 export 'src/closed_caption_file.dart';
 export 'src/drm_configs.dart';
+export 'src/tracks.dart';
 
 VideoPlayerPlatform? _lastVideoPlayerPlatform;
 
@@ -44,6 +46,7 @@ class VideoPlayerValue {
     this.position = Duration.zero,
     this.caption = Caption.none,
     this.captionOffset = Duration.zero,
+    this.tracks = const <Track>[],
     this.buffered = 0,
     this.isInitialized = false,
     this.isPlaying = false,
@@ -106,6 +109,9 @@ class VideoPlayerValue {
   /// The current speed of the playback.
   final double playbackSpeed;
 
+  /// The current playback tracks.
+  final List<Track> tracks;
+
   /// A description of the error if present.
   ///
   /// If [hasError] is false this is `null`.
@@ -146,6 +152,7 @@ class VideoPlayerValue {
     Duration? position,
     Caption? caption,
     Duration? captionOffset,
+    List<Track>? tracks,
     int? buffered,
     bool? isInitialized,
     bool? isPlaying,
@@ -161,6 +168,7 @@ class VideoPlayerValue {
       position: position ?? this.position,
       caption: caption ?? this.caption,
       captionOffset: captionOffset ?? this.captionOffset,
+      tracks: tracks ?? this.tracks,
       buffered: buffered ?? this.buffered,
       isInitialized: isInitialized ?? this.isInitialized,
       isPlaying: isPlaying ?? this.isPlaying,
@@ -182,6 +190,7 @@ class VideoPlayerValue {
         'position: $position, '
         'caption: $caption, '
         'captionOffset: $captionOffset, '
+        'tracks: $tracks, '
         'buffered: $buffered, '
         'isInitialized: $isInitialized, '
         'isPlaying: $isPlaying, '
@@ -575,6 +584,38 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
     await _videoPlayerPlatform.seekTo(_playerId, position);
     _updatePosition(position);
+  }
+
+  /// The video tracks in the current video.
+  Future<List<VideoTrack>?> get videoTracks async {
+    if (!value.isInitialized || _isDisposed) {
+      return null;
+    }
+    return _videoPlayerPlatform.getVideoTracks(_playerId);
+  }
+
+  /// The audio tracks in the current video.
+  Future<List<AudioTrack>?> get audioTracks async {
+    if (!value.isInitialized || _isDisposed) {
+      return null;
+    }
+    return _videoPlayerPlatform.getAudioTracks(_playerId);
+  }
+
+  /// The text tracks in the current video.
+  Future<List<TextTrack>?> get textTracks async {
+    if (!value.isInitialized || _isDisposed) {
+      return null;
+    }
+    return _videoPlayerPlatform.getTextTracks(_playerId);
+  }
+
+  /// Sets the selected tracks.
+  Future<void> setTrackSelection(Track track) async {
+    if (!value.isInitialized || _isDisposed) {
+      return;
+    }
+    await _videoPlayerPlatform.setTrackSelection(_playerId, track);
   }
 
   /// Sets the audio volume of [this].
