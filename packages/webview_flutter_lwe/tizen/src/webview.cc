@@ -710,7 +710,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       webview_instance_->SetSettings(settings);
       result->Success();
     }
-  } else if (method_name == "userAgent") {
+  } else if (method_name == "setUserAgent") {
     const auto* user_agent = std::get_if<std::string>(arguments);
     if (user_agent) {
       LWE::Settings settings = webview_instance_->GetSettings();
@@ -718,6 +718,9 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       webview_instance_->SetSettings(settings);
     }
     result->Success();
+  } else if (method_name == "getUserAgent") {
+    LWE::Settings settings = webview_instance_->GetSettings();
+    result->Success(flutter::EncodableValue(settings.GetUserAgentString()));
   } else if (method_name == "setCookie") {
     result->NotImplemented();
   } else {

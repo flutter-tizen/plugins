@@ -195,5 +195,11 @@ class LweWebView {
 
   /// Sets the value used for the HTTP `User-Agent:` request header.
   Future<void> setUserAgent(String? userAgent) =>
-      _invokeChannelMethod<void>('userAgent', userAgent);
+      _invokeChannelMethod<void>('setUserAgent', userAgent);
+
+  /// Gets the HTTP 'User-Agent:' request header.
+  Future<String?> getUserAgent() async {
+    final String? result = await _invokeChannelMethod<String?>('getUserAgent');
+    return result;
+  }
 }

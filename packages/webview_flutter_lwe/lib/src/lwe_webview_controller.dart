@@ -159,6 +159,9 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> setUserAgent(String? userAgent) =>
       _webview.setUserAgent(userAgent);
+
+    @override
+    Future<String?> getUserAgent() => _webview.getUserAgent();
 }
 
 /// An implementation of [PlatformWebViewWidget] with the Lightweight Web Engine.
