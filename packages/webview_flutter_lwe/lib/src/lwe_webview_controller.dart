@@ -160,8 +160,20 @@ class LweWebViewController extends PlatformWebViewController {
   Future<void> setUserAgent(String? userAgent) =>
       _webview.setUserAgent(userAgent);
 
-    @override
-    Future<String?> getUserAgent() => _webview.getUserAgent();
+  @override
+  Future<String?> getUserAgent() => _webview.getUserAgent();
+
+  @override
+  Future<void> setOnPlatformPermissionRequest(
+    void Function(
+      PlatformWebViewPermissionRequest request,
+    ) onPermissionRequest,
+  ) async {
+    // The current version of LWE does not provide any functionality related to a 'permission request'.
+    throw UnimplementedError(
+        'This version of `LweWebViewController` currently has no '
+        'implementation.');
+  }
 }
 
 /// An implementation of [PlatformWebViewWidget] with the Lightweight Web Engine.
