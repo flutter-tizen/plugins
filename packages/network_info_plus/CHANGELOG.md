@@ -1,5 +1,7 @@
-## NEXT
+## 1.1.4
 
+* Update network_info_plus to 4.1.0.
+* Update network_info_plus_platform_interface to 1.1.3.
 * Increase the minimum Flutter version to 3.3.
 
 ## 1.1.3
