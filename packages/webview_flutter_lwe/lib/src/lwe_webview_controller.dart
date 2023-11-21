@@ -172,7 +172,19 @@ class LweWebViewController extends PlatformWebViewController {
     // The current version of LWE does not provide any functionality related to a 'permission request'.
     throw UnimplementedError(
         'This version of `LweWebViewController` currently has no '
-        'implementation.');
+        'implementation of `setOnPlatformPermissionRequest`.');
+  }
+
+  @override
+  Future<void> setOnConsoleMessage(
+    void Function(
+      JavaScriptConsoleMessage consoleMessage,
+    ) onConsoleMessage,
+  ) async {
+    // The current version of LWE does not provide any functionality related to a 'console message'.
+    throw UnimplementedError(
+        'This version of `LweWebViewController` currently has no '
+        'implementation of `setOnConsoleMessage`.');
   }
 }
 
