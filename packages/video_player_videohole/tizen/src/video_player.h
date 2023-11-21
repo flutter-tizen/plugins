@@ -76,7 +76,7 @@ class VideoPlayer {
 
   int64_t Create(const std::string &uri, int drm_type,
                  const std::string &license_server_url,
-                 flutter::EncodableMap &http_headers);
+                 const flutter::EncodableMap *http_headers);
   void Dispose();
 
   void SetDisplayRoi(int32_t x, int32_t y, int32_t width, int32_t height);
