@@ -106,26 +106,26 @@ class Signaling {
   void switchCamera() {
     if (_localStream != null) {
       if (_videoSource != VideoSource.Camera) {
-        for (var sender in _senders) {
+        _senders.forEach((sender) {
           if (sender.track!.kind == 'video') {
-            sender.replaceTrack(_localStream!.getVideoTracks()[0]);
+            sender.replaceTrack(_localStream!.getVideoTracks().first);
           }
-        }
+        });
         _videoSource = VideoSource.Camera;
         onLocalStream?.call(_localStream!);
       } else {
-        Helper.switchCamera(_localStream!.getVideoTracks()[0]);
+        Helper.switchCamera(_localStream!.getVideoTracks().first);
       }
     }
   }
 
   void switchToScreenSharing(MediaStream stream) {
     if (_localStream != null && _videoSource != VideoSource.Screen) {
-      for (var sender in _senders) {
+      _senders.forEach((sender) {
         if (sender.track!.kind == 'video') {
-          sender.replaceTrack(stream.getVideoTracks()[0]);
+          sender.replaceTrack(stream.getVideoTracks().first);
         }
-      }
+      });
       onLocalStream?.call(stream);
       _videoSource = VideoSource.Screen;
     }
@@ -133,8 +133,8 @@ class Signaling {
 
   void muteMic() {
     if (_localStream != null) {
-      var enabled = _localStream!.getAudioTracks()[0].enabled;
-      _localStream!.getAudioTracks()[0].enabled = !enabled;
+      var enabled = _localStream!.getAudioTracks().first.enabled;
+      _localStream!.getAudioTracks().first.enabled = !enabled;
     }
   }
 
@@ -159,9 +159,9 @@ class Signaling {
       'session_id': sessionId,
       'from': _selfId,
     });
-    var sess = _sessions[sessionId];
-    if (sess != null) {
-      _closeSession(sess);
+    var session = _sessions[sessionId];
+    if (session != null) {
+      _closeSession(session);
     }
   }
 
@@ -181,16 +181,13 @@ class Signaling {
     bye(session.sid);
   }
 
-  void onMessage(message) async {
-    Map<String, dynamic> mapData = message;
-    var data = mapData['data'];
-
-    switch (mapData['type']) {
+  void onMessage(Map<String, dynamic> message) async {
+    switch (message['type']) {
       case 'peers':
         {
-          List<dynamic> peers = data;
+          List<dynamic> peers = message['data'] ?? [];
           if (onPeersUpdate != null) {
-            var event = <String, dynamic>{};
+            var event = {};
             event['self'] = _selfId;
             event['peers'] = peers;
             onPeersUpdate?.call(event);
@@ -199,10 +196,11 @@ class Signaling {
         break;
       case 'offer':
         {
-          var peerId = data['from'];
-          var description = data['description'];
-          var media = data['media'];
-          var sessionId = data['session_id'];
+          Map<String, dynamic> data = message['data'] ?? {};
+          String peerId = data['from'] ?? '';
+          Map<String, dynamic> description = data['description'] ?? {};
+          String media = data['media'] ?? '';
+          String sessionId = data['session_id'] ?? '';
           var session = _sessions[sessionId];
           var newSession = await _createSession(session,
               peerId: peerId,
@@ -215,7 +213,6 @@ class Signaling {
           // await _createAnswer(newSession, media);
 
           if (newSession.remoteCandidates.isNotEmpty) {
-            // ignore: avoid_function_literals_in_foreach_calls
             newSession.remoteCandidates.forEach((candidate) async {
               await newSession.pc?.addCandidate(candidate);
             });
@@ -227,8 +224,9 @@ class Signaling {
         break;
       case 'answer':
         {
-          var description = data['description'];
-          var sessionId = data['session_id'];
+          Map<String, dynamic> data = message['data'] ?? {};
+          Map<String, dynamic> description = data['description'] ?? {};
+          String sessionId = data['session_id'] ?? '';
           var session = _sessions[sessionId];
           await session?.pc?.setRemoteDescription(
               RTCSessionDescription(description['sdp'], description['type']));
@@ -237,9 +235,10 @@ class Signaling {
         break;
       case 'candidate':
         {
-          var peerId = data['from'];
-          var candidateMap = data['candidate'];
-          var sessionId = data['session_id'];
+          Map<String, dynamic> data = message['data'] ?? {};
+          String peerId = data['from'] ?? '';
+          Map<String, dynamic> candidateMap = data['candidate'] ?? {};
+          String sessionId = data['session_id'] ?? '';
           var session = _sessions[sessionId];
           var candidate = RTCIceCandidate(candidateMap['candidate'],
               candidateMap['sdpMid'], candidateMap['sdpMLineIndex']);
@@ -258,13 +257,16 @@ class Signaling {
         break;
       case 'leave':
         {
-          var peerId = data as String;
-          _closeSessionByPeerId(peerId);
+          String? peerId = message['data'];
+          if (peerId != null) {
+            _closeSessionByPeerId(peerId);
+          }
         }
         break;
       case 'bye':
         {
-          var sessionId = data['session_id'];
+          Map<String, dynamic> data = message['data'] ?? {};
+          String sessionId = data['session_id'] ?? '';
           print('bye: $sessionId');
           var session = _sessions.remove(sessionId);
           if (session != null) {
@@ -299,10 +301,11 @@ class Signaling {
             "uris": ["turn:127.0.0.1:19302?transport=udp"]
           }
         */
+        List<String> uris = _turnCredential!['uris'] ?? [];
         _iceServers = {
           'iceServers': [
             {
-              'urls': _turnCredential!['uris'][0],
+              'urls': uris.first,
               'username': _turnCredential!['username'],
               'credential': _turnCredential!['password']
             },
@@ -409,7 +412,7 @@ class Signaling {
           // Unified-Plan
           pc.onTrack = (event) {
             if (event.track.kind == 'video') {
-              onAddRemoteStream?.call(newSession, event.streams[0]);
+              onAddRemoteStream?.call(newSession, event.streams.first);
             }
           };
           _localStream!.getTracks().forEach((track) async {
@@ -533,7 +536,7 @@ class Signaling {
   RTCSessionDescription _fixSdp(RTCSessionDescription s) {
     var sdp = s.sdp;
     s.sdp =
-        sdp!.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032');
+        sdp?.replaceAll('profile-level-id=640c1f', 'profile-level-id=42e032');
     return s;
   }
 
@@ -568,25 +571,23 @@ class Signaling {
       await _localStream!.dispose();
       _localStream = null;
     }
-    _sessions.forEach((key, sess) async {
-      await sess.pc?.close();
-      await sess.dc?.close();
+    _sessions.forEach((key, session) async {
+      await session.pc?.close();
+      await session.dc?.close();
     });
     _sessions.clear();
   }
 
   void _closeSessionByPeerId(String peerId) {
-    // ignore: prefer_typing_uninitialized_variables
-    var session;
-    _sessions.removeWhere((String key, Session sess) {
+    _sessions.removeWhere((String key, Session session) {
       var ids = key.split('-');
-      session = sess;
-      return peerId == ids[0] || peerId == ids[1];
+      var found = peerId == ids[0] || peerId == ids[1];
+      if (found) {
+        _closeSession(session);
+        onCallStateChange?.call(session, CallState.CallStateBye);
+      }
+      return found;
     });
-    if (session != null) {
-      _closeSession(session);
-      onCallStateChange?.call(session, CallState.CallStateBye);
-    }
   }
 
   Future<void> _closeSession(Session session) async {

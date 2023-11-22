@@ -10,15 +10,14 @@ dependencies:
   cupertino_icons: ^1.0.3
   flutter:
     sdk: flutter
-  flutter_webrtc: ^0.9.23
+  flutter_webrtc: ^0.9.46
   flutter_webrtc_tizen:
     path: ../../
   http: ^0.13.3
   path_provider: ^2.0.7
-  path_provider_tizen: ^2.0.2
-  shared_preferences: ^2.0.9
-  shared_preferences_tizen:
-    path: ../../../shared_preferences/
+  path_provider_tizen: ^2.1.0
+  shared_preferences: ^2.2.0
+  shared_preferences_tizen: ^2.2.0
 
 dev_dependencies:
   flutter_test:
