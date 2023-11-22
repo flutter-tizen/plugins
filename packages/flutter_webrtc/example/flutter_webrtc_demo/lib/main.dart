@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
     _initItems();
   }
 
-  ListBody _buildRow(context, item) {
+  Widget _buildRow(context, item) {
     return ListBody(children: <Widget>[
       ListTile(
         title: Text(item.title),

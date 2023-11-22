@@ -25,7 +25,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   RTCDataChannel? _dataChannel;
   Session? _session;
   Timer? _timer;
-  var _text = '';
+  String _text = '';
   bool _waitAccept = false;
 
   @override
@@ -69,7 +69,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     );
   }
 
-  Future<bool?> _showInvateDialog() {
+  Future<bool?> _showInviteDialog() {
     return showDialog<bool?>(
       context: context,
       builder: (context) {
@@ -93,6 +93,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
   void _connect(BuildContext context) async {
     _signaling ??= Signaling(widget.host, context);
     await _signaling!.connect();
+
     _signaling?.onDataChannelMessage = (_, dc, RTCDataChannelMessage data) {
       setState(() {
         if (data.isBinary) {
@@ -140,7 +141,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
           break;
         case CallState.CallStateInvite:
           _waitAccept = true;
-          await _showInvateDialog();
+          await _showInviteDialog();
           break;
         case CallState.CallStateConnected:
           if (_waitAccept) {
@@ -203,7 +204,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     _signaling?.bye(_session!.sid);
   }
 
-  ListBody _buildRow(context, peer) {
+  Widget _buildRow(context, peer) {
     var self = peer['id'] == _selfId;
     return ListBody(children: <Widget>[
       ListTile(
@@ -242,7 +243,7 @@ class _DataChannelSampleState extends State<DataChannelSample> {
       body: _inCalling
           ? Center(
               child: Container(
-                child: Text('Recevied => $_text'),
+                child: Text('Received => $_text'),
               ),
             )
           : ListView.builder(
