@@ -1,3 +1,4 @@
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:html';
 
 class SimpleWebSocket {
@@ -8,7 +9,7 @@ class SimpleWebSocket {
   WebSocket? _socket;
   Function()? onOpen;
   Function(dynamic msg)? onMessage;
-  Function(int code, String reason)? onClose;
+  Function(int? code, String? reason)? onClose;
 
   Future<void> connect() async {
     try {
@@ -22,7 +23,7 @@ class SimpleWebSocket {
       });
 
       _socket!.onClose.listen((e) {
-        onClose!.call(e.code!, e.reason!);
+        onClose?.call(e.code, e.reason);
       });
     } catch (e) {
       onClose?.call(500, e.toString());

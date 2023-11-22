@@ -24,7 +24,6 @@ class _CallSampleState extends State<CallSample> {
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   bool _inCalling = false;
   Session? _session;
-
   bool _waitAccept = false;
 
   @override
@@ -42,6 +41,9 @@ class _CallSampleState extends State<CallSample> {
   @override
   void deactivate() {
     super.deactivate();
+    if (_inCalling) {
+      _hangUp();
+    }
     _signaling?.close();
     _localRenderer.dispose();
     _remoteRenderer.dispose();
@@ -92,7 +94,7 @@ class _CallSampleState extends State<CallSample> {
           break;
         case CallState.CallStateInvite:
           _waitAccept = true;
-          await _showInvateDialog();
+          await _showInviteDialog();
           break;
         case CallState.CallStateConnected:
           if (_waitAccept) {
@@ -156,7 +158,7 @@ class _CallSampleState extends State<CallSample> {
     );
   }
 
-  Future<bool?> _showInvateDialog() {
+  Future<bool?> _showInviteDialog() {
     return showDialog<bool?>(
       context: context,
       builder: (context) {
@@ -276,96 +278,86 @@ class _CallSampleState extends State<CallSample> {
     ]);
   }
 
-  Future<bool> _onWillPop(BuildContext context) async {
-    if (_inCalling) {
-      _hangUp();
-    }
-    return true;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () => _onWillPop(context),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-              'P2P Call Sample${_selfId != null ? ' [Your ID ($_selfId)] ' : ''}'),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: null,
-              tooltip: 'setup',
-            ),
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: _inCalling
-            ? SizedBox(
-                width: 240.0,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      FloatingActionButton(
-                        tooltip: 'Camera',
-                        onPressed: _switchCamera,
-                        child: const Icon(Icons.switch_camera),
-                      ),
-                      FloatingActionButton(
-                        tooltip: 'Screen Sharing',
-                        onPressed: () => selectScreenSourceDialog(context),
-                        child: const Icon(Icons.desktop_mac),
-                      ),
-                      FloatingActionButton(
-                        onPressed: _hangUp,
-                        tooltip: 'Hangup',
-                        backgroundColor: Colors.pink,
-                        child: Icon(Icons.call_end),
-                      ),
-                      FloatingActionButton(
-                        tooltip: 'Mute Mic',
-                        onPressed: _muteMic,
-                        child: const Icon(Icons.mic_off),
-                      )
-                    ]))
-            : null,
-        body: _inCalling
-            ? OrientationBuilder(builder: (context, orientation) {
-                return Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(color: Colors.black54),
-                          child: RTCVideoView(_localRenderer),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(color: Colors.black54),
-                          child: RTCVideoView(_remoteRenderer),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              })
-            : ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(0.0),
-                itemCount: _peers.length,
-                itemBuilder: (context, i) {
-                  return _buildRow(context, _peers[i]);
-                }),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+            'P2P Call Sample${_selfId != null ? ' [Your ID ($_selfId)] ' : ''}'),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: null,
+            tooltip: 'setup',
+          ),
+        ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: _inCalling
+          ? SizedBox(
+              width: 240.0,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    FloatingActionButton(
+                      tooltip: 'Camera',
+                      onPressed: _switchCamera,
+                      child: const Icon(Icons.switch_camera),
+                    ),
+                    FloatingActionButton(
+                      tooltip: 'Screen Sharing',
+                      onPressed: () => selectScreenSourceDialog(context),
+                      child: const Icon(Icons.desktop_mac),
+                    ),
+                    FloatingActionButton(
+                      onPressed: _hangUp,
+                      tooltip: 'Hangup',
+                      backgroundColor: Colors.pink,
+                      child: Icon(Icons.call_end),
+                    ),
+                    FloatingActionButton(
+                      tooltip: 'Mute Mic',
+                      onPressed: _muteMic,
+                      child: const Icon(Icons.mic_off),
+                    )
+                  ]))
+          : null,
+      body: _inCalling
+          ? OrientationBuilder(builder: (context, orientation) {
+              return Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(color: Colors.black54),
+                        child: RTCVideoView(_localRenderer),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(color: Colors.black54),
+                        child: RTCVideoView(_remoteRenderer),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            })
+          : ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(0.0),
+              itemCount: _peers.length,
+              itemBuilder: (context, i) {
+                return _buildRow(context, _peers[i]);
+              }),
     );
   }
 }
