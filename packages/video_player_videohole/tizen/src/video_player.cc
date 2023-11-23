@@ -15,6 +15,19 @@
 
 static int64_t player_index = 1;
 
+template <typename T>
+static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
+                                     const char *key, T &out) {
+  auto iter = map->find(flutter::EncodableValue(key));
+  if (iter != map->end()) {
+    if (std::holds_alternative<T>(iter->second)) {
+      out = std::get<T>(iter->second);
+      return true;
+    }
+  }
+  return false;
+}
+
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          void *native_window)
     : plugin_registrar_(plugin_registrar), native_window_(native_window) {
@@ -121,7 +134,8 @@ bool VideoPlayer::SetDisplay() {
 }
 
 int64_t VideoPlayer::Create(const std::string &uri, int drm_type,
-                            const std::string &license_server_url) {
+                            const std::string &license_server_url,
+                            const flutter::EncodableMap *http_headers) {
   LOG_INFO("[VideoPlayer] uri: %s, drm_type: %d", uri.c_str(), drm_type);
 
   player_id_ = player_index++;
@@ -148,6 +162,27 @@ int64_t VideoPlayer::Create(const std::string &uri, int drm_type,
     if (!drm_manager_->InitializeDrmSession(uri)) {
       LOG_ERROR("[VideoPlayer] Failed to initialize the DRM session.");
       drm_manager_->ReleaseDrmSession();
+    }
+  }
+
+  if (http_headers && !http_headers->empty()) {
+    std::string cookie;
+    if (GetValueFromEncodableMap(http_headers, "Cookie", cookie)) {
+      ret = player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
+      if (ret != PLAYER_ERROR_NONE) {
+        LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
+                  get_error_message(ret));
+      }
+    }
+
+    std::string user_agent;
+    if (GetValueFromEncodableMap(http_headers, "User-Agent", user_agent)) {
+      ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
+                                            user_agent.size());
+      if (ret != PLAYER_ERROR_NONE) {
+        LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
+                  get_error_message(ret));
+      }
     }
   }
 

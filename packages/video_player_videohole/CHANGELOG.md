@@ -1,3 +1,7 @@
+## 0.3.0
+
+* Implement `httpHeaders` of `VideoPlayerController.network`.
+
 ## 0.2.0
 
 * Implement functionality of selecting video, audio and text tracks.

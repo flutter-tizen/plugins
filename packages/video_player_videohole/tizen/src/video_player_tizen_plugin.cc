@@ -118,6 +118,7 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   std::string uri;
   int32_t drm_type = 0;  // DRM_TYPE_NONE
   std::string license_server_url;
+  const flutter::EncodableMap *http_headers = nullptr;
 
   if (msg.asset() && !msg.asset()->empty()) {
     char *res_path = app_get_resource_path();
@@ -145,11 +146,14 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
         }
       }
     }
+
+    http_headers = msg.http_headers();
   } else {
     return FlutterError("Invalid argument", "Either asset or uri must be set.");
   }
 
-  int64_t player_id = player->Create(uri, drm_type, license_server_url);
+  int64_t player_id =
+      player->Create(uri, drm_type, license_server_url, http_headers);
   if (player_id == -1) {
     return FlutterError("Operation failed", "Failed to create a player.");
   }
