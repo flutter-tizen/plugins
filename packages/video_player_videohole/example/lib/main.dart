@@ -24,7 +24,7 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         key: const ValueKey<String>('home_page'),
         appBar: AppBar(
