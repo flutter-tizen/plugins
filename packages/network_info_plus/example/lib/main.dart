@@ -145,13 +145,6 @@ class _MyHomePageState extends State<MyHomePage> {
       wifiGatewayIP = 'Failed to get Wifi gateway address';
     }
 
-    try {
-      wifiSubmask = await _networkInfo.getWifiSubmask();
-    } on PlatformException catch (e) {
-      developer.log('Failed to get Wifi submask', error: e);
-      wifiSubmask = 'Failed to get Wifi submask';
-    }
-
     setState(() {
       _connectionStatus = 'Wifi Name: $wifiName\n'
           'Wifi BSSID: $wifiBSSID\n'
