@@ -10,8 +10,8 @@ import 'package:flutter/services.dart';
 ///
 /// See: https://docs.tizen.org/application/native/guides/device/system
 class TizenDeviceInfo {
-  /// Tizen device info class.
-  TizenDeviceInfo({
+  TizenDeviceInfo._({
+    required this.data,
     required this.modelName,
     required this.cpuArch,
     required this.nativeApiVersion,
@@ -31,6 +31,9 @@ class TizenDeviceInfo {
     required this.platformProcessor,
     required this.tizenId,
   });
+
+  /// Device information data.
+  final Map<String, dynamic> data;
 
   /// http://tizen.org/system/model_name
   final String? modelName;
@@ -88,7 +91,8 @@ class TizenDeviceInfo {
 
   /// Creates a [TizenDeviceInfo] from the [map].
   static TizenDeviceInfo fromMap(Map<String, dynamic> map) {
-    return TizenDeviceInfo(
+    return TizenDeviceInfo._(
+      data: map,
       modelName: map['modelName'],
       cpuArch: map['cpuArch'],
       nativeApiVersion: map['nativeApiVersion'],
@@ -110,27 +114,10 @@ class TizenDeviceInfo {
     );
   }
 
-  /// Device information data.
-  Map<String, dynamic> get data => {
-        'modelName': modelName,
-        'cpuArch': cpuArch,
-        'nativeApiVersion': nativeApiVersion,
-        'platformVersion': platformVersion,
-        'webApiVersion': webApiVersion,
-        'profile': profile,
-        'buildDate': buildDate,
-        'buildId': buildId,
-        'buildString': buildString,
-        'buildTime': buildTime,
-        'buildType': buildType,
-        'buildVariant': buildVariant,
-        'buildRelease': buildRelease,
-        'deviceType': deviceType,
-        'manufacturer': manufacturer,
-        'platformName': platformName,
-        'platformProcessor': platformProcessor,
-        'tizenId': tizenId,
-      };
+  @override
+  String toString() {
+    return 'TizenDeviceInfo{data: $data}';
+  }
 }
 
 class _MethodChannelDeviceInfo {
