@@ -24,8 +24,21 @@ sensor_type_e ToTizenSensorType(const SensorType &sensor_type) {
 
 }  // namespace
 
-DeviceSensor::DeviceSensor(SensorType sensor_type)
-    : sensor_type_(sensor_type) {}
+DeviceSensor::DeviceSensor(SensorType sensor_type) : sensor_type_(sensor_type) {
+  sensor_h sensor;
+  int ret = sensor_get_default_sensor(ToTizenSensorType(sensor_type_), &sensor);
+  if (ret != SENSOR_ERROR_NONE) {
+    LOG_ERROR("Failed to get default sensor: %s", get_error_message(ret));
+    last_error_ = ret;
+    return;
+  }
+
+  ret = sensor_create_listener(sensor, &listener_);
+  if (ret != SENSOR_ERROR_NONE) {
+    LOG_ERROR("Failed to create listener: %s", get_error_message(ret));
+    last_error_ = ret;
+  }
+}
 
 DeviceSensor::~DeviceSensor() {
   if (is_listening_) {
@@ -51,23 +64,8 @@ bool DeviceSensor::StartListen(SensorEventCallback callback) {
     return false;
   }
 
-  sensor_h sensor;
-  int ret = sensor_get_default_sensor(ToTizenSensorType(sensor_type_), &sensor);
-  if (ret != SENSOR_ERROR_NONE) {
-    LOG_ERROR("Failed to get default sensor: %s", get_error_message(ret));
-    last_error_ = ret;
-    return false;
-  }
-
-  ret = sensor_create_listener(sensor, &listener_);
-  if (ret != SENSOR_ERROR_NONE) {
-    LOG_ERROR("Failed to create listener: %s", get_error_message(ret));
-    last_error_ = ret;
-    return false;
-  }
-
-  ret = sensor_listener_set_event_cb(
-      listener_, 60,
+  int ret = sensor_listener_set_event_cb(
+      listener_, interval_ms_,
       [](sensor_h sensor, sensor_event_s *event, void *user_data) {
         auto *self = static_cast<DeviceSensor *>(user_data);
         SensorEvent sensor_event;
@@ -116,5 +114,13 @@ void DeviceSensor::StopListen() {
     LOG_ERROR("Failed to unset event callback: %s", get_error_message(ret));
     last_error_ = ret;
     return;
+  }
+}
+
+void DeviceSensor::SetInterval(int interval_ms) {
+  interval_ms_ = interval_ms;
+
+  if (listener_) {
+    sensor_listener_set_interval(listener_, interval_ms_);
   }
 }

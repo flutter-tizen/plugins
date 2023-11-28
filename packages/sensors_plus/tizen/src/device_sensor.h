@@ -30,8 +30,11 @@ class DeviceSensor {
 
   void StopListen();
 
+  void SetInterval(int interval_ms);
+
  private:
   SensorType sensor_type_;
+  int interval_ms_ = 0;
   sensor_listener_h listener_ = nullptr;
   bool is_listening_ = false;
   int last_error_ = TIZEN_ERROR_NONE;
