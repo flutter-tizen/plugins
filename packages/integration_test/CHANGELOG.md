@@ -1,4 +1,4 @@
-## NEXT
+## 2.0.2
 
 * Increase the minimum Flutter version to 3.3.
 

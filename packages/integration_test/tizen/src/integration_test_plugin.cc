@@ -10,8 +10,11 @@
 
 #include <memory>
 #include <string>
+#include <variant>
 
 #include "log.h"
+
+namespace {
 
 class IntegrationTestPlugin : public flutter::Plugin {
  public:
@@ -53,9 +56,9 @@ class IntegrationTestPlugin : public flutter::Plugin {
           for (const auto &pair : results_map) {
             if (std::holds_alternative<std::string>(pair.first) &&
                 std::holds_alternative<std::string>(pair.second)) {
-              LOG_DEBUG("%s test: %s\n",
-                        std::get<std::string>(pair.first).data(),
-                        std::get<std::string>(pair.second).data());
+              LOG_INFO("%s test: %s\n",
+                       std::get<std::string>(pair.first).data(),
+                       std::get<std::string>(pair.second).data());
             }
           }
         }
@@ -66,6 +69,8 @@ class IntegrationTestPlugin : public flutter::Plugin {
     }
   }
 };
+
+}  // namespace
 
 void IntegrationTestPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
