@@ -691,8 +691,7 @@ void WebView::OnConsoleMessage(void* data, Evas_Object* obj, void* event_info) {
   stream << text << std::endl;
 
   if (obj) {
-    WebView* webview =
-        static_cast<WebView*>(evas_object_data_get(obj, kEwkInstance));
+    WebView* webview = static_cast<WebView*>(data);
     if (webview->webview_controller_channel_) {
       flutter::EncodableMap args = {
           {flutter::EncodableValue("level"),
