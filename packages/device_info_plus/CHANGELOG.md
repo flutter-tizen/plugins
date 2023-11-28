@@ -1,6 +1,9 @@
-## NEXT
+## 1.2.0
 
+* Add `TizenDeviceInfo.data` which represents the device info as a map.
+* Disambiguate the method channel name.
 * Increase the minimum Flutter version to 3.3.
+* Update the example app and integration_test.
 
 ## 1.1.0
 

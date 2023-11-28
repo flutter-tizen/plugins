@@ -10,8 +10,8 @@ import 'package:flutter/services.dart';
 ///
 /// See: https://docs.tizen.org/application/native/guides/device/system
 class TizenDeviceInfo {
-  /// Tizen device info class.
-  TizenDeviceInfo({
+  TizenDeviceInfo._({
+    required this.data,
     required this.modelName,
     required this.cpuArch,
     required this.nativeApiVersion,
@@ -31,6 +31,9 @@ class TizenDeviceInfo {
     required this.platformProcessor,
     required this.tizenId,
   });
+
+  /// Device information data.
+  final Map<String, dynamic> data;
 
   /// http://tizen.org/system/model_name
   final String? modelName;
@@ -86,9 +89,10 @@ class TizenDeviceInfo {
   /// http://tizen.org/system/tizenid
   final String? tizenId;
 
-  /// Deserializes from the message received from [_kChannel].
+  /// Creates a [TizenDeviceInfo] from the [map].
   static TizenDeviceInfo fromMap(Map<String, dynamic> map) {
-    return TizenDeviceInfo(
+    return TizenDeviceInfo._(
+      data: map,
       modelName: map['modelName'],
       cpuArch: map['cpuArch'],
       nativeApiVersion: map['nativeApiVersion'],
@@ -109,12 +113,16 @@ class TizenDeviceInfo {
       tizenId: map['tizenId'],
     );
   }
+
+  @override
+  String toString() {
+    return 'TizenDeviceInfo{data: $data}';
+  }
 }
 
 class _MethodChannelDeviceInfo {
   /// The method channel used to interact with the native platform.
-  MethodChannel channel =
-      const MethodChannel('dev.fluttercommunity.plus/device_info');
+  MethodChannel channel = const MethodChannel('tizen/device_info_plus');
 
   /// Method channel for Tizen devices.
   Future<TizenDeviceInfo> tizenInfo() async {

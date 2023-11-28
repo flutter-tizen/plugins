@@ -23,7 +23,7 @@ class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -80,15 +80,22 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: const Color(0x9f4376f8),
+      ),
       home: Scaffold(
-        appBar: AppBar(title: const Text('Tizen Device Info')),
+        appBar: AppBar(
+          title: const Text('Tizen Device Info'),
+          elevation: 4,
+        ),
         body: ListView(
           children: _deviceData.keys.map(
             (String property) {
               return Row(
                 children: <Widget>[
                   Container(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(10),
                     child: Text(
                       property,
                       style: const TextStyle(
@@ -97,14 +104,15 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                   Expanded(
-                      child: Container(
-                    padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-                    child: Text(
-                      '${_deviceData[property]}',
-                      maxLines: 10,
-                      overflow: TextOverflow.ellipsis,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        '${_deviceData[property]}',
+                        maxLines: 10,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  )),
+                  ),
                 ],
               );
             },

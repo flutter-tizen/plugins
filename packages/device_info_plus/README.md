@@ -10,7 +10,7 @@ Add `device_info_plus_tizen` as a dependency in your `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  device_info_plus_tizen: ^1.1.0
+  device_info_plus_tizen: ^1.2.0
 ```
 
 Then you can import `device_info_plus_tizen` in your Dart code.
@@ -24,9 +24,9 @@ TizenDeviceInfo tizenInfo = await deviceInfo.tizenInfo;
 String modelName = tizenInfo.modelName;
 ```
 
-## Available values
+## Supported properties
 
-| Value | Feature or system key |
+| Property | Feature or system key |
 |-|-|
 | `modelName` | `http://tizen.org/system/model_name` |
 | `cpuArch` | `http://tizen.org/feature/platform.core.cpu.arch` |
@@ -47,4 +47,4 @@ String modelName = tizenInfo.modelName;
 | `platformProcessor` | `http://tizen.org/system/platform.processor` |
 | `tizenId` | `http://tizen.org/system/tizenid` |
 
-For description on each feature or system key in the list, see https://docs.tizen.org/application/native/guides/device/system.
+For a description of each feature or system key in the list, see https://docs.tizen.org/application/native/guides/device/system.
