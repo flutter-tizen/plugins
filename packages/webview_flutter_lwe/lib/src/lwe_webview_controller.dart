@@ -429,4 +429,12 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   ) async {
     _onWebResourceError = onWebResourceError;
   }
+
+  @override
+  Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {
+    // The current version of LWE does not provide any functionality related to a 'url change'.
+    throw UnimplementedError(
+        'This version of `LweNavigationDelegate` currently has no '
+        'implementation of `setOnConsoleMessage`.');
+  }
 }
