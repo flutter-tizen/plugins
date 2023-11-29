@@ -10,8 +10,6 @@
 #include <flutter_texture_registrar.h>
 #include <tbm_surface.h>
 
-#include <ostream>
-
 #include "buffer_pool.h"
 #include "ewk_internal_api_binding.h"
 #include "log.h"
@@ -676,31 +674,17 @@ void WebView::OnConsoleMessage(void* data, Evas_Object* obj, void* event_info) {
   Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(event_info);
   Ewk_Console_Message_Level log_level =
       EwkInternalApiBinding::GetInstance().console_message.LevelGet(message);
-  std::string source =
-      EwkInternalApiBinding::GetInstance().console_message.SourceGet(message);
-  int32_t line =
-      EwkInternalApiBinding::GetInstance().console_message.LineGet(message);
   std::string text =
       EwkInternalApiBinding::GetInstance().console_message.TextGet(message);
-  std::ostream& stream =
-      log_level == EWK_CONSOLE_MESSAGE_LEVEL_ERROR ? std::cerr : std::cout;
-  stream << "WebView: ";
-  if (!source.empty() && line > 0) {
-    stream << source << "(" << line << ") > ";
-  }
-  stream << text << std::endl;
-
-  if (obj) {
-    WebView* webview = static_cast<WebView*>(data);
-    if (webview->webview_controller_channel_) {
-      flutter::EncodableMap args = {
-          {flutter::EncodableValue("level"),
-           flutter::EncodableValue(ConvertLogLevelToString(log_level))},
-          {flutter::EncodableValue("message"), flutter::EncodableValue(text)},
-      };
-      webview->webview_controller_channel_->InvokeMethod(
-          "onConsoleMessage", std::make_unique<flutter::EncodableValue>(args));
-    }
+  WebView* webview = static_cast<WebView*>(data);
+  if (webview->webview_controller_channel_) {
+    flutter::EncodableMap args = {
+        {flutter::EncodableValue("level"),
+         flutter::EncodableValue(ConvertLogLevelToString(log_level))},
+        {flutter::EncodableValue("message"), flutter::EncodableValue(text)},
+    };
+    webview->webview_controller_channel_->InvokeMethod(
+        "onConsoleMessage", std::make_unique<flutter::EncodableValue>(args));
   }
 }
 
