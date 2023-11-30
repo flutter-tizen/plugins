@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  network_info_plus: ^2.3.2
+  network_info_plus: ^4.1.0
   network_info_plus_tizen:
     path: ../
 
@@ -20,7 +20,7 @@ dev_dependencies:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
-  flutter_lints: ^1.0.4
+  flutter_lints: ^3.0.1
 
 flutter:
   uses-material-design: true
