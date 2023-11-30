@@ -1,3 +1,10 @@
+## 1.1.4
+
+* Implement set*SamplingPeriod method call.
+* Update deprecated API in integration_test.
+* Update sensors_plus to 4.0.1.
+* Update sensors_plus_platform_interface to 1.2.0.
+
 ## 1.1.3
 
 * Update sensors_plus to 3.0.2.
