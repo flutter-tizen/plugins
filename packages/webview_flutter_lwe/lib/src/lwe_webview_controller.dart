@@ -159,6 +159,33 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> setUserAgent(String? userAgent) =>
       _webview.setUserAgent(userAgent);
+
+  @override
+  Future<String?> getUserAgent() => _webview.getUserAgent();
+
+  @override
+  Future<void> setOnPlatformPermissionRequest(
+    void Function(
+      PlatformWebViewPermissionRequest request,
+    ) onPermissionRequest,
+  ) async {
+    // The current version of LWE does not provide any functionality related to a 'permission request'.
+    throw UnimplementedError(
+        'This version of `LweWebViewController` currently has no '
+        'implementation of `setOnPlatformPermissionRequest`.');
+  }
+
+  @override
+  Future<void> setOnConsoleMessage(
+    void Function(
+      JavaScriptConsoleMessage consoleMessage,
+    ) onConsoleMessage,
+  ) async {
+    // The current version of LWE does not provide any functionality related to a 'console message'.
+    throw UnimplementedError(
+        'This version of `LweWebViewController` currently has no '
+        'implementation of `setOnConsoleMessage`.');
+  }
 }
 
 /// An implementation of [PlatformWebViewWidget] with the Lightweight Web Engine.
@@ -401,5 +428,13 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
     WebResourceErrorCallback onWebResourceError,
   ) async {
     _onWebResourceError = onWebResourceError;
+  }
+
+  @override
+  Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {
+    // The current version of LWE does not provide any functionality related to a 'url change'.
+    throw UnimplementedError(
+        'This version of `LweNavigationDelegate` currently has no '
+        'implementation of `setOnConsoleMessage`.');
   }
 }
