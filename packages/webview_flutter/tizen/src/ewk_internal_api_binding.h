@@ -36,6 +36,10 @@ typedef void (*EwkViewOffscreenRenderingEnabledSetFnPtr)(Evas_Object* obj,
 typedef void (*EwkViewImeWindowSetFnPtr)(Evas_Object* obj, void* window);
 typedef Eina_Bool (*EwkViewKeyEventsEnabledSetFnPtr)(Evas_Object* obj,
                                                      Eina_Bool enabled);
+typedef Eina_Bool (*EwkViewSupportVideoHoleSetFnPtr)(Evas_Object* obj,
+                                                     void* window,
+                                                     Eina_Bool enabled,
+                                                     Eina_Bool boo);
 
 typedef struct {
   EwkViewBgColorSetFnPtr SetBackgroundColor = nullptr;
@@ -45,6 +49,7 @@ typedef struct {
       nullptr;
   EwkViewImeWindowSetFnPtr ImeWindowSet = nullptr;
   EwkViewKeyEventsEnabledSetFnPtr KeyEventsEnabledSet = nullptr;
+  EwkViewSupportVideoHoleSetFnPtr SupportVideoHoleSet = nullptr;
 } EwkViewProcTable;
 
 typedef void (*EwkSetArgumentsFnPtr)(int argc, char** argv);

@@ -35,6 +35,7 @@ class WebView : public PlatformView {
 
   virtual void Dispose() override;
 
+  virtual void Offset(double left, double top) override;
   virtual void Resize(double width, double height) override;
   virtual void Touch(int type, int button, double x, double y, double dx,
                      double dy) override;
@@ -63,6 +64,7 @@ class WebView : public PlatformView {
 
   void RegisterJavaScriptChannelName(const std::string& name);
   std::string GetWebViewChannelName();
+  std::string GetWebViewControllerChannelName();
   std::string GetNavigationDelegateChannelName();
 
   void InitWebView();
@@ -84,12 +86,15 @@ class WebView : public PlatformView {
   flutter::TextureRegistrar* texture_registrar_;
   double width_ = 0.0;
   double height_ = 0.0;
+  double left_ = 0.0;
+  double top_ = 0.0;
   void* window_ = nullptr;
   BufferUnit* working_surface_ = nullptr;
   BufferUnit* candidate_surface_ = nullptr;
   BufferUnit* rendered_surface_ = nullptr;
   bool has_navigation_delegate_ = false;
   std::unique_ptr<FlMethodChannel> webview_channel_;
+  std::unique_ptr<FlMethodChannel> webview_controller_channel_;
   std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;

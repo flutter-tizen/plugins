@@ -10,8 +10,6 @@
 #include <flutter_texture_registrar.h>
 #include <tbm_surface.h>
 
-#include <ostream>
-
 #include "buffer_pool.h"
 #include "ewk_internal_api_binding.h"
 #include "log.h"
@@ -22,8 +20,28 @@ namespace {
 constexpr size_t kBufferPoolSize = 5;
 constexpr char kEwkInstance[] = "ewk_instance";
 constexpr char kTizenWebViewChannelName[] = "plugins.flutter.io/tizen_webview_";
+constexpr char kTizenWebViewControllerChannelName[] =
+    "plugins.flutter.io/tizen_webview_controller_";
 constexpr char kTizenNavigationDelegateChannelName[] =
     "plugins.flutter.io/tizen_webview_navigation_delegate_";
+
+std::string ConvertLogLevelToString(Ewk_Console_Message_Level level) {
+  switch (level) {
+    case EWK_CONSOLE_MESSAGE_LEVEL_NULL:
+    case EWK_CONSOLE_MESSAGE_LEVEL_LOG:
+      return "log";
+    case EWK_CONSOLE_MESSAGE_LEVEL_WARNING:
+      return "warning";
+    case EWK_CONSOLE_MESSAGE_LEVEL_ERROR:
+      return "error";
+    case EWK_CONSOLE_MESSAGE_LEVEL_DEBUG:
+      return "debug";
+    case EWK_CONSOLE_MESSAGE_LEVEL_INFO:
+      return "info";
+    default:
+      return "log";
+  }
+}
 
 class NavigationRequestResult : public FlMethodResult {
  public:
@@ -108,6 +126,10 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         webview->HandleWebViewMethodCall(call, std::move(result));
       });
 
+  webview_controller_channel_ = std::make_unique<FlMethodChannel>(
+      GetPluginRegistrar()->messenger(), GetWebViewControllerChannelName(),
+      &flutter::StandardMethodCodec::GetInstance());
+
   navigation_delegate_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetNavigationDelegateChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
@@ -140,6 +162,11 @@ std::string WebView::GetWebViewChannelName() {
   return std::string(kTizenWebViewChannelName) + std::to_string(GetViewId());
 }
 
+std::string WebView::GetWebViewControllerChannelName() {
+  return std::string(kTizenWebViewControllerChannelName) +
+         std::to_string(GetViewId());
+}
+
 std::string WebView::GetNavigationDelegateChannelName() {
   return std::string(kTizenNavigationDelegateChannelName) +
          std::to_string(GetViewId());
@@ -169,6 +196,14 @@ void WebView::Dispose() {
                                    &WebView::OnUrlChange);
     evas_object_del(webview_instance_);
   }
+}
+
+void WebView::Offset(double left, double top) {
+  left_ = left;
+  top_ = top;
+
+  evas_object_move(webview_instance_, static_cast<int>(left_),
+                   static_cast<int>(top_));
 }
 
 void WebView::Resize(double width, double height) {
@@ -203,8 +238,8 @@ void WebView::Touch(int type, int button, double x, double y, double dx,
   Eina_List* points = 0;
   Ewk_Touch_Point* point = new Ewk_Touch_Point;
   point->id = 0;
-  point->x = x;
-  point->y = y;
+  point->x = x + left_;
+  point->y = y + top_;
   point->state = state;
   points = eina_list_append(points, point);
 
@@ -284,6 +319,11 @@ void WebView::InitWebView() {
                                                          window_);
   EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(
       webview_instance_, true);
+
+#ifdef TV_PROFILE
+  EwkInternalApiBinding::GetInstance().view.SupportVideoHoleSet(
+      webview_instance_, window_, true, false);
+#endif
 
   evas_object_smart_callback_add(webview_instance_, "offscreen,frame,rendered",
                                  &WebView::OnFrameRendered, this);
@@ -506,12 +546,15 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
           *color & 0xff, *color >> 24 & 0xff);
       result->Success();
     }
-  } else if (method_name == "userAgent") {
+  } else if (method_name == "setUserAgent") {
     const auto* userAgent = std::get_if<std::string>(arguments);
     if (userAgent) {
       ewk_view_user_agent_set(webview_instance_, userAgent->c_str());
     }
     result->Success();
+  } else if (method_name == "getUserAgent") {
+    result->Success(flutter::EncodableValue(
+        std::string(ewk_view_user_agent_get(webview_instance_))));
   } else {
     result->NotImplemented();
   }
@@ -631,19 +674,18 @@ void WebView::OnConsoleMessage(void* data, Evas_Object* obj, void* event_info) {
   Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(event_info);
   Ewk_Console_Message_Level log_level =
       EwkInternalApiBinding::GetInstance().console_message.LevelGet(message);
-  std::string source =
-      EwkInternalApiBinding::GetInstance().console_message.SourceGet(message);
-  int32_t line =
-      EwkInternalApiBinding::GetInstance().console_message.LineGet(message);
   std::string text =
       EwkInternalApiBinding::GetInstance().console_message.TextGet(message);
-  std::ostream& stream =
-      log_level == EWK_CONSOLE_MESSAGE_LEVEL_ERROR ? std::cerr : std::cout;
-  stream << "WebView: ";
-  if (!source.empty() && line > 0) {
-    stream << source << "(" << line << ") > ";
+  WebView* webview = static_cast<WebView*>(data);
+  if (webview->webview_controller_channel_) {
+    flutter::EncodableMap args = {
+        {flutter::EncodableValue("level"),
+         flutter::EncodableValue(ConvertLogLevelToString(log_level))},
+        {flutter::EncodableValue("message"), flutter::EncodableValue(text)},
+    };
+    webview->webview_controller_channel_->InvokeMethod(
+        "onConsoleMessage", std::make_unique<flutter::EncodableValue>(args));
   }
-  stream << text << std::endl;
 }
 
 void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
