@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Replace surface id with resource id for fixing overlap issue.
+
 ## 0.1.1
 
 * Fix load gstream libs fail issue when package name not same with app id.
