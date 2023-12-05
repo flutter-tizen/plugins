@@ -6,7 +6,6 @@
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
 #include <Ecore.h>
-#include <dart_api_dl.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter_tizen.h>
