@@ -9,6 +9,7 @@
 #include <dart_api_dl.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
+#include <flutter_tizen.h>
 
 #include <memory>
 #include <mutex>
@@ -22,7 +23,8 @@ class VideoPlayer {
  public:
   using SeekCompletedCallback = std::function<void()>;
 
-  explicit VideoPlayer(flutter::BinaryMessenger *messenger);
+  explicit VideoPlayer(flutter::BinaryMessenger *messenger,
+                       FlutterDesktopViewRef flutter_view);
   VideoPlayer(const VideoPlayer &) = delete;
   VideoPlayer &operator=(const VideoPlayer &) = delete;
   virtual ~VideoPlayer();
@@ -51,6 +53,7 @@ class VideoPlayer {
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
+  void *GetWindowHandle();
   int64_t SetUpEventChannel();
   void SendInitialized();
   void SendBufferingStart();
@@ -64,8 +67,8 @@ class VideoPlayer {
   std::mutex queue_mutex_;
   std::unique_ptr<EcoreWl2WindowProxy> ecore_wl2_window_proxy_ = nullptr;
   flutter::BinaryMessenger *binary_messenger_;
-
   bool is_initialized_ = false;
+  FlutterDesktopViewRef flutter_view_;
 
  private:
   void ExecuteSinkEvents();

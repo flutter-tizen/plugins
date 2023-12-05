@@ -33,11 +33,10 @@ static plusplayer::TrackType ConvertTrackType(std::string track_type) {
   }
 }
 
-PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window,
+PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
+                       FlutterDesktopViewRef flutter_view,
                        std::string &video_format)
-    : VideoPlayer(messenger),
-      native_window_(native_window),
-      video_format_(video_format) {}
+    : VideoPlayer(messenger, flutter_view), video_format_(video_format) {}
 
 PlusPlayer::~PlusPlayer() { Dispose(); }
 
@@ -409,17 +408,21 @@ bool PlusPlayer::IsReady() {
 }
 
 bool PlusPlayer::SetDisplay() {
+  void *native_window = GetWindowHandle();
+  if (!native_window) {
+    LOG_ERROR("[PlusPlayer] Could not get a native window handle.");
+    return false;
+  }
   int x = 0, y = 0, width = 0, height = 0;
-  ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window_, &x, &y,
+  ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window, &x, &y,
                                                          &width, &height);
-  int surface_id =
-      ecore_wl2_window_proxy_->ecore_wl2_window_surface_id_get(native_window_);
-  if (surface_id < 0) {
-    LOG_ERROR("[PlusPlayer] Fail to get surface id.");
+  uint32_t resource_id = FlutterDesktopViewGetResourceId(flutter_view_);
+  if (resource_id == 0) {
+    LOG_ERROR("[PlusPlayer] Fail to get resource id.");
     return false;
   }
   bool ret = ::SetDisplay(player_, plusplayer::DisplayType::kOverlay,
-                          surface_id, x, y, width, height);
+                          resource_id, x, y, width, height);
   if (!ret) {
     LOG_ERROR("[PlusPlayer] Player fail to set display.");
     return false;

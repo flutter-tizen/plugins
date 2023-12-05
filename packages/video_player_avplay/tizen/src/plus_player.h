@@ -16,7 +16,8 @@
 
 class PlusPlayer : public VideoPlayer {
  public:
-  explicit PlusPlayer(flutter::BinaryMessenger *messenger, void *native_window,
+  explicit PlusPlayer(flutter::BinaryMessenger *messenger,
+                      FlutterDesktopViewRef flutter_view,
                       std::string &video_format);
   ~PlusPlayer();
 
@@ -79,8 +80,6 @@ class PlusPlayer : public VideoPlayer {
   PlusplayerRef player_ = nullptr;
   PlusplayerListener listener_;
   std::unique_ptr<DrmManager> drm_manager_;
-
-  void *native_window_;
   std::string video_format_;
   bool is_buffering_ = false;
   bool is_prebuffer_mode_ = false;

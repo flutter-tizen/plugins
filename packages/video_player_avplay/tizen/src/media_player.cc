@@ -35,8 +35,8 @@ static player_stream_type_e ConvertTrackType(std::string track_type) {
 }
 
 MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
-                         void *native_window)
-    : VideoPlayer(messenger), native_window_(native_window) {
+                         FlutterDesktopViewRef flutter_view)
+    : VideoPlayer(messenger, flutter_view) {
   media_player_proxy_ = std::make_unique<MediaPlayerProxy>();
 }
 
@@ -349,12 +349,17 @@ bool MediaPlayer::IsReady() {
 }
 
 bool MediaPlayer::SetDisplay() {
+  void *native_window = GetWindowHandle();
+  if (!native_window) {
+    LOG_ERROR("[MediaPlayer] Could not get a native window handle.");
+    return false;
+  }
+
   int x = 0, y = 0, width = 0, height = 0;
-  ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window_, &x, &y,
+  ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window, &x, &y,
                                                          &width, &height);
   int ret = media_player_proxy_->player_set_ecore_wl_display(
-      player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window_, x, y, width,
-      height);
+      player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window, x, y, width, height);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_set_ecore_wl_display failed: %s.",
               get_error_message(ret));

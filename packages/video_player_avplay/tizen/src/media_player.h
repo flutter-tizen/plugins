@@ -18,7 +18,7 @@
 class MediaPlayer : public VideoPlayer {
  public:
   explicit MediaPlayer(flutter::BinaryMessenger *messenger,
-                       void *native_window);
+                       FlutterDesktopViewRef flutter_view);
   ~MediaPlayer();
 
   int64_t Create(const std::string &uri, int drm_type,
@@ -64,7 +64,6 @@ class MediaPlayer : public VideoPlayer {
   std::unique_ptr<MediaPlayerProxy> media_player_proxy_ = nullptr;
   std::unique_ptr<DrmManager> drm_manager_;
   bool is_buffering_ = false;
-  void *native_window_ = nullptr;
   SeekCompletedCallback on_seek_completed_;
 };
 
