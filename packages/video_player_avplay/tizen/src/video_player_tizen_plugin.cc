@@ -104,6 +104,9 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
 
 ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     const CreateMessage &msg) {
+  if (!FlutterDesktopPluginRegistrarGetView(registrar_ref_)) {
+    return FlutterError("Operation failed", "Could not get a Flutter view.");
+  }
   std::string uri;
   int32_t drm_type = 0;  // DRM_TYPE_NONE
   std::string license_server_url;

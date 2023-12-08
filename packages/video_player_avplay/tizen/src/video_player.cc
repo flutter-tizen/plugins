@@ -164,8 +164,5 @@ void VideoPlayer::SendError(const std::string &error_code,
 }
 
 void *VideoPlayer::GetWindowHandle() {
-  if (!flutter_view_) {
-    return nullptr;
-  }
   return FlutterDesktopViewGetNativeHandle(flutter_view_);
 }
