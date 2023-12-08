@@ -104,17 +104,9 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
 
 ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     const CreateMessage &msg) {
-  FlutterDesktopViewRef flutter_view =
-      FlutterDesktopPluginRegistrarGetView(registrar_ref_);
-  if (!flutter_view) {
+  if (!FlutterDesktopPluginRegistrarGetView(registrar_ref_)) {
     return FlutterError("Operation failed", "Could not get a Flutter view.");
   }
-  void *native_window = FlutterDesktopViewGetNativeHandle(flutter_view);
-  if (!native_window) {
-    return FlutterError("Operation failed",
-                        "Could not get a native window handle.");
-  }
-
   std::string uri;
   int32_t drm_type = 0;  // DRM_TYPE_NONE
   std::string license_server_url;
@@ -174,8 +166,9 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
 
   int64_t player_id = 0;
   if (uri.substr(0, 4) == "http") {
-    auto player = std::make_unique<PlusPlayer>(plugin_registrar_->messenger(),
-                                               native_window, format);
+    auto player = std::make_unique<PlusPlayer>(
+        plugin_registrar_->messenger(),
+        FlutterDesktopPluginRegistrarGetView(registrar_ref_), format);
     player_id = player->Create(uri, drm_type, license_server_url,
                                prebuffer_mode, http_headers);
     if (player_id == -1) {
@@ -183,8 +176,9 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     }
     players_[player_id] = std::move(player);
   } else {
-    auto player = std::make_unique<MediaPlayer>(plugin_registrar_->messenger(),
-                                                native_window);
+    auto player = std::make_unique<MediaPlayer>(
+        plugin_registrar_->messenger(),
+        FlutterDesktopPluginRegistrarGetView(registrar_ref_));
     player_id = player->Create(uri, drm_type, license_server_url,
                                prebuffer_mode, http_headers);
     if (player_id == -1) {
