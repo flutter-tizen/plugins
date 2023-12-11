@@ -38,16 +38,13 @@ abstract class ProxyBase {
       return pProxy.value;
     });
 
-    _finalizer.attach(this, this);
+    _finalizer.attach(this, _handle);
   }
 
   late final rpc_port_proxy_h _handle;
 
-  final Finalizer<ProxyBase> _finalizer =
-      Finalizer<ProxyBase>((ProxyBase proxy) {
-    proxy._streamSubscription?.cancel();
-    tizen.rpc_port_proxy_destroy(proxy._handle);
-  });
+  final Finalizer<rpc_port_proxy_h> _finalizer = Finalizer<rpc_port_proxy_h>(
+      (rpc_port_proxy_h handle) => tizen.rpc_port_proxy_destroy(handle));
 
   /// The server application ID.
   final String appid;
