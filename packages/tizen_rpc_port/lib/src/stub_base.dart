@@ -33,14 +33,13 @@ abstract class StubBase {
       return pStub.value;
     });
 
-    _finalizer.attach(this, this);
+    _finalizer.attach(this, _handle);
   }
 
   late final rpc_port_stub_h _handle;
 
-  final Finalizer<StubBase> _finalizer = Finalizer<StubBase>((StubBase stub) {
-    stub.close();
-  });
+  final Finalizer<rpc_port_stub_h> _finalizer = Finalizer<rpc_port_stub_h>(
+      (rpc_port_stub_h handle) => tizen.rpc_port_stub_destroy(handle));
 
   /// A port name to use when listening for connections.
   final String portName;

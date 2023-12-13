@@ -1,3 +1,7 @@
+## NEXT
+
+* Fix token in finalizer to be different from value.
+
 ## 0.1.3
 
 * Remove unnecessary `StreamHandlerError` implementation.
