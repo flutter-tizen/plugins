@@ -13,8 +13,6 @@ import 'package:flutter/services.dart';
 import 'src/closed_caption_file.dart';
 import 'src/drm_configs.dart';
 import 'src/hole.dart';
-import 'src/register_drm_callback_stub.dart'
-    if (dart.library.ffi) 'src/register_drm_callback_real.dart';
 import 'src/tracks.dart';
 import 'video_player_platform_interface.dart';
 
@@ -218,12 +216,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// The name of the asset is given by the [dataSource] argument and must not be
   /// null. The [package] argument must be non-null when the asset comes from a
   /// package and null otherwise.
-  VideoPlayerController.asset(this.dataSource,
-      {this.package, this.closedCaptionFile, this.videoPlayerOptions})
-      : dataSourceType = DataSourceType.asset,
+  VideoPlayerController.asset(
+    this.dataSource, {
+    this.package,
+    this.closedCaptionFile,
+    this.videoPlayerOptions,
+  })  : dataSourceType = DataSourceType.asset,
         formatHint = null,
         httpHeaders = const <String, String>{},
         drmConfigs = null,
+        playerOptions = const <String, dynamic>{},
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// Constructs a [VideoPlayerController] playing a video from obtained from
@@ -242,6 +244,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.videoPlayerOptions,
     this.httpHeaders = const <String, String>{},
     this.drmConfigs,
+    this.playerOptions,
   })  : dataSourceType = DataSourceType.network,
         package = null,
         super(VideoPlayerValue(duration: Duration.zero));
@@ -250,23 +253,28 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   ///
   /// This will load the file from the file-URI given by:
   /// `'file://${file.path}'`.
-  VideoPlayerController.file(File file,
-      {this.closedCaptionFile, this.videoPlayerOptions})
-      : dataSource = 'file://${file.path}',
+  VideoPlayerController.file(
+    File file, {
+    this.closedCaptionFile,
+    this.videoPlayerOptions,
+  })  : dataSource = 'file://${file.path}',
         dataSourceType = DataSourceType.file,
         package = null,
         formatHint = null,
         httpHeaders = const <String, String>{},
         drmConfigs = null,
+        playerOptions = const <String, dynamic>{},
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// Constructs a [VideoPlayerController] playing a video from a contentUri.
   ///
   /// This will load the video from the input content-URI.
   /// This is supported on Android only.
-  VideoPlayerController.contentUri(Uri contentUri,
-      {this.closedCaptionFile, this.videoPlayerOptions})
-      : assert(defaultTargetPlatform == TargetPlatform.android,
+  VideoPlayerController.contentUri(
+    Uri contentUri, {
+    this.closedCaptionFile,
+    this.videoPlayerOptions,
+  })  : assert(defaultTargetPlatform == TargetPlatform.android,
             'VideoPlayerController.contentUri is only supported on Android.'),
         dataSource = contentUri.toString(),
         dataSourceType = DataSourceType.contentUri,
@@ -274,6 +282,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         formatHint = null,
         httpHeaders = const <String, String>{},
         drmConfigs = null,
+        playerOptions = const <String, dynamic>{},
         super(VideoPlayerValue(duration: Duration.zero));
 
   /// The URI to the video file. This will be in different formats depending on
@@ -288,6 +297,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Configurations for playing DRM content (optional).
   /// Only for [VideoPlayerController.network].
   final DrmConfigs? drmConfigs;
+
+  /// Player Options used for add additional parameters.
+  /// Only for [VideoPlayerController.network].
+  final Map<String, dynamic>? playerOptions;
 
   /// **Android only**. Will override the platform's generic file format
   /// detection with whatever is set here.
@@ -327,6 +340,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   @visibleForTesting
   int get playerId => _playerId;
 
+  final MethodChannel _channel =
+      const MethodChannel('dev.flutter.videoplayer.drm');
+
   /// Attempts to open the given [dataSource] and load metadata about the video.
   Future<void> initialize() async {
     final bool allowBackgroundPlayback =
@@ -353,6 +369,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           formatHint: formatHint,
           httpHeaders: httpHeaders,
           drmConfigs: drmConfigs,
+          playerOptions: playerOptions,
         );
         break;
       case DataSourceType.file:
@@ -433,7 +450,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
 
     if (drmConfigs?.licenseCallback != null) {
-      registerDrmCallback(drmConfigs!.licenseCallback!, _playerId);
+      _channel.setMethodCallHandler((MethodCall call) async {
+        if (call.method == 'requestLicense') {
+          final Map<dynamic, dynamic> argumentsMap =
+              call.arguments as Map<dynamic, dynamic>;
+          final Uint8List message = argumentsMap['message']! as Uint8List;
+          return drmConfigs!.licenseCallback!(message);
+        } else {
+          throw Exception('not implemented ${call.method}');
+        }
+      });
     }
 
     void errorListener(Object obj) {
@@ -482,6 +508,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyPlayPause();
   }
 
+  /// Sets the video activated. Use it if create two native players.
+  Future<bool> activate() async {
+    return _applyActivate();
+  }
+
+  /// Sets the video deactivated. Use it if create two native players.
+  Future<bool> deactivate() async {
+    return _applyDeactivate();
+  }
+
   /// Sets whether or not the video should loop after playing once. See also
   /// [VideoPlayerValue.isLooping].
   Future<void> setLooping(bool looping) async {
@@ -500,6 +536,20 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
     await _videoPlayerPlatform.setLooping(_playerId, value.isLooping);
+  }
+
+  Future<bool> _applyActivate() async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+    return _videoPlayerPlatform.setActivate(_playerId);
+  }
+
+  Future<bool> _applyDeactivate() async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+    return _videoPlayerPlatform.setDeactivate(_playerId);
   }
 
   Future<void> _applyPlayPause() async {
@@ -611,11 +661,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   /// Sets the selected tracks.
-  Future<void> setTrackSelection(Track track) async {
+  Future<bool> setTrackSelection(Track track) async {
     if (!value.isInitialized || _isDisposed) {
-      return;
+      return false;
     }
-    await _videoPlayerPlatform.setTrackSelection(_playerId, track);
+    return _videoPlayerPlatform.setTrackSelection(_playerId, track);
   }
 
   /// Sets the audio volume of [this].

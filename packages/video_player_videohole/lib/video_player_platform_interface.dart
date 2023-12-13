@@ -77,6 +77,16 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('pause() has not been implemented.');
   }
 
+  /// Set the video activated.
+  Future<bool> setActivate(int playerId) {
+    throw UnimplementedError('setActivate() has not been implemented.');
+  }
+
+  /// Set the video deactivated.
+  Future<bool> setDeactivate(int playerId) {
+    throw UnimplementedError('setDeactivate() has not been implemented.');
+  }
+
   /// Sets the volume to a range between 0.0 and 1.0.
   Future<void> setVolume(int playerId, double volume) {
     throw UnimplementedError('setVolume() has not been implemented.');
@@ -103,7 +113,7 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   }
 
   /// Sets the selected track.
-  Future<void> setTrackSelection(int playerId, Track track) {
+  Future<bool> setTrackSelection(int playerId, Track track) {
     throw UnimplementedError('setTrackSelection() has not been implemented.');
   }
 
@@ -163,6 +173,7 @@ class DataSource {
     this.package,
     this.httpHeaders = const <String, String>{},
     this.drmConfigs,
+    this.playerOptions,
   });
 
   /// The way in which the video was originally loaded.
@@ -195,6 +206,9 @@ class DataSource {
 
   /// Configurations for playing DRM content.
   DrmConfigs? drmConfigs;
+
+  /// Set additional optional player settings.
+  Map<String, dynamic>? playerOptions;
 }
 
 /// The way in which the video was originally loaded.

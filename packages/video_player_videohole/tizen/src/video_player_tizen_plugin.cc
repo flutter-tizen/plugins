@@ -15,6 +15,7 @@
 #include <string>
 #include <variant>
 
+#include "media_player.h"
 #include "messages.h"
 #include "video_player.h"
 #include "video_player_options.h"
@@ -39,14 +40,15 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   std::optional<FlutterError> SetVolume(const VolumeMessage &msg) override;
   std::optional<FlutterError> SetPlaybackSpeed(
       const PlaybackSpeedMessage &msg) override;
+  ErrorOr<TrackMessage> Track(const TrackTypeMessage &msg) override;
+  ErrorOr<bool> SetTrackSelection(const SelectedTracksMessage &msg) override;
   std::optional<FlutterError> Play(const PlayerMessage &msg) override;
+  ErrorOr<bool> SetDeactivate(const PlayerMessage &msg) override;
+  ErrorOr<bool> SetActivate(const PlayerMessage &msg) override;
   ErrorOr<PositionMessage> Position(const PlayerMessage &msg) override;
   void SeekTo(
       const PositionMessage &msg,
       std::function<void(std::optional<FlutterError> reply)> result) override;
-  virtual ErrorOr<TrackMessage> Track(const TrackTypeMessage &msg) override;
-  std::optional<FlutterError> SetTrackSelection(
-      const SelectedTracksMessage &msg) override;
   std::optional<FlutterError> Pause(const PlayerMessage &msg) override;
   std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage &msg) override;
@@ -102,23 +104,15 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
 
 ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     const CreateMessage &msg) {
-  FlutterDesktopViewRef flutter_view =
-      FlutterDesktopPluginRegistrarGetView(registrar_ref_);
-  if (!flutter_view) {
+  if (!FlutterDesktopPluginRegistrarGetView(registrar_ref_)) {
     return FlutterError("Operation failed", "Could not get a Flutter view.");
   }
-  void *native_window = FlutterDesktopViewGetNativeHandle(flutter_view);
-  if (!native_window) {
-    return FlutterError("Operation failed",
-                        "Could not get a native window handle.");
-  }
-  std::unique_ptr<VideoPlayer> player =
-      std::make_unique<VideoPlayer>(plugin_registrar_, native_window);
-
   std::string uri;
   int32_t drm_type = 0;  // DRM_TYPE_NONE
   std::string license_server_url;
-  const flutter::EncodableMap *http_headers = nullptr;
+  bool prebuffer_mode;
+  std::string format;
+  flutter::EncodableMap http_headers = {};
 
   if (msg.asset() && !msg.asset()->empty()) {
     char *res_path = app_get_resource_path();
@@ -130,6 +124,9 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     }
   } else if (msg.uri() && !msg.uri()->empty()) {
     uri = *msg.uri();
+    if (msg.format_hint() && !msg.format_hint()->empty()) {
+      format = *msg.format_hint();
+    }
 
     const flutter::EncodableMap *drm_configs = msg.drm_configs();
     if (drm_configs) {
@@ -147,18 +144,36 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
       }
     }
 
-    http_headers = msg.http_headers();
+    const flutter::EncodableMap *player_options = msg.player_options();
+    if (player_options) {
+      auto iter =
+          player_options->find(flutter::EncodableValue("prebufferMode"));
+      if (iter != player_options->end()) {
+        if (std::holds_alternative<bool>(iter->second)) {
+          prebuffer_mode = std::get<bool>(iter->second);
+        }
+      }
+    }
+
+    const flutter::EncodableMap *http_headers_map = msg.http_headers();
+    if (http_headers_map) {
+      http_headers = *http_headers_map;
+    }
+
   } else {
     return FlutterError("Invalid argument", "Either asset or uri must be set.");
   }
 
-  int64_t player_id =
-      player->Create(uri, drm_type, license_server_url, http_headers);
+  int64_t player_id = 0;
+  auto player = std::make_unique<MediaPlayer>(
+      plugin_registrar_->messenger(),
+      FlutterDesktopPluginRegistrarGetView(registrar_ref_));
+  player_id = player->Create(uri, drm_type, license_server_url, prebuffer_mode,
+                             http_headers);
   if (player_id == -1) {
     return FlutterError("Operation failed", "Failed to create a player.");
   }
   players_[player_id] = std::move(player);
-
   PlayerMessage result(player_id);
   return result;
 }
@@ -177,10 +192,11 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
     const LoopingMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+    return FlutterError("Invalid argument", "Player not found");
   }
-  player->SetLooping(msg.is_looping());
-
+  if (!player->SetLooping(msg.is_looping())) {
+    return FlutterError("SetLooping", "Player set looping failed");
+  }
   return std::nullopt;
 }
 
@@ -188,10 +204,11 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
     const VolumeMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+    return FlutterError("Invalid argument", "Player not found");
   }
-  player->SetVolume(msg.volume());
-
+  if (!player->SetVolume(msg.volume())) {
+    return FlutterError("SetVolume", "Player set volume failed");
+  }
   return std::nullopt;
 }
 
@@ -199,32 +216,72 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
     const PlaybackSpeedMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+    return FlutterError("Invalid argument", "Player not found");
   }
-  player->SetPlaybackSpeed(msg.speed());
-
+  if (!player->SetPlaybackSpeed(msg.speed())) {
+    return FlutterError("SetPlaybackSpeed", "Player set playback speed failed");
+  }
   return std::nullopt;
+}
+
+ErrorOr<TrackMessage> VideoPlayerTizenPlugin::Track(
+    const TrackTypeMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+
+  TrackMessage result(msg.player_id(), player->GetTrackInfo(msg.track_type()));
+  return result;
+}
+
+ErrorOr<bool> VideoPlayerTizenPlugin::SetTrackSelection(
+    const SelectedTracksMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  return player->SetTrackSelection(msg.track_id(), msg.track_type());
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
     const PlayerMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+    return FlutterError("Invalid argument", "Player not found");
   }
-  player->Play();
-
+  if (!player->Play()) {
+    return FlutterError("Play", "Player play failed");
+  }
   return std::nullopt;
+}
+
+ErrorOr<bool> VideoPlayerTizenPlugin::SetDeactivate(const PlayerMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  return player->Deactivate();
+}
+
+ErrorOr<bool> VideoPlayerTizenPlugin::SetActivate(const PlayerMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  return player->Activate();
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
     const PlayerMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+    return FlutterError("Invalid argument", "Player not found");
   }
-  player->Pause();
-
+  if (!player->Pause()) {
+    return FlutterError("Pause", "Player pause failed");
+  }
   return std::nullopt;
 }
 
@@ -232,9 +289,8 @@ ErrorOr<PositionMessage> VideoPlayerTizenPlugin::Position(
     const PlayerMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+    return FlutterError("Invalid argument", "Player not found");
   }
-
   PositionMessage result(msg.player_id(), player->GetPosition());
   return result;
 }
@@ -244,43 +300,22 @@ void VideoPlayerTizenPlugin::SeekTo(
     std::function<void(std::optional<FlutterError> reply)> result) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    result(FlutterError("Invalid argument", "Player not found."));
+    result(FlutterError("Invalid argument", "Player not found"));
     return;
   }
-  player->SeekTo(msg.position(), [result]() -> void { result(std::nullopt); });
-}
-
-ErrorOr<TrackMessage> VideoPlayerTizenPlugin::Track(
-    const TrackTypeMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+  if (!player->SeekTo(msg.position(),
+                      [result]() -> void { result(std::nullopt); })) {
+    result(FlutterError("SeekTo", "Player seek to failed"));
   }
-
-  TrackMessage result(msg.player_id(), player->getTrackInfo(msg.track_type()));
-  return result;
-}
-
-std::optional<FlutterError> VideoPlayerTizenPlugin::SetTrackSelection(
-    const SelectedTracksMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
-  }
-  player->SetTrackSelection(msg.track_id(), msg.track_type());
-
-  return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(
     const GeometryMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found.");
+    return FlutterError("Invalid argument", "Player not found");
   }
   player->SetDisplayRoi(msg.x(), msg.y(), msg.width(), msg.height());
-
   return std::nullopt;
 }
 
@@ -297,16 +332,4 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
   VideoPlayerTizenPlugin::RegisterWithRegistrar(
       registrar, flutter::PluginRegistrarManager::GetInstance()
                      ->GetRegistrar<flutter::PluginRegistrar>(registrar));
-}
-
-intptr_t VideoPlayerTizenPluginInitDartApi(void *data) {
-  return Dart_InitializeApiDL(data);
-}
-
-void VideoPlayerTizenPluginRegisterSendPort(int64_t player_id,
-                                            Dart_Port send_port) {
-  VideoPlayer *player = VideoPlayerTizenPlugin::FindPlayerById(player_id);
-  if (player) {
-    player->RegisterSendPort(send_port);
-  }
 }

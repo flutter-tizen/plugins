@@ -4,248 +4,326 @@
 
 #include "drm_manager.h"
 
+#include <flutter/method_result_functions.h>
+#include <flutter/standard_method_codec.h>
+
 #include "drm_license_helper.h"
+#include "drm_manager_proxy.h"
 #include "log.h"
 
 static std::string GetDrmSubType(int drm_type) {
   switch (drm_type) {
-    case DRM_TYPE_PLAYREADAY:
+    case DrmManager::DRM_TYPE_PLAYREADAY:
       return "com.microsoft.playready";
-    case DRM_TYPE_WIDEVINECDM:
+    case DrmManager::DRM_TYPE_WIDEVINECDM:
     default:
       return "com.widevine.alpha";
   }
 }
 
-DrmManager::DrmManager(int drm_type, const std::string &license_server_url,
-                       player_h player)
-    : drm_type_(drm_type),
-      license_server_url_(license_server_url),
-      player_(player) {}
-
-DrmManager::~DrmManager() {}
-
-bool DrmManager::InitializeDrmSession(const std::string &url) {
-  drm_manager_handle_ = OpenDrmManager();
-  if (!drm_manager_handle_) {
-    LOG_ERROR("[DrmManager] Failed to dlopen libdrmmanager.");
-    return false;
+DrmManager::DrmManager() : drm_type_(DM_TYPE_NONE) {
+  drm_manager_proxy_ = OpenDrmManagerProxy();
+  if (drm_manager_proxy_) {
+    int ret = InitDrmManagerProxy(drm_manager_proxy_);
+    if (ret != DM_ERROR_NONE) {
+      LOG_ERROR("[DrmManager] Fail to initialize DRM manager: %s",
+                get_error_message(ret));
+      CloseDrmManagerProxy(drm_manager_proxy_);
+      drm_manager_proxy_ = nullptr;
+    }
+  } else {
+    LOG_ERROR("[DrmManager] Fail to dlopen libdrmmanager.");
   }
-  int ret = InitDrmManager(drm_manager_handle_);
-  if (ret != DM_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] Failed to initialize DRM manager: %s",
-              get_error_message(ret));
-    return false;
-  }
-
-  media_player_handle_ = OpenMediaPlayer();
-  if (!media_player_handle_) {
-    LOG_ERROR("[DrmManager] Failed to dlopen libcapi-media-player.");
-    return false;
-  }
-  ret = InitMediaPlayer(media_player_handle_);
-  if (ret != DM_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] Failed to initialize Media Player: %s",
-              get_error_message(ret));
-    return false;
-  }
-
-  if (!CreateDrmSession()) {
-    LOG_ERROR("[DrmManager] Failed to create a DRM session.");
-    return false;
-  }
-
-  if (!SetPlayerDrm(url)) {
-    LOG_ERROR("[DrmManager] Failed to set player DRM handle.");
-    return false;
-  }
-
-  if (!SetChallengeCondition()) {
-    LOG_ERROR("[DrmManager] Failed to set challenge condition.");
-    return false;
-  }
-
-  ret = DMGRSetData(drm_session_, "Initialize", nullptr);
-  if (ret != DM_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] Failed to initialize DRM session.");
-    return false;
-  }
-  return true;
 }
 
-bool DrmManager::CreateDrmSession() {
-  std::string sub_type = GetDrmSubType(drm_type_);
-  LOG_INFO("[DrmManager] drm_sub_type: %s", sub_type.c_str());
+DrmManager::~DrmManager() {
+  ReleaseDrmSession();
 
+  if (drm_manager_proxy_) {
+    CloseDrmManagerProxy(drm_manager_proxy_);
+    drm_manager_proxy_ = nullptr;
+  }
+}
+
+bool DrmManager::CreateDrmSession(int drm_type, bool local_mode) {
+  if (!drm_manager_proxy_) {
+    LOG_ERROR("[DrmManager] Invalid handle of libdrmmanager.");
+    return false;
+  }
+
+  if (local_mode) {
+    DMGRSetDRMLocalMode();
+  }
+
+  drm_type_ = drm_type;
+  std::string sub_type = GetDrmSubType(drm_type);
+  LOG_INFO("[DrmManager] drm type is %s", sub_type.c_str());
   drm_session_ = DMGRCreateDRMSession(DM_TYPE_EME, sub_type.c_str());
   if (!drm_session_) {
-    LOG_ERROR("[DrmManager] DMGRCreateDRMSession failed.");
+    LOG_ERROR("[DrmManager] Fail to create drm session.");
     return false;
   }
-  LOG_INFO("[DrmManager] drm_session: %p", drm_session_);
-
-  return true;
-}
-
-bool DrmManager::SetPlayerDrm(const std::string &url) {
-  int ret = DMGRSetData(drm_session_, "set_playready_manifest",
-                        static_cast<void *>(const_cast<char *>(url.c_str())));
-  if (ret != DM_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] Setting set_playready_manifest failed: %s",
-              get_error_message(ret));
-    return false;
-  }
+  LOG_INFO("[DrmManager] Drm session is created, drm_session: %p",
+           drm_session_);
 
   SetDataParam_t configure_param = {};
   configure_param.param1 = reinterpret_cast<void *>(OnDrmManagerError);
   configure_param.param2 = drm_session_;
-  ret = DMGRSetData(drm_session_, "error_event_callback", &configure_param);
+  int ret = DMGRSetData(drm_session_, "error_event_callback", &configure_param);
   if (ret != DM_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] Setting error_event_callback failed: %s",
-              get_error_message(ret));
+    LOG_ERROR(
+        "[DrmManager] Fail to set error_event_callback to drm session: %s",
+        get_error_message(ret));
+    ReleaseDrmSession();
     return false;
   }
 
-  int drm_handle = 0;
-  ret = DMGRGetData(drm_session_, "drm_handle", &drm_handle);
-  if (ret != DM_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] Getting drm_handle failed: %s",
-              get_error_message(ret));
-    return false;
-  }
-  LOG_INFO("[DrmManager] drm_handle: %d", drm_handle);
-
-  ret = player_set_drm_handle(player_, PLAYER_DRM_TYPE_EME, drm_handle);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] player_set_drm_handle failed: %s",
-              get_error_message(ret));
-    return false;
-  }
-
-  // IMPORTANT: SetDataParam_t cannot be stack allocated because
-  // DMGRSecurityInitCompleteCB is called multiple times during video playback
-  // and the parameter should always be available.
-  security_param_ = {};
-  security_param_.param1 = player_;
-  security_param_.param2 = drm_session_;
-  ret = player_set_drm_init_complete_cb(player_, DMGRSecurityInitCompleteCB,
-                                        &security_param_);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] player_set_drm_init_complete_cb failed: %s",
-              get_error_message(ret));
-    return false;
-  }
-
-  ret = player_set_drm_init_data_cb(player_, UpdatePsshDataCB, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] player_set_drm_init_data_cb failed: %s",
-              get_error_message(ret));
-    return false;
-  }
   return true;
 }
 
-bool DrmManager::SetChallengeCondition() {
+bool DrmManager::SetChallenge(const std::string &media_url,
+                              flutter::BinaryMessenger *binary_messenger) {
+  request_license_channel_ =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          binary_messenger, "dev.flutter.videoplayer.drm",
+          &flutter::StandardMethodCodec::GetInstance());
+  return DM_ERROR_NONE == SetChallenge(media_url);
+}
+
+bool DrmManager::SetChallenge(const std::string &media_url,
+                              const std::string &license_server_url) {
+  license_server_url_ = license_server_url;
+  return DM_ERROR_NONE == SetChallenge(media_url);
+}
+
+void DrmManager::ReleaseDrmSession() {
+  if (source_id_ > 0) {
+    g_source_remove(source_id_);
+  }
+  source_id_ = 0;
+
+  if (drm_session_) {
+    int ret = 0;
+    if (initialized_) {
+      ret = DMGRSetData(drm_session_, "Finalize", nullptr);
+      if (ret == DM_ERROR_NONE) {
+        initialized_ = false;
+      } else {
+        LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
+                  get_error_message(ret));
+      }
+    }
+    ret = DMGRReleaseDRMSession(drm_session_);
+    if (ret == DM_ERROR_NONE) {
+      drm_session_ = nullptr;
+    } else {
+      LOG_ERROR("[DrmManager] Fail to release drm session: %s",
+                get_error_message(ret));
+    }
+  }
+}
+
+bool DrmManager::GetDrmHandle(int *handle) {
+  if (drm_session_) {
+    *handle = 0;
+    int ret = DMGRGetData(drm_session_, "drm_handle", handle);
+    if (ret != DM_ERROR_NONE) {
+      LOG_ERROR("[DrmManager] Fail to get drm_handle from drm session: %s",
+                get_error_message(ret));
+      return false;
+    }
+    LOG_INFO("[DrmManager] Get drm handle: %d", *handle);
+    return true;
+  } else {
+    LOG_ERROR("[DrmManager] Invalid drm session.");
+    return false;
+  }
+}
+
+int DrmManager::UpdatePsshData(const void *data, int length) {
+  if (!drm_session_) {
+    LOG_ERROR("[DrmManager] Invalid drm session.");
+    return DM_ERROR_INVALID_SESSION;
+  }
+
+  SetDataParam_t pssh_data_param = {};
+  pssh_data_param.param1 = const_cast<void *>(data);
+  pssh_data_param.param2 = reinterpret_cast<void *>(length);
+  int ret = DMGRSetData(drm_session_, "update_pssh_data", &pssh_data_param);
+  if (DM_ERROR_NONE != ret) {
+    LOG_ERROR("[DrmManager] Fail to set update_pssh_data to drm session: %s",
+              get_error_message(ret));
+  }
+  return ret;
+}
+
+bool DrmManager::SecurityInitCompleteCB(int *drm_handle, unsigned int len,
+                                        unsigned char *pssh_data,
+                                        void *user_data) {
+  // IMPORTANT: SetDataParam_t cannot be stack allocated because
+  // DMGRSecurityInitCompleteCB is called multiple times during video playback
+  // and the parameter should always be available.
+  SetDataParam_t security_param = {};
+  if (user_data) {
+    security_param.param1 = user_data;
+  }
+  security_param.param2 = drm_session_;
+
+  return DMGRSecurityInitCompleteCB(drm_handle, len, pssh_data,
+                                    &security_param);
+}
+
+int DrmManager::SetChallenge(const std::string &media_url) {
+  LOG_ERROR("[DrmManager] SetChallenge url = %s", media_url.c_str());
+  if (!drm_session_) {
+    LOG_ERROR("[DrmManager] Invalid drm session.");
+    return DM_ERROR_INVALID_SESSION;
+  }
+
   SetDataParam_t challenge_data_param = {};
   challenge_data_param.param1 = reinterpret_cast<void *>(OnChallengeData);
   challenge_data_param.param2 = this;
   int ret = DMGRSetData(drm_session_, "eme_request_key_callback",
                         &challenge_data_param);
   if (ret != DM_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] Setting eme_request_key_callback failed: %s",
-              get_error_message(ret));
-    return false;
+    LOG_ERROR(
+        "[DrmManager] Fail to set eme_request_key_callback to drm session: "
+        "%s",
+        get_error_message(ret));
+    return ret;
   }
-  return true;
+
+  ret = DMGRSetData(drm_session_, "set_playready_manifest",
+                    static_cast<void *>(const_cast<char *>(media_url.c_str())));
+  if (ret != DM_ERROR_NONE) {
+    LOG_ERROR(
+        "[DrmManager] Fail to set set_playready_manifest to drm session: %s",
+        get_error_message(ret));
+    return ret;
+  }
+
+  ret = DMGRSetData(drm_session_, "Initialize", nullptr);
+  if (ret != DM_ERROR_NONE) {
+    LOG_ERROR("[DrmManager] Fail to set initialize to drm session: %s",
+              get_error_message(ret));
+    return ret;
+  }
+  initialized_ = true;
+  return ret;
 }
 
 int DrmManager::OnChallengeData(void *session_id, int message_type,
                                 void *message, int message_length,
                                 void *user_data) {
-  LOG_INFO("[DrmManager] session_id: %s", session_id);
-  DrmManager *self = static_cast<DrmManager *>(user_data);
+  LOG_INFO("[DrmManager] challenge data: %s, challenge length: %d", message,
+           message_length);
 
-  LOG_INFO("[DrmManager] drm_type: %d", self->drm_type_);
-  LOG_INFO("[DrmManager] license_server_url: %s",
+  DrmManager *self = static_cast<DrmManager *>(user_data);
+  LOG_INFO("[DrmManager] drm_type: %d, license server: %s", self->drm_type_,
            self->license_server_url_.c_str());
-  LOG_INFO("[DrmManager] Challenge length: %d", message_length);
-
-  std::vector<uint8_t> response;
-  if (!self->license_server_url_.empty()) {
-    // Get license via the license server.
-    unsigned char *response_data = nullptr;
-    unsigned long response_length = 0;
-    DRM_RESULT ret = DrmLicenseHelper::DoTransactionTZ(
-        self->license_server_url_.c_str(), message, message_length,
-        &response_data, &response_length,
-        static_cast<DrmLicenseHelper::DrmType>(self->drm_type_), nullptr,
-        nullptr);
-    LOG_INFO("[DrmManager] Transaction result: 0x%lx", ret);
-    response =
-        std::vector<uint8_t>(response_data, response_data + response_length);
-    free(response_data);
-  } else {
-    // Get license via the Dart callback.
-    std::vector<uint8_t> challenge(
-        static_cast<uint8_t *>(message),
-        static_cast<uint8_t *>(message) + message_length);
-    response = self->challenge_callback_(challenge);
+  DataForLicenseProcess *data =
+      new DataForLicenseProcess(session_id, message, message_length);
+  data->user_data = self;
+  self->source_id_ = g_idle_add(ProcessLicense, data);
+  if (self->source_id_ <= 0) {
+    LOG_ERROR("[DrmManager] Fail to add g_idle.");
+    delete data;
+    return DM_ERROR_INTERNAL_ERROR;
   }
-  LOG_INFO("[DrmManager] Response length: %d", response.size());
-
-  SetDataParam_t license_param = {};
-  license_param.param1 = session_id;
-  license_param.param2 = response.data();
-  license_param.param3 = reinterpret_cast<void *>(response.size());
-  int ret = DMGRSetData(self->drm_session_, "install_eme_key", &license_param);
-  if (ret != DM_ERROR_NONE) {
-    LOG_ERROR("[DrmManager] Setting install_eme_key failed: %s",
-              get_error_message(ret));
-  }
-  return 0;
-}
-
-int DrmManager::UpdatePsshDataCB(drm_init_data_type type, void *data,
-                                 int length, void *user_data) {
-  DrmManager *self = static_cast<DrmManager *>(user_data);
-  LOG_INFO("[DrmManager] drm_session: %p", self->drm_session_);
-
-  SetDataParam_t pssh_data_param = {};
-  pssh_data_param.param1 = data;
-  pssh_data_param.param2 = reinterpret_cast<void *>(length);
-  int ret =
-      DMGRSetData(self->drm_session_, "update_pssh_data", &pssh_data_param);
-  if (DM_ERROR_NONE != ret) {
-    LOG_ERROR("[DrmManager] Setting update_pssh_data failed: %s",
-              get_error_message(ret));
-    return 0;
-  }
-  return 1;
-}
-
-void DrmManager::ReleaseDrmSession() {
-  if (drm_session_) {
-    int ret = DMGRSetData(drm_session_, "Finalize", nullptr);
-    if (ret != DM_ERROR_NONE) {
-      LOG_ERROR("[DrmManager] Finalize failed: %s", get_error_message(ret));
-    }
-    ret = DMGRReleaseDRMSession(drm_session_);
-    if (ret != DM_ERROR_NONE) {
-      LOG_ERROR("[DrmManager] Releasing DRM session failed: %s",
-                get_error_message(ret));
-    }
-    drm_session_ = nullptr;
-  }
-
-  // Close dlopen handles.
-  CloseDrmManager(drm_manager_handle_);
-  drm_manager_handle_ = nullptr;
-  CloseMediaPlayer(media_player_handle_);
-  media_player_handle_ = nullptr;
+  return DM_ERROR_NONE;
 }
 
 void DrmManager::OnDrmManagerError(long error_code, char *error_message,
                                    void *user_data) {
-  LOG_ERROR("[DrmManager] DRM manager had error: [%ld][%s]", error_code,
+  LOG_ERROR("[DrmManager] DRM manager had an error: [%ld][%s]", error_code,
             error_message);
+}
+
+gboolean DrmManager::ProcessLicense(void *user_data) {
+  LOG_INFO("[DrmManager] Start process license.");
+
+  DataForLicenseProcess *data = static_cast<DataForLicenseProcess *>(user_data);
+  DrmManager *self = static_cast<DrmManager *>(data->user_data);
+
+  if (!self->license_server_url_.empty()) {
+    // Get license via the license server.
+    unsigned char *response_data = nullptr;
+    unsigned long response_len = 0;
+    DRM_RESULT ret = DrmLicenseHelper::DoTransactionTZ(
+        self->license_server_url_.c_str(), data->message.c_str(),
+        data->message.size(), &response_data, &response_len,
+        static_cast<DrmLicenseHelper::DrmType>(self->drm_type_), nullptr,
+        nullptr);
+    if (DRM_SUCCESS != ret || nullptr == response_data || 0 == response_len) {
+      LOG_ERROR("[DrmManager] Fail to get respone by license server url.");
+      delete data;
+      return false;
+    }
+    LOG_INFO("[DrmManager] Response length : %d", response_len);
+    self->InstallKey(const_cast<void *>(reinterpret_cast<const void *>(
+                         data->session_id.c_str())),
+                     static_cast<void *>(response_data),
+                     reinterpret_cast<void *>(response_len));
+  } else if (self->request_license_channel_) {
+    // Get license via the Dart callback.
+    self->RequestLicense(data->session_id, data->message);
+  } else {
+    LOG_ERROR("[DrmManager] No way to request license.");
+  }
+
+  delete data;
+  return false;
+}
+
+void DrmManager::InstallKey(void *session_id, void *response_data,
+                            void *response_len) {
+  LOG_INFO("[DrmManager] Start install license.");
+
+  SetDataParam_t license_param = {};
+  license_param.param1 = session_id;
+  license_param.param2 = response_data;
+  license_param.param3 = response_len;
+  int ret = DMGRSetData(drm_session_, "install_eme_key", &license_param);
+  if (ret != DM_ERROR_NONE) {
+    LOG_ERROR("[DrmManager] Fail to install eme key: %s",
+              get_error_message(ret));
+  }
+}
+
+void DrmManager::RequestLicense(std::string &session_id, std::string &message) {
+  LOG_INFO("[DrmManager] Start request license.");
+
+  if (request_license_channel_ == nullptr) {
+    LOG_ERROR("[DrmManager] request license channel is null.");
+    return;
+  }
+
+  std::vector<uint8_t> message_vec(message.begin(), message.end());
+  flutter::EncodableMap args_map = {
+      {flutter::EncodableValue("message"),
+       flutter::EncodableValue(message_vec)},
+  };
+  auto result_handler =
+      std::make_unique<flutter::MethodResultFunctions<flutter::EncodableValue>>(
+
+          [session_id, this](const flutter::EncodableValue *success_value) {
+            std::vector<uint8_t> response;
+            if (std::holds_alternative<std::vector<uint8_t>>(*success_value)) {
+              response = std::get<std::vector<uint8_t>>(*success_value);
+            } else {
+              LOG_ERROR("[DrmManager] Fail to get response.");
+              return;
+            }
+            LOG_INFO("[DrmManager] Response length : %d", response.size());
+            InstallKey(const_cast<void *>(
+                           reinterpret_cast<const void *>(session_id.c_str())),
+                       reinterpret_cast<void *>(response.data()),
+                       reinterpret_cast<void *>(response.size()));
+          },
+          nullptr, nullptr);
+  request_license_channel_->InvokeMethod(
+      "requestLicense",
+      std::make_unique<flutter::EncodableValue>(
+          flutter::EncodableValue(args_map)),
+      std::move(result_handler));
 }

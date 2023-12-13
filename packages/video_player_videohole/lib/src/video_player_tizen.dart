@@ -41,6 +41,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.formatHint = _videoFormatStringMap[dataSource.formatHint];
         message.httpHeaders = dataSource.httpHeaders;
         message.drmConfigs = dataSource.drmConfigs?.toMap();
+        message.playerOptions = dataSource.playerOptions;
         break;
       case DataSourceType.file:
         message.uri = dataSource.uri;
@@ -63,6 +64,16 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   @override
   Future<void> play(int playerId) {
     return _api.play(PlayerMessage(playerId: playerId));
+  }
+
+  @override
+  Future<bool> setActivate(int playerId) {
+    return _api.setActivate(PlayerMessage(playerId: playerId));
+  }
+
+  @override
+  Future<bool> setDeactivate(int playerId) {
+    return _api.setDeactivate(PlayerMessage(playerId: playerId));
   }
 
   @override
@@ -93,9 +104,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<List<VideoTrack>> getVideoTracks(int playerId) async {
     final TrackMessage response = await _api.track(TrackTypeMessage(
       playerId: playerId,
-      trackType: _intTrackTypeMap.keys.firstWhere(
-          (int key) => _intTrackTypeMap[key] == TrackType.video,
-          orElse: () => -1),
+      trackType: TrackType.video.name,
     ));
 
     final List<VideoTrack> videoTracks = <VideoTrack>[];
@@ -120,9 +129,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<List<AudioTrack>> getAudioTracks(int playerId) async {
     final TrackMessage response = await _api.track(TrackTypeMessage(
       playerId: playerId,
-      trackType: _intTrackTypeMap.keys.firstWhere(
-          (int key) => _intTrackTypeMap[key] == TrackType.audio,
-          orElse: () => -1),
+      trackType: TrackType.audio.name,
     ));
 
     final List<AudioTrack> audioTracks = <AudioTrack>[];
@@ -148,22 +155,17 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<List<TextTrack>> getTextTracks(int playerId) async {
     final TrackMessage response = await _api.track(TrackTypeMessage(
       playerId: playerId,
-      trackType: _intTrackTypeMap.keys.firstWhere(
-          (int key) => _intTrackTypeMap[key] == TrackType.text,
-          orElse: () => -1),
+      trackType: TrackType.text.name,
     ));
 
     final List<TextTrack> textTracks = <TextTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
       final String language = trackMap['language']! as String;
-      final TextTrackSubtitleType subtitleType =
-          _intSubtitleTypeMap[trackMap['subtitleType']]!;
 
       textTracks.add(TextTrack(
         trackId: trackId,
         language: language,
-        subtitleType: subtitleType,
       ));
     }
 
@@ -171,13 +173,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Future<void> setTrackSelection(int playerId, Track track) {
+  Future<bool> setTrackSelection(int playerId, Track track) {
     return _api.setTrackSelection(SelectedTracksMessage(
       playerId: playerId,
       trackId: track.trackId,
-      trackType: _intTrackTypeMap.keys.firstWhere(
-          (int key) => _intTrackTypeMap[key] == track.trackType,
-          orElse: () => -1),
+      trackType: track.trackType.name,
     ));
   }
 
@@ -268,22 +268,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     VideoFormat.other: 'other',
   };
 
-  static const Map<int, TrackType> _intTrackTypeMap = <int, TrackType>{
-    1: TrackType.audio,
-    2: TrackType.video,
-    3: TrackType.text,
-  };
-
   static const Map<int, AudioTrackChannelType> _intChannelTypeMap =
       <int, AudioTrackChannelType>{
     1: AudioTrackChannelType.mono,
     2: AudioTrackChannelType.stereo,
     3: AudioTrackChannelType.surround,
-  };
-
-  static const Map<int, TextTrackSubtitleType> _intSubtitleTypeMap =
-      <int, TextTrackSubtitleType>{
-    0: TextTrackSubtitleType.text,
-    1: TextTrackSubtitleType.picture,
   };
 }
