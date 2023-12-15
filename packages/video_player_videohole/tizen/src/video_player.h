@@ -54,6 +54,7 @@ class VideoPlayer {
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
   void *GetWindowHandle();
   int64_t SetUpEventChannel();
+  void ClearUpEventChannel();
   void SendInitialized();
   void SendBufferingStart();
   void SendBufferingUpdate(int32_t value);

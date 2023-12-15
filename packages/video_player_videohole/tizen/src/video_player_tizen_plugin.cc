@@ -110,7 +110,7 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   std::string uri;
   int32_t drm_type = 0;  // DRM_TYPE_NONE
   std::string license_server_url;
-  bool prebuffer_mode;
+  bool prebuffer_mode = false;
   std::string format;
   flutter::EncodableMap http_headers = {};
 
