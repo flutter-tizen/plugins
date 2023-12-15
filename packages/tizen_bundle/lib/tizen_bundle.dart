@@ -20,20 +20,20 @@ class Bundle extends MapMixin<String, Object> {
   /// Creates an empty [Bundle].
   Bundle() {
     _handle = tizen.bundle_create();
-    _finalizer.attach(this, this, detach: this);
+    _finalizer.attach(this, _handle, detach: this);
   }
 
   /// Creates a [Bundle] from the encoded bundle string.
   Bundle.decode(String raw) {
     _handle = tizen.bundle_decode(
         raw.toNativeInt8().cast<UnsignedChar>(), raw.length);
-    _finalizer.attach(this, this, detach: this);
+    _finalizer.attach(this, _handle, detach: this);
   }
 
   /// Creates a copy of the given [bundle].
   Bundle.fromBundle(Bundle bundle) {
     _handle = tizen.bundle_dup(bundle._handle);
-    _finalizer.attach(this, this, detach: this);
+    _finalizer.attach(this, _handle, detach: this);
   }
 
   /// Creates a [Bundle] from the given [map].
@@ -44,8 +44,9 @@ class Bundle extends MapMixin<String, Object> {
   }
 
   late final Pointer<bundle> _handle;
-  static final Finalizer<Bundle> _finalizer =
-      Finalizer<Bundle>((Bundle bundle) => tizen.bundle_free(bundle._handle));
+  static final Finalizer<Pointer<bundle>> _finalizer =
+      Finalizer<Pointer<bundle>>(
+          (Pointer<bundle> bundle) => tizen.bundle_free(bundle));
 
   static final List<String> _keys = <String>[];
 
