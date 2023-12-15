@@ -186,7 +186,6 @@ bool DrmManager::SecurityInitCompleteCB(int *drm_handle, unsigned int len,
 }
 
 int DrmManager::SetChallenge(const std::string &media_url) {
-  LOG_ERROR("[DrmManager] SetChallenge url = %s", media_url.c_str());
   if (!drm_session_) {
     LOG_ERROR("[DrmManager] Invalid drm session.");
     return DM_ERROR_INVALID_SESSION;

@@ -164,12 +164,11 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     return FlutterError("Invalid argument", "Either asset or uri must be set.");
   }
 
-  int64_t player_id = 0;
   auto player = std::make_unique<MediaPlayer>(
       plugin_registrar_->messenger(),
       FlutterDesktopPluginRegistrarGetView(registrar_ref_));
-  player_id = player->Create(uri, drm_type, license_server_url, prebuffer_mode,
-                             http_headers);
+  int64_t player_id = player->Create(uri, drm_type, license_server_url,
+                                     prebuffer_mode, http_headers);
   if (player_id == -1) {
     return FlutterError("Operation failed", "Failed to create a player.");
   }

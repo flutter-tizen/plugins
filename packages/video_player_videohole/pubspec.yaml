@@ -16,7 +16,6 @@ flutter:
         fileName: video_player_tizen_plugin.h
 
 dependencies:
-  ffi: ^2.0.1
   flutter:
     sdk: flutter
   html: ^0.15.0
