@@ -408,7 +408,7 @@ int CbCurlProgress(void* ptr, double total_to_download, double now_downloaded,
              *http_cancel_request);
 
     if (*http_cancel_request) {
-      LOG_INFO("[DrmLicenseHelper] %s:%d curl works canceled.");
+      LOG_INFO("[DrmLicenseHelper] curl works canceled.");
       return 1;
     }
   }

@@ -1,3 +1,7 @@
+## 0.4.0
+
+* Merge media player code from avplay.
+
 ## 0.3.0
 
 * Implement `httpHeaders` of `VideoPlayerController.network`.

@@ -2,26 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "drm_manager_service_proxy.h"
+#include "drm_manager_proxy.h"
 
 #include <dlfcn.h>
 
 FuncDMGRSetData DMGRSetData = nullptr;
 FuncDMGRGetData DMGRGetData = nullptr;
+FuncDMGRSetDRMLocalMode DMGRSetDRMLocalMode = nullptr;
 FuncDMGRCreateDRMSession DMGRCreateDRMSession = nullptr;
 FuncDMGRSecurityInitCompleteCB DMGRSecurityInitCompleteCB = nullptr;
 FuncDMGRReleaseDRMSession DMGRReleaseDRMSession = nullptr;
-FuncPlayerSetDrmHandle player_set_drm_handle = nullptr;
-FuncPlayerSetDrmInitCompleteCB player_set_drm_init_complete_cb = nullptr;
-FuncPlayerSetDrmInitDataCB player_set_drm_init_data_cb = nullptr;
 
-void* OpenDrmManager() { return dlopen("libdrmmanager.so.0", RTLD_LAZY); }
+void* OpenDrmManagerProxy() { return dlopen("libdrmmanager.so.0", RTLD_LAZY); }
 
-void* OpenMediaPlayer() {
-  return dlopen("libcapi-media-player.so.0", RTLD_LAZY);
-}
-
-int InitDrmManager(void* handle) {
+int InitDrmManagerProxy(void* handle) {
   if (!handle) {
     return DM_ERROR_INVALID_PARAM;
   }
@@ -33,6 +27,12 @@ int InitDrmManager(void* handle) {
 
   DMGRGetData = reinterpret_cast<FuncDMGRGetData>(dlsym(handle, "DMGRGetData"));
   if (!DMGRGetData) {
+    return DM_ERROR_DL;
+  }
+
+  DMGRSetDRMLocalMode = reinterpret_cast<FuncDMGRSetDRMLocalMode>(
+      dlsym(handle, "DMGRSetDRMLocalMode"));
+  if (!DMGRSetDRMLocalMode) {
     return DM_ERROR_DL;
   }
 
@@ -57,36 +57,7 @@ int InitDrmManager(void* handle) {
   return DM_ERROR_NONE;
 }
 
-int InitMediaPlayer(void* handle) {
-  player_set_drm_handle = reinterpret_cast<FuncPlayerSetDrmHandle>(
-      dlsym(handle, "player_set_drm_handle"));
-  if (!player_set_drm_handle) {
-    return DM_ERROR_DL;
-  }
-
-  player_set_drm_init_complete_cb =
-      reinterpret_cast<FuncPlayerSetDrmInitCompleteCB>(
-          dlsym(handle, "player_set_drm_init_complete_cb"));
-  if (!player_set_drm_init_complete_cb) {
-    return DM_ERROR_DL;
-  }
-
-  player_set_drm_init_data_cb = reinterpret_cast<FuncPlayerSetDrmInitDataCB>(
-      dlsym(handle, "player_set_drm_init_data_cb"));
-  if (!player_set_drm_init_data_cb) {
-    return DM_ERROR_DL;
-  }
-
-  return DM_ERROR_NONE;
-}
-
-void CloseDrmManager(void* handle) {
-  if (handle) {
-    dlclose(handle);
-  }
-}
-
-void CloseMediaPlayer(void* handle) {
+void CloseDrmManagerProxy(void* handle) {
   if (handle) {
     dlclose(handle);
   }

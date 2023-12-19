@@ -109,19 +109,15 @@ class AudioTrack extends Track {
 class TextTrack extends Track {
   /// Creates an instance of [TextTrack].
   ///
-  /// The [language] and [subtitleType] arguments are required.
+  /// The [language] arguments are required.
   ///
   /// [trackType] is [TrackType.text].
   TextTrack({
     required super.trackId,
     super.trackType = TrackType.text,
     required this.language,
-    required this.subtitleType,
   });
 
   /// The language of text track.
   final String language;
-
-  /// The subtitle type of track.
-  final TextTrackSubtitleType subtitleType;
 }
