@@ -82,6 +82,12 @@ class GeometryMessage {
   int height;
 }
 
+class DurationMessage{
+  DurationMessage(this.playerId);
+  int playerId;
+  List<int?>? durationRange;
+}
+
 @HostApi()
 abstract class VideoPlayerVideoholeApi {
   void initialize();
@@ -101,4 +107,5 @@ abstract class VideoPlayerVideoholeApi {
   void pause(PlayerMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);
   void setDisplayGeometry(GeometryMessage msg);
+  DurationMessage duration(PlayerMessage msg);
 }

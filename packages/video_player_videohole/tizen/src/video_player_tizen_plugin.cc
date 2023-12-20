@@ -36,6 +36,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   std::optional<FlutterError> Initialize() override;
   ErrorOr<PlayerMessage> Create(const CreateMessage &msg) override;
   std::optional<FlutterError> Dispose(const PlayerMessage &msg) override;
+  ErrorOr<DurationMessage> Duration(const PlayerMessage &msg) override;
   std::optional<FlutterError> SetLooping(const LoopingMessage &msg) override;
   std::optional<FlutterError> SetVolume(const VolumeMessage &msg) override;
   std::optional<FlutterError> SetPlaybackSpeed(
@@ -174,6 +175,21 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   }
   players_[player_id] = std::move(player);
   PlayerMessage result(player_id);
+  return result;
+}
+
+ErrorOr<DurationMessage> VideoPlayerTizenPlugin::Duration(
+    const PlayerMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  DurationMessage result(msg.player_id());
+  auto duration_pair = player->GetDuration();
+  flutter::EncodableList duration_range;
+  duration_range.push_back(flutter::EncodableValue(duration_pair.first));
+  duration_range.push_back(flutter::EncodableValue(duration_pair.second));
+  result.set_duration_range(duration_range);
   return result;
 }
 

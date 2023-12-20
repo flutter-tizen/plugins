@@ -332,6 +332,32 @@ class GeometryMessage {
   }
 }
 
+class DurationMessage {
+  DurationMessage({
+    required this.playerId,
+    this.durationRange,
+  });
+
+  int playerId;
+
+  List<int?>? durationRange;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      durationRange,
+    ];
+  }
+
+  static DurationMessage decode(Object result) {
+    result as List<Object?>;
+    return DurationMessage(
+      playerId: result[0]! as int,
+      durationRange: (result[1] as List<Object?>?)?.cast<int?>(),
+    );
+  }
+}
+
 class _VideoPlayerVideoholeApiCodec extends StandardMessageCodec {
   const _VideoPlayerVideoholeApiCodec();
   @override
@@ -339,35 +365,38 @@ class _VideoPlayerVideoholeApiCodec extends StandardMessageCodec {
     if (value is CreateMessage) {
       buffer.putUint8(128);
       writeValue(buffer, value.encode());
-    } else if (value is GeometryMessage) {
+    } else if (value is DurationMessage) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    } else if (value is LoopingMessage) {
+    } else if (value is GeometryMessage) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else if (value is MixWithOthersMessage) {
+    } else if (value is LoopingMessage) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is PlaybackSpeedMessage) {
+    } else if (value is MixWithOthersMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else if (value is PlayerMessage) {
+    } else if (value is PlaybackSpeedMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is PositionMessage) {
+    } else if (value is PlayerMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else if (value is SelectedTracksMessage) {
+    } else if (value is PositionMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else if (value is TrackMessage) {
+    } else if (value is SelectedTracksMessage) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    } else if (value is TrackTypeMessage) {
+    } else if (value is TrackMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is TrackTypeMessage) {
       buffer.putUint8(138);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(139);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -380,24 +409,26 @@ class _VideoPlayerVideoholeApiCodec extends StandardMessageCodec {
       case 128:
         return CreateMessage.decode(readValue(buffer)!);
       case 129:
-        return GeometryMessage.decode(readValue(buffer)!);
+        return DurationMessage.decode(readValue(buffer)!);
       case 130:
-        return LoopingMessage.decode(readValue(buffer)!);
+        return GeometryMessage.decode(readValue(buffer)!);
       case 131:
-        return MixWithOthersMessage.decode(readValue(buffer)!);
+        return LoopingMessage.decode(readValue(buffer)!);
       case 132:
-        return PlaybackSpeedMessage.decode(readValue(buffer)!);
+        return MixWithOthersMessage.decode(readValue(buffer)!);
       case 133:
-        return PlayerMessage.decode(readValue(buffer)!);
+        return PlaybackSpeedMessage.decode(readValue(buffer)!);
       case 134:
-        return PositionMessage.decode(readValue(buffer)!);
+        return PlayerMessage.decode(readValue(buffer)!);
       case 135:
-        return SelectedTracksMessage.decode(readValue(buffer)!);
+        return PositionMessage.decode(readValue(buffer)!);
       case 136:
-        return TrackMessage.decode(readValue(buffer)!);
+        return SelectedTracksMessage.decode(readValue(buffer)!);
       case 137:
-        return TrackTypeMessage.decode(readValue(buffer)!);
+        return TrackMessage.decode(readValue(buffer)!);
       case 138:
+        return TrackTypeMessage.decode(readValue(buffer)!);
+      case 139:
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -809,6 +840,34 @@ class VideoPlayerVideoholeApi {
       );
     } else {
       return;
+    }
+  }
+
+  Future<DurationMessage> duration(PlayerMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.video_player_videohole.VideoPlayerVideoholeApi.duration',
+        codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as DurationMessage?)!;
     }
   }
 }

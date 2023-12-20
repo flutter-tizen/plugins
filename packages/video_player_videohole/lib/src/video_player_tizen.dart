@@ -196,9 +196,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
+          final List<int> durationVal = map['duration']! as List<int>;
           return VideoEvent(
             eventType: VideoEventType.initialized,
-            duration: Duration(milliseconds: map['duration']! as int),
+            duration: DurationRange(Duration(milliseconds: durationVal[0]),
+                Duration(milliseconds: durationVal[1])),
             size: Size((map['width'] as num?)?.toDouble() ?? 0.0,
                 (map['height'] as num?)?.toDouble() ?? 0.0),
           );

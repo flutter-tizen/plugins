@@ -333,6 +333,32 @@ class GeometryMessage {
   int64_t height_;
 };
 
+// Generated class from Pigeon that represents data sent in messages.
+class DurationMessage {
+ public:
+  // Constructs an object setting all non-nullable fields.
+  explicit DurationMessage(int64_t player_id);
+
+  // Constructs an object setting all fields.
+  explicit DurationMessage(int64_t player_id,
+                           const flutter::EncodableList* duration_range);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  const flutter::EncodableList* duration_range() const;
+  void set_duration_range(const flutter::EncodableList* value_arg);
+  void set_duration_range(const flutter::EncodableList& value_arg);
+
+ private:
+  static DurationMessage FromEncodableList(const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerVideoholeApi;
+  friend class VideoPlayerVideoholeApiCodecSerializer;
+  int64_t player_id_;
+  std::optional<flutter::EncodableList> duration_range_;
+};
+
 class VideoPlayerVideoholeApiCodecSerializer
     : public flutter::StandardCodecSerializer {
  public:
@@ -378,6 +404,7 @@ class VideoPlayerVideoholeApi {
       const MixWithOthersMessage& msg) = 0;
   virtual std::optional<FlutterError> SetDisplayGeometry(
       const GeometryMessage& msg) = 0;
+  virtual ErrorOr<DurationMessage> Duration(const PlayerMessage& msg) = 0;
 
   // The codec used by VideoPlayerVideoholeApi.
   static const flutter::StandardMessageCodec& GetCodec();

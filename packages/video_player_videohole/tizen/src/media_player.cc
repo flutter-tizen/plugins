@@ -301,7 +301,7 @@ int64_t MediaPlayer::GetPosition() {
   return position;
 }
 
-int64_t MediaPlayer::GetDuration() {
+std::pair<int64_t, int64_t> MediaPlayer::GetDuration() {
   int duration = 0;
   int ret = player_get_duration(player_, &duration);
   if (ret != PLAYER_ERROR_NONE) {
@@ -309,7 +309,7 @@ int64_t MediaPlayer::GetDuration() {
               get_error_message(ret));
   }
   LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
-  return duration;
+  return std::make_pair(0, duration);
 }
 
 void MediaPlayer::GetVideoSize(int32_t *width, int32_t *height) {

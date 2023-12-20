@@ -271,7 +271,7 @@ class VideoEvent {
   /// Duration of the video.
   ///
   /// Only used if [eventType] is [VideoEventType.initialized].
-  final Duration? duration;
+  final DurationRange? duration;
 
   /// Size of the video.
   ///

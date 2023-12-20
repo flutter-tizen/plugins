@@ -57,12 +57,14 @@ class VideoPlayerValue {
 
   /// Returns an instance for a video that hasn't been loaded.
   VideoPlayerValue.uninitialized()
-      : this(duration: Duration.zero, isInitialized: false);
+      : this(
+            duration: DurationRange(Duration.zero, Duration.zero),
+            isInitialized: false);
 
   /// Returns an instance with the given [errorDescription].
   VideoPlayerValue.erroneous(String errorDescription)
       : this(
-            duration: Duration.zero,
+            duration: DurationRange(Duration.zero, Duration.zero),
             isInitialized: false,
             errorDescription: errorDescription);
 
@@ -73,7 +75,7 @@ class VideoPlayerValue {
   /// The total duration of the video.
   ///
   /// The duration is [Duration.zero] if the video hasn't been initialized.
-  final Duration duration;
+  final DurationRange duration;
 
   /// The current playback position.
   final Duration position;
@@ -145,7 +147,7 @@ class VideoPlayerValue {
   /// Returns a new instance that has the same values as this current instance,
   /// except for any overrides passed in as arguments to [copyWidth].
   VideoPlayerValue copyWith({
-    Duration? duration,
+    DurationRange? duration,
     Size? size,
     Duration? position,
     Caption? caption,
@@ -226,7 +228,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         httpHeaders = const <String, String>{},
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
-        super(VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero)));
 
   /// Constructs a [VideoPlayerController] playing a video from obtained from
   /// the network.
@@ -247,7 +250,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.playerOptions,
   })  : dataSourceType = DataSourceType.network,
         package = null,
-        super(VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero)));
 
   /// Constructs a [VideoPlayerController] playing a video from a file.
   ///
@@ -264,7 +268,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         httpHeaders = const <String, String>{},
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
-        super(VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero)));
 
   /// Constructs a [VideoPlayerController] playing a video from a contentUri.
   ///
@@ -283,7 +288,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         httpHeaders = const <String, String>{},
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
-        super(VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero)));
 
   /// The URI to the video file. This will be in different formats depending on
   /// the [DataSourceType] of the original video.
@@ -419,7 +425,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // position=value.duration. Instead of setting the values directly,
           // we use pause() and seekTo() to ensure the platform stops playing
           // and seeks to the last frame of the video.
-          pause().then((void pauseResult) => seekTo(value.duration));
+          pause().then((void pauseResult) => seekTo(value.duration.end));
           break;
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
@@ -434,7 +440,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           final Caption caption = Caption(
             number: 0,
             start: value.position,
-            end: value.position + (event.duration ?? Duration.zero),
+            end: value.position + (event.duration?.end ?? Duration.zero),
             text: event.text ?? '',
           );
           value = value.copyWith(caption: caption);
@@ -627,8 +633,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposedOrNotInitialized) {
       return;
     }
-    if (position > value.duration) {
-      position = value.duration;
+    if (position > value.duration.end) {
+      position = value.duration.end;
     } else if (position < Duration.zero) {
       position = Duration.zero;
     }
@@ -954,7 +960,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
       final RenderBox box = context.findRenderObject()! as RenderBox;
       final Offset tapPos = box.globalToLocal(globalPosition);
       final double relative = tapPos.dx / box.size.width;
-      final Duration position = controller.value.duration * relative;
+      final Duration position = controller.value.duration.end * relative;
       controller.seekTo(position);
     }
 
@@ -1071,7 +1077,7 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
   Widget build(BuildContext context) {
     Widget progressIndicator;
     if (controller.value.isInitialized) {
-      final int duration = controller.value.duration.inMilliseconds;
+      final int duration = controller.value.duration.end.inMilliseconds;
       final int position = controller.value.position.inMilliseconds;
 
       progressIndicator = Stack(
