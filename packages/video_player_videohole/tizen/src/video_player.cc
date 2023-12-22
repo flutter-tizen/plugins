@@ -104,9 +104,9 @@ void VideoPlayer::SendInitialized() {
     GetVideoSize(&width, &height);
     is_initialized_ = true;
     auto duration = GetDuration();
-    flutter::EncodableList duration_range;
-    duration_range.push_back(flutter::EncodableValue(duration.first));
-    duration_range.push_back(flutter::EncodableValue(duration.second));
+    flutter::EncodableList duration_range{
+        flutter::EncodableValue(duration.first),
+        flutter::EncodableValue(duration.second)};
     flutter::EncodableMap result = {
         {flutter::EncodableValue("event"),
          flutter::EncodableValue("initialized")},

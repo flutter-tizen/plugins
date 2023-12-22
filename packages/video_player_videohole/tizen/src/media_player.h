@@ -42,6 +42,8 @@ class MediaPlayer : public VideoPlayer {
   bool SetTrackSelection(int32_t track_id, std::string track_type) override;
 
  private:
+  std::pair<int64_t, int64_t> GetLiveDuration();
+  bool IsLive();
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);

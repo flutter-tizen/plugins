@@ -127,6 +127,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('getPosition() has not been implemented.');
   }
 
+  /// Gets the video duration as [DurationRange].
+  Future<DurationRange> getDuration(int playerId) {
+    throw UnimplementedError('getDuration() has not been implemented.');
+  }
+
   /// Returns a widget displaying the video with a given playerId.
   Widget buildView(int playerId) {
     throw UnimplementedError('buildView() has not been implemented.');

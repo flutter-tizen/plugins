@@ -331,6 +331,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   ClosedCaptionFile? _closedCaptionFile;
   Timer? _timer;
+  Timer? _durationTimer;
   bool _isDisposed = false;
   Completer<void>? _creatingCompleter;
   StreamSubscription<dynamic>? _eventSubscription;
@@ -419,6 +420,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           _applyLooping();
           _applyVolume();
           _applyPlayPause();
+          _durationTimer?.cancel();
+          _durationTimer = _createDurationTimer();
           break;
         case VideoEventType.completed:
           // In this case we need to stop _timer, set isPlaying=false, and
@@ -426,6 +429,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // we use pause() and seekTo() to ensure the platform stops playing
           // and seeks to the last frame of the video.
           pause().then((void pauseResult) => seekTo(value.duration.end));
+          _durationTimer?.cancel();
           break;
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
@@ -472,6 +476,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       final PlatformException e = obj as PlatformException;
       value = VideoPlayerValue.erroneous(e.message!);
       _timer?.cancel();
+      _durationTimer?.cancel();
       if (!initializingCompleter.isCompleted) {
         initializingCompleter.completeError(obj);
       }
@@ -490,6 +495,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       if (!_isDisposed) {
         _isDisposed = true;
         _timer?.cancel();
+        _durationTimer?.cancel();
         await _eventSubscription?.cancel();
         await _videoPlayerPlatform.dispose(_playerId);
       }
@@ -535,6 +541,30 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> pause() async {
     value = value.copyWith(isPlaying: false);
     await _applyPlayPause();
+  }
+
+  /// The duration in the current video.
+  Future<DurationRange?> get duration async {
+    if (_isDisposed) {
+      return null;
+    }
+    return _videoPlayerPlatform.getDuration(_playerId);
+  }
+
+  Timer _createDurationTimer() {
+    return Timer.periodic(
+      const Duration(milliseconds: 1000),
+      (Timer timer) async {
+        if (_isDisposed) {
+          return;
+        }
+        final DurationRange? newDuration = await duration;
+        if (newDuration == null) {
+          return;
+        }
+        _updateDuration(newDuration);
+      },
+    );
   }
 
   Future<void> _applyLooping() async {
@@ -763,6 +793,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     );
   }
 
+  void _updateDuration(DurationRange duration) {
+    value = value.copyWith(duration: duration);
+  }
+
   @override
   void removeListener(VoidCallback listener) {
     // Prevent VideoPlayer from causing an exception to be thrown when attempting to
@@ -984,7 +1018,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
       },
       onHorizontalDragEnd: (DragEndDetails details) {
         if (_controllerWasPlaying &&
-            controller.value.position != controller.value.duration) {
+            controller.value.position != controller.value.duration.end) {
           controller.play();
         }
       },

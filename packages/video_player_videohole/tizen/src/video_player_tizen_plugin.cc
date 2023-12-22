@@ -186,9 +186,9 @@ ErrorOr<DurationMessage> VideoPlayerTizenPlugin::Duration(
   }
   DurationMessage result(msg.player_id());
   auto duration_pair = player->GetDuration();
-  flutter::EncodableList duration_range;
-  duration_range.push_back(flutter::EncodableValue(duration_pair.first));
-  duration_range.push_back(flutter::EncodableValue(duration_pair.second));
+  flutter::EncodableList duration_range{
+      flutter::EncodableValue(duration_pair.first),
+      flutter::EncodableValue(duration_pair.second)};
   result.set_duration_range(duration_range);
   return result;
 }
