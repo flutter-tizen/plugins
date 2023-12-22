@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Fix issue of not display video when start play.
+
 ## 0.1.2
 
 * Replace surface id with resource id for fixing overlap issue.

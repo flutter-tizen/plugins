@@ -618,6 +618,10 @@ void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
   LOG_INFO("[PlusPlayer] Prepare done, result: %d.", ret);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
+  if (!SetDisplayVisible(self->player_, true)) {
+    LOG_ERROR("[PlusPlayer] Fail to set display visible.");
+  }
+
   if (!self->is_initialized_ && ret) {
     self->SendInitialized();
   }
