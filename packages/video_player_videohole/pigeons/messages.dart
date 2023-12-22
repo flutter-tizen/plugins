@@ -82,7 +82,7 @@ class GeometryMessage {
   int height;
 }
 
-class DurationMessage{
+class DurationMessage {
   DurationMessage(this.playerId);
   int playerId;
   List<int?>? durationRange;
