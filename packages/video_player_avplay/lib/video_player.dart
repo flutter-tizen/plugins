@@ -575,10 +575,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         },
       );
 
-      // This ensures that the correct playback speed is always applied when
-      // playing back. This is necessary because we do not set playback speed
-      // when paused.
-      //
       // For Tizen, playback speed don't need to set when start play,
       // otherwise player will restart buffer.
       // The default value is 1.0.
