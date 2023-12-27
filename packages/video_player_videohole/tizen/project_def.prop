@@ -6,7 +6,7 @@ type = staticLib
 profile = common-5.5
 
 # Source files
-USER_SRCS += src/*.cc
+USER_SRCS += src/*.cc src/drm/*.cc
 
 # User defines
 USER_DEFS =
@@ -15,6 +15,6 @@ USER_CPP_DEFS = FLUTTER_PLUGIN_IMPL
 USER_CPP_UNDEFS =
 
 # User includes
-USER_INC_DIRS = inc src
+USER_INC_DIRS = inc src src/drm
 USER_INC_FILES =
 USER_CPP_INC_FILES =

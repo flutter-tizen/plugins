@@ -11,6 +11,7 @@
 #include <mutex>
 #include <queue>
 
+#include "drm_license_request.h"
 #include "drm_manager_proxy.h"
 
 class DrmManager {
@@ -36,28 +37,14 @@ class DrmManager {
   void ReleaseDrmSession();
 
  private:
-  struct DataForLicenseProcess {
-    DataForLicenseProcess(void *session_id, void *message, int message_length)
-        : session_id(static_cast<char *>(session_id)),
-          message(static_cast<char *>(message), message_length) {}
-    std::string session_id;
-    std::string message;
-  };
-
-  void RequestLicense(std::string &session_id, std::string &message);
-  void InstallKey(void *session_id, void *response_data, void *response_len);
+  void InstallKey(const std::string &session_id,
+                  std::vector<uint8_t> &response);
   int SetChallenge(const std::string &media_url);
 
   static int OnChallengeData(void *session_id, int message_type, void *message,
                              int message_length, void *user_data);
   static void OnDrmManagerError(long error_code, char *error_message,
                                 void *user_data);
-  bool ProcessLicense(DataForLicenseProcess &data);
-  void PushLicenseRequestData(DataForLicenseProcess &data);
-  void ExecuteRequest();
-
-  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
-      request_license_channel_;
 
   void *drm_session_ = nullptr;
   void *drm_manager_proxy_ = nullptr;
@@ -65,9 +52,8 @@ class DrmManager {
   int drm_type_;
   std::string license_server_url_;
   bool initialized_ = false;
-  std::mutex queue_mutex_;
-  Ecore_Pipe *license_request_pipe_ = nullptr;
-  std::queue<DataForLicenseProcess> license_request_queue_;
+
+  std::shared_ptr<DrmLicenseRequest> drm_license_request_;
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_
