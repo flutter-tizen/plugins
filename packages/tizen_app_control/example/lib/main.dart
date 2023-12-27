@@ -185,12 +185,12 @@ class _MyAppState extends State<MyApp> {
             children: <Widget>[
               ElevatedButton(
                 onPressed: _sendSms,
-                child: const Text('Send SMS'),
+                child: const Text('Send SMS (No TV)'),
               ),
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _pickImage,
-                child: const Text('Pick image'),
+                child: const Text('Pick image (No TV)'),
               ),
               const SizedBox(height: 10),
               if (_isServiceStarted)
