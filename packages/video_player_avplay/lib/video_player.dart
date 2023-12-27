@@ -574,11 +574,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           _updatePosition(newPosition);
         },
       );
-
-      // This ensures that the correct playback speed is always applied when
-      // playing back. This is necessary because we do not set playback speed
-      // when paused.
-      await _applyPlaybackSpeed();
     } else {
       _timer?.cancel();
       await _videoPlayerPlatform.pause(_playerId);
@@ -594,13 +589,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   Future<void> _applyPlaybackSpeed() async {
     if (_isDisposedOrNotInitialized) {
-      return;
-    }
-
-    // Setting the playback speed on iOS will trigger the video to play. We
-    // prevent this from happening by not applying the playback speed until
-    // the video is manually played from Flutter.
-    if (!value.isPlaying) {
       return;
     }
 
