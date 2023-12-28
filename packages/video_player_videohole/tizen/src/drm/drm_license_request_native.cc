@@ -144,7 +144,7 @@ void DrmLicenseRequestNative::ExecuteResponse() {
 }
 
 void DrmLicenseRequestNative::OnLicenseResponse(
-    const std::string& session_id, std::vector<uint8_t>& response_data) {
+    const std::string& session_id, const std::vector<uint8_t>& response_data) {
   std::lock_guard<std::mutex> lock(queue_mutex_);
   license_response_queue_.push(std::make_pair(session_id, response_data));
   ecore_pipe_write(license_response_pipe_, nullptr, 0);

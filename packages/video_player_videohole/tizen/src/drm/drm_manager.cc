@@ -86,7 +86,7 @@ bool DrmManager::SetChallenge(const std::string &media_url,
                               flutter::BinaryMessenger *binary_messenger) {
   drm_license_request_ = std::make_shared<DrmLicenseRequestChannel>(
       binary_messenger, [this](const std::string &session_id,
-                               std::vector<uint8_t> &response_data) {
+                               const std::vector<uint8_t> &response_data) {
         InstallKey(session_id, response_data);
       });
   return DM_ERROR_NONE == SetChallenge(media_url);
@@ -98,7 +98,7 @@ bool DrmManager::SetChallenge(const std::string &media_url,
   drm_license_request_ = std::make_shared<DrmLicenseRequestNative>(
       drm_type_, license_server_url,
       [this](const std::string &session_id,
-             std::vector<uint8_t> &response_data) {
+             const std::vector<uint8_t> &response_data) {
         InstallKey(session_id, response_data);
       });
   return DM_ERROR_NONE == SetChallenge(media_url);
@@ -243,13 +243,13 @@ void DrmManager::OnDrmManagerError(long error_code, char *error_message,
 }
 
 void DrmManager::InstallKey(const std::string &session_id,
-                            std::vector<uint8_t> &response) {
+                            const std::vector<uint8_t> &response) {
   LOG_INFO("[DrmManager] Start install license.");
 
   SetDataParam_t license_param = {};
   license_param.param1 =
       reinterpret_cast<void *>(const_cast<char *>(session_id.c_str()));
-  license_param.param2 = response.data();
+  license_param.param2 = const_cast<uint8_t *>(response.data());
   license_param.param3 = reinterpret_cast<void *>(response.size());
   int ret = DMGRSetData(drm_session_, "install_eme_key", &license_param);
   if (ret != DM_ERROR_NONE) {

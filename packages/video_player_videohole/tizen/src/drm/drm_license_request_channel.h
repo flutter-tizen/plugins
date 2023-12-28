@@ -11,6 +11,8 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <string>
+#include <vector>
 
 #include "drm_license_request.h"
 
@@ -31,12 +33,13 @@ class DrmLicenseRequestChannel : public DrmLicenseRequest {
                       int message_length) override;
   ~DrmLicenseRequestChannel();
   void OnLicenseResponse(const std::string &session_id,
-                         std::vector<uint8_t> &response_data) override;
+                         const std::vector<uint8_t> &response_data) override;
 
  private:
   void ExecuteRequest();
-  void PushLicenseRequestData(DataForLicenseProcess &data);
-  void RequestLicense(std::string &session_id, std::string &message);
+  void PushLicenseRequestData(const DataForLicenseProcess &data);
+  void RequestLicense(const std::string &session_id,
+                      const std::string &message);
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       request_license_channel_;
   std::mutex queue_mutex_;

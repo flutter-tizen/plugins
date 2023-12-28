@@ -7,6 +7,8 @@
 #include <flutter/method_result_functions.h>
 #include <flutter/standard_method_codec.h>
 
+#include <utility>
+
 #include "log.h"
 
 DrmLicenseRequestChannel::DrmLicenseRequestChannel(
@@ -42,14 +44,14 @@ void DrmLicenseRequestChannel::ExecuteRequest() {
 }
 
 void DrmLicenseRequestChannel::PushLicenseRequestData(
-    DataForLicenseProcess &data) {
+    const DataForLicenseProcess &data) {
   std::lock_guard<std::mutex> lock(queue_mutex_);
   license_request_queue_.push(data);
   ecore_pipe_write(license_request_pipe_, nullptr, 0);
 }
 
-void DrmLicenseRequestChannel::RequestLicense(std::string &session_id,
-                                              std::string &message) {
+void DrmLicenseRequestChannel::RequestLicense(const std::string &session_id,
+                                              const std::string &message) {
   LOG_INFO("[DrmLicenseRequestChannel] Start request license.");
 
   if (request_license_channel_ == nullptr) {
@@ -86,7 +88,7 @@ void DrmLicenseRequestChannel::RequestLicense(std::string &session_id,
 }
 
 void DrmLicenseRequestChannel::OnLicenseResponse(
-    const std::string &session_id, std::vector<uint8_t> &response_data) {
+    const std::string &session_id, const std::vector<uint8_t> &response_data) {
   if (on_license_request_done_callback_) {
     on_license_request_done_callback_(session_id, response_data);
   }

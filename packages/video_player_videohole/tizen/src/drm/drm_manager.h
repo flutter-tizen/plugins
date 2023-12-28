@@ -38,7 +38,7 @@ class DrmManager {
 
  private:
   void InstallKey(const std::string &session_id,
-                  std::vector<uint8_t> &response);
+                  const std::vector<uint8_t> &response);
   int SetChallenge(const std::string &media_url);
 
   static int OnChallengeData(void *session_id, int message_type, void *message,

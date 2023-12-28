@@ -37,8 +37,8 @@ class VideoPlayer {
   virtual void SetDisplayRoi(int32_t x, int32_t y, int32_t width,
                              int32_t height) = 0;
   virtual bool Play() = 0;
-  virtual bool Deactivate() { return false; };
-  virtual bool Activate() { return false; };
+  virtual bool Deactivate() { return false; }
+  virtual bool Activate() { return false; }
   virtual bool Pause() = 0;
   virtual bool SetLooping(bool is_looping) = 0;
   virtual bool SetVolume(double volume) = 0;

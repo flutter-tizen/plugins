@@ -9,7 +9,9 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "drm_license_request.h"
 
@@ -24,7 +26,7 @@ class DrmLicenseRequestNative : public DrmLicenseRequest {
 
  protected:
   void OnLicenseResponse(const std::string& session_id,
-                         std::vector<uint8_t>& response_data) override;
+                         const std::vector<uint8_t>& response_data) override;
 
  private:
   void StopMessageQueue();
