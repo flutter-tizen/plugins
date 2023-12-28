@@ -182,7 +182,7 @@ ErrorOr<DurationMessage> VideoPlayerTizenPlugin::Duration(
     const PlayerMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
+    return FlutterError("Invalid argument", "Player not found.");
   }
   DurationMessage result(msg.player_id());
   auto duration_pair = player->GetDuration();
