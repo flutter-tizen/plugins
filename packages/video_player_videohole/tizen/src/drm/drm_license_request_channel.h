@@ -16,14 +16,6 @@
 
 #include "drm_license_request.h"
 
-struct DataForLicenseProcess {
-  DataForLicenseProcess(void *session_id, void *message, int message_length)
-      : session_id(static_cast<char *>(session_id)),
-        message(static_cast<char *>(message), message_length) {}
-  std::string session_id;
-  std::string message;
-};
-
 class DrmLicenseRequestChannel : public DrmLicenseRequest {
  public:
   explicit DrmLicenseRequestChannel(
@@ -32,12 +24,10 @@ class DrmLicenseRequestChannel : public DrmLicenseRequest {
   void RequestLicense(void *session_id, int message_type, void *message,
                       int message_length) override;
   ~DrmLicenseRequestChannel();
-  void OnLicenseResponse(const std::string &session_id,
-                         const std::vector<uint8_t> &response_data) override;
 
  private:
   void ExecuteRequest();
-  void PushLicenseRequestData(const DataForLicenseProcess &data);
+  void PushLicenseRequest(const DataForLicenseProcess &data);
   void RequestLicense(const std::string &session_id,
                       const std::string &message);
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>

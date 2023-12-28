@@ -15,6 +15,23 @@
 
 #include "drm_license_request.h"
 
+class LicenseResponsePipe {
+ public:
+  explicit LicenseResponsePipe(
+      OnLicenseRequestDone on_license_request_done_callback);
+  virtual ~LicenseResponsePipe();
+  void ExecuteResponse();
+  void PushLicenseResponse(const std::string& session_id,
+                           const std::vector<uint8_t>& response_data);
+
+ private:
+  std::mutex queue_mutex_;
+  Ecore_Pipe* license_response_pipe_ = nullptr;
+  std::queue<std::pair<std::string, std::vector<uint8_t>>>
+      license_response_queue_;
+  OnLicenseRequestDone on_license_request_done_callback_ = nullptr;
+};
+
 class DrmLicenseRequestNative : public DrmLicenseRequest {
  public:
   explicit DrmLicenseRequestNative(
@@ -24,22 +41,14 @@ class DrmLicenseRequestNative : public DrmLicenseRequest {
   void RequestLicense(void* session_id, int message_type, void* message,
                       int message_length) override;
 
- protected:
-  void OnLicenseResponse(const std::string& session_id,
-                         const std::vector<uint8_t>& response_data) override;
-
  private:
-  void StopMessageQueue();
-  void ExecuteResponse();
   static void RunLoop(void* data, Ecore_Thread* thread);
+  void StopMessageQueue();
+  int drm_type_;
   Ecore_Thread* license_request_thread_ = nullptr;
   Eina_Thread_Queue* license_request_queue_ = nullptr;
-  int drm_type_;
   std::string license_server_url_;
-  std::mutex queue_mutex_;
-  Ecore_Pipe* license_response_pipe_ = nullptr;
-  std::queue<std::pair<std::string, std::vector<uint8_t>>>
-      license_response_queue_;
+  std::shared_ptr<LicenseResponsePipe> license_response_pipe_;
 };
 
 #endif

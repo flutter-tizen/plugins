@@ -12,8 +12,15 @@
 
 using OnLicenseRequestDone = std::function<void(
     const std::string& session_id, const std::vector<uint8_t>& response_data)>;
-class DrmLicenseRequest
-    : public std::enable_shared_from_this<DrmLicenseRequest> {
+
+struct DataForLicenseProcess {
+  DataForLicenseProcess(void* session_id, void* message, int message_length)
+      : session_id(static_cast<char*>(session_id)),
+        message(static_cast<char*>(message), message_length) {}
+  std::string session_id;
+  std::string message;
+};
+class DrmLicenseRequest {
  public:
   explicit DrmLicenseRequest(
       OnLicenseRequestDone on_license_request_done_callback)
@@ -21,11 +28,14 @@ class DrmLicenseRequest
   virtual ~DrmLicenseRequest() {}
   virtual void RequestLicense(void* session_id, int message_type, void* message,
                               int message_length) = 0;
-  virtual void OnLicenseResponse(const std::string& session_id,
-                                 const std::vector<uint8_t>& response_data) = 0;
+  void OnLicenseResponse(const std::string& session_id,
+                         const std::vector<uint8_t>& response_data) {
+    if (on_license_request_done_callback_) {
+      on_license_request_done_callback_(session_id, response_data);
+    }
+  }
 
  protected:
-  std::shared_ptr<DrmLicenseRequest> getShared() { return shared_from_this(); }
   OnLicenseRequestDone on_license_request_done_callback_ = nullptr;
 };
 #endif  // FLUTTER_PLUGIN_DRM_LICENSE_REQUEST_H_

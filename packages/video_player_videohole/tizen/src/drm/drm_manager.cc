@@ -84,7 +84,7 @@ bool DrmManager::CreateDrmSession(int drm_type, bool local_mode) {
 
 bool DrmManager::SetChallenge(const std::string &media_url,
                               flutter::BinaryMessenger *binary_messenger) {
-  drm_license_request_ = std::make_shared<DrmLicenseRequestChannel>(
+  drm_license_request_ = std::make_unique<DrmLicenseRequestChannel>(
       binary_messenger, [this](const std::string &session_id,
                                const std::vector<uint8_t> &response_data) {
         InstallKey(session_id, response_data);
@@ -95,7 +95,7 @@ bool DrmManager::SetChallenge(const std::string &media_url,
 bool DrmManager::SetChallenge(const std::string &media_url,
                               const std::string &license_server_url) {
   license_server_url_ = license_server_url;
-  drm_license_request_ = std::make_shared<DrmLicenseRequestNative>(
+  drm_license_request_ = std::make_unique<DrmLicenseRequestNative>(
       drm_type_, license_server_url,
       [this](const std::string &session_id,
              const std::vector<uint8_t> &response_data) {

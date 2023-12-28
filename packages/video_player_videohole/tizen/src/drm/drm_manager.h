@@ -53,7 +53,7 @@ class DrmManager {
   std::string license_server_url_;
   bool initialized_ = false;
 
-  std::shared_ptr<DrmLicenseRequest> drm_license_request_;
+  std::unique_ptr<DrmLicenseRequest> drm_license_request_;
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_

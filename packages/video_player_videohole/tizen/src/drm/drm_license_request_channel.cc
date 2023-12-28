@@ -31,7 +31,7 @@ void DrmLicenseRequestChannel::RequestLicense(void *session_id,
                                               int message_type, void *message,
                                               int message_length) {
   DataForLicenseProcess process_message(session_id, message, message_length);
-  PushLicenseRequestData(process_message);
+  PushLicenseRequest(process_message);
 }
 
 void DrmLicenseRequestChannel::ExecuteRequest() {
@@ -43,7 +43,7 @@ void DrmLicenseRequestChannel::ExecuteRequest() {
   }
 }
 
-void DrmLicenseRequestChannel::PushLicenseRequestData(
+void DrmLicenseRequestChannel::PushLicenseRequest(
     const DataForLicenseProcess &data) {
   std::lock_guard<std::mutex> lock(queue_mutex_);
   license_request_queue_.push(data);
@@ -85,13 +85,6 @@ void DrmLicenseRequestChannel::RequestLicense(const std::string &session_id,
       std::make_unique<flutter::EncodableValue>(
           flutter::EncodableValue(args_map)),
       std::move(result_handler));
-}
-
-void DrmLicenseRequestChannel::OnLicenseResponse(
-    const std::string &session_id, const std::vector<uint8_t> &response_data) {
-  if (on_license_request_done_callback_) {
-    on_license_request_done_callback_(session_id, response_data);
-  }
 }
 
 DrmLicenseRequestChannel::~DrmLicenseRequestChannel() {
