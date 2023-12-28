@@ -11,7 +11,6 @@
 #include <queue>
 #include <utility>
 
-
 #include "drm_license_request.h"
 
 class DrmLicenseRequestNative : public DrmLicenseRequest {
@@ -22,8 +21,11 @@ class DrmLicenseRequestNative : public DrmLicenseRequest {
   virtual ~DrmLicenseRequestNative();
   void RequestLicense(void* session_id, int message_type, void* message,
                       int message_length) override;
+
  protected:
-  void OnLicenseResponse(const std::string& session_id, std::vector<uint8_t>& response_data) override;   
+  void OnLicenseResponse(const std::string& session_id,
+                         std::vector<uint8_t>& response_data) override;
+
  private:
   void StopMessageQueue();
   void ExecuteResponse();
@@ -33,8 +35,9 @@ class DrmLicenseRequestNative : public DrmLicenseRequest {
   int drm_type_;
   std::string license_server_url_;
   std::mutex queue_mutex_;
-  Ecore_Pipe *license_response_pipe_ = nullptr;
-  std::queue<std::pair<std::string, std::vector<uint8_t>>> license_response_queue_;
+  Ecore_Pipe* license_response_pipe_ = nullptr;
+  std::queue<std::pair<std::string, std::vector<uint8_t>>>
+      license_response_queue_;
 };
 
 #endif

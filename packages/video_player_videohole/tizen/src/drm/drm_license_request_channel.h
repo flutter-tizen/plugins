@@ -30,8 +30,8 @@ class DrmLicenseRequestChannel : public DrmLicenseRequest {
   void RequestLicense(void *session_id, int message_type, void *message,
                       int message_length) override;
   ~DrmLicenseRequestChannel();
-  void OnLicenseResponse(const std::string& session_id,
-                                 std::vector<uint8_t>& response_data) override;
+  void OnLicenseResponse(const std::string &session_id,
+                         std::vector<uint8_t> &response_data) override;
 
  private:
   void ExecuteRequest();
