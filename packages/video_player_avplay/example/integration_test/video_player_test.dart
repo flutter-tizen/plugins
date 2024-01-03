@@ -125,7 +125,7 @@ void main() {
         // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
         await controller.setVolume(0);
         final Duration timeBeforeEnd =
-            controller.value.duration - const Duration(milliseconds: 500);
+            controller.value.duration.end - const Duration(milliseconds: 500);
         await controller.seekTo(timeBeforeEnd);
         await controller.play();
         await tester.pumpAndSettle(_playDuration);
@@ -148,7 +148,7 @@ void main() {
         // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
         await controller.setVolume(0);
         await controller.seekTo(
-            controller.value.duration - const Duration(milliseconds: 500));
+            controller.value.duration.end - const Duration(milliseconds: 500));
         await controller.play();
         await tester.pumpAndSettle(_playDuration);
         expect(controller.value.isPlaying, false);

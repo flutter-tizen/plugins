@@ -21,6 +21,9 @@ typedef int (*FuncPlayerSetDrmInitCompleteCB)(
 typedef int (*FuncPlayerSetDrmInitDataCB)(player_h player,
                                           set_drm_init_data_cb callback,
                                           void* user_data);
+typedef int (*FuncPlayerGetAdaptiveStreamingInfo)(player_h player,
+                                                  void* adaptive_info,
+                                                  int adaptive_type);
 typedef int (*FuncPlayerGetTrackCountV2)(player_h player,
                                          player_stream_type_e type,
                                          int* pcount);
@@ -113,6 +116,24 @@ int MediaPlayerProxy::player_set_drm_init_data_cb(player_h player,
     return PLAYER_ERROR_NOT_AVAILABLE;
   }
   return player_set_drm_init_data_cb(player, callback, user_data);
+}
+
+int MediaPlayerProxy::player_get_adaptive_streaming_info(player_h player,
+                                                         void* adaptive_info,
+                                                         int adaptive_type) {
+  if (!media_player_handle_) {
+    LOG_ERROR("media_player_handle_ not valid");
+    return PLAYER_ERROR_NOT_AVAILABLE;
+  }
+  FuncPlayerGetAdaptiveStreamingInfo player_get_adaptive_streaming_info =
+      reinterpret_cast<FuncPlayerGetAdaptiveStreamingInfo>(
+          dlsym(media_player_handle_, "player_get_adaptive_streaming_info"));
+  if (!player_get_adaptive_streaming_info) {
+    LOG_ERROR("Fail to find player_get_adaptive_streaming_info.");
+    return PLAYER_ERROR_NOT_AVAILABLE;
+  }
+  return player_get_adaptive_streaming_info(player, adaptive_info,
+                                            adaptive_type);
 }
 
 int MediaPlayerProxy::player_get_track_count_v2(player_h player,

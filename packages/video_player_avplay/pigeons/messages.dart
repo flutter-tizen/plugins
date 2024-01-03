@@ -82,6 +82,12 @@ class GeometryMessage {
   int height;
 }
 
+class DurationMessage {
+  DurationMessage(this.playerId);
+  int playerId;
+  List<int?>? durationRange;
+}
+
 @HostApi()
 abstract class VideoPlayerAvplayApi {
   void initialize();
@@ -96,6 +102,7 @@ abstract class VideoPlayerAvplayApi {
   TrackMessage track(TrackTypeMessage msg);
   bool setTrackSelection(SelectedTracksMessage msg);
   PositionMessage position(PlayerMessage msg);
+  DurationMessage duration(PlayerMessage msg);
   @async
   void seekTo(PositionMessage msg);
   void pause(PlayerMessage msg);
