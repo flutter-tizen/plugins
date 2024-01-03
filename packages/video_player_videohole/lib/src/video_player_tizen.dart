@@ -182,6 +182,14 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<DurationRange> getDuration(int playerId) async {
+    final DurationMessage message =
+        await _api.duration(PlayerMessage(playerId: playerId));
+    return DurationRange(Duration(milliseconds: message.durationRange?[0] ?? 0),
+        Duration(milliseconds: message.durationRange?[1] ?? 0));
+  }
+
+  @override
   Future<Duration> getPosition(int playerId) async {
     final PositionMessage response =
         await _api.position(PlayerMessage(playerId: playerId));
@@ -196,9 +204,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
+          final List<dynamic>? durationVal = map['duration'] as List<dynamic>?;
           return VideoEvent(
             eventType: VideoEventType.initialized,
-            duration: Duration(milliseconds: map['duration']! as int),
+            duration: DurationRange(
+                Duration(milliseconds: durationVal?[0] as int),
+                Duration(milliseconds: durationVal?[1] as int)),
             size: Size((map['width'] as num?)?.toDouble() ?? 0.0,
                 (map['height'] as num?)?.toDouble() ?? 0.0),
           );

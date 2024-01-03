@@ -1,3 +1,7 @@
+## 0.5.0
+
+* Add get duration API for live stream
+
 ## 0.4.0
 
 * Merge media player code from avplay.

@@ -57,12 +57,14 @@ class VideoPlayerValue {
 
   /// Returns an instance for a video that hasn't been loaded.
   VideoPlayerValue.uninitialized()
-      : this(duration: Duration.zero, isInitialized: false);
+      : this(
+            duration: DurationRange(Duration.zero, Duration.zero),
+            isInitialized: false);
 
   /// Returns an instance with the given [errorDescription].
   VideoPlayerValue.erroneous(String errorDescription)
       : this(
-            duration: Duration.zero,
+            duration: DurationRange(Duration.zero, Duration.zero),
             isInitialized: false,
             errorDescription: errorDescription);
 
@@ -73,7 +75,7 @@ class VideoPlayerValue {
   /// The total duration of the video.
   ///
   /// The duration is [Duration.zero] if the video hasn't been initialized.
-  final Duration duration;
+  final DurationRange duration;
 
   /// The current playback position.
   final Duration position;
@@ -145,7 +147,7 @@ class VideoPlayerValue {
   /// Returns a new instance that has the same values as this current instance,
   /// except for any overrides passed in as arguments to [copyWidth].
   VideoPlayerValue copyWith({
-    Duration? duration,
+    DurationRange? duration,
     Size? size,
     Duration? position,
     Caption? caption,
@@ -226,7 +228,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         httpHeaders = const <String, String>{},
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
-        super(VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero)));
 
   /// Constructs a [VideoPlayerController] playing a video from obtained from
   /// the network.
@@ -247,7 +250,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.playerOptions,
   })  : dataSourceType = DataSourceType.network,
         package = null,
-        super(VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero)));
 
   /// Constructs a [VideoPlayerController] playing a video from a file.
   ///
@@ -264,7 +268,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         httpHeaders = const <String, String>{},
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
-        super(VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero)));
 
   /// Constructs a [VideoPlayerController] playing a video from a contentUri.
   ///
@@ -283,7 +288,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         httpHeaders = const <String, String>{},
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
-        super(VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero)));
 
   /// The URI to the video file. This will be in different formats depending on
   /// the [DataSourceType] of the original video.
@@ -325,6 +331,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   ClosedCaptionFile? _closedCaptionFile;
   Timer? _timer;
+  Timer? _durationTimer;
   bool _isDisposed = false;
   Completer<void>? _creatingCompleter;
   StreamSubscription<dynamic>? _eventSubscription;
@@ -413,13 +420,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           _applyLooping();
           _applyVolume();
           _applyPlayPause();
+          _durationTimer?.cancel();
+          _durationTimer = _createDurationTimer();
           break;
         case VideoEventType.completed:
           // In this case we need to stop _timer, set isPlaying=false, and
           // position=value.duration. Instead of setting the values directly,
           // we use pause() and seekTo() to ensure the platform stops playing
           // and seeks to the last frame of the video.
-          pause().then((void pauseResult) => seekTo(value.duration));
+          pause().then((void pauseResult) => seekTo(value.duration.end));
+          _durationTimer?.cancel();
           break;
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
@@ -434,7 +444,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           final Caption caption = Caption(
             number: 0,
             start: value.position,
-            end: value.position + (event.duration ?? Duration.zero),
+            end: value.position + (event.duration?.end ?? Duration.zero),
             text: event.text ?? '',
           );
           value = value.copyWith(caption: caption);
@@ -466,6 +476,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       final PlatformException e = obj as PlatformException;
       value = VideoPlayerValue.erroneous(e.message!);
       _timer?.cancel();
+      _durationTimer?.cancel();
       if (!initializingCompleter.isCompleted) {
         initializingCompleter.completeError(obj);
       }
@@ -484,6 +495,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       if (!_isDisposed) {
         _isDisposed = true;
         _timer?.cancel();
+        _durationTimer?.cancel();
         await _eventSubscription?.cancel();
         await _videoPlayerPlatform.dispose(_playerId);
       }
@@ -501,7 +513,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// has been sent to the platform, not when playback itself is totally
   /// finished.
   Future<void> play() async {
-    if (value.position == value.duration) {
+    if (value.position == value.duration.end) {
       await seekTo(Duration.zero);
     }
     value = value.copyWith(isPlaying: true);
@@ -529,6 +541,30 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> pause() async {
     value = value.copyWith(isPlaying: false);
     await _applyPlayPause();
+  }
+
+  /// The duration in the current video.
+  Future<DurationRange?> get duration async {
+    if (_isDisposed) {
+      return null;
+    }
+    return _videoPlayerPlatform.getDuration(_playerId);
+  }
+
+  Timer _createDurationTimer() {
+    return Timer.periodic(
+      const Duration(milliseconds: 1000),
+      (Timer timer) async {
+        if (_isDisposed) {
+          return;
+        }
+        final DurationRange? newDuration = await duration;
+        if (newDuration == null) {
+          return;
+        }
+        _updateDuration(newDuration);
+      },
+    );
   }
 
   Future<void> _applyLooping() async {
@@ -627,8 +663,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposedOrNotInitialized) {
       return;
     }
-    if (position > value.duration) {
-      position = value.duration;
+    if (position > value.duration.end) {
+      position = value.duration.end;
     } else if (position < Duration.zero) {
       position = Duration.zero;
     }
@@ -755,6 +791,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       position: position,
       caption: _getCaptionAt(position),
     );
+  }
+
+  void _updateDuration(DurationRange duration) {
+    value = value.copyWith(duration: duration);
   }
 
   @override
@@ -954,7 +994,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
       final RenderBox box = context.findRenderObject()! as RenderBox;
       final Offset tapPos = box.globalToLocal(globalPosition);
       final double relative = tapPos.dx / box.size.width;
-      final Duration position = controller.value.duration * relative;
+      final Duration position = controller.value.duration.end * relative;
       controller.seekTo(position);
     }
 
@@ -978,7 +1018,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
       },
       onHorizontalDragEnd: (DragEndDetails details) {
         if (_controllerWasPlaying &&
-            controller.value.position != controller.value.duration) {
+            controller.value.position != controller.value.duration.end) {
           controller.play();
         }
       },
@@ -1071,7 +1111,7 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
   Widget build(BuildContext context) {
     Widget progressIndicator;
     if (controller.value.isInitialized) {
-      final int duration = controller.value.duration.inMilliseconds;
+      final int duration = controller.value.duration.end.inMilliseconds;
       final int position = controller.value.position.inMilliseconds;
 
       progressIndicator = Stack(
