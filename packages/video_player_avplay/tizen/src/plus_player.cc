@@ -305,11 +305,6 @@ bool PlusPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   }
 
   on_seek_completed_ = std::move(callback);
-  plusplayer::PlayerMemento memento;
-  if (!GetMemento(player_, &memento)) {
-    LOG_ERROR("[PlusPlayer] Player fail to get memento.");
-  }
-
   if (!Seek(player_, position)) {
     on_seek_completed_ = nullptr;
     LOG_ERROR("[PlusPlayer] Player fail to seek.");
@@ -335,6 +330,7 @@ bool PlusPlayer::IsLive() {
   plusplayer::PlayerMemento memento;
   if (!GetMemento(player_, &memento)) {
     LOG_ERROR("[PlusPlayer] Player fail to get memento.");
+    return false;
   }
 
   return memento.is_live;
