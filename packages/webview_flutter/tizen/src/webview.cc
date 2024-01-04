@@ -115,7 +115,10 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
           }));
   SetTextureId(texture_registrar_->RegisterTexture(texture_variant_.get()));
 
-  InitWebView();
+  if (!InitWebView()) {
+    LOG_ERROR("Failed to initialize webview.");
+    return;
+  }
 
   webview_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetWebViewChannelName(),
@@ -285,10 +288,11 @@ void WebView::SetDirection(int direction) {
   // TODO: Implement if necessary.
 }
 
-void WebView::InitWebView() {
+bool WebView::InitWebView() {
   char* chromium_argv[] = {
       const_cast<char*>("--disable-pinch"),
       const_cast<char*>("--js-flags=--expose-gc"),
+      const_cast<char*>("--disable-web-security"),
       const_cast<char*>("--single-process"),
       const_cast<char*>("--no-zygote"),
   };
@@ -298,8 +302,17 @@ void WebView::InitWebView() {
 
   ewk_init();
   Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+  if (!evas) {
+    LOG_ERROR("Failed to create ecore evas instance.");
+    return false;
+  }
 
   webview_instance_ = ewk_view_add(ecore_evas_get(evas));
+  if (!webview_instance_) {
+    LOG_ERROR("Failed to create ewk view instance.");
+    return false;
+  }
+
   ecore_evas_focus_set(evas, true);
   ewk_view_focus_set(webview_instance_, true);
   EwkInternalApiBinding::GetInstance().view.OffscreenRenderingEnabledSet(
@@ -346,6 +359,8 @@ void WebView::InitWebView() {
   evas_object_show(webview_instance_);
 
   evas_object_data_set(webview_instance_, kEwkInstance, this);
+
+  return true;
 }
 
 void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,

@@ -1,3 +1,8 @@
+## NEXT
+
+* Change ecore_evas engine for web engine.
+* Remove some chromium arguments temporary.
+
 ## 0.9.0
 
 * Update webivew_flutter to 4.4.2.

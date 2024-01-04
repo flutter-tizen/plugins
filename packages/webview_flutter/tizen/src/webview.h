@@ -67,7 +67,7 @@ class WebView : public PlatformView {
   std::string GetWebViewControllerChannelName();
   std::string GetNavigationDelegateChannelName();
 
-  void InitWebView();
+  bool InitWebView();
 
   static void OnFrameRendered(void* data, Evas_Object* obj, void* event_info);
   static void OnLoadStarted(void* data, Evas_Object* obj, void* event_info);
