@@ -12,7 +12,7 @@ To use this package, add `video_player_videohole` as a dependency in your `pubsp
 
 ```yaml
 dependencies:
-  video_player_videohole: ^0.6.0
+  video_player_videohole: ^0.5.1
 ```
 
 Then you can import `video_player_videohole` in your Dart code:
