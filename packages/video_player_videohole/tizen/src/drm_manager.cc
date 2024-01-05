@@ -262,6 +262,7 @@ bool DrmManager::ProcessLicense(DataForLicenseProcess &data) {
                    reinterpret_cast<const void *>(data.session_id.c_str())),
                static_cast<void *>(response_data),
                reinterpret_cast<void *>(response_len));
+    free(response_data);
   } else if (request_license_channel_) {
     // Get license via the Dart callback.
     RequestLicense(data.session_id, data.message);
