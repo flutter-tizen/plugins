@@ -1,3 +1,6 @@
+## 0.2.0
+* Add get duration API for live stream.
+
 ## 0.1.3
 
 * Fix issue of not display video when start play.

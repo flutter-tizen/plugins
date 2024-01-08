@@ -45,7 +45,7 @@ class VideoPlayer {
   virtual bool SetPlaybackSpeed(double speed) = 0;
   virtual bool SeekTo(int64_t position, SeekCompletedCallback callback) = 0;
   virtual int64_t GetPosition() = 0;
-  virtual int64_t GetDuration() = 0;
+  virtual std::pair<int64_t, int64_t> GetDuration() = 0;
   virtual bool IsReady() = 0;
   virtual flutter::EncodableList GetTrackInfo(std::string track_type) = 0;
   virtual bool SetTrackSelection(int32_t track_id, std::string track_type) = 0;

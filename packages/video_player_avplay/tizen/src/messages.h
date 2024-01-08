@@ -333,6 +333,32 @@ class GeometryMessage {
   int64_t height_;
 };
 
+// Generated class from Pigeon that represents data sent in messages.
+class DurationMessage {
+ public:
+  // Constructs an object setting all non-nullable fields.
+  explicit DurationMessage(int64_t player_id);
+
+  // Constructs an object setting all fields.
+  explicit DurationMessage(int64_t player_id,
+                           const flutter::EncodableList* duration_range);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  const flutter::EncodableList* duration_range() const;
+  void set_duration_range(const flutter::EncodableList* value_arg);
+  void set_duration_range(const flutter::EncodableList& value_arg);
+
+ private:
+  static DurationMessage FromEncodableList(const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerAvplayApi;
+  friend class VideoPlayerAvplayApiCodecSerializer;
+  int64_t player_id_;
+  std::optional<flutter::EncodableList> duration_range_;
+};
+
 class VideoPlayerAvplayApiCodecSerializer
     : public flutter::StandardCodecSerializer {
  public:
@@ -370,6 +396,7 @@ class VideoPlayerAvplayApi {
   virtual ErrorOr<TrackMessage> Track(const TrackTypeMessage& msg) = 0;
   virtual ErrorOr<bool> SetTrackSelection(const SelectedTracksMessage& msg) = 0;
   virtual ErrorOr<PositionMessage> Position(const PlayerMessage& msg) = 0;
+  virtual ErrorOr<DurationMessage> Duration(const PlayerMessage& msg) = 0;
   virtual void SeekTo(
       const PositionMessage& msg,
       std::function<void(std::optional<FlutterError> reply)> result) = 0;

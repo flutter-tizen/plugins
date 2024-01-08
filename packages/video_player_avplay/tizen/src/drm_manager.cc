@@ -263,6 +263,7 @@ gboolean DrmManager::ProcessLicense(void *user_data) {
                          data->session_id.c_str())),
                      static_cast<void *>(response_data),
                      reinterpret_cast<void *>(response_len));
+    free(response_data);
   } else if (self->request_license_channel_) {
     // Get license via the Dart callback.
     self->RequestLicense(data->session_id, data->message);
