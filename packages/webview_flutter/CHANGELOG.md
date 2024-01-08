@@ -1,3 +1,7 @@
+## NEXT
+
+* Move `ewk_init()` before `SetArguments()`.
+
 ## 0.9.0
 
 * Update webivew_flutter to 4.4.2.

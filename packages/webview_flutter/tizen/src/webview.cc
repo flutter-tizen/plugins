@@ -196,6 +196,8 @@ void WebView::Dispose() {
                                    &WebView::OnUrlChange);
     evas_object_del(webview_instance_);
   }
+
+  ewk_shutdown();
 }
 
 void WebView::Offset(double left, double top) {
@@ -286,6 +288,8 @@ void WebView::SetDirection(int direction) {
 }
 
 void WebView::InitWebView() {
+  ewk_init();
+
   char* chromium_argv[] = {
       const_cast<char*>("--disable-pinch"),
       const_cast<char*>("--js-flags=--expose-gc"),
@@ -296,7 +300,6 @@ void WebView::InitWebView() {
   EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
                                                          chromium_argv);
 
-  ewk_init();
   Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
 
   webview_instance_ = ewk_view_add(ecore_evas_get(evas));
