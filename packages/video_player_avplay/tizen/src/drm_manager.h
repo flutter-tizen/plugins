@@ -5,8 +5,11 @@
 #ifndef FLUTTER_PLUGIN_DRM_MANAGER_H_
 #define FLUTTER_PLUGIN_DRM_MANAGER_H_
 
+#include <Ecore.h>
 #include <flutter/method_channel.h>
-#include <glib.h>
+
+#include <mutex>
+#include <queue>
 
 #include "drm_manager_proxy.h"
 
@@ -39,7 +42,6 @@ class DrmManager {
           message(static_cast<char *>(message), message_length) {}
     std::string session_id;
     std::string message;
-    void *user_data;
   };
 
   void RequestLicense(std::string &session_id, std::string &message);
@@ -50,7 +52,9 @@ class DrmManager {
                              int message_length, void *user_data);
   static void OnDrmManagerError(long error_code, char *error_message,
                                 void *user_data);
-  static gboolean ProcessLicense(void *user_data);
+  bool ProcessLicense(DataForLicenseProcess &data);
+  void PushLicenseRequestData(DataForLicenseProcess &data);
+  void ExecuteRequest();
 
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
       request_license_channel_;
@@ -60,8 +64,10 @@ class DrmManager {
 
   int drm_type_;
   std::string license_server_url_;
-  unsigned int source_id_ = 0;
   bool initialized_ = false;
+  std::mutex queue_mutex_;
+  Ecore_Pipe *license_request_pipe_ = nullptr;
+  std::queue<DataForLicenseProcess> license_request_queue_;
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_

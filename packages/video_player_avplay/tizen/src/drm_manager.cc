@@ -34,11 +34,19 @@ DrmManager::DrmManager() : drm_type_(DM_TYPE_NONE) {
   } else {
     LOG_ERROR("[DrmManager] Fail to dlopen libdrmmanager.");
   }
+  license_request_pipe_ = ecore_pipe_add(
+      [](void *data, void *buffer, unsigned int nbyte) -> void {
+        auto *self = static_cast<DrmManager *>(data);
+        self->ExecuteRequest();
+      },
+      this);
 }
 
 DrmManager::~DrmManager() {
   ReleaseDrmSession();
-
+  if (license_request_pipe_) {
+    ecore_pipe_del(license_request_pipe_);
+  }
   if (drm_manager_proxy_) {
     CloseDrmManagerProxy(drm_manager_proxy_);
     drm_manager_proxy_ = nullptr;
@@ -97,30 +105,34 @@ bool DrmManager::SetChallenge(const std::string &media_url,
 }
 
 void DrmManager::ReleaseDrmSession() {
-  if (source_id_ > 0) {
-    g_source_remove(source_id_);
+  if (drm_session_ == nullptr) {
+    LOG_ERROR("[DrmManager] Already released.");
+    return;
   }
-  source_id_ = 0;
 
-  if (drm_session_) {
-    int ret = 0;
-    if (initialized_) {
-      ret = DMGRSetData(drm_session_, "Finalize", nullptr);
-      if (ret == DM_ERROR_NONE) {
-        initialized_ = false;
-      } else {
-        LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
-                  get_error_message(ret));
-      }
-    }
-    ret = DMGRReleaseDRMSession(drm_session_);
-    if (ret == DM_ERROR_NONE) {
-      drm_session_ = nullptr;
-    } else {
-      LOG_ERROR("[DrmManager] Fail to release drm session: %s",
-                get_error_message(ret));
-    }
+  SetDataParam_t challenge_data_param = {};
+  challenge_data_param.param1 = nullptr;
+  challenge_data_param.param2 = nullptr;
+  int ret = DMGRSetData(drm_session_, "eme_request_key_callback",
+                        &challenge_data_param);
+  if (ret != DM_ERROR_NONE) {
+    LOG_ERROR("[DrmManager] Fail to unset eme_request_key_callback: %s",
+              get_error_message(ret));
   }
+
+  ret = DMGRSetData(drm_session_, "Finalize", nullptr);
+
+  if (ret != DM_ERROR_NONE) {
+    LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
+              get_error_message(ret));
+  }
+
+  ret = DMGRReleaseDRMSession(drm_session_);
+  if (ret != DM_ERROR_NONE) {
+    LOG_ERROR("[DrmManager] Fail to release drm session: %s",
+              get_error_message(ret));
+  }
+  drm_session_ = nullptr;
 }
 
 bool DrmManager::GetDrmHandle(int *handle) {
@@ -216,19 +228,11 @@ int DrmManager::OnChallengeData(void *session_id, int message_type,
                                 void *user_data) {
   LOG_INFO("[DrmManager] challenge data: %s, challenge length: %d", message,
            message_length);
-
   DrmManager *self = static_cast<DrmManager *>(user_data);
   LOG_INFO("[DrmManager] drm_type: %d, license server: %s", self->drm_type_,
            self->license_server_url_.c_str());
-  DataForLicenseProcess *data =
-      new DataForLicenseProcess(session_id, message, message_length);
-  data->user_data = self;
-  self->source_id_ = g_idle_add(ProcessLicense, data);
-  if (self->source_id_ <= 0) {
-    LOG_ERROR("[DrmManager] Fail to add g_idle.");
-    delete data;
-    return DM_ERROR_INTERNAL_ERROR;
-  }
+  DataForLicenseProcess process_message(session_id, message, message_length);
+  self->PushLicenseRequestData(process_message);
   return DM_ERROR_NONE;
 }
 
@@ -238,39 +242,33 @@ void DrmManager::OnDrmManagerError(long error_code, char *error_message,
             error_message);
 }
 
-gboolean DrmManager::ProcessLicense(void *user_data) {
+bool DrmManager::ProcessLicense(DataForLicenseProcess &data) {
   LOG_INFO("[DrmManager] Start process license.");
 
-  DataForLicenseProcess *data = static_cast<DataForLicenseProcess *>(user_data);
-  DrmManager *self = static_cast<DrmManager *>(data->user_data);
-
-  if (!self->license_server_url_.empty()) {
+  if (!license_server_url_.empty()) {
     // Get license via the license server.
     unsigned char *response_data = nullptr;
     unsigned long response_len = 0;
     DRM_RESULT ret = DrmLicenseHelper::DoTransactionTZ(
-        self->license_server_url_.c_str(), data->message.c_str(),
-        data->message.size(), &response_data, &response_len,
-        static_cast<DrmLicenseHelper::DrmType>(self->drm_type_), nullptr,
-        nullptr);
+        license_server_url_.c_str(), data.message.c_str(), data.message.size(),
+        &response_data, &response_len,
+        static_cast<DrmLicenseHelper::DrmType>(drm_type_), nullptr, nullptr);
     if (DRM_SUCCESS != ret || nullptr == response_data || 0 == response_len) {
       LOG_ERROR("[DrmManager] Fail to get respone by license server url.");
-      delete data;
       return false;
     }
-    LOG_INFO("[DrmManager] Response length : %d", response_len);
-    self->InstallKey(const_cast<void *>(reinterpret_cast<const void *>(
-                         data->session_id.c_str())),
-                     static_cast<void *>(response_data),
-                     reinterpret_cast<void *>(response_len));
-  } else if (self->request_license_channel_) {
+    LOG_INFO("[DrmManager] Response length : %lu", response_len);
+    InstallKey(const_cast<void *>(
+                   reinterpret_cast<const void *>(data.session_id.c_str())),
+               static_cast<void *>(response_data),
+               reinterpret_cast<void *>(response_len));
+    free(response_data);
+  } else if (request_license_channel_) {
     // Get license via the Dart callback.
-    self->RequestLicense(data->session_id, data->message);
+    RequestLicense(data.session_id, data.message);
   } else {
     LOG_ERROR("[DrmManager] No way to request license.");
   }
-
-  delete data;
   return false;
 }
 
@@ -325,4 +323,19 @@ void DrmManager::RequestLicense(std::string &session_id, std::string &message) {
       std::make_unique<flutter::EncodableValue>(
           flutter::EncodableValue(args_map)),
       std::move(result_handler));
+}
+
+void DrmManager::PushLicenseRequestData(DataForLicenseProcess &data) {
+  std::lock_guard<std::mutex> lock(queue_mutex_);
+  license_request_queue_.push(data);
+  ecore_pipe_write(license_request_pipe_, nullptr, 0);
+}
+
+void DrmManager::ExecuteRequest() {
+  std::lock_guard<std::mutex> lock(queue_mutex_);
+  while (!license_request_queue_.empty()) {
+    DataForLicenseProcess data = license_request_queue_.front();
+    ProcessLicense(data);
+    license_request_queue_.pop();
+  }
 }

@@ -38,7 +38,25 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
                        std::string &video_format)
     : VideoPlayer(messenger, flutter_view), video_format_(video_format) {}
 
-PlusPlayer::~PlusPlayer() { Dispose(); }
+PlusPlayer::~PlusPlayer() {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return;
+  }
+  if (!Stop(player_)) {
+    LOG_INFO("[PlusPlayer] Player fail to stop.");
+    return;
+  }
+
+  Close(player_);
+  UnregisterListener(player_);
+  DestroyPlayer(player_);
+  player_ = nullptr;
+
+  if (drm_manager_) {
+    drm_manager_->ReleaseDrmSession();
+  }
+}
 
 void PlusPlayer::RegisterListener() {
   listener_.buffering_callback = OnBufferStatus;
@@ -134,30 +152,7 @@ int64_t PlusPlayer::Create(const std::string &uri, int drm_type,
 
 void PlusPlayer::Dispose() {
   LOG_INFO("[PlusPlayer] Player disposing.");
-
-  if (!player_) {
-    LOG_ERROR("[PlusPlayer] Player not created.");
-    return;
-  }
-  if (!Stop(player_)) {
-    LOG_INFO("[PlusPlayer] Player fail to stop.");
-    return;
-  }
-
-  plusplayer::State state = GetState(player_);
-  if (state == plusplayer::State::kIdle || state == plusplayer::State::kNone) {
-    if (!Close(player_)) {
-      LOG_INFO("[PlusPlayer] Player fail to close.");
-      return;
-    }
-  }
-  UnregisterListener(player_);
-  DestroyPlayer(player_);
-  player_ = nullptr;
-
-  if (drm_manager_) {
-    drm_manager_->ReleaseDrmSession();
-  }
+  ClearUpEventChannel();
 }
 
 void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
