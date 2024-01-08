@@ -1,3 +1,7 @@
+## 0.5.1
+
+* Free response buffer after install key.
+
 ## 0.5.0
 
 * Add get duration API for live stream
