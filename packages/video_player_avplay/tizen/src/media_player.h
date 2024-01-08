@@ -35,13 +35,15 @@ class MediaPlayer : public VideoPlayer {
   bool SetPlaybackSpeed(double speed) override;
   bool SeekTo(int64_t position, SeekCompletedCallback callback) override;
   int64_t GetPosition() override;
-  int64_t GetDuration() override;
+  std::pair<int64_t, int64_t> GetDuration() override;
   void GetVideoSize(int32_t *width, int32_t *height) override;
   bool IsReady() override;
   flutter::EncodableList GetTrackInfo(std::string track_type) override;
   bool SetTrackSelection(int32_t track_id, std::string track_type) override;
 
  private:
+  bool IsLive();
+  std::pair<int64_t, int64_t> GetLiveDuration();
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
