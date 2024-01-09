@@ -39,19 +39,13 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
     : VideoPlayer(messenger, flutter_view), video_format_(video_format) {}
 
 PlusPlayer::~PlusPlayer() {
-  if (!player_) {
-    LOG_ERROR("[PlusPlayer] Player not created.");
-    return;
+  if (player_) {
+    Stop(player_);
+    Close(player_);
+    UnregisterListener(player_);
+    DestroyPlayer(player_);
+    player_ = nullptr;
   }
-  if (!Stop(player_)) {
-    LOG_INFO("[PlusPlayer] Player fail to stop.");
-    return;
-  }
-
-  Close(player_);
-  UnregisterListener(player_);
-  DestroyPlayer(player_);
-  player_ = nullptr;
 
   if (drm_manager_) {
     drm_manager_->ReleaseDrmSession();

@@ -46,6 +46,7 @@ DrmManager::~DrmManager() {
   ReleaseDrmSession();
   if (license_request_pipe_) {
     ecore_pipe_del(license_request_pipe_);
+    license_request_pipe_ = nullptr;
   }
   if (drm_manager_proxy_) {
     CloseDrmManagerProxy(drm_manager_proxy_);
