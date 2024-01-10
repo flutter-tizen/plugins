@@ -1,4 +1,9 @@
+## 0.2.1
+
+* Replace g_idle_add with ecore_pipe
+
 ## 0.2.0
+
 * Add get duration API for live stream.
 
 ## 0.1.3
