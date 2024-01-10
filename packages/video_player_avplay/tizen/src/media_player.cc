@@ -44,6 +44,7 @@ static player_stream_type_e ConvertTrackType(std::string track_type) {
   if (track_type == "text") {
     return PLAYER_STREAM_TYPE_TEXT;
   }
+  return PLAYER_STREAM_TYPE_DEFAULT;
 }
 
 MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
@@ -52,7 +53,22 @@ MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
   media_player_proxy_ = std::make_unique<MediaPlayerProxy>();
 }
 
-MediaPlayer::~MediaPlayer() { Dispose(); }
+MediaPlayer::~MediaPlayer() {
+  if (player_) {
+    player_stop(player_);
+    player_unprepare(player_);
+    player_unset_buffering_cb(player_);
+    player_unset_completed_cb(player_);
+    player_unset_interrupted_cb(player_);
+    player_unset_error_cb(player_);
+    player_unset_subtitle_updated_cb(player_);
+    player_destroy(player_);
+    player_ = nullptr;
+  }
+  if (drm_manager_) {
+    drm_manager_->ReleaseDrmSession();
+  }
+}
 
 int64_t MediaPlayer::Create(const std::string &uri, int drm_type,
                             const std::string &license_server_url,
@@ -175,20 +191,7 @@ int64_t MediaPlayer::Create(const std::string &uri, int drm_type,
 
 void MediaPlayer::Dispose() {
   LOG_INFO("[MediaPlayer] Disposing.");
-
-  if (player_) {
-    if (is_initialized_) {
-      player_unprepare(player_);
-      is_initialized_ = false;
-    }
-    player_destroy(player_);
-    player_ = nullptr;
-  }
-
-  // drm should be released after destroy of player
-  if (drm_manager_) {
-    drm_manager_->ReleaseDrmSession();
-  }
+  ClearUpEventChannel();
 }
 
 void MediaPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -285,7 +288,7 @@ bool MediaPlayer::SetPlaybackSpeed(double speed) {
 }
 
 bool MediaPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
-  LOG_INFO("[MediaPlayer] position: %d.", position);
+  LOG_INFO("[MediaPlayer] position: %lld.", position);
 
   on_seek_completed_ = std::move(callback);
   int ret =

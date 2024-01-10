@@ -27,7 +27,12 @@ VideoPlayer::VideoPlayer(flutter::BinaryMessenger *messenger,
 VideoPlayer::~VideoPlayer() {
   if (sink_event_pipe_) {
     ecore_pipe_del(sink_event_pipe_);
+    sink_event_pipe_ = nullptr;
   }
+}
+
+void VideoPlayer::ClearUpEventChannel() {
+  is_initialized_ = false;
   event_sink_ = nullptr;
   if (event_channel_) {
     event_channel_->SetStreamHandler(nullptr);
