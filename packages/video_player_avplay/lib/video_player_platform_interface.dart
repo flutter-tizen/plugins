@@ -179,6 +179,7 @@ class DataSource {
     this.httpHeaders = const <String, String>{},
     this.drmConfigs,
     this.playerOptions,
+    this.streamingProperty,
   });
 
   /// The way in which the video was originally loaded.
@@ -214,6 +215,9 @@ class DataSource {
 
   /// Set additional optional player settings.
   Map<String, dynamic>? playerOptions;
+
+  /// Sets specific feature values for HTTP, MMS, or specific streaming engine
+  Map<String, dynamic>? streamingProperty;
 }
 
 /// The way in which the video was originally loaded.
