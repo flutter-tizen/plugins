@@ -42,6 +42,9 @@ bool EwkInternalApiBinding::Initialize() {
   main.SetArguments = reinterpret_cast<EwkSetArgumentsFnPtr>(
       dlsym(handle_, "ewk_set_arguments"));
 
+  main.SetVersionPolicy = reinterpret_cast<EwkSetVersionPolicyFnPtr>(
+      dlsym(handle_, "ewk_set_version_policy"));
+
   // ewk_settings
   settings.ImePanelEnabledSet =
       reinterpret_cast<EwkSettingsImePanelEnabledSetFnPtr>(
@@ -60,7 +63,8 @@ bool EwkInternalApiBinding::Initialize() {
   return view.SetBackgroundColor && view.FeedTouchEvent && view.SendKeyEvent &&
          view.OffscreenRenderingEnabledSet && view.ImeWindowSet &&
          view.KeyEventsEnabledSet && view.SupportVideoHoleSet &&
-         main.SetArguments && settings.ImePanelEnabledSet &&
-         console_message.LevelGet && console_message.TextGet &&
-         console_message.LineGet && console_message.SourceGet;
+         main.SetArguments && main.SetVersionPolicy &&
+         settings.ImePanelEnabledSet && console_message.LevelGet &&
+         console_message.TextGet && console_message.LineGet &&
+         console_message.SourceGet;
 }

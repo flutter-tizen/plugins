@@ -53,9 +53,11 @@ typedef struct {
 } EwkViewProcTable;
 
 typedef void (*EwkSetArgumentsFnPtr)(int argc, char** argv);
+typedef int (*EwkSetVersionPolicyFnPtr)(int preference);
 
 typedef struct {
   EwkSetArgumentsFnPtr SetArguments = nullptr;
+  EwkSetVersionPolicyFnPtr SetVersionPolicy = nullptr;
 } EwkMainProcTable;
 
 typedef struct Ewk_Settings Ewk_Settings;
