@@ -680,9 +680,6 @@ void MediaPlayer::OnPlayCompleted(void *user_data) {
 void MediaPlayer::OnInterrupted(player_interrupted_code_e code,
                                 void *user_data) {
   LOG_ERROR("[MediaPlayer] Interrupt code: %d.", code);
-
-  MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
-  self->SendError("Interrupted error", "Media player has been interrupted.");
 }
 
 void MediaPlayer::OnError(int error_code, void *user_data) {
