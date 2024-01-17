@@ -1,6 +1,10 @@
+## 0.2.2
+
+* Fix can not resume issue when re-launch app.
+
 ## 0.2.1
 
-* Replace g_idle_add with ecore_pipe
+* Replace g_idle_add with ecore_pipe.
 
 ## 0.2.0
 
