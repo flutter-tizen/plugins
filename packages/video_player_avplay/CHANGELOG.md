@@ -1,3 +1,7 @@
+## 0.2.3
+
+* Update plusplayer to latest.
+
 ## 0.2.2
 
 * Fix can not resume issue when re-launch app.
