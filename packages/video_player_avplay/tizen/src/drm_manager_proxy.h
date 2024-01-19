@@ -107,15 +107,29 @@ typedef bool (*FuncDMGRSecurityInitCompleteCB)(int* drm_handle,
                                                void* user_data);
 typedef int (*FuncDMGRReleaseDRMSession)(DRMSessionHandle_t drm_session);
 
-void* OpenDrmManagerProxy();
-int InitDrmManagerProxy(void* handle);
-void CloseDrmManagerProxy(void* handle);
+class DrmManagerProxy {
+ public:
+  DrmManagerProxy();
+  ~DrmManagerProxy();
+  int DMGRSetData(DRMSessionHandle_t drm_session, const char* data_type,
+                  void* input_data);
+  int DMGRGetData(DRMSessionHandle_t drm_session, const char* data_type,
+                  void* output_data);
+  void DMGRSetDRMLocalMode();
+  DRMSessionHandle_t DMGRCreateDRMSession(dm_type_e type,
+                                          const char* drm_sub_type);
+  bool DMGRSecurityInitCompleteCB(int* drm_handle, unsigned int len,
+                                  unsigned char* pssh_data, void* user_data);
+  int DMGRReleaseDRMSession(DRMSessionHandle_t drm_session);
 
-extern FuncDMGRSetData DMGRSetData;
-extern FuncDMGRGetData DMGRGetData;
-extern FuncDMGRSetDRMLocalMode DMGRSetDRMLocalMode;
-extern FuncDMGRCreateDRMSession DMGRCreateDRMSession;
-extern FuncDMGRSecurityInitCompleteCB DMGRSecurityInitCompleteCB;
-extern FuncDMGRReleaseDRMSession DMGRReleaseDRMSession;
+ private:
+  void* drm_manager_handle_ = nullptr;
+  FuncDMGRSetData dmgr_set_data_ = nullptr;
+  FuncDMGRGetData dmgr_get_data_ = nullptr;
+  FuncDMGRSetDRMLocalMode dmgr_set_drm_local_mode_ = nullptr;
+  FuncDMGRCreateDRMSession dmgr_create_drm_session_ = nullptr;
+  FuncDMGRSecurityInitCompleteCB dmgr_security_init_complete_cb_ = nullptr;
+  FuncDMGRReleaseDRMSession dmgr_release_drm_session_ = nullptr;
+};
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_PROXY_H_

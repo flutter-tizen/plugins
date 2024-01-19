@@ -6,59 +6,103 @@
 
 #include <dlfcn.h>
 
-FuncDMGRSetData DMGRSetData = nullptr;
-FuncDMGRGetData DMGRGetData = nullptr;
-FuncDMGRSetDRMLocalMode DMGRSetDRMLocalMode = nullptr;
-FuncDMGRCreateDRMSession DMGRCreateDRMSession = nullptr;
-FuncDMGRSecurityInitCompleteCB DMGRSecurityInitCompleteCB = nullptr;
-FuncDMGRReleaseDRMSession DMGRReleaseDRMSession = nullptr;
+#include "log.h"
 
-void* OpenDrmManagerProxy() { return dlopen("libdrmmanager.so.0", RTLD_LAZY); }
-
-int InitDrmManagerProxy(void* handle) {
-  if (!handle) {
-    return DM_ERROR_INVALID_PARAM;
+DrmManagerProxy::DrmManagerProxy()
+    : drm_manager_handle_(::dlopen("libdrmmanager.so.0", RTLD_LAZY)) {
+  if (drm_manager_handle_ == nullptr) {
+    LOG_ERROR("Fail to open drm manager.");
+    return;
   }
 
-  DMGRSetData = reinterpret_cast<FuncDMGRSetData>(dlsym(handle, "DMGRSetData"));
-  if (!DMGRSetData) {
-    return DM_ERROR_DL;
+  dmgr_set_data_ = reinterpret_cast<FuncDMGRSetData>(
+      dlsym(drm_manager_handle_, "DMGRSetData"));
+  if (dmgr_set_data_ == nullptr) {
+    LOG_ERROR("Fail to find DMGRSetData.");
   }
 
-  DMGRGetData = reinterpret_cast<FuncDMGRGetData>(dlsym(handle, "DMGRGetData"));
-  if (!DMGRGetData) {
-    return DM_ERROR_DL;
+  dmgr_get_data_ = reinterpret_cast<FuncDMGRGetData>(
+      dlsym(drm_manager_handle_, "DMGRGetData"));
+  if (dmgr_get_data_ == nullptr) {
+    LOG_ERROR("Fail to find DMGRGetData.");
   }
 
-  DMGRSetDRMLocalMode = reinterpret_cast<FuncDMGRSetDRMLocalMode>(
-      dlsym(handle, "DMGRSetDRMLocalMode"));
-  if (!DMGRSetDRMLocalMode) {
-    return DM_ERROR_DL;
+  dmgr_set_drm_local_mode_ = reinterpret_cast<FuncDMGRSetDRMLocalMode>(
+      dlsym(drm_manager_handle_, "DMGRSetDRMLocalMode"));
+  if (dmgr_set_drm_local_mode_ == nullptr) {
+    LOG_ERROR("Fail to find DMGRSetDRMLocalMode.");
   }
 
-  DMGRCreateDRMSession = reinterpret_cast<FuncDMGRCreateDRMSession>(
-      dlsym(handle, "DMGRCreateDRMSession"));
-  if (!DMGRCreateDRMSession) {
-    return DM_ERROR_DL;
+  dmgr_create_drm_session_ = reinterpret_cast<FuncDMGRCreateDRMSession>(
+      dlsym(drm_manager_handle_, "DMGRCreateDRMSession"));
+  if (dmgr_create_drm_session_ == nullptr) {
+    LOG_ERROR("Fail to find DMGRCreateDRMSession.");
   }
 
-  DMGRSecurityInitCompleteCB = reinterpret_cast<FuncDMGRSecurityInitCompleteCB>(
-      dlsym(handle, "DMGRSecurityInitCompleteCB"));
-  if (!DMGRSecurityInitCompleteCB) {
-    return DM_ERROR_DL;
+  dmgr_security_init_complete_cb_ =
+      reinterpret_cast<FuncDMGRSecurityInitCompleteCB>(
+          dlsym(drm_manager_handle_, "DMGRSecurityInitCompleteCB"));
+  if (dmgr_security_init_complete_cb_ == nullptr) {
+    LOG_ERROR("Fail to find DMGRSecurityInitCompleteCB.");
   }
 
-  DMGRReleaseDRMSession = reinterpret_cast<FuncDMGRReleaseDRMSession>(
-      dlsym(handle, "DMGRReleaseDRMSession"));
-  if (!DMGRReleaseDRMSession) {
-    return DM_ERROR_DL;
+  dmgr_release_drm_session_ = reinterpret_cast<FuncDMGRReleaseDRMSession>(
+      dlsym(drm_manager_handle_, "DMGRReleaseDRMSession"));
+  if (dmgr_release_drm_session_ == nullptr) {
+    LOG_ERROR("Fail to find DMGRReleaseDRMSession.");
   }
-
-  return DM_ERROR_NONE;
 }
 
-void CloseDrmManagerProxy(void* handle) {
-  if (handle) {
-    dlclose(handle);
+int DrmManagerProxy::DMGRSetData(DRMSessionHandle_t drm_session,
+                                 const char* data_type, void* input_data) {
+  if (dmgr_set_data_ == nullptr) {
+    return DM_ERROR_DL;
+  }
+  return dmgr_set_data_(drm_session, data_type, input_data);
+}
+
+int DrmManagerProxy::DMGRGetData(DRMSessionHandle_t drm_session,
+                                 const char* data_type, void* output_data) {
+  if (dmgr_get_data_ == nullptr) {
+    return DM_ERROR_DL;
+  }
+  return dmgr_get_data_(drm_session, data_type, output_data);
+}
+
+void DrmManagerProxy::DMGRSetDRMLocalMode() {
+  if (dmgr_set_drm_local_mode_) {
+    dmgr_set_drm_local_mode_();
+  }
+}
+
+DRMSessionHandle_t DrmManagerProxy::DMGRCreateDRMSession(
+    dm_type_e type, const char* drm_sub_type) {
+  if (dmgr_create_drm_session_ == nullptr) {
+    return nullptr;
+  }
+  return dmgr_create_drm_session_(type, drm_sub_type);
+}
+
+bool DrmManagerProxy::DMGRSecurityInitCompleteCB(int* drm_handle,
+                                                 unsigned int len,
+                                                 unsigned char* pssh_data,
+                                                 void* user_data) {
+  if (dmgr_security_init_complete_cb_ == nullptr) {
+    return false;
+  }
+  dmgr_security_init_complete_cb_(drm_handle, len, pssh_data, user_data);
+}
+
+int DrmManagerProxy::DMGRReleaseDRMSession(DRMSessionHandle_t drm_session) {
+  if (dmgr_release_drm_session_ == nullptr) {
+    return DM_ERROR_DL;
+  }
+  return dmgr_release_drm_session_(drm_session);
+}
+
+DrmManagerProxy::~DrmManagerProxy() {
+  if (drm_manager_handle_) {
+    dlclose(drm_manager_handle_);
+    drm_manager_handle_ = nullptr;
   }
 }
