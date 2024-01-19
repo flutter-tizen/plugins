@@ -109,7 +109,7 @@ typedef int (*FuncDMGRReleaseDRMSession)(DRMSessionHandle_t drm_session);
 
 class DrmManagerProxy {
  public:
-  DrmManagerProxy();
+  explicit DrmManagerProxy();
   ~DrmManagerProxy();
   int DMGRSetData(DRMSessionHandle_t drm_session, const char* data_type,
                   void* input_data);

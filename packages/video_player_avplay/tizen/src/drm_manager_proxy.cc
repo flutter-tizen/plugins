@@ -90,7 +90,7 @@ bool DrmManagerProxy::DMGRSecurityInitCompleteCB(int* drm_handle,
   if (dmgr_security_init_complete_cb_ == nullptr) {
     return false;
   }
-  dmgr_security_init_complete_cb_(drm_handle, len, pssh_data, user_data);
+  return dmgr_security_init_complete_cb_(drm_handle, len, pssh_data, user_data);
 }
 
 int DrmManagerProxy::DMGRReleaseDRMSession(DRMSessionHandle_t drm_session) {

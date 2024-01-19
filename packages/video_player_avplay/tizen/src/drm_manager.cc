@@ -21,7 +21,6 @@ static std::string GetDrmSubType(int drm_type) {
   }
 }
 
-std::unique_ptr<DrmManagerProxy> drm_manager_proxy_;
 DrmManager::DrmManager()
     : drm_manager_proxy_(std::make_unique<DrmManagerProxy>()),
       drm_type_(DM_TYPE_NONE) {
@@ -42,11 +41,6 @@ DrmManager::~DrmManager() {
 }
 
 bool DrmManager::CreateDrmSession(int drm_type, bool local_mode) {
-  if (!drm_manager_proxy_) {
-    LOG_ERROR("[DrmManager] Invalid handle of libdrmmanager.");
-    return false;
-  }
-
   if (local_mode) {
     drm_manager_proxy_->DMGRSetDRMLocalMode();
   }
@@ -212,7 +206,6 @@ int DrmManager::SetChallenge(const std::string &media_url) {
               get_error_message(ret));
     return ret;
   }
-  initialized_ = true;
   return ret;
 }
 
