@@ -60,7 +60,7 @@ class DrmManager {
       request_license_channel_;
 
   void *drm_session_ = nullptr;
-  std::unique_ptr<DrmManagerProxy> drm_manager_proxy_;
+  //std::unique_ptr<DrmManagerProxy> drm_manager_proxy_;
 
   int drm_type_;
   std::string license_server_url_;

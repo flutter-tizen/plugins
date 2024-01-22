@@ -109,8 +109,14 @@ typedef int (*FuncDMGRReleaseDRMSession)(DRMSessionHandle_t drm_session);
 
 class DrmManagerProxy {
  public:
-  explicit DrmManagerProxy();
-  ~DrmManagerProxy();
+  static DrmManagerProxy& GetInstance() {
+    static DrmManagerProxy instance;
+    return instance;
+  }
+  DrmManagerProxy(const DrmManagerProxy&) = delete;
+  DrmManagerProxy(const DrmManagerProxy&&) = delete;
+  DrmManagerProxy& operator=(const DrmManagerProxy&) = delete;
+
   int DMGRSetData(DRMSessionHandle_t drm_session, const char* data_type,
                   void* input_data);
   int DMGRGetData(DRMSessionHandle_t drm_session, const char* data_type,
@@ -123,6 +129,8 @@ class DrmManagerProxy {
   int DMGRReleaseDRMSession(DRMSessionHandle_t drm_session);
 
  private:
+  DrmManagerProxy();
+  ~DrmManagerProxy();
   void* drm_manager_handle_ = nullptr;
   FuncDMGRSetData dmgr_set_data_ = nullptr;
   FuncDMGRGetData dmgr_get_data_ = nullptr;
