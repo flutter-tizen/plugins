@@ -217,7 +217,7 @@ class DataSource {
   Map<String, dynamic>? playerOptions;
 
   /// Sets specific feature values for HTTP, MMS, or specific streaming engine
-  Map<String, dynamic>? streamingProperty;
+  Map<String, String>? streamingProperty;
 }
 
 /// The way in which the video was originally loaded.

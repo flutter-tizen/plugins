@@ -315,7 +315,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Sets specific feature values for HTTP, MMS, or specific streaming engine (Smooth Streaming, HLS, DASH, DivX Plus Streaming, or Widevine).
   /// The available streaming properties depend on the streaming protocol or engine.
   /// Only for [VideoPlayerController.network].
-  final Map<String, dynamic>? streamingProperty;
+  final Map<String, String>? streamingProperty;
 
   /// **Android only**. Will override the platform's generic file format
   /// detection with whatever is set here.
