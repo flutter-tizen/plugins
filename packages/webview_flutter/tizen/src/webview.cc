@@ -196,6 +196,8 @@ void WebView::Dispose() {
                                    &WebView::OnUrlChange);
     evas_object_del(webview_instance_);
   }
+
+  ewk_shutdown();
 }
 
 void WebView::Offset(double left, double top) {
@@ -286,6 +288,8 @@ void WebView::SetDirection(int direction) {
 }
 
 void WebView::InitWebView() {
+  EwkInternalApiBinding::GetInstance().main.SetVersionPolicy(1);
+
   char* chromium_argv[] = {
       const_cast<char*>("--disable-pinch"),
       const_cast<char*>("--js-flags=--expose-gc"),
