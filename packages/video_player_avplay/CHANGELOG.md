@@ -1,3 +1,7 @@
+## 0.3.0
+
+* Support ADAPTIVE_INFO property.
+
 ## 0.2.3
 
 * [dash] DASH unique event including index tag.

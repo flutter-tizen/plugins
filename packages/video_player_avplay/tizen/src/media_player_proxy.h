@@ -130,6 +130,8 @@ class MediaPlayerProxy {
                                      player_audio_track_info_v2** track_info);
   int player_get_subtitle_track_info_v2(
       player_h player, int index, player_subtitle_track_info_v2** track_info);
+  int player_set_adaptive_streaming_info(player_h player, void* adaptive_info,
+                                         int adaptive_type);
 
  private:
   void* media_player_handle_ = nullptr;

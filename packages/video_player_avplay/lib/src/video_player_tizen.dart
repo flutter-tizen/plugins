@@ -42,6 +42,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.httpHeaders = dataSource.httpHeaders;
         message.drmConfigs = dataSource.drmConfigs?.toMap();
         message.playerOptions = dataSource.playerOptions;
+        message.streamingProperty = dataSource.streamingProperty;
         break;
       case DataSourceType.file:
         message.uri = dataSource.uri;

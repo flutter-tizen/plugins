@@ -11,6 +11,7 @@
 #include <string>
 
 #include "drm_manager.h"
+#include "messages.h"
 #include "plusplayer/plusplayer_wrapper.h"
 #include "video_player.h"
 
@@ -21,9 +22,8 @@ class PlusPlayer : public VideoPlayer {
                       std::string &video_format);
   ~PlusPlayer();
 
-  int64_t Create(const std::string &uri, int drm_type,
-                 const std::string &license_server_url, bool is_prebuffer_mode,
-                 flutter::EncodableMap &http_headers) override;
+  int64_t Create(const std::string &uri,
+                 const CreateMessage &create_message) override;
   void Dispose() override;
 
   void SetDisplayRoi(int32_t x, int32_t y, int32_t width,

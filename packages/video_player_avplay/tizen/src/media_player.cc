@@ -70,11 +70,9 @@ MediaPlayer::~MediaPlayer() {
   }
 }
 
-int64_t MediaPlayer::Create(const std::string &uri, int drm_type,
-                            const std::string &license_server_url,
-                            bool is_prebuffer_mode,
-                            flutter::EncodableMap &http_headers) {
-  LOG_INFO("[MediaPlayer] uri: %s, drm_type: %d.", uri.c_str(), drm_type);
+int64_t MediaPlayer::Create(const std::string &uri,
+                            const CreateMessage &create_message) {
+  LOG_INFO("[MediaPlayer] uri: %s.", uri.c_str());
 
   if (uri.empty()) {
     LOG_ERROR("[MediaPlayer] The uri must not be empty.");
@@ -88,38 +86,53 @@ int64_t MediaPlayer::Create(const std::string &uri, int drm_type,
     return -1;
   }
 
-  if (!http_headers.empty()) {
-    auto iter = http_headers.find(flutter::EncodableValue("Cookie"));
-    if (iter != http_headers.end()) {
-      if (std::holds_alternative<std::string>(iter->second)) {
-        std::string cookie = std::get<std::string>(iter->second);
-        ret =
-            player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
-        if (ret != PLAYER_ERROR_NONE) {
-          LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
-                    get_error_message(ret));
-        }
+  if (!create_message.http_headers()->empty()) {
+    std::string cookie = flutter_common::GetValue(create_message.http_headers(),
+                                                  "Cookie", std::string());
+    if (!cookie.empty()) {
+      int ret =
+          player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
+      if (ret != PLAYER_ERROR_NONE) {
+        LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
+                  get_error_message(ret));
       }
     }
-
-    iter = http_headers.find(flutter::EncodableValue("User-Agent"));
-    if (iter != http_headers.end()) {
-      if (std::holds_alternative<std::string>(iter->second)) {
-        std::string user_agent = std::get<std::string>(iter->second);
-        ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
-                                              user_agent.size());
-        if (ret != PLAYER_ERROR_NONE) {
-          LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
-                    get_error_message(ret));
-        }
+    std::string user_agent = flutter_common::GetValue(
+        create_message.http_headers(), "User-Agent", std::string());
+    if (!user_agent.empty()) {
+      int ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
+                                                user_agent.size());
+      if (ret != PLAYER_ERROR_NONE) {
+        LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
+                  get_error_message(ret));
       }
     }
   }
 
-  if (drm_type != 0) {
-    if (!SetDrm(uri, drm_type, license_server_url)) {
-      LOG_ERROR("[MediaPlayer] Failed to set drm.");
-      return -1;
+  if (create_message.streaming_property() != nullptr &&
+      !create_message.streaming_property()->empty()) {
+    std::string adaptive_info = flutter_common::GetValue(
+        create_message.streaming_property(), "ADAPTIVE_INFO", std::string());
+    if (!adaptive_info.empty()) {
+      media_player_proxy_->player_set_adaptive_streaming_info(
+          player_,
+          const_cast<void *>(
+              reinterpret_cast<const void *>(adaptive_info.c_str())),
+          PLAYER_ADAPTIVE_INFO_URL_CUSTOM);
+    }
+  }
+
+  if (create_message.drm_configs() != nullptr &&
+      !create_message.drm_configs()->empty()) {
+    int drm_type =
+        flutter_common::GetValue(create_message.drm_configs(), "drmType", 0);
+    std::string license_server_url = flutter_common::GetValue(
+        create_message.drm_configs(), "licenseServerUrl", std::string());
+    if (drm_type != 0) {
+      if (!SetDrm(uri, drm_type, license_server_url)) {
+        LOG_ERROR("[MediaPlayer] Fail to set drm.");
+        return -1;
+      }
     }
   }
 
