@@ -66,6 +66,7 @@ class CreateMessage {
   Map<Object?, Object?>? httpHeaders;
   Map<Object?, Object?>? drmConfigs;
   Map<Object?, Object?>? playerOptions;
+  Map<Object?, Object?>? streamingProperty;
 }
 
 class MixWithOthersMessage {
