@@ -10,7 +10,7 @@
 
 DrmManagerProxy::DrmManagerProxy()
     : drm_manager_handle_(dlopen("libdrmmanager.so.0", RTLD_LAZY)) {
-  isValid = Initialize();
+  is_valid_ = Initialize();
 }
 
 bool DrmManagerProxy::Initialize() {
@@ -66,7 +66,7 @@ bool DrmManagerProxy::Initialize() {
 
 int DrmManagerProxy::DMGRSetData(DRMSessionHandle_t drm_session,
                                  const char* data_type, void* input_data) {
-  if (!isValid) {
+  if (!is_valid_) {
     LOG_ERROR("Fail to obtain address of DMGRSetData.");
     return DM_ERROR_DL;
   }
@@ -75,7 +75,7 @@ int DrmManagerProxy::DMGRSetData(DRMSessionHandle_t drm_session,
 
 int DrmManagerProxy::DMGRGetData(DRMSessionHandle_t drm_session,
                                  const char* data_type, void* output_data) {
-  if (!isValid) {
+  if (!is_valid_) {
     LOG_ERROR("Fail to obtain address of DMGRGetData.");
     return DM_ERROR_DL;
   }
@@ -83,7 +83,7 @@ int DrmManagerProxy::DMGRGetData(DRMSessionHandle_t drm_session,
 }
 
 void DrmManagerProxy::DMGRSetDRMLocalMode() {
-  if (!isValid) {
+  if (!is_valid_) {
     LOG_ERROR("Fail to obtain address of DMGRSetDRMLocalMode.");
     return;
   }
@@ -92,7 +92,7 @@ void DrmManagerProxy::DMGRSetDRMLocalMode() {
 
 DRMSessionHandle_t DrmManagerProxy::DMGRCreateDRMSession(
     dm_type_e type, const char* drm_sub_type) {
-  if (!isValid) {
+  if (!is_valid_) {
     LOG_ERROR("Fail to obtain address of DMGRCreateDRMSession.");
     return nullptr;
   }
@@ -103,7 +103,7 @@ bool DrmManagerProxy::DMGRSecurityInitCompleteCB(int* drm_handle,
                                                  unsigned int len,
                                                  unsigned char* pssh_data,
                                                  void* user_data) {
-  if (!isValid) {
+  if (!is_valid_) {
     LOG_ERROR("Fail to obtain address of DMGRSecurityInitCompleteCB.");
     return false;
   }
@@ -111,7 +111,7 @@ bool DrmManagerProxy::DMGRSecurityInitCompleteCB(int* drm_handle,
 }
 
 int DrmManagerProxy::DMGRReleaseDRMSession(DRMSessionHandle_t drm_session) {
-  if (!isValid) {
+  if (!is_valid_) {
     LOG_ERROR("Fail to obtain address of DMGRReleaseDRMSession.");
     return DM_ERROR_DL;
   }

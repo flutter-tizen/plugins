@@ -139,7 +139,7 @@ class DrmManagerProxy {
   FuncDMGRCreateDRMSession dmgr_create_drm_session_ = nullptr;
   FuncDMGRSecurityInitCompleteCB dmgr_security_init_complete_cb_ = nullptr;
   FuncDMGRReleaseDRMSession dmgr_release_drm_session_ = nullptr;
-  bool isValid = false;
+  bool is_valid_ = false;
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_PROXY_H_
