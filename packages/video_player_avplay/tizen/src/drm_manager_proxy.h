@@ -131,6 +131,7 @@ class DrmManagerProxy {
  private:
   DrmManagerProxy();
   ~DrmManagerProxy();
+  bool Initialize();
   void* drm_manager_handle_ = nullptr;
   FuncDMGRSetData dmgr_set_data_ = nullptr;
   FuncDMGRGetData dmgr_get_data_ = nullptr;
@@ -138,6 +139,7 @@ class DrmManagerProxy {
   FuncDMGRCreateDRMSession dmgr_create_drm_session_ = nullptr;
   FuncDMGRSecurityInitCompleteCB dmgr_security_init_complete_cb_ = nullptr;
   FuncDMGRReleaseDRMSession dmgr_release_drm_session_ = nullptr;
+  bool isValid = false;
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_PROXY_H_
