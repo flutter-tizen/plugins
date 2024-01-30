@@ -1,3 +1,7 @@
+## 0.3.1
+
+* Resolve drm manager proxy doesn't support multiple instances issue.
+
 ## 0.3.0
 
 * Support ADAPTIVE_INFO property.
