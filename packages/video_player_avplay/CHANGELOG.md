@@ -1,3 +1,13 @@
+## 0.3.2
+
+* [VVC] Add VVC decoder, disable parse for mp4/vvc, create a new vvc decoder to try decode
+* Adding InBandEvent json format for data, same as MPD event
+* when codec change support max resolution change
+* fix location tag problem for different format
+* support check role in prefer audio language logic
+* fix error in location tag of relative path, regarding Period judgement error when reloading MPD.
+* fix wrong audio sample rate , which is mismatch with real codec decConfig
+
 ## 0.3.1
 
 * Resolve drm manager proxy doesn't support multiple instances issue.
