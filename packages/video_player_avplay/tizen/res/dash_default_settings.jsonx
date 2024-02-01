@@ -5,7 +5,7 @@
     "streaming": {
         "multiQueueDuration": 0,
         "engineBufferDurationMs": 0,
-        "maxConnectionTimeout": 10,
+        "maxConnectionTimeout": 15,
         "MaxDownloadRetryCount": 10,
         "L1ServerTimeUs": -1,
         "lowLatencyEnabled": false,
