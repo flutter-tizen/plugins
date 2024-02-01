@@ -265,15 +265,16 @@ bool PlusPlayer::SetLooping(bool is_looping) {
 }
 
 bool PlusPlayer::SetVolume(double volume) {
-  LOG_INFO("[PlusPlayer] Volume: %f", volume);
-
-  if (GetState(player_) != plusplayer::State::kPlaying ||
-      GetState(player_) != plusplayer::State::kPaused) {
-    LOG_ERROR("[PlusPlayer] Player is in invalid state");
-    return false;
-  }
-
-  if (!::SetVolume(player_, volume)) {
+  /**
+   * dart api volume range[0,1], plusplaer volume range[0,100]
+   * Convert a number range to another range
+   * NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin))
+   * + NewMin oldMin = 0.0, oldMax = 1.0, oldRange = 1.0 newMin = 0, newMax =
+   * 100, newRange = 100
+   */
+  int new_volume = volume * 100;
+  LOG_INFO("[PlusPlayer] Volume: %d", new_volume);
+  if (!::SetVolume(player_, new_volume)) {
     LOG_ERROR("[PlusPlayer] Fail to set volume.");
     return false;
   }
