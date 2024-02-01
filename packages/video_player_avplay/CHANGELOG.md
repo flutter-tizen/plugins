@@ -1,3 +1,7 @@
+## NEXT
+
+* Check httper_headers pointer when creating media player.
+
 ## 0.3.1
 
 * Resolve drm manager proxy doesn't support multiple instances issue.
