@@ -1,3 +1,7 @@
+## NEXT
+
+* Fix state check in SetVolume.
+
 ## 0.3.2
 
 * [VVC] Add VVC decoder, disable parse for mp4/vvc, create a new vvc decoder to try decode
