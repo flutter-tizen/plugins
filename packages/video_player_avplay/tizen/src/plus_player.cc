@@ -81,7 +81,8 @@ int64_t PlusPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  if (!create_message.http_headers()->empty()) {
+  if (create_message.http_headers() != nullptr &&
+      !create_message.http_headers()->empty()) {
     std::string cookie = flutter_common::GetValue(create_message.http_headers(),
                                                   "Cookie", std::string());
     if (!cookie.empty()) {

@@ -25,7 +25,7 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 6,
+      length: 7,
       child: Scaffold(
         key: const ValueKey<String>('home_page'),
         appBar: AppBar(
@@ -39,6 +39,7 @@ class _App extends StatelessWidget {
               Tab(icon: Icon(Icons.cloud), text: 'DRM Widevine'),
               Tab(icon: Icon(Icons.cloud), text: 'DRM PlayReady'),
               Tab(icon: Icon(Icons.cloud), text: 'Track'),
+              Tab(icon: Icon(Icons.cloud), text: 'Asset'),
             ],
           ),
         ),
@@ -50,6 +51,7 @@ class _App extends StatelessWidget {
             _DrmRemoteVideo(),
             _DrmRemoteVideo2(),
             _TrackTest(),
+            _AssetVideo(),
           ],
         ),
       ),
@@ -433,6 +435,65 @@ class _TrackTestState extends State<_TrackTest> {
           _GetVideoTrackButton(controller: _controller),
           _GetAudioTrackButton(controller: _controller),
           _GetTextTrackButton(controller: _controller),
+        ],
+      ),
+    );
+  }
+}
+
+class _AssetVideo extends StatefulWidget {
+  @override
+  State<_AssetVideo> createState() => _AssetVideoState();
+}
+
+class _AssetVideoState extends State<_AssetVideo> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = VideoPlayerController.asset('assets/Butterfly-209.mp4');
+
+    _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
+      setState(() {});
+    });
+    _controller.setLooping(true);
+    _controller.initialize().then((_) => setState(() {}));
+    _controller.play();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          Container(padding: const EdgeInsets.only(top: 20.0)),
+          const Text('With assets mp4'),
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: <Widget>[
+                  VideoPlayer(_controller),
+                  ClosedCaption(text: _controller.value.caption.text),
+                  _ControlsOverlay(controller: _controller),
+                  VideoProgressIndicator(_controller, allowScrubbing: true),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -428,8 +428,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           );
           initializingCompleter.complete(null);
           _applyLooping();
-          _applyVolume();
+          // NOTE(jsuya): The plusplayer's SetVolume() work when player is
+          // paused or played, so it changes the order of _applyPlayPause()
+          // and _applyVolume().
           _applyPlayPause();
+          _applyVolume();
           _durationTimer?.cancel();
           _durationTimer = _createDurationTimer();
           break;
