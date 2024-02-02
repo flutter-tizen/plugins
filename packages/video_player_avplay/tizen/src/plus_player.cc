@@ -268,8 +268,7 @@ bool PlusPlayer::SetLooping(bool is_looping) {
 bool PlusPlayer::SetVolume(double volume) {
   LOG_INFO("[PlusPlayer] Volume: %f", volume);
 
-  if (GetState(player_) != plusplayer::State::kPlaying ||
-      GetState(player_) != plusplayer::State::kPaused) {
+  if (GetState(player_) < plusplayer::State::kPlaying) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state");
     return false;
   }
