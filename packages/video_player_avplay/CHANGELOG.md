@@ -1,5 +1,6 @@
 ## NEXT
 
+* Check httper_headers pointer when creating media player.
 * Fix state check in SetVolume.
 
 ## 0.3.2
