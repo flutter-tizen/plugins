@@ -266,6 +266,10 @@ bool PlusPlayer::SetLooping(bool is_looping) {
 }
 
 bool PlusPlayer::SetVolume(double volume) {
+  if (GetState(player_) < plusplayer::State::kPlaying) {
+    LOG_ERROR("[PlusPlayer] Player is in invalid state");
+    return false;
+  }
   // dart api volume range[0,1], plusplaer volume range[0,100]
   int new_volume = volume * 100;
   LOG_INFO("[PlusPlayer] Volume: %d", new_volume);
