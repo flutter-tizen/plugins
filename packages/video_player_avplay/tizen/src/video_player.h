@@ -90,7 +90,7 @@ inline const T GetValue(const flutter::EncodableMap *map,
   if (it != map->end() && std::holds_alternative<T>(it->second)) {
     return std::get<T>(it->second);
   }
-  return default_value;
+  return std::move(default_value);
 }
 
 }  // namespace flutter_common

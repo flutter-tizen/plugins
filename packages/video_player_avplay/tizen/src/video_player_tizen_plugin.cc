@@ -128,27 +128,21 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     return FlutterError("Invalid argument", "Either asset or uri must be set.");
   }
 
-  int64_t player_id = 0;
+  std::unique_ptr<VideoPlayer> player = nullptr;
   if (uri.substr(0, 4) == "http") {
-    auto player = std::make_unique<PlusPlayer>(
+    player = std::make_unique<PlusPlayer>(
         plugin_registrar_->messenger(),
         FlutterDesktopPluginRegistrarGetView(registrar_ref_), format);
-    player_id = player->Create(uri, msg);
-    if (player_id == -1) {
-      return FlutterError("Operation failed", "Failed to create a player.");
-    }
-    players_[player_id] = std::move(player);
   } else {
-    auto player = std::make_unique<MediaPlayer>(
+    player = std::make_unique<MediaPlayer>(
         plugin_registrar_->messenger(),
         FlutterDesktopPluginRegistrarGetView(registrar_ref_));
-    player_id = player->Create(uri, msg);
-    if (player_id == -1) {
-      return FlutterError("Operation failed", "Failed to create a player.");
-    }
-    players_[player_id] = std::move(player);
   }
-
+  int64_t player_id = player->Create(uri, msg);
+  if (player_id == -1) {
+    return FlutterError("Operation failed", "Failed to create a player.");
+  }
+  players_[player_id] = std::move(player);
   PlayerMessage result(player_id);
   return result;
 }

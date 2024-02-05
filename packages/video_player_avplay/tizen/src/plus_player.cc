@@ -31,6 +31,7 @@ static plusplayer::TrackType ConvertTrackType(std::string track_type) {
   if (track_type == "text") {
     return plusplayer::TrackType::kTrackTypeSubtitle;
   }
+  return plusplayer::TrackType::kTrackTypeMax;
 }
 
 PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
