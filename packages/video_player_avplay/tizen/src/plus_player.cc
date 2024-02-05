@@ -82,27 +82,20 @@ int64_t PlusPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  if (create_message.http_headers() != nullptr &&
-      !create_message.http_headers()->empty()) {
-    std::string cookie = flutter_common::GetValue(create_message.http_headers(),
-                                                  "Cookie", std::string());
-    if (!cookie.empty()) {
-      SetStreamingProperty(player_, "COOKIE", cookie);
-    }
-    std::string user_agent = flutter_common::GetValue(
-        create_message.http_headers(), "User-Agent", std::string());
-    if (!user_agent.empty()) {
-      SetStreamingProperty(player_, "USER_AGENT", user_agent);
-    }
+  std::string cookie = flutter_common::GetValue(create_message.http_headers(),
+                                                "Cookie", std::string());
+  if (!cookie.empty()) {
+    SetStreamingProperty(player_, "COOKIE", cookie);
   }
-
-  if (create_message.streaming_property() != nullptr &&
-      !create_message.streaming_property()->empty()) {
-    std::string adaptive_info = flutter_common::GetValue(
-        create_message.streaming_property(), "ADAPTIVE_INFO", std::string());
-    if (!adaptive_info.empty()) {
-      SetStreamingProperty(player_, "ADAPTIVE_INFO", adaptive_info);
-    }
+  std::string user_agent = flutter_common::GetValue(
+      create_message.http_headers(), "User-Agent", std::string());
+  if (!user_agent.empty()) {
+    SetStreamingProperty(player_, "USER_AGENT", user_agent);
+  }
+  std::string adaptive_info = flutter_common::GetValue(
+      create_message.streaming_property(), "ADAPTIVE_INFO", std::string());
+  if (!adaptive_info.empty()) {
+    SetStreamingProperty(player_, "ADAPTIVE_INFO", adaptive_info);
   }
 
   if (!Open(player_, uri)) {
@@ -122,17 +115,14 @@ int64_t PlusPlayer::Create(const std::string &uri,
 
   RegisterListener();
 
-  if (create_message.drm_configs() != nullptr &&
-      !create_message.drm_configs()->empty()) {
-    int drm_type =
-        flutter_common::GetValue(create_message.drm_configs(), "drmType", 0);
-    std::string license_server_url = flutter_common::GetValue(
-        create_message.drm_configs(), "licenseServerUrl", std::string());
-    if (drm_type != 0) {
-      if (!SetDrm(uri, drm_type, license_server_url)) {
-        LOG_ERROR("[PlusPlayer] Fail to set drm.");
-        return -1;
-      }
+  int drm_type =
+      flutter_common::GetValue(create_message.drm_configs(), "drmType", 0);
+  std::string license_server_url = flutter_common::GetValue(
+      create_message.drm_configs(), "licenseServerUrl", std::string());
+  if (drm_type != 0) {
+    if (!SetDrm(uri, drm_type, license_server_url)) {
+      LOG_ERROR("[PlusPlayer] Fail to set drm.");
+      return -1;
     }
   }
 
@@ -143,14 +133,11 @@ int64_t PlusPlayer::Create(const std::string &uri,
 
   SetDisplayRoi(0, 0, 1, 1);
 
-  if (create_message.player_options() != nullptr &&
-      !create_message.player_options()->empty()) {
-    bool is_prebuffer_mode = flutter_common::GetValue(
-        create_message.player_options(), "prebufferMode", false);
-    if (is_prebuffer_mode) {
-      SetPrebufferMode(player_, true);
-      is_prebuffer_mode_ = true;
-    }
+  bool is_prebuffer_mode = flutter_common::GetValue(
+      create_message.player_options(), "prebufferMode", false);
+  if (is_prebuffer_mode) {
+    SetPrebufferMode(player_, true);
+    is_prebuffer_mode_ = true;
   }
 
   if (!PrepareAsync(player_)) {

@@ -86,6 +86,10 @@ namespace flutter_common {
 template <typename T>
 inline const T GetValue(const flutter::EncodableMap *map,
                         const std::string &key, T &&default_value) {
+  if (map == nullptr || map->empty()) {
+    return std::move(default_value);
+  }
+
   auto it = map->find(flutter::EncodableValue(key));
   if (it != map->end() && std::holds_alternative<T>(it->second)) {
     return std::get<T>(it->second);
