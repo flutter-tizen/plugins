@@ -1,8 +1,9 @@
-## NEXT
+## 0.3.3
 
 * Check httper_headers pointer when creating media player.
 * Fix state check in SetVolume.
 * Add a case that plays the video of assets to the example.
+* Convert volume range to [0,100] for plusplayer.
 
 ## 0.3.2
 
