@@ -1,3 +1,7 @@
+## NEXT
+
+* Minor refactor.
+
 ## 0.3.3
 
 * Check httper_headers pointer when creating media player.
