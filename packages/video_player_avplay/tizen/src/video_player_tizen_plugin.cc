@@ -109,7 +109,6 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     return FlutterError("Operation failed", "Could not get a Flutter view.");
   }
   std::string uri;
-  std::string format;
 
   if (msg.asset() && !msg.asset()->empty()) {
     char *res_path = app_get_resource_path();
@@ -121,9 +120,6 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     }
   } else if (msg.uri() && !msg.uri()->empty()) {
     uri = *msg.uri();
-    if (msg.format_hint() && !msg.format_hint()->empty()) {
-      format = *msg.format_hint();
-    }
   } else {
     return FlutterError("Invalid argument", "Either asset or uri must be set.");
   }
@@ -132,7 +128,7 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   if (uri.substr(0, 4) == "http") {
     player = std::make_unique<PlusPlayer>(
         plugin_registrar_->messenger(),
-        FlutterDesktopPluginRegistrarGetView(registrar_ref_), format);
+        FlutterDesktopPluginRegistrarGetView(registrar_ref_));
   } else {
     player = std::make_unique<MediaPlayer>(
         plugin_registrar_->messenger(),

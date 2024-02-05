@@ -35,9 +35,8 @@ static plusplayer::TrackType ConvertTrackType(std::string track_type) {
 }
 
 PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
-                       FlutterDesktopViewRef flutter_view,
-                       std::string &video_format)
-    : VideoPlayer(messenger, flutter_view), video_format_(video_format) {}
+                       FlutterDesktopViewRef flutter_view)
+    : VideoPlayer(messenger, flutter_view) {}
 
 PlusPlayer::~PlusPlayer() {
   if (player_) {
@@ -71,7 +70,13 @@ int64_t PlusPlayer::Create(const std::string &uri,
                            const CreateMessage &create_message) {
   LOG_INFO("[PlusPlayer] Create player.");
 
-  if (video_format_ == "dash") {
+  std::string video_format;
+
+  if (create_message.format_hint() && !create_message.format_hint()->empty()) {
+    video_format = *create_message.format_hint();
+  }
+
+  if (video_format == "dash") {
     player_ = CreatePlayer(plusplayer::PlayerType::kDASH);
   } else {
     player_ = CreatePlayer(plusplayer::PlayerType::kDefault);
