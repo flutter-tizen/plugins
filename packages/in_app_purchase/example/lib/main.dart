@@ -234,8 +234,6 @@ class _MyAppState extends State<_MyApp> {
             trailing: TextButton(
               style: TextButton.styleFrom(
                 backgroundColor: Colors.green[800],
-                // ignore: deprecated_member_use
-                primary: Colors.white,
               ),
               onPressed: () {
                 final PurchaseParam purchaseParam = PurchaseParam(
@@ -278,8 +276,6 @@ class _MyAppState extends State<_MyApp> {
           TextButton(
             style: TextButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
-              // ignore: deprecated_member_use
-              primary: Colors.white,
             ),
             onPressed: () => _inAppPurchase.restorePurchases(),
             child: const Text('Restore purchases'),
