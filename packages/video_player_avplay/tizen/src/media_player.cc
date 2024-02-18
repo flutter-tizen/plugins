@@ -86,54 +86,45 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  if (create_message.http_headers() != nullptr &&
-      !create_message.http_headers()->empty()) {
-    std::string cookie = flutter_common::GetValue(create_message.http_headers(),
-                                                  "Cookie", std::string());
-    if (!cookie.empty()) {
-      int ret =
-          player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
-      if (ret != PLAYER_ERROR_NONE) {
-        LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
-                  get_error_message(ret));
-      }
+  std::string cookie = flutter_common::GetValue(create_message.http_headers(),
+                                                "Cookie", std::string());
+  if (!cookie.empty()) {
+    int ret =
+        player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
+                get_error_message(ret));
     }
-    std::string user_agent = flutter_common::GetValue(
-        create_message.http_headers(), "User-Agent", std::string());
-    if (!user_agent.empty()) {
-      int ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
-                                                user_agent.size());
-      if (ret != PLAYER_ERROR_NONE) {
-        LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
-                  get_error_message(ret));
-      }
+  }
+  std::string user_agent = flutter_common::GetValue(
+      create_message.http_headers(), "User-Agent", std::string());
+  if (!user_agent.empty()) {
+    int ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
+                                              user_agent.size());
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
+                get_error_message(ret));
     }
   }
 
-  if (create_message.streaming_property() != nullptr &&
-      !create_message.streaming_property()->empty()) {
-    std::string adaptive_info = flutter_common::GetValue(
-        create_message.streaming_property(), "ADAPTIVE_INFO", std::string());
-    if (!adaptive_info.empty()) {
-      media_player_proxy_->player_set_adaptive_streaming_info(
-          player_,
-          const_cast<void *>(
-              reinterpret_cast<const void *>(adaptive_info.c_str())),
-          PLAYER_ADAPTIVE_INFO_URL_CUSTOM);
-    }
+  std::string adaptive_info = flutter_common::GetValue(
+      create_message.streaming_property(), "ADAPTIVE_INFO", std::string());
+  if (!adaptive_info.empty()) {
+    media_player_proxy_->player_set_adaptive_streaming_info(
+        player_,
+        const_cast<void *>(
+            reinterpret_cast<const void *>(adaptive_info.c_str())),
+        PLAYER_ADAPTIVE_INFO_URL_CUSTOM);
   }
 
-  if (create_message.drm_configs() != nullptr &&
-      !create_message.drm_configs()->empty()) {
-    int drm_type =
-        flutter_common::GetValue(create_message.drm_configs(), "drmType", 0);
-    std::string license_server_url = flutter_common::GetValue(
-        create_message.drm_configs(), "licenseServerUrl", std::string());
-    if (drm_type != 0) {
-      if (!SetDrm(uri, drm_type, license_server_url)) {
-        LOG_ERROR("[MediaPlayer] Fail to set drm.");
-        return -1;
-      }
+  int drm_type =
+      flutter_common::GetValue(create_message.drm_configs(), "drmType", 0);
+  std::string license_server_url = flutter_common::GetValue(
+      create_message.drm_configs(), "licenseServerUrl", std::string());
+  if (drm_type != 0) {
+    if (!SetDrm(uri, drm_type, license_server_url)) {
+      LOG_ERROR("[MediaPlayer] Fail to set drm.");
+      return -1;
     }
   }
 
