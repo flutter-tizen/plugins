@@ -202,7 +202,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       int playerId, StreamingPropertyType type) async {
     final StreamingPropertyMessage streamingPropertyMessage =
         await _api.getStreamingProperty(StreamingPropertyTypeMessage(
-            playerId: playerId, streamingPropertyType: _streamingPropertyType[type]!));
+            playerId: playerId,
+            streamingPropertyType: _streamingPropertyType[type]!));
     return streamingPropertyMessage.streamingProperty;
   }
 
