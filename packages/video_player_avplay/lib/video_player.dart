@@ -714,6 +714,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyVolume();
   }
 
+  /// Retrieves a specific property value obtained by the streaming engine (Smooth Streaming, HLS, DASH, or Widevine).
+  Future<String> getStreamingProperty(StreamingPropertyType type) async {
+    if (_isDisposedOrNotInitialized) {
+      return '';
+    }
+    return _videoPlayerPlatform.getStreamingProperty(_playerId, type);
+  }
+
   /// Sets the playback speed of [this].
   ///
   /// [speed] indicates a speed value with different platforms accepting

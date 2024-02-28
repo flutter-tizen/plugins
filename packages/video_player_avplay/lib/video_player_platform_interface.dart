@@ -132,6 +132,13 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('getDuration() has not been implemented.');
   }
 
+  /// Retrieves a specific property value obtained by the streaming engine (Smooth Streaming, HLS, DASH, or Widevine).
+  Future<String> getStreamingProperty(
+      int playerId, StreamingPropertyType type) {
+    throw UnimplementedError(
+        'getStreamingProperty() has not been implemented.');
+  }
+
   /// Returns a widget displaying the video with a given playerId.
   Widget buildView(int playerId) {
     throw UnimplementedError('buildView() has not been implemented.');
@@ -251,6 +258,73 @@ enum VideoFormat {
 
   /// Any format other than the other ones defined in this enum.
   other,
+}
+
+/// The file format of the given video.
+enum StreamingPropertyType {
+  /// HTTP request cookie used to establish the session with the HTTP server.
+  COOKIE,
+
+  /// HTTP user agent, used in the HTTP request header.
+  USER_AGENT,
+
+  /// Property to initiate prebuffering mode. The second parameter indicates start-time for prebuffered content, in milliseconds.
+  PREBUFFER_MODE,
+
+  /// Sets a custom streaming URL with various streaming parameters, such as "BITRATES", "STARTBITRATE", or "SKIPBITRATE".
+  /// String containing custom attributes for adaptive streaming playback.
+  /// "STARTBITRATE=" Valid values are "LOWEST", "HIGHEST", and "AVERAGE". You can also define a specific bandwidth for the start of playback.
+  /// "BITRATES=" Use '~' to define a bandwidth range (5000 ~ 20000). You can also define a specific bandwidth for playback.
+  /// "SKIPBITRATE=" Defines the bandwidth to use after a skip operation.
+  /// "STARTFRAGMENT=" For live content playback, defines the start fragment number.
+  /// "FIXED_MAX_RESOLUTION=max_widthXmax_height". Only if the given media URI such as mpd in MPEG-DASH or m3u8 in HLS through open()
+  ///  method doesn't describe entire required video resolutions,application should use this attribute to complete the resolution information for the player.
+
+  ADAPTIVE_INFO,
+
+  /// Forces the player to use the 4K UHD decoder. Its parameter can be the string "TRUE" or "FALSE".
+  /// In the case of adaptive streaming which requires stream-change for different video resolution during the playback,
+  /// Only if the given media URI such as mpd in MPEG-DASH or m3u8 in HLS through open() method doesn't describe entire required video resolutions,
+  /// pass TRUE with this property in IDLE state.
+
+  SET_MODE_4K,
+
+  /// For the Smooth Streaming case, configures the player to listen for a "Sparse name" configured through "propertyParam" . The sparse track name is a string.
+
+  LISTEN_SPARSE_TRACK,
+
+  /// Whether the stream is LIVE or VOD. Applicable to all streaming types.
+
+  IS_LIVE,
+
+  /// String listing the available bit-rates for the currently-playing stream.
+
+  AVAILABLE_BITRATE,
+
+  /// String describing the duration of live content.
+
+  GET_LIVE_DURATION,
+
+  /// String describing the current streaming bandwidth.
+
+  CURRENT_BANDWIDTH,
+
+  /// Property used for enabling/initializing video mixer feature on B2B product only. It should be set before
+  /// setting SET_MIXEDFRAME property on the player.
+
+  USE_VIDEOMIXER,
+
+  /// : Property to set the position of mixed frame. setDisplayRect with required position on corresponding
+  ///  player instance to be called before setting this property.
+
+  SET_MIXEDFRAME,
+
+  /// Property to force the playback the video in potrait mode on B2B proudct only.
+
+  PORTRAIT_MODE,
+
+  /// Property to select the Scaler type, By Default MAIN Scaler selected.
+  IN_APP_MULTIVIEW,
 }
 
 /// Event emitted from the platform implementation.

@@ -198,6 +198,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<String> getStreamingProperty(
+      int playerId, StreamingPropertyType type) async {
+    final StreamingPropertyMessage streamingPropertyMessage =
+        await _api.getStreamingProperty(StreamingPropertyTypeMessage(
+            playerId: playerId, streamingPropertyType: _streamingPropertyType[type]!));
+    return streamingPropertyMessage.streamingProperty;
+  }
+
+  @override
   Stream<VideoEvent> videoEventsFor(int playerId) {
     return _eventChannelFor(playerId)
         .receiveBroadcastStream()
@@ -285,5 +294,23 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     1: AudioTrackChannelType.mono,
     2: AudioTrackChannelType.stereo,
     3: AudioTrackChannelType.surround,
+  };
+
+  static const Map<StreamingPropertyType, String> _streamingPropertyType =
+      <StreamingPropertyType, String>{
+    StreamingPropertyType.ADAPTIVE_INFO: 'ADAPTIVE_INFO',
+    StreamingPropertyType.AVAILABLE_BITRATE: 'AVAILABLE_BITRATE',
+    StreamingPropertyType.COOKIE: 'COOKIE',
+    StreamingPropertyType.CURRENT_BANDWIDTH: 'CURRENT_BANDWIDTH',
+    StreamingPropertyType.GET_LIVE_DURATION: 'GET_LIVE_DURATION',
+    StreamingPropertyType.IN_APP_MULTIVIEW: 'IN_APP_MULTIVIEW',
+    StreamingPropertyType.IS_LIVE: 'IS_LIVE',
+    StreamingPropertyType.LISTEN_SPARSE_TRACK: 'LISTEN_SPARSE_TRACK',
+    StreamingPropertyType.PORTRAIT_MODE: 'PORTRAIT_MODE',
+    StreamingPropertyType.PREBUFFER_MODE: 'PREBUFFER_MODE',
+    StreamingPropertyType.SET_MIXEDFRAME: 'SET_MIXEDFRAME',
+    StreamingPropertyType.SET_MODE_4K: 'SET_MODE_4K',
+    StreamingPropertyType.USER_AGENT: 'USER_AGENT',
+    StreamingPropertyType.USE_VIDEOMIXER: 'USE_VIDEOMIXER',
   };
 }

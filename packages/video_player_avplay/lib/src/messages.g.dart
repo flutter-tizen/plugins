@@ -364,6 +364,58 @@ class DurationMessage {
   }
 }
 
+class StreamingPropertyMessage {
+  StreamingPropertyMessage({
+    required this.playerId,
+    required this.streamingProperty,
+  });
+
+  int playerId;
+
+  String streamingProperty;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      streamingProperty,
+    ];
+  }
+
+  static StreamingPropertyMessage decode(Object result) {
+    result as List<Object?>;
+    return StreamingPropertyMessage(
+      playerId: result[0]! as int,
+      streamingProperty: result[1]! as String,
+    );
+  }
+}
+
+class StreamingPropertyTypeMessage {
+  StreamingPropertyTypeMessage({
+    required this.playerId,
+    required this.streamingPropertyType,
+  });
+
+  int playerId;
+
+  String streamingPropertyType;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      streamingPropertyType,
+    ];
+  }
+
+  static StreamingPropertyTypeMessage decode(Object result) {
+    result as List<Object?>;
+    return StreamingPropertyTypeMessage(
+      playerId: result[0]! as int,
+      streamingPropertyType: result[1]! as String,
+    );
+  }
+}
+
 class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
   const _VideoPlayerAvplayApiCodec();
   @override
@@ -395,14 +447,20 @@ class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
     } else if (value is SelectedTracksMessage) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    } else if (value is TrackMessage) {
+    } else if (value is StreamingPropertyMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    } else if (value is TrackTypeMessage) {
+    } else if (value is StreamingPropertyTypeMessage) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is TrackMessage) {
       buffer.putUint8(139);
+      writeValue(buffer, value.encode());
+    } else if (value is TrackTypeMessage) {
+      buffer.putUint8(140);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(141);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -431,10 +489,14 @@ class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
       case 136:
         return SelectedTracksMessage.decode(readValue(buffer)!);
       case 137:
-        return TrackMessage.decode(readValue(buffer)!);
+        return StreamingPropertyMessage.decode(readValue(buffer)!);
       case 138:
-        return TrackTypeMessage.decode(readValue(buffer)!);
+        return StreamingPropertyTypeMessage.decode(readValue(buffer)!);
       case 139:
+        return TrackMessage.decode(readValue(buffer)!);
+      case 140:
+        return TrackTypeMessage.decode(readValue(buffer)!);
+      case 141:
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -874,6 +936,35 @@ class VideoPlayerAvplayApi {
       );
     } else {
       return;
+    }
+  }
+
+  Future<StreamingPropertyMessage> getStreamingProperty(
+      StreamingPropertyTypeMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getStreamingProperty',
+        codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as StreamingPropertyMessage?)!;
     }
   }
 }

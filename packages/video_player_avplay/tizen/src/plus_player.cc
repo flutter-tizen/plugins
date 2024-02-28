@@ -334,7 +334,7 @@ bool PlusPlayer::IsLive() {
 
 std::pair<int64_t, int64_t> PlusPlayer::GetLiveDuration() {
   std::string live_duration_str =
-      GetStreamingProperty(player_, "GET_LIVE_DURATION");
+      ::GetStreamingProperty(player_, "GET_LIVE_DURATION");
   if (live_duration_str.empty()) {
     LOG_ERROR("[PlusPlayer] Player fail to get live duration.");
     return std::make_pair(0, 0);
@@ -575,6 +575,20 @@ bool PlusPlayer::SetDrm(const std::string &uri, int drm_type,
     }
   }
   return true;
+}
+
+std::string PlusPlayer::GetStreamingProperty(
+    const std::string &streaming_property_type) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return "";
+  }
+  plusplayer::State state = GetState(player_);
+  if (state == plusplayer::State::kNone || state == plusplayer::State::kIdle) {
+    LOG_ERROR("[PIE]:Player is in invalid state[%d]", state);
+    return "";
+  }
+  return ::GetStreamingProperty(player_, streaming_property_type);
 }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
