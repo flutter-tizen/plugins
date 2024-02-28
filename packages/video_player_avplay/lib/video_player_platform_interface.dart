@@ -260,7 +260,7 @@ enum VideoFormat {
   other,
 }
 
-/// The file format of the given video.
+/// The streaming property type.
 enum StreamingPropertyType {
   /// HTTP request cookie used to establish the session with the HTTP server.
   COOKIE,
@@ -314,7 +314,7 @@ enum StreamingPropertyType {
 
   USE_VIDEOMIXER,
 
-  /// : Property to set the position of mixed frame. setDisplayRect with required position on corresponding
+  /// Property to set the position of mixed frame. setDisplayRect with required position on corresponding
   ///  player instance to be called before setting this property.
 
   SET_MIXEDFRAME,
