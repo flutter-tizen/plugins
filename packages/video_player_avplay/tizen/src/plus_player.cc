@@ -87,20 +87,12 @@ int64_t PlusPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  std::string cookie = flutter_common::GetValue(create_message.http_headers(),
-                                                "Cookie", std::string());
-  if (!cookie.empty()) {
-    SetStreamingProperty(player_, "COOKIE", cookie);
-  }
-  std::string user_agent = flutter_common::GetValue(
-      create_message.http_headers(), "User-Agent", std::string());
-  if (!user_agent.empty()) {
-    SetStreamingProperty(player_, "USER_AGENT", user_agent);
-  }
-  std::string adaptive_info = flutter_common::GetValue(
-      create_message.streaming_property(), "ADAPTIVE_INFO", std::string());
-  if (!adaptive_info.empty()) {
-    SetStreamingProperty(player_, "ADAPTIVE_INFO", adaptive_info);
+  if (create_message.streaming_property() != nullptr &&
+      !create_message.streaming_property()->empty()) {
+    for (const auto &[key, value] : *create_message.streaming_property()) {
+      SetStreamingProperty(player_, std::get<std::string>(key),
+                           std::get<std::string>(value));
+    }
   }
 
   if (!Open(player_, uri)) {
@@ -585,7 +577,7 @@ std::string PlusPlayer::GetStreamingProperty(
   }
   plusplayer::State state = GetState(player_);
   if (state == plusplayer::State::kNone || state == plusplayer::State::kIdle) {
-    LOG_ERROR("[PIE]:Player is in invalid state[%d]", state);
+    LOG_ERROR("[PlusPlayer]:Player is in invalid state[%d]", state);
     return "";
   }
   return ::GetStreamingProperty(player_, streaming_property_type);

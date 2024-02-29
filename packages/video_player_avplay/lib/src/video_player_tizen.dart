@@ -3,8 +3,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -42,7 +40,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.httpHeaders = dataSource.httpHeaders;
         message.drmConfigs = dataSource.drmConfigs?.toMap();
         message.playerOptions = dataSource.playerOptions;
-        message.streamingProperty = dataSource.streamingProperty;
+        message.streamingProperty = dataSource.streamingProperty == null
+            ? null
+            : <String, String>{
+                for (final MapEntry<StreamingPropertyType, String> entry
+                    in dataSource.streamingProperty!.entries)
+                  _streamingPropertyType[entry.key]!: entry.value
+              };
         break;
       case DataSourceType.file:
         message.uri = dataSource.uri;
