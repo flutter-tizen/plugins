@@ -26,7 +26,7 @@ void main() {
 
   testWidgets('Create remote port', (WidgetTester tester) async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
-    localPort.register((dynamic message, [RemotePort? remotePort]) => () {});
+    localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
     final RemotePort remotePort =
         await RemotePort.connect(kTestAppId, kTestPort);
@@ -40,7 +40,7 @@ void main() {
       (WidgetTester tester) async {
     final LocalPort localPort =
         await LocalPort.create(kTestPort, trusted: false);
-    localPort.register((dynamic message, [RemotePort? remotePort]) => () {});
+    localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
     await expectLater(
       () => RemotePort.connect(kTestAppId, kTestPort),
@@ -52,7 +52,7 @@ void main() {
 
   testWidgets('Check for remote', (WidgetTester tester) async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
-    localPort.register((dynamic message, [RemotePort? remotePort]) => () {});
+    localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
     final RemotePort remotePort =
         await RemotePort.connect(kTestAppId, kTestPort);

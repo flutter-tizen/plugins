@@ -1,9 +1,5 @@
-# Specify analysis options.
-#
-# This file is a copy of analysis_options.yaml from flutter repo
-# as of 2023-12-18, but with some modifications marked with
-# "DIFFERENT FROM FLUTTER/FLUTTER" below. The file is expected to
-# be kept in sync with the master file from the flutter repo.
+# This file is a copy of analysis_options.yaml from flutter/packages repo
+# as of 2024-03-07.
 
 analyzer:
   language:
