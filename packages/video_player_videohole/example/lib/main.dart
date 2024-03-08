@@ -567,7 +567,7 @@ class _GetVideoTrackButton extends StatelessWidget {
             if (videotracks == null) {
               return;
             }
-            await showDialog(
+            await showDialog<void>(
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
@@ -611,7 +611,7 @@ class _GetAudioTrackButton extends StatelessWidget {
             if (audioTracks == null) {
               return;
             }
-            await showDialog(
+            await showDialog<void>(
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
@@ -655,7 +655,7 @@ class _GetTextTrackButton extends StatelessWidget {
             if (textTracks == null) {
               return;
             }
-            await showDialog(
+            await showDialog<void>(
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
