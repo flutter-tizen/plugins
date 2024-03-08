@@ -303,19 +303,19 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   static const Map<StreamingPropertyType, String> _streamingPropertyType =
       <StreamingPropertyType, String>{
-    StreamingPropertyType.ADAPTIVE_INFO: 'ADAPTIVE_INFO',
-    StreamingPropertyType.AVAILABLE_BITRATE: 'AVAILABLE_BITRATE',
-    StreamingPropertyType.COOKIE: 'COOKIE',
-    StreamingPropertyType.CURRENT_BANDWIDTH: 'CURRENT_BANDWIDTH',
-    StreamingPropertyType.GET_LIVE_DURATION: 'GET_LIVE_DURATION',
-    StreamingPropertyType.IN_APP_MULTIVIEW: 'IN_APP_MULTIVIEW',
-    StreamingPropertyType.IS_LIVE: 'IS_LIVE',
-    StreamingPropertyType.LISTEN_SPARSE_TRACK: 'LISTEN_SPARSE_TRACK',
-    StreamingPropertyType.PORTRAIT_MODE: 'PORTRAIT_MODE',
-    StreamingPropertyType.PREBUFFER_MODE: 'PREBUFFER_MODE',
-    StreamingPropertyType.SET_MIXEDFRAME: 'SET_MIXEDFRAME',
-    StreamingPropertyType.SET_MODE_4K: 'SET_MODE_4K',
-    StreamingPropertyType.USER_AGENT: 'USER_AGENT',
-    StreamingPropertyType.USE_VIDEOMIXER: 'USE_VIDEOMIXER',
+    StreamingPropertyType.adaptiveInfo: 'ADAPTIVE_INFO',
+    StreamingPropertyType.availableBitrate: 'AVAILABLE_BITRATE',
+    StreamingPropertyType.cookie: 'COOKIE',
+    StreamingPropertyType.currentBandwidth: 'CURRENT_BANDWIDTH',
+    StreamingPropertyType.getLiveDuration: 'GET_LIVE_DURATION',
+    StreamingPropertyType.inAppMultiView: 'IN_APP_MULTIVIEW',
+    StreamingPropertyType.isLive: 'IS_LIVE',
+    StreamingPropertyType.listenSparseTrack: 'LISTEN_SPARSE_TRACK',
+    StreamingPropertyType.portraitMode: 'PORTRAIT_MODE',
+    StreamingPropertyType.prebufferMode: 'PREBUFFER_MODE',
+    StreamingPropertyType.setMixedFrame: 'SET_MIXEDFRAME',
+    StreamingPropertyType.setMode4K: 'SET_MODE_4K',
+    StreamingPropertyType.userAgent: 'USER_AGENT',
+    StreamingPropertyType.useVideoMixer: 'USE_VIDEOMIXER',
   };
 }

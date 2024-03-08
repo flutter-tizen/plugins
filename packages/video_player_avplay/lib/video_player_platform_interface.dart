@@ -263,13 +263,13 @@ enum VideoFormat {
 /// The streaming property type.
 enum StreamingPropertyType {
   /// HTTP request cookie used to establish the session with the HTTP server.
-  COOKIE,
+  cookie,
 
   /// HTTP user agent, used in the HTTP request header.
-  USER_AGENT,
+  userAgent,
 
   /// Property to initiate prebuffering mode. The second parameter indicates start-time for prebuffered content, in milliseconds.
-  PREBUFFER_MODE,
+  prebufferMode,
 
   /// Sets a custom streaming URL with various streaming parameters, such as "BITRATES", "STARTBITRATE", or "SKIPBITRATE".
   /// String containing custom attributes for adaptive streaming playback.
@@ -279,52 +279,42 @@ enum StreamingPropertyType {
   /// "STARTFRAGMENT=" For live content playback, defines the start fragment number.
   /// "FIXED_MAX_RESOLUTION=max_widthXmax_height". Only if the given media URI such as mpd in MPEG-DASH or m3u8 in HLS through open()
   ///  method doesn't describe entire required video resolutions,application should use this attribute to complete the resolution information for the player.
-
-  ADAPTIVE_INFO,
+  adaptiveInfo,
 
   /// Forces the player to use the 4K UHD decoder. Its parameter can be the string "TRUE" or "FALSE".
   /// In the case of adaptive streaming which requires stream-change for different video resolution during the playback,
   /// Only if the given media URI such as mpd in MPEG-DASH or m3u8 in HLS through open() method doesn't describe entire required video resolutions,
   /// pass TRUE with this property in IDLE state.
-
-  SET_MODE_4K,
+  setMode4K,
 
   /// For the Smooth Streaming case, configures the player to listen for a "Sparse name" configured through "propertyParam" . The sparse track name is a string.
-
-  LISTEN_SPARSE_TRACK,
+  listenSparseTrack,
 
   /// Whether the stream is LIVE or VOD. Applicable to all streaming types.
-
-  IS_LIVE,
+  isLive,
 
   /// String listing the available bit-rates for the currently-playing stream.
-
-  AVAILABLE_BITRATE,
+  availableBitrate,
 
   /// String describing the duration of live content.
-
-  GET_LIVE_DURATION,
+  getLiveDuration,
 
   /// String describing the current streaming bandwidth.
-
-  CURRENT_BANDWIDTH,
+  currentBandwidth,
 
   /// Property used for enabling/initializing video mixer feature on B2B product only. It should be set before
   /// setting SET_MIXEDFRAME property on the player.
-
-  USE_VIDEOMIXER,
+  useVideoMixer,
 
   /// Property to set the position of mixed frame. setDisplayRect with required position on corresponding
   ///  player instance to be called before setting this property.
-
-  SET_MIXEDFRAME,
+  setMixedFrame,
 
   /// Property to force the playback the video in potrait mode on B2B proudct only.
-
-  PORTRAIT_MODE,
+  portraitMode,
 
   /// Property to select the Scaler type, By Default MAIN Scaler selected.
-  IN_APP_MULTIVIEW,
+  inAppMultiView,
 }
 
 /// Event emitted from the platform implementation.
