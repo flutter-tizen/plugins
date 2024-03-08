@@ -22,6 +22,14 @@
 
 namespace {
 
+#define CHECK_PLAYER(statement)                                    \
+  {                                                                \
+    VideoPlayer *player = (statement);                             \
+    if (!player) {                                                 \
+      return FlutterError("Invalid argument", "Player not found"); \
+    }                                                              \
+  }
+
 class VideoPlayerTizenPlugin : public flutter::Plugin,
                                public VideoPlayerAvplayApi {
  public:
@@ -155,11 +163,8 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Dispose(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
     const LoopingMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  if (!player->SetLooping(msg.is_looping())) {
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  if (!FindPlayerById(msg.player_id())->SetLooping(msg.is_looping())) {
     return FlutterError("SetLooping", "Player set looping failed");
   }
   return std::nullopt;
@@ -167,11 +172,8 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetLooping(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
     const VolumeMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  if (!player->SetVolume(msg.volume())) {
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  if (!FindPlayerById(msg.player_id())->SetVolume(msg.volume())) {
     return FlutterError("SetVolume", "Player set volume failed");
   }
   return std::nullopt;
@@ -179,11 +181,8 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetVolume(
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
     const PlaybackSpeedMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  if (!player->SetPlaybackSpeed(msg.speed())) {
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  if (!FindPlayerById(msg.player_id())->SetPlaybackSpeed(msg.speed())) {
     return FlutterError("SetPlaybackSpeed", "Player set playback speed failed");
   }
   return std::nullopt;
@@ -191,60 +190,43 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetPlaybackSpeed(
 
 ErrorOr<TrackMessage> VideoPlayerTizenPlugin::Track(
     const TrackTypeMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-
-  TrackMessage result(msg.player_id(), player->GetTrackInfo(msg.track_type()));
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  TrackMessage result(
+      msg.player_id(),
+      FindPlayerById(msg.player_id())->GetTrackInfo(msg.track_type()));
   return result;
 }
 
 ErrorOr<bool> VideoPlayerTizenPlugin::SetTrackSelection(
     const SelectedTracksMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  return player->SetTrackSelection(msg.track_id(), msg.track_type());
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  return FindPlayerById(msg.player_id())
+      ->SetTrackSelection(msg.track_id(), msg.track_type());
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Play(
     const PlayerMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  if (!player->Play()) {
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  if (!FindPlayerById(msg.player_id())->Play()) {
     return FlutterError("Play", "Player play failed");
   }
   return std::nullopt;
 }
 
 ErrorOr<bool> VideoPlayerTizenPlugin::SetDeactivate(const PlayerMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  return player->Deactivate();
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  return FindPlayerById(msg.player_id())->Deactivate();
 }
 
 ErrorOr<bool> VideoPlayerTizenPlugin::SetActivate(const PlayerMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  return player->Activate();
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  return FindPlayerById(msg.player_id())->Activate();
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
     const PlayerMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  if (!player->Pause()) {
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  if (!FindPlayerById(msg.player_id())->Pause()) {
     return FlutterError("Pause", "Player pause failed");
   }
   return std::nullopt;
@@ -252,22 +234,17 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Pause(
 
 ErrorOr<PositionMessage> VideoPlayerTizenPlugin::Position(
     const PlayerMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
-  PositionMessage result(msg.player_id(), player->GetPosition());
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
+  PositionMessage result(msg.player_id(),
+                         FindPlayerById(msg.player_id())->GetPosition());
   return result;
 }
 
 ErrorOr<DurationMessage> VideoPlayerTizenPlugin::Duration(
     const PlayerMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
-  if (!player) {
-    return FlutterError("Invalid argument", "Player not found");
-  }
+  CHECK_PLAYER(FindPlayerById(msg.player_id()));
   DurationMessage result(msg.player_id());
-  auto duration_pair = player->GetDuration();
+  auto duration_pair = FindPlayerById(msg.player_id())->GetDuration();
   flutter::EncodableList duration_range{
       flutter::EncodableValue(duration_pair.first),
       flutter::EncodableValue(duration_pair.second)};

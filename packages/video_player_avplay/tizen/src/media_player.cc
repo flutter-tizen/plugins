@@ -10,6 +10,23 @@
 
 #include "log.h"
 
+#define CHECK_PLAYER_RESULT(statement, return_value)                           \
+  {                                                                            \
+    const auto result = (statement);                                           \
+    if (result != PLAYER_ERROR_NONE) {                                         \
+      LOG_ERROR("[MediaPlayer] Player error : %s", get_error_message(result)); \
+      return return_value;                                                     \
+    }                                                                          \
+  }
+
+#define CHECK_PLAYER_RESULT_NO_RETURN(statement)                               \
+  {                                                                            \
+    const auto result = (statement);                                           \
+    if (result != PLAYER_ERROR_NONE) {                                         \
+      LOG_ERROR("[MediaPlayer] Player error : %s", get_error_message(result)); \
+    }                                                                          \
+  }
+
 static std::vector<std::string> split(const std::string &s, char delim) {
   std::stringstream ss(s);
   std::string item;
@@ -79,42 +96,30 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  int ret = player_create(&player_);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_create failed: %s.",
-              get_error_message(ret));
-    return -1;
-  }
+  CHECK_PLAYER_RESULT(player_create(&player_), -1);
 
   std::string cookie = flutter_common::GetValue(create_message.http_headers(),
                                                 "Cookie", std::string());
   if (!cookie.empty()) {
-    int ret =
-        player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
-    if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
-                get_error_message(ret));
-    }
+    CHECK_PLAYER_RESULT_NO_RETURN(
+        player_set_streaming_cookie(player_, cookie.c_str(), cookie.size()));
   }
   std::string user_agent = flutter_common::GetValue(
       create_message.http_headers(), "User-Agent", std::string());
   if (!user_agent.empty()) {
-    int ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
-                                              user_agent.size());
-    if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
-                get_error_message(ret));
-    }
+    CHECK_PLAYER_RESULT_NO_RETURN(player_set_streaming_user_agent(
+        player_, user_agent.c_str(), user_agent.size()));
   }
 
   std::string adaptive_info = flutter_common::GetValue(
       create_message.streaming_property(), "ADAPTIVE_INFO", std::string());
   if (!adaptive_info.empty()) {
-    media_player_proxy_->player_set_adaptive_streaming_info(
-        player_,
-        const_cast<void *>(
-            reinterpret_cast<const void *>(adaptive_info.c_str())),
-        PLAYER_ADAPTIVE_INFO_URL_CUSTOM);
+    CHECK_PLAYER_RESULT_NO_RETURN(
+        media_player_proxy_->player_set_adaptive_streaming_info(
+            player_,
+            const_cast<void *>(
+                reinterpret_cast<const void *>(adaptive_info.c_str())),
+            PLAYER_ADAPTIVE_INFO_URL_CUSTOM));
   }
 
   int drm_type =
@@ -135,62 +140,17 @@ int64_t MediaPlayer::Create(const std::string &uri,
 
   SetDisplayRoi(0, 0, 1, 1);
 
-  ret = player_set_uri(player_, uri.c_str());
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_uri failed : %s.",
-              get_error_message(ret));
-    return -1;
-  }
-
-  ret = player_set_display_visible(player_, true);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_display_visible failed : %s.",
-              get_error_message(ret));
-    return -1;
-  }
-
-  ret = player_set_buffering_cb(player_, OnBuffering, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_buffering_cb failed : %s.",
-              get_error_message(ret));
-    return -1;
-  }
-
-  ret = player_set_completed_cb(player_, OnPlayCompleted, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_completed_cb failed : %s.",
-              get_error_message(ret));
-    return -1;
-  }
-
-  ret = player_set_interrupted_cb(player_, OnInterrupted, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_interrupted_cb failed : %s.",
-              get_error_message(ret));
-    return -1;
-  }
-
-  ret = player_set_error_cb(player_, OnError, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_error_cb failed : %s.",
-              get_error_message(ret));
-    return -1;
-  }
-
-  ret = player_set_subtitle_updated_cb(player_, OnSubtitleUpdated, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_subtitle_updated_cb failed : %s.",
-              get_error_message(ret));
-    return -1;
-  }
-
-  ret = player_prepare_async(player_, OnPrepared, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_prepare_async failed : %s.",
-              get_error_message(ret));
-    return -1;
-  }
-
+  CHECK_PLAYER_RESULT(player_set_uri(player_, uri.c_str()), -1);
+  CHECK_PLAYER_RESULT(player_set_display_visible(player_, true), -1);
+  CHECK_PLAYER_RESULT(player_set_buffering_cb(player_, OnBuffering, this), -1);
+  CHECK_PLAYER_RESULT(player_set_completed_cb(player_, OnPlayCompleted, this),
+                      -1);
+  CHECK_PLAYER_RESULT(player_set_interrupted_cb(player_, OnInterrupted, this),
+                      -1);
+  CHECK_PLAYER_RESULT(player_set_error_cb(player_, OnError, this), -1);
+  CHECK_PLAYER_RESULT(
+      player_set_subtitle_updated_cb(player_, OnSubtitleUpdated, this), -1);
+  CHECK_PLAYER_RESULT(player_prepare_async(player_, OnPrepared, this), -1);
   return SetUpEventChannel();
 }
 
@@ -201,21 +161,15 @@ void MediaPlayer::Dispose() {
 
 void MediaPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
                                 int32_t height) {
-  int ret = player_set_display_roi_area(player_, x, y, width, height);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_display_roi_area failed: %s.",
-              get_error_message(ret));
-  }
+  CHECK_PLAYER_RESULT_NO_RETURN(
+      player_set_display_roi_area(player_, x, y, width, height));
 }
 
 bool MediaPlayer::Play() {
   LOG_INFO("[MediaPlayer] Player starting.");
 
   player_state_e state = PLAYER_STATE_NONE;
-  int ret = player_get_state(player_, &state);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] Unable to get player state.");
-  }
+  CHECK_PLAYER_RESULT(player_get_state(player_, &state), false);
   if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
     LOG_ERROR("[MediaPlayer] Player not ready.");
     return false;
@@ -224,22 +178,14 @@ bool MediaPlayer::Play() {
     LOG_INFO("[MediaPlayer] Player already playing.");
     return false;
   }
-  ret = player_start(player_);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_start failed: %s.", get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(player_start(player_), false);
   return true;
 }
 
 bool MediaPlayer::Pause() {
   LOG_INFO("[MediaPlayer] Player pausing.");
-
   player_state_e state = PLAYER_STATE_NONE;
-  int ret = player_get_state(player_, &state);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] Unable to get player state.");
-  }
+  CHECK_PLAYER_RESULT(player_get_state(player_, &state), false);
   if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
     LOG_ERROR("[MediaPlayer] Player not ready.");
     return false;
@@ -248,85 +194,49 @@ bool MediaPlayer::Pause() {
     LOG_INFO("[MediaPlayer] Player not playing.");
     return false;
   }
-  ret = player_pause(player_);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_pause failed: %s.", get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(player_pause(player_), false);
   return true;
 }
 
 bool MediaPlayer::SetLooping(bool is_looping) {
   LOG_INFO("[MediaPlayer] is_looping: %d.", is_looping);
-
-  int ret = player_set_looping(player_, is_looping);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_looping failed: %s.",
-              get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(player_set_looping(player_, is_looping), false);
   return true;
 }
 
 bool MediaPlayer::SetVolume(double volume) {
   LOG_INFO("[MediaPlayer] volume: %f.", volume);
-
-  int ret = player_set_volume(player_, volume, volume);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_volume failed: %s.",
-              get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(player_set_volume(player_, volume, volume), false);
   return true;
 }
 
 bool MediaPlayer::SetPlaybackSpeed(double speed) {
   LOG_INFO("[MediaPlayer] speed: %f.", speed);
-
-  int ret = player_set_playback_rate(player_, speed);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_playback_rate failed: %s.",
-              get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(player_set_playback_rate(player_, speed), false);
   return true;
 }
 
 bool MediaPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   LOG_INFO("[MediaPlayer] position: %lld.", position);
-
   on_seek_completed_ = std::move(callback);
-  int ret =
-      player_set_play_position(player_, position, true, OnSeekCompleted, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    on_seek_completed_ = nullptr;
-    LOG_ERROR("[MediaPlayer] player_set_play_position failed: %s.",
-              get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(
+      player_set_play_position(player_, position, true, OnSeekCompleted, this),
+      false);
   return true;
 }
 
 int64_t MediaPlayer::GetPosition() {
   int position = 0;
-  int ret = player_get_play_position(player_, &position);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_play_position failed: %s.",
-              get_error_message(ret));
-  }
+  CHECK_PLAYER_RESULT_NO_RETURN(player_get_play_position(player_, &position));
   LOG_DEBUG("[MediaPlayer] Video current position : %d.", position);
   return position;
 }
 
 bool MediaPlayer::IsLive() {
   int is_live = 0;
-  int ret = media_player_proxy_->player_get_adaptive_streaming_info(
-      player_, &is_live, PLAYER_ADAPTIVE_INFO_IS_LIVE);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_adaptive_streaming_info failed: %s",
-              get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(media_player_proxy_->player_get_adaptive_streaming_info(
+                          player_, &is_live, PLAYER_ADAPTIVE_INFO_IS_LIVE),
+                      false);
   return is_live != 0;
 }
 
@@ -358,11 +268,7 @@ std::pair<int64_t, int64_t> MediaPlayer::GetDuration() {
     return GetLiveDuration();
   } else {
     int duration = 0;
-    int ret = player_get_duration(player_, &duration);
-    if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[MediaPlayer] player_get_duration failed: %s.",
-                get_error_message(ret));
-    }
+    CHECK_PLAYER_RESULT_NO_RETURN(player_get_duration(player_, &duration));
     LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
     return std::make_pair(0, duration);
   }
@@ -370,39 +276,24 @@ std::pair<int64_t, int64_t> MediaPlayer::GetDuration() {
 
 void MediaPlayer::GetVideoSize(int32_t *width, int32_t *height) {
   int w = 0, h = 0;
-  int ret = player_get_video_size(player_, &w, &h);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_video_size failed: %s.",
-              get_error_message(ret));
-  }
+  CHECK_PLAYER_RESULT_NO_RETURN(player_get_video_size(player_, &w, &h));
   LOG_INFO("[MediaPlayer] Video width: %d, height: %d.", w, h);
-
   player_display_rotation_e rotation = PLAYER_DISPLAY_ROTATION_NONE;
-  ret = player_get_display_rotation(player_, &rotation);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_display_rotation failed: %s.",
-              get_error_message(ret));
-  }
+  CHECK_PLAYER_RESULT_NO_RETURN(
+      player_get_display_rotation(player_, &rotation));
   LOG_DEBUG("[MediaPlayer] Video rotation: %s.",
             RotationToString(rotation).c_str());
   if (rotation == PLAYER_DISPLAY_ROTATION_90 ||
       rotation == PLAYER_DISPLAY_ROTATION_270) {
     std::swap(w, h);
   }
-
   *width = w;
   *height = h;
 }
 
 bool MediaPlayer::IsReady() {
   player_state_e state = PLAYER_STATE_NONE;
-  int ret = player_get_state(player_, &state);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_state failed: %s.",
-              get_error_message(ret));
-    return false;
-  }
-
+  CHECK_PLAYER_RESULT(player_get_state(player_, &state), false);
   LOG_INFO("[MediaPlayer] Player state : %d.", state);
   return PLAYER_STATE_READY == state;
 }
@@ -417,45 +308,28 @@ bool MediaPlayer::SetDisplay() {
   int x = 0, y = 0, width = 0, height = 0;
   ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window, &x, &y,
                                                          &width, &height);
-  int ret = media_player_proxy_->player_set_ecore_wl_display(
-      player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window, x, y, width, height);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_ecore_wl_display failed: %s.",
-              get_error_message(ret));
-    return false;
-  }
 
-  ret = player_set_display_mode(player_, PLAYER_DISPLAY_MODE_DST_ROI);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_display_mode failed: %s.",
-              get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(media_player_proxy_->player_set_ecore_wl_display(
+                          player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window,
+                          x, y, width, height),
+                      false);
+  CHECK_PLAYER_RESULT(
+      player_set_display_mode(player_, PLAYER_DISPLAY_MODE_DST_ROI), false);
   return true;
 }
 
 flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
   player_state_e state = PLAYER_STATE_NONE;
-  int ret = player_get_state(player_, &state);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_state failed: %s",
-              get_error_message(ret));
-    return {};
-  }
+  CHECK_PLAYER_RESULT(player_get_state(player_, &state), {});
   if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
     LOG_ERROR("[MediaPlayer] Player not ready.");
     return {};
   }
-
   player_stream_type_e type = ConvertTrackType(track_type);
   int track_count = 0;
-  ret = media_player_proxy_->player_get_track_count_v2(player_, type,
-                                                       &track_count);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_track_count_v2 failed: %s",
-              get_error_message(ret));
-    return {};
-  }
+  CHECK_PLAYER_RESULT(media_player_proxy_->player_get_track_count_v2(
+                          player_, type, &track_count),
+                      {});
   if (track_count <= 0) {
     return {};
   }
@@ -469,14 +343,9 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
 
     for (int video_index = 0; video_index < track_count; video_index++) {
       player_video_track_info_v2 *video_track_info = nullptr;
-
-      ret = media_player_proxy_->player_get_video_track_info_v2(
-          player_, video_index, &video_track_info);
-      if (ret != PLAYER_ERROR_NONE) {
-        LOG_ERROR("[MediaPlayer] player_get_video_track_info_v2 failed: %s",
-                  get_error_message(ret));
-        return {};
-      }
+      CHECK_PLAYER_RESULT(media_player_proxy_->player_get_video_track_info_v2(
+                              player_, video_index, &video_track_info),
+                          {});
       LOG_INFO(
           "[MediaPlayer] video track info: width[%d], height[%d], "
           "bitrate[%d]",
@@ -503,14 +372,9 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
 
     for (int audio_index = 0; audio_index < track_count; audio_index++) {
       player_audio_track_info_v2 *audio_track_info = nullptr;
-
-      ret = media_player_proxy_->player_get_audio_track_info_v2(
-          player_, audio_index, &audio_track_info);
-      if (ret != PLAYER_ERROR_NONE) {
-        LOG_ERROR("[MediaPlayer] player_get_audio_track_info_v2 failed: %s",
-                  get_error_message(ret));
-        return {};
-      }
+      CHECK_PLAYER_RESULT(media_player_proxy_->player_get_audio_track_info_v2(
+                              player_, audio_index, &audio_track_info),
+                          {});
       LOG_INFO(
           "[MediaPlayer] audio track info: language[%s], channel[%d], "
           "sample_rate[%d], bitrate[%d]",
@@ -537,14 +401,10 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
 
     for (int sub_index = 0; sub_index < track_count; sub_index++) {
       player_subtitle_track_info_v2 *sub_track_info = nullptr;
-
-      ret = media_player_proxy_->player_get_subtitle_track_info_v2(
-          player_, sub_index, &sub_track_info);
-      if (ret != PLAYER_ERROR_NONE) {
-        LOG_ERROR("[MediaPlayer] player_get_subtitle_track_info_v2 failed: %s",
-                  get_error_message(ret));
-        return {};
-      }
+      CHECK_PLAYER_RESULT(
+          media_player_proxy_->player_get_subtitle_track_info_v2(
+              player_, sub_index, &sub_track_info),
+          {});
       LOG_INFO("[MediaPlayer] subtitle track info: language[%s]",
                sub_track_info->language);
 
@@ -564,26 +424,15 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
 bool MediaPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {
   LOG_INFO("[MediaPlayer] track_id: %d,track_type: %s", track_id,
            track_type.c_str());
-
   player_state_e state = PLAYER_STATE_NONE;
-  int ret = player_get_state(player_, &state);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_state failed: %s",
-              get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(player_get_state(player_, &state), false);
   if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
     LOG_ERROR("[MediaPlayer] Player not ready.");
     return false;
   }
-
-  ret = player_select_track(player_, ConvertTrackType(track_type), track_id);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_select_track failed: %s",
-              get_error_message(ret));
-    return false;
-  }
-
+  CHECK_PLAYER_RESULT(
+      player_select_track(player_, ConvertTrackType(track_type), track_id),
+      false);
   return true;
 }
 
@@ -601,29 +450,15 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
     return false;
   }
 
-  int ret = media_player_proxy_->player_set_drm_handle(
-      player_, PLAYER_DRM_TYPE_EME, drm_handle);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_drm_handle failed : %s.",
-              get_error_message(ret));
-    return false;
-  }
-
-  ret = media_player_proxy_->player_set_drm_init_complete_cb(
-      player_, OnDrmSecurityInitComplete, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_drm_init_complete_cb failed : %s.",
-              get_error_message(ret));
-    return false;
-  }
-
-  ret = media_player_proxy_->player_set_drm_init_data_cb(
-      player_, OnDrmUpdatePsshData, this);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_drm_init_complete_cb failed : %s.",
-              get_error_message(ret));
-    return false;
-  }
+  CHECK_PLAYER_RESULT(media_player_proxy_->player_set_drm_handle(
+                          player_, PLAYER_DRM_TYPE_EME, drm_handle),
+                      false);
+  CHECK_PLAYER_RESULT(media_player_proxy_->player_set_drm_init_complete_cb(
+                          player_, OnDrmSecurityInitComplete, this),
+                      false);
+  CHECK_PLAYER_RESULT(media_player_proxy_->player_set_drm_init_data_cb(
+                          player_, OnDrmUpdatePsshData, this),
+                      false);
 
   if (license_server_url.empty()) {
     bool success = drm_manager_->SetChallenge(uri, binary_messenger_);

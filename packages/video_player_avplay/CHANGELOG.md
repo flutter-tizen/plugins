@@ -1,6 +1,7 @@
 ## NEXT
 
 * Minor refactor.
+* Remove duplicate code for checking player.
 
 ## 0.3.3
 
