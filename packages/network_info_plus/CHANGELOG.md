@@ -1,3 +1,7 @@
+## NEXT
+
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 1.1.4
 
 * Update network_info_plus to 4.1.0.

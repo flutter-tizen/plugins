@@ -36,7 +36,7 @@ class LweWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> loadFile(String absoluteFilePath) {
-    assert(absoluteFilePath != null);
+    assert(absoluteFilePath.isNotEmpty);
     return _webview.loadFile(absoluteFilePath);
   }
 
@@ -51,7 +51,7 @@ class LweWebViewController extends PlatformWebViewController {
     String html, {
     String? baseUrl,
   }) {
-    assert(html != null);
+    assert(html.isNotEmpty);
     return _webview.loadHtmlString(html, baseUrl: baseUrl);
   }
 

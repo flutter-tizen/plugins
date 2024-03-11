@@ -1,6 +1,8 @@
 ## NEXT
 
 * Add ewk_set_version_policy() call.
+* Fix new lint warnings.
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
 
 ## 0.9.0
 

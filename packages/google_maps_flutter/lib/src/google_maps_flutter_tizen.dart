@@ -3,7 +3,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-part of google_maps_flutter_tizen;
+part of '../google_maps_flutter_tizen.dart';
 
 /// The Tizen implementation of [GoogleMapsFlutterPlatform].
 ///
@@ -43,7 +43,6 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
   @override
   Future<void> init(int mapId) async {
     _map(mapId).init();
-    assert(_map(mapId) != null, 'Must call buildWidget before init!');
   }
 
   /// Updates the options of a given `mapId`.

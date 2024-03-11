@@ -39,31 +39,23 @@ class PathProviderPlugin extends PathProviderPlatform {
     switch (type) {
       case StorageDirectory.music:
         dirType = storage_directory_e.STORAGE_DIRECTORY_MUSIC;
-        break;
       case StorageDirectory.ringtones:
         dirType = storage_directory_e.STORAGE_DIRECTORY_SYSTEM_RINGTONES;
-        break;
       case StorageDirectory.pictures:
         dirType = storage_directory_e.STORAGE_DIRECTORY_IMAGES;
-        break;
       case StorageDirectory.movies:
         dirType = storage_directory_e.STORAGE_DIRECTORY_VIDEOS;
-        break;
       case StorageDirectory.downloads:
         dirType = storage_directory_e.STORAGE_DIRECTORY_DOWNLOADS;
-        break;
       case StorageDirectory.dcim:
         dirType = storage_directory_e.STORAGE_DIRECTORY_CAMERA;
-        break;
       case StorageDirectory.documents:
         dirType = storage_directory_e.STORAGE_DIRECTORY_DOCUMENTS;
-        break;
       case StorageDirectory.podcasts:
       case StorageDirectory.alarms:
       case StorageDirectory.notifications:
       case null:
         dirType = storage_directory_e.STORAGE_DIRECTORY_OTHERS;
-        break;
     }
     return <String>[await storage.getDirectory(dirType)];
   }

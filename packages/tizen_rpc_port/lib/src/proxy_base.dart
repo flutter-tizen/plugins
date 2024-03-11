@@ -109,13 +109,13 @@ abstract class ProxyBase {
       } else if (event == 'disconnected') {
         _isConnected = false;
         await _onDisconnectedEvent();
-        _streamSubscription?.cancel();
+        await _streamSubscription?.cancel();
         _streamSubscription = null;
       } else if (event == 'rejected') {
         _isConnected = false;
         final String error = map['error'] as String;
         await _onRejectedEvent(error);
-        _streamSubscription?.cancel();
+        await _streamSubscription?.cancel();
         _streamSubscription = null;
       } else if (event == 'received') {
         final Uint8List rawData = map['rawData'] as Uint8List;

@@ -250,9 +250,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                         child: Center(
                           child: AspectRatio(
                               aspectRatio:
-                                  localVideoController.value.size != null
-                                      ? localVideoController.value.aspectRatio
-                                      : 1.0,
+                                  localVideoController.value.aspectRatio,
                               child: VideoPlayer(localVideoController)),
                         ),
                       ),
@@ -380,7 +378,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     return SizeTransition(
       sizeFactor: _exposureModeControlRowAnimation,
       child: ClipRect(
-        child: Container(
+        child: ColoredBox(
           color: Colors.grey.shade50,
           child: Column(
             children: <Widget>[
@@ -463,7 +461,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     return SizeTransition(
       sizeFactor: _focusModeControlRowAnimation,
       child: ClipRect(
-        child: Container(
+        child: ColoredBox(
           color: Colors.grey.shade50,
           child: Column(
             children: <Widget>[
@@ -680,30 +678,23 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
       switch (e.code) {
         case 'CameraAccessDenied':
           showInSnackBar('You have denied camera access.');
-          break;
         case 'CameraAccessDeniedWithoutPrompt':
           // iOS only
           showInSnackBar('Please go to Settings app to enable camera access.');
-          break;
         case 'CameraAccessRestricted':
           // iOS only
           showInSnackBar('Camera access is restricted.');
-          break;
         case 'AudioAccessDenied':
           showInSnackBar('You have denied audio access.');
-          break;
         case 'AudioAccessDeniedWithoutPrompt':
           // iOS only
           showInSnackBar('Please go to Settings app to enable audio access.');
-          break;
         case 'AudioAccessRestricted':
           // iOS only
           showInSnackBar('Audio access is restricted.');
-          break;
         case 'cameraPermission':
           // Android & web only
           showInSnackBar('Unknown permission error.');
-          break;
         default:
           _showCameraException(e);
           break;
@@ -1001,7 +992,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
         : VideoPlayerController.file(File(videoFile!.path));
 
     videoPlayerListener = () {
-      if (videoController != null && videoController!.value.size != null) {
+      if (videoController != null) {
         // Refreshing the state to update video player with the correct ratio.
         if (mounted) {
           setState(() {});

@@ -140,7 +140,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       final String invoiceId =
           billingResultWrapper.payDetails['InvoiceID'] ?? '';
 
-      billingManager
+      unawaited(billingManager
           .requestPurchases()
           .then((GetUserPurchaseListAPIResult responses) {
         for (int i = 0; i < responses.invoiceDetails.length; i++) {
@@ -163,7 +163,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
         }
       }).catchError((Object error) {
         _purchaseUpdatedController.addError(error);
-      });
+      }));
 
       return true;
     } else {
@@ -174,7 +174,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   @override
   Future<bool> buyConsumable(
       {required PurchaseParam purchaseParam, bool autoConsume = true}) {
-    assert(autoConsume == true, 'On Tizen, we should always auto consume');
+    assert(autoConsume, 'On Tizen, we should always auto consume');
     return buyNonConsumable(purchaseParam: purchaseParam);
   }
 }

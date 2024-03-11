@@ -1,3 +1,7 @@
+## NEXT
+
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 1.4.0
 
 * Update flutter_tts to 3.6.3.

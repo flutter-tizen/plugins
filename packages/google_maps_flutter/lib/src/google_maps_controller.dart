@@ -5,7 +5,7 @@
 
 // ignore_for_file: avoid_dynamic_calls
 
-part of google_maps_flutter_tizen;
+part of '../google_maps_flutter_tizen.dart';
 
 /// This class implements a Map Controller and its events
 class GoogleMapsController {
@@ -188,7 +188,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'BoundChanged',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           final LatLng center = await getCenter();
@@ -212,7 +212,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'Idle',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           _mapIsMoving = false;
@@ -224,7 +224,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'Tilesloaded',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null || _isFirst) {
+          if (_widget == null || _isFirst) {
             return;
           }
           try {
@@ -240,7 +240,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'Click',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           try {
@@ -262,7 +262,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'RightClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           try {
@@ -283,7 +283,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'MarkerClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           try {
@@ -306,7 +306,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'MarkerDragEnd',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           try {
@@ -338,7 +338,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'PolylineClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           try {
@@ -362,7 +362,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'PolygonClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           try {
@@ -386,7 +386,7 @@ class GoogleMapsController {
     return JavascriptChannel(
         name: 'CircleClick',
         onMessageReceived: (JavascriptMessage message) async {
-          if (_widget == null || _streamController == null) {
+          if (_widget == null) {
             return;
           }
           try {
@@ -586,21 +586,16 @@ class GoogleMapsController {
             '{heading: ${json[1]['bearing']}, zoom: ${json[1]['zoom']}, tilt: ${json[1]['tilt']}}');
         await _setPanTo(
             '{lat:${json[1]['target'][0]}, lng: ${json[1]['target'][1]}}');
-        break;
       case 'newLatLng':
         await _setPanTo('{lat:${json[1][0]}, lng:${json[1][1]}}');
-        break;
       case 'newLatLngZoom':
         await _setMoveCamera('{zoom: ${json[2]}}');
         await _setPanTo('{lat:${json[1][0]}, lng: ${json[1][1]}}');
-        break;
       case 'newLatLngBounds':
         await _setFitBounds(
             '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}, ${json[2]}');
-        break;
       case 'scrollBy':
         await _setPanBy('${json[1]}, ${json[2]}');
-        break;
       case 'zoomBy':
         String? focusLatLng;
         double zoomDelta = 0.0;
@@ -623,16 +618,12 @@ class GoogleMapsController {
         if (focusLatLng != null) {
           await _setPanTo(focusLatLng);
         }
-        break;
       case 'zoomIn':
         await _setZoom('${(await getZoomLevel()) + 1}');
-        break;
       case 'zoomOut':
         await _setZoom('${(await getZoomLevel()) - 1}');
-        break;
       case 'zoomTo':
         await _setZoom('${json[1]}');
-        break;
       default:
         throw UnimplementedError('Unimplemented CameraMove: ${json[0]}.');
     }

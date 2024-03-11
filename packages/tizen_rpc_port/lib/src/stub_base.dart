@@ -130,7 +130,7 @@ abstract class StubBase {
   /// All active connections will be closed immediately. No operation can be
   /// made to this stub after this call.
   Future<void> close() async {
-    _streamSubscription?.cancel();
+    await _streamSubscription?.cancel();
     tizen.rpc_port_stub_destroy(_handle);
   }
 

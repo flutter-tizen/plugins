@@ -291,7 +291,7 @@ class _MyAppState extends State<_MyApp> {
     });
   }
 
-  Future<void> deliverProduct(PurchaseDetails purchaseDetails) async {
+  void deliverProduct(PurchaseDetails purchaseDetails) {
     // IMPORTANT!! Always verify purchase details before delivering the product.
     setState(() {
       _purchases.add(purchaseDetails);

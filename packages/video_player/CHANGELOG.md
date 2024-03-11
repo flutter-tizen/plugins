@@ -1,3 +1,8 @@
+## NEXT
+
+* Fix new lint warnings.
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 2.4.9
 
 * Fix event channel issue, sending messages from native to Flutter on the platform thread.

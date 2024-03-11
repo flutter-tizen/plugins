@@ -1,3 +1,8 @@
+## NEXT
+
+* Fix new lint warnings.
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 0.3.0
 
 * Update webivew_flutter to 4.4.2.

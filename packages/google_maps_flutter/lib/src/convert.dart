@@ -5,7 +5,7 @@
 
 // ignore_for_file: avoid_dynamic_calls
 
-part of google_maps_flutter_tizen;
+part of '../google_maps_flutter_tizen.dart';
 
 // Indices in the plugin side don't match with the ones
 Map<int, String> _mapTypeToMapTypeId = <int, String>{
@@ -93,12 +93,9 @@ String _applyInitialPosition(
   CameraPosition initialPosition,
   String options,
 ) {
-  // Adjust the initial position, if passed...
-  if (initialPosition != null) {
-    options += ', zoom: ${initialPosition.zoom}';
-    options +=
-        ', center: {lat: ${initialPosition.target.latitude} ,lng: ${initialPosition.target.longitude}}';
-  }
+  options += ', zoom: ${initialPosition.zoom}';
+  options +=
+      ', center: {lat: ${initialPosition.target.latitude} ,lng: ${initialPosition.target.longitude}}';
   return options;
 }
 
