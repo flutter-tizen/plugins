@@ -48,6 +48,10 @@ class VideoPlayer {
   virtual bool IsReady() = 0;
   virtual flutter::EncodableList GetTrackInfo(std::string track_type) = 0;
   virtual bool SetTrackSelection(int32_t track_id, std::string track_type) = 0;
+  virtual std::string GetStreamingProperty(
+      const std::string &streaming_property_type) {
+    return "";
+  };
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;

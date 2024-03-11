@@ -315,7 +315,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Sets specific feature values for HTTP, MMS, or specific streaming engine (Smooth Streaming, HLS, DASH, DivX Plus Streaming, or Widevine).
   /// The available streaming properties depend on the streaming protocol or engine.
   /// Only for [VideoPlayerController.network].
-  final Map<String, String>? streamingProperty;
+  final Map<StreamingPropertyType, String>? streamingProperty;
 
   /// **Android only**. Will override the platform's generic file format
   /// detection with whatever is set here.
@@ -712,6 +712,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> setVolume(double volume) async {
     value = value.copyWith(volume: volume.clamp(0.0, 1.0));
     await _applyVolume();
+  }
+
+  /// Retrieves a specific property value obtained by the streaming engine (Smooth Streaming, HLS, DASH, or Widevine).
+  Future<String> getStreamingProperty(StreamingPropertyType type) async {
+    if (_isDisposedOrNotInitialized) {
+      return '';
+    }
+    return _videoPlayerPlatform.getStreamingProperty(_playerId, type);
   }
 
   /// Sets the playback speed of [this].

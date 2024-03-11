@@ -1,6 +1,7 @@
-## NEXT
+## 0.4.0
 
 * Minor refactor.
+* Add getStreamingProperty interface.
 
 ## 0.3.3
 

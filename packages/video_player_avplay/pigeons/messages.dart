@@ -89,6 +89,18 @@ class DurationMessage {
   List<int?>? durationRange;
 }
 
+class StreamingPropertyMessage {
+  StreamingPropertyMessage(this.playerId, this.streamingProperty);
+  int playerId;
+  String streamingProperty;
+}
+
+class StreamingPropertyTypeMessage {
+  StreamingPropertyTypeMessage(this.playerId, this.streamingPropertyType);
+  int playerId;
+  String streamingPropertyType;
+}
+
 @HostApi()
 abstract class VideoPlayerAvplayApi {
   void initialize();
@@ -109,4 +121,6 @@ abstract class VideoPlayerAvplayApi {
   void pause(PlayerMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);
   void setDisplayGeometry(GeometryMessage msg);
+  StreamingPropertyMessage getStreamingProperty(
+      StreamingPropertyTypeMessage msg);
 }
