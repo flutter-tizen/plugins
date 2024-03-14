@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
           'Unregister',
           () async {
             try {
-              _localPort?.unregister();
+              await _localPort?.unregister();
               _log('Local port unregistration done');
               setState(() {});
             } catch (error) {

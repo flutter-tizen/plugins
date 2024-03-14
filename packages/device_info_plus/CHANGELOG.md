@@ -1,3 +1,7 @@
+## NEXT
+
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 1.2.0
 
 * Add `TizenDeviceInfo.data` which represents the device info as a map.

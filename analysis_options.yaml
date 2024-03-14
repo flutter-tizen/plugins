@@ -12,7 +12,6 @@ analyzer:
     # something (https://github.com/flutter/flutter/issues/143312)
     deprecated_member_use: ignore
     deprecated_member_use_from_same_package: ignore
-    unnecessary_null_comparison: ignore # Temporarily ingnored from flutter-tizen.
   exclude: # DIFFERENT FROM FLUTTER/FLUTTER
     # Ignore generated files
     - '**/*.g.dart'
@@ -80,7 +79,7 @@ linter:
     # - constant_identifier_names # needs an opt-out https://github.com/dart-lang/linter/issues/204
     - control_flow_in_finally
     - curly_braces_in_flow_control_structures
-    # - dangling_library_doc_comments # Temporarily ingnored from flutter-tizen.
+    - dangling_library_doc_comments
     - depend_on_referenced_packages
     - deprecated_consistency
     # - deprecated_member_use_from_same_package # we allow self-references to deprecated members
@@ -115,7 +114,7 @@ linter:
     - no_duplicate_case_values
     - no_leading_underscores_for_library_prefixes
     - no_leading_underscores_for_local_identifiers
-    # - no_literal_bool_comparisons # Temporarily ingnored from flutter-tizen.
+    - no_literal_bool_comparisons
     - no_logic_in_create_state
     - no_runtimeType_toString # DIFFERENT FROM FLUTTER/FLUTTER
     - no_self_assignments
@@ -189,7 +188,7 @@ linter:
     # - type_annotate_public_apis # subset of always_specify_types
     - type_init_formals
     - type_literal_in_constant_pattern
-    # - unawaited_futures # DIFFERENT FROM FLUTTER/FLUTTER: It's disabled there for "too many false positives"; that's not an issue here, and missing awaits have caused production issues in plugins. # Temporarily ingnored from flutter-tizen.
+    - unawaited_futures # DIFFERENT FROM FLUTTER/FLUTTER: It's disabled there for "too many false positives"; that's not an issue here, and missing awaits have caused production issues in plugins.
     - unnecessary_await_in_return
     - unnecessary_brace_in_string_interps
     - unnecessary_breaks
@@ -199,7 +198,7 @@ linter:
     - unnecessary_getters_setters
     # - unnecessary_lambdas # has false positives: https://github.com/dart-lang/linter/issues/498
     - unnecessary_late
-    # - unnecessary_library_directive # Temporarily ingnored from flutter-tizen.
+    - unnecessary_library_directive
     - unnecessary_new
     - unnecessary_null_aware_assignments
     - unnecessary_null_aware_operator_on_extension_on_nullable
@@ -218,9 +217,9 @@ linter:
     - unrelated_type_equality_checks
     - unsafe_html
     - use_build_context_synchronously
-    # - use_colored_box # Temporarily ingnored from flutter-tizen.
+    - use_colored_box
     # - use_decorated_box # leads to bugs: DecoratedBox and Container are not equivalent (Container inserts extra padding)
-    # - use_enums # Temporarily ingnored from flutter-tizen.
+    - use_enums
     - use_full_hex_values_for_flutter_colors
     - use_function_type_syntax_for_parameters
     - use_if_null_to_convert_nulls_to_bools
@@ -232,7 +231,7 @@ linter:
     - use_rethrow_when_possible
     - use_setters_to_change_properties
     # - use_string_buffers # has false positives: https://github.com/dart-lang/sdk/issues/34182
-    # - use_string_in_part_of_directives # Temporarily ingnored from flutter-tizen.
+    - use_string_in_part_of_directives
     - use_super_parameters
     - use_test_throws_matchers
     # - use_to_and_as_if_applicable # has false positives, so we prefer to catch this by code-review

@@ -1,3 +1,7 @@
+## NEXT
+
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 1.1.4
 
 * Implement set*SamplingPeriod method call.

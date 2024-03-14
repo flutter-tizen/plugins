@@ -1,3 +1,7 @@
+## NEXT
+
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 2.3.0
 
 * Update image_picker to 1.0.1.

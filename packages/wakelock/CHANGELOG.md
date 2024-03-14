@@ -1,3 +1,7 @@
+## NEXT
+
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 1.0.2
 
 * Switch to a MethodChannel-based implementation.

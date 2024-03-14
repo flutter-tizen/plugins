@@ -3,7 +3,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-part of google_maps_flutter_tizen;
+part of '../google_maps_flutter_tizen.dart';
 
 /// The `PolygonController` class wraps a [GPolygon] and its `onTap` behavior.
 class PolygonController {

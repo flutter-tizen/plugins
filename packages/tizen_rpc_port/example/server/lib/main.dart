@@ -42,7 +42,7 @@ class EchoService extends ServiceBase {
   Future<int> onSend(String message) async {
     print('Received: $message');
     if (_callback != null) {
-      _callback!.invoke(_name!, message);
+      await _callback!.invoke(_name!, message);
     }
     return 0;
   }

@@ -1,6 +1,7 @@
 ## NEXT
 
-* Increase the minimum Flutter version to 3.3.
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Fix new lint warnings.
 
 ## 0.1.2
 

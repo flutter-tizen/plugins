@@ -3,7 +3,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-part of google_maps_flutter_tizen;
+part of '../google_maps_flutter_tizen.dart';
 
 /// This class manages a set of [PolygonController]s associated to a [GoogleMapController].
 class PolygonsController extends GeometryController {

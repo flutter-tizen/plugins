@@ -1,3 +1,7 @@
+## NEXT
+
+* Update minimum Flutter and Dart version to 3.13 and 3.1.
+
 ## 3.0.1
 
 * Update audioplayers to 5.1.0.

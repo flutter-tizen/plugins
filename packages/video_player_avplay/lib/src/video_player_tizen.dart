@@ -33,7 +33,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       case DataSourceType.asset:
         message.asset = dataSource.asset;
         message.packageName = dataSource.package;
-        break;
       case DataSourceType.network:
         message.uri = dataSource.uri;
         message.formatHint = _videoFormatStringMap[dataSource.formatHint];
@@ -47,13 +46,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
                     in dataSource.streamingProperty!.entries)
                   _streamingPropertyType[entry.key]!: entry.value
               };
-        break;
       case DataSourceType.file:
         message.uri = dataSource.uri;
-        break;
       case DataSourceType.contentUri:
         message.uri = dataSource.uri;
-        break;
     }
 
     final PlayerMessage response = await _api.create(message);

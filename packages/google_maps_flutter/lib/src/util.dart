@@ -5,7 +5,7 @@
 
 // ignore_for_file: avoid_setters_without_getters
 
-//part of google_maps_flutter_tizen;
+//part of '../google_maps_flutter_tizen.dart';
 import 'dart:async';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:webview_flutter/webview_flutter.dart';

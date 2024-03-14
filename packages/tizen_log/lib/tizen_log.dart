@@ -175,7 +175,7 @@ class Log {
           _stackTraceRegExp.allMatches(StackTrace.current.toString());
       for (final RegExpMatch match in matches) {
         final List<String?> groups = match.groups(<int>[1, 2, 3, 4]);
-        if (groups.any((String? group) => group == null) == false) {
+        if (!groups.any((String? group) => group == null)) {
           final int frameIndex = int.parse(groups[0]!);
           if (frameIndex == index) {
             final List<String> funcParts = groups[1]!.trim().split('.');
@@ -197,17 +197,17 @@ class Log {
   }
 }
 
-class _LogPriority {
+enum _LogPriority {
+  verbose._(2),
+  debug._(3),
+  info._(4),
+  warn._(5),
+  error._(6),
+  fatal._(7);
+
   const _LogPriority._(this.value);
 
   final int value;
-
-  static const _LogPriority verbose = _LogPriority._(2);
-  static const _LogPriority debug = _LogPriority._(3);
-  static const _LogPriority info = _LogPriority._(4);
-  static const _LogPriority warn = _LogPriority._(5);
-  static const _LogPriority error = _LogPriority._(6);
-  static const _LogPriority fatal = _LogPriority._(7);
 }
 
 class _StackFrame {

@@ -47,19 +47,14 @@ class TizenWebViewController extends PlatformWebViewController {
           switch (arguments['level']! as String) {
             case 'error':
               level = JavaScriptLogLevel.error;
-              break;
             case 'warning':
               level = JavaScriptLogLevel.warning;
-              break;
             case 'debug':
               level = JavaScriptLogLevel.debug;
-              break;
             case 'info':
               level = JavaScriptLogLevel.info;
-              break;
             case 'log':
               level = JavaScriptLogLevel.log;
-              break;
           }
 
           if (_onConsoleLogCallback != null) {
@@ -88,7 +83,7 @@ class TizenWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> loadFile(String absoluteFilePath) {
-    assert(absoluteFilePath != null);
+    assert(absoluteFilePath.isNotEmpty);
     return _webview.loadFile(absoluteFilePath);
   }
 
@@ -103,7 +98,7 @@ class TizenWebViewController extends PlatformWebViewController {
     String html, {
     String? baseUrl,
   }) {
-    assert(html != null);
+    assert(html.isNotEmpty);
     return _webview.loadHtmlString(html, baseUrl: baseUrl);
   }
 

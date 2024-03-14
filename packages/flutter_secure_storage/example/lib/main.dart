@@ -98,7 +98,6 @@ class ItemsWidgetState extends State<ItemsWidget> {
                 switch (action) {
                   case _Actions.deleteAll:
                     _deleteAll();
-                    break;
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<_Actions>>[
@@ -191,7 +190,6 @@ class ItemsWidgetState extends State<ItemsWidget> {
         );
         _readAll();
 
-        break;
       case _ItemActions.edit:
         if (!context.mounted) return;
         final result = await showDialog<String>(
@@ -207,7 +205,6 @@ class ItemsWidgetState extends State<ItemsWidget> {
           );
           _readAll();
         }
-        break;
       case _ItemActions.containsKey:
         if (!context.mounted) return;
         final key = await _displayTextInputDialog(context, item.key);
@@ -219,7 +216,6 @@ class ItemsWidgetState extends State<ItemsWidget> {
             backgroundColor: result ? Colors.green : Colors.red,
           ),
         );
-        break;
       case _ItemActions.read:
         if (!context.mounted) return;
         final key = await _displayTextInputDialog(context, item.key);
@@ -231,7 +227,6 @@ class ItemsWidgetState extends State<ItemsWidget> {
             content: Text('value: $result'),
           ),
         );
-        break;
     }
   }
 
