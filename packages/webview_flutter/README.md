@@ -23,7 +23,7 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 ```yaml
 dependencies:
   webview_flutter: ^4.4.2
-  webview_flutter_tizen: ^0.9.0
+  webview_flutter_tizen: ^0.9.1
 ```
 
 ## Example
@@ -63,7 +63,7 @@ This plugin is only supported on Tizen TV devices running Tizen 5.5 or later.
 
 ## Note
 
-To play Youtube, make app's background color to transparent.
+- To play Youtube, make app's background color to transparent.
 
 ```diff
 --- a/packages/webview_flutter/example/lib/main.dart
@@ -75,4 +75,13 @@ To play Youtube, make app's background color to transparent.
 +       backgroundColor: Colors.transparent,
        appBar: AppBar(
          title: const Text('Flutter WebView example'),
+```
+
+- In Tizen 6.0, there were some devices that failed to create the web view. In this case, the creation failure is resolved by using the Upgrade Web Engine (UWE) internally. If you set the `WebViewController.tizenEnginePolicy` extension API to `true` before creating the `WebviewWidget`, the webview will internally search for another version of the engine. However, this API can be changed(or removed) at any time and is not officially guaranteed to work.
+
+```dart
+import 'package:webview_flutter_tizen/webview_flutter_tizen.dart';
+
+WebViewController _controller;
+_controller.tizenEnginePolicy = true;
 ```
