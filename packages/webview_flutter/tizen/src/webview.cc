@@ -115,8 +115,6 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
           }));
   SetTextureId(texture_registrar_->RegisterTexture(texture_variant_.get()));
 
-  InitWebView();
-
   webview_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetWebViewChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
@@ -287,8 +285,11 @@ void WebView::SetDirection(int direction) {
   // TODO: Implement if necessary.
 }
 
-void WebView::InitWebView() {
-  EwkInternalApiBinding::GetInstance().main.SetVersionPolicy(1);
+bool WebView::InitWebView() {
+  if (engine_policy_) {
+    LOG_INFO("Upgrade web engine used.");
+    EwkInternalApiBinding::GetInstance().main.SetVersionPolicy(1);
+  }
 
   char* chromium_argv[] = {
       const_cast<char*>("--disable-pinch"),
@@ -304,6 +305,9 @@ void WebView::InitWebView() {
   Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
 
   webview_instance_ = ewk_view_add(ecore_evas_get(evas));
+  if (!webview_instance_) {
+    return false;
+  }
   ecore_evas_focus_set(evas, true);
   ewk_view_focus_set(webview_instance_, true);
   EwkInternalApiBinding::GetInstance().view.OffscreenRenderingEnabledSet(
@@ -350,18 +354,30 @@ void WebView::InitWebView() {
   evas_object_show(webview_instance_);
 
   evas_object_data_set(webview_instance_, kEwkInstance, this);
+
+  return true;
 }
 
 void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
                                       std::unique_ptr<FlMethodResult> result) {
-  if (!webview_instance_) {
-    result->Error("Invalid operation",
-                  "The webview instance has not been initialized.");
-    return;
-  }
-
   const std::string& method_name = method_call.method_name();
   const flutter::EncodableValue* arguments = method_call.arguments();
+
+  if (method_name == "setEnginePolicy") {
+    const auto* engine_policy = std::get_if<bool>(arguments);
+    if (engine_policy) {
+      engine_policy_ = *engine_policy;
+    }
+    result->Success();
+  }
+
+  if (!webview_instance_) {
+    if (!InitWebView()) {
+      result->Error("Invalid operation",
+                    "The webview instance initialize failed.");
+      return;
+    }
+  }
 
   if (method_name == "javaScriptMode") {
     const auto* mode = std::get_if<int32_t>(arguments);
