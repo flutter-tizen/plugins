@@ -1,7 +1,16 @@
-## NEXT
+## 0.4.1
 
 * Fix new lint warnings.
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Update plusplayer
+  1. [HLS] Sending dummy audio pkts to minimize pts gap between audio pkts across discontinuity.
+  2. [HLS] Low Latency implementation for external track (audio/subtitle).
+  3. [HLS] Segment list improvement using index offset.
+  4. [SS] Fix for memory leak.
+  5. [DASH] For dash case, adding samplerate change limitation for seamless audio track changes.
+  6. [DASH] Adding dash DRM case for HbbTV fault key test case.
+  7. [DASH] Fixing app_id dummy exception case.
+  8. [DASH] Support ATSC3 L1 time.
 
 ## 0.4.0
 
