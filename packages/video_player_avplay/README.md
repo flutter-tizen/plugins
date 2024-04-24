@@ -29,6 +29,13 @@ Note that `video_player_avplay` uses a compiled dynamic library, the api-version
 <manifest package="xxx" version="1.0.0" api-version="6.0">
 ```
 
+Note that if you play dash streams, please add dash format when creating the player:
+```dart
+    VideoPlayerController.network(
+      'https://xxx.mpd',
+      formatHint: VideoFormat.dash);
+```
+
 ### Example
 
 ```dart

@@ -1,3 +1,7 @@
+## NEXT
+
+* Add notes for creating dash player.
+
 ## 0.4.1
 
 * Fix new lint warnings.
