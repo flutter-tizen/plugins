@@ -1,6 +1,7 @@
 ## NEXT
 
 * Add notes for creating dash player.
+* [Dash] Fix no EOS event of dashplayer.
 
 ## 0.4.1
 
