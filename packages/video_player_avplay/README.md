@@ -134,4 +134,4 @@ This plugin has the following limitations.
 - The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
 - The playback speed will reset to 1.0 when the video is replayed in loop mode.
 - The `seekTo` method works only when the playback speed is 1.0, and it sets the video position to the nearest keyframe, not the exact value passed.
-- 
+- The `setLooping` method only works when the player's DataSourceType is DataSourceType.asset.
