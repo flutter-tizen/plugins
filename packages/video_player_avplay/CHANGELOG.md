@@ -2,6 +2,7 @@
 
 * Add notes for creating dash player.
 * [Dash] Fix no EOS event of dashplayer.
+* Remove set looping failed message.
 
 ## 0.4.1
 

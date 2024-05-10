@@ -247,7 +247,7 @@ bool PlusPlayer::Pause() {
 
 bool PlusPlayer::SetLooping(bool is_looping) {
   LOG_ERROR("[PlusPlayer] Not support to set looping.");
-  return false;
+  return true;
 }
 
 bool PlusPlayer::SetVolume(double volume) {
