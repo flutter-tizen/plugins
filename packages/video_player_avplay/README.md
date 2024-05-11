@@ -12,7 +12,7 @@ To use this package, add `video_player_avplay` as a dependency in your `pubspec.
 
 ```yaml
 dependencies:
-  video_player_avplay: ^0.4.0
+  video_player_avplay: ^0.4.1
 ```
 
 Then you can import `video_player_avplay` in your Dart code:
@@ -27,6 +27,13 @@ Note that `video_player_avplay` uses a compiled dynamic library, the api-version
 
 ```xml
 <manifest package="xxx" version="1.0.0" api-version="6.0">
+```
+
+Note that if you play dash streams, please add dash format when creating the player:
+```dart
+    VideoPlayerController.network(
+      'https://xxx.mpd',
+      formatHint: VideoFormat.dash);
 ```
 
 ### Example
@@ -127,4 +134,4 @@ This plugin has the following limitations.
 - The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
 - The playback speed will reset to 1.0 when the video is replayed in loop mode.
 - The `seekTo` method works only when the playback speed is 1.0, and it sets the video position to the nearest keyframe, not the exact value passed.
-- 
+- The `setLooping` method only works when the player's DataSourceType is DataSourceType.asset.

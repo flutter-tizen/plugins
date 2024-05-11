@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tizen/widgets.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 import 'tizen_webview.dart';
@@ -19,6 +20,16 @@ const String kTizenNavigationDelegateChannelName =
 /// The channel name of [TizenWebViewController].
 const String kTizenWebViewControllerChannelName =
     'plugins.flutter.io/tizen_webview_controller_';
+
+/// The extension of WebViewController class for the Tizen.
+extension TizenWebViewControllerExtension on WebViewController {
+  /// Set to engine policy.
+  set tizenEnginePolicy(bool enginePolicy) {
+    final TizenWebViewController controller =
+        platform as TizenWebViewController;
+    controller._enginePolicy = enginePolicy;
+  }
+}
 
 /// An implementation of [PlatformWebViewController] using the Tizen WebView API.
 class TizenWebViewController extends PlatformWebViewController {
@@ -33,6 +44,8 @@ class TizenWebViewController extends PlatformWebViewController {
   void Function(JavaScriptConsoleMessage consoleMessage)? _onConsoleLogCallback;
 
   late final MethodChannel _webviewControllerChannel;
+
+  bool _enginePolicy = false;
 
   /// Called when [TizenView] is created.
   void createWebviewControllerChannel(int viewId) {
@@ -74,7 +87,7 @@ class TizenWebViewController extends PlatformWebViewController {
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
-    _webview.onCreate(viewId);
+    _webview.onCreate(viewId, _enginePolicy);
     if (_webview.hasNavigationDelegate) {
       _tizenNavigationDelegate.createNavigationDelegateChannel(viewId);
     }
