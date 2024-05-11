@@ -1,8 +1,9 @@
-## NEXT
+## 0.4.2
 
 * Add notes for creating dash player.
 * [Dash] Fix no EOS event of dashplayer.
 * Remove set looping failed message.
+* Support Tizen 8.0.
 
 ## 0.4.1
 
