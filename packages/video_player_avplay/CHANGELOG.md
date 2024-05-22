@@ -1,3 +1,13 @@
+## 0.4.3
+
+* Update plusplayer
+  1. [libav-common] Fixing libav-common SVACE issue.
+  2. [Dash] Fix when app freeze , cpu usage is high.
+  3. [Dash] Fix issue that report two eos msg to app.
+  4. [Dash] Fix no EOS event of dashplayer.
+  5. [Dash] Fix app freeze issue when calling seek method.
+  6. [Dash] Fix issue that live stream start at the beginning not at live postion.
+
 ## 0.4.2
 
 * Add notes for creating dash player.
