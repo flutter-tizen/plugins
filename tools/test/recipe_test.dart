@@ -12,8 +12,8 @@ void main() {
   setUp(() {
     yamlString = '''
 plugins:
-  a: ["wearable-5.5"]
-  b: ["wearable-5.5", "tv-6.0"]
+  a: ["mobile-6.0"]
+  b: ["mobile-6.0", "tv-6.0"]
 
   c: []
 ''';
@@ -28,8 +28,8 @@ plugins:
     expect(recipe.contains('d'), false);
     expect(recipe.isExcluded('d'), false);
 
-    expect(recipe.getProfiles('a').first.toString(), 'wearable-5.5');
+    expect(recipe.getProfiles('a').first.toString(), 'mobile-6.0');
     expect(recipe.getProfiles('b').map((Profile profile) => profile.toString()),
-        unorderedEquals(<String>['wearable-5.5', 'tv-6.0']));
+        unorderedEquals(<String>['mobile-6.0', 'tv-6.0']));
   });
 }

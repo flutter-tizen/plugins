@@ -237,9 +237,6 @@ class EmulatorDevice extends Device {
   Future<void> create() async {
     late final String platform;
     switch (profile.deviceType) {
-      case DeviceType.wearable:
-        platform = '$profile-circle-x86';
-        break;
       case DeviceType.tv:
         platform =
             '${profile.deviceType}-samsung-${profile.version.toString().substring(0, 3)}-x86';

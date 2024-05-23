@@ -33,7 +33,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     );
     argParser.addMultiOption(
       _profilesArg,
-      help: 'Profiles to run integration test on. (ex: wearable-5.5)\n'
+      help: 'Profiles to run integration test on. (ex: tv-6.0)\n'
           'The command will select all matching profile devices for each '
           'plugin. If you wish to set profiles individually for each plugin, '
           'use --$_recipeArg instead.',
@@ -50,9 +50,8 @@ class IntegrationTestCommand extends PackageLoopingCommand {
           '(same as $_excludeArg option). If --$_recipeArg is used, '
           '$_packagesArg and $_excludeArg options will be ignored.\n\n'
           'plugins:\n'
-          '  a: [wearable-5.5, tv-6.0]\n'
+          '  a: [tv-6.0, mobile-6.0]\n'
           '  b: [mobile-6.0]\n'
-          '  c: [wearable-5.5]\n'
           '  d: [] # explicitly excluded\n',
       valueHelp: 'recipe.yaml',
     );
