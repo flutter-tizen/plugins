@@ -24,8 +24,9 @@ jobs:
       - name: Install Tizen Studio
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
-          sudo apt install -y libncurses5 python2.7 libpython2.7 gettext
-          curl http://download.tizen.org/sdk/Installer/tizen-studio_5.1/web-cli_Tizen_Studio_5.1_ubuntu-64.bin -o install.bin
+          sudo apt install -y libncurses5 python2.7 libpython2.7 gettext \
+            libkf5itemmodels5 libkf5kiowidgets5 libkchart2
+          curl https://download.tizen.org/sdk/Installer/tizen-studio_5.6/web-cli_Tizen_Studio_5.6_ubuntu-64.bin -o install.bin
           chmod a+x install.bin
           ./install.bin --accept-license $HOME/tizen-studio
           rm install.bin
@@ -34,9 +35,7 @@ jobs:
         run: |
           $HOME/tizen-studio/package-manager/package-manager-cli.bin install \
             NativeToolchain-Gcc-9.2 \
-            WEARABLE-5.5-NativeAppDevelopment-CLI \
-            WEARABLE-6.0-NativeAppDevelopment-CLI \
-            WEARABLE-6.5-NativeAppDevelopment-CLI
+            IOT-Headed-6.0-NativeAppDevelopment-CLI
       - name: Create a Tizen certificate profile
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
