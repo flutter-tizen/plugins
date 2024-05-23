@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="org.tizen.url_launcher_example" version="1.0.0" api-version="5.5" xmlns="http://tizen.org/ns/packages">
+<manifest package="org.tizen.url_launcher_example" version="1.0.0" api-version="6.0" xmlns="http://tizen.org/ns/packages">
     <profile name="common"/>
     <ui-application appid="org.tizen.url_launcher_example" exec="Runner.dll" type="dotnet" multiple="false" taskmanage="true" nodisplay="false">
         <label>url_launcher_example</label>
