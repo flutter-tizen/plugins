@@ -84,7 +84,7 @@ class Profile {
   /// ```dart
   /// // TV device.
   /// Profile.fromString('tv')
-  /// // Tv device with Tizen 6.0.
+  /// // TV device with Tizen 6.0.
   /// Profile.fromString('tv-6.0')
   /// ```
   ///
