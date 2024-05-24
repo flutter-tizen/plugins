@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 
 void main() {
   test('correctly parses device types', () {
-    expect(DeviceType.fromString('wearable'), DeviceType.wearable);
     expect(DeviceType.fromString('tv'), DeviceType.tv);
     expect(DeviceType.fromString('mobile'), DeviceType.mobile);
   });
@@ -16,10 +15,10 @@ void main() {
   });
 
   test('correctly parses profile', () {
-    final Profile profile = Profile.fromString('wearable-5.5');
-    expect(profile.deviceType, DeviceType.wearable);
-    expect(profile.version!.major, 5);
-    expect(profile.version!.minor, 5);
+    final Profile profile = Profile.fromString('tv-6.0');
+    expect(profile.deviceType, DeviceType.tv);
+    expect(profile.version!.major, 6);
+    expect(profile.version!.minor, 0);
   });
 
   test('throws argument exception on invalid profile string.', () {

@@ -59,10 +59,7 @@ class DeviceType {
   final String _value;
 
   /// A list of all supported Tizen device types.
-  static const List<DeviceType> values = <DeviceType>[wearable, tv, mobile];
-
-  /// A wearable device type such as Galaxy Watch.
-  static const DeviceType wearable = DeviceType._('wearable');
+  static const List<DeviceType> values = <DeviceType>[tv, mobile];
 
   /// A tv device type such as Samsung Smart TV.
   static const DeviceType tv = DeviceType._('tv');
@@ -85,10 +82,10 @@ class Profile {
   /// platform_version is optional.
   ///
   /// ```dart
-  /// // Wearable device.
-  /// Profile.fromString('wearable')
-  /// // Wearable device with Tizen 5.5.
-  /// Profile.fromString('wearable-5.5')
+  /// // TV device.
+  /// Profile.fromString('tv')
+  /// // TV device with Tizen 6.0.
+  /// Profile.fromString('tv-6.0')
   /// ```
   ///
   /// To see all supported device types, see [DeviceType].

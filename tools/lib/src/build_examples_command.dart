@@ -39,8 +39,6 @@ class BuildExamplesCommand extends PackageLoopingCommand {
         <String>[
           'build',
           'tpk',
-          '--device-profile',
-          'wearable',
           '-v',
         ],
         workingDir: example.directory,
