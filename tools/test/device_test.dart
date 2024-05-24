@@ -53,7 +53,7 @@ void main() {
       ]);
       device = Device.physical(
         'some_name',
-        Profile.fromString('wearable-5.5'),
+        Profile.fromString('mobile-6.0'),
         tizenSdk: tizenSdk,
         processRunner: processRunner,
       );

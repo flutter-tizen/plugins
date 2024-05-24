@@ -24,8 +24,8 @@ Future<void> _checkSystemRequirements(String emulatorName) async {
   final List<String> platforms = LineSplitter.split(result.stdout as String)
       .map((String token) => token.trim())
       .toList();
-  if (!platforms.contains('wearable-5.5-circle-x86')) {
-    throw Exception('Tizen wearable-5.5 emulator package is not installed.');
+  if (!platforms.contains('mobile-6.0-x86')) {
+    throw Exception('Tizen mobile-6.0 emulator package is not installed.');
   }
 
   result =
@@ -65,7 +65,7 @@ void main() {
     tizenSdk = TizenSdk.locateTizenSdk();
     device = EmulatorDevice(
       emulatorName,
-      Profile.fromString('wearable-5.5'),
+      Profile.fromString('mobile-6.0'),
       tizenSdk: tizenSdk,
     );
   });
