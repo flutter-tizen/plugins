@@ -1,3 +1,7 @@
+## NEXT
+
+* Remove wrong information in README.
+
 ## 0.4.2
 
 * Add notes for creating dash player.

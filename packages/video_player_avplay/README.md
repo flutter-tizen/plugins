@@ -4,8 +4,6 @@
 
 A downloadable plugin which supports MMPlayer and PlusPlayer(PlusPlayer is a new multimedia player object-oriented designed) on Tizen TV devices.
 
-This plugin is only supported on Tizen TV devices. If you are targeting other types of devices or are not interested in playing DRM content in your app, use [`video_player`](https://pub.dev/packages/video_player) and [`video_player_tizen`](https://pub.dev/packages/video_player_tizen) instead.
-
 ## Usage
 
 To use this package, add `video_player_avplay` as a dependency in your `pubspec.yaml` file.
@@ -121,7 +119,8 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 ## Limitations
 
-TV emulator support is experimental. DRM content playback is not supported on TV emulators.
+> [!NOTE]
+> This plugin is only supported on Tizen TV devices. If you are targeting other types of devices or are not interested in playing DRM content in your app, use [`video_player`](https://pub.dev/packages/video_player) and [`video_player_tizen`](https://pub.dev/packages/video_player_tizen) instead.
 
 The following options are not currently supported.
 
