@@ -52,7 +52,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
           'plugins:\n'
           '  a: [tv-6.0, mobile-6.0]\n'
           '  b: [mobile-6.0]\n'
-          '  d: [] # explicitly excluded\n',
+          '  c: [] # explicitly excluded\n',
       valueHelp: 'recipe.yaml',
     );
     argParser.addOption(
