@@ -1,3 +1,7 @@
+## NEXT
+
+* Remove wrong information in README.
+
 ## 0.4.3
 
 * Update plusplayer

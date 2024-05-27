@@ -121,7 +121,7 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 ## Limitations
 
-TV emulator support is experimental. DRM content playback is not supported on TV emulators.
+This plugin is not supported on TV emulators.
 
 The following options are not currently supported.
 

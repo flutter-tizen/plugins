@@ -92,7 +92,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_package_manager**](packages/tizen_package_manager) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**tizen_rpc_port**](packages/tizen_rpc_port) | ✔️ | ✔️ | ✔️ | ✔️ |
 | [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
-| [**video_player_avplay**](packages/video_player_avplay) | ❌ | ❌ | ✔️ | ⚠️ | See README for details |
+| [**video_player_avplay**](packages/video_player_avplay) | ❌ | ❌ | ✔️ | ❌ | See README for details |
 | [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
 | [**video_player_videohole**](packages/video_player_videohole) | ❌ | ❌ | ✔️ | ⚠️ | See README for details |
 | [**wakelock_tizen**](packages/wakelock) | ✔️ | ✔️ | ❌ | ❌ | Cannot override system settings |
