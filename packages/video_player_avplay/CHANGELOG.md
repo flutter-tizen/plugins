@@ -1,6 +1,7 @@
 ## NEXT
 
 * Remove wrong information in README.
+* Add plusplayer ini.
 
 ## 0.4.3
 
