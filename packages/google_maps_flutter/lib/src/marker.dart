@@ -18,7 +18,7 @@ class MarkerController {
     bool consumeTapEvents = false,
     LatLngCallback? onDragEnd,
     ui.VoidCallback? onTap,
-    Future<WebViewController>? controller,
+    WebViewController? controller,
   })  : _marker = marker,
         _infoWindow = infoWindow,
         _consumeTapEvents = consumeTapEvents,
@@ -40,11 +40,11 @@ class MarkerController {
   /// Marker component's drag end event.
   LatLngCallback? dragEndEvent;
 
-  Future<void> _addMarkerEvent(Future<WebViewController>? controller) async {
+  Future<void> _addMarkerEvent(WebViewController? controller) async {
     final String command = '''
         $marker.addListener("click", (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));
         $marker.addListener("dragend", (event) => MarkerDragEnd.postMessage(JSON.stringify({id:${marker?.id}, event:event})));''';
-    await (await controller!).runJavascript(command);
+    await controller!.runJavaScript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

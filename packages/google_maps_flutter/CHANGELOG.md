@@ -1,7 +1,9 @@
-## NEXT
+## 0.1.6
 
 * Fix new lint warnings.
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Update webview_flutter to 4.2.2.
+* Update webview_flutter_lwe to 0.3.0.
 
 ## 0.1.5
 

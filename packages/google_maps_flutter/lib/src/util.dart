@@ -160,7 +160,7 @@ class GInfoWindow {
   }
 
   Future<void> _createInfoWindow(GInfoWindowOptions? opts) async {
-    await (await webController!).runJavascript(
+    await webController!.runJavaScript(
         'var ${toString()} = new google.maps.InfoWindow($opts);');
   }
 
@@ -173,7 +173,7 @@ class GInfoWindow {
   }
 
   Future<void> _callCloseInfoWindow() async {
-    await (await webController!).runJavascript('${toString()}.close();');
+    await webController!.runJavaScript('${toString()}.close();');
   }
 
   /// Opens InfoWindow on the given map.
@@ -184,8 +184,8 @@ class GInfoWindow {
   }
 
   Future<void> _callOpenInfoWindow(GMarker? anchor) async {
-    await (await webController!)
-        .runJavascript('${toString()}.open({anchor: $anchor, map});');
+    await webController!
+        .runJavaScript('${toString()}.open({anchor: $anchor, map});');
   }
 
   @override
@@ -199,12 +199,12 @@ class GInfoWindow {
   /// Sets the offset of the tip of the info window from the point on the map.
   set pixelOffset(GSize? size) => _setPixelOffset(size);
 
-  void _setContent(Object? /*String?|Node?*/ content) {
-    callMethod(this, 'setContent', <Object?>[content]);
+  Future<void> _setContent(Object? /*String?|Node?*/ content) async {
+    await callMethod(this, 'setContent', <Object?>[content]);
   }
 
-  void _setPixelOffset(GSize? size) {
-    setProperty(this, 'pixelOffset', size?.toValue());
+  Future<void> _setPixelOffset(GSize? size) async {
+    await setProperty(this, 'pixelOffset', size?.toValue());
   }
 }
 
@@ -219,8 +219,8 @@ class GMarker {
   }
 
   Future<void> _createMarker(GMarkerOptions? opts) async {
-    await (await webController!)
-        .runJavascript('var ${toString()} = new google.maps.Marker($opts);');
+    await webController!
+        .runJavaScript('var ${toString()} = new google.maps.Marker($opts);');
   }
 
   /// GMarker id.
@@ -271,8 +271,8 @@ class GPolyline {
   }
 
   Future<void> _createPolyline(GPolylineOptions? opts) async {
-    await (await webController!)
-        .runJavascript('var ${toString()} = new google.maps.Polyline($opts);');
+    await webController!
+        .runJavaScript('var ${toString()} = new google.maps.Polyline($opts);');
   }
 
   /// GPolyline id.
@@ -365,8 +365,8 @@ class GPolygon {
   }
 
   Future<void> _createPolygon(GPolygonOptions? opts) async {
-    await (await webController!)
-        .runJavascript('var ${toString()} = new google.maps.Polygon($opts);');
+    await webController!
+        .runJavaScript('var ${toString()} = new google.maps.Polygon($opts);');
   }
 
   /// GPolygon id.
@@ -469,8 +469,8 @@ class GCircle {
   }
 
   Future<void> _createCircle(GCircleOptions? opts) async {
-    await (await webController!)
-        .runJavascript('var ${toString()} = new google.maps.Circle($opts);');
+    await webController!
+        .runJavaScript('var ${toString()} = new google.maps.Circle($opts);');
   }
 
   /// GCircle id.
@@ -558,25 +558,16 @@ class GCircleOptions {
 }
 
 /// Returns webview controller instance
-Future<WebViewController>? webController;
-
-/// Returns the property value of the object.
-Future<String> getProperty(Object o, String property) async {
-  assert(webController != null, 'mapController is null!!');
-  final String command = "JSON.stringify($o['$property'])";
-  return (await webController!).runJavascriptReturningResult(command);
-}
+WebViewController? webController;
 
 /// Sets the value to property of the object.
-Future<String> setProperty(Object o, String property, Object? value) async {
-  assert(webController != null, 'mapController is null!!');
+Future<void> setProperty(Object o, String property, Object? value) async {
   final String command = "JSON.stringify($o['$property'] = $value)";
-  return (await webController!).runJavascriptReturningResult(command);
+  await webController!.runJavaScript(command);
 }
 
 /// Calls the method of the object with the args.
-Future<String> callMethod(Object o, String method, List<Object?> args) async {
-  assert(webController != null, 'webController is null!!');
+Future<void> callMethod(Object o, String method, List<Object?> args) async {
   final String command = 'JSON.stringify($o.$method.apply($o, $args))';
-  return (await webController!).runJavascriptReturningResult(command);
+  await webController!.runJavaScript(command);
 }
