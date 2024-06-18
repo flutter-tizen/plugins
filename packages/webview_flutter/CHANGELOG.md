@@ -1,3 +1,7 @@
+## 0.9.2
+
+* Supports multiple JavaScriptChannel method call.
+
 ## 0.9.1
 
 * Add ewk_set_version_policy() call.

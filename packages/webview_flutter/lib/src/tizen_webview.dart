@@ -52,7 +52,13 @@ class TizenWebView {
 
   Future<T?> _invokeChannelMethod<T>(String method, [dynamic arguments]) async {
     if (!_isCreated) {
-      _pendingMethodCalls[method] = arguments;
+      if (method == 'addJavaScriptChannel' ||
+          method == 'runJavaScript' ||
+          method == 'runJavaScriptReturningResult') {
+        _pendingMethodCalls['${method}_$arguments'] = arguments;
+      } else {
+        _pendingMethodCalls[method] = arguments;
+      }
       return null;
     }
 
@@ -79,7 +85,17 @@ class TizenWebView {
     }
 
     _pendingMethodCalls.forEach((String method, dynamic arguments) {
-      _tizenWebViewChannel.invokeMethod<void>(method, arguments);
+      if (method.contains('addJavaScriptChannel_')) {
+        _tizenWebViewChannel.invokeMethod<void>(
+            'addJavaScriptChannel', arguments);
+      } else if (method.contains('runJavaScript_')) {
+        _tizenWebViewChannel.invokeMethod<void>('runJavaScript', arguments);
+      } else if (method.contains('runJavaScriptReturningResult_')) {
+        _tizenWebViewChannel.invokeMethod<void>(
+            'runJavaScriptReturningResult', arguments);
+      } else {
+        _tizenWebViewChannel.invokeMethod<void>(method, arguments);
+      }
     });
     _pendingMethodCalls.clear();
   }
