@@ -48,7 +48,13 @@ class LweWebView {
 
   Future<T?> _invokeChannelMethod<T>(String method, [dynamic arguments]) async {
     if (!_isCreated) {
-      _pendingMethodCalls[method] = arguments;
+      if (method == 'addJavaScriptChannel' ||
+          method == 'runJavaScript' ||
+          method == 'runJavaScriptReturningResult') {
+        _pendingMethodCalls['${method}_$arguments'] = arguments;
+      } else {
+        _pendingMethodCalls[method] = arguments;
+      }
       return null;
     }
 
@@ -73,7 +79,17 @@ class LweWebView {
     }
 
     _pendingMethodCalls.forEach((String method, dynamic arguments) {
-      _lweWebViewChannel.invokeMethod<void>(method, arguments);
+      if (method.contains('addJavaScriptChannel_')) {
+        _lweWebViewChannel.invokeMethod<void>(
+            'addJavaScriptChannel', arguments);
+      } else if (method.contains('runJavaScript_')) {
+        _lweWebViewChannel.invokeMethod<void>('runJavaScript', arguments);
+      } else if (method.contains('runJavaScriptReturningResult_')) {
+        _lweWebViewChannel.invokeMethod<void>(
+            'runJavaScriptReturningResult', arguments);
+      } else {
+        _lweWebViewChannel.invokeMethod<void>(method, arguments);
+      }
     });
     _pendingMethodCalls.clear();
   }
