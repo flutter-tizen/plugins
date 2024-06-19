@@ -51,7 +51,14 @@ class LweWebView {
       if (method == 'addJavaScriptChannel' ||
           method == 'runJavaScript' ||
           method == 'runJavaScriptReturningResult') {
-        _pendingMethodCalls['${method}_$arguments'] = arguments;
+        if (_pendingMethodCalls[method] == null) {
+          _pendingMethodCalls[method] = <String>[];
+        }
+        final List<String> argumentsList =
+            _pendingMethodCalls[method] as List<String>;
+        if (!argumentsList.contains('$arguments')) {
+          argumentsList.add('$arguments');
+        }
       } else {
         _pendingMethodCalls[method] = arguments;
       }
@@ -79,14 +86,18 @@ class LweWebView {
     }
 
     _pendingMethodCalls.forEach((String method, dynamic arguments) {
-      if (method.contains('addJavaScriptChannel_')) {
-        _lweWebViewChannel.invokeMethod<void>(
-            'addJavaScriptChannel', arguments);
-      } else if (method.contains('runJavaScript_')) {
-        _lweWebViewChannel.invokeMethod<void>('runJavaScript', arguments);
-      } else if (method.contains('runJavaScriptReturningResult_')) {
-        _lweWebViewChannel.invokeMethod<void>(
-            'runJavaScriptReturningResult', arguments);
+      if (method == 'addJavaScriptChannel' ||
+          method == 'runJavaScript' ||
+          method == 'runJavaScriptReturningResult') {
+        if (_pendingMethodCalls[method] != null) {
+          final List<String> argumentsList =
+              _pendingMethodCalls[method] as List<String>;
+          for (final String javaScriptMethodArguments in argumentsList) {
+            _lweWebViewChannel.invokeMethod<void>(
+                method, javaScriptMethodArguments);
+          }
+          argumentsList.clear();
+        }
       } else {
         _lweWebViewChannel.invokeMethod<void>(method, arguments);
       }
