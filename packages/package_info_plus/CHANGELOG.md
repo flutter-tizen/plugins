@@ -1,6 +1,8 @@
-## NEXT
+## 1.0.4
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Update package_info_plus to 8.0.0.
+* Update package_info_plus_platform_interface to 3.0.0.
 
 ## 1.0.3
 
