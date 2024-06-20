@@ -24,7 +24,7 @@ class LweWebView {
 
   final Map<String, JavaScriptChannelParams> _javaScriptChannelParams =
       <String, JavaScriptChannelParams>{};
-  final Map<String, dynamic> _pendingMethodCalls = <String, dynamic>{};
+  final List<(String, dynamic)> _pendingMethodCalls = <(String, dynamic)>[];
 
   Future<bool?> _onMethodCall(MethodCall call) async {
     switch (call.method) {
@@ -48,20 +48,7 @@ class LweWebView {
 
   Future<T?> _invokeChannelMethod<T>(String method, [dynamic arguments]) async {
     if (!_isCreated) {
-      if (method == 'addJavaScriptChannel' ||
-          method == 'runJavaScript' ||
-          method == 'runJavaScriptReturningResult') {
-        if (_pendingMethodCalls[method] == null) {
-          _pendingMethodCalls[method] = <String>[];
-        }
-        final List<String> argumentsList =
-            _pendingMethodCalls[method] as List<String>;
-        if (!argumentsList.contains('$arguments')) {
-          argumentsList.add('$arguments');
-        }
-      } else {
-        _pendingMethodCalls[method] = arguments;
-      }
+      _pendingMethodCalls.add((method, arguments));
       return null;
     }
 
@@ -79,29 +66,15 @@ class LweWebView {
   }
 
   /// Applies the requested settings before [TizenView] is created.
-  void _callPendingMethodCalls() {
+  Future<void> _callPendingMethodCalls() async {
     if (hasNavigationDelegate) {
-      _invokeChannelMethod<void>(
+      await _invokeChannelMethod<void>(
           'hasNavigationDelegate', hasNavigationDelegate);
     }
 
-    _pendingMethodCalls.forEach((String method, dynamic arguments) {
-      if (method == 'addJavaScriptChannel' ||
-          method == 'runJavaScript' ||
-          method == 'runJavaScriptReturningResult') {
-        if (_pendingMethodCalls[method] != null) {
-          final List<String> argumentsList =
-              _pendingMethodCalls[method] as List<String>;
-          for (final String javaScriptMethodArguments in argumentsList) {
-            _lweWebViewChannel.invokeMethod<void>(
-                method, javaScriptMethodArguments);
-          }
-          argumentsList.clear();
-        }
-      } else {
-        _lweWebViewChannel.invokeMethod<void>(method, arguments);
-      }
-    });
+    for (final (String method, dynamic arguments) in _pendingMethodCalls) {
+      await _lweWebViewChannel.invokeMethod<void>(method, arguments);
+    }
     _pendingMethodCalls.clear();
   }
 
