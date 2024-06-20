@@ -28,7 +28,7 @@ class TizenWebView {
 
   final Map<String, JavaScriptChannelParams> _javaScriptChannelParams =
       <String, JavaScriptChannelParams>{};
-  final Map<String, dynamic> _pendingMethodCalls = <String, dynamic>{};
+  final List<(String, dynamic)> _pendingMethodCalls = <(String, dynamic)>[];
 
   Future<bool?> _onMethodCall(MethodCall call) async {
     switch (call.method) {
@@ -52,13 +52,7 @@ class TizenWebView {
 
   Future<T?> _invokeChannelMethod<T>(String method, [dynamic arguments]) async {
     if (!_isCreated) {
-      if (method == 'addJavaScriptChannel' ||
-          method == 'runJavaScript' ||
-          method == 'runJavaScriptReturningResult') {
-        _pendingMethodCalls['${method}_$arguments'] = arguments;
-      } else {
-        _pendingMethodCalls[method] = arguments;
-      }
+      _pendingMethodCalls.add((method, arguments));
       return null;
     }
 
@@ -78,25 +72,15 @@ class TizenWebView {
   }
 
   /// Applies the requested settings before [TizenView] is created.
-  void _callPendingMethodCalls() {
+  Future<void> _callPendingMethodCalls() async {
     if (hasNavigationDelegate) {
-      _invokeChannelMethod<void>(
+      await _invokeChannelMethod<void>(
           'hasNavigationDelegate', hasNavigationDelegate);
     }
 
-    _pendingMethodCalls.forEach((String method, dynamic arguments) {
-      if (method.contains('addJavaScriptChannel_')) {
-        _tizenWebViewChannel.invokeMethod<void>(
-            'addJavaScriptChannel', arguments);
-      } else if (method.contains('runJavaScript_')) {
-        _tizenWebViewChannel.invokeMethod<void>('runJavaScript', arguments);
-      } else if (method.contains('runJavaScriptReturningResult_')) {
-        _tizenWebViewChannel.invokeMethod<void>(
-            'runJavaScriptReturningResult', arguments);
-      } else {
-        _tizenWebViewChannel.invokeMethod<void>(method, arguments);
-      }
-    });
+    for (final (String method, dynamic arguments) in _pendingMethodCalls) {
+      await _tizenWebViewChannel.invokeMethod<void>(method, arguments);
+    }
     _pendingMethodCalls.clear();
   }
 
