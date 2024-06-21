@@ -24,7 +24,7 @@ class LweWebView {
 
   final Map<String, JavaScriptChannelParams> _javaScriptChannelParams =
       <String, JavaScriptChannelParams>{};
-  final Map<String, dynamic> _pendingMethodCalls = <String, dynamic>{};
+  final List<(String, dynamic)> _pendingMethodCalls = <(String, dynamic)>[];
 
   Future<bool?> _onMethodCall(MethodCall call) async {
     switch (call.method) {
@@ -48,7 +48,7 @@ class LweWebView {
 
   Future<T?> _invokeChannelMethod<T>(String method, [dynamic arguments]) async {
     if (!_isCreated) {
-      _pendingMethodCalls[method] = arguments;
+      _pendingMethodCalls.add((method, arguments));
       return null;
     }
 
@@ -66,15 +66,15 @@ class LweWebView {
   }
 
   /// Applies the requested settings before [TizenView] is created.
-  void _callPendingMethodCalls() {
+  Future<void> _callPendingMethodCalls() async {
     if (hasNavigationDelegate) {
-      _invokeChannelMethod<void>(
+      await _invokeChannelMethod<void>(
           'hasNavigationDelegate', hasNavigationDelegate);
     }
 
-    _pendingMethodCalls.forEach((String method, dynamic arguments) {
-      _lweWebViewChannel.invokeMethod<void>(method, arguments);
-    });
+    for (final (String method, dynamic arguments) in _pendingMethodCalls) {
+      await _lweWebViewChannel.invokeMethod<void>(method, arguments);
+    }
     _pendingMethodCalls.clear();
   }
 
