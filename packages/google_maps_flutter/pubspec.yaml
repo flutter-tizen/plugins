@@ -20,4 +20,4 @@ dependencies:
   google_maps_flutter_platform_interface: ^2.1.2
   stream_transform: ^2.0.0
   webview_flutter: ^4.4.2
-  webview_flutter_lwe: ^0.3.0
+  webview_flutter_lwe: ^0.3.1
