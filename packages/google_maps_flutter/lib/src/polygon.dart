@@ -12,7 +12,7 @@ class PolygonController {
     required util.GPolygon polygon,
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
-    Future<WebViewController>? controller,
+    WebViewController? controller,
   })  : _polygon = polygon,
         _consumeTapEvents = consumeTapEvents,
         tapEvent = onTap {
@@ -25,10 +25,10 @@ class PolygonController {
   /// Polygon component's tap event.
   ui.VoidCallback? tapEvent;
 
-  Future<void> _addPolygonEvent(Future<WebViewController>? controller) async {
+  Future<void> _addPolygonEvent(WebViewController? controller) async {
     final String command =
         "$_polygon.addListener('click', (event) => PolygonClick.postMessage(JSON.stringify(${_polygon?.id})));";
-    await (await controller!).runJavascript(command);
+    await controller!.runJavaScript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

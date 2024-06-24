@@ -12,7 +12,7 @@ class PolylineController {
     required util.GPolyline polyline,
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
-    Future<WebViewController>? controller,
+    WebViewController? controller,
   })  : _polyline = polyline,
         _consumeTapEvents = consumeTapEvents,
         tapEvent = onTap {
@@ -25,10 +25,10 @@ class PolylineController {
   /// Polyline component's tap event.
   ui.VoidCallback? tapEvent;
 
-  Future<void> _addPolylineEvent(Future<WebViewController>? controller) async {
+  Future<void> _addPolylineEvent(WebViewController? controller) async {
     final String command =
         "$_polyline.addListener('click', (event) => PolylineClick.postMessage(JSON.stringify(${_polyline?.id})));";
-    await (await controller!).runJavascript(command);
+    await controller!.runJavaScript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.
