@@ -1,3 +1,7 @@
+## 0.9.3
+
+* Prevent duplicate Dispose() calls.
+
 ## 0.9.2
 
 * Supports multiple JavaScriptChannel method call.
