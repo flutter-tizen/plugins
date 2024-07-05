@@ -372,6 +372,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       engine_policy_ = *engine_policy;
     }
     result->Success();
+    return;
   }
 
   if (!webview_instance_) {
