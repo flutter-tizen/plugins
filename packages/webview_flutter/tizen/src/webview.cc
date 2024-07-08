@@ -171,34 +171,36 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
-  if (!disposed_) {
-    texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
-
-    if (webview_instance_) {
-      evas_object_smart_callback_del(webview_instance_,
-                                     "offscreen,frame,rendered",
-                                     &WebView::OnFrameRendered);
-      evas_object_smart_callback_del(webview_instance_, "load,started",
-                                     &WebView::OnLoadStarted);
-      evas_object_smart_callback_del(webview_instance_, "load,finished",
-                                     &WebView::OnLoadFinished);
-      evas_object_smart_callback_del(webview_instance_, "load,progress",
-                                     &WebView::OnProgress);
-      evas_object_smart_callback_del(webview_instance_, "load,error",
-                                     &WebView::OnLoadError);
-      evas_object_smart_callback_del(webview_instance_, "console,message",
-                                     &WebView::OnConsoleMessage);
-      evas_object_smart_callback_del(webview_instance_,
-                                     "policy,navigation,decide",
-                                     &WebView::OnNavigationPolicy);
-      evas_object_smart_callback_del(webview_instance_, "url,changed",
-                                     &WebView::OnUrlChange);
-      evas_object_del(webview_instance_);
-    }
-
-    ewk_shutdown();
-    disposed_ = true;
+  if (disposed_) {
+    return;
   }
+
+  texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
+
+  if (webview_instance_) {
+    evas_object_smart_callback_del(webview_instance_,
+                                   "offscreen,frame,rendered",
+                                   &WebView::OnFrameRendered);
+    evas_object_smart_callback_del(webview_instance_, "load,started",
+                                   &WebView::OnLoadStarted);
+    evas_object_smart_callback_del(webview_instance_, "load,finished",
+                                   &WebView::OnLoadFinished);
+    evas_object_smart_callback_del(webview_instance_, "load,progress",
+                                   &WebView::OnProgress);
+    evas_object_smart_callback_del(webview_instance_, "load,error",
+                                   &WebView::OnLoadError);
+    evas_object_smart_callback_del(webview_instance_, "console,message",
+                                   &WebView::OnConsoleMessage);
+    evas_object_smart_callback_del(webview_instance_,
+                                   "policy,navigation,decide",
+                                   &WebView::OnNavigationPolicy);
+    evas_object_smart_callback_del(webview_instance_, "url,changed",
+                                   &WebView::OnUrlChange);
+    evas_object_del(webview_instance_);
+  }
+
+  ewk_shutdown();
+  disposed_ = true;
 }
 
 void WebView::Offset(double left, double top) {
