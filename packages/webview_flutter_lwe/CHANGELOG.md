@@ -1,3 +1,7 @@
+## 0.3.2
+
+* Update lightweight web engine(1.2.2).
+
 ## 0.3.1
 
 * Fix new lint warnings.
