@@ -171,6 +171,10 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
+  if (disposed_) {
+    return;
+  }
+
   texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
 
   if (webview_instance_) {
@@ -196,6 +200,7 @@ void WebView::Dispose() {
   }
 
   ewk_shutdown();
+  disposed_ = true;
 }
 
 void WebView::Offset(double left, double top) {
@@ -369,6 +374,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       engine_policy_ = *engine_policy;
     }
     result->Success();
+    return;
   }
 
   if (!webview_instance_) {
