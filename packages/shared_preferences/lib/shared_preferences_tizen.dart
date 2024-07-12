@@ -52,7 +52,7 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
           _cachedPreferences![key] = <String>[];
         } else if (stringValue.contains(_separator)) {
           final List<String> list = stringValue.split(_separator);
-          _cachedPreferences![key] = list.getRange(1, list.length - 1);
+          _cachedPreferences![key] = list.getRange(1, list.length - 1).toList();
         } else {
           _cachedPreferences![key] = stringValue;
         }
