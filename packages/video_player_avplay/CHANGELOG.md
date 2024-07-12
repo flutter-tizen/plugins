@@ -2,6 +2,7 @@
 
 * Remove wrong information in README.
 * Add plusplayer ini.
+* Fix crash issue when error message is empty.
 
 ## 0.4.3
 
