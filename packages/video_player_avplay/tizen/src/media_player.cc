@@ -692,7 +692,8 @@ void MediaPlayer::OnError(int error_code, void *user_data) {
             get_error_message(error_code));
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
-  self->SendError("Media Player error", get_error_message(error_code));
+  self->SendError("Media Player error",
+                  std::string("Error: ") + get_error_message(error_code));
 }
 
 void MediaPlayer::OnSubtitleUpdated(unsigned long duration, char *text,
