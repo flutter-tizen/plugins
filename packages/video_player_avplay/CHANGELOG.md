@@ -1,4 +1,4 @@
-## NEXT
+## 0.4.4
 
 * Remove wrong information in README.
 * Add plusplayer ini.

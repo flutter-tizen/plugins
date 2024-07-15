@@ -659,84 +659,58 @@ void PlusPlayer::OnResourceConflicted(void *user_data) {
 
 std::string GetErrorMessage(plusplayer::ErrorType error_code) {
   switch (error_code) {
-    case plusplayer::ErrorType::kNone: {
+    case plusplayer::ErrorType::kNone:
       return "Successful";
-    }
-    case plusplayer::ErrorType::kOutOfMemory: {
+    case plusplayer::ErrorType::kOutOfMemory:
       return "Out of memory";
-    }
-    case plusplayer::ErrorType::kInvalidParameter: {
+    case plusplayer::ErrorType::kInvalidParameter:
       return "Invalid parameter";
-    }
-    case plusplayer::ErrorType::kNoSuchFile: {
+    case plusplayer::ErrorType::kNoSuchFile:
       return "No such file or directory";
-    }
-    case plusplayer::ErrorType::kInvalidOperation: {
+    case plusplayer::ErrorType::kInvalidOperation:
       return "Invalid operation";
-    }
-    case plusplayer::ErrorType::kFileNoSpaceOnDevice: {
+    case plusplayer::ErrorType::kFileNoSpaceOnDevice:
       return "No space left on the device";
-    }
-    case plusplayer::ErrorType::kFeatureNotSupportedOnDevice: {
+    case plusplayer::ErrorType::kFeatureNotSupportedOnDevice:
       return "Not supported file on this device";
-    }
-    case plusplayer::ErrorType::kSeekFailed: {
+    case plusplayer::ErrorType::kSeekFailed:
       return "Seek operation failure";
-    }
-    case plusplayer::ErrorType::kInvalidState: {
+    case plusplayer::ErrorType::kInvalidState:
       return "Invalid player state";
-    }
-    case plusplayer::ErrorType::kNotSupportedFile: {
+    case plusplayer::ErrorType::kNotSupportedFile:
       return "File format not supported";
-    }
-    case plusplayer::ErrorType::kNotSupportedFormat: {
+    case plusplayer::ErrorType::kNotSupportedFormat:
       return "Not supported media format";
-    }
-    case plusplayer::ErrorType::kInvalidUri: {
+    case plusplayer::ErrorType::kInvalidUri:
       return "Invalid URI";
-    }
-    case plusplayer::ErrorType::kSoundPolicy: {
+    case plusplayer::ErrorType::kSoundPolicy:
       return "Sound policy error";
-    }
-    case plusplayer::ErrorType::kConnectionFailed: {
+    case plusplayer::ErrorType::kConnectionFailed:
       return "Streaming connection failed";
-    }
-    case plusplayer::ErrorType::kVideoCaptureFailed: {
+    case plusplayer::ErrorType::kVideoCaptureFailed:
       return "Video capture failed";
-    }
-    case plusplayer::ErrorType::kDrmExpired: {
+    case plusplayer::ErrorType::kDrmExpired:
       return "DRM license expired";
-    }
-    case plusplayer::ErrorType::kDrmNoLicense: {
+    case plusplayer::ErrorType::kDrmNoLicense:
       return "DRM no license";
-    }
-    case plusplayer::ErrorType::kDrmFutureUse: {
+    case plusplayer::ErrorType::kDrmFutureUse:
       return "License for future use";
-    }
-    case plusplayer::ErrorType::kDrmNotPermitted: {
+    case plusplayer::ErrorType::kDrmNotPermitted:
       return "DRM format not permitted";
-    }
-    case plusplayer::ErrorType::kResourceLimit: {
+    case plusplayer::ErrorType::kResourceLimit:
       return "Resource limit";
-    }
-    case plusplayer::ErrorType::kPermissionDenied: {
+    case plusplayer::ErrorType::kPermissionDenied:
       return "Permission denied";
-    }
-    case plusplayer::ErrorType::kServiceDisconnected: {
+    case plusplayer::ErrorType::kServiceDisconnected:
       return "Service disconnected";
-    }
-    case plusplayer::ErrorType::kBufferSpace: {
+    case plusplayer::ErrorType::kBufferSpace:
       return "No buffer space available";
-    }
-    case plusplayer::ErrorType::kNotSupportedAudioCodec: {
+    case plusplayer::ErrorType::kNotSupportedAudioCodec:
       return "Not supported audio codec but video can be played";
-    }
-    case plusplayer::ErrorType::kNotSupportedVideoCodec: {
+    case plusplayer::ErrorType::kNotSupportedVideoCodec:
       return "Not supported video codec but audio can be played";
-    }
-    case plusplayer::ErrorType::kNotSupportedSubtitle: {
+    case plusplayer::ErrorType::kNotSupportedSubtitle:
       return "Not supported subtitle format";
-    }
     default:
       return "Not defined error";
   }
