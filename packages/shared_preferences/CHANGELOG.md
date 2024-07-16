@@ -1,6 +1,8 @@
-## NEXT
+## 2.2.1
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Fix a type cast error when reading a string list.
+* Update tizen_interop to 0.3.0.
 
 ## 2.2.0
 

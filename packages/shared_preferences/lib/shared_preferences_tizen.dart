@@ -8,7 +8,7 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 import 'package:shared_preferences_platform_interface/types.dart';
-import 'package:tizen_interop/4.0/tizen.dart';
+import 'package:tizen_interop/6.0/tizen.dart';
 
 /// The Tizen implementation of [SharedPreferencesStorePlatform].
 class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
