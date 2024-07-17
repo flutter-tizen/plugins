@@ -1,3 +1,7 @@
+## NEXT
+
+* Disable unnecessary web-engine initialization.
+
 ## 0.9.3
 
 * Prevent duplicate Dispose() calls.

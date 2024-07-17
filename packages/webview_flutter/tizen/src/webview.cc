@@ -199,7 +199,7 @@ void WebView::Dispose() {
     evas_object_del(webview_instance_);
   }
 
-  ewk_shutdown();
+  // ewk_shutdown();
   disposed_ = true;
 }
 
@@ -306,7 +306,15 @@ bool WebView::InitWebView() {
   EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
                                                          chromium_argv);
 
-  ewk_init();
+  // TODO(jsuya): ewk_init() and ewk_shutdown() are designed to be called only
+  // once in a process.(If ewk_init() is called after ewk_shutdown() is called,
+  // SIGTRAP is called internally.) ewk_init() initializes the efl modules and
+  // web engine's arguments data. The efl modules are initialized by default in
+  // OS, and arguments data is also initialized through SetArguments() API, so
+  // calling ewk_init() is not necessary. Therefore, temporarily comment out
+  // ewk_init() and ewk_shutdown(). It can be reverted depending on updates to
+  // chromium-efl.
+  // ewk_init();
   Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
 
   webview_instance_ = ewk_view_add(ecore_evas_get(evas));
