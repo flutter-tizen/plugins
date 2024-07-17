@@ -6,6 +6,7 @@
 * Update example code.
 * Supports BitmapDescriptor.asset/bytes.
 * Supports byte type marker icons.
+* Update integration test.
 
 ## 0.1.6
 
