@@ -488,9 +488,10 @@ class GoogleMapsController {
         'JSON.stringify(map.$method.apply(map, $args))');
   }
 
-  Future<num> _getZoom(WebViewController controller) async {
+  Future<double> _getZoom(WebViewController controller) async {
     try {
-      return await _callMethod(controller, 'getZoom', <String>[]) as num;
+      return (await _callMethod(controller, 'getZoom', <String>[]) as num) +
+          0.0;
     } catch (e) {
       debugPrint('JavaScript Error: $e');
       return 0.0;
@@ -592,7 +593,7 @@ class GoogleMapsController {
       JSON.stringify(getPixelToLatLng());
     ''';
 
-    return controller.runJavaScriptReturningResult(command) as String;
+    return await controller.runJavaScriptReturningResult(command) as String;
   }
 
   Future<String> _latLngToPoint(LatLng latLng) async {
@@ -612,11 +613,11 @@ class GoogleMapsController {
       JSON.stringify(getLatLngToPixel());
     ''';
 
-    return controller.runJavaScriptReturningResult(command) as String;
+    return await controller.runJavaScriptReturningResult(command) as String;
   }
 
   /// Returns the zoom level of the current viewport.
-  Future<num> getZoomLevel() async {
+  Future<double> getZoomLevel() async {
     return _getZoom(controller);
   }
 
