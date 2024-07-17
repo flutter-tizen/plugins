@@ -73,8 +73,9 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
     options += ', zoomControl: ${rawOptions['zoomControlsEnabled']}';
   }
 
-  if (rawOptions['styles'] != null) {
-    options += ', styles: ${rawOptions['styles']}';
+  if (rawOptions['style'] != null &&
+      (rawOptions['style'] as String).isNotEmpty) {
+    options += ', styles: ${rawOptions['style']}';
   } else {
     options += ', styles: null';
   }
