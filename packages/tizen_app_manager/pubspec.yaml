@@ -2,7 +2,7 @@ name: tizen_app_manager
 description: Tizen application manager APIs. Used to get app info and app running context on a Tizen device.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_app_manager
-version: 0.2.2
+version: 0.2.3
 
 environment:
   sdk: ">=3.1.0 <4.0.0"
@@ -12,7 +12,7 @@ dependencies:
   ffi: ^2.0.1
   flutter:
     sdk: flutter
-  tizen_interop: ^0.2.0
+  tizen_interop: ^0.3.0
 
 flutter:
   plugin:
