@@ -1,7 +1,8 @@
-## NEXT
+## 2.1.1
 
 * Fix new lint warnings.
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Update tizen_interop to 0.3.0.
 
 ## 2.1.0
 
