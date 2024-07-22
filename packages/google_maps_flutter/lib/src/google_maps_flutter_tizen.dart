@@ -213,7 +213,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
   Future<double> getZoomLevel({
     required int mapId,
   }) {
-    return _map(mapId).getZoomLevel() as Future<double>;
+    return _map(mapId).getZoomLevel();
   }
 
   // The following are the 11 possible streams of data from the native side

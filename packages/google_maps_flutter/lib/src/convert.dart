@@ -73,8 +73,9 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
     options += ', zoomControl: ${rawOptions['zoomControlsEnabled']}';
   }
 
-  if (rawOptions['styles'] != null) {
-    options += ', styles: ${rawOptions['styles']}';
+  if (rawOptions['style'] != null &&
+      (rawOptions['style'] as String).isNotEmpty) {
+    options += ', styles: ${rawOptions['style']}';
   } else {
     options += ', styles: null';
   }
@@ -251,23 +252,36 @@ util.GMarkerOptions _markerOptionsFromMarker(
   util.GIcon? icon;
 
   if (iconConfig.isNotEmpty) {
-    if (iconConfig[0] == 'fromAssetImage') {
+    if (iconConfig[0] == 'asset') {
       assert(iconConfig.length >= 2);
-      // iconConfig[2] contains the DPIs of the screen, but that information is
-      // already encoded in the iconConfig[1]
-      icon = util.GIcon()..url = '../${iconConfig[1]}';
-
-      // iconConfig[3] may contain the [width, height] of the image, if passed!
-      if (iconConfig.length >= 4 && iconConfig[3] != null) {
-        final List<Object?> rawIconSize = iconConfig[3]! as List<Object?>;
-        final util.GSize size =
-            util.GSize(rawIconSize[0] as num?, rawIconSize[1] as num?);
-        icon
-          ..size = size
-          ..scaledSize = size;
+      final Map<String, Object?> assetConfig =
+          iconConfig[1]! as Map<String, Object?>;
+      icon = util.GIcon()..url = '../${assetConfig['assetName']}';
+      if (assetConfig['width'] != null || assetConfig['height'] != null) {
+        icon.size = util.GSize(
+            assetConfig['width'] != null
+                ? double.parse(assetConfig['width']!.toString())
+                : null,
+            assetConfig['height'] != null
+                ? double.parse(assetConfig['height']!.toString())
+                : null);
       }
-    } else if (iconConfig[0] == 'fromBytes') {
-      throw UnimplementedError('Not Implemented');
+    } else if (iconConfig[0] == 'bytes') {
+      assert(iconConfig.length >= 2);
+      final Map<String, Object?> assetConfig =
+          iconConfig[1]! as Map<String, Object?>;
+      icon = util.GIcon()
+        ..url =
+            'data:image/png;base64,${base64Encode(assetConfig['byteData']! as List<int>)}';
+      if (assetConfig['width'] != null || assetConfig['height'] != null) {
+        icon.size = util.GSize(
+            assetConfig['width'] != null
+                ? double.parse(assetConfig['width']!.toString())
+                : null,
+            assetConfig['height'] != null
+                ? double.parse(assetConfig['height']!.toString())
+                : null);
+      }
     }
   }
 

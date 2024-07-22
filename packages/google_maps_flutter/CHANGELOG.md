@@ -1,3 +1,13 @@
+## 0.1.7
+
+* Update webview_flutter_lwe to 0.3.2.
+* Update google_maps_flutter to 2.7.0.
+* Update google_maps_flutter_platform_interface to 2.7.0.
+* Update example code.
+* Supports BitmapDescriptor.asset/bytes.
+* Supports byte type marker icons.
+* Update integration test.
+
 ## 0.1.6
 
 * Fix new lint warnings.
