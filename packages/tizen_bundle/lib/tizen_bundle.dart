@@ -7,7 +7,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart' hide Size;
-import 'package:tizen_interop/4.0/tizen.dart';
+import 'package:tizen_interop/6.0/tizen.dart';
 
 export 'dart:typed_data' show Uint8List;
 

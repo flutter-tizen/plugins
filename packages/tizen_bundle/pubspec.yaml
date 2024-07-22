@@ -2,7 +2,7 @@ name: tizen_bundle
 description: Tizen data bundle APIs.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_bundle
-version: 0.1.1
+version: 0.1.2
 
 environment:
   sdk: ">=3.1.0 <4.0.0"
@@ -12,4 +12,4 @@ dependencies:
   ffi: ^2.0.1
   flutter:
     sdk: flutter
-  tizen_interop: ^0.2.0
+  tizen_interop: ^0.3.0
