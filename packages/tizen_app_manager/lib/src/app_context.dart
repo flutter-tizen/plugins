@@ -8,7 +8,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
-import 'package:tizen_interop/4.0/tizen.dart';
+import 'package:tizen_interop/6.0/tizen.dart';
 
 typedef _TerminateAppNative = Int Function(app_context_h);
 typedef _TerminateApp = int Function(app_context_h);
