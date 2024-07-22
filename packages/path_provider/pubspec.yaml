@@ -2,7 +2,7 @@ name: path_provider_tizen
 description: Tizen implementation of the path_provider plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/path_provider
-version: 2.1.0
+version: 2.1.1
 
 environment:
   sdk: ">=3.1.0 <4.0.0"
@@ -19,4 +19,4 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider_platform_interface: ^2.0.1
-  tizen_interop: ^0.2.0
+  tizen_interop: ^0.3.0

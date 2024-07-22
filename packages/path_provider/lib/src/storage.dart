@@ -7,9 +7,9 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart';
-import 'package:tizen_interop/4.0/tizen.dart';
+import 'package:tizen_interop/6.0/tizen.dart';
 
-export 'package:tizen_interop/4.0/tizen.dart' show storage_directory_e;
+export 'package:tizen_interop/6.0/tizen.dart' show storage_directory_e;
 
 /// A cached [Storage] instance.
 final Storage storage = Storage();
