@@ -1,3 +1,7 @@
+## NEXT
+
+* Update plusplayer.ini for using platform gst-ffmpeg library.
+
 ## 0.4.4
 
 * Remove wrong information in README.
