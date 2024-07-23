@@ -2,7 +2,7 @@ name: tizen_rpc_port
 description: Tizen RPC Port APIs. Used to make remote procedure calls between Tizen apps.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_rpc_port
-version: 0.1.3
+version: 0.1.4
 
 environment:
   sdk: ">=3.1.0 <4.0.0"
@@ -13,8 +13,8 @@ dependencies:
   flutter:
     sdk: flutter
   meta: ^1.8.0
-  tizen_bundle: ^0.1.0
-  tizen_interop: ^0.2.1
+  tizen_bundle: ^0.1.2
+  tizen_interop: ^0.3.0
 
 flutter:
   plugin:
