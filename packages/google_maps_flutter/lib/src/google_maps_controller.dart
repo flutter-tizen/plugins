@@ -7,6 +7,9 @@
 
 part of '../google_maps_flutter_tizen.dart';
 
+/// The duration of MapLongPressEvent.
+const int kGoogleMapsControllerLongPressDuration = 1000;
+
 /// This class implements a Map Controller and its events
 class GoogleMapsController {
   /// Initializes the GoogleMapsController.
@@ -138,8 +141,8 @@ class GoogleMapsController {
         onMessageReceived: _onClick,
       )
       ..addJavaScriptChannel(
-        'RightClick',
-        onMessageReceived: _onRightClick,
+        'LongPress',
+        onMessageReceived: _onLongPress,
       )
       ..addJavaScriptChannel(
         'MarkerClick',
@@ -173,8 +176,16 @@ class GoogleMapsController {
       map.addListener('bounds_changed', BoundChanged.postMessage);
       map.addListener('idle', Idle.postMessage);
       map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
-      map.addListener('rightclick', (event) => RightClick.postMessage(JSON.stringify(event)));
       map.addListener('tilesloaded', Tilesloaded.postMessage);
+
+      let longPressTimeout;
+      map.addListener('mousedown', (e) => {
+                longPressTimeout = setTimeout(() => {
+                    LongPress.postMessage(JSON.stringify(e));
+                }, $kGoogleMapsControllerLongPressDuration);
+            });
+      map.addListener('mouseup', () => { clearTimeout(longPressTimeout); });
+      map.addListener('mouseout', () => { clearTimeout(longPressTimeout); });
     ''';
     await controller.runJavaScript(command);
   }
@@ -250,7 +261,7 @@ class GoogleMapsController {
     }
   }
 
-  void _onRightClick(JavaScriptMessage message) {
+  void _onLongPress(JavaScriptMessage message) {
     try {
       final dynamic event = json.decode(message.message);
       if (event is Map<String, dynamic>) {
