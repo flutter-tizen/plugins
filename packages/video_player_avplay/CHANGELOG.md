@@ -1,3 +1,14 @@
+## 0.4.6
+
+* Upgrade plusplayer
+  1. [HLS] Disabling playback rate change and reducing max latency threshold.
+  2. [HLS] Bitrate switching optimization and seek to live handling.
+  3. [DASH] Fixing LL-DASH live channel stuck issue.
+  4. [PLUSPLAYER] Fixing svace issue cast from int to uint64_t.
+  5. [DASH] Optimization for LL-DASH catch-up.
+  6. [HLS] Null check before dereferencing pointer.
+  7. [HLS] Fix Live stream getting stucked after 15-20 min.
+
 ## 0.4.5
 
 * Update plusplayer.ini for using platform gst-ffmpeg library.
