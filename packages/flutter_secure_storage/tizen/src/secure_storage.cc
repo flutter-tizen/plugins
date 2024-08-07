@@ -128,6 +128,7 @@ std::string SecureStorage::Decrypt(const std::vector<uint8_t> &value) {
   if (value.size() <= kInitializationVectorSize) {
     return "";
   }
+  
   std::vector<uint8_t> iv(value.begin(),
                           value.begin() + kInitializationVectorSize);
   ckmc_raw_buffer_s iv_buffer;
