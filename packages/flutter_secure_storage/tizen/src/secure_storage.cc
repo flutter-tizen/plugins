@@ -92,6 +92,10 @@ void SecureStorage::CreateAesKeyOnce() {
 }
 
 std::vector<uint8_t> SecureStorage::Encrypt(const std::string &value) {
+  if (value.empty()) {
+    return std::vector<uint8_t>{0x00};
+  }
+
   ckmc_raw_buffer_s plain_buffer;
   plain_buffer.data =
       const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(value.c_str()));
@@ -121,6 +125,10 @@ std::vector<uint8_t> SecureStorage::Encrypt(const std::string &value) {
 }
 
 std::string SecureStorage::Decrypt(const std::vector<uint8_t> &value) {
+  if (value.size() <= kInitializationVectorSize) {
+    return "";
+  }
+
   std::vector<uint8_t> iv(value.begin(),
                           value.begin() + kInitializationVectorSize);
   ckmc_raw_buffer_s iv_buffer;
