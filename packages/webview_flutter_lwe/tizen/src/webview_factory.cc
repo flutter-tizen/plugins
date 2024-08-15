@@ -29,13 +29,8 @@ WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar)
     : PlatformViewFactory(registrar) {
   texture_registrar_ = registrar->texture_registrar();
 
-  std::string data_path = GetAppDataPath();
-  std::string local_storage_path = data_path + "StarFish_localStorage.db";
-  std::string cookie_path = data_path + "StarFish_cookies.db";
-  std::string cache_path = data_path + "Starfish_cache.db";
-
-  LWE::LWE::Initialize(local_storage_path.c_str(), cookie_path.c_str(),
-                       cache_path.c_str());
+  std::string data_path = GetAppDataPath() + std::string("Starfish_storage");
+  LWE::LWE::Initialize(data_path.c_str());
 }
 
 PlatformView* WebViewFactory::Create(int view_id, double width, double height,

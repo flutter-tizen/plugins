@@ -265,10 +265,10 @@ enum class IdleModeJob {
 
   IdleModeFull =
       ClearDrawnBuffers | ForceGC | DropDecodedImageBuffer | ClearFontCache,
-  IdleModeMiddle = ForceGC,
+  IdleModeMiddle = ClearDrawnBuffers | ForceGC | DropDecodedImageBuffer,
   IdleModeNone = 0,
 
-  IdleModeDefault = IdleModeFull
+  IdleModeDefault = IdleModeMiddle
 };
 
 constexpr int IdleModeCheckDefaultIntervalInMS{3000};

@@ -33,66 +33,130 @@
 
 namespace LWE {
 
-class LWE_EXPORT WorkerClient {
- public:
-  /*
-   * Register worker data directory path.
-   *
-   * Be sure to set the same data path as the shared or service worker server.
-   * If you do not register data directory, the data directory path is
-   * set to '${HOME}/starfish-worker-data' or /tmp/starfish-worker-data.
-   *
-   * This method must be invoked after LWE::Initialize() is invoked.
-   */
-  static void RegisterDataDirectoryPath(const std::string &dataDirectoryPath);
-
-  /*
-   * Register service worker server process executor callback function.
-   * The callback function should return the success or failure of the
-   * processor execution.
-   *
-   * This method must be invoked after LWE::Initialize() is invoked.
-   */
-  static void RegisterServiceWorkerProcessExecutor(
-      const std::function<bool()> &fn);
-};
-
 enum class LWE_EXPORT WorkerProcessState {
   None,
   Terminated,
 };
 
+/**
+ * \brief Perform initialization or cleanup of service worker.
+ */
 class LWE_EXPORT ServiceWorker {
  public:
-  /*
-   * Initialize service worker server.
+  /**
+   * \brief Sets the preference for the engine version to be used.
    *
-   * Be sure to set the same data path as the worker client.
-   * If you set data directory path to an empty path, it is set to
-   * '${HOME}/starfish-worker-data' or /tmp/starfish-worker-data.
+   * \param preferUpdatedVersion If true, an updated engine version will be
+   * used if available.
+   *
+   * \remark Must be called before the Initialize.
    */
-  static void Initialize(const std::string &dataDirectoryPath);
+  static void SetVersionPreference(bool preferUpdatedVersion);
 
+  /**
+   * \brief Initialize service worker server.
+   * Be sure to set the same data path as the lightweight web engine.
+   *
+   * \code{.cpp}
+   *     LWE::ServiceWorker::Initialize("/tmp/Starfish_storage");
+   * \endcode
+   *
+   * \param storageDirectoryPath Directory path for storage.
+   *
+   */
+  static void Initialize(const std::string &storageDirectoryPath);
+
+  /**
+   * \brief Register callback that is called when the worker process state
+   * changes.
+   *
+   * \code{.cpp}
+   * LWE::ServiceWorker::RegisterOnStatusChangedHandler(
+   *     [](LWE::WorkerProcessState state) {
+   *         if (state == LWE::WorkerProcessState::Terminated) {
+   *             printf("Terminated worker process\n");
+   *         }
+   *     }
+   * );
+   * \endcode
+   *
+   * \param cb state handling callback.
+   *
+   */
   static void RegisterOnStatusChangedHandler(
       const std::function<void(WorkerProcessState)> &cb);
 
+  /**
+   * \brief Perform lightweight web engine service worker cleanup.
+   * Called once when the lightweight web engine service worker is no longer
+   * in use.
+   *
+   * \code{.cpp}
+   *     LWE::ServiceWorker::Finalize();
+   * \endcode
+   *
+   */
   static void Finalize();
 };
 
+/**
+ * \brief Perform initialization or cleanup of Shared worker.
+ */
 class LWE_EXPORT SharedWorker {
  public:
-  /*
-   * Initialize shared worker server.
+  /**
+   * \brief Sets the preference for the engine version to be used.
    *
-   * Be sure to set the same data path as the worker client.
-   * If you set data directory path to an empty path, it is set to
-   * '${HOME}/starfish-worker-data' or /tmp/starfish-worker-data.
+   * \param preferUpdatedVersion If true, an updated engine version will be
+   * used if available.
+   *
+   * \remark Must be called before the Initialize.
    */
-  static void Initialize(const std::string &dataDirectoryPath);
+  static void SetVersionPreference(bool preferUpdatedVersion);
 
+  /**
+   * \brief Initialize shared worker server.
+   * Be sure to set the same data path as the lightweight web engine.
+   *
+   * \code{.cpp}
+   *     LWE::SharedWorker::Initialize("/tmp/Starfish_storage");
+   * \endcode
+   *
+   * \param storageDirectoryPath Directory path for storage.
+   *
+   */
+  static void Initialize(const std::string &storageDirectoryPath);
+
+  /**
+   * \brief Register callback that is called when the worker process state
+   * changes.
+   *
+   * \code{.cpp}
+   * LWE::SharedWorker::RegisterOnStatusChangedHandler(
+   *     [](LWE::WorkerProcessState state) {
+   *         if (state == LWE::WorkerProcessState::Terminated) {
+   *             printf("Terminated worker process\n");
+   *         }
+   *     }
+   * );
+   * \endcode
+   *
+   * \param cb state handling callback.
+   *
+   */
   static void RegisterOnStatusChangedHandler(
       const std::function<void(WorkerProcessState)> &cb);
 
+  /**
+   * \brief Perform lightweight web engine shared worker cleanup.
+   * Called once when the lightweight web engine shared worker is no longer
+   * in use.
+   *
+   * \code{.cpp}
+   *     LWE::SharedWorker::Finalize();
+   * \endcode
+   *
+   */
   static void Finalize();
 };
 
