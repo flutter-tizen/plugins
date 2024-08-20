@@ -74,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 _battery.batteryLevel.then(
                   (batteryLevel) {
+                    if (!context.mounted) return;
                     showDialog<void>(
                       context: context,
                       builder: (_) => AlertDialog(
@@ -98,6 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 _battery.isInBatterySaveMode.then(
                   (isInPowerSaveMode) {
+                    if (!context.mounted) return;
                     showDialog<void>(
                       context: context,
                       builder: (_) => AlertDialog(
