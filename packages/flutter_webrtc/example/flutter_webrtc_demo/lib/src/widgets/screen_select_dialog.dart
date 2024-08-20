@@ -276,7 +276,7 @@ class ScreenSelectDialog extends Dialog {
             ),
             Container(
               width: double.infinity,
-              child: ButtonBar(
+              child: OverflowBar(
                 children: <Widget>[
                   MaterialButton(
                     child: Text(
