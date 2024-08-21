@@ -246,6 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _userAccelerometerUpdateTime = now;
         },
         onError: (e) {
+          if (!mounted) return;
           showDialog(
               context: context,
               builder: (context) {
@@ -275,6 +276,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _accelerometerUpdateTime = now;
         },
         onError: (e) {
+          if (!mounted) return;
           showDialog(
               context: context,
               builder: (context) {
@@ -304,6 +306,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _gyroscopeUpdateTime = now;
         },
         onError: (e) {
+          if (!mounted) return;
           showDialog(
               context: context,
               builder: (context) {
@@ -333,6 +336,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _magnetometerUpdateTime = now;
         },
         onError: (e) {
+          if (!mounted) return;
           showDialog(
               context: context,
               builder: (context) {
