@@ -17,10 +17,13 @@ final MaterialColor themeMaterialColor =
 
 /// A Flutter application demonstrating the functionality of this plugin
 class PermissionHandlerWidget extends StatefulWidget {
+  /// Default Constructor
+  const PermissionHandlerWidget({super.key});
+
   /// Create a page containing the functionality of this plugin
   static ExamplePage createPage() {
     return ExamplePage(
-        Icons.location_on, (context) => PermissionHandlerWidget());
+        Icons.location_on, (context) => const PermissionHandlerWidget());
   }
 
   @override
@@ -69,23 +72,24 @@ class _PermissionHandlerWidgetState extends State<PermissionHandlerWidget> {
 /// Permission widget containing information about the passed [Permission]
 class PermissionWidget extends StatefulWidget {
   /// Constructs a [PermissionWidget] for the supplied [Permission]
-  const PermissionWidget(this._permission);
+  const PermissionWidget(this._permission, {super.key});
 
   final Permission _permission;
 
   @override
-  _PermissionState createState() => _PermissionState(_permission);
+  _PermissionState createState() {
+    return _PermissionState();
+  }
 }
 
 class _PermissionState extends State<PermissionWidget> {
-  _PermissionState(this._permission);
-
-  final Permission _permission;
+  late Permission _permission;
   PermissionStatus _permissionStatus = PermissionStatus.denied;
 
   @override
   void initState() {
     super.initState();
+    _permission = widget._permission;
 
     _listenForPermissionStatus();
   }
@@ -147,9 +151,9 @@ class _PermissionState extends State<PermissionWidget> {
     final status = await permission.request();
 
     setState(() {
-      print(status);
+      debugPrint(status.toString());
       _permissionStatus = status;
-      print(_permissionStatus);
+      debugPrint(_permissionStatus.toString());
     });
   }
 }
