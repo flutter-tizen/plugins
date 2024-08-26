@@ -139,6 +139,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
         'getStreamingProperty() has not been implemented.');
   }
 
+  /// Sets the buffer size for the player.
+  Future<bool> setBufferConfig(int playerId, BufferConfigType type, int value) {
+    throw UnimplementedError('setBufferConfig() has not been implemented.');
+  }
+
   /// Returns a widget displaying the video with a given playerId.
   Widget buildView(int playerId) {
     throw UnimplementedError('buildView() has not been implemented.');
@@ -315,6 +320,30 @@ enum StreamingPropertyType {
 
   /// Property to select the Scaler type, By Default MAIN Scaler selected.
   inAppMultiView,
+}
+
+/// The different types of buffer configurations that can be set on the player.
+enum BufferConfigType {
+  /// Total buffer size in byte.
+  totalBufferSizeInByte,
+
+  /// Total buffer size in time.
+  totalBufferSizeInTime,
+
+  /// Buffer size for play in byte.
+  bufferSizeInByteForPlay,
+
+  /// Buffer size for play in time.
+  bufferSizeInSecForPlay,
+
+  /// Buffer size for resume in byte.
+  bufferSizeInByteForResume,
+
+  /// Buffer size for resume in time.
+  bufferSizeInSecForResume,
+
+  /// Buffering timeout for play in seconds.
+  bufferingTimeoutInSecForPlay,
 }
 
 /// Event emitted from the platform implementation.
