@@ -1,3 +1,7 @@
+## 0.4.7
+
+* Add SetBufferConfig interface.
+
 ## 0.4.6
 
 * Upgrade plusplayer
