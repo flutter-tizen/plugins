@@ -87,7 +87,6 @@ int64_t PlusPlayer::Create(const std::string &uri,
     return -1;
   }
 
-
   if (!Open(player_, uri)) {
     LOG_ERROR("[PlusPlayer] Fail to open uri :  %s.", uri.c_str());
     return -1;

@@ -1,3 +1,7 @@
+## NEXT
+
+* Call the open before calling the SetStreamingProperty.
+
 ## 0.4.7
 
 * Add SetBufferConfig interface.
