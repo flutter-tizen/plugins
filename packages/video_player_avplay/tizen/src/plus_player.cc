@@ -583,6 +583,21 @@ std::string PlusPlayer::GetStreamingProperty(
   return ::GetStreamingProperty(player_, streaming_property_type);
 }
 
+bool PlusPlayer::SetBufferConfig(const std::string &key, int64_t value) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return false;
+  }
+
+  plusplayer::State state = GetState(player_);
+  if (state == plusplayer::State::kNone) {
+    LOG_ERROR("[PlusPlayer]:Player is in invalid state[%d]", state);
+    return false;
+  }
+  const std::pair<std::string, int> config = std::make_pair(key, value);
+  return ::SetBufferConfig(player_, config);
+}
+
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
                                    unsigned char *pssh_data, void *user_data) {
   LOG_INFO("[PlusPlayer] License acquired.");

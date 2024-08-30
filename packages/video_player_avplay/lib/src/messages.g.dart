@@ -416,51 +416,85 @@ class StreamingPropertyTypeMessage {
   }
 }
 
+class BufferConfigMessage {
+  BufferConfigMessage({
+    required this.playerId,
+    required this.bufferConfigType,
+    required this.bufferConfigValue,
+  });
+
+  int playerId;
+
+  String bufferConfigType;
+
+  int bufferConfigValue;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      bufferConfigType,
+      bufferConfigValue,
+    ];
+  }
+
+  static BufferConfigMessage decode(Object result) {
+    result as List<Object?>;
+    return BufferConfigMessage(
+      playerId: result[0]! as int,
+      bufferConfigType: result[1]! as String,
+      bufferConfigValue: result[2]! as int,
+    );
+  }
+}
+
 class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
   const _VideoPlayerAvplayApiCodec();
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
-    if (value is CreateMessage) {
+    if (value is BufferConfigMessage) {
       buffer.putUint8(128);
       writeValue(buffer, value.encode());
-    } else if (value is DurationMessage) {
+    } else if (value is CreateMessage) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    } else if (value is GeometryMessage) {
+    } else if (value is DurationMessage) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else if (value is LoopingMessage) {
+    } else if (value is GeometryMessage) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is MixWithOthersMessage) {
+    } else if (value is LoopingMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else if (value is PlaybackSpeedMessage) {
+    } else if (value is MixWithOthersMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else if (value is PlayerMessage) {
+    } else if (value is PlaybackSpeedMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else if (value is PositionMessage) {
+    } else if (value is PlayerMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    } else if (value is SelectedTracksMessage) {
+    } else if (value is PositionMessage) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    } else if (value is StreamingPropertyMessage) {
+    } else if (value is SelectedTracksMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    } else if (value is StreamingPropertyTypeMessage) {
+    } else if (value is StreamingPropertyMessage) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    } else if (value is TrackMessage) {
+    } else if (value is StreamingPropertyTypeMessage) {
       buffer.putUint8(139);
       writeValue(buffer, value.encode());
-    } else if (value is TrackTypeMessage) {
+    } else if (value is TrackMessage) {
       buffer.putUint8(140);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is TrackTypeMessage) {
       buffer.putUint8(141);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(142);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -471,32 +505,34 @@ class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 128:
-        return CreateMessage.decode(readValue(buffer)!);
+        return BufferConfigMessage.decode(readValue(buffer)!);
       case 129:
-        return DurationMessage.decode(readValue(buffer)!);
+        return CreateMessage.decode(readValue(buffer)!);
       case 130:
-        return GeometryMessage.decode(readValue(buffer)!);
+        return DurationMessage.decode(readValue(buffer)!);
       case 131:
-        return LoopingMessage.decode(readValue(buffer)!);
+        return GeometryMessage.decode(readValue(buffer)!);
       case 132:
-        return MixWithOthersMessage.decode(readValue(buffer)!);
+        return LoopingMessage.decode(readValue(buffer)!);
       case 133:
-        return PlaybackSpeedMessage.decode(readValue(buffer)!);
+        return MixWithOthersMessage.decode(readValue(buffer)!);
       case 134:
-        return PlayerMessage.decode(readValue(buffer)!);
+        return PlaybackSpeedMessage.decode(readValue(buffer)!);
       case 135:
-        return PositionMessage.decode(readValue(buffer)!);
+        return PlayerMessage.decode(readValue(buffer)!);
       case 136:
-        return SelectedTracksMessage.decode(readValue(buffer)!);
+        return PositionMessage.decode(readValue(buffer)!);
       case 137:
-        return StreamingPropertyMessage.decode(readValue(buffer)!);
+        return SelectedTracksMessage.decode(readValue(buffer)!);
       case 138:
-        return StreamingPropertyTypeMessage.decode(readValue(buffer)!);
+        return StreamingPropertyMessage.decode(readValue(buffer)!);
       case 139:
-        return TrackMessage.decode(readValue(buffer)!);
+        return StreamingPropertyTypeMessage.decode(readValue(buffer)!);
       case 140:
-        return TrackTypeMessage.decode(readValue(buffer)!);
+        return TrackMessage.decode(readValue(buffer)!);
       case 141:
+        return TrackTypeMessage.decode(readValue(buffer)!);
+      case 142:
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -965,6 +1001,34 @@ class VideoPlayerAvplayApi {
       );
     } else {
       return (replyList[0] as StreamingPropertyMessage?)!;
+    }
+  }
+
+  Future<bool> setBufferConfig(BufferConfigMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setBufferConfig',
+        codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as bool?)!;
     }
   }
 }

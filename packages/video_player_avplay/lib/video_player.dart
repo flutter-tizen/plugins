@@ -712,6 +712,17 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.getStreamingProperty(_playerId, type);
   }
 
+  /// Sets the buffer size for the play and resume scenarios. The time buffer size must be at least 4 seconds.
+  /// For example, if a 10 second buffer size is set, playback can only start or resume after 10 seconds of media has accumulated in the buffer.
+  /// Play scenarios include user-initiated streaming playback and whenever media playback is starting for the first time.
+  /// Resume scenarios include resuming playback after pause or seek operations, or when lack of data causes playback rebuffering.
+  Future<bool> setBufferConfig(BufferConfigType type, int value) async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+    return _videoPlayerPlatform.setBufferConfig(_playerId, type, value);
+  }
+
   /// Sets the playback speed of [this].
   ///
   /// [speed] indicates a speed value with different platforms accepting

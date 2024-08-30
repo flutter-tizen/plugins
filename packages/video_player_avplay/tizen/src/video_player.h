@@ -52,6 +52,9 @@ class VideoPlayer {
       const std::string &streaming_property_type) {
     return "";
   };
+  virtual bool SetBufferConfig(const std::string &key, int64_t value) {
+    return false;
+  };
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
