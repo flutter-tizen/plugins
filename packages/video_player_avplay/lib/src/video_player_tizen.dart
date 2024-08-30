@@ -200,11 +200,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   @override
   Future<String> getStreamingProperty(
       int playerId, StreamingPropertyType type) async {
-    final StreamingPropertyMessage streamingPropertyMessage =
-        await _api.getStreamingProperty(StreamingPropertyTypeMessage(
-            playerId: playerId,
-            streamingPropertyType: _streamingPropertyType[type]!));
-    return streamingPropertyMessage.streamingProperty;
+    return _api.getStreamingProperty(StreamingPropertyTypeMessage(
+        playerId: playerId,
+        streamingPropertyType: _streamingPropertyType[type]!));
   }
 
   @override

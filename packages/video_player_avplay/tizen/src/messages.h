@@ -366,29 +366,6 @@ class DurationMessage {
 };
 
 // Generated class from Pigeon that represents data sent in messages.
-class StreamingPropertyMessage {
- public:
-  // Constructs an object setting all fields.
-  explicit StreamingPropertyMessage(int64_t player_id,
-                                    const std::string& streaming_property);
-
-  int64_t player_id() const;
-  void set_player_id(int64_t value_arg);
-
-  const std::string& streaming_property() const;
-  void set_streaming_property(std::string_view value_arg);
-
- private:
-  static StreamingPropertyMessage FromEncodableList(
-      const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class VideoPlayerAvplayApi;
-  friend class VideoPlayerAvplayApiCodecSerializer;
-  int64_t player_id_;
-  std::string streaming_property_;
-};
-
-// Generated class from Pigeon that represents data sent in messages.
 class StreamingPropertyTypeMessage {
  public:
   // Constructs an object setting all fields.
@@ -485,7 +462,7 @@ class VideoPlayerAvplayApi {
       const MixWithOthersMessage& msg) = 0;
   virtual std::optional<FlutterError> SetDisplayGeometry(
       const GeometryMessage& msg) = 0;
-  virtual ErrorOr<StreamingPropertyMessage> GetStreamingProperty(
+  virtual ErrorOr<std::string> GetStreamingProperty(
       const StreamingPropertyTypeMessage& msg) = 0;
   virtual ErrorOr<bool> SetBufferConfig(const BufferConfigMessage& msg) = 0;
 

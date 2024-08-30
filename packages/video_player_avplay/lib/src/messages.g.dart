@@ -364,32 +364,6 @@ class DurationMessage {
   }
 }
 
-class StreamingPropertyMessage {
-  StreamingPropertyMessage({
-    required this.playerId,
-    required this.streamingProperty,
-  });
-
-  int playerId;
-
-  String streamingProperty;
-
-  Object encode() {
-    return <Object?>[
-      playerId,
-      streamingProperty,
-    ];
-  }
-
-  static StreamingPropertyMessage decode(Object result) {
-    result as List<Object?>;
-    return StreamingPropertyMessage(
-      playerId: result[0]! as int,
-      streamingProperty: result[1]! as String,
-    );
-  }
-}
-
 class StreamingPropertyTypeMessage {
   StreamingPropertyTypeMessage({
     required this.playerId,
@@ -481,20 +455,17 @@ class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
     } else if (value is SelectedTracksMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    } else if (value is StreamingPropertyMessage) {
+    } else if (value is StreamingPropertyTypeMessage) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    } else if (value is StreamingPropertyTypeMessage) {
+    } else if (value is TrackMessage) {
       buffer.putUint8(139);
       writeValue(buffer, value.encode());
-    } else if (value is TrackMessage) {
+    } else if (value is TrackTypeMessage) {
       buffer.putUint8(140);
       writeValue(buffer, value.encode());
-    } else if (value is TrackTypeMessage) {
-      buffer.putUint8(141);
-      writeValue(buffer, value.encode());
     } else if (value is VolumeMessage) {
-      buffer.putUint8(142);
+      buffer.putUint8(141);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -525,14 +496,12 @@ class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
       case 137:
         return SelectedTracksMessage.decode(readValue(buffer)!);
       case 138:
-        return StreamingPropertyMessage.decode(readValue(buffer)!);
-      case 139:
         return StreamingPropertyTypeMessage.decode(readValue(buffer)!);
-      case 140:
+      case 139:
         return TrackMessage.decode(readValue(buffer)!);
-      case 141:
+      case 140:
         return TrackTypeMessage.decode(readValue(buffer)!);
-      case 142:
+      case 141:
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -975,7 +944,7 @@ class VideoPlayerAvplayApi {
     }
   }
 
-  Future<StreamingPropertyMessage> getStreamingProperty(
+  Future<String> getStreamingProperty(
       StreamingPropertyTypeMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getStreamingProperty',
@@ -1000,7 +969,7 @@ class VideoPlayerAvplayApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (replyList[0] as StreamingPropertyMessage?)!;
+      return (replyList[0] as String?)!;
     }
   }
 
