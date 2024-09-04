@@ -55,7 +55,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
       const MixWithOthersMessage &msg) override;
   std::optional<FlutterError> SetDisplayGeometry(
       const GeometryMessage &msg) override;
-  ErrorOr<StreamingPropertyMessage> GetStreamingProperty(
+  ErrorOr<std::string> GetStreamingProperty(
       const StreamingPropertyTypeMessage &msg) override;
   ErrorOr<bool> SetBufferConfig(const BufferConfigMessage &msg) override;
 
@@ -302,16 +302,13 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(
   return std::nullopt;
 }
 
-ErrorOr<StreamingPropertyMessage> VideoPlayerTizenPlugin::GetStreamingProperty(
+ErrorOr<std::string> VideoPlayerTizenPlugin::GetStreamingProperty(
     const StreamingPropertyTypeMessage &msg) {
   VideoPlayer *player = FindPlayerById(msg.player_id());
   if (!player) {
     return FlutterError("Invalid argument", "Player not found");
   }
-  StreamingPropertyMessage result(
-      msg.player_id(),
-      player->GetStreamingProperty(msg.streaming_property_type()));
-  return result;
+  return player->GetStreamingProperty(msg.streaming_property_type());
 }
 
 ErrorOr<bool> VideoPlayerTizenPlugin::SetBufferConfig(

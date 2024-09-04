@@ -1,3 +1,8 @@
+## NEXT
+
+* Call the open before calling the SetStreamingProperty.
+* Change getStreamingProperty API return type from StreamingPropertyMessage to String.
+
 ## 0.4.7
 
 * Add SetBufferConfig interface.

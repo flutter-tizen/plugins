@@ -560,42 +560,6 @@ DurationMessage DurationMessage::FromEncodableList(const EncodableList& list) {
   return decoded;
 }
 
-// StreamingPropertyMessage
-
-StreamingPropertyMessage::StreamingPropertyMessage(
-    int64_t player_id, const std::string& streaming_property)
-    : player_id_(player_id), streaming_property_(streaming_property) {}
-
-int64_t StreamingPropertyMessage::player_id() const { return player_id_; }
-
-void StreamingPropertyMessage::set_player_id(int64_t value_arg) {
-  player_id_ = value_arg;
-}
-
-const std::string& StreamingPropertyMessage::streaming_property() const {
-  return streaming_property_;
-}
-
-void StreamingPropertyMessage::set_streaming_property(
-    std::string_view value_arg) {
-  streaming_property_ = value_arg;
-}
-
-EncodableList StreamingPropertyMessage::ToEncodableList() const {
-  EncodableList list;
-  list.reserve(2);
-  list.push_back(EncodableValue(player_id_));
-  list.push_back(EncodableValue(streaming_property_));
-  return list;
-}
-
-StreamingPropertyMessage StreamingPropertyMessage::FromEncodableList(
-    const EncodableList& list) {
-  StreamingPropertyMessage decoded(list[0].LongValue(),
-                                   std::get<std::string>(list[1]));
-  return decoded;
-}
-
 // StreamingPropertyTypeMessage
 
 StreamingPropertyTypeMessage::StreamingPropertyTypeMessage(
@@ -717,19 +681,16 @@ EncodableValue VideoPlayerAvplayApiCodecSerializer::ReadValueOfType(
       return CustomEncodableValue(SelectedTracksMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 138:
-      return CustomEncodableValue(StreamingPropertyMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
-    case 139:
       return CustomEncodableValue(
           StreamingPropertyTypeMessage::FromEncodableList(
               std::get<EncodableList>(ReadValue(stream))));
-    case 140:
+    case 139:
       return CustomEncodableValue(TrackMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
-    case 141:
+    case 140:
       return CustomEncodableValue(TrackTypeMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
-    case 142:
+    case 141:
       return CustomEncodableValue(VolumeMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     default:
@@ -821,16 +782,8 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
           stream);
       return;
     }
-    if (custom_value->type() == typeid(StreamingPropertyMessage)) {
-      stream->WriteByte(138);
-      WriteValue(
-          EncodableValue(std::any_cast<StreamingPropertyMessage>(*custom_value)
-                             .ToEncodableList()),
-          stream);
-      return;
-    }
     if (custom_value->type() == typeid(StreamingPropertyTypeMessage)) {
-      stream->WriteByte(139);
+      stream->WriteByte(138);
       WriteValue(EncodableValue(
                      std::any_cast<StreamingPropertyTypeMessage>(*custom_value)
                          .ToEncodableList()),
@@ -838,7 +791,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(TrackMessage)) {
-      stream->WriteByte(140);
+      stream->WriteByte(139);
       WriteValue(
           EncodableValue(
               std::any_cast<TrackMessage>(*custom_value).ToEncodableList()),
@@ -846,7 +799,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(TrackTypeMessage)) {
-      stream->WriteByte(141);
+      stream->WriteByte(140);
       WriteValue(
           EncodableValue(
               std::any_cast<TrackTypeMessage>(*custom_value).ToEncodableList()),
@@ -854,7 +807,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(VolumeMessage)) {
-      stream->WriteByte(142);
+      stream->WriteByte(141);
       WriteValue(
           EncodableValue(
               std::any_cast<VolumeMessage>(*custom_value).ToEncodableList()),
@@ -1482,15 +1435,13 @@ void VideoPlayerAvplayApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               const auto& msg_arg =
                   std::any_cast<const StreamingPropertyTypeMessage&>(
                       std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<StreamingPropertyMessage> output =
-                  api->GetStreamingProperty(msg_arg);
+              ErrorOr<std::string> output = api->GetStreamingProperty(msg_arg);
               if (output.has_error()) {
                 reply(WrapError(output.error()));
                 return;
               }
               EncodableList wrapped;
-              wrapped.push_back(
-                  CustomEncodableValue(std::move(output).TakeValue()));
+              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));
