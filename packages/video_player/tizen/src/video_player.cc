@@ -270,6 +270,8 @@ void VideoPlayer::Play() {
 #ifdef TV_PROFILE
   timer_ = ecore_timer_add(30, ResetScreensaverTimeout, this);
 #endif
+
+  SendIsPlayingStateUpdate(true);
 }
 
 void VideoPlayer::Pause() {
@@ -294,6 +296,8 @@ void VideoPlayer::Pause() {
     ecore_timer_del(timer_);
     timer_ = nullptr;
   }
+
+  SendIsPlayingStateUpdate(false);
 }
 
 void VideoPlayer::SetLooping(bool is_looping) {
@@ -472,6 +476,16 @@ void VideoPlayer::SendInitialized() {
     };
     PushEvent(flutter::EncodableValue(result));
   }
+}
+
+void VideoPlayer::SendIsPlayingStateUpdate(bool is_playing) {
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"),
+       flutter::EncodableValue("isPlayingStateUpdate")},
+      {flutter::EncodableValue("isPlaying"),
+       flutter::EncodableValue(is_playing)},
+  };
+  PushEvent(flutter::EncodableValue(result));
 }
 
 Eina_Bool VideoPlayer::ResetScreensaverTimeout(void *data) {

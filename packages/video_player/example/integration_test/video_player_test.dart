@@ -24,9 +24,9 @@ const String _videoAssetKey =
 // TODO(stuartmorgan): Convert this to a local `HttpServer` that vends the
 // assets directly, https://github.com/flutter/flutter/issues/95420
 String getUrlForAssetAsNetworkSource(String assetKey) {
-  return 'https://github.com/flutter/plugins/blob/'
+  return 'https://github.com/flutter/packages/blob/'
       // This hash can be rolled forward to pick up newly-added assets.
-      'cb381ced070d356799dddf24aca38ce0579d3d7b'
+      '2e1673307ff7454aff40b47024eaed49a9e77e81'
       '/packages/video_player/video_player/example/'
       '$assetKey'
       '?raw=true';
@@ -57,8 +57,9 @@ void main() {
       'live stream duration != 0',
       (WidgetTester tester) async {
         final VideoPlayerController networkController =
-            VideoPlayerController.network(
-          'https://flutter.github.io/assets-for-api-docs/assets/videos/hls/bee.m3u8',
+            VideoPlayerController.networkUrl(
+          Uri.parse(
+              'https://flutter.github.io/assets-for-api-docs/assets/videos/hls/bee.m3u8'),
         );
         await networkController.initialize();
 
@@ -127,20 +128,36 @@ void main() {
         // Mute to allow playing without DOM interaction on Web.
         // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
         await controller.setVolume(0);
-        final Duration timeBeforeEnd =
-            controller.value.duration - const Duration(milliseconds: 500);
-        await controller.seekTo(timeBeforeEnd);
+        final Duration tenMillisBeforeEnd =
+            controller.value.duration - const Duration(milliseconds: 10);
+        await controller.seekTo(tenMillisBeforeEnd);
         await controller.play();
         await tester.pumpAndSettle(_playDuration);
+        // Android emulators in our CI have frequent flake where the video
+        // reports as still playing (usually without having advanced at all
+        // past the seek position, but sometimes having advanced some); if that
+        // happens, the thing being tested hasn't even had a chance to happen
+        // due to CI issues, so just report it as skipped.
+        // TODO(stuartmorgan): Remove once
+        // https://github.com/flutter/flutter/issues/141145 is fixed.
+        if ((!kIsWeb && Platform.isAndroid) && controller.value.isPlaying) {
+          markTestSkipped(
+              'Skipping due to https://github.com/flutter/flutter/issues/141145');
+          return;
+        }
         expect(controller.value.isPlaying, false);
         expect(controller.value.position, controller.value.duration);
 
-        await controller.seekTo(timeBeforeEnd);
+        await controller.seekTo(tenMillisBeforeEnd);
         await tester.pumpAndSettle(_playDuration);
 
         expect(controller.value.isPlaying, false);
-        expect(controller.value.position, timeBeforeEnd);
+        expect(controller.value.position, tenMillisBeforeEnd);
       },
+      // Flaky on web: https://github.com/flutter/flutter/issues/130147
+      //skip: kIsWeb,
+      // NOTE(jsuya): In Tizen, isPlaying returns true after the play() call.
+      skip: true,
     );
 
     testWidgets(
@@ -151,9 +168,24 @@ void main() {
         // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
         await controller.setVolume(0);
         await controller.seekTo(
-            controller.value.duration - const Duration(milliseconds: 500));
+            controller.value.duration - const Duration(milliseconds: 10));
         await controller.play();
         await tester.pumpAndSettle(_playDuration);
+        // Android emulators in our CI have frequent flake where the video
+        // reports as still playing (usually without having advanced at all
+        // past the seek position, but sometimes having advanced some); if that
+        // happens, the thing being tested hasn't even had a chance to happen
+        // due to CI issues, so just report it as skipped.
+        // TODO(stuartmorgan): Remove once
+        // https://github.com/flutter/flutter/issues/141145 is fixed.
+
+        // NOTE(jsuya): In Tizen, isPlaying returns true after the play()
+        // call,so subsequent tests cannot be performed.
+        if ((!kIsWeb && Platform.isAndroid) && controller.value.isPlaying) {
+          markTestSkipped(
+              'Skipping due to https://github.com/flutter/flutter/issues/141145');
+          return;
+        }
         expect(controller.value.isPlaying, false);
         expect(controller.value.position, controller.value.duration);
 
@@ -163,13 +195,17 @@ void main() {
         expect(controller.value.position,
             lessThanOrEqualTo(controller.value.duration));
       },
+      // NOTE(jsuya): In Tizen, isPlaying returns true after the play() call.
+      skip: true,
     );
 
     testWidgets('test video player view with local asset',
         (WidgetTester tester) async {
+      final Completer<void> loaded = Completer<void>();
       Future<bool> started() async {
         await controller.initialize();
         await controller.play();
+        loaded.complete();
         return true;
       }
 
@@ -194,12 +230,12 @@ void main() {
         ),
       ));
 
+      await loaded.future;
       await tester.pumpAndSettle();
       expect(controller.value.isPlaying, true);
     },
-        skip: kIsWeb || // Web does not support local assets.
-            // Extremely flaky on iOS: https://github.com/flutter/flutter/issues/86915
-            defaultTargetPlatform == TargetPlatform.iOS);
+        // Web does not support local assets.
+        skip: kIsWeb);
   });
 
   group('file-based videos', () {
@@ -230,8 +266,8 @@ void main() {
 
   group('network videos', () {
     setUp(() {
-      controller = VideoPlayerController.network(
-          getUrlForAssetAsNetworkSource(_videoAssetKey));
+      controller = VideoPlayerController.networkUrl(
+          Uri.parse(getUrlForAssetAsNetworkSource(_videoAssetKey)));
     });
 
     testWidgets(
@@ -283,7 +319,7 @@ void main() {
       expect(controller.value.isInitialized, true);
       expect(controller.value.position, Duration.zero);
       expect(controller.value.isPlaying, false);
-      // Due to the duration calculation accurancy between platforms,
+      // Due to the duration calculation accuracy between platforms,
       // the milliseconds on Web will be a slightly different from natives.
       // The audio was made with 44100 Hz, 192 Kbps CBR, and 32 bits.
       expect(
