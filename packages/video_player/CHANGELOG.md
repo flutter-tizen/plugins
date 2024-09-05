@@ -5,7 +5,7 @@
 * Update the example app and integration_test.
 * Fix new lint warnings.
 * Update minimum Flutter and Dart version to 3.19 and 3.3.
-* Synchronizes VideoPlayerValue.isPlaying with underlying video player.
+* Synchronize VideoPlayerValue.isPlaying with underlying video player.
 
 ## 2.4.9
 
