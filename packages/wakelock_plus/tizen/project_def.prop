@@ -1,7 +1,7 @@
 # See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
 # for details.
 
-APPNAME = wakelock_tizen_plugin
+APPNAME = wakelock_plus_tizen_plugin
 type = staticLib
 profile = common-5.5
 
