@@ -389,6 +389,34 @@ class StreamingPropertyTypeMessage {
 };
 
 // Generated class from Pigeon that represents data sent in messages.
+class StreamingPropertyMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit StreamingPropertyMessage(
+      int64_t player_id, const std::string& streaming_property_type,
+      const std::string& streaming_property_value);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  const std::string& streaming_property_type() const;
+  void set_streaming_property_type(std::string_view value_arg);
+
+  const std::string& streaming_property_value() const;
+  void set_streaming_property_value(std::string_view value_arg);
+
+ private:
+  static StreamingPropertyMessage FromEncodableList(
+      const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerAvplayApi;
+  friend class VideoPlayerAvplayApiCodecSerializer;
+  int64_t player_id_;
+  std::string streaming_property_type_;
+  std::string streaming_property_value_;
+};
+
+// Generated class from Pigeon that represents data sent in messages.
 class BufferConfigMessage {
  public:
   // Constructs an object setting all fields.
@@ -465,6 +493,8 @@ class VideoPlayerAvplayApi {
   virtual ErrorOr<std::string> GetStreamingProperty(
       const StreamingPropertyTypeMessage& msg) = 0;
   virtual ErrorOr<bool> SetBufferConfig(const BufferConfigMessage& msg) = 0;
+  virtual std::optional<FlutterError> SetStreamingProperty(
+      const StreamingPropertyMessage& msg) = 0;
 
   // The codec used by VideoPlayerAvplayApi.
   static const flutter::StandardMessageCodec& GetCodec();

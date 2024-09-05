@@ -58,6 +58,8 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   ErrorOr<std::string> GetStreamingProperty(
       const StreamingPropertyTypeMessage &msg) override;
   ErrorOr<bool> SetBufferConfig(const BufferConfigMessage &msg) override;
+  std::optional<FlutterError> SetStreamingProperty(
+      const StreamingPropertyMessage &msg) override;
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -319,6 +321,17 @@ ErrorOr<bool> VideoPlayerTizenPlugin::SetBufferConfig(
   }
   return player->SetBufferConfig(msg.buffer_config_type(),
                                  msg.buffer_config_value());
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::SetStreamingProperty(
+    const StreamingPropertyMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  player->SetStreamingProp(msg.streaming_property_type(),
+                           msg.streaming_property_value());
+  return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(

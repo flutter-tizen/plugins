@@ -95,6 +95,14 @@ class StreamingPropertyTypeMessage {
   String streamingPropertyType;
 }
 
+class StreamingPropertyMessage {
+  StreamingPropertyMessage(
+      this.playerId, this.streamingPropertyType, this.streamingPropertyValue);
+  int playerId;
+  String streamingPropertyType;
+  String streamingPropertyValue;
+}
+
 class BufferConfigMessage {
   BufferConfigMessage(
       this.playerId, this.bufferConfigType, this.bufferConfigValue);
@@ -125,4 +133,5 @@ abstract class VideoPlayerAvplayApi {
   void setDisplayGeometry(GeometryMessage msg);
   String getStreamingProperty(StreamingPropertyTypeMessage msg);
   bool setBufferConfig(BufferConfigMessage msg);
+  void setStreamingProperty(StreamingPropertyMessage msg);
 }
