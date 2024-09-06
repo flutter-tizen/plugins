@@ -54,6 +54,7 @@ class VideoPlayer {
   void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void Initialize();
   void SendInitialized();
+  void SendIsPlayingStateUpdate(bool is_playing);
   void InitScreenSaverApi();
 
   static void OnPrepared(void *data);
