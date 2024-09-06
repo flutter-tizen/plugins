@@ -1,7 +1,14 @@
-## NEXT
+## 0.4.8
 
 * Call the open before calling the SetStreamingProperty.
 * Change getStreamingProperty API return type from StreamingPropertyMessage to String.
+* Upgrade plusplayer
+  1.[PLUSPLAYER] Fix plusplayer solo build error.
+  2.[Dash] Apply libxml patch for tpk cross use.
+  3.[HLS] Disabled too much log in HLS.
+  4.[HLS] Disabling playback rate change and reducing max latency threshold.
+  5.[DASH] Fix deadlock, when Prepare() in bad network conditions.
+  6.[Dash] Fix Dash engine coredump issue.
 
 ## 0.4.7
 
