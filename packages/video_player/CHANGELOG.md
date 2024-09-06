@@ -1,7 +1,11 @@
-## NEXT
+## 2.5.0
 
+* Update video_player to 2.9.1.
+* Update video_player_platform_interface to 6.2.0.
+* Update the example app and integration_test.
 * Fix new lint warnings.
-* Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Update minimum Flutter and Dart version to 3.19 and 3.3.
+* Synchronize VideoPlayerValue.isPlaying with underlying video player.
 
 ## 2.4.9
 
