@@ -1,3 +1,7 @@
+## 2.5.1
+
+* Update pigeon to 22.3.0.
+
 ## 2.5.0
 
 * Update video_player to 2.9.1.
