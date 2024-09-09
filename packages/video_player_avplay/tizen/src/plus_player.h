@@ -44,8 +44,8 @@ class PlusPlayer : public VideoPlayer {
   std::string GetStreamingProperty(
       const std::string &streaming_property_type) override;
   bool SetBufferConfig(const std::string &key, int64_t value) override;
-  void SetStreamingProp(const std::string &type,
-                        const std::string &value) override;
+  void SetStreamingProperty(const std::string &type,
+                            const std::string &value) override;
 
  private:
   bool IsLive();

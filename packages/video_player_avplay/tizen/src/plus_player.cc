@@ -96,8 +96,8 @@ int64_t PlusPlayer::Create(const std::string &uri,
   if (create_message.streaming_property() != nullptr &&
       !create_message.streaming_property()->empty()) {
     for (const auto &[key, value] : *create_message.streaming_property()) {
-      SetStreamingProp(std::get<std::string>(key),
-                       std::get<std::string>(value));
+      SetStreamingProperty(std::get<std::string>(key),
+                           std::get<std::string>(value));
     }
   }
 
@@ -597,8 +597,8 @@ bool PlusPlayer::SetBufferConfig(const std::string &key, int64_t value) {
   return ::SetBufferConfig(player_, config);
 }
 
-void PlusPlayer::SetStreamingProp(const std::string &type,
-                                  const std::string &value) {
+void PlusPlayer::SetStreamingProperty(const std::string &type,
+                                      const std::string &value) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return;

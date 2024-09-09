@@ -329,8 +329,8 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetStreamingProperty(
   if (!player) {
     return FlutterError("Invalid argument", "Player not found");
   }
-  player->SetStreamingProp(msg.streaming_property_type(),
-                           msg.streaming_property_value());
+  player->SetStreamingProperty(msg.streaming_property_type(),
+                               msg.streaming_property_value());
   return std::nullopt;
 }
 

@@ -56,8 +56,8 @@ class VideoPlayer {
     return false;
   };
 
-  virtual void SetStreamingProp(const std::string &type,
-                                const std::string &value){};
+  virtual void SetStreamingProperty(const std::string &type,
+                                    const std::string &value){};
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
