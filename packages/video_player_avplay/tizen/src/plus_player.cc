@@ -605,7 +605,7 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
   }
   plusplayer::State state = GetState(player_);
   if (state == plusplayer::State::kNone) {
-    LOG_ERROR("[PlusPlayer]:Player is in invalid state[%d]", state);
+    LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
     return;
   }
 
