@@ -176,7 +176,8 @@ class CreateMessage {
       uri: result[1] as String?,
       packageName: result[2] as String?,
       formatHint: result[3] as String?,
-      httpHeaders: (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+      httpHeaders:
+          (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
     );
   }
 }
@@ -202,7 +203,6 @@ class MixWithOthersMessage {
   }
 }
 
-
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -210,22 +210,22 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is TextureMessage) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    } else     if (value is LoopingMessage) {
+    } else if (value is LoopingMessage) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else     if (value is VolumeMessage) {
+    } else if (value is VolumeMessage) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else     if (value is PlaybackSpeedMessage) {
+    } else if (value is PlaybackSpeedMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    } else     if (value is PositionMessage) {
+    } else if (value is PositionMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    } else     if (value is CreateMessage) {
+    } else if (value is CreateMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    } else     if (value is MixWithOthersMessage) {
+    } else if (value is MixWithOthersMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
     } else {
@@ -236,19 +236,19 @@ class _PigeonCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 129: 
+      case 129:
         return TextureMessage.decode(readValue(buffer)!);
-      case 130: 
+      case 130:
         return LoopingMessage.decode(readValue(buffer)!);
-      case 131: 
+      case 131:
         return VolumeMessage.decode(readValue(buffer)!);
-      case 132: 
+      case 132:
         return PlaybackSpeedMessage.decode(readValue(buffer)!);
-      case 133: 
+      case 133:
         return PositionMessage.decode(readValue(buffer)!);
-      case 134: 
+      case 134:
         return CreateMessage.decode(readValue(buffer)!);
-      case 135: 
+      case 135:
         return MixWithOthersMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -260,9 +260,11 @@ class TizenVideoPlayerApi {
   /// Constructor for [TizenVideoPlayerApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  TizenVideoPlayerApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+  TizenVideoPlayerApi(
+      {BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
       : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+        pigeonVar_messageChannelSuffix =
+            messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -270,8 +272,10 @@ class TizenVideoPlayerApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<void> initialize() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.initialize$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.initialize$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -292,8 +296,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<TextureMessage> create(CreateMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.create$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.create$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -319,8 +325,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<void> dispose(TextureMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.dispose$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.dispose$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -341,8 +349,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<void> setLooping(LoopingMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setLooping$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setLooping$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -363,8 +373,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<void> setVolume(VolumeMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setVolume$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setVolume$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -385,8 +397,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<void> setPlaybackSpeed(PlaybackSpeedMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setPlaybackSpeed$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setPlaybackSpeed$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -407,8 +421,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<void> play(TextureMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.play$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.play$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -429,8 +445,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<PositionMessage> position(TextureMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.position$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.position$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -456,8 +474,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<void> seekTo(PositionMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.seekTo$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.seekTo$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -478,8 +498,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<void> pause(TextureMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.pause$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.pause$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -500,8 +522,10 @@ class TizenVideoPlayerApi {
   }
 
   Future<void> setMixWithOthers(MixWithOthersMessage msg) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setMixWithOthers$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setMixWithOthers$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
