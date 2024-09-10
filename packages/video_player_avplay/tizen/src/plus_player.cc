@@ -96,7 +96,7 @@ int64_t PlusPlayer::Create(const std::string &uri,
   if (create_message.streaming_property() != nullptr &&
       !create_message.streaming_property()->empty()) {
     for (const auto &[key, value] : *create_message.streaming_property()) {
-      SetStreamingProperty(player_, std::get<std::string>(key),
+      SetStreamingProperty(std::get<std::string>(key),
                            std::get<std::string>(value));
     }
   }
@@ -595,6 +595,23 @@ bool PlusPlayer::SetBufferConfig(const std::string &key, int64_t value) {
   }
   const std::pair<std::string, int> config = std::make_pair(key, value);
   return ::SetBufferConfig(player_, config);
+}
+
+void PlusPlayer::SetStreamingProperty(const std::string &type,
+                                      const std::string &value) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return;
+  }
+  plusplayer::State state = GetState(player_);
+  if (state == plusplayer::State::kNone) {
+    LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
+    return;
+  }
+
+  LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
+           value.c_str());
+  ::SetStreamingProperty(player_, type, value);
 }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,

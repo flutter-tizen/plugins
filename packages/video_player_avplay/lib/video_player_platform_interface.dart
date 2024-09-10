@@ -144,6 +144,13 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('setBufferConfig() has not been implemented.');
   }
 
+  /// Set streamingengine property.
+  Future<void> setStreamingProperty(
+      int playerId, StreamingPropertyType type, String value) {
+    throw UnimplementedError(
+        'setStreamingProperty() has not been implemented.');
+  }
+
   /// Returns a widget displaying the video with a given playerId.
   Widget buildView(int playerId) {
     throw UnimplementedError('buildView() has not been implemented.');

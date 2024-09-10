@@ -206,11 +206,21 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Future<bool> setBufferConfig(int playerId, BufferConfigType type, int value) {
+  Future<bool> setBufferConfig(
+      int playerId, BufferConfigType type, int value) async {
     return _api.setBufferConfig(BufferConfigMessage(
         playerId: playerId,
         bufferConfigType: _bufferConfigTypeMap[type]!,
         bufferConfigValue: value));
+  }
+
+  @override
+  Future<void> setStreamingProperty(
+      int playerId, StreamingPropertyType type, String value) async {
+    await _api.setStreamingProperty(StreamingPropertyMessage(
+        playerId: playerId,
+        streamingPropertyType: _streamingPropertyType[type]!,
+        streamingPropertyValue: value));
   }
 
   @override

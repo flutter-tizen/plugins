@@ -390,6 +390,37 @@ class StreamingPropertyTypeMessage {
   }
 }
 
+class StreamingPropertyMessage {
+  StreamingPropertyMessage({
+    required this.playerId,
+    required this.streamingPropertyType,
+    required this.streamingPropertyValue,
+  });
+
+  int playerId;
+
+  String streamingPropertyType;
+
+  String streamingPropertyValue;
+
+  Object encode() {
+    return <Object?>[
+      playerId,
+      streamingPropertyType,
+      streamingPropertyValue,
+    ];
+  }
+
+  static StreamingPropertyMessage decode(Object result) {
+    result as List<Object?>;
+    return StreamingPropertyMessage(
+      playerId: result[0]! as int,
+      streamingPropertyType: result[1]! as String,
+      streamingPropertyValue: result[2]! as String,
+    );
+  }
+}
+
 class BufferConfigMessage {
   BufferConfigMessage({
     required this.playerId,
@@ -455,17 +486,20 @@ class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
     } else if (value is SelectedTracksMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    } else if (value is StreamingPropertyTypeMessage) {
+    } else if (value is StreamingPropertyMessage) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    } else if (value is TrackMessage) {
+    } else if (value is StreamingPropertyTypeMessage) {
       buffer.putUint8(139);
       writeValue(buffer, value.encode());
-    } else if (value is TrackTypeMessage) {
+    } else if (value is TrackMessage) {
       buffer.putUint8(140);
       writeValue(buffer, value.encode());
-    } else if (value is VolumeMessage) {
+    } else if (value is TrackTypeMessage) {
       buffer.putUint8(141);
+      writeValue(buffer, value.encode());
+    } else if (value is VolumeMessage) {
+      buffer.putUint8(142);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -496,12 +530,14 @@ class _VideoPlayerAvplayApiCodec extends StandardMessageCodec {
       case 137:
         return SelectedTracksMessage.decode(readValue(buffer)!);
       case 138:
-        return StreamingPropertyTypeMessage.decode(readValue(buffer)!);
+        return StreamingPropertyMessage.decode(readValue(buffer)!);
       case 139:
-        return TrackMessage.decode(readValue(buffer)!);
+        return StreamingPropertyTypeMessage.decode(readValue(buffer)!);
       case 140:
-        return TrackTypeMessage.decode(readValue(buffer)!);
+        return TrackMessage.decode(readValue(buffer)!);
       case 141:
+        return TrackTypeMessage.decode(readValue(buffer)!);
+      case 142:
         return VolumeMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -998,6 +1034,29 @@ class VideoPlayerAvplayApi {
       );
     } else {
       return (replyList[0] as bool?)!;
+    }
+  }
+
+  Future<void> setStreamingProperty(StreamingPropertyMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setStreamingProperty',
+        codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
     }
   }
 }

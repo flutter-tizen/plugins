@@ -1,7 +1,8 @@
-## NEXT
+## 0.4.8
 
 * Call the open before calling the SetStreamingProperty.
 * Change getStreamingProperty API return type from StreamingPropertyMessage to String.
+* Add setStreamingProperty API.
 
 ## 0.4.7
 

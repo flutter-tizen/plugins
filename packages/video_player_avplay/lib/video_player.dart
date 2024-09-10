@@ -712,6 +712,17 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.getStreamingProperty(_playerId, type);
   }
 
+  /// Sets specific feature values for HTTP, MMS, or specific streaming engine (Smooth Streaming, HLS, DASH, DivX Plus Streaming, or Widevine).
+  /// The available streaming properties depend on the streaming protocol or engine.
+  /// Use the CUSTOM_MESSAGE property for streaming engine or CP-specific settings.
+  Future<void> setStreamingProperty(
+      StreamingPropertyType type, String value) async {
+    if (_isDisposedOrNotInitialized) {
+      return;
+    }
+    return _videoPlayerPlatform.setStreamingProperty(_playerId, type, value);
+  }
+
   /// Sets the buffer size for the play and resume scenarios. The time buffer size must be at least 4 seconds.
   /// For example, if a 10 second buffer size is set, playback can only start or resume after 10 seconds of media has accumulated in the buffer.
   /// Play scenarios include user-initiated streaming playback and whenever media playback is starting for the first time.
