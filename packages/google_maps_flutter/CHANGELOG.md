@@ -1,3 +1,7 @@
+## NEXT
+
+* Update webview_flutter_lwe to 0.3.3.
+
 ## 0.1.8
 
 * Support longpress event.
