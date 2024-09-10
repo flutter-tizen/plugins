@@ -1,6 +1,6 @@
 ## 2.5.1
 
-* Update pigeon to 21.2.0.
+* Update pigeon to 22.3.0.
 * Temporarily set duration to 1, if duration is 0.
 
 ## 2.5.0
