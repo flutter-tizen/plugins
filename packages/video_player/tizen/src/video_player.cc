@@ -468,7 +468,7 @@ void VideoPlayer::SendInitialized() {
     // TODO(jsuya):Some streaming resources may have a duration of 0 during the
     // initialization step. If the duration is 0, it may affect the progress of
     // video_player and cause unnecessary errors. Therefore, set it to 1
-    // temporarily. the future. In the future, It can be updated depending on
+    // temporarily. In the future, It can be updated depending on
     // the loading status.
     if (width != 0 && height != 0 && duration == 0) {
       duration = 1;
