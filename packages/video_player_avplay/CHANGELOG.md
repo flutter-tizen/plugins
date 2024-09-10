@@ -1,3 +1,7 @@
+## NEXT
+
+* Fix DashEngine stream property "STARTBITRATE" can't be set correctly.
+
 ## 0.4.8
 
 * Call the open before calling the SetStreamingProperty.
