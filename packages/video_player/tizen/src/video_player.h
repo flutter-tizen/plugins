@@ -75,6 +75,7 @@ class VideoPlayer {
 
   bool is_initialized_ = false;
   bool is_rendering_ = false;
+  bool is_live_ = false;
 
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
@@ -82,6 +83,8 @@ class VideoPlayer {
 
   player_h player_ = nullptr;
   int64_t texture_id_ = -1;
+  int32_t duration_ = 0;
+  std::string uri_;
 
   flutter::TextureRegistrar *texture_registrar_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;

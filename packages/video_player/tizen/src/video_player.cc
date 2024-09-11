@@ -140,6 +140,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
     player_destroy(player_);
     throw VideoPlayerError("player_set_uri failed", get_error_message(ret));
   }
+  uri_ = uri;
 
   ret = player_set_display_visible(player_, true);
   if (ret != PLAYER_ERROR_NONE) {
@@ -336,8 +337,15 @@ void VideoPlayer::SeekTo(int32_t position, SeekCompletedCallback callback) {
       player_set_play_position(player_, position, true, OnSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
     on_seek_completed_ = nullptr;
-    throw VideoPlayerError("player_set_play_position failed",
-                           get_error_message(ret));
+    // TODO(jsuya):Live content does not provide a duration that allows
+    // SeekTo(), so we call Play() to start playback immediately from the
+    // current.
+    if (position == 0 && is_live_) {
+      Play();
+    } else {
+      throw VideoPlayerError("player_set_play_position failed",
+                             get_error_message(ret));
+    }
   }
 }
 
@@ -442,6 +450,7 @@ void VideoPlayer::SendInitialized() {
       SendError("player_get_duration failed", get_error_message(ret));
       return;
     }
+    duration_ = duration;
     LOG_DEBUG("[VideoPlayer] Video duration: %d", duration);
 
     int width = 0, height = 0;
@@ -465,13 +474,15 @@ void VideoPlayer::SendInitialized() {
       }
     }
 
-    // TODO(jsuya):Some streaming resources may have a duration of 0 during the
-    // initialization step. If the duration is 0, it may affect the progress of
-    // video_player and cause unnecessary errors. Therefore, set it to 1
-    // temporarily. In the future, It can be updated depending on
-    // the loading status.
-    if (width != 0 && height != 0 && duration == 0) {
-      duration = 1;
+    // TODO(jsuya):Tizen's player API returns duration as 0 for live
+    // streaming resources. If the duration is 0, it may affect the progress of
+    // video_player and cause unnecessary errors. Therefore, set it to 1.
+    if (uri_.substr(0, 4) == "http" && width != 0 && height != 0 &&
+        duration_ == 0) {
+      duration_ = 1;
+      is_live_ = true;
+    } else {
+      is_live_ = false;
     }
 
     is_initialized_ = true;
@@ -479,7 +490,7 @@ void VideoPlayer::SendInitialized() {
         {flutter::EncodableValue("event"),
          flutter::EncodableValue("initialized")},
         {flutter::EncodableValue("duration"),
-         flutter::EncodableValue(duration)},
+         flutter::EncodableValue(duration_)},
         {flutter::EncodableValue("width"), flutter::EncodableValue(width)},
         {flutter::EncodableValue("height"), flutter::EncodableValue(height)},
     };
