@@ -531,7 +531,7 @@ void VideoPlayer::OnPrepared(void *data) {
 }
 
 void VideoPlayer::OnBuffering(int percent, void *data) {
-  // LOG_DEBUG("[VideoPlayer] percent: %d", percent);
+  LOG_DEBUG("[VideoPlayer] percent: %d", percent);
 }
 
 void VideoPlayer::OnSeekCompleted(void *data) {

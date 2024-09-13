@@ -59,4 +59,3 @@ This plugin has some limitations on TV devices.
 - The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
 - The playback speed will reset to 1.0 when the video is replayed in loop mode.
 - The `seekTo` method works only when the playback speed is 1.0, and it sets the video position to the nearest keyframe, not the exact value passed.
-- The live streaming content does not support `seekTo` and `duration` is fixed to 1.
