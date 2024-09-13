@@ -16,13 +16,13 @@ plugins:
   tizen_package_manager: ["tv-8.0"]
   tizen_rpc_port: ["tv-8.0"]
   url_launcher: ["tv-8.0"]
+  wakelock_plus: ["tv-8.0"]
 
   # Only testable with wearable profile.
   battery_plus: []
   flutter_app_badger: []
   permission_handler: []
   sensors_plus: []
-  wakelock: []
 
   # No tests.
   google_sign_in: []

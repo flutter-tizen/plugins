@@ -1,5 +1,5 @@
-name: wakelock_tizen_example
-description: Demonstrates how to use the wakelock_tizen plugin.
+name: wakelock_plus_tizen_example
+description: Demonstrates how to use the wakelock_plus_tizen plugin.
 publish_to: "none"
 
 environment:
@@ -9,8 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  wakelock: ^0.6.2
-  wakelock_tizen:
+  wakelock_plus: ^1.2.8
+  wakelock_plus_tizen:
     path: ../
 
 dev_dependencies:
