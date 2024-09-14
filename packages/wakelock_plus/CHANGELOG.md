@@ -1,6 +1,8 @@
-## NEXT
+## 2.0.0
 
-* Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Replace frontend package to wakelock_plus.
+* Supports TV devices.
+* Update minimum Flutter and Dart version to 3.19 and 3.4.
 
 ## 1.0.2
 
