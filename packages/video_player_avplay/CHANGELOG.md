@@ -1,7 +1,11 @@
-## NEXT
+## 0.5.0
+
+* Fix DashEngine crash issue.
+
+## 0.4.9
 
 * Fix DashEngine stream property "STARTBITRATE" can't be set correctly.
-* Fix DashEngine crash issue.
+* Fix DashEngine stream property "USER_AGENT" can't be set correctly.
 
 ## 0.4.8
 

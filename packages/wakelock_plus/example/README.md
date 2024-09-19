@@ -1,6 +1,6 @@
-# wakelock_tizen_example
+# wakelock_plus_tizen_example
 
-Demonstrates how to use the wakelock_tizen plugin.
+Demonstrates how to use the wakelock_plus_tizen plugin.
 
 ## Getting Started
 
