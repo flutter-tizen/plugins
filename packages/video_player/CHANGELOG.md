@@ -1,3 +1,7 @@
+## 2.5.2
+
+* Live streaming content starts playing immediately when SeekTo() is called.
+
 ## 2.5.1
 
 * Update pigeon to 22.3.0.

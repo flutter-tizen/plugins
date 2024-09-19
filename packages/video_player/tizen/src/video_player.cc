@@ -9,6 +9,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include <algorithm>
+#include <sstream>
 
 #include "log.h"
 #include "video_player_error.h"
@@ -130,6 +131,8 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
   gpu_surface_ = std::make_unique<FlutterDesktopGpuSurfaceDescriptor>();
   texture_id_ = texture_registrar->RegisterTexture(texture_variant_.get());
 
+  media_player_proxy_ = std::make_unique<MediaPlayerProxy>();
+
   int ret = player_create(&player_);
   if (ret != PLAYER_ERROR_NONE) {
     throw VideoPlayerError("player_create failed", get_error_message(ret));
@@ -140,6 +143,7 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
     player_destroy(player_);
     throw VideoPlayerError("player_set_uri failed", get_error_message(ret));
   }
+  uri_ = uri;
 
   ret = player_set_display_visible(player_, true);
   if (ret != PLAYER_ERROR_NONE) {
@@ -336,8 +340,15 @@ void VideoPlayer::SeekTo(int32_t position, SeekCompletedCallback callback) {
       player_set_play_position(player_, position, true, OnSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
     on_seek_completed_ = nullptr;
-    throw VideoPlayerError("player_set_play_position failed",
-                           get_error_message(ret));
+    // TODO(jsuya):Live content does not provide a duration that allows
+    // SeekTo(), so we call Play() to start playback immediately from the
+    // current.
+    if (position == 0 && IsLive()) {
+      Play();
+    } else {
+      throw VideoPlayerError("player_set_play_position failed",
+                             get_error_message(ret));
+    }
   }
 }
 
@@ -436,16 +447,11 @@ void VideoPlayer::Initialize() {
 
 void VideoPlayer::SendInitialized() {
   if (!is_initialized_ && event_sink_) {
-    int duration = 0;
-    int ret = player_get_duration(player_, &duration);
-    if (ret != PLAYER_ERROR_NONE) {
-      SendError("player_get_duration failed", get_error_message(ret));
-      return;
-    }
+    int duration = GetDuration();
     LOG_DEBUG("[VideoPlayer] Video duration: %d", duration);
 
     int width = 0, height = 0;
-    ret = player_get_video_size(player_, &width, &height);
+    int ret = player_get_video_size(player_, &width, &height);
     if (ret != PLAYER_ERROR_NONE) {
       SendError("player_get_video_size failed", get_error_message(ret));
       return;
@@ -465,13 +471,15 @@ void VideoPlayer::SendInitialized() {
       }
     }
 
-    // TODO(jsuya):Some streaming resources may have a duration of 0 during the
-    // initialization step. If the duration is 0, it may affect the progress of
-    // video_player and cause unnecessary errors. Therefore, set it to 1
-    // temporarily. In the future, It can be updated depending on
-    // the loading status.
-    if (width != 0 && height != 0 && duration == 0) {
-      duration = 1;
+    // TODO(jsuya): Since media_player_proxy is not supported in Tizen
+    // profile(common), we cannot know whether the content is live or not. When
+    // the content is live, duration is always returned as 0, so we check if
+    // duration is 1(Because of we set it to 1 to prevent video_player from
+    // crashing when duration is returned as 0).
+    if (uri_.substr(0, 4) == "http" && duration == 1) {
+      is_live_ = true;
+    } else {
+      is_live_ = false;
     }
 
     is_initialized_ = true;
@@ -598,4 +606,75 @@ void VideoPlayer::OnRenderingCompleted() {
     previous_media_packet_ = nullptr;
   }
   RequestRendering();
+}
+
+int64_t VideoPlayer::GetDuration() {
+  int duration = 0;
+  if (IsLive()) {
+    duration = GetLiveDuration();
+  } else {
+    int ret = player_get_duration(player_, &duration);
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] player_get_duration failed: %s.",
+                get_error_message(ret));
+    }
+    LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
+  }
+
+  // TODO(jsuya):Some streaming resources may have a duration of 0 during the
+  // initialization step. If the duration is 0, it may affect the progress of
+  // video_player and cause unnecessary errors. Therefore, set it to 1
+  // temporarily. In the future, It can be updated depending on
+  // the loading status.
+  if (duration == 0) {
+    duration = 1;
+  }
+
+  return duration;
+}
+
+static std::vector<std::string> split(const std::string &s, char delim) {
+  std::stringstream ss(s);
+  std::string item;
+  std::vector<std::string> tokens;
+  while (getline(ss, item, delim)) {
+    tokens.push_back(item);
+  }
+  return tokens;
+}
+
+int64_t VideoPlayer::GetLiveDuration() {
+  std::string live_duration_str = "";
+  char *live_duration_buff = static_cast<char *>(malloc(sizeof(char) * 64));
+  memset(live_duration_buff, 0, sizeof(char) * 64);
+  int ret = media_player_proxy_->player_get_adaptive_streaming_info(
+      player_, (void *)&live_duration_buff, PLAYER_ADAPTIVE_INFO_LIVE_DURATION);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[MediaPlayer] player_get_adaptive_streaming_info failed: %s",
+              get_error_message(ret));
+    free(live_duration_buff);
+    return 0;
+  }
+  if (*live_duration_buff) {
+    live_duration_str = std::string(live_duration_buff);
+  }
+  free(live_duration_buff);
+  if (live_duration_str.empty()) {
+    return 0;
+  }
+  std::vector<std::string> time_vec = split(live_duration_str, '|');
+  return std::stoll(time_vec[1]);
+}
+
+bool VideoPlayer::IsLive() {
+  int is_live = 0;
+  int ret = media_player_proxy_->player_get_adaptive_streaming_info(
+      player_, &is_live, PLAYER_ADAPTIVE_INFO_IS_LIVE);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[MediaPlayer] player_get_adaptive_streaming_info failed: %s",
+              get_error_message(ret));
+    return is_live_;
+  }
+  is_live_ = is_live != 0;
+  return is_live_;
 }
