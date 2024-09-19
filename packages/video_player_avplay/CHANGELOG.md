@@ -1,3 +1,7 @@
+## 0.5.0
+
+* Fix DashEngine crash issue.
+
 ## 0.4.9
 
 * Fix DashEngine stream property "STARTBITRATE" can't be set correctly.
