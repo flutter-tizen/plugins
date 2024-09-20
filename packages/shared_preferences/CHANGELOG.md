@@ -1,3 +1,10 @@
+## 2.3.0
+
+* Update shared_preferences to 2.3.2.
+* Update shared_preferences_interface to 2.4.0. 
+* Updates minimum supported SDK version to Flutter 3.19/Dart 3.3.
+* Supports `SharedPreferencesAsync` and `SharedPreferencesWithCache` APIs.
+
 ## 2.2.1
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.

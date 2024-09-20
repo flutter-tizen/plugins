@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `shared_preferences`. Theref
 
 ```yaml
 dependencies:
-  shared_preferences: ^2.2.0
-  shared_preferences_tizen: ^2.2.1
+  shared_preferences: ^2.3.2
+  shared_preferences_tizen: ^2.3.0
 ```
 
 Then you can import `shared_preferences` in your Dart code:
