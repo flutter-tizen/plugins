@@ -14,18 +14,6 @@ enum TrackType {
   text,
 }
 
-/// Type of the track audio channel for [TrackType.audio].
-enum AudioTrackChannelType {
-  /// The mono channel.
-  mono,
-
-  /// The stereo channel.
-  stereo,
-
-  /// The surround channel.
-  surround,
-}
-
 /// Type of the track subtitle type for [TrackType.text].
 enum TextTrackSubtitleType {
   /// The text subtitle.
@@ -99,7 +87,7 @@ class AudioTrack extends Track {
   final String language;
 
   /// The channel of audio track.
-  final AudioTrackChannelType channel;
+  final int channel;
 
   /// The bitrate of audio track.
   final int bitrate;

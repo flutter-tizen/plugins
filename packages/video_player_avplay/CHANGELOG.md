@@ -1,3 +1,7 @@
+## 0.5.1
+
+* Fix getVideoTracks out of bounds issue.
+
 ## 0.5.0
 
 * Fix DashEngine crash issue.
