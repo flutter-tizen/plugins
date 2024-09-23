@@ -111,7 +111,8 @@ void VideoPlayer::InitScreenSaverApi() {
 
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          flutter::TextureRegistrar *texture_registrar,
-                         const std::string &uri, VideoPlayerOptions &options) {
+                         const std::string &uri, VideoPlayerOptions &options,
+                         flutter::EncodableMap &http_headers) {
   sink_event_pipe_ = ecore_pipe_add(
       [](void *data, void *buffer, unsigned int nbyte) -> void {
         auto *self = static_cast<VideoPlayer *>(data);
@@ -136,6 +137,34 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
   int ret = player_create(&player_);
   if (ret != PLAYER_ERROR_NONE) {
     throw VideoPlayerError("player_create failed", get_error_message(ret));
+  }
+
+  if (!http_headers.empty()) {
+    auto iter = http_headers.find(flutter::EncodableValue("Cookie"));
+    if (iter != http_headers.end()) {
+      if (std::holds_alternative<std::string>(iter->second)) {
+        std::string cookie = std::get<std::string>(iter->second);
+        ret =
+            player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR("[MediaPlayer] player_set_streaming_cookie failed: %s.",
+                    get_error_message(ret));
+        }
+      }
+    }
+
+    iter = http_headers.find(flutter::EncodableValue("User-Agent"));
+    if (iter != http_headers.end()) {
+      if (std::holds_alternative<std::string>(iter->second)) {
+        std::string user_agent = std::get<std::string>(iter->second);
+        ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
+                                              user_agent.size());
+        if (ret != PLAYER_ERROR_NONE) {
+          LOG_ERROR("[MediaPlayer] player_set_streaming_user_agent failed: %s.",
+                    get_error_message(ret));
+        }
+      }
+    }
   }
 
   ret = player_set_uri(player_, uri.c_str());
