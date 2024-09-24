@@ -1,3 +1,7 @@
+## 2.5.3
+
+* Support `httpHeaders` option of `VideoPlayerController.network`.
+
 ## 2.5.2
 
 * Live streaming content starts playing immediately when SeekTo() is called.

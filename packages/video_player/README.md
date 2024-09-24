@@ -48,14 +48,14 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 This plugin is not supported on TV emulators.
 
-The following options are not supported on Tizen.
+The following options are not currently supported.
 
-- The `httpHeaders` option of `VideoPlayerController.networkUrl`
 - `VideoPlayerOptions.allowBackgroundPlayback`
 - `VideoPlayerOptions.mixWithOthers`
 
-This plugin has some limitations on TV devices.
+This plugin has the following limitations.
 
+- The `httpHeaders` option of `VideoPlayerController.networkUrl` only support `Cookie` and `User-Agent`.
 - The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
 - The playback speed will reset to 1.0 when the video is replayed in loop mode.
 - The `seekTo` method works only when the playback speed is 1.0, and it sets the video position to the nearest keyframe, not the exact value passed.

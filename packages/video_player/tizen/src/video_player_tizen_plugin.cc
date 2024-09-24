@@ -5,6 +5,7 @@
 #include "video_player_tizen_plugin.h"
 
 #include <app_common.h>
+#include <flutter/encodable_value.h>
 #include <flutter/plugin_registrar.h>
 
 #include <cstdint>
@@ -84,6 +85,8 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Initialize() {
 ErrorOr<TextureMessage> VideoPlayerTizenPlugin::Create(
     const CreateMessage &msg) {
   std::string uri;
+  flutter::EncodableMap http_headers = {};
+
   if (msg.asset() && !msg.asset()->empty()) {
     char *res_path = app_get_resource_path();
     if (res_path) {
@@ -94,6 +97,11 @@ ErrorOr<TextureMessage> VideoPlayerTizenPlugin::Create(
     }
   } else if (msg.uri() && !msg.uri()->empty()) {
     uri = *msg.uri();
+
+    const flutter::EncodableMap &http_headers_map = msg.http_headers();
+    if (!http_headers_map.empty()) {
+      http_headers = http_headers_map;
+    }
   } else {
     return FlutterError("Invalid argument", "Either asset or uri must be set.");
   }
@@ -102,7 +110,7 @@ ErrorOr<TextureMessage> VideoPlayerTizenPlugin::Create(
   int64_t texture_id = 0;
   try {
     auto player = std::make_unique<VideoPlayer>(
-        plugin_registrar_, texture_registrar_, uri, options_);
+        plugin_registrar_, texture_registrar_, uri, options_, http_headers);
     texture_id = player->GetTextureId();
     players_[texture_id] = std::move(player);
   } catch (const VideoPlayerError &error) {
