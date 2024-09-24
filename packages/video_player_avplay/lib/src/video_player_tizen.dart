@@ -137,14 +137,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
       final String language = trackMap['language']! as String;
-      final AudioTrackChannelType channelType =
-          _intChannelTypeMap[trackMap['channel']]!;
+      final int channel = trackMap['channel']! as int;
       final int bitrate = trackMap['bitrate']! as int;
 
       audioTracks.add(AudioTrack(
         trackId: trackId,
         language: language,
-        channel: channelType,
+        channel: channel,
         bitrate: bitrate,
       ));
     }
@@ -304,13 +303,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',
     VideoFormat.other: 'other',
-  };
-
-  static const Map<int, AudioTrackChannelType> _intChannelTypeMap =
-      <int, AudioTrackChannelType>{
-    1: AudioTrackChannelType.mono,
-    2: AudioTrackChannelType.stereo,
-    3: AudioTrackChannelType.surround,
   };
 
   static const Map<StreamingPropertyType, String> _streamingPropertyType =
