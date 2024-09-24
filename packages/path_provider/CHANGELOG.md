@@ -1,3 +1,10 @@
+## 2.2.0
+
+* Update path_provider to 2.1.4.
+* Update path_provider_platform_interface to 2.1.2.
+* Adds getApplicationCachePath() for storing app-specific cache files.
+* Update minimum Flutter and Dart version to 3.19 and 3.3.
+
 ## 2.1.1
 
 * Fix new lint warnings.

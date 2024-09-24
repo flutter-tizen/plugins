@@ -23,6 +23,9 @@ class PathProviderPlugin extends PathProviderPlatform {
   Future<String> getApplicationDocumentsPath() async => appCommon.getDataPath();
 
   @override
+  Future<String> getApplicationCachePath() async => appCommon.getCachePath();
+
+  @override
   Future<String> getApplicationSupportPath() async => appCommon.getDataPath();
 
   @override
