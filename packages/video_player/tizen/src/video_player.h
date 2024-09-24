@@ -30,7 +30,8 @@ class VideoPlayer {
 
   explicit VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                        flutter::TextureRegistrar *texture_registrar,
-                       const std::string &uri, VideoPlayerOptions &options);
+                       const std::string &uri, VideoPlayerOptions &options,
+                       flutter::EncodableMap &http_headers);
   ~VideoPlayer();
 
   void Play();
