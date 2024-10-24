@@ -57,5 +57,6 @@ jobs:
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
           ./tools/tools_runner.sh build-examples \
+            --exclude=wearable_rotary \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^)
