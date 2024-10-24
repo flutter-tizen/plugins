@@ -23,16 +23,6 @@ class BuildExamplesCommand extends PackageLoopingCommand {
 
     bool builtSomething = false;
     for (final RepositoryPackage example in package.getExamples()) {
-      final String packageName = getRelativePosixPath(
-        example.directory,
-        from: packagesDir,
-      );
-      // TODO(jsuya): Temporarily skip build test of wearable_rotary.
-      if (packageName == 'wearable_rotary/example') {
-        builtSomething = true;
-        print('Skip build test of wearable_rotary/example.');
-        continue;
-      }
       int exitCode = await processRunner.runAndStream(
         'flutter-tizen',
         <String>['pub', 'get'],
@@ -54,6 +44,10 @@ class BuildExamplesCommand extends PackageLoopingCommand {
         workingDir: example.directory,
       );
       if (exitCode != 0) {
+        final String packageName = getRelativePosixPath(
+          example.directory,
+          from: packagesDir,
+        );
         errors.add(packageName);
       }
     }
