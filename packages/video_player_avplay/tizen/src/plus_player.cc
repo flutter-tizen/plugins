@@ -137,6 +137,13 @@ int64_t PlusPlayer::Create(const std::string &uri,
     is_prebuffer_mode_ = true;
   }
 
+  int64_t start_position = flutter_common::GetValue(
+      create_message.player_options(), "startPosition", 0);
+  if (start_position > 0) {
+    LOG_INFO("[PlusPlayer] Start position: %lld", start_position);
+    Seek(player_, start_position);
+  }
+
   if (!PrepareAsync(player_)) {
     LOG_ERROR("[PlusPlayer] Player fail to prepare.");
     return -1;

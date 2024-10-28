@@ -1,3 +1,7 @@
+## 0.5.2
+
+* Add start position in player options when creating player. This is useful for resuming playback from last viewed position.
+
 ## 0.5.1
 
 * Fix getVideoTracks out of bounds issue.
