@@ -1,3 +1,7 @@
+## NEXT
+
+* Fix dash deadlock issue.
+
 ## 0.5.1
 
 * Fix getVideoTracks out of bounds issue.
