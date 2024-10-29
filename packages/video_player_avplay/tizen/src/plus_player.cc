@@ -141,7 +141,9 @@ int64_t PlusPlayer::Create(const std::string &uri,
       create_message.player_options(), "startPosition", 0);
   if (start_position > 0) {
     LOG_INFO("[PlusPlayer] Start position: %lld", start_position);
-    Seek(player_, start_position);
+    if (!Seek(player_, start_position)) {
+      LOG_INFO("[PlusPlayer] Fail to seek, it's a non-seekable content");
+    }
   }
 
   if (!PrepareAsync(player_)) {
