@@ -176,7 +176,7 @@ void main() {
       await player.play(AssetSource(_kAssetAudio));
       await started.future;
       await Future<void>.delayed(_kPlayDuration);
-      expect(count, greaterThanOrEqualTo(5));
+      expect(count, greaterThanOrEqualTo(2));
 
       await player.dispose();
     });

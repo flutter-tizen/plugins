@@ -109,6 +109,7 @@ void AudioPlayer::Release() {
     ecore_timer_del(timer_);
     timer_ = nullptr;
   }
+  released_ = true;
 }
 
 void AudioPlayer::Seek(int32_t position) {
@@ -220,6 +221,16 @@ int AudioPlayer::GetDuration() {
 }
 
 int AudioPlayer::GetCurrentPosition() {
+  // TODO(jsuya) : When stop() or pause() is called in AudioPlayer 6.1.0,
+  // PositionUpdater's stopAndUpdate() is called. At this time, getPosition() is
+  // called, but in ReleaseMode, the player is released after Stop(), so an
+  // eception is thrown. Since there are differences from the implementation in
+  // the frontend package, an exception is not thrown in this case.
+  if (!player_ && released_ && release_mode_ == ReleaseMode::kRelease) {
+    LOG_ERROR("The player has already been released.");
+    return 0;
+  }
+
   int32_t position;
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
@@ -259,6 +270,8 @@ void AudioPlayer::CreatePlayer() {
     throw AudioPlayerError("player_set_error_cb failed",
                            get_error_message(ret));
   }
+
+  released_ = false;
 }
 
 void AudioPlayer::PreparePlayer() {

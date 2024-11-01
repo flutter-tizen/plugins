@@ -83,6 +83,7 @@ class AudioPlayer {
   bool preparing_ = false;
   bool seeking_ = false;
   bool should_play_ = false;
+  bool released_ = false;
   Ecore_Timer *timer_ = nullptr;
 
   PreparedListener prepared_listener_;
