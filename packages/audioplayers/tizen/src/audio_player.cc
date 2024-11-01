@@ -20,7 +20,9 @@ AudioPlayer::AudioPlayer(const std::string &player_id,
       duration_listener_(duration_listener),
       seek_completed_listener_(seek_completed_listener),
       play_completed_listener_(play_completed_listener),
-      log_listener_(log_listener) {}
+      log_listener_(log_listener) {
+  CreatePlayer();
+}
 
 AudioPlayer::~AudioPlayer() { Release(); }
 
@@ -30,10 +32,6 @@ void AudioPlayer::Play() {
     // Player is preparing, play will be called in prepared callback.
     should_play_ = true;
     return;
-  }
-
-  if (state == PLAYER_STATE_NONE) {
-    CreatePlayer();
   }
 
   switch (state) {
