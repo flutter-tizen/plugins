@@ -1,3 +1,10 @@
+## 3.1.0
+
+* Update audioplayers to 6.1.0.
+* Update audioplayers_platform_interface to 7.0.0.
+* Changed to create a player when AudioPlayer created.
+* Remove 'audio.onCurrentPosition' method event.
+
 ## 3.0.2
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.

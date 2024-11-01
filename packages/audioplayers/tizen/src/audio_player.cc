@@ -9,14 +9,12 @@
 
 AudioPlayer::AudioPlayer(const std::string &player_id,
                          PreparedListener prepared_listener,
-                         CurrentPositionListener current_position_listener,
                          DurationListener duration_listener,
                          SeekCompletedListener seek_completed_listener,
                          PlayCompletedListener play_completed_listener,
                          LogListener log_listener)
     : player_id_(player_id),
       prepared_listener_(prepared_listener),
-      current_position_listener_(current_position_listener),
       duration_listener_(duration_listener),
       seek_completed_listener_(seek_completed_listener),
       play_completed_listener_(play_completed_listener),
@@ -432,8 +430,6 @@ Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
     if (player->IsPlaying()) {
       int32_t duration = player->GetDuration();
       player->duration_listener_(player->player_id_, duration);
-      int32_t position = player->GetCurrentPosition();
-      player->current_position_listener_(player->player_id_, position);
 
       return ECORE_CALLBACK_RENEW;
     }
