@@ -1,8 +1,1 @@
 include: package:flame_lint/analysis_options.yaml
-
-# The 'invariant_booleans' is a deprecated lint rule.
-# Remove the following lines when flame_lint package removes the rule
-# from its `analysis_options.yaml`.
-linter:
-  rules:
-    - invariant_booleans: false
