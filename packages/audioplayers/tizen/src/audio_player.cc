@@ -138,17 +138,15 @@ void AudioPlayer::Seek(int32_t position) {
 }
 
 void AudioPlayer::SetUrl(const std::string &url) {
-  if (url != url_) {
-    url_ = url;
-    ResetPlayer();
+  url_ = url;
+  ResetPlayer();
 
-    int ret = player_set_uri(player_, url.c_str());
-    if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_set_uri failed", get_error_message(ret));
-    }
-
-    PreparePlayer();
+  int ret = player_set_uri(player_, url.c_str());
+  if (ret != PLAYER_ERROR_NONE) {
+    throw AudioPlayerError("player_set_uri failed", get_error_message(ret));
   }
+
+  PreparePlayer();
   audio_data_.clear();
 }
 

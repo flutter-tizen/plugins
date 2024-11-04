@@ -1,6 +1,7 @@
-## NEXT
+## 3.0.2
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Fix play() didn't work after setSource().
 
 ## 3.0.1
 
