@@ -1,3 +1,7 @@
+## 0.5.3
+
+*  Add 'isCompleted' event to 'VideoPlayerEvent'.
+
 ## 0.5.2
 
 * Fix new lint warnings.
