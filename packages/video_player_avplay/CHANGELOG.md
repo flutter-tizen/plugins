@@ -1,3 +1,7 @@
+## 0.5.3
+
+* Add 'isCompleted' event to 'VideoPlayerEvent'.
+
 ## 0.5.2
 
 * Add start position in player options when creating player. This is useful for resuming playback from last viewed position.
