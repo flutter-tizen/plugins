@@ -32,7 +32,6 @@ typedef flutter::StreamHandlerError<flutter::EncodableValue>
     FlStreamHandlerError;
 
 const char *kInvalidArgument = "Invalid argument";
-const char kAudioCurrentPositionEvent[] = "audio.onCurrentPosition";
 const char kAudioDurationEvent[] = "audio.onDuration";
 const char kAudioPreparedEvent[] = "audio.onPrepared";
 const char kAudioSeekCompleteEvent[] = "audio.onSeekComplete";
@@ -268,16 +267,6 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
           event_sinks_[player_id]->Success(flutter::EncodableValue(map));
         };
 
-    CurrentPositionListener current_position_listener =
-        [this](const std::string &player_id, const int32_t position) {
-          flutter::EncodableMap map = {
-              {flutter::EncodableValue("event"),
-               flutter::EncodableValue(kAudioCurrentPositionEvent)},
-              {flutter::EncodableValue("value"),
-               flutter::EncodableValue(position)}};
-          event_sinks_[player_id]->Success(flutter::EncodableValue(map));
-        };
-
     PlayCompletedListener play_completed_listener =
         [this](const std::string &player_id) {
           flutter::EncodableMap map = {
@@ -296,9 +285,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     };
 
     auto player = std::make_unique<AudioPlayer>(
-        player_id, prepared_listener, current_position_listener,
-        duration_listener, seek_completed_listener, play_completed_listener,
-        log_listener);
+        player_id, prepared_listener, duration_listener,
+        seek_completed_listener, play_completed_listener, log_listener);
     audio_players_[player_id] = std::move(player);
   }
 

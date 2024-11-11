@@ -28,7 +28,6 @@ using LogListener = std::function<void(const std::string &player_id,
 class AudioPlayer {
  public:
   AudioPlayer(const std::string &player_id, PreparedListener prepared_listener,
-              CurrentPositionListener current_position_listener,
               DurationListener duration_listener,
               SeekCompletedListener seek_completed_listener,
               PlayCompletedListener play_completed_listener,
@@ -84,10 +83,10 @@ class AudioPlayer {
   bool preparing_ = false;
   bool seeking_ = false;
   bool should_play_ = false;
+  bool released_ = false;
   Ecore_Timer *timer_ = nullptr;
 
   PreparedListener prepared_listener_;
-  CurrentPositionListener current_position_listener_;
   DurationListener duration_listener_;
   SeekCompletedListener seek_completed_listener_;
   PlayCompletedListener play_completed_listener_;

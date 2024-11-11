@@ -16,7 +16,7 @@ flutter:
         fileName: audioplayers_tizen_plugin.h
 
 dependencies:
-  audioplayers_platform_interface: ^6.0.0
+  audioplayers_platform_interface: ^7.0.0
   flutter:
     sdk: flutter
 

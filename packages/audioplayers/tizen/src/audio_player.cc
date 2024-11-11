@@ -9,18 +9,18 @@
 
 AudioPlayer::AudioPlayer(const std::string &player_id,
                          PreparedListener prepared_listener,
-                         CurrentPositionListener current_position_listener,
                          DurationListener duration_listener,
                          SeekCompletedListener seek_completed_listener,
                          PlayCompletedListener play_completed_listener,
                          LogListener log_listener)
     : player_id_(player_id),
       prepared_listener_(prepared_listener),
-      current_position_listener_(current_position_listener),
       duration_listener_(duration_listener),
       seek_completed_listener_(seek_completed_listener),
       play_completed_listener_(play_completed_listener),
-      log_listener_(log_listener) {}
+      log_listener_(log_listener) {
+  CreatePlayer();
+}
 
 AudioPlayer::~AudioPlayer() { Release(); }
 
@@ -30,10 +30,6 @@ void AudioPlayer::Play() {
     // Player is preparing, play will be called in prepared callback.
     should_play_ = true;
     return;
-  }
-
-  if (state == PLAYER_STATE_NONE) {
-    CreatePlayer();
   }
 
   switch (state) {
@@ -113,6 +109,7 @@ void AudioPlayer::Release() {
     ecore_timer_del(timer_);
     timer_ = nullptr;
   }
+  released_ = true;
 }
 
 void AudioPlayer::Seek(int32_t position) {
@@ -224,6 +221,16 @@ int AudioPlayer::GetDuration() {
 }
 
 int AudioPlayer::GetCurrentPosition() {
+  // TODO(jsuya) : When stop() or pause() is called in AudioPlayer 6.1.0,
+  // PositionUpdater's stopAndUpdate() is called. At this time, getPosition() is
+  // called, but in ReleaseMode, the player is released after Stop(), so an
+  // eception is thrown. Since there are differences from the implementation in
+  // the frontend package, an exception is not thrown in this case.
+  if (!player_ && released_ && release_mode_ == ReleaseMode::kRelease) {
+    LOG_ERROR("The player has already been released.");
+    return 0;
+  }
+
   int32_t position;
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
@@ -263,6 +270,8 @@ void AudioPlayer::CreatePlayer() {
     throw AudioPlayerError("player_set_error_cb failed",
                            get_error_message(ret));
   }
+
+  released_ = false;
 }
 
 void AudioPlayer::PreparePlayer() {
@@ -434,8 +443,6 @@ Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
     if (player->IsPlaying()) {
       int32_t duration = player->GetDuration();
       player->duration_listener_(player->player_id_, duration);
-      int32_t position = player->GetCurrentPosition();
-      player->current_position_listener_(player->player_id_, position);
 
       return ECORE_CALLBACK_RENEW;
     }
