@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `connectivity_plus`. Therefo
 ```yaml
 dependencies:
   connectivity_plus: ^4.0.1
-  connectivity_plus_tizen: ^1.1.4
+  connectivity_plus_tizen: ^1.2.0
 ```
 
 Then you can import `connectivity_plus` in your Dart code:
@@ -31,3 +31,6 @@ To get connectivity information using this plugin, add below lines under the `<m
   <privilege>http://tizen.org/privilege/network.get</privilege>
 </privileges>
 ```
+
+## Limitations
+- Multiple connections are not supported, so only the currently connected connection type is provided.

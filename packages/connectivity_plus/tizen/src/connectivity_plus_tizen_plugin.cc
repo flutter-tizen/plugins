@@ -52,7 +52,10 @@ class ConnectivityStreamHandler : public FlStreamHandler {
 
     ConnectionTypeCallback callback = [this](ConnectionType type) -> void {
       if (type != ConnectionType::kError) {
-        events_->Success(flutter::EncodableValue(ConnectionTypeToString(type)));
+        flutter::EncodableList encoded_list;
+        encoded_list.push_back(
+            flutter::EncodableValue(ConnectionTypeToString(type)));
+        events_->Success(flutter::EncodableValue(encoded_list));
       } else {
         events_->Error(std::to_string(connection_.GetLastError()),
                        connection_.GetLastErrorString());
@@ -117,7 +120,10 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
       Connection connection;
       ConnectionType type = connection.GetType();
       if (type != ConnectionType::kError) {
-        result->Success(flutter::EncodableValue(ConnectionTypeToString(type)));
+        flutter::EncodableList encoded_list;
+        encoded_list.push_back(
+            flutter::EncodableValue(ConnectionTypeToString(type)));
+        result->Success(flutter::EncodableValue(encoded_list));
       } else {
         result->Error(std::to_string(connection.GetLastError()),
                       connection.GetLastErrorString());
