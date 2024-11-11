@@ -53,6 +53,7 @@ class VideoPlayerValue {
     this.volume = 1.0,
     this.playbackSpeed = 1.0,
     this.errorDescription,
+    this.isCompleted = false,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -117,6 +118,12 @@ class VideoPlayerValue {
   /// If [hasError] is false this is `null`.
   final String? errorDescription;
 
+  /// True if video has finished playing to end.
+  ///
+  /// Reverts to false if video position changes, or video begins playing.
+  /// Does not update if video is looping.
+  final bool isCompleted;
+
   /// The [size] of the currently loaded video.
   final Size size;
 
@@ -161,6 +168,7 @@ class VideoPlayerValue {
     double? volume,
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
+    bool? isCompleted,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -179,6 +187,7 @@ class VideoPlayerValue {
       errorDescription: errorDescription != _defaultErrorDescription
           ? errorDescription
           : this.errorDescription,
+      isCompleted: isCompleted ?? this.isCompleted,
     );
   }
 
@@ -198,7 +207,8 @@ class VideoPlayerValue {
         'isBuffering: $isBuffering, '
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
-        'errorDescription: $errorDescription)';
+        'errorDescription: $errorDescription, '
+        'isCompleted: $isCompleted),';
   }
 }
 
@@ -411,7 +421,19 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             size: event.size,
             isInitialized: event.duration != null,
             errorDescription: null,
+            isCompleted: false,
           );
+          assert(
+            !initializingCompleter.isCompleted,
+            'VideoPlayerController already initialized. This is typically a '
+            'sign that an implementation of the VideoPlayerPlatform '
+            '(${_videoPlayerPlatform.runtimeType}) has a bug and is sending '
+            'more than one initialized event per instance.',
+          );
+          if (initializingCompleter.isCompleted) {
+            throw StateError('VideoPlayerController already initialized');
+          }
+
           initializingCompleter.complete(null);
           _applyLooping();
           _applyVolume();
@@ -424,6 +446,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // we use pause() and seekTo() to ensure the platform stops playing
           // and seeks to the last frame of the video.
           pause().then((void pauseResult) => seekTo(value.duration.end));
+          value = value.copyWith(isCompleted: true);
           _durationTimer?.cancel();
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
@@ -465,6 +488,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     void errorListener(Object obj) {
       final PlatformException e = obj as PlatformException;
       value = VideoPlayerValue.erroneous(e.message!);
+      if (!initializingCompleter.isCompleted) {
+        initializingCompleter.completeError(obj);
+      }
       _timer?.cancel();
       _durationTimer?.cancel();
       if (!initializingCompleter.isCompleted) {
@@ -780,6 +806,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     value = value.copyWith(
       position: position,
       caption: _getCaptionAt(position),
+      isCompleted: position == value.duration.end,
     );
   }
 
