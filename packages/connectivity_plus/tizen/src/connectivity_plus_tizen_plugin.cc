@@ -120,10 +120,10 @@ class ConnectivityPlusTizenPlugin : public flutter::Plugin {
       Connection connection;
       ConnectionType type = connection.GetType();
       if (type != ConnectionType::kError) {
-        flutter::EncodableList encodedList;
-        encodedList.push_back(
+        flutter::EncodableList encoded_list;
+        encoded_list.push_back(
             flutter::EncodableValue(ConnectionTypeToString(type)));
-        result->Success(flutter::EncodableValue(encodedList));
+        result->Success(flutter::EncodableValue(encoded_list));
       } else {
         result->Error(std::to_string(connection.GetLastError()),
                       connection.GetLastErrorString());
