@@ -52,10 +52,10 @@ class ConnectivityStreamHandler : public FlStreamHandler {
 
     ConnectionTypeCallback callback = [this](ConnectionType type) -> void {
       if (type != ConnectionType::kError) {
-        flutter::EncodableList encodedList;
-        encodedList.push_back(
+        flutter::EncodableList encoded_list;
+        encoded_list.push_back(
             flutter::EncodableValue(ConnectionTypeToString(type)));
-        events_->Success(flutter::EncodableValue(encodedList));
+        events_->Success(flutter::EncodableValue(encoded_list));
       } else {
         events_->Error(std::to_string(connection_.GetLastError()),
                        connection_.GetLastErrorString());
