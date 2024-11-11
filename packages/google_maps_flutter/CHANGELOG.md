@@ -1,6 +1,7 @@
 ## NEXT
 
 * Update webview_flutter_lwe to 0.3.3.
+* Fix memory alarm and map initialization issues.
 
 ## 0.1.8
 

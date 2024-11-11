@@ -173,10 +173,10 @@ class GoogleMapsController {
     final String options = _createOptions();
     final String command = '''
       map = new google.maps.Map(document.getElementById('map'), $options);
-      map.addListener('bounds_changed', BoundChanged.postMessage);
-      map.addListener('idle', Idle.postMessage);
-      map.addListener('click', (event) => Click.postMessage(JSON.stringify(event)));
-      map.addListener('tilesloaded', Tilesloaded.postMessage);
+      map.addListener('bounds_changed', (event) => { BoundChanged.postMessage(''); });
+      map.addListener('idle', (event) => { Idle.postMessage(''); });
+      map.addListener('click', (event) => { Click.postMessage(JSON.stringify(event)); });
+      map.addListener('tilesloaded', (evnet) => { Tilesloaded.postMessage(''); });
 
       let longPressTimeout;
       map.addListener('mousedown', (e) => {
