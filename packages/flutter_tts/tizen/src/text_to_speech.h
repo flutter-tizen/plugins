@@ -58,6 +58,8 @@ class TextToSpeech {
 
   bool SetVolume(double volume);
 
+  bool IsLanguageAvailable(const std::string &language);
+
   bool GetSpeedRange(int32_t *min, int32_t *normal, int32_t *max);
 
   void SetTtsSpeed(int32_t speed) { tts_speed_ = speed; }

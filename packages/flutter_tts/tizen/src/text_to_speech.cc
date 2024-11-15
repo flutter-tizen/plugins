@@ -245,6 +245,18 @@ bool TextToSpeech::GetSpeedRange(int32_t *min, int32_t *normal, int32_t *max) {
   return true;
 }
 
+bool TextToSpeech::IsLanguageAvailable(const std::string &language) {
+  if (supported_lanaguages_.size() == 0) {
+    GetSupportedLanaguages();
+  }
+
+  if (std::find(supported_lanaguages_.begin(), supported_lanaguages_.end(),
+                language) != supported_lanaguages_.end()) {
+    return true;
+  }
+  return false;
+}
+
 void TextToSpeech::SwitchVolumeOnStateChange(tts_state_e previous,
                                              tts_state_e current) {
   if (previous == TTS_STATE_PLAYING) {

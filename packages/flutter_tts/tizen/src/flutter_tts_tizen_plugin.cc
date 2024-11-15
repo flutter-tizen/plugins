@@ -110,6 +110,8 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       OnGetMaxSpeechInputLength();
     } else if (method_name == "setVolume") {
       OnSetVolume(arguments);
+    } else if (method_name == "isLanguageAvailable") {
+      OnIsLanguageAvailable(arguments);
     } else {
       result_->NotImplemented();
     }
@@ -229,6 +231,17 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     if (std::holds_alternative<double>(arguments)) {
       double volume = std::get<double>(arguments);
       if (tts_->SetVolume(volume)) {
+        SendResult(flutter::EncodableValue(1));
+        return;
+      }
+    }
+    SendResult(flutter::EncodableValue(0));
+  }
+
+  void OnIsLanguageAvailable(const flutter::EncodableValue &arguments) {
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string language = std::move(std::get<std::string>(arguments));
+      if (!language.empty() && tts_->IsLanguageAvailable(language)) {
         SendResult(flutter::EncodableValue(1));
         return;
       }

@@ -1,6 +1,10 @@
-## NEXT
+## 1.5.0
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Update flutter_tts 3.6.3 to 4.2.0.
+* Update the example app.
+* Add isLanguageAvailable API which was not implemented.
+
 
 ## 1.4.0
 

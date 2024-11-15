@@ -24,10 +24,10 @@ class _MyAppState extends State<MyApp> {
 
   TtsState ttsState = TtsState.stopped;
 
-  get isPlaying => ttsState == TtsState.playing;
-  get isStopped => ttsState == TtsState.stopped;
-  get isPaused => ttsState == TtsState.paused;
-  get isContinued => ttsState == TtsState.continued;
+  bool get isPlaying => ttsState == TtsState.playing;
+  bool get isStopped => ttsState == TtsState.stopped;
+  bool get isPaused => ttsState == TtsState.paused;
+  bool get isContinued => ttsState == TtsState.continued;
 
   @override
   initState() {
@@ -35,7 +35,7 @@ class _MyAppState extends State<MyApp> {
     initTts();
   }
 
-  initTts() {
+  dynamic initTts() {
     flutterTts = FlutterTts();
 
     _setAwaitOptions();
@@ -85,16 +85,16 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<dynamic> _getLanguages() => flutterTts.getLanguages;
+  Future<dynamic> _getLanguages() async => await flutterTts.getLanguages;
 
-  Future _getDefaultVoice() async {
+  Future<void> _getDefaultVoice() async {
     var voice = await flutterTts.getDefaultVoice;
     if (voice != null) {
       print(voice);
     }
   }
 
-  Future _speak() async {
+  Future<void> _speak() async {
     await flutterTts.setVolume(volume);
     await flutterTts.setSpeechRate(rate);
 
@@ -105,16 +105,16 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future _setAwaitOptions() async {
+  Future<void> _setAwaitOptions() async {
     await flutterTts.awaitSpeakCompletion(true);
   }
 
-  Future _stop() async {
+  Future<void> _stop() async {
     var result = await flutterTts.stop();
     if (result == 1) setState(() => ttsState = TtsState.stopped);
   }
 
-  Future _pause() async {
+  Future<void> _pause() async {
     var result = await flutterTts.pause();
     if (result == 1) setState(() => ttsState = TtsState.paused);
   }
@@ -126,16 +126,19 @@ class _MyAppState extends State<MyApp> {
   }
 
   List<DropdownMenuItem<String>> getLanguageDropDownMenuItems(
-      dynamic languages) {
+      List<dynamic> languages) {
     var items = <DropdownMenuItem<String>>[];
     for (dynamic type in languages) {
       items.add(DropdownMenuItem(
-          value: type as String?, child: Text(type as String)));
+          value: type as String?, child: Text((type as String))));
     }
     return items;
   }
 
-  void changedLanguageDropDownItem(String? selectedType) {
+  void changedLanguageDropDownItem(String? selectedType) async {
+    var result = await flutterTts.isLanguageAvailable(selectedType!);
+    if (result == 0) return;
+
     setState(() {
       language = selectedType;
       flutterTts.setLanguage(language!);
@@ -175,23 +178,27 @@ class _MyAppState extends State<MyApp> {
       future: _getLanguages(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.hasData) {
-          return _languageDropDownSection(snapshot.data);
+          return _languageDropDownSection(snapshot.data as List<dynamic>);
         } else if (snapshot.hasError) {
           return Text('Error loading languages...');
         } else
           return Text('Loading Languages...');
       });
 
-  Widget _inputSection() => Container(
-      alignment: Alignment.topCenter,
-      padding: EdgeInsets.only(top: 25.0, left: 25.0, right: 25.0),
-      child: TextField(
-        maxLines: 11,
-        minLines: 6,
-        onChanged: (String value) {
-          _onChange(value);
-        },
-      ));
+  Widget _inputSection() {
+    _newVoiceText = 'Hello everyone. This is a flutter tts example app.';
+    return Container(
+        alignment: Alignment.topCenter,
+        padding: EdgeInsets.only(top: 25.0, left: 25.0, right: 25.0),
+        child: TextField(
+          maxLines: 11,
+          minLines: 6,
+          onChanged: (String value) {
+            _onChange(value);
+          },
+          controller: TextEditingController(text: _newVoiceText),
+        ));
+  }
 
   Widget _btnSection() {
     return Container(
@@ -210,7 +217,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Widget _languageDropDownSection(dynamic languages) => Container(
+  Widget _languageDropDownSection(List<dynamic> languages) => Container(
       padding: EdgeInsets.only(top: 10.0),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         DropdownButton(
@@ -272,7 +279,7 @@ class _MyAppState extends State<MyApp> {
         min: 0.0,
         max: 1.0,
         divisions: 10,
-        label: "Volume: $volume");
+        label: "Volume: ${volume.toStringAsFixed(1)}");
   }
 
   Widget _rate() {
@@ -284,7 +291,7 @@ class _MyAppState extends State<MyApp> {
       min: 0.0,
       max: 1.0,
       divisions: 10,
-      label: "Rate: $rate",
+      label: "Rate: ${rate.toStringAsFixed(1)}",
       activeColor: Colors.green,
     );
   }
