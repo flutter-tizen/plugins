@@ -8,6 +8,7 @@
 #include <tts.h>
 
 #include <functional>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -40,9 +41,20 @@ class TextToSpeech {
     default_language_ = language;
   }
 
-  std::vector<std::string> &GetSupportedLanaguages();
+  void InitializeSupportedLanaguagesAndVoiceType();
+
+  const std::vector<std::string> &GetSupportedLanaguages() {
+    return supported_lanaguages_;
+  }
+
+  const std::vector<std::map<std::string, std::string>> &
+  GetSupportedVoiceTypes() {
+    return supported_voice_types_;
+  }
 
   std::optional<std::pair<std::string, std::string>> GetDefaultVoice();
+
+  void SetDefaultVoiceType(const std::string &voice);
 
   std::optional<int32_t> GetMaxSpeechInputLength();
 
@@ -86,6 +98,7 @@ class TextToSpeech {
   int32_t system_volume_ = 0;
   int32_t system_max_volume_ = 0;
   std::vector<std::string> supported_lanaguages_;
+  std::vector<std::map<std::string, std::string>> supported_voice_types_;
 
   StateChangedCallback state_changed_callback_;
   UtteranceCompletedCallback utterance_completed_callback_;

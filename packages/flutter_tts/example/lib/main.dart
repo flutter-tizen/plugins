@@ -42,6 +42,8 @@ class _MyAppState extends State<MyApp> {
 
     _getDefaultVoice();
 
+    _getSupportedVoices();
+
     flutterTts.setStartHandler(() {
       setState(() {
         print("Playing");
@@ -90,7 +92,14 @@ class _MyAppState extends State<MyApp> {
   Future<void> _getDefaultVoice() async {
     var voice = await flutterTts.getDefaultVoice;
     if (voice != null) {
-      print(voice);
+      print('_getDefaultVoice(): $voice');
+    }
+  }
+
+  Future<void> _getSupportedVoices() async {
+    var voices = await flutterTts.getVoices;
+    if (voices != null) {
+      print('_getSupportedVoices(): $voices');
     }
   }
 

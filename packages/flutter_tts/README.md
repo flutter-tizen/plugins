@@ -31,6 +31,9 @@ The features supported by Tizen are as follows. Other features are not supported
  - [x] pause
  - [x] get languages
  - [x] set language
+ - [x] is language available
+ - [x] get voices
+ - [x] set voice
  - [x] set speech rate
  - [x] set speech volume (requires privilege `http://tizen.org/privilege/volume.set` in `tizen_manifest.xml`)
  - [x] get default voice
