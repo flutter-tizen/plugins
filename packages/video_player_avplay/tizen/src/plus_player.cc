@@ -139,6 +139,10 @@ int64_t PlusPlayer::Create(const std::string &uri,
 
   int64_t start_position = flutter_common::GetValue(
       create_message.player_options(), "startPosition", (int64_t)0);
+  if (start_position == 0) {
+    start_position = flutter_common::GetValue(create_message.player_options(),
+                                              "startPosition", (int32_t)0);
+  }
   if (start_position > 0) {
     LOG_INFO("[PlusPlayer] Start position: %lld", start_position);
     if (!Seek(player_, start_position)) {
