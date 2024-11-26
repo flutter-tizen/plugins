@@ -138,35 +138,26 @@ void TextToSpeech::UnregisterCallbacks() {
 }
 
 void TextToSpeech::InitializeSupportedLanaguagesAndVoiceType() {
-  if (supported_lanaguages_.size() == 0 || supported_voice_types_.size() == 0) {
-    tts_foreach_supported_voices(
-        tts_,
-        [](tts_h tts, const char *language, int32_t voice_type,
-           void *user_data) -> bool {
-          if (language == nullptr) {
-            return false;
-          }
-          TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
-          self->supported_lanaguages_.push_back(language);
+  tts_foreach_supported_voices(
+      tts_,
+      [](tts_h tts, const char *language, int32_t voice_type,
+         void *user_data) -> bool {
+        if (language == nullptr) {
+          return false;
+        }
+        TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
+        self->supported_lanaguages_.push_back(language);
 
-          std::map<std::string, std::string> item;
-          item["name"] = GetVoiceName(voice_type);
-          item["locale"] = language;
-          self->supported_voice_types_.push_back(item);
+        std::map<std::string, std::string> item;
+        item["name"] = GetVoiceName(voice_type);
+        item["locale"] = language;
+        self->supported_voice_types_.push_back(item);
 
-          LOG_INFO("Supported language: %s, voice_type: %s",
-                   item["locale"].c_str(), item["name"].c_str());
-          return true;
-        },
-        this);
-
-    supported_lanaguages_.erase(
-        unique(supported_lanaguages_.begin(), supported_lanaguages_.end()),
-        supported_lanaguages_.end());
-    supported_voice_types_.erase(
-        unique(supported_voice_types_.begin(), supported_voice_types_.end()),
-        supported_voice_types_.end());
-  }
+        LOG_INFO("Supported language: %s, voice_type: %s",
+                 item["locale"].c_str(), item["name"].c_str());
+        return true;
+      },
+      this);
 }
 
 std::optional<std::pair<std::string, std::string>>
@@ -274,11 +265,8 @@ bool TextToSpeech::GetSpeedRange(int32_t *min, int32_t *normal, int32_t *max) {
 }
 
 bool TextToSpeech::IsLanguageAvailable(const std::string &language) {
-  if (std::find(supported_lanaguages_.begin(), supported_lanaguages_.end(),
-                language) != supported_lanaguages_.end()) {
-    return true;
-  }
-  return false;
+  return std::find(supported_lanaguages_.begin(), supported_lanaguages_.end(),
+                   language) != supported_lanaguages_.end();
 }
 
 void TextToSpeech::SwitchVolumeOnStateChange(tts_state_e previous,

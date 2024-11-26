@@ -216,10 +216,8 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   void OnGetLanguages() {
-    auto languages = tts_->GetSupportedLanaguages();
-
     flutter::EncodableList list;
-    for (auto language : languages) {
+    for (auto language : tts_->GetSupportedLanaguages()) {
       list.push_back(flutter::EncodableValue(language));
     }
     SendResult(flutter::EncodableValue(list));
@@ -256,10 +254,8 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   void OnGetVoices() {
-    auto voices = tts_->GetSupportedVoiceTypes();
-
     flutter::EncodableList list;
-    for (auto voice : voices) {
+    for (auto voice : tts_->GetSupportedVoiceTypes()) {
       flutter::EncodableMap map;
       map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
           flutter::EncodableValue("name"),

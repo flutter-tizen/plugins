@@ -194,20 +194,17 @@ class _MyAppState extends State<MyApp> {
           return Text('Loading Languages...');
       });
 
-  Widget _inputSection() {
-    _newVoiceText = 'Hello everyone. This is a flutter tts example app.';
-    return Container(
-        alignment: Alignment.topCenter,
-        padding: EdgeInsets.only(top: 25.0, left: 25.0, right: 25.0),
-        child: TextField(
-          maxLines: 11,
-          minLines: 6,
-          onChanged: (String value) {
-            _onChange(value);
-          },
-          controller: TextEditingController(text: _newVoiceText),
-        ));
-  }
+  Widget _inputSection() => Container(
+      alignment: Alignment.topCenter,
+      padding: EdgeInsets.only(top: 25.0, left: 25.0, right: 25.0),
+      child: TextField(
+        maxLines: 11,
+        minLines: 6,
+        onChanged: (String value) {
+          _onChange(value);
+        },
+        controller: TextEditingController(text: _newVoiceText),
+      ));
 
   Widget _btnSection() {
     return Container(
