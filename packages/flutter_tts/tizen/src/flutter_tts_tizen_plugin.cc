@@ -9,6 +9,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -21,6 +22,19 @@ namespace {
 
 typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
+
+template <typename T>
+bool GetValueFromEncodableMap(flutter::EncodableMap &map, std::string key,
+                              T &out) {
+  auto iter = map.find(flutter::EncodableValue(key));
+  if (iter != map.end() && !iter->second.IsNull()) {
+    if (auto pval = std::get_if<T>(&iter->second)) {
+      out = *pval;
+      return true;
+    }
+  }
+  return false;
+}
 
 class FlutterTtsTizenPlugin : public flutter::Plugin {
  public:
@@ -103,13 +117,19 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     } else if (method_name == "setLanguage") {
       OnSetLanguage(arguments);
     } else if (method_name == "getLanguages") {
-      OnGetLanguage();
+      OnGetLanguages();
     } else if (method_name == "getDefaultVoice") {
       OnGetDefaultVoice();
+    } else if (method_name == "setVoice") {
+      OnSetVoice(arguments);
+    } else if (method_name == "getVoices") {
+      OnGetVoices();
     } else if (method_name == "getMaxSpeechInputLength") {
       OnGetMaxSpeechInputLength();
     } else if (method_name == "setVolume") {
       OnSetVolume(arguments);
+    } else if (method_name == "isLanguageAvailable") {
+      OnIsLanguageAvailable(arguments);
     } else {
       result_->NotImplemented();
     }
@@ -195,7 +215,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     SendResult(flutter::EncodableValue(0));
   }
 
-  void OnGetLanguage() {
+  void OnGetLanguages() {
     flutter::EncodableList list;
     for (auto language : tts_->GetSupportedLanaguages()) {
       list.push_back(flutter::EncodableValue(language));
@@ -219,6 +239,35 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     SendResult(flutter::EncodableValue(default_voice_map));
   }
 
+  void OnSetVoice(const flutter::EncodableValue &arguments) {
+    if (std::holds_alternative<flutter::EncodableMap>(arguments)) {
+      auto voice = std::get<flutter::EncodableMap>(arguments);
+
+      std::string voice_name;
+      if (GetValueFromEncodableMap(voice, "name", voice_name)) {
+        tts_->SetDefaultVoiceType(voice_name);
+        SendResult(flutter::EncodableValue(1));
+        return;
+      }
+    }
+    SendResult(flutter::EncodableValue(0));
+  }
+
+  void OnGetVoices() {
+    flutter::EncodableList list;
+    for (auto voice : tts_->GetSupportedVoiceTypes()) {
+      flutter::EncodableMap map;
+      map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+          flutter::EncodableValue("name"),
+          flutter::EncodableValue(voice["name"])));
+      map.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+          flutter::EncodableValue("locale"),
+          flutter::EncodableValue(voice["locale"])));
+      list.push_back(flutter::EncodableValue(map));
+    }
+    SendResult(flutter::EncodableValue(list));
+  }
+
   void OnGetMaxSpeechInputLength() {
     std::optional<int32_t> length = tts_->GetMaxSpeechInputLength();
     SendResult(length.has_value() ? flutter::EncodableValue(*length)
@@ -229,6 +278,17 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     if (std::holds_alternative<double>(arguments)) {
       double volume = std::get<double>(arguments);
       if (tts_->SetVolume(volume)) {
+        SendResult(flutter::EncodableValue(1));
+        return;
+      }
+    }
+    SendResult(flutter::EncodableValue(0));
+  }
+
+  void OnIsLanguageAvailable(const flutter::EncodableValue &arguments) {
+    if (std::holds_alternative<std::string>(arguments)) {
+      std::string language = std::move(std::get<std::string>(arguments));
+      if (!language.empty() && tts_->IsLanguageAvailable(language)) {
         SendResult(flutter::EncodableValue(1));
         return;
       }
