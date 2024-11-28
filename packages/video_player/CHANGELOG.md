@@ -1,3 +1,8 @@
+## 2.5.4
+
+* Update video_player to 2.9.2.
+* Update video_player_platform_interface to 6.2.3.
+
 ## 2.5.3
 
 * Support `httpHeaders` option of `VideoPlayerController.network`.
