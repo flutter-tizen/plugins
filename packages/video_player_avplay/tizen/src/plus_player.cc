@@ -140,6 +140,10 @@ int64_t PlusPlayer::Create(const std::string &uri,
   int64_t start_position = flutter_common::GetValue(
       create_message.player_options(), "startPosition", (int64_t)0);
   if (start_position == 0) {
+    // if startPosition is in the range of int32_t, it will convert as int32_t.
+    // if startPosition >= INT32_MAX, it will convert as int64_t.
+    // TODO we will implement a new function for long type, no need call two
+    // times.
     start_position = flutter_common::GetValue(create_message.player_options(),
                                               "startPosition", (int32_t)0);
   }
