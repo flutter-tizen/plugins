@@ -21,7 +21,7 @@
 
 namespace plusplayer {
 
-enum class DisplayType { kNone, kOverlay, kEvas, kMixer };
+enum class DisplayType { kNone, kOverlay, kEvas, kMixer, kOverlaySyncUI };
 
 enum class DisplayMode {
   kLetterBox,
@@ -31,6 +31,7 @@ enum class DisplayMode {
   kOriginOrLetter,
   kDstRoi,
   kAutoAspectRatio,
+  kDstRoiAutoAspectRatio,
   kMax
 };
 
@@ -59,8 +60,22 @@ enum class State {
 };
 
 struct Geometry {
-  int x = 0, y = 0;
-  int w = 1920, h = 1080;
+  /**
+   * @brief  start X position of Display window. [Default = 0]
+   */
+  int x = 0;
+  /**
+   * @brief  start Y position of Display window. [Default = 0]
+   */
+  int y = 0;
+  /**
+   * @brief  Width of Display window. [Default = 1920]
+   */
+  int w = 1920;
+  /**
+   * @brief  Height of Display window. [Default = 1080]
+   */
+  int h = 1080;
 };
 
 struct PlayerMemento {
@@ -75,6 +90,8 @@ struct PlayerMemento {
       buffer_config;                  /**< Buffer config of current player */
   bool is_live = false;               /**< Live status of current player */
   double current_playback_rate = 1.0; /**< Playback rate of current player */
+  int aspect_radio_num = 0;           /**< Aspect radio num of current player */
+  int aspect_radio_den = 0;           /**< Aspect radio den of current player */
 };
 
 enum class ErrorType {
@@ -158,8 +175,14 @@ enum class StreamingMessageType {
   kSparseTrackData,
   kConnectionRetry,
   kConfigLowLatency,
-  kCurlErrorDebugInfo
+  kCurlErrorDebugInfo,
+  kParDarChange,
+  kDashMPDAnchor,
+  kDashRemoveStream,
+  kMediaSyncCSSCII,
+  kDashLiveToVod
 };
+
 enum class SourceType {
   kNone,
   kBase,
@@ -168,6 +191,7 @@ enum class SourceType {
   kDash,
   kSmooth,
   kFile,
+  kMem,
   kExternalSubtitle,
   kNotFound,
   kMax
@@ -312,7 +336,15 @@ struct Property {
 };
 }  // namespace drm
 
-enum class SubtitleType { kText, kPicture, kInvalid };
+/**
+ * @brief Enumeration for  player supported subtitle types
+ */
+enum class SubtitleType {
+  kText,       /**< subtitle type text */
+  kPicture,    /**< subtitle type picture */
+  kTTMLRender, /**< subtitle type ttml */
+  kInvalid     /**< unsupported subtitle type */
+};
 
 }  // namespace plusplayer
 
