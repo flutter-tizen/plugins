@@ -1,3 +1,43 @@
+## 0.5.7
+
+* Update plusplayer
+  1. [PLAYER] Feeder Threads for Audio and Video boosted.
+  2. [HLS] hls_trickplay : for rates (0-2) I-frame dependency removed.
+  3. [HLS] ss_trickplay : trickplay by seek enabled.
+  4. [HLS] Trickplay feature update for playbackrates (<0 and >2).
+  5. [HLS] Unused variable removed and indentation fix.
+  6. [HLS] Outputmanager logs getting skipped for some parts, Incorrect usage of GetPart(), GetPartOutput() is used instead of GetPart().
+  7. [HLS] playlist refresh rate reduced.
+  8. [HLS] MA LOG: curl operation time out case.
+  9. [HLS] Fix Garbage Frame Issue due to new implementation of dynamic storage of init data.
+  10. [HLS] Removed unnecessary logs.
+  11. [HLS] Special handling added to reset in-process curl download request during reset operation.
+  12. [HLS] Fix Garbage Frame Issue due to new implementation of dynamic storage of init data.
+  13. [HLS] Initialise catchupInstance only once in catchuptask.
+  14. [HLS] Handling EXT-X-SESSION-KEY info and trigger early license acquisition when available and also removing the redundant code but merging the related functions for sending drm data.
+  15. [HLS] Fix added: playback gets stuck when next download is preload-hinted-part in case of bitrate change with no new part, or new discontinuity with preload-hinted-part.
+  16. [HLS] Free pluginlist after setting state to null.
+  17. [HLS] Removed [-Wunused-variable] warning from HLS engine.
+  18. [HLS] Removed [-Wswitch-default] warning from HLS engine.
+  19. [HLS] Curl Reset flag to avoid wait in Process().
+  20. [HLS] InitDataS vector was changed to Map.
+  21. [HLS] LL Playlist Blocking Reload Fix + Improved Logging
+  22. [HLS] optimise subplaylist downlaod rate.
+  23. [HLS] Redundant gst Buffer unref removed.
+  24. [HLS] "Avoid Last Viewed Scene" Feature.
+  25. [HLS] AE-SDK code changes merging on onemain.
+  26. [HLS] External Media track change fix.
+  27. [HLS] Correction for MA Log Task.
+  28. [HLS] Added ut_empty_cue_before_endlist.
+  29. [HLS] LL-HLS Multitrack change support.
+  30. [HLS] Pause resume enabled in live property added in player.
+  31. [PLAYER] Enable MA_LOG in plusplayer.
+  32. [HLS] Set ABR property : Added functionality in engine and player to toggle bitrate change functionality.
+  33. [HLS] Increase disc pool size to handle more discontinuties in TVPLus VOD content.
+  34. [HLS] Fix for drm content playback and enabling MA_Info_Event macro.
+  35. [PLAYER] Fix plusplyaer solo build error.
+  36. [DASH] apply libxml patch for tpk cross use.
+
 ## 0.5.6
 
 * Make startPosition support int32_t type.
