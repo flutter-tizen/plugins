@@ -741,8 +741,6 @@ class PurchaseStateConverter {
         return PurchaseStatus.purchased;
       case true:
         return PurchaseStatus.canceled;
-      default:
-        return PurchaseStatus.error;
     }
   }
 }
