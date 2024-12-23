@@ -1,3 +1,7 @@
+## 0.5.8
+
+* Fix dash player fail to seek issue.
+
 ## 0.5.7
 
 * Update plusplayer
