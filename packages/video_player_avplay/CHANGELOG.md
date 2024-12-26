@@ -1,6 +1,8 @@
 ## 0.5.9
 
 * Fix dash player fail to seek issue.
+* Add setDisplayRotate API
+* Add setDisplayMode API
 
 ## 0.5.8
 

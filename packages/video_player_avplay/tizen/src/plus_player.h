@@ -46,6 +46,8 @@ class PlusPlayer : public VideoPlayer {
   bool SetBufferConfig(const std::string &key, int64_t value) override;
   void SetStreamingProperty(const std::string &type,
                             const std::string &value) override;
+  bool SetDisplayRotate(int64_t rotation) override;
+  bool SetDisplayMode(int64_t display_mode) override;
 
  private:
   bool IsLive();

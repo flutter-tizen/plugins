@@ -144,6 +144,16 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('setBufferConfig() has not been implemented.');
   }
 
+  /// Set the rotate angle of display.
+  Future<bool> setDisplayRotate(int playerId, DisplayRotation rotation) {
+    throw UnimplementedError('setDisplayRotate() has not been implemented.');
+  }
+
+  /// Set the video display mode.
+  Future<bool> setDisplayMode(int playerId, DisplayMode displayMode) {
+    throw UnimplementedError('setDisplayMode() has not been implemented.');
+  }
+
   /// Set streamingengine property.
   Future<void> setStreamingProperty(
       int playerId, StreamingPropertyType type, String value) {
@@ -351,6 +361,48 @@ enum BufferConfigType {
 
   /// Buffering timeout for play in seconds.
   bufferingTimeoutInSecForPlay,
+}
+
+/// The different types of display rotations that can be set on the player.
+enum DisplayRotation {
+  /// No rotation.
+  rotation_0,
+
+  /// 90 degrees rotation.
+  rotation_90,
+
+  /// 180 degrees rotation.
+  rotation_180,
+
+  /// 270 degrees rotation.
+  rotation_270,
+}
+
+/// Sets the video screen mode in the specified display area.
+enum DisplayMode {
+  /// player display mode letter box
+  display_mode_letter_box,
+
+  /// player display mode origin size
+  display_mode_origin_size,
+
+  /// player display mode full screen
+  display_mode_full_screen,
+
+  /// player display mode cropped full
+  display_mode_cropped_full,
+
+  /// player display mode origin or letter
+  display_mode_origin_or_letter,
+
+  /// player display mode dst roi
+  display_mode_dst_roi,
+
+  /// player display mode auto aspect ratio
+  display_mode_auto_aspect_ratio,
+
+  /// player display mode dst roi auto aspect ratio
+  dispaly_mode_dst_roi_auto_aspect_ratio,
 }
 
 /// Event emitted from the platform implementation.
