@@ -1,6 +1,10 @@
-## 0.5.8
+## 0.5.9
 
 * Fix dash player fail to seek issue.
+
+## 0.5.8
+
+* Support Tizen 9.0
 
 ## 0.5.7
 
