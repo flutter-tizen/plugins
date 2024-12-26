@@ -1,3 +1,7 @@
+## 0.5.8
+
+* Support Tizen 9.0
+
 ## 0.5.7
 
 * Update plusplayer
