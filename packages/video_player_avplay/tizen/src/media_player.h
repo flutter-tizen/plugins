@@ -39,6 +39,8 @@ class MediaPlayer : public VideoPlayer {
   bool IsReady() override;
   flutter::EncodableList GetTrackInfo(std::string track_type) override;
   bool SetTrackSelection(int32_t track_id, std::string track_type) override;
+  bool SetDisplayRotate(int64_t rotation) override;
+  bool SetDisplayMode(int64_t display_mode) override;
 
  private:
   bool IsLive();

@@ -729,3 +729,30 @@ int MediaPlayer::OnDrmUpdatePsshData(drm_init_data_type init_type, void *data,
   }
   return 0;
 }
+
+bool MediaPlayer::SetDisplayRotate(int64_t rotation) {
+  LOG_INFO("[MediaPlayer] rotation: %d", rotation);
+  int ret = player_set_display_rotation(
+      player_, static_cast<player_display_rotation_e>(rotation));
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[MediaPlayer] player_set_display_rotation failed: %s",
+              get_error_message(ret));
+    return false;
+  }
+  return true;
+}
+bool MediaPlayer::SetDisplayMode(int64_t display_mode) {
+  LOG_INFO("[MediaPlayer] display_mode: %d", display_mode);
+  if (display_mode > PLAYER_DISPLAY_MODE_NUM) {
+    LOG_ERROR("[MediaPlayer] display mode out of range");
+    return false;
+  }
+  int ret = player_set_display_mode(
+      player_, static_cast<player_display_mode_e>(display_mode));
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[MediaPlayer] player_set_display_mode failed: %s",
+              get_error_message(ret));
+    return false;
+  }
+  return true;
+}
