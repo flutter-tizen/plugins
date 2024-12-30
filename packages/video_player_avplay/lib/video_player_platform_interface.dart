@@ -366,43 +366,43 @@ enum BufferConfigType {
 /// The different types of display rotations that can be set on the player.
 enum DisplayRotation {
   /// No rotation.
-  rotation_0,
+  rotation0,
 
   /// 90 degrees rotation.
-  rotation_90,
+  rotation90,
 
   /// 180 degrees rotation.
-  rotation_180,
+  rotation180,
 
   /// 270 degrees rotation.
-  rotation_270,
+  rotation270,
 }
 
 /// Sets the video screen mode in the specified display area.
 enum DisplayMode {
   /// player display mode letter box
-  display_mode_letter_box,
+  letterBox,
 
   /// player display mode origin size
-  display_mode_origin_size,
+  originSize,
 
   /// player display mode full screen
-  display_mode_full_screen,
+  fullScreen,
 
   /// player display mode cropped full
-  display_mode_cropped_full,
+  croppedFull,
 
   /// player display mode origin or letter
-  display_mode_origin_or_letter,
+  originOrLetter,
 
   /// player display mode dst roi
-  display_mode_dst_roi,
+  dstRoi,
 
   /// player display mode auto aspect ratio
-  display_mode_auto_aspect_ratio,
+  autoAspectRatio,
 
   /// player display mode dst roi auto aspect ratio
-  dispaly_mode_dst_roi_auto_aspect_ratio,
+  dstRoiAutoAspectRatio,
 }
 
 /// Event emitted from the platform implementation.
