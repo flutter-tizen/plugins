@@ -444,6 +444,49 @@ class BufferConfigMessage {
   int64_t buffer_config_value_;
 };
 
+// Generated class from Pigeon that represents data sent in messages.
+class RotationMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit RotationMessage(int64_t player_id, int64_t rotation);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  int64_t rotation() const;
+  void set_rotation(int64_t value_arg);
+
+ private:
+  static RotationMessage FromEncodableList(const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerAvplayApi;
+  friend class VideoPlayerAvplayApiCodecSerializer;
+  int64_t player_id_;
+  int64_t rotation_;
+};
+
+// Generated class from Pigeon that represents data sent in messages.
+class DisplayModeMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit DisplayModeMessage(int64_t player_id, int64_t display_mode);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  int64_t display_mode() const;
+  void set_display_mode(int64_t value_arg);
+
+ private:
+  static DisplayModeMessage FromEncodableList(
+      const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerAvplayApi;
+  friend class VideoPlayerAvplayApiCodecSerializer;
+  int64_t player_id_;
+  int64_t display_mode_;
+};
+
 class VideoPlayerAvplayApiCodecSerializer
     : public flutter::StandardCodecSerializer {
  public:
@@ -495,6 +538,8 @@ class VideoPlayerAvplayApi {
   virtual ErrorOr<bool> SetBufferConfig(const BufferConfigMessage& msg) = 0;
   virtual std::optional<FlutterError> SetStreamingProperty(
       const StreamingPropertyMessage& msg) = 0;
+  virtual ErrorOr<bool> SetDisplayRotate(const RotationMessage& msg) = 0;
+  virtual ErrorOr<bool> SetDisplayMode(const DisplayModeMessage& msg) = 0;
 
   // The codec used by VideoPlayerAvplayApi.
   static const flutter::StandardMessageCodec& GetCodec();

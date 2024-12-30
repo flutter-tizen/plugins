@@ -144,6 +144,16 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('setBufferConfig() has not been implemented.');
   }
 
+  /// Set the rotate angle of display.
+  Future<bool> setDisplayRotate(int playerId, DisplayRotation rotation) {
+    throw UnimplementedError('setDisplayRotate() has not been implemented.');
+  }
+
+  /// Set the video display mode.
+  Future<bool> setDisplayMode(int playerId, DisplayMode displayMode) {
+    throw UnimplementedError('setDisplayMode() has not been implemented.');
+  }
+
   /// Set streamingengine property.
   Future<void> setStreamingProperty(
       int playerId, StreamingPropertyType type, String value) {
@@ -351,6 +361,48 @@ enum BufferConfigType {
 
   /// Buffering timeout for play in seconds.
   bufferingTimeoutInSecForPlay,
+}
+
+/// The different types of display rotations that can be set on the player.
+enum DisplayRotation {
+  /// No rotation.
+  rotation0,
+
+  /// 90 degrees rotation.
+  rotation90,
+
+  /// 180 degrees rotation.
+  rotation180,
+
+  /// 270 degrees rotation.
+  rotation270,
+}
+
+/// Sets the video screen mode in the specified display area.
+enum DisplayMode {
+  /// player display mode letter box
+  letterBox,
+
+  /// player display mode origin size
+  originSize,
+
+  /// player display mode full screen
+  fullScreen,
+
+  /// player display mode cropped full
+  croppedFull,
+
+  /// player display mode origin or letter
+  originOrLetter,
+
+  /// player display mode dst roi
+  dstRoi,
+
+  /// player display mode auto aspect ratio
+  autoAspectRatio,
+
+  /// player display mode dst roi auto aspect ratio
+  dstRoiAutoAspectRatio,
 }
 
 /// Event emitted from the platform implementation.

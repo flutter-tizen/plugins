@@ -214,6 +214,18 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<bool> setDisplayRotate(int playerId, DisplayRotation rotation) {
+    return _api.setDisplayRotate(
+        RotationMessage(playerId: playerId, rotation: rotation.index));
+  }
+
+  @override
+  Future<bool> setDisplayMode(int playerId, DisplayMode displayMode) {
+    return _api.setDisplayMode(
+        DisplayModeMessage(playerId: playerId, displayMode: displayMode.index));
+  }
+
+  @override
   Future<void> setStreamingProperty(
       int playerId, StreamingPropertyType type, String value) async {
     await _api.setStreamingProperty(StreamingPropertyMessage(

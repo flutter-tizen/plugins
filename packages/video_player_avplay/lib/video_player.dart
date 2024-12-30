@@ -756,6 +756,24 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.setBufferConfig(_playerId, type, value);
   }
 
+  /// Set the rotate angle of display
+  Future<bool> setDisplayRotate(DisplayRotation rotation) async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+
+    return _videoPlayerPlatform.setDisplayRotate(_playerId, rotation);
+  }
+
+  /// Set the video display mode.
+  Future<bool> setDisplayMode(DisplayMode displayMode) async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+
+    return _videoPlayerPlatform.setDisplayMode(_playerId, displayMode);
+  }
+
   /// Sets the playback speed of [this].
   ///
   /// [speed] indicates a speed value with different platforms accepting

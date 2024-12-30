@@ -695,6 +695,65 @@ BufferConfigMessage BufferConfigMessage::FromEncodableList(
   return decoded;
 }
 
+// RotationMessage
+
+RotationMessage::RotationMessage(int64_t player_id, int64_t rotation)
+    : player_id_(player_id), rotation_(rotation) {}
+
+int64_t RotationMessage::player_id() const { return player_id_; }
+
+void RotationMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
+
+int64_t RotationMessage::rotation() const { return rotation_; }
+
+void RotationMessage::set_rotation(int64_t value_arg) { rotation_ = value_arg; }
+
+EncodableList RotationMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(2);
+  list.push_back(EncodableValue(player_id_));
+  list.push_back(EncodableValue(rotation_));
+  return list;
+}
+
+RotationMessage RotationMessage::FromEncodableList(const EncodableList& list) {
+  RotationMessage decoded(list[0].LongValue(), list[1].LongValue());
+  return decoded;
+}
+
+// DisplayModeMessage
+
+DisplayModeMessage::DisplayModeMessage(int64_t player_id, int64_t display_mode)
+    : player_id_(player_id), display_mode_(display_mode) {}
+
+int64_t DisplayModeMessage::player_id() const { return player_id_; }
+
+void DisplayModeMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
+
+int64_t DisplayModeMessage::display_mode() const { return display_mode_; }
+
+void DisplayModeMessage::set_display_mode(int64_t value_arg) {
+  display_mode_ = value_arg;
+}
+
+EncodableList DisplayModeMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(2);
+  list.push_back(EncodableValue(player_id_));
+  list.push_back(EncodableValue(display_mode_));
+  return list;
+}
+
+DisplayModeMessage DisplayModeMessage::FromEncodableList(
+    const EncodableList& list) {
+  DisplayModeMessage decoded(list[0].LongValue(), list[1].LongValue());
+  return decoded;
+}
+
 VideoPlayerAvplayApiCodecSerializer::VideoPlayerAvplayApiCodecSerializer() {}
 
 EncodableValue VideoPlayerAvplayApiCodecSerializer::ReadValueOfType(
@@ -707,43 +766,49 @@ EncodableValue VideoPlayerAvplayApiCodecSerializer::ReadValueOfType(
       return CustomEncodableValue(CreateMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 130:
-      return CustomEncodableValue(DurationMessage::FromEncodableList(
+      return CustomEncodableValue(DisplayModeMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 131:
-      return CustomEncodableValue(GeometryMessage::FromEncodableList(
+      return CustomEncodableValue(DurationMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 132:
-      return CustomEncodableValue(LoopingMessage::FromEncodableList(
+      return CustomEncodableValue(GeometryMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 133:
-      return CustomEncodableValue(MixWithOthersMessage::FromEncodableList(
+      return CustomEncodableValue(LoopingMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 134:
-      return CustomEncodableValue(PlaybackSpeedMessage::FromEncodableList(
+      return CustomEncodableValue(MixWithOthersMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 135:
-      return CustomEncodableValue(PlayerMessage::FromEncodableList(
+      return CustomEncodableValue(PlaybackSpeedMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 136:
-      return CustomEncodableValue(PositionMessage::FromEncodableList(
+      return CustomEncodableValue(PlayerMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 137:
-      return CustomEncodableValue(SelectedTracksMessage::FromEncodableList(
+      return CustomEncodableValue(PositionMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 138:
-      return CustomEncodableValue(StreamingPropertyMessage::FromEncodableList(
+      return CustomEncodableValue(RotationMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     case 139:
+      return CustomEncodableValue(SelectedTracksMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    case 140:
+      return CustomEncodableValue(StreamingPropertyMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    case 141:
       return CustomEncodableValue(
           StreamingPropertyTypeMessage::FromEncodableList(
               std::get<EncodableList>(ReadValue(stream))));
-    case 140:
+    case 142:
       return CustomEncodableValue(TrackMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
-    case 141:
+    case 143:
       return CustomEncodableValue(TrackTypeMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
-    case 142:
+    case 144:
       return CustomEncodableValue(VolumeMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     default:
@@ -771,8 +836,15 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
           stream);
       return;
     }
-    if (custom_value->type() == typeid(DurationMessage)) {
+    if (custom_value->type() == typeid(DisplayModeMessage)) {
       stream->WriteByte(130);
+      WriteValue(EncodableValue(std::any_cast<DisplayModeMessage>(*custom_value)
+                                    .ToEncodableList()),
+                 stream);
+      return;
+    }
+    if (custom_value->type() == typeid(DurationMessage)) {
+      stream->WriteByte(131);
       WriteValue(
           EncodableValue(
               std::any_cast<DurationMessage>(*custom_value).ToEncodableList()),
@@ -780,7 +852,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(GeometryMessage)) {
-      stream->WriteByte(131);
+      stream->WriteByte(132);
       WriteValue(
           EncodableValue(
               std::any_cast<GeometryMessage>(*custom_value).ToEncodableList()),
@@ -788,7 +860,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(LoopingMessage)) {
-      stream->WriteByte(132);
+      stream->WriteByte(133);
       WriteValue(
           EncodableValue(
               std::any_cast<LoopingMessage>(*custom_value).ToEncodableList()),
@@ -796,7 +868,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(MixWithOthersMessage)) {
-      stream->WriteByte(133);
+      stream->WriteByte(134);
       WriteValue(
           EncodableValue(std::any_cast<MixWithOthersMessage>(*custom_value)
                              .ToEncodableList()),
@@ -804,7 +876,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(PlaybackSpeedMessage)) {
-      stream->WriteByte(134);
+      stream->WriteByte(135);
       WriteValue(
           EncodableValue(std::any_cast<PlaybackSpeedMessage>(*custom_value)
                              .ToEncodableList()),
@@ -812,7 +884,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(PlayerMessage)) {
-      stream->WriteByte(135);
+      stream->WriteByte(136);
       WriteValue(
           EncodableValue(
               std::any_cast<PlayerMessage>(*custom_value).ToEncodableList()),
@@ -820,15 +892,23 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(PositionMessage)) {
-      stream->WriteByte(136);
+      stream->WriteByte(137);
       WriteValue(
           EncodableValue(
               std::any_cast<PositionMessage>(*custom_value).ToEncodableList()),
           stream);
       return;
     }
+    if (custom_value->type() == typeid(RotationMessage)) {
+      stream->WriteByte(138);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<RotationMessage>(*custom_value).ToEncodableList()),
+          stream);
+      return;
+    }
     if (custom_value->type() == typeid(SelectedTracksMessage)) {
-      stream->WriteByte(137);
+      stream->WriteByte(139);
       WriteValue(
           EncodableValue(std::any_cast<SelectedTracksMessage>(*custom_value)
                              .ToEncodableList()),
@@ -836,7 +916,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(StreamingPropertyMessage)) {
-      stream->WriteByte(138);
+      stream->WriteByte(140);
       WriteValue(
           EncodableValue(std::any_cast<StreamingPropertyMessage>(*custom_value)
                              .ToEncodableList()),
@@ -844,7 +924,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(StreamingPropertyTypeMessage)) {
-      stream->WriteByte(139);
+      stream->WriteByte(141);
       WriteValue(EncodableValue(
                      std::any_cast<StreamingPropertyTypeMessage>(*custom_value)
                          .ToEncodableList()),
@@ -852,7 +932,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(TrackMessage)) {
-      stream->WriteByte(140);
+      stream->WriteByte(142);
       WriteValue(
           EncodableValue(
               std::any_cast<TrackMessage>(*custom_value).ToEncodableList()),
@@ -860,7 +940,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(TrackTypeMessage)) {
-      stream->WriteByte(141);
+      stream->WriteByte(143);
       WriteValue(
           EncodableValue(
               std::any_cast<TrackTypeMessage>(*custom_value).ToEncodableList()),
@@ -868,7 +948,7 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
       return;
     }
     if (custom_value->type() == typeid(VolumeMessage)) {
-      stream->WriteByte(142);
+      stream->WriteByte(144);
       WriteValue(
           EncodableValue(
               std::any_cast<VolumeMessage>(*custom_value).ToEncodableList()),
@@ -1575,6 +1655,76 @@ void VideoPlayerAvplayApi::SetUp(flutter::BinaryMessenger* binary_messenger,
               }
               EncodableList wrapped;
               wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel->SetMessageHandler(nullptr);
+    }
+  }
+  {
+    auto channel = std::make_unique<BasicMessageChannel<>>(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
+        "setDisplayRotate",
+        &GetCodec());
+    if (api != nullptr) {
+      channel->SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const RotationMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<bool> output = api->SetDisplayRotate(msg_arg);
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel->SetMessageHandler(nullptr);
+    }
+  }
+  {
+    auto channel = std::make_unique<BasicMessageChannel<>>(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
+        "setDisplayMode",
+        &GetCodec());
+    if (api != nullptr) {
+      channel->SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const DisplayModeMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<bool> output = api->SetDisplayMode(msg_arg);
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
               reply(EncodableValue(std::move(wrapped)));
             } catch (const std::exception& exception) {
               reply(WrapError(exception.what()));

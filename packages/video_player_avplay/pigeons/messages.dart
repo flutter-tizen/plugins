@@ -111,6 +111,24 @@ class BufferConfigMessage {
   int bufferConfigValue;
 }
 
+class RotationMessage {
+  RotationMessage(
+    this.playerId,
+    this.rotation,
+  );
+  int playerId;
+  int rotation;
+}
+
+class DisplayModeMessage {
+  DisplayModeMessage(
+    this.playerId,
+    this.displayMode,
+  );
+  int playerId;
+  int displayMode;
+}
+
 @HostApi()
 abstract class VideoPlayerAvplayApi {
   void initialize();
@@ -134,4 +152,6 @@ abstract class VideoPlayerAvplayApi {
   String getStreamingProperty(StreamingPropertyTypeMessage msg);
   bool setBufferConfig(BufferConfigMessage msg);
   void setStreamingProperty(StreamingPropertyMessage msg);
+  bool setDisplayRotate(RotationMessage msg);
+  bool setDisplayMode(DisplayModeMessage msg);
 }

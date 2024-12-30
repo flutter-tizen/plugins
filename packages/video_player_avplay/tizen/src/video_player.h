@@ -55,9 +55,10 @@ class VideoPlayer {
   virtual bool SetBufferConfig(const std::string &key, int64_t value) {
     return false;
   };
-
   virtual void SetStreamingProperty(const std::string &type,
                                     const std::string &value){};
+  virtual bool SetDisplayRotate(int64_t rotation) = 0;
+  virtual bool SetDisplayMode(int64_t display_mode) = 0;
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;

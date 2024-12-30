@@ -411,7 +411,7 @@ bool PlusPlayer::SetDisplay() {
     return false;
   }
 
-  ret = SetDisplayMode(player_, plusplayer::DisplayMode::kDstRoi);
+  ret = ::SetDisplayMode(player_, plusplayer::DisplayMode::kDstRoi);
   if (!ret) {
     LOG_ERROR("[PlusPlayer] Player fail to set display mode.");
     return false;
@@ -629,6 +629,38 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
   LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
            value.c_str());
   ::SetStreamingProperty(player_, type, value);
+}
+
+bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return false;
+  }
+
+  plusplayer::State state = GetState(player_);
+  if (state == plusplayer::State::kNone) {
+    LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
+    return false;
+  }
+
+  LOG_INFO("[PlusPlayer] rotation: %d", rotation);
+  return ::SetDisplayRotate(player_,
+                            static_cast<plusplayer::DisplayRotation>(rotation));
+}
+
+bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return false;
+  }
+
+  plusplayer::State state = GetState(player_);
+  if (state == plusplayer::State::kNone) {
+    LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
+    return false;
+  }
+  LOG_INFO("[PlusPlayer] display_mode: %d", display_mode);
+  ::SetDisplayMode(player_, static_cast<plusplayer::DisplayMode>(display_mode));
 }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
