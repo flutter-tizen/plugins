@@ -12,7 +12,7 @@ To use this package, add `video_player_avplay` as a dependency in your `pubspec.
 
 ```yaml
 dependencies:
-  video_player_avplay: ^0.5.9
+  video_player_avplay: ^0.5.10
 ```
 
 Then you can import `video_player_avplay` in your Dart code:
