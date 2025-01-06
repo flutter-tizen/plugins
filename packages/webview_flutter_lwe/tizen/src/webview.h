@@ -17,6 +17,8 @@
 #include <mutex>
 #include <string>
 
+#include "message_dispatcher.h"
+
 typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
@@ -66,6 +68,7 @@ class WebView : public PlatformView {
   void InitWebView();
 
   LWE::WebContainer* webview_instance_ = nullptr;
+  MessageDispatcher* dispatcher = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
   double width_;
   double height_;
