@@ -9,7 +9,7 @@
 MessageDispatcher::MessageDispatcher() { ecore_init(); }
 MessageDispatcher::~MessageDispatcher() { ecore_shutdown(); }
 
-void MessageDispatcher::dispatchTaskOnMainThread(std::function<void()> fn) {
+void MessageDispatcher::dispatchTaskOnMainThread(std::function<void()>&& fn) {
   ecore_main_loop_thread_safe_call_sync(
       [](void* data) -> void* {
         auto fn = static_cast<std::function<void()>*>(data);

@@ -12,7 +12,7 @@ class MessageDispatcher {
   MessageDispatcher();
   ~MessageDispatcher();
 
-  void dispatchTaskOnMainThread(std::function<void()> fn);
+  void dispatchTaskOnMainThread(std::function<void()>&& fn);
 };
 
 #endif  // FLUTTER_PLUGIN_MESSAGE_DISPATCHER_H_
