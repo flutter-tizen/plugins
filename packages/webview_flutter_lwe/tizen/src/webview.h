@@ -68,7 +68,6 @@ class WebView : public PlatformView {
   void InitWebView();
 
   LWE::WebContainer* webview_instance_ = nullptr;
-  MessageDispatcher* dispatcher = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
   double width_;
   double height_;
@@ -77,6 +76,7 @@ class WebView : public PlatformView {
   BufferUnit* rendered_surface_ = nullptr;
   bool is_mouse_lbutton_down_ = false;
   bool has_navigation_delegate_ = false;
+  std::unique_ptr<MessageDispatcher> dispatcher_;
   std::unique_ptr<FlMethodChannel> webview_channel_;
   std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;

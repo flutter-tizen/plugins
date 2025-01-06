@@ -125,7 +125,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   InitWebView();
 
-  dispatcher = new MessageDispatcher();
+  dispatcher_ = std::make_unique<MessageDispatcher>();
 
   webview_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetWebViewChannelName(),
@@ -150,18 +150,20 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   webview_instance_->RegisterOnPageStartedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
-        dispatcher->dispatchTaskOnMainThread([&]() {
-          flutter::EncodableMap args = {
-              {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
+        flutter::EncodableMap args = {
+            {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
+
+        dispatcher_->dispatchTaskOnMainThread([this, &args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onPageStarted", std::make_unique<flutter::EncodableValue>(args));
         });
       });
   webview_instance_->RegisterOnPageLoadedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
-        dispatcher->dispatchTaskOnMainThread([&]() {
-          flutter::EncodableMap args = {
-              {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
+        flutter::EncodableMap args = {
+            {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
+
+        dispatcher_->dispatchTaskOnMainThread([this, &args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onPageFinished",
               std::make_unique<flutter::EncodableValue>(args));
@@ -169,24 +171,26 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
       });
   webview_instance_->RegisterOnProgressChangedHandler(
       [this](LWE::WebContainer* container, int progress) {
-        dispatcher->dispatchTaskOnMainThread([&]() {
-          flutter::EncodableMap args = {{flutter::EncodableValue("progress"),
-                                         flutter::EncodableValue(progress)}};
+        flutter::EncodableMap args = {{flutter::EncodableValue("progress"),
+                                       flutter::EncodableValue(progress)}};
+
+        dispatcher_->dispatchTaskOnMainThread([this, &args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onProgress", std::make_unique<flutter::EncodableValue>(args));
         });
       });
   webview_instance_->RegisterOnReceivedErrorHandler(
       [this](LWE::WebContainer* container, LWE::ResourceError error) {
-        dispatcher->dispatchTaskOnMainThread([&]() {
-          flutter::EncodableMap args = {
-              {flutter::EncodableValue("errorCode"),
-               flutter::EncodableValue(error.GetErrorCode())},
-              {flutter::EncodableValue("description"),
-               flutter::EncodableValue(error.GetDescription())},
-              {flutter::EncodableValue("failingUrl"),
-               flutter::EncodableValue(error.GetUrl())},
-          };
+        flutter::EncodableMap args = {
+            {flutter::EncodableValue("errorCode"),
+             flutter::EncodableValue(error.GetErrorCode())},
+            {flutter::EncodableValue("description"),
+             flutter::EncodableValue(error.GetDescription())},
+            {flutter::EncodableValue("failingUrl"),
+             flutter::EncodableValue(error.GetUrl())},
+        };
+
+        dispatcher_->dispatchTaskOnMainThread([this, &args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onWebResourceError",
               std::make_unique<flutter::EncodableValue>(args));
@@ -197,12 +201,13 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         if (!has_navigation_delegate_) {
           return false;
         }
-        dispatcher->dispatchTaskOnMainThread([&]() {
-          flutter::EncodableMap args = {
-              {flutter::EncodableValue("url"), flutter::EncodableValue(url)},
-              {flutter::EncodableValue("isForMainFrame"),
-               flutter::EncodableValue(true)},
-          };
+        flutter::EncodableMap args = {
+            {flutter::EncodableValue("url"), flutter::EncodableValue(url)},
+            {flutter::EncodableValue("isForMainFrame"),
+             flutter::EncodableValue(true)},
+        };
+
+        dispatcher_->dispatchTaskOnMainThread([this, &args, url]() {
           auto result = std::make_unique<NavigationRequestResult>(url, this);
           navigation_delegate_channel_->InvokeMethod(
               "navigationRequest",
@@ -226,7 +231,7 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
         {flutter::EncodableValue("channel"), flutter::EncodableValue(name)},
         {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
     };
-    dispatcher->dispatchTaskOnMainThread([&]() {
+    dispatcher_->dispatchTaskOnMainThread([this, &args]() {
       webview_channel_->InvokeMethod(
           "javaScriptChannelMessage",
           std::make_unique<flutter::EncodableValue>(args));
@@ -253,11 +258,6 @@ void WebView::Dispose() {
   if (webview_instance_) {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
-  }
-
-  if (dispatcher) {
-    delete dispatcher;
-    dispatcher = nullptr;
   }
 }
 

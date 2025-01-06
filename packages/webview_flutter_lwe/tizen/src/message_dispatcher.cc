@@ -10,19 +10,11 @@ MessageDispatcher::MessageDispatcher() { ecore_init(); }
 MessageDispatcher::~MessageDispatcher() { ecore_shutdown(); }
 
 void MessageDispatcher::dispatchTaskOnMainThread(std::function<void()> fn) {
-  struct Param {
-    std::function<void()> fn;
-  };
-
-  Param* p = new Param;
-  p->fn = fn;
-
   ecore_main_loop_thread_safe_call_sync(
       [](void* data) -> void* {
-        Param* p = (Param*)data;
-        p->fn();
-        delete p;
+        auto fn = static_cast<std::function<void()>*>(data);
+        if (fn) (*fn)();
         return nullptr;
       },
-      p);
+      &fn);
 }
