@@ -17,6 +17,8 @@
 #include <mutex>
 #include <string>
 
+#include "message_dispatcher.h"
+
 typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
@@ -74,6 +76,7 @@ class WebView : public PlatformView {
   BufferUnit* rendered_surface_ = nullptr;
   bool is_mouse_lbutton_down_ = false;
   bool has_navigation_delegate_ = false;
+  std::unique_ptr<MessageDispatcher> dispatcher_;
   std::unique_ptr<FlMethodChannel> webview_channel_;
   std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
