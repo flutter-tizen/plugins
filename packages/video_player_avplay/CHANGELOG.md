@@ -1,3 +1,7 @@
+## 0.5.11
+
+* Add check platform and api version.
+
 ## 0.5.10
 
 * Add setDisplayRotate API

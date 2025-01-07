@@ -6,9 +6,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_tizen/flutter_tizen.dart';
 
 import 'src/closed_caption_file.dart';
 import 'src/drm_configs.dart';
@@ -369,8 +371,24 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   final MethodChannel _channel =
       const MethodChannel('dev.flutter.videoplayer.drm');
 
+  Future<void> _checkPlatformAndApiVersion() async {
+    final DeviceInfoPluginTizen deviceInfoPlugin = DeviceInfoPluginTizen();
+    final TizenDeviceInfo deviceInfo = await deviceInfoPlugin.tizenInfo;
+
+    if (deviceInfo.platformVersion != apiVersion) {
+      throw Exception(
+          'The current TizenOS version(${deviceInfo.platformVersion}) '
+          'and the app API version($apiVersion) are different. '
+          'The avplay plugin does not guarantee compatibility with '
+          'other versions. Therefore, please set the "api-version" '
+          'in tizen-manifest.xml to match the TizenOS version and rebuild.');
+    }
+  }
+
   /// Attempts to open the given [dataSource] and load metadata about the video.
   Future<void> initialize() async {
+    await _checkPlatformAndApiVersion();
+
     final bool allowBackgroundPlayback =
         videoPlayerOptions?.allowBackgroundPlayback ?? false;
     if (!allowBackgroundPlayback) {
