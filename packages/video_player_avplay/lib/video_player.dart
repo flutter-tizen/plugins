@@ -375,7 +375,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     final DeviceInfoPluginTizen deviceInfoPlugin = DeviceInfoPluginTizen();
     final TizenDeviceInfo deviceInfo = await deviceInfoPlugin.tizenInfo;
 
-    if (deviceInfo.platformVersion != apiVersion) {
+    if ((deviceInfo.platformVersion != null &&
+            deviceInfo.platformVersion!.isNotEmpty) &&
+        apiVersion != 'none' &&
+        (deviceInfo.platformVersion != apiVersion)) {
       throw Exception(
           'The current TizenOS version(${deviceInfo.platformVersion}) '
           'and the app API version($apiVersion) are different. '
