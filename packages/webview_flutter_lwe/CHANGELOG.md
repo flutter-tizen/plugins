@@ -1,6 +1,7 @@
-## NEXT
+## 0.3.5
 
 * Fix an issue where platform channel isn't called on the main thread.
+* Update lightweight web engine(1.3.7) to fix a crash issue that occurs when opening https://flutter.dev
 
 ## 0.3.4
 
