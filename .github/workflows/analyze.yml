@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   dart_analyze:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
@@ -14,7 +14,7 @@ jobs:
         run: ./tools/tools_runner.sh analyze --custom-analysis=$(ls packages | tr '\n' ',')
 
   format:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
