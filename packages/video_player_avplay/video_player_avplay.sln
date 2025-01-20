@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "example", "example", "{1D587995-D2B1-D47C-23B4-E8E972FA15E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runner", "example\tizen\Runner.csproj", "{D793293C-23D7-E417-2D40-71E25EB896BB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D793293C-23D7-E417-2D40-71E25EB896BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D793293C-23D7-E417-2D40-71E25EB896BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D793293C-23D7-E417-2D40-71E25EB896BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D793293C-23D7-E417-2D40-71E25EB896BB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D793293C-23D7-E417-2D40-71E25EB896BB} = {1D587995-D2B1-D47C-23B4-E8E972FA15E9}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {603DEBE9-81DA-44ED-9D93-E3D7133AFAD9}
+	EndGlobalSection
+EndGlobal
