@@ -241,6 +241,10 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
   webview_instance_->AddJavaScriptInterface(name, "postMessage", on_message);
 }
 
+void WebView::UnregisterJavaScriptChannelName(const std::string& name) {
+  webview_instance_->RemoveJavascriptInterface(name, "postMessage");
+}
+
 WebView::~WebView() { Dispose(); }
 
 std::string WebView::GetWebViewChannelName() {
@@ -655,6 +659,12 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       RegisterJavaScriptChannelName(*channel);
     }
     result->Success();
+  } else if (method_name == "removeJavaScriptChannel") {
+    const auto* channel = std::get_if<std::string>(arguments);
+    if (channel) {
+      UnregisterJavaScriptChannelName(*channel);
+    }
+    result->Success();
   } else if (method_name == "clearCache") {
     webview_instance_->ClearCache();
     result->Success();
@@ -725,13 +735,15 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       result->Error("Invalid argument", "The argument must be a string.");
     }
   } else if (method_name == "backgroundColor") {
-    const auto* color = std::get_if<int32_t>(arguments);
+    const auto* color = std::get_if<int64_t>(arguments);
     if (color) {
       LWE::Settings settings = webview_instance_->GetSettings();
       settings.SetBaseBackgroundColor(*color >> 16 & 0xff, *color >> 8 & 0xff,
                                       *color & 0xff, *color >> 24 & 0xff);
       webview_instance_->SetSettings(settings);
       result->Success();
+    } else {
+      result->Error("Invalid argument", "The argument must be a int64_t.");
     }
   } else if (method_name == "setUserAgent") {
     const auto* user_agent = std::get_if<std::string>(arguments);

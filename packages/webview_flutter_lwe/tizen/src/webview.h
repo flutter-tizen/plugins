@@ -62,6 +62,7 @@ class WebView : public PlatformView {
                               std::unique_ptr<FlMethodResult> result);
 
   void RegisterJavaScriptChannelName(const std::string& name);
+  void UnregisterJavaScriptChannelName(const std::string& name);
   std::string GetWebViewChannelName();
   std::string GetNavigationDelegateChannelName();
 

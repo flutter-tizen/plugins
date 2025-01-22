@@ -169,10 +169,33 @@ class LweWebView {
   /// Adds a new JavaScript channel to the set of enabled channels.
   Future<void> addJavaScriptChannel(
       JavaScriptChannelParams javaScriptChannelParams) {
+    // When JavaScript channel with the same name exists make sure to remove it
+    // before registering the new channel.
+    if (_javaScriptChannelParams.containsKey(javaScriptChannelParams.name)) {
+      _invokeChannelMethod<void>(
+          'removeJavaScriptChannel', javaScriptChannelParams.name);
+    }
+
     _javaScriptChannelParams[javaScriptChannelParams.name] =
         javaScriptChannelParams;
+
     return _invokeChannelMethod<void>(
         'addJavaScriptChannel', javaScriptChannelParams.name);
+  }
+
+  /// Removes the JavaScript channel with the matching name from the set of
+  /// enabled channels.
+  Future<void> removeJavaScriptChannel(String javaScriptChannelName) async {
+    final JavaScriptChannelParams? params =
+        _javaScriptChannelParams[javaScriptChannelName];
+
+    if (params == null) {
+      return;
+    }
+
+    _javaScriptChannelParams.remove(javaScriptChannelName);
+    return _invokeChannelMethod<void>(
+        'removeJavaScriptChannel', javaScriptChannelName);
   }
 
   /// Runs the given JavaScript in the context of the current page.
