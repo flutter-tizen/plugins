@@ -1,6 +1,10 @@
-## NEXT
+## 2.1.3
 
-* Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Update minimum Flutter and Dart version to 3.19 and 3.3.
+* Remove `file` scheme from supportedSchemes.
+* Update the example app.
+* Update url_launcher to 6.3.1.
+* Update url_launcher_platform_interface to 2.3.2.
 
 ## 2.1.2
 

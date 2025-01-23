@@ -9,7 +9,6 @@ import 'package:url_launcher_platform_interface/url_launcher_platform_interface.
 /// The Tizen implementation of [UrlLauncherPlatform].
 class UrlLauncherPlugin extends UrlLauncherPlatform {
   static final Set<String> _supportedSchemes = <String>{
-    'file',
     'http',
     'https',
   };
@@ -45,5 +44,15 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
       uri: url,
     ).sendLaunchRequest();
     return true;
+  }
+
+  @override
+  Future<void> closeWebView() {
+    throw UnimplementedError('closeWebView() is not supported.');
+  }
+
+  @override
+  Future<bool> supportsCloseForMode(PreferredLaunchMode mode) {
+    return Future<bool>.value(false);
   }
 }

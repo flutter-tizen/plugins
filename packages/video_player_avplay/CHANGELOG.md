@@ -1,4 +1,4 @@
-## 0.5.12  
+## 0.5.13  
 
 * Update plusplayer
   1. [HLS] Corrected MA info event processing. Error messages posting to bms.
@@ -20,7 +20,11 @@
   17. [PLAYER] Applying boost to avoid contention on multiqueue src pad.
   18. [DASH] Fix Dash streaming audio codec swithcing failed.
   19. [DASH] Fix glitch (during no catching state , it change plyaback rate larger than 1.0).
-  20. [DASH] Add tc for dash sw decoder seeking.  
+  20. [DASH] Add tc for dash sw decoder seeking.
+
+## 0.5.12
+
+* Revert 0.5.9 version, this PR will cause fail to play DRM issue.
 
 ## 0.5.11
 

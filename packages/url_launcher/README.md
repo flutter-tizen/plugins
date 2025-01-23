@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `url_launcher`. Therefore, y
 
 ```yaml
 dependencies:
-  url_launcher: ^6.1.0
-  url_launcher_tizen: ^2.1.2
+  url_launcher: ^6.3.1
+  url_launcher_tizen: ^2.1.3
 ```
 
 Then you can import `url_launcher` in your Dart code:
