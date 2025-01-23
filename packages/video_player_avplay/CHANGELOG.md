@@ -1,3 +1,7 @@
+## 0.5.12
+
+* Revert 0.5.9 version, this PR will cause fail to play DRM issue.
+
 ## 0.5.11
 
 * Add check platform and api version.
