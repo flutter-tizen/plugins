@@ -1,3 +1,27 @@
+## 0.5.13  
+
+* Update plusplayer
+  1. [HLS] Corrected MA info event processing. Error messages posting to bms.
+  2. [HLS] Ignore padding bytes generated withmmplayer+aes-128 content.  
+  3. [HLS] Logging improvement (print segment duration).  
+  4. [HLS] Fix for security issue in Hlstracksource.
+  5. [HLS] Removed un-used property setting to mq.
+  6. [HLS] HLS UT : Daterange and SCTE53 related UTs added.
+  7. [PLAYER] Added handling to avoid seektolive trigger in non-playing state. 
+  8. [PLAYER] Corrected player error incase 4k is played in multiveiw.
+  9. [PLAYER] Added check to enable boost for 23year onwards only & apply boost in feeder&mq threads for low latency also.
+  10. [PLAYER] DateRange exception handling with SCTE35.
+  11. [PLAYER] Exception handling propogation for Curl Reset.
+  12. [PLAYER] Added code to relax thread throttling.
+  13. [PLAYER] Expose live start.
+  14. [PLAYER] Add ut to test -2x~-16x playback rate.
+  15. [PLAYER] Reduce waiting time before downloading segment for hbbtv TC.
+  16. [PLAYER] In feeder registering thread for boosting only.
+  17. [PLAYER] Applying boost to avoid contention on multiqueue src pad.
+  18. [DASH] Fix Dash streaming audio codec swithcing failed.
+  19. [DASH] Fix glitch (during no catching state , it change plyaback rate larger than 1.0).
+  20. [DASH] Add tc for dash sw decoder seeking.
+
 ## 0.5.12
 
 * Revert 0.5.9 version, this PR will cause fail to play DRM issue.
