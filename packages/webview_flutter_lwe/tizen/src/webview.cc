@@ -153,7 +153,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, &args]() {
+        dispatcher_->dispatchTaskOnMainThread([this, args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onPageStarted", std::make_unique<flutter::EncodableValue>(args));
         });
@@ -163,7 +163,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, &args]() {
+        dispatcher_->dispatchTaskOnMainThread([this, args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onPageFinished",
               std::make_unique<flutter::EncodableValue>(args));
@@ -174,7 +174,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         flutter::EncodableMap args = {{flutter::EncodableValue("progress"),
                                        flutter::EncodableValue(progress)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, &args]() {
+        dispatcher_->dispatchTaskOnMainThread([this, args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onProgress", std::make_unique<flutter::EncodableValue>(args));
         });
@@ -189,8 +189,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
             {flutter::EncodableValue("failingUrl"),
              flutter::EncodableValue(error.GetUrl())},
         };
-
-        dispatcher_->dispatchTaskOnMainThread([this, &args]() {
+        dispatcher_->dispatchTaskOnMainThread([this, args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onWebResourceError",
               std::make_unique<flutter::EncodableValue>(args));
@@ -207,7 +206,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
              flutter::EncodableValue(true)},
         };
 
-        dispatcher_->dispatchTaskOnMainThread([this, &args, url]() {
+        dispatcher_->dispatchTaskOnMainThread([this, args, url]() {
           auto result = std::make_unique<NavigationRequestResult>(url, this);
           navigation_delegate_channel_->InvokeMethod(
               "navigationRequest",
@@ -231,7 +230,8 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
         {flutter::EncodableValue("channel"), flutter::EncodableValue(name)},
         {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
     };
-    dispatcher_->dispatchTaskOnMainThread([this, &args]() {
+
+    dispatcher_->dispatchTaskOnMainThread([this, args]() {
       webview_channel_->InvokeMethod(
           "javaScriptChannelMessage",
           std::make_unique<flutter::EncodableValue>(args));
@@ -587,6 +587,14 @@ void WebView::InitWebView() {
 #endif
 }
 
+template <typename T>
+void WebView::SetBackgroundColor(const T& color) {
+  LWE::Settings settings = webview_instance_->GetSettings();
+  settings.SetBaseBackgroundColor(color >> 16 & 0xff, color >> 8 & 0xff,
+                                  color & 0xff, color >> 24 & 0xff);
+  webview_instance_->SetSettings(settings);
+}
+
 void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
                                       std::unique_ptr<FlMethodResult> result) {
   if (!webview_instance_) {
@@ -735,15 +743,15 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       result->Error("Invalid argument", "The argument must be a string.");
     }
   } else if (method_name == "backgroundColor") {
-    const auto* color = std::get_if<int64_t>(arguments);
-    if (color) {
-      LWE::Settings settings = webview_instance_->GetSettings();
-      settings.SetBaseBackgroundColor(*color >> 16 & 0xff, *color >> 8 & 0xff,
-                                      *color & 0xff, *color >> 24 & 0xff);
-      webview_instance_->SetSettings(settings);
+    if (std::holds_alternative<int32_t>(*arguments)) {
+      SetBackgroundColor(std::get<int32_t>(*arguments));
+      result->Success();
+    } else if (std::holds_alternative<int64_t>(*arguments)) {
+      SetBackgroundColor(std::get<int64_t>(*arguments));
       result->Success();
     } else {
-      result->Error("Invalid argument", "The argument must be a int64_t.");
+      result->Error("Invalid argument",
+                    "The argument must be a int32_t or int64_t.");
     }
   } else if (method_name == "setUserAgent") {
     const auto* user_agent = std::get_if<std::string>(arguments);

@@ -4,6 +4,7 @@
 * Update webview_flutter to 4.10.0.
 * Update webview_flutter_platform_interface to 2.10.0.
 * Add removeJavaScriptChannel method call.
+* Fix deadlock issue caused by calling setBackgroundColor() after the WebViewController is created.
 
 ## 0.3.5
 

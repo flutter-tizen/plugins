@@ -61,6 +61,9 @@ class WebView : public PlatformView {
   void HandleCookieMethodCall(const FlMethodCall& method_call,
                               std::unique_ptr<FlMethodResult> result);
 
+  template <typename T>
+  void SetBackgroundColor(const T& color);
+
   void RegisterJavaScriptChannelName(const std::string& name);
   void UnregisterJavaScriptChannelName(const std::string& name);
   std::string GetWebViewChannelName();
