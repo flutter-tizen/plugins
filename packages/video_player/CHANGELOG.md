@@ -1,3 +1,7 @@
+## NEXT
+
+* Add ignore analyzer option to fix analyze issue.
+
 ## 2.5.4
 
 * Update video_player to 2.9.2.
