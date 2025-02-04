@@ -1,3 +1,11 @@
+## 0.3.6
+* Update minimum Flutter and Dart version to 3.24 and 3.5.
+* Update the example main app.
+* Update webview_flutter to 4.10.0.
+* Update webview_flutter_platform_interface to 2.10.0.
+* Add removeJavaScriptChannel method call.
+* Fix deadlock issue caused by calling setBackgroundColor() after the WebViewController is created.
+
 ## 0.3.5
 
 * Fix an issue where platform channel isn't called on the main thread.
