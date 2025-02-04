@@ -43,6 +43,13 @@ class TizenWebViewController extends PlatformWebViewController {
 
   void Function(JavaScriptConsoleMessage consoleMessage)? _onConsoleLogCallback;
 
+  Future<void> Function(JavaScriptAlertDialogRequest request)?
+      _onJavaScriptAlert;
+  Future<bool> Function(JavaScriptConfirmDialogRequest request)?
+      _onJavaScriptConfirm;
+  Future<String> Function(JavaScriptTextInputDialogRequest request)?
+      _onJavaScriptPrompt;
+
   late final MethodChannel _webviewControllerChannel;
 
   bool _enginePolicy = false;
@@ -75,6 +82,44 @@ class TizenWebViewController extends PlatformWebViewController {
               level: level,
               message: arguments['message']! as String,
             ));
+          }
+          return null;
+        case 'onJavascriptAlert':
+          final Future<void> Function(JavaScriptAlertDialogRequest)? callback =
+              _onJavaScriptAlert;
+          if (callback != null) {
+            final JavaScriptAlertDialogRequest request =
+                JavaScriptAlertDialogRequest(
+                    message: arguments['message']! as String,
+                    url: arguments['url']! as String);
+
+            await callback.call(request);
+            await _webview.javascriptAlertReply();
+          }
+          return null;
+        case 'onJavascriptConfirm':
+          final Future<bool> Function(JavaScriptConfirmDialogRequest)?
+              callback = _onJavaScriptConfirm;
+          if (callback != null) {
+            final JavaScriptConfirmDialogRequest request =
+                JavaScriptConfirmDialogRequest(
+                    message: arguments['message']! as String,
+                    url: arguments['url']! as String);
+            final bool result = await callback.call(request);
+            await _webview.javascriptConfirmReply(result);
+          }
+          return null;
+        case 'onJavascriptPrompt':
+          final Future<String> Function(JavaScriptTextInputDialogRequest)?
+              callback = _onJavaScriptPrompt;
+          if (callback != null) {
+            final JavaScriptTextInputDialogRequest request =
+                JavaScriptTextInputDialogRequest(
+                    message: arguments['message']! as String,
+                    url: arguments['url']! as String,
+                    defaultText: arguments['defaultText']! as String);
+            final String result = await callback.call(request);
+            await _webview.javascriptPromptReply(result);
           }
           return null;
       }
@@ -121,7 +166,6 @@ class TizenWebViewController extends PlatformWebViewController {
       throw ArgumentError(
           'LoadRequestParams#uri is required to have a scheme.');
     }
-
     switch (params.method) {
       case LoadRequestMethod.get:
         if (params.headers.isNotEmpty) {
@@ -176,8 +220,35 @@ class TizenWebViewController extends PlatformWebViewController {
   }
 
   @override
-  Future<void> setJavaScriptMode(JavaScriptMode javaScriptMode) =>
-      _webview.setJavaScriptMode(javaScriptMode.index);
+  Future<void> setPlatformNavigationDelegate(
+      covariant TizenNavigationDelegate handler) async {
+    _tizenNavigationDelegate = handler;
+    if (_webview.hasNavigationDelegate) {
+      _tizenNavigationDelegate.createNavigationDelegateChannel(_webview.viewId);
+    } else {
+      _webview.hasNavigationDelegate = true;
+    }
+  }
+
+  @override
+  Future<void> runJavaScript(String javaScript) =>
+      _webview.runJavaScript(javaScript);
+
+  @override
+  Future<Object> runJavaScriptReturningResult(String javaScript) =>
+      _webview.runJavaScriptReturningResult(javaScript);
+
+  @override
+  Future<void> addJavaScriptChannel(
+          JavaScriptChannelParams javaScriptChannelParams) =>
+      _webview.addJavaScriptChannel(javaScriptChannelParams);
+
+  @override
+  Future<void> removeJavaScriptChannel(String javaScriptChannelName) async {
+    throw UnimplementedError(
+        'This version of `TizenWebViewController` currently has no '
+        'implementation of `removeJavaScriptChannel`.');
+  }
 
   @override
   Future<String?> getTitle() => _webview.getTitle();
@@ -192,36 +263,31 @@ class TizenWebViewController extends PlatformWebViewController {
   Future<Offset> getScrollPosition() => _webview.getScrollPosition();
 
   @override
+  Future<void> enableZoom(bool enabled) => _webview.setSupportZoom(enabled);
+
+  @override
   Future<void> setBackgroundColor(Color color) =>
       _webview.setBackgroundColor(color);
 
   @override
-  Future<void> setPlatformNavigationDelegate(
-      covariant TizenNavigationDelegate handler) async {
-    _tizenNavigationDelegate = handler;
-    if (_webview.hasNavigationDelegate) {
-      _tizenNavigationDelegate.createNavigationDelegateChannel(_webview.viewId);
-    } else {
-      _webview.hasNavigationDelegate = true;
-    }
-  }
-
-  @override
-  Future<void> addJavaScriptChannel(
-          JavaScriptChannelParams javaScriptChannelParams) =>
-      _webview.addJavaScriptChannel(javaScriptChannelParams);
-
-  @override
-  Future<void> runJavaScript(String javaScript) =>
-      _webview.runJavaScript(javaScript);
-
-  @override
-  Future<Object> runJavaScriptReturningResult(String javaScript) =>
-      _webview.runJavaScriptReturningResult(javaScript);
+  Future<void> setJavaScriptMode(JavaScriptMode javaScriptMode) =>
+      _webview.setJavaScriptMode(javaScriptMode.index);
 
   @override
   Future<void> setUserAgent(String? userAgent) =>
       _webview.setUserAgent(userAgent);
+
+  @override
+  Future<void> setOnScrollPositionChange(
+      void Function(ScrollPositionChange scrollPositionChange)?
+          onScrollPositionChange) async {
+    throw UnimplementedError(
+        'This version of `TizenWebViewController` currently has no '
+        'implementation of `setOnScrollPositionChange`.');
+  }
+
+  @override
+  Future<String?> getUserAgent() => _webview.getUserAgent();
 
   @override
   Future<void> setOnPlatformPermissionRequest(
@@ -244,8 +310,24 @@ class TizenWebViewController extends PlatformWebViewController {
   }
 
   @override
-  Future<String?> getUserAgent() {
-    return _webview.getUserAgent();
+  Future<void> setOnJavaScriptAlertDialog(
+      Future<void> Function(JavaScriptAlertDialogRequest request)
+          onJavaScriptAlertDialog) async {
+    _onJavaScriptAlert = onJavaScriptAlertDialog;
+  }
+
+  @override
+  Future<void> setOnJavaScriptConfirmDialog(
+      Future<bool> Function(JavaScriptConfirmDialogRequest request)
+          onJavaScriptConfirmDialog) async {
+    _onJavaScriptConfirm = onJavaScriptConfirmDialog;
+  }
+
+  @override
+  Future<void> setOnJavaScriptTextInputDialog(
+      Future<String> Function(JavaScriptTextInputDialogRequest request)
+          onJavaScriptTextInputDialog) async {
+    _onJavaScriptPrompt = onJavaScriptTextInputDialog;
   }
 }
 
@@ -370,6 +452,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
     _navigationDelegateChannel.setMethodCallHandler((MethodCall call) async {
       final Map<String, Object?> arguments =
           (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
+
       switch (call.method) {
         case 'navigationRequest':
           return _handleNavigation(arguments['url']! as String,
@@ -464,6 +547,15 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
   }
 
   @override
+  Future<void> setOnHttpError(
+    HttpResponseErrorCallback onHttpError,
+  ) async {
+    throw UnimplementedError(
+        'This version of `TizenNavigationDelegate` currently has no '
+        'implementation for `setOnHttpError`');
+  }
+
+  @override
   Future<void> setOnProgress(
     ProgressCallback onProgress,
   ) async {
@@ -480,5 +572,14 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
   @override
   Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {
     _onUrlChange = onUrlChange;
+  }
+
+  @override
+  Future<void> setOnHttpAuthRequest(
+    HttpAuthRequestCallback onHttpAuthRequest,
+  ) async {
+    throw UnimplementedError(
+        'This version of `TizenNavigationDelegate` currently has no '
+        'implementation for `setOnHttpAuthRequest`');
   }
 }

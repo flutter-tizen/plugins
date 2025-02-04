@@ -7,8 +7,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -104,6 +104,39 @@ const String kLogExamplePage = '''
 </html>
 ''';
 
+const String kAlertTestPage = '''
+<!DOCTYPE html>
+<html>
+   <head>
+      <script type = "text/javascript">
+            function showAlert(text) {
+              console.log('showAlert(' + text + ')' )
+	            alert(text);
+            }
+
+            function showConfirm(text) {
+              var result = confirm(text);
+              alert(result);
+            }
+
+            function showPrompt(text, defaultText) {
+              var inputString = prompt('Enter input', 'Default text');
+	            alert(inputString);
+            }
+      </script>
+   </head>
+
+   <body>
+      <p> Click the following button to see the effect </p>
+      <form>
+        <input type = "button" value = "Alert" onclick = "showAlert('Test Alert');" />
+        <input type = "button" value = "Confirm" onclick = "showConfirm('Test Confirm');" />
+        <input type = "button" value = "Prompt" onclick = "showPrompt('Test Prompt', 'Default Value');" />
+      </form>
+   </body>
+</html>
+''';
+
 class WebViewExample extends StatefulWidget {
   const WebViewExample({super.key});
 
@@ -112,13 +145,21 @@ class WebViewExample extends StatefulWidget {
 }
 
 class _WebViewExampleState extends State<WebViewExample> {
-  final WebViewController _controller = WebViewController();
+  late final WebViewController _controller;
 
   @override
   void initState() {
     super.initState();
 
-    _controller
+    // #docregion platform_features
+    late final PlatformWebViewControllerCreationParams params;
+    params = const PlatformWebViewControllerCreationParams();
+
+    final WebViewController controller =
+        WebViewController.fromPlatformCreationParams(params);
+    // #enddocregion platform_features
+
+    controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
       ..setNavigationDelegate(
@@ -149,9 +190,17 @@ Page resource error:
             debugPrint('allowing navigation to ${request.url}');
             return NavigationDecision.navigate;
           },
+          // Note: onHttpError is not implemented by TizenWebview.
+          // onHttpError: (HttpResponseError error) {
+          //   debugPrint('Error occurred on page: ${error.response?.statusCode}');
+          // },
           onUrlChange: (UrlChange change) {
             debugPrint('url change to ${change.url}');
           },
+          // Note: onHttpAuthRequest is not implemented by TizenWebview.
+          // onHttpAuthRequest: (HttpAuthRequest request) {
+          //   openDialog(request);
+          // },
         ),
       )
       ..addJavaScriptChannel(
@@ -163,6 +212,13 @@ Page resource error:
         },
       )
       ..loadRequest(Uri.parse('https://flutter.dev'));
+
+    // setBackgroundColor is not currently supported on macOS.
+    if (kIsWeb || !Platform.isMacOS) {
+      controller.setBackgroundColor(const Color(0x80000000));
+    }
+
+    _controller = controller;
   }
 
   @override
@@ -195,6 +251,62 @@ Page resource error:
       child: const Icon(Icons.favorite),
     );
   }
+
+  Future<void> openDialog(HttpAuthRequest httpRequest) async {
+    final TextEditingController usernameTextController =
+        TextEditingController();
+    final TextEditingController passwordTextController =
+        TextEditingController();
+
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('${httpRequest.host}: ${httpRequest.realm ?? '-'}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  decoration: const InputDecoration(labelText: 'Username'),
+                  autofocus: true,
+                  controller: usernameTextController,
+                ),
+                TextField(
+                  decoration: const InputDecoration(labelText: 'Password'),
+                  controller: passwordTextController,
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            // Explicitly cancel the request on iOS as the OS does not emit new
+            // requests when a previous request is pending.
+            TextButton(
+              onPressed: () {
+                httpRequest.onCancel();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                httpRequest.onProceed(
+                  WebViewCredential(
+                    user: usernameTextController.text,
+                    password: passwordTextController.text,
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+              child: const Text('Authenticate'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 enum MenuOptions {
@@ -212,6 +324,8 @@ enum MenuOptions {
   transparentBackground,
   setCookie,
   logExample,
+  basicAuthentication,
+  javaScriptAlert,
 }
 
 class SampleMenu extends StatelessWidget {
@@ -257,6 +371,10 @@ class SampleMenu extends StatelessWidget {
             _onSetCookie();
           case MenuOptions.logExample:
             _onLogExample();
+          case MenuOptions.basicAuthentication:
+            _promptForUrl(context);
+          case MenuOptions.javaScriptAlert:
+            _onJavaScriptAlertExample(context);
         }
       },
       itemBuilder: (BuildContext context) => <PopupMenuItem<MenuOptions>>[
@@ -316,6 +434,14 @@ class SampleMenu extends StatelessWidget {
         const PopupMenuItem<MenuOptions>(
           value: MenuOptions.logExample,
           child: Text('Log example'),
+        ),
+        const PopupMenuItem<MenuOptions>(
+          value: MenuOptions.basicAuthentication,
+          child: Text('Basic Authentication Example'),
+        ),
+        const PopupMenuItem<MenuOptions>(
+          value: MenuOptions.javaScriptAlert,
+          child: Text('JavaScript Alert Example'),
         ),
       ],
     );
@@ -437,6 +563,28 @@ class SampleMenu extends StatelessWidget {
     return webViewController.loadHtmlString(kTransparentBackgroundPage);
   }
 
+  Future<void> _onJavaScriptAlertExample(BuildContext context) {
+    webViewController.setOnJavaScriptAlertDialog(
+        (JavaScriptAlertDialogRequest request) async {
+      await _showAlert(context, request.message);
+    });
+
+    webViewController.setOnJavaScriptConfirmDialog(
+        (JavaScriptConfirmDialogRequest request) async {
+      final bool result = await _showConfirm(context, request.message);
+      return result;
+    });
+
+    webViewController.setOnJavaScriptTextInputDialog(
+        (JavaScriptTextInputDialogRequest request) async {
+      final String result =
+          await _showTextInput(context, request.message, request.defaultText);
+      return result;
+    });
+
+    return webViewController.loadHtmlString(kAlertTestPage);
+  }
+
   Widget _getCookieList(String cookies) {
     if (cookies == '""') {
       return Container();
@@ -470,6 +618,97 @@ class SampleMenu extends StatelessWidget {
     });
 
     return webViewController.loadHtmlString(kLogExamplePage);
+  }
+
+  Future<void> _promptForUrl(BuildContext context) {
+    final TextEditingController urlTextController = TextEditingController();
+
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Input URL to visit'),
+          content: TextField(
+            decoration: const InputDecoration(labelText: 'URL'),
+            autofocus: true,
+            controller: urlTextController,
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                if (urlTextController.text.isNotEmpty) {
+                  final Uri? uri = Uri.tryParse(urlTextController.text);
+                  if (uri != null && uri.scheme.isNotEmpty) {
+                    webViewController.loadRequest(uri);
+                    Navigator.pop(context);
+                  }
+                }
+              },
+              child: const Text('Visit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showAlert(BuildContext context, String message) async {
+    return showDialog<void>(
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            content: Text(message),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  child: const Text('OK'))
+            ],
+          );
+        });
+  }
+
+  Future<bool> _showConfirm(BuildContext context, String message) async {
+    return await showDialog<bool>(
+            context: context,
+            builder: (BuildContext ctx) {
+              return AlertDialog(
+                content: Text(message),
+                actions: <Widget>[
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop(false);
+                      },
+                      child: const Text('Cancel')),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop(true);
+                      },
+                      child: const Text('OK')),
+                ],
+              );
+            }) ??
+        false;
+  }
+
+  Future<String> _showTextInput(
+      BuildContext context, String message, String? defaultText) async {
+    return await showDialog<String>(
+            context: context,
+            builder: (BuildContext ctx) {
+              return AlertDialog(
+                content: Text(message),
+                actions: <Widget>[
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop('Text test');
+                      },
+                      child: const Text('Enter')),
+                ],
+              );
+            }) ??
+        '';
   }
 }
 

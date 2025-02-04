@@ -38,6 +38,26 @@ bool EwkInternalApiBinding::Initialize() {
   view.SupportVideoHoleSet = reinterpret_cast<EwkViewSupportVideoHoleSetFnPtr>(
       dlsym(handle_, "ewk_view_set_support_video_hole"));
 
+  view.OnJavascriptAlert =
+      reinterpret_cast<EwkViewJavascriptAlertCallbackSetFnPtr>(
+          dlsym(handle_, "ewk_view_javascript_alert_callback_set"));
+  view.OnJavascriptConfirm =
+      reinterpret_cast<EwkViewJavascriptConfirmCallbackSetFnPtr>(
+          dlsym(handle_, "ewk_view_javascript_confirm_callback_set"));
+  view.OnJavascriptPrompt =
+      reinterpret_cast<EwkViewJavascriptPromptCallbackSetFnPtr>(
+          dlsym(handle_, "ewk_view_javascript_prompt_callback_set"));
+
+  view.JavascriptAlertReply =
+      reinterpret_cast<EwkViewJavascriptAlertReplyFnPtr>(
+          dlsym(handle_, "ewk_view_javascript_alert_reply"));
+  view.JavascriptConfirmReply =
+      reinterpret_cast<EwkViewJavascriptConfirmReplyFnPtr>(
+          dlsym(handle_, "ewk_view_javascript_confirm_reply"));
+  view.JavascriptPromptReply =
+      reinterpret_cast<EwkViewJavascriptPromptReplyFnPtr>(
+          dlsym(handle_, "ewk_view_javascript_prompt_reply"));
+
   // ewk_main
   main.SetArguments = reinterpret_cast<EwkSetArgumentsFnPtr>(
       dlsym(handle_, "ewk_set_arguments"));
@@ -49,6 +69,8 @@ bool EwkInternalApiBinding::Initialize() {
   settings.ImePanelEnabledSet =
       reinterpret_cast<EwkSettingsImePanelEnabledSetFnPtr>(
           dlsym(handle_, "ewk_settings_ime_panel_enabled_set"));
+  settings.ForceZoomSet = reinterpret_cast<EwkSettingsForceZoomSetFnPtr>(
+      dlsym(handle_, "ewk_settings_force_zoom_set"));
 
   // ewk_console_message
   console_message.LevelGet = reinterpret_cast<EwkConsoleMessageLevelGetFnPtr>(
@@ -63,8 +85,11 @@ bool EwkInternalApiBinding::Initialize() {
   return view.SetBackgroundColor && view.FeedTouchEvent && view.SendKeyEvent &&
          view.OffscreenRenderingEnabledSet && view.ImeWindowSet &&
          view.KeyEventsEnabledSet && view.SupportVideoHoleSet &&
+         view.OnJavascriptAlert && view.OnJavascriptConfirm &&
+         view.OnJavascriptPrompt && view.JavascriptAlertReply &&
+         view.JavascriptConfirmReply && view.JavascriptPromptReply &&
          main.SetArguments && main.SetVersionPolicy &&
-         settings.ImePanelEnabledSet && console_message.LevelGet &&
-         console_message.TextGet && console_message.LineGet &&
-         console_message.SourceGet;
+         settings.ImePanelEnabledSet && settings.ForceZoomSet &&
+         console_message.LevelGet && console_message.TextGet &&
+         console_message.LineGet && console_message.SourceGet;
 }
