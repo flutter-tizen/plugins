@@ -261,7 +261,7 @@ bool PlusPlayer::Pause() {
     return false;
   }
 
-  SendPlayStateUpdate(false);
+  SendIsPlayingState(false);
   return true;
 }
 
@@ -737,7 +737,7 @@ void PlusPlayer::OnResourceConflicted(void *user_data) {
   LOG_ERROR("[PlusPlayer] Resource conflicted.");
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
-  self->SendPlayStateUpdate(false);
+  self->SendIsPlayingState(false);
 }
 
 std::string GetErrorMessage(plusplayer::ErrorType error_code) {
@@ -866,5 +866,5 @@ void PlusPlayer::OnChangeSourceDone(bool ret, void *user_data) {}
 
 void PlusPlayer::OnStateChangedToPlaying(void *user_data) {
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
-  self->SendPlayStateUpdate(true);
+  self->SendIsPlayingState(true);
 }

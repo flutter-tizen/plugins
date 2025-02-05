@@ -71,7 +71,7 @@ class VideoPlayer {
   void SendBufferingEnd();
   void SendSubtitleUpdate(int32_t duration, const std::string &text);
   void SendPlayCompleted();
-  void SendPlayStateUpdate(bool isPlaying);
+  void SendIsPlayingState(bool is_playing);
   void SendError(const std::string &error_code,
                  const std::string &error_message);
 
