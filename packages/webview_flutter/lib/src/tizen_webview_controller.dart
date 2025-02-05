@@ -84,7 +84,7 @@ class TizenWebViewController extends PlatformWebViewController {
             ));
           }
           return null;
-        case 'onJavascriptAlert':
+        case 'onJavaScriptAlert':
           final Future<void> Function(JavaScriptAlertDialogRequest)? callback =
               _onJavaScriptAlert;
           if (callback != null) {
@@ -94,10 +94,10 @@ class TizenWebViewController extends PlatformWebViewController {
                     url: arguments['url']! as String);
 
             await callback.call(request);
-            await _webview.javascriptAlertReply();
+            await _webview.javaScriptAlertReply();
           }
           return null;
-        case 'onJavascriptConfirm':
+        case 'onJavaScriptConfirm':
           final Future<bool> Function(JavaScriptConfirmDialogRequest)?
               callback = _onJavaScriptConfirm;
           if (callback != null) {
@@ -106,10 +106,10 @@ class TizenWebViewController extends PlatformWebViewController {
                     message: arguments['message']! as String,
                     url: arguments['url']! as String);
             final bool result = await callback.call(request);
-            await _webview.javascriptConfirmReply(result);
+            await _webview.javaScriptConfirmReply(result);
           }
           return null;
-        case 'onJavascriptPrompt':
+        case 'onJavaScriptPrompt':
           final Future<String> Function(JavaScriptTextInputDialogRequest)?
               callback = _onJavaScriptPrompt;
           if (callback != null) {
@@ -119,7 +119,7 @@ class TizenWebViewController extends PlatformWebViewController {
                     url: arguments['url']! as String,
                     defaultText: arguments['defaultText']! as String);
             final String result = await callback.call(request);
-            await _webview.javascriptPromptReply(result);
+            await _webview.javaScriptPromptReply(result);
           }
           return null;
       }

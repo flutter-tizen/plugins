@@ -227,14 +227,14 @@ class TizenWebView {
       _invokeChannelMethod<void>('enableZoom', support);
 
   /// Sets the value selected by the user input
-  Future<void> javascriptAlertReply() =>
-      _invokeChannelMethod<void>('javascriptAlertReply');
+  Future<void> javaScriptAlertReply() =>
+      _invokeChannelMethod<void>('javaScriptAlertReply');
 
   /// Sets the value selected by the user input
-  Future<void> javascriptConfirmReply(bool result) =>
-      _invokeChannelMethod<void>('javascriptConfirmReply', result);
+  Future<void> javaScriptConfirmReply(bool result) =>
+      _invokeChannelMethod<void>('javaScriptConfirmReply', result);
 
   /// Sets the value selected by the user input
-  Future<void> javascriptPromptReply(String result) =>
-      _invokeChannelMethod<void>('javascriptPromptReply', result);
+  Future<void> javaScriptPromptReply(String result) =>
+      _invokeChannelMethod<void>('javaScriptPromptReply', result);
 }

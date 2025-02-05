@@ -50,19 +50,19 @@ typedef Eina_Bool (*EwkViewSupportVideoHoleSetFnPtr)(Evas_Object* obj,
                                                      void* window,
                                                      Eina_Bool enabled,
                                                      Eina_Bool boo);
-typedef void (*EwkViewJavascriptAlertCallbackSetFnPtr)(
+typedef void (*EwkViewJavaScriptAlertCallbackSetFnPtr)(
     Evas_Object* o, Ewk_View_JavaScript_Alert_Callback callback,
     void* user_data);
-typedef void (*EwkViewJavascriptConfirmCallbackSetFnPtr)(
+typedef void (*EwkViewJavaScriptConfirmCallbackSetFnPtr)(
     Evas_Object* o, Ewk_View_JavaScript_Confirm_Callback callback,
     void* user_data);
-typedef void (*EwkViewJavascriptPromptCallbackSetFnPtr)(
+typedef void (*EwkViewJavaScriptPromptCallbackSetFnPtr)(
     Evas_Object* o, Ewk_View_JavaScript_Prompt_Callback callback,
     void* user_data);
-typedef void (*EwkViewJavascriptAlertReplyFnPtr)(Evas_Object* o);
-typedef void (*EwkViewJavascriptConfirmReplyFnPtr)(Evas_Object* o,
+typedef void (*EwkViewJavaScriptAlertReplyFnPtr)(Evas_Object* o);
+typedef void (*EwkViewJavaScriptConfirmReplyFnPtr)(Evas_Object* o,
                                                    Eina_Bool result);
-typedef void (*EwkViewJavascriptPromptReplyFnPtr)(Evas_Object* o,
+typedef void (*EwkViewJavaScriptPromptReplyFnPtr)(Evas_Object* o,
                                                   const char* result);
 
 typedef struct {
@@ -74,12 +74,12 @@ typedef struct {
   EwkViewImeWindowSetFnPtr ImeWindowSet = nullptr;
   EwkViewKeyEventsEnabledSetFnPtr KeyEventsEnabledSet = nullptr;
   EwkViewSupportVideoHoleSetFnPtr SupportVideoHoleSet = nullptr;
-  EwkViewJavascriptAlertCallbackSetFnPtr OnJavascriptAlert = nullptr;
-  EwkViewJavascriptConfirmCallbackSetFnPtr OnJavascriptConfirm = nullptr;
-  EwkViewJavascriptPromptCallbackSetFnPtr OnJavascriptPrompt = nullptr;
-  EwkViewJavascriptAlertReplyFnPtr JavascriptAlertReply = nullptr;
-  EwkViewJavascriptConfirmReplyFnPtr JavascriptConfirmReply = nullptr;
-  EwkViewJavascriptPromptReplyFnPtr JavascriptPromptReply = nullptr;
+  EwkViewJavaScriptAlertCallbackSetFnPtr OnJavaScriptAlert = nullptr;
+  EwkViewJavaScriptConfirmCallbackSetFnPtr OnJavaScriptConfirm = nullptr;
+  EwkViewJavaScriptPromptCallbackSetFnPtr OnJavaScriptPrompt = nullptr;
+  EwkViewJavaScriptAlertReplyFnPtr JavaScriptAlertReply = nullptr;
+  EwkViewJavaScriptConfirmReplyFnPtr JavaScriptConfirmReply = nullptr;
+  EwkViewJavaScriptPromptReplyFnPtr JavaScriptPromptReply = nullptr;
 
 } EwkViewProcTable;
 

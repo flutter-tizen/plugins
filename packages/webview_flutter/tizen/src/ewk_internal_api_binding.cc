@@ -38,24 +38,24 @@ bool EwkInternalApiBinding::Initialize() {
   view.SupportVideoHoleSet = reinterpret_cast<EwkViewSupportVideoHoleSetFnPtr>(
       dlsym(handle_, "ewk_view_set_support_video_hole"));
 
-  view.OnJavascriptAlert =
-      reinterpret_cast<EwkViewJavascriptAlertCallbackSetFnPtr>(
+  view.OnJavaScriptAlert =
+      reinterpret_cast<EwkViewJavaScriptAlertCallbackSetFnPtr>(
           dlsym(handle_, "ewk_view_javascript_alert_callback_set"));
-  view.OnJavascriptConfirm =
-      reinterpret_cast<EwkViewJavascriptConfirmCallbackSetFnPtr>(
+  view.OnJavaScriptConfirm =
+      reinterpret_cast<EwkViewJavaScriptConfirmCallbackSetFnPtr>(
           dlsym(handle_, "ewk_view_javascript_confirm_callback_set"));
-  view.OnJavascriptPrompt =
-      reinterpret_cast<EwkViewJavascriptPromptCallbackSetFnPtr>(
+  view.OnJavaScriptPrompt =
+      reinterpret_cast<EwkViewJavaScriptPromptCallbackSetFnPtr>(
           dlsym(handle_, "ewk_view_javascript_prompt_callback_set"));
 
-  view.JavascriptAlertReply =
-      reinterpret_cast<EwkViewJavascriptAlertReplyFnPtr>(
+  view.JavaScriptAlertReply =
+      reinterpret_cast<EwkViewJavaScriptAlertReplyFnPtr>(
           dlsym(handle_, "ewk_view_javascript_alert_reply"));
-  view.JavascriptConfirmReply =
-      reinterpret_cast<EwkViewJavascriptConfirmReplyFnPtr>(
+  view.JavaScriptConfirmReply =
+      reinterpret_cast<EwkViewJavaScriptConfirmReplyFnPtr>(
           dlsym(handle_, "ewk_view_javascript_confirm_reply"));
-  view.JavascriptPromptReply =
-      reinterpret_cast<EwkViewJavascriptPromptReplyFnPtr>(
+  view.JavaScriptPromptReply =
+      reinterpret_cast<EwkViewJavaScriptPromptReplyFnPtr>(
           dlsym(handle_, "ewk_view_javascript_prompt_reply"));
 
   // ewk_main
@@ -85,9 +85,9 @@ bool EwkInternalApiBinding::Initialize() {
   return view.SetBackgroundColor && view.FeedTouchEvent && view.SendKeyEvent &&
          view.OffscreenRenderingEnabledSet && view.ImeWindowSet &&
          view.KeyEventsEnabledSet && view.SupportVideoHoleSet &&
-         view.OnJavascriptAlert && view.OnJavascriptConfirm &&
-         view.OnJavascriptPrompt && view.JavascriptAlertReply &&
-         view.JavascriptConfirmReply && view.JavascriptPromptReply &&
+         view.OnJavaScriptAlert && view.OnJavaScriptConfirm &&
+         view.OnJavaScriptPrompt && view.JavaScriptAlertReply &&
+         view.JavaScriptConfirmReply && view.JavaScriptPromptReply &&
          main.SetArguments && main.SetVersionPolicy &&
          settings.ImePanelEnabledSet && settings.ForceZoomSet &&
          console_message.LevelGet && console_message.TextGet &&

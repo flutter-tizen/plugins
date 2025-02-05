@@ -343,11 +343,11 @@ bool WebView::InitWebView() {
   EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(
       webview_instance_, true);
 
-  EwkInternalApiBinding::GetInstance().view.OnJavascriptAlert(
+  EwkInternalApiBinding::GetInstance().view.OnJavaScriptAlert(
       webview_instance_, &WebView::OnJavaScriptAlertDialog, this);
-  EwkInternalApiBinding::GetInstance().view.OnJavascriptConfirm(
+  EwkInternalApiBinding::GetInstance().view.OnJavaScriptConfirm(
       webview_instance_, &WebView::OnJavaScriptConfirmDialog, this);
-  EwkInternalApiBinding::GetInstance().view.OnJavascriptPrompt(
+  EwkInternalApiBinding::GetInstance().view.OnJavaScriptPrompt(
       webview_instance_, &WebView::OnJavaScriptPromptDialog, this);
 
 #ifdef TV_PROFILE
@@ -615,32 +615,26 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       return;
     }
 
-    if (*support) {
-      EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
-          ewk_view_settings_get(webview_instance_), true);
-
-    } else {
-      EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
-          ewk_view_settings_get(webview_instance_), false);
-    }
+    EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
+        ewk_view_settings_get(webview_instance_), *support);
     result->Success();
-  } else if (method_name == "javascriptAlertReply") {
-    EwkInternalApiBinding::GetInstance().view.JavascriptAlertReply(
+  } else if (method_name == "javaScriptAlertReply") {
+    EwkInternalApiBinding::GetInstance().view.JavaScriptAlertReply(
         webview_instance_);
     result->Success();
-  } else if (method_name == "javascriptConfirmReply") {
+  } else if (method_name == "javaScriptConfirmReply") {
     const auto* value = std::get_if<bool>(arguments);
     if (value) {
-      EwkInternalApiBinding::GetInstance().view.JavascriptConfirmReply(
+      EwkInternalApiBinding::GetInstance().view.JavaScriptConfirmReply(
           webview_instance_, *value);
       result->Success();
     } else {
       result->Error("Invalid argument", "The argument must be a bool.");
     }
-  } else if (method_name == "javascriptPromptReply") {
+  } else if (method_name == "javaScriptPromptReply") {
     const auto* value = std::get_if<std::string>(arguments);
     if (value) {
-      EwkInternalApiBinding::GetInstance().view.JavascriptPromptReply(
+      EwkInternalApiBinding::GetInstance().view.JavaScriptPromptReply(
           webview_instance_, (*value).c_str());
       result->Success();
     } else {
@@ -853,7 +847,7 @@ Eina_Bool WebView::OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
       {flutter::EncodableValue("url"),
        flutter::EncodableValue(ewk_view_url_get(webview->webview_instance_))}};
   webview->webview_controller_channel_->InvokeMethod(
-      "onJavascriptAlert", std::make_unique<flutter::EncodableValue>(args));
+      "onJavaScriptAlert", std::make_unique<flutter::EncodableValue>(args));
 
   return true;
 }
@@ -866,7 +860,7 @@ Eina_Bool WebView::OnJavaScriptConfirmDialog(Evas_Object* o,
       {flutter::EncodableValue("url"),
        flutter::EncodableValue(ewk_view_url_get(webview->webview_instance_))}};
   webview->webview_controller_channel_->InvokeMethod(
-      "onJavascriptConfirm", std::make_unique<flutter::EncodableValue>(args));
+      "onJavaScriptConfirm", std::make_unique<flutter::EncodableValue>(args));
 
   return true;
 }
@@ -882,6 +876,6 @@ Eina_Bool WebView::OnJavaScriptPromptDialog(Evas_Object* o, const char* message,
       {flutter::EncodableValue("defaultText"),
        flutter::EncodableValue(default_text)}};
   webview->webview_controller_channel_->InvokeMethod(
-      "onJavascriptPrompt", std::make_unique<flutter::EncodableValue>(args));
+      "onJavaScriptPrompt", std::make_unique<flutter::EncodableValue>(args));
   return true;
 }
