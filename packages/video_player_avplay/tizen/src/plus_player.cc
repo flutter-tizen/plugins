@@ -63,6 +63,8 @@ void PlusPlayer::RegisterListener() {
   listener_.prepared_callback = OnPrepareDone;
   listener_.seek_completed_callback = OnSeekDone;
   listener_.subtitle_data_callback = OnSubtitleData;
+  listener_.playing_callback = OnStateChangedToPlaying;
+  listener_.resource_conflicted_callback = OnResourceConflicted;
   ::RegisterListener(player_, &listener_, this);
 }
 
@@ -259,6 +261,7 @@ bool PlusPlayer::Pause() {
     return false;
   }
 
+  SendPlayStateUpdate(false);
   return true;
 }
 
@@ -734,7 +737,7 @@ void PlusPlayer::OnResourceConflicted(void *user_data) {
   LOG_ERROR("[PlusPlayer] Resource conflicted.");
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
-  self->SendError("PlusPlayer error", "Resource conflicted");
+  self->SendPlayStateUpdate(false);
 }
 
 std::string GetErrorMessage(plusplayer::ErrorType error_code) {
@@ -861,4 +864,7 @@ void PlusPlayer::OnCueOutContEvent(const char *cue_out_cont_data,
 
 void PlusPlayer::OnChangeSourceDone(bool ret, void *user_data) {}
 
-void PlusPlayer::OnStateChangedToPlaying(void *user_data) {}
+void PlusPlayer::OnStateChangedToPlaying(void *user_data) {
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
+  self->SendPlayStateUpdate(true);
+}

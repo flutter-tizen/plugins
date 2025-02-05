@@ -163,6 +163,16 @@ void VideoPlayer::SendPlayCompleted() {
   PushEvent(flutter::EncodableValue(result));
 }
 
+void VideoPlayer::SendPlayStateUpdate(bool isPlayingState) {
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"),
+       flutter::EncodableValue("isPlayingStateUpdate")},
+      {flutter::EncodableValue("isPlayingState"),
+       flutter::EncodableValue(isPlayingState)},
+  };
+  PushEvent(flutter::EncodableValue(result));
+}
+
 void VideoPlayer::SendError(const std::string &error_code,
                             const std::string &error_message) {
   if (event_sink_) {
