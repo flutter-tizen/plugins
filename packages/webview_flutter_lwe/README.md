@@ -20,8 +20,8 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 
 ```yaml
 dependencies:
-  webview_flutter: ^4.4.2
-  webview_flutter_lwe: ^0.3.5
+  webview_flutter: ^4.10.0
+  webview_flutter_lwe: ^0.3.6
 ```
 
 ## Example

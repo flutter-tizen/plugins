@@ -10,6 +10,9 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 
 import 'src/messages.g.dart';
 
+// TODO(JSUYA): Remove the ignore and rename parameters when adding support for platform views.
+// ignore_for_file: avoid_renaming_method_parameters
+
 /// A Tizen implementation of [VideoPlayerPlatform] that uses the
 /// Pigeon-generated [TizenVideoPlayerApi].
 class VideoPlayerTizen extends VideoPlayerPlatform {

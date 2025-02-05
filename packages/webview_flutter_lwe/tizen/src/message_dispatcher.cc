@@ -10,11 +10,22 @@ MessageDispatcher::MessageDispatcher() { ecore_init(); }
 MessageDispatcher::~MessageDispatcher() { ecore_shutdown(); }
 
 void MessageDispatcher::dispatchTaskOnMainThread(std::function<void()>&& fn) {
-  ecore_main_loop_thread_safe_call_sync(
-      [](void* data) -> void* {
-        auto fn = static_cast<std::function<void()>*>(data);
-        if (fn) (*fn)();
-        return nullptr;
+  struct Param {
+    std::function<void()> fn;
+  };
+  Param* p = new Param({std::move(fn)});
+
+  ecore_main_loop_thread_safe_call_async(
+      [](void* data) -> void {
+        ecore_timer_add(
+            0.0,
+            [](void* data) -> Eina_Bool {
+              auto* p = static_cast<Param*>(data);
+              p->fn();
+              delete p;
+              return ECORE_CALLBACK_CANCEL;
+            },
+            data);
       },
-      &fn);
+      p);
 }
