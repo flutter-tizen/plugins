@@ -167,7 +167,7 @@ void VideoPlayer::SendIsPlayingState(bool is_playing) {
   flutter::EncodableMap result = {
       {flutter::EncodableValue("event"),
        flutter::EncodableValue("isPlayingStateUpdate")},
-      {flutter::EncodableValue("isPlayingState"),
+      {flutter::EncodableValue("isPlaying"),
        flutter::EncodableValue(is_playing)},
   };
   PushEvent(flutter::EncodableValue(result));

@@ -274,7 +274,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         case 'isPlayingStateUpdate':
           return VideoEvent(
             eventType: VideoEventType.isPlayingStateUpdate,
-            isPlayingState: map['isPlayingState']! as bool,
+            isPlaying: map['isPlaying']! as bool,
           );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);

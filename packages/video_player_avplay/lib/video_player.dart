@@ -538,11 +538,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(caption: caption);
 
         case VideoEventType.isPlayingStateUpdate:
-          if (event.isPlayingState ?? false) {
-            value = value.copyWith(
-                isPlaying: event.isPlayingState, isCompleted: false);
+          if (event.isPlaying ?? false) {
+            value =
+                value.copyWith(isPlaying: event.isPlaying, isCompleted: false);
           } else {
-            value = value.copyWith(isPlaying: event.isPlayingState);
+            value = value.copyWith(isPlaying: event.isPlaying);
           }
 
         case VideoEventType.unknown:
