@@ -1,4 +1,9 @@
+## 0.3.7
+
+* Update lightweight web engine(1.3.8).
+
 ## 0.3.6
+
 * Update minimum Flutter and Dart version to 3.24 and 3.5.
 * Update the example main app.
 * Update webview_flutter to 4.10.0.
