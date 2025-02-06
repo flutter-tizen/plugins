@@ -37,10 +37,11 @@ VideoPlayerPlatform get _videoPlayerPlatform {
 
 /// The duration, current position, buffering state, error state and settings
 /// of a [VideoPlayerController].
+@immutable
 class VideoPlayerValue {
   /// Constructs a video with the given values. Only [duration] is required. The
   /// rest will initialize with default values when unset.
-  VideoPlayerValue({
+  const VideoPlayerValue({
     required this.duration,
     this.size = Size.zero,
     this.position = Duration.zero,
@@ -212,6 +213,46 @@ class VideoPlayerValue {
         'errorDescription: $errorDescription, '
         'isCompleted: $isCompleted),';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VideoPlayerValue &&
+          runtimeType == other.runtimeType &&
+          duration == other.duration &&
+          size == other.size &&
+          position == other.position &&
+          caption == other.caption &&
+          captionOffset == other.captionOffset &&
+          listEquals(tracks, other.tracks) &&
+          buffered == other.buffered &&
+          isInitialized == other.isInitialized &&
+          isPlaying == other.isPlaying &&
+          isLooping == other.isLooping &&
+          isBuffering == other.isBuffering &&
+          volume == other.volume &&
+          playbackSpeed == other.playbackSpeed &&
+          errorDescription == other.errorDescription &&
+          isCompleted == other.isCompleted;
+
+  @override
+  int get hashCode => Object.hash(
+        duration,
+        size,
+        position,
+        caption,
+        captionOffset,
+        tracks,
+        buffered,
+        isInitialized,
+        isPlaying,
+        isLooping,
+        isBuffering,
+        volume,
+        playbackSpeed,
+        errorDescription,
+        isCompleted,
+      );
 }
 
 /// Controls a platform video player, and provides updates when the state is
@@ -495,6 +536,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             text: event.text ?? '',
           );
           value = value.copyWith(caption: caption);
+
+        case VideoEventType.isPlayingStateUpdate:
+          if (event.isPlayingState ?? false) {
+            value = value.copyWith(
+                isPlaying: event.isPlayingState, isCompleted: false);
+          } else {
+            value = value.copyWith(isPlaying: event.isPlayingState);
+          }
+
         case VideoEventType.unknown:
           break;
       }

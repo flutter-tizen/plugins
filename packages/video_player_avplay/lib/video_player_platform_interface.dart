@@ -424,6 +424,7 @@ class VideoEvent {
     this.size,
     this.buffered,
     this.text,
+    this.isPlayingState,
   });
 
   /// The type of the event.
@@ -448,6 +449,11 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
   final String? text;
+
+  /// Whether the video is currently playing.
+  ///
+  /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
+  final bool? isPlayingState;
 
   @override
   bool operator ==(Object other) {
@@ -492,6 +498,12 @@ enum VideoEventType {
 
   /// Updated the video subtitle text.
   subtitleUpdate,
+
+  /// The playback state of the video has changed.
+  ///
+  /// This event is fired when the video starts or pauses due to user actions or
+  /// phone calls, or other app media such as music players.
+  isPlayingStateUpdate,
 
   /// An unknown event has been received.
   unknown,
