@@ -1,3 +1,7 @@
+## 0.5.15
+
+* Fix dash player fail to seek issue.
+
 ## 0.5.14
 
 * Synchronize isPlaying state
