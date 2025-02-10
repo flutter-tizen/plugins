@@ -208,6 +208,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
   Marker _createAssetMarker(int index) {
     final LatLng position =
         LatLng(_kMapCenter.latitude - (index * 0.5), _kMapCenter.longitude - 1);
+
     return Marker(
       markerId: MarkerId('marker_asset_$index'),
       position: position,
