@@ -3,13 +3,8 @@
 // found in the LICENSE file.
 
 // ignore_for_file: public_member_api_docs
-
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'main.dart';
 import 'page.dart';
 
 class MapIdPage extends GoogleMapExampleAppPage {
@@ -41,10 +36,6 @@ class MapIdBodyState extends State<MapIdBody> {
   @override
   void initState() {
     super.initState();
-  }
-
-  String _getInitializedsRendererType() {
-    return 'unknown';
   }
 
   void _setMapId() {
