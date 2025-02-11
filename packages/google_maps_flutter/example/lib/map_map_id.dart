@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'main.dart';
 import 'page.dart';
 
@@ -38,27 +37,13 @@ class MapIdBodyState extends State<MapIdBody> {
   Key _key = const Key('mapId#');
   String? _mapId;
   final TextEditingController _mapIdController = TextEditingController();
-  AndroidMapRenderer? _initializedRenderer;
 
   @override
   void initState() {
-    initializeMapRenderer()
-        .then<void>((AndroidMapRenderer? initializedRenderer) => setState(() {
-              _initializedRenderer = initializedRenderer;
-            }));
     super.initState();
   }
 
   String _getInitializedsRendererType() {
-    switch (_initializedRenderer) {
-      case AndroidMapRenderer.latest:
-        return 'latest';
-      case AndroidMapRenderer.legacy:
-        return 'legacy';
-      case AndroidMapRenderer.platformDefault:
-      case null:
-        break;
-    }
     return 'unknown';
   }
 
@@ -109,15 +94,6 @@ class MapIdBodyState extends State<MapIdBody> {
               'Press to use specified map Id',
             ),
           )),
-      if (!kIsWeb &&
-          Platform.isAndroid &&
-          _initializedRenderer != AndroidMapRenderer.latest)
-        Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Text(
-              'On Android, Cloud-based maps styling only works with "latest" renderer.\n\n'
-              'Current initialized renderer is "${_getInitializedsRendererType()}".'),
-        ),
     ];
 
     return Column(
