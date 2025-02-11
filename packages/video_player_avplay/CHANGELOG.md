@@ -1,3 +1,7 @@
+## 0.5.16
+
+* Automatically rotates video player based on device orientation.
+
 ## 0.5.15
 
 * Fix dash player fail to seek issue.
