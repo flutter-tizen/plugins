@@ -229,6 +229,7 @@ bool MediaPlayer::Play() {
     LOG_ERROR("[MediaPlayer] player_start failed: %s.", get_error_message(ret));
     return false;
   }
+  SendIsPlayingState(true);
   return true;
 }
 
@@ -253,6 +254,7 @@ bool MediaPlayer::Pause() {
     LOG_ERROR("[MediaPlayer] player_pause failed: %s.", get_error_message(ret));
     return false;
   }
+  SendIsPlayingState(false);
   return true;
 }
 
@@ -684,6 +686,8 @@ void MediaPlayer::OnPlayCompleted(void *user_data) {
 
 void MediaPlayer::OnInterrupted(player_interrupted_code_e code,
                                 void *user_data) {
+  MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+  self->SendIsPlayingState(false);
   LOG_ERROR("[MediaPlayer] Interrupt code: %d.", code);
 }
 

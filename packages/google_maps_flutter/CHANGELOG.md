@@ -1,3 +1,7 @@
+## 0.1.10
+
+* Update webview_flutter_lwe to 0.3.7.
+
 ## 0.1.9
 
 * Update webview_flutter_lwe to 0.3.4.
