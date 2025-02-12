@@ -93,7 +93,7 @@ void runTests() {
         },
       ),
     );
-    await tester.pumpAndSettle(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
     final GoogleMapController mapController =
         await mapControllerCompleter.future;
 
@@ -161,6 +161,8 @@ void runTests() {
 
     const String mapStyle =
         '[{"elementType":"geometry","stylers":[{"color":"#242f3e"}]}]';
+    // Intentionally testing the deprecated code path.
+    // ignore: deprecated_member_use
     await controller.setMapStyle(mapStyle);
   });
 
@@ -183,6 +185,8 @@ void runTests() {
     final GoogleMapController controller = await controllerCompleter.future;
 
     try {
+      // Intentionally testing the deprecated code path.
+      // ignore: deprecated_member_use
       await controller.setMapStyle('invalid_value');
       fail('expected MapStyleException');
     } on MapStyleException catch (e) {
@@ -207,6 +211,8 @@ void runTests() {
     );
     final GoogleMapController controller = await controllerCompleter.future;
 
+    // Intentionally testing the deprecated code path.
+    // ignore: deprecated_member_use
     await controller.setMapStyle(null);
   });
 
@@ -231,7 +237,7 @@ void runTests() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     final LatLngBounds visibleRegion = await controller.getVisibleRegion();
     final LatLng topLeft =
@@ -265,7 +271,7 @@ void runTests() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     double zoom = await controller.getZoomLevel();
     expect(zoom, kInitialZoomLevel);
@@ -299,7 +305,7 @@ void runTests() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     final LatLngBounds visibleRegion = await controller.getVisibleRegion();
     final LatLng northWest = LatLng(
@@ -346,7 +352,7 @@ void runTests() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future<void>.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     // Simple call to make sure that the app hasn't crashed.
     final LatLngBounds bounds1 = await controller.getVisibleRegion();
@@ -381,7 +387,7 @@ void runTests() {
     // https://github.com/flutter/flutter/issues/131783. It may be related
     // to https://github.com/flutter/flutter/issues/54758 and should be
     // re-evaluated when that issue is fixed.
-    await Future<void>.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     bool iwVisibleStatus =
         await controller.isMarkerInfoWindowShown(marker.markerId);
@@ -470,6 +476,8 @@ void runTests() {
     final Set<Marker> markers = <Marker>{
       Marker(
           markerId: const MarkerId('1'),
+          // Intentionally testing the deprecated code path.
+          // ignore: deprecated_member_use
           icon: await BitmapDescriptor.fromAssetImage(
             imageConfiguration,
             'assets/red_square.png',
@@ -492,6 +500,8 @@ void runTests() {
     final Set<Marker> markers = <Marker>{
       Marker(
           markerId: const MarkerId('1'),
+          // Intentionally testing the deprecated code path.
+          // ignore: deprecated_member_use
           icon: BitmapDescriptor.fromBytes(
             bytes,
             size: const Size(100, 100),
@@ -527,7 +537,7 @@ void runTests() {
     final Uint8List? bytes = await controller.takeSnapshot();
     expect(bytes?.isNotEmpty, true);
   },
-      // // In Tizen, TakeSnapshot is not supported.
+      // In Tizen, TakeSnapshot is not supported.
       skip: true);
 
   testWidgets(
@@ -552,7 +562,7 @@ void runTests() {
       // Await mapIdCompleter to finish to make sure map can be created with cloudMapId
       await mapIdCompleter.future;
     },
-    // // In Tizen, CloudMap is not supported.
+    // In Tizen, CloudMap is not supported.
     skip: true,
   );
 
