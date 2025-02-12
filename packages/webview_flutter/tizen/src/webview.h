@@ -62,6 +62,9 @@ class WebView : public PlatformView {
   void HandleCookieMethodCall(const FlMethodCall& method_call,
                               std::unique_ptr<FlMethodResult> result);
 
+  template <typename T>
+  void SetBackgroundColor(const T& color);
+
   void RegisterJavaScriptChannelName(const std::string& name);
   std::string GetWebViewChannelName();
   std::string GetWebViewControllerChannelName();
@@ -81,6 +84,13 @@ class WebView : public PlatformView {
   static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data);
   static void OnJavaScriptMessage(Evas_Object* obj, Ewk_Script_Message message);
+  static Eina_Bool OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
+                                           void* data);
+  static Eina_Bool OnJavaScriptConfirmDialog(Evas_Object* o,
+                                             const char* message, void* data);
+  static Eina_Bool OnJavaScriptPromptDialog(Evas_Object* o, const char* message,
+                                            const char* default_text,
+                                            void* data);
 
   Evas_Object* webview_instance_ = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
