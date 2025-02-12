@@ -1,3 +1,7 @@
+## NEXT
+
+* Update readme.
+
 ## 0.5.16
 
 * Automatically rotates video player based on device orientation.
