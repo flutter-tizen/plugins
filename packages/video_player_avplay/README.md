@@ -29,6 +29,11 @@ Note that `video_player_avplay` uses a compiled dynamic library, the api-version
 <manifest package="xxx" version="1.0.0" api-version="6.0">
 ```
 
+> [!NOTE]
+> This plugin does not provide OS version compatibility.
+> When you build an application with this plugin, version-specific [dynamic libraries](https://github.com/flutter-tizen/plugins/tree/master/packages/video_player_avplay/tizen/lib/armel) are packaged together based on the api-version information in tizen-manifest.xml. 
+> If you are planning to distribute an application that includes this plugin, you will need to build a TPK package for each TizenOS version (api-version in tizen-manifest.xml). Please refer to the [Samsung Developers](https://developer.samsung.com/smarttv/develop) for information on TizenOS versions by [TV model groups](https://developer.samsung.com/smarttv/develop/specifications/tv-model-groups.html).
+
 Note that if you play dash streams, please add dash format when creating the player:
 ```dart
     VideoPlayerController.network(
