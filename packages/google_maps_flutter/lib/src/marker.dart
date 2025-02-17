@@ -66,8 +66,8 @@ class MarkerController {
   }) {
     assert(_marker != null, 'Cannot `update` Marker after calling `remove`.');
     if (_infoWindow != null && newInfoWindowContent != null) {
-      _infoWindow!.content = newInfoWindowContent;
-      _infoWindow!.pixelOffset = util.GSize(
+      _infoWindow.content = newInfoWindowContent;
+      _infoWindow.pixelOffset = util.GSize(
           (marker.infoWindow.anchor.dx - 0.5) * _markerWidth,
           marker.infoWindow.anchor.dy * _markerHeight);
     }
@@ -93,7 +93,7 @@ class MarkerController {
   void hideInfoWindow() {
     assert(_marker != null, 'Cannot `hideInfoWindow` on a `remove`d Marker.');
     if (_infoWindow != null) {
-      _infoWindow!.close();
+      _infoWindow.close();
       _infoWindowShown = false;
     }
   }
@@ -104,7 +104,7 @@ class MarkerController {
   void showInfoWindow() {
     assert(_marker != null, 'Cannot `showInfoWindow` on a `remove`d Marker.');
     if (_infoWindow != null) {
-      _infoWindow!.open(_marker);
+      _infoWindow.open(_marker);
       _infoWindowShown = true;
     }
   }
