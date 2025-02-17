@@ -1,6 +1,11 @@
-## NEXT
+## 0.9.4
 
 * Disable unnecessary web-engine initialization.
+* Update minimum Flutter and Dart version to 3.24 and 3.5.
+* Update the example main app.
+* Update webview_flutter to 4.10.0.
+* Update webview_flutter_platform_interface to 2.10.0.
+* Add enableZoom, setOnJavaScriptAlertDialog, setOnJavaScriptConfirmDialog, setOnJavaScriptTextInputDialog APIs.
 
 ## 0.9.3
 

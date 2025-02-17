@@ -188,6 +188,7 @@ class TizenWebView {
       JavaScriptChannelParams javaScriptChannelParams) {
     _javaScriptChannelParams[javaScriptChannelParams.name] =
         javaScriptChannelParams;
+
     return _invokeChannelMethod<void>(
         'addJavaScriptChannel', javaScriptChannelParams.name);
   }
@@ -219,4 +220,21 @@ class TizenWebView {
     final String? result = await _invokeChannelMethod<String?>('getUserAgent');
     return result;
   }
+
+  /// Sets whether the WebView should support zooming using its on-screen zoom
+  /// controls and gestures.
+  Future<void> setSupportZoom(bool support) =>
+      _invokeChannelMethod<void>('enableZoom', support);
+
+  /// Sets the value selected by the user input
+  Future<void> javaScriptAlertReply() =>
+      _invokeChannelMethod<void>('javaScriptAlertReply');
+
+  /// Sets the value selected by the user input
+  Future<void> javaScriptConfirmReply(bool result) =>
+      _invokeChannelMethod<void>('javaScriptConfirmReply', result);
+
+  /// Sets the value selected by the user input
+  Future<void> javaScriptPromptReply(String result) =>
+      _invokeChannelMethod<void>('javaScriptPromptReply', result);
 }

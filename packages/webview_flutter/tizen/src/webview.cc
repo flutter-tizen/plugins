@@ -336,10 +336,19 @@ bool WebView::InitWebView() {
 
   EwkInternalApiBinding::GetInstance().settings.ImePanelEnabledSet(
       ewk_view_settings_get(webview_instance_), true);
+  EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
+      ewk_view_settings_get(webview_instance_), true);
   EwkInternalApiBinding::GetInstance().view.ImeWindowSet(webview_instance_,
                                                          window_);
   EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(
       webview_instance_, true);
+
+  EwkInternalApiBinding::GetInstance().view.OnJavaScriptAlert(
+      webview_instance_, &WebView::OnJavaScriptAlertDialog, this);
+  EwkInternalApiBinding::GetInstance().view.OnJavaScriptConfirm(
+      webview_instance_, &WebView::OnJavaScriptConfirmDialog, this);
+  EwkInternalApiBinding::GetInstance().view.OnJavaScriptPrompt(
+      webview_instance_, &WebView::OnJavaScriptPromptDialog, this);
 
 #ifdef TV_PROFILE
   EwkInternalApiBinding::GetInstance().view.SupportVideoHoleSet(
@@ -369,6 +378,13 @@ bool WebView::InitWebView() {
   evas_object_data_set(webview_instance_, kEwkInstance, this);
 
   return true;
+}
+
+template <typename T>
+void WebView::SetBackgroundColor(const T& color) {
+  EwkInternalApiBinding::GetInstance().view.SetBackgroundColor(
+      webview_instance_, color >> 16 & 0xff, color >> 8 & 0xff, color & 0xff,
+      color >> 24 & 0xff);
 }
 
 void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
@@ -573,22 +589,57 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       result->Error("Invalid argument", "The argument must be a string.");
     }
   } else if (method_name == "backgroundColor") {
-    const auto* color = std::get_if<int32_t>(arguments);
-    if (color) {
-      EwkInternalApiBinding::GetInstance().view.SetBackgroundColor(
-          webview_instance_, *color >> 16 & 0xff, *color >> 8 & 0xff,
-          *color & 0xff, *color >> 24 & 0xff);
+    if (std::holds_alternative<int32_t>(*arguments)) {
+      SetBackgroundColor(std::get<int32_t>(*arguments));
       result->Success();
+    } else if (std::holds_alternative<int64_t>(*arguments)) {
+      SetBackgroundColor(std::get<int64_t>(*arguments));
+      result->Success();
+    } else {
+      result->Error("Invalid argument",
+                    "The argument must be a int32_t or int64_t.");
     }
   } else if (method_name == "setUserAgent") {
-    const auto* userAgent = std::get_if<std::string>(arguments);
-    if (userAgent) {
-      ewk_view_user_agent_set(webview_instance_, userAgent->c_str());
+    const auto* user_agent = std::get_if<std::string>(arguments);
+    if (user_agent) {
+      ewk_view_user_agent_set(webview_instance_, user_agent->c_str());
     }
     result->Success();
   } else if (method_name == "getUserAgent") {
     result->Success(flutter::EncodableValue(
         std::string(ewk_view_user_agent_get(webview_instance_))));
+  } else if (method_name == "enableZoom") {
+    const auto* support = std::get_if<bool>(arguments);
+    if (!support) {
+      result->Error("Invalid argument", "The argument must be a bool.");
+      return;
+    }
+
+    EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
+        ewk_view_settings_get(webview_instance_), *support);
+    result->Success();
+  } else if (method_name == "javaScriptAlertReply") {
+    EwkInternalApiBinding::GetInstance().view.JavaScriptAlertReply(
+        webview_instance_);
+    result->Success();
+  } else if (method_name == "javaScriptConfirmReply") {
+    const auto* value = std::get_if<bool>(arguments);
+    if (value) {
+      EwkInternalApiBinding::GetInstance().view.JavaScriptConfirmReply(
+          webview_instance_, *value);
+      result->Success();
+    } else {
+      result->Error("Invalid argument", "The argument must be a bool.");
+    }
+  } else if (method_name == "javaScriptPromptReply") {
+    const auto* value = std::get_if<std::string>(arguments);
+    if (value) {
+      EwkInternalApiBinding::GetInstance().view.JavaScriptPromptReply(
+          webview_instance_, (*value).c_str());
+      result->Success();
+    } else {
+      result->Error("Invalid argument", "The argument must be a string.");
+    }
   } else {
     result->NotImplemented();
   }
@@ -785,4 +836,46 @@ void WebView::OnJavaScriptMessage(Evas_Object* obj,
           std::make_unique<flutter::EncodableValue>(args));
     }
   }
+}
+
+Eina_Bool WebView::OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
+                                           void* data) {
+  WebView* webview = static_cast<WebView*>(data);
+
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
+      {flutter::EncodableValue("url"),
+       flutter::EncodableValue(ewk_view_url_get(webview->webview_instance_))}};
+  webview->webview_controller_channel_->InvokeMethod(
+      "onJavaScriptAlert", std::make_unique<flutter::EncodableValue>(args));
+
+  return true;
+}
+
+Eina_Bool WebView::OnJavaScriptConfirmDialog(Evas_Object* o,
+                                             const char* message, void* data) {
+  WebView* webview = static_cast<WebView*>(data);
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
+      {flutter::EncodableValue("url"),
+       flutter::EncodableValue(ewk_view_url_get(webview->webview_instance_))}};
+  webview->webview_controller_channel_->InvokeMethod(
+      "onJavaScriptConfirm", std::make_unique<flutter::EncodableValue>(args));
+
+  return true;
+}
+
+Eina_Bool WebView::OnJavaScriptPromptDialog(Evas_Object* o, const char* message,
+                                            const char* default_text,
+                                            void* data) {
+  WebView* webview = static_cast<WebView*>(data);
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
+      {flutter::EncodableValue("url"),
+       flutter::EncodableValue(ewk_view_url_get(webview->webview_instance_))},
+      {flutter::EncodableValue("defaultText"),
+       flutter::EncodableValue(default_text)}};
+  webview->webview_controller_channel_->InvokeMethod(
+      "onJavaScriptPrompt", std::make_unique<flutter::EncodableValue>(args));
+  return true;
 }
