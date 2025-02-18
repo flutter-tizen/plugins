@@ -4,8 +4,11 @@ import 'dart:io';
 
 Future<Map> getTurnCredential(String host, int port) async {
   var client = HttpClient(context: SecurityContext());
-  client.badCertificateCallback =
-      (X509Certificate cert, String host, int port) {
+  client.badCertificateCallback = (
+    X509Certificate cert,
+    String host,
+    int port,
+  ) {
     print('getTurnCredential: Allow self-signed certificate => $host:$port. ');
     return true;
   };

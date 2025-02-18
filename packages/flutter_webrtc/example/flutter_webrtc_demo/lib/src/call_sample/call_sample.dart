@@ -139,17 +139,11 @@ class _CallSampleState extends State<CallSample> {
           content: Text('accept?'),
           actions: <Widget>[
             MaterialButton(
-              child: Text(
-                'Reject',
-                style: TextStyle(color: Colors.red),
-              ),
+              child: Text('Reject', style: TextStyle(color: Colors.red)),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             MaterialButton(
-              child: Text(
-                'Accept',
-                style: TextStyle(color: Colors.green),
-              ),
+              child: Text('Accept', style: TextStyle(color: Colors.green)),
               onPressed: () => Navigator.of(context).pop(true),
             ),
           ],
@@ -216,16 +210,18 @@ class _CallSampleState extends State<CallSample> {
       );
       if (source != null) {
         try {
-          var stream =
-              await navigator.mediaDevices.getDisplayMedia(<String, dynamic>{
-            'video': {
-              'deviceId': {'exact': source.id},
-              'mandatory': {'frameRate': 30.0}
-            }
-          });
+          var stream = await navigator.mediaDevices.getDisplayMedia(
+            <String, dynamic>{
+              'video': {
+                'deviceId': {'exact': source.id},
+                'mandatory': {'frameRate': 30.0},
+              },
+            },
+          );
           stream.getVideoTracks()[0].onEnded = () {
             print(
-                'By adding a listener on onEnded you can: 1) catch stop video sharing on Web');
+              'By adding a listener on onEnded you can: 1) catch stop video sharing on Web',
+            );
           };
           screenStream = stream;
         } catch (e) {
@@ -233,11 +229,9 @@ class _CallSampleState extends State<CallSample> {
         }
       }
     } else if (WebRTC.platformIsWeb) {
-      screenStream =
-          await navigator.mediaDevices.getDisplayMedia(<String, dynamic>{
-        'audio': false,
-        'video': true,
-      });
+      screenStream = await navigator.mediaDevices.getDisplayMedia(
+        <String, dynamic>{'audio': false, 'video': true},
+      );
     }
     if (screenStream != null) _signaling?.switchToScreenSharing(screenStream);
   }
@@ -248,34 +242,44 @@ class _CallSampleState extends State<CallSample> {
 
   ListBody _buildRow(context, peer) {
     var self = peer['id'] == _selfId;
-    return ListBody(children: <Widget>[
-      ListTile(
-        title: Text(self
-            ? peer['name'] + ', ID: ${peer['id']} ' + ' [Your self]'
-            : peer['name'] + ', ID: ${peer['id']} '),
-        onTap: null,
-        trailing: SizedBox(
+    return ListBody(
+      children: <Widget>[
+        ListTile(
+          title: Text(
+            self
+                ? peer['name'] + ', ID: ${peer['id']} ' + ' [Your self]'
+                : peer['name'] + ', ID: ${peer['id']} ',
+          ),
+          onTap: null,
+          trailing: SizedBox(
             width: 100.0,
             child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  IconButton(
-                    icon: Icon(self ? Icons.close : Icons.videocam,
-                        color: self ? Colors.grey : Colors.black),
-                    onPressed: () => _invitePeer(context, peer['id'], false),
-                    tooltip: 'Video calling',
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(
+                    self ? Icons.close : Icons.videocam,
+                    color: self ? Colors.grey : Colors.black,
                   ),
-                  IconButton(
-                    icon: Icon(self ? Icons.close : Icons.screen_share,
-                        color: self ? Colors.grey : Colors.black),
-                    onPressed: () => _invitePeer(context, peer['id'], true),
-                    tooltip: 'Screen sharing',
-                  )
-                ])),
-        subtitle: Text('[ ${peer['user_agent']}'),
-      ),
-      Divider()
-    ]);
+                  onPressed: () => _invitePeer(context, peer['id'], false),
+                  tooltip: 'Video calling',
+                ),
+                IconButton(
+                  icon: Icon(
+                    self ? Icons.close : Icons.screen_share,
+                    color: self ? Colors.grey : Colors.black,
+                  ),
+                  onPressed: () => _invitePeer(context, peer['id'], true),
+                  tooltip: 'Screen sharing',
+                ),
+              ],
+            ),
+          ),
+          subtitle: Text('[ ${peer['user_agent']}'),
+        ),
+        Divider(),
+      ],
+    );
   }
 
   @override
@@ -283,7 +287,8 @@ class _CallSampleState extends State<CallSample> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'P2P Call Sample${_selfId != null ? ' [Your ID ($_selfId)] ' : ''}'),
+          'P2P Call Sample${_selfId != null ? ' [Your ID ($_selfId)] ' : ''}',
+        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.settings),
@@ -293,10 +298,11 @@ class _CallSampleState extends State<CallSample> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _inCalling
-          ? SizedBox(
-              width: 240.0,
-              child: Row(
+      floatingActionButton:
+          _inCalling
+              ? SizedBox(
+                width: 240.0,
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     FloatingActionButton(
@@ -319,45 +325,51 @@ class _CallSampleState extends State<CallSample> {
                       tooltip: 'Mute Mic',
                       onPressed: _muteMic,
                       child: const Icon(Icons.mic_off),
-                    )
-                  ]))
-          : null,
-      body: _inCalling
-          ? OrientationBuilder(builder: (context, orientation) {
-              return Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      flex: 1,
-                      child: Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(color: Colors.black54),
-                        child: RTCVideoView(_localRenderer),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(color: Colors.black54),
-                        child: RTCVideoView(_remoteRenderer),
-                      ),
                     ),
                   ],
                 ),
-              );
-            })
-          : ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(0.0),
-              itemCount: _peers.length,
-              itemBuilder: (context, i) {
-                return _buildRow(context, _peers[i]);
-              }),
+              )
+              : null,
+      body:
+          _inCalling
+              ? OrientationBuilder(
+                builder: (context, orientation) {
+                  return Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(color: Colors.black54),
+                            child: RTCVideoView(_localRenderer),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(color: Colors.black54),
+                            child: RTCVideoView(_remoteRenderer),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              )
+              : ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.all(0.0),
+                itemCount: _peers.length,
+                itemBuilder: (context, i) {
+                  return _buildRow(context, _peers[i]);
+                },
+              ),
     );
   }
 }

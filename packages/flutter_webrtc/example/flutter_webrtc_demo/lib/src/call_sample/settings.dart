@@ -23,9 +23,7 @@ class _CallSettingsState extends State<CallSettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings'),
-      ),
+      appBar: AppBar(title: Text('Settings')),
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(child: Text('settings'));

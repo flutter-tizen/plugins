@@ -44,11 +44,13 @@ class _MyAppState extends State<LoopBackSampleWithGetStats> {
     }
 
     try {
-      _senderPc ??=
-          await createPeerConnection({'sdpSemantics': 'unified-plan'});
+      _senderPc ??= await createPeerConnection({
+        'sdpSemantics': 'unified-plan',
+      });
 
-      _receiverPc ??=
-          await createPeerConnection({'sdpSemantics': 'unified-plan'});
+      _receiverPc ??= await createPeerConnection({
+        'sdpSemantics': 'unified-plan',
+      });
 
       _senderPc!.onIceCandidate = (candidate) {
         _receiverPc!.addCandidate(candidate);
@@ -63,8 +65,10 @@ class _MyAppState extends State<LoopBackSampleWithGetStats> {
       };
 
       // get user media stream
-      _localStream = await navigator.mediaDevices
-          .getUserMedia({'audio': true, 'video': true});
+      _localStream = await navigator.mediaDevices.getUserMedia({
+        'audio': true,
+        'video': true,
+      });
       _localRenderer.srcObject = _localStream;
 
       _localStream!.getTracks().forEach((track) {
@@ -74,13 +78,13 @@ class _MyAppState extends State<LoopBackSampleWithGetStats> {
       var offer = await _senderPc?.createOffer();
 
       await _receiverPc?.addTransceiver(
-          kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
-          init:
-              RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly));
+        kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
+        init: RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly),
+      );
       await _receiverPc?.addTransceiver(
-          kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
-          init:
-              RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly));
+        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+        init: RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly),
+      );
 
       await _senderPc?.setLocalDescription(offer!);
       await _receiverPc?.setRemoteDescription(offer!);
@@ -121,29 +125,26 @@ class _MyAppState extends State<LoopBackSampleWithGetStats> {
   @override
   Widget build(BuildContext context) {
     var widgets = <Widget>[
-      Expanded(
-        child: RTCVideoView(_localRenderer, mirror: true),
-      ),
-      Expanded(
-        child: RTCVideoView(_remoteRenderer),
-      )
+      Expanded(child: RTCVideoView(_localRenderer, mirror: true)),
+      Expanded(child: RTCVideoView(_remoteRenderer)),
     ];
     return Scaffold(
-      appBar: AppBar(
-        title: Text('LoopBack with getStats'),
-      ),
+      appBar: AppBar(title: Text('LoopBack with getStats')),
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
             child: Container(
               decoration: BoxDecoration(color: Colors.black54),
-              child: orientation == Orientation.portrait
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: widgets)
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: widgets),
+              child:
+                  orientation == Orientation.portrait
+                      ? Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: widgets,
+                      )
+                      : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: widgets,
+                      ),
             ),
           );
         },

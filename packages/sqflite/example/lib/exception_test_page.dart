@@ -21,10 +21,12 @@ class ExceptionTestPage extends TestPage {
       var hasFailed = false;
       try {
         await db.transaction((txn) async {
-          await txn.rawInsert(
-              'INSERT INTO Test (name) VALUES (?)', <Object>['item']);
+          await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', <Object>[
+            'item',
+          ]);
           final afterCount = Sqflite.firstIntValue(
-              await txn.rawQuery('SELECT COUNT(*) FROM Test'));
+            await txn.rawQuery('SELECT COUNT(*) FROM Test'),
+          );
           expect(afterCount, 1);
 
           hasFailed = true;
@@ -38,8 +40,9 @@ class ExceptionTestPage extends TestPage {
       }
       verify(hasFailed);
 
-      final afterCount =
-          Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM Test'));
+      final afterCount = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM Test'),
+      );
       expect(afterCount, 0);
 
       await db.close();
@@ -66,8 +69,9 @@ class ExceptionTestPage extends TestPage {
 
       verify(hasFailed);
 
-      final afterCount =
-          Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM Test'));
+      final afterCount = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM Test'),
+      );
       expect(afterCount, 0);
 
       await db.close();
@@ -103,9 +107,9 @@ class ExceptionTestPage extends TestPage {
       } on DatabaseException catch (e) {
         verify(e.isSyntaxError());
         print(e);
-        verify(e
-            .toString()
-            .contains("sql 'malformed query with args ?' args [1]"));
+        verify(
+          e.toString().contains("sql 'malformed query with args ?' args [1]"),
+        );
       }
 
       try {
@@ -139,9 +143,13 @@ class ExceptionTestPage extends TestPage {
     test('Sqlite constraint Exception', () async {
       // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('constraint_exception.db');
-      final db = await openDatabase(path, version: 1, onCreate: (db, version) {
-        db.execute('CREATE TABLE Test (name TEXT UNIQUE)');
-      });
+      final db = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (db, version) {
+          db.execute('CREATE TABLE Test (name TEXT UNIQUE)');
+        },
+      );
       await db.insert('Test', {'name': 'test1'});
 
       try {
@@ -162,9 +170,13 @@ class ExceptionTestPage extends TestPage {
     test('Sqlite constraint primary key', () async {
       // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('constraint_primary_key_exception.db');
-      final db = await openDatabase(path, version: 1, onCreate: (db, version) {
-        db.execute('CREATE TABLE Test (name TEXT PRIMARY KEY)');
-      });
+      final db = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (db, version) {
+          db.execute('CREATE TABLE Test (name TEXT PRIMARY KEY)');
+        },
+      );
       await db.insert('Test', {'name': 'test1'});
 
       try {
@@ -218,9 +230,9 @@ class ExceptionTestPage extends TestPage {
       } on DatabaseException catch (e) {
         verify(e.isSyntaxError());
         print(e);
-        verify(e
-            .toString()
-            .contains("sql 'malformed query with args ?' args [1]"));
+        verify(
+          e.toString().contains("sql 'malformed query with args ?' args [1]"),
+        );
       }
 
       try {
@@ -260,25 +272,34 @@ class ExceptionTestPage extends TestPage {
 
     test('Open onDowngrade fail', () async {
       final path = await initDeleteDb('open_on_downgrade_fail.db');
-      var database = await openDatabase(path, version: 2,
-          onCreate: (Database db, int version) async {
-        await db.execute('CREATE TABLE Test(id INTEGER PRIMARY KEY)');
-      });
+      var database = await openDatabase(
+        path,
+        version: 2,
+        onCreate: (Database db, int version) async {
+          await db.execute('CREATE TABLE Test(id INTEGER PRIMARY KEY)');
+        },
+      );
       await database.close();
 
       // currently this is crashing...
       // should fail going back in versions
       try {
-        database = await openDatabase(path,
-            version: 1, onDowngrade: onDatabaseVersionChangeError);
+        database = await openDatabase(
+          path,
+          version: 1,
+          onDowngrade: onDatabaseVersionChangeError,
+        );
         verify(false);
       } catch (e) {
         print(e);
       }
 
       // should work
-      database = await openDatabase(path,
-          version: 2, onDowngrade: onDatabaseVersionChangeError);
+      database = await openDatabase(
+        path,
+        version: 2,
+        onDowngrade: onDatabaseVersionChangeError,
+      );
       print(database);
       await database.close();
     });
@@ -286,10 +307,13 @@ class ExceptionTestPage extends TestPage {
     test('Access after close', () async {
       // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('access_after_close.db');
-      final database = await openDatabase(path, version: 3,
-          onCreate: (Database db, int version) async {
-        await db.execute('CREATE TABLE Test(id INTEGER PRIMARY KEY)');
-      });
+      final database = await openDatabase(
+        path,
+        version: 3,
+        onCreate: (Database db, int version) async {
+          await db.execute('CREATE TABLE Test(id INTEGER PRIMARY KEY)');
+        },
+      );
       await database.close();
       try {
         await database.getVersion();
@@ -441,16 +465,18 @@ class ExceptionTestPage extends TestPage {
       await db.execute('CREATE TABLE Test (name TEXT)');
 
       try {
-        await db
-            .rawInsert('INSERT INTO Test (name) VALUES ("value")', ['value2']);
+        await db.rawInsert('INSERT INTO Test (name) VALUES ("value")', [
+          'value2',
+        ]);
       } on DatabaseException catch (e) {
         print('ERR: $e');
         expect(e.toString().contains("sql 'INSERT INTO Test"), true);
       }
 
       try {
-        await db
-            .rawQuery('SELECT * FROM Test WHERE name = "value"', ['value2']);
+        await db.rawQuery('SELECT * FROM Test WHERE name = "value"', [
+          'value2',
+        ]);
       } on DatabaseException catch (e) {
         print('ERR: $e');
         expect(e.toString().contains("sql 'SELECT * FROM Test"), true);
@@ -474,10 +500,11 @@ class ExceptionTestPage extends TestPage {
         var hasTimedOut = false;
         var callbackCount = 0;
         Sqflite.setLockWarningInfo(
-            duration: const Duration(milliseconds: 200),
-            callback: () {
-              callbackCount++;
-            });
+          duration: const Duration(milliseconds: 200),
+          callback: () {
+            callbackCount++;
+          },
+        );
 
         await db.transaction((txn) async {
           try {
@@ -591,7 +618,7 @@ var escapeNames = [
   'using',
   'values',
   'when',
-  'where'
+  'where',
 ];
 
 /// all SQLite keywords to escape.
@@ -719,5 +746,5 @@ var allEscapeNames = [
   'when',
   'where',
   'with',
-  'without'
+  'without',
 ];

@@ -50,17 +50,11 @@ class _DataChannelSampleState extends State<DataChannelSample> {
           content: Text('accept?'),
           actions: <Widget>[
             MaterialButton(
-              child: Text(
-                'Reject',
-                style: TextStyle(color: Colors.red),
-              ),
+              child: Text('Reject', style: TextStyle(color: Colors.red)),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             MaterialButton(
-              child: Text(
-                'Accept',
-                style: TextStyle(color: Colors.green),
-              ),
+              child: Text('Accept', style: TextStyle(color: Colors.green)),
               onPressed: () => Navigator.of(context).pop(true),
             ),
           ],
@@ -189,8 +183,9 @@ class _DataChannelSampleState extends State<DataChannelSample> {
 
   Future<void> _handleDataChannelTest(Timer timer) async {
     var text = 'Say hello ${timer.tick} times, from [$_selfId]';
-    await _dataChannel
-        ?.send(RTCDataChannelMessage.fromBinary(Uint8List(timer.tick + 1)));
+    await _dataChannel?.send(
+      RTCDataChannelMessage.fromBinary(Uint8List(timer.tick + 1)),
+    );
     await _dataChannel?.send(RTCDataChannelMessage(text));
   }
 
@@ -206,17 +201,21 @@ class _DataChannelSampleState extends State<DataChannelSample> {
 
   Widget _buildRow(context, peer) {
     var self = peer['id'] == _selfId;
-    return ListBody(children: <Widget>[
-      ListTile(
-        title: Text(self
-            ? peer['name'] + ', ID: ${peer['id']} ' + ' [Your self]'
-            : peer['name'] + ', ID: ${peer['id']} '),
-        onTap: () => _invitePeer(context, peer['id']),
-        trailing: Icon(Icons.sms),
-        subtitle: Text('[ ${peer['user_agent']}]'),
-      ),
-      Divider()
-    ]);
+    return ListBody(
+      children: <Widget>[
+        ListTile(
+          title: Text(
+            self
+                ? peer['name'] + ', ID: ${peer['id']} ' + ' [Your self]'
+                : peer['name'] + ', ID: ${peer['id']} ',
+          ),
+          onTap: () => _invitePeer(context, peer['id']),
+          trailing: Icon(Icons.sms),
+          subtitle: Text('[ ${peer['user_agent']}]'),
+        ),
+        Divider(),
+      ],
+    );
   }
 
   @override
@@ -224,7 +223,8 @@ class _DataChannelSampleState extends State<DataChannelSample> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'Data Channel Sample${_selfId != null ? ' [Your ID ($_selfId)] ' : ''}'),
+          'Data Channel Sample${_selfId != null ? ' [Your ID ($_selfId)] ' : ''}',
+        ),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.settings),
@@ -233,26 +233,25 @@ class _DataChannelSampleState extends State<DataChannelSample> {
           ),
         ],
       ),
-      floatingActionButton: _inCalling
-          ? FloatingActionButton(
-              onPressed: _hangUp,
-              tooltip: 'Hangup',
-              child: Icon(Icons.call_end),
-            )
-          : null,
-      body: _inCalling
-          ? Center(
-              child: Container(
-                child: Text('Received => $_text'),
+      floatingActionButton:
+          _inCalling
+              ? FloatingActionButton(
+                onPressed: _hangUp,
+                tooltip: 'Hangup',
+                child: Icon(Icons.call_end),
+              )
+              : null,
+      body:
+          _inCalling
+              ? Center(child: Container(child: Text('Received => $_text')))
+              : ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.all(0.0),
+                itemCount: _peers.length,
+                itemBuilder: (context, i) {
+                  return _buildRow(context, _peers[i]);
+                },
               ),
-            )
-          : ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(0.0),
-              itemCount: _peers.length,
-              itemBuilder: (context, i) {
-                return _buildRow(context, _peers[i]);
-              }),
     );
   }
 }

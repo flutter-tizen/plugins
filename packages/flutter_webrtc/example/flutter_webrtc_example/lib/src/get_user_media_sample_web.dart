@@ -63,7 +63,7 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
           'minHeight': '720',
           'minFrameRate': '30',
         },
-      }
+      },
     };
 
     try {
@@ -119,22 +119,27 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
   void _captureFrame() async {
     if (_localStream == null) throw Exception('Can\'t record without a stream');
-    final videoTrack = _localStream!
-        .getVideoTracks()
-        .firstWhere((track) => track.kind == 'video');
+    final videoTrack = _localStream!.getVideoTracks().firstWhere(
+      (track) => track.kind == 'video',
+    );
     final frame = await videoTrack.captureFrame();
     await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              content:
-                  Image.memory(frame.asUint8List(), height: 720, width: 1280),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: Navigator.of(context, rootNavigator: true).pop,
-                  child: Text('OK'),
-                )
-              ],
-            ));
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            content: Image.memory(
+              frame.asUint8List(),
+              height: 720,
+              width: 1280,
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: Navigator.of(context, rootNavigator: true).pop,
+                child: Text('OK'),
+              ),
+            ],
+          ),
+    );
   }
 
   @override
@@ -142,37 +147,38 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     return Scaffold(
       appBar: AppBar(
         title: Text('GetUserMedia API Test Web'),
-        actions: _inCalling
-            ? <Widget>[
-                IconButton(
-                  icon: Icon(Icons.camera),
-                  onPressed: _captureFrame,
-                ),
-                IconButton(
-                  icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
-                  onPressed: _isRec ? _stopRecording : _startRecording,
-                ),
-                PopupMenuButton<String>(
-                  onSelected: _switchCamera,
-                  itemBuilder: (BuildContext context) {
-                    if (_cameras != null) {
-                      return _cameras!.map((device) {
-                        return PopupMenuItem<String>(
-                          value: device.deviceId,
-                          child: Text(device.label),
-                        );
-                      }).toList();
-                    } else {
-                      return [];
-                    }
-                  },
-                ),
-                // IconButton(
-                //   icon: Icon(Icons.settings),
-                //   onPressed: _switchCamera,
-                // )
-              ]
-            : null,
+        actions:
+            _inCalling
+                ? <Widget>[
+                  IconButton(
+                    icon: Icon(Icons.camera),
+                    onPressed: _captureFrame,
+                  ),
+                  IconButton(
+                    icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
+                    onPressed: _isRec ? _stopRecording : _startRecording,
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: _switchCamera,
+                    itemBuilder: (BuildContext context) {
+                      if (_cameras != null) {
+                        return _cameras!.map((device) {
+                          return PopupMenuItem<String>(
+                            value: device.deviceId,
+                            child: Text(device.label),
+                          );
+                        }).toList();
+                      } else {
+                        return [];
+                      }
+                    },
+                  ),
+                  // IconButton(
+                  //   icon: Icon(Icons.settings),
+                  //   onPressed: _switchCamera,
+                  // )
+                ]
+                : null,
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
@@ -199,7 +205,10 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     if (_localStream == null) return;
 
     await Helper.switchCamera(
-        _localStream!.getVideoTracks()[0], deviceId, _localStream);
+      _localStream!.getVideoTracks()[0],
+      deviceId,
+      _localStream,
+    );
     setState(() {});
   }
 }

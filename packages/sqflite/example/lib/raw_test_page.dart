@@ -20,15 +20,17 @@ class RawTestPage extends TestPage {
       final path = await initDeleteDb('raw_simple.db');
       final db = await openDatabase(path);
       try {
-        await db
-            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
         expect(
-            await db.rawInsert('INSERT INTO Test (name) VALUES (?)', ['test']),
-            1);
+          await db.rawInsert('INSERT INTO Test (name) VALUES (?)', ['test']),
+          1,
+        );
 
         final result = await db.query('Test');
         final expected = [
-          {'id': 1, 'name': 'test'}
+          {'id': 1, 'name': 'test'},
         ];
         expect(result, expected);
       } finally {
@@ -63,8 +65,8 @@ class RawTestPage extends TestPage {
           'columns': ['id', 'name'],
           'rows': [
             [1, 'item 1'],
-            [2, 'item 2']
-          ]
+            [2, 'item 2'],
+          ],
         };
         print('result as r/c $resultSet');
         expect(resultSet, expectedResultSetMap);
@@ -82,7 +84,7 @@ class RawTestPage extends TestPage {
           // Allow empty result
           expectedResultSetMap = {
             'columns': ['id', 'name'],
-            'rows': []
+            'rows': [],
           };
           expect(resultSet, expectedResultSetMap);
         }
@@ -96,19 +98,24 @@ class RawTestPage extends TestPage {
       final path = await initDeleteDb('simple_transaction.db');
       final db = await openDatabase(path);
       try {
-        await db
-            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
 
         Future testItem(int i) async {
           await db.transaction((txn) async {
-            final count = Sqflite.firstIntValue(
-                await txn.rawQuery('SELECT COUNT(*) FROM Test'))!;
+            final count =
+                Sqflite.firstIntValue(
+                  await txn.rawQuery('SELECT COUNT(*) FROM Test'),
+                )!;
             await Future<void>.delayed(const Duration(milliseconds: 40));
-            await txn
-                .rawInsert('INSERT INTO Test (name) VALUES (?)', ['item $i']);
+            await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', [
+              'item $i',
+            ]);
             //print(await db.query('SELECT COUNT(*) FROM Test'));
             final afterCount = Sqflite.firstIntValue(
-                await txn.rawQuery('SELECT COUNT(*) FROM Test'));
+              await txn.rawQuery('SELECT COUNT(*) FROM Test'),
+            );
             expect(count + 1, afterCount);
           });
         }
@@ -133,8 +140,9 @@ class RawTestPage extends TestPage {
         final step3 = Completer<void>();
 
         Future action1() async {
-          await db
-              .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+          await db.execute(
+            'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+          );
           step1.complete();
 
           await step2.future;
@@ -154,14 +162,16 @@ class RawTestPage extends TestPage {
           await db.transaction((txn) async {
             // Wait for table being created;
             await step1.future;
-            await txn
-                .rawInsert('INSERT INTO Test (name) VALUES (?)', ['item 1']);
+            await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', [
+              'item 1',
+            ]);
             step2.complete();
 
             await step3.future;
 
             final count = Sqflite.firstIntValue(
-                await txn.rawQuery('SELECT COUNT(*) FROM Test'));
+              await txn.rawQuery('SELECT COUNT(*) FROM Test'),
+            );
             expect(count, 1);
           });
         }
@@ -172,7 +182,8 @@ class RawTestPage extends TestPage {
         await Future.wait([future1, future2]);
 
         final count = Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM Test'));
+          await db.rawQuery('SELECT COUNT(*) FROM Test'),
+        );
         expect(count, 1);
       } finally {
         await db.close();
@@ -189,8 +200,9 @@ class RawTestPage extends TestPage {
         final step3 = Completer<void>();
 
         Future action1() async {
-          await db
-              .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+          await db.execute(
+            'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+          );
           step1.complete();
 
           await step2.future;
@@ -213,14 +225,16 @@ class RawTestPage extends TestPage {
 
           await db.transaction((txn) async {
             // Wait for table being created;
-            await txn
-                .rawInsert('INSERT INTO Test (name) VALUES (?)', ['item 1']);
+            await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', [
+              'item 1',
+            ]);
             step2.complete();
 
             await step3.future;
 
             final count = Sqflite.firstIntValue(
-                await txn.rawQuery('SELECT COUNT(*) FROM Test'));
+              await txn.rawQuery('SELECT COUNT(*) FROM Test'),
+            );
             expect(count, 1);
           });
         }
@@ -231,7 +245,8 @@ class RawTestPage extends TestPage {
         await Future.wait([future1, future2]);
 
         final count = Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM Test'));
+          await db.rawQuery('SELECT COUNT(*) FROM Test'),
+        );
         expect(count, 1);
       } finally {
         await db.close();
@@ -242,8 +257,9 @@ class RawTestPage extends TestPage {
       final path = await initDeleteDb('transaction_recursive.db');
       final db = await openDatabase(path);
       try {
-        await db
-            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
 
         // insert then fails to make sure the transaction is cancelled
         await db.transaction((txn) async {
@@ -252,7 +268,8 @@ class RawTestPage extends TestPage {
           await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', ['item 2']);
         });
         final afterCount = Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM Test'));
+          await db.rawQuery('SELECT COUNT(*) FROM Test'),
+        );
         expect(afterCount, 2);
       } finally {
         await db.close();
@@ -265,15 +282,17 @@ class RawTestPage extends TestPage {
       final db = await openDatabase(path);
       Database? db2;
       try {
-        await db
-            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
 
         db2 = await openDatabase(path);
 
         await db.transaction((txn) async {
           await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', ['item']);
           final afterCount = Sqflite.firstIntValue(
-              await txn.rawQuery('SELECT COUNT(*) FROM Test'));
+            await txn.rawQuery('SELECT COUNT(*) FROM Test'),
+          );
           expect(afterCount, 1);
 
           /*
@@ -284,11 +303,13 @@ class RawTestPage extends TestPage {
         */
         });
         final db2AfterCount = Sqflite.firstIntValue(
-            await db2.rawQuery('SELECT COUNT(*) FROM Test'));
+          await db2.rawQuery('SELECT COUNT(*) FROM Test'),
+        );
         expect(db2AfterCount, 1);
 
         final afterCount = Sqflite.firstIntValue(
-            await db.rawQuery('SELECT COUNT(*) FROM Test'));
+          await db.rawQuery('SELECT COUNT(*) FROM Test'),
+        );
         expect(afterCount, 1);
       } finally {
         await db.close();
@@ -310,36 +331,41 @@ class RawTestPage extends TestPage {
 
         print('dropped');
         await database.execute(
-            'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, value INTEGER, num REAL)');
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, value INTEGER, num REAL)',
+        );
         print('table created');
         var id = await database.rawInsert(
-            // This does not work using ffi
-            // 'INSERT INTO Test(name, value, num) VALUES("some name",1234,?)',
-            // [456.789]);
-            'INSERT INTO Test(name, value, num) VALUES(?,1234,?)',
-            ['some name', 456.789]);
+          // This does not work using ffi
+          // 'INSERT INTO Test(name, value, num) VALUES("some name",1234,?)',
+          // [456.789]);
+          'INSERT INTO Test(name, value, num) VALUES(?,1234,?)',
+          ['some name', 456.789],
+        );
         print('inserted1: $id');
         id = await database.rawInsert(
-            'INSERT INTO Test(name, value) VALUES(?, ?)',
-            ['another name', 12345678]);
+          'INSERT INTO Test(name, value) VALUES(?, ?)',
+          ['another name', 12345678],
+        );
         print('inserted2: $id');
         var count = await database.rawUpdate(
-            'UPDATE Test SET name = ?, value = ? WHERE name = ?',
-            ['updated name', '9876', 'some name']);
+          'UPDATE Test SET name = ?, value = ? WHERE name = ?',
+          ['updated name', '9876', 'some name'],
+        );
         print('updated: $count');
         expect(count, 1);
         var list = await database.rawQuery('SELECT * FROM Test');
         var expectedList = <Map>[
           {'name': 'updated name', 'id': 1, 'value': 9876, 'num': 456.789},
-          {'name': 'another name', 'id': 2, 'value': 12345678, 'num': null}
+          {'name': 'another name', 'id': 2, 'value': 12345678, 'num': null},
         ];
 
         print('list: ${json.encode(list)}');
         print('expected $expectedList');
         expect(list, expectedList);
 
-        count = await database
-            .rawDelete('DELETE FROM Test WHERE name = ?', ['another name']);
+        count = await database.rawDelete('DELETE FROM Test WHERE name = ?', [
+          'another name',
+        ]);
         print('deleted: $count');
         expect(count, 1);
         list = await database.rawQuery('SELECT * FROM Test');
@@ -373,37 +399,44 @@ class RawTestPage extends TestPage {
       await deleteDatabase(path);
 
       // open the database
-      final database = await openDatabase(path, version: 1,
-          onCreate: (Database db, int version) async {
-        // When creating the db, create the table
-        await db.execute(
-            'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, value INTEGER, num REAL)');
-      });
+      final database = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (Database db, int version) async {
+          // When creating the db, create the table
+          await db.execute(
+            'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, value INTEGER, num REAL)',
+          );
+        },
+      );
 
       // Insert some records in a transaction
       await database.transaction((txn) async {
         final id1 = await txn.rawInsert(
-            // 'INSERT INTO Test(name, value, num) VALUES("some name", 1234, 456.789)'); This does not work using ffi
-            'INSERT INTO Test(name, value, num) VALUES(?, 1234, 456.789)',
-            ['some name']);
+          // 'INSERT INTO Test(name, value, num) VALUES("some name", 1234, 456.789)'); This does not work using ffi
+          'INSERT INTO Test(name, value, num) VALUES(?, 1234, 456.789)',
+          ['some name'],
+        );
         print('inserted1: $id1');
         final id2 = await txn.rawInsert(
-            'INSERT INTO Test(name, value, num) VALUES(?, ?, ?)',
-            ['another name', 12345678, 3.1416]);
+          'INSERT INTO Test(name, value, num) VALUES(?, ?, ?)',
+          ['another name', 12345678, 3.1416],
+        );
         print('inserted2: $id2');
       });
 
       // Update some record
       var count = await database.rawUpdate(
-          'UPDATE Test SET name = ?, value = ? WHERE name = ?',
-          ['updated name', '9876', 'some name']);
+        'UPDATE Test SET name = ?, value = ? WHERE name = ?',
+        ['updated name', '9876', 'some name'],
+      );
       print('updated: $count');
 
       // Get the records
       final list = await database.rawQuery('SELECT * FROM Test');
       final expectedList = [
         {'name': 'updated name', 'id': 1, 'value': 9876, 'num': 456.789},
-        {'name': 'another name', 'id': 2, 'value': 12345678, 'num': 3.1416}
+        {'name': 'another name', 'id': 2, 'value': 12345678, 'num': 3.1416},
       ];
       print(list);
       print(expectedList);
@@ -411,13 +444,16 @@ class RawTestPage extends TestPage {
       expect(list, expectedList);
 
       // Count the records
-      count = (Sqflite.firstIntValue(
-          await database.rawQuery('SELECT COUNT(*) FROM Test')))!;
+      count =
+          (Sqflite.firstIntValue(
+            await database.rawQuery('SELECT COUNT(*) FROM Test'),
+          ))!;
       expect(count, 2);
 
       // Delete a record
-      count = await database
-          .rawDelete('DELETE FROM Test WHERE name = ?', ['another name']);
+      count = await database.rawDelete('DELETE FROM Test WHERE name = ?', [
+        'another name',
+      ]);
       expect(count, 1);
 
       // Close the database
@@ -430,12 +466,14 @@ class RawTestPage extends TestPage {
       final db = await openDatabase(path);
       Database? db2;
       try {
-        await db
-            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
         db2 = await openReadOnlyDatabase(path);
 
         final count = Sqflite.firstIntValue(
-            await db2.rawQuery('SELECT COUNT(*) FROM Test'));
+          await db2.rawQuery('SELECT COUNT(*) FROM Test'),
+        );
         expect(count, 0);
       } finally {
         await db.close();
@@ -458,12 +496,12 @@ class RawTestPage extends TestPage {
         var list = await db.query('Test');
         expect(list, [
           {'name': 'test'},
-          {'name': 'other'}
+          {'name': 'other'},
         ]);
         list = await db.query('Test', columns: ['name', 'rowid']);
         expect(list, [
           {'name': 'test', 'rowid': 1},
-          {'name': 'other', 'rowid': 2}
+          {'name': 'other', 'rowid': 2},
         ]);
       } finally {
         await db.close();
@@ -480,8 +518,9 @@ class RawTestPage extends TestPage {
         db = await openDatabase(path);
         // This table has no primary key and we ask sqlite not to generate
         // a rowid
-        await db
-            .execute('CREATE TABLE Test (name TEXT PRIMARY KEY) WITHOUT ROWID');
+        await db.execute(
+          'CREATE TABLE Test (name TEXT PRIMARY KEY) WITHOUT ROWID',
+        );
         var id = await db.insert('Test', {'name': 'test'});
         expect(id, 0);
 
@@ -501,7 +540,7 @@ class RawTestPage extends TestPage {
         final list = await db.query('Test');
         expect(list, [
           {'name': 'other'},
-          {'name': 'test'}
+          {'name': 'test'},
         ]);
       } finally {
         await db.close();
@@ -516,23 +555,33 @@ class RawTestPage extends TestPage {
 
         batch.execute('CREATE TABLE Other (id INTEGER PRIMARY KEY, name TEXT)');
         batch.execute(
-            'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, other REFERENCES Other(id))');
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, other REFERENCES Other(id))',
+        );
         batch.rawInsert('INSERT INTO Other (name) VALUES (?)', ['other 1']);
-        batch.rawInsert(
-            'INSERT INTO Test (other, name) VALUES (?, ?)', [1, 'item 2']);
+        batch.rawInsert('INSERT INTO Test (other, name) VALUES (?, ?)', [
+          1,
+          'item 2',
+        ]);
         await batch.commit();
 
-        var result = await db.query('Test',
-            columns: ['other', 'name'], where: 'other = 1');
+        var result = await db.query(
+          'Test',
+          columns: ['other', 'name'],
+          where: 'other = 1',
+        );
         print(result);
         expect(result, [
-          {'other': 1, 'name': 'item 2'}
+          {'other': 1, 'name': 'item 2'},
         ]);
-        result = await db.query('Test',
-            columns: ['other', 'name'], where: 'other = ?', whereArgs: [1]);
+        result = await db.query(
+          'Test',
+          columns: ['other', 'name'],
+          where: 'other = ?',
+          whereArgs: [1],
+        );
         print(result);
         expect(result, [
-          {'other': 1, 'name': 'item 2'}
+          {'other': 1, 'name': 'item 2'},
         ]);
       } finally {
         await db.close();
@@ -544,9 +593,13 @@ class RawTestPage extends TestPage {
       try {
         for (var value in [null, 2]) {
           expect(
-              firstIntValue(await db.rawQuery(
-                  'SELECT CASE WHEN 0 = 1 THEN 1 ELSE ? END', [value])),
-              value);
+            firstIntValue(
+              await db.rawQuery('SELECT CASE WHEN 0 = 1 THEN 1 ELSE ? END', [
+                value,
+              ]),
+            ),
+            value,
+          );
         }
       } finally {
         await db.close();
@@ -570,8 +623,11 @@ class RawTestPage extends TestPage {
         var resultsList = <List>[];
 
         // Use a cursor
-        var cursor =
-            await db.rawQueryCursor('SELECT * FROM test', null, bufferSize: 2);
+        var cursor = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 2,
+        );
         resultsList.clear();
         var results = <Map<String, Object?>>[];
         while (await cursor.moveNext()) {
@@ -580,14 +636,20 @@ class RawTestPage extends TestPage {
         expect(results, [
           {'id': 1},
           {'id': 2},
-          {'id': 3}
+          {'id': 3},
         ]);
 
         // Multiple cursors a cursor
-        var cursor1 =
-            await db.rawQueryCursor('SELECT * FROM test', null, bufferSize: 2);
-        var cursor2 =
-            await db.rawQueryCursor('SELECT * FROM test', null, bufferSize: 1);
+        var cursor1 = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 2,
+        );
+        var cursor2 = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 1,
+        );
         await cursor1.moveNext();
         expect(cursor1.current.values, [1]);
         await cursor2.moveNext();
@@ -611,13 +673,15 @@ class RawTestPage extends TestPage {
         } on StateError catch (_) {}
 
         // No data
-        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [3],
-            bufferSize: 2);
+        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [
+          3,
+        ], bufferSize: 2);
         expect(await cursor.moveNext(), isFalse);
 
         // Matching page size
-        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [1],
-            bufferSize: 2);
+        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [
+          1,
+        ], bufferSize: 2);
         expect(await cursor.moveNext(), isTrue);
         expect(await cursor.moveNext(), isTrue);
         expect(await cursor.moveNext(), isFalse);
