@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_background: ^1.0.0
-  flutter_webrtc: ^0.9.27
+  flutter_webrtc: 0.9.46 # Use a fixed version due to build errors.
   flutter_webrtc_tizen:
     path: ../../
   path_provider: ^2.0.7
