@@ -28,9 +28,9 @@ void main() {
 
   final Map<ResolutionPreset, Size> presetExpectedSizes =
       <ResolutionPreset, Size>{
-    ResolutionPreset.medium: const Size(480, 720),
-    // Don't bother checking for max here since it could be anything.
-  };
+        ResolutionPreset.medium: const Size(480, 720),
+        // Don't bother checking for max here since it could be anything.
+      };
 
   /// Verify that [actual] has dimensions that are at least as large as
   /// [expectedSize]. Allows for a mismatch in portrait vs landscape. Returns
@@ -46,7 +46,9 @@ void main() {
   // automatic code to fall back to smaller sizes when we need to. Returns
   // whether the image is exactly the desired resolution.
   Future<bool> testCaptureImageResolution(
-      CameraController controller, ResolutionPreset preset) async {
+    CameraController controller,
+    ResolutionPreset preset,
+  ) async {
     final Size expectedSize = presetExpectedSizes[preset]!;
 
     // Take Picture
@@ -59,11 +61,14 @@ void main() {
     // Verify image dimensions are as expected
     expect(image, isNotNull);
     return assertExpectedDimensions(
-        expectedSize, Size(image.height.toDouble(), image.width.toDouble()));
+      expectedSize,
+      Size(image.height.toDouble(), image.width.toDouble()),
+    );
   }
 
-  testWidgets('Capture specific image resolutions',
-      (WidgetTester tester) async {
+  testWidgets('Capture specific image resolutions', (
+    WidgetTester tester,
+  ) async {
     final List<CameraDescription> cameras = await availableCameras();
     if (cameras.isEmpty) {
       return;
@@ -72,13 +77,19 @@ void main() {
       bool previousPresetExactlySupported = true;
       for (final MapEntry<ResolutionPreset, Size> preset
           in presetExpectedSizes.entries) {
-        final CameraController controller =
-            CameraController(cameraDescription, preset.key);
+        final CameraController controller = CameraController(
+          cameraDescription,
+          preset.key,
+        );
         await controller.initialize();
-        final bool presetExactlySupported =
-            await testCaptureImageResolution(controller, preset.key);
-        assert(!(!previousPresetExactlySupported && presetExactlySupported),
-            'The camera took higher resolution pictures at a lower resolution.');
+        final bool presetExactlySupported = await testCaptureImageResolution(
+          controller,
+          preset.key,
+        );
+        assert(
+          !(!previousPresetExactlySupported && presetExactlySupported),
+          'The camera took higher resolution pictures at a lower resolution.',
+        );
         previousPresetExactlySupported = presetExactlySupported;
         await controller.dispose();
       }
@@ -89,7 +100,9 @@ void main() {
   // automatic code to fall back to smaller sizes when we need to. Returns
   // whether the image is exactly the desired resolution.
   Future<bool> testCaptureVideoResolution(
-      CameraController controller, ResolutionPreset preset) async {
+    CameraController controller,
+    ResolutionPreset preset,
+  ) async {
     final Size expectedSize = presetExpectedSizes[preset]!;
 
     // Take Video
@@ -99,19 +112,23 @@ void main() {
 
     // Load video metadata
     final File videoFile = File(file.path);
-    final VideoPlayerController videoController =
-        VideoPlayerController.file(videoFile);
+    final VideoPlayerController videoController = VideoPlayerController.file(
+      videoFile,
+    );
     await videoController.initialize();
     final Size video = videoController.value.size;
 
     // Verify image dimensions are as expected
     expect(video, isNotNull);
     return assertExpectedDimensions(
-        expectedSize, Size(video.height, video.width));
+      expectedSize,
+      Size(video.height, video.width),
+    );
   }
 
-  testWidgets('Capture specific video resolutions',
-      (WidgetTester tester) async {
+  testWidgets('Capture specific video resolutions', (
+    WidgetTester tester,
+  ) async {
     final List<CameraDescription> cameras = await availableCameras();
     if (cameras.isEmpty) {
       return;
@@ -120,14 +137,20 @@ void main() {
       bool previousPresetExactlySupported = true;
       for (final MapEntry<ResolutionPreset, Size> preset
           in presetExpectedSizes.entries) {
-        final CameraController controller =
-            CameraController(cameraDescription, preset.key);
+        final CameraController controller = CameraController(
+          cameraDescription,
+          preset.key,
+        );
         await controller.initialize();
         // await controller.prepareForVideoRecording();
-        final bool presetExactlySupported =
-            await testCaptureVideoResolution(controller, preset.key);
-        assert(!(!previousPresetExactlySupported && presetExactlySupported),
-            'The camera took higher resolution pictures at a lower resolution.');
+        final bool presetExactlySupported = await testCaptureVideoResolution(
+          controller,
+          preset.key,
+        );
+        assert(
+          !(!previousPresetExactlySupported && presetExactlySupported),
+          'The camera took higher resolution pictures at a lower resolution.',
+        );
         previousPresetExactlySupported = presetExactlySupported;
         await controller.dispose();
       }
@@ -187,40 +210,36 @@ void main() {
     expect(duration, lessThan(recordingTime - timePaused));
   });
 
-  testWidgets(
-    'Android image streaming',
-    (WidgetTester tester) async {
-      final List<CameraDescription> cameras = await availableCameras();
-      if (cameras.isEmpty) {
+  testWidgets('Android image streaming', (WidgetTester tester) async {
+    final List<CameraDescription> cameras = await availableCameras();
+    if (cameras.isEmpty) {
+      return;
+    }
+
+    final CameraController controller = CameraController(
+      cameras[0],
+      ResolutionPreset.low,
+      enableAudio: false,
+    );
+
+    await controller.initialize();
+    bool isDetecting = false;
+
+    await controller.startImageStream((CameraImage image) {
+      if (isDetecting) {
         return;
       }
 
-      final CameraController controller = CameraController(
-        cameras[0],
-        ResolutionPreset.low,
-        enableAudio: false,
-      );
+      isDetecting = true;
 
-      await controller.initialize();
-      bool isDetecting = false;
+      expectLater(image, isNotNull).whenComplete(() => isDetecting = false);
+    });
 
-      await controller.startImageStream((CameraImage image) {
-        if (isDetecting) {
-          return;
-        }
+    expect(controller.value.isStreamingImages, true);
 
-        isDetecting = true;
+    sleep(const Duration(milliseconds: 500));
 
-        expectLater(image, isNotNull).whenComplete(() => isDetecting = false);
-      });
-
-      expect(controller.value.isStreamingImages, true);
-
-      sleep(const Duration(milliseconds: 500));
-
-      await controller.stopImageStream();
-      await controller.dispose();
-    },
-    skip: !Platform.isAndroid,
-  );
+    await controller.stopImageStream();
+    await controller.dispose();
+  }, skip: !Platform.isAndroid);
 }

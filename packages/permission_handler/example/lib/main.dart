@@ -3,17 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() {
-  runApp(BaseflowPluginExample(
+  runApp(
+    BaseflowPluginExample(
       pluginName: 'Permission Handler',
       githubURL: 'https://github.com/Baseflow/flutter-permission-handler',
       pubDevURL: 'https://pub.dev/packages/permission_handler',
-      pages: [PermissionHandlerWidget.createPage()]));
+      pages: [PermissionHandlerWidget.createPage()],
+    ),
+  );
 }
 
 ///Defines the main theme color
 final MaterialColor themeMaterialColor =
     BaseflowPluginExample.createMaterialColor(
-        const Color.fromRGBO(48, 49, 60, 1));
+      const Color.fromRGBO(48, 49, 60, 1),
+    );
 
 /// A Flutter application demonstrating the functionality of this plugin
 class PermissionHandlerWidget extends StatefulWidget {
@@ -23,7 +27,9 @@ class PermissionHandlerWidget extends StatefulWidget {
   /// Create a page containing the functionality of this plugin
   static ExamplePage createPage() {
     return ExamplePage(
-        Icons.location_on, (context) => const PermissionHandlerWidget());
+      Icons.location_on,
+      (context) => const PermissionHandlerWidget(),
+    );
   }
 
   @override
@@ -36,35 +42,37 @@ class _PermissionHandlerWidgetState extends State<PermissionHandlerWidget> {
   Widget build(BuildContext context) {
     return Center(
       child: ListView(
-          children: Permission.values
-              .where((permission) {
-                // Permissions not applicable for Tizen.
-                return permission != Permission.unknown &&
-                    permission != Permission.photos &&
-                    permission != Permission.photosAddOnly &&
-                    permission != Permission.reminders &&
-                    permission != Permission.speech &&
-                    permission != Permission.ignoreBatteryOptimizations &&
-                    permission != Permission.notification &&
-                    permission != Permission.accessMediaLocation &&
-                    permission != Permission.activityRecognition &&
-                    permission != Permission.bluetooth &&
-                    permission != Permission.manageExternalStorage &&
-                    permission != Permission.systemAlertWindow &&
-                    permission != Permission.requestInstallPackages &&
-                    permission != Permission.appTrackingTransparency &&
-                    permission != Permission.criticalAlerts &&
-                    permission != Permission.accessNotificationPolicy &&
-                    permission != Permission.bluetoothScan &&
-                    permission != Permission.bluetoothAdvertise &&
-                    permission != Permission.bluetoothConnect &&
-                    permission != Permission.nearbyWifiDevices &&
-                    permission != Permission.videos &&
-                    permission != Permission.audio &&
-                    permission != Permission.scheduleExactAlarm;
-              })
-              .map((permission) => PermissionWidget(permission))
-              .toList()),
+        children:
+            Permission.values
+                .where((permission) {
+                  // Permissions not applicable for Tizen.
+                  return permission != Permission.unknown &&
+                      permission != Permission.photos &&
+                      permission != Permission.photosAddOnly &&
+                      permission != Permission.reminders &&
+                      permission != Permission.speech &&
+                      permission != Permission.ignoreBatteryOptimizations &&
+                      permission != Permission.notification &&
+                      permission != Permission.accessMediaLocation &&
+                      permission != Permission.activityRecognition &&
+                      permission != Permission.bluetooth &&
+                      permission != Permission.manageExternalStorage &&
+                      permission != Permission.systemAlertWindow &&
+                      permission != Permission.requestInstallPackages &&
+                      permission != Permission.appTrackingTransparency &&
+                      permission != Permission.criticalAlerts &&
+                      permission != Permission.accessNotificationPolicy &&
+                      permission != Permission.bluetoothScan &&
+                      permission != Permission.bluetoothAdvertise &&
+                      permission != Permission.bluetoothConnect &&
+                      permission != Permission.nearbyWifiDevices &&
+                      permission != Permission.videos &&
+                      permission != Permission.audio &&
+                      permission != Permission.scheduleExactAlarm;
+                })
+                .map((permission) => PermissionWidget(permission))
+                .toList(),
+      ),
     );
   }
 }
@@ -123,17 +131,18 @@ class _PermissionState extends State<PermissionWidget> {
         _permissionStatus.toString(),
         style: TextStyle(color: getPermissionColor()),
       ),
-      trailing: (_permission is PermissionWithService)
-          ? IconButton(
-              icon: const Icon(
-                Icons.info,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                checkServiceStatus(
-                    context, _permission as PermissionWithService);
-              })
-          : null,
+      trailing:
+          (_permission is PermissionWithService)
+              ? IconButton(
+                icon: const Icon(Icons.info, color: Colors.white),
+                onPressed: () {
+                  checkServiceStatus(
+                    context,
+                    _permission as PermissionWithService,
+                  );
+                },
+              )
+              : null,
       onTap: () {
         requestPermission(_permission);
       },
@@ -141,10 +150,12 @@ class _PermissionState extends State<PermissionWidget> {
   }
 
   void checkServiceStatus(
-      BuildContext context, PermissionWithService permission) async {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text((await permission.serviceStatus).toString()),
-    ));
+    BuildContext context,
+    PermissionWithService permission,
+  ) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text((await permission.serviceStatus).toString())),
+    );
   }
 
   Future<void> requestPermission(Permission permission) async {

@@ -22,8 +22,9 @@ void main() {
     expect(tizenInfo.modelName, isNotNull);
   });
 
-  testWidgets('Check all Tizen info values are available',
-      (WidgetTester tester) async {
+  testWidgets('Check all Tizen info values are available', (
+    WidgetTester tester,
+  ) async {
     expect(tizenInfo.modelName, isNotNull);
     expect(tizenInfo.cpuArch, isNotNull);
     expect(tizenInfo.nativeApiVersion, isNotNull);

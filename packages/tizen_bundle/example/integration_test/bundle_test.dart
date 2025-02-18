@@ -15,8 +15,9 @@ void main() {
     expect(bundle['stringKey'], 'stringValue');
   });
 
-  testWidgets('can create a bundle from another bundle',
-      (WidgetTester _) async {
+  testWidgets('can create a bundle from another bundle', (
+    WidgetTester _,
+  ) async {
     final Bundle bundle = Bundle();
     bundle['stringKey'] = 'stringValue';
 
@@ -44,7 +45,9 @@ void main() {
     });
     expect(bundle.keys, unorderedEquals(<String>['key1', 'key2', 'key3']));
     expect(
-        bundle.values, unorderedEquals(<String>['value1', 'value2', 'value3']));
+      bundle.values,
+      unorderedEquals(<String>['value1', 'value2', 'value3']),
+    );
   });
 
   testWidgets('checks whether the bundle is empty', (WidgetTester _) async {
@@ -82,8 +85,9 @@ void main() {
     expect(bundle.length, 0);
   });
 
-  testWidgets('can remove key and its associated value',
-      (WidgetTester _) async {
+  testWidgets('can remove key and its associated value', (
+    WidgetTester _,
+  ) async {
     final Bundle bundle = Bundle();
     bundle['stringKey'] = 'stringValue';
     expect(bundle.containsKey('stringKey'), true);

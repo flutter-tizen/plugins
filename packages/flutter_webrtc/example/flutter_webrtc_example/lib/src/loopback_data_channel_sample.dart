@@ -43,8 +43,10 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
         _pc1!.addCandidate(candidate);
       };
 
-      _dc1 =
-          await _pc1!.createDataChannel('pc1-dc', RTCDataChannelInit()..id = 1);
+      _dc1 = await _pc1!.createDataChannel(
+        'pc1-dc',
+        RTCDataChannelInit()..id = 1,
+      );
 
       _pc2!.onDataChannel = (channel) {
         _dc2 = channel;
@@ -58,7 +60,8 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
             _dc2Status += '\ndc2: Received message: ${data.text}';
           });
           _dc2!.send(
-              RTCDataChannelMessage('(dc2 ==> dc1) Hello from dc2 echo !!!'));
+            RTCDataChannelMessage('(dc2 ==> dc1) Hello from dc2 echo !!!'),
+          );
         };
       };
 
@@ -71,7 +74,8 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
         }
       };
 
-      _dc1!.onMessage = (data) => setState(() {
+      _dc1!.onMessage =
+          (data) => setState(() {
             _dc1Status += '\ndc1: Received message: ${data.text}';
           });
 
@@ -127,25 +131,20 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Data Channel Test'),
-      ),
+      appBar: AppBar(title: Text('Data Channel Test')),
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('(caller)data channel 1:\n'),
-              Container(
-                child: Text(_dc1Status),
-              ),
-              Text('\n\n(callee)data channel 2:\n'),
-              Container(
-                child: Text(_dc2Status),
-              ),
-            ],
-          ));
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('(caller)data channel 1:\n'),
+                Container(child: Text(_dc1Status)),
+                Text('\n\n(callee)data channel 2:\n'),
+                Container(child: Text(_dc2Status)),
+              ],
+            ),
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(

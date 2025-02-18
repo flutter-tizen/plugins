@@ -28,34 +28,43 @@ void main() {
     final LocalPort localPort = await LocalPort.create(kTestPort);
     localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
-    final RemotePort remotePort =
-        await RemotePort.connect(kTestAppId, kTestPort);
+    final RemotePort remotePort = await RemotePort.connect(
+      kTestAppId,
+      kTestPort,
+    );
     expect(remotePort.remoteAppId, equals(kTestAppId));
     expect(remotePort.portName, equals(kTestPort));
 
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
 
-  testWidgets('Create trusted remote port from not trusted',
-      (WidgetTester tester) async {
-    final LocalPort localPort =
-        await LocalPort.create(kTestPort, trusted: false);
-    localPort.register((dynamic message, [RemotePort? remotePort]) {});
+  testWidgets(
+    'Create trusted remote port from not trusted',
+    (WidgetTester tester) async {
+      final LocalPort localPort = await LocalPort.create(
+        kTestPort,
+        trusted: false,
+      );
+      localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
-    await expectLater(
-      () => RemotePort.connect(kTestAppId, kTestPort),
-      throwsException,
-    );
+      await expectLater(
+        () => RemotePort.connect(kTestAppId, kTestPort),
+        throwsException,
+      );
 
-    await localPort.unregister();
-  }, timeout: const Timeout(Duration(seconds: 5)));
+      await localPort.unregister();
+    },
+    timeout: const Timeout(Duration(seconds: 5)),
+  );
 
   testWidgets('Check for remote', (WidgetTester tester) async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
     localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
-    final RemotePort remotePort =
-        await RemotePort.connect(kTestAppId, kTestPort);
+    final RemotePort remotePort = await RemotePort.connect(
+      kTestAppId,
+      kTestPort,
+    );
     expect(await remotePort.check(), isTrue);
 
     await localPort.unregister();

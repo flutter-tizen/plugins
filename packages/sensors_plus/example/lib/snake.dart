@@ -12,7 +12,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 
 class Snake extends StatefulWidget {
   Snake({Key? key, this.rows = 20, this.columns = 20, this.cellSize = 10.0})
-      : super(key: key) {
+    : super(key: key) {
     assert(10 <= rows);
     assert(10 <= columns);
     assert(5.0 <= cellSize);
@@ -36,9 +36,10 @@ class SnakeBoardPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final blackLine = Paint()..color = Colors.black;
-    final blackFilled = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.fill;
+    final blackFilled =
+        Paint()
+          ..color = Colors.black
+          ..style = PaintingStyle.fill;
     canvas.drawRect(
       Rect.fromPoints(Offset.zero, size.bottomLeft(Offset.zero)),
       blackLine,
@@ -83,8 +84,9 @@ class SnakeState extends State<Snake> {
   @override
   void initState() {
     super.initState();
-    _streamSubscription =
-        accelerometerEventStream().listen((AccelerometerEvent event) {
+    _streamSubscription = accelerometerEventStream().listen((
+      AccelerometerEvent event,
+    ) {
       setState(() {
         acceleration = event;
       });
@@ -98,13 +100,14 @@ class SnakeState extends State<Snake> {
   }
 
   void _step() {
-    final newDirection = acceleration == null
-        ? null
-        : acceleration!.x.abs() < 1.0 && acceleration!.y.abs() < 1.0
+    final newDirection =
+        acceleration == null
+            ? null
+            : acceleration!.x.abs() < 1.0 && acceleration!.y.abs() < 1.0
             ? null
             : (acceleration!.x.abs() < acceleration!.y.abs())
-                ? math.Point<int>(0, acceleration!.y.sign.toInt())
-                : math.Point<int>(-acceleration!.x.sign.toInt(), 0);
+            ? math.Point<int>(0, acceleration!.y.sign.toInt())
+            : math.Point<int>(-acceleration!.x.sign.toInt(), 0);
     state!.step(newDirection);
   }
 }

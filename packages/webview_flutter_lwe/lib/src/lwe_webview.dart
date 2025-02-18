@@ -34,8 +34,9 @@ class LweWebView {
         final String channel = arguments['channel']! as String;
         final String message = arguments['message']! as String;
         if (_javaScriptChannelParams.containsKey(channel)) {
-          _javaScriptChannelParams[channel]
-              ?.onMessageReceived(JavaScriptMessage(message: message));
+          _javaScriptChannelParams[channel]?.onMessageReceived(
+            JavaScriptMessage(message: message),
+          );
         }
 
         return true;
@@ -58,8 +59,9 @@ class LweWebView {
   /// Called when [TizenView] is created. Invokes the requested method call before [LweWebView] is created.
   void onCreate(int viewId) {
     _isCreated = true;
-    _lweWebViewChannel =
-        MethodChannel(kLweWebViewChannelName + viewId.toString());
+    _lweWebViewChannel = MethodChannel(
+      kLweWebViewChannelName + viewId.toString(),
+    );
     _lweWebViewChannel.setMethodCallHandler(_onMethodCall);
 
     _callPendingMethodCalls();
@@ -69,7 +71,9 @@ class LweWebView {
   Future<void> _callPendingMethodCalls() async {
     if (hasNavigationDelegate) {
       await _invokeChannelMethod<void>(
-          'hasNavigationDelegate', hasNavigationDelegate);
+        'hasNavigationDelegate',
+        hasNavigationDelegate,
+      );
     }
 
     for (final (String method, dynamic arguments) in _pendingMethodCalls) {
@@ -89,10 +93,7 @@ class LweWebView {
   }
 
   /// Loads the supplied HTML string.
-  Future<void> loadHtmlString(
-    String html, {
-    String? baseUrl,
-  }) {
+  Future<void> loadHtmlString(String html, {String? baseUrl}) {
     return _invokeChannelMethod<void>('loadHtmlString', <String, Object?>{
       'html': html,
       'baseUrl': baseUrl,
@@ -101,8 +102,9 @@ class LweWebView {
 
   /// Makes a specific HTTP request ands loads the response in the webview.
   Future<void> loadRequest(String uri) {
-    return _invokeChannelMethod<void>(
-        'loadRequest', <String?, String?>{'url': uri});
+    return _invokeChannelMethod<void>('loadRequest', <String?, String?>{
+      'url': uri,
+    });
   }
 
   /// Accessor to the current URL that the WebView is displaying.
@@ -139,23 +141,18 @@ class LweWebView {
 
   /// Sets the scrolled position of this view.
   Future<void> scrollTo(int x, int y) =>
-      _invokeChannelMethod<void>('scrollTo', <String, int>{
-        'x': x,
-        'y': y,
-      });
+      _invokeChannelMethod<void>('scrollTo', <String, int>{'x': x, 'y': y});
 
   /// Moves the scrolled position of this view.
   Future<void> scrollBy(int x, int y) =>
-      _invokeChannelMethod<void>('scrollBy', <String, int>{
-        'x': x,
-        'y': y,
-      });
+      _invokeChannelMethod<void>('scrollBy', <String, int>{'x': x, 'y': y});
 
   /// Returns the current scroll position of this view.
   Future<Offset> getScrollPosition() async {
     final Map<String, Object?>? position =
-        (await _invokeChannelMethod<Map<Object?, Object?>>('getScrollPosition'))
-            ?.cast<String, Object?>();
+        (await _invokeChannelMethod<Map<Object?, Object?>>(
+          'getScrollPosition',
+        ))?.cast<String, Object?>();
     if (position == null) {
       return Offset.zero;
     }
@@ -168,19 +165,24 @@ class LweWebView {
 
   /// Adds a new JavaScript channel to the set of enabled channels.
   Future<void> addJavaScriptChannel(
-      JavaScriptChannelParams javaScriptChannelParams) {
+    JavaScriptChannelParams javaScriptChannelParams,
+  ) {
     // When JavaScript channel with the same name exists make sure to remove it
     // before registering the new channel.
     if (_javaScriptChannelParams.containsKey(javaScriptChannelParams.name)) {
       _invokeChannelMethod<void>(
-          'removeJavaScriptChannel', javaScriptChannelParams.name);
+        'removeJavaScriptChannel',
+        javaScriptChannelParams.name,
+      );
     }
 
     _javaScriptChannelParams[javaScriptChannelParams.name] =
         javaScriptChannelParams;
 
     return _invokeChannelMethod<void>(
-        'addJavaScriptChannel', javaScriptChannelParams.name);
+      'addJavaScriptChannel',
+      javaScriptChannelParams.name,
+    );
   }
 
   /// Removes the JavaScript channel with the matching name from the set of
@@ -195,7 +197,9 @@ class LweWebView {
 
     _javaScriptChannelParams.remove(javaScriptChannelName);
     return _invokeChannelMethod<void>(
-        'removeJavaScriptChannel', javaScriptChannelName);
+      'removeJavaScriptChannel',
+      javaScriptChannelName,
+    );
   }
 
   /// Runs the given JavaScript in the context of the current page.
@@ -205,7 +209,9 @@ class LweWebView {
   /// Runs the given JavaScript in the context of the current page, and returns the result.
   Future<Object> runJavaScriptReturningResult(String javaScript) async {
     final String? result = await _invokeChannelMethod<String?>(
-        'runJavaScriptReturningResult', javaScript);
+      'runJavaScriptReturningResult',
+      javaScript,
+    );
     if (result == null) {
       return '';
     } else if (result == 'true') {

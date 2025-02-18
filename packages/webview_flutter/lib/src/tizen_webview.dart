@@ -38,8 +38,9 @@ class TizenWebView {
         final String channel = arguments['channel']! as String;
         final String message = arguments['message']! as String;
         if (_javaScriptChannelParams.containsKey(channel)) {
-          _javaScriptChannelParams[channel]
-              ?.onMessageReceived(JavaScriptMessage(message: message));
+          _javaScriptChannelParams[channel]?.onMessageReceived(
+            JavaScriptMessage(message: message),
+          );
         }
 
         return true;
@@ -63,8 +64,9 @@ class TizenWebView {
   void onCreate(int viewId, bool enginePolicy) {
     _isCreated = true;
     _viewId = viewId;
-    _tizenWebViewChannel =
-        MethodChannel(kTizenWebViewChannelName + viewId.toString());
+    _tizenWebViewChannel = MethodChannel(
+      kTizenWebViewChannelName + viewId.toString(),
+    );
     _tizenWebViewChannel.setMethodCallHandler(_onMethodCall);
     _invokeChannelMethod<void>('setEnginePolicy', enginePolicy);
 
@@ -75,7 +77,9 @@ class TizenWebView {
   Future<void> _callPendingMethodCalls() async {
     if (hasNavigationDelegate) {
       await _invokeChannelMethod<void>(
-          'hasNavigationDelegate', hasNavigationDelegate);
+        'hasNavigationDelegate',
+        hasNavigationDelegate,
+      );
     }
 
     for (final (String method, dynamic arguments) in _pendingMethodCalls) {
@@ -95,10 +99,7 @@ class TizenWebView {
   }
 
   /// Loads the supplied HTML string.
-  Future<void> loadHtmlString(
-    String html, {
-    String? baseUrl,
-  }) {
+  Future<void> loadHtmlString(String html, {String? baseUrl}) {
     return _invokeChannelMethod<void>('loadHtmlString', <String, Object?>{
       'html': html,
       'baseUrl': baseUrl,
@@ -107,19 +108,22 @@ class TizenWebView {
 
   /// Makes a specific HTTP request ands loads the response in the webview.
   Future<void> loadRequest(String uri) {
-    return _invokeChannelMethod<void>(
-        'loadRequest', <String?, String?>{'url': uri});
+    return _invokeChannelMethod<void>('loadRequest', <String?, String?>{
+      'url': uri,
+    });
   }
 
   /// Makes a specific HTTP request with params ands loads the response in the webview.
   Future<void> loadRequestWithParams(LoadRequestParams params) {
     return _invokeChannelMethod<void>(
-        'loadRequestWithParams', <String?, Object?>{
-      'url': params.uri.toString(),
-      'body': params.body,
-      'method': params.method.index,
-      'headers': params.headers,
-    });
+      'loadRequestWithParams',
+      <String?, Object?>{
+        'url': params.uri.toString(),
+        'body': params.body,
+        'method': params.method.index,
+        'headers': params.headers,
+      },
+    );
   }
 
   /// Accessor to the current URL that the WebView is displaying.
@@ -156,23 +160,18 @@ class TizenWebView {
 
   /// Sets the scrolled position of this view.
   Future<void> scrollTo(int x, int y) =>
-      _invokeChannelMethod<void>('scrollTo', <String, int>{
-        'x': x,
-        'y': y,
-      });
+      _invokeChannelMethod<void>('scrollTo', <String, int>{'x': x, 'y': y});
 
   /// Moves the scrolled position of this view.
   Future<void> scrollBy(int x, int y) =>
-      _invokeChannelMethod<void>('scrollBy', <String, int>{
-        'x': x,
-        'y': y,
-      });
+      _invokeChannelMethod<void>('scrollBy', <String, int>{'x': x, 'y': y});
 
   /// Returns the scroll position of this view set by [scrollTo].
   Future<Offset> getScrollPosition() async {
     final Map<String, Object?>? position =
-        (await _invokeChannelMethod<Map<Object?, Object?>>('getScrollPosition'))
-            ?.cast<String, Object?>();
+        (await _invokeChannelMethod<Map<Object?, Object?>>(
+          'getScrollPosition',
+        ))?.cast<String, Object?>();
     if (position == null) {
       return Offset.zero;
     }
@@ -185,12 +184,15 @@ class TizenWebView {
 
   /// Adds a new JavaScript channel to the set of enabled channels.
   Future<void> addJavaScriptChannel(
-      JavaScriptChannelParams javaScriptChannelParams) {
+    JavaScriptChannelParams javaScriptChannelParams,
+  ) {
     _javaScriptChannelParams[javaScriptChannelParams.name] =
         javaScriptChannelParams;
 
     return _invokeChannelMethod<void>(
-        'addJavaScriptChannel', javaScriptChannelParams.name);
+      'addJavaScriptChannel',
+      javaScriptChannelParams.name,
+    );
   }
 
   /// Runs the given JavaScript in the context of the current page.
@@ -200,7 +202,9 @@ class TizenWebView {
   /// Runs the given JavaScript in the context of the current page, and returns the result.
   Future<Object> runJavaScriptReturningResult(String javaScript) async {
     final String? result = await _invokeChannelMethod<String?>(
-        'runJavaScriptReturningResult', javaScript);
+      'runJavaScriptReturningResult',
+      javaScript,
+    );
     if (result == null) {
       return '';
     } else if (result == 'true') {

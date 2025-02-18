@@ -11,7 +11,7 @@ import 'page.dart';
 
 class AnimateCameraPage extends GoogleMapExampleAppPage {
   const AnimateCameraPage({Key? key})
-      : super(const Icon(Icons.map), 'Camera control, animated', key: key);
+    : super(const Icon(Icons.map), 'Camera control, animated', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +45,9 @@ class AnimateCameraState extends State<AnimateCamera> {
             height: 200.0,
             child: GoogleMap(
               onMapCreated: _onMapCreated,
-              initialCameraPosition:
-                  const CameraPosition(target: LatLng(0.0, 0.0)),
+              initialCameraPosition: const CameraPosition(
+                target: LatLng(0.0, 0.0),
+              ),
             ),
           ),
         ),
@@ -120,50 +121,39 @@ class AnimateCameraState extends State<AnimateCamera> {
                 TextButton(
                   onPressed: () {
                     mapController?.animateCamera(
-                      CameraUpdate.zoomBy(
-                        -0.5,
-                        const Offset(30.0, 20.0),
-                      ),
+                      CameraUpdate.zoomBy(-0.5, const Offset(30.0, 20.0)),
                     );
                   },
                   child: const Text('zoomBy with focus'),
                 ),
                 TextButton(
                   onPressed: () {
-                    mapController?.animateCamera(
-                      CameraUpdate.zoomBy(-0.5),
-                    );
+                    mapController?.animateCamera(CameraUpdate.zoomBy(-0.5));
                   },
                   child: const Text('zoomBy'),
                 ),
                 TextButton(
                   onPressed: () {
-                    mapController?.animateCamera(
-                      CameraUpdate.zoomIn(),
-                    );
+                    mapController?.animateCamera(CameraUpdate.zoomIn());
                   },
                   child: const Text('zoomIn'),
                 ),
                 TextButton(
                   onPressed: () {
-                    mapController?.animateCamera(
-                      CameraUpdate.zoomOut(),
-                    );
+                    mapController?.animateCamera(CameraUpdate.zoomOut());
                   },
                   child: const Text('zoomOut'),
                 ),
                 TextButton(
                   onPressed: () {
-                    mapController?.animateCamera(
-                      CameraUpdate.zoomTo(16.0),
-                    );
+                    mapController?.animateCamera(CameraUpdate.zoomTo(16.0));
                   },
                   child: const Text('zoomTo'),
                 ),
               ],
             ),
           ],
-        )
+        ),
       ],
     );
   }

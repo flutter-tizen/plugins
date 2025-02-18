@@ -63,10 +63,13 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
                 notificationText: 'LiveKit Example is sharing the screen.',
                 notificationImportance: AndroidNotificationImportance.normal,
                 notificationIcon: AndroidResource(
-                    name: 'livekit_ic_launcher', defType: 'mipmap'),
+                  name: 'livekit_ic_launcher',
+                  defType: 'mipmap',
+                ),
               );
               hasPermissions = await FlutterBackground.initialize(
-                  androidConfig: androidConfig);
+                androidConfig: androidConfig,
+              );
             }
             if (hasPermissions &&
                 !FlutterBackground.isBackgroundExecutionEnabled) {
@@ -74,8 +77,10 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
             }
           } catch (e) {
             if (!isRetry) {
-              return await Future<void>.delayed(const Duration(seconds: 1),
-                  () => requestBackgroundPermission(true));
+              return await Future<void>.delayed(
+                const Duration(seconds: 1),
+                () => requestBackgroundPermission(true),
+              );
             }
             print('could not publish video: $e');
           }
@@ -94,18 +99,21 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     });
 
     try {
-      var stream =
-          await navigator.mediaDevices.getDisplayMedia(<String, dynamic>{
-        'video': selected_source_ == null
-            ? true
-            : {
-                'deviceId': {'exact': selected_source_!.id},
-                'mandatory': {'frameRate': 30.0}
-              }
-      });
+      var stream = await navigator.mediaDevices.getDisplayMedia(
+        <String, dynamic>{
+          'video':
+              selected_source_ == null
+                  ? true
+                  : {
+                    'deviceId': {'exact': selected_source_!.id},
+                    'mandatory': {'frameRate': 30.0},
+                  },
+        },
+      );
       stream.getVideoTracks()[0].onEnded = () {
         print(
-            'By adding a listener on onEnded you can: 1) catch stop video sharing on Web');
+          'By adding a listener on onEnded you can: 1) catch stop video sharing on Web',
+        );
       };
 
       _localStream = stream;
@@ -144,27 +152,32 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('GetDisplayMedia source: ' +
-            (selected_source_ != null ? selected_source_!.name : '')),
+        title: Text(
+          'GetDisplayMedia source: ' +
+              (selected_source_ != null ? selected_source_!.name : ''),
+        ),
         actions: [],
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
-              child: Container(
-            width: MediaQuery.of(context).size.width,
-            color: Colors.white10,
-            child: Stack(children: <Widget>[
-              if (_inCalling)
-                Container(
-                  margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  decoration: BoxDecoration(color: Colors.black54),
-                  child: RTCVideoView(_localRenderer),
-                )
-            ]),
-          ));
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              color: Colors.white10,
+              child: Stack(
+                children: <Widget>[
+                  if (_inCalling)
+                    Container(
+                      margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height,
+                      decoration: BoxDecoration(color: Colors.black54),
+                      child: RTCVideoView(_localRenderer),
+                    ),
+                ],
+              ),
+            ),
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(

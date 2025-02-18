@@ -4,11 +4,13 @@
 
 import 'package:pigeon/pigeon.dart';
 
-@ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/src/messages.g.dart',
-  cppHeaderOut: 'tizen/src/messages.h',
-  cppSourceOut: 'tizen/src/messages.cc',
-))
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/src/messages.g.dart',
+    cppHeaderOut: 'tizen/src/messages.h',
+    cppSourceOut: 'tizen/src/messages.cc',
+  ),
+)
 class PlayerMessage {
   PlayerMessage(this.playerId);
   int playerId;
@@ -97,7 +99,10 @@ class StreamingPropertyTypeMessage {
 
 class StreamingPropertyMessage {
   StreamingPropertyMessage(
-      this.playerId, this.streamingPropertyType, this.streamingPropertyValue);
+    this.playerId,
+    this.streamingPropertyType,
+    this.streamingPropertyValue,
+  );
   int playerId;
   String streamingPropertyType;
   String streamingPropertyValue;
@@ -105,26 +110,23 @@ class StreamingPropertyMessage {
 
 class BufferConfigMessage {
   BufferConfigMessage(
-      this.playerId, this.bufferConfigType, this.bufferConfigValue);
+    this.playerId,
+    this.bufferConfigType,
+    this.bufferConfigValue,
+  );
   int playerId;
   String bufferConfigType;
   int bufferConfigValue;
 }
 
 class RotationMessage {
-  RotationMessage(
-    this.playerId,
-    this.rotation,
-  );
+  RotationMessage(this.playerId, this.rotation);
   int playerId;
   int rotation;
 }
 
 class DisplayModeMessage {
-  DisplayModeMessage(
-    this.playerId,
-    this.displayMode,
-  );
+  DisplayModeMessage(this.playerId, this.displayMode);
   int playerId;
   int displayMode;
 }

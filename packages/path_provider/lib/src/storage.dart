@@ -24,7 +24,9 @@ class Storage {
       return;
     }
     final int ret = tizen.storage_foreach_device_supported(
-        Pointer.fromFunction(_deviceSupportedCallback, false), nullptr);
+      Pointer.fromFunction(_deviceSupportedCallback, false),
+      nullptr,
+    );
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),

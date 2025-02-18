@@ -88,21 +88,22 @@ class _SqfliteExampleAppState extends State<SqfliteExampleApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Sqflite Demo',
-        theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with 'flutter run'. You'll see
-          // the application has a blue toolbar. Then, without quitting
-          // the app, try changing the primarySwatch below to Colors.green
-          // and then invoke 'hot reload' (press 'r' in the console where
-          // you ran 'flutter run', or press Run > Hot Reload App in IntelliJ).
-          // Notice that the counter didn't reset back to zero -- the application
-          // is not restarted.
-          primarySwatch: Colors.blue,
-        ),
-        home: MyHomePage(title: 'Sqflite Demo Home Page'),
-        routes: routes);
+      title: 'Sqflite Demo',
+      theme: ThemeData(
+        // This is the theme of your application.
+        //
+        // Try running your application with 'flutter run'. You'll see
+        // the application has a blue toolbar. Then, without quitting
+        // the app, try changing the primarySwatch below to Colors.green
+        // and then invoke 'hot reload' (press 'r' in the console where
+        // you ran 'flutter run', or press Run > Hot Reload App in IntelliJ).
+        // Notice that the counter didn't reset back to zero -- the application
+        // is not restarted.
+        primarySwatch: Colors.blue,
+      ),
+      home: MyHomePage(title: 'Sqflite Demo Home Page'),
+      routes: routes,
+    );
   }
 }
 
@@ -111,27 +112,59 @@ class MyHomePage extends StatefulWidget {
   /// App home menu page.
   MyHomePage({Key? key, this.title}) : super(key: key) {
     _items.add(
-        MainItem('Raw tests', 'Raw SQLite operations', route: testRawRoute));
-    _items.add(MainItem('Open tests', 'Open onCreate/onUpgrade/onDowngrade',
-        route: testOpenRoute));
-    _items
-        .add(MainItem('Type tests', 'Test value types', route: testTypeRoute));
-    _items.add(MainItem('Batch tests', 'Test batch operations',
-        route: testBatchRoute));
+      MainItem('Raw tests', 'Raw SQLite operations', route: testRawRoute),
+    );
     _items.add(
-        MainItem('Slow tests', 'Lengthy operations', route: testSlowRoute));
-    _items.add(MainItem(
-        'Todo database example', 'Simple Todo-like database usage example',
-        route: testTodoRoute));
-    _items.add(MainItem('Exp tests', 'Experimental and various tests',
-        route: testExpRoute));
-    _items.add(MainItem('Exception tests', 'Tests that trigger exceptions',
-        route: testExceptionRoute));
-    _items.add(MainItem('Manual tests', 'Tests that requires manual execution',
-        route: testManualRoute));
-    _items.add(MainItem('Deprecated test',
+      MainItem(
+        'Open tests',
+        'Open onCreate/onUpgrade/onDowngrade',
+        route: testOpenRoute,
+      ),
+    );
+    _items.add(
+      MainItem('Type tests', 'Test value types', route: testTypeRoute),
+    );
+    _items.add(
+      MainItem('Batch tests', 'Test batch operations', route: testBatchRoute),
+    );
+    _items.add(
+      MainItem('Slow tests', 'Lengthy operations', route: testSlowRoute),
+    );
+    _items.add(
+      MainItem(
+        'Todo database example',
+        'Simple Todo-like database usage example',
+        route: testTodoRoute,
+      ),
+    );
+    _items.add(
+      MainItem(
+        'Exp tests',
+        'Experimental and various tests',
+        route: testExpRoute,
+      ),
+    );
+    _items.add(
+      MainItem(
+        'Exception tests',
+        'Tests that trigger exceptions',
+        route: testExceptionRoute,
+      ),
+    );
+    _items.add(
+      MainItem(
+        'Manual tests',
+        'Tests that requires manual execution',
+        route: testManualRoute,
+      ),
+    );
+    _items.add(
+      MainItem(
+        'Deprecated test',
         'Keeping some old tests for deprecated functionalities',
-        route: testDeprecatedRoute));
+        route: testDeprecatedRoute,
+      ),
+    );
 
     // Uncomment to view all logs
     //Sqflite.devSetDebugModeOn(true);
@@ -172,8 +205,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
           // await Navigator.of(context).pushNamed(testExpRoute);
           // await Navigator.of(context).pushNamed(testRawRoute);
-          final future =
-              Navigator.of(context).pushNamed(debugAutoStartRouteName!);
+          final future = Navigator.of(
+            context,
+          ).pushNamed(debugAutoStartRouteName!);
           // ignore: deprecated_member_use_from_same_package
           debugAutoStartRouteName = null;
           await future;
@@ -186,12 +220,13 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Center(
-              child: Text('Sqflite demo', textAlign: TextAlign.center)),
+      appBar: AppBar(
+        title: const Center(
+          child: Text('Sqflite demo', textAlign: TextAlign.center),
         ),
-        body:
-            ListView.builder(itemBuilder: _itemBuilder, itemCount: _itemCount));
+      ),
+      body: ListView.builder(itemBuilder: _itemBuilder, itemCount: _itemCount),
+    );
   }
 
   //new Center(child: new Text('Running on: $_platformVersion\n')),

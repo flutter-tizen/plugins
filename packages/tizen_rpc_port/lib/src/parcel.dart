@@ -59,8 +59,10 @@ class ParcelHeader {
   int get sequenceNumber {
     return using((Arena arena) {
       final Pointer<Int> pNumber = arena();
-      final int ret =
-          tizen.rpc_port_parcel_header_get_seq_num(_header, pNumber);
+      final int ret = tizen.rpc_port_parcel_header_get_seq_num(
+        _header,
+        pNumber,
+      );
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -105,8 +107,10 @@ class Parcel {
   Parcel.fromPort(Port port) {
     _handle = using((Arena arena) {
       final Pointer<rpc_port_parcel_h> pParcel = arena();
-      final int ret =
-          tizen.rpc_port_parcel_create_from_port(pParcel, port.handle);
+      final int ret = tizen.rpc_port_parcel_create_from_port(
+        pParcel,
+        port.handle,
+      );
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -129,7 +133,10 @@ class Parcel {
 
       final Pointer<rpc_port_parcel_h> pParcel = arena();
       final int ret = tizen.rpc_port_parcel_create_from_raw(
-          pParcel, pRaw.cast<Void>(), rawData.length);
+        pParcel,
+        pRaw.cast<Void>(),
+        rawData.length,
+      );
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -150,8 +157,8 @@ class Parcel {
 
   static final Finalizer<rpc_port_parcel_h> _finalizer =
       Finalizer<rpc_port_parcel_h>((rpc_port_parcel_h handle) {
-    tizen.rpc_port_parcel_destroy(handle);
-  });
+        tizen.rpc_port_parcel_destroy(handle);
+      });
 
   /// Gets a byte array backed by the raw data of this parcel.
   Uint8List asRaw() {
@@ -193,8 +200,10 @@ class Parcel {
 
   /// Writes a 16-bit integer value to this parcel.
   void writeInt16(int value) {
-    final int ret =
-        tizen.rpc_port_parcel_write_int16(_handle, value & _int16Max);
+    final int ret = tizen.rpc_port_parcel_write_int16(
+      _handle,
+      value & _int16Max,
+    );
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -205,8 +214,10 @@ class Parcel {
 
   /// Writes a 32-bit integer value to this parcel.
   void writeInt32(int value) {
-    final int ret =
-        tizen.rpc_port_parcel_write_int32(_handle, value & _int32Max);
+    final int ret = tizen.rpc_port_parcel_write_int32(
+      _handle,
+      value & _int32Max,
+    );
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -269,8 +280,10 @@ class Parcel {
 
   /// Writes an array count to this parcel.
   void writeArrayCount(int count) {
-    final int ret =
-        tizen.rpc_port_parcel_write_array_count(_handle, count & _int32Max);
+    final int ret = tizen.rpc_port_parcel_write_array_count(
+      _handle,
+      count & _int32Max,
+    );
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -426,7 +439,8 @@ class Parcel {
         );
       }
       return Uint8List.fromList(
-          List<int>.generate(size, (int index) => pBuffer[index]));
+        List<int>.generate(size, (int index) => pBuffer[index]),
+      );
     });
   }
 
@@ -437,8 +451,11 @@ class Parcel {
       for (int i = 0; i < bytes.length; ++i) {
         pBuffer[i] = bytes[i];
       }
-      final int ret =
-          tizen.rpc_port_parcel_burst_write(_handle, pBuffer, bytes.length);
+      final int ret = tizen.rpc_port_parcel_burst_write(
+        _handle,
+        pBuffer,
+        bytes.length,
+      );
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),

@@ -27,9 +27,10 @@ class AuthorizationResponse {
       userCode: json['user_code']! as String,
       verificationUrl: Uri.parse(json['verification_url']! as String),
       expiresIn: Duration(seconds: json['expires_in']! as int),
-      interval: json['interval'] is int
-          ? Duration(seconds: json['interval']! as int)
-          : null,
+      interval:
+          json['interval'] is int
+              ? Duration(seconds: json['interval']! as int)
+              : null,
     );
   }
 
@@ -71,9 +72,10 @@ class TokenResponse {
       tokenType: json['token_type']! as String,
       expiresIn: Duration(seconds: json['expires_in']! as int),
       refreshToken: json['refresh_token'] as String?,
-      scope: json['scope'] is String
-          ? (json['scope']! as String).split(' ').toList()
-          : null,
+      scope:
+          json['scope'] is String
+              ? (json['scope']! as String).split(' ').toList()
+              : null,
       idToken: json['id_token']! as String,
     );
   }
@@ -136,21 +138,26 @@ class DeviceAuthClient {
 
   /// Requests authroization grant from [authorizationEndPoint].
   Future<AuthorizationResponse> requestAuthorization(
-      String clientId, List<String> scope) async {
+    String clientId,
+    List<String> scope,
+  ) async {
     final Map<String, String> body = <String, String>{
       'client_id': clientId,
       'scope': scope.join(' '),
     };
 
-    final http.Response response =
-        await _httpClient.post(authorizationEndPoint, body: body);
+    final http.Response response = await _httpClient.post(
+      authorizationEndPoint,
+      body: body,
+    );
 
     if (response.statusCode != 200) {
       _handleErrorResponse(response);
     }
 
     return AuthorizationResponse.fromJson(
-        convert.jsonDecode(response.body) as Map<String, Object?>);
+      convert.jsonDecode(response.body) as Map<String, Object?>,
+    );
   }
 
   /// Requests tokens from [tokenEndPoint].
@@ -166,15 +173,18 @@ class DeviceAuthClient {
       'code': deviceCode,
     };
 
-    final http.Response response =
-        await _httpClient.post(tokenEndPoint, body: body);
+    final http.Response response = await _httpClient.post(
+      tokenEndPoint,
+      body: body,
+    );
 
     if (response.statusCode != 200) {
       _handleErrorResponse(response);
     }
 
     return TokenResponse.fromJson(
-        convert.jsonDecode(response.body) as Map<String, Object?>);
+      convert.jsonDecode(response.body) as Map<String, Object?>,
+    );
   }
 
   /// Repeat sending token request to [tokenEndPoint] until user grants access.
@@ -218,12 +228,12 @@ class DeviceAuthClient {
 
   /// Requests a revoke token request to [revokeEndPoint].
   Future<void> revokeToken(String token) async {
-    final Map<String, String> body = <String, String>{
-      'token': token,
-    };
+    final Map<String, String> body = <String, String>{'token': token};
 
-    final http.Response response =
-        await _httpClient.post(revokeEndPoint, body: body);
+    final http.Response response = await _httpClient.post(
+      revokeEndPoint,
+      body: body,
+    );
     if (response.statusCode != 200) {
       _handleErrorResponse(response);
     }
@@ -242,14 +252,17 @@ class DeviceAuthClient {
       'grant_type': 'refresh_token',
     };
 
-    final http.Response response =
-        await _httpClient.post(tokenEndPoint, body: body);
+    final http.Response response = await _httpClient.post(
+      tokenEndPoint,
+      body: body,
+    );
 
     if (response.statusCode != 200) {
       _handleErrorResponse(response);
     }
     return TokenResponse.fromJson(
-        convert.jsonDecode(response.body) as Map<String, Object?>);
+      convert.jsonDecode(response.body) as Map<String, Object?>,
+    );
   }
 
   void _handleErrorResponse(http.Response response) {
@@ -269,7 +282,8 @@ class DeviceAuthClient {
       );
     } else {
       throw HttpException(
-          'Status code: ${response.statusCode}, ${response.reasonPhrase}.');
+        'Status code: ${response.statusCode}, ${response.reasonPhrase}.',
+      );
     }
   }
 }

@@ -17,7 +17,7 @@ const List<String> audioCodecList = <String>[
   'ISAC',
   'PCMA',
   'PCMU',
-  'G729'
+  'G729',
 ];
 const List<String> videoCodecList = <String>['VP8', 'VP9', 'H264', 'AV1'];
 
@@ -95,7 +95,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     11,
     6,
     119,
-    253
+    253,
   ]);
 
   @override
@@ -208,7 +208,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       await _remotePeerConnection!.addCandidate(candidate);
     } catch (e) {
       print(
-          'Unable to add candidate ${localCandidate.candidate} to remote connection');
+        'Unable to add candidate ${localCandidate.candidate} to remote connection',
+      );
     }
   }
 
@@ -223,7 +224,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       await _localPeerConnection!.addCandidate(candidate);
     } catch (e) {
       print(
-          'Unable to add candidate ${remoteCandidate.candidate} to local connection');
+        'Unable to add candidate ${remoteCandidate.candidate} to local connection',
+      );
     }
   }
 
@@ -257,8 +259,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       failureTolerance: -1,
     );
 
-    _keySharedProvider ??=
-        await _frameCyrptorFactory.createDefaultKeyProvider(keyProviderOptions);
+    _keySharedProvider ??= await _frameCyrptorFactory.createDefaultKeyProvider(
+      keyProviderOptions,
+    );
     await _keySharedProvider?.setSharedKey(key: aesKey);
     acaps = await getRtpSenderCapabilities('audio');
     print('sender audio capabilities: ${acaps!.toMap()}');
@@ -307,10 +310,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
   Future<void> _negotiate() async {
     final oaConstraints = <String, dynamic>{
-      'mandatory': {
-        'OfferToReceiveAudio': true,
-        'OfferToReceiveVideo': true,
-      },
+      'mandatory': {'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true},
       'optional': [],
     };
 
@@ -339,14 +339,16 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var trackId = element.track?.id;
       var id = kind + '_' + trackId! + '_sender';
       if (!_frameCyrptors.containsKey(id)) {
-        var frameCyrptor =
-            await _frameCyrptorFactory.createFrameCryptorForRtpSender(
-                participantId: id,
-                sender: element,
-                algorithm: Algorithm.kAesGcm,
-                keyProvider: _keySharedProvider!);
-        frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
-            print('EN onFrameCryptorStateChanged $participantId $state');
+        var frameCyrptor = await _frameCyrptorFactory
+            .createFrameCryptorForRtpSender(
+              participantId: id,
+              sender: element,
+              algorithm: Algorithm.kAesGcm,
+              keyProvider: _keySharedProvider!,
+            );
+        frameCyrptor.onFrameCryptorStateChanged =
+            (participantId, state) =>
+                print('EN onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
         await frameCyrptor.setKeyIndex(0);
       }
@@ -354,7 +356,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var _frameCyrptor = _frameCyrptors[id];
       await _frameCyrptor?.setEnabled(enabled);
       await _frameCyrptor?.updateCodec(
-          kind == 'video' ? videoDropdownValue : audioDropdownValue);
+        kind == 'video' ? videoDropdownValue : audioDropdownValue,
+      );
     });
   }
 
@@ -366,14 +369,16 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var trackId = element.track?.id;
       var id = kind + '_' + trackId! + '_receiver';
       if (!_frameCyrptors.containsKey(id)) {
-        var frameCyrptor =
-            await _frameCyrptorFactory.createFrameCryptorForRtpReceiver(
-                participantId: id,
-                receiver: element,
-                algorithm: Algorithm.kAesGcm,
-                keyProvider: _keySharedProvider!);
-        frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
-            print('DE onFrameCryptorStateChanged $participantId $state');
+        var frameCyrptor = await _frameCyrptorFactory
+            .createFrameCryptorForRtpReceiver(
+              participantId: id,
+              receiver: element,
+              algorithm: Algorithm.kAesGcm,
+              keyProvider: _keySharedProvider!,
+            );
+        frameCyrptor.onFrameCryptorStateChanged =
+            (participantId, state) =>
+                print('DE onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
         await frameCyrptor.setKeyIndex(0);
       }
@@ -381,7 +386,8 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var _frameCyrptor = _frameCyrptors[id];
       await _frameCyrptor?.setEnabled(enabled);
       await _frameCyrptor?.updateCodec(
-          kind == 'video' ? videoDropdownValue : audioDropdownValue);
+        kind == 'video' ? videoDropdownValue : audioDropdownValue,
+      );
     });
   }
 
@@ -407,17 +413,18 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   Map<String, dynamic> _getMediaConstraints({audio = true, video = true}) {
     return {
       'audio': audio ? true : false,
-      'video': video
-          ? {
-              'mandatory': {
-                'minWidth': '640',
-                'minHeight': '480',
-                'minFrameRate': '30',
-              },
-              'facingMode': 'user',
-              'optional': [],
-            }
-          : false,
+      'video':
+          video
+              ? {
+                'mandatory': {
+                  'minWidth': '640',
+                  'minHeight': '480',
+                  'minFrameRate': '30',
+                },
+                'facingMode': 'user',
+                'optional': [],
+              }
+              : false,
     };
   }
 
@@ -427,8 +434,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _startVideo() async {
-    var newStream = await navigator.mediaDevices
-        .getUserMedia(_getMediaConstraints(audio: false, video: true));
+    var newStream = await navigator.mediaDevices.getUserMedia(
+      _getMediaConstraints(audio: false, video: true),
+    );
     if (_localStream != null) {
       await _removeExistingVideoTrack();
       var tracks = newStream.getVideoTracks();
@@ -444,10 +452,13 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
       if (transceiver.sender.senderId != _videoSender?.senderId) return;
-      var codecs = vcaps?.codecs
-              ?.where((element) => element.mimeType
-                  .toLowerCase()
-                  .contains(videoDropdownValue.toLowerCase()))
+      var codecs =
+          vcaps?.codecs
+              ?.where(
+                (element) => element.mimeType.toLowerCase().contains(
+                  videoDropdownValue.toLowerCase(),
+                ),
+              )
               .toList() ??
           [];
       transceiver.setCodecPreferences(codecs);
@@ -491,8 +502,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   void _startAudio() async {
-    var newStream = await navigator.mediaDevices
-        .getUserMedia(_getMediaConstraints(audio: true, video: false));
+    var newStream = await navigator.mediaDevices.getUserMedia(
+      _getMediaConstraints(audio: true, video: false),
+    );
 
     if (_localStream != null) {
       await _removeExistingAudioTrack();
@@ -507,10 +519,13 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
       if (transceiver.sender.senderId != _audioSender?.senderId) return;
-      var codecs = acaps?.codecs
-              ?.where((element) => element.mimeType
-                  .toLowerCase()
-                  .contains(audioDropdownValue.toLowerCase()))
+      var codecs =
+          acaps?.codecs
+              ?.where(
+                (element) => element.mimeType.toLowerCase().contains(
+                  audioDropdownValue.toLowerCase(),
+                ),
+              )
               .toList() ??
           [];
       transceiver.setCodecPreferences(codecs);
@@ -545,8 +560,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
 
   void handleStatsReport(Timer timer) async {
     if (_remotePeerConnection != null && _remoteRenderer.srcObject != null) {
-      var reports = await _remotePeerConnection
-          ?.getStats(_remoteRenderer.srcObject!.getVideoTracks().first);
+      var reports = await _remotePeerConnection?.getStats(
+        _remoteRenderer.srcObject!.getVideoTracks().first,
+      );
       reports?.forEach((report) {
         print('report => { ');
         print('    id: ' + report.id + ',');
@@ -611,7 +627,9 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   }
 
   Future<void> _connectionAddTrack(
-      MediaStreamTrack track, MediaStream stream) async {
+    MediaStreamTrack track,
+    MediaStream stream,
+  ) async {
     var sender = track.kind == 'video' ? _videoSender : _audioSender;
     if (sender != null) {
       print('Have a Sender of kind:${track.kind}');
@@ -660,138 +678,132 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var widgets = <Widget>[
       Expanded(
         child: Container(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Row(
-              children: [
-                Text('audio codec:'),
-                DropdownButton<String>(
-                  value: audioDropdownValue,
-                  icon: const Icon(
-                    Icons.arrow_drop_down,
-                    color: Colors.blue,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
+                children: [
+                  Text('audio codec:'),
+                  DropdownButton<String>(
+                    value: audioDropdownValue,
+                    icon: const Icon(Icons.arrow_drop_down, color: Colors.blue),
+                    elevation: 16,
+                    style: const TextStyle(color: Colors.blue),
+                    underline: Container(height: 2, color: Colors.blueAccent),
+                    onChanged: (String? value) {
+                      // This is called when the user selects an item.
+                      setState(() {
+                        audioDropdownValue = value!;
+                      });
+                    },
+                    items:
+                        audioCodecList.map<DropdownMenuItem<String>>((
+                          String value,
+                        ) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
                   ),
-                  elevation: 16,
-                  style: const TextStyle(color: Colors.blue),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.blueAccent,
+                  Text('video codec:'),
+                  DropdownButton<String>(
+                    value: videoDropdownValue,
+                    icon: const Icon(Icons.arrow_drop_down, color: Colors.blue),
+                    elevation: 16,
+                    style: const TextStyle(color: Colors.blue),
+                    underline: Container(height: 2, color: Colors.blueAccent),
+                    onChanged: (String? value) {
+                      // This is called when the user selects an item.
+                      setState(() {
+                        videoDropdownValue = value!;
+                      });
+                    },
+                    items:
+                        videoCodecList.map<DropdownMenuItem<String>>((
+                          String value,
+                        ) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
                   ),
-                  onChanged: (String? value) {
-                    // This is called when the user selects an item.
-                    setState(() {
-                      audioDropdownValue = value!;
-                    });
-                  },
-                  items: audioCodecList
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-                Text('video codec:'),
-                DropdownButton<String>(
-                  value: videoDropdownValue,
-                  icon: const Icon(
-                    Icons.arrow_drop_down,
-                    color: Colors.blue,
+                  TextButton(
+                    onPressed: _ratchetKey,
+                    child: Text('Ratchet Key'),
                   ),
-                  elevation: 16,
-                  style: const TextStyle(color: Colors.blue),
-                  underline: Container(
-                    height: 2,
-                    color: Colors.blueAccent,
-                  ),
-                  onChanged: (String? value) {
-                    // This is called when the user selects an item.
-                    setState(() {
-                      videoDropdownValue = value!;
-                    });
-                  },
-                  items: videoCodecList
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-                TextButton(onPressed: _ratchetKey, child: Text('Ratchet Key'))
-              ],
-            ),
-            Row(
-              children: [
-                Text('audio encrypt:'),
-                Switch(
+                ],
+              ),
+              Row(
+                children: [
+                  Text('audio encrypt:'),
+                  Switch(
                     value: _audioEncrypt,
                     onChanged: (value) {
                       setState(() {
                         _audioEncrypt = value;
                         _enableEncryption(video: false, enabled: _audioEncrypt);
                       });
-                    }),
-                Text('video encrypt:'),
-                Switch(
+                    },
+                  ),
+                  Text('video encrypt:'),
+                  Switch(
                     value: _videoEncrypt,
                     onChanged: (value) {
                       setState(() {
                         _videoEncrypt = value;
                         _enableEncryption(video: true, enabled: _videoEncrypt);
                       });
-                    })
-              ],
-            ),
-            Expanded(
-              child: RTCVideoView(_localRenderer, mirror: true),
-            ),
-          ],
-        )),
+                    },
+                  ),
+                ],
+              ),
+              Expanded(child: RTCVideoView(_localRenderer, mirror: true)),
+            ],
+          ),
+        ),
       ),
       Expanded(
         child: Container(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Row(
-              children: [
-                Text('audio decrypt:'),
-                Switch(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
+                children: [
+                  Text('audio decrypt:'),
+                  Switch(
                     value: _audioDecrypt,
                     onChanged: (value) {
                       setState(() {
                         _audioDecrypt = value;
                         _enableDecryption(video: false, enabled: _audioDecrypt);
                       });
-                    }),
-                Text('video decrypt:'),
-                Switch(
+                    },
+                  ),
+                  Text('video decrypt:'),
+                  Switch(
                     value: _videoDecrypt,
                     onChanged: (value) {
                       setState(() {
                         _videoDecrypt = value;
                         _enableDecryption(video: true, enabled: _videoDecrypt);
                       });
-                    })
-              ],
-            ),
-            Expanded(
-              child: RTCVideoView(_remoteRenderer),
-            ),
-          ],
-        )),
-      )
+                    },
+                  ),
+                ],
+              ),
+              Expanded(child: RTCVideoView(_remoteRenderer)),
+            ],
+          ),
+        ),
+      ),
     ];
     return Scaffold(
       appBar: AppBar(
         title: Text('LoopBack Unified Tracks example'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.keyboard),
-            onPressed: _sendDtmf,
-          ),
+          IconButton(icon: Icon(Icons.keyboard), onPressed: _sendDtmf),
           PopupMenuButton<String>(
             onSelected: _selectAudioInput,
             icon: Icon(Icons.settings_voice),
@@ -800,11 +812,12 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 return _mediaDevicesList!
                     .where((device) => device.kind == 'audioinput')
                     .map((device) {
-                  return PopupMenuItem<String>(
-                    value: device.deviceId,
-                    child: Text(device.label),
-                  );
-                }).toList();
+                      return PopupMenuItem<String>(
+                        value: device.deviceId,
+                        child: Text(device.label),
+                      );
+                    })
+                    .toList();
               }
               return [];
             },
@@ -817,11 +830,12 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 return _mediaDevicesList!
                     .where((device) => device.kind == 'audiooutput')
                     .map((device) {
-                  return PopupMenuItem<String>(
-                    value: device.deviceId,
-                    child: Text(device.label),
-                  );
-                }).toList();
+                      return PopupMenuItem<String>(
+                        value: device.deviceId,
+                        child: Text(device.label),
+                      );
+                    })
+                    .toList();
               }
               return [];
             },
@@ -834,42 +848,48 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
             children: [
               Container(
                 decoration: BoxDecoration(color: Colors.black54),
-                child: orientation == Orientation.portrait
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: widgets)
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: widgets),
+                child:
+                    orientation == Orientation.portrait
+                        ? Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: widgets,
+                        )
+                        : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: widgets,
+                        ),
               ),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: OverflowBar(
                   children: [
                     FloatingActionButton(
-                        heroTag: null,
-                        backgroundColor:
-                            _micOn ? null : Theme.of(context).disabledColor,
-                        tooltip: _micOn ? 'Stop mic' : 'Start mic',
-                        onPressed: _micOn ? _stopAudio : _startAudio,
-                        child: Icon(_micOn ? Icons.mic : Icons.mic_off)),
+                      heroTag: null,
+                      backgroundColor:
+                          _micOn ? null : Theme.of(context).disabledColor,
+                      tooltip: _micOn ? 'Stop mic' : 'Start mic',
+                      onPressed: _micOn ? _stopAudio : _startAudio,
+                      child: Icon(_micOn ? Icons.mic : Icons.mic_off),
+                    ),
                     FloatingActionButton(
-                        heroTag: null,
-                        backgroundColor:
-                            _speakerOn ? null : Theme.of(context).disabledColor,
-                        tooltip: _speakerOn ? 'Stop speaker' : 'Start speaker',
-                        onPressed: _switchSpeaker,
-                        child: Icon(_speakerOn
-                            ? Icons.speaker_phone
-                            : Icons.phone_in_talk)),
+                      heroTag: null,
+                      backgroundColor:
+                          _speakerOn ? null : Theme.of(context).disabledColor,
+                      tooltip: _speakerOn ? 'Stop speaker' : 'Start speaker',
+                      onPressed: _switchSpeaker,
+                      child: Icon(
+                        _speakerOn ? Icons.speaker_phone : Icons.phone_in_talk,
+                      ),
+                    ),
                     FloatingActionButton(
                       heroTag: null,
                       backgroundColor:
                           _cameraOn ? null : Theme.of(context).disabledColor,
                       tooltip: _cameraOn ? 'Stop camera' : 'Start camera',
                       onPressed: _cameraOn ? _stopVideo : _startVideo,
-                      child:
-                          Icon(_cameraOn ? Icons.videocam : Icons.videocam_off),
+                      child: Icon(
+                        _cameraOn ? Icons.videocam : Icons.videocam_off,
+                      ),
                     ),
                     FloatingActionButton(
                       heroTag: null,
@@ -878,7 +898,7 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                       onPressed: _inCalling ? _hangUp : _makeCall,
                       tooltip: _inCalling ? 'Hangup' : 'Call',
                       child: Icon(_inCalling ? Icons.call_end : Icons.phone),
-                    )
+                    ),
                   ],
                 ),
               ),

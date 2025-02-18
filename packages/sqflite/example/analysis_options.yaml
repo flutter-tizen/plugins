@@ -48,7 +48,6 @@ linter:
     - no_duplicate_case_values
     - non_constant_identifier_names
     - omit_local_variable_types
-    - package_api_docs
     - package_prefixed_library_names
     - prefer_generic_function_type_aliases
     - prefer_is_empty
@@ -63,7 +62,6 @@ linter:
     - unnecessary_null_aware_assignments
     - unnecessary_statements
     - unrelated_type_equality_checks
-    - unsafe_html
     - valid_regexps
 
     - constant_identifier_names

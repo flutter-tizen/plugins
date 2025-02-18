@@ -1,5 +1,4 @@
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html';
+import 'package:web/web.dart';
 
 class SimpleWebSocket {
   SimpleWebSocket(this._url) {

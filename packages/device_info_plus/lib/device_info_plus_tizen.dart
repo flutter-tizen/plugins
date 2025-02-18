@@ -127,8 +127,9 @@ class _MethodChannelDeviceInfo {
   /// Method channel for Tizen devices.
   Future<TizenDeviceInfo> tizenInfo() async {
     return TizenDeviceInfo.fromMap(
-      (await channel.invokeMethod('getTizenDeviceInfo'))
-          .cast<String, dynamic>(),
+      (await channel.invokeMethod(
+        'getTizenDeviceInfo',
+      )).cast<String, dynamic>(),
     );
   }
 }

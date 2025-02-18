@@ -14,8 +14,10 @@ import 'package:webview_flutter/webview_flutter.dart';
 const LatLng nullLatLng = LatLng(0, 0);
 
 /// Default LatLngBounds.
-final LatLngBounds nullLatLngBounds =
-    LatLngBounds(southwest: nullLatLng, northeast: nullLatLng);
+final LatLngBounds nullLatLngBounds = LatLngBounds(
+  southwest: nullLatLng,
+  northeast: nullLatLng,
+);
 
 /// Default ScreenCoordinate.
 const ScreenCoordinate nullScreenCoordinate = ScreenCoordinate(x: 0, y: 0);
@@ -145,9 +147,10 @@ class GInfoWindowOptions {
 
   @override
   String toString() {
-    final String pos = position != null
-        ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
-        : 'null';
+    final String pos =
+        position != null
+            ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
+            : 'null';
     return '{content:$content, pixelOffset:null , position:$pos, zIndex:$zIndex}';
   }
 }
@@ -161,7 +164,8 @@ class GInfoWindow {
 
   Future<void> _createInfoWindow(GInfoWindowOptions? opts) async {
     await webController!.runJavaScript(
-        'var ${toString()} = new google.maps.InfoWindow($opts);');
+      'var ${toString()} = new google.maps.InfoWindow($opts);',
+    );
   }
 
   final int _id;
@@ -177,15 +181,14 @@ class GInfoWindow {
   }
 
   /// Opens InfoWindow on the given map.
-  void open([
-    GMarker? anchor,
-  ]) {
+  void open([GMarker? anchor]) {
     _callOpenInfoWindow(anchor);
   }
 
   Future<void> _callOpenInfoWindow(GMarker? anchor) async {
-    await webController!
-        .runJavaScript('${toString()}.open({anchor: $anchor, map});');
+    await webController!.runJavaScript(
+      '${toString()}.open({anchor: $anchor, map});',
+    );
   }
 
   @override
@@ -211,16 +214,14 @@ class GInfoWindow {
 /// This class represents a geographical location on the map as a Marker.
 class GMarker {
   /// GMarker Constructor.
-  GMarker([
-    GMarkerOptions? opts,
-  ])  : id = _gid++,
-        _options = opts {
+  GMarker([GMarkerOptions? opts]) : id = _gid++, _options = opts {
     _createMarker(opts);
   }
 
   Future<void> _createMarker(GMarkerOptions? opts) async {
-    await webController!
-        .runJavaScript('var ${toString()} = new google.maps.Marker($opts);');
+    await webController!.runJavaScript(
+      'var ${toString()} = new google.maps.Marker($opts);',
+    );
   }
 
   /// GMarker id.
@@ -264,15 +265,14 @@ class GMarker {
 /// This class represents a linear overlay of connected line segments on the map.
 class GPolyline {
   /// GPolyline Constructor.
-  GPolyline([
-    GPolylineOptions? opts,
-  ]) : id = _gid++ {
+  GPolyline([GPolylineOptions? opts]) : id = _gid++ {
     _createPolyline(opts);
   }
 
   Future<void> _createPolyline(GPolylineOptions? opts) async {
-    await webController!
-        .runJavaScript('var ${toString()} = new google.maps.Polyline($opts);');
+    await webController!.runJavaScript(
+      'var ${toString()} = new google.maps.Polyline($opts);',
+    );
   }
 
   /// GPolyline id.
@@ -345,7 +345,8 @@ class GPolylineOptions {
     for (final LatLng? position in path!) {
       if (position != null) {
         paths.write(
-            'new google.maps.LatLng(${position.latitude},${position.longitude}), ');
+          'new google.maps.LatLng(${position.latitude},${position.longitude}), ',
+        );
       }
     }
 
@@ -358,15 +359,14 @@ class GPolylineOptions {
 /// connected coordinates in an ordered sequence.
 class GPolygon {
   /// GPolygon Constructor.
-  GPolygon([
-    GPolygonOptions? opts,
-  ]) : id = _gid++ {
+  GPolygon([GPolygonOptions? opts]) : id = _gid++ {
     _createPolygon(opts);
   }
 
   Future<void> _createPolygon(GPolygonOptions? opts) async {
-    await webController!
-        .runJavaScript('var ${toString()} = new google.maps.Polygon($opts);');
+    await webController!.runJavaScript(
+      'var ${toString()} = new google.maps.Polygon($opts);',
+    );
   }
 
   /// GPolygon id.
@@ -447,7 +447,8 @@ class GPolygonOptions {
       for (final LatLng? position in latlng!) {
         if (position != null) {
           str.write(
-              'new google.maps.LatLng(${position.latitude},${position.longitude}), ');
+            'new google.maps.LatLng(${position.latitude},${position.longitude}), ',
+          );
         }
       }
       str.write('], ');
@@ -462,15 +463,14 @@ class GPolygonOptions {
 /// This class represents a circle using the passed GCircleOptions.
 class GCircle {
   /// GCircle Constructor.
-  GCircle([
-    GCircleOptions? opts,
-  ]) : id = _gid++ {
+  GCircle([GCircleOptions? opts]) : id = _gid++ {
     _createCircle(opts);
   }
 
   Future<void> _createCircle(GCircleOptions? opts) async {
-    await webController!
-        .runJavaScript('var ${toString()} = new google.maps.Circle($opts);');
+    await webController!.runJavaScript(
+      'var ${toString()} = new google.maps.Circle($opts);',
+    );
   }
 
   /// GCircle id.

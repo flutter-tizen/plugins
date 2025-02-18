@@ -42,11 +42,12 @@ enum AppControlReplyResult {
 /// [request] represents the launch request that has been sent.
 /// [reply] represents the reply message sent by the callee application.
 /// [result] represents the result of launch.
-typedef AppControlReplyCallback = FutureOr<void> Function(
-  AppControl request,
-  AppControl reply,
-  AppControlReplyResult result,
-);
+typedef AppControlReplyCallback =
+    FutureOr<void> Function(
+      AppControl request,
+      AppControl reply,
+      AppControlReplyResult result,
+    );
 
 /// Represents a control message exchanged between applications.
 ///
@@ -75,15 +76,15 @@ class AppControl {
   }
 
   AppControl._fromMap(Map<String, dynamic> map)
-      : _id = map['id'] as int,
-        appId = map['appId'] as String?,
-        operation = map['operation'] as String?,
-        uri = map['uri'] as String?,
-        mime = map['mime'] as String?,
-        category = map['category'] as String?,
-        launchMode = LaunchMode.values.byName(map['launchMode'] as String),
-        extraData = (map['extraData'] as Map<dynamic, dynamic>)
-            .cast<String, dynamic>() {
+    : _id = map['id'] as int,
+      appId = map['appId'] as String?,
+      operation = map['operation'] as String?,
+      uri = map['uri'] as String?,
+      mime = map['mime'] as String?,
+      category = map['category'] as String?,
+      launchMode = LaunchMode.values.byName(map['launchMode'] as String),
+      extraData =
+          (map['extraData'] as Map<dynamic, dynamic>).cast<String, dynamic>() {
     if (!nativeAttachAppControl(_id, this)) {
       throw Exception('Could not find an instance of AppControl with ID $_id.');
     }
@@ -129,25 +130,32 @@ class AppControl {
   /// The unique ID internally used for managing application control handles.
   late int _id;
 
-  static const MethodChannel _methodChannel =
-      MethodChannel('tizen/internal/app_control_method');
+  static const MethodChannel _methodChannel = MethodChannel(
+    'tizen/internal/app_control_method',
+  );
 
-  static const EventChannel _eventChannel =
-      EventChannel('tizen/internal/app_control_event');
+  static const EventChannel _eventChannel = EventChannel(
+    'tizen/internal/app_control_event',
+  );
 
   /// A stream of incoming application controls.
   static final Stream<ReceivedAppControl> onAppControl = _eventChannel
       .receiveBroadcastStream()
-      .map((dynamic event) => ReceivedAppControl._fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
+      .map(
+        (dynamic event) => ReceivedAppControl._fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+        ),
+      );
 
   /// Returns a list of installed applications that can handle this request.
   Future<List<String>> getMatchedAppIds() async {
     await _setAppControlData();
 
     final Map<String, dynamic> args = <String, dynamic>{'id': _id};
-    final dynamic response =
-        await _methodChannel.invokeMethod<dynamic>('getMatchedAppIds', args);
+    final dynamic response = await _methodChannel.invokeMethod<dynamic>(
+      'getMatchedAppIds',
+      args,
+    );
     return (response as List<dynamic>).cast<String>();
   }
 
@@ -176,12 +184,15 @@ class AppControl {
     if (replyCallback == null) {
       await _methodChannel.invokeMethod<void>('sendLaunchRequest', args);
     } else {
-      final dynamic response =
-          await _methodChannel.invokeMethod<dynamic>('sendLaunchRequest', args);
+      final dynamic response = await _methodChannel.invokeMethod<dynamic>(
+        'sendLaunchRequest',
+        args,
+      );
       final Map<String, dynamic> responseMap =
           (response as Map<dynamic, dynamic>).cast<String, dynamic>();
-      final AppControlReplyResult result =
-          AppControlReplyResult.values.byName(responseMap['result'] as String);
+      final AppControlReplyResult result = AppControlReplyResult.values.byName(
+        responseMap['result'] as String,
+      );
       final Map<String, dynamic> replyMap =
           (responseMap['reply'] as Map<dynamic, dynamic>)
               .cast<String, dynamic>();
@@ -231,8 +242,10 @@ class AppControl {
     await appControl._setAppControlData();
 
     final Map<String, dynamic> args = <String, dynamic>{'id': appControl._id};
-    final int? handleAddress =
-        await _methodChannel.invokeMethod<int>('getHandle', args);
+    final int? handleAddress = await _methodChannel.invokeMethod<int>(
+      'getHandle',
+      args,
+    );
     final Pointer<Void> handle = Pointer<Void>.fromAddress(handleAddress!);
 
     final int ret = appControlSetAutoRestart(handle);
@@ -258,9 +271,9 @@ class AppControl {
 /// Represents a received [AppControl] message.
 class ReceivedAppControl extends AppControl {
   ReceivedAppControl._fromMap(super.map)
-      : callerAppId = map['callerAppId'] as String?,
-        shouldReply = map['shouldReply'] as bool,
-        super._fromMap();
+    : callerAppId = map['callerAppId'] as String?,
+      shouldReply = map['shouldReply'] as bool,
+      super._fromMap();
 
   /// The caller application ID.
   final String? callerAppId;

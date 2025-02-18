@@ -50,32 +50,24 @@ class _MyAppState extends State<MyApp> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        _textButton(
-          'Register',
-          () async {
-            try {
-              _localPort?.register(onMessage);
-              _log('Local port registration done');
-              setState(() {});
-            } catch (error) {
-              _log(error.toString());
-            }
-          },
-          _localPort != null && !_localPort!.registered,
-        ),
-        _textButton(
-          'Unregister',
-          () async {
-            try {
-              await _localPort?.unregister();
-              _log('Local port unregistration done');
-              setState(() {});
-            } catch (error) {
-              _log(error.toString());
-            }
-          },
-          _localPort?.registered ?? false,
-        ),
+        _textButton('Register', () async {
+          try {
+            _localPort?.register(onMessage);
+            _log('Local port registration done');
+            setState(() {});
+          } catch (error) {
+            _log(error.toString());
+          }
+        }, _localPort != null && !_localPort!.registered),
+        _textButton('Unregister', () async {
+          try {
+            await _localPort?.unregister();
+            _log('Local port unregistration done');
+            setState(() {});
+          } catch (error) {
+            _log(error.toString());
+          }
+        }, _localPort?.registered ?? false),
       ],
     );
   }
@@ -97,19 +89,15 @@ class _MyAppState extends State<MyApp> {
           },
           (_localPort?.registered ?? false) && _remotePort == null,
         ),
-        _textButton(
-          'Check remote',
-          () async {
-            try {
-              final bool status = await _remotePort!.check();
-              _log('Remote port status: ${status ? 'open' : 'closed'}');
-              setState(() {});
-            } catch (error) {
-              _log(error.toString());
-            }
-          },
-          _remotePort != null,
-        ),
+        _textButton('Check remote', () async {
+          try {
+            final bool status = await _remotePort!.check();
+            _log('Remote port status: ${status ? 'open' : 'closed'}');
+            setState(() {});
+          } catch (error) {
+            _log(error.toString());
+          }
+        }, _remotePort != null),
       ],
     );
   }
@@ -120,7 +108,7 @@ class _MyAppState extends State<MyApp> {
     'double': 157.986,
     'String': 'Test message',
     'List': <int>[1, 2, 3],
-    'Map': <String, int>{'a': 1, 'b': 2, 'c': 3}
+    'Map': <String, int>{'a': 1, 'b': 2, 'c': 3},
   };
   bool _attachLocalPort = false;
 
@@ -149,22 +137,18 @@ class _MyAppState extends State<MyApp> {
           itemCount: _sendOptions.length,
           itemBuilder: (BuildContext context, int index) {
             final String key = _sendOptions.keys.elementAt(index);
-            return _textButton(
-              key,
-              () async {
-                try {
-                  final Object value = _sendOptions[key]!;
-                  if (_attachLocalPort) {
-                    await _remotePort?.sendWithLocalPort(value, _localPort!);
-                  } else {
-                    await _remotePort?.send(value);
-                  }
-                } catch (error) {
-                  _log(error.toString());
+            return _textButton(key, () async {
+              try {
+                final Object value = _sendOptions[key]!;
+                if (_attachLocalPort) {
+                  await _remotePort?.sendWithLocalPort(value, _localPort!);
+                } else {
+                  await _remotePort?.send(value);
                 }
-              },
-              _remotePort != null && (_localPort?.registered ?? false),
-            );
+              } catch (error) {
+                _log(error.toString());
+              }
+            }, _remotePort != null && (_localPort?.registered ?? false));
           },
         ),
       ],
@@ -174,7 +158,8 @@ class _MyAppState extends State<MyApp> {
   final List<String> _logs = <String>[];
 
   void _log(String log) {
-    final String date = '${DateTime.now().hour.toString().padLeft(2, '0')}:'
+    final String date =
+        '${DateTime.now().hour.toString().padLeft(2, '0')}:'
         '${DateTime.now().minute.toString().padLeft(2, '0')}:'
         '${DateTime.now().second.toString().padLeft(2, '0')}.'
         '${DateTime.now().millisecond.toString().padLeft(3, '0')}';
@@ -197,10 +182,7 @@ class _MyAppState extends State<MyApp> {
           child: ListView.builder(
             itemCount: _logs.length,
             itemBuilder: (BuildContext context, int index) {
-              return Text(
-                _logs[index],
-                style: const TextStyle(fontSize: 10),
-              );
+              return Text(_logs[index], style: const TextStyle(fontSize: 10));
             },
           ),
         ),
@@ -212,23 +194,19 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Tizen MessagePort Example'),
-        ),
-        body: Column(children: <Widget>[
-          _textButton(
-            'Create local port',
-            () async {
+        appBar: AppBar(title: const Text('Tizen MessagePort Example')),
+        body: Column(
+          children: <Widget>[
+            _textButton('Create local port', () async {
               _localPort = await LocalPort.create(kPortName);
               setState(() {});
-            },
-            _localPort == null,
-          ),
-          _localPortRegisterButtons(),
-          _remotePortButtons(),
-          _sendButtons(),
-          _logger(context),
-        ]),
+            }, _localPort == null),
+            _localPortRegisterButtons(),
+            _remotePortButtons(),
+            _sendButtons(),
+            _logger(context),
+          ],
+        ),
       ),
     );
   }

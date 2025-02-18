@@ -30,8 +30,12 @@ class _ManualTestPageState extends State<ManualTestPage> {
   Future<void> showToast(String message) async {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
-      ..showSnackBar(SnackBar(
-          content: Text(message), duration: const Duration(milliseconds: 300)));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(milliseconds: 300),
+        ),
+      );
   }
 
   Future<Database> _openDatabase() async {
@@ -64,11 +68,14 @@ class _ManualTestPageState extends State<ManualTestPage> {
     db.internalsDoNotUseSynchronized = noSynchronized ?? false;
     await db.transaction((txn) async {
       await txn.execute(
-          'CREATE TABLE IF NOT EXISTS Task(id INTEGER PRIMARY KEY, name TEXT)');
-      await txn.execute('INSERT INTO Task(name) VALUES (?)',
-          ['task ${DateTime.now().toIso8601String()}']);
-      var count =
-          firstIntValue(await txn.query('Task', columns: [sqlCountColumn]));
+        'CREATE TABLE IF NOT EXISTS Task(id INTEGER PRIMARY KEY, name TEXT)',
+      );
+      await txn.execute('INSERT INTO Task(name) VALUES (?)', [
+        'task ${DateTime.now().toIso8601String()}',
+      ]);
+      var count = firstIntValue(
+        await txn.query('Task', columns: [sqlCountColumn]),
+      );
       unawaited(showToast('$count task(s)'));
       if (msDelay != null) {
         await Future<void>.delayed(Duration(milliseconds: msDelay));
@@ -89,9 +96,9 @@ class _ManualTestPageState extends State<ManualTestPage> {
         print('sqlite version: $version');
         await db.close();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('select sqlite_version(): $version'),
-          ));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('select sqlite_version(): $version')),
+          );
         }
       }, summary: 'select sqlite_version()'),
       SqfMenuItem('Factory information', () async {
@@ -102,46 +109,65 @@ class _ManualTestPageState extends State<ManualTestPage> {
       SqfMenuItem('openDatabase', () async {
         await _openDatabase();
       }, summary: 'Open the database'),
-      SqfMenuItem('transaction add and query and pause', () async {
-        await _addAndQuery(msDelay: 5000);
-      }, summary: 'open/create table/add/query/pause'),
-      SqfMenuItem('transaction add and query and pause no synchronized',
-          () async {
-        await _addAndQuery(msDelay: 5000, noSynchronized: true);
-      }, summary: 'open/create table/add/query/pause'),
-      SqfMenuItem('BEGIN EXCLUSIVE', () async {
-        final db = await _openDatabase();
-        await db.execute('BEGIN EXCLUSIVE');
-      },
-          summary:
-              'Execute than exit or hot-restart the application. Open the database if needed'),
-      SqfMenuItem('close', () async {
-        await _closeDatabase();
-      },
-          summary:
-              'Execute after starting then exit the app using the back button on Android and restart from the launcher.'),
-      SqfMenuItem('delete', () async {
-        await _deleteDatabase();
-      },
-          summary:
-              'Try open (then optionally) delete, exit or hot-restart then delete then open'),
+      SqfMenuItem(
+        'transaction add and query and pause',
+        () async {
+          await _addAndQuery(msDelay: 5000);
+        },
+        summary: 'open/create table/add/query/pause',
+      ),
+      SqfMenuItem(
+        'transaction add and query and pause no synchronized',
+        () async {
+          await _addAndQuery(msDelay: 5000, noSynchronized: true);
+        },
+        summary: 'open/create table/add/query/pause',
+      ),
+      SqfMenuItem(
+        'BEGIN EXCLUSIVE',
+        () async {
+          final db = await _openDatabase();
+          await db.execute('BEGIN EXCLUSIVE');
+        },
+        summary:
+            'Execute than exit or hot-restart the application. Open the database if needed',
+      ),
+      SqfMenuItem(
+        'close',
+        () async {
+          await _closeDatabase();
+        },
+        summary:
+            'Execute after starting then exit the app using the back button on Android and restart from the launcher.',
+      ),
+      SqfMenuItem(
+        'delete',
+        () async {
+          await _deleteDatabase();
+        },
+        summary:
+            'Try open (then optionally) delete, exit or hot-restart then delete then open',
+      ),
       SqfMenuItem('log level: none', () async {
         // ignore: deprecated_member_use
         await Sqflite.devSetOptions(
-            // ignore: deprecated_member_use
-            SqfliteOptions(logLevel: sqfliteLogLevelNone));
+          // ignore: deprecated_member_use
+          SqfliteOptions(logLevel: sqfliteLogLevelNone),
+        );
       }, summary: 'No logs'),
       SqfMenuItem('log level: sql', () async {
         // ignore: deprecated_member_use
         await Sqflite.devSetOptions(
-            // ignore: deprecated_member_use
-            SqfliteOptions(logLevel: sqfliteLogLevelSql));
+          // ignore: deprecated_member_use
+          SqfliteOptions(logLevel: sqfliteLogLevelSql),
+        );
       }, summary: 'Log sql command and basic database operation'),
       SqfMenuItem('log level: verbose', () async {
         // ignore: deprecated_member_use
         await Sqflite.devSetOptions(
-            // ignore: deprecated_member_use
-            SqfliteOptions(logLevel: sqfliteLogLevelVerbose));
+          // ignore: deprecated_member_use
+          SqfliteOptions(logLevel: sqfliteLogLevelVerbose),
+        );
       }, summary: 'Verbose logs, for debugging'),
       SqfMenuItem('Get info', () async {
         final factory = databaseFactory as impl.SqfliteDatabaseFactoryMixin;
@@ -152,27 +178,37 @@ class _ManualTestPageState extends State<ManualTestPage> {
         print(await _incrementVersion());
       }, summary: 'Implementation info (dev only)'),
       SqfMenuItem('Multiple db', () async {
-        await Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) {
-          return const MultipleDbTestPage();
-        }));
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute(
+            builder: (_) {
+              return const MultipleDbTestPage();
+            },
+          ),
+        );
       }, summary: 'Open multiple databases'),
-      ...[800000, 1500000, 15000000, 150000000]
-          .map((size) => SqfMenuItem('Big blob $size', () async {
-                await testBigBlog(size);
-              }))
+      ...[800000, 1500000, 15000000, 150000000].map(
+        (size) => SqfMenuItem('Big blob $size', () async {
+          await testBigBlog(size);
+        }),
+      ),
     ];
   }
 
   Future<void> testBigBlog(int size) async {
     // await Sqflite.devSetDebugModeOn(true);
-    var db = await openDatabase(inMemoryDatabasePath, version: 1,
-        onCreate: (Database db, int version) async {
-      await db
-          .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value BLOB)');
-    });
+    var db = await openDatabase(
+      inMemoryDatabasePath,
+      version: 1,
+      onCreate: (Database db, int version) async {
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, value BLOB)',
+        );
+      },
+    );
     try {
-      var blob =
-          Uint8List.fromList(List.generate(size, (index) => index % 256));
+      var blob = Uint8List.fromList(
+        List.generate(size, (index) => index % 256),
+      );
       var id = await db.insert('Test', {'value': blob});
 
       /// Get the value field from a given id
@@ -183,8 +219,9 @@ class _ManualTestPageState extends State<ManualTestPage> {
 
       var ok = (await getValue(id)).length == blob.length;
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('$size: $ok')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$size: $ok')));
       }
     } finally {
       await db.close();
@@ -194,30 +231,24 @@ class _ManualTestPageState extends State<ManualTestPage> {
   @override
   Widget build(BuildContext context) {
     itemWidgets = items
-        .map((item) => ItemWidget(
-              item,
-              (item) async {
-                final stopwatch = Stopwatch()..start();
-                final future = (item as SqfMenuItem).run();
-                setState(() {});
-                await future;
-                // always add a small delay
-                final elapsed = stopwatch.elapsedMilliseconds;
-                if (elapsed < 300) {
-                  await sleep(300 - elapsed);
-                }
-                setState(() {});
-              },
-              summary: item.summary,
-            ))
+        .map(
+          (item) => ItemWidget(item, (item) async {
+            final stopwatch = Stopwatch()..start();
+            final future = (item as SqfMenuItem).run();
+            setState(() {});
+            await future;
+            // always add a small delay
+            final elapsed = stopwatch.elapsedMilliseconds;
+            if (elapsed < 300) {
+              await sleep(300 - elapsed);
+            }
+            setState(() {});
+          }, summary: item.summary),
+        )
         .toList(growable: false);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manual tests'),
-      ),
-      body: ListView(
-        children: itemWidgets,
-      ),
+      appBar: AppBar(title: const Text('Manual tests')),
+      body: ListView(children: itemWidgets),
     );
   }
 }
@@ -233,24 +264,24 @@ class MultipleDbTestPage extends StatelessWidget {
       return ListTile(
         title: Text(name),
         onTap: () {
-          Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) {
-            return SimpleDbTestPage(
-              dbName: name,
-            );
-          }));
+          Navigator.of(context).push<void>(
+            MaterialPageRoute(
+              builder: (_) {
+                return SimpleDbTestPage(dbName: name);
+              },
+            ),
+          );
         },
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Multiple databases'),
-      ),
+      appBar: AppBar(title: const Text('Multiple databases')),
       body: ListView(
         children: <Widget>[
           dbTile('data1.db'),
           dbTile('data2.db'),
-          dbTile('data3.db')
+          dbTile('data3.db'),
         ],
       ),
     );
@@ -275,12 +306,15 @@ class _SimpleDbTestPageState extends State<SimpleDbTestPage> {
 
   Future<Database> _openDatabase() async {
     // await Sqflite.devSetOptions(SqfliteOptions(logLevel: sqfliteLogLevelVerbose));
-    return database ??= await databaseFactory.openDatabase(widget.dbName,
-        options: OpenDatabaseOptions(
-            version: 1,
-            onCreate: (db, version) async {
-              await db.execute('CREATE TABLE Test (value TEXT)');
-            }));
+    return database ??= await databaseFactory.openDatabase(
+      widget.dbName,
+      options: OpenDatabaseOptions(
+        version: 1,
+        onCreate: (db, version) async {
+          await db.execute('CREATE TABLE Test (value TEXT)');
+        },
+      ),
+    );
   }
 
   Future _closeDatabase() async {
@@ -296,62 +330,63 @@ class _SimpleDbTestPageState extends State<SimpleDbTestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Simple db ${widget.dbName}'),
-        ),
-        body: Builder(
-          builder: (context) {
-            Widget menuItem(String title, void Function() onTap,
-                {String? summary}) {
-              return ListTile(
-                title: Text(title),
-                subtitle: summary == null ? null : Text(summary),
-                onTap: onTap,
-              );
-            }
+      appBar: AppBar(title: Text('Simple db ${widget.dbName}')),
+      body: Builder(
+        builder: (context) {
+          Widget menuItem(
+            String title,
+            void Function() onTap, {
+            String? summary,
+          }) {
+            return ListTile(
+              title: Text(title),
+              subtitle: summary == null ? null : Text(summary),
+              onTap: onTap,
+            );
+          }
 
-            Future countRecord() async {
-              final db = await _openDatabase();
-              final result =
-                  firstIntValue(await db.query('test', columns: ['COUNT(*)']));
-              // Temp for nnbd successfull lint
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          Future countRecord() async {
+            final db = await _openDatabase();
+            final result = firstIntValue(
+              await db.query('test', columns: ['COUNT(*)']),
+            );
+            // Temp for nnbd successfull lint
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
                   content: Text('$result records'),
                   duration: const Duration(milliseconds: 700),
-                ));
-              }
+                ),
+              );
             }
+          }
 
-            final items = <Widget>[
-              menuItem('open Database', () async {
-                await _openDatabase();
-              }, summary: 'Open the database'),
-              menuItem('Add record', () async {
-                final db = await _openDatabase();
-                await db.insert('test', {'value': 'some_value'});
+          final items = <Widget>[
+            menuItem('open Database', () async {
+              await _openDatabase();
+            }, summary: 'Open the database'),
+            menuItem('Add record', () async {
+              final db = await _openDatabase();
+              await db.insert('test', {'value': 'some_value'});
+              await countRecord();
+            }, summary: 'Add one record. Open the database if needed'),
+            menuItem(
+              'Count record',
+              () async {
                 await countRecord();
-              }, summary: 'Add one record. Open the database if needed'),
-              menuItem('Count record', () async {
-                await countRecord();
-              }, summary: 'Count records. Open the database if needed'),
-              menuItem(
-                'Close Database',
-                () async {
-                  await _closeDatabase();
-                },
-              ),
-              menuItem(
-                'Delete database',
-                () async {
-                  await databaseFactory.deleteDatabase(widget.dbName);
-                },
-              ),
-            ];
-            return ListView(
-              children: items,
-            );
-          },
-        ));
+              },
+              summary: 'Count records. Open the database if needed',
+            ),
+            menuItem('Close Database', () async {
+              await _closeDatabase();
+            }),
+            menuItem('Delete database', () async {
+              await databaseFactory.deleteDatabase(widget.dbName);
+            }),
+          ];
+          return ListView(children: items);
+        },
+      ),
+    );
   }
 }

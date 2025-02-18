@@ -9,41 +9,29 @@ import 'package:flutter/foundation.dart' show ReadBuffer, WriteBuffer;
 import 'package:flutter/services.dart';
 
 class PlayerMessage {
-  PlayerMessage({
-    required this.playerId,
-  });
+  PlayerMessage({required this.playerId});
 
   int playerId;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-    ];
+    return <Object?>[playerId];
   }
 
   static PlayerMessage decode(Object result) {
     result as List<Object?>;
-    return PlayerMessage(
-      playerId: result[0]! as int,
-    );
+    return PlayerMessage(playerId: result[0]! as int);
   }
 }
 
 class LoopingMessage {
-  LoopingMessage({
-    required this.playerId,
-    required this.isLooping,
-  });
+  LoopingMessage({required this.playerId, required this.isLooping});
 
   int playerId;
 
   bool isLooping;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      isLooping,
-    ];
+    return <Object?>[playerId, isLooping];
   }
 
   static LoopingMessage decode(Object result) {
@@ -56,20 +44,14 @@ class LoopingMessage {
 }
 
 class VolumeMessage {
-  VolumeMessage({
-    required this.playerId,
-    required this.volume,
-  });
+  VolumeMessage({required this.playerId, required this.volume});
 
   int playerId;
 
   double volume;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      volume,
-    ];
+    return <Object?>[playerId, volume];
   }
 
   static VolumeMessage decode(Object result) {
@@ -82,20 +64,14 @@ class VolumeMessage {
 }
 
 class PlaybackSpeedMessage {
-  PlaybackSpeedMessage({
-    required this.playerId,
-    required this.speed,
-  });
+  PlaybackSpeedMessage({required this.playerId, required this.speed});
 
   int playerId;
 
   double speed;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      speed,
-    ];
+    return <Object?>[playerId, speed];
   }
 
   static PlaybackSpeedMessage decode(Object result) {
@@ -108,20 +84,14 @@ class PlaybackSpeedMessage {
 }
 
 class TrackMessage {
-  TrackMessage({
-    required this.playerId,
-    required this.tracks,
-  });
+  TrackMessage({required this.playerId, required this.tracks});
 
   int playerId;
 
   List<Map<Object?, Object?>?> tracks;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      tracks,
-    ];
+    return <Object?>[playerId, tracks];
   }
 
   static TrackMessage decode(Object result) {
@@ -134,20 +104,14 @@ class TrackMessage {
 }
 
 class TrackTypeMessage {
-  TrackTypeMessage({
-    required this.playerId,
-    required this.trackType,
-  });
+  TrackTypeMessage({required this.playerId, required this.trackType});
 
   int playerId;
 
   String trackType;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      trackType,
-    ];
+    return <Object?>[playerId, trackType];
   }
 
   static TrackTypeMessage decode(Object result) {
@@ -173,11 +137,7 @@ class SelectedTracksMessage {
   String trackType;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      trackId,
-      trackType,
-    ];
+    return <Object?>[playerId, trackId, trackType];
   }
 
   static SelectedTracksMessage decode(Object result) {
@@ -191,20 +151,14 @@ class SelectedTracksMessage {
 }
 
 class PositionMessage {
-  PositionMessage({
-    required this.playerId,
-    required this.position,
-  });
+  PositionMessage({required this.playerId, required this.position});
 
   int playerId;
 
   int position;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      position,
-    ];
+    return <Object?>[playerId, position];
   }
 
   static PositionMessage decode(Object result) {
@@ -277,23 +231,17 @@ class CreateMessage {
 }
 
 class MixWithOthersMessage {
-  MixWithOthersMessage({
-    required this.mixWithOthers,
-  });
+  MixWithOthersMessage({required this.mixWithOthers});
 
   bool mixWithOthers;
 
   Object encode() {
-    return <Object?>[
-      mixWithOthers,
-    ];
+    return <Object?>[mixWithOthers];
   }
 
   static MixWithOthersMessage decode(Object result) {
     result as List<Object?>;
-    return MixWithOthersMessage(
-      mixWithOthers: result[0]! as bool,
-    );
+    return MixWithOthersMessage(mixWithOthers: result[0]! as bool);
   }
 }
 
@@ -317,13 +265,7 @@ class GeometryMessage {
   int height;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      x,
-      y,
-      width,
-      height,
-    ];
+    return <Object?>[playerId, x, y, width, height];
   }
 
   static GeometryMessage decode(Object result) {
@@ -339,20 +281,14 @@ class GeometryMessage {
 }
 
 class DurationMessage {
-  DurationMessage({
-    required this.playerId,
-    this.durationRange,
-  });
+  DurationMessage({required this.playerId, this.durationRange});
 
   int playerId;
 
   List<int?>? durationRange;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      durationRange,
-    ];
+    return <Object?>[playerId, durationRange];
   }
 
   static DurationMessage decode(Object result) {
@@ -375,10 +311,7 @@ class StreamingPropertyTypeMessage {
   String streamingPropertyType;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      streamingPropertyType,
-    ];
+    return <Object?>[playerId, streamingPropertyType];
   }
 
   static StreamingPropertyTypeMessage decode(Object result) {
@@ -404,11 +337,7 @@ class StreamingPropertyMessage {
   String streamingPropertyValue;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      streamingPropertyType,
-      streamingPropertyValue,
-    ];
+    return <Object?>[playerId, streamingPropertyType, streamingPropertyValue];
   }
 
   static StreamingPropertyMessage decode(Object result) {
@@ -435,11 +364,7 @@ class BufferConfigMessage {
   int bufferConfigValue;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      bufferConfigType,
-      bufferConfigValue,
-    ];
+    return <Object?>[playerId, bufferConfigType, bufferConfigValue];
   }
 
   static BufferConfigMessage decode(Object result) {
@@ -453,20 +378,14 @@ class BufferConfigMessage {
 }
 
 class RotationMessage {
-  RotationMessage({
-    required this.playerId,
-    required this.rotation,
-  });
+  RotationMessage({required this.playerId, required this.rotation});
 
   int playerId;
 
   int rotation;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      rotation,
-    ];
+    return <Object?>[playerId, rotation];
   }
 
   static RotationMessage decode(Object result) {
@@ -479,20 +398,14 @@ class RotationMessage {
 }
 
 class DisplayModeMessage {
-  DisplayModeMessage({
-    required this.playerId,
-    required this.displayMode,
-  });
+  DisplayModeMessage({required this.playerId, required this.displayMode});
 
   int playerId;
 
   int displayMode;
 
   Object encode() {
-    return <Object?>[
-      playerId,
-      displayMode,
-    ];
+    return <Object?>[playerId, displayMode];
   }
 
   static DisplayModeMessage decode(Object result) {
@@ -612,16 +525,17 @@ class VideoPlayerAvplayApi {
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   VideoPlayerAvplayApi({BinaryMessenger? binaryMessenger})
-      : _binaryMessenger = binaryMessenger;
+    : _binaryMessenger = binaryMessenger;
   final BinaryMessenger? _binaryMessenger;
 
   static const MessageCodec<Object?> codec = _VideoPlayerAvplayApiCodec();
 
   Future<void> initialize() async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.initialize',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.initialize',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
@@ -641,9 +555,10 @@ class VideoPlayerAvplayApi {
 
   Future<PlayerMessage> create(CreateMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.create',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.create',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -669,9 +584,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> dispose(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.dispose',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.dispose',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -692,9 +608,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> setLooping(LoopingMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setLooping',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setLooping',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -715,9 +632,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> setVolume(VolumeMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setVolume',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setVolume',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -738,9 +656,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> setPlaybackSpeed(PlaybackSpeedMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setPlaybackSpeed',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setPlaybackSpeed',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -761,9 +680,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> play(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.play',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.play',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -784,9 +704,10 @@ class VideoPlayerAvplayApi {
 
   Future<bool> setDeactivate(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDeactivate',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDeactivate',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -812,9 +733,10 @@ class VideoPlayerAvplayApi {
 
   Future<bool> setActivate(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setActivate',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setActivate',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -840,9 +762,10 @@ class VideoPlayerAvplayApi {
 
   Future<TrackMessage> track(TrackTypeMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.track',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.track',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -868,9 +791,10 @@ class VideoPlayerAvplayApi {
 
   Future<bool> setTrackSelection(SelectedTracksMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setTrackSelection',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setTrackSelection',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -896,9 +820,10 @@ class VideoPlayerAvplayApi {
 
   Future<PositionMessage> position(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.position',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.position',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -924,9 +849,10 @@ class VideoPlayerAvplayApi {
 
   Future<DurationMessage> duration(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.duration',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.duration',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -952,9 +878,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> seekTo(PositionMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.seekTo',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.seekTo',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -975,9 +902,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> pause(PlayerMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.pause',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.pause',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -998,9 +926,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> setMixWithOthers(MixWithOthersMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setMixWithOthers',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setMixWithOthers',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -1021,9 +950,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> setDisplayGeometry(GeometryMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayGeometry',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayGeometry',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -1043,11 +973,13 @@ class VideoPlayerAvplayApi {
   }
 
   Future<String> getStreamingProperty(
-      StreamingPropertyTypeMessage arg_msg) async {
+    StreamingPropertyTypeMessage arg_msg,
+  ) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getStreamingProperty',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getStreamingProperty',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -1073,9 +1005,10 @@ class VideoPlayerAvplayApi {
 
   Future<bool> setBufferConfig(BufferConfigMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setBufferConfig',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setBufferConfig',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -1101,9 +1034,10 @@ class VideoPlayerAvplayApi {
 
   Future<void> setStreamingProperty(StreamingPropertyMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setStreamingProperty',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setStreamingProperty',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -1124,9 +1058,10 @@ class VideoPlayerAvplayApi {
 
   Future<bool> setDisplayRotate(RotationMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayRotate',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayRotate',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
@@ -1152,9 +1087,10 @@ class VideoPlayerAvplayApi {
 
   Future<bool> setDisplayMode(DisplayModeMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayMode',
-        codec,
-        binaryMessenger: _binaryMessenger);
+      'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayMode',
+      codec,
+      binaryMessenger: _binaryMessenger,
+    );
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
