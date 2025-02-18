@@ -22,14 +22,14 @@ class GoogleMapsController {
     Set<Polyline> polylines = const <Polyline>{},
     Set<Circle> circles = const <Circle>{},
     Map<String, dynamic> mapOptions = const <String, dynamic>{},
-  })  : _mapId = mapId,
-        _streamController = streamController,
-        _initialCameraPosition = initialCameraPosition,
-        _markers = markers,
-        _polygons = polygons,
-        _polylines = polylines,
-        _circles = circles,
-        _rawMapOptions = mapOptions {
+  }) : _mapId = mapId,
+       _streamController = streamController,
+       _initialCameraPosition = initialCameraPosition,
+       _markers = markers,
+       _polygons = polygons,
+       _polylines = polylines,
+       _circles = circles,
+       _rawMapOptions = mapOptions {
     _circlesController = CirclesController(stream: _streamController);
     _polygonsController = PolygonsController(stream: _streamController);
     _polylinesController = PolylinesController(stream: _streamController);
@@ -61,20 +61,25 @@ class GoogleMapsController {
   /// Returns min-max zoom levels. Test only.
   @visibleForTesting
   Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
-    final String value = await controller.runJavaScriptReturningResult(
-        'JSON.stringify([map.minZoom, map.maxZoom])') as String;
+    final String value =
+        await controller.runJavaScriptReturningResult(
+              'JSON.stringify([map.minZoom, map.maxZoom])',
+            )
+            as String;
     final dynamic bound = json.decode(value);
     double min = 0, max = 0;
     if (bound is List<dynamic>) {
       if (bound[0] is num) {
-        min = (bound[0] is double)
-            ? (bound[0] as double)
-            : (bound[0] as int).toDouble();
+        min =
+            (bound[0] is double)
+                ? (bound[0] as double)
+                : (bound[0] as int).toDouble();
       }
       if (bound[1] is num) {
-        max = (bound[1] is double)
-            ? (bound[1] as double)
-            : (bound[1] as int).toDouble();
+        max =
+            (bound[1] is double)
+                ? (bound[1] as double)
+                : (bound[1] as int).toDouble();
       }
       return MinMaxZoomPreference(min, max);
     }
@@ -84,24 +89,27 @@ class GoogleMapsController {
   /// Returns if zoomGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomGesturesEnabled() async {
-    final String value = await controller
-        .runJavaScriptReturningResult('map.gestureHandling') as String;
+    final String value =
+        await controller.runJavaScriptReturningResult('map.gestureHandling')
+            as String;
     return value != 'none';
   }
 
   /// Returns if zoomControls property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomControlsEnabled() async {
-    final String value = await controller
-        .runJavaScriptReturningResult('map.zoomControl') as String;
+    final String value =
+        await controller.runJavaScriptReturningResult('map.zoomControl')
+            as String;
     return value != 'false';
   }
 
   /// Returns if scrollGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isScrollGesturesEnabled() async {
-    final String value = await controller
-        .runJavaScriptReturningResult('map.gestureHandling') as String;
+    final String value =
+        await controller.runJavaScriptReturningResult('map.gestureHandling')
+            as String;
     return value != 'none';
   }
 
@@ -128,26 +136,11 @@ class GoogleMapsController {
         'BoundChanged',
         onMessageReceived: _onBoundsChanged,
       )
-      ..addJavaScriptChannel(
-        'Idle',
-        onMessageReceived: _onIdle,
-      )
-      ..addJavaScriptChannel(
-        'Tilesloaded',
-        onMessageReceived: _onTilesloaded,
-      )
-      ..addJavaScriptChannel(
-        'Click',
-        onMessageReceived: _onClick,
-      )
-      ..addJavaScriptChannel(
-        'LongPress',
-        onMessageReceived: _onLongPress,
-      )
-      ..addJavaScriptChannel(
-        'MarkerClick',
-        onMessageReceived: _onMarkerClick,
-      )
+      ..addJavaScriptChannel('Idle', onMessageReceived: _onIdle)
+      ..addJavaScriptChannel('Tilesloaded', onMessageReceived: _onTilesloaded)
+      ..addJavaScriptChannel('Click', onMessageReceived: _onClick)
+      ..addJavaScriptChannel('LongPress', onMessageReceived: _onLongPress)
+      ..addJavaScriptChannel('MarkerClick', onMessageReceived: _onMarkerClick)
       ..addJavaScriptChannel(
         'MarkerDragEnd',
         onMessageReceived: _onMarkerDragEnd,
@@ -156,14 +149,8 @@ class GoogleMapsController {
         'PolylineClick',
         onMessageReceived: _onPolylineClick,
       )
-      ..addJavaScriptChannel(
-        'PolygonClick',
-        onMessageReceived: _onPolygonClick,
-      )
-      ..addJavaScriptChannel(
-        'CircleClick',
-        onMessageReceived: _onCircleClick,
-      )
+      ..addJavaScriptChannel('PolygonClick', onMessageReceived: _onPolygonClick)
+      ..addJavaScriptChannel('CircleClick', onMessageReceived: _onCircleClick)
       ..loadFile(path);
 
     _webview = WebViewWidget(controller: controller);
@@ -225,7 +212,9 @@ class GoogleMapsController {
 
       _streamController.add(
         CameraMoveEvent(
-            _mapId, CameraPosition(target: center, zoom: zoom.toDouble())),
+          _mapId,
+          CameraPosition(target: center, zoom: zoom.toDouble()),
+        ),
       );
     }
   }
@@ -253,7 +242,9 @@ class GoogleMapsController {
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
         final LatLng position = LatLng(
-            event['latLng']['lat'] as double, event['latLng']['lng'] as double);
+          event['latLng']['lat'] as double,
+          event['latLng']['lng'] as double,
+        );
         _streamController.add(MapTapEvent(_mapId, position));
       }
     } catch (e) {
@@ -267,7 +258,9 @@ class GoogleMapsController {
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
         final LatLng position = LatLng(
-            event['latLng']['lat'] as double, event['latLng']['lng'] as double);
+          event['latLng']['lat'] as double,
+          event['latLng']['lng'] as double,
+        );
         _streamController.add(MapLongPressEvent(_mapId, position));
       }
     } catch (e) {
@@ -303,8 +296,9 @@ class GoogleMapsController {
               _markersController!._markerIdToController[markerId];
 
           final LatLng position = LatLng(
-              result['event']['latLng']['lat'] as double,
-              result['event']['latLng']['lng'] as double);
+            result['event']['latLng']['lat'] as double,
+            result['event']['latLng']['lng'] as double,
+          );
 
           if (marker?.dragEndEvent != null) {
             marker?.dragEndEvent!(position);
@@ -391,14 +385,22 @@ class GoogleMapsController {
   Future<void> _attachGeometryControllers() async {
     // Now we can add the initial geometry.
     // And bind the (ready) map instance to the other geometry controllers.
-    assert(_circlesController != null,
-        'Cannot attach a map to a null CirclesController instance.');
-    assert(_polygonsController != null,
-        'Cannot attach a map to a null PolygonsController instance.');
-    assert(_polylinesController != null,
-        'Cannot attach a map to a null PolylinesController instance.');
-    assert(_markersController != null,
-        'Cannot attach a map to a null MarkersController instance.');
+    assert(
+      _circlesController != null,
+      'Cannot attach a map to a null CirclesController instance.',
+    );
+    assert(
+      _polygonsController != null,
+      'Cannot attach a map to a null PolygonsController instance.',
+    );
+    assert(
+      _polylinesController != null,
+      'Cannot attach a map to a null PolylinesController instance.',
+    );
+    assert(
+      _markersController != null,
+      'Cannot attach a map to a null MarkersController instance.',
+    );
     _circlesController!.bindToMap(_mapId, _webview!);
     _polygonsController!.bindToMap(_mapId, _webview!);
     _polylinesController!.bindToMap(_mapId, _webview!);
@@ -415,9 +417,10 @@ class GoogleMapsController {
     Set<Polyline> polylines = const <Polyline>{},
   }) {
     assert(
-        _controllersBoundToMap,
-        'Geometry controllers must be bound to a map before any geometry can '
-        'be added to them. Ensure _attachGeometryControllers is called first.');
+      _controllersBoundToMap,
+      'Geometry controllers must be bound to a map before any geometry can '
+      'be added to them. Ensure _attachGeometryControllers is called first.',
+    );
     // The above assert will only succeed if the controllers have been bound to a map
     // in the [_attachGeometryControllers] method, which ensures that all these
     // controllers below are *not* null.
@@ -431,10 +434,7 @@ class GoogleMapsController {
   //
   // Returns the updated _rawMapOptions object.
   Map<String, dynamic> _mergeRawOptions(Map<String, dynamic> newOptions) {
-    _rawMapOptions = <String, dynamic>{
-      ..._rawMapOptions,
-      ...newOptions,
-    };
+    _rawMapOptions = <String, dynamic>{..._rawMapOptions, ...newOptions};
     return _rawMapOptions;
   }
 
@@ -494,9 +494,13 @@ class GoogleMapsController {
   }
 
   Future<Object> _callMethod(
-      WebViewController controller, String method, List<String?> args) async {
+    WebViewController controller,
+    String method,
+    List<String?> args,
+  ) async {
     return controller.runJavaScriptReturningResult(
-        'JSON.stringify(map.$method.apply(map, $args))');
+      'JSON.stringify(map.$method.apply(map, $args))',
+    );
   }
 
   Future<double> _getZoom(WebViewController controller) async {
@@ -512,13 +516,15 @@ class GoogleMapsController {
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
     return _convertToBounds(
-        await _callMethod(controller, 'getBounds', <String>[]) as String);
+      await _callMethod(controller, 'getBounds', <String>[]) as String,
+    );
   }
 
   /// Returns the [LatLng] at the center of the map.
   Future<LatLng> getCenter() async {
     return _convertToLatLng(
-        await _callMethod(controller, 'getCenter', <String>[]) as String);
+      await _callMethod(controller, 'getCenter', <String>[]) as String,
+    );
   }
 
   /// Returns the [ScreenCoordinate] for a given viewport [LatLng].
@@ -528,8 +534,9 @@ class GoogleMapsController {
 
   /// Returns the [LatLng] for a `screenCoordinate` (in pixels) of the viewport.
   Future<LatLng> getLatLng(ScreenCoordinate screenCoordinate) async {
-    return _convertToLatLng(await _pixelToLatLng(
-        screenCoordinate.x + 0.0, screenCoordinate.y + 0.0));
+    return _convertToLatLng(
+      await _pixelToLatLng(screenCoordinate.x + 0.0, screenCoordinate.y + 0.0),
+    );
   }
 
   /// Applies a `cameraUpdate` to the current viewport.
@@ -543,9 +550,11 @@ class GoogleMapsController {
     switch (json[0]) {
       case 'newCameraPosition':
         await _setMoveCamera(
-            '{heading: ${json[1]['bearing']}, zoom: ${json[1]['zoom']}, tilt: ${json[1]['tilt']}}');
+          '{heading: ${json[1]['bearing']}, zoom: ${json[1]['zoom']}, tilt: ${json[1]['tilt']}}',
+        );
         await _setPanTo(
-            '{lat:${json[1]['target'][0]}, lng: ${json[1]['target'][1]}}');
+          '{lat:${json[1]['target'][0]}, lng: ${json[1]['target'][1]}}',
+        );
       case 'newLatLng':
         await _setPanTo('{lat:${json[1][0]}, lng:${json[1][1]}}');
       case 'newLatLngZoom':
@@ -553,7 +562,8 @@ class GoogleMapsController {
         await _setPanTo('{lat:${json[1][0]}, lng: ${json[1][1]}}');
       case 'newLatLngBounds':
         await _setFitBounds(
-            '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}, ${json[2]}');
+          '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}, ${json[2]}',
+        );
       case 'scrollBy':
         await _setPanBy('${json[1]}, ${json[2]}');
       case 'zoomBy':
@@ -569,7 +579,9 @@ class GoogleMapsController {
           // With focus
           try {
             focusLatLng = await _pixelToLatLng(
-                json[2][0] as double, json[2][1] as double);
+              json[2][0] as double,
+              json[2][1] as double,
+            );
           } catch (e) {
             debugPrint('Error computing focus LatLng. JS Error: $e');
           }
@@ -637,7 +649,9 @@ class GoogleMapsController {
   /// Applies [CircleUpdates] to the currently managed circles.
   void updateCircles(CircleUpdates updates) {
     assert(
-        _circlesController != null, 'Cannot update circles after dispose().');
+      _circlesController != null,
+      'Cannot update circles after dispose().',
+    );
     _circlesController?.addCircles(updates.circlesToAdd);
     _circlesController?.changeCircles(updates.circlesToChange);
     _circlesController?.removeCircles(updates.circleIdsToRemove);
@@ -646,7 +660,9 @@ class GoogleMapsController {
   /// Applies [PolygonUpdates] to the currently managed polygons.
   void updatePolygons(PolygonUpdates updates) {
     assert(
-        _polygonsController != null, 'Cannot update polygons after dispose().');
+      _polygonsController != null,
+      'Cannot update polygons after dispose().',
+    );
     _polygonsController?.addPolygons(updates.polygonsToAdd);
     _polygonsController?.changePolygons(updates.polygonsToChange);
     _polygonsController?.removePolygons(updates.polygonIdsToRemove);
@@ -654,8 +670,10 @@ class GoogleMapsController {
 
   /// Applies [PolylineUpdates] to the currently managed lines.
   void updatePolylines(PolylineUpdates updates) {
-    assert(_polylinesController != null,
-        'Cannot update polylines after dispose().');
+    assert(
+      _polylinesController != null,
+      'Cannot update polylines after dispose().',
+    );
     _polylinesController?.addPolylines(updates.polylinesToAdd);
     _polylinesController?.changePolylines(updates.polylinesToChange);
     _polylinesController?.removePolylines(updates.polylineIdsToRemove);
@@ -664,7 +682,9 @@ class GoogleMapsController {
   /// Applies [MarkerUpdates] to the currently managed markers.
   void updateMarkers(MarkerUpdates updates) {
     assert(
-        _markersController != null, 'Cannot update markers after dispose().');
+      _markersController != null,
+      'Cannot update markers after dispose().',
+    );
     _markersController?.addMarkers(updates.markersToAdd);
     _markersController?.changeMarkers(updates.markersToChange);
     _markersController?.removeMarkers(updates.markerIdsToRemove);
@@ -672,15 +692,19 @@ class GoogleMapsController {
 
   /// Shows the [InfoWindow] of the marker identified by its [MarkerId].
   void showInfoWindow(MarkerId markerId) {
-    assert(_markersController != null,
-        'Cannot show infowindow of marker [${markerId.value}] after dispose().');
+    assert(
+      _markersController != null,
+      'Cannot show infowindow of marker [${markerId.value}] after dispose().',
+    );
     _markersController?.showMarkerInfoWindow(markerId);
   }
 
   /// Hides the [InfoWindow] of the marker identified by its [MarkerId].
   void hideInfoWindow(MarkerId markerId) {
-    assert(_markersController != null,
-        'Cannot hide infowindow of marker [${markerId.value}] after dispose().');
+    assert(
+      _markersController != null,
+      'Cannot hide infowindow of marker [${markerId.value}] after dispose().',
+    );
     _markersController?.hideMarkerInfoWindow(markerId);
   }
 

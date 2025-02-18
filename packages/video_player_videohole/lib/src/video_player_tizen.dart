@@ -53,8 +53,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> setLooping(int playerId, bool looping) {
-    return _api
-        .setLooping(LoopingMessage(playerId: playerId, isLooping: looping));
+    return _api.setLooping(
+      LoopingMessage(playerId: playerId, isLooping: looping),
+    );
   }
 
   @override
@@ -87,21 +88,22 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     assert(speed > 0);
 
     return _api.setPlaybackSpeed(
-        PlaybackSpeedMessage(playerId: playerId, speed: speed));
+      PlaybackSpeedMessage(playerId: playerId, speed: speed),
+    );
   }
 
   @override
   Future<void> seekTo(int playerId, Duration position) {
     return _api.seekTo(
-        PositionMessage(playerId: playerId, position: position.inMilliseconds));
+      PositionMessage(playerId: playerId, position: position.inMilliseconds),
+    );
   }
 
   @override
   Future<List<VideoTrack>> getVideoTracks(int playerId) async {
-    final TrackMessage response = await _api.track(TrackTypeMessage(
-      playerId: playerId,
-      trackType: TrackType.video.name,
-    ));
+    final TrackMessage response = await _api.track(
+      TrackTypeMessage(playerId: playerId, trackType: TrackType.video.name),
+    );
 
     final List<VideoTrack> videoTracks = <VideoTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
@@ -110,12 +112,14 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       final int width = trackMap['width']! as int;
       final int height = trackMap['height']! as int;
 
-      videoTracks.add(VideoTrack(
-        trackId: trackId,
-        width: width,
-        height: height,
-        bitrate: bitrate,
-      ));
+      videoTracks.add(
+        VideoTrack(
+          trackId: trackId,
+          width: width,
+          height: height,
+          bitrate: bitrate,
+        ),
+      );
     }
 
     return videoTracks;
@@ -123,10 +127,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<AudioTrack>> getAudioTracks(int playerId) async {
-    final TrackMessage response = await _api.track(TrackTypeMessage(
-      playerId: playerId,
-      trackType: TrackType.audio.name,
-    ));
+    final TrackMessage response = await _api.track(
+      TrackTypeMessage(playerId: playerId, trackType: TrackType.audio.name),
+    );
 
     final List<AudioTrack> audioTracks = <AudioTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
@@ -135,12 +138,14 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       final int channel = trackMap['channel']! as int;
       final int bitrate = trackMap['bitrate']! as int;
 
-      audioTracks.add(AudioTrack(
-        trackId: trackId,
-        language: language,
-        channel: channel,
-        bitrate: bitrate,
-      ));
+      audioTracks.add(
+        AudioTrack(
+          trackId: trackId,
+          language: language,
+          channel: channel,
+          bitrate: bitrate,
+        ),
+      );
     }
 
     return audioTracks;
@@ -148,20 +153,16 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<TextTrack>> getTextTracks(int playerId) async {
-    final TrackMessage response = await _api.track(TrackTypeMessage(
-      playerId: playerId,
-      trackType: TrackType.text.name,
-    ));
+    final TrackMessage response = await _api.track(
+      TrackTypeMessage(playerId: playerId, trackType: TrackType.text.name),
+    );
 
     final List<TextTrack> textTracks = <TextTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
       final String language = trackMap['language']! as String;
 
-      textTracks.add(TextTrack(
-        trackId: trackId,
-        language: language,
-      ));
+      textTracks.add(TextTrack(trackId: trackId, language: language));
     }
 
     return textTracks;
@@ -169,33 +170,39 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<bool> setTrackSelection(int playerId, Track track) {
-    return _api.setTrackSelection(SelectedTracksMessage(
-      playerId: playerId,
-      trackId: track.trackId,
-      trackType: track.trackType.name,
-    ));
+    return _api.setTrackSelection(
+      SelectedTracksMessage(
+        playerId: playerId,
+        trackId: track.trackId,
+        trackType: track.trackType.name,
+      ),
+    );
   }
 
   @override
   Future<DurationRange> getDuration(int playerId) async {
-    final DurationMessage message =
-        await _api.duration(PlayerMessage(playerId: playerId));
-    return DurationRange(Duration(milliseconds: message.durationRange?[0] ?? 0),
-        Duration(milliseconds: message.durationRange?[1] ?? 0));
+    final DurationMessage message = await _api.duration(
+      PlayerMessage(playerId: playerId),
+    );
+    return DurationRange(
+      Duration(milliseconds: message.durationRange?[0] ?? 0),
+      Duration(milliseconds: message.durationRange?[1] ?? 0),
+    );
   }
 
   @override
   Future<Duration> getPosition(int playerId) async {
-    final PositionMessage response =
-        await _api.position(PlayerMessage(playerId: playerId));
+    final PositionMessage response = await _api.position(
+      PlayerMessage(playerId: playerId),
+    );
     return Duration(milliseconds: response.position);
   }
 
   @override
   Stream<VideoEvent> videoEventsFor(int playerId) {
-    return _eventChannelFor(playerId)
-        .receiveBroadcastStream()
-        .map((dynamic event) {
+    return _eventChannelFor(playerId).receiveBroadcastStream().map((
+      dynamic event,
+    ) {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
@@ -203,15 +210,16 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           return VideoEvent(
             eventType: VideoEventType.initialized,
             duration: DurationRange(
-                Duration(milliseconds: durationVal?[0] as int),
-                Duration(milliseconds: durationVal?[1] as int)),
-            size: Size((map['width'] as num?)?.toDouble() ?? 0.0,
-                (map['height'] as num?)?.toDouble() ?? 0.0),
+              Duration(milliseconds: durationVal?[0] as int),
+              Duration(milliseconds: durationVal?[1] as int),
+            ),
+            size: Size(
+              (map['width'] as num?)?.toDouble() ?? 0.0,
+              (map['height'] as num?)?.toDouble() ?? 0.0,
+            ),
           );
         case 'completed':
-          return VideoEvent(
-            eventType: VideoEventType.completed,
-          );
+          return VideoEvent(eventType: VideoEventType.completed);
         case 'bufferingUpdate':
           final int value = map['value']! as int;
 
@@ -241,8 +249,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> setMixWithOthers(bool mixWithOthers) {
-    return _api
-        .setMixWithOthers(MixWithOthersMessage(mixWithOthers: mixWithOthers));
+    return _api.setMixWithOthers(
+      MixWithOthersMessage(mixWithOthers: mixWithOthers),
+    );
   }
 
   @override
@@ -253,13 +262,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     int width,
     int height,
   ) {
-    return _api.setDisplayGeometry(GeometryMessage(
-      playerId: playerId,
-      x: x,
-      y: y,
-      width: width,
-      height: height,
-    ));
+    return _api.setDisplayGeometry(
+      GeometryMessage(
+        playerId: playerId,
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+      ),
+    );
   }
 
   EventChannel _eventChannelFor(int playerId) {
@@ -268,9 +279,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   static const Map<VideoFormat, String> _videoFormatStringMap =
       <VideoFormat, String>{
-    VideoFormat.ss: 'ss',
-    VideoFormat.hls: 'hls',
-    VideoFormat.dash: 'dash',
-    VideoFormat.other: 'other',
-  };
+        VideoFormat.ss: 'ss',
+        VideoFormat.hls: 'hls',
+        VideoFormat.dash: 'dash',
+        VideoFormat.other: 'other',
+      };
 }

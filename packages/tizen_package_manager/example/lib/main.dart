@@ -124,8 +124,10 @@ class _PackageListScreenState extends State<_PackageListScreen>
 
     return FutureBuilder<List<PackageInfo>>(
       future: PackageManager.getPackagesInfo(),
-      builder:
-          (BuildContext context, AsyncSnapshot<List<PackageInfo>> snapshot) {
+      builder: (
+        BuildContext context,
+        AsyncSnapshot<List<PackageInfo>> snapshot,
+      ) {
         if (snapshot.hasData) {
           final List<PackageInfo> packages = snapshot.data!;
           return ListView.builder(
@@ -175,20 +177,23 @@ class _PackageEventsScreenState extends State<_PackageEventsScreen>
   void initState() {
     super.initState();
 
-    _installSubscription =
-        PackageManager.onInstallProgressChanged.listen((PackageEvent event) {
+    _installSubscription = PackageManager.onInstallProgressChanged.listen((
+      PackageEvent event,
+    ) {
       setState(() {
         _packageEvents.add(event);
       });
     });
-    _uninstallSubscription =
-        PackageManager.onUninstallProgressChanged.listen((PackageEvent event) {
+    _uninstallSubscription = PackageManager.onUninstallProgressChanged.listen((
+      PackageEvent event,
+    ) {
       setState(() {
         _packageEvents.add(event);
       });
     });
-    _updateSubscription =
-        PackageManager.onUpdateProgressChanged.listen((PackageEvent event) {
+    _updateSubscription = PackageManager.onUpdateProgressChanged.listen((
+      PackageEvent event,
+    ) {
       setState(() {
         _packageEvents.add(event);
       });

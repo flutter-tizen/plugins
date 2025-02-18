@@ -84,9 +84,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('TizenRpcPort Client Demo'),
-        ),
+        appBar: AppBar(title: const Text('TizenRpcPort Client Demo')),
         body: Padding(
           padding: const EdgeInsets.all(10),
           child: Column(

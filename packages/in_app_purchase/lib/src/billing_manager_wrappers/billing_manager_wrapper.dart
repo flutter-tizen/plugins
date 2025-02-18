@@ -45,8 +45,9 @@ class BillingManager {
   /// [`BillingManager-isServiceAvailable`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-isServiceAvailable)
   /// to check whether the Billing server is available.
   Future<bool> isAvailable() async {
-    final String? isAvailableResult =
-        await channel.invokeMethod<String>('isAvailable');
+    final String? isAvailableResult = await channel.invokeMethod<String>(
+      'isAvailable',
+    );
     if (isAvailableResult == null) {
       throw PlatformException(
         code: 'no_response',
@@ -56,7 +57,8 @@ class BillingManager {
 
     final ServiceAvailableAPIResult isAvailable =
         ServiceAvailableAPIResult.fromJson(
-            json.decode(isAvailableResult) as Map<String, dynamic>);
+          json.decode(isAvailableResult) as Map<String, dynamic>,
+        );
     if (isAvailable.status == '100000') {
       return true;
     } else {
@@ -68,14 +70,24 @@ class BillingManager {
   /// [`BillingManager-getProductsList`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-getProductsList)
   /// to retrieves the list of products registered on the Billing (DPI) server.
   Future<ProductsListApiResult> requestProducts(
-      List<String> requestparameters) async {
-    final String? countryCode =
-        await channel.invokeMethod<String?>('GetCountryCode');
-    final String checkValue = base64.encode(Hmac(sha256,
-            utf8.encode(_requestParameters['securityKey'] as String? ?? ''))
-        .convert(utf8.encode((_requestParameters['appId'] as String? ?? '') +
-            (countryCode ?? '')))
-        .bytes);
+    List<String> requestparameters,
+  ) async {
+    final String? countryCode = await channel.invokeMethod<String?>(
+      'GetCountryCode',
+    );
+    final String checkValue = base64.encode(
+      Hmac(
+            sha256,
+            utf8.encode(_requestParameters['securityKey'] as String? ?? ''),
+          )
+          .convert(
+            utf8.encode(
+              (_requestParameters['appId'] as String? ?? '') +
+                  (countryCode ?? ''),
+            ),
+          )
+          .bytes,
+    );
 
     final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': _requestParameters['appId'],
@@ -85,8 +97,10 @@ class BillingManager {
       'checkValue': checkValue,
     };
 
-    final String? productResponse =
-        await channel.invokeMethod<String?>('getProductList', arguments);
+    final String? productResponse = await channel.invokeMethod<String?>(
+      'getProductList',
+      arguments,
+    );
     if (productResponse == null) {
       throw PlatformException(
         code: 'no_response',
@@ -94,25 +108,36 @@ class BillingManager {
       );
     }
     return ProductsListApiResult.fromJson(
-        json.decode(productResponse) as Map<String, dynamic>);
+      json.decode(productResponse) as Map<String, dynamic>,
+    );
   }
 
   /// Calls
   /// [`BillingManager-getUserPurchaseList`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-getUserPurchaseList)
   /// to retrieves the user's purchase list.
-  Future<GetUserPurchaseListAPIResult> requestPurchases(
-      {String? applicationUserName}) async {
+  Future<GetUserPurchaseListAPIResult> requestPurchases({
+    String? applicationUserName,
+  }) async {
     final String? customId = await channel.invokeMethod<String?>('GetCustomId');
-    final String? countryCode =
-        await channel.invokeMethod<String?>('GetCountryCode');
-    final String checkValue = base64.encode(Hmac(sha256,
-            utf8.encode(_requestParameters['securityKey'] as String? ?? ''))
-        .convert(utf8.encode((_requestParameters['appId'] as String? ?? '') +
-            (customId ?? '') +
-            (countryCode ?? '') +
-            _requestItemType +
-            (_requestParameters['pageNum'] as int? ?? -1).toString()))
-        .bytes);
+    final String? countryCode = await channel.invokeMethod<String?>(
+      'GetCountryCode',
+    );
+    final String checkValue = base64.encode(
+      Hmac(
+            sha256,
+            utf8.encode(_requestParameters['securityKey'] as String? ?? ''),
+          )
+          .convert(
+            utf8.encode(
+              (_requestParameters['appId'] as String? ?? '') +
+                  (customId ?? '') +
+                  (countryCode ?? '') +
+                  _requestItemType +
+                  (_requestParameters['pageNum'] as int? ?? -1).toString(),
+            ),
+          )
+          .bytes,
+    );
 
     final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': _requestParameters['appId'],
@@ -122,8 +147,10 @@ class BillingManager {
       'checkValue': checkValue,
     };
 
-    final String? purchaseResponse =
-        await channel.invokeMethod<String?>('getPurchaseList', arguments);
+    final String? purchaseResponse = await channel.invokeMethod<String?>(
+      'getPurchaseList',
+      arguments,
+    );
     if (purchaseResponse == null) {
       throw PlatformException(
         code: 'no_response',
@@ -131,7 +158,8 @@ class BillingManager {
       );
     }
     return GetUserPurchaseListAPIResult.fromJson(
-        json.decode(purchaseResponse) as Map<String, dynamic>);
+      json.decode(purchaseResponse) as Map<String, dynamic>,
+    );
   }
 
   /// Calls
@@ -148,15 +176,15 @@ class BillingManager {
       'OrderItemID': orderItemId,
       'OrderTitle': orderTitle,
       'OrderTotal': orderTotal,
-      'OrderCurrencyID': orderCurrencyId
+      'OrderCurrencyID': orderCurrencyId,
     };
     final Map<String, dynamic> arguments = <String, dynamic>{
       'appId': _requestParameters['appId'],
-      'payDetails': json.encode(orderDetails)
+      'payDetails': json.encode(orderDetails),
     };
 
-    final Map<String, dynamic>? buyResult =
-        await channel.invokeMapMethod<String, dynamic>('buyItem', arguments);
+    final Map<String, dynamic>? buyResult = await channel
+        .invokeMapMethod<String, dynamic>('buyItem', arguments);
     if (buyResult == null) {
       throw PlatformException(
         code: 'request parameters null',
@@ -170,11 +198,13 @@ class BillingManager {
   /// [`BillingManager-verifyInvoice`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-verifyInvoice)
   /// to enables implementing the Samsung Checkout Client module within the application.
   /// Checks whether a purchase, corresponding to a specific "InvoiceID", was successful.
-  Future<VerifyInvoiceAPIResult> verifyInvoice(
-      {required String invoiceId}) async {
+  Future<VerifyInvoiceAPIResult> verifyInvoice({
+    required String invoiceId,
+  }) async {
     final String? customId = await channel.invokeMethod<String?>('GetCustomId');
-    final String? countryCode =
-        await channel.invokeMethod<String?>('GetCountryCode');
+    final String? countryCode = await channel.invokeMethod<String?>(
+      'GetCountryCode',
+    );
     final Map<String, dynamic> arguments = <String, dynamic>{
       'invoiceId': invoiceId,
       'appId': _requestParameters['appId'],
@@ -182,8 +212,10 @@ class BillingManager {
       'countryCode': countryCode,
     };
 
-    final String? verifyInvoiceResult =
-        await channel.invokeMethod<String>('verifyInvoice', arguments);
+    final String? verifyInvoiceResult = await channel.invokeMethod<String>(
+      'verifyInvoice',
+      arguments,
+    );
     if (verifyInvoiceResult == null) {
       throw PlatformException(
         code: 'no_response',
@@ -191,7 +223,8 @@ class BillingManager {
       );
     }
     return VerifyInvoiceAPIResult.fromJson(
-        json.decode(verifyInvoiceResult) as Map<String, dynamic>);
+      json.decode(verifyInvoiceResult) as Map<String, dynamic>,
+    );
   }
 }
 
@@ -423,10 +456,7 @@ class SamsungCheckoutProductDetails extends ProductDetails {
 @immutable
 class BillingBuyData {
   /// Creates a [BillingBuyData] with the given purchase details.
-  const BillingBuyData({
-    required this.payResult,
-    required this.payDetails,
-  });
+  const BillingBuyData({required this.payResult, required this.payDetails});
 
   /// Constructs an instance of this from a json string.
   ///
@@ -656,20 +686,23 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
 
   /// Generate a [SamsungCheckoutPurchaseDetails] object based on [PurchaseDetails] object.
   factory SamsungCheckoutPurchaseDetails.fromPurchase(
-      InvoiceDetails invoiceDetails) {
+    InvoiceDetails invoiceDetails,
+  ) {
     final SamsungCheckoutPurchaseDetails purchaseDetails =
         SamsungCheckoutPurchaseDetails(
-      purchaseID: invoiceDetails.invoiceId,
-      productID: invoiceDetails.itemId,
-      verificationData: PurchaseVerificationData(
-          localVerificationData: invoiceDetails.invoiceId,
-          serverVerificationData: invoiceDetails.invoiceId,
-          source: kIAPSource),
-      transactionDate: invoiceDetails.orderTime,
-      status: const PurchaseStateConverter()
-          .toPurchaseStatus(invoiceDetails.cancelStatus),
-      invoiceDetails: invoiceDetails,
-    );
+          purchaseID: invoiceDetails.invoiceId,
+          productID: invoiceDetails.itemId,
+          verificationData: PurchaseVerificationData(
+            localVerificationData: invoiceDetails.invoiceId,
+            serverVerificationData: invoiceDetails.invoiceId,
+            source: kIAPSource,
+          ),
+          transactionDate: invoiceDetails.orderTime,
+          status: const PurchaseStateConverter().toPurchaseStatus(
+            invoiceDetails.cancelStatus,
+          ),
+          invoiceDetails: invoiceDetails,
+        );
 
     if (purchaseDetails.status == PurchaseStatus.error) {
       purchaseDetails.error = IAPError(
@@ -770,5 +803,5 @@ enum ItemType {
 
   /// DPI system processes automatic payment on a certain designated cycle.
   @JsonValue(4)
-  subscription
+  subscription,
 }

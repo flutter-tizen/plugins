@@ -26,29 +26,32 @@ void serviceMain() {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Listen for incoming AppControls.
-  final StreamSubscription<ReceivedAppControl> appControlListener =
-      AppControl.onAppControl.listen((ReceivedAppControl request) async {
-    if (request.shouldReply) {
-      final AppControl reply = AppControl();
-      await request.reply(reply, AppControlReplyResult.succeeded);
-    }
-  });
+  final StreamSubscription<ReceivedAppControl> appControlListener = AppControl
+      .onAppControl
+      .listen((ReceivedAppControl request) async {
+        if (request.shouldReply) {
+          final AppControl reply = AppControl();
+          await request.reply(reply, AppControlReplyResult.succeeded);
+        }
+      });
 
   // Connect to the UI app and send messages.
   // An exception will be thrown if the UI app is not running.
-  RemotePort.connect(_kAppId, _kPortName).then((RemotePort remotePort) async {
-    while (true) {
-      if (await remotePort.check()) {
-        await remotePort.send(null);
-      } else {
-        break;
-      }
-      await Future<void>.delayed(const Duration(seconds: 1));
-    }
-  }).whenComplete(() async {
-    await appControlListener.cancel();
-    await SystemNavigator.pop();
-  });
+  RemotePort.connect(_kAppId, _kPortName)
+      .then((RemotePort remotePort) async {
+        while (true) {
+          if (await remotePort.check()) {
+            await remotePort.send(null);
+          } else {
+            break;
+          }
+          await Future<void>.delayed(const Duration(seconds: 1));
+        }
+      })
+      .whenComplete(() async {
+        await appControlListener.cancel();
+        await SystemNavigator.pop();
+      });
 }
 
 /// The main UI app widget.
@@ -197,7 +200,8 @@ class _MyAppState extends State<MyApp> {
                 ElevatedButton(
                   onPressed: _terminateService,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent),
+                    backgroundColor: Colors.redAccent,
+                  ),
                   child: const Text('Terminate service'),
                 )
               else

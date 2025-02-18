@@ -8,11 +8,10 @@ part of '../google_maps_flutter_tizen.dart';
 /// This class manages a set of [PolygonController]s associated to a [GoogleMapController].
 class PolygonsController extends GeometryController {
   /// Initializes the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
-  PolygonsController({
-    required StreamController<MapEvent<Object?>> stream,
-  })  : _streamController = stream,
-        _polygonIdToController = <PolygonId, PolygonController>{},
-        _idToPolygonId = <int, PolygonId>{};
+  PolygonsController({required StreamController<MapEvent<Object?>> stream})
+    : _streamController = stream,
+      _polygonIdToController = <PolygonId, PolygonController>{},
+      _idToPolygonId = <int, PolygonId>{};
 
   // A cache of [PolygonController]s indexed by their [PolygonId].
   final Map<PolygonId, PolygonController> _polygonIdToController;
@@ -33,16 +32,18 @@ class PolygonsController extends GeometryController {
       return;
     }
 
-    final util.GPolygonOptions populationOptions =
-        _polygonOptionsFromPolygon(polygon);
+    final util.GPolygonOptions populationOptions = _polygonOptionsFromPolygon(
+      polygon,
+    );
     final util.GPolygon gPolygon = util.GPolygon(populationOptions);
     final PolygonController controller = PolygonController(
-        polygon: gPolygon,
-        consumeTapEvents: polygon.consumeTapEvents,
-        onTap: () {
-          _onPolygonTap(polygon.polygonId);
-        },
-        controller: util.webController);
+      polygon: gPolygon,
+      consumeTapEvents: polygon.consumeTapEvents,
+      onTap: () {
+        _onPolygonTap(polygon.polygonId);
+      },
+      controller: util.webController,
+    );
     _idToPolygonId[gPolygon.id] = polygon.polygonId;
     _polygonIdToController[polygon.polygonId] = controller;
   }

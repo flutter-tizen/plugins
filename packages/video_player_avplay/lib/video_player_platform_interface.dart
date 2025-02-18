@@ -134,9 +134,12 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
 
   /// Retrieves a specific property value obtained by the streaming engine (Smooth Streaming, HLS, DASH, or Widevine).
   Future<String> getStreamingProperty(
-      int playerId, StreamingPropertyType type) {
+    int playerId,
+    StreamingPropertyType type,
+  ) {
     throw UnimplementedError(
-        'getStreamingProperty() has not been implemented.');
+      'getStreamingProperty() has not been implemented.',
+    );
   }
 
   /// Sets the buffer size for the player.
@@ -156,9 +159,13 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
 
   /// Set streamingengine property.
   Future<void> setStreamingProperty(
-      int playerId, StreamingPropertyType type, String value) {
+    int playerId,
+    StreamingPropertyType type,
+    String value,
+  ) {
     throw UnimplementedError(
-        'setStreamingProperty() has not been implemented.');
+      'setStreamingProperty() has not been implemented.',
+    );
   }
 
   /// Returns a widget displaying the video with a given playerId.

@@ -8,11 +8,10 @@ part of '../google_maps_flutter_tizen.dart';
 /// This class manages a set of [PolylinesController]s associated to a [GoogleMapController].
 class PolylinesController extends GeometryController {
   /// Initializes the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
-  PolylinesController({
-    required StreamController<MapEvent<Object?>> stream,
-  })  : _streamController = stream,
-        _polylineIdToController = <PolylineId, PolylineController>{},
-        _idToPolylineId = <int, PolylineId>{};
+  PolylinesController({required StreamController<MapEvent<Object?>> stream})
+    : _streamController = stream,
+      _polylineIdToController = <PolylineId, PolylineController>{},
+      _idToPolylineId = <int, PolylineId>{};
 
   // A cache of [PolylineController]s indexed by their [PolylineId].
   final Map<PolylineId, PolylineController> _polylineIdToController;
@@ -33,16 +32,18 @@ class PolylinesController extends GeometryController {
       return;
     }
 
-    final util.GPolylineOptions polylineOptions =
-        _polylineOptionsFromPolyline(polyline);
+    final util.GPolylineOptions polylineOptions = _polylineOptionsFromPolyline(
+      polyline,
+    );
     final util.GPolyline gPolyline = util.GPolyline(polylineOptions);
     final PolylineController controller = PolylineController(
-        polyline: gPolyline,
-        consumeTapEvents: polyline.consumeTapEvents,
-        onTap: () {
-          _onPolylineTap(polyline.polylineId);
-        },
-        controller: util.webController);
+      polyline: gPolyline,
+      consumeTapEvents: polyline.consumeTapEvents,
+      onTap: () {
+        _onPolylineTap(polyline.polylineId);
+      },
+      controller: util.webController,
+    );
     _idToPolylineId[gPolyline.id] = polyline.polylineId;
     _polylineIdToController[polyline.polylineId] = controller;
   }

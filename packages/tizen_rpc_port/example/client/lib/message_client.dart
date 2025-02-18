@@ -58,7 +58,7 @@ typedef NotifyCallback = void Function(String, String);
 
 class _NotifyCallback extends _Delegate {
   _NotifyCallback(NotifyCallback callback, {bool once = false})
-      : super(_DelegateId.notifyCallback.id, once, callback);
+    : super(_DelegateId.notifyCallback.id, once, callback);
 
   @override
   Future<void> onReceivedEvent(Parcel parcel) async {
@@ -99,8 +99,9 @@ class Message extends ProxyBase {
   }
 
   void disposeCallback(Function callback) {
-    _delegates
-        .removeWhere((_Delegate delegate) => delegate.callback == callback);
+    _delegates.removeWhere(
+      (_Delegate delegate) => delegate.callback == callback,
+    );
   }
 
   int register(String name, NotifyCallback callback) {

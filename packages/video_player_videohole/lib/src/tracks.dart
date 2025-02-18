@@ -31,10 +31,7 @@ class Track {
   ///
   /// The [trackId] and [trackType] arguments are required.
   ///
-  const Track({
-    required this.trackId,
-    required this.trackType,
-  });
+  const Track({required this.trackId, required this.trackType});
 
   /// The track id of track that uses to determine track.
   final int trackId;

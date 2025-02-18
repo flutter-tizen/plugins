@@ -20,8 +20,9 @@ void main() {
     expect(appInfo.appType, 'dotnet');
   });
 
-  testWidgets('Can get current app running context',
-      (WidgetTester tester) async {
+  testWidgets('Can get current app running context', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const MyApp());
 
     final String appId = await AppManager.currentAppId;

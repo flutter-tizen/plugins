@@ -35,8 +35,10 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
   // Convenience getter for a map controller by its mapId.
   GoogleMapsController _map(int mapId) {
     final GoogleMapsController? controller = _mapById[mapId];
-    assert(controller != null,
-        'Maps cannot be retrieved before calling buildView!');
+    assert(
+      controller != null,
+      'Maps cannot be retrieved before calling buildView!',
+    );
     return controller!;
   }
 
@@ -150,20 +152,15 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
   /// Subsequent calls to this method override previous calls, you need to
   /// pass full styles.
   @override
-  Future<void> setMapStyle(
-    String? mapStyle, {
-    required int mapId,
-  }) async {
-    _map(mapId).updateRawOptions(<String, dynamic>{
-      'styles': _mapStyles(mapStyle),
-    });
+  Future<void> setMapStyle(String? mapStyle, {required int mapId}) async {
+    _map(
+      mapId,
+    ).updateRawOptions(<String, dynamic>{'styles': _mapStyles(mapStyle)});
   }
 
   /// Returns the bounds of the current viewport.
   @override
-  Future<LatLngBounds> getVisibleRegion({
-    required int mapId,
-  }) {
+  Future<LatLngBounds> getVisibleRegion({required int mapId}) {
     return _map(mapId).getVisibleRegion();
   }
 
@@ -226,9 +223,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
 
   /// Returns the zoom level of the `mapId`.
   @override
-  Future<double> getZoomLevel({
-    required int mapId,
-  }) {
+  Future<double> getZoomLevel({required int mapId}) {
     return _map(mapId).getZoomLevel();
   }
 
@@ -347,17 +342,20 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
 
     _mapById[creationId] = mapController;
 
-    mapController.events
-        .whereType<MapReadyEvent>()
-        .first
-        .then((MapReadyEvent event) {
-      assert(creationId == event.mapId,
-          'Received MapReadyEvent for the wrong map');
+    mapController.events.whereType<MapReadyEvent>().first.then((
+      MapReadyEvent event,
+    ) {
+      assert(
+        creationId == event.mapId,
+        'Received MapReadyEvent for the wrong map',
+      );
       // Notify the plugin now that there's a fully initialized controller.
       onPlatformViewCreated.call(event.mapId);
     });
-    assert(mapController.webview != null,
-        'The widget of a GoogleMapsController cannot be null before calling dispose on it.');
+    assert(
+      mapController.webview != null,
+      'The widget of a GoogleMapsController cannot be null before calling dispose on it.',
+    );
 
     return mapController.webview!;
   }

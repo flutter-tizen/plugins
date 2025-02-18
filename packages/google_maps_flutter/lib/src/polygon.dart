@@ -13,9 +13,9 @@ class PolygonController {
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
     WebViewController? controller,
-  })  : _polygon = polygon,
-        _consumeTapEvents = consumeTapEvents,
-        tapEvent = onTap {
+  }) : _polygon = polygon,
+       _consumeTapEvents = consumeTapEvents,
+       tapEvent = onTap {
     _addPolygonEvent(controller);
   }
 

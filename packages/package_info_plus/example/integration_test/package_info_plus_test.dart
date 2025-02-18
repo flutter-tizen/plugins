@@ -26,7 +26,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('package_info_plus_tizen_example'), findsOneWidget);
     expect(
-        find.text('org.tizen.package_info_plus_tizen_example'), findsOneWidget);
+      find.text('org.tizen.package_info_plus_tizen_example'),
+      findsOneWidget,
+    );
     expect(find.text('1.2.3'), findsOneWidget);
   });
 }

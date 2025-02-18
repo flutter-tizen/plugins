@@ -49,8 +49,9 @@ class _GoogleSignInTokenDataTizen extends GoogleSignInTokenData {
   static _GoogleSignInTokenDataTizen fromJson(Map<String, Object?> json) {
     return _GoogleSignInTokenDataTizen(
       accessToken: json['access_token']! as String,
-      accessTokenExpirationDate:
-          DateTime.parse(json['access_token_expiration_date']! as String),
+      accessTokenExpirationDate: DateTime.parse(
+        json['access_token_expiration_date']! as String,
+      ),
       idToken: json['id_token']! as String,
       refreshToken: json['refresh_token'] as String?,
     );
@@ -101,7 +102,8 @@ class _CachedTokenStorage {
     final String? jsonString = await _storage.read(key: _kToken);
     return jsonString != null
         ? _GoogleSignInTokenDataTizen.fromJson(
-            jsonDecode(jsonString) as Map<String, Object?>)
+          jsonDecode(jsonString) as Map<String, Object?>,
+        )
         : null;
   }
 
@@ -125,8 +127,9 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   List<String> _scopes = <String>[];
 
   final DeviceAuthClient _authClient = DeviceAuthClient(
-    authorizationEndPoint:
-        Uri.parse('https://oauth2.googleapis.com/device/code'),
+    authorizationEndPoint: Uri.parse(
+      'https://oauth2.googleapis.com/device/code',
+    ),
     tokenEndPoint: Uri.parse('https://oauth2.googleapis.com/token'),
     revokeEndPoint: Uri.parse('https://oauth2.googleapis.com/revoke'),
   );
@@ -163,7 +166,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (_credentials == null) {
       throw PlatformException(
         code: 'credentials-missing',
-        message: 'Cannot initialize GoogleSignInTizen: ClientID and '
+        message:
+            'Cannot initialize GoogleSignInTizen: ClientID and '
             'ClientSecret has not been set, first call `setCredentials` '
             "in google_sign_in_tizen.dart before calling GoogleSignIn's signIn API.",
       );
@@ -174,7 +178,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (device_flow_widget.navigatorKey.currentContext == null) {
       throw PlatformException(
         code: 'navigatorkey-unassigned',
-        message: 'Cannot initialize GoogleSignInTizen: a default or custom '
+        message:
+            'Cannot initialize GoogleSignInTizen: a default or custom '
             'navigator key must be assigned to `navigatorKey` parameter in '
             '`MaterialApp` or `CupertinoApp`.',
       );
@@ -208,15 +213,17 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
         await _storage.getToken();
     if (existingToken == null) {
       throw PlatformException(
-          code: 'not-signed-in',
-          message: 'Cannot get tokens as there is no signed in user.');
+        code: 'not-signed-in',
+        message: 'Cannot get tokens as there is no signed in user.',
+      );
     }
     // Check if access token expired.
     if (!existingToken.isExpired) {
       return _createUserData(existingToken.idToken);
     }
-    final _GoogleSignInTokenDataTizen token =
-        await _refreshToken(existingToken);
+    final _GoogleSignInTokenDataTizen token = await _refreshToken(
+      existingToken,
+    );
     await _storage.saveToken(token);
 
     return _createUserData(token.idToken);
@@ -227,11 +234,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     _ensureSetCredentials();
     _ensureNavigatorKeyAssigned();
 
-    final AuthorizationResponse authorizationResponse =
-        await _authClient.requestAuthorization(
-      _credentials!.clientId,
-      _scopes,
-    );
+    final AuthorizationResponse authorizationResponse = await _authClient
+        .requestAuthorization(_credentials!.clientId, _scopes);
 
     final Future<TokenResponse?> tokenResponseFuture = _authClient.pollToken(
       clientId: _credentials!.clientId,
@@ -250,8 +254,10 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
     // Waits until user interaction on secondary device is finished, code is expired,
     // polling is cancelled, or networking error occurred.
-    final TokenResponse? tokenResponse =
-        await tokenResponseFuture.onError((_, __) {
+    final TokenResponse? tokenResponse = await tokenResponseFuture.onError((
+      _,
+      __,
+    ) {
       device_flow_widget.closeDeviceFlowWidget();
       return null;
     });
@@ -280,16 +286,18 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
         await _storage.getToken();
     if (existingToken == null) {
       throw PlatformException(
-          code: 'not-signed-in',
-          message: 'Cannot get tokens as there is no signed in user.');
+        code: 'not-signed-in',
+        message: 'Cannot get tokens as there is no signed in user.',
+      );
     }
 
     // Check if access token expired.
     if (!existingToken.isExpired) {
       return existingToken;
     }
-    final _GoogleSignInTokenDataTizen token =
-        await _refreshToken(existingToken);
+    final _GoogleSignInTokenDataTizen token = await _refreshToken(
+      existingToken,
+    );
 
     await _storage.saveToken(token);
     return token;
@@ -344,11 +352,13 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   }
 
   Future<_GoogleSignInTokenDataTizen> _refreshToken(
-      _GoogleSignInTokenDataTizen token) async {
+    _GoogleSignInTokenDataTizen token,
+  ) async {
     if (token.refreshToken == null) {
       throw PlatformException(
         code: 'refresh-token-missing',
-        message: 'Cannot refresh tokens as refresh tokens are missing. '
+        message:
+            'Cannot refresh tokens as refresh tokens are missing. '
             'Request new tokens by signing-in again.',
       );
     }

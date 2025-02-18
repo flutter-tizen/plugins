@@ -14,8 +14,9 @@ void main() {
     testWidgets('can be initialized', (WidgetTester tester) async {
       final player = AudioPlayer();
       final initialized = Completer<void>();
-      player.onDurationChanged
-          .listen((Duration duration) => initialized.complete());
+      player.onDurationChanged.listen(
+        (Duration duration) => initialized.complete(),
+      );
 
       await player.setSourceAsset(_kAssetAudio);
       await initialized.future;
@@ -73,8 +74,9 @@ void main() {
       await player.dispose();
     });
 
-    testWidgets('can seek with different playrate',
-        (WidgetTester tester) async {
+    testWidgets('can seek with different playrate', (
+      WidgetTester tester,
+    ) async {
       final player = AudioPlayer();
       final started = Completer<void>();
       player.onPositionChanged.listen((position) {
@@ -127,8 +129,9 @@ void main() {
       await player.dispose();
     });
 
-    testWidgets('do not exceed duration after audio completed',
-        (WidgetTester tester) async {
+    testWidgets('do not exceed duration after audio completed', (
+      WidgetTester tester,
+    ) async {
       final player = AudioPlayer();
       final initialized = Completer<void>();
       final seek = Completer<void>();
@@ -161,8 +164,9 @@ void main() {
       await player.dispose();
     });
 
-    testWidgets('receives position updates regularly',
-        (WidgetTester tester) async {
+    testWidgets('receives position updates regularly', (
+      WidgetTester tester,
+    ) async {
       final player = AudioPlayer();
       final started = Completer<void>();
       var count = 0;

@@ -19,11 +19,11 @@ class MarkerController {
     LatLngCallback? onDragEnd,
     ui.VoidCallback? onTap,
     WebViewController? controller,
-  })  : _marker = marker,
-        _infoWindow = infoWindow,
-        _consumeTapEvents = consumeTapEvents,
-        tapEvent = onTap,
-        dragEndEvent = onDragEnd {
+  }) : _marker = marker,
+       _infoWindow = infoWindow,
+       _consumeTapEvents = consumeTapEvents,
+       tapEvent = onTap,
+       dragEndEvent = onDragEnd {
     if (controller != null) {
       _addMarkerEvent(controller);
     }
@@ -68,8 +68,9 @@ class MarkerController {
     if (_infoWindow != null && newInfoWindowContent != null) {
       _infoWindow.content = newInfoWindowContent;
       _infoWindow.pixelOffset = util.GSize(
-          (marker.infoWindow.anchor.dx - 0.5) * _markerWidth,
-          marker.infoWindow.anchor.dy * _markerHeight);
+        (marker.infoWindow.anchor.dx - 0.5) * _markerWidth,
+        marker.infoWindow.anchor.dy * _markerHeight,
+      );
     }
     _marker!.options = options;
     if (!marker.visible) {

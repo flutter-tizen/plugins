@@ -17,15 +17,16 @@ class MyApp extends StatelessWidget {
   String get name => 'foo';
 
   FirebaseOptions get firebaseOptions => const FirebaseOptions(
-        appId: '1:448618578101:ios:0b650370bb29e29cac3efc',
-        apiKey: 'AIzaSyAgUhHU8wSJgO5MVNy95tMT07NEjzMOfz0',
-        projectId: 'react-native-firebase-testing',
-        messagingSenderId: '448618578101',
-      );
+    appId: '1:448618578101:ios:0b650370bb29e29cac3efc',
+    apiKey: 'AIzaSyAgUhHU8wSJgO5MVNy95tMT07NEjzMOfz0',
+    projectId: 'react-native-firebase-testing',
+    messagingSenderId: '448618578101',
+  );
 
   Future<void> initializeDefault() async {
-    final FirebaseApp app =
-        await Firebase.initializeApp(options: firebaseOptions);
+    final FirebaseApp app = await Firebase.initializeApp(
+      options: firebaseOptions,
+    );
     log('Initialized default app $app');
     print('Initialized default app $app');
   }
@@ -63,9 +64,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Firebase Core example app'),
-        ),
+        appBar: AppBar(title: const Text('Firebase Core example app')),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -80,10 +79,7 @@ class MyApp extends StatelessWidget {
                 onPressed: initializeSecondary,
                 child: const Text('Initialize secondary app'),
               ),
-              ElevatedButton(
-                onPressed: apps,
-                child: const Text('Get apps'),
-              ),
+              ElevatedButton(onPressed: apps, child: const Text('Get apps')),
               ElevatedButton(
                 onPressed: options,
                 child: const Text('List options'),

@@ -98,8 +98,9 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
       builder: (BuildContext context, AsyncSnapshot<AppInfo> snapshot) {
         if (snapshot.hasData) {
           final AppInfo appInfo = snapshot.data!;
-          final AppRunningContext appContext =
-              AppRunningContext(appId: appInfo.appId);
+          final AppRunningContext appContext = AppRunningContext(
+            appId: appInfo.appId,
+          );
           return ListView(
             children: <Widget>[
               _infoTile('App ID', appInfo.appId),
@@ -211,24 +212,30 @@ class _AppEventsScreenState extends State<_AppEventsScreen>
 
     _getDeviceInfo();
 
-    _launchSubscription =
-        AppManager.onAppLaunched.listen((AppRunningContext context) {
+    _launchSubscription = AppManager.onAppLaunched.listen((
+      AppRunningContext context,
+    ) {
       setState(() {
-        _appEvents.add(_AppEvent(
-          event: 'Launched',
-          appId: context.appId,
-          processId: context.processId,
-        ));
+        _appEvents.add(
+          _AppEvent(
+            event: 'Launched',
+            appId: context.appId,
+            processId: context.processId,
+          ),
+        );
       });
     });
-    _terminateSubscription =
-        AppManager.onAppTerminated.listen((AppRunningContext context) {
+    _terminateSubscription = AppManager.onAppTerminated.listen((
+      AppRunningContext context,
+    ) {
       setState(() {
-        _appEvents.add(_AppEvent(
-          event: 'Terminated',
-          appId: context.appId,
-          processId: context.processId,
-        ));
+        _appEvents.add(
+          _AppEvent(
+            event: 'Terminated',
+            appId: context.appId,
+            processId: context.processId,
+          ),
+        );
       });
     });
   }

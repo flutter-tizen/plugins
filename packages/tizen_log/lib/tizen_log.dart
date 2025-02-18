@@ -6,10 +6,10 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-typedef _DlogPrintNative = Void Function(
-    Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
-typedef _DlogPrint = void Function(
-    int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
+typedef _DlogPrintNative =
+    Void Function(Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
+typedef _DlogPrint =
+    void Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
 
 /// Provides the ability to use Tizen's logging service, dlog.
 ///
@@ -24,12 +24,15 @@ class Log {
 
   static final DynamicLibrary _library = DynamicLibrary.open('libdlog.so.0');
 
-  static final _DlogPrint _dlogPrint = _library
-      .lookup<NativeFunction<_DlogPrintNative>>('dlog_print')
-      .asFunction();
+  static final _DlogPrint _dlogPrint =
+      _library
+          .lookup<NativeFunction<_DlogPrintNative>>('dlog_print')
+          .asFunction();
 
-  static final RegExp _stackTraceRegExp =
-      RegExp(r'^#(\d+)\s+(.+)\((.+\.dart):(\d+)(:\d+)?\)$', multiLine: true);
+  static final RegExp _stackTraceRegExp = RegExp(
+    r'^#(\d+)\s+(.+)\((.+\.dart):(\d+)(:\d+)?\)$',
+    multiLine: true,
+  );
 
   /// Indicates whether debug mode is enabled.
   ///
@@ -53,8 +56,14 @@ class Log {
     String? func,
     int? line,
   }) {
-    _log(_LogPriority.verbose, tag, message,
-        file: file, func: func, line: line);
+    _log(
+      _LogPriority.verbose,
+      tag,
+      message,
+      file: file,
+      func: func,
+      line: line,
+    );
   }
 
   /// Sends log with DEBUG priority and tag.
@@ -171,16 +180,18 @@ class Log {
 
   static _StackFrame? _getStackFrameAt(int index) {
     try {
-      final Iterable<RegExpMatch> matches =
-          _stackTraceRegExp.allMatches(StackTrace.current.toString());
+      final Iterable<RegExpMatch> matches = _stackTraceRegExp.allMatches(
+        StackTrace.current.toString(),
+      );
       for (final RegExpMatch match in matches) {
         final List<String?> groups = match.groups(<int>[1, 2, 3, 4]);
         if (!groups.any((String? group) => group == null)) {
           final int frameIndex = int.parse(groups[0]!);
           if (frameIndex == index) {
             final List<String> funcParts = groups[1]!.trim().split('.');
-            final List<String> pathParts =
-                groups[2]!.trim().split(RegExp(r'[:/]'));
+            final List<String> pathParts = groups[2]!.trim().split(
+              RegExp(r'[:/]'),
+            );
             return _StackFrame(
               frameIndex,
               funcParts.last,
