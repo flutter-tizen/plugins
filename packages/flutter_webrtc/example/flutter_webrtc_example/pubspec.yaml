@@ -17,6 +17,7 @@ dependencies:
   path_provider_tizen: ^2.0.2
   permission_handler: ^10.4.3
   permission_handler_tizen: ^1.3.0
+  web: ^0.3.0
 
 dev_dependencies:
   flutter_test:
