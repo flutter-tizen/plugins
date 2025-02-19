@@ -3,3 +3,4 @@
 // found in the LICENSE file.
 
 export 'src/billing_manager_wrappers/billing_manager_wrapper.dart';
+export 'src/messages.g.dart';

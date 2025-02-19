@@ -42,7 +42,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       StreamController<List<PurchaseDetails>>.broadcast();
 
   @override
-  Stream<List<PurchaseDetails>> get purchaseStream =>
+  late final Stream<List<PurchaseDetails>> purchaseStream =
       _purchaseUpdatedController.stream;
 
   /// The [BillingManager] that's abstracted by Samsung Checkout.
@@ -56,6 +56,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return billingManager.isAvailable();
   }
 
+  /// Performs a network query for the details of products available.
   @override
   Future<ProductDetailsResponse> queryProductDetails(
       Set<String> identifiers) async {
@@ -65,7 +66,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       response = await billingManager.requestProducts(identifiers.toList());
     } on PlatformException catch (e) {
       exception = e;
-      response = const ProductsListApiResult(
+      response = ProductsListApiResult(
           cpStatus: 'fail to receive response',
           cpResult: 'fail to receive response',
           checkValue: 'fail to receive response',
@@ -83,7 +84,8 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
               SamsungCheckoutProductDetails.fromProduct(productWrapper))
           .toList();
     } else {
-      invalidMessage.add(response.toJson().toString());
+      /// isInvalid ??? need to be checked !!!
+      invalidMessage.add(response.encode().toString());
     }
 
     final ProductDetailsResponse productDetailsResponse =
@@ -177,4 +179,19 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     assert(autoConsume, 'On Tizen, we should always auto consume');
     return buyNonConsumable(purchaseParam: purchaseParam);
   }
+
+  /// Returns Play billing country code based on ISO-3166-1 alpha2 format.
+  ///
+  /// See: https://developer.android.com/reference/com/android/billingclient/api/BillingConfig
+  /// See: https://unicode.org/cldr/charts/latest/supplemental/territory_containment_un_m_49.html
+  // @override
+  // Future<String> countryCode() async {
+  //   final BillingConfigWrapper billingConfig = await billingClientManager
+  //       .runWithClient((BillingClient client) => client.getBillingConfig());
+  //   return billingConfig.countryCode;
+  // }
+
+  // /// Use countryCode instead.
+  // @Deprecated('Use countryCode')
+  // Future<String> getCountryCode() => countryCode();
 }

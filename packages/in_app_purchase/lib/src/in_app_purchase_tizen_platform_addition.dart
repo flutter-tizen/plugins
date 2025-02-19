@@ -35,12 +35,17 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
     int? pageNum,
     String? securityKey,
   }) {
-    final Map<String, dynamic> requestParameters = <String, dynamic>{
-      'appId': appId,
-      'pageSize': pageSize,
-      'pageNum': pageNum,
-      'securityKey': securityKey,
-    };
+    // final Map<String, dynamic> requestParameters = <String, dynamic>{
+    //   'appId': appId,
+    //   'pageSize': pageSize,
+    //   'pageNum': pageNum,
+    //   'securityKey': securityKey,
+    // };
+    final RequestParameters requestParameters = RequestParameters();
+    requestParameters.appId = appId;
+    requestParameters.pageSize = pageSize;
+    requestParameters.pageNum = pageNum;
+    requestParameters.securityKey = securityKey;
     _billingManager.setRequestParameters(requestParameters);
   }
 
@@ -52,7 +57,7 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
       verifyPurchaseResult = await _billingManager.verifyInvoice(
           invoiceId: purchaseDetails.verificationData.serverVerificationData);
     } on PlatformException {
-      verifyPurchaseResult = const VerifyInvoiceAPIResult(
+      verifyPurchaseResult = VerifyInvoiceAPIResult(
           appId: 'error appId',
           cpStatus: 'error cpStatus',
           invoiceId: 'error invoiceId');
