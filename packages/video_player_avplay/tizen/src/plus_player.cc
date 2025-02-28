@@ -757,12 +757,12 @@ bool PlusPlayer::SetData(const flutter::EncodableMap &data) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
   }
-  std::string data_str = BuildJsonString(data);
-  if (data_str.empty()) {
-    LOG_ERROR("[PlusPlayer] data_str is empty.");
+  std::string json_data = BuildJsonString(data);
+  if (json_data.empty()) {
+    LOG_ERROR("[PlusPlayer] json_data is empty.");
     return false;
   }
-  return ::SetData(player_, data_str);
+  return ::SetData(player_, json_data);
 }
 
 flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
@@ -771,16 +771,16 @@ flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return result;
   }
-  std::string data_str = BuildJsonString(data);
-  if (data_str.empty()) {
-    LOG_ERROR("[PlusPlayer] data_str is empty.");
+  std::string json_data = BuildJsonString(data);
+  if (json_data.empty()) {
+    LOG_ERROR("[PlusPlayer] json_data is empty.");
     return result;
   }
-  if (!::GetData(player_, data_str)) {
+  if (!::GetData(player_, json_data)) {
     LOG_ERROR("[PlusPlayer] Fail to get data from player");
     return result;
   }
-  ParseJsonString(data_str, data, result);
+  ParseJsonString(json_data, data, result);
   return result;
 }
 

@@ -425,13 +425,13 @@ enum DisplayMode {
 
 /// The different types of dash player properties that can be set on the player.
 enum DashPlayerProperty {
-  /// Max band width of dash player.
+  /// Max band width of dash player, the value is int type.
   maxBandWidth,
 
-  /// MPEG-H matadata of dash player.
+  /// MPEG-H matadata of dash player, the vaule is String type.
   mpeghMetadata,
 
-  /// Dash player stream info.
+  /// Dash player stream info, the value is string type.
   dashStreamInfo,
 }
 
