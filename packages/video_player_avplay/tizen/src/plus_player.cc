@@ -5,6 +5,7 @@
 #include "plus_player.h"
 
 #include <app_manager.h>
+#include <json-glib/json-glib.h>
 #include <system_info.h>
 
 #include <sstream>
@@ -646,7 +647,7 @@ bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
     return false;
   }
 
-  LOG_INFO("[PlusPlayer] rotation: %d", rotation);
+  LOG_INFO("[PlusPlayer] rotation: %lld", rotation);
   return ::SetDisplayRotate(player_,
                             static_cast<plusplayer::DisplayRotation>(rotation));
 }
@@ -662,8 +663,125 @@ bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
     return false;
   }
-  LOG_INFO("[PlusPlayer] display_mode: %d", display_mode);
-  ::SetDisplayMode(player_, static_cast<plusplayer::DisplayMode>(display_mode));
+  LOG_INFO("[PlusPlayer] display_mode: %lld", display_mode);
+  return ::SetDisplayMode(player_,
+                          static_cast<plusplayer::DisplayMode>(display_mode));
+}
+
+std::string BuildJsonString(const flutter::EncodableMap &data) {
+  std::string result;
+  JsonBuilder *builder = json_builder_new();
+  json_builder_begin_object(builder);
+  for (const auto &pair : data) {
+    if (std::get<std::string>(pair.first) == "max-bandwidth") {
+      json_builder_set_member_name(builder,
+                                   std::get<std::string>(pair.first).c_str());
+      json_builder_add_int_value(builder, std::get<int64_t>(pair.second));
+    } else {
+      json_builder_set_member_name(builder,
+                                   std::get<std::string>(pair.first).c_str());
+      json_builder_add_string_value(builder,
+                                    std::get<std::string>(pair.second).c_str());
+    }
+  }
+  json_builder_end_object(builder);
+  JsonGenerator *gen = json_generator_new();
+  JsonNode *root = json_builder_get_root(builder);
+  json_generator_set_root(gen, root);
+  result = std::string(json_generator_to_data(gen, nullptr));
+  json_node_free(root);
+  g_object_unref(gen);
+  g_object_unref(builder);
+  return result;
+}
+
+std::string BuildJsonString(const flutter::EncodableList &keys) {
+  std::string result;
+  JsonBuilder *builder = json_builder_new();
+  json_builder_begin_object(builder);
+  for (const auto &key : keys) {
+    if (std::get<std::string>(key) == "max-bandwidth") {
+      json_builder_set_member_name(builder, std::get<std::string>(key).c_str());
+      json_builder_add_int_value(builder, 0);
+    } else {
+      json_builder_set_member_name(builder, std::get<std::string>(key).c_str());
+      json_builder_add_string_value(builder, "");
+    }
+  }
+  json_builder_end_object(builder);
+  JsonGenerator *gen = json_generator_new();
+  JsonNode *root = json_builder_get_root(builder);
+  json_generator_set_root(gen, root);
+  result = std::string(json_generator_to_data(gen, nullptr));
+  json_node_free(root);
+  g_object_unref(gen);
+  g_object_unref(builder);
+  return result;
+}
+
+void ParseJsonString(std::string json_str, const flutter::EncodableList &keys,
+                     flutter::EncodableMap &output) {
+  JsonParser *parser = json_parser_new();
+  GError *error = nullptr;
+
+  if (!json_parser_load_from_data(parser, json_str.c_str(), -1, &error)) {
+    LOG_ERROR("[PlusPlayer] Fail to parse json string : %s.", error->message);
+    g_error_free(error);
+    g_object_unref(parser);
+    return;
+  }
+
+  JsonNode *root = json_parser_get_root(parser);
+  if (JSON_NODE_HOLDS_OBJECT(root)) {
+    JsonObject *root_object = json_node_get_object(root);
+    for (const auto &key : keys) {
+      if (json_object_has_member(root_object,
+                                 std::get<std::string>(key).c_str())) {
+        if (std::get<std::string>(key) == "max-bandwidth") {
+          output.insert_or_assign(
+              key, flutter::EncodableValue(json_object_get_int_member(
+                       root_object, std::get<std::string>(key).c_str())));
+        } else {
+          output.insert_or_assign(
+              key, flutter::EncodableValue(json_object_get_string_member(
+                       root_object, std::get<std::string>(key).c_str())));
+        }
+      }
+    }
+  }
+  g_object_unref(parser);
+}
+
+bool PlusPlayer::SetData(const flutter::EncodableMap &data) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return false;
+  }
+  std::string data_str = BuildJsonString(data);
+  if (data_str.empty()) {
+    LOG_ERROR("[PlusPlayer] data_str is empty.");
+    return false;
+  }
+  return ::SetData(player_, data_str);
+}
+
+flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
+  flutter::EncodableMap result;
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return result;
+  }
+  std::string data_str = BuildJsonString(data);
+  if (data_str.empty()) {
+    LOG_ERROR("[PlusPlayer] data_str is empty.");
+    return result;
+  }
+  if (!::GetData(player_, data_str)) {
+    LOG_ERROR("[PlusPlayer] Fail to get data from player");
+    return result;
+  }
+  ParseJsonString(data_str, data, result);
+  return result;
 }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,

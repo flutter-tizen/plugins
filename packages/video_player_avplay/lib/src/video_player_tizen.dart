@@ -39,14 +39,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.httpHeaders = dataSource.httpHeaders;
         message.drmConfigs = dataSource.drmConfigs?.toMap();
         message.playerOptions = dataSource.playerOptions;
-        message.streamingProperty =
-            dataSource.streamingProperty == null
-                ? null
-                : <String, String>{
-                  for (final MapEntry<StreamingPropertyType, String> entry
-                      in dataSource.streamingProperty!.entries)
-                    _streamingPropertyType[entry.key]!: entry.value,
-                };
+        message.streamingProperty = dataSource.streamingProperty == null
+            ? null
+            : <String, String>{
+                for (final MapEntry<StreamingPropertyType, String> entry
+                    in dataSource.streamingProperty!.entries)
+                  _streamingPropertyType[entry.key]!: entry.value,
+              };
       case DataSourceType.file:
         message.uri = dataSource.uri;
       case DataSourceType.contentUri:
@@ -247,6 +246,31 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<bool> setData(int playerId, Map<DashPlayerProperty, Object> data) {
+    return _api
+        .setData(DataMapMessage(playerId: playerId, data: <Object?, Object?>{
+      for (final MapEntry<DashPlayerProperty, Object> entry in data.entries)
+        _dashPlayerPropertyMap[entry.key]: entry.value,
+    }));
+  }
+
+  @override
+  Future<Map<DashPlayerProperty, Object>> getData(
+      int playerId, Set<DashPlayerProperty> keys) async {
+    final List<String?> keysList = <String?>[];
+    for (final DashPlayerProperty key in keys) {
+      keysList.add(_dashPlayerPropertyMap[key]);
+    }
+    final DataMapMessage msg =
+        await _api.getData(DataKeyMessage(playerId: playerId, data: keysList));
+
+    return <DashPlayerProperty, Object>{
+      for (final MapEntry<Object?, Object?> entry in msg.data.entries)
+        _dashPlayerPropertyReverseMap[entry.key]!: entry.value!,
+    };
+  }
+
+  @override
   Future<void> setStreamingProperty(
     int playerId,
     StreamingPropertyType type,
@@ -347,32 +371,32 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   static const Map<VideoFormat, String> _videoFormatStringMap =
       <VideoFormat, String>{
-        VideoFormat.ss: 'ss',
-        VideoFormat.hls: 'hls',
-        VideoFormat.dash: 'dash',
-        VideoFormat.other: 'other',
-      };
+    VideoFormat.ss: 'ss',
+    VideoFormat.hls: 'hls',
+    VideoFormat.dash: 'dash',
+    VideoFormat.other: 'other',
+  };
 
   static const Map<StreamingPropertyType, String> _streamingPropertyType =
       <StreamingPropertyType, String>{
-        StreamingPropertyType.adaptiveInfo: 'ADAPTIVE_INFO',
-        StreamingPropertyType.availableBitrate: 'AVAILABLE_BITRATE',
-        StreamingPropertyType.cookie: 'COOKIE',
-        StreamingPropertyType.currentBandwidth: 'CURRENT_BANDWIDTH',
-        StreamingPropertyType.getLiveDuration: 'GET_LIVE_DURATION',
-        StreamingPropertyType.inAppMultiView: 'IN_APP_MULTIVIEW',
-        StreamingPropertyType.isLive: 'IS_LIVE',
-        StreamingPropertyType.listenSparseTrack: 'LISTEN_SPARSE_TRACK',
-        StreamingPropertyType.portraitMode: 'PORTRAIT_MODE',
-        StreamingPropertyType.prebufferMode: 'PREBUFFER_MODE',
-        StreamingPropertyType.setMixedFrame: 'SET_MIXEDFRAME',
-        StreamingPropertyType.setMode4K: 'SET_MODE_4K',
-        StreamingPropertyType.userAgent: 'USER_AGENT',
-        StreamingPropertyType.useVideoMixer: 'USE_VIDEOMIXER',
-      };
+    StreamingPropertyType.adaptiveInfo: 'ADAPTIVE_INFO',
+    StreamingPropertyType.availableBitrate: 'AVAILABLE_BITRATE',
+    StreamingPropertyType.cookie: 'COOKIE',
+    StreamingPropertyType.currentBandwidth: 'CURRENT_BANDWIDTH',
+    StreamingPropertyType.getLiveDuration: 'GET_LIVE_DURATION',
+    StreamingPropertyType.inAppMultiView: 'IN_APP_MULTIVIEW',
+    StreamingPropertyType.isLive: 'IS_LIVE',
+    StreamingPropertyType.listenSparseTrack: 'LISTEN_SPARSE_TRACK',
+    StreamingPropertyType.portraitMode: 'PORTRAIT_MODE',
+    StreamingPropertyType.prebufferMode: 'PREBUFFER_MODE',
+    StreamingPropertyType.setMixedFrame: 'SET_MIXEDFRAME',
+    StreamingPropertyType.setMode4K: 'SET_MODE_4K',
+    StreamingPropertyType.userAgent: 'USER_AGENT',
+    StreamingPropertyType.useVideoMixer: 'USE_VIDEOMIXER',
+  };
 
-  static const Map<BufferConfigType, String>
-  _bufferConfigTypeMap = <BufferConfigType, String>{
+  static const Map<BufferConfigType, String> _bufferConfigTypeMap =
+      <BufferConfigType, String>{
     BufferConfigType.totalBufferSizeInByte: 'total_buffer_size_in_byte',
     BufferConfigType.totalBufferSizeInTime: 'total_buffer_size_in_time',
     BufferConfigType.bufferSizeInByteForPlay: 'buffer_size_in_byte_for_play',
@@ -382,5 +406,19 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     BufferConfigType.bufferSizeInSecForResume: 'buffer_size_in_sec_for_resume',
     BufferConfigType.bufferingTimeoutInSecForPlay:
         'buffering_timeout_in_sec_for_play',
+  };
+
+  static const Map<DashPlayerProperty, String> _dashPlayerPropertyMap =
+      <DashPlayerProperty, String>{
+    DashPlayerProperty.maxBandWidth: 'max-bandwidth',
+    DashPlayerProperty.mpeghMetadata: 'mpegh-metadata',
+    DashPlayerProperty.dashStreamInfo: 'dash-stream-info',
+  };
+
+  static const Map<String, DashPlayerProperty> _dashPlayerPropertyReverseMap =
+      <String, DashPlayerProperty>{
+    'max-bandwidth': DashPlayerProperty.maxBandWidth,
+    'mpegh-metadata': DashPlayerProperty.mpeghMetadata,
+    'dash-stream-info': DashPlayerProperty.dashStreamInfo,
   };
 }

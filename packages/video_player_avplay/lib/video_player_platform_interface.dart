@@ -157,6 +157,17 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('setDisplayMode() has not been implemented.');
   }
 
+  /// Set dashplayer properties.
+  Future<bool> setData(int playerId, Map<DashPlayerProperty, Object> data) {
+    throw UnimplementedError('setData() has not been implemented.');
+  }
+
+  /// Get dashplayer properties.
+  Future<Map<DashPlayerProperty, Object>> getData(
+      int playerId, Set<DashPlayerProperty> keys) {
+    throw UnimplementedError('getData() has not been implemented.');
+  }
+
   /// Set streamingengine property.
   Future<void> setStreamingProperty(
     int playerId,
@@ -410,6 +421,18 @@ enum DisplayMode {
 
   /// player display mode dst roi auto aspect ratio
   dstRoiAutoAspectRatio,
+}
+
+/// The different types of dash player properties that can be set on the player.
+enum DashPlayerProperty {
+  /// Max band width of dash player.
+  maxBandWidth,
+
+  /// MPEG-H matadata of dash player.
+  mpeghMetadata,
+
+  /// Dash player stream info.
+  dashStreamInfo,
 }
 
 /// Event emitted from the platform implementation.

@@ -61,18 +61,18 @@ class VideoPlayerValue {
 
   /// Returns an instance for a video that hasn't been loaded.
   VideoPlayerValue.uninitialized()
-    : this(
-        duration: DurationRange(Duration.zero, Duration.zero),
-        isInitialized: false,
-      );
+      : this(
+          duration: DurationRange(Duration.zero, Duration.zero),
+          isInitialized: false,
+        );
 
   /// Returns an instance with the given [errorDescription].
   VideoPlayerValue.erroneous(String errorDescription)
-    : this(
-        duration: DurationRange(Duration.zero, Duration.zero),
-        isInitialized: false,
-        errorDescription: errorDescription,
-      );
+      : this(
+          duration: DurationRange(Duration.zero, Duration.zero),
+          isInitialized: false,
+          errorDescription: errorDescription,
+        );
 
   /// This constant is just to indicate that parameter is not passed to [copyWith]
   /// workaround for this issue https://github.com/dart-lang/language/issues/2009
@@ -189,10 +189,9 @@ class VideoPlayerValue {
       isBuffering: isBuffering ?? this.isBuffering,
       volume: volume ?? this.volume,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
-      errorDescription:
-          errorDescription != _defaultErrorDescription
-              ? errorDescription
-              : this.errorDescription,
+      errorDescription: errorDescription != _defaultErrorDescription
+          ? errorDescription
+          : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
     );
   }
@@ -240,22 +239,22 @@ class VideoPlayerValue {
 
   @override
   int get hashCode => Object.hash(
-    duration,
-    size,
-    position,
-    caption,
-    captionOffset,
-    tracks,
-    buffered,
-    isInitialized,
-    isPlaying,
-    isLooping,
-    isBuffering,
-    volume,
-    playbackSpeed,
-    errorDescription,
-    isCompleted,
-  );
+        duration,
+        size,
+        position,
+        caption,
+        captionOffset,
+        tracks,
+        buffered,
+        isInitialized,
+        isPlaying,
+        isLooping,
+        isBuffering,
+        volume,
+        playbackSpeed,
+        errorDescription,
+        isCompleted,
+      );
 }
 
 /// Controls a platform video player, and provides updates when the state is
@@ -279,17 +278,17 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.package,
     this.closedCaptionFile,
     this.videoPlayerOptions,
-  }) : dataSourceType = DataSourceType.asset,
-       formatHint = null,
-       httpHeaders = const <String, String>{},
-       drmConfigs = null,
-       playerOptions = const <String, dynamic>{},
-       streamingProperty = null,
-       super(
-         VideoPlayerValue(
-           duration: DurationRange(Duration.zero, Duration.zero),
-         ),
-       );
+  })  : dataSourceType = DataSourceType.asset,
+        formatHint = null,
+        httpHeaders = const <String, String>{},
+        drmConfigs = null,
+        playerOptions = const <String, dynamic>{},
+        streamingProperty = null,
+        super(
+          VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero),
+          ),
+        );
 
   /// Constructs a [VideoPlayerController] playing a video from obtained from
   /// the network.
@@ -309,13 +308,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.drmConfigs,
     this.playerOptions,
     this.streamingProperty,
-  }) : dataSourceType = DataSourceType.network,
-       package = null,
-       super(
-         VideoPlayerValue(
-           duration: DurationRange(Duration.zero, Duration.zero),
-         ),
-       );
+  })  : dataSourceType = DataSourceType.network,
+        package = null,
+        super(
+          VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero),
+          ),
+        );
 
   /// Constructs a [VideoPlayerController] playing a video from a file.
   ///
@@ -325,19 +324,19 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     File file, {
     this.closedCaptionFile,
     this.videoPlayerOptions,
-  }) : dataSource = 'file://${file.path}',
-       dataSourceType = DataSourceType.file,
-       package = null,
-       formatHint = null,
-       httpHeaders = const <String, String>{},
-       drmConfigs = null,
-       playerOptions = const <String, dynamic>{},
-       streamingProperty = null,
-       super(
-         VideoPlayerValue(
-           duration: DurationRange(Duration.zero, Duration.zero),
-         ),
-       );
+  })  : dataSource = 'file://${file.path}',
+        dataSourceType = DataSourceType.file,
+        package = null,
+        formatHint = null,
+        httpHeaders = const <String, String>{},
+        drmConfigs = null,
+        playerOptions = const <String, dynamic>{},
+        streamingProperty = null,
+        super(
+          VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero),
+          ),
+        );
 
   /// Constructs a [VideoPlayerController] playing a video from a contentUri.
   ///
@@ -347,23 +346,23 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     Uri contentUri, {
     this.closedCaptionFile,
     this.videoPlayerOptions,
-  }) : assert(
-         defaultTargetPlatform == TargetPlatform.android,
-         'VideoPlayerController.contentUri is only supported on Android.',
-       ),
-       dataSource = contentUri.toString(),
-       dataSourceType = DataSourceType.contentUri,
-       package = null,
-       formatHint = null,
-       httpHeaders = const <String, String>{},
-       drmConfigs = null,
-       playerOptions = const <String, dynamic>{},
-       streamingProperty = null,
-       super(
-         VideoPlayerValue(
-           duration: DurationRange(Duration.zero, Duration.zero),
-         ),
-       );
+  })  : assert(
+          defaultTargetPlatform == TargetPlatform.android,
+          'VideoPlayerController.contentUri is only supported on Android.',
+        ),
+        dataSource = contentUri.toString(),
+        dataSourceType = DataSourceType.contentUri,
+        package = null,
+        formatHint = null,
+        httpHeaders = const <String, String>{},
+        drmConfigs = null,
+        playerOptions = const <String, dynamic>{},
+        streamingProperty = null,
+        super(
+          VideoPlayerValue(
+            duration: DurationRange(Duration.zero, Duration.zero),
+          ),
+        );
 
   /// The URI to the video file. This will be in different formats depending on
   /// the [DataSourceType] of the original video.
@@ -496,8 +495,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       );
     }
 
-    _playerId =
-        (await _videoPlayerPlatform.create(dataSourceDescription)) ??
+    _playerId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
         kUninitializedPlayerId;
     _creatingCompleter!.complete(null);
     final Completer<void> initializingCompleter = Completer<void>();
@@ -863,6 +861,25 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
 
     return _videoPlayerPlatform.setDisplayMode(_playerId, displayMode);
+  }
+
+  /// Set dashplusplayer properties
+  Future<bool> setData(Map<DashPlayerProperty, Object> data) async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+
+    return _videoPlayerPlatform.setData(playerId, data);
+  }
+
+  /// Get dashplusplayer properties
+  Future<Map<DashPlayerProperty, Object>> getData(
+      Set<DashPlayerProperty> keys) async {
+    if (_isDisposedOrNotInitialized) {
+      return <DashPlayerProperty, Object>{};
+    }
+
+    return _videoPlayerPlatform.getData(playerId, keys);
   }
 
   /// Sets the playback speed of [this].
@@ -1367,8 +1384,7 @@ class ClosedCaption extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final TextStyle effectiveTextStyle =
-        textStyle ??
+    final TextStyle effectiveTextStyle = textStyle ??
         DefaultTextStyle.of(
           context,
         ).style.copyWith(fontSize: 36.0, color: Colors.white);

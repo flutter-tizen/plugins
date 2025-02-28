@@ -557,6 +557,10 @@ PLUS_PLAYER_EXPORT bool GetVirtualRscId(PlusplayerRef player,
                                         const plusplayer::RscType type,
                                         int* virtual_id);
 
+PLUS_PLAYER_EXPORT bool SetData(PlusplayerRef player, const std::string data);
+
+PLUS_PLAYER_EXPORT bool GetData(PlusplayerRef player, std::string& data);
+
 PLUS_PLAYER_EXPORT void RegisterListener(PlusplayerRef player,
                                          PlusplayerListener* listener,
                                          void* user_data);

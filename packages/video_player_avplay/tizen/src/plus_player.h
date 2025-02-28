@@ -48,6 +48,8 @@ class PlusPlayer : public VideoPlayer {
                             const std::string &value) override;
   bool SetDisplayRotate(int64_t rotation) override;
   bool SetDisplayMode(int64_t display_mode) override;
+  bool SetData(const flutter::EncodableMap &data) override;
+  flutter::EncodableMap GetData(const flutter::EncodableList &data) override;
 
  private:
   bool IsLive();
