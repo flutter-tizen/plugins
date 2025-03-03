@@ -9,7 +9,6 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
-import '../channel.dart';
 import '../in_app_purchase_tizen_platform.dart';
 import '../messages.g.dart';
 
@@ -39,6 +38,11 @@ class BillingManager {
   /// Interface for calling host-side code.
   final InAppPurchaseApi _hostApi;
 
+  // ignore: public_member_api_docs
+  Future<String> getCountryCode() async {
+    return _hostApi.getCountryCode();
+  }
+
   /// Calls
   /// [`BillingManager-isServiceAvailable`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-isServiceAvailable)
   /// to check whether the Billing server is available.
@@ -51,12 +55,11 @@ class BillingManager {
   /// to retrieves the list of products registered on the Billing (DPI) server.
   Future<ProductsListApiResult> requestProducts(
       List<String> requestparameters) async {
-    final String? countryCode =
-        await channel.invokeMethod<String?>('GetCountryCode');
-    final String checkValue = base64.encode(Hmac(
-            sha256, utf8.encode(_requestParameters.securityKey ?? ''))
-        .convert(utf8.encode((_requestParameters.appId) + (countryCode ?? '')))
-        .bytes);
+    final String countryCode = await _hostApi.getCountryCode();
+    final String checkValue = base64.encode(
+        Hmac(sha256, utf8.encode(_requestParameters.securityKey ?? ''))
+            .convert(utf8.encode((_requestParameters.appId) + countryCode))
+            .bytes);
 
     // final Map<String, dynamic> arguments = <String, dynamic>{
     //   'appId': _requestParameters['appId'],
@@ -91,14 +94,13 @@ class BillingManager {
   /// to retrieves the user's purchase list.
   Future<GetUserPurchaseListAPIResult> requestPurchases(
       {String? applicationUserName}) async {
-    final String? customId = await channel.invokeMethod<String?>('GetCustomId');
-    final String? countryCode =
-        await channel.invokeMethod<String?>('GetCountryCode');
+    final String? customId = await _hostApi.getCustomId();
+    final String countryCode = await _hostApi.getCountryCode();
     final String checkValue = base64.encode(
         Hmac(sha256, utf8.encode(_requestParameters.securityKey ?? ''))
             .convert(utf8.encode((_requestParameters.appId) +
                 (customId ?? '') +
-                (countryCode ?? '') +
+                countryCode +
                 _requestItemType +
                 (_requestParameters.pageNum ?? -1).toString()))
             .bytes);
@@ -145,7 +147,7 @@ class BillingManager {
   Future<VerifyInvoiceAPIResult> verifyInvoice(
       {required String invoiceId}) async {
     final String? customId = await _hostApi.getCustomId();
-    final String? countryCode = await _hostApi.getCountryCode();
+    final String countryCode = await _hostApi.getCountryCode();
     final InvoiceMessage invoice = InvoiceMessage(
       invoiceId: invoiceId,
       appId: _requestParameters.appId,
@@ -160,21 +162,55 @@ class BillingManager {
 /// This class can be used to set tizen specific parameters.
 class RequestParameters {
   // ignore: public_member_api_docs
-  RequestParameters({
-    required this.appId,
-    this.pageSize,
-    this.pageNum,
-    this.securityKey,
-  });
+  RequestParameters();
 
   // ignore: public_member_api_docs
-  final String appId;
+  late String appId;
   // ignore: public_member_api_docs
-  final int? pageSize;
+  late int? pageSize;
   // ignore: public_member_api_docs
-  final int? pageNum;
+  late int? pageNum;
   // ignore: public_member_api_docs
-  final String? securityKey;
+  late String? securityKey;
+}
+
+/// Dart wrapper around [`ItemDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
+///
+/// Defines a dictionary for the ProductsListAPIResult dictionary 'ItemDetails' parameter.
+/// This only can be used in [ProductsListApiResult].
+@immutable
+class ItemDetails {
+  /// Creates a [ItemDetails] with the given purchase details.
+  const ItemDetails({
+    required this.seq,
+    required this.itemId,
+    required this.itemTitle,
+    required this.itemDesc,
+    required this.itemType,
+    required this.price,
+    required this.currencyId,
+  });
+
+  /// Sequence number (1 ~ TotalCount).
+  final int seq;
+
+  /// The ID of Product.
+  final String itemId;
+
+  /// The name of product.
+  final String itemTitle;
+
+  /// The description of product.
+  final String itemDesc;
+
+  /// The type of product.
+  final ItemType itemType;
+
+  /// The price of product, in "xxxx.yy" format.
+  final num price;
+
+  /// The currency code
+  final String currencyId;
 }
 
 /// Dart wrapper around [`ProductSubscriptionInfo`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
@@ -237,6 +273,76 @@ class SamsungCheckoutProductDetails extends ProductDetails {
   /// Points back to the [ItemDetails] object that was used to generate
   /// this [SamsungCheckoutProductDetails] object.
   final ItemDetails itemDetails;
+}
+
+/// Dart wrapper around [`InvoiceDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
+///
+/// Defines a dictionary for the GetUserPurchaseListAPIResult dictionary 'InvoiceDetails' parameter.
+/// This only can be used in [GetUserPurchaseListAPIResult].
+class InvoiceDetails {
+  /// Creates a [InvoiceDetails] with the given purchase details.
+  const InvoiceDetails({
+    required this.seq,
+    required this.invoiceId,
+    required this.itemId,
+    required this.itemTitle,
+    required this.itemType,
+    required this.orderTime,
+    required this.price,
+    required this.orderCurrencyId,
+    required this.appliedStatus,
+    required this.cancelStatus,
+    this.appliedTime,
+    this.period,
+    this.limitEndTime,
+    this.remainTime,
+  });
+
+  /// Sequence number (1 ~ TotalCount).
+  final int seq;
+
+  /// Invoice ID of this purchase history.
+  final String invoiceId;
+
+  /// The ID of product.
+  final String itemId;
+
+  /// The name of product.
+  final String itemTitle;
+
+  /// The type of product.
+  final ItemType itemType;
+
+  /// Payment time, in 14-digit UTC time.
+  final String orderTime;
+
+  /// Limited period product duration, in minutes.
+  final int? period;
+
+  /// Product price, in "xxxx.yy" format.
+  final num price;
+
+  /// Currency code.
+  final String orderCurrencyId;
+
+  /// Cancellation status:
+  /// "true": Sale canceled
+  /// "false" : Sale ongoing
+  final bool cancelStatus;
+
+  /// Product application status:
+  /// "true": Applied
+  /// "false": Not applied
+  final bool appliedStatus;
+
+  /// Time product applied, in 14-digit UTC time
+  final String? appliedTime;
+
+  /// Limited period product end time, in 14-digit UTC time
+  final String? limitEndTime;
+
+  /// Limited period product time remaining, in seconds
+  final String? remainTime;
 }
 
 /// Dart wrapper around [`PurchaseSubscriptionInfo`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).

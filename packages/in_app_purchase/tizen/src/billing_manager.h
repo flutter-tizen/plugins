@@ -9,6 +9,7 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <tizen_error.h>
+#include <json-glib/json-glib.h>
 
 #include <iostream>
 #include <map>
@@ -16,6 +17,7 @@
 #include <vector>
 
 #include "billing_service_proxy.h"
+#include "messages.h"
 
 #define SSO_API_MAX_STRING_LEN 128
 
@@ -151,23 +153,21 @@ class BillingManager {
 
   bool Init();
   void Dispose();
-  bool BillingIsAvailable(
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  bool BuyItem(
-      const char *app_id, const char *detail_info,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  bool IsAvailable(std::function<void(ErrorOr<bool> reply)> result);
+  bool BuyItem(const char *app_id, const char *detail_info,
+               std::function<void(ErrorOr<BillingBuyData> reply)> result);
   bool GetProductList(
       const char *app_id, const char *country_code, int page_size,
       int page_number, const char *check_value,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+      std::function<void(ErrorOr<ProductsListApiResult> reply)> result);
   bool GetPurchaseList(
       const char *app_id, const char *custom_id, const char *country_code,
       int page_number, const char *check_value,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+      std::function<void(ErrorOr<GetUserPurchaseListAPIResult> reply)> result);
   bool VerifyInvoice(
       const char *app_id, const char *custom_id, const char *invoice_id,
       const char *country_code,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+      std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)> result);
   std::string GetCustomId();
   std::string GetCountryCode();
 
@@ -179,9 +179,10 @@ class BillingManager {
   static void OnAvailable(const char *detail_result, void *user_data);
   static void OnVerify(const char *detail_result, void *user_data);
 
-  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
-      method_channel_ = nullptr;
+  std::unique_ptr<flutter::BasicMessageChannel<flutter::EncodableValue>>
+      basic_method_channel_ = nullptr;
   billing_server_type billing_server_type_;
+  /// std::queue<std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)>> q;
 };
 
 #endif  // FLUTTER_PLUGIN_BILLING_MANAGER_H

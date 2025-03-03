@@ -32,46 +32,6 @@ enum ItemType {
   subscription
 }
 
-/// Dart wrapper around [`ItemDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
-///
-/// Defines a dictionary for the ProductsListAPIResult dictionary 'ItemDetails' parameter.
-/// This only can be used in [ProductsListApiResult].
-class ItemDetails {
-  /// Creates a [ItemDetails] with the given purchase details.
-  const ItemDetails({
-    required this.seq,
-    required this.itemId,
-    required this.itemTitle,
-
-    /// ? SubscriptionInfo ??????
-    required this.itemDesc,
-    required this.itemType,
-    required this.price,
-    required this.currencyId,
-  });
-
-  /// Sequence number (1 ~ TotalCount).
-  final int seq;
-
-  /// The ID of Product.
-  final String itemId;
-
-  /// The name of product.
-  final String itemTitle;
-
-  /// The description of product.
-  final String itemDesc;
-
-  /// The type of product.
-  final ItemType itemType;
-
-  /// The price of product, in "xxxx.yy" format.
-  final double price;
-
-  /// The currency code
-  final String currencyId;
-}
-
 /// Dart wrapper around [`ProductsListApiResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 ///
 /// Defines a dictionary for product list data returned by the getProductsList API.
@@ -103,77 +63,7 @@ class ProductsListApiResult {
   final String checkValue;
 
   /// ItemDetails in JSON format
-  final List<ItemDetails> itemDetails;
-}
-
-/// Dart wrapper around [`InvoiceDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
-///
-/// Defines a dictionary for the GetUserPurchaseListAPIResult dictionary 'InvoiceDetails' parameter.
-/// This only can be used in [GetUserPurchaseListAPIResult].
-class InvoiceDetails {
-  /// Creates a [InvoiceDetails] with the given purchase details.
-  const InvoiceDetails({
-    required this.seq,
-    required this.invoiceId,
-    required this.itemId,
-    required this.itemTitle,
-    required this.itemType,
-    required this.orderTime,
-    required this.price,
-    required this.orderCurrencyId,
-    required this.appliedStatus,
-    required this.cancelStatus,
-    this.appliedTime,
-    this.period,
-    this.limitEndTime,
-    this.remainTime,
-  });
-
-  /// Sequence number (1 ~ TotalCount).
-  final int seq;
-
-  /// Invoice ID of this purchase history.
-  final String invoiceId;
-
-  /// The ID of product.
-  final String itemId;
-
-  /// The name of product.
-  final String itemTitle;
-
-  /// The type of product.
-  final ItemType itemType;
-
-  /// Payment time, in 14-digit UTC time.
-  final String orderTime;
-
-  /// Limited period product duration, in minutes.
-  final int? period;
-
-  /// Product price, in "xxxx.yy" format.
-  final double price;
-
-  /// Currency code.
-  final String orderCurrencyId;
-
-  /// Cancellation status:
-  /// "true": Sale canceled
-  /// "false" : Sale ongoing
-  final bool cancelStatus;
-
-  /// Product application status:
-  /// "true": Applied
-  /// "false": Not applied
-  final bool appliedStatus;
-
-  /// Time product applied, in 14-digit UTC time
-  final String? appliedTime;
-
-  /// Limited period product end time, in 14-digit UTC time
-  final String? limitEndTime;
-
-  /// Limited period product time remaining, in seconds
-  final String? remainTime;
+  final List<Map<Object?, Object?>?> itemDetails;
 }
 
 /// Dart wrapper around [`GetUserPurchaseListAPIResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
@@ -206,7 +96,7 @@ class GetUserPurchaseListAPIResult {
   final String? checkValue;
 
   /// InvoiceDetailsin JSON format.
-  final List<InvoiceDetails> invoiceDetails;
+  final List<Map<Object?, Object?>?> invoiceDetails;
 }
 
 /// Dart wrapper around [`BillingBuyData`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingBuyData).
@@ -280,14 +170,14 @@ class ServiceAvailableAPIResult {
 class ProductMessage {
   ProductMessage({
     required this.appId,
-    this.countryCode,
+    required this.countryCode,
     this.pageSize,
     this.pageNum,
     required this.checkValue,
   });
 
   final String appId;
-  final String? countryCode;
+  final String countryCode;
   final int? pageSize;
   final int? pageNum;
   final String checkValue;
@@ -297,14 +187,14 @@ class PurchaseMessage {
   PurchaseMessage({
     required this.appId,
     this.customId,
-    this.countryCode,
+    required this.countryCode,
     this.pageNum,
     required this.checkValue,
   });
 
   final String appId;
   final String? customId;
-  final String? countryCode;
+  final String countryCode;
   final int? pageNum;
   final String checkValue;
 }
@@ -334,13 +224,13 @@ class InvoiceMessage {
     required this.appId,
     this.customId,
     required this.invoiceId,
-    this.countryCode,
+    required this.countryCode,
   });
 
   final String appId;
   final String? customId;
   final String invoiceId;
-  final String? countryCode;
+  final String countryCode;
 }
 
 @HostApi()
@@ -362,5 +252,5 @@ abstract class InAppPurchaseApi {
 
   String? getCustomId();
 
-  String? getCountryCode();
+  String getCountryCode();
 }

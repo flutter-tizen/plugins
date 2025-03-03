@@ -73,69 +73,6 @@ enum class ItemType {
 };
 
 
-// Dart wrapper around [`ItemDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
-//
-// Defines a dictionary for the ProductsListAPIResult dictionary 'ItemDetails' parameter.
-// This only can be used in [ProductsListApiResult].
-//
-// Generated class from Pigeon that represents data sent in messages.
-class ItemDetails {
- public:
-  // Constructs an object setting all fields.
-  explicit ItemDetails(
-    int64_t seq,
-    const std::string& item_id,
-    const std::string& item_title,
-    const std::string& item_desc,
-    const ItemType& item_type,
-    double price,
-    const std::string& currency_id);
-
-  // Sequence number (1 ~ TotalCount).
-  int64_t seq() const;
-  void set_seq(int64_t value_arg);
-
-  // The ID of Product.
-  const std::string& item_id() const;
-  void set_item_id(std::string_view value_arg);
-
-  // The name of product.
-  const std::string& item_title() const;
-  void set_item_title(std::string_view value_arg);
-
-  // The description of product.
-  const std::string& item_desc() const;
-  void set_item_desc(std::string_view value_arg);
-
-  // The type of product.
-  const ItemType& item_type() const;
-  void set_item_type(const ItemType& value_arg);
-
-  // The price of product, in "xxxx.yy" format.
-  double price() const;
-  void set_price(double value_arg);
-
-  // The currency code
-  const std::string& currency_id() const;
-  void set_currency_id(std::string_view value_arg);
-
-
- private:
-  static ItemDetails FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class InAppPurchaseApi;
-  friend class PigeonInternalCodecSerializer;
-  int64_t seq_;
-  std::string item_id_;
-  std::string item_title_;
-  std::string item_desc_;
-  ItemType item_type_;
-  double price_;
-  std::string currency_id_;
-
-};
-
-
 // Dart wrapper around [`ProductsListApiResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 //
 // Defines a dictionary for product list data returned by the getProductsList API.
@@ -195,132 +132,6 @@ class ProductsListApiResult {
   int64_t total_count_;
   std::string check_value_;
   flutter::EncodableList item_details_;
-
-};
-
-
-// Dart wrapper around [`InvoiceDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
-//
-// Defines a dictionary for the GetUserPurchaseListAPIResult dictionary 'InvoiceDetails' parameter.
-// This only can be used in [GetUserPurchaseListAPIResult].
-//
-// Generated class from Pigeon that represents data sent in messages.
-class InvoiceDetails {
- public:
-  // Constructs an object setting all non-nullable fields.
-  explicit InvoiceDetails(
-    int64_t seq,
-    const std::string& invoice_id,
-    const std::string& item_id,
-    const std::string& item_title,
-    const ItemType& item_type,
-    const std::string& order_time,
-    double price,
-    const std::string& order_currency_id,
-    bool cancel_status,
-    bool applied_status);
-
-  // Constructs an object setting all fields.
-  explicit InvoiceDetails(
-    int64_t seq,
-    const std::string& invoice_id,
-    const std::string& item_id,
-    const std::string& item_title,
-    const ItemType& item_type,
-    const std::string& order_time,
-    const int64_t* period,
-    double price,
-    const std::string& order_currency_id,
-    bool cancel_status,
-    bool applied_status,
-    const std::string* applied_time,
-    const std::string* limit_end_time,
-    const std::string* remain_time);
-
-  // Sequence number (1 ~ TotalCount).
-  int64_t seq() const;
-  void set_seq(int64_t value_arg);
-
-  // Invoice ID of this purchase history.
-  const std::string& invoice_id() const;
-  void set_invoice_id(std::string_view value_arg);
-
-  // The ID of product.
-  const std::string& item_id() const;
-  void set_item_id(std::string_view value_arg);
-
-  // The name of product.
-  const std::string& item_title() const;
-  void set_item_title(std::string_view value_arg);
-
-  // The type of product.
-  const ItemType& item_type() const;
-  void set_item_type(const ItemType& value_arg);
-
-  // Payment time, in 14-digit UTC time.
-  const std::string& order_time() const;
-  void set_order_time(std::string_view value_arg);
-
-  // Limited period product duration, in minutes.
-  const int64_t* period() const;
-  void set_period(const int64_t* value_arg);
-  void set_period(int64_t value_arg);
-
-  // Product price, in "xxxx.yy" format.
-  double price() const;
-  void set_price(double value_arg);
-
-  // Currency code.
-  const std::string& order_currency_id() const;
-  void set_order_currency_id(std::string_view value_arg);
-
-  // Cancellation status:
-  // "true": Sale canceled
-  // "false" : Sale ongoing
-  bool cancel_status() const;
-  void set_cancel_status(bool value_arg);
-
-  // Product application status:
-  // "true": Applied
-  // "false": Not applied
-  bool applied_status() const;
-  void set_applied_status(bool value_arg);
-
-  // Time product applied, in 14-digit UTC time
-  const std::string* applied_time() const;
-  void set_applied_time(const std::string_view* value_arg);
-  void set_applied_time(std::string_view value_arg);
-
-  // Limited period product end time, in 14-digit UTC time
-  const std::string* limit_end_time() const;
-  void set_limit_end_time(const std::string_view* value_arg);
-  void set_limit_end_time(std::string_view value_arg);
-
-  // Limited period product time remaining, in seconds
-  const std::string* remain_time() const;
-  void set_remain_time(const std::string_view* value_arg);
-  void set_remain_time(std::string_view value_arg);
-
-
- private:
-  static InvoiceDetails FromEncodableList(const flutter::EncodableList& list);
-  flutter::EncodableList ToEncodableList() const;
-  friend class InAppPurchaseApi;
-  friend class PigeonInternalCodecSerializer;
-  int64_t seq_;
-  std::string invoice_id_;
-  std::string item_id_;
-  std::string item_title_;
-  ItemType item_type_;
-  std::string order_time_;
-  std::optional<int64_t> period_;
-  double price_;
-  std::string order_currency_id_;
-  bool cancel_status_;
-  bool applied_status_;
-  std::optional<std::string> applied_time_;
-  std::optional<std::string> limit_end_time_;
-  std::optional<std::string> remain_time_;
 
 };
 
@@ -525,12 +336,13 @@ class ProductMessage {
   // Constructs an object setting all non-nullable fields.
   explicit ProductMessage(
     const std::string& app_id,
+    const std::string& country_code,
     const std::string& check_value);
 
   // Constructs an object setting all fields.
   explicit ProductMessage(
     const std::string& app_id,
-    const std::string* country_code,
+    const std::string& country_code,
     const int64_t* page_size,
     const int64_t* page_num,
     const std::string& check_value);
@@ -538,8 +350,7 @@ class ProductMessage {
   const std::string& app_id() const;
   void set_app_id(std::string_view value_arg);
 
-  const std::string* country_code() const;
-  void set_country_code(const std::string_view* value_arg);
+  const std::string& country_code() const;
   void set_country_code(std::string_view value_arg);
 
   const int64_t* page_size() const;
@@ -560,7 +371,7 @@ class ProductMessage {
   friend class InAppPurchaseApi;
   friend class PigeonInternalCodecSerializer;
   std::string app_id_;
-  std::optional<std::string> country_code_;
+  std::string country_code_;
   std::optional<int64_t> page_size_;
   std::optional<int64_t> page_num_;
   std::string check_value_;
@@ -574,13 +385,14 @@ class PurchaseMessage {
   // Constructs an object setting all non-nullable fields.
   explicit PurchaseMessage(
     const std::string& app_id,
+    const std::string& country_code,
     const std::string& check_value);
 
   // Constructs an object setting all fields.
   explicit PurchaseMessage(
     const std::string& app_id,
     const std::string* custom_id,
-    const std::string* country_code,
+    const std::string& country_code,
     const int64_t* page_num,
     const std::string& check_value);
 
@@ -591,8 +403,7 @@ class PurchaseMessage {
   void set_custom_id(const std::string_view* value_arg);
   void set_custom_id(std::string_view value_arg);
 
-  const std::string* country_code() const;
-  void set_country_code(const std::string_view* value_arg);
+  const std::string& country_code() const;
   void set_country_code(std::string_view value_arg);
 
   const int64_t* page_num() const;
@@ -610,7 +421,7 @@ class PurchaseMessage {
   friend class PigeonInternalCodecSerializer;
   std::string app_id_;
   std::optional<std::string> custom_id_;
-  std::optional<std::string> country_code_;
+  std::string country_code_;
   std::optional<int64_t> page_num_;
   std::string check_value_;
 
@@ -691,14 +502,15 @@ class InvoiceMessage {
   // Constructs an object setting all non-nullable fields.
   explicit InvoiceMessage(
     const std::string& app_id,
-    const std::string& invoice_id);
+    const std::string& invoice_id,
+    const std::string& country_code);
 
   // Constructs an object setting all fields.
   explicit InvoiceMessage(
     const std::string& app_id,
     const std::string* custom_id,
     const std::string& invoice_id,
-    const std::string* country_code);
+    const std::string& country_code);
 
   const std::string& app_id() const;
   void set_app_id(std::string_view value_arg);
@@ -710,8 +522,7 @@ class InvoiceMessage {
   const std::string& invoice_id() const;
   void set_invoice_id(std::string_view value_arg);
 
-  const std::string* country_code() const;
-  void set_country_code(const std::string_view* value_arg);
+  const std::string& country_code() const;
   void set_country_code(std::string_view value_arg);
 
 
@@ -723,7 +534,7 @@ class InvoiceMessage {
   std::string app_id_;
   std::optional<std::string> custom_id_;
   std::string invoice_id_;
-  std::optional<std::string> country_code_;
+  std::string country_code_;
 
 };
 
@@ -767,7 +578,7 @@ class InAppPurchaseApi {
     std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)> result) = 0;
   virtual void IsAvailable(std::function<void(ErrorOr<bool> reply)> result) = 0;
   virtual ErrorOr<std::optional<std::string>> GetCustomId() = 0;
-  virtual ErrorOr<std::optional<std::string>> GetCountryCode() = 0;
+  virtual ErrorOr<std::string> GetCountryCode() = 0;
 
   // The codec used by InAppPurchaseApi.
   static const flutter::StandardMessageCodec& GetCodec();

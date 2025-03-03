@@ -10,6 +10,8 @@ import 'package:in_app_purchase_tizen/billing_manager_wrappers.dart';
 import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 
 void main() {
+  final String countryCode =
+      WidgetsBinding.instance.window.locale.countryCode ?? '';
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(_MyApp());

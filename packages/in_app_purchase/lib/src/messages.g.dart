@@ -32,68 +32,6 @@ enum ItemType {
   subscription,
 }
 
-/// Dart wrapper around [`ItemDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
-///
-/// Defines a dictionary for the ProductsListAPIResult dictionary 'ItemDetails' parameter.
-/// This only can be used in [ProductsListApiResult].
-class ItemDetails {
-  ItemDetails({
-    required this.seq,
-    required this.itemId,
-    required this.itemTitle,
-    required this.itemDesc,
-    required this.itemType,
-    required this.price,
-    required this.currencyId,
-  });
-
-  /// Sequence number (1 ~ TotalCount).
-  int seq;
-
-  /// The ID of Product.
-  String itemId;
-
-  /// The name of product.
-  String itemTitle;
-
-  /// The description of product.
-  String itemDesc;
-
-  /// The type of product.
-  ItemType itemType;
-
-  /// The price of product, in "xxxx.yy" format.
-  double price;
-
-  /// The currency code
-  String currencyId;
-
-  Object encode() {
-    return <Object?>[
-      seq,
-      itemId,
-      itemTitle,
-      itemDesc,
-      itemType,
-      price,
-      currencyId,
-    ];
-  }
-
-  static ItemDetails decode(Object result) {
-    result as List<Object?>;
-    return ItemDetails(
-      seq: result[0]! as int,
-      itemId: result[1]! as String,
-      itemTitle: result[2]! as String,
-      itemDesc: result[3]! as String,
-      itemType: result[4]! as ItemType,
-      price: result[5]! as double,
-      currencyId: result[6]! as String,
-    );
-  }
-}
-
 /// Dart wrapper around [`ProductsListApiResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 ///
 /// Defines a dictionary for product list data returned by the getProductsList API.
@@ -124,7 +62,7 @@ class ProductsListApiResult {
   String checkValue;
 
   /// ItemDetails in JSON format
-  List<ItemDetails> itemDetails;
+  List<Map<Object?, Object?>?> itemDetails;
 
   Object encode() {
     return <Object?>[
@@ -143,115 +81,7 @@ class ProductsListApiResult {
       cpResult: result[1] as String?,
       totalCount: result[2]! as int,
       checkValue: result[3]! as String,
-      itemDetails: (result[4] as List<Object?>?)!.cast<ItemDetails>(),
-    );
-  }
-}
-
-/// Dart wrapper around [`InvoiceDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
-///
-/// Defines a dictionary for the GetUserPurchaseListAPIResult dictionary 'InvoiceDetails' parameter.
-/// This only can be used in [GetUserPurchaseListAPIResult].
-class InvoiceDetails {
-  InvoiceDetails({
-    required this.seq,
-    required this.invoiceId,
-    required this.itemId,
-    required this.itemTitle,
-    required this.itemType,
-    required this.orderTime,
-    this.period,
-    required this.price,
-    required this.orderCurrencyId,
-    required this.cancelStatus,
-    required this.appliedStatus,
-    this.appliedTime,
-    this.limitEndTime,
-    this.remainTime,
-  });
-
-  /// Sequence number (1 ~ TotalCount).
-  int seq;
-
-  /// Invoice ID of this purchase history.
-  String invoiceId;
-
-  /// The ID of product.
-  String itemId;
-
-  /// The name of product.
-  String itemTitle;
-
-  /// The type of product.
-  ItemType itemType;
-
-  /// Payment time, in 14-digit UTC time.
-  String orderTime;
-
-  /// Limited period product duration, in minutes.
-  int? period;
-
-  /// Product price, in "xxxx.yy" format.
-  double price;
-
-  /// Currency code.
-  String orderCurrencyId;
-
-  /// Cancellation status:
-  /// "true": Sale canceled
-  /// "false" : Sale ongoing
-  bool cancelStatus;
-
-  /// Product application status:
-  /// "true": Applied
-  /// "false": Not applied
-  bool appliedStatus;
-
-  /// Time product applied, in 14-digit UTC time
-  String? appliedTime;
-
-  /// Limited period product end time, in 14-digit UTC time
-  String? limitEndTime;
-
-  /// Limited period product time remaining, in seconds
-  String? remainTime;
-
-  Object encode() {
-    return <Object?>[
-      seq,
-      invoiceId,
-      itemId,
-      itemTitle,
-      itemType,
-      orderTime,
-      period,
-      price,
-      orderCurrencyId,
-      cancelStatus,
-      appliedStatus,
-      appliedTime,
-      limitEndTime,
-      remainTime,
-    ];
-  }
-
-  static InvoiceDetails decode(Object result) {
-    result as List<Object?>;
-    return InvoiceDetails(
-      seq: result[0]! as int,
-      invoiceId: result[1]! as String,
-      itemId: result[2]! as String,
-      itemTitle: result[3]! as String,
-      itemType: result[4]! as ItemType,
-      orderTime: result[5]! as String,
-      period: result[6] as int?,
-      price: result[7]! as double,
-      orderCurrencyId: result[8]! as String,
-      cancelStatus: result[9]! as bool,
-      appliedStatus: result[10]! as bool,
-      appliedTime: result[11] as String?,
-      limitEndTime: result[12] as String?,
-      remainTime: result[13] as String?,
+      itemDetails: (result[4] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
     );
   }
 }
@@ -285,7 +115,7 @@ class GetUserPurchaseListAPIResult {
   String? checkValue;
 
   /// InvoiceDetailsin JSON format.
-  List<InvoiceDetails> invoiceDetails;
+  List<Map<Object?, Object?>?> invoiceDetails;
 
   Object encode() {
     return <Object?>[
@@ -304,7 +134,7 @@ class GetUserPurchaseListAPIResult {
       cpResult: result[1] as String?,
       totalCount: result[2] as int?,
       checkValue: result[3] as String?,
-      invoiceDetails: (result[4] as List<Object?>?)!.cast<InvoiceDetails>(),
+      invoiceDetails: (result[4] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
     );
   }
 }
@@ -428,7 +258,7 @@ class ServiceAvailableAPIResult {
 class ProductMessage {
   ProductMessage({
     required this.appId,
-    this.countryCode,
+    required this.countryCode,
     this.pageSize,
     this.pageNum,
     required this.checkValue,
@@ -436,7 +266,7 @@ class ProductMessage {
 
   String appId;
 
-  String? countryCode;
+  String countryCode;
 
   int? pageSize;
 
@@ -458,7 +288,7 @@ class ProductMessage {
     result as List<Object?>;
     return ProductMessage(
       appId: result[0]! as String,
-      countryCode: result[1] as String?,
+      countryCode: result[1]! as String,
       pageSize: result[2] as int?,
       pageNum: result[3] as int?,
       checkValue: result[4]! as String,
@@ -470,7 +300,7 @@ class PurchaseMessage {
   PurchaseMessage({
     required this.appId,
     this.customId,
-    this.countryCode,
+    required this.countryCode,
     this.pageNum,
     required this.checkValue,
   });
@@ -479,7 +309,7 @@ class PurchaseMessage {
 
   String? customId;
 
-  String? countryCode;
+  String countryCode;
 
   int? pageNum;
 
@@ -500,7 +330,7 @@ class PurchaseMessage {
     return PurchaseMessage(
       appId: result[0]! as String,
       customId: result[1] as String?,
-      countryCode: result[2] as String?,
+      countryCode: result[2]! as String,
       pageNum: result[3] as int?,
       checkValue: result[4]! as String,
     );
@@ -574,7 +404,7 @@ class InvoiceMessage {
     required this.appId,
     this.customId,
     required this.invoiceId,
-    this.countryCode,
+    required this.countryCode,
   });
 
   String appId;
@@ -583,7 +413,7 @@ class InvoiceMessage {
 
   String invoiceId;
 
-  String? countryCode;
+  String countryCode;
 
   Object encode() {
     return <Object?>[
@@ -600,7 +430,7 @@ class InvoiceMessage {
       appId: result[0]! as String,
       customId: result[1] as String?,
       invoiceId: result[2]! as String,
-      countryCode: result[3] as String?,
+      countryCode: result[3]! as String,
     );
   }
 }
@@ -616,41 +446,35 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is ItemType) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is ItemDetails) {
+    }    else if (value is ProductsListApiResult) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is ProductsListApiResult) {
+    }    else if (value is GetUserPurchaseListAPIResult) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is InvoiceDetails) {
+    }    else if (value is BillingBuyData) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is GetUserPurchaseListAPIResult) {
+    }    else if (value is VerifyInvoiceAPIResult) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is BillingBuyData) {
+    }    else if (value is ServiceAvailableAPIResult) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is VerifyInvoiceAPIResult) {
+    }    else if (value is ProductMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is ServiceAvailableAPIResult) {
+    }    else if (value is PurchaseMessage) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is ProductMessage) {
+    }    else if (value is OrderDetails) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    }    else if (value is PurchaseMessage) {
+    }    else if (value is BuyInfoMessage) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    }    else if (value is OrderDetails) {
-      buffer.putUint8(139);
-      writeValue(buffer, value.encode());
-    }    else if (value is BuyInfoMessage) {
-      buffer.putUint8(140);
-      writeValue(buffer, value.encode());
     }    else if (value is InvoiceMessage) {
-      buffer.putUint8(141);
+      buffer.putUint8(139);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -664,28 +488,24 @@ class _PigeonCodec extends StandardMessageCodec {
         final int? value = readValue(buffer) as int?;
         return value == null ? null : ItemType.values[value];
       case 130: 
-        return ItemDetails.decode(readValue(buffer)!);
-      case 131: 
         return ProductsListApiResult.decode(readValue(buffer)!);
-      case 132: 
-        return InvoiceDetails.decode(readValue(buffer)!);
-      case 133: 
+      case 131: 
         return GetUserPurchaseListAPIResult.decode(readValue(buffer)!);
-      case 134: 
+      case 132: 
         return BillingBuyData.decode(readValue(buffer)!);
-      case 135: 
+      case 133: 
         return VerifyInvoiceAPIResult.decode(readValue(buffer)!);
-      case 136: 
+      case 134: 
         return ServiceAvailableAPIResult.decode(readValue(buffer)!);
-      case 137: 
+      case 135: 
         return ProductMessage.decode(readValue(buffer)!);
-      case 138: 
+      case 136: 
         return PurchaseMessage.decode(readValue(buffer)!);
-      case 139: 
+      case 137: 
         return OrderDetails.decode(readValue(buffer)!);
-      case 140: 
+      case 138: 
         return BuyInfoMessage.decode(readValue(buffer)!);
-      case 141: 
+      case 139: 
         return InvoiceMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -863,7 +683,7 @@ class InAppPurchaseApi {
     }
   }
 
-  Future<String?> getCountryCode() async {
+  Future<String> getCountryCode() async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCountryCode$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -880,8 +700,13 @@ class InAppPurchaseApi {
         message: pigeonVar_replyList[1] as String?,
         details: pigeonVar_replyList[2],
       );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
     } else {
-      return (pigeonVar_replyList[0] as String?);
+      return (pigeonVar_replyList[0] as String?)!;
     }
   }
 }
