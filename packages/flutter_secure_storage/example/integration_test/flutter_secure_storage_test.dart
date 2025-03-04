@@ -12,7 +12,7 @@ void main() {
 
   late FlutterSecureStorage storage;
 
-  setUpAll(() async {
+  setUpAll(() {
     storage = const FlutterSecureStorage();
   });
 
