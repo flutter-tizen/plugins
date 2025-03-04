@@ -164,7 +164,9 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
 
   /// Get dashplayer properties.
   Future<Map<DashPlayerProperty, Object>> getData(
-      int playerId, Set<DashPlayerProperty> keys) {
+    int playerId,
+    Set<DashPlayerProperty> keys,
+  ) {
     throw UnimplementedError('getData() has not been implemented.');
   }
 
