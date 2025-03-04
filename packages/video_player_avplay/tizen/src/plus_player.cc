@@ -663,7 +663,8 @@ bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
     return false;
   }
   LOG_INFO("[PlusPlayer] display_mode: %lld", display_mode);
-  return ::SetDisplayMode(player_, static_cast<plusplayer::DisplayMode>(display_mode));
+  return ::SetDisplayMode(player_,
+                          static_cast<plusplayer::DisplayMode>(display_mode));
 }
 
 bool PlusPlayer::Suspend() { return false; }

@@ -53,8 +53,8 @@ void main() {
     });
 
     testWidgets('live stream duration != 0', (WidgetTester tester) async {
-      final VideoPlayerController networkController =
-          VideoPlayerController.network(
+      final VideoPlayerController
+      networkController = VideoPlayerController.network(
         'https://flutter.github.io/assets-for-api-docs/assets/videos/hls/bee.m3u8',
       );
       await networkController.initialize();
@@ -194,7 +194,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(controller.value.isPlaying, true);
       },
-      skip: kIsWeb || // Web does not support local assets.
+      skip:
+          kIsWeb || // Web does not support local assets.
           // Extremely flaky on iOS: https://github.com/flutter/flutter/issues/86915
           defaultTargetPlatform == TargetPlatform.iOS,
     );
