@@ -646,7 +646,7 @@ bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
     return false;
   }
 
-  LOG_INFO("[PlusPlayer] rotation: %d", rotation);
+  LOG_INFO("[PlusPlayer] rotation: %lld", rotation);
   return ::SetDisplayRotate(player_,
                             static_cast<plusplayer::DisplayRotation>(rotation));
 }
@@ -662,9 +662,12 @@ bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
     return false;
   }
-  LOG_INFO("[PlusPlayer] display_mode: %d", display_mode);
-  ::SetDisplayMode(player_, static_cast<plusplayer::DisplayMode>(display_mode));
+  LOG_INFO("[PlusPlayer] display_mode: %lld", display_mode);
+  return ::SetDisplayMode(player_, static_cast<plusplayer::DisplayMode>(display_mode));
 }
+
+bool PlusPlayer::Suspend() { return false; }
+bool PlusPlayer::Restore(std::string url, int64_t resume_time) { return false; }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
                                    unsigned char *pssh_data, void *user_data) {

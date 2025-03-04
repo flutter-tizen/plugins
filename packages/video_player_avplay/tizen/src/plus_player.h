@@ -48,6 +48,8 @@ class PlusPlayer : public VideoPlayer {
                             const std::string &value) override;
   bool SetDisplayRotate(int64_t rotation) override;
   bool SetDisplayMode(int64_t display_mode) override;
+  bool Suspend() override;
+  bool Restore(std::string url, int64_t resume_time) override;
 
  private:
   bool IsLive();
