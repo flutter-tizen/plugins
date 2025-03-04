@@ -39,13 +39,14 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.httpHeaders = dataSource.httpHeaders;
         message.drmConfigs = dataSource.drmConfigs?.toMap();
         message.playerOptions = dataSource.playerOptions;
-        message.streamingProperty = dataSource.streamingProperty == null
-            ? null
-            : <String, String>{
-                for (final MapEntry<StreamingPropertyType, String> entry
-                    in dataSource.streamingProperty!.entries)
-                  _streamingPropertyType[entry.key]!: entry.value,
-              };
+        message.streamingProperty =
+            dataSource.streamingProperty == null
+                ? null
+                : <String, String>{
+                  for (final MapEntry<StreamingPropertyType, String> entry
+                      in dataSource.streamingProperty!.entries)
+                    _streamingPropertyType[entry.key]!: entry.value,
+                };
       case DataSourceType.file:
         message.uri = dataSource.uri;
       case DataSourceType.contentUri:
@@ -253,7 +254,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   @override
   Future<void> restore(int playerId, {String? url, int resumeTime = 0}) {
     return _api.restore(
-        RestoreMessage(playerId: playerId, url: url, resumeTime: resumeTime));
+      RestoreMessage(playerId: playerId, url: url, resumeTime: resumeTime),
+    );
   }
 
   @override
@@ -357,32 +359,32 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   static const Map<VideoFormat, String> _videoFormatStringMap =
       <VideoFormat, String>{
-    VideoFormat.ss: 'ss',
-    VideoFormat.hls: 'hls',
-    VideoFormat.dash: 'dash',
-    VideoFormat.other: 'other',
-  };
+        VideoFormat.ss: 'ss',
+        VideoFormat.hls: 'hls',
+        VideoFormat.dash: 'dash',
+        VideoFormat.other: 'other',
+      };
 
   static const Map<StreamingPropertyType, String> _streamingPropertyType =
       <StreamingPropertyType, String>{
-    StreamingPropertyType.adaptiveInfo: 'ADAPTIVE_INFO',
-    StreamingPropertyType.availableBitrate: 'AVAILABLE_BITRATE',
-    StreamingPropertyType.cookie: 'COOKIE',
-    StreamingPropertyType.currentBandwidth: 'CURRENT_BANDWIDTH',
-    StreamingPropertyType.getLiveDuration: 'GET_LIVE_DURATION',
-    StreamingPropertyType.inAppMultiView: 'IN_APP_MULTIVIEW',
-    StreamingPropertyType.isLive: 'IS_LIVE',
-    StreamingPropertyType.listenSparseTrack: 'LISTEN_SPARSE_TRACK',
-    StreamingPropertyType.portraitMode: 'PORTRAIT_MODE',
-    StreamingPropertyType.prebufferMode: 'PREBUFFER_MODE',
-    StreamingPropertyType.setMixedFrame: 'SET_MIXEDFRAME',
-    StreamingPropertyType.setMode4K: 'SET_MODE_4K',
-    StreamingPropertyType.userAgent: 'USER_AGENT',
-    StreamingPropertyType.useVideoMixer: 'USE_VIDEOMIXER',
-  };
+        StreamingPropertyType.adaptiveInfo: 'ADAPTIVE_INFO',
+        StreamingPropertyType.availableBitrate: 'AVAILABLE_BITRATE',
+        StreamingPropertyType.cookie: 'COOKIE',
+        StreamingPropertyType.currentBandwidth: 'CURRENT_BANDWIDTH',
+        StreamingPropertyType.getLiveDuration: 'GET_LIVE_DURATION',
+        StreamingPropertyType.inAppMultiView: 'IN_APP_MULTIVIEW',
+        StreamingPropertyType.isLive: 'IS_LIVE',
+        StreamingPropertyType.listenSparseTrack: 'LISTEN_SPARSE_TRACK',
+        StreamingPropertyType.portraitMode: 'PORTRAIT_MODE',
+        StreamingPropertyType.prebufferMode: 'PREBUFFER_MODE',
+        StreamingPropertyType.setMixedFrame: 'SET_MIXEDFRAME',
+        StreamingPropertyType.setMode4K: 'SET_MODE_4K',
+        StreamingPropertyType.userAgent: 'USER_AGENT',
+        StreamingPropertyType.useVideoMixer: 'USE_VIDEOMIXER',
+      };
 
-  static const Map<BufferConfigType, String> _bufferConfigTypeMap =
-      <BufferConfigType, String>{
+  static const Map<BufferConfigType, String>
+  _bufferConfigTypeMap = <BufferConfigType, String>{
     BufferConfigType.totalBufferSizeInByte: 'total_buffer_size_in_byte',
     BufferConfigType.totalBufferSizeInTime: 'total_buffer_size_in_time',
     BufferConfigType.bufferSizeInByteForPlay: 'buffer_size_in_byte_for_play',
