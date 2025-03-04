@@ -168,6 +168,16 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     );
   }
 
+  /// Pauses the player when the application is sent to the background.
+  Future<void> suspend(int playerId) {
+    throw UnimplementedError('suspend() has not been implemented.');
+  }
+
+  /// Restores the player when the application is resumed.
+  Future<void> restore(int playerId, {String? url, int resumeTime = 0}) {
+    throw UnimplementedError('restore() has not been implemented.');
+  }
+
   /// Returns a widget displaying the video with a given playerId.
   Widget buildView(int playerId) {
     throw UnimplementedError('buildView() has not been implemented.');

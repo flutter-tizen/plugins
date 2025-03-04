@@ -64,6 +64,9 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   ErrorOr<bool> SetDisplayRotate(const RotationMessage &msg) override;
   ErrorOr<bool> SetDisplayMode(const DisplayModeMessage &msg) override;
 
+  std::optional<FlutterError> Suspend(const PlayerMessage &msg) override;
+  std::optional<FlutterError> Restore(const RestoreMessage &msg) override;
+
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
     if (iter != players_.end()) {
@@ -342,6 +345,25 @@ ErrorOr<bool> VideoPlayerTizenPlugin::SetDisplayMode(
     return FlutterError("Invalid argument", "Player not found");
   }
   return player->SetDisplayMode(msg.display_mode());
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::Suspend(
+    const PlayerMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  player->Suspend();
+  return std::nullopt;
+}
+std::optional<FlutterError> VideoPlayerTizenPlugin::Restore(
+    const RestoreMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  player->Restore(*msg.url(), *msg.resume_time());
+  return std::nullopt;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetStreamingProperty(

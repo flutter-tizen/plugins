@@ -865,6 +865,30 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.setDisplayMode(_playerId, displayMode);
   }
 
+  ///Pauses the player  when the application is sent to the background.
+  ///Saves the current statistics for the ongoing playback session.
+  Future<void> suspend() async {
+    if (_isDisposedOrNotInitialized) {
+      return;
+    }
+    return _videoPlayerPlatform.suspend(playerId);
+  }
+
+  ///Restores the player state when the application is resumed.
+  ///For live streaming or DRM-encrypted content playback, you must check whether the
+  ///streaming URL has changed or the DRM session or license has expired, and specify
+  ///the new URL and DRM information as needed.
+  Future<void> restore({String? url, int resumeTime = 0}) async {
+    if (_isDisposedOrNotInitialized) {
+      return;
+    }
+    return _videoPlayerPlatform.restore(
+      playerId,
+      url: url,
+      resumeTime: resumeTime,
+    );
+  }
+
   /// Sets the playback speed of [this].
   ///
   /// [speed] indicates a speed value with different platforms accepting
