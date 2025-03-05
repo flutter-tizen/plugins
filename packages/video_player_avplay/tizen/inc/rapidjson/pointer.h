@@ -1068,7 +1068,8 @@ class GenericPointer {
                        \param source Either a JSON Pointer string, or its URI fragment
                       representation. Not need to be null terminated.                  \param
                       length Length of the                  source string.                  \note
-                      Source cannot be                  JSON String Representation of JSON                  Pointer, e.g. In
+                      Source cannot be                  JSON String Representation of JSON
+                      Pointer, e.g. In
                       "/\u0000", \u0000 will                  not be unescaped.
                    */
 #endif
