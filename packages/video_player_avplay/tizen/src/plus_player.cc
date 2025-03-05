@@ -5,12 +5,14 @@
 #include "plus_player.h"
 
 #include <app_manager.h>
-#include <json-glib/json-glib.h>
 #include <system_info.h>
 
 #include <sstream>
 
 #include "log.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 static std::vector<std::string> split(const std::string &s, char delim) {
   std::stringstream ss(s);
@@ -669,87 +671,72 @@ bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
 }
 
 std::string BuildJsonString(const flutter::EncodableMap &data) {
-  std::string result;
-  JsonBuilder *builder = json_builder_new();
-  json_builder_begin_object(builder);
+  rapidjson::Document doc;
+  doc.SetObject();
+  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+
   for (const auto &pair : data) {
-    if (std::get<std::string>(pair.first) == "max-bandwidth") {
-      json_builder_set_member_name(builder,
-                                   std::get<std::string>(pair.first).c_str());
-      json_builder_add_int_value(builder, std::get<int64_t>(pair.second));
+    std::string key_str = std::get<std::string>(pair.first);
+    rapidjson::Value key(key_str.c_str(), allocator);
+    if (key_str == "max-bandwidth") {
+      doc.AddMember(key, rapidjson::Value(std::get<int64_t>(pair.second)),
+                    allocator);
     } else {
-      json_builder_set_member_name(builder,
-                                   std::get<std::string>(pair.first).c_str());
-      json_builder_add_string_value(builder,
-                                    std::get<std::string>(pair.second).c_str());
+      doc.AddMember(key,
+                    rapidjson::Value(std::get<std::string>(pair.second).c_str(),
+                                     allocator),
+                    allocator);
     }
   }
-  json_builder_end_object(builder);
-  JsonGenerator *gen = json_generator_new();
-  JsonNode *root = json_builder_get_root(builder);
-  json_generator_set_root(gen, root);
-  result = std::string(json_generator_to_data(gen, nullptr));
-  json_node_free(root);
-  g_object_unref(gen);
-  g_object_unref(builder);
-  return result;
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  doc.Accept(writer);
+  return buffer.GetString();
 }
 
-std::string BuildJsonString(const flutter::EncodableList &keys) {
-  std::string result;
-  JsonBuilder *builder = json_builder_new();
-  json_builder_begin_object(builder);
-  for (const auto &key : keys) {
-    if (std::get<std::string>(key) == "max-bandwidth") {
-      json_builder_set_member_name(builder, std::get<std::string>(key).c_str());
-      json_builder_add_int_value(builder, 0);
+std::string BuildJsonString(const flutter::EncodableList &encodable_keys) {
+  rapidjson::Document doc;
+  doc.SetObject();
+  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+
+  for (const auto &encodable_key : encodable_keys) {
+    std::string key_str = std::get<std::string>(encodable_key);
+    rapidjson::Value key(key_str.c_str(), allocator);
+    if (key_str == "max-bandwidth") {
+      doc.AddMember(key, 0, allocator);
     } else {
-      json_builder_set_member_name(builder, std::get<std::string>(key).c_str());
-      json_builder_add_string_value(builder, "");
+      doc.AddMember(key, "", allocator);
     }
   }
-  json_builder_end_object(builder);
-  JsonGenerator *gen = json_generator_new();
-  JsonNode *root = json_builder_get_root(builder);
-  json_generator_set_root(gen, root);
-  result = std::string(json_generator_to_data(gen, nullptr));
-  json_node_free(root);
-  g_object_unref(gen);
-  g_object_unref(builder);
-  return result;
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  doc.Accept(writer);
+  return buffer.GetString();
 }
 
-void ParseJsonString(std::string json_str, const flutter::EncodableList &keys,
+void ParseJsonString(std::string json_str,
+                     const flutter::EncodableList &encodable_keys,
                      flutter::EncodableMap &output) {
-  JsonParser *parser = json_parser_new();
-  GError *error = nullptr;
-
-  if (!json_parser_load_from_data(parser, json_str.c_str(), -1, &error)) {
-    LOG_ERROR("[PlusPlayer] Fail to parse json string : %s.", error->message);
-    g_error_free(error);
-    g_object_unref(parser);
+  rapidjson::Document doc;
+  doc.Parse(json_str.c_str());
+  if (doc.HasParseError()) {
+    LOG_ERROR("[PlusPlayer] Fail to parse json string.");
     return;
   }
-
-  JsonNode *root = json_parser_get_root(parser);
-  if (JSON_NODE_HOLDS_OBJECT(root)) {
-    JsonObject *root_object = json_node_get_object(root);
-    for (const auto &key : keys) {
-      if (json_object_has_member(root_object,
-                                 std::get<std::string>(key).c_str())) {
-        if (std::get<std::string>(key) == "max-bandwidth") {
-          output.insert_or_assign(
-              key, flutter::EncodableValue(json_object_get_int_member(
-                       root_object, std::get<std::string>(key).c_str())));
-        } else {
-          output.insert_or_assign(
-              key, flutter::EncodableValue(json_object_get_string_member(
-                       root_object, std::get<std::string>(key).c_str())));
-        }
+  for (const auto &encodable_key : encodable_keys) {
+    std::string key_str = std::get<std::string>(encodable_key);
+    if (doc.HasMember(key_str.c_str())) {
+      if (key_str == "max-bandwidth") {
+        output.insert_or_assign(
+            encodable_key,
+            flutter::EncodableValue(doc[key_str.c_str()].GetInt64()));
+      } else {
+        output.insert_or_assign(
+            encodable_key,
+            flutter::EncodableValue(doc[key_str.c_str()].GetString()));
       }
     }
   }
-  g_object_unref(parser);
 }
 
 bool PlusPlayer::SetData(const flutter::EncodableMap &data) {
