@@ -11,10 +11,10 @@ class MarkersController extends GeometryController {
   MarkersController({
     required StreamController<MapEvent<Object?>> stream,
     required ClusterManagersController clusterManagersController,
-  })  : _streamController = stream,
-        _clusterManagersController = clusterManagersController,
-        _idToMarkerId = <int, MarkerId>{},
-        _markerIdToController = <MarkerId, MarkerController>{};
+  }) : _streamController = stream,
+       _clusterManagersController = clusterManagersController,
+       _idToMarkerId = <int, MarkerId>{},
+       _markerIdToController = <MarkerId, MarkerController>{};
 
   // A cache of [MarkerController]s indexed by their [MarkerId].
   final Map<MarkerId, MarkerController> _markerIdToController;
@@ -114,7 +114,9 @@ class MarkersController extends GeometryController {
 
     if (markerController?.clusterManagerId != null) {
       _clusterManagersController.removeItem(
-          markerController!.clusterManagerId!, markerController.marker);
+        markerController!.clusterManagerId!,
+        markerController.marker,
+      );
     }
 
     markerController?.remove();
@@ -172,10 +174,11 @@ class MarkersController extends GeometryController {
   void _hideAllMarkerInfoWindow() {
     _markerIdToController.values
         .where(
-      (MarkerController? controller) => controller?.infoWindowShown ?? false,
-    )
+          (MarkerController? controller) =>
+              controller?.infoWindowShown ?? false,
+        )
         .forEach((MarkerController controller) {
-      controller.hideInfoWindow();
-    });
+          controller.hideInfoWindow();
+        });
   }
 }

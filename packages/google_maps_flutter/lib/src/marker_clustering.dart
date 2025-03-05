@@ -15,19 +15,19 @@ class ClusterManagersController extends GeometryController {
   ///
   /// The [stream] parameter is a required [StreamController] used for
   /// emitting map events.
-  ClusterManagersController(
-      {required StreamController<MapEvent<Object?>> stream})
-      : _streamController = stream,
-        _idToClusterManagerId = <String, ClusterManagerId>{},
-        _clusterManagerIdToMarkerClusterer =
-            <ClusterManagerId, util.GMarkerClusterer>{};
+  ClusterManagersController({
+    required StreamController<MapEvent<Object?>> stream,
+  }) : _streamController = stream,
+       _idToClusterManagerId = <String, ClusterManagerId>{},
+       _clusterManagerIdToMarkerClusterer =
+           <ClusterManagerId, util.GMarkerClusterer>{};
 
   // The stream over which cluster managers broadcast their events
   final StreamController<MapEvent<Object?>> _streamController;
 
   // A cache of [MarkerClusterer]s indexed by their [ClusterManagerId].
   final Map<ClusterManagerId, util.GMarkerClusterer>
-      _clusterManagerIdToMarkerClusterer;
+  _clusterManagerIdToMarkerClusterer;
   final Map<String, ClusterManagerId> _idToClusterManagerId;
 
   /// A cache of [ClusterManagerId]s indexed by [GMarkerClusterer.id].
@@ -47,8 +47,9 @@ class ClusterManagersController extends GeometryController {
       onClusterClick: onClusterClickHandler,
     );
 
-    final util.GMarkerClusterer markerClusterer =
-        util.GMarkerClusterer(options);
+    final util.GMarkerClusterer markerClusterer = util.GMarkerClusterer(
+      options,
+    );
 
     _clusterManagerIdToMarkerClusterer[clusterManager.clusterManagerId] =
         markerClusterer;
@@ -103,8 +104,10 @@ class ClusterManagersController extends GeometryController {
         _clusterManagerIdToMarkerClusterer[clusterManagerId];
     if (markerClusterer != null) {
       return markerClusterer.clusters
-          .map((Map<String, dynamic> cluster) =>
-              _convertCluster(clusterManagerId, cluster))
+          .map(
+            (Map<String, dynamic> cluster) =>
+                _convertCluster(clusterManagerId, cluster),
+          )
           .toList();
     }
     return <Cluster>[];
@@ -112,36 +115,46 @@ class ClusterManagersController extends GeometryController {
 
   /// Call ClusterTapEvent when [MarkerClusterer] with given [ClusterManagerId]
   /// is clicked.
-  void clusterClicked(ClusterManagerId clusterManagerId,
-      Map<String, dynamic> markerClustererCluster) {
+  void clusterClicked(
+    ClusterManagerId clusterManagerId,
+    Map<String, dynamic> markerClustererCluster,
+  ) {
     if (markerClustererCluster['count'] as int > 0 &&
         markerClustererCluster['bounds'] != null) {
-      final Cluster cluster =
-          _convertCluster(clusterManagerId, markerClustererCluster);
+      final Cluster cluster = _convertCluster(
+        clusterManagerId,
+        markerClustererCluster,
+      );
       _streamController.add(ClusterTapEvent(mapId, cluster));
     }
   }
 
   /// Converts [MarkerClustererCluster] to [Cluster].
-  Cluster _convertCluster(ClusterManagerId clusterManagerId,
-      Map<String, dynamic> markerClustererCluster) {
+  Cluster _convertCluster(
+    ClusterManagerId clusterManagerId,
+    Map<String, dynamic> markerClustererCluster,
+  ) {
     final LatLng position = LatLng(
       (markerClustererCluster['position'] as dynamic)['lat'] as double,
       (markerClustererCluster['position'] as dynamic)['lng'] as double,
     );
 
     final LatLngBounds bounds = LatLngBounds(
-        southwest: LatLng(
-            (markerClustererCluster['bounds'] as dynamic)['south'] as double,
-            (markerClustererCluster['bounds'] as dynamic)['west'] as double),
-        northeast: LatLng(
-            (markerClustererCluster['bounds'] as dynamic)['north'] as double,
-            (markerClustererCluster['bounds'] as dynamic)['east'] as double));
+      southwest: LatLng(
+        (markerClustererCluster['bounds'] as dynamic)['south'] as double,
+        (markerClustererCluster['bounds'] as dynamic)['west'] as double,
+      ),
+      northeast: LatLng(
+        (markerClustererCluster['bounds'] as dynamic)['north'] as double,
+        (markerClustererCluster['bounds'] as dynamic)['east'] as double,
+      ),
+    );
 
     final List<MarkerId> markerIds =
         (markerClustererCluster['markers']! as List<dynamic>)
             .map<MarkerId>(
-                (dynamic markerId) => MarkerId((markerId as int).toString()))
+              (dynamic markerId) => MarkerId((markerId as int).toString()),
+            )
             .toList();
 
     return Cluster(
