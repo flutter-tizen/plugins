@@ -8,10 +8,13 @@ part of '../google_maps_flutter_tizen.dart';
 /// This class manages a set of [MarkerController]s associated to a [GoogleMapController].
 class MarkersController extends GeometryController {
   /// Initialize the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
-  MarkersController({required StreamController<MapEvent<Object?>> stream})
-    : _streamController = stream,
-      _idToMarkerId = <int, MarkerId>{},
-      _markerIdToController = <MarkerId, MarkerController>{};
+  MarkersController({
+    required StreamController<MapEvent<Object?>> stream,
+    required ClusterManagersController clusterManagersController,
+  })  : _streamController = stream,
+        _clusterManagersController = clusterManagersController,
+        _idToMarkerId = <int, MarkerId>{},
+        _markerIdToController = <MarkerId, MarkerController>{};
 
   // A cache of [MarkerController]s indexed by their [MarkerId].
   final Map<MarkerId, MarkerController> _markerIdToController;
@@ -19,6 +22,8 @@ class MarkersController extends GeometryController {
 
   // The stream over which markers broadcast their events
   final StreamController<MapEvent<Object?>> _streamController;
+
+  final ClusterManagersController _clusterManagersController;
 
   /// Adds a set of [Marker] objects to the cache.
   ///
@@ -46,13 +51,24 @@ class MarkersController extends GeometryController {
     );
     final util.GMarker gMarker = util.GMarker(populationOptions);
 
-    final MarkerController controller = MarkerController(
+    if (marker.clusterManagerId != null) {
+      _clusterManagersController.addItem(marker.clusterManagerId!, gMarker);
+    }
+
+    final MarkerController markerController = MarkerController(
       marker: gMarker,
+      clusterManagerId: marker.clusterManagerId,
       infoWindow: infoWindow,
       consumeTapEvents: marker.consumeTapEvents,
       onTap: () {
         showMarkerInfoWindow(marker.markerId);
         _onMarkerTap(marker.markerId);
+      },
+      onDragStart: (LatLng latLng) {
+        _onMarkerDragStart(marker.markerId, latLng);
+      },
+      onDrag: (LatLng latLng) {
+        _onMarkerDrag(marker.markerId, latLng);
       },
       onDragEnd: (LatLng latLng) {
         _onMarkerDragEnd(marker.markerId, latLng);
@@ -60,7 +76,7 @@ class MarkersController extends GeometryController {
       controller: util.webController,
     );
     _idToMarkerId[gMarker.id] = marker.markerId;
-    _markerIdToController[marker.markerId] = controller;
+    _markerIdToController[marker.markerId] = markerController;
   }
 
   /// Updates a set of [Marker] objects with new options.
@@ -95,6 +111,12 @@ class MarkersController extends GeometryController {
 
   void _removeMarker(MarkerId markerId) {
     final MarkerController? markerController = _markerIdToController[markerId];
+
+    if (markerController?.clusterManagerId != null) {
+      _clusterManagersController.removeItem(
+          markerController!.clusterManagerId!, markerController.marker);
+    }
+
     markerController?.remove();
     _markerIdToController.remove(markerId);
   }
@@ -135,6 +157,14 @@ class MarkersController extends GeometryController {
     _streamController.add(InfoWindowTapEvent(mapId, markerId));
   }
 
+  void _onMarkerDragStart(MarkerId markerId, LatLng latLng) {
+    _streamController.add(MarkerDragStartEvent(mapId, latLng, markerId));
+  }
+
+  void _onMarkerDrag(MarkerId markerId, LatLng latLng) {
+    _streamController.add(MarkerDragEvent(mapId, latLng, markerId));
+  }
+
   void _onMarkerDragEnd(MarkerId markerId, LatLng latLng) {
     _streamController.add(MarkerDragEndEvent(mapId, latLng, markerId));
   }
@@ -142,11 +172,10 @@ class MarkersController extends GeometryController {
   void _hideAllMarkerInfoWindow() {
     _markerIdToController.values
         .where(
-          (MarkerController? controller) =>
-              controller?.infoWindowShown ?? false,
-        )
+      (MarkerController? controller) => controller?.infoWindowShown ?? false,
+    )
         .forEach((MarkerController controller) {
-          controller.hideInfoWindow();
-        });
+      controller.hideInfoWindow();
+    });
   }
 }

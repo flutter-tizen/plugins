@@ -5,7 +5,6 @@
 
 // ignore_for_file: avoid_setters_without_getters
 
-//part of '../google_maps_flutter_tizen.dart';
 import 'dart:async';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -25,11 +24,7 @@ const ScreenCoordinate nullScreenCoordinate = ScreenCoordinate(x: 0, y: 0);
 /// This class defines marker's options.
 class GMarkerOptions {
   /// GMarkerOptions Constructor.
-  factory GMarkerOptions() {
-    return _options;
-  }
-  GMarkerOptions._internal();
-  static final GMarkerOptions _options = GMarkerOptions._internal();
+  GMarkerOptions();
 
   /// The offset from the marker's position to the tip of an InfoWindow.
   GPoint? anchorPoint;
@@ -130,11 +125,7 @@ class GPoint {
 /// This class defines info window's options.
 class GInfoWindowOptions {
   /// GInfoWindowOptions Constructor.
-  factory GInfoWindowOptions() {
-    return _options;
-  }
-  GInfoWindowOptions._internal();
-  static final GInfoWindowOptions _options = GInfoWindowOptions._internal();
+  GInfoWindowOptions();
 
   /// Content to display in the InfoWindow.
   String? content;
@@ -147,10 +138,9 @@ class GInfoWindowOptions {
 
   @override
   String toString() {
-    final String pos =
-        position != null
-            ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
-            : 'null';
+    final String pos = position != null
+        ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
+        : 'null';
     return '{content:$content, pixelOffset:null , position:$pos, zIndex:$zIndex}';
   }
 }
@@ -214,14 +204,16 @@ class GInfoWindow {
 /// This class represents a geographical location on the map as a Marker.
 class GMarker {
   /// GMarker Constructor.
-  GMarker([GMarkerOptions? opts]) : id = _gid++, _options = opts {
+  GMarker([GMarkerOptions? opts])
+      : id = _gid++,
+        _options = opts {
     _createMarker(opts);
   }
 
   Future<void> _createMarker(GMarkerOptions? opts) async {
-    await webController!.runJavaScript(
-      'var ${toString()} = new google.maps.Marker($opts);',
-    );
+    final String command =
+        'var ${toString()} = new google.maps.Marker($opts); ${toString()}.id = $id;';
+    await webController!.runJavaScript(command);
   }
 
   /// GMarker id.
@@ -245,8 +237,34 @@ class GMarker {
 
   /// Sets marker options.
   set options(GMarkerOptions? options) {
-    _options = options;
-    _setOptions(options);
+    if (_options == null || options == null) {
+      _options = options;
+      _setOptions(options);
+      return;
+    }
+
+    if (_options!.draggable != options.draggable) {
+      _options!.draggable = options.draggable;
+      _setDraggable(options.draggable);
+    } else if (_options!.icon != options.icon) {
+      _options!.icon = options.icon;
+      _setIcon(options.icon);
+    } else if (_options!.opacity != options.opacity) {
+      _options!.opacity = options.opacity;
+      _setOpacity(options.opacity);
+    } else if (_options!.position != options.position) {
+      _options!.position = options.position;
+      _setPosition(options.position);
+    } else if (_options!.title != options.title) {
+      _options!.title = options.title;
+      _setTitle(options.title);
+    } else if (_options!.visible != options.visible) {
+      _options!.visible = options.visible;
+      _setVisible(options.visible);
+    } else if (_options!.zIndex != options.zIndex) {
+      _options!.zIndex = options.zIndex;
+      _setZIndex(options.zIndex);
+    }
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
@@ -260,9 +278,36 @@ class GMarker {
   Future<void> _setVisible(bool? visible) async {
     await callMethod(this, 'setVisible', <bool?>[visible]);
   }
+
+  Future<void> _setDraggable(bool? visible) async {
+    await callMethod(this, 'setDraggable', <bool?>[visible]);
+  }
+
+  Future<void> _setIcon(Object? icon) async {
+    await callMethod(this, 'setIcon', <Object?>[icon]);
+  }
+
+  Future<void> _setOpacity(num? opacity) async {
+    await callMethod(this, 'setOpacity', <num?>[opacity]);
+  }
+
+  Future<void> _setPosition(LatLng? position) async {
+    await callMethod(this, 'setPosition', [
+      'new google.maps.LatLng(${position!.latitude},${position.longitude})'
+    ]);
+  }
+
+  Future<void> _setTitle(String? title) async {
+    await callMethod(this, 'setTitle', <String?>[title]);
+  }
+
+  Future<void> _setZIndex(num? zIndex) async {
+    await callMethod(this, 'setZIndex', <num?>[zIndex]);
+  }
 }
 
-/// This class represents a linear overlay of connected line segments on the map.
+/// This class represents a linear overlay of connected line segments on the
+/// map.
 class GPolyline {
   /// GPolyline Constructor.
   GPolyline([GPolylineOptions? opts]) : id = _gid++ {
@@ -311,11 +356,7 @@ class GPolyline {
 /// This class defines polyline's options.
 class GPolylineOptions {
   /// GPolylineOptions Constructor.
-  factory GPolylineOptions() {
-    return _options;
-  }
-  GPolylineOptions._internal();
-  static final GPolylineOptions _options = GPolylineOptions._internal();
+  GPolylineOptions();
 
   /// When true, the polyline are interpreted as geodesic and will follow the
   /// curvature of the Earth.
@@ -405,11 +446,7 @@ class GPolygon {
 /// This class defines polygon's options.
 class GPolygonOptions {
   /// GPolygonOptions Constructor.
-  factory GPolygonOptions() {
-    return _options;
-  }
-  GPolygonOptions._internal();
-  static final GPolygonOptions _options = GPolygonOptions._internal();
+  GPolygonOptions();
 
   /// The fill color.
   String? fillColor;
@@ -516,11 +553,7 @@ class GCircle {
 /// This class defines circle's options.
 class GCircleOptions {
   /// GCircleOptions Constructor.
-  factory GCircleOptions() {
-    return _options;
-  }
-  GCircleOptions._internal();
-  static final GCircleOptions _options = GCircleOptions._internal();
+  GCircleOptions();
 
   /// The center of the Circle.
   LatLng? center;
@@ -554,6 +587,159 @@ class GCircleOptions {
     return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}), fillColor:"$fillColor",'
         ' fillOpacity:$fillOpacity, radius:$radius, strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity,'
         ' map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+  }
+}
+
+/// The [GMarkerClusterer] object used to cluster markers on the map.
+class GMarkerClusterer {
+  /// GMarkerCluster Constructor.
+  GMarkerClusterer([GMarkerClustererOptions? opts]) : id = _gid++ {
+    _createMarkerClusterer(opts);
+  }
+
+  void _createMarkerClusterer(GMarkerClustererOptions? opts) {
+    final String command =
+        'var ${toString()} = new markerClusterer.MarkerClusterer($opts);';
+    webController!.runJavaScript(command);
+  }
+
+  /// GCircle id.
+  final int id;
+  static int _gid = 0;
+
+  /// Adds a marker to be clustered by the [GMarkerClusterer].
+  void addMarker(GMarker marker, bool? noDraw) {
+    webController!.runJavaScript('${toString()}.addMarker($marker, $noDraw);');
+  }
+
+  /// Removes a marker from the [GMarkerClusterer].
+  bool removeMarker(GMarker marker, bool? noDraw) {
+    return webController!.runJavaScriptReturningResult(
+        '${toString()}.removeMarker($marker, $noDraw);') as bool;
+  }
+
+  /// Adds a list of markers to be clustered by the [GMarkerClusterer].
+  void addMarkers(List<GMarker>? markers, bool? noDraw) {
+    final String command =
+        'JSON.stringify($this.addMarkers.call($this, $markers, $noDraw))';
+    webController!.runJavaScript(command);
+  }
+
+  /// Removes a list of markers from the [GMarkerClusterer].
+  bool removeMarkers(List<GMarker>? markers, bool? noDraw) {
+    final String command =
+        'JSON.stringify($this.removeMarkers.call($this, $markers, $noDraw))';
+    return webController!.runJavaScriptReturningResult(command) as bool;
+  }
+
+  /// Clears all the markers from the [GMarkerClusterer].
+  void clearMarkers(bool? noDraw) {
+    webController!.runJavaScript('${toString()}.clearMarkers($noDraw);');
+  }
+
+  /// Returns the list of clusters.
+  List<Map<String, dynamic>> get clusters {
+    final List<Map<String, dynamic>> results =
+        webController!.runJavaScriptReturningResult('${toString()}.clusters')
+            as List<Map<String, dynamic>>;
+    return results;
+  }
+
+  /// Called when the [GMarkerClusterer] is added to the map.
+  void onAdd() {
+    webController!.runJavaScript('${toString()}.onAdd();');
+  }
+
+  /// Called when the [MarkerClusterer] is removed from the map.
+  void onRemove() {
+    webController!.runJavaScript('${toString()}.onRemove();');
+  }
+
+  /// Recalculates and draws all the marker clusters.
+  void render() {
+    webController!.runJavaScript('${toString()}.render();');
+  }
+
+  @override
+  String toString() {
+    return 'markerClusterer$id';
+  }
+}
+
+/// The cluster object handled by the [GMarkerClusterer].
+class GMarkerClustererCluster {
+  /// GMarkerClustererCluster Constructor.
+  GMarkerClustererCluster() : id = _gid++;
+
+  /// GCircle id.
+  final int id;
+  static int _gid = 0;
+
+  GMarker? _marker;
+  List<GMarker>? _markers;
+  LatLngBounds? _bounds;
+  LatLng? _position;
+
+  /// Getter for the cluster marker.
+  GMarker? get marker => _marker;
+
+  /// List of markers in the cluster.
+  List<GMarker>? get markers => _markers;
+
+  /// The bounds of the cluster.
+  LatLngBounds? get bounds => _bounds;
+
+  /// The position of the cluster marker.
+  LatLng? get position => _position;
+
+  /// Get the count of **visible** markers.
+  int get count {
+    return webController!.runJavaScriptReturningResult('$this.count') as int;
+  }
+
+  /// Deletes the cluster.
+  void delete() {}
+
+  /// Adds a marker to the cluster.
+  void push(GMarker marker) {}
+
+  @override
+  String toString() {
+    return 'cluster$id';
+  }
+}
+
+/// This class defines MarkerClusterer's options.
+class GMarkerClustererOptions {
+  /// GMarkerClustererOptions Constructor.
+  GMarkerClustererOptions({List<GMarker>? markers, String? onClusterClick}) {
+    _markers = markers;
+    if (onClusterClick != null) {
+      _onClusterClick = onClusterClick;
+    }
+  }
+
+  List<GMarker>? _markers;
+  String? _onClusterClick;
+
+  /// List of markers in the cluster.
+  List<GMarker>? get markers => _markers;
+
+  /// Returns the onClusterClick handler.
+  String? get onClusterClick => _onClusterClick;
+
+  @override
+  String toString() {
+    String options = '{map: map';
+    if (markers != null) {
+      options += ', markers: $markers';
+    }
+    if (onClusterClick != null) {
+      options += ', onClusterClick: $onClusterClick';
+    }
+    options += '}';
+
+    return options;
   }
 }
 

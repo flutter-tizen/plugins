@@ -38,16 +38,19 @@ String? _getCameraBounds(dynamic option) {
 //   rotateGesturesEnabled
 //   tiltGesturesEnabled
 // mapToolbarEnabled is unused in web, there's no "map toolbar"
-// myLocationButtonEnabled Widget not available in web yet, it needs to be built on top of the maps widget
-//   See: https://developers.google.com/maps/documentation/javascript/examples/control-custom
+// myLocationButtonEnabled Widget not available in web yet, it needs to be built
+// on top of the maps widget
+//   See:
+//   https://developers.google.com/maps/documentation/javascript/examples/control-custom
 // myLocationEnabled needs to be built through dart:html navigator.geolocation
 //   See: https://api.dart.dev/stable/2.8.4/dart-html/Geolocation-class.html
-// trackCameraPosition is just a boolan value that indicates if the map has an onCameraMove handler.
-// indoorViewEnabled seems to not have an equivalent in web
-// buildingsEnabled seems to not have an equivalent in web
-// padding seems to behave differently in web than mobile. You can't move UI elements in web.
+// trackCameraPosition is just a boolan value that indicates if the map has an
+// onCameraMove handler. indoorViewEnabled seems to not have an equivalent in
+// web buildingsEnabled seems to not have an equivalent in web padding seems to
+// behave differently in web than mobile. You can't move UI elements in web.
 String _rawOptionsToString(Map<String, dynamic> rawOptions) {
-  // These don't have any rawOptions entry, but they seem to be off in the native maps.
+  // These don't have any rawOptions entry, but they seem to be off in the
+  // native maps.
   String options =
       'mapTypeControl: false, fullscreenControl: false, streetViewControl: false';
 
@@ -133,25 +136,23 @@ String _mapStyles(String? mapStyleJson) {
   if (mapStyleJson != null) {
     try {
       json
-              .decode(
-                mapStyleJson,
-                reviver: (Object? key, Object? value) {
-                  if (value is Map &&
-                      _isJsonMapStyle(value as Map<String, Object?>)) {
-                    return MapTypeStyle()
-                      ..elementType = value['elementType'] as String?
-                      ..featureType = value['featureType'] as String?
-                      ..stylers =
-                          (value['stylers']! as List<dynamic>)
-                              .map<dynamic>((dynamic e) => e)
-                              .toList();
-                  }
-                  return value;
-                },
-              )
-              .cast<MapTypeStyle>()
-              .toList()
-          as List<MapTypeStyle>;
+          .decode(
+            mapStyleJson,
+            reviver: (Object? key, Object? value) {
+              if (value is Map &&
+                  _isJsonMapStyle(value as Map<String, Object?>)) {
+                return MapTypeStyle()
+                  ..elementType = value['elementType'] as String?
+                  ..featureType = value['featureType'] as String?
+                  ..stylers = (value['stylers']! as List<dynamic>)
+                      .map<dynamic>((dynamic e) => e)
+                      .toList();
+              }
+              return value;
+            },
+          )
+          .cast<MapTypeStyle>()
+          .toList() as List<MapTypeStyle>;
     } catch (e) {
       throw MapStyleException('Invalid Map Style JSON: $e');
     }
@@ -200,14 +201,12 @@ ScreenCoordinate _convertToPoint(String value) {
     int x = 0, y = 0;
 
     if (latlng is Map<String, dynamic>) {
-      x =
-          latlng['x'] is int
-              ? latlng['x'] as int
-              : (latlng['x'] as double).toInt();
-      y =
-          latlng['y'] is int
-              ? latlng['y'] as int
-              : (latlng['y'] as double).toInt();
+      x = latlng['x'] is int
+          ? latlng['x'] as int
+          : (latlng['x'] as double).toInt();
+      y = latlng['y'] is int
+          ? latlng['y'] as int
+          : (latlng['y'] as double).toInt();
 
       return ScreenCoordinate(x: x, y: y);
     }
@@ -278,10 +277,9 @@ util.GMarkerOptions _markerOptionsFromMarker(
       assert(iconConfig.length >= 2);
       final Map<String, Object?> assetConfig =
           iconConfig[1]! as Map<String, Object?>;
-      icon =
-          util.GIcon()
-            ..url =
-                'data:image/png;base64,${base64Encode(assetConfig['byteData']! as List<int>)}';
+      icon = util.GIcon()
+        ..url =
+            'data:image/png;base64,${base64Encode(assetConfig['byteData']! as List<int>)}';
       if (assetConfig['width'] != null || assetConfig['height'] != null) {
         icon.size = util.GSize(
           assetConfig['width'] != null
@@ -383,8 +381,7 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
 bool _isPolygonClockwise(List<LatLng> path) {
   double direction = 0.0;
   for (int i = 0; i < path.length; i++) {
-    direction =
-        direction +
+    direction = direction +
         ((path[(i + 1) % path.length].latitude - path[i].latitude) *
             (path[(i + 1) % path.length].longitude + path[i].longitude));
   }
