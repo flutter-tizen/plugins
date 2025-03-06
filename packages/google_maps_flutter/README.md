@@ -21,7 +21,7 @@ This package is not an _endorsed_ implementation of `google_maps_flutter`. There
 ```yaml
 dependencies:
   google_maps_flutter: ^2.10.0
-  google_maps_flutter_tizen: ^0.1.11
+  google_maps_flutter_tizen: ^0.1.12
 ```
 
 For detailed usage, see https://pub.dev/packages/google_maps_flutter#sample-usage.
@@ -32,8 +32,13 @@ In addition, you need a Maps JavaScript API Key to use this plugin. You can get 
 <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY">
 ```
 
+Plus, to use MarkerClusterer, you need to include the following script in the `assets/map.html` file
+```js
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+```
+
 ## Limitations
 
 - This plugin was implemented using the [Google JavaScript API](https://developers.google.com/maps/documentation/javascript/overview).
-The Marker feature uses the [Legacy API](https://developers.google.com/maps/documentation/javascript/markers). Depending on the Deprecate plan of the JavaScript API, some parts may not work.
-- [Marker clustering features](https://pub.dev/packages/google_maps_flutter_platform_interface/changelog#260), [heatmap layers](https://pub.dev/packages/google_maps_flutter_platform_interface/changelog#290), and tile overlays are not yet supported.
+- The Marker feature uses the [Legacy API](https://developers.google.com/maps/documentation/javascript/markers). Depending on the Deprecate plan of the JavaScript API, some parts may not work.
+- [Heatmap layers](https://pub.dev/packages/google_maps_flutter_platform_interface/changelog#290) and tile overlays are not yet supported.

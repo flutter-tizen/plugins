@@ -38,16 +38,19 @@ String? _getCameraBounds(dynamic option) {
 //   rotateGesturesEnabled
 //   tiltGesturesEnabled
 // mapToolbarEnabled is unused in web, there's no "map toolbar"
-// myLocationButtonEnabled Widget not available in web yet, it needs to be built on top of the maps widget
-//   See: https://developers.google.com/maps/documentation/javascript/examples/control-custom
+// myLocationButtonEnabled Widget not available in web yet, it needs to be built
+// on top of the maps widget
+//   See:
+//   https://developers.google.com/maps/documentation/javascript/examples/control-custom
 // myLocationEnabled needs to be built through dart:html navigator.geolocation
 //   See: https://api.dart.dev/stable/2.8.4/dart-html/Geolocation-class.html
-// trackCameraPosition is just a boolan value that indicates if the map has an onCameraMove handler.
-// indoorViewEnabled seems to not have an equivalent in web
-// buildingsEnabled seems to not have an equivalent in web
-// padding seems to behave differently in web than mobile. You can't move UI elements in web.
+// trackCameraPosition is just a boolan value that indicates if the map has an
+// onCameraMove handler. indoorViewEnabled seems to not have an equivalent in
+// web buildingsEnabled seems to not have an equivalent in web padding seems to
+// behave differently in web than mobile. You can't move UI elements in web.
 String _rawOptionsToString(Map<String, dynamic> rawOptions) {
-  // These don't have any rawOptions entry, but they seem to be off in the native maps.
+  // These don't have any rawOptions entry, but they seem to be off in the
+  // native maps.
   String options =
       'mapTypeControl: false, fullscreenControl: false, streetViewControl: false';
 
