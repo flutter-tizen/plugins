@@ -57,16 +57,23 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return billingManager.isAvailable();
   }
 
-  // convert String to "enum class ItemType"
-  static ItemType int_to_enum(int number) {
-    if (number == 1) return ItemType.consumable;
-    if (number == 2) return ItemType.nonComsumabel;
-    if (number == 3) return ItemType.limitedPeriod;
-    if (number == 4) return ItemType.subscription;
+  static ItemType _intToEnum(int number) {
+    if (number == 1) {
+      return ItemType.consumable;
+    }
+    if (number == 2) {
+      return ItemType.nonComsumabel;
+    }
+    if (number == 3) {
+      return ItemType.limitedPeriod;
+    }
+    if (number == 4) {
+      return ItemType.subscription;
+    }
     return ItemType.none;
   }
 
-  static List<ItemDetails> getItemDetails(ProductsListApiResult response) {
+  List<ItemDetails> _getItemDetails(ProductsListApiResult response) {
     final List<ItemDetails> itemDetails = <ItemDetails>[];
     for (final Map<Object?, Object?>? detail in response.itemDetails) {
       final int seq = detail!['Seq']! as int;
@@ -82,7 +89,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
         itemId: itemId,
         itemTitle: itemTitle,
         itemDesc: itemDesc,
-        itemType: int_to_enum(itemType),
+        itemType: _intToEnum(itemType),
         price: price,
         currencyId: currencyId,
       ));
@@ -114,7 +121,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     final List<String> invalidMessage = <String>[];
 
     if (response.cpStatus == '100000') {
-      productDetailsList = getItemDetails(response)
+      productDetailsList = _getItemDetails(response)
           .map((ItemDetails productWrapper) =>
               SamsungCheckoutProductDetails.fromProduct(productWrapper))
           .toList();
@@ -139,7 +146,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return productDetailsResponse;
   }
 
-  static List<InvoiceDetails> getInvoiceDetails(
+  List<InvoiceDetails> _getInvoiceDetails(
       GetUserPurchaseListAPIResult response) {
     final List<InvoiceDetails> invoiceDetails = <InvoiceDetails>[];
     for (final Map<Object?, Object?>? detail in response.invoiceDetails) {
@@ -163,7 +170,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
         invoiceId: invoiceId,
         itemId: itemId,
         itemTitle: itemTitle,
-        itemType: int_to_enum(itemType),
+        itemType: _intToEnum(itemType),
         orderTime: orderTime,
         period: period,
         price: price,
@@ -189,7 +196,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     final List<PurchaseDetails> pastPurchases =
         responses.expand((GetUserPurchaseListAPIResult response) {
       if (response.cpStatus == '100000') {
-        return getInvoiceDetails(response);
+        return _getInvoiceDetails(response);
       } else {
         return <InvoiceDetails>[];
       }
@@ -221,20 +228,20 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
             .requestPurchases()
             .then((GetUserPurchaseListAPIResult responses) {
           for (int i = 0; i < responses.invoiceDetails.length; i++) {
-            if (getInvoiceDetails(responses)[i].invoiceId == invoiceId) {
+            if (_getInvoiceDetails(responses)[i].invoiceId == invoiceId) {
               final List<PurchaseDetails> purchases = <PurchaseDetails>[];
               purchases.add(PurchaseDetails(
-                purchaseID: getInvoiceDetails(responses)[i].invoiceId,
-                productID: getInvoiceDetails(responses)[i].itemId,
+                purchaseID: _getInvoiceDetails(responses)[i].invoiceId,
+                productID: _getInvoiceDetails(responses)[i].itemId,
                 verificationData: PurchaseVerificationData(
                     localVerificationData:
-                        getInvoiceDetails(responses)[i].invoiceId,
+                        _getInvoiceDetails(responses)[i].invoiceId,
                     serverVerificationData:
-                        getInvoiceDetails(responses)[i].invoiceId,
+                        _getInvoiceDetails(responses)[i].invoiceId,
                     source: kIAPSource),
-                transactionDate: getInvoiceDetails(responses)[i].orderTime,
+                transactionDate: _getInvoiceDetails(responses)[i].orderTime,
                 status: const PurchaseStateConverter().toPurchaseStatus(
-                    getInvoiceDetails(responses)[i].cancelStatus),
+                    _getInvoiceDetails(responses)[i].cancelStatus),
               ));
 
               _purchaseUpdatedController.add(purchases);
