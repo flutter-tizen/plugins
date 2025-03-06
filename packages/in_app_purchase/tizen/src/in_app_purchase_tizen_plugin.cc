@@ -14,35 +14,10 @@
 #include "billing_manager.h"
 #include "log.h"
 #include "messages.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 namespace {
-
-const char *kInvalidMessage = "Invalid message";
-
-// template <typename T>
-// static bool GetValueFromEncodableMap(const flutter::EncodableMap *map,
-//                                      const char *key, T &out) {
-//   auto iter = map->find(flutter::EncodableValue(key));
-//   if (iter != map->end() && !iter->second.IsNull()) {
-//     if (auto *value = std::get_if<T>(&iter->second)) {
-//       out = *value;
-//       return true;
-//     }
-//   }
-//   return false;
-// }
-
-// template <typename T>
-// static T GetRequiredArg(const flutter::EncodableMap *arguments,
-//                         const char *key) {
-//   T value;
-//   if (GetValueFromEncodableMap(arguments, key, value)) {
-//     return value;
-//   }
-//   std::string message =
-//       "No " + std::string(key) + " provided or has invalid type or value.";
-//   throw std::invalid_argument(message);
-//}
 
 class InAppPurchaseTizenPlugin : public flutter::Plugin,
                                  public InAppPurchaseApi {
@@ -75,7 +50,8 @@ class InAppPurchaseTizenPlugin : public flutter::Plugin,
   std::unique_ptr<BillingManager> billing_ = nullptr;
 };
 
-InAppPurchaseTizenPlugin::InAppPurchaseTizenPlugin(flutter::PluginRegistrar *plugin_registrar) {
+InAppPurchaseTizenPlugin::InAppPurchaseTizenPlugin(
+    flutter::PluginRegistrar *plugin_registrar) {
   billing_ = std::make_unique<BillingManager>();
   if (!billing_->Init()) {
     Dispose();
@@ -135,30 +111,31 @@ void InAppPurchaseTizenPlugin::BuyItem(
     std::function<void(ErrorOr<BillingBuyData> reply)> result) {
   OrderDetails pay_details = buy_info.pay_detials();
   std::string app_id = buy_info.app_id();
-
-  g_autoptr(JsonBuilder) builder = json_builder_new();
-  json_builder_begin_object(builder);
-  json_builder_set_member_name(builder, "OrderItemID");
-  json_builder_add_string_value(builder, pay_details.order_item_id().c_str());
-
-  json_builder_set_member_name(builder, "OrderTitle");
-  json_builder_add_string_value(builder, pay_details.order_title().c_str());
-
-  json_builder_set_member_name(builder, "OrderTotal");
-  json_builder_add_string_value(builder, pay_details.order_total().c_str());
-
-  json_builder_set_member_name(builder, "OrderCurrencyID");
-  json_builder_add_string_value(builder,
-                                pay_details.order_currency_id().c_str());
-  json_builder_end_object(builder);
-  g_autoptr(JsonGenerator) generator = json_generator_new();
-  g_autoptr(JsonNode) root = json_builder_get_root(builder);
-  json_generator_set_root(generator, root);
-
-  gsize length;
-  gchar *json_data = json_generator_to_data(generator, &length);
-  std::string pay_details_json(json_data);
-  g_free(json_data);
+  std::string pay_details_json;
+  {
+    rapidjson::Document doc;
+    doc.SetObject();
+    rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+    rapidjson::Value order_item_id, order_title, order_total, order_curenncy_id;
+    order_item_id.SetString(pay_details.order_item_id().c_str(),
+                            strlen(pay_details.order_item_id().c_str()),
+                            allocator);
+    order_title.SetString(pay_details.order_title().c_str(),
+                          strlen(pay_details.order_title().c_str()), allocator);
+    order_total.SetString(pay_details.order_total().c_str(),
+                          strlen(pay_details.order_total().c_str()), allocator);
+    order_curenncy_id.SetString(pay_details.order_currency_id().c_str(),
+                                strlen(pay_details.order_currency_id().c_str()),
+                                allocator);
+    doc.AddMember("OrderItemID", order_item_id, allocator);
+    doc.AddMember("OrderTitle", order_title, allocator);
+    doc.AddMember("OrderTotal", order_total, allocator);
+    doc.AddMember("OrderCurrencyID", order_curenncy_id, allocator);
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    doc.Accept(writer);
+    pay_details_json = buffer.GetString();
+  }
 
   if (!billing_->BuyItem(app_id.c_str(), pay_details_json.c_str(),
                          std::move(result))) {

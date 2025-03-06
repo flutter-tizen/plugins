@@ -29,30 +29,15 @@ static std::string ServerTypeToString(billing_server_type server_type) {
   }
 }
 
-// std::function<void(ErrorOr<T>) <--> void *
-template <typename T>
-struct FunctionBox {
-  std::function<void(ErrorOr<T>)> handler;
-};
-
-// template <typename T>
-// static std::unique_ptr<void, void (*)(void *)> pack_function(
-//     std::function<void(ErrorOr<T>)> func) {
-//   auto deleter = [](void *ptr) { delete static_cast<FunctionBox<T> *>(ptr);
-//   }; return {new FunctionBox<T>{std::move(func)}, deleter};
-// }
-
-template <typename T>
-static void *pack_function(std::function<void(ErrorOr<T>)> func) {
-  return new FunctionBox<T>{std::move(func)};
+static flutter::EncodableValue ConvertVariantToEncodable(
+    std::variant<int, double> var) {
+  if (std::holds_alternative<int>(var)) {
+    return flutter::EncodableValue(std::get<int>(var));
+  } else if (std::holds_alternative<double>(var)) {
+    return flutter::EncodableValue(std::get<double>(var));
+  }
+  return flutter::EncodableValue();
 }
-
-template <typename T>
-static std::function<void(ErrorOr<T>)> unpack_function(void *boxed) {
-  auto *wrapper = static_cast<FunctionBox<T> *>(boxed);
-  return wrapper ? wrapper->handler : nullptr;
-}
-// std::function<void(ErrorOr<T>) <--> void *
 
 bool BillingManager::Init() {
   LOG_INFO("[BillingManager] Init billing api.");
@@ -100,8 +85,7 @@ std::string BillingManager::GetCountryCode() {
   return country_code;
 }
 
-bool BillingManager::IsAvailable(
-    std::function<void(ErrorOr<bool> reply)> result) {
+bool BillingManager::IsAvailable(FunctionResult<bool> result) {
   LOG_INFO("[BillingManager] Check billing server is available.");
 
   void *handle = dlopen("libcapi-system-info.so.0.2.1", RTLD_LAZY);
@@ -138,11 +122,16 @@ bool BillingManager::IsAvailable(
     dlclose(handle);
   }
 
-  auto result_ptr = pack_function<bool>(result);
+  if (is_available_callback_) {
+    LOG_ERROR("[BillingManager] IsAvailable is already called.");
+    return false;
+  }
+
+  is_available_callback_ = std::move(result);
   bool ret = BillingWrapper::GetInstance().service_billing_is_service_available(
-      billing_server_type_, OnAvailable, result_ptr);
-  delete (result_ptr);
+      billing_server_type_, OnAvailable, this);
   if (!ret) {
+    is_available_callback_ = nullptr;
     LOG_ERROR("[BillingManager] service_billing_is_service_available failed.");
     return false;
   }
@@ -152,15 +141,20 @@ bool BillingManager::IsAvailable(
 bool BillingManager::GetProductList(
     const char *app_id, const char *country_code, int page_size,
     int page_number, const char *check_value,
-    std::function<void(ErrorOr<ProductsListApiResult> reply)> result) {
+    FunctionResult<ProductsListApiResult> result) {
   LOG_INFO("[BillingManager] Start get product list.");
 
-  auto result_ptr = pack_function<ProductsListApiResult>(result);
+  if (get_product_list_callback_) {
+    LOG_ERROR("[BillingManager] GetProductList is already called.");
+    return false;
+  }
+
+  get_product_list_callback_ = std::move(result);
   bool ret = BillingWrapper::GetInstance().service_billing_get_products_list(
       app_id, country_code, page_size, page_number, check_value,
-      billing_server_type_, OnProducts, result_ptr);
-  delete (result_ptr);
+      billing_server_type_, OnProducts, this);
   if (!ret) {
+    get_product_list_callback_ = nullptr;
     LOG_ERROR("[BillingManager] service_billing_get_products_list failed.");
     return false;
   }
@@ -170,33 +164,42 @@ bool BillingManager::GetProductList(
 bool BillingManager::GetPurchaseList(
     const char *app_id, const char *custom_id, const char *country_code,
     int page_number, const char *check_value,
-    std::function<void(ErrorOr<GetUserPurchaseListAPIResult> reply)> result) {
+    FunctionResult<GetUserPurchaseListAPIResult> result) {
   LOG_INFO("[BillingManager] Start get purchase list.");
 
-  auto result_ptr = pack_function<GetUserPurchaseListAPIResult>(result);
+  if (get_purchase_list_callback_) {
+    LOG_ERROR("[BillingManager] GetPurchaseList is already called.");
+    return false;
+  }
+
+  get_purchase_list_callback_ = std::move(result);
   bool ret = BillingWrapper::GetInstance().service_billing_get_purchase_list(
       app_id, custom_id, country_code, page_number, check_value,
-      billing_server_type_, OnPurchase, result_ptr);
-  delete (result_ptr);
+      billing_server_type_, OnPurchase, this);
   if (!ret) {
+    get_purchase_list_callback_ = nullptr;
     LOG_ERROR("[BillingManager] service_billing_get_purchase_list failed.");
     return false;
   }
   return true;
 }
 
-bool BillingManager::BuyItem(
-    const char *app_id, const char *detail_info,
-    std::function<void(ErrorOr<BillingBuyData> reply)> result) {
+bool BillingManager::BuyItem(const char *app_id, const char *detail_info,
+                             FunctionResult<BillingBuyData> result) {
   LOG_INFO("[BillingManager] Start buy item");
 
-  auto result_ptr = pack_function<BillingBuyData>(result);
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (buy_item_callback_) {
+    LOG_ERROR("[BillingManager] BuyItem is already called.");
+    return false;
+  }
+
+  buy_item_callback_ = std::move(result);
   bool ret = BillingWrapper::GetInstance().service_billing_buyitem(
       app_id, ServerTypeToString(billing_server_type_).c_str(), detail_info);
-  BillingWrapper::GetInstance().service_billing_set_buyitem_cb(OnBuyItem,
-                                                               result_ptr);
-  delete (result_ptr);
+  BillingWrapper::GetInstance().service_billing_set_buyitem_cb(OnBuyItem, this);
   if (!ret) {
+    buy_item_callback_ = nullptr;
     LOG_ERROR("[BillingManager] service_billing_buyitem failed.");
     return false;
   }
@@ -205,16 +208,20 @@ bool BillingManager::BuyItem(
 
 bool BillingManager::VerifyInvoice(
     const char *app_id, const char *custom_id, const char *invoice_id,
-    const char *country_code,
-    std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)> result) {
+    const char *country_code, FunctionResult<VerifyInvoiceAPIResult> result) {
   LOG_INFO("[BillingManager] Start verify invoice");
 
-  auto result_ptr = pack_function<VerifyInvoiceAPIResult>(result);
+  if (verify_invoice_callback_) {
+    LOG_ERROR("[BillingManager] VerifyInvoice is already called.");
+    return false;
+  }
+
+  verify_invoice_callback_ = std::move(result);
   bool ret = BillingWrapper::GetInstance().service_billing_verify_invoice(
       app_id, custom_id, invoice_id, country_code, billing_server_type_,
-      OnVerify, result_ptr);
-  delete (result_ptr);
+      OnVerify, this);
   if (!ret) {
+    verify_invoice_callback_ = nullptr;
     LOG_ERROR("[BillingManager] service_billing_verify_invoice failed.");
     return false;
   }
@@ -224,73 +231,67 @@ bool BillingManager::VerifyInvoice(
 void BillingManager::OnAvailable(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Billing server detail_result: %s", detail_result);
 
-  std::function<void(ErrorOr<bool> reply)> result =
-      unpack_function<bool>(user_data);
+  BillingManager *self = reinterpret_cast<BillingManager *>(user_data);
 
-  if (result) {
-    bool res = false;
-
-    JsonParser *parser = json_parser_new();
-    GError *error = nullptr;
-    if (!json_parser_load_from_data(parser, detail_result, -1, &error)) {
-      g_object_unref(parser);
-      throw std::runtime_error(error->message);
+  if (self->is_available_callback_) {
+    rapidjson::Document doc;
+    doc.Parse(detail_result);
+    if (doc.HasParseError()) {
+      LOG_ERROR("[BillingManager] OnAvailable parse error: %s", detail_result);
+      return;
     }
 
-    JsonNode *root = json_parser_get_root(parser);
-    JsonObject *obj = json_node_get_object(root);
-
-    std::string status = g_strdup(json_object_get_string_member(obj, "status"));
-    g_object_unref(parser);
-
-    if (status == "100000") res = true;
-    result(res);
+    std::string status = GetJsonValue<std::string>(doc, "status", "Unknown");
+    if (status == "100000")
+      self->is_available_callback_(true);
+    else
+      self->is_available_callback_(false);
   } else {
-    result(FlutterError("OnAvailable Failed", "method result is null !"));
+    self->is_available_callback_(
+        FlutterError("OnAvailable Failed", "method result is null !"));
   }
+  self->is_available_callback_ = nullptr;
 }
 
 void BillingManager::OnProducts(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Productlist: %s", detail_result);
 
-  std::function<void(ErrorOr<ProductsListApiResult> reply)> result =
-      unpack_function<ProductsListApiResult>(user_data);
+  BillingManager *self = reinterpret_cast<BillingManager *>(user_data);
 
-  if (result) {
-    JsonParser *parser = json_parser_new();
-    GError *error = nullptr;
-    if (!json_parser_load_from_data(parser, detail_result, -1, &error)) {
-      g_object_unref(parser);
-      throw std::runtime_error(error->message);
+  if (self->get_product_list_callback_) {
+    rapidjson::Document doc;
+    doc.Parse(detail_result);
+    if (doc.HasParseError()) {
+      LOG_ERROR("[BillingManager] OnProducts parse error: %s", detail_result);
+      return;
     }
-
-    JsonNode *root = json_parser_get_root(parser);
-    JsonObject *obj = json_node_get_object(root);
-
     std::string cp_status =
-        g_strdup(json_object_get_string_member(obj, "CPStatus"));
+        GetJsonValue<std::string>(doc, "CPStatus", "Unknown");
     std::string cp_result =
-        g_strdup(json_object_get_string_member(obj, "CPResult"));
-    int64_t total_count = json_object_get_int_member(obj, "TotalCount");
+        GetJsonValue<std::string>(doc, "CPResult", "Unknown");
+    int64_t total_count = GetJsonValue<int64_t>(doc, "TotalCount", -1);
     std::string check_value =
-        g_strdup(json_object_get_string_member(obj, "CheckValue"));
+        GetJsonValue<std::string>(doc, "CheckValue", "Unknown");
     flutter::EncodableList item_details;
     {
-      JsonArray *jarray = json_object_get_array_member(obj, "ItemDetails");
-      for (guint i = 0; i < json_array_get_length(jarray); ++i) {
-        JsonObject *item = json_array_get_object_element(jarray, i);
-
-        int64_t seq = json_object_get_int_member(item, "Seq");
+      rapidjson::Document empty_doc;
+      empty_doc.SetArray();
+      const rapidjson::Value &default_array = empty_doc;
+      const rapidjson::Value &jarray = GetJsonValue<const rapidjson::Value &>(
+          doc, "ItemDetails", default_array);
+      for (rapidjson::SizeType i = 0; i < jarray.Size(); ++i) {
+        int64_t seq = GetJsonValue<int64_t>(jarray[i], "Seq", -1);
         std::string item_id =
-            g_strdup(json_object_get_string_member(item, "ItemID"));
+            GetJsonValue<std::string>(jarray[i], "ItemID", "Unknown");
         std::string item_title =
-            g_strdup(json_object_get_string_member(item, "ItemTitle"));
+            GetJsonValue<std::string>(jarray[i], "ItemTitle", "Unknown");
         std::string item_desc =
-            g_strdup(json_object_get_string_member(item, "ItemDesc"));
-        int64_t item_type = json_object_get_int_member(item, "ItemType");
-        double price = json_object_get_double_member(item, "Price");
+            GetJsonValue<std::string>(jarray[i], "ItemDesc", "Unknown");
+        int64_t item_type = GetJsonValue<int64_t>(jarray[i], "ItemType", -1);
+        std::variant<int, double> price =
+            GetJsonValue<std::variant<int, double>>(jarray[i], "Price", -1);
         std::string currency_id =
-            g_strdup(json_object_get_string_member(item, "CurrencyID"));
+            GetJsonValue<std::string>(jarray[i], "CurrencyID", "Unknown");
 
         flutter::EncodableValue detail =
             flutter::EncodableValue(flutter::EncodableMap{
@@ -304,75 +305,75 @@ void BillingManager::OnProducts(const char *detail_result, void *user_data) {
                 {flutter::EncodableValue("ItemType"),
                  flutter::EncodableValue(item_type)},
                 {flutter::EncodableValue("Price"),
-                 flutter::EncodableValue(price)},
+                 ConvertVariantToEncodable(price)},
                 {flutter::EncodableValue("CurrencyID"),
                  flutter::EncodableValue(currency_id)},
             });
         item_details.push_back(detail);
       }
     }
-    g_object_unref(parser);
     ProductsListApiResult products_list(cp_status, &cp_result, total_count,
                                         check_value, item_details);
-    result(products_list);
+    self->get_product_list_callback_(products_list);
   } else {
-    result(FlutterError("OnProducts Failed", "method result is null !"));
+    self->get_product_list_callback_(
+        FlutterError("OnProducts Failed", "method result is null !"));
   }
+  self->get_product_list_callback_ = nullptr;
 }
 
 void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Purchaselist: %s", detail_result);
 
-  std::function<void(ErrorOr<GetUserPurchaseListAPIResult> reply)> result =
-      unpack_function<GetUserPurchaseListAPIResult>(user_data);
-  if (result) {
-    JsonParser *parser = json_parser_new();
-    GError *error = nullptr;
-    if (!json_parser_load_from_data(parser, detail_result, -1, &error)) {
-      g_object_unref(parser);
-      throw std::runtime_error(error->message);
+  BillingManager *self = reinterpret_cast<BillingManager *>(user_data);
+
+  if (self->get_purchase_list_callback_) {
+    rapidjson::Document doc;
+    doc.Parse(detail_result);
+    if (doc.HasParseError()) {
+      LOG_ERROR("[BillingManager] OnPurchase parse error: %s", detail_result);
+      return;
     }
-
-    JsonNode *root = json_parser_get_root(parser);
-    JsonObject *obj = json_node_get_object(root);
-
     std::string cp_status =
-        g_strdup(json_object_get_string_member(obj, "CPStatus"));
+        GetJsonValue<std::string>(doc, "CPStatus", "Unknown");
     std::string cp_result =
-        g_strdup(json_object_get_string_member(obj, "CPResult"));
-    int64_t total_count = json_object_get_int_member(obj, "TotalCount");
+        GetJsonValue<std::string>(doc, "CPResult", "Unknown");
+    int64_t total_count = GetJsonValue<int64_t>(doc, "TotalCount", -1);
     std::string check_value =
-        g_strdup(json_object_get_string_member(obj, "CheckValue"));
+        GetJsonValue<std::string>(doc, "CheckValue", "Unknown");
     flutter::EncodableList invoice_details;
     {
-      JsonArray *jarray = json_object_get_array_member(obj, "InvoiceDetails");
-      for (guint i = 0; i < json_array_get_length(jarray); ++i) {
-        JsonObject *item = json_array_get_object_element(jarray, i);
-
-        int64_t seq = json_object_get_int_member(item, "Seq");
+      rapidjson::Document empty_doc;
+      empty_doc.SetArray();
+      const rapidjson::Value &default_array = empty_doc;
+      const rapidjson::Value &jarray = GetJsonValue<const rapidjson::Value &>(
+          doc, "InvoiceDetails", default_array);
+      for (rapidjson::SizeType i = 0; i < jarray.Size(); ++i) {
+        int64_t seq = GetJsonValue<int64_t>(jarray[i], "Seq", -1);
         std::string invoice_id =
-            g_strdup(json_object_get_string_member(item, "InvoiceID"));
+            GetJsonValue<std::string>(jarray[i], "InvoiceID", "Unknown");
         std::string item_id =
-            g_strdup(json_object_get_string_member(item, "ItemID"));
+            GetJsonValue<std::string>(jarray[i], "ItemID", "Unknown");
         std::string item_title =
-            g_strdup(json_object_get_string_member(item, "ItemTitle"));
-        int64_t item_type = json_object_get_int_member(item, "ItemType");
+            GetJsonValue<std::string>(jarray[i], "ItemTitle", "Unknown");
+        int64_t item_type = GetJsonValue<int64_t>(jarray[i], "ItemType" - 1);
         std::string order_time =
-            g_strdup(json_object_get_string_member(item, "OrderTime"));
-        int64_t period = json_object_get_int_member(item, "Period");
-        double price = json_object_get_double_member(item, "Price");
+            GetJsonValue<std::string>(jarray[i], "OrderTime", "Unknown");
+        int64_t period = GetJsonValue<int64_t>(jarray[i], "Period", -1);
+        std::variant<int, double> price =
+            GetJsonValue<std::variant<int, double>>(jarray[i], "Price", -1);
         std::string order_currency_id =
-            g_strdup(json_object_get_string_member(item, "OrderCurrencyID"));
+            GetJsonValue<std::string>(jarray[i], "OrderCurrencyID", "Unknown");
         bool cancel_status =
-            json_object_get_boolean_member(item, "CancelStatus");
+            GetJsonValue<bool>(jarray[i], "CancelStatus", false);
         bool applied_status =
-            json_object_get_boolean_member(item, "AppliedStatus");
+            GetJsonValue<bool>(jarray[i], "AppliedStatus", false);
         std::string applied_time =
-            g_strdup(json_object_get_string_member(item, "AppliedTime"));
+            GetJsonValue<std::string>(jarray[i], "AppliedTime", "Unknown");
         std::string limit_end_time =
-            g_strdup(json_object_get_string_member(item, "LimitEndTime"));
+            GetJsonValue<std::string>(jarray[i], "LimitEndTime", "Unknown");
         std::string remain_time =
-            g_strdup(json_object_get_string_member(item, "RemainTime"));
+            GetJsonValue<std::string>(jarray[i], "RemainTime", "Unknown");
 
         flutter::EncodableValue detail =
             flutter::EncodableValue(flutter::EncodableMap{
@@ -390,7 +391,7 @@ void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
                 {flutter::EncodableValue("Period"),
                  flutter::EncodableValue(period)},
                 {flutter::EncodableValue("Price"),
-                 flutter::EncodableValue(price)},
+                 ConvertVariantToEncodable(price)},
                 {flutter::EncodableValue("OrderCurrencyID"),
                  flutter::EncodableValue(order_currency_id)},
                 {flutter::EncodableValue("CancelStatus"),
@@ -407,13 +408,14 @@ void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
         invoice_details.push_back(detail);
       }
     }
-    g_object_unref(parser);
     GetUserPurchaseListAPIResult purchase_list(
         cp_status, &cp_result, &total_count, &check_value, invoice_details);
-    result(purchase_list);
+    self->get_purchase_list_callback_(purchase_list);
   } else {
-    result(FlutterError("OnPurchase Failed", "method result is null !"));
+    self->get_purchase_list_callback_(
+        FlutterError("OnPurchase Failed", "method result is null !"));
   }
+  self->get_purchase_list_callback_ = nullptr;
 }
 
 bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
@@ -421,74 +423,74 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
   LOG_INFO("[BillingManager] Buy items result: %s, result details: %s",
            pay_result, detail_info);
 
-  std::function<void(ErrorOr<BillingBuyData> reply)> result =
-      unpack_function<BillingBuyData>(user_data);
+  BillingManager *self = reinterpret_cast<BillingManager *>(user_data);
 
-  if (result) {
+  if (self->buy_item_callback_) {
     size_t len = strlen(pay_result);
     std::string pay_res(pay_result, len);
 
     flutter::EncodableMap pay_details;
-    JsonParser *parser = json_parser_new();
-    GError *error = nullptr;
-    if (!json_parser_load_from_data(parser, detail_info, -1, &error)) {
-      g_object_unref(parser);
-      throw std::runtime_error(error->message);
+    rapidjson::Document doc;
+    doc.Parse(detail_info);
+    if (doc.HasParseError()) {
+      LOG_ERROR("[BillingManager] OnBuyItem parse error: %s", detail_info);
+      return false;
     }
-    JsonNode *root = json_parser_get_root(parser);
-    JsonObject *obj = json_node_get_object(root);
-    GList *members = json_object_get_members(obj);
-    for (GList *iter = members; iter != NULL; iter = iter->next) {
-      const gchar *key = (const gchar *)iter->data;
-      std::string value = g_strdup(json_object_get_string_member(obj, key));
-      pay_details[flutter::EncodableValue(key)] =
-          flutter::EncodableValue(value);
+    for (auto it = doc.MemberBegin(); it != doc.MemberEnd(); ++it) {
+      const std::string key = it->name.GetString();
+      if (it->value.IsString()) {  // Only string now.
+        pay_details[flutter::EncodableValue(key)] =
+            flutter::EncodableValue(it->value.GetString());
+      } else if (it->value.IsInt()) {
+        pay_details[flutter::EncodableValue(key)] =
+            flutter::EncodableValue(it->value.GetInt());
+      } else if (it->value.IsDouble()) {
+        pay_details[flutter::EncodableValue(key)] =
+            flutter::EncodableValue(it->value.GetDouble());
+      } else if (it->value.IsBool()) {
+        pay_details[flutter::EncodableValue(key)] =
+            flutter::EncodableValue(it->value.GetBool());
+      }
     }
-
-    g_object_unref(parser);
     BillingBuyData buy_data(pay_res, pay_details);
-    result(buy_data);
+    self->buy_item_callback_(buy_data);
   } else {
-    result(FlutterError("OnBuyItem Failed", "method result is null !"));
+    self->buy_item_callback_(
+        FlutterError("OnBuyItem Failed", "method result is null !"));
   }
+  self->buy_item_callback_ = nullptr;
   return true;
 }
 
 void BillingManager::OnVerify(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Verify details: %s", detail_result);
 
-  std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)> result =
-      unpack_function<VerifyInvoiceAPIResult>(user_data);
-  if (result) {
-    JsonParser *parser = json_parser_new();
-    GError *error = nullptr;
-    if (!json_parser_load_from_data(parser, detail_result, -1, &error)) {
-      g_object_unref(parser);
-      throw std::runtime_error(error->message);
+  BillingManager *self = reinterpret_cast<BillingManager *>(user_data);
+
+  if (self->verify_invoice_callback_) {
+    rapidjson::Document doc;
+    doc.Parse(detail_result);
+    if (doc.HasParseError()) {
+      LOG_ERROR("[BillingManager] OnVerify parse error: %s", detail_result);
+      return;
     }
-
-    JsonNode *root = json_parser_get_root(parser);
-    JsonObject *obj = json_node_get_object(root);
-
     std::string cp_status =
-        g_strdup(json_object_get_string_member(obj, "CPStatus"));
+        GetJsonValue<std::string>(doc, "CPStatus", "Unknown");
     std::string cp_result =
-        g_strdup(json_object_get_string_member(obj, "CPResult"));
-    std::string app_id = g_strdup(json_object_get_string_member(obj, "AppID"));
+        GetJsonValue<std::string>(doc, "CPResult", "Unknown");
+    std::string app_id = GetJsonValue<std::string>(doc, "AppID", "Unknown");
     std::string invoice_id =
-        g_strdup(json_object_get_string_member(obj, "InvoiceID"));
-
-    g_object_unref(parser);
+        GetJsonValue<std::string>(doc, "InvoiceID", "Unknown");
     VerifyInvoiceAPIResult verify_invoice(cp_status, &cp_result, app_id,
                                           invoice_id);
-    result(verify_invoice);
+    self->verify_invoice_callback_(verify_invoice);
   } else {
-    result(FlutterError("OnVerify Failed", "method result is null !"));
+    self->verify_invoice_callback_(
+        FlutterError("OnVerify Failed", "method result is null !"));
   }
+  self->verify_invoice_callback_ = nullptr;
 }
 
 void BillingManager::Dispose() {
   LOG_INFO("[BillingManager] Dispose billing.");
-
-  basic_method_channel_->SetMessageHandler(nullptr);
 }

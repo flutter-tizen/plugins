@@ -22,12 +22,16 @@ PlatformException _createConnectionError(String channelName) {
 enum ItemType {
   /// None type.
   none,
+
   /// Consumers can purchase this type of product anytime.
   consumable,
+
   /// Consumers can purchase this type of product only once.
   nonComsumabel,
+
   /// Once this type of product is purchased, repurchase cannot be made during the time when the product effect set by CP lasts.
   limitedPeriod,
+
   /// DPI system processes automatic payment on a certain designated cycle.
   subscription,
 }
@@ -81,7 +85,8 @@ class ProductsListApiResult {
       cpResult: result[1] as String?,
       totalCount: result[2]! as int,
       checkValue: result[3]! as String,
-      itemDetails: (result[4] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
+      itemDetails:
+          (result[4] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
     );
   }
 }
@@ -134,7 +139,8 @@ class GetUserPurchaseListAPIResult {
       cpResult: result[1] as String?,
       totalCount: result[2] as int?,
       checkValue: result[3] as String?,
-      invoiceDetails: (result[4] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
+      invoiceDetails:
+          (result[4] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
     );
   }
 }
@@ -435,7 +441,6 @@ class InvoiceMessage {
   }
 }
 
-
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -443,37 +448,37 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is ItemType) {
+    } else if (value is ItemType) {
       buffer.putUint8(129);
       writeValue(buffer, value.index);
-    }    else if (value is ProductsListApiResult) {
+    } else if (value is ProductsListApiResult) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is GetUserPurchaseListAPIResult) {
+    } else if (value is GetUserPurchaseListAPIResult) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is BillingBuyData) {
+    } else if (value is BillingBuyData) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is VerifyInvoiceAPIResult) {
+    } else if (value is VerifyInvoiceAPIResult) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is ServiceAvailableAPIResult) {
+    } else if (value is ServiceAvailableAPIResult) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is ProductMessage) {
+    } else if (value is ProductMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is PurchaseMessage) {
+    } else if (value is PurchaseMessage) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is OrderDetails) {
+    } else if (value is OrderDetails) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    }    else if (value is BuyInfoMessage) {
+    } else if (value is BuyInfoMessage) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
-    }    else if (value is InvoiceMessage) {
+    } else if (value is InvoiceMessage) {
       buffer.putUint8(139);
       writeValue(buffer, value.encode());
     } else {
@@ -484,28 +489,28 @@ class _PigeonCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 129: 
+      case 129:
         final int? value = readValue(buffer) as int?;
         return value == null ? null : ItemType.values[value];
-      case 130: 
+      case 130:
         return ProductsListApiResult.decode(readValue(buffer)!);
-      case 131: 
+      case 131:
         return GetUserPurchaseListAPIResult.decode(readValue(buffer)!);
-      case 132: 
+      case 132:
         return BillingBuyData.decode(readValue(buffer)!);
-      case 133: 
+      case 133:
         return VerifyInvoiceAPIResult.decode(readValue(buffer)!);
-      case 134: 
+      case 134:
         return ServiceAvailableAPIResult.decode(readValue(buffer)!);
-      case 135: 
+      case 135:
         return ProductMessage.decode(readValue(buffer)!);
-      case 136: 
+      case 136:
         return PurchaseMessage.decode(readValue(buffer)!);
-      case 137: 
+      case 137:
         return OrderDetails.decode(readValue(buffer)!);
-      case 138: 
+      case 138:
         return BuyInfoMessage.decode(readValue(buffer)!);
-      case 139: 
+      case 139:
         return InvoiceMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -517,9 +522,11 @@ class InAppPurchaseApi {
   /// Constructor for [InAppPurchaseApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  InAppPurchaseApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+  InAppPurchaseApi(
+      {BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
       : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+        pigeonVar_messageChannelSuffix =
+            messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -527,8 +534,10 @@ class InAppPurchaseApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<ProductsListApiResult> getProductList(ProductMessage product) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getProductList$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getProductList$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -553,9 +562,12 @@ class InAppPurchaseApi {
     }
   }
 
-  Future<GetUserPurchaseListAPIResult> getPurchaseList(PurchaseMessage purchase) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getPurchaseList$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+  Future<GetUserPurchaseListAPIResult> getPurchaseList(
+      PurchaseMessage purchase) async {
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getPurchaseList$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -581,8 +593,10 @@ class InAppPurchaseApi {
   }
 
   Future<BillingBuyData> buyItem(BuyInfoMessage buyInfo) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.buyItem$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.buyItem$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -608,8 +622,10 @@ class InAppPurchaseApi {
   }
 
   Future<VerifyInvoiceAPIResult> verifyInvoice(InvoiceMessage invoice) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.verifyInvoice$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.verifyInvoice$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -635,8 +651,10 @@ class InAppPurchaseApi {
   }
 
   Future<bool> isAvailable() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.isAvailable$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.isAvailable$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -662,8 +680,10 @@ class InAppPurchaseApi {
   }
 
   Future<String?> getCustomId() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCustomId$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCustomId$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
@@ -684,8 +704,10 @@ class InAppPurchaseApi {
   }
 
   Future<String> getCountryCode() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCountryCode$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCountryCode$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,

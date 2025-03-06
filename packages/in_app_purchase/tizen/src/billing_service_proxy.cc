@@ -69,7 +69,7 @@ bool BillingWrapper::service_billing_buyitem(const char *app_id,
 }
 
 void BillingWrapper::service_billing_set_buyitem_cb(billing_buyitem_cb callback,
-  void *user_data) {
+                                                    void *user_data) {
   if (set_buyitem_cb) {
     return set_buyitem_cb(callback, user_data);
   }

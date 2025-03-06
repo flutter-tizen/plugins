@@ -29,27 +29,26 @@ FlutterError CreateConnectionError(const std::string channel_name) {
 
 // ProductsListApiResult
 
-ProductsListApiResult::ProductsListApiResult(
-  const std::string& cp_status,
-  int64_t total_count,
-  const std::string& check_value,
-  const EncodableList& item_details)
- : cp_status_(cp_status),
-    total_count_(total_count),
-    check_value_(check_value),
-    item_details_(item_details) {}
+ProductsListApiResult::ProductsListApiResult(const std::string& cp_status,
+                                             int64_t total_count,
+                                             const std::string& check_value,
+                                             const EncodableList& item_details)
+    : cp_status_(cp_status),
+      total_count_(total_count),
+      check_value_(check_value),
+      item_details_(item_details) {}
 
-ProductsListApiResult::ProductsListApiResult(
-  const std::string& cp_status,
-  const std::string* cp_result,
-  int64_t total_count,
-  const std::string& check_value,
-  const EncodableList& item_details)
- : cp_status_(cp_status),
-    cp_result_(cp_result ? std::optional<std::string>(*cp_result) : std::nullopt),
-    total_count_(total_count),
-    check_value_(check_value),
-    item_details_(item_details) {}
+ProductsListApiResult::ProductsListApiResult(const std::string& cp_status,
+                                             const std::string* cp_result,
+                                             int64_t total_count,
+                                             const std::string& check_value,
+                                             const EncodableList& item_details)
+    : cp_status_(cp_status),
+      cp_result_(cp_result ? std::optional<std::string>(*cp_result)
+                           : std::nullopt),
+      total_count_(total_count),
+      check_value_(check_value),
+      item_details_(item_details) {}
 
 const std::string& ProductsListApiResult::cp_status() const {
   return cp_status_;
@@ -59,28 +58,24 @@ void ProductsListApiResult::set_cp_status(std::string_view value_arg) {
   cp_status_ = value_arg;
 }
 
-
 const std::string* ProductsListApiResult::cp_result() const {
   return cp_result_ ? &(*cp_result_) : nullptr;
 }
 
 void ProductsListApiResult::set_cp_result(const std::string_view* value_arg) {
-  cp_result_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+  cp_result_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void ProductsListApiResult::set_cp_result(std::string_view value_arg) {
   cp_result_ = value_arg;
 }
 
-
-int64_t ProductsListApiResult::total_count() const {
-  return total_count_;
-}
+int64_t ProductsListApiResult::total_count() const { return total_count_; }
 
 void ProductsListApiResult::set_total_count(int64_t value_arg) {
   total_count_ = value_arg;
 }
-
 
 const std::string& ProductsListApiResult::check_value() const {
   return check_value_;
@@ -90,7 +85,6 @@ void ProductsListApiResult::set_check_value(std::string_view value_arg) {
   check_value_ = value_arg;
 }
 
-
 const EncodableList& ProductsListApiResult::item_details() const {
   return item_details_;
 }
@@ -98,7 +92,6 @@ const EncodableList& ProductsListApiResult::item_details() const {
 void ProductsListApiResult::set_item_details(const EncodableList& value_arg) {
   item_details_ = value_arg;
 }
-
 
 EncodableList ProductsListApiResult::ToEncodableList() const {
   EncodableList list;
@@ -111,12 +104,11 @@ EncodableList ProductsListApiResult::ToEncodableList() const {
   return list;
 }
 
-ProductsListApiResult ProductsListApiResult::FromEncodableList(const EncodableList& list) {
+ProductsListApiResult ProductsListApiResult::FromEncodableList(
+    const EncodableList& list) {
   ProductsListApiResult decoded(
-    std::get<std::string>(list[0]),
-    std::get<int64_t>(list[2]),
-    std::get<std::string>(list[3]),
-    std::get<EncodableList>(list[4]));
+      std::get<std::string>(list[0]), std::get<int64_t>(list[2]),
+      std::get<std::string>(list[3]), std::get<EncodableList>(list[4]));
   auto& encodable_cp_result = list[1];
   if (!encodable_cp_result.IsNull()) {
     decoded.set_cp_result(std::get<std::string>(encodable_cp_result));
@@ -127,22 +119,21 @@ ProductsListApiResult ProductsListApiResult::FromEncodableList(const EncodableLi
 // GetUserPurchaseListAPIResult
 
 GetUserPurchaseListAPIResult::GetUserPurchaseListAPIResult(
-  const std::string& cp_status,
-  const EncodableList& invoice_details)
- : cp_status_(cp_status),
-    invoice_details_(invoice_details) {}
+    const std::string& cp_status, const EncodableList& invoice_details)
+    : cp_status_(cp_status), invoice_details_(invoice_details) {}
 
 GetUserPurchaseListAPIResult::GetUserPurchaseListAPIResult(
-  const std::string& cp_status,
-  const std::string* cp_result,
-  const int64_t* total_count,
-  const std::string* check_value,
-  const EncodableList& invoice_details)
- : cp_status_(cp_status),
-    cp_result_(cp_result ? std::optional<std::string>(*cp_result) : std::nullopt),
-    total_count_(total_count ? std::optional<int64_t>(*total_count) : std::nullopt),
-    check_value_(check_value ? std::optional<std::string>(*check_value) : std::nullopt),
-    invoice_details_(invoice_details) {}
+    const std::string& cp_status, const std::string* cp_result,
+    const int64_t* total_count, const std::string* check_value,
+    const EncodableList& invoice_details)
+    : cp_status_(cp_status),
+      cp_result_(cp_result ? std::optional<std::string>(*cp_result)
+                           : std::nullopt),
+      total_count_(total_count ? std::optional<int64_t>(*total_count)
+                               : std::nullopt),
+      check_value_(check_value ? std::optional<std::string>(*check_value)
+                               : std::nullopt),
+      invoice_details_(invoice_details) {}
 
 const std::string& GetUserPurchaseListAPIResult::cp_status() const {
   return cp_status_;
@@ -152,19 +143,19 @@ void GetUserPurchaseListAPIResult::set_cp_status(std::string_view value_arg) {
   cp_status_ = value_arg;
 }
 
-
 const std::string* GetUserPurchaseListAPIResult::cp_result() const {
   return cp_result_ ? &(*cp_result_) : nullptr;
 }
 
-void GetUserPurchaseListAPIResult::set_cp_result(const std::string_view* value_arg) {
-  cp_result_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+void GetUserPurchaseListAPIResult::set_cp_result(
+    const std::string_view* value_arg) {
+  cp_result_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void GetUserPurchaseListAPIResult::set_cp_result(std::string_view value_arg) {
   cp_result_ = value_arg;
 }
-
 
 const int64_t* GetUserPurchaseListAPIResult::total_count() const {
   return total_count_ ? &(*total_count_) : nullptr;
@@ -178,44 +169,46 @@ void GetUserPurchaseListAPIResult::set_total_count(int64_t value_arg) {
   total_count_ = value_arg;
 }
 
-
 const std::string* GetUserPurchaseListAPIResult::check_value() const {
   return check_value_ ? &(*check_value_) : nullptr;
 }
 
-void GetUserPurchaseListAPIResult::set_check_value(const std::string_view* value_arg) {
-  check_value_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+void GetUserPurchaseListAPIResult::set_check_value(
+    const std::string_view* value_arg) {
+  check_value_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void GetUserPurchaseListAPIResult::set_check_value(std::string_view value_arg) {
   check_value_ = value_arg;
 }
 
-
 const EncodableList& GetUserPurchaseListAPIResult::invoice_details() const {
   return invoice_details_;
 }
 
-void GetUserPurchaseListAPIResult::set_invoice_details(const EncodableList& value_arg) {
+void GetUserPurchaseListAPIResult::set_invoice_details(
+    const EncodableList& value_arg) {
   invoice_details_ = value_arg;
 }
-
 
 EncodableList GetUserPurchaseListAPIResult::ToEncodableList() const {
   EncodableList list;
   list.reserve(5);
   list.push_back(EncodableValue(cp_status_));
   list.push_back(cp_result_ ? EncodableValue(*cp_result_) : EncodableValue());
-  list.push_back(total_count_ ? EncodableValue(*total_count_) : EncodableValue());
-  list.push_back(check_value_ ? EncodableValue(*check_value_) : EncodableValue());
+  list.push_back(total_count_ ? EncodableValue(*total_count_)
+                              : EncodableValue());
+  list.push_back(check_value_ ? EncodableValue(*check_value_)
+                              : EncodableValue());
   list.push_back(EncodableValue(invoice_details_));
   return list;
 }
 
-GetUserPurchaseListAPIResult GetUserPurchaseListAPIResult::FromEncodableList(const EncodableList& list) {
-  GetUserPurchaseListAPIResult decoded(
-    std::get<std::string>(list[0]),
-    std::get<EncodableList>(list[4]));
+GetUserPurchaseListAPIResult GetUserPurchaseListAPIResult::FromEncodableList(
+    const EncodableList& list) {
+  GetUserPurchaseListAPIResult decoded(std::get<std::string>(list[0]),
+                                       std::get<EncodableList>(list[4]));
   auto& encodable_cp_result = list[1];
   if (!encodable_cp_result.IsNull()) {
     decoded.set_cp_result(std::get<std::string>(encodable_cp_result));
@@ -233,29 +226,21 @@ GetUserPurchaseListAPIResult GetUserPurchaseListAPIResult::FromEncodableList(con
 
 // BillingBuyData
 
-BillingBuyData::BillingBuyData(
-  const std::string& pay_result,
-  const EncodableMap& pay_details)
- : pay_result_(pay_result),
-    pay_details_(pay_details) {}
+BillingBuyData::BillingBuyData(const std::string& pay_result,
+                               const EncodableMap& pay_details)
+    : pay_result_(pay_result), pay_details_(pay_details) {}
 
-const std::string& BillingBuyData::pay_result() const {
-  return pay_result_;
-}
+const std::string& BillingBuyData::pay_result() const { return pay_result_; }
 
 void BillingBuyData::set_pay_result(std::string_view value_arg) {
   pay_result_ = value_arg;
 }
 
-
-const EncodableMap& BillingBuyData::pay_details() const {
-  return pay_details_;
-}
+const EncodableMap& BillingBuyData::pay_details() const { return pay_details_; }
 
 void BillingBuyData::set_pay_details(const EncodableMap& value_arg) {
   pay_details_ = value_arg;
 }
-
 
 EncodableList BillingBuyData::ToEncodableList() const {
   EncodableList list;
@@ -266,31 +251,27 @@ EncodableList BillingBuyData::ToEncodableList() const {
 }
 
 BillingBuyData BillingBuyData::FromEncodableList(const EncodableList& list) {
-  BillingBuyData decoded(
-    std::get<std::string>(list[0]),
-    std::get<EncodableMap>(list[1]));
+  BillingBuyData decoded(std::get<std::string>(list[0]),
+                         std::get<EncodableMap>(list[1]));
   return decoded;
 }
 
 // VerifyInvoiceAPIResult
 
-VerifyInvoiceAPIResult::VerifyInvoiceAPIResult(
-  const std::string& cp_status,
-  const std::string& app_id,
-  const std::string& invoice_id)
- : cp_status_(cp_status),
-    app_id_(app_id),
-    invoice_id_(invoice_id) {}
+VerifyInvoiceAPIResult::VerifyInvoiceAPIResult(const std::string& cp_status,
+                                               const std::string& app_id,
+                                               const std::string& invoice_id)
+    : cp_status_(cp_status), app_id_(app_id), invoice_id_(invoice_id) {}
 
-VerifyInvoiceAPIResult::VerifyInvoiceAPIResult(
-  const std::string& cp_status,
-  const std::string* cp_result,
-  const std::string& app_id,
-  const std::string& invoice_id)
- : cp_status_(cp_status),
-    cp_result_(cp_result ? std::optional<std::string>(*cp_result) : std::nullopt),
-    app_id_(app_id),
-    invoice_id_(invoice_id) {}
+VerifyInvoiceAPIResult::VerifyInvoiceAPIResult(const std::string& cp_status,
+                                               const std::string* cp_result,
+                                               const std::string& app_id,
+                                               const std::string& invoice_id)
+    : cp_status_(cp_status),
+      cp_result_(cp_result ? std::optional<std::string>(*cp_result)
+                           : std::nullopt),
+      app_id_(app_id),
+      invoice_id_(invoice_id) {}
 
 const std::string& VerifyInvoiceAPIResult::cp_status() const {
   return cp_status_;
@@ -300,28 +281,24 @@ void VerifyInvoiceAPIResult::set_cp_status(std::string_view value_arg) {
   cp_status_ = value_arg;
 }
 
-
 const std::string* VerifyInvoiceAPIResult::cp_result() const {
   return cp_result_ ? &(*cp_result_) : nullptr;
 }
 
 void VerifyInvoiceAPIResult::set_cp_result(const std::string_view* value_arg) {
-  cp_result_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+  cp_result_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void VerifyInvoiceAPIResult::set_cp_result(std::string_view value_arg) {
   cp_result_ = value_arg;
 }
 
-
-const std::string& VerifyInvoiceAPIResult::app_id() const {
-  return app_id_;
-}
+const std::string& VerifyInvoiceAPIResult::app_id() const { return app_id_; }
 
 void VerifyInvoiceAPIResult::set_app_id(std::string_view value_arg) {
   app_id_ = value_arg;
 }
-
 
 const std::string& VerifyInvoiceAPIResult::invoice_id() const {
   return invoice_id_;
@@ -330,7 +307,6 @@ const std::string& VerifyInvoiceAPIResult::invoice_id() const {
 void VerifyInvoiceAPIResult::set_invoice_id(std::string_view value_arg) {
   invoice_id_ = value_arg;
 }
-
 
 EncodableList VerifyInvoiceAPIResult::ToEncodableList() const {
   EncodableList list;
@@ -342,11 +318,11 @@ EncodableList VerifyInvoiceAPIResult::ToEncodableList() const {
   return list;
 }
 
-VerifyInvoiceAPIResult VerifyInvoiceAPIResult::FromEncodableList(const EncodableList& list) {
-  VerifyInvoiceAPIResult decoded(
-    std::get<std::string>(list[0]),
-    std::get<std::string>(list[2]),
-    std::get<std::string>(list[3]));
+VerifyInvoiceAPIResult VerifyInvoiceAPIResult::FromEncodableList(
+    const EncodableList& list) {
+  VerifyInvoiceAPIResult decoded(std::get<std::string>(list[0]),
+                                 std::get<std::string>(list[2]),
+                                 std::get<std::string>(list[3]));
   auto& encodable_cp_result = list[1];
   if (!encodable_cp_result.IsNull()) {
     decoded.set_cp_result(std::get<std::string>(encodable_cp_result));
@@ -356,50 +332,43 @@ VerifyInvoiceAPIResult VerifyInvoiceAPIResult::FromEncodableList(const Encodable
 
 // ServiceAvailableAPIResult
 
-ServiceAvailableAPIResult::ServiceAvailableAPIResult(
-  const std::string& status,
-  const std::string& result)
- : status_(status),
-    result_(result) {}
+ServiceAvailableAPIResult::ServiceAvailableAPIResult(const std::string& status,
+                                                     const std::string& result)
+    : status_(status), result_(result) {}
 
 ServiceAvailableAPIResult::ServiceAvailableAPIResult(
-  const std::string& status,
-  const std::string& result,
-  const std::string* service_yn)
- : status_(status),
-    result_(result),
-    service_yn_(service_yn ? std::optional<std::string>(*service_yn) : std::nullopt) {}
+    const std::string& status, const std::string& result,
+    const std::string* service_yn)
+    : status_(status),
+      result_(result),
+      service_yn_(service_yn ? std::optional<std::string>(*service_yn)
+                             : std::nullopt) {}
 
-const std::string& ServiceAvailableAPIResult::status() const {
-  return status_;
-}
+const std::string& ServiceAvailableAPIResult::status() const { return status_; }
 
 void ServiceAvailableAPIResult::set_status(std::string_view value_arg) {
   status_ = value_arg;
 }
 
-
-const std::string& ServiceAvailableAPIResult::result() const {
-  return result_;
-}
+const std::string& ServiceAvailableAPIResult::result() const { return result_; }
 
 void ServiceAvailableAPIResult::set_result(std::string_view value_arg) {
   result_ = value_arg;
 }
 
-
 const std::string* ServiceAvailableAPIResult::service_yn() const {
   return service_yn_ ? &(*service_yn_) : nullptr;
 }
 
-void ServiceAvailableAPIResult::set_service_yn(const std::string_view* value_arg) {
-  service_yn_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+void ServiceAvailableAPIResult::set_service_yn(
+    const std::string_view* value_arg) {
+  service_yn_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void ServiceAvailableAPIResult::set_service_yn(std::string_view value_arg) {
   service_yn_ = value_arg;
 }
-
 
 EncodableList ServiceAvailableAPIResult::ToEncodableList() const {
   EncodableList list;
@@ -410,10 +379,10 @@ EncodableList ServiceAvailableAPIResult::ToEncodableList() const {
   return list;
 }
 
-ServiceAvailableAPIResult ServiceAvailableAPIResult::FromEncodableList(const EncodableList& list) {
-  ServiceAvailableAPIResult decoded(
-    std::get<std::string>(list[0]),
-    std::get<std::string>(list[1]));
+ServiceAvailableAPIResult ServiceAvailableAPIResult::FromEncodableList(
+    const EncodableList& list) {
+  ServiceAvailableAPIResult decoded(std::get<std::string>(list[0]),
+                                    std::get<std::string>(list[1]));
   auto& encodable_service_yn = list[2];
   if (!encodable_service_yn.IsNull()) {
     decoded.set_service_yn(std::get<std::string>(encodable_service_yn));
@@ -423,34 +392,27 @@ ServiceAvailableAPIResult ServiceAvailableAPIResult::FromEncodableList(const Enc
 
 // ProductMessage
 
-ProductMessage::ProductMessage(
-  const std::string& app_id,
-  const std::string& country_code,
-  const std::string& check_value)
- : app_id_(app_id),
-    country_code_(country_code),
-    check_value_(check_value) {}
+ProductMessage::ProductMessage(const std::string& app_id,
+                               const std::string& country_code,
+                               const std::string& check_value)
+    : app_id_(app_id), country_code_(country_code), check_value_(check_value) {}
 
-ProductMessage::ProductMessage(
-  const std::string& app_id,
-  const std::string& country_code,
-  const int64_t* page_size,
-  const int64_t* page_num,
-  const std::string& check_value)
- : app_id_(app_id),
-    country_code_(country_code),
-    page_size_(page_size ? std::optional<int64_t>(*page_size) : std::nullopt),
-    page_num_(page_num ? std::optional<int64_t>(*page_num) : std::nullopt),
-    check_value_(check_value) {}
+ProductMessage::ProductMessage(const std::string& app_id,
+                               const std::string& country_code,
+                               const int64_t* page_size,
+                               const int64_t* page_num,
+                               const std::string& check_value)
+    : app_id_(app_id),
+      country_code_(country_code),
+      page_size_(page_size ? std::optional<int64_t>(*page_size) : std::nullopt),
+      page_num_(page_num ? std::optional<int64_t>(*page_num) : std::nullopt),
+      check_value_(check_value) {}
 
-const std::string& ProductMessage::app_id() const {
-  return app_id_;
-}
+const std::string& ProductMessage::app_id() const { return app_id_; }
 
 void ProductMessage::set_app_id(std::string_view value_arg) {
   app_id_ = value_arg;
 }
-
 
 const std::string& ProductMessage::country_code() const {
   return country_code_;
@@ -459,7 +421,6 @@ const std::string& ProductMessage::country_code() const {
 void ProductMessage::set_country_code(std::string_view value_arg) {
   country_code_ = value_arg;
 }
-
 
 const int64_t* ProductMessage::page_size() const {
   return page_size_ ? &(*page_size_) : nullptr;
@@ -473,7 +434,6 @@ void ProductMessage::set_page_size(int64_t value_arg) {
   page_size_ = value_arg;
 }
 
-
 const int64_t* ProductMessage::page_num() const {
   return page_num_ ? &(*page_num_) : nullptr;
 }
@@ -482,19 +442,13 @@ void ProductMessage::set_page_num(const int64_t* value_arg) {
   page_num_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
 }
 
-void ProductMessage::set_page_num(int64_t value_arg) {
-  page_num_ = value_arg;
-}
+void ProductMessage::set_page_num(int64_t value_arg) { page_num_ = value_arg; }
 
-
-const std::string& ProductMessage::check_value() const {
-  return check_value_;
-}
+const std::string& ProductMessage::check_value() const { return check_value_; }
 
 void ProductMessage::set_check_value(std::string_view value_arg) {
   check_value_ = value_arg;
 }
-
 
 EncodableList ProductMessage::ToEncodableList() const {
   EncodableList list;
@@ -508,10 +462,9 @@ EncodableList ProductMessage::ToEncodableList() const {
 }
 
 ProductMessage ProductMessage::FromEncodableList(const EncodableList& list) {
-  ProductMessage decoded(
-    std::get<std::string>(list[0]),
-    std::get<std::string>(list[1]),
-    std::get<std::string>(list[4]));
+  ProductMessage decoded(std::get<std::string>(list[0]),
+                         std::get<std::string>(list[1]),
+                         std::get<std::string>(list[4]));
   auto& encodable_page_size = list[2];
   if (!encodable_page_size.IsNull()) {
     decoded.set_page_size(std::get<int64_t>(encodable_page_size));
@@ -525,47 +478,41 @@ ProductMessage ProductMessage::FromEncodableList(const EncodableList& list) {
 
 // PurchaseMessage
 
-PurchaseMessage::PurchaseMessage(
-  const std::string& app_id,
-  const std::string& country_code,
-  const std::string& check_value)
- : app_id_(app_id),
-    country_code_(country_code),
-    check_value_(check_value) {}
+PurchaseMessage::PurchaseMessage(const std::string& app_id,
+                                 const std::string& country_code,
+                                 const std::string& check_value)
+    : app_id_(app_id), country_code_(country_code), check_value_(check_value) {}
 
-PurchaseMessage::PurchaseMessage(
-  const std::string& app_id,
-  const std::string* custom_id,
-  const std::string& country_code,
-  const int64_t* page_num,
-  const std::string& check_value)
- : app_id_(app_id),
-    custom_id_(custom_id ? std::optional<std::string>(*custom_id) : std::nullopt),
-    country_code_(country_code),
-    page_num_(page_num ? std::optional<int64_t>(*page_num) : std::nullopt),
-    check_value_(check_value) {}
+PurchaseMessage::PurchaseMessage(const std::string& app_id,
+                                 const std::string* custom_id,
+                                 const std::string& country_code,
+                                 const int64_t* page_num,
+                                 const std::string& check_value)
+    : app_id_(app_id),
+      custom_id_(custom_id ? std::optional<std::string>(*custom_id)
+                           : std::nullopt),
+      country_code_(country_code),
+      page_num_(page_num ? std::optional<int64_t>(*page_num) : std::nullopt),
+      check_value_(check_value) {}
 
-const std::string& PurchaseMessage::app_id() const {
-  return app_id_;
-}
+const std::string& PurchaseMessage::app_id() const { return app_id_; }
 
 void PurchaseMessage::set_app_id(std::string_view value_arg) {
   app_id_ = value_arg;
 }
-
 
 const std::string* PurchaseMessage::custom_id() const {
   return custom_id_ ? &(*custom_id_) : nullptr;
 }
 
 void PurchaseMessage::set_custom_id(const std::string_view* value_arg) {
-  custom_id_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+  custom_id_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void PurchaseMessage::set_custom_id(std::string_view value_arg) {
   custom_id_ = value_arg;
 }
-
 
 const std::string& PurchaseMessage::country_code() const {
   return country_code_;
@@ -575,7 +522,6 @@ void PurchaseMessage::set_country_code(std::string_view value_arg) {
   country_code_ = value_arg;
 }
 
-
 const int64_t* PurchaseMessage::page_num() const {
   return page_num_ ? &(*page_num_) : nullptr;
 }
@@ -584,19 +530,13 @@ void PurchaseMessage::set_page_num(const int64_t* value_arg) {
   page_num_ = value_arg ? std::optional<int64_t>(*value_arg) : std::nullopt;
 }
 
-void PurchaseMessage::set_page_num(int64_t value_arg) {
-  page_num_ = value_arg;
-}
+void PurchaseMessage::set_page_num(int64_t value_arg) { page_num_ = value_arg; }
 
-
-const std::string& PurchaseMessage::check_value() const {
-  return check_value_;
-}
+const std::string& PurchaseMessage::check_value() const { return check_value_; }
 
 void PurchaseMessage::set_check_value(std::string_view value_arg) {
   check_value_ = value_arg;
 }
-
 
 EncodableList PurchaseMessage::ToEncodableList() const {
   EncodableList list;
@@ -610,10 +550,9 @@ EncodableList PurchaseMessage::ToEncodableList() const {
 }
 
 PurchaseMessage PurchaseMessage::FromEncodableList(const EncodableList& list) {
-  PurchaseMessage decoded(
-    std::get<std::string>(list[0]),
-    std::get<std::string>(list[2]),
-    std::get<std::string>(list[4]));
+  PurchaseMessage decoded(std::get<std::string>(list[0]),
+                          std::get<std::string>(list[2]),
+                          std::get<std::string>(list[4]));
   auto& encodable_custom_id = list[1];
   if (!encodable_custom_id.IsNull()) {
     decoded.set_custom_id(std::get<std::string>(encodable_custom_id));
@@ -627,15 +566,14 @@ PurchaseMessage PurchaseMessage::FromEncodableList(const EncodableList& list) {
 
 // OrderDetails
 
-OrderDetails::OrderDetails(
-  const std::string& order_item_id,
-  const std::string& order_title,
-  const std::string& order_total,
-  const std::string& order_currency_id)
- : order_item_id_(order_item_id),
-    order_title_(order_title),
-    order_total_(order_total),
-    order_currency_id_(order_currency_id) {}
+OrderDetails::OrderDetails(const std::string& order_item_id,
+                           const std::string& order_title,
+                           const std::string& order_total,
+                           const std::string& order_currency_id)
+    : order_item_id_(order_item_id),
+      order_title_(order_title),
+      order_total_(order_total),
+      order_currency_id_(order_currency_id) {}
 
 const std::string& OrderDetails::order_item_id() const {
   return order_item_id_;
@@ -645,24 +583,17 @@ void OrderDetails::set_order_item_id(std::string_view value_arg) {
   order_item_id_ = value_arg;
 }
 
-
-const std::string& OrderDetails::order_title() const {
-  return order_title_;
-}
+const std::string& OrderDetails::order_title() const { return order_title_; }
 
 void OrderDetails::set_order_title(std::string_view value_arg) {
   order_title_ = value_arg;
 }
 
-
-const std::string& OrderDetails::order_total() const {
-  return order_total_;
-}
+const std::string& OrderDetails::order_total() const { return order_total_; }
 
 void OrderDetails::set_order_total(std::string_view value_arg) {
   order_total_ = value_arg;
 }
-
 
 const std::string& OrderDetails::order_currency_id() const {
   return order_currency_id_;
@@ -671,7 +602,6 @@ const std::string& OrderDetails::order_currency_id() const {
 void OrderDetails::set_order_currency_id(std::string_view value_arg) {
   order_currency_id_ = value_arg;
 }
-
 
 EncodableList OrderDetails::ToEncodableList() const {
   EncodableList list;
@@ -685,24 +615,21 @@ EncodableList OrderDetails::ToEncodableList() const {
 
 OrderDetails OrderDetails::FromEncodableList(const EncodableList& list) {
   OrderDetails decoded(
-    std::get<std::string>(list[0]),
-    std::get<std::string>(list[1]),
-    std::get<std::string>(list[2]),
-    std::get<std::string>(list[3]));
+      std::get<std::string>(list[0]), std::get<std::string>(list[1]),
+      std::get<std::string>(list[2]), std::get<std::string>(list[3]));
   return decoded;
 }
 
 // BuyInfoMessage
 
-BuyInfoMessage::BuyInfoMessage(
-  const std::string& app_id,
-  const OrderDetails& pay_detials)
- : app_id_(app_id),
-    pay_detials_(std::make_unique<OrderDetails>(pay_detials)) {}
+BuyInfoMessage::BuyInfoMessage(const std::string& app_id,
+                               const OrderDetails& pay_detials)
+    : app_id_(app_id),
+      pay_detials_(std::make_unique<OrderDetails>(pay_detials)) {}
 
 BuyInfoMessage::BuyInfoMessage(const BuyInfoMessage& other)
- : app_id_(other.app_id_),
-    pay_detials_(std::make_unique<OrderDetails>(*other.pay_detials_)) {}
+    : app_id_(other.app_id_),
+      pay_detials_(std::make_unique<OrderDetails>(*other.pay_detials_)) {}
 
 BuyInfoMessage& BuyInfoMessage::operator=(const BuyInfoMessage& other) {
   app_id_ = other.app_id_;
@@ -710,14 +637,11 @@ BuyInfoMessage& BuyInfoMessage::operator=(const BuyInfoMessage& other) {
   return *this;
 }
 
-const std::string& BuyInfoMessage::app_id() const {
-  return app_id_;
-}
+const std::string& BuyInfoMessage::app_id() const { return app_id_; }
 
 void BuyInfoMessage::set_app_id(std::string_view value_arg) {
   app_id_ = value_arg;
 }
-
 
 const OrderDetails& BuyInfoMessage::pay_detials() const {
   return *pay_detials_;
@@ -726,7 +650,6 @@ const OrderDetails& BuyInfoMessage::pay_detials() const {
 void BuyInfoMessage::set_pay_detials(const OrderDetails& value_arg) {
   pay_detials_ = std::make_unique<OrderDetails>(value_arg);
 }
-
 
 EncodableList BuyInfoMessage::ToEncodableList() const {
   EncodableList list;
@@ -737,62 +660,53 @@ EncodableList BuyInfoMessage::ToEncodableList() const {
 }
 
 BuyInfoMessage BuyInfoMessage::FromEncodableList(const EncodableList& list) {
-  BuyInfoMessage decoded(
-    std::get<std::string>(list[0]),
-    std::any_cast<const OrderDetails&>(std::get<CustomEncodableValue>(list[1])));
+  BuyInfoMessage decoded(std::get<std::string>(list[0]),
+                         std::any_cast<const OrderDetails&>(
+                             std::get<CustomEncodableValue>(list[1])));
   return decoded;
 }
 
 // InvoiceMessage
 
-InvoiceMessage::InvoiceMessage(
-  const std::string& app_id,
-  const std::string& invoice_id,
-  const std::string& country_code)
- : app_id_(app_id),
-    invoice_id_(invoice_id),
-    country_code_(country_code) {}
+InvoiceMessage::InvoiceMessage(const std::string& app_id,
+                               const std::string& invoice_id,
+                               const std::string& country_code)
+    : app_id_(app_id), invoice_id_(invoice_id), country_code_(country_code) {}
 
-InvoiceMessage::InvoiceMessage(
-  const std::string& app_id,
-  const std::string* custom_id,
-  const std::string& invoice_id,
-  const std::string& country_code)
- : app_id_(app_id),
-    custom_id_(custom_id ? std::optional<std::string>(*custom_id) : std::nullopt),
-    invoice_id_(invoice_id),
-    country_code_(country_code) {}
+InvoiceMessage::InvoiceMessage(const std::string& app_id,
+                               const std::string* custom_id,
+                               const std::string& invoice_id,
+                               const std::string& country_code)
+    : app_id_(app_id),
+      custom_id_(custom_id ? std::optional<std::string>(*custom_id)
+                           : std::nullopt),
+      invoice_id_(invoice_id),
+      country_code_(country_code) {}
 
-const std::string& InvoiceMessage::app_id() const {
-  return app_id_;
-}
+const std::string& InvoiceMessage::app_id() const { return app_id_; }
 
 void InvoiceMessage::set_app_id(std::string_view value_arg) {
   app_id_ = value_arg;
 }
-
 
 const std::string* InvoiceMessage::custom_id() const {
   return custom_id_ ? &(*custom_id_) : nullptr;
 }
 
 void InvoiceMessage::set_custom_id(const std::string_view* value_arg) {
-  custom_id_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+  custom_id_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void InvoiceMessage::set_custom_id(std::string_view value_arg) {
   custom_id_ = value_arg;
 }
 
-
-const std::string& InvoiceMessage::invoice_id() const {
-  return invoice_id_;
-}
+const std::string& InvoiceMessage::invoice_id() const { return invoice_id_; }
 
 void InvoiceMessage::set_invoice_id(std::string_view value_arg) {
   invoice_id_ = value_arg;
 }
-
 
 const std::string& InvoiceMessage::country_code() const {
   return country_code_;
@@ -801,7 +715,6 @@ const std::string& InvoiceMessage::country_code() const {
 void InvoiceMessage::set_country_code(std::string_view value_arg) {
   country_code_ = value_arg;
 }
-
 
 EncodableList InvoiceMessage::ToEncodableList() const {
   EncodableList list;
@@ -814,10 +727,9 @@ EncodableList InvoiceMessage::ToEncodableList() const {
 }
 
 InvoiceMessage InvoiceMessage::FromEncodableList(const EncodableList& list) {
-  InvoiceMessage decoded(
-    std::get<std::string>(list[0]),
-    std::get<std::string>(list[2]),
-    std::get<std::string>(list[3]));
+  InvoiceMessage decoded(std::get<std::string>(list[0]),
+                         std::get<std::string>(list[2]),
+                         std::get<std::string>(list[3]));
   auto& encodable_custom_id = list[1];
   if (!encodable_custom_id.IsNull()) {
     decoded.set_custom_id(std::get<std::string>(encodable_custom_id));
@@ -825,110 +737,154 @@ InvoiceMessage InvoiceMessage::FromEncodableList(const EncodableList& list) {
   return decoded;
 }
 
-
 PigeonInternalCodecSerializer::PigeonInternalCodecSerializer() {}
 
 EncodableValue PigeonInternalCodecSerializer::ReadValueOfType(
-  uint8_t type,
-  flutter::ByteStreamReader* stream) const {
+    uint8_t type, flutter::ByteStreamReader* stream) const {
   switch (type) {
     case 129: {
-        const auto& encodable_enum_arg = ReadValue(stream);
-        const int64_t enum_arg_value = encodable_enum_arg.IsNull() ? 0 : encodable_enum_arg.LongValue();
-        return encodable_enum_arg.IsNull() ? EncodableValue() : CustomEncodableValue(static_cast<ItemType>(enum_arg_value));
-      }
+      const auto& encodable_enum_arg = ReadValue(stream);
+      const int64_t enum_arg_value =
+          encodable_enum_arg.IsNull() ? 0 : encodable_enum_arg.LongValue();
+      return encodable_enum_arg.IsNull()
+                 ? EncodableValue()
+                 : CustomEncodableValue(static_cast<ItemType>(enum_arg_value));
+    }
     case 130: {
-        return CustomEncodableValue(ProductsListApiResult::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(ProductsListApiResult::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 131: {
-        return CustomEncodableValue(GetUserPurchaseListAPIResult::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(
+          GetUserPurchaseListAPIResult::FromEncodableList(
+              std::get<EncodableList>(ReadValue(stream))));
+    }
     case 132: {
-        return CustomEncodableValue(BillingBuyData::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(BillingBuyData::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 133: {
-        return CustomEncodableValue(VerifyInvoiceAPIResult::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(VerifyInvoiceAPIResult::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 134: {
-        return CustomEncodableValue(ServiceAvailableAPIResult::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(ServiceAvailableAPIResult::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 135: {
-        return CustomEncodableValue(ProductMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(ProductMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 136: {
-        return CustomEncodableValue(PurchaseMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(PurchaseMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 137: {
-        return CustomEncodableValue(OrderDetails::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(OrderDetails::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 138: {
-        return CustomEncodableValue(BuyInfoMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(BuyInfoMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 139: {
-        return CustomEncodableValue(InvoiceMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(InvoiceMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     default:
       return flutter::StandardCodecSerializer::ReadValueOfType(type, stream);
-    }
+  }
 }
 
 void PigeonInternalCodecSerializer::WriteValue(
-  const EncodableValue& value,
-  flutter::ByteStreamWriter* stream) const {
-  if (const CustomEncodableValue* custom_value = std::get_if<CustomEncodableValue>(&value)) {
+    const EncodableValue& value, flutter::ByteStreamWriter* stream) const {
+  if (const CustomEncodableValue* custom_value =
+          std::get_if<CustomEncodableValue>(&value)) {
     if (custom_value->type() == typeid(ItemType)) {
       stream->WriteByte(129);
-      WriteValue(EncodableValue(static_cast<int>(std::any_cast<ItemType>(*custom_value))), stream);
+      WriteValue(EncodableValue(
+                     static_cast<int>(std::any_cast<ItemType>(*custom_value))),
+                 stream);
       return;
     }
     if (custom_value->type() == typeid(ProductsListApiResult)) {
       stream->WriteByte(130);
-      WriteValue(EncodableValue(std::any_cast<ProductsListApiResult>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(std::any_cast<ProductsListApiResult>(*custom_value)
+                             .ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(GetUserPurchaseListAPIResult)) {
       stream->WriteByte(131);
-      WriteValue(EncodableValue(std::any_cast<GetUserPurchaseListAPIResult>(*custom_value).ToEncodableList()), stream);
+      WriteValue(EncodableValue(
+                     std::any_cast<GetUserPurchaseListAPIResult>(*custom_value)
+                         .ToEncodableList()),
+                 stream);
       return;
     }
     if (custom_value->type() == typeid(BillingBuyData)) {
       stream->WriteByte(132);
-      WriteValue(EncodableValue(std::any_cast<BillingBuyData>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<BillingBuyData>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(VerifyInvoiceAPIResult)) {
       stream->WriteByte(133);
-      WriteValue(EncodableValue(std::any_cast<VerifyInvoiceAPIResult>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(std::any_cast<VerifyInvoiceAPIResult>(*custom_value)
+                             .ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(ServiceAvailableAPIResult)) {
       stream->WriteByte(134);
-      WriteValue(EncodableValue(std::any_cast<ServiceAvailableAPIResult>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(std::any_cast<ServiceAvailableAPIResult>(*custom_value)
+                             .ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(ProductMessage)) {
       stream->WriteByte(135);
-      WriteValue(EncodableValue(std::any_cast<ProductMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<ProductMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(PurchaseMessage)) {
       stream->WriteByte(136);
-      WriteValue(EncodableValue(std::any_cast<PurchaseMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<PurchaseMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(OrderDetails)) {
       stream->WriteByte(137);
-      WriteValue(EncodableValue(std::any_cast<OrderDetails>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<OrderDetails>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(BuyInfoMessage)) {
       stream->WriteByte(138);
-      WriteValue(EncodableValue(std::any_cast<BuyInfoMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<BuyInfoMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(InvoiceMessage)) {
       stream->WriteByte(139);
-      WriteValue(EncodableValue(std::any_cast<InvoiceMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<InvoiceMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
   }
@@ -937,202 +893,264 @@ void PigeonInternalCodecSerializer::WriteValue(
 
 /// The codec used by InAppPurchaseApi.
 const flutter::StandardMessageCodec& InAppPurchaseApi::GetCodec() {
-  return flutter::StandardMessageCodec::GetInstance(&PigeonInternalCodecSerializer::GetInstance());
+  return flutter::StandardMessageCodec::GetInstance(
+      &PigeonInternalCodecSerializer::GetInstance());
 }
 
-// Sets up an instance of `InAppPurchaseApi` to handle messages through the `binary_messenger`.
-void InAppPurchaseApi::SetUp(
-  flutter::BinaryMessenger* binary_messenger,
-  InAppPurchaseApi* api) {
+// Sets up an instance of `InAppPurchaseApi` to handle messages through the
+// `binary_messenger`.
+void InAppPurchaseApi::SetUp(flutter::BinaryMessenger* binary_messenger,
+                             InAppPurchaseApi* api) {
   InAppPurchaseApi::SetUp(binary_messenger, api, "");
 }
 
-void InAppPurchaseApi::SetUp(
-  flutter::BinaryMessenger* binary_messenger,
-  InAppPurchaseApi* api,
-  const std::string& message_channel_suffix) {
-  const std::string prepended_suffix = message_channel_suffix.length() > 0 ? std::string(".") + message_channel_suffix : "";
+void InAppPurchaseApi::SetUp(flutter::BinaryMessenger* binary_messenger,
+                             InAppPurchaseApi* api,
+                             const std::string& message_channel_suffix) {
+  const std::string prepended_suffix =
+      message_channel_suffix.length() > 0
+          ? std::string(".") + message_channel_suffix
+          : "";
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getProductList" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.in_app_purchase_tizen."
+                                  "InAppPurchaseApi.getProductList" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_product_arg = args.at(0);
-          if (encodable_product_arg.IsNull()) {
-            reply(WrapError("product_arg unexpectedly null."));
-            return;
-          }
-          const auto& product_arg = std::any_cast<const ProductMessage&>(std::get<CustomEncodableValue>(encodable_product_arg));
-          api->GetProductList(product_arg, [reply](ErrorOr<ProductsListApiResult>&& output) {
-            if (output.has_error()) {
-              reply(WrapError(output.error()));
-              return;
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_product_arg = args.at(0);
+              if (encodable_product_arg.IsNull()) {
+                reply(WrapError("product_arg unexpectedly null."));
+                return;
+              }
+              const auto& product_arg = std::any_cast<const ProductMessage&>(
+                  std::get<CustomEncodableValue>(encodable_product_arg));
+              api->GetProductList(
+                  product_arg,
+                  [reply](ErrorOr<ProductsListApiResult>&& output) {
+                    if (output.has_error()) {
+                      reply(WrapError(output.error()));
+                      return;
+                    }
+                    EncodableList wrapped;
+                    wrapped.push_back(
+                        CustomEncodableValue(std::move(output).TakeValue()));
+                    reply(EncodableValue(std::move(wrapped)));
+                  });
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
             }
-            EncodableList wrapped;
-            wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
-            reply(EncodableValue(std::move(wrapped)));
           });
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getPurchaseList" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.in_app_purchase_tizen."
+                                  "InAppPurchaseApi.getPurchaseList" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_purchase_arg = args.at(0);
-          if (encodable_purchase_arg.IsNull()) {
-            reply(WrapError("purchase_arg unexpectedly null."));
-            return;
-          }
-          const auto& purchase_arg = std::any_cast<const PurchaseMessage&>(std::get<CustomEncodableValue>(encodable_purchase_arg));
-          api->GetPurchaseList(purchase_arg, [reply](ErrorOr<GetUserPurchaseListAPIResult>&& output) {
-            if (output.has_error()) {
-              reply(WrapError(output.error()));
-              return;
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_purchase_arg = args.at(0);
+              if (encodable_purchase_arg.IsNull()) {
+                reply(WrapError("purchase_arg unexpectedly null."));
+                return;
+              }
+              const auto& purchase_arg = std::any_cast<const PurchaseMessage&>(
+                  std::get<CustomEncodableValue>(encodable_purchase_arg));
+              api->GetPurchaseList(
+                  purchase_arg,
+                  [reply](ErrorOr<GetUserPurchaseListAPIResult>&& output) {
+                    if (output.has_error()) {
+                      reply(WrapError(output.error()));
+                      return;
+                    }
+                    EncodableList wrapped;
+                    wrapped.push_back(
+                        CustomEncodableValue(std::move(output).TakeValue()));
+                    reply(EncodableValue(std::move(wrapped)));
+                  });
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
             }
-            EncodableList wrapped;
-            wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
-            reply(EncodableValue(std::move(wrapped)));
           });
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.buyItem" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.buyItem" +
+            prepended_suffix,
+        &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_buy_info_arg = args.at(0);
-          if (encodable_buy_info_arg.IsNull()) {
-            reply(WrapError("buy_info_arg unexpectedly null."));
-            return;
-          }
-          const auto& buy_info_arg = std::any_cast<const BuyInfoMessage&>(std::get<CustomEncodableValue>(encodable_buy_info_arg));
-          api->BuyItem(buy_info_arg, [reply](ErrorOr<BillingBuyData>&& output) {
-            if (output.has_error()) {
-              reply(WrapError(output.error()));
-              return;
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_buy_info_arg = args.at(0);
+              if (encodable_buy_info_arg.IsNull()) {
+                reply(WrapError("buy_info_arg unexpectedly null."));
+                return;
+              }
+              const auto& buy_info_arg = std::any_cast<const BuyInfoMessage&>(
+                  std::get<CustomEncodableValue>(encodable_buy_info_arg));
+              api->BuyItem(
+                  buy_info_arg, [reply](ErrorOr<BillingBuyData>&& output) {
+                    if (output.has_error()) {
+                      reply(WrapError(output.error()));
+                      return;
+                    }
+                    EncodableList wrapped;
+                    wrapped.push_back(
+                        CustomEncodableValue(std::move(output).TakeValue()));
+                    reply(EncodableValue(std::move(wrapped)));
+                  });
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
             }
-            EncodableList wrapped;
-            wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
-            reply(EncodableValue(std::move(wrapped)));
           });
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.verifyInvoice" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.in_app_purchase_tizen."
+                                  "InAppPurchaseApi.verifyInvoice" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_invoice_arg = args.at(0);
-          if (encodable_invoice_arg.IsNull()) {
-            reply(WrapError("invoice_arg unexpectedly null."));
-            return;
-          }
-          const auto& invoice_arg = std::any_cast<const InvoiceMessage&>(std::get<CustomEncodableValue>(encodable_invoice_arg));
-          api->VerifyInvoice(invoice_arg, [reply](ErrorOr<VerifyInvoiceAPIResult>&& output) {
-            if (output.has_error()) {
-              reply(WrapError(output.error()));
-              return;
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_invoice_arg = args.at(0);
+              if (encodable_invoice_arg.IsNull()) {
+                reply(WrapError("invoice_arg unexpectedly null."));
+                return;
+              }
+              const auto& invoice_arg = std::any_cast<const InvoiceMessage&>(
+                  std::get<CustomEncodableValue>(encodable_invoice_arg));
+              api->VerifyInvoice(
+                  invoice_arg,
+                  [reply](ErrorOr<VerifyInvoiceAPIResult>&& output) {
+                    if (output.has_error()) {
+                      reply(WrapError(output.error()));
+                      return;
+                    }
+                    EncodableList wrapped;
+                    wrapped.push_back(
+                        CustomEncodableValue(std::move(output).TakeValue()));
+                    reply(EncodableValue(std::move(wrapped)));
+                  });
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
             }
-            EncodableList wrapped;
-            wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
-            reply(EncodableValue(std::move(wrapped)));
           });
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.isAvailable" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.in_app_purchase_tizen."
+                                  "InAppPurchaseApi.isAvailable" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          api->IsAvailable([reply](ErrorOr<bool>&& output) {
-            if (output.has_error()) {
-              reply(WrapError(output.error()));
-              return;
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              api->IsAvailable([reply](ErrorOr<bool>&& output) {
+                if (output.has_error()) {
+                  reply(WrapError(output.error()));
+                  return;
+                }
+                EncodableList wrapped;
+                wrapped.push_back(
+                    EncodableValue(std::move(output).TakeValue()));
+                reply(EncodableValue(std::move(wrapped)));
+              });
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
             }
-            EncodableList wrapped;
-            wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-            reply(EncodableValue(std::move(wrapped)));
           });
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCustomId" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.in_app_purchase_tizen."
+                                  "InAppPurchaseApi.getCustomId" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          ErrorOr<std::optional<std::string>> output = api->GetCustomId();
-          if (output.has_error()) {
-            reply(WrapError(output.error()));
-            return;
-          }
-          EncodableList wrapped;
-          auto output_optional = std::move(output).TakeValue();
-          if (output_optional) {
-            wrapped.push_back(EncodableValue(std::move(output_optional).value()));
-          } else {
-            wrapped.push_back(EncodableValue());
-          }
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              ErrorOr<std::optional<std::string>> output = api->GetCustomId();
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              auto output_optional = std::move(output).TakeValue();
+              if (output_optional) {
+                wrapped.push_back(
+                    EncodableValue(std::move(output_optional).value()));
+              } else {
+                wrapped.push_back(EncodableValue());
+              }
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCountryCode" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.in_app_purchase_tizen."
+                                  "InAppPurchaseApi.getCountryCode" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          ErrorOr<std::string> output = api->GetCountryCode();
-          if (output.has_error()) {
-            reply(WrapError(output.error()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              ErrorOr<std::string> output = api->GetCountryCode();
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
     } else {
       channel.SetMessageHandler(nullptr);
     }
@@ -1140,18 +1158,13 @@ void InAppPurchaseApi::SetUp(
 }
 
 EncodableValue InAppPurchaseApi::WrapError(std::string_view error_message) {
-  return EncodableValue(EncodableList{
-    EncodableValue(std::string(error_message)),
-    EncodableValue("Error"),
-    EncodableValue()
-  });
+  return EncodableValue(
+      EncodableList{EncodableValue(std::string(error_message)),
+                    EncodableValue("Error"), EncodableValue()});
 }
 
 EncodableValue InAppPurchaseApi::WrapError(const FlutterError& error) {
-  return EncodableValue(EncodableList{
-    EncodableValue(error.code()),
-    EncodableValue(error.message()),
-    error.details()
-  });
+  return EncodableValue(EncodableList{EncodableValue(error.code()),
+                                      EncodableValue(error.message()),
+                                      error.details()});
 }
-
