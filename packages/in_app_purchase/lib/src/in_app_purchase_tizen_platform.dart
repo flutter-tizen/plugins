@@ -57,6 +57,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return billingManager.isAvailable();
   }
 
+  /// Converts integer to [ItemType].
   static ItemType _intToEnum(int number) {
     if (number == 1) {
       return ItemType.consumable;
@@ -73,6 +74,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return ItemType.none;
   }
 
+  /// Converts Map<Object?, Object?>? to the list of [ItemDetails].
   List<ItemDetails> _getItemDetails(ProductsListApiResult response) {
     final List<ItemDetails> itemDetails = <ItemDetails>[];
     for (final Map<Object?, Object?>? detail in response.itemDetails) {
@@ -126,7 +128,6 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
               SamsungCheckoutProductDetails.fromProduct(productWrapper))
           .toList();
     } else {
-      /// isInvalid ??? need to be checked !!!
       invalidMessage.add(response.encode().toString());
     }
 
@@ -146,6 +147,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return productDetailsResponse;
   }
 
+  /// Converts Map<Object?, Object?>? to the list of [InvoiceDetails].
   List<InvoiceDetails> _getInvoiceDetails(
       GetUserPurchaseListAPIResult response) {
     final List<InvoiceDetails> invoiceDetails = <InvoiceDetails>[];

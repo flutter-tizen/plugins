@@ -38,7 +38,7 @@ class BillingManager {
   /// Interface for calling host-side code.
   final InAppPurchaseApi _hostApi;
 
-  // ignore: public_member_api_docs
+  /// get country code
   Future<String> getCountryCode() async {
     return _hostApi.getCountryCode();
   }
@@ -60,14 +60,6 @@ class BillingManager {
         Hmac(sha256, utf8.encode(_requestParameters.securityKey ?? ''))
             .convert(utf8.encode((_requestParameters.appId) + countryCode))
             .bytes);
-
-    // final Map<String, dynamic> arguments = <String, dynamic>{
-    //   'appId': _requestParameters['appId'],
-    //   'countryCode': countryCode,
-    //   'pageSize': _requestParameters['pageSize'],
-    //   'pageNum': _requestParameters['pageNum'],
-    //   'checkValue': checkValue,
-    // };
     final ProductMessage product = ProductMessage(
       appId: _requestParameters.appId,
       countryCode: countryCode,
@@ -75,17 +67,6 @@ class BillingManager {
       pageNum: _requestParameters.pageNum,
       checkValue: checkValue,
     );
-
-    // final String? productResponse =
-    //     await channel.invokeMethod<String?>('getProductList', arguments);
-    // if (productResponse == null) {
-    //   throw PlatformException(
-    //     code: 'no_response',
-    //     message: 'failed to get response from platform.',
-    //   );
-    // }
-    // return ProductsListApiResult.fromJson(
-    //     json.decode(productResponse) as Map<String, dynamic>);
     return _hostApi.getProductList(product);
   }
 
@@ -164,18 +145,24 @@ class RequestParameters {
   // ignore: public_member_api_docs
   RequestParameters();
 
-  // ignore: public_member_api_docs
+  /// This is application id.
   late String appId;
-  // ignore: public_member_api_docs
+
+  /// The number of products retrieved per page.(>=1,<=100)
+  /// Use it when call `queryProductDetails`.
   late int? pageSize;
-  // ignore: public_member_api_docs
+
+  /// The requested page number.(>=1)
+  /// Use it when call `queryProductDetails` and `restorePurchases`.
   late int? pageNum;
-  // ignore: public_member_api_docs
+
+  /// The DPI security key.
+  /// Use it when call `queryProductDetails` and `restorePurchases`
   late String? securityKey;
 }
 
 /// Dart wrapper around [`ItemDetails`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
-///
+
 /// Defines a dictionary for the ProductsListAPIResult dictionary 'ItemDetails' parameter.
 /// This only can be used in [ProductsListApiResult].
 @immutable
@@ -230,15 +217,12 @@ class ProductSubscriptionInfo {
   /// "D": Days
   /// "W": Weeks
   /// "M": Months
-  /// @JsonKey(defaultValue: '', name: 'PaymentCyclePeriod')
   final String paymentCyclePeriod;
 
   /// Payment cycle frequency.
-  /// @JsonKey(defaultValue: 0, name: 'PaymentCycleFrq')
   final int paymentCycleFrq;
 
   /// Number of payment cycles.
-  /// @JsonKey(defaultValue: 0, name: 'PaymentCycle')
   final int paymentCycle;
 }
 
@@ -360,15 +344,12 @@ class PurchaseSubscriptionInfo {
   });
 
   /// ID of subscription history.
-  /// @JsonKey(defaultValue: '', name: 'SubscriptionId')
   final String subscriptionId;
 
   /// Subscription start time, in 14-digit UTC time.
-  /// @JsonKey(defaultValue: '', name: 'SubsStartTime')
   final String subsStartTime;
 
   /// Subscription expiry time, in 14-digit UTC time.
-  /// @JsonKey(defaultValue: '', name: 'SubsEndTime')
   final String subsEndTime;
 
   /// Subscription status:
@@ -378,7 +359,6 @@ class PurchaseSubscriptionInfo {
   /// "03": Canceled for payment failure
   /// "04": Canceled by CP
   /// "05": Canceled by admin
-  /// @JsonKey(defaultValue: '', name: 'SubsStatus')
   final String subsStatus;
 }
 
@@ -430,30 +410,6 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
   /// [SamsungCheckoutPurchaseDetails] object.
   final InvoiceDetails invoiceDetails;
 }
-
-/// Dart wrapper around [`VerifyInvoiceAPIResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
-///
-/// This only can be used in [BillingManager.verifyInvoice].
-// @JsonSerializable()
-// @immutable
-// class VerifyInvoiceAPIResult {
-//   /// DPI result code. Returns "100000" on success and other codes on failure.
-//   @JsonKey(defaultValue: '', name: 'CPStatus')
-//   final String cpStatus;
-
-//   /// The result message:
-//   /// "SUCCESS" and Other error message, depending on the DPI result code.
-//   @JsonKey(defaultValue: '', name: 'CPResult')
-//   final String? cpResult;
-
-//   /// The application ID.
-//   @JsonKey(defaultValue: '', name: 'AppID')
-//   final String appId;
-
-//   /// Invoice ID that you want to verify whether a purchase was successful.
-//   @JsonKey(defaultValue: '', name: 'InvoiceID')
-//   final String invoiceId;
-// }
 
 /// Convert bool value to purchase status.ll
 class PurchaseStateConverter {

@@ -35,12 +35,6 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
     int? pageNum,
     String? securityKey,
   }) {
-    // final Map<String, dynamic> requestParameters = <String, dynamic>{
-    //   'appId': appId,
-    //   'pageSize': pageSize,
-    //   'pageNum': pageNum,
-    //   'securityKey': securityKey,
-    // };
     final RequestParameters requestParameters = RequestParameters();
     requestParameters.appId = appId;
     requestParameters.pageSize = pageSize;
