@@ -735,7 +735,7 @@ int MediaPlayer::OnDrmUpdatePsshData(drm_init_data_type init_type, void *data,
 }
 
 bool MediaPlayer::SetDisplayRotate(int64_t rotation) {
-  LOG_INFO("[MediaPlayer] rotation: %d", rotation);
+  LOG_INFO("[MediaPlayer] rotation: %lld", rotation);
   int ret = player_set_display_rotation(
       player_, static_cast<player_display_rotation_e>(rotation));
   if (ret != PLAYER_ERROR_NONE) {
@@ -746,7 +746,7 @@ bool MediaPlayer::SetDisplayRotate(int64_t rotation) {
   return true;
 }
 bool MediaPlayer::SetDisplayMode(int64_t display_mode) {
-  LOG_INFO("[MediaPlayer] display_mode: %d", display_mode);
+  LOG_INFO("[MediaPlayer] display_mode: %lld", display_mode);
   if (display_mode > PLAYER_DISPLAY_MODE_NUM) {
     LOG_ERROR("[MediaPlayer] display mode out of range");
     return false;

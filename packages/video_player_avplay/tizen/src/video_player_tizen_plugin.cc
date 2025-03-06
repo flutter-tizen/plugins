@@ -63,6 +63,8 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
 
   ErrorOr<bool> SetDisplayRotate(const RotationMessage &msg) override;
   ErrorOr<bool> SetDisplayMode(const DisplayModeMessage &msg) override;
+  ErrorOr<bool> SetData(const DataMapMessage &msg) override;
+  ErrorOr<DataMapMessage> GetData(const DataKeyMessage &msg) override;
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -353,6 +355,24 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetStreamingProperty(
   player->SetStreamingProperty(msg.streaming_property_type(),
                                msg.streaming_property_value());
   return std::nullopt;
+}
+
+ErrorOr<bool> VideoPlayerTizenPlugin::SetData(const DataMapMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  return player->SetData(msg.data());
+}
+
+ErrorOr<DataMapMessage> VideoPlayerTizenPlugin::GetData(
+    const DataKeyMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  DataMapMessage result(msg.player_id(), player->GetData(msg.data()));
+  return result;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(

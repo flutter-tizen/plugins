@@ -131,6 +131,18 @@ class DisplayModeMessage {
   int displayMode;
 }
 
+class DataKeyMessage {
+  DataKeyMessage(this.playerId, this.data);
+  int playerId;
+  List<String?> data;
+}
+
+class DataMapMessage {
+  DataMapMessage(this.playerId, this.data);
+  int playerId;
+  Map<Object?, Object?> data;
+}
+
 @HostApi()
 abstract class VideoPlayerAvplayApi {
   void initialize();
@@ -156,4 +168,6 @@ abstract class VideoPlayerAvplayApi {
   void setStreamingProperty(StreamingPropertyMessage msg);
   bool setDisplayRotate(RotationMessage msg);
   bool setDisplayMode(DisplayModeMessage msg);
+  bool setData(DataMapMessage msg);
+  DataMapMessage getData(DataKeyMessage msg);
 }
