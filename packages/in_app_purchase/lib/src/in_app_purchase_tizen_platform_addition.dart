@@ -50,12 +50,14 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
   }
 
   /// Check whether a purchase, corresponding to the requested "InvoiceID", was successful.
-  Future<bool> verifyPurchase(
-      {required PurchaseDetails purchaseDetails}) async {
+  Future<bool> verifyPurchase({
+    required PurchaseDetails purchaseDetails,
+  }) async {
     VerifyInvoiceAPIResult verifyPurchaseResult;
     try {
       verifyPurchaseResult = await _billingManager.verifyInvoice(
-          invoiceId: purchaseDetails.verificationData.serverVerificationData);
+        invoiceId: purchaseDetails.verificationData.serverVerificationData,
+      );
     } on PlatformException {
       verifyPurchaseResult = VerifyInvoiceAPIResult(
           appId: 'error appId',

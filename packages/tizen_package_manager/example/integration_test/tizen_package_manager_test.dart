@@ -12,8 +12,9 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('Can get current package info', (WidgetTester tester) async {
-    final PackageInfo info =
-        await PackageManager.getPackageInfo(currentPackageId);
+    final PackageInfo info = await PackageManager.getPackageInfo(
+      currentPackageId,
+    );
     expect(info.packageId, 'org.tizen.tizen_package_manager_example');
     expect(info.label, 'tizen_package_manager_example');
     expect(info.packageType, PackageType.tpk);
@@ -23,8 +24,9 @@ void main() {
     expect(info.isRemovable, true);
   });
 
-  testWidgets('Can get all installed packages info',
-      (WidgetTester tester) async {
+  testWidgets('Can get all installed packages info', (
+    WidgetTester tester,
+  ) async {
     final List<PackageInfo> infos = await PackageManager.getPackagesInfo();
     expect(infos.isNotEmpty, true);
   });

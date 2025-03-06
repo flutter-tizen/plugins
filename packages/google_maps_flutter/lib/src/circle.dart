@@ -13,9 +13,9 @@ class CircleController {
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
     WebViewController? controller,
-  })  : _circle = circle,
-        _consumeTapEvents = consumeTapEvents,
-        tapEvent = onTap {
+  }) : _circle = circle,
+       _consumeTapEvents = consumeTapEvents,
+       tapEvent = onTap {
     _addCircleEvent(controller);
   }
 

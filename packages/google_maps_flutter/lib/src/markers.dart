@@ -8,11 +8,10 @@ part of '../google_maps_flutter_tizen.dart';
 /// This class manages a set of [MarkerController]s associated to a [GoogleMapController].
 class MarkersController extends GeometryController {
   /// Initialize the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
-  MarkersController({
-    required StreamController<MapEvent<Object?>> stream,
-  })  : _streamController = stream,
-        _idToMarkerId = <int, MarkerId>{},
-        _markerIdToController = <MarkerId, MarkerController>{};
+  MarkersController({required StreamController<MapEvent<Object?>> stream})
+    : _streamController = stream,
+      _idToMarkerId = <int, MarkerId>{},
+      _markerIdToController = <MarkerId, MarkerController>{};
 
   // A cache of [MarkerController]s indexed by their [MarkerId].
   final Map<MarkerId, MarkerController> _markerIdToController;
@@ -42,21 +41,24 @@ class MarkersController extends GeometryController {
     }
 
     final util.GMarkerOptions populationOptions = _markerOptionsFromMarker(
-        marker, _markerIdToController[marker.markerId]?.marker);
+      marker,
+      _markerIdToController[marker.markerId]?.marker,
+    );
     final util.GMarker gMarker = util.GMarker(populationOptions);
 
     final MarkerController controller = MarkerController(
-        marker: gMarker,
-        infoWindow: infoWindow,
-        consumeTapEvents: marker.consumeTapEvents,
-        onTap: () {
-          showMarkerInfoWindow(marker.markerId);
-          _onMarkerTap(marker.markerId);
-        },
-        onDragEnd: (LatLng latLng) {
-          _onMarkerDragEnd(marker.markerId, latLng);
-        },
-        controller: util.webController);
+      marker: gMarker,
+      infoWindow: infoWindow,
+      consumeTapEvents: marker.consumeTapEvents,
+      onTap: () {
+        showMarkerInfoWindow(marker.markerId);
+        _onMarkerTap(marker.markerId);
+      },
+      onDragEnd: (LatLng latLng) {
+        _onMarkerDragEnd(marker.markerId, latLng);
+      },
+      controller: util.webController,
+    );
     _idToMarkerId[gMarker.id] = marker.markerId;
     _markerIdToController[marker.markerId] = controller;
   }
@@ -75,8 +77,9 @@ class MarkersController extends GeometryController {
         marker,
         markerController.marker,
       );
-      final util.GInfoWindowOptions? infoWindow =
-          _infoWindowOptionsFromMarker(marker);
+      final util.GInfoWindowOptions? infoWindow = _infoWindowOptionsFromMarker(
+        marker,
+      );
       markerController.update(
         marker,
         markerOptions,
@@ -133,19 +136,17 @@ class MarkersController extends GeometryController {
   }
 
   void _onMarkerDragEnd(MarkerId markerId, LatLng latLng) {
-    _streamController.add(MarkerDragEndEvent(
-      mapId,
-      latLng,
-      markerId,
-    ));
+    _streamController.add(MarkerDragEndEvent(mapId, latLng, markerId));
   }
 
   void _hideAllMarkerInfoWindow() {
     _markerIdToController.values
-        .where((MarkerController? controller) =>
-            controller?.infoWindowShown ?? false)
+        .where(
+          (MarkerController? controller) =>
+              controller?.infoWindowShown ?? false,
+        )
         .forEach((MarkerController controller) {
-      controller.hideInfoWindow();
-    });
+          controller.hideInfoWindow();
+        });
   }
 }

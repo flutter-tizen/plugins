@@ -12,8 +12,9 @@ class LweWebViewCookieManager extends PlatformWebViewCookieManager {
   /// Creates a new [LweWebViewCookieManager].
   LweWebViewCookieManager(super.params) : super.implementation();
 
-  static const MethodChannel _cookieManagerChannel =
-      MethodChannel('plugins.flutter.io/lwe_cookie_manager');
+  static const MethodChannel _cookieManagerChannel = MethodChannel(
+    'plugins.flutter.io/lwe_cookie_manager',
+  );
 
   @override
   Future<bool> clearCookies() async {
@@ -25,11 +26,13 @@ class LweWebViewCookieManager extends PlatformWebViewCookieManager {
   Future<void> setCookie(WebViewCookie cookie) async {
     if (!_isValidPath(cookie.path)) {
       throw ArgumentError(
-          'The path property for the provided cookie was not given a legal value.');
+        'The path property for the provided cookie was not given a legal value.',
+      );
     }
     throw UnimplementedError(
-        'This version of `LweWebViewCookieManager` currently has no '
-        'implementation for setCookie method.');
+      'This version of `LweWebViewCookieManager` currently has no '
+      'implementation for setCookie method.',
+    );
   }
 
   bool _isValidPath(String path) {

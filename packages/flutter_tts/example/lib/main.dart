@@ -135,11 +135,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   List<DropdownMenuItem<String>> getLanguageDropDownMenuItems(
-      List<dynamic> languages) {
+    List<dynamic> languages,
+  ) {
     var items = <DropdownMenuItem<String>>[];
     for (dynamic type in languages) {
-      items.add(DropdownMenuItem(
-          value: type as String?, child: Text((type as String))));
+      items.add(
+        DropdownMenuItem(value: type as String?, child: Text((type as String))),
+      );
     }
     return items;
   }
@@ -164,9 +166,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Flutter TTS Tizen example app'),
-        ),
+        appBar: AppBar(title: const Text('Flutter TTS Tizen example app')),
         body: SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Column(
@@ -184,27 +184,29 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _futureBuilder() => FutureBuilder<dynamic>(
-      future: _getLanguages(),
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if (snapshot.hasData) {
-          return _languageDropDownSection(snapshot.data as List<dynamic>);
-        } else if (snapshot.hasError) {
-          return Text('Error loading languages...');
-        } else
-          return Text('Loading Languages...');
-      });
+    future: _getLanguages(),
+    builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+      if (snapshot.hasData) {
+        return _languageDropDownSection(snapshot.data as List<dynamic>);
+      } else if (snapshot.hasError) {
+        return Text('Error loading languages...');
+      } else
+        return Text('Loading Languages...');
+    },
+  );
 
   Widget _inputSection() => Container(
-      alignment: Alignment.topCenter,
-      padding: EdgeInsets.only(top: 25.0, left: 25.0, right: 25.0),
-      child: TextField(
-        maxLines: 11,
-        minLines: 6,
-        onChanged: (String value) {
-          _onChange(value);
-        },
-        controller: TextEditingController(text: _newVoiceText),
-      ));
+    alignment: Alignment.topCenter,
+    padding: EdgeInsets.only(top: 25.0, left: 25.0, right: 25.0),
+    child: TextField(
+      maxLines: 11,
+      minLines: 6,
+      onChanged: (String value) {
+        _onChange(value);
+      },
+      controller: TextEditingController(text: _newVoiceText),
+    ),
+  );
 
   Widget _btnSection() {
     return Container(
@@ -212,46 +214,76 @@ class _MyAppState extends State<MyApp> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildButtonColumn(Colors.green, Colors.greenAccent, Icons.play_arrow,
-              'PLAY', _speak),
           _buildButtonColumn(
-              Colors.red, Colors.redAccent, Icons.stop, 'STOP', _stop),
+            Colors.green,
+            Colors.greenAccent,
+            Icons.play_arrow,
+            'PLAY',
+            _speak,
+          ),
           _buildButtonColumn(
-              Colors.blue, Colors.blueAccent, Icons.pause, 'PAUSE', _pause),
+            Colors.red,
+            Colors.redAccent,
+            Icons.stop,
+            'STOP',
+            _stop,
+          ),
+          _buildButtonColumn(
+            Colors.blue,
+            Colors.blueAccent,
+            Icons.pause,
+            'PAUSE',
+            _pause,
+          ),
         ],
       ),
     );
   }
 
   Widget _languageDropDownSection(List<dynamic> languages) => Container(
-      padding: EdgeInsets.only(top: 10.0),
-      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+    padding: EdgeInsets.only(top: 10.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
         DropdownButton(
           value: language,
           items: getLanguageDropDownMenuItems(languages),
           onChanged: changedLanguageDropDownItem,
         ),
-      ]));
+      ],
+    ),
+  );
 
-  Column _buildButtonColumn(Color color, Color splashColor, IconData icon,
-      String label, Function func) {
+  Column _buildButtonColumn(
+    Color color,
+    Color splashColor,
+    IconData icon,
+    String label,
+    Function func,
+  ) {
     return Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-              icon: Icon(icon),
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: Icon(icon),
+          color: color,
+          splashColor: splashColor,
+          onPressed: () => func(),
+        ),
+        Container(
+          margin: const EdgeInsets.only(top: 8.0),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.0,
+              fontWeight: FontWeight.w400,
               color: color,
-              splashColor: splashColor,
-              onPressed: () => func()),
-          Container(
-              margin: const EdgeInsets.only(top: 8.0),
-              child: Text(label,
-                  style: TextStyle(
-                      fontSize: 12.0,
-                      fontWeight: FontWeight.w400,
-                      color: color)))
-        ]);
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _getMaxSpeechInputLengthSection() {
@@ -271,21 +303,20 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _buildSliders() {
-    return Column(
-      children: [_volume(), _rate()],
-    );
+    return Column(children: [_volume(), _rate()]);
   }
 
   Widget _volume() {
     return Slider(
-        value: volume,
-        onChanged: (newVolume) {
-          setState(() => volume = newVolume);
-        },
-        min: 0.0,
-        max: 1.0,
-        divisions: 10,
-        label: "Volume: ${volume.toStringAsFixed(1)}");
+      value: volume,
+      onChanged: (newVolume) {
+        setState(() => volume = newVolume);
+      },
+      min: 0.0,
+      max: 1.0,
+      divisions: 10,
+      label: "Volume: ${volume.toStringAsFixed(1)}",
+    );
   }
 
   Widget _rate() {

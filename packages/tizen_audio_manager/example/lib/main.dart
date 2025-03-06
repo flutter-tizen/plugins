@@ -44,8 +44,12 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
   final List<DropdownMenuItem<AudioVolumeType>> _dropdownButtonItems =
       AudioVolumeType.values
           .where((AudioVolumeType e) => e != AudioVolumeType.none)
-          .map((AudioVolumeType e) =>
-              DropdownMenuItem<AudioVolumeType>(value: e, child: Text(e.name)))
+          .map(
+            (AudioVolumeType e) => DropdownMenuItem<AudioVolumeType>(
+              value: e,
+              child: Text(e.name),
+            ),
+          )
           .toList();
 
   @override
@@ -64,8 +68,9 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
       }
     });
 
-    _subscription = AudioManager.volumeController.onChanged
-        .listen((VolumeChangedEvent event) {
+    _subscription = AudioManager.volumeController.onChanged.listen((
+      VolumeChangedEvent event,
+    ) {
       setState(() {
         _volumeChangedEvent = event;
 
@@ -85,8 +90,9 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
 
   Future<void> _onAudioTypeChanged(AudioVolumeType? type) async {
     type = type ?? AudioVolumeType.ringtone;
-    final int currentVolume =
-        await AudioManager.volumeController.getLevel(type);
+    final int currentVolume = await AudioManager.volumeController.getLevel(
+      type,
+    );
     final int maxVolume = await AudioManager.volumeController.getMaxLevel(type);
 
     setState(() {
@@ -112,15 +118,18 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text('Current playback type: ${_currentPlaybackType.name}'),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-            const Text('Audio type:'),
-            const SizedBox(width: 10),
-            DropdownButton<AudioVolumeType>(
-              value: _selectedType,
-              items: _dropdownButtonItems,
-              onChanged: _onAudioTypeChanged,
-            )
-          ]),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const Text('Audio type:'),
+              const SizedBox(width: 10),
+              DropdownButton<AudioVolumeType>(
+                value: _selectedType,
+                items: _dropdownButtonItems,
+                onChanged: _onAudioTypeChanged,
+              ),
+            ],
+          ),
           Text('Volume: $_currentVolume/$_maxVolume'),
           SizedBox(
             width: 250,

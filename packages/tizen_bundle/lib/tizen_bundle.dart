@@ -26,7 +26,9 @@ class Bundle extends MapMixin<String, Object> {
   /// Creates a [Bundle] from the encoded bundle string.
   Bundle.decode(String raw) {
     _handle = tizen.bundle_decode(
-        raw.toNativeInt8().cast<UnsignedChar>(), raw.length);
+      raw.toNativeInt8().cast<UnsignedChar>(),
+      raw.length,
+    );
     _finalizer.attach(this, _handle, detach: this);
   }
 
@@ -46,7 +48,8 @@ class Bundle extends MapMixin<String, Object> {
   late final Pointer<bundle> _handle;
   static final Finalizer<Pointer<bundle>> _finalizer =
       Finalizer<Pointer<bundle>>(
-          (Pointer<bundle> bundle) => tizen.bundle_free(bundle));
+        (Pointer<bundle> bundle) => tizen.bundle_free(bundle),
+      );
 
   static final List<String> _keys = <String>[];
 
@@ -64,7 +67,10 @@ class Bundle extends MapMixin<String, Object> {
   Iterable<String> get keys {
     _keys.clear();
     tizen.bundle_foreach(
-        _handle, Pointer.fromFunction(_bundleIteratorCallback), nullptr);
+      _handle,
+      Pointer.fromFunction(_bundleIteratorCallback),
+      nullptr,
+    );
     return _keys;
   }
 
@@ -142,7 +148,10 @@ class Bundle extends MapMixin<String, Object> {
       final Pointer<Pointer<Char>> raw = arena<Pointer<Char>>();
       final Pointer<Int> length = arena<Int>();
       final int ret = tizen.bundle_encode(
-          _handle, raw.cast<Pointer<UnsignedChar>>(), length);
+        _handle,
+        raw.cast<Pointer<UnsignedChar>>(),
+        length,
+      );
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
@@ -175,7 +184,10 @@ class Bundle extends MapMixin<String, Object> {
     return using((Arena arena) {
       final Pointer<Pointer<Char>> string = arena<Pointer<Char>>();
       final int ret = tizen.bundle_get_str(
-          _handle, key.toNativeChar(allocator: arena), string);
+        _handle,
+        key.toNativeChar(allocator: arena),
+        string,
+      );
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
@@ -186,17 +198,23 @@ class Bundle extends MapMixin<String, Object> {
 
   void _addStrings(String key, List<String> values) {
     using((Arena arena) {
-      final List<Pointer<Char>> stringList = values
-          .map((String str) => str.toNativeChar(allocator: arena))
-          .toList();
-      final Pointer<Pointer<Char>> stringArray =
-          arena<Pointer<Char>>(stringList.length);
+      final List<Pointer<Char>> stringList =
+          values
+              .map((String str) => str.toNativeChar(allocator: arena))
+              .toList();
+      final Pointer<Pointer<Char>> stringArray = arena<Pointer<Char>>(
+        stringList.length,
+      );
       values.asMap().forEach((int index, String value) {
         stringArray[index] = stringList[index];
       });
 
-      final int ret = tizen.bundle_add_str_array(_handle,
-          key.toNativeChar(allocator: arena), stringArray, values.length);
+      final int ret = tizen.bundle_add_str_array(
+        _handle,
+        key.toNativeChar(allocator: arena),
+        stringArray,
+        values.length,
+      );
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);
       }
@@ -207,7 +225,10 @@ class Bundle extends MapMixin<String, Object> {
     return using((Arena arena) {
       final Pointer<Int> length = arena<Int>();
       final Pointer<Pointer<Char>> stringArray = tizen.bundle_get_str_array(
-          _handle, key.toNativeChar(allocator: arena), length);
+        _handle,
+        key.toNativeChar(allocator: arena),
+        length,
+      );
       final int ret = tizen.get_last_result();
       if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
         _throwException(ret);

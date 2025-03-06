@@ -35,24 +35,29 @@ class ExpTestPage extends TestPage {
       final db = await openDatabase(path);
 
       const table = 'test';
-      await db
-          .execute('CREATE TABLE $table (column_1 INTEGER, column_2 INTEGER)');
+      await db.execute(
+        'CREATE TABLE $table (column_1 INTEGER, column_2 INTEGER)',
+      );
       // inserted in a wrong order to check ASC/DESC
-      await db
-          .execute('INSERT INTO $table (column_1, column_2) VALUES (11, 180)');
-      await db
-          .execute('INSERT INTO $table (column_1, column_2) VALUES (10, 180)');
-      await db
-          .execute('INSERT INTO $table (column_1, column_2) VALUES (10, 2000)');
+      await db.execute(
+        'INSERT INTO $table (column_1, column_2) VALUES (11, 180)',
+      );
+      await db.execute(
+        'INSERT INTO $table (column_1, column_2) VALUES (10, 180)',
+      );
+      await db.execute(
+        'INSERT INTO $table (column_1, column_2) VALUES (10, 2000)',
+      );
 
       final expectedResult = [
         {'column_1': 10, 'column_2': 2000},
         {'column_1': 10, 'column_2': 180},
-        {'column_1': 11, 'column_2': 180}
+        {'column_1': 11, 'column_2': 180},
       ];
 
       var result = await db.rawQuery(
-          'SELECT * FROM $table ORDER BY column_1 ASC, column_2 DESC');
+        'SELECT * FROM $table ORDER BY column_1 ASC, column_2 DESC',
+      );
       //print(JSON.encode(result));
       expect(result, expectedResult);
       result = await db.query(table, orderBy: 'column_1 ASC, column_2 DESC');
@@ -67,34 +72,44 @@ class ExpTestPage extends TestPage {
       final db = await openDatabase(path);
 
       const table = 'test';
-      await db
-          .execute('CREATE TABLE $table (column_1 INTEGER, column_2 INTEGER)');
-      await db
-          .execute('INSERT INTO $table (column_1, column_2) VALUES (1, 1001)');
-      await db
-          .execute('INSERT INTO $table (column_1, column_2) VALUES (2, 1002)');
-      await db
-          .execute('INSERT INTO $table (column_1, column_2) VALUES (2, 1012)');
-      await db
-          .execute('INSERT INTO $table (column_1, column_2) VALUES (3, 1003)');
+      await db.execute(
+        'CREATE TABLE $table (column_1 INTEGER, column_2 INTEGER)',
+      );
+      await db.execute(
+        'INSERT INTO $table (column_1, column_2) VALUES (1, 1001)',
+      );
+      await db.execute(
+        'INSERT INTO $table (column_1, column_2) VALUES (2, 1002)',
+      );
+      await db.execute(
+        'INSERT INTO $table (column_1, column_2) VALUES (2, 1012)',
+      );
+      await db.execute(
+        'INSERT INTO $table (column_1, column_2) VALUES (3, 1003)',
+      );
 
       final expectedResult = [
         {'column_1': 1, 'column_2': 1001},
         {'column_1': 2, 'column_2': 1002},
-        {'column_1': 2, 'column_2': 1012}
+        {'column_1': 2, 'column_2': 1012},
       ];
 
       // testing with value in the In clause
-      var result = await db.query(table,
-          where: 'column_1 IN (1, 2)', orderBy: 'column_1 ASC, column_2 ASC');
+      var result = await db.query(
+        table,
+        where: 'column_1 IN (1, 2)',
+        orderBy: 'column_1 ASC, column_2 ASC',
+      );
       //print(JSON.encode(result));
       expect(result, expectedResult);
 
       // testing with value as arguments
-      result = await db.query(table,
-          where: 'column_1 IN (?, ?)',
-          whereArgs: ['1', '2'],
-          orderBy: 'column_1 ASC, column_2 ASC');
+      result = await db.query(
+        table,
+        where: 'column_1 IN (?, ?)',
+        whereArgs: ['1', '2'],
+        orderBy: 'column_1 ASC, column_2 ASC',
+      );
       expect(result, expectedResult);
 
       await db.close();
@@ -111,16 +126,18 @@ class ExpTestPage extends TestPage {
       await db.execute('INSERT INTO "$table" ("group") VALUES (1)');
 
       final expectedResult = [
-        {'group': 1}
+        {'group': 1},
       ];
 
-      var result = await db
-          .rawQuery('SELECT "group" FROM "$table" ORDER BY "group" DESC');
+      var result = await db.rawQuery(
+        'SELECT "group" FROM "$table" ORDER BY "group" DESC',
+      );
 
       print(result);
       expect(result, expectedResult);
-      result =
-          await db.rawQuery("SELECT * FROM '$table' ORDER BY `group` DESC");
+      result = await db.rawQuery(
+        "SELECT * FROM '$table' ORDER BY `group` DESC",
+      );
       //print(JSON.encode(result));
       expect(result, expectedResult);
 
@@ -139,15 +156,19 @@ class ExpTestPage extends TestPage {
       // inserted in a wrong order to check ASC/DESC
 
       await db.insert(table, {'group': 'group_value'});
-      await db.update(table, {'group': 'group_new_value'},
-          where: "\"group\" = 'group_value'");
+      await db.update(table, {
+        'group': 'group_new_value',
+      }, where: "\"group\" = 'group_value'");
 
       final expectedResult = [
-        {'group': 'group_new_value'}
+        {'group': 'group_new_value'},
       ];
 
-      final result =
-          await db.query(table, columns: ['group'], orderBy: '"group" DESC');
+      final result = await db.query(
+        table,
+        columns: ['group'],
+        orderBy: '"group" DESC',
+      );
       //print(JSON.encode(result));
       expect(result, expectedResult);
 
@@ -174,7 +195,7 @@ class ExpTestPage extends TestPage {
       //print('result :$result');
       expect(result, [
         {'one': '1', 'my_col': '2,3'},
-        {'one': '2', 'my_col': '2'}
+        {'one': '2', 'my_col': '2'},
       ]);
 
       result = await db.rawQuery('''
@@ -184,7 +205,7 @@ class ExpTestPage extends TestPage {
       // print('result :$result');
       expect(result, [
         {'one': '1', 'GROUP_CONCAT(another)': '2,3'},
-        {'one': '2', 'GROUP_CONCAT(another)': '2'}
+        {'one': '2', 'GROUP_CONCAT(another)': '2'},
       ]);
 
       // user alias
@@ -195,7 +216,7 @@ class ExpTestPage extends TestPage {
       //print('result :$result');
       expect(result, [
         {'one': '1', 'GROUP_CONCAT(t.another)': '2,3'},
-        {'one': '2', 'GROUP_CONCAT(t.another)': '2'}
+        {'one': '2', 'GROUP_CONCAT(t.another)': '2'},
       ]);
 
       await db.close();
@@ -209,7 +230,8 @@ class ExpTestPage extends TestPage {
       try {
         const table = 'alias';
         await db.execute(
-            'CREATE TABLE $table (column_1 INTEGER, column_2 INTEGER)');
+          'CREATE TABLE $table (column_1 INTEGER, column_2 INTEGER)',
+        );
         await db.insert(table, {'column_1': 1, 'column_2': 2});
 
         final result = await db.rawQuery('''
@@ -217,7 +239,7 @@ class ExpTestPage extends TestPage {
       from $table as t''');
         print('result :$result');
         expect(result, [
-          {'t.column1': 1, 'column_1': 1, 'column_alias_1': 1, 'column_2': 2}
+          {'t.column1': 1, 'column_1': 1, 'column_alias_1': 1, 'column_2': 2},
         ]);
       } finally {
         await db.close();
@@ -232,7 +254,8 @@ class ExpTestPage extends TestPage {
       try {
         const table = 'test';
         await db.execute(
-            'CREATE TABLE $table (column_1 INTEGER, column_2 INTEGER)');
+          'CREATE TABLE $table (column_1 INTEGER, column_2 INTEGER)',
+        );
         await db.insert(table, {'column_1': 1, 'column_2': 2});
 
         final result = await db.rawQuery('''
@@ -289,27 +312,41 @@ class ExpTestPage extends TestPage {
       // devPrint('issue #48');
       // Try to query on a non-indexed field
       final path = await initDeleteDb('exp_issue_48.db');
-      final db = await openDatabase(path, version: 1,
-          onCreate: (Database db, int version) async {
-        await db
-            .execute('CREATE TABLE npa (id INT, title TEXT, identifier TEXT)');
-        await db.insert(
-            'npa', {'id': 128, 'title': 'title 1', 'identifier': '0001'});
-        await db.insert('npa',
-            {'id': 215, 'title': 'title 1', 'identifier': '0008120150514'});
-      });
-      var resultSet = await db.query('npa',
-          columns: ['id', 'title', 'identifier'],
-          where: '"identifier" = ?',
-          whereArgs: ['0008120150514']);
+      final db = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (Database db, int version) async {
+          await db.execute(
+            'CREATE TABLE npa (id INT, title TEXT, identifier TEXT)',
+          );
+          await db.insert('npa', {
+            'id': 128,
+            'title': 'title 1',
+            'identifier': '0001',
+          });
+          await db.insert('npa', {
+            'id': 215,
+            'title': 'title 1',
+            'identifier': '0008120150514',
+          });
+        },
+      );
+      var resultSet = await db.query(
+        'npa',
+        columns: ['id', 'title', 'identifier'],
+        where: '"identifier" = ?',
+        whereArgs: ['0008120150514'],
+      );
       // print(resultSet);
       expect(resultSet.length, 1);
       // but the results is always - empty QueryResultSet[].
       // If i'm trying to do the same with the id field and integer value like
-      resultSet = await db.query('npa',
-          columns: ['id', 'title', 'identifier'],
-          where: '"id" = ?',
-          whereArgs: [215]);
+      resultSet = await db.query(
+        'npa',
+        columns: ['id', 'title', 'identifier'],
+        where: '"id" = ?',
+        whereArgs: [215],
+      );
       // print(resultSet);
       expect(resultSet.length, 1);
       await db.close();
@@ -319,19 +356,26 @@ class ExpTestPage extends TestPage {
       // Sqflite.devSetDebugModeOn(true);
       // Try to insert string with quote
       final path = await initDeleteDb('exp_issue_52.db');
-      final db = await openDatabase(path, version: 1,
-          onCreate: (Database db, int version) async {
-        await db.execute('CREATE TABLE test (id INT, value TEXT)');
-        await db.insert('test', {'id': 1, 'value': 'without quote'});
-        await db.insert('test', {'id': 2, 'value': 'with " quote'});
-      });
-      var resultSet = await db
-          .query('test', where: 'value = ?', whereArgs: ['with " quote']);
+      final db = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (Database db, int version) async {
+          await db.execute('CREATE TABLE test (id INT, value TEXT)');
+          await db.insert('test', {'id': 1, 'value': 'without quote'});
+          await db.insert('test', {'id': 2, 'value': 'with " quote'});
+        },
+      );
+      var resultSet = await db.query(
+        'test',
+        where: 'value = ?',
+        whereArgs: ['with " quote'],
+      );
       expect(resultSet.length, 1);
       expect(resultSet.first['id'], 2);
 
-      resultSet = await db
-          .rawQuery('SELECT * FROM test WHERE value = ?', ['with " quote']);
+      resultSet = await db.rawQuery('SELECT * FROM test WHERE value = ?', [
+        'with " quote',
+      ]);
       expect(resultSet.length, 1);
       expect(resultSet.first['id'], 2);
       await db.close();
@@ -346,24 +390,30 @@ class ExpTestPage extends TestPage {
 
       // Copy from asset
       final data = await rootBundle.load(url.join('assets', 'issue_64.db'));
-      final bytes =
-          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      final bytes = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
       await databaseFactory.writeDatabaseBytes(path, bytes);
 
       // open the database
       final db = await openDatabase(path);
 
-      var result = await db.query('recordings',
-          columns: ['id', 'content', 'file', 'speaker', 'reference']);
+      var result = await db.query(
+        'recordings',
+        columns: ['id', 'content', 'file', 'speaker', 'reference'],
+      );
       print('result1: $result');
       expect(result.length, 2);
 
       // This one does not work
       // to investigate
-      result = await db.query('recordings',
-          columns: ['id', 'content', 'file', 'speaker', 'reference'],
-          where: 'speaker = ?',
-          whereArgs: [1]);
+      result = await db.query(
+        'recordings',
+        columns: ['id', 'content', 'file', 'speaker', 'reference'],
+        where: 'speaker = ?',
+        whereArgs: [1],
+      );
 
       print('result2: $result');
       expect(result.length, 2);
@@ -423,19 +473,28 @@ CREATE TABLE test (
 );
 ''');
         // inserted in a wrong order to check ASC/DESC
-        var id = await db.rawInsert('''
+        var id = await db.rawInsert(
+          '''
         INSERT INTO test (label) VALUES(?)
-        ''', ['label-1']);
+        ''',
+          ['label-1'],
+        );
         expect(id, 1);
 
-        id = await db.rawInsert('''
+        id = await db.rawInsert(
+          '''
         INSERT INTO test (label) VALUES(?)
-        ''', ['label-2']);
+        ''',
+          ['label-2'],
+        );
         expect(id, 2);
 
-        id = await db.rawInsert('''
+        id = await db.rawInsert(
+          '''
         INSERT INTO test (label) VALUES(?)
-        ''', ['label-1']);
+        ''',
+          ['label-1'],
+        );
         expect(id, 0);
       } finally {
         await db.close();
@@ -451,10 +510,11 @@ CREATE TABLE test (
         await db.execute('PRAGMA sqflite -- db_config_defensive_off');
         await db.execute('PRAGMA writable_schema = ON');
         expect(
-            await db.update(
-                'sqlite_master', {'sql': 'CREATE TABLE Test(value BLOB)'},
-                where: 'name = \'Test\' and type = \'table\''),
-            1);
+          await db.update('sqlite_master', {
+            'sql': 'CREATE TABLE Test(value BLOB)',
+          }, where: 'name = \'Test\' and type = \'table\''),
+          1,
+        );
       } finally {
         await db.close();
       }
@@ -467,10 +527,11 @@ CREATE TABLE test (
         await db.execute('CREATE TABLE Test(value TEXT)');
         await db.execute('PRAGMA writable_schema = ON');
         expect(
-            await db.update(
-                'sqlite_master', {'sql': 'CREATE TABLE Test(value BLOB)'},
-                where: 'name = \'Test\' and type = \'table\''),
-            1);
+          await db.update('sqlite_master', {
+            'sql': 'CREATE TABLE Test(value BLOB)',
+          }, where: 'name = \'Test\' and type = \'table\''),
+          1,
+        );
       } finally {
         await db.close();
       }
@@ -498,7 +559,7 @@ CREATE TABLE test (
         await db2.execute('ATTACH DATABASE \'$db1Path\' AS db1');
         var rows = await db2.query('db1.table1');
         expect(rows, [
-          {'col1': 1234}
+          {'col1': 1234},
         ]);
       } finally {
         await db2.close();
@@ -515,9 +576,10 @@ CREATE TABLE test (
         final db = await openDatabase(path);
         try {
           final sqls = LineSplitter.split(
-              '''CREATE VIRTUAL TABLE Food using fts4(description TEXT)
+            '''CREATE VIRTUAL TABLE Food using fts4(description TEXT)
         INSERT Into Food (description) VALUES ('banana')
-        INSERT Into Food (description) VALUES ('apple')''');
+        INSERT Into Food (description) VALUES ('apple')''',
+          );
           final batch = db.batch();
           for (var sql in sqls) {
             batch.execute(sql);
@@ -525,8 +587,9 @@ CREATE TABLE test (
           await batch.commit();
 
           final results = await db.rawQuery(
-              'SELECT description, matchinfo(Food) as matchinfo FROM Food WHERE Food MATCH ?',
-              ['ban*']);
+            'SELECT description, matchinfo(Food) as matchinfo FROM Food WHERE Food MATCH ?',
+            ['ban*'],
+          );
           print(results);
           // matchinfo is currently returned as binary bloc
           expect(results.length, 1);
@@ -537,7 +600,10 @@ CREATE TABLE test (
           final uint32ListLength = matchInfo.length ~/ 4;
           final uint32List = Uint32List(uint32ListLength);
           final data = ByteData.view(
-              matchInfo.buffer, matchInfo.offsetInBytes, matchInfo.length);
+            matchInfo.buffer,
+            matchInfo.offsetInBytes,
+            matchInfo.length,
+          );
           for (var i = 0; i < uint32ListLength; i++) {
             uint32List[i] = data.getUint32(i * 4, Endian.host);
           }
@@ -561,11 +627,15 @@ CREATE TABLE test (
         await db.execute('CREATE TABLE test (value TEXT UNIQUE)');
         const table = 'test';
         final map = <String, dynamic>{'value': 'test'};
-        await db.insert(table, map,
-            conflictAlgorithm: ConflictAlgorithm.replace);
+        await db.insert(
+          table,
+          map,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
         expect(
-            Sqflite.firstIntValue(await db.query(table, columns: ['COUNT(*)'])),
-            1);
+          Sqflite.firstIntValue(await db.query(table, columns: ['COUNT(*)'])),
+          1,
+        );
       } finally {
         // ignore: deprecated_member_use
         await databaseFactory.setLogLevel(sqfliteLogLevelNone);
@@ -576,14 +646,19 @@ CREATE TABLE test (
     Future<void> testBigBlog(int size) async {
       // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('big_blob.db');
-      var db = await openDatabase(path, version: 1,
-          onCreate: (Database db, int version) async {
-        await db
-            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value BLOB)');
-      });
+      var db = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (Database db, int version) async {
+          await db.execute(
+            'CREATE TABLE Test (id INTEGER PRIMARY KEY, value BLOB)',
+          );
+        },
+      );
       try {
-        var blob =
-            Uint8List.fromList(List.generate(size, (index) => index % 256));
+        var blob = Uint8List.fromList(
+          List.generate(size, (index) => index % 256),
+        );
         var id = await db.insert('Test', {'value': blob});
 
         /// Get the value field from a given id
@@ -606,11 +681,15 @@ CREATE TABLE test (
     Future<void> testBigText(int size) async {
       // await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('big_text.db');
-      var db = await openDatabase(path, version: 1,
-          onCreate: (Database db, int version) async {
-        await db
-            .execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, value TEXT)');
-      });
+      var db = await openDatabase(
+        path,
+        version: 1,
+        onCreate: (Database db, int version) async {
+          await db.execute(
+            'CREATE TABLE Test (id INTEGER PRIMARY KEY, value TEXT)',
+          );
+        },
+      );
       try {
         var text = List.generate(size, (index) => 'A').join();
         var id = await db.insert('Test', {'value': text});
@@ -701,7 +780,8 @@ CREATE TABLE test (
     test('missing parameter', () async {
       var db = await openDatabase(inMemoryDatabasePath);
       await db.execute(
-          'CREATE TABLE IF NOT EXISTS foo (id int primary key, name text)');
+        'CREATE TABLE IF NOT EXISTS foo (id int primary key, name text)',
+      );
       var missingParameterShouldFail = !supportsCompatMode;
       try {
         await db.rawQuery('SELECT * FROM foo WHERE id=?');
@@ -748,9 +828,13 @@ Future simpleInsertQueryIsolate(SendPort sendPort) async {
 
   // Get the path
   final path = await receivePort.first as String;
-  final db = await openDatabase(path, version: 1, onCreate: (db, version) {
-    db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
-  });
+  final db = await openDatabase(
+    path,
+    version: 1,
+    onCreate: (db, version) {
+      db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)');
+    },
+  );
   List<Map<String, Object?>> results;
   try {
     await insert(db, 2);

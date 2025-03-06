@@ -33,7 +33,7 @@ enum AudioVolumeType {
   voice,
 
   /// No volume.
-  none
+  none,
 }
 
 AudioVolumeType _stringToAudioVolumeType(String s) {
@@ -66,8 +66,9 @@ class AudioManager {
 
   static const MethodChannel _channel = MethodChannel('tizen/audio_manager');
 
-  static const EventChannel _eventChannel =
-      EventChannel('tizen/audio_manager_events');
+  static const EventChannel _eventChannel = EventChannel(
+    'tizen/audio_manager_events',
+  );
 
   /// Gets the volume controller.
   static final AudioVolume volumeController = AudioVolume();
@@ -86,8 +87,9 @@ class AudioVolume {
 
   /// Gets the volume type of the sound being currently played.
   Future<AudioVolumeType> get currentPlaybackType async {
-    final String? type = await AudioManager._channel
-        .invokeMethod<String>('getCurrentPlaybackType');
+    final String? type = await AudioManager._channel.invokeMethod<String>(
+      'getCurrentPlaybackType',
+    );
     return _stringToAudioVolumeType(type!);
   }
 
@@ -120,8 +122,11 @@ class AudioVolume {
   /// A stream of events occurring when the volume level is changed.
   Stream<VolumeChangedEvent> onChanged = AudioManager._eventChannel
       .receiveBroadcastStream()
-      .map((dynamic msg) => VolumeChangedEvent.fromMap(
-          (msg as Map<Object?, Object?>).cast<String, dynamic>()));
+      .map(
+        (dynamic msg) => VolumeChangedEvent.fromMap(
+          (msg as Map<Object?, Object?>).cast<String, dynamic>(),
+        ),
+      );
 }
 
 /// Represents an event emitted on volume change.
@@ -138,6 +143,7 @@ class VolumeChangedEvent {
   /// Creates an event from a map.
   static VolumeChangedEvent fromMap(Map<String, dynamic> map) =>
       VolumeChangedEvent(
-          level: map['level'] as int? ?? 0,
-          type: _stringToAudioVolumeType(map['type'] as String? ?? 'none'));
+        level: map['level'] as int? ?? 0,
+        type: _stringToAudioVolumeType(map['type'] as String? ?? 'none'),
+      );
 }

@@ -78,7 +78,9 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
     _cachedPreferences = <String, Object>{};
 
     final int ret = tizen.preference_foreach_item(
-        Pointer.fromFunction(_preferenceItemCallback, false), nullptr);
+      Pointer.fromFunction(_preferenceItemCallback, false),
+      nullptr,
+    );
     if (ret == 0) {
       return _cachedPreferences!;
     }
@@ -88,18 +90,14 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   @override
   Future<bool> clear() async {
     return clearWithParameters(
-      ClearParameters(
-        filter: PreferencesFilter(prefix: _defaultPrefix),
-      ),
+      ClearParameters(filter: PreferencesFilter(prefix: _defaultPrefix)),
     );
   }
 
   @override
   Future<bool> clearWithPrefix(String prefix) async {
     return clearWithParameters(
-      ClearParameters(
-        filter: PreferencesFilter(prefix: prefix),
-      ),
+      ClearParameters(filter: PreferencesFilter(prefix: prefix)),
     );
   }
 
@@ -122,26 +120,30 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   @override
   Future<Map<String, Object>> getAll() async {
     return getAllWithParameters(
-      GetAllParameters(
-        filter: PreferencesFilter(prefix: _defaultPrefix),
-      ),
+      GetAllParameters(filter: PreferencesFilter(prefix: _defaultPrefix)),
     );
   }
 
   @override
   Future<Map<String, Object>> getAllWithPrefix(String prefix) async {
     return getAllWithParameters(
-        GetAllParameters(filter: PreferencesFilter(prefix: prefix)));
+      GetAllParameters(filter: PreferencesFilter(prefix: prefix)),
+    );
   }
 
   @override
   Future<Map<String, Object>> getAllWithParameters(
-      GetAllParameters parameters) async {
+    GetAllParameters parameters,
+  ) async {
     final PreferencesFilter filter = parameters.filter;
-    final Map<String, Object> withPrefix =
-        Map<String, Object>.from(_preferences);
-    withPrefix.removeWhere((String key, _) => !(key.startsWith(filter.prefix) &&
-        (filter.allowList?.contains(key) ?? true)));
+    final Map<String, Object> withPrefix = Map<String, Object>.from(
+      _preferences,
+    );
+    withPrefix.removeWhere(
+      (String key, _) =>
+          !(key.startsWith(filter.prefix) &&
+              (filter.allowList?.contains(key) ?? true)),
+    );
     return withPrefix;
   }
 
@@ -176,8 +178,9 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
         case 'StringList':
           return tizen.preference_set_string(
             pKey,
-            _joinStringList(value as List<String>)
-                .toNativeChar(allocator: arena),
+            _joinStringList(
+              value as List<String>,
+            ).toNativeChar(allocator: arena),
           );
         default:
           throw UnimplementedError('Not supported type: $valueType');

@@ -30,10 +30,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
     using((Arena arena) {
       final Pointer<Char> pKey = key.toNativeChar(allocator: arena);
       _checkResult(
-        tizen.preference_set_string(
-          pKey,
-          value.toNativeChar(allocator: arena),
-        ),
+        tizen.preference_set_string(pKey, value.toNativeChar(allocator: arena)),
       );
     });
   }
@@ -58,10 +55,12 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
   ) async {
     using((Arena arena) {
       final Pointer<Char> pKey = key.toNativeChar(allocator: arena);
-      _checkResult(tizen.preference_set_string(
-        pKey,
-        _joinStringList(value).toNativeChar(allocator: arena),
-      ));
+      _checkResult(
+        tizen.preference_set_string(
+          pKey,
+          _joinStringList(value).toNativeChar(allocator: arena),
+        ),
+      );
     });
   }
 
@@ -115,10 +114,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
   }
 
   @override
-  Future<bool?> getBool(
-    String key,
-    SharedPreferencesOptions options,
-  ) async {
+  Future<bool?> getBool(String key, SharedPreferencesOptions options) async {
     bool? value;
     using((Arena arena) {
       final Pointer<Char> pKey = key.toNativeChar(allocator: arena);
@@ -147,10 +143,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
   }
 
   @override
-  Future<int?> getInt(
-    String key,
-    SharedPreferencesOptions options,
-  ) async {
+  Future<int?> getInt(String key, SharedPreferencesOptions options) async {
     int? value;
     using((Arena arena) {
       final Pointer<Char> pKey = key.toNativeChar(allocator: arena);
@@ -196,8 +189,10 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
     final PreferencesFilters filter = parameters.filter;
 
     List<String> keyList = <String>[];
-    await getKeys(GetPreferencesParameters(filter: parameters.filter), options)
-        .then((Set<String> keys) {
+    await getKeys(
+      GetPreferencesParameters(filter: parameters.filter),
+      options,
+    ).then((Set<String> keys) {
       keyList = keys.toList();
     });
 
@@ -239,11 +234,9 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
     _keys = <String>{};
 
     final int ret = tizen.preference_foreach_item(
-        Pointer.fromFunction(
-          _getKeysCallback,
-          false,
-        ),
-        nullptr);
+      Pointer.fromFunction(_getKeysCallback, false),
+      nullptr,
+    );
     if (ret != 0) {
       return <String>{};
     }
@@ -305,11 +298,9 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
     _preferences = <String, Object>{};
 
     final int ret = tizen.preference_foreach_item(
-        Pointer.fromFunction(
-          _getPreferenceCallback,
-          false,
-        ),
-        nullptr);
+      Pointer.fromFunction(_getPreferenceCallback, false),
+      nullptr,
+    );
     if (ret != 0) {
       return <String, Object>{};
     }

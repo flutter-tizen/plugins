@@ -27,13 +27,18 @@ class MessagePortManager {
   }
 
   Future<bool> checkForRemotePort(
-      String remoteAppId, String portName, bool trusted) async {
+    String remoteAppId,
+    String portName,
+    bool trusted,
+  ) async {
     final Map<String, dynamic> args = <String, dynamic>{};
     args['remoteAppId'] = remoteAppId;
     args['portName'] = portName;
     args['trusted'] = trusted;
-    final bool? status =
-        await _channel.invokeMethod<bool>('checkForRemote', args);
+    final bool? status = await _channel.invokeMethod<bool>(
+      'checkForRemote',
+      args,
+    );
     return status ?? false;
   }
 
@@ -64,16 +69,18 @@ class MessagePortManager {
   Stream<dynamic> registerLocalPort(LocalPort localPort) {
     if (localPort.trusted) {
       if (!_trustedLocalPorts.containsKey(localPort.portName)) {
-        final EventChannel eventChannel =
-            EventChannel('tizen/messageport/${localPort.portName}_trusted');
+        final EventChannel eventChannel = EventChannel(
+          'tizen/messageport/${localPort.portName}_trusted',
+        );
         _trustedLocalPorts[localPort.portName] =
             eventChannel.receiveBroadcastStream();
       }
       return _trustedLocalPorts[localPort.portName]!;
     }
     if (!_localPorts.containsKey(localPort.portName)) {
-      final EventChannel eventChannel =
-          EventChannel('tizen/messageport/${localPort.portName}');
+      final EventChannel eventChannel = EventChannel(
+        'tizen/messageport/${localPort.portName}',
+      );
       _localPorts[localPort.portName] = eventChannel.receiveBroadcastStream();
     }
     return _localPorts[localPort.portName]!;

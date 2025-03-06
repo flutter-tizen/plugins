@@ -5,6 +5,8 @@
 import 'package:flutter/material.dart';
 
 import 'animate_camera.dart';
+import 'clustering.dart';
+import 'heatmap.dart';
 import 'lite_mode.dart';
 import 'map_click.dart';
 import 'map_coordinates.dart';
@@ -38,7 +40,9 @@ final List<GoogleMapExampleAppPage> _allPages = <GoogleMapExampleAppPage>[
   const SnapshotPage(),
   const LiteModePage(),
   const TileOverlayPage(),
+  const ClusteringPage(),
   const MapIdPage(),
+  const HeatmapPage(),
 ];
 
 /// MapsDemo is the Main Application.
@@ -47,11 +51,13 @@ class MapsDemo extends StatelessWidget {
   const MapsDemo({super.key});
 
   void _pushPage(BuildContext context, GoogleMapExampleAppPage page) {
-    Navigator.of(context).push(MaterialPageRoute<void>(
-        builder: (_) => Scaffold(
-              appBar: AppBar(title: Text(page.title)),
-              body: page,
-            )));
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder:
+            (_) =>
+                Scaffold(appBar: AppBar(title: Text(page.title)), body: page),
+      ),
+    );
   }
 
   @override
@@ -60,11 +66,12 @@ class MapsDemo extends StatelessWidget {
       appBar: AppBar(title: const Text('GoogleMaps examples')),
       body: ListView.builder(
         itemCount: _allPages.length,
-        itemBuilder: (_, int index) => ListTile(
-          leading: _allPages[index].leading,
-          title: Text(_allPages[index].title),
-          onTap: () => _pushPage(context, _allPages[index]),
-        ),
+        itemBuilder:
+            (_, int index) => ListTile(
+              leading: _allPages[index].leading,
+              title: Text(_allPages[index].title),
+              onTap: () => _pushPage(context, _allPages[index]),
+            ),
       ),
     );
   }

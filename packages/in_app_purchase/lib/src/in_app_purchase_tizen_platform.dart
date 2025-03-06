@@ -29,8 +29,9 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   static void register() {
     // Register the [InAppPurchaseTizenPlatformAddition] containing
     // Samsung Checkout-specific functionality.
-    InAppPurchasePlatformAddition.instance =
-        InAppPurchaseTizenPlatformAddition(billingManager);
+    InAppPurchasePlatformAddition.instance = InAppPurchaseTizenPlatformAddition(
+      billingManager,
+    );
 
     // Register the platform-specific implementation of the idiomatic
     // InAppPurchase API.
@@ -92,7 +93,8 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   /// Performs a network query for the details of products available.
   @override
   Future<ProductDetailsResponse> queryProductDetails(
-      Set<String> identifiers) async {
+    Set<String> identifiers,
+  ) async {
     ProductsListApiResult response;
     PlatformException? exception;
     try {
@@ -131,7 +133,8 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
               source: kIAPSource,
               code: exception.code,
               message: exception.message ?? '',
-              details: exception.details),
+              details: exception.details,
+            ),
     );
     return productDetailsResponse;
   }
@@ -176,13 +179,11 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   }
 
   @override
-  Future<void> restorePurchases({
-    String? applicationUserName,
-  }) async {
+  Future<void> restorePurchases({String? applicationUserName}) async {
     List<GetUserPurchaseListAPIResult> responses;
 
     responses = await Future.wait(<Future<GetUserPurchaseListAPIResult>>[
-      billingManager.requestPurchases()
+      billingManager.requestPurchases(),
     ]);
 
     final List<PurchaseDetails> pastPurchases =
@@ -205,41 +206,44 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   @override
   Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
     final BillingBuyData billingResultWrapper = await billingManager.buyItem(
-        orderItemId: purchaseParam.productDetails.id,
-        orderTitle: purchaseParam.productDetails.title,
-        orderTotal: purchaseParam.productDetails.price,
-        orderCurrencyId: purchaseParam.productDetails.currencyCode);
+      orderItemId: purchaseParam.productDetails.id,
+      orderTitle: purchaseParam.productDetails.title,
+      orderTotal: purchaseParam.productDetails.price,
+      orderCurrencyId: purchaseParam.productDetails.currencyCode,
+    );
 
     if (billingResultWrapper.payResult == 'SUCCESS') {
       final String invoiceId =
           billingResultWrapper.payDetails['InvoiceID'] ?? '';
 
-      unawaited(billingManager
-          .requestPurchases()
-          .then((GetUserPurchaseListAPIResult responses) {
-        for (int i = 0; i < responses.invoiceDetails.length; i++) {
-          if (getInvoiceDetails(responses)[i].invoiceId == invoiceId) {
-            final List<PurchaseDetails> purchases = <PurchaseDetails>[];
-            purchases.add(PurchaseDetails(
-              purchaseID: getInvoiceDetails(responses)[i].invoiceId,
-              productID: getInvoiceDetails(responses)[i].itemId,
-              verificationData: PurchaseVerificationData(
-                  localVerificationData:
-                      getInvoiceDetails(responses)[i].invoiceId,
-                  serverVerificationData:
-                      getInvoiceDetails(responses)[i].invoiceId,
-                  source: kIAPSource),
-              transactionDate: getInvoiceDetails(responses)[i].orderTime,
-              status: const PurchaseStateConverter().toPurchaseStatus(
-                  getInvoiceDetails(responses)[i].cancelStatus),
-            ));
+      unawaited(
+        billingManager
+            .requestPurchases()
+            .then((GetUserPurchaseListAPIResult responses) {
+          for (int i = 0; i < responses.invoiceDetails.length; i++) {
+            if (getInvoiceDetails(responses)[i].invoiceId == invoiceId) {
+              final List<PurchaseDetails> purchases = <PurchaseDetails>[];
+              purchases.add(PurchaseDetails(
+                purchaseID: getInvoiceDetails(responses)[i].invoiceId,
+                productID: getInvoiceDetails(responses)[i].itemId,
+                verificationData: PurchaseVerificationData(
+                    localVerificationData:
+                        getInvoiceDetails(responses)[i].invoiceId,
+                    serverVerificationData:
+                        getInvoiceDetails(responses)[i].invoiceId,
+                    source: kIAPSource),
+                transactionDate: getInvoiceDetails(responses)[i].orderTime,
+                status: const PurchaseStateConverter().toPurchaseStatus(
+                    getInvoiceDetails(responses)[i].cancelStatus),
+              ));
 
-            _purchaseUpdatedController.add(purchases);
+              _purchaseUpdatedController.add(purchases);
+            }
           }
-        }
-      }).catchError((Object error) {
-        _purchaseUpdatedController.addError(error);
-      }));
+        }).catchError((Object error) {
+          _purchaseUpdatedController.addError(error);
+        }),
+      );
 
       return true;
     } else {
@@ -248,8 +252,10 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   }
 
   @override
-  Future<bool> buyConsumable(
-      {required PurchaseParam purchaseParam, bool autoConsume = true}) {
+  Future<bool> buyConsumable({
+    required PurchaseParam purchaseParam,
+    bool autoConsume = true,
+  }) {
     assert(autoConsume, 'On Tizen, we should always auto consume');
     return buyNonConsumable(purchaseParam: purchaseParam);
   }

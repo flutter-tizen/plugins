@@ -23,8 +23,9 @@ enum _ItemActions { delete, edit, containsKey, read }
 
 class ItemsWidgetState extends State<ItemsWidget> {
   final _storage = const FlutterSecureStorage();
-  final _accountNameController =
-      TextEditingController(text: 'flutter_secure_storage_service');
+  final _accountNameController = TextEditingController(
+    text: 'flutter_secure_storage_service',
+  );
 
   List<_SecItem> _items = [];
 
@@ -69,97 +70,96 @@ class ItemsWidgetState extends State<ItemsWidget> {
     _readAll();
   }
 
-  IOSOptions _getIOSOptions() => IOSOptions(
-        accountName: _getAccountName(),
-      );
+  IOSOptions _getIOSOptions() => IOSOptions(accountName: _getAccountName());
 
   AndroidOptions _getAndroidOptions() => const AndroidOptions(
-        encryptedSharedPreferences: true,
-        // sharedPreferencesName: 'Test2',
-        // preferencesKeyPrefix: 'Test'
-      );
+    encryptedSharedPreferences: true,
+    // sharedPreferencesName: 'Test2',
+    // preferencesKeyPrefix: 'Test'
+  );
 
   String? _getAccountName() =>
       _accountNameController.text.isEmpty ? null : _accountNameController.text;
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-          actions: <Widget>[
-            IconButton(
-              key: const Key('add_random'),
-              onPressed: _addNewItem,
-              icon: const Icon(Icons.add),
-            ),
-            PopupMenuButton<_Actions>(
-              key: const Key('popup_menu'),
-              onSelected: (action) {
-                switch (action) {
-                  case _Actions.deleteAll:
-                    _deleteAll();
-                }
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<_Actions>>[
+    appBar: AppBar(
+      title: const Text('Plugin example app'),
+      actions: <Widget>[
+        IconButton(
+          key: const Key('add_random'),
+          onPressed: _addNewItem,
+          icon: const Icon(Icons.add),
+        ),
+        PopupMenuButton<_Actions>(
+          key: const Key('popup_menu'),
+          onSelected: (action) {
+            switch (action) {
+              case _Actions.deleteAll:
+                _deleteAll();
+            }
+          },
+          itemBuilder:
+              (BuildContext context) => <PopupMenuEntry<_Actions>>[
                 const PopupMenuItem(
                   key: Key('delete_all'),
                   value: _Actions.deleteAll,
                   child: Text('Delete all'),
                 ),
               ],
-            ),
-          ],
         ),
-        body: Column(
-          children: [
-            if (!kIsWeb && Platform.isIOS)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: TextFormField(
-                  controller: _accountNameController,
-                  decoration:
-                      const InputDecoration(labelText: 'kSecAttrService'),
-                ),
-              ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _items.length,
-                itemBuilder: (BuildContext context, int index) => ListTile(
+      ],
+    ),
+    body: Column(
+      children: [
+        if (!kIsWeb && Platform.isIOS)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TextFormField(
+              controller: _accountNameController,
+              decoration: const InputDecoration(labelText: 'kSecAttrService'),
+            ),
+          ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _items.length,
+            itemBuilder:
+                (BuildContext context, int index) => ListTile(
                   trailing: PopupMenuButton(
                     key: Key('popup_row_$index'),
-                    onSelected: (_ItemActions action) =>
-                        _performAction(action, _items[index], context),
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<_ItemActions>>[
-                      PopupMenuItem(
-                        value: _ItemActions.delete,
-                        child: Text(
-                          'Delete',
-                          key: Key('delete_row_$index'),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: _ItemActions.edit,
-                        child: Text(
-                          'Edit',
-                          key: Key('edit_row_$index'),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: _ItemActions.containsKey,
-                        child: Text(
-                          'Contains Key',
-                          key: Key('contains_row_$index'),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: _ItemActions.read,
-                        child: Text(
-                          'Read',
-                          key: Key('contains_row_$index'),
-                        ),
-                      ),
-                    ],
+                    onSelected:
+                        (_ItemActions action) =>
+                            _performAction(action, _items[index], context),
+                    itemBuilder:
+                        (
+                          BuildContext context,
+                        ) => <PopupMenuEntry<_ItemActions>>[
+                          PopupMenuItem(
+                            value: _ItemActions.delete,
+                            child: Text(
+                              'Delete',
+                              key: Key('delete_row_$index'),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: _ItemActions.edit,
+                            child: Text('Edit', key: Key('edit_row_$index')),
+                          ),
+                          PopupMenuItem(
+                            value: _ItemActions.containsKey,
+                            child: Text(
+                              'Contains Key',
+                              key: Key('contains_row_$index'),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: _ItemActions.read,
+                            child: Text(
+                              'Read',
+                              key: Key('contains_row_$index'),
+                            ),
+                          ),
+                        ],
                   ),
                   title: Text(
                     _items[index].value,
@@ -170,11 +170,11 @@ class ItemsWidgetState extends State<ItemsWidget> {
                     key: Key('subtitle_row_$index'),
                   ),
                 ),
-              ),
-            ),
-          ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 
   Future<void> _performAction(
     _ItemActions action,
@@ -219,14 +219,14 @@ class ItemsWidgetState extends State<ItemsWidget> {
       case _ItemActions.read:
         if (!context.mounted) return;
         final key = await _displayTextInputDialog(context, item.key);
-        final result =
-            await _storage.read(key: key, aOptions: _getAndroidOptions());
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('value: $result'),
-          ),
+        final result = await _storage.read(
+          key: key,
+          aOptions: _getAndroidOptions(),
         );
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('value: $result')));
     }
   }
 
@@ -247,9 +247,7 @@ class ItemsWidgetState extends State<ItemsWidget> {
               child: const Text('OK'),
             ),
           ],
-          content: TextField(
-            controller: controller,
-          ),
+          content: TextField(controller: controller),
         );
       },
     );
@@ -268,7 +266,7 @@ class ItemsWidgetState extends State<ItemsWidget> {
 
 class _EditItemWidget extends StatelessWidget {
   _EditItemWidget(String text)
-      : _controller = TextEditingController(text: text);
+    : _controller = TextEditingController(text: text);
 
   final TextEditingController _controller;
 

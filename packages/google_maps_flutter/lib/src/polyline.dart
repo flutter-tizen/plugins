@@ -13,9 +13,9 @@ class PolylineController {
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
     WebViewController? controller,
-  })  : _polyline = polyline,
-        _consumeTapEvents = consumeTapEvents,
-        tapEvent = onTap {
+  }) : _polyline = polyline,
+       _consumeTapEvents = consumeTapEvents,
+       tapEvent = onTap {
     _addPolylineEvent(controller);
   }
 
@@ -39,7 +39,9 @@ class PolylineController {
   /// This cannot be called after [remove].
   void update(util.GPolylineOptions options) {
     assert(
-        _polyline != null, 'Cannot `update` Polyline after calling `remove`.');
+      _polyline != null,
+      'Cannot `update` Polyline after calling `remove`.',
+    );
     _polyline!.options = options;
   }
 

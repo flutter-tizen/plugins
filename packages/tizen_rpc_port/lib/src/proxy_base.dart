@@ -44,7 +44,8 @@ abstract class ProxyBase {
   late final rpc_port_proxy_h _handle;
 
   final Finalizer<rpc_port_proxy_h> _finalizer = Finalizer<rpc_port_proxy_h>(
-      (rpc_port_proxy_h handle) => tizen.rpc_port_proxy_destroy(handle));
+    (rpc_port_proxy_h handle) => tizen.rpc_port_proxy_destroy(handle),
+  );
 
   /// The server application ID.
   final String appid;
@@ -60,8 +61,9 @@ abstract class ProxyBase {
   Completer<void> _connectCompleter = Completer<void>();
   Completer<void> _disconnectCompleter = Completer<void>();
 
-  static const EventChannel _eventChannel =
-      EventChannel('tizen/rpc_port_proxy');
+  static const EventChannel _eventChannel = EventChannel(
+    'tizen/rpc_port_proxy',
+  );
 
   StreamSubscription<dynamic>? _streamSubscription;
   OnDisconnected? _onDisconnected;
@@ -88,12 +90,13 @@ abstract class ProxyBase {
       throw StateError('Proxy $appid/$portName already connected');
     }
 
-    final Stream<dynamic> stream =
-        _eventChannel.receiveBroadcastStream(<String, Object>{
-      'handle': _handle.address,
-      'appid': appid,
-      'portName': portName,
-    });
+    final Stream<dynamic> stream = _eventChannel.receiveBroadcastStream(
+      <String, Object>{
+        'handle': _handle.address,
+        'appid': appid,
+        'portName': portName,
+      },
+    );
     _streamSubscription = stream.listen((dynamic data) async {
       final Map<String, dynamic> map =
           (data as Map<dynamic, dynamic>).cast<String, dynamic>();
@@ -144,8 +147,11 @@ abstract class ProxyBase {
   Port getPort(PortType portType) {
     return using((Arena arena) {
       final Pointer<rpc_port_h> pPort = arena();
-      final int ret =
-          tizen.rpc_port_proxy_get_port(_handle, portType.index, pPort);
+      final int ret = tizen.rpc_port_proxy_get_port(
+        _handle,
+        portType.index,
+        pPort,
+      );
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -165,10 +171,9 @@ abstract class ProxyBase {
 
   Future<void> _onRejectedEvent(String errorMessage) async {
     if (!_connectCompleter.isCompleted) {
-      _connectCompleter.completeError(PlatformException(
-        code: 'Connection rejected',
-        message: errorMessage,
-      ));
+      _connectCompleter.completeError(
+        PlatformException(code: 'Connection rejected', message: errorMessage),
+      );
       _connectCompleter = Completer<void>();
     }
   }

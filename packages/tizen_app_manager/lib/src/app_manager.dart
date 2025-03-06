@@ -38,16 +38,19 @@ class AppManager {
 
   static const MethodChannel _channel = MethodChannel('tizen/app_manager');
 
-  static const EventChannel _launchEventChannel =
-      EventChannel('tizen/app_manager/launch_event');
+  static const EventChannel _launchEventChannel = EventChannel(
+    'tizen/app_manager/launch_event',
+  );
 
-  static const EventChannel _terminateEventChannel =
-      EventChannel('tizen/app_manager/terminate_event');
+  static const EventChannel _terminateEventChannel = EventChannel(
+    'tizen/app_manager/terminate_event',
+  );
 
   /// The app ID of the currently running app.
   static Future<String> get currentAppId async {
-    final String? appId =
-        await _channel.invokeMethod<String>('getCurrentAppId');
+    final String? appId = await _channel.invokeMethod<String>(
+      'getCurrentAppId',
+    );
     return appId!;
   }
 
@@ -57,11 +60,10 @@ class AppManager {
       throw ArgumentError('Must not be empty', 'appId');
     }
 
-    final Map<String, dynamic>? app =
-        await _channel.invokeMapMethod<String, dynamic>(
-      'getAppInfo',
-      <String, String>{'appId': appId},
-    );
+    final Map<String, dynamic>? app = await _channel
+        .invokeMapMethod<String, dynamic>('getAppInfo', <String, String>{
+          'appId': appId,
+        });
     return AppInfo.fromMap(app!);
   }
 
@@ -83,22 +85,28 @@ class AppManager {
       throw ArgumentError('Must not be empty', 'appId');
     }
 
-    final bool? isRunning = await _channel
-        .invokeMethod<bool>('isRunning', <String, String>{'appId': appId});
+    final bool? isRunning = await _channel.invokeMethod<bool>(
+      'isRunning',
+      <String, String>{'appId': appId},
+    );
     return isRunning ?? false;
   }
 
   /// A stream of events occurring when any application is launched.
-  static Stream<AppRunningContext> get onAppLaunched => _launchEventChannel
-      .receiveBroadcastStream()
-      .map((dynamic event) => AppRunningContext.fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
+  static Stream<AppRunningContext> get onAppLaunched =>
+      _launchEventChannel.receiveBroadcastStream().map(
+        (dynamic event) => AppRunningContext.fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+        ),
+      );
 
   /// A stream of events occurring when any application is terminated.
-  static Stream<AppRunningContext> get onAppTerminated => _terminateEventChannel
-      .receiveBroadcastStream()
-      .map((dynamic event) => AppRunningContext.fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>()));
+  static Stream<AppRunningContext> get onAppTerminated =>
+      _terminateEventChannel.receiveBroadcastStream().map(
+        (dynamic event) => AppRunningContext.fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+        ),
+      );
 }
 
 /// Represents general information on an installed application.
@@ -170,8 +178,9 @@ class AppRunningContext {
 
   late AppContext _context;
 
-  static final Finalizer<AppContext> _finalizer =
-      Finalizer<AppContext>((AppContext context) => context.destroy());
+  static final Finalizer<AppContext> _finalizer = Finalizer<AppContext>(
+    (AppContext context) => context.destroy(),
+  );
 
   /// The ID of the application.
   final String appId;

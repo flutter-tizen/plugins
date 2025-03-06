@@ -14,14 +14,18 @@ Future<void> main() async {
 
   // TODO(cyanglaz): Use TabBar tabs to navigate between pages after https://github.com/flutter/flutter/issues/16991 is fixed.
   // TODO(cyanglaz): Un-skip the test after https://github.com/flutter/flutter/issues/43012 is fixed
-  test('Push a page contains video and pop back, do not crash.', () async {
-    final SerializableFinder pushTab = find.byValueKey('push_tab');
-    await driver.waitFor(pushTab);
-    await driver.tap(pushTab);
-    await driver.waitForAbsent(pushTab);
-    await driver.waitFor(find.byValueKey('home_page'));
-    await driver.waitUntilNoTransientCallbacks();
-    final Health health = await driver.checkHealth();
-    expect(health.status, HealthStatus.ok);
-  }, skip: 'Cirrus CI currently hangs while playing videos');
+  test(
+    'Push a page contains video and pop back, do not crash.',
+    () async {
+      final SerializableFinder pushTab = find.byValueKey('push_tab');
+      await driver.waitFor(pushTab);
+      await driver.tap(pushTab);
+      await driver.waitForAbsent(pushTab);
+      await driver.waitFor(find.byValueKey('home_page'));
+      await driver.waitUntilNoTransientCallbacks();
+      final Health health = await driver.checkHealth();
+      expect(health.status, HealthStatus.ok);
+    },
+    skip: 'Cirrus CI currently hangs while playing videos',
+  );
 }

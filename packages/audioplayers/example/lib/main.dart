@@ -42,26 +42,24 @@ class _ExampleAppState extends State<_ExampleApp> {
     super.initState();
     audioPlayers.asMap().forEach((index, player) {
       streams.add(
-        player.onPlayerStateChanged.listen(
-          (it) {
-            switch (it) {
-              case PlayerState.stopped:
-                toast(
-                  'Player stopped!',
-                  textKey: Key('toast-player-stopped-$index'),
-                );
-                break;
-              case PlayerState.completed:
-                toast(
-                  'Player complete!',
-                  textKey: Key('toast-player-complete-$index'),
-                );
-                break;
-              default:
-                break;
-            }
-          },
-        ),
+        player.onPlayerStateChanged.listen((it) {
+          switch (it) {
+            case PlayerState.stopped:
+              toast(
+                'Player stopped!',
+                textKey: Key('toast-player-stopped-$index'),
+              );
+              break;
+            case PlayerState.completed:
+              toast(
+                'Player complete!',
+                textKey: Key('toast-player-complete-$index'),
+              );
+              break;
+            default:
+              break;
+          }
+        }),
       );
       streams.add(
         player.onSeekComplete.listen(
@@ -136,9 +134,9 @@ class _ExampleAppState extends State<_ExampleApp> {
                 scrollDirection: Axis.horizontal,
                 child: Tgl(
                   key: const Key('playerTgl'),
-                  options: [for (var i = 1; i <= audioPlayers.length; i++) i]
-                      .asMap()
-                      .map((key, val) => MapEntry('player-$key', 'P$val')),
+                  options: [
+                    for (var i = 1; i <= audioPlayers.length; i++) i,
+                  ].asMap().map((key, val) => MapEntry('player-$key', 'P$val')),
                   selected: selectedPlayerIdx,
                   onChange: (v) => setState(() => selectedPlayerIdx = v),
                 ),
@@ -146,55 +144,47 @@ class _ExampleAppState extends State<_ExampleApp> {
             ),
           ),
           Expanded(
-            child: audioPlayers.isEmpty
-                ? const Text('No AudioPlayer available!')
-                : IndexedStack(
-                    index: selectedPlayerIdx,
-                    children: audioPlayers
-                        .map(
-                          (player) => Tabs(
-                            key: GlobalObjectKey(player),
-                            tabs: [
-                              TabData(
-                                key: 'sourcesTab',
-                                label: 'Src',
-                                content: SourcesTab(
-                                  player: player,
+            child:
+                audioPlayers.isEmpty
+                    ? const Text('No AudioPlayer available!')
+                    : IndexedStack(
+                      index: selectedPlayerIdx,
+                      children:
+                          audioPlayers
+                              .map(
+                                (player) => Tabs(
+                                  key: GlobalObjectKey(player),
+                                  tabs: [
+                                    TabData(
+                                      key: 'sourcesTab',
+                                      label: 'Src',
+                                      content: SourcesTab(player: player),
+                                    ),
+                                    TabData(
+                                      key: 'controlsTab',
+                                      label: 'Ctrl',
+                                      content: ControlsTab(player: player),
+                                    ),
+                                    TabData(
+                                      key: 'streamsTab',
+                                      label: 'Stream',
+                                      content: StreamsTab(player: player),
+                                    ),
+                                    TabData(
+                                      key: 'audioContextTab',
+                                      label: 'Ctx',
+                                      content: AudioContextTab(player: player),
+                                    ),
+                                    TabData(
+                                      key: 'loggerTab',
+                                      label: 'Log',
+                                      content: LoggerTab(player: player),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              TabData(
-                                key: 'controlsTab',
-                                label: 'Ctrl',
-                                content: ControlsTab(
-                                  player: player,
-                                ),
-                              ),
-                              TabData(
-                                key: 'streamsTab',
-                                label: 'Stream',
-                                content: StreamsTab(
-                                  player: player,
-                                ),
-                              ),
-                              TabData(
-                                key: 'audioContextTab',
-                                label: 'Ctx',
-                                content: AudioContextTab(
-                                  player: player,
-                                ),
-                              ),
-                              TabData(
-                                key: 'loggerTab',
-                                label: 'Log',
-                                content: LoggerTab(
-                                  player: player,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                        .toList(),
-                  ),
+                              )
+                              .toList(),
+                    ),
           ),
         ],
       ),
@@ -202,7 +192,4 @@ class _ExampleAppState extends State<_ExampleApp> {
   }
 }
 
-enum PopupAction {
-  add,
-  remove,
-}
+enum PopupAction { add, remove }

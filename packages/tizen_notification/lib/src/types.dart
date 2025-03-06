@@ -47,11 +47,7 @@ class NotificationStyle {
 /// A set of icons to be shown in the notification layouts.
 class NotificationIcons {
   /// Creates a [NotificationIcons] with the given icon paths.
-  NotificationIcons({
-    this.icon,
-    this.indicatorIcon,
-    this.lockIcon,
-  });
+  NotificationIcons({this.icon, this.indicatorIcon, this.lockIcon});
 
   /// The path to the icon file.
   String? icon;
@@ -64,10 +60,10 @@ class NotificationIcons {
 
   /// Converts to a map.
   Map<String, String?> toMap() => <String, String?>{
-        'icon': icon,
-        'iconForIndicator': indicatorIcon,
-        'iconForLock': lockIcon,
-      };
+    'icon': icon,
+    'iconForIndicator': indicatorIcon,
+    'iconForLock': lockIcon,
+  };
 }
 
 /// The type of sound.
@@ -97,9 +93,9 @@ class NotificationSound {
 
   /// Converts to a map.
   Map<String, String?> toMap() => <String, String?>{
-        'type': type.name,
-        'path': path,
-      };
+    'type': type.name,
+    'path': path,
+  };
 }
 
 /// The type of vibration.
@@ -129,20 +125,20 @@ class NotificationVibration {
 
   /// Converts to a map.
   Map<String, String?> toMap() => <String, String?>{
-        'type': type.name,
-        'path': path,
-      };
+    'type': type.name,
+    'path': path,
+  };
 }
 
 extension _AppControlToMap on AppControl {
   /// Converts to a map.
   Map<String, Object?> toMap() => <String, Object?>{
-        'appId': appId,
-        'operation': operation,
-        'uri': uri,
-        'mime': mime,
-        'extraData': extraData,
-      };
+    'appId': appId,
+    'operation': operation,
+    'uri': uri,
+    'mime': mime,
+    'extraData': extraData,
+  };
 }
 
 /// The notification details.
@@ -189,12 +185,12 @@ class TizenNotificationDetails {
 
   /// Converts to a map.
   Map<String, Object?> toMap() => <String, Object?>{
-        'image': icons?.toMap(),
-        'sound': sound?.toMap(),
-        'vibration': vibration?.toMap(),
-        'properties': properties,
-        'displayApplist': style,
-        'ongoing': ongoing,
-        'appControl': appControl?.toMap(),
-      };
+    'image': icons?.toMap(),
+    'sound': sound?.toMap(),
+    'vibration': vibration?.toMap(),
+    'properties': properties,
+    'displayApplist': style,
+    'ongoing': ongoing,
+    'appControl': appControl?.toMap(),
+  };
 }

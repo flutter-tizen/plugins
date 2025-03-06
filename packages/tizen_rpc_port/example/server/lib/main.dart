@@ -64,8 +64,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final Message _server = Message(
-    serviceBuilder: (String sender, String instance) =>
-        EchoService(sender, instance),
+    serviceBuilder:
+        (String sender, String instance) => EchoService(sender, instance),
   );
 
   @override
@@ -84,9 +84,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('TizenRpcPort Server Demo'),
-        ),
+        appBar: AppBar(title: const Text('TizenRpcPort Server Demo')),
         body: const Center(child: Text('Service running')),
       ),
     );

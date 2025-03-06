@@ -39,7 +39,8 @@ abstract class StubBase {
   late final rpc_port_stub_h _handle;
 
   final Finalizer<rpc_port_stub_h> _finalizer = Finalizer<rpc_port_stub_h>(
-      (rpc_port_stub_h handle) => tizen.rpc_port_stub_destroy(handle));
+    (rpc_port_stub_h handle) => tizen.rpc_port_stub_destroy(handle),
+  );
 
   /// A port name to use when listening for connections.
   final String portName;
@@ -82,8 +83,9 @@ abstract class StubBase {
       throw StateError('Cannot listen again');
     }
 
-    final Stream<dynamic> stream = _eventChannel
-        .receiveBroadcastStream(<String, Object>{'handle': _handle.address});
+    final Stream<dynamic> stream = _eventChannel.receiveBroadcastStream(
+      <String, Object>{'handle': _handle.address},
+    );
     _streamSubscription = stream.listen((dynamic data) async {
       final Map<String, dynamic> map =
           (data as Map<dynamic, dynamic>).cast<String, dynamic>();
@@ -114,7 +116,11 @@ abstract class StubBase {
       final Pointer<Char> pInstance = instance.toNativeChar();
       final Pointer<rpc_port_h> pPort = arena();
       final int ret = tizen.rpc_port_stub_get_port(
-          _handle, portType.index, pInstance, pPort);
+        _handle,
+        portType.index,
+        pInstance,
+        pPort,
+      );
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),

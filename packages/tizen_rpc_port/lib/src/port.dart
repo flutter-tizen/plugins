@@ -29,15 +29,19 @@ class Port {
   /// application.
   void shareFiles(List<String> paths) {
     using((Arena arena) {
-      final Pointer<Pointer<Char>> pPaths =
-          arena.allocate<Pointer<Char>>(paths.length);
+      final Pointer<Pointer<Char>> pPaths = arena.allocate<Pointer<Char>>(
+        paths.length,
+      );
 
       for (int i = 0; i < paths.length; ++i) {
         pPaths[i] = paths[i].toNativeChar();
       }
 
       final int ret = tizen.rpc_port_set_private_sharing_array(
-          handle, pPaths, paths.length);
+        handle,
+        pPaths,
+        paths.length,
+      );
 
       if (ret != 0) {
         throw PlatformException(

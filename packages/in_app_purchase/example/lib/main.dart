@@ -44,14 +44,17 @@ class _MyAppState extends State<_MyApp> {
   void initState() {
     final Stream<List<PurchaseDetails>> purchaseUpdated =
         _inAppPurchase.purchaseStream;
-    _subscription =
-        purchaseUpdated.listen((List<PurchaseDetails> purchaseDetailsList) {
-      _listenToPurchaseUpdated(purchaseDetailsList);
-    }, onDone: () {
-      _subscription.cancel();
-    }, onError: (Object error) {
-      // handle error here.
-    });
+    _subscription = purchaseUpdated.listen(
+      (List<PurchaseDetails> purchaseDetailsList) {
+        _listenToPurchaseUpdated(purchaseDetailsList);
+      },
+      onDone: () {
+        _subscription.cancel();
+      },
+      onError: (Object error) {
+        // handle error here.
+      },
+    );
     initStoreInfo();
     super.initState();
   }
@@ -59,8 +62,9 @@ class _MyAppState extends State<_MyApp> {
   Future<void> initStoreInfo() async {
     // Tizen specific API:
     // You need to set necessary parameters before calling any plugin API.
-    final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
-        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    final InAppPurchaseTizenPlatformAddition platformAddition =
+        _inAppPurchase
+            .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
     platformAddition.setRequestParameters(
       appId: _kAppId,
       pageSize: _kPageSize,
@@ -83,8 +87,8 @@ class _MyAppState extends State<_MyApp> {
 
     // The `identifiers` argument is not used on Tizen.
     // Use `InAppPurchaseTizenPlatformAddition.setRequestParameters` instead.
-    final ProductDetailsResponse productDetailResponse =
-        await _inAppPurchase.queryProductDetails(<String>{});
+    final ProductDetailsResponse productDetailResponse = await _inAppPurchase
+        .queryProductDetails(<String>{});
     if (productDetailResponse.error != null) {
       setState(() {
         _queryProductError = productDetailResponse.error!.message;
@@ -140,9 +144,7 @@ class _MyAppState extends State<_MyApp> {
         ),
       );
     } else {
-      stack.add(Center(
-        child: Text(_queryProductError!),
-      ));
+      stack.add(Center(child: Text(_queryProductError!)));
     }
     if (_purchasePending) {
       stack.add(
@@ -154,9 +156,7 @@ class _MyAppState extends State<_MyApp> {
               opacity: 0.3,
               child: ModalBarrier(dismissible: false, color: Colors.grey),
             ),
-            Center(
-              child: CircularProgressIndicator(),
-            ),
+            Center(child: CircularProgressIndicator()),
           ],
         ),
       );
@@ -164,12 +164,8 @@ class _MyAppState extends State<_MyApp> {
 
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('IAP Example'),
-        ),
-        body: Stack(
-          children: stack,
-        ),
+        appBar: AppBar(title: const Text('IAP Example')),
+        body: Stack(children: stack),
       ),
     );
   }
@@ -179,12 +175,14 @@ class _MyAppState extends State<_MyApp> {
       return const Card(child: ListTile(title: Text('Trying to connect...')));
     }
     final Widget storeHeader = ListTile(
-      leading: Icon(_isAvailable ? Icons.check : Icons.block,
-          color: _isAvailable
-              ? Colors.green
-              : ThemeData.light().colorScheme.error),
-      title:
-          Text('The store is ${_isAvailable ? 'available' : 'unavailable'}.'),
+      leading: Icon(
+        _isAvailable ? Icons.check : Icons.block,
+        color:
+            _isAvailable ? Colors.green : ThemeData.light().colorScheme.error,
+      ),
+      title: Text(
+        'The store is ${_isAvailable ? 'available' : 'unavailable'}.',
+      ),
     );
     final List<Widget> children = <Widget>[storeHeader];
 
@@ -192,10 +190,13 @@ class _MyAppState extends State<_MyApp> {
       children.addAll(<Widget>[
         const Divider(),
         ListTile(
-          title: Text('Not connected',
-              style: TextStyle(color: ThemeData.light().colorScheme.error)),
+          title: Text(
+            'Not connected',
+            style: TextStyle(color: ThemeData.light().colorScheme.error),
+          ),
           subtitle: const Text(
-              'Unable to connect to the payments processor. Are you signed in with your Samsung account on this device?'),
+            'Unable to connect to the payments processor. Are you signed in with your Samsung account on this device?',
+          ),
         ),
       ]);
     }
@@ -205,9 +206,11 @@ class _MyAppState extends State<_MyApp> {
   Card _buildProductList() {
     if (_loading) {
       return const Card(
-          child: ListTile(
-              leading: CircularProgressIndicator(),
-              title: Text('Fetching products...')));
+        child: ListTile(
+          leading: CircularProgressIndicator(),
+          title: Text('Fetching products...'),
+        ),
+      );
     }
     if (!_isAvailable) {
       return const Card();
@@ -215,52 +218,55 @@ class _MyAppState extends State<_MyApp> {
     const ListTile productHeader = ListTile(title: Text('Products for Sale'));
     final List<ListTile> productList = <ListTile>[];
     if (_notFoundIds.isNotEmpty) {
-      productList.add(ListTile(
-          title: Text('[${_notFoundIds.join(", ")}] not found',
-              style: TextStyle(color: ThemeData.light().colorScheme.error)),
+      productList.add(
+        ListTile(
+          title: Text(
+            '[${_notFoundIds.join(", ")}] not found',
+            style: TextStyle(color: ThemeData.light().colorScheme.error),
+          ),
           subtitle: const Text(
-              'This app needs special configuration to run. Please see README.md for instructions.')));
+            'This app needs special configuration to run. Please see README.md for instructions.',
+          ),
+        ),
+      );
     }
 
-    productList.addAll(_products.map(
-      (ProductDetails productDetails) {
+    productList.addAll(
+      _products.map((ProductDetails productDetails) {
         return ListTile(
-            title: Text(
-              productDetails.title,
-            ),
-            subtitle: Text(
-              productDetails.description,
-            ),
-            trailing: TextButton(
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.green[800],
-              ),
-              onPressed: () {
-                final PurchaseParam purchaseParam = PurchaseParam(
-                  productDetails: productDetails,
-                );
+          title: Text(productDetails.title),
+          subtitle: Text(productDetails.description),
+          trailing: TextButton(
+            style: TextButton.styleFrom(backgroundColor: Colors.green[800]),
+            onPressed: () {
+              final PurchaseParam purchaseParam = PurchaseParam(
+                productDetails: productDetails,
+              );
 
-                if (productDetails is SamsungCheckoutProductDetails) {
-                  if (productDetails.itemDetails.itemType ==
-                      ItemType.consumable) {
-                    _inAppPurchase.buyConsumable(
-                        purchaseParam: purchaseParam,
-                        // ignore: avoid_redundant_argument_values
-                        autoConsume: _kAutoConsume);
-                  } else {
-                    _inAppPurchase.buyNonConsumable(
-                        purchaseParam: purchaseParam);
-                  }
+              if (productDetails is SamsungCheckoutProductDetails) {
+                if (productDetails.itemDetails.itemType ==
+                    ItemType.consumable) {
+                  _inAppPurchase.buyConsumable(
+                    purchaseParam: purchaseParam,
+                    // ignore: avoid_redundant_argument_values
+                    autoConsume: _kAutoConsume,
+                  );
+                } else {
+                  _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
                 }
-              },
-              child: Text(productDetails.price),
-            ));
-      },
-    ));
+              }
+            },
+            child: Text(productDetails.price),
+          ),
+        );
+      }),
+    );
 
     return Card(
-        child: Column(
-            children: <Widget>[productHeader, const Divider()] + productList));
+      child: Column(
+        children: <Widget>[productHeader, const Divider()] + productList,
+      ),
+    );
   }
 
   Widget _buildRestoreButton() {
@@ -310,8 +316,9 @@ class _MyAppState extends State<_MyApp> {
 
     // Tizen specific verify purchase:
     // If `PurchaseDetails.status` is `purchased`, need to verify purchase.
-    final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
-        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    final InAppPurchaseTizenPlatformAddition platformAddition =
+        _inAppPurchase
+            .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
     return platformAddition.verifyPurchase(purchaseDetails: purchaseDetails);
   }
 
@@ -320,7 +327,8 @@ class _MyAppState extends State<_MyApp> {
   }
 
   Future<void> _listenToPurchaseUpdated(
-      List<PurchaseDetails> purchaseDetailsList) async {
+    List<PurchaseDetails> purchaseDetailsList,
+  ) async {
     for (final PurchaseDetails purchaseDetails in purchaseDetailsList) {
       if (purchaseDetails.status == PurchaseStatus.pending) {
         showPendingUI();

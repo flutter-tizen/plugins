@@ -397,18 +397,21 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
 
   /// Generate a [SamsungCheckoutPurchaseDetails] object based on [PurchaseDetails] object.
   factory SamsungCheckoutPurchaseDetails.fromPurchase(
-      InvoiceDetails invoiceDetails) {
+    InvoiceDetails invoiceDetails,
+  ) {
     final SamsungCheckoutPurchaseDetails purchaseDetails =
         SamsungCheckoutPurchaseDetails(
       purchaseID: invoiceDetails.invoiceId,
       productID: invoiceDetails.itemId,
       verificationData: PurchaseVerificationData(
-          localVerificationData: invoiceDetails.invoiceId,
-          serverVerificationData: invoiceDetails.invoiceId,
-          source: kIAPSource),
+        localVerificationData: invoiceDetails.invoiceId,
+        serverVerificationData: invoiceDetails.invoiceId,
+        source: kIAPSource,
+      ),
       transactionDate: invoiceDetails.orderTime,
-      status: const PurchaseStateConverter()
-          .toPurchaseStatus(invoiceDetails.cancelStatus),
+      status: const PurchaseStateConverter().toPurchaseStatus(
+        invoiceDetails.cancelStatus,
+      ),
       invoiceDetails: invoiceDetails,
     );
 

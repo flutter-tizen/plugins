@@ -73,7 +73,7 @@ abstract class ServiceBase {
 
 class NotifyCallback extends _Delegate {
   NotifyCallback(this._port, this.service, {bool once = false})
-      : super(_DelegateId.notifyCallback.id, once);
+    : super(_DelegateId.notifyCallback.id, once);
 
   final Port? _port;
 
@@ -110,8 +110,8 @@ typedef _MethodHandler = Future<void> Function(ServiceBase, Port, Parcel);
 
 class Message extends StubBase {
   Message({required ServiceBuilder serviceBuilder})
-      : _serviceBuilder = serviceBuilder,
-        super('Message') {
+    : _serviceBuilder = serviceBuilder,
+      super('Message') {
     _methodHandlers[_MethodId.register.id] = _onRegisterMethod;
     _methodHandlers[_MethodId.unregister.id] = _onUnregisterMethod;
     _methodHandlers[_MethodId.send.id] = _onSendMethod;
@@ -145,7 +145,10 @@ class Message extends StubBase {
   }
 
   Future<void> _onRegisterMethod(
-      ServiceBase service, Port port, Parcel parcel) async {
+    ServiceBase service,
+    Port port,
+    Parcel parcel,
+  ) async {
     final String name = parcel.readString();
     final NotifyCallback callback = NotifyCallback(service._port, service);
     callback.deserialize(parcel);
@@ -165,12 +168,18 @@ class Message extends StubBase {
   }
 
   Future<void> _onUnregisterMethod(
-      ServiceBase service, Port port, Parcel parcel) async {
+    ServiceBase service,
+    Port port,
+    Parcel parcel,
+  ) async {
     service.onUnregister();
   }
 
   Future<void> _onSendMethod(
-      ServiceBase service, Port port, Parcel parcel) async {
+    ServiceBase service,
+    Port port,
+    Parcel parcel,
+  ) async {
     final String message = parcel.readString();
 
     final int ret = await service.onSend(message);
@@ -191,7 +200,10 @@ class Message extends StubBase {
   @visibleForOverriding
   @nonVirtual
   Future<void> onReceivedEvent(
-      String sender, String instance, Parcel parcel) async {
+    String sender,
+    String instance,
+    Parcel parcel,
+  ) async {
     ServiceBase? service;
     for (final ServiceBase s in services) {
       if (s.instance == instance) {

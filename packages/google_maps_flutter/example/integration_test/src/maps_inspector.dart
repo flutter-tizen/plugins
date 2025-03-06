@@ -127,8 +127,8 @@ void runTests() {
     final GoogleMapController controller = await controllerCompleter.future;
 
     if (isIOS) {
-      final MinMaxZoomPreference zoomLevel =
-          await inspector.getMinMaxZoomLevels(mapId: controller.mapId);
+      final MinMaxZoomPreference zoomLevel = await inspector
+          .getMinMaxZoomLevels(mapId: controller.mapId);
       expect(zoomLevel, equals(initialZoomLevel));
     } else if (isAndroid) {
       await controller.moveCamera(CameraUpdate.zoomTo(15));
@@ -155,8 +155,8 @@ void runTests() {
     );
 
     if (isIOS) {
-      final MinMaxZoomPreference zoomLevel =
-          await inspector.getMinMaxZoomLevels(mapId: controller.mapId);
+      final MinMaxZoomPreference zoomLevel = await inspector
+          .getMinMaxZoomLevels(mapId: controller.mapId);
       expect(zoomLevel, equals(finalZoomLevel));
     } else {
       await controller.moveCamera(CameraUpdate.zoomTo(15));
@@ -188,8 +188,9 @@ void runTests() {
     );
     final int mapId = await mapIdCompleter.future;
 
-    bool zoomGesturesEnabled =
-        await inspector.areZoomGesturesEnabled(mapId: mapId);
+    bool zoomGesturesEnabled = await inspector.areZoomGesturesEnabled(
+      mapId: mapId,
+    );
     expect(zoomGesturesEnabled, false);
 
     await pumpMap(
@@ -223,8 +224,9 @@ void runTests() {
     );
     final int mapId = await mapIdCompleter.future;
 
-    bool zoomControlsEnabled =
-        await inspector.areZoomControlsEnabled(mapId: mapId);
+    bool zoomControlsEnabled = await inspector.areZoomControlsEnabled(
+      mapId: mapId,
+    );
     expect(zoomControlsEnabled, !isIOS);
 
     /// Zoom Controls functionality is not available on iOS at the moment.
@@ -241,8 +243,9 @@ void runTests() {
         ),
       );
 
-      zoomControlsEnabled =
-          await inspector.areZoomControlsEnabled(mapId: mapId);
+      zoomControlsEnabled = await inspector.areZoomControlsEnabled(
+        mapId: mapId,
+      );
       expect(zoomControlsEnabled, false);
     }
   });
@@ -299,8 +302,9 @@ void runTests() {
     );
     final int mapId = await mapIdCompleter.future;
 
-    bool rotateGesturesEnabled =
-        await inspector.areRotateGesturesEnabled(mapId: mapId);
+    bool rotateGesturesEnabled = await inspector.areRotateGesturesEnabled(
+      mapId: mapId,
+    );
     expect(rotateGesturesEnabled, false);
 
     await pumpMap(
@@ -314,8 +318,9 @@ void runTests() {
       ),
     );
 
-    rotateGesturesEnabled =
-        await inspector.areRotateGesturesEnabled(mapId: mapId);
+    rotateGesturesEnabled = await inspector.areRotateGesturesEnabled(
+      mapId: mapId,
+    );
     expect(rotateGesturesEnabled, !isWeb);
   });
 
@@ -336,8 +341,9 @@ void runTests() {
     );
     final int mapId = await mapIdCompleter.future;
 
-    bool tiltGesturesEnabled =
-        await inspector.areTiltGesturesEnabled(mapId: mapId);
+    bool tiltGesturesEnabled = await inspector.areTiltGesturesEnabled(
+      mapId: mapId,
+    );
     expect(tiltGesturesEnabled, false);
 
     await pumpMap(
@@ -372,8 +378,9 @@ void runTests() {
     );
     final int mapId = await mapIdCompleter.future;
 
-    bool scrollGesturesEnabled =
-        await inspector.areScrollGesturesEnabled(mapId: mapId);
+    bool scrollGesturesEnabled = await inspector.areScrollGesturesEnabled(
+      mapId: mapId,
+    );
     expect(scrollGesturesEnabled, false);
 
     await pumpMap(
@@ -387,8 +394,9 @@ void runTests() {
       ),
     );
 
-    scrollGesturesEnabled =
-        await inspector.areScrollGesturesEnabled(mapId: mapId);
+    scrollGesturesEnabled = await inspector.areScrollGesturesEnabled(
+      mapId: mapId,
+    );
     expect(scrollGesturesEnabled, true);
   });
 
@@ -443,8 +451,9 @@ void runTests() {
     );
     final int mapId = await mapIdCompleter.future;
 
-    final bool isBuildingsEnabled =
-        await inspector.areBuildingsEnabled(mapId: mapId);
+    final bool isBuildingsEnabled = await inspector.areBuildingsEnabled(
+      mapId: mapId,
+    );
     expect(isBuildingsEnabled, !isWeb);
   });
 
@@ -467,8 +476,9 @@ void runTests() {
       );
       final int mapId = await mapIdCompleter.future;
 
-      bool myLocationButtonEnabled =
-          await inspector.isMyLocationButtonEnabled(mapId: mapId);
+      bool myLocationButtonEnabled = await inspector.isMyLocationButtonEnabled(
+        mapId: mapId,
+      );
       expect(myLocationButtonEnabled, true);
 
       await pumpMap(
@@ -483,13 +493,15 @@ void runTests() {
         ),
       );
 
-      myLocationButtonEnabled =
-          await inspector.isMyLocationButtonEnabled(mapId: mapId);
+      myLocationButtonEnabled = await inspector.isMyLocationButtonEnabled(
+        mapId: mapId,
+      );
       expect(myLocationButtonEnabled, false);
     });
 
-    testWidgets('testMyLocationButton initial value false',
-        (WidgetTester tester) async {
+    testWidgets('testMyLocationButton initial value false', (
+      WidgetTester tester,
+    ) async {
       final Key key = GlobalKey();
       final Completer<int> mapIdCompleter = Completer<int>();
 
@@ -506,13 +518,14 @@ void runTests() {
       );
       final int mapId = await mapIdCompleter.future;
 
-      final bool myLocationButtonEnabled =
-          await inspector.isMyLocationButtonEnabled(mapId: mapId);
+      final bool myLocationButtonEnabled = await inspector
+          .isMyLocationButtonEnabled(mapId: mapId);
       expect(myLocationButtonEnabled, false);
     });
 
-    testWidgets('testMyLocationButton initial value true',
-        (WidgetTester tester) async {
+    testWidgets('testMyLocationButton initial value true', (
+      WidgetTester tester,
+    ) async {
       final Key key = GlobalKey();
       final Completer<int> mapIdCompleter = Completer<int>();
 
@@ -528,9 +541,124 @@ void runTests() {
       );
       final int mapId = await mapIdCompleter.future;
 
-      final bool myLocationButtonEnabled =
-          await inspector.isMyLocationButtonEnabled(mapId: mapId);
+      final bool myLocationButtonEnabled = await inspector
+          .isMyLocationButtonEnabled(mapId: mapId);
       expect(myLocationButtonEnabled, true);
     });
   }, skip: !isIOS);
+
+  testWidgets('marker clustering', (WidgetTester tester) async {
+    final Key key = GlobalKey();
+    const int clusterManagersAmount = 2;
+    const int markersPerClusterManager = 5;
+    final Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+    final Set<ClusterManager> clusterManagers = <ClusterManager>{};
+
+    for (int i = 0; i < clusterManagersAmount; i++) {
+      final ClusterManagerId clusterManagerId = ClusterManagerId(
+        'cluster_manager_$i',
+      );
+      final ClusterManager clusterManager = ClusterManager(
+        clusterManagerId: clusterManagerId,
+      );
+      clusterManagers.add(clusterManager);
+    }
+
+    for (final ClusterManager cm in clusterManagers) {
+      for (int i = 0; i < markersPerClusterManager; i++) {
+        final MarkerId markerId = MarkerId(
+          '${cm.clusterManagerId.value}_marker_$i',
+        );
+        final Marker marker = Marker(
+          markerId: markerId,
+          clusterManagerId: cm.clusterManagerId,
+          position: LatLng(
+            kInitialMapCenter.latitude + i,
+            kInitialMapCenter.longitude,
+          ),
+        );
+        markers[markerId] = marker;
+      }
+    }
+
+    final Completer<GoogleMapController> controllerCompleter =
+        Completer<GoogleMapController>();
+
+    await pumpMap(
+      tester,
+      GoogleMap(
+        key: key,
+        initialCameraPosition: kInitialCameraPosition,
+        clusterManagers: clusterManagers,
+        markers: Set<Marker>.of(markers.values),
+        onMapCreated: (GoogleMapController googleMapController) {
+          controllerCompleter.complete(googleMapController);
+        },
+      ),
+    );
+
+    final GoogleMapController controller = await controllerCompleter.future;
+
+    final GoogleMapsInspectorPlatform inspector =
+        GoogleMapsInspectorPlatform.instance!;
+
+    for (final ClusterManager cm in clusterManagers) {
+      final List<Cluster> clusters = await inspector.getClusters(
+        mapId: controller.mapId,
+        clusterManagerId: cm.clusterManagerId,
+      );
+      final int markersAmountForClusterManager = clusters
+          .map<int>((Cluster cluster) => cluster.count)
+          .reduce((int value, int element) => value + element);
+      expect(markersAmountForClusterManager, markersPerClusterManager);
+    }
+
+    // Remove markers from clusterManagers and test that clusterManagers are empty.
+    for (final MapEntry<MarkerId, Marker> entry in markers.entries) {
+      markers[entry.key] = _copyMarkerWithClusterManagerId(entry.value, null);
+    }
+
+    await pumpMap(
+      tester,
+      GoogleMap(
+        key: key,
+        initialCameraPosition: kInitialCameraPosition,
+        clusterManagers: clusterManagers,
+        markers: Set<Marker>.of(markers.values),
+      ),
+    );
+
+    for (final ClusterManager cm in clusterManagers) {
+      final List<Cluster> clusters = await inspector.getClusters(
+        mapId: controller.mapId,
+        clusterManagerId: cm.clusterManagerId,
+      );
+      expect(clusters.length, 0);
+    }
+  });
+}
+
+Marker _copyMarkerWithClusterManagerId(
+  Marker marker,
+  ClusterManagerId? clusterManagerId,
+) {
+  return Marker(
+    markerId: marker.markerId,
+    alpha: marker.alpha,
+    anchor: marker.anchor,
+    consumeTapEvents: marker.consumeTapEvents,
+    draggable: marker.draggable,
+    flat: marker.flat,
+    icon: marker.icon,
+    infoWindow: marker.infoWindow,
+    position: marker.position,
+    rotation: marker.rotation,
+    visible: marker.visible,
+    zIndex: marker.zIndex,
+    onTap: marker.onTap,
+    onDragStart: marker.onDragStart,
+    onDrag: marker.onDrag,
+    onDragEnd: marker.onDragEnd,
+    clusterManagerId: clusterManagerId,
+  );
 }

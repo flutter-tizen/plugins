@@ -23,6 +23,16 @@ struct _Ewk_Touch_Point {
   Evas_Touch_Point_State state;
 };
 
+typedef Eina_Bool (*Ewk_View_JavaScript_Alert_Callback)(Evas_Object* o,
+                                                        const char* alert_text,
+                                                        void* user_data);
+typedef Eina_Bool (*Ewk_View_JavaScript_Confirm_Callback)(Evas_Object* o,
+                                                          const char* message,
+                                                          void* user_data);
+typedef Eina_Bool (*Ewk_View_JavaScript_Prompt_Callback)(
+    Evas_Object* o, const char* message, const char* default_value,
+    void* user_data);
+
 typedef Eina_Bool (*EwkViewBgColorSetFnPtr)(Evas_Object* obj, int r, int g,
                                             int b, int a);
 typedef Eina_Bool (*EwkViewFeedTouchEventFnPtr)(Evas_Object* obj,
@@ -40,6 +50,20 @@ typedef Eina_Bool (*EwkViewSupportVideoHoleSetFnPtr)(Evas_Object* obj,
                                                      void* window,
                                                      Eina_Bool enabled,
                                                      Eina_Bool boo);
+typedef void (*EwkViewJavaScriptAlertCallbackSetFnPtr)(
+    Evas_Object* o, Ewk_View_JavaScript_Alert_Callback callback,
+    void* user_data);
+typedef void (*EwkViewJavaScriptConfirmCallbackSetFnPtr)(
+    Evas_Object* o, Ewk_View_JavaScript_Confirm_Callback callback,
+    void* user_data);
+typedef void (*EwkViewJavaScriptPromptCallbackSetFnPtr)(
+    Evas_Object* o, Ewk_View_JavaScript_Prompt_Callback callback,
+    void* user_data);
+typedef void (*EwkViewJavaScriptAlertReplyFnPtr)(Evas_Object* o);
+typedef void (*EwkViewJavaScriptConfirmReplyFnPtr)(Evas_Object* o,
+                                                   Eina_Bool result);
+typedef void (*EwkViewJavaScriptPromptReplyFnPtr)(Evas_Object* o,
+                                                  const char* result);
 
 typedef struct {
   EwkViewBgColorSetFnPtr SetBackgroundColor = nullptr;
@@ -50,6 +74,13 @@ typedef struct {
   EwkViewImeWindowSetFnPtr ImeWindowSet = nullptr;
   EwkViewKeyEventsEnabledSetFnPtr KeyEventsEnabledSet = nullptr;
   EwkViewSupportVideoHoleSetFnPtr SupportVideoHoleSet = nullptr;
+  EwkViewJavaScriptAlertCallbackSetFnPtr OnJavaScriptAlert = nullptr;
+  EwkViewJavaScriptConfirmCallbackSetFnPtr OnJavaScriptConfirm = nullptr;
+  EwkViewJavaScriptPromptCallbackSetFnPtr OnJavaScriptPrompt = nullptr;
+  EwkViewJavaScriptAlertReplyFnPtr JavaScriptAlertReply = nullptr;
+  EwkViewJavaScriptConfirmReplyFnPtr JavaScriptConfirmReply = nullptr;
+  EwkViewJavaScriptPromptReplyFnPtr JavaScriptPromptReply = nullptr;
+
 } EwkViewProcTable;
 
 typedef void (*EwkSetArgumentsFnPtr)(int argc, char** argv);
@@ -63,9 +94,12 @@ typedef struct {
 typedef struct Ewk_Settings Ewk_Settings;
 typedef void (*EwkSettingsImePanelEnabledSetFnPtr)(Ewk_Settings* settings,
                                                    Eina_Bool enabled);
+typedef void (*EwkSettingsForceZoomSetFnPtr)(Ewk_Settings* settings,
+                                             Eina_Bool enable);
 
 typedef struct {
   EwkSettingsImePanelEnabledSetFnPtr ImePanelEnabledSet = nullptr;
+  EwkSettingsForceZoomSetFnPtr ForceZoomSet = nullptr;
 } EwkSettingsProcTable;
 
 typedef struct _Ewk_Console_Message Ewk_Console_Message;

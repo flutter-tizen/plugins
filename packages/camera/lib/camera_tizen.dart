@@ -60,8 +60,9 @@ class CameraTizen extends CameraPlatform {
   StreamController<CameraImageData>? _frameStreamController;
 
   Stream<CameraEvent> _cameraEvents(int cameraId) =>
-      _cameraEventStreamController.stream
-          .where((CameraEvent event) => event.cameraId == cameraId);
+      _cameraEventStreamController.stream.where(
+        (CameraEvent event) => event.cameraId == cameraId,
+      );
 
   @override
   Future<List<CameraDescription>> availableCameras() async {
@@ -76,8 +77,9 @@ class CameraTizen extends CameraPlatform {
       return cameras.map((Map<dynamic, dynamic> camera) {
         return CameraDescription(
           name: camera['name']! as String,
-          lensDirection:
-              parseCameraLensDirection(camera['lensFacing']! as String),
+          lensDirection: parseCameraLensDirection(
+            camera['lensFacing']! as String,
+          ),
           sensorOrientation: camera['sensorOrientation']! as int,
         );
       }).toList();
@@ -95,12 +97,13 @@ class CameraTizen extends CameraPlatform {
     try {
       final Map<String, dynamic>? reply = await _channel
           .invokeMapMethod<String, dynamic>('create', <String, dynamic>{
-        'cameraName': cameraDescription.name,
-        'resolutionPreset': resolutionPreset != null
-            ? _serializeResolutionPreset(resolutionPreset)
-            : null,
-        'enableAudio': enableAudio,
-      });
+            'cameraName': cameraDescription.name,
+            'resolutionPreset':
+                resolutionPreset != null
+                    ? _serializeResolutionPreset(resolutionPreset)
+                    : null,
+            'enableAudio': enableAudio,
+          });
 
       return reply!['cameraId']! as int;
     } on PlatformException catch (e) {
@@ -114,10 +117,12 @@ class CameraTizen extends CameraPlatform {
     ImageFormatGroup imageFormatGroup = ImageFormatGroup.unknown,
   }) {
     _channels.putIfAbsent(cameraId, () {
-      final MethodChannel channel =
-          MethodChannel('plugins.flutter.io/camera_tizen/camera$cameraId');
+      final MethodChannel channel = MethodChannel(
+        'plugins.flutter.io/camera_tizen/camera$cameraId',
+      );
       channel.setMethodCallHandler(
-          (MethodCall call) => _handleCameraMethodCall(call, cameraId));
+        (MethodCall call) => _handleCameraMethodCall(call, cameraId),
+      );
       return channel;
     });
 
@@ -127,28 +132,27 @@ class CameraTizen extends CameraPlatform {
       completer.complete();
     });
 
-    _channel.invokeMapMethod<String, dynamic>(
-      'initialize',
-      <String, dynamic>{
-        'cameraId': cameraId,
-        'imageFormatGroup': imageFormatGroup.name(),
-      },
-    ).catchError(
-      // TODO(srawlins): This should return a value of the future's type. This
-      // will fail upcoming analysis checks with
-      // https://github.com/flutter/flutter/issues/105750.
-      // ignore: body_might_complete_normally_catch_error
-      (Object error, StackTrace stackTrace) {
-        if (error is! PlatformException) {
-          // ignore: only_throw_errors
-          throw error;
-        }
-        completer.completeError(
-          CameraException(error.code, error.message),
-          stackTrace,
+    _channel
+        .invokeMapMethod<String, dynamic>('initialize', <String, dynamic>{
+          'cameraId': cameraId,
+          'imageFormatGroup': imageFormatGroup.name(),
+        })
+        .catchError(
+          // TODO(srawlins): This should return a value of the future's type. This
+          // will fail upcoming analysis checks with
+          // https://github.com/flutter/flutter/issues/105750.
+          // ignore: body_might_complete_normally_catch_error
+          (Object error, StackTrace stackTrace) {
+            if (error is! PlatformException) {
+              // ignore: only_throw_errors
+              throw error;
+            }
+            completer.completeError(
+              CameraException(error.code, error.message),
+              stackTrace,
+            );
+          },
         );
-      },
-    );
 
     return completer.future;
   }
@@ -161,10 +165,9 @@ class CameraTizen extends CameraPlatform {
       _channels.remove(cameraId);
     }
 
-    await _channel.invokeMethod<void>(
-      'dispose',
-      <String, dynamic>{'cameraId': cameraId},
-    );
+    await _channel.invokeMethod<void>('dispose', <String, dynamic>{
+      'cameraId': cameraId,
+    });
   }
 
   @override
@@ -207,7 +210,7 @@ class CameraTizen extends CameraPlatform {
       'lockCaptureOrientation',
       <String, dynamic>{
         'cameraId': cameraId,
-        'orientation': serializeDeviceOrientation(orientation)
+        'orientation': serializeDeviceOrientation(orientation),
       },
     );
   }
@@ -242,15 +245,14 @@ class CameraTizen extends CameraPlatform {
       _channel.invokeMethod<void>('prepareForVideoRecording');
 
   @override
-  Future<void> startVideoRecording(int cameraId,
-      {Duration? maxVideoDuration}) async {
-    await _channel.invokeMethod<void>(
-      'startVideoRecording',
-      <String, dynamic>{
-        'cameraId': cameraId,
-        'maxVideoDuration': maxVideoDuration?.inMilliseconds,
-      },
-    );
+  Future<void> startVideoRecording(
+    int cameraId, {
+    Duration? maxVideoDuration,
+  }) async {
+    await _channel.invokeMethod<void>('startVideoRecording', <String, dynamic>{
+      'cameraId': cameraId,
+      'maxVideoDuration': maxVideoDuration?.inMilliseconds,
+    });
   }
 
   @override
@@ -272,20 +274,21 @@ class CameraTizen extends CameraPlatform {
 
   @override
   Future<void> pauseVideoRecording(int cameraId) => _channel.invokeMethod<void>(
-        'pauseVideoRecording',
-        <String, dynamic>{'cameraId': cameraId},
-      );
+    'pauseVideoRecording',
+    <String, dynamic>{'cameraId': cameraId},
+  );
 
   @override
   Future<void> resumeVideoRecording(int cameraId) =>
-      _channel.invokeMethod<void>(
-        'resumeVideoRecording',
-        <String, dynamic>{'cameraId': cameraId},
-      );
+      _channel.invokeMethod<void>('resumeVideoRecording', <String, dynamic>{
+        'cameraId': cameraId,
+      });
 
   @override
-  Stream<CameraImageData> onStreamedFrameAvailable(int cameraId,
-      {CameraImageStreamOptions? options}) {
+  Stream<CameraImageData> onStreamedFrameAvailable(
+    int cameraId, {
+    CameraImageStreamOptions? options,
+  }) {
     _frameStreamController = StreamController<CameraImageData>(
       onListen: _onFrameStreamListen,
       onPause: _onFrameStreamPauseResume,
@@ -301,13 +304,16 @@ class CameraTizen extends CameraPlatform {
 
   Future<void> _startPlatformStream() async {
     await _channel.invokeMethod<void>('startImageStream');
-    const EventChannel cameraEventChannel =
-        EventChannel('plugins.flutter.io/camera_tizen/imageStream');
-    _platformImageStreamSubscription =
-        cameraEventChannel.receiveBroadcastStream().listen((dynamic imageData) {
-      _frameStreamController!
-          .add(cameraImageFromPlatformData(imageData as Map<dynamic, dynamic>));
-    });
+    const EventChannel cameraEventChannel = EventChannel(
+      'plugins.flutter.io/camera_tizen/imageStream',
+    );
+    _platformImageStreamSubscription = cameraEventChannel
+        .receiveBroadcastStream()
+        .listen((dynamic imageData) {
+          _frameStreamController!.add(
+            cameraImageFromPlatformData(imageData as Map<dynamic, dynamic>),
+          );
+        });
   }
 
   FutureOr<void> _onFrameStreamCancel() async {
@@ -318,44 +324,37 @@ class CameraTizen extends CameraPlatform {
   }
 
   void _onFrameStreamPauseResume() {
-    throw CameraException('InvalidCall',
-        'Pause and resume are not supported for onStreamedFrameAvailable');
+    throw CameraException(
+      'InvalidCall',
+      'Pause and resume are not supported for onStreamedFrameAvailable',
+    );
   }
 
   @override
   Future<void> setFlashMode(int cameraId, FlashMode mode) =>
-      _channel.invokeMethod<void>(
-        'setFlashMode',
-        <String, dynamic>{
-          'cameraId': cameraId,
-          'mode': _serializeFlashMode(mode),
-        },
-      );
+      _channel.invokeMethod<void>('setFlashMode', <String, dynamic>{
+        'cameraId': cameraId,
+        'mode': _serializeFlashMode(mode),
+      });
 
   @override
   Future<void> setExposureMode(int cameraId, ExposureMode mode) =>
-      _channel.invokeMethod<void>(
-        'setExposureMode',
-        <String, dynamic>{
-          'cameraId': cameraId,
-          'mode': serializeExposureMode(mode),
-        },
-      );
+      _channel.invokeMethod<void>('setExposureMode', <String, dynamic>{
+        'cameraId': cameraId,
+        'mode': serializeExposureMode(mode),
+      });
 
   @override
   Future<void> setExposurePoint(int cameraId, Point<double>? point) {
     assert(point == null || point.x >= 0 && point.x <= 1);
     assert(point == null || point.y >= 0 && point.y <= 1);
 
-    return _channel.invokeMethod<void>(
-      'setExposurePoint',
-      <String, dynamic>{
-        'cameraId': cameraId,
-        'reset': point == null,
-        'x': point?.x,
-        'y': point?.y,
-      },
-    );
+    return _channel.invokeMethod<void>('setExposurePoint', <String, dynamic>{
+      'cameraId': cameraId,
+      'reset': point == null,
+      'x': point?.x,
+      'y': point?.y,
+    });
   }
 
   @override
@@ -392,10 +391,7 @@ class CameraTizen extends CameraPlatform {
   Future<double> setExposureOffset(int cameraId, double offset) async {
     final double? appliedOffset = await _channel.invokeMethod<double>(
       'setExposureOffset',
-      <String, dynamic>{
-        'cameraId': cameraId,
-        'offset': offset,
-      },
+      <String, dynamic>{'cameraId': cameraId, 'offset': offset},
     );
 
     return appliedOffset!;
@@ -403,28 +399,22 @@ class CameraTizen extends CameraPlatform {
 
   @override
   Future<void> setFocusMode(int cameraId, FocusMode mode) =>
-      _channel.invokeMethod<void>(
-        'setFocusMode',
-        <String, dynamic>{
-          'cameraId': cameraId,
-          'mode': serializeFocusMode(mode),
-        },
-      );
+      _channel.invokeMethod<void>('setFocusMode', <String, dynamic>{
+        'cameraId': cameraId,
+        'mode': serializeFocusMode(mode),
+      });
 
   @override
   Future<void> setFocusPoint(int cameraId, Point<double>? point) {
     assert(point == null || point.x >= 0 && point.x <= 1);
     assert(point == null || point.y >= 0 && point.y <= 1);
 
-    return _channel.invokeMethod<void>(
-      'setFocusPoint',
-      <String, dynamic>{
-        'cameraId': cameraId,
-        'reset': point == null,
-        'x': point?.x,
-        'y': point?.y,
-      },
-    );
+    return _channel.invokeMethod<void>('setFocusPoint', <String, dynamic>{
+      'cameraId': cameraId,
+      'reset': point == null,
+      'x': point?.x,
+      'y': point?.y,
+    });
   }
 
   @override
@@ -450,13 +440,10 @@ class CameraTizen extends CameraPlatform {
   @override
   Future<void> setZoomLevel(int cameraId, double zoom) async {
     try {
-      await _channel.invokeMethod<double>(
-        'setZoomLevel',
-        <String, dynamic>{
-          'cameraId': cameraId,
-          'zoom': zoom,
-        },
-      );
+      await _channel.invokeMethod<double>('setZoomLevel', <String, dynamic>{
+        'cameraId': cameraId,
+        'zoom': zoom,
+      });
     } on PlatformException catch (e) {
       throw CameraException(e.code, e.message);
     }
@@ -464,18 +451,16 @@ class CameraTizen extends CameraPlatform {
 
   @override
   Future<void> pausePreview(int cameraId) async {
-    await _channel.invokeMethod<double>(
-      'pausePreview',
-      <String, dynamic>{'cameraId': cameraId},
-    );
+    await _channel.invokeMethod<double>('pausePreview', <String, dynamic>{
+      'cameraId': cameraId,
+    });
   }
 
   @override
   Future<void> resumePreview(int cameraId) async {
-    await _channel.invokeMethod<double>(
-      'resumePreview',
-      <String, dynamic>{'cameraId': cameraId},
-    );
+    await _channel.invokeMethod<double>('resumePreview', <String, dynamic>{
+      'cameraId': cameraId,
+    });
   }
 
   @override
@@ -534,8 +519,11 @@ class CameraTizen extends CameraPlatform {
     switch (call.method) {
       case 'orientation_changed':
         final Map<String, Object?> arguments = _getArgumentDictionary(call);
-        _deviceEventStreamController.add(DeviceOrientationChangedEvent(
-            deserializeDeviceOrientation(arguments['orientation']! as String)));
+        _deviceEventStreamController.add(
+          DeviceOrientationChangedEvent(
+            deserializeDeviceOrientation(arguments['orientation']! as String),
+          ),
+        );
       default:
         throw MissingPluginException();
     }
@@ -546,41 +534,44 @@ class CameraTizen extends CameraPlatform {
     switch (call.method) {
       case 'initialized':
         final Map<String, Object?> arguments = _getArgumentDictionary(call);
-        _cameraEventStreamController.add(CameraInitializedEvent(
-          cameraId,
-          arguments['previewWidth']! as double,
-          arguments['previewHeight']! as double,
-          deserializeExposureMode(arguments['exposureMode']! as String),
-          arguments['exposurePointSupported']! as bool,
-          deserializeFocusMode(arguments['focusMode']! as String),
-          arguments['focusPointSupported']! as bool,
-        ));
+        _cameraEventStreamController.add(
+          CameraInitializedEvent(
+            cameraId,
+            arguments['previewWidth']! as double,
+            arguments['previewHeight']! as double,
+            deserializeExposureMode(arguments['exposureMode']! as String),
+            arguments['exposurePointSupported']! as bool,
+            deserializeFocusMode(arguments['focusMode']! as String),
+            arguments['focusPointSupported']! as bool,
+          ),
+        );
       case 'resolution_changed':
         final Map<String, Object?> arguments = _getArgumentDictionary(call);
-        _cameraEventStreamController.add(CameraResolutionChangedEvent(
-          cameraId,
-          arguments['captureWidth']! as double,
-          arguments['captureHeight']! as double,
-        ));
+        _cameraEventStreamController.add(
+          CameraResolutionChangedEvent(
+            cameraId,
+            arguments['captureWidth']! as double,
+            arguments['captureHeight']! as double,
+          ),
+        );
       case 'camera_closing':
-        _cameraEventStreamController.add(CameraClosingEvent(
-          cameraId,
-        ));
+        _cameraEventStreamController.add(CameraClosingEvent(cameraId));
       case 'video_recorded':
         final Map<String, Object?> arguments = _getArgumentDictionary(call);
-        _cameraEventStreamController.add(VideoRecordedEvent(
-          cameraId,
-          XFile(arguments['path']! as String),
-          arguments['maxVideoDuration'] != null
-              ? Duration(milliseconds: arguments['maxVideoDuration']! as int)
-              : null,
-        ));
+        _cameraEventStreamController.add(
+          VideoRecordedEvent(
+            cameraId,
+            XFile(arguments['path']! as String),
+            arguments['maxVideoDuration'] != null
+                ? Duration(milliseconds: arguments['maxVideoDuration']! as int)
+                : null,
+          ),
+        );
       case 'error':
         final Map<String, Object?> arguments = _getArgumentDictionary(call);
-        _cameraEventStreamController.add(CameraErrorEvent(
-          cameraId,
-          arguments['description']! as String,
-        ));
+        _cameraEventStreamController.add(
+          CameraErrorEvent(cameraId, arguments['description']! as String),
+        );
       default:
         throw MissingPluginException();
     }

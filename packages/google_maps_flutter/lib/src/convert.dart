@@ -90,10 +90,7 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
   return options;
 }
 
-String _applyInitialPosition(
-  CameraPosition initialPosition,
-  String options,
-) {
+String _applyInitialPosition(CameraPosition initialPosition, String options) {
   options += ', zoom: ${initialPosition.zoom}';
   options +=
       ', center: {lat: ${initialPosition.target.latitude} ,lng: ${initialPosition.target.longitude}}';
@@ -136,20 +133,25 @@ String _mapStyles(String? mapStyleJson) {
   if (mapStyleJson != null) {
     try {
       json
-          .decode(mapStyleJson, reviver: (Object? key, Object? value) {
-            if (value is Map &&
-                _isJsonMapStyle(value as Map<String, Object?>)) {
-              return MapTypeStyle()
-                ..elementType = value['elementType'] as String?
-                ..featureType = value['featureType'] as String?
-                ..stylers = (value['stylers']! as List<dynamic>)
-                    .map<dynamic>((dynamic e) => e)
-                    .toList();
-            }
-            return value;
-          })
-          .cast<MapTypeStyle>()
-          .toList() as List<MapTypeStyle>;
+              .decode(
+                mapStyleJson,
+                reviver: (Object? key, Object? value) {
+                  if (value is Map &&
+                      _isJsonMapStyle(value as Map<String, Object?>)) {
+                    return MapTypeStyle()
+                      ..elementType = value['elementType'] as String?
+                      ..featureType = value['featureType'] as String?
+                      ..stylers =
+                          (value['stylers']! as List<dynamic>)
+                              .map<dynamic>((dynamic e) => e)
+                              .toList();
+                  }
+                  return value;
+                },
+              )
+              .cast<MapTypeStyle>()
+              .toList()
+          as List<MapTypeStyle>;
     } catch (e) {
       throw MapStyleException('Invalid Map Style JSON: $e');
     }
@@ -162,13 +164,16 @@ LatLngBounds _convertToBounds(String value) {
   try {
     final dynamic bound = json.decode(value);
     if (bound is Map<String, dynamic>) {
-      assert(bound['south'] is double &&
-          bound['west'] is double &&
-          bound['north'] is double &&
-          bound['east'] is double);
+      assert(
+        bound['south'] is double &&
+            bound['west'] is double &&
+            bound['north'] is double &&
+            bound['east'] is double,
+      );
       return LatLngBounds(
-          southwest: LatLng(bound['south'] as double, bound['west'] as double),
-          northeast: LatLng(bound['north'] as double, bound['east'] as double));
+        southwest: LatLng(bound['south'] as double, bound['west'] as double),
+        northeast: LatLng(bound['north'] as double, bound['east'] as double),
+      );
     }
   } catch (e) {
     debugPrint('Javascript Error: $e');
@@ -195,12 +200,14 @@ ScreenCoordinate _convertToPoint(String value) {
     int x = 0, y = 0;
 
     if (latlng is Map<String, dynamic>) {
-      x = latlng['x'] is int
-          ? latlng['x'] as int
-          : (latlng['x'] as double).toInt();
-      y = latlng['y'] is int
-          ? latlng['y'] as int
-          : (latlng['y'] as double).toInt();
+      x =
+          latlng['x'] is int
+              ? latlng['x'] as int
+              : (latlng['x'] as double).toInt();
+      y =
+          latlng['y'] is int
+              ? latlng['y'] as int
+              : (latlng['y'] as double).toInt();
 
       return ScreenCoordinate(x: x, y: y);
     }
@@ -259,28 +266,31 @@ util.GMarkerOptions _markerOptionsFromMarker(
       icon = util.GIcon()..url = '../${assetConfig['assetName']}';
       if (assetConfig['width'] != null || assetConfig['height'] != null) {
         icon.size = util.GSize(
-            assetConfig['width'] != null
-                ? double.parse(assetConfig['width']!.toString())
-                : null,
-            assetConfig['height'] != null
-                ? double.parse(assetConfig['height']!.toString())
-                : null);
+          assetConfig['width'] != null
+              ? double.parse(assetConfig['width']!.toString())
+              : null,
+          assetConfig['height'] != null
+              ? double.parse(assetConfig['height']!.toString())
+              : null,
+        );
       }
     } else if (iconConfig[0] == 'bytes') {
       assert(iconConfig.length >= 2);
       final Map<String, Object?> assetConfig =
           iconConfig[1]! as Map<String, Object?>;
-      icon = util.GIcon()
-        ..url =
-            'data:image/png;base64,${base64Encode(assetConfig['byteData']! as List<int>)}';
+      icon =
+          util.GIcon()
+            ..url =
+                'data:image/png;base64,${base64Encode(assetConfig['byteData']! as List<int>)}';
       if (assetConfig['width'] != null || assetConfig['height'] != null) {
         icon.size = util.GSize(
-            assetConfig['width'] != null
-                ? double.parse(assetConfig['width']!.toString())
-                : null,
-            assetConfig['height'] != null
-                ? double.parse(assetConfig['height']!.toString())
-                : null);
+          assetConfig['width'] != null
+              ? double.parse(assetConfig['width']!.toString())
+              : null,
+          assetConfig['height'] != null
+              ? double.parse(assetConfig['height']!.toString())
+              : null,
+        );
       }
     }
   }
@@ -338,9 +348,10 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
     if (_isPolygonClockwise(holePath) == polygonDirection) {
       holePath = holePath.reversed.toList();
       debugPrint(
-          'Hole [$holeIndex] in Polygon [${polygon.polygonId.value}] has been reversed.'
-          ' Ensure holes in polygons are "wound in the opposite direction to the outer path."'
-          ' More info: https://github.com/flutter/flutter/issues/74096');
+        'Hole [$holeIndex] in Polygon [${polygon.polygonId.value}] has been reversed.'
+        ' Ensure holes in polygons are "wound in the opposite direction to the outer path."'
+        ' More info: https://github.com/flutter/flutter/issues/74096',
+      );
     }
     paths.add(holePath);
     holeIndex++;
@@ -372,7 +383,8 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
 bool _isPolygonClockwise(List<LatLng> path) {
   double direction = 0.0;
   for (int i = 0; i < path.length; i++) {
-    direction = direction +
+    direction =
+        direction +
         ((path[(i + 1) % path.length].latitude - path[i].latitude) *
             (path[(i + 1) % path.length].longitude + path[i].longitude));
   }

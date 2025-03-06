@@ -4,11 +4,13 @@
 
 import 'package:pigeon/pigeon.dart';
 
-@ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/src/messages.g.dart',
-  cppHeaderOut: 'tizen/src/messages.h',
-  cppSourceOut: 'tizen/src/messages.cc',
-))
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/src/messages.g.dart',
+    cppHeaderOut: 'tizen/src/messages.h',
+    cppSourceOut: 'tizen/src/messages.cc',
+  ),
+)
 class TextureMessage {
   TextureMessage(this.textureId);
   int textureId;

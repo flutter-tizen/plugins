@@ -10,9 +10,9 @@ const EventChannel _channel = EventChannel(_channelName);
 
 /// A broadcast stream of events from the device rotary sensor.
 Stream<RotaryEvent> get rotaryEvents {
-  return _rotaryEvents ??= _channel
-      .receiveBroadcastStream()
-      .map((dynamic event) => _parseEvent(event));
+  return _rotaryEvents ??= _channel.receiveBroadcastStream().map(
+    (dynamic event) => _parseEvent(event),
+  );
 }
 
 Stream<RotaryEvent>? _rotaryEvents;
@@ -20,10 +20,7 @@ Stream<RotaryEvent>? _rotaryEvents;
 /// A rotary event.
 class RotaryEvent {
   /// Constructor
-  const RotaryEvent({
-    required this.direction,
-    this.magnitude,
-  });
+  const RotaryEvent({required this.direction, this.magnitude});
 
   /// The direction of the rotary event.
   final RotaryDirection direction;
@@ -56,7 +53,8 @@ RotaryEvent _parseEvent(dynamic event) {
         : const RotaryEvent(direction: RotaryDirection.counterClockwise);
   } else {
     throw PlatformException(
-        code: 'type_cast',
-        details: 'Platform plugin returns invalid type for rotary event');
+      code: 'type_cast',
+      details: 'Platform plugin returns invalid type for rotary event',
+    );
   }
 }

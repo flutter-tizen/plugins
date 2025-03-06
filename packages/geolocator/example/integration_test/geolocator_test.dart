@@ -36,13 +36,16 @@ Future<void> main() async {
   testWidgets('listen location', (WidgetTester tester) async {
     final Completer<Object> completer = Completer<Object>();
     final StreamSubscription<Position> subscription =
-        Geolocator.getPositionStream().listen((position) {
-      if (!completer.isCompleted) {
-        completer.complete(position);
-      }
-    }, onError: (Object error) {
-      completer.completeError(error);
-    });
+        Geolocator.getPositionStream().listen(
+          (position) {
+            if (!completer.isCompleted) {
+              completer.complete(position);
+            }
+          },
+          onError: (Object error) {
+            completer.completeError(error);
+          },
+        );
     expect(await completer.future, isA<Position>());
     await subscription.cancel();
   }, timeout: const Timeout(Duration(seconds: 10)));

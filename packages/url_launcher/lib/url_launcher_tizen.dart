@@ -8,10 +8,7 @@ import 'package:url_launcher_platform_interface/url_launcher_platform_interface.
 
 /// The Tizen implementation of [UrlLauncherPlatform].
 class UrlLauncherPlugin extends UrlLauncherPlatform {
-  static final Set<String> _supportedSchemes = <String>{
-    'http',
-    'https',
-  };
+  static final Set<String> _supportedSchemes = <String>{'http', 'https'};
 
   /// Registers this class as the default instance of [UrlLauncherPlatform].
   static void register() {

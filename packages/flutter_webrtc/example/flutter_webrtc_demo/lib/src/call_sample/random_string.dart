@@ -42,7 +42,8 @@ int randomBetween(int from, int to) {
 /// Defaults to characters of ascii '!' to '~'.
 String randomString(int length, {int from = ASCII_START, int to = ASCII_END}) {
   return String.fromCharCodes(
-      List.generate(length, (index) => randomBetween(from, to)));
+    List.generate(length, (index) => randomBetween(from, to)),
+  );
 }
 
 /// Generates a random string of [length] with only numeric characters.

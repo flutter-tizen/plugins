@@ -20,8 +20,8 @@ const String kLweNavigationDelegateChannelName =
 class LweWebViewController extends PlatformWebViewController {
   /// Constructs a [LweWebViewController].
   LweWebViewController(super.params)
-      : _webview = LweWebView(),
-        super.implementation();
+    : _webview = LweWebView(),
+      super.implementation();
 
   final LweWebView _webview;
   late LweNavigationDelegate _lweNavigationDelegate;
@@ -47,10 +47,7 @@ class LweWebViewController extends PlatformWebViewController {
   }
 
   @override
-  Future<void> loadHtmlString(
-    String html, {
-    String? baseUrl,
-  }) {
+  Future<void> loadHtmlString(String html, {String? baseUrl}) {
     assert(html.isNotEmpty);
     return _webview.loadHtmlString(html, baseUrl: baseUrl);
   }
@@ -59,7 +56,8 @@ class LweWebViewController extends PlatformWebViewController {
   Future<void> loadRequest(LoadRequestParams params) {
     if (!params.uri.hasScheme) {
       throw ArgumentError(
-          'LoadRequestParams#uri is required to have a scheme.');
+        'LoadRequestParams#uri is required to have a scheme.',
+      );
     }
 
     switch (params.method) {
@@ -75,9 +73,10 @@ class LweWebViewController extends PlatformWebViewController {
     // so that the linter will flag the switch as needing an update.
     // ignore: dead_code
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation for HTTP method ${params.method.serialize()} in '
-        'loadRequest.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation for HTTP method ${params.method.serialize()} in '
+      'loadRequest.',
+    );
   }
 
   @override
@@ -104,8 +103,9 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> clearLocalStorage() {
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation.',
+    );
   }
 
   @override
@@ -127,8 +127,9 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> enableZoom(bool enabled) {
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation of `enableZoom`.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation of `enableZoom`.',
+    );
   }
 
   @override
@@ -137,15 +138,16 @@ class LweWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setPlatformNavigationDelegate(
-      covariant LweNavigationDelegate handler) async {
+    covariant LweNavigationDelegate handler,
+  ) async {
     _lweNavigationDelegate = handler;
     _webview.hasNavigationDelegate = true;
   }
 
   @override
   Future<void> addJavaScriptChannel(
-          JavaScriptChannelParams javaScriptChannelParams) =>
-      _webview.addJavaScriptChannel(javaScriptChannelParams);
+    JavaScriptChannelParams javaScriptChannelParams,
+  ) => _webview.addJavaScriptChannel(javaScriptChannelParams);
 
   @override
   Future<void> removeJavaScriptChannel(String javaScriptChannelName) =>
@@ -165,11 +167,13 @@ class LweWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setOnScrollPositionChange(
-      void Function(ScrollPositionChange scrollPositionChange)?
-          onScrollPositionChange) async {
+    void Function(ScrollPositionChange scrollPositionChange)?
+    onScrollPositionChange,
+  ) async {
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation of `setOnScrollPositionChange`.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation of `setOnScrollPositionChange`.',
+    );
   }
 
   @override
@@ -177,53 +181,57 @@ class LweWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setOnPlatformPermissionRequest(
-    void Function(
-      PlatformWebViewPermissionRequest request,
-    ) onPermissionRequest,
+    void Function(PlatformWebViewPermissionRequest request) onPermissionRequest,
   ) async {
     // The current version of LWE does not provide any functionality related to a 'permission request'.
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation of `setOnPlatformPermissionRequest`.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation of `setOnPlatformPermissionRequest`.',
+    );
   }
 
   @override
   Future<void> setOnConsoleMessage(
-    void Function(
-      JavaScriptConsoleMessage consoleMessage,
-    ) onConsoleMessage,
+    void Function(JavaScriptConsoleMessage consoleMessage) onConsoleMessage,
   ) async {
     // The current version of LWE does not provide any functionality related to a 'console message'.
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation of `setOnConsoleMessage`.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation of `setOnConsoleMessage`.',
+    );
   }
 
   @override
   Future<void> setOnJavaScriptAlertDialog(
-      Future<void> Function(JavaScriptAlertDialogRequest request)
-          onJavaScriptAlertDialog) async {
+    Future<void> Function(JavaScriptAlertDialogRequest request)
+    onJavaScriptAlertDialog,
+  ) async {
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation of `setOnJavaScriptAlertDialog`.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation of `setOnJavaScriptAlertDialog`.',
+    );
   }
 
   @override
   Future<void> setOnJavaScriptConfirmDialog(
-      Future<bool> Function(JavaScriptConfirmDialogRequest request)
-          onJavaScriptConfirmDialog) async {
+    Future<bool> Function(JavaScriptConfirmDialogRequest request)
+    onJavaScriptConfirmDialog,
+  ) async {
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation of `setOnJavaScriptConfirmDialog`.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation of `setOnJavaScriptConfirmDialog`.',
+    );
   }
 
   @override
   Future<void> setOnJavaScriptTextInputDialog(
-      Future<String> Function(JavaScriptTextInputDialogRequest request)
-          onJavaScriptTextInputDialog) async {
+    Future<String> Function(JavaScriptTextInputDialogRequest request)
+    onJavaScriptTextInputDialog,
+  ) async {
     throw UnimplementedError(
-        'This version of `LweWebViewController` currently has no '
-        'implementation of `setOnJavaScriptTextInputDialog`.');
+      'This version of `LweWebViewController` currently has no '
+      'implementation of `setOnJavaScriptTextInputDialog`.',
+    );
   }
 }
 
@@ -362,16 +370,19 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
-    _navigationDelegateChannel =
-        MethodChannel(kLweNavigationDelegateChannelName + viewId.toString());
+    _navigationDelegateChannel = MethodChannel(
+      kLweNavigationDelegateChannelName + viewId.toString(),
+    );
     _navigationDelegateChannel.setMethodCallHandler((MethodCall call) async {
       final Map<String, Object?> arguments =
           (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
 
       switch (call.method) {
         case 'navigationRequest':
-          return _handleNavigation(arguments['url']! as String,
-              isForMainFrame: arguments['isForMainFrame']! as bool);
+          return _handleNavigation(
+            arguments['url']! as String,
+            isForMainFrame: arguments['isForMainFrame']! as bool,
+          );
         case 'onPageFinished':
           if (_onPageFinished != null) {
             _onPageFinished!(arguments['url']! as String);
@@ -389,12 +400,14 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
           return null;
         case 'onWebResourceError':
           if (_onWebResourceError != null) {
-            _onWebResourceError!(LweWebResourceError._(
-              errorCode: arguments['errorCode']! as int,
-              description: arguments['description']! as String,
-              failingUrl: arguments['failingUrl']! as String,
-              isForMainFrame: true,
-            ));
+            _onWebResourceError!(
+              LweWebResourceError._(
+                errorCode: arguments['errorCode']! as int,
+                description: arguments['description']! as String,
+                failingUrl: arguments['failingUrl']! as String,
+                isForMainFrame: true,
+              ),
+            );
           }
           return null;
       }
@@ -415,11 +428,9 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
       return true;
     }
 
-    final FutureOr<NavigationDecision> returnValue =
-        onNavigationRequest(NavigationRequest(
-      url: url,
-      isMainFrame: isForMainFrame,
-    ));
+    final FutureOr<NavigationDecision> returnValue = onNavigationRequest(
+      NavigationRequest(url: url, isMainFrame: isForMainFrame),
+    );
 
     if (returnValue is NavigationDecision &&
         returnValue == NavigationDecision.navigate) {
@@ -443,32 +454,25 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   }
 
   @override
-  Future<void> setOnPageStarted(
-    PageEventCallback onPageStarted,
-  ) async {
+  Future<void> setOnPageStarted(PageEventCallback onPageStarted) async {
     _onPageStarted = onPageStarted;
   }
 
   @override
-  Future<void> setOnPageFinished(
-    PageEventCallback onPageFinished,
-  ) async {
+  Future<void> setOnPageFinished(PageEventCallback onPageFinished) async {
     _onPageFinished = onPageFinished;
   }
 
   @override
-  Future<void> setOnHttpError(
-    HttpResponseErrorCallback onHttpError,
-  ) async {
+  Future<void> setOnHttpError(HttpResponseErrorCallback onHttpError) async {
     throw UnimplementedError(
-        'This version of `LweNavigationDelegate` currently has no '
-        'implementation for `setOnHttpError`');
+      'This version of `LweNavigationDelegate` currently has no '
+      'implementation for `setOnHttpError`',
+    );
   }
 
   @override
-  Future<void> setOnProgress(
-    ProgressCallback onProgress,
-  ) async {
+  Future<void> setOnProgress(ProgressCallback onProgress) async {
     _onProgress = onProgress;
   }
 
@@ -482,8 +486,9 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   @override
   Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {
     throw UnimplementedError(
-        'This version of `LweNavigationDelegate` currently has no '
-        'implementation for `setOnUrlChange`');
+      'This version of `LweNavigationDelegate` currently has no '
+      'implementation for `setOnUrlChange`',
+    );
   }
 
   @override
@@ -491,7 +496,8 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
     HttpAuthRequestCallback onHttpAuthRequest,
   ) async {
     throw UnimplementedError(
-        'This version of `LweNavigationDelegate` currently has no '
-        'implementation for `setOnHttpAuthRequest`');
+      'This version of `LweNavigationDelegate` currently has no '
+      'implementation for `setOnHttpAuthRequest`',
+    );
   }
 }

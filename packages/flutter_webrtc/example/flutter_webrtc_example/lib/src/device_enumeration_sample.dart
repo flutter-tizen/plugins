@@ -54,8 +54,9 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   String? _selectedAudioInputId;
 
   MediaDeviceInfo get selectedAudioInput => audioInputs.firstWhere(
-      (device) => device.deviceId == _selectedVideoInputId,
-      orElse: () => audioInputs.first);
+    (device) => device.deviceId == _selectedVideoInputId,
+    orElse: () => audioInputs.first,
+  );
 
   String? _selectedVideoFPS = '30';
 
@@ -105,11 +106,13 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     };
 
     await pc2?.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
-        init: RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly));
+      kind: RTCRtpMediaType.RTCRtpMediaTypeAudio,
+      init: RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly),
+    );
     await pc2?.addTransceiver(
-        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
-        init: RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly));
+      kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+      init: RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly),
+    );
 
     pc1!.onIceCandidate = (candidate) => pc2!.addCandidate(candidate);
     pc2!.onIceCandidate = (candidate) => pc1!.addCandidate(candidate);
@@ -180,7 +183,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
           'deviceId': _selectedAudioInputId,
         if (_selectedAudioInputId != null && !kIsWeb)
           'optional': [
-            {'sourceId': _selectedAudioInputId}
+            {'sourceId': _selectedAudioInputId},
           ],
       },
       'video': false,
@@ -189,8 +192,9 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     // replace track.
     var newTrack = newLocalStream.getAudioTracks().first;
     print('track.settings ' + newTrack.getSettings().toString());
-    var sender =
-        senders.firstWhereOrNull((sender) => sender.track?.kind == 'audio');
+    var sender = senders.firstWhereOrNull(
+      (sender) => sender.track?.kind == 'audio',
+    );
     await sender?.replaceTrack(newTrack);
   }
 
@@ -230,7 +234,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
           'deviceId': _selectedVideoInputId,
         if (_selectedVideoInputId != null && !kIsWeb)
           'optional': [
-            {'sourceId': _selectedVideoInputId}
+            {'sourceId': _selectedVideoInputId},
           ],
         'width': _selectedVideoSize.width,
         'height': _selectedVideoSize.height,
@@ -242,11 +246,13 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
     // replace track.
     var newTrack = _localStream?.getVideoTracks().first;
     print('track.settings ' + newTrack!.getSettings().toString());
-    var sender =
-        senders.firstWhereOrNull((sender) => sender.track?.kind == 'video');
+    var sender = senders.firstWhereOrNull(
+      (sender) => sender.track?.kind == 'video',
+    );
     var params = sender!.parameters;
-    print('params degradationPreference' +
-        params.degradationPreference.toString());
+    print(
+      'params degradationPreference' + params.degradationPreference.toString(),
+    );
     params.degradationPreference = RTCDegradationPreference.MAINTAIN_RESOLUTION;
     await sender.setParameters(params);
     await sender.replaceTrack(newTrack);
@@ -266,7 +272,7 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
             'deviceId': _selectedVideoInputId,
           if (_selectedVideoInputId != null && !kIsWeb)
             'optional': [
-              {'sourceId': _selectedVideoInputId}
+              {'sourceId': _selectedVideoInputId},
             ],
           'width': _selectedVideoSize.width,
           'height': _selectedVideoSize.height,
@@ -324,11 +330,12 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
               return _devices
                   .where((device) => device.kind == 'audioinput')
                   .map((device) {
-                return PopupMenuItem<String>(
-                  value: device.deviceId,
-                  child: Text(device.label),
-                );
-              }).toList();
+                    return PopupMenuItem<String>(
+                      value: device.deviceId,
+                      child: Text(device.label),
+                    );
+                  })
+                  .toList();
             },
           ),
           if (!WebRTC.platformIsMobile)
@@ -339,11 +346,12 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                 return _devices
                     .where((device) => device.kind == 'audiooutput')
                     .map((device) {
-                  return PopupMenuItem<String>(
-                    value: device.deviceId,
-                    child: Text(device.label),
-                  );
-                }).toList();
+                      return PopupMenuItem<String>(
+                        value: device.deviceId,
+                        child: Text(device.label),
+                      );
+                    })
+                    .toList();
               },
             ),
           if (!kIsWeb && WebRTC.platformIsMobile)
@@ -351,7 +359,8 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
               disabledColor: Colors.grey,
               onPressed: _setSpeakerphoneOn,
               icon: Icon(
-                  _speakerphoneOn ? Icons.speaker_phone : Icons.phone_android),
+                _speakerphoneOn ? Icons.speaker_phone : Icons.phone_android,
+              ),
               tooltip: 'Switch SpeakerPhone',
             ),
           PopupMenuButton<String>(
@@ -361,11 +370,12 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
               return _devices
                   .where((device) => device.kind == 'videoinput')
                   .map((device) {
-                return PopupMenuItem<String>(
-                  value: device.deviceId,
-                  child: Text(device.label),
-                );
-              }).toList();
+                    return PopupMenuItem<String>(
+                      value: device.deviceId,
+                      child: Text(device.label),
+                    );
+                  })
+                  .toList();
             },
           ),
           PopupMenuButton<String>(
@@ -379,11 +389,11 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                 ),
                 PopupMenuDivider(),
                 ...['8', '15', '30', '60']
-                    .map((fps) => PopupMenuItem<String>(
-                          value: fps,
-                          child: Text(fps),
-                        ))
-                    .toList()
+                    .map(
+                      (fps) =>
+                          PopupMenuItem<String>(value: fps, child: Text(fps)),
+                    )
+                    .toList(),
               ];
             },
           ),
@@ -398,11 +408,11 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                 ),
                 PopupMenuDivider(),
                 ...['320x180', '640x360', '1280x720', '1920x1080']
-                    .map((fps) => PopupMenuItem<String>(
-                          value: fps,
-                          child: Text(fps),
-                        ))
-                    .toList()
+                    .map(
+                      (fps) =>
+                          PopupMenuItem<String>(value: fps, child: Text(fps)),
+                    )
+                    .toList(),
               ];
             },
           ),
@@ -412,26 +422,27 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
         builder: (context, orientation) {
           return Center(
             child: Container(
-                width: MediaQuery.of(context).size.width,
-                color: Colors.white10,
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                        decoration: BoxDecoration(color: Colors.black54),
-                        child: RTCVideoView(_localRenderer),
-                      ),
+              width: MediaQuery.of(context).size.width,
+              color: Colors.white10,
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      decoration: BoxDecoration(color: Colors.black54),
+                      child: RTCVideoView(_localRenderer),
                     ),
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                        decoration: BoxDecoration(color: Colors.black54),
-                        child: RTCVideoView(_remoteRenderer),
-                      ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      decoration: BoxDecoration(color: Colors.black54),
+                      child: RTCVideoView(_remoteRenderer),
                     ),
-                  ],
-                )),
+                  ),
+                ],
+              ),
+            ),
           );
         },
       ),
