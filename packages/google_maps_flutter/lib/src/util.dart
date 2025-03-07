@@ -138,10 +138,9 @@ class GInfoWindowOptions {
 
   @override
   String toString() {
-    final String pos =
-        position != null
-            ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
-            : 'null';
+    final String pos = position != null
+        ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
+        : 'null';
     return '{content:$content, pixelOffset:null , position:$pos, zIndex:$zIndex}';
   }
 }
@@ -205,7 +204,9 @@ class GInfoWindow {
 /// This class represents a geographical location on the map as a Marker.
 class GMarker {
   /// GMarker Constructor.
-  GMarker([GMarkerOptions? opts]) : id = _gid++, _options = opts {
+  GMarker([GMarkerOptions? opts])
+      : id = _gid++,
+        _options = opts {
     _createMarker(opts);
   }
 
@@ -245,22 +246,28 @@ class GMarker {
     if (_options!.draggable != options.draggable) {
       _options!.draggable = options.draggable;
       _setDraggable(options.draggable);
-    } else if (_options!.icon != options.icon) {
+    }
+    if (_options!.icon != options.icon) {
       _options!.icon = options.icon;
       _setIcon(options.icon);
-    } else if (_options!.opacity != options.opacity) {
+    }
+    if (_options!.opacity != options.opacity) {
       _options!.opacity = options.opacity;
       _setOpacity(options.opacity);
-    } else if (_options!.position != options.position) {
+    }
+    if (_options!.position != options.position) {
       _options!.position = options.position;
       _setPosition(options.position);
-    } else if (_options!.title != options.title) {
+    }
+    if (_options!.title != options.title) {
       _options!.title = options.title;
       _setTitle(options.title);
-    } else if (_options!.visible != options.visible) {
+    }
+    if (_options!.visible != options.visible) {
       _options!.visible = options.visible;
       _setVisible(options.visible);
-    } else if (_options!.zIndex != options.zIndex) {
+    }
+    if (_options!.zIndex != options.zIndex) {
       _options!.zIndex = options.zIndex;
       _setZIndex(options.zIndex);
     }
@@ -612,11 +619,12 @@ class GMarkerClusterer {
   }
 
   /// Removes a marker from the [GMarkerClusterer].
-  bool removeMarker(GMarker marker, bool? noDraw) {
-    return webController!.runJavaScriptReturningResult(
-          '${toString()}.removeMarker($marker, $noDraw);',
-        )
-        as bool;
+  Future<bool> removeMarker(GMarker marker, bool? noDraw) async {
+    final bool result = await webController!.runJavaScriptReturningResult(
+      '${toString()}.removeMarker($marker, $noDraw);',
+    ) as bool;
+
+    return result;
   }
 
   /// Adds a list of markers to be clustered by the [GMarkerClusterer].
@@ -664,49 +672,6 @@ class GMarkerClusterer {
   @override
   String toString() {
     return 'markerClusterer$id';
-  }
-}
-
-/// The cluster object handled by the [GMarkerClusterer].
-class GMarkerClustererCluster {
-  /// GMarkerClustererCluster Constructor.
-  GMarkerClustererCluster() : id = _gid++;
-
-  /// GCircle id.
-  final int id;
-  static int _gid = 0;
-
-  GMarker? _marker;
-  List<GMarker>? _markers;
-  LatLngBounds? _bounds;
-  LatLng? _position;
-
-  /// Getter for the cluster marker.
-  GMarker? get marker => _marker;
-
-  /// List of markers in the cluster.
-  List<GMarker>? get markers => _markers;
-
-  /// The bounds of the cluster.
-  LatLngBounds? get bounds => _bounds;
-
-  /// The position of the cluster marker.
-  LatLng? get position => _position;
-
-  /// Get the count of **visible** markers.
-  int get count {
-    return webController!.runJavaScriptReturningResult('$this.count') as int;
-  }
-
-  /// Deletes the cluster.
-  void delete() {}
-
-  /// Adds a marker to the cluster.
-  void push(GMarker marker) {}
-
-  @override
-  String toString() {
-    return 'cluster$id';
   }
 }
 
