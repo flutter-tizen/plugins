@@ -415,7 +415,7 @@ void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
       }
     }
     GetUserPurchaseListAPIResult purchase_list(
-        cp_status, &cp_result, &total_count, &check_value, invoice_details);
+        cp_status, &cp_result, total_count, check_value, invoice_details);
     self->get_purchase_list_callback_(purchase_list);
   } else {
     self->get_purchase_list_callback_(

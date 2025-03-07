@@ -8,8 +8,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
-import '../billing_manager_wrappers.dart';
 import '../in_app_purchase_tizen.dart';
+import 'billing_manager.dart';
+import 'messages.g.dart';
 
 /// [IAPError.code] code for failed purchases.
 const String kPurchaseErrorCode = 'purchase_error';

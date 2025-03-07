@@ -53,24 +53,6 @@ class ErrorOr {
   std::variant<T, FlutterError> v_;
 };
 
-// Enum representing potential [ItemDetails.itemType]s and
-// [InvoiceDetails.itemType]s. Wraps
-// [`Product`]（https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/samsung-checkout-dpi-portal.html#Product)
-// See the linked documentation for an explanation of the different constants.
-enum class ItemType {
-  // None type.
-  kNone = 0,
-  // Consumers can purchase this type of product anytime.
-  kConsumable = 1,
-  // Consumers can purchase this type of product only once.
-  kNonComsumabel = 2,
-  // Once this type of product is purchased, repurchase cannot be made during
-  // the time when the product effect set by CP lasts.
-  kLimitedPeriod = 3,
-  // DPI system processes automatic payment on a certain designated cycle.
-  kSubscription = 4
-};
-
 // Dart wrapper around [`ProductsListApiResult`] in
 // (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 //
@@ -142,13 +124,14 @@ class GetUserPurchaseListAPIResult {
  public:
   // Constructs an object setting all non-nullable fields.
   explicit GetUserPurchaseListAPIResult(
-      const std::string& cp_status,
+      const std::string& cp_status, int64_t total_count,
+      const std::string& check_value,
       const flutter::EncodableList& invoice_details);
 
   // Constructs an object setting all fields.
   explicit GetUserPurchaseListAPIResult(
       const std::string& cp_status, const std::string* cp_result,
-      const int64_t* total_count, const std::string* check_value,
+      int64_t total_count, const std::string& check_value,
       const flutter::EncodableList& invoice_details);
 
   // It returns "100000" in success and other codes in failure. Refer to DPI
@@ -165,13 +148,11 @@ class GetUserPurchaseListAPIResult {
   void set_cp_result(std::string_view value_arg);
 
   // Total number of invoices.
-  const int64_t* total_count() const;
-  void set_total_count(const int64_t* value_arg);
+  int64_t total_count() const;
   void set_total_count(int64_t value_arg);
 
   // Security check value.
-  const std::string* check_value() const;
-  void set_check_value(const std::string_view* value_arg);
+  const std::string& check_value() const;
   void set_check_value(std::string_view value_arg);
 
   // InvoiceDetailsin JSON format.
@@ -186,8 +167,8 @@ class GetUserPurchaseListAPIResult {
   friend class PigeonInternalCodecSerializer;
   std::string cp_status_;
   std::optional<std::string> cp_result_;
-  std::optional<int64_t> total_count_;
-  std::optional<std::string> check_value_;
+  int64_t total_count_;
+  std::string check_value_;
   flutter::EncodableList invoice_details_;
 };
 
@@ -278,14 +259,10 @@ class VerifyInvoiceAPIResult {
 // Generated class from Pigeon that represents data sent in messages.
 class ServiceAvailableAPIResult {
  public:
-  // Constructs an object setting all non-nullable fields.
-  explicit ServiceAvailableAPIResult(const std::string& status,
-                                     const std::string& result);
-
   // Constructs an object setting all fields.
   explicit ServiceAvailableAPIResult(const std::string& status,
                                      const std::string& result,
-                                     const std::string* service_yn);
+                                     const std::string& service_yn);
 
   // The result code of connecting to billing server.
   // Returns "100000" on success and other codes on failure.
@@ -299,8 +276,7 @@ class ServiceAvailableAPIResult {
 
   // Returns "Y" if the service is available.
   // It will be null, if disconnect to billing server.
-  const std::string* service_yn() const;
-  void set_service_yn(const std::string_view* value_arg);
+  const std::string& service_yn() const;
   void set_service_yn(std::string_view value_arg);
 
  private:
@@ -311,37 +287,37 @@ class ServiceAvailableAPIResult {
   friend class PigeonInternalCodecSerializer;
   std::string status_;
   std::string result_;
-  std::optional<std::string> service_yn_;
+  std::string service_yn_;
 };
 
 // Generated class from Pigeon that represents data sent in messages.
 class ProductMessage {
  public:
-  // Constructs an object setting all non-nullable fields.
-  explicit ProductMessage(const std::string& app_id,
-                          const std::string& country_code,
-                          const std::string& check_value);
-
   // Constructs an object setting all fields.
   explicit ProductMessage(const std::string& app_id,
-                          const std::string& country_code,
-                          const int64_t* page_size, const int64_t* page_num,
-                          const std::string& check_value);
+                          const std::string& country_code, int64_t page_size,
+                          int64_t page_num, const std::string& check_value);
 
+  // Application ID.
   const std::string& app_id() const;
   void set_app_id(std::string_view value_arg);
 
+  // TV country code.
   const std::string& country_code() const;
   void set_country_code(std::string_view value_arg);
 
-  const int64_t* page_size() const;
-  void set_page_size(const int64_t* value_arg);
+  // Number of products retrieved per page (maximum 100).
+  int64_t page_size() const;
   void set_page_size(int64_t value_arg);
 
-  const int64_t* page_num() const;
-  void set_page_num(const int64_t* value_arg);
+  // Requested page number (1 ~ N).
+  int64_t page_num() const;
   void set_page_num(int64_t value_arg);
 
+  // Security check value. Required parameters = "appId" + "countryCode".
+  // The check value is used by the DPI service to verify API requests.
+  // It is a Base64 hash generated by applying the HMAC SHA256 algorithm on a
+  // concatenated string of parameters using the DPI security key.
   const std::string& check_value() const;
   void set_check_value(std::string_view value_arg);
 
@@ -352,40 +328,40 @@ class ProductMessage {
   friend class PigeonInternalCodecSerializer;
   std::string app_id_;
   std::string country_code_;
-  std::optional<int64_t> page_size_;
-  std::optional<int64_t> page_num_;
+  int64_t page_size_;
+  int64_t page_num_;
   std::string check_value_;
 };
 
 // Generated class from Pigeon that represents data sent in messages.
 class PurchaseMessage {
  public:
-  // Constructs an object setting all non-nullable fields.
-  explicit PurchaseMessage(const std::string& app_id,
-                           const std::string& country_code,
-                           const std::string& check_value);
-
   // Constructs an object setting all fields.
   explicit PurchaseMessage(const std::string& app_id,
-                           const std::string* custom_id,
-                           const std::string& country_code,
-                           const int64_t* page_num,
+                           const std::string& custom_id,
+                           const std::string& country_code, int64_t page_num,
                            const std::string& check_value);
 
+  // Application ID.
   const std::string& app_id() const;
   void set_app_id(std::string_view value_arg);
 
-  const std::string* custom_id() const;
-  void set_custom_id(const std::string_view* value_arg);
+  // Same value as "OrderCustomID" parameter for the BuyItem API (Samsung
+  // Account UID)
+  const std::string& custom_id() const;
   void set_custom_id(std::string_view value_arg);
 
+  // TV country code.
   const std::string& country_code() const;
   void set_country_code(std::string_view value_arg);
 
-  const int64_t* page_num() const;
-  void set_page_num(const int64_t* value_arg);
+  // Requested page number (1 ~ N).
+  int64_t page_num() const;
   void set_page_num(int64_t value_arg);
 
+  // Security check value. Required parameters = "appId" + "customId" +
+  // "countryCode" + "ItemType" + "pageNumber". ItemType, MUST use 2 as value
+  // ("all items")
   const std::string& check_value() const;
   void set_check_value(std::string_view value_arg);
 
@@ -395,9 +371,9 @@ class PurchaseMessage {
   friend class InAppPurchaseApi;
   friend class PigeonInternalCodecSerializer;
   std::string app_id_;
-  std::optional<std::string> custom_id_;
+  std::string custom_id_;
   std::string country_code_;
-  std::optional<int64_t> page_num_;
+  int64_t page_num_;
   std::string check_value_;
 };
 
@@ -408,7 +384,8 @@ class OrderDetails {
   explicit OrderDetails(const std::string& order_item_id,
                         const std::string& order_title,
                         const std::string& order_total,
-                        const std::string& order_currency_id);
+                        const std::string& order_currency_id,
+                        const std::string& order_custom_id);
 
   const std::string& order_item_id() const;
   void set_order_item_id(std::string_view value_arg);
@@ -422,6 +399,9 @@ class OrderDetails {
   const std::string& order_currency_id() const;
   void set_order_currency_id(std::string_view value_arg);
 
+  const std::string& order_custom_id() const;
+  void set_order_custom_id(std::string_view value_arg);
+
  private:
   static OrderDetails FromEncodableList(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
@@ -432,6 +412,7 @@ class OrderDetails {
   std::string order_title_;
   std::string order_total_;
   std::string order_currency_id_;
+  std::string order_custom_id_;
 };
 
 // Generated class from Pigeon that represents data sent in messages.
@@ -446,9 +427,11 @@ class BuyInfoMessage {
   BuyInfoMessage& operator=(const BuyInfoMessage& other);
   BuyInfoMessage(BuyInfoMessage&& other) = default;
   BuyInfoMessage& operator=(BuyInfoMessage&& other) noexcept = default;
+  // Application ID.
   const std::string& app_id() const;
   void set_app_id(std::string_view value_arg);
 
+  // Payment parameters.
   const OrderDetails& pay_detials() const;
   void set_pay_detials(const OrderDetails& value_arg);
 
@@ -464,27 +447,26 @@ class BuyInfoMessage {
 // Generated class from Pigeon that represents data sent in messages.
 class InvoiceMessage {
  public:
-  // Constructs an object setting all non-nullable fields.
-  explicit InvoiceMessage(const std::string& app_id,
-                          const std::string& invoice_id,
-                          const std::string& country_code);
-
   // Constructs an object setting all fields.
   explicit InvoiceMessage(const std::string& app_id,
-                          const std::string* custom_id,
+                          const std::string& custom_id,
                           const std::string& invoice_id,
                           const std::string& country_code);
 
+  // Application ID.
   const std::string& app_id() const;
   void set_app_id(std::string_view value_arg);
 
-  const std::string* custom_id() const;
-  void set_custom_id(const std::string_view* value_arg);
+  // Same value as "OrderCustomID" parameter for the BuyItem API (Samsung
+  // Account UID).
+  const std::string& custom_id() const;
   void set_custom_id(std::string_view value_arg);
 
+  // Invoice ID that you want to verify whether a purchase was successful.
   const std::string& invoice_id() const;
   void set_invoice_id(std::string_view value_arg);
 
+  //  TV country code.
   const std::string& country_code() const;
   void set_country_code(std::string_view value_arg);
 
@@ -494,7 +476,7 @@ class InvoiceMessage {
   friend class InAppPurchaseApi;
   friend class PigeonInternalCodecSerializer;
   std::string app_id_;
-  std::optional<std::string> custom_id_;
+  std::string custom_id_;
   std::string invoice_id_;
   std::string country_code_;
 };
@@ -522,21 +504,30 @@ class InAppPurchaseApi {
   InAppPurchaseApi(const InAppPurchaseApi&) = delete;
   InAppPurchaseApi& operator=(const InAppPurchaseApi&) = delete;
   virtual ~InAppPurchaseApi() {}
-  virtual void GetProductList(
+  // Retrieves the list of products registered on the Billing (DPI) server.
+  virtual void GetProductsList(
       const ProductMessage& product,
       std::function<void(ErrorOr<ProductsListApiResult> reply)> result) = 0;
-  virtual void GetPurchaseList(
+  // Retrieves the user's purchase list.
+  virtual void GetUserPurchaseList(
       const PurchaseMessage& purchase,
       std::function<void(ErrorOr<GetUserPurchaseListAPIResult> reply)>
           result) = 0;
+  // Enables implementing the Samsung Checkout Client module within the
+  // application. After authenticating the purchase information through the
+  // application, the user can proceed to purchase payment.
   virtual void BuyItem(
       const BuyInfoMessage& buy_info,
       std::function<void(ErrorOr<BillingBuyData> reply)> result) = 0;
+  // Checks whether a purchase, corresponding to a specific "InvoiceID", was
+  // successful.
   virtual void VerifyInvoice(
       const InvoiceMessage& invoice,
       std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)> result) = 0;
-  virtual void IsAvailable(std::function<void(ErrorOr<bool> reply)> result) = 0;
-  virtual ErrorOr<std::optional<std::string>> GetCustomId() = 0;
+  // Checks whether the Billing server is available.
+  virtual void IsServiceAvailable(
+      std::function<void(ErrorOr<bool> reply)> result) = 0;
+  virtual ErrorOr<std::string> GetCustomId() = 0;
   virtual ErrorOr<std::string> GetCountryCode() = 0;
 
   // The codec used by InAppPurchaseApi.

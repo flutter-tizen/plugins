@@ -9,8 +9,8 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
-import '../in_app_purchase_tizen_platform.dart';
-import '../messages.g.dart';
+import 'in_app_purchase_tizen_platform.dart';
+import 'messages.g.dart';
 
 /// This class can be used directly to call Billing(Samsung Checkout) APIs.
 ///
@@ -47,7 +47,7 @@ class BillingManager {
   /// [`BillingManager-isServiceAvailable`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-isServiceAvailable)
   /// to check whether the Billing server is available.
   Future<bool> isAvailable() async {
-    return _hostApi.isAvailable();
+    return _hostApi.isServiceAvailable();
   }
 
   /// Calls
@@ -70,7 +70,7 @@ class BillingManager {
       pageNum: _requestParameters.pageNum,
       checkValue: checkValue,
     );
-    return _hostApi.getProductList(product);
+    return _hostApi.getProductsList(product);
   }
 
   /// Calls
@@ -79,17 +79,17 @@ class BillingManager {
   Future<GetUserPurchaseListAPIResult> requestPurchases({
     String? applicationUserName,
   }) async {
-    final String? customId = await _hostApi.getCustomId();
+    final String customId = await _hostApi.getCustomId();
     final String countryCode = await _hostApi.getCountryCode();
     final String checkValue = base64.encode(
       Hmac(sha256, utf8.encode(_requestParameters.securityKey ?? ''))
           .convert(
             utf8.encode(
               (_requestParameters.appId) +
-                  (customId ?? '') +
+                  customId +
                   countryCode +
                   _requestItemType +
-                  (_requestParameters.pageNum ?? -1).toString(),
+                  _requestParameters.pageNum.toString(),
             ),
           )
           .bytes,
@@ -103,7 +103,7 @@ class BillingManager {
       checkValue: checkValue,
     );
 
-    return _hostApi.getPurchaseList(purchase);
+    return _hostApi.getUserPurchaseList(purchase);
   }
 
   /// Calls
@@ -116,11 +116,13 @@ class BillingManager {
     required String orderTotal,
     required String orderCurrencyId,
   }) async {
+    final String customId = await _hostApi.getCustomId();
     final OrderDetails orderDetails = OrderDetails(
       orderItemId: orderItemId,
       orderTitle: orderTitle,
       orderTotal: orderTotal,
       orderCurrencyId: orderCurrencyId,
+      orderCustomId: customId,
     );
 
     final BuyInfoMessage buyInfo = BuyInfoMessage(
@@ -138,7 +140,7 @@ class BillingManager {
   Future<VerifyInvoiceAPIResult> verifyInvoice({
     required String invoiceId,
   }) async {
-    final String? customId = await _hostApi.getCustomId();
+    final String customId = await _hostApi.getCustomId();
     final String countryCode = await _hostApi.getCountryCode();
     final InvoiceMessage invoice = InvoiceMessage(
       invoiceId: invoiceId,
@@ -153,19 +155,16 @@ class BillingManager {
 
 /// This class can be used to set tizen specific parameters.
 class RequestParameters {
-  // ignore: public_member_api_docs
-  RequestParameters();
-
   /// This is application id.
   late String appId;
 
   /// The number of products retrieved per page.(>=1,<=100)
   /// Use it when call `queryProductDetails`.
-  late int? pageSize;
+  late int pageSize;
 
   /// The requested page number.(>=1)
   /// Use it when call `queryProductDetails` and `restorePurchases`.
-  late int? pageNum;
+  late int pageNum;
 
   /// The DPI security key.
   /// Use it when call `queryProductDetails` and `restorePurchases`
@@ -436,4 +435,26 @@ class PurchaseStateConverter {
         return PurchaseStatus.canceled;
     }
   }
+}
+
+// The type of product.
+/// Enum representing potential [ItemDetails.itemType]s and [InvoiceDetails.itemType]s.
+/// Wraps
+/// [`Product`]（https://developer.samsung.com/smarttv/develop/guides/samsung-checkout/samsung-checkout-dpi-portal.html#Product)
+/// See the linked documentation for an explanation of the different constants.
+enum ItemType {
+  /// None type.
+  none,
+
+  /// Consumers can purchase this type of product anytime.
+  consumable,
+
+  /// Consumers can purchase this type of product only once.
+  nonComsumabel,
+
+  /// Once this type of product is purchased, repurchase cannot be made during the time when the product effect set by CP lasts.
+  limitedPeriod,
+
+  /// DPI system processes automatic payment on a certain designated cycle.
+  subscription,
 }

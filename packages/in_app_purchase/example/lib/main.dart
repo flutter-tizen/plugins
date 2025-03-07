@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_tizen/billing_manager_wrappers.dart';
 import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 
 void main() {
@@ -39,6 +38,7 @@ class _MyAppState extends State<_MyApp> {
   bool _purchasePending = false;
   bool _loading = true;
   String? _queryProductError;
+  String _countryCode = '';
 
   @override
   void initState() {
@@ -62,9 +62,8 @@ class _MyAppState extends State<_MyApp> {
   Future<void> initStoreInfo() async {
     // Tizen specific API:
     // You need to set necessary parameters before calling any plugin API.
-    final InAppPurchaseTizenPlatformAddition platformAddition =
-        _inAppPurchase
-            .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
+        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
     platformAddition.setRequestParameters(
       appId: _kAppId,
       pageSize: _kPageSize,
@@ -87,8 +86,8 @@ class _MyAppState extends State<_MyApp> {
 
     // The `identifiers` argument is not used on Tizen.
     // Use `InAppPurchaseTizenPlatformAddition.setRequestParameters` instead.
-    final ProductDetailsResponse productDetailResponse = await _inAppPurchase
-        .queryProductDetails(<String>{});
+    final ProductDetailsResponse productDetailResponse =
+        await _inAppPurchase.queryProductDetails(<String>{});
     if (productDetailResponse.error != null) {
       setState(() {
         _queryProductError = productDetailResponse.error!.message;
@@ -148,10 +147,8 @@ class _MyAppState extends State<_MyApp> {
     }
     if (_purchasePending) {
       stack.add(
-        // TODO(goderbauer): Make this const when that's available on stable.
-        // ignore: prefer_const_constructors
-        Stack(
-          children: const <Widget>[
+        const Stack(
+          children: <Widget>[
             Opacity(
               opacity: 0.3,
               child: ModalBarrier(dismissible: false, color: Colors.grey),
@@ -237,7 +234,9 @@ class _MyAppState extends State<_MyApp> {
           title: Text(productDetails.title),
           subtitle: Text(productDetails.description),
           trailing: TextButton(
-            style: TextButton.styleFrom(backgroundColor: Colors.green[800]),
+            style: TextButton.styleFrom(
+                backgroundColor: Colors.green[800],
+                foregroundColor: Colors.white),
             onPressed: () {
               final PurchaseParam purchaseParam = PurchaseParam(
                 productDetails: productDetails,
@@ -281,8 +280,8 @@ class _MyAppState extends State<_MyApp> {
         children: <Widget>[
           TextButton(
             style: TextButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-            ),
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white),
             onPressed: () => _inAppPurchase.restorePurchases(),
             child: const Text('Restore purchases'),
           ),
@@ -297,7 +296,7 @@ class _MyAppState extends State<_MyApp> {
     });
   }
 
-  void deliverProduct(PurchaseDetails purchaseDetails) {
+  Future<void> deliverProduct(PurchaseDetails purchaseDetails) async {
     // IMPORTANT!! Always verify purchase details before delivering the product.
     setState(() {
       _purchases.add(purchaseDetails);
@@ -316,9 +315,8 @@ class _MyAppState extends State<_MyApp> {
 
     // Tizen specific verify purchase:
     // If `PurchaseDetails.status` is `purchased`, need to verify purchase.
-    final InAppPurchaseTizenPlatformAddition platformAddition =
-        _inAppPurchase
-            .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
+        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
     return platformAddition.verifyPurchase(purchaseDetails: purchaseDetails);
   }
 
@@ -339,7 +337,7 @@ class _MyAppState extends State<_MyApp> {
             purchaseDetails.status == PurchaseStatus.restored) {
           final bool valid = await _verifyPurchase(purchaseDetails);
           if (valid) {
-            deliverProduct(purchaseDetails);
+            unawaited(deliverProduct(purchaseDetails));
           } else {
             _handleInvalidPurchase(purchaseDetails);
             return;

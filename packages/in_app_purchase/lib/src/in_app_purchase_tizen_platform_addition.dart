@@ -5,7 +5,8 @@
 import 'package:flutter/services.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
-import '../billing_manager_wrappers.dart';
+import 'billing_manager.dart';
+import 'messages.g.dart';
 
 /// Contains InApp Purchase features that are only available on SamsungCheckout.
 class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
@@ -31,8 +32,8 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
   /// See README.md file to find how to get these values.
   void setRequestParameters({
     required String appId,
-    int? pageSize,
-    int? pageNum,
+    required int pageSize,
+    required int pageNum,
     String? securityKey,
   }) {
     final RequestParameters requestParameters = RequestParameters();

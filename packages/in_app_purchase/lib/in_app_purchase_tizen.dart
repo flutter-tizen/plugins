@@ -2,5 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+export 'src/billing_manager.dart';
 export 'src/in_app_purchase_tizen_platform.dart';
 export 'src/in_app_purchase_tizen_platform_addition.dart';

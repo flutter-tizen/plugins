@@ -27,10 +27,10 @@ class InAppPurchaseTizenPlugin : public flutter::Plugin,
   InAppPurchaseTizenPlugin(flutter::PluginRegistrar *plugin_registrar);
   virtual ~InAppPurchaseTizenPlugin() { Dispose(); }
 
-  void GetProductList(const ProductMessage &product,
-                      std::function<void(ErrorOr<ProductsListApiResult> reply)>
-                          result) override;
-  void GetPurchaseList(
+  void GetProductsList(const ProductMessage &product,
+                       std::function<void(ErrorOr<ProductsListApiResult> reply)>
+                           result) override;
+  void GetUserPurchaseList(
       const PurchaseMessage &purchase,
       std::function<void(ErrorOr<GetUserPurchaseListAPIResult> reply)> result)
       override;
@@ -40,8 +40,9 @@ class InAppPurchaseTizenPlugin : public flutter::Plugin,
   void VerifyInvoice(const InvoiceMessage &invoice,
                      std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)>
                          result) override;
-  void IsAvailable(std::function<void(ErrorOr<bool> reply)> result) override;
-  ErrorOr<std::optional<std::string>> GetCustomId() override;
+  void IsServiceAvailable(
+      std::function<void(ErrorOr<bool> reply)> result) override;
+  ErrorOr<std::string> GetCustomId() override;
   ErrorOr<std::string> GetCountryCode() override;
 
  private:
@@ -72,13 +73,13 @@ void InAppPurchaseTizenPlugin::RegisterWithRegistrar(
   plugin_registrar->AddPlugin(std::move(plugin));
 }
 
-void InAppPurchaseTizenPlugin::GetProductList(
+void InAppPurchaseTizenPlugin::GetProductsList(
     const ProductMessage &product,
     std::function<void(ErrorOr<ProductsListApiResult> reply)> result) {
   std::string app_id = product.app_id();
   std::string country_code = product.country_code();
-  int64_t page_size = *product.page_size();
-  int64_t page_num = *product.page_num();
+  int64_t page_size = product.page_size();
+  int64_t page_num = product.page_num();
   std::string check_value = product.check_value();
 
   if (!billing_->GetProductList(app_id.c_str(), country_code.c_str(), page_size,
@@ -89,13 +90,13 @@ void InAppPurchaseTizenPlugin::GetProductList(
   }
 }
 
-void InAppPurchaseTizenPlugin::GetPurchaseList(
+void InAppPurchaseTizenPlugin::GetUserPurchaseList(
     const PurchaseMessage &purchase,
     std::function<void(ErrorOr<GetUserPurchaseListAPIResult> reply)> result) {
   std::string app_id = purchase.app_id();
-  std::string custom_id = *purchase.custom_id();
+  std::string custom_id = purchase.custom_id();
   std::string country_code = purchase.country_code();
-  int64_t page_num = *purchase.page_num();
+  int64_t page_num = purchase.page_num();
   std::string check_value = purchase.check_value();
 
   if (!billing_->GetPurchaseList(app_id.c_str(), custom_id.c_str(),
@@ -116,7 +117,8 @@ void InAppPurchaseTizenPlugin::BuyItem(
     rapidjson::Document doc;
     doc.SetObject();
     rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
-    rapidjson::Value order_item_id, order_title, order_total, order_curenncy_id;
+    rapidjson::Value order_item_id, order_title, order_total, order_curenncy_id,
+        order_custom_id;
     order_item_id.SetString(pay_details.order_item_id().c_str(),
                             strlen(pay_details.order_item_id().c_str()),
                             allocator);
@@ -127,10 +129,14 @@ void InAppPurchaseTizenPlugin::BuyItem(
     order_curenncy_id.SetString(pay_details.order_currency_id().c_str(),
                                 strlen(pay_details.order_currency_id().c_str()),
                                 allocator);
+    order_custom_id.SetString(pay_details.order_custom_id().c_str(),
+                              strlen(pay_details.order_custom_id().c_str()),
+                              allocator);
     doc.AddMember("OrderItemID", order_item_id, allocator);
     doc.AddMember("OrderTitle", order_title, allocator);
     doc.AddMember("OrderTotal", order_total, allocator);
     doc.AddMember("OrderCurrencyID", order_curenncy_id, allocator);
+    doc.AddMember("OrderCustomID", order_custom_id, allocator);
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     doc.Accept(writer);
@@ -148,7 +154,7 @@ void InAppPurchaseTizenPlugin::VerifyInvoice(
     const InvoiceMessage &invoice,
     std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)> result) {
   std::string app_id = invoice.app_id();
-  std::string custom_id = *invoice.custom_id();
+  std::string custom_id = invoice.custom_id();
   std::string invoice_id = invoice.invoice_id();
   std::string country_code = invoice.country_code();
 
@@ -160,7 +166,7 @@ void InAppPurchaseTizenPlugin::VerifyInvoice(
   }
 }
 
-void InAppPurchaseTizenPlugin::IsAvailable(
+void InAppPurchaseTizenPlugin::IsServiceAvailable(
     std::function<void(ErrorOr<bool> reply)> result) {
   if (!billing_->IsAvailable(std::move(result))) {
     result(FlutterError("IsAvailable", "billing is not available"));
@@ -168,8 +174,8 @@ void InAppPurchaseTizenPlugin::IsAvailable(
   }
 }
 
-ErrorOr<std::optional<std::string>> InAppPurchaseTizenPlugin::GetCustomId() {
-  return std::make_optional(billing_->GetCustomId());
+ErrorOr<std::string> InAppPurchaseTizenPlugin::GetCustomId() {
+  return billing_->GetCustomId();
 }
 
 ErrorOr<std::string> InAppPurchaseTizenPlugin::GetCountryCode() {
