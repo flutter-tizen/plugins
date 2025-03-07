@@ -476,9 +476,9 @@ class InAppPurchaseApi {
   InAppPurchaseApi({
     BinaryMessenger? binaryMessenger,
     String messageChannelSuffix = '',
-  })  : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix =
-            messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  }) : pigeonVar_binaryMessenger = binaryMessenger,
+       pigeonVar_messageChannelSuffix =
+           messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -490,10 +490,10 @@ class InAppPurchaseApi {
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getProductList$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[product]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -521,10 +521,10 @@ class InAppPurchaseApi {
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getPurchaseList$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[purchase]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -550,10 +550,10 @@ class InAppPurchaseApi {
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.buyItem$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[buyInfo]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -579,10 +579,10 @@ class InAppPurchaseApi {
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.verifyInvoice$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[invoice]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -608,10 +608,10 @@ class InAppPurchaseApi {
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.isAvailable$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -637,10 +637,10 @@ class InAppPurchaseApi {
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCustomId$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -661,10 +661,10 @@ class InAppPurchaseApi {
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCountryCode$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {

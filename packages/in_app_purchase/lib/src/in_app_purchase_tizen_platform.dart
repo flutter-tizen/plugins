@@ -39,7 +39,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   }
 
   static final StreamController<List<PurchaseDetails>>
-      _purchaseUpdatedController =
+  _purchaseUpdatedController =
       StreamController<List<PurchaseDetails>>.broadcast();
 
   @override
@@ -126,29 +126,31 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     final List<String> invalidMessage = <String>[];
 
     if (response.cpStatus == '100000') {
-      productDetailsList = _getItemDetails(response)
-          .map(
-            (ItemDetails productWrapper) =>
-                SamsungCheckoutProductDetails.fromProduct(productWrapper),
-          )
-          .toList();
+      productDetailsList =
+          _getItemDetails(response)
+              .map(
+                (ItemDetails productWrapper) =>
+                    SamsungCheckoutProductDetails.fromProduct(productWrapper),
+              )
+              .toList();
     } else {
       invalidMessage.add(response.encode().toString());
     }
 
     final ProductDetailsResponse productDetailsResponse =
         ProductDetailsResponse(
-      productDetails: productDetailsList,
-      notFoundIDs: invalidMessage,
-      error: exception == null
-          ? null
-          : IAPError(
-              source: kIAPSource,
-              code: exception.code,
-              message: exception.message ?? '',
-              details: exception.details,
-            ),
-    );
+          productDetails: productDetailsList,
+          notFoundIDs: invalidMessage,
+          error:
+              exception == null
+                  ? null
+                  : IAPError(
+                    source: kIAPSource,
+                    code: exception.code,
+                    message: exception.message ?? '',
+                    details: exception.details,
+                  ),
+        );
     return productDetailsResponse;
   }
 
@@ -204,19 +206,22 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     ]);
 
     final List<PurchaseDetails> pastPurchases =
-        responses.expand((GetUserPurchaseListAPIResult response) {
-      if (response.cpStatus == '100000') {
-        return _getInvoiceDetails(response);
-      } else {
-        return <InvoiceDetails>[];
-      }
-    }).map((InvoiceDetails purchaseWrapper) {
-      final SamsungCheckoutPurchaseDetails purchaseDetails =
-          SamsungCheckoutPurchaseDetails.fromPurchase(purchaseWrapper);
+        responses
+            .expand((GetUserPurchaseListAPIResult response) {
+              if (response.cpStatus == '100000') {
+                return _getInvoiceDetails(response);
+              } else {
+                return <InvoiceDetails>[];
+              }
+            })
+            .map((InvoiceDetails purchaseWrapper) {
+              final SamsungCheckoutPurchaseDetails purchaseDetails =
+                  SamsungCheckoutPurchaseDetails.fromPurchase(purchaseWrapper);
 
-      purchaseDetails.status = PurchaseStatus.restored;
-      return purchaseDetails;
-    }).toList();
+              purchaseDetails.status = PurchaseStatus.restored;
+              return purchaseDetails;
+            })
+            .toList();
     _purchaseUpdatedController.add(pastPurchases);
   }
 
@@ -237,33 +242,35 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
         billingManager
             .requestPurchases()
             .then((GetUserPurchaseListAPIResult responses) {
-          for (int i = 0; i < responses.invoiceDetails.length; i++) {
-            if (_getInvoiceDetails(responses)[i].invoiceId == invoiceId) {
-              final List<PurchaseDetails> purchases = <PurchaseDetails>[];
-              purchases.add(
-                PurchaseDetails(
-                  purchaseID: _getInvoiceDetails(responses)[i].invoiceId,
-                  productID: _getInvoiceDetails(responses)[i].itemId,
-                  verificationData: PurchaseVerificationData(
-                    localVerificationData:
-                        _getInvoiceDetails(responses)[i].invoiceId,
-                    serverVerificationData:
-                        _getInvoiceDetails(responses)[i].invoiceId,
-                    source: kIAPSource,
-                  ),
-                  transactionDate: _getInvoiceDetails(responses)[i].orderTime,
-                  status: const PurchaseStateConverter().toPurchaseStatus(
-                    _getInvoiceDetails(responses)[i].cancelStatus,
-                  ),
-                ),
-              );
+              for (int i = 0; i < responses.invoiceDetails.length; i++) {
+                if (_getInvoiceDetails(responses)[i].invoiceId == invoiceId) {
+                  final List<PurchaseDetails> purchases = <PurchaseDetails>[];
+                  purchases.add(
+                    PurchaseDetails(
+                      purchaseID: _getInvoiceDetails(responses)[i].invoiceId,
+                      productID: _getInvoiceDetails(responses)[i].itemId,
+                      verificationData: PurchaseVerificationData(
+                        localVerificationData:
+                            _getInvoiceDetails(responses)[i].invoiceId,
+                        serverVerificationData:
+                            _getInvoiceDetails(responses)[i].invoiceId,
+                        source: kIAPSource,
+                      ),
+                      transactionDate:
+                          _getInvoiceDetails(responses)[i].orderTime,
+                      status: const PurchaseStateConverter().toPurchaseStatus(
+                        _getInvoiceDetails(responses)[i].cancelStatus,
+                      ),
+                    ),
+                  );
 
-              _purchaseUpdatedController.add(purchases);
-            }
-          }
-        }).catchError((Object error) {
-          _purchaseUpdatedController.addError(error);
-        }),
+                  _purchaseUpdatedController.add(purchases);
+                }
+              }
+            })
+            .catchError((Object error) {
+              _purchaseUpdatedController.addError(error);
+            }),
       );
 
       return true;
