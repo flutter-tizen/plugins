@@ -237,7 +237,9 @@ void BillingManager::OnAvailable(const char *detail_result, void *user_data) {
     rapidjson::Document doc;
     doc.Parse(detail_result);
     if (doc.HasParseError()) {
-      LOG_ERROR("[BillingManager] OnAvailable parse error: %s", detail_result);
+      self->is_available_callback_(
+          FlutterError("OnAvailable Failed", "parse error"));
+      self->is_available_callback_ = nullptr;
       return;
     }
 
@@ -262,7 +264,9 @@ void BillingManager::OnProducts(const char *detail_result, void *user_data) {
     rapidjson::Document doc;
     doc.Parse(detail_result);
     if (doc.HasParseError()) {
-      LOG_ERROR("[BillingManager] OnProducts parse error: %s", detail_result);
+      self->get_product_list_callback_(
+          FlutterError("OnProducts Failed", "method result is null !"));
+      self->get_product_list_callback_ = nullptr;
       return;
     }
     std::string cp_status =
@@ -331,7 +335,9 @@ void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
     rapidjson::Document doc;
     doc.Parse(detail_result);
     if (doc.HasParseError()) {
-      LOG_ERROR("[BillingManager] OnPurchase parse error: %s", detail_result);
+      self->get_purchase_list_callback_(
+          FlutterError("OnPurchase Failed", "method result is null !"));
+      self->get_purchase_list_callback_ = nullptr;
       return;
     }
     std::string cp_status =
@@ -433,7 +439,9 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
     rapidjson::Document doc;
     doc.Parse(detail_info);
     if (doc.HasParseError()) {
-      LOG_ERROR("[BillingManager] OnBuyItem parse error: %s", detail_info);
+      self->buy_item_callback_(
+          FlutterError("OnBuyItem Failed", "method result is null !"));
+      self->buy_item_callback_ = nullptr;
       return false;
     }
     for (auto it = doc.MemberBegin(); it != doc.MemberEnd(); ++it) {
@@ -471,7 +479,9 @@ void BillingManager::OnVerify(const char *detail_result, void *user_data) {
     rapidjson::Document doc;
     doc.Parse(detail_result);
     if (doc.HasParseError()) {
-      LOG_ERROR("[BillingManager] OnVerify parse error: %s", detail_result);
+      self->verify_invoice_callback_(
+          FlutterError("OnVerify Failed", "method result is null !"));
+      self->verify_invoice_callback_ = nullptr;
       return;
     }
     std::string cp_status =
