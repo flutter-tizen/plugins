@@ -9,7 +9,6 @@ import 'package:flutter/widgets.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
 import '../in_app_purchase_tizen.dart';
-import 'billing_manager.dart';
 import 'messages.g.dart';
 
 /// [IAPError.code] code for failed purchases.

@@ -38,7 +38,6 @@ class _MyAppState extends State<_MyApp> {
   bool _purchasePending = false;
   bool _loading = true;
   String? _queryProductError;
-  String _countryCode = '';
 
   @override
   void initState() {
