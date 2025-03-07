@@ -69,13 +69,7 @@ class ProductsListApiResult {
   List<Map<Object?, Object?>?> itemDetails;
 
   Object encode() {
-    return <Object?>[
-      cpStatus,
-      cpResult,
-      totalCount,
-      checkValue,
-      itemDetails,
-    ];
+    return <Object?>[cpStatus, cpResult, totalCount, checkValue, itemDetails];
   }
 
   static ProductsListApiResult decode(Object result) {
@@ -149,10 +143,7 @@ class GetUserPurchaseListAPIResult {
 ///
 /// Defines the payment result and information.
 class BillingBuyData {
-  BillingBuyData({
-    required this.payResult,
-    required this.payDetails,
-  });
+  BillingBuyData({required this.payResult, required this.payDetails});
 
   /// The payment result
   String payResult;
@@ -161,10 +152,7 @@ class BillingBuyData {
   Map<String, String> payDetails;
 
   Object encode() {
-    return <Object?>[
-      payResult,
-      payDetails,
-    ];
+    return <Object?>[payResult, payDetails];
   }
 
   static BillingBuyData decode(Object result) {
@@ -201,12 +189,7 @@ class VerifyInvoiceAPIResult {
   String invoiceId;
 
   Object encode() {
-    return <Object?>[
-      cpStatus,
-      cpResult,
-      appId,
-      invoiceId,
-    ];
+    return <Object?>[cpStatus, cpResult, appId, invoiceId];
   }
 
   static VerifyInvoiceAPIResult decode(Object result) {
@@ -244,11 +227,7 @@ class ServiceAvailableAPIResult {
   String? serviceYn;
 
   Object encode() {
-    return <Object?>[
-      status,
-      result,
-      serviceYn,
-    ];
+    return <Object?>[status, result, serviceYn];
   }
 
   static ServiceAvailableAPIResult decode(Object result) {
@@ -281,13 +260,7 @@ class ProductMessage {
   String checkValue;
 
   Object encode() {
-    return <Object?>[
-      appId,
-      countryCode,
-      pageSize,
-      pageNum,
-      checkValue,
-    ];
+    return <Object?>[appId, countryCode, pageSize, pageNum, checkValue];
   }
 
   static ProductMessage decode(Object result) {
@@ -322,13 +295,7 @@ class PurchaseMessage {
   String checkValue;
 
   Object encode() {
-    return <Object?>[
-      appId,
-      customId,
-      countryCode,
-      pageNum,
-      checkValue,
-    ];
+    return <Object?>[appId, customId, countryCode, pageNum, checkValue];
   }
 
   static PurchaseMessage decode(Object result) {
@@ -360,12 +327,7 @@ class OrderDetails {
   String orderCurrencyId;
 
   Object encode() {
-    return <Object?>[
-      orderItemId,
-      orderTitle,
-      orderTotal,
-      orderCurrencyId,
-    ];
+    return <Object?>[orderItemId, orderTitle, orderTotal, orderCurrencyId];
   }
 
   static OrderDetails decode(Object result) {
@@ -380,20 +342,14 @@ class OrderDetails {
 }
 
 class BuyInfoMessage {
-  BuyInfoMessage({
-    required this.appId,
-    required this.payDetials,
-  });
+  BuyInfoMessage({required this.appId, required this.payDetials});
 
   String appId;
 
   OrderDetails payDetials;
 
   Object encode() {
-    return <Object?>[
-      appId,
-      payDetials,
-    ];
+    return <Object?>[appId, payDetials];
   }
 
   static BuyInfoMessage decode(Object result) {
@@ -422,12 +378,7 @@ class InvoiceMessage {
   String countryCode;
 
   Object encode() {
-    return <Object?>[
-      appId,
-      customId,
-      invoiceId,
-      countryCode,
-    ];
+    return <Object?>[appId, customId, invoiceId, countryCode];
   }
 
   static InvoiceMessage decode(Object result) {
@@ -522,9 +473,10 @@ class InAppPurchaseApi {
   /// Constructor for [InAppPurchaseApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  InAppPurchaseApi(
-      {BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
+  InAppPurchaseApi({
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  })  : pigeonVar_binaryMessenger = binaryMessenger,
         pigeonVar_messageChannelSuffix =
             messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
@@ -563,7 +515,8 @@ class InAppPurchaseApi {
   }
 
   Future<GetUserPurchaseListAPIResult> getPurchaseList(
-      PurchaseMessage purchase) async {
+    PurchaseMessage purchase,
+  ) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getPurchaseList$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =

@@ -54,9 +54,10 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
       );
     } on PlatformException {
       verifyPurchaseResult = VerifyInvoiceAPIResult(
-          appId: 'error appId',
-          cpStatus: 'error cpStatus',
-          invoiceId: 'error invoiceId');
+        appId: 'error appId',
+        cpStatus: 'error cpStatus',
+        invoiceId: 'error invoiceId',
+      );
     }
 
     if (verifyPurchaseResult.cpStatus == '100000') {

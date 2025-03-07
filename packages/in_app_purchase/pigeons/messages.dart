@@ -4,12 +4,13 @@
 
 import 'package:pigeon/pigeon.dart';
 
-@ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/src/messages.g.dart',
-  cppHeaderOut: 'tizen/src/messages.h',
-  cppSourceOut: 'tizen/src/messages.cc',
-))
-
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/src/messages.g.dart',
+    cppHeaderOut: 'tizen/src/messages.h',
+    cppSourceOut: 'tizen/src/messages.cc',
+  ),
+)
 // The type of product.
 /// Enum representing potential [ItemDetails.itemType]s and [InvoiceDetails.itemType]s.
 /// Wraps
@@ -29,7 +30,7 @@ enum ItemType {
   limitedPeriod,
 
   /// DPI system processes automatic payment on a certain designated cycle.
-  subscription
+  subscription,
 }
 
 /// Dart wrapper around [`ProductsListApiResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
@@ -104,10 +105,7 @@ class GetUserPurchaseListAPIResult {
 /// Defines the payment result and information.
 class BillingBuyData {
   /// Creates a [BillingBuyData] with the given purchase details.
-  const BillingBuyData({
-    required this.payResult,
-    required this.payDetails,
-  });
+  const BillingBuyData({required this.payResult, required this.payDetails});
 
   /// The payment result
   final String payResult;

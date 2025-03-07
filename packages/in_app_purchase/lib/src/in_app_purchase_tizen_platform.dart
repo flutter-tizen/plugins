@@ -86,15 +86,17 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       final num price = detail['Price']! as num;
       final String currencyId = detail['CurrencyID']! as String;
 
-      itemDetails.add(ItemDetails(
-        seq: seq,
-        itemId: itemId,
-        itemTitle: itemTitle,
-        itemDesc: itemDesc,
-        itemType: _intToEnum(itemType),
-        price: price,
-        currencyId: currencyId,
-      ));
+      itemDetails.add(
+        ItemDetails(
+          seq: seq,
+          itemId: itemId,
+          itemTitle: itemTitle,
+          itemDesc: itemDesc,
+          itemType: _intToEnum(itemType),
+          price: price,
+          currencyId: currencyId,
+        ),
+      );
     }
     return itemDetails;
   }
@@ -111,11 +113,12 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     } on PlatformException catch (e) {
       exception = e;
       response = ProductsListApiResult(
-          cpStatus: 'fail to receive response',
-          cpResult: 'fail to receive response',
-          checkValue: 'fail to receive response',
-          totalCount: 0,
-          itemDetails: <Map<Object?, Object?>?>[]);
+        cpStatus: 'fail to receive response',
+        cpResult: 'fail to receive response',
+        checkValue: 'fail to receive response',
+        totalCount: 0,
+        itemDetails: <Map<Object?, Object?>?>[],
+      );
     }
 
     List<SamsungCheckoutProductDetails> productDetailsList =
@@ -124,8 +127,10 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
     if (response.cpStatus == '100000') {
       productDetailsList = _getItemDetails(response)
-          .map((ItemDetails productWrapper) =>
-              SamsungCheckoutProductDetails.fromProduct(productWrapper))
+          .map(
+            (ItemDetails productWrapper) =>
+                SamsungCheckoutProductDetails.fromProduct(productWrapper),
+          )
           .toList();
     } else {
       invalidMessage.add(response.encode().toString());
@@ -149,7 +154,8 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
   /// Converts Map<Object?, Object?>? to the list of [InvoiceDetails].
   List<InvoiceDetails> _getInvoiceDetails(
-      GetUserPurchaseListAPIResult response) {
+    GetUserPurchaseListAPIResult response,
+  ) {
     final List<InvoiceDetails> invoiceDetails = <InvoiceDetails>[];
     for (final Map<Object?, Object?>? detail in response.invoiceDetails) {
       final int seq = detail!['Seq']! as int;
@@ -167,22 +173,24 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       final String? limitEndTime = detail['LimitEndTime'] as String?;
       final String? remainTime = detail['RemainTime'] as String?;
 
-      invoiceDetails.add(InvoiceDetails(
-        seq: seq,
-        invoiceId: invoiceId,
-        itemId: itemId,
-        itemTitle: itemTitle,
-        itemType: _intToEnum(itemType),
-        orderTime: orderTime,
-        period: period,
-        price: price,
-        orderCurrencyId: orderCurrencyId,
-        cancelStatus: cancelStatus,
-        appliedStatus: appliedStatus,
-        appliedTime: appliedTime,
-        limitEndTime: limitEndTime,
-        remainTime: remainTime,
-      ));
+      invoiceDetails.add(
+        InvoiceDetails(
+          seq: seq,
+          invoiceId: invoiceId,
+          itemId: itemId,
+          itemTitle: itemTitle,
+          itemType: _intToEnum(itemType),
+          orderTime: orderTime,
+          period: period,
+          price: price,
+          orderCurrencyId: orderCurrencyId,
+          cancelStatus: cancelStatus,
+          appliedStatus: appliedStatus,
+          appliedTime: appliedTime,
+          limitEndTime: limitEndTime,
+          remainTime: remainTime,
+        ),
+      );
     }
     return invoiceDetails;
   }
@@ -232,19 +240,23 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
           for (int i = 0; i < responses.invoiceDetails.length; i++) {
             if (_getInvoiceDetails(responses)[i].invoiceId == invoiceId) {
               final List<PurchaseDetails> purchases = <PurchaseDetails>[];
-              purchases.add(PurchaseDetails(
-                purchaseID: _getInvoiceDetails(responses)[i].invoiceId,
-                productID: _getInvoiceDetails(responses)[i].itemId,
-                verificationData: PurchaseVerificationData(
+              purchases.add(
+                PurchaseDetails(
+                  purchaseID: _getInvoiceDetails(responses)[i].invoiceId,
+                  productID: _getInvoiceDetails(responses)[i].itemId,
+                  verificationData: PurchaseVerificationData(
                     localVerificationData:
                         _getInvoiceDetails(responses)[i].invoiceId,
                     serverVerificationData:
                         _getInvoiceDetails(responses)[i].invoiceId,
-                    source: kIAPSource),
-                transactionDate: _getInvoiceDetails(responses)[i].orderTime,
-                status: const PurchaseStateConverter().toPurchaseStatus(
-                    _getInvoiceDetails(responses)[i].cancelStatus),
-              ));
+                    source: kIAPSource,
+                  ),
+                  transactionDate: _getInvoiceDetails(responses)[i].orderTime,
+                  status: const PurchaseStateConverter().toPurchaseStatus(
+                    _getInvoiceDetails(responses)[i].cancelStatus,
+                  ),
+                ),
+              );
 
               _purchaseUpdatedController.add(purchases);
             }

@@ -54,12 +54,15 @@ class BillingManager {
   /// [`BillingManager-getProductsList`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-getProductsList)
   /// to retrieves the list of products registered on the Billing (DPI) server.
   Future<ProductsListApiResult> requestProducts(
-      List<String> requestparameters) async {
+    List<String> requestparameters,
+  ) async {
     final String countryCode = await _hostApi.getCountryCode();
     final String checkValue = base64.encode(
-        Hmac(sha256, utf8.encode(_requestParameters.securityKey ?? ''))
-            .convert(utf8.encode((_requestParameters.appId) + countryCode))
-            .bytes);
+      Hmac(
+        sha256,
+        utf8.encode(_requestParameters.securityKey ?? ''),
+      ).convert(utf8.encode((_requestParameters.appId) + countryCode)).bytes,
+    );
     final ProductMessage product = ProductMessage(
       appId: _requestParameters.appId,
       countryCode: countryCode,
@@ -73,18 +76,24 @@ class BillingManager {
   /// Calls
   /// [`BillingManager-getUserPurchaseList`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-getUserPurchaseList)
   /// to retrieves the user's purchase list.
-  Future<GetUserPurchaseListAPIResult> requestPurchases(
-      {String? applicationUserName}) async {
+  Future<GetUserPurchaseListAPIResult> requestPurchases({
+    String? applicationUserName,
+  }) async {
     final String? customId = await _hostApi.getCustomId();
     final String countryCode = await _hostApi.getCountryCode();
     final String checkValue = base64.encode(
-        Hmac(sha256, utf8.encode(_requestParameters.securityKey ?? ''))
-            .convert(utf8.encode((_requestParameters.appId) +
-                (customId ?? '') +
-                countryCode +
-                _requestItemType +
-                (_requestParameters.pageNum ?? -1).toString()))
-            .bytes);
+      Hmac(sha256, utf8.encode(_requestParameters.securityKey ?? ''))
+          .convert(
+            utf8.encode(
+              (_requestParameters.appId) +
+                  (customId ?? '') +
+                  countryCode +
+                  _requestItemType +
+                  (_requestParameters.pageNum ?? -1).toString(),
+            ),
+          )
+          .bytes,
+    );
 
     final PurchaseMessage purchase = PurchaseMessage(
       appId: _requestParameters.appId,
@@ -108,10 +117,11 @@ class BillingManager {
     required String orderCurrencyId,
   }) async {
     final OrderDetails orderDetails = OrderDetails(
-        orderItemId: orderItemId,
-        orderTitle: orderTitle,
-        orderTotal: orderTotal,
-        orderCurrencyId: orderCurrencyId);
+      orderItemId: orderItemId,
+      orderTitle: orderTitle,
+      orderTotal: orderTotal,
+      orderCurrencyId: orderCurrencyId,
+    );
 
     final BuyInfoMessage buyInfo = BuyInfoMessage(
       appId: _requestParameters.appId,
@@ -125,8 +135,9 @@ class BillingManager {
   /// [`BillingManager-verifyInvoice`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingManager-verifyInvoice)
   /// to enables implementing the Samsung Checkout Client module within the application.
   /// Checks whether a purchase, corresponding to a specific "InvoiceID", was successful.
-  Future<VerifyInvoiceAPIResult> verifyInvoice(
-      {required String invoiceId}) async {
+  Future<VerifyInvoiceAPIResult> verifyInvoice({
+    required String invoiceId,
+  }) async {
     final String? customId = await _hostApi.getCustomId();
     final String countryCode = await _hostApi.getCountryCode();
     final InvoiceMessage invoice = InvoiceMessage(
