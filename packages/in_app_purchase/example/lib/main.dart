@@ -61,8 +61,9 @@ class _MyAppState extends State<_MyApp> {
   Future<void> initStoreInfo() async {
     // Tizen specific API:
     // You need to set necessary parameters before calling any plugin API.
-    final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
-        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    final InAppPurchaseTizenPlatformAddition platformAddition =
+        _inAppPurchase
+            .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
     platformAddition.setRequestParameters(
       appId: _kAppId,
       pageSize: _kPageSize,
@@ -85,8 +86,8 @@ class _MyAppState extends State<_MyApp> {
 
     // The `identifiers` argument is not used on Tizen.
     // Use `InAppPurchaseTizenPlatformAddition.setRequestParameters` instead.
-    final ProductDetailsResponse productDetailResponse =
-        await _inAppPurchase.queryProductDetails(<String>{});
+    final ProductDetailsResponse productDetailResponse = await _inAppPurchase
+        .queryProductDetails(<String>{});
     if (productDetailResponse.error != null) {
       setState(() {
         _queryProductError = productDetailResponse.error!.message;
@@ -234,8 +235,9 @@ class _MyAppState extends State<_MyApp> {
           subtitle: Text(productDetails.description),
           trailing: TextButton(
             style: TextButton.styleFrom(
-                backgroundColor: Colors.green[800],
-                foregroundColor: Colors.white),
+              backgroundColor: Colors.green[800],
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               final PurchaseParam purchaseParam = PurchaseParam(
                 productDetails: productDetails,
@@ -279,8 +281,9 @@ class _MyAppState extends State<_MyApp> {
         children: <Widget>[
           TextButton(
             style: TextButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => _inAppPurchase.restorePurchases(),
             child: const Text('Restore purchases'),
           ),
@@ -314,8 +317,9 @@ class _MyAppState extends State<_MyApp> {
 
     // Tizen specific verify purchase:
     // If `PurchaseDetails.status` is `purchased`, need to verify purchase.
-    final InAppPurchaseTizenPlatformAddition platformAddition = _inAppPurchase
-        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    final InAppPurchaseTizenPlatformAddition platformAddition =
+        _inAppPurchase
+            .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
     return platformAddition.verifyPurchase(purchaseDetails: purchaseDetails);
   }
 
