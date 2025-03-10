@@ -85,7 +85,7 @@ void InAppPurchaseTizenPlugin::GetProductsList(
   if (!billing_->GetProductList(app_id.c_str(), country_code.c_str(), page_size,
                                 page_num, check_value.c_str(),
                                 std::move(result))) {
-    result(FlutterError("GetProductList", "get product list failed"));
+    result(FlutterError("Operation failed", "get product list failed"));
     return;
   }
 }
@@ -102,7 +102,7 @@ void InAppPurchaseTizenPlugin::GetUserPurchaseList(
   if (!billing_->GetPurchaseList(app_id.c_str(), custom_id.c_str(),
                                  country_code.c_str(), page_num,
                                  check_value.c_str(), std::move(result))) {
-    result(FlutterError("GetPurchaseList", "get purchase list failed"));
+    result(FlutterError("Operation failed", "get purchase list failed"));
     return;
   }
 }
@@ -145,7 +145,7 @@ void InAppPurchaseTizenPlugin::BuyItem(
 
   if (!billing_->BuyItem(app_id.c_str(), pay_details_json.c_str(),
                          std::move(result))) {
-    result(FlutterError("BuyItem", "buy item failed"));
+    result(FlutterError("Operation failed", "buy item failed"));
     return;
   }
 }
@@ -161,7 +161,7 @@ void InAppPurchaseTizenPlugin::VerifyInvoice(
   if (!billing_->VerifyInvoice(app_id.c_str(), custom_id.c_str(),
                                invoice_id.c_str(), country_code.c_str(),
                                std::move(result))) {
-    result(FlutterError("VerifyInvoice", "invoice verify failed"));
+    result(FlutterError("Operation failed", "invoice verify failed"));
     return;
   }
 }
@@ -169,7 +169,7 @@ void InAppPurchaseTizenPlugin::VerifyInvoice(
 void InAppPurchaseTizenPlugin::IsServiceAvailable(
     std::function<void(ErrorOr<bool> reply)> result) {
   if (!billing_->IsAvailable(std::move(result))) {
-    result(FlutterError("IsAvailable", "billing is not available"));
+    result(FlutterError("Operation failed", "billing is not available"));
     return;
   }
 }

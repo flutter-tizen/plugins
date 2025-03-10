@@ -238,7 +238,7 @@ void BillingManager::OnAvailable(const char *detail_result, void *user_data) {
     doc.Parse(detail_result);
     if (doc.HasParseError()) {
       self->is_available_callback_(
-          FlutterError("OnAvailable Failed", "parse error"));
+          FlutterError("Operation failed", "OnAvailable parse error."));
       self->is_available_callback_ = nullptr;
       return;
     }
@@ -250,7 +250,7 @@ void BillingManager::OnAvailable(const char *detail_result, void *user_data) {
       self->is_available_callback_(false);
   } else {
     self->is_available_callback_(
-        FlutterError("OnAvailable Failed", "method result is null !"));
+        FlutterError("Invalid argument", "is_available_callback_ is null !"));
   }
   self->is_available_callback_ = nullptr;
 }
@@ -265,7 +265,7 @@ void BillingManager::OnProducts(const char *detail_result, void *user_data) {
     doc.Parse(detail_result);
     if (doc.HasParseError()) {
       self->get_product_list_callback_(
-          FlutterError("OnProducts Failed", "method result is null !"));
+          FlutterError("Operation failed", "OnProducts parse error."));
       self->get_product_list_callback_ = nullptr;
       return;
     }
@@ -321,7 +321,7 @@ void BillingManager::OnProducts(const char *detail_result, void *user_data) {
     self->get_product_list_callback_(products_list);
   } else {
     self->get_product_list_callback_(
-        FlutterError("OnProducts Failed", "method result is null !"));
+        FlutterError("Invalid argument", "get_product_list_callback_ is null !"));
   }
   self->get_product_list_callback_ = nullptr;
 }
@@ -336,7 +336,7 @@ void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
     doc.Parse(detail_result);
     if (doc.HasParseError()) {
       self->get_purchase_list_callback_(
-          FlutterError("OnPurchase Failed", "method result is null !"));
+          FlutterError("Operation failed", "OnPurchase parse error."));
       self->get_purchase_list_callback_ = nullptr;
       return;
     }
@@ -419,7 +419,7 @@ void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
     self->get_purchase_list_callback_(purchase_list);
   } else {
     self->get_purchase_list_callback_(
-        FlutterError("OnPurchase Failed", "method result is null !"));
+        FlutterError("Invalid argument", "get_purchase_list_callback_ is null !"));
   }
   self->get_purchase_list_callback_ = nullptr;
 }
@@ -440,7 +440,7 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
     doc.Parse(detail_info);
     if (doc.HasParseError()) {
       self->buy_item_callback_(
-          FlutterError("OnBuyItem Failed", "method result is null !"));
+          FlutterError("Operation failed", "OnBuyItem parse error."));
       self->buy_item_callback_ = nullptr;
       return false;
     }
@@ -464,7 +464,7 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
     self->buy_item_callback_(buy_data);
   } else {
     self->buy_item_callback_(
-        FlutterError("OnBuyItem Failed", "method result is null !"));
+        FlutterError("Invalid argument", "buy_item_callback_ is null !"));
   }
   self->buy_item_callback_ = nullptr;
   return true;
@@ -480,7 +480,7 @@ void BillingManager::OnVerify(const char *detail_result, void *user_data) {
     doc.Parse(detail_result);
     if (doc.HasParseError()) {
       self->verify_invoice_callback_(
-          FlutterError("OnVerify Failed", "method result is null !"));
+          FlutterError("Operation failed", "OnVerify parse error."));
       self->verify_invoice_callback_ = nullptr;
       return;
     }
@@ -496,7 +496,7 @@ void BillingManager::OnVerify(const char *detail_result, void *user_data) {
     self->verify_invoice_callback_(verify_invoice);
   } else {
     self->verify_invoice_callback_(
-        FlutterError("OnVerify Failed", "method result is null !"));
+        FlutterError("Invalid argument", "verify_invoice_callback_ is null !"));
   }
   self->verify_invoice_callback_ = nullptr;
 }

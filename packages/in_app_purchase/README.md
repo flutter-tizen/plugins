@@ -4,7 +4,7 @@ The Tizen implementation of [`in_app_purchase`](https://pub.dev/packages/in_app_
 
 ## Supported devices
 
-This plugin is only supported on Samsung Smart TVs running Tizen 5.5 and above.
+This plugin is only supported on Samsung Smart TVs running Tizen 6.0 and above.
 
 ## Required privileges
 
@@ -34,8 +34,8 @@ This package is not an _endorsed_ implementation of `in_app_purchase`. Therefore
 
 ```yaml
 dependencies:
-  in_app_purchase: ^3.1.4
-  in_app_purchase_tizen: ^0.1.0
+  in_app_purchase: ^3.2.1
+  in_app_purchase_tizen: ^0.1.1
 ```
 
 Then you can import `in_app_purchase` and `in_app_purchase_tizen` in your Dart code:
