@@ -770,65 +770,74 @@ DisplayModeMessage DisplayModeMessage::FromEncodableList(
   return decoded;
 }
 
-// DataKeyMessage
+// DashPropertyTypeListMessage
 
-DataKeyMessage::DataKeyMessage(int64_t player_id, const EncodableList& data)
-    : player_id_(player_id), data_(data) {}
+DashPropertyTypeListMessage::DashPropertyTypeListMessage(
+    int64_t player_id, const EncodableList& type_list)
+    : player_id_(player_id), type_list_(type_list) {}
 
-int64_t DataKeyMessage::player_id() const { return player_id_; }
+int64_t DashPropertyTypeListMessage::player_id() const { return player_id_; }
 
-void DataKeyMessage::set_player_id(int64_t value_arg) {
+void DashPropertyTypeListMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-const EncodableList& DataKeyMessage::data() const { return data_; }
-
-void DataKeyMessage::set_data(const EncodableList& value_arg) {
-  data_ = value_arg;
+const EncodableList& DashPropertyTypeListMessage::type_list() const {
+  return type_list_;
 }
 
-EncodableList DataKeyMessage::ToEncodableList() const {
+void DashPropertyTypeListMessage::set_type_list(
+    const EncodableList& value_arg) {
+  type_list_ = value_arg;
+}
+
+EncodableList DashPropertyTypeListMessage::ToEncodableList() const {
   EncodableList list;
   list.reserve(2);
   list.push_back(EncodableValue(player_id_));
-  list.push_back(EncodableValue(data_));
+  list.push_back(EncodableValue(type_list_));
   return list;
 }
 
-DataKeyMessage DataKeyMessage::FromEncodableList(const EncodableList& list) {
-  DataKeyMessage decoded(std::get<int64_t>(list[0]),
-                         std::get<EncodableList>(list[1]));
+DashPropertyTypeListMessage DashPropertyTypeListMessage::FromEncodableList(
+    const EncodableList& list) {
+  DashPropertyTypeListMessage decoded(std::get<int64_t>(list[0]),
+                                      std::get<EncodableList>(list[1]));
   return decoded;
 }
 
-// DataMapMessage
+// DashPropertyMapMessage
 
-DataMapMessage::DataMapMessage(int64_t player_id, const EncodableMap& data)
-    : player_id_(player_id), data_(data) {}
+DashPropertyMapMessage::DashPropertyMapMessage(int64_t player_id,
+                                               const EncodableMap& map_data)
+    : player_id_(player_id), map_data_(map_data) {}
 
-int64_t DataMapMessage::player_id() const { return player_id_; }
+int64_t DashPropertyMapMessage::player_id() const { return player_id_; }
 
-void DataMapMessage::set_player_id(int64_t value_arg) {
+void DashPropertyMapMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-const EncodableMap& DataMapMessage::data() const { return data_; }
-
-void DataMapMessage::set_data(const EncodableMap& value_arg) {
-  data_ = value_arg;
+const EncodableMap& DashPropertyMapMessage::map_data() const {
+  return map_data_;
 }
 
-EncodableList DataMapMessage::ToEncodableList() const {
+void DashPropertyMapMessage::set_map_data(const EncodableMap& value_arg) {
+  map_data_ = value_arg;
+}
+
+EncodableList DashPropertyMapMessage::ToEncodableList() const {
   EncodableList list;
   list.reserve(2);
   list.push_back(EncodableValue(player_id_));
-  list.push_back(EncodableValue(data_));
+  list.push_back(EncodableValue(map_data_));
   return list;
 }
 
-DataMapMessage DataMapMessage::FromEncodableList(const EncodableList& list) {
-  DataMapMessage decoded(std::get<int64_t>(list[0]),
-                         std::get<EncodableMap>(list[1]));
+DashPropertyMapMessage DashPropertyMapMessage::FromEncodableList(
+    const EncodableList& list) {
+  DashPropertyMapMessage decoded(std::get<int64_t>(list[0]),
+                                 std::get<EncodableMap>(list[1]));
   return decoded;
 }
 
@@ -907,11 +916,12 @@ EncodableValue PigeonInternalCodecSerializer::ReadValueOfType(
           std::get<EncodableList>(ReadValue(stream))));
     }
     case 146: {
-      return CustomEncodableValue(DataKeyMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(
+          DashPropertyTypeListMessage::FromEncodableList(
+              std::get<EncodableList>(ReadValue(stream))));
     }
     case 147: {
-      return CustomEncodableValue(DataMapMessage::FromEncodableList(
+      return CustomEncodableValue(DashPropertyMapMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
     }
     default:
@@ -1058,19 +1068,19 @@ void PigeonInternalCodecSerializer::WriteValue(
                  stream);
       return;
     }
-    if (custom_value->type() == typeid(DataKeyMessage)) {
+    if (custom_value->type() == typeid(DashPropertyTypeListMessage)) {
       stream->WriteByte(146);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<DataKeyMessage>(*custom_value).ToEncodableList()),
-          stream);
+      WriteValue(EncodableValue(
+                     std::any_cast<DashPropertyTypeListMessage>(*custom_value)
+                         .ToEncodableList()),
+                 stream);
       return;
     }
-    if (custom_value->type() == typeid(DataMapMessage)) {
+    if (custom_value->type() == typeid(DashPropertyMapMessage)) {
       stream->WriteByte(147);
       WriteValue(
-          EncodableValue(
-              std::any_cast<DataMapMessage>(*custom_value).ToEncodableList()),
+          EncodableValue(std::any_cast<DashPropertyMapMessage>(*custom_value)
+                             .ToEncodableList()),
           stream);
       return;
     }
@@ -1889,8 +1899,9 @@ void VideoPlayerAvplayApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 reply(WrapError("msg_arg unexpectedly null."));
                 return;
               }
-              const auto& msg_arg = std::any_cast<const DataMapMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              const auto& msg_arg =
+                  std::any_cast<const DashPropertyMapMessage&>(
+                      std::get<CustomEncodableValue>(encodable_msg_arg));
               ErrorOr<bool> output = api->SetData(msg_arg);
               if (output.has_error()) {
                 reply(WrapError(output.error()));
@@ -1924,9 +1935,10 @@ void VideoPlayerAvplayApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 reply(WrapError("msg_arg unexpectedly null."));
                 return;
               }
-              const auto& msg_arg = std::any_cast<const DataKeyMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<DataMapMessage> output = api->GetData(msg_arg);
+              const auto& msg_arg =
+                  std::any_cast<const DashPropertyTypeListMessage&>(
+                      std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<DashPropertyMapMessage> output = api->GetData(msg_arg);
               if (output.has_error()) {
                 reply(WrapError(output.error()));
                 return;

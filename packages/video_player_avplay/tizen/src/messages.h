@@ -488,46 +488,49 @@ class DisplayModeMessage {
 };
 
 // Generated class from Pigeon that represents data sent in messages.
-class DataKeyMessage {
+class DashPropertyTypeListMessage {
  public:
   // Constructs an object setting all fields.
-  explicit DataKeyMessage(int64_t player_id,
-                          const flutter::EncodableList& data);
+  explicit DashPropertyTypeListMessage(int64_t player_id,
+                                       const flutter::EncodableList& type_list);
 
   int64_t player_id() const;
   void set_player_id(int64_t value_arg);
 
-  const flutter::EncodableList& data() const;
-  void set_data(const flutter::EncodableList& value_arg);
+  const flutter::EncodableList& type_list() const;
+  void set_type_list(const flutter::EncodableList& value_arg);
 
  private:
-  static DataKeyMessage FromEncodableList(const flutter::EncodableList& list);
+  static DashPropertyTypeListMessage FromEncodableList(
+      const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
   friend class VideoPlayerAvplayApi;
   friend class PigeonInternalCodecSerializer;
   int64_t player_id_;
-  flutter::EncodableList data_;
+  flutter::EncodableList type_list_;
 };
 
 // Generated class from Pigeon that represents data sent in messages.
-class DataMapMessage {
+class DashPropertyMapMessage {
  public:
   // Constructs an object setting all fields.
-  explicit DataMapMessage(int64_t player_id, const flutter::EncodableMap& data);
+  explicit DashPropertyMapMessage(int64_t player_id,
+                                  const flutter::EncodableMap& map_data);
 
   int64_t player_id() const;
   void set_player_id(int64_t value_arg);
 
-  const flutter::EncodableMap& data() const;
-  void set_data(const flutter::EncodableMap& value_arg);
+  const flutter::EncodableMap& map_data() const;
+  void set_map_data(const flutter::EncodableMap& value_arg);
 
  private:
-  static DataMapMessage FromEncodableList(const flutter::EncodableList& list);
+  static DashPropertyMapMessage FromEncodableList(
+      const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
   friend class VideoPlayerAvplayApi;
   friend class PigeonInternalCodecSerializer;
   int64_t player_id_;
-  flutter::EncodableMap data_;
+  flutter::EncodableMap map_data_;
 };
 
 class PigeonInternalCodecSerializer : public flutter::StandardCodecSerializer {
@@ -582,8 +585,9 @@ class VideoPlayerAvplayApi {
       const StreamingPropertyMessage& msg) = 0;
   virtual ErrorOr<bool> SetDisplayRotate(const RotationMessage& msg) = 0;
   virtual ErrorOr<bool> SetDisplayMode(const DisplayModeMessage& msg) = 0;
-  virtual ErrorOr<bool> SetData(const DataMapMessage& msg) = 0;
-  virtual ErrorOr<DataMapMessage> GetData(const DataKeyMessage& msg) = 0;
+  virtual ErrorOr<bool> SetData(const DashPropertyMapMessage& msg) = 0;
+  virtual ErrorOr<DashPropertyMapMessage> GetData(
+      const DashPropertyTypeListMessage& msg) = 0;
 
   // The codec used by VideoPlayerAvplayApi.
   static const flutter::StandardMessageCodec& GetCodec();

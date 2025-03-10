@@ -249,9 +249,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   @override
   Future<bool> setData(int playerId, Map<DashPlayerProperty, Object> data) {
     return _api.setData(
-      DataMapMessage(
+      DashPropertyMapMessage(
         playerId: playerId,
-        data: <Object?, Object?>{
+        mapData: <Object?, Object?>{
           for (final MapEntry<DashPlayerProperty, Object> entry in data.entries)
             _dashPlayerPropertyMap[entry.key]: entry.value,
         },
@@ -268,13 +268,17 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     for (final DashPlayerProperty key in keys) {
       keysList.add(_dashPlayerPropertyMap[key]);
     }
-    final DataMapMessage msg = await _api.getData(
-      DataKeyMessage(playerId: playerId, data: keysList),
+    final DashPropertyMapMessage msg = await _api.getData(
+      DashPropertyTypeListMessage(playerId: playerId, typeList: keysList),
     );
 
     return <DashPlayerProperty, Object>{
-      for (final MapEntry<Object?, Object?> entry in msg.data.entries)
-        _dashPlayerPropertyReverseMap[entry.key]!: entry.value!,
+      for (final MapEntry<Object?, Object?> entry in msg.mapData.entries)
+        _dashPlayerPropertyMap.keys.firstWhere(
+              (DashPlayerProperty key) =>
+                  _dashPlayerPropertyMap[key] == entry.key!,
+            ):
+            entry.value!,
     };
   }
 
@@ -421,12 +425,5 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         DashPlayerProperty.maxBandWidth: 'max-bandwidth',
         DashPlayerProperty.mpeghMetadata: 'mpegh-metadata',
         DashPlayerProperty.dashStreamInfo: 'dash-stream-info',
-      };
-
-  static const Map<String, DashPlayerProperty> _dashPlayerPropertyReverseMap =
-      <String, DashPlayerProperty>{
-        'max-bandwidth': DashPlayerProperty.maxBandWidth,
-        'mpegh-metadata': DashPlayerProperty.mpeghMetadata,
-        'dash-stream-info': DashPlayerProperty.dashStreamInfo,
       };
 }

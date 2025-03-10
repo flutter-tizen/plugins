@@ -424,42 +424,42 @@ class DisplayModeMessage {
   }
 }
 
-class DataKeyMessage {
-  DataKeyMessage({required this.playerId, required this.data});
+class DashPropertyTypeListMessage {
+  DashPropertyTypeListMessage({required this.playerId, required this.typeList});
 
   int playerId;
 
-  List<String?> data;
+  List<String?> typeList;
 
   Object encode() {
-    return <Object?>[playerId, data];
+    return <Object?>[playerId, typeList];
   }
 
-  static DataKeyMessage decode(Object result) {
+  static DashPropertyTypeListMessage decode(Object result) {
     result as List<Object?>;
-    return DataKeyMessage(
+    return DashPropertyTypeListMessage(
       playerId: result[0]! as int,
-      data: (result[1] as List<Object?>?)!.cast<String?>(),
+      typeList: (result[1] as List<Object?>?)!.cast<String?>(),
     );
   }
 }
 
-class DataMapMessage {
-  DataMapMessage({required this.playerId, required this.data});
+class DashPropertyMapMessage {
+  DashPropertyMapMessage({required this.playerId, required this.mapData});
 
   int playerId;
 
-  Map<Object?, Object?> data;
+  Map<Object?, Object?> mapData;
 
   Object encode() {
-    return <Object?>[playerId, data];
+    return <Object?>[playerId, mapData];
   }
 
-  static DataMapMessage decode(Object result) {
+  static DashPropertyMapMessage decode(Object result) {
     result as List<Object?>;
-    return DataMapMessage(
+    return DashPropertyMapMessage(
       playerId: result[0]! as int,
-      data: (result[1] as Map<Object?, Object?>?)!.cast<Object?, Object?>(),
+      mapData: (result[1] as Map<Object?, Object?>?)!.cast<Object?, Object?>(),
     );
   }
 }
@@ -522,10 +522,10 @@ class _PigeonCodec extends StandardMessageCodec {
     } else if (value is DisplayModeMessage) {
       buffer.putUint8(145);
       writeValue(buffer, value.encode());
-    } else if (value is DataKeyMessage) {
+    } else if (value is DashPropertyTypeListMessage) {
       buffer.putUint8(146);
       writeValue(buffer, value.encode());
-    } else if (value is DataMapMessage) {
+    } else if (value is DashPropertyMapMessage) {
       buffer.putUint8(147);
       writeValue(buffer, value.encode());
     } else {
@@ -571,9 +571,9 @@ class _PigeonCodec extends StandardMessageCodec {
       case 145:
         return DisplayModeMessage.decode(readValue(buffer)!);
       case 146:
-        return DataKeyMessage.decode(readValue(buffer)!);
+        return DashPropertyTypeListMessage.decode(readValue(buffer)!);
       case 147:
-        return DataMapMessage.decode(readValue(buffer)!);
+        return DashPropertyMapMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -1179,7 +1179,7 @@ class VideoPlayerAvplayApi {
     }
   }
 
-  Future<bool> setData(DataMapMessage msg) async {
+  Future<bool> setData(DashPropertyMapMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setData$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
@@ -1208,7 +1208,9 @@ class VideoPlayerAvplayApi {
     }
   }
 
-  Future<DataMapMessage> getData(DataKeyMessage msg) async {
+  Future<DashPropertyMapMessage> getData(
+    DashPropertyTypeListMessage msg,
+  ) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getData$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
@@ -1233,7 +1235,7 @@ class VideoPlayerAvplayApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as DataMapMessage?)!;
+      return (pigeonVar_replyList[0] as DashPropertyMapMessage?)!;
     }
   }
 }
