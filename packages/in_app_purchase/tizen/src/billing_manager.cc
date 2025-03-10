@@ -320,8 +320,8 @@ void BillingManager::OnProducts(const char *detail_result, void *user_data) {
                                         check_value, item_details);
     self->get_product_list_callback_(products_list);
   } else {
-    self->get_product_list_callback_(
-        FlutterError("Invalid argument", "get_product_list_callback_ is null !"));
+    self->get_product_list_callback_(FlutterError(
+        "Invalid argument", "get_product_list_callback_ is null !"));
   }
   self->get_product_list_callback_ = nullptr;
 }
@@ -418,8 +418,8 @@ void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
         cp_status, &cp_result, total_count, check_value, invoice_details);
     self->get_purchase_list_callback_(purchase_list);
   } else {
-    self->get_purchase_list_callback_(
-        FlutterError("Invalid argument", "get_purchase_list_callback_ is null !"));
+    self->get_purchase_list_callback_(FlutterError(
+        "Invalid argument", "get_purchase_list_callback_ is null !"));
   }
   self->get_purchase_list_callback_ = nullptr;
 }
