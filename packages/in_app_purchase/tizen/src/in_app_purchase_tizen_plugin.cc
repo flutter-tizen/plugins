@@ -86,7 +86,6 @@ void InAppPurchaseTizenPlugin::GetProductsList(
                                 page_num, check_value.c_str(),
                                 std::move(result))) {
     result(FlutterError("Operation failed", "get product list failed"));
-    return;
   }
 }
 
@@ -103,7 +102,6 @@ void InAppPurchaseTizenPlugin::GetUserPurchaseList(
                                  country_code.c_str(), page_num,
                                  check_value.c_str(), std::move(result))) {
     result(FlutterError("Operation failed", "get purchase list failed"));
-    return;
   }
 }
 
@@ -120,18 +118,16 @@ void InAppPurchaseTizenPlugin::BuyItem(
     rapidjson::Value order_item_id, order_title, order_total, order_curenncy_id,
         order_custom_id;
     order_item_id.SetString(pay_details.order_item_id().c_str(),
-                            strlen(pay_details.order_item_id().c_str()),
-                            allocator);
+                            pay_details.order_item_id().size(), allocator);
     order_title.SetString(pay_details.order_title().c_str(),
-                          strlen(pay_details.order_title().c_str()), allocator);
+                          pay_details.order_title().size(), allocator);
     order_total.SetString(pay_details.order_total().c_str(),
-                          strlen(pay_details.order_total().c_str()), allocator);
+                          pay_details.order_total().size(), allocator);
     order_curenncy_id.SetString(pay_details.order_currency_id().c_str(),
-                                strlen(pay_details.order_currency_id().c_str()),
+                                pay_details.order_currency_id().size(),
                                 allocator);
     order_custom_id.SetString(pay_details.order_custom_id().c_str(),
-                              strlen(pay_details.order_custom_id().c_str()),
-                              allocator);
+                              pay_details.order_custom_id().size(), allocator);
     doc.AddMember("OrderItemID", order_item_id, allocator);
     doc.AddMember("OrderTitle", order_title, allocator);
     doc.AddMember("OrderTotal", order_total, allocator);
@@ -146,7 +142,6 @@ void InAppPurchaseTizenPlugin::BuyItem(
   if (!billing_->BuyItem(app_id.c_str(), pay_details_json.c_str(),
                          std::move(result))) {
     result(FlutterError("Operation failed", "buy item failed"));
-    return;
   }
 }
 
@@ -162,7 +157,6 @@ void InAppPurchaseTizenPlugin::VerifyInvoice(
                                invoice_id.c_str(), country_code.c_str(),
                                std::move(result))) {
     result(FlutterError("Operation failed", "invoice verify failed"));
-    return;
   }
 }
 
@@ -170,7 +164,6 @@ void InAppPurchaseTizenPlugin::IsServiceAvailable(
     std::function<void(ErrorOr<bool> reply)> result) {
   if (!billing_->IsAvailable(std::move(result))) {
     result(FlutterError("Operation failed", "billing is not available"));
-    return;
   }
 }
 

@@ -5,17 +5,13 @@
 #ifndef FLUTTER_PLUGIN_BILLING_MANAGER_H
 #define FLUTTER_PLUGIN_BILLING_MANAGER_H
 
-#include <flutter/encodable_value.h>
-#include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
 #include <tizen_error.h>
 
+#include <cassert>
 #include <iostream>
-#include <map>
 #include <mutex>
 #include <string>
 #include <variant>
-#include <vector>
 
 #include "billing_service_proxy.h"
 #include "messages.h"

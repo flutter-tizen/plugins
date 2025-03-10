@@ -58,21 +58,13 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
   }
 
   /// Converts integer to [ItemType].
-  static ItemType _intToEnum(int number) {
-    if (number == 1) {
-      return ItemType.consumable;
-    }
-    if (number == 2) {
-      return ItemType.nonComsumabel;
-    }
-    if (number == 3) {
-      return ItemType.limitedPeriod;
-    }
-    if (number == 4) {
-      return ItemType.subscription;
-    }
-    return ItemType.none;
-  }
+  static ItemType _intToEnum(int number) => switch (number) {
+    1 => ItemType.consumable,
+    2 => ItemType.nonComsumabel,
+    3 => ItemType.limitedPeriod,
+    4 => ItemType.subscription,
+    _ => ItemType.none,
+  };
 
   /// Converts Map<Object?, Object?>? to the list of [ItemDetails].
   List<ItemDetails> _getItemDetails(ProductsListApiResult response) {

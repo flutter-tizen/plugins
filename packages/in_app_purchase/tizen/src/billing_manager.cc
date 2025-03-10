@@ -5,15 +5,17 @@
 #include "billing_manager.h"
 
 #include <dlfcn.h>
+#include <flutter/encodable_value.h>
 #include <flutter/standard_method_codec.h>
 
-#include <cassert>
-#include <iomanip>
-#include <sstream>
+#include <mutex>
 #include <string>
-#include <vector>
+#include <variant>
 
+#include "billing_service_proxy.h"
 #include "log.h"
+#include "messages.h"
+#include "rapidjson/document.h"
 
 static std::string ServerTypeToString(billing_server_type server_type) {
   switch (server_type) {
