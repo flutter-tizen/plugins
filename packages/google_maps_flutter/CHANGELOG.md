@@ -1,3 +1,6 @@
+## 0.1.12
+* Add support for marker clustering.
+
 ## 0.1.11
 
 * Update google_maps_flutter to 2.10.0.

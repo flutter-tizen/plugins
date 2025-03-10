@@ -116,7 +116,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     ClusterManagerUpdates clusterManagerUpdates, {
     required int mapId,
   }) async {
-    return; // Noop for now!
+    _map(mapId).updateClusterManagers(clusterManagerUpdates);
   }
 
   @override
