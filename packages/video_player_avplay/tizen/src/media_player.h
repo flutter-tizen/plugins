@@ -41,6 +41,8 @@ class MediaPlayer : public VideoPlayer {
   bool SetTrackSelection(int32_t track_id, std::string track_type) override;
   bool SetDisplayRotate(int64_t rotation) override;
   bool SetDisplayMode(int64_t display_mode) override;
+  bool Suspend() override;
+  bool Restore(std::string url, int64_t resume_time) override;
 
  private:
   bool IsLive();

@@ -247,6 +247,18 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<void> suspend(int playerId) {
+    return _api.suspend(PlayerMessage(playerId: playerId));
+  }
+
+  @override
+  Future<void> restore(int playerId, {String? url, int resumeTime = 0}) {
+    return _api.restore(
+      RestoreMessage(playerId: playerId, url: url, resumeTime: resumeTime),
+    );
+  }
+
+  @override
   Future<void> setStreamingProperty(
     int playerId,
     StreamingPropertyType type,
