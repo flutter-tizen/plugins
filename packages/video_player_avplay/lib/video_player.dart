@@ -865,7 +865,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.setDisplayMode(_playerId, displayMode);
   }
 
-  /// Set dashplusplayer properties
+  /// Set dashplusplayer properties,can be called after initialized.
   Future<bool> setData(Map<DashPlayerProperty, Object> data) async {
     if (_isDisposedOrNotInitialized) {
       return false;
@@ -874,7 +874,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.setData(playerId, data);
   }
 
-  /// Get dashplusplayer properties
+  /// Get dashplusplayer properties,can be called after initialized.
   Future<Map<DashPlayerProperty, Object>> getData(
     Set<DashPlayerProperty> keys,
   ) async {

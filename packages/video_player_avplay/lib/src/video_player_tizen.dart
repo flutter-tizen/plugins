@@ -423,7 +423,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   static const Map<DashPlayerProperty, String> _dashPlayerPropertyMap =
       <DashPlayerProperty, String>{
         DashPlayerProperty.maxBandWidth: 'max-bandwidth',
-        DashPlayerProperty.mpeghMetadata: 'mpegh-metadata',
         DashPlayerProperty.dashStreamInfo: 'dash-stream-info',
       };
 }
