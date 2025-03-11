@@ -1,21 +1,21 @@
-// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2025 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #ifndef FLUTTER_PLUGIN_BILLING_MANAGER_H
 #define FLUTTER_PLUGIN_BILLING_MANAGER_H
 
-#include <flutter/encodable_value.h>
-#include <flutter/method_channel.h>
-#include <flutter/plugin_registrar.h>
 #include <tizen_error.h>
 
+#include <cassert>
 #include <iostream>
-#include <map>
+#include <mutex>
 #include <string>
-#include <vector>
+#include <variant>
 
 #include "billing_service_proxy.h"
+#include "messages.h"
+#include "rapidjson/document.h"
 
 #define SSO_API_MAX_STRING_LEN 128
 
@@ -144,6 +144,44 @@ typedef bool (*FuncSsoGetLoginInfo)(sso_login_info_s *login_info);
 typedef char *(*FuncVconfGetStr)(const char *in_key);
 typedef int (*FuncSystemInfGetValueInt)(system_info_key_e key, int *value);
 
+template <typename T>
+using FunctionResult = std::function<void(ErrorOr<T>)>;
+
+template <typename T>
+struct AlwaysFalseType : std::false_type {};
+
+template <typename T>
+T GetJsonValue(const rapidjson::Value &doc, const char *key,
+               const T &default_val = T()) {
+  auto itr = doc.FindMember(key);
+  if (itr == doc.MemberEnd()) {
+    return default_val;  // when key is not exist, return default_val
+  }
+
+  const rapidjson::Value &value = itr->value;
+
+  if constexpr (std::is_same_v<T, std::string>) {
+    return value.IsString() ? value.GetString() : default_val;
+  } else if constexpr (std::is_same_v<T, int64_t>) {
+    return value.IsInt() ? value.GetInt() : default_val;
+  } else if constexpr (std::is_same_v<T, bool>) {
+    return value.IsBool() ? value.GetBool() : default_val;
+  } else if constexpr (std::is_same_v<T, double>) {
+    return value.IsDouble() ? value.GetDouble() : default_val;
+  } else if constexpr (std::is_same_v<T, const rapidjson::Value &>) {
+    return value.IsArray() ? value : default_val;
+  } else if constexpr (std::is_same_v<T, std::variant<int, double>>) {
+    if (value.IsInt())
+      return value.GetInt();
+    else if (value.IsDouble())
+      return value.GetDouble();
+    else
+      return default_val;
+  } else {
+    static_assert(AlwaysFalseType<T>::value, "Unsupported type");
+  }
+}
+
 class BillingManager {
  public:
   explicit BillingManager() {}
@@ -151,23 +189,19 @@ class BillingManager {
 
   bool Init();
   void Dispose();
-  bool BillingIsAvailable(
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  bool BuyItem(
-      const char *app_id, const char *detail_info,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  bool GetProductList(
-      const char *app_id, const char *country_code, int page_size,
-      int page_number, const char *check_value,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  bool GetPurchaseList(
-      const char *app_id, const char *custom_id, const char *country_code,
-      int page_number, const char *check_value,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
-  bool VerifyInvoice(
-      const char *app_id, const char *custom_id, const char *invoice_id,
-      const char *country_code,
-      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+  bool IsAvailable(FunctionResult<bool> result);
+  bool BuyItem(const char *app_id, const char *detail_info,
+               FunctionResult<BillingBuyData> result);
+  bool GetProductList(const char *app_id, const char *country_code,
+                      int page_size, int page_number, const char *check_value,
+                      FunctionResult<ProductsListApiResult> result);
+  bool GetPurchaseList(const char *app_id, const char *custom_id,
+                       const char *country_code, int page_number,
+                       const char *check_value,
+                       FunctionResult<GetUserPurchaseListAPIResult> result);
+  bool VerifyInvoice(const char *app_id, const char *custom_id,
+                     const char *invoice_id, const char *country_code,
+                     FunctionResult<VerifyInvoiceAPIResult> result);
   std::string GetCustomId();
   std::string GetCountryCode();
 
@@ -179,9 +213,14 @@ class BillingManager {
   static void OnAvailable(const char *detail_result, void *user_data);
   static void OnVerify(const char *detail_result, void *user_data);
 
-  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
-      method_channel_ = nullptr;
   billing_server_type billing_server_type_;
+
+  FunctionResult<bool> is_available_callback_;
+  FunctionResult<BillingBuyData> buy_item_callback_;
+  FunctionResult<ProductsListApiResult> get_product_list_callback_;
+  FunctionResult<GetUserPurchaseListAPIResult> get_purchase_list_callback_;
+  FunctionResult<VerifyInvoiceAPIResult> verify_invoice_callback_;
+  std::mutex mutex_;
 };
 
 #endif  // FLUTTER_PLUGIN_BILLING_MANAGER_H

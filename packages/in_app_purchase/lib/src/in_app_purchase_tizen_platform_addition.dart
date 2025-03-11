@@ -5,7 +5,8 @@
 import 'package:flutter/services.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
-import '../billing_manager_wrappers.dart';
+import 'billing_manager.dart';
+import 'messages.g.dart';
 
 /// Contains InApp Purchase features that are only available on SamsungCheckout.
 class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
@@ -31,16 +32,15 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
   /// See README.md file to find how to get these values.
   void setRequestParameters({
     required String appId,
-    int? pageSize,
-    int? pageNum,
+    required int pageSize,
+    required int pageNum,
     String? securityKey,
   }) {
-    final Map<String, dynamic> requestParameters = <String, dynamic>{
-      'appId': appId,
-      'pageSize': pageSize,
-      'pageNum': pageNum,
-      'securityKey': securityKey,
-    };
+    final RequestParameters requestParameters = RequestParameters();
+    requestParameters.appId = appId;
+    requestParameters.pageSize = pageSize;
+    requestParameters.pageNum = pageNum;
+    requestParameters.securityKey = securityKey;
     _billingManager.setRequestParameters(requestParameters);
   }
 
@@ -54,7 +54,7 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
         invoiceId: purchaseDetails.verificationData.serverVerificationData,
       );
     } on PlatformException {
-      verifyPurchaseResult = const VerifyInvoiceAPIResult(
+      verifyPurchaseResult = VerifyInvoiceAPIResult(
         appId: 'error appId',
         cpStatus: 'error cpStatus',
         invoiceId: 'error invoiceId',
