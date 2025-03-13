@@ -865,6 +865,26 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.setDisplayMode(_playerId, displayMode);
   }
 
+  /// Set dashplusplayer properties,can be called after initialized.
+  Future<bool> setData(Map<DashPlayerProperty, Object> data) async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+
+    return _videoPlayerPlatform.setData(playerId, data);
+  }
+
+  /// Get dashplusplayer properties,can be called after initialized.
+  Future<Map<DashPlayerProperty, Object>> getData(
+    Set<DashPlayerProperty> keys,
+  ) async {
+    if (_isDisposedOrNotInitialized) {
+      return <DashPlayerProperty, Object>{};
+    }
+
+    return _videoPlayerPlatform.getData(playerId, keys);
+  }
+
   /// Sets the playback speed of [this].
   ///
   /// [speed] indicates a speed value with different platforms accepting

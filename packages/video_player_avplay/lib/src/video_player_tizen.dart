@@ -247,6 +247,42 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<bool> setData(int playerId, Map<DashPlayerProperty, Object> data) {
+    return _api.setData(
+      DashPropertyMapMessage(
+        playerId: playerId,
+        mapData: <Object?, Object?>{
+          for (final MapEntry<DashPlayerProperty, Object> entry in data.entries)
+            _dashPlayerPropertyMap[entry.key]: entry.value,
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<Map<DashPlayerProperty, Object>> getData(
+    int playerId,
+    Set<DashPlayerProperty> keys,
+  ) async {
+    final List<String?> keysList = <String?>[];
+    for (final DashPlayerProperty key in keys) {
+      keysList.add(_dashPlayerPropertyMap[key]);
+    }
+    final DashPropertyMapMessage msg = await _api.getData(
+      DashPropertyTypeListMessage(playerId: playerId, typeList: keysList),
+    );
+
+    return <DashPlayerProperty, Object>{
+      for (final MapEntry<Object?, Object?> entry in msg.mapData.entries)
+        _dashPlayerPropertyMap.keys.firstWhere(
+              (DashPlayerProperty key) =>
+                  _dashPlayerPropertyMap[key] == entry.key!,
+            ):
+            entry.value!,
+    };
+  }
+
+  @override
   Future<void> setStreamingProperty(
     int playerId,
     StreamingPropertyType type,
@@ -383,4 +419,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     BufferConfigType.bufferingTimeoutInSecForPlay:
         'buffering_timeout_in_sec_for_play',
   };
+
+  static const Map<DashPlayerProperty, String> _dashPlayerPropertyMap =
+      <DashPlayerProperty, String>{
+        DashPlayerProperty.maxBandWidth: 'max-bandwidth',
+        DashPlayerProperty.dashStreamInfo: 'dash-stream-info',
+      };
 }

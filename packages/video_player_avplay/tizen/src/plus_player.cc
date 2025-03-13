@@ -10,6 +10,9 @@
 #include <sstream>
 
 #include "log.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 static std::vector<std::string> split(const std::string &s, char delim) {
   std::stringstream ss(s);
@@ -646,7 +649,7 @@ bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
     return false;
   }
 
-  LOG_INFO("[PlusPlayer] rotation: %d", rotation);
+  LOG_INFO("[PlusPlayer] rotation: %lld", rotation);
   return ::SetDisplayRotate(player_,
                             static_cast<plusplayer::DisplayRotation>(rotation));
 }
@@ -662,8 +665,110 @@ bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
     return false;
   }
-  LOG_INFO("[PlusPlayer] display_mode: %d", display_mode);
-  ::SetDisplayMode(player_, static_cast<plusplayer::DisplayMode>(display_mode));
+  LOG_INFO("[PlusPlayer] display_mode: %lld", display_mode);
+  return ::SetDisplayMode(player_,
+                          static_cast<plusplayer::DisplayMode>(display_mode));
+}
+
+std::string BuildJsonString(const flutter::EncodableMap &data) {
+  rapidjson::Document doc;
+  doc.SetObject();
+  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+
+  for (const auto &pair : data) {
+    std::string key_str = std::get<std::string>(pair.first);
+    rapidjson::Value key(key_str.c_str(), allocator);
+    if (key_str == "max-bandwidth") {
+      doc.AddMember(key, rapidjson::Value(std::get<int64_t>(pair.second)),
+                    allocator);
+    } else {
+      doc.AddMember(key,
+                    rapidjson::Value(std::get<std::string>(pair.second).c_str(),
+                                     allocator),
+                    allocator);
+    }
+  }
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  doc.Accept(writer);
+  return buffer.GetString();
+}
+
+std::string BuildJsonString(const flutter::EncodableList &encodable_keys) {
+  rapidjson::Document doc;
+  doc.SetObject();
+  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+
+  for (const auto &encodable_key : encodable_keys) {
+    std::string key_str = std::get<std::string>(encodable_key);
+    rapidjson::Value key(key_str.c_str(), allocator);
+    if (key_str == "max-bandwidth") {
+      doc.AddMember(key, 0, allocator);
+    } else {
+      doc.AddMember(key, "", allocator);
+    }
+  }
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  doc.Accept(writer);
+  return buffer.GetString();
+}
+
+void ParseJsonString(std::string json_str,
+                     const flutter::EncodableList &encodable_keys,
+                     flutter::EncodableMap &output) {
+  rapidjson::Document doc;
+  doc.Parse(json_str.c_str());
+  if (doc.HasParseError()) {
+    LOG_ERROR("[PlusPlayer] Fail to parse json string.");
+    return;
+  }
+  for (const auto &encodable_key : encodable_keys) {
+    std::string key_str = std::get<std::string>(encodable_key);
+    if (doc.HasMember(key_str.c_str())) {
+      if (key_str == "max-bandwidth") {
+        output.insert_or_assign(
+            encodable_key,
+            flutter::EncodableValue(doc[key_str.c_str()].GetInt64()));
+      } else {
+        output.insert_or_assign(
+            encodable_key,
+            flutter::EncodableValue(doc[key_str.c_str()].GetString()));
+      }
+    }
+  }
+}
+
+bool PlusPlayer::SetData(const flutter::EncodableMap &data) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return false;
+  }
+  std::string json_data = BuildJsonString(data);
+  if (json_data.empty()) {
+    LOG_ERROR("[PlusPlayer] json_data is empty.");
+    return false;
+  }
+  return ::SetData(player_, json_data);
+}
+
+flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
+  flutter::EncodableMap result;
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return result;
+  }
+  std::string json_data = BuildJsonString(data);
+  if (json_data.empty()) {
+    LOG_ERROR("[PlusPlayer] json_data is empty.");
+    return result;
+  }
+  if (!::GetData(player_, json_data)) {
+    LOG_ERROR("[PlusPlayer] Fail to get data from player");
+    return result;
+  }
+  ParseJsonString(json_data, data, result);
+  return result;
 }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,

@@ -59,6 +59,10 @@ class VideoPlayer {
                                     const std::string &value){};
   virtual bool SetDisplayRotate(int64_t rotation) = 0;
   virtual bool SetDisplayMode(int64_t display_mode) = 0;
+  virtual bool SetData(const flutter::EncodableMap &data) { return false; }
+  virtual flutter::EncodableMap GetData(const flutter::EncodableList &data) {
+    return flutter::EncodableMap{};
+  }
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
