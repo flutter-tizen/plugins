@@ -434,6 +434,85 @@ enum DashPlayerProperty {
   dashStreamInfo,
 }
 
+/// Specifies the player error messages.
+enum PlayerError {
+  /// Operation has successfully completed; no error.
+  none,
+
+  /// Out of memory.
+  outOfMemory,
+
+  /// Unable to find the parameter.
+  invalidParameter,
+
+  /// Unable to find the specified media content.
+  noSuchFile,
+
+  /// Invalid API Call at the moment.
+  invalidOperation,
+
+  /// No space left on the device.
+  fileNoSpaceOnDevice,
+
+  /// Not supported Feature.
+  featureNotSupportedOnDevice,
+
+  /// Failed to perform seek operation, or seek operation called during an
+  /// invalid state
+  seekFailed,
+
+  /// AVPlay API method was called during an invalid state.
+  invalidState,
+
+  /// Multimedia file type not supported.
+  notSupportedFile,
+
+  /// Input URI is in an invalid format.
+  invalidUri,
+
+  /// Sound policy error.
+  soundPolicy,
+
+  /// Failed multiple attempts to connect to the specified content server.
+  connectionFailed,
+
+  /// Expired license.
+  drmExpired,
+
+  /// License for future use.
+  drmFutureUse,
+
+  /// No license.
+  drmNoLicense,
+
+  /// Format not permitted.
+  drmNotPermitted,
+
+  /// Resource limit.
+  resourceLimit,
+
+  /// Permission denied.
+  permissionDenied,
+
+  /// Socket connection lost.
+  serviceDisconnected,
+
+  /// No buffer space available.
+  bufferSpace,
+
+  /// Not supported audio codec but video can be played.
+  notSupportedAudioCodec,
+
+  /// Not supported video codec but audio can be played.
+  notSupportedVideoCodec,
+
+  /// Not supported subtitle format.
+  notSupportedSubtitle,
+
+  /// Multimedia file format not supported.
+  notSupportedFormat,
+}
+
 /// Event emitted from the platform implementation.
 @immutable
 class VideoEvent {
@@ -454,6 +533,7 @@ class VideoEvent {
     this.buffered,
     this.text,
     this.isPlaying,
+    this.playerError,
   });
 
   /// The type of the event.
@@ -483,6 +563,11 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
   final bool? isPlaying;
+
+  /// Error event of the video.
+  ///
+  /// Only used if [eventType] is [VideoEventType.error].
+  final PlayerError? playerError;
 
   @override
   bool operator ==(Object other) {
@@ -533,6 +618,9 @@ enum VideoEventType {
   /// This event is fired when the video starts or pauses due to user actions or
   /// phone calls, or other app media such as music players.
   isPlayingStateUpdate,
+
+  /// Error messages notifications.
+  error,
 
   /// An unknown event has been received.
   unknown,

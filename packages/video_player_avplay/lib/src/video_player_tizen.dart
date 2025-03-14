@@ -340,6 +340,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             eventType: VideoEventType.isPlayingStateUpdate,
             isPlaying: map['isPlaying']! as bool,
           );
+        case 'error':
+          return VideoEvent(
+            eventType: VideoEventType.error,
+            playerError: PlayerError.values[map['errorCode']! as int],
+          );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
       }

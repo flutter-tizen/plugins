@@ -57,6 +57,7 @@ class VideoPlayerValue {
     this.playbackSpeed = 1.0,
     this.errorDescription,
     this.isCompleted = false,
+    this.playerError = PlayerError.none,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -135,6 +136,9 @@ class VideoPlayerValue {
   /// Indicates whether or not the video has been loaded and is ready to play.
   final bool isInitialized;
 
+  ///
+  final PlayerError? playerError;
+
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
   bool get hasError => errorDescription != null;
@@ -174,6 +178,7 @@ class VideoPlayerValue {
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
+    PlayerError? playerError,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -194,6 +199,7 @@ class VideoPlayerValue {
               ? errorDescription
               : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
+      playerError: playerError ?? PlayerError.none,
     );
   }
 
@@ -214,7 +220,8 @@ class VideoPlayerValue {
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
-        'isCompleted: $isCompleted),';
+        'isCompleted: $isCompleted, '
+        'playerError: $playerError';
   }
 
   @override
@@ -236,7 +243,8 @@ class VideoPlayerValue {
           volume == other.volume &&
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
-          isCompleted == other.isCompleted;
+          isCompleted == other.isCompleted &&
+          playerError == other.playerError;
 
   @override
   int get hashCode => Object.hash(
@@ -255,6 +263,7 @@ class VideoPlayerValue {
     playbackSpeed,
     errorDescription,
     isCompleted,
+    playerError,
   );
 }
 
@@ -567,7 +576,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           } else {
             value = value.copyWith(isPlaying: event.isPlaying);
           }
-
+        case VideoEventType.error:
+          value = value.copyWith(playerError: event.playerError);
         case VideoEventType.unknown:
           break;
       }
