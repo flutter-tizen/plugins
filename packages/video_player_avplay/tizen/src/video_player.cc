@@ -173,13 +173,13 @@ void VideoPlayer::SendIsPlayingState(bool is_playing) {
   PushEvent(flutter::EncodableValue(result));
 }
 
-void VideoPlayer::SendError(const std::string &error_code,
-                            const std::string &error_message) {
-  if (event_sink_) {
-    std::lock_guard<std::mutex> lock(queue_mutex_);
-    error_event_queue_.push(std::make_pair(error_code, error_message));
-    ecore_pipe_write(sink_event_pipe_, nullptr, 0);
-  }
+void VideoPlayer::SendError(const PlayerError &error_code) {
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"), flutter::EncodableValue("error")},
+      {flutter::EncodableValue("errorCode"),
+       flutter::EncodableValue(static_cast<int32_t>(error_code))},
+  };
+  PushEvent(flutter::EncodableValue(result));
 }
 
 void *VideoPlayer::GetWindowHandle() {

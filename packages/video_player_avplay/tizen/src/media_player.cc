@@ -10,6 +10,47 @@
 
 #include "log.h"
 
+std::map<player_error_e, PlayerError> kMediaPlayerErrorMap = {
+    {player_error_e::PLAYER_ERROR_NONE, PlayerError::kNone},
+    {player_error_e::PLAYER_ERROR_OUT_OF_MEMORY, PlayerError::kOutOfMemory},
+    {player_error_e::PLAYER_ERROR_INVALID_PARAMETER,
+     PlayerError::kInvalidParameter},
+    {player_error_e::PLAYER_ERROR_NO_SUCH_FILE, PlayerError::kNoSuchFile},
+    {player_error_e::PLAYER_ERROR_INVALID_OPERATION,
+     PlayerError::kInvalidOperation},
+    {player_error_e::PLAYER_ERROR_FILE_NO_SPACE_ON_DEVICE,
+     PlayerError::kFileNoSpaceOnDevice},
+    {player_error_e::PLAYER_ERROR_FEATURE_NOT_SUPPORTED_ON_DEVICE,
+     PlayerError::kFeatureNotSupportedOnDevice},
+    {player_error_e::PLAYER_ERROR_SEEK_FAILED, PlayerError::kSeekFailed},
+    {player_error_e::PLAYER_ERROR_INVALID_STATE, PlayerError::kInvalidState},
+    {player_error_e::PLAYER_ERROR_NOT_SUPPORTED_FILE,
+     PlayerError::kNotSupportedFile},
+    {player_error_e::PLAYER_ERROR_INVALID_URI, PlayerError::kInvalidUri},
+    {player_error_e::PLAYER_ERROR_SOUND_POLICY, PlayerError::kSoundPolicy},
+    {player_error_e::PLAYER_ERROR_CONNECTION_FAILED,
+     PlayerError::kConnectionFailed},
+    {player_error_e::PLAYER_ERROR_DRM_EXPIRED, PlayerError::kDrmExpired},
+    {player_error_e::PLAYER_ERROR_DRM_NO_LICENSE, PlayerError::kDrmNoLicense},
+    {player_error_e::PLAYER_ERROR_DRM_FUTURE_USE, PlayerError::kDrmFutureUse},
+    {player_error_e::PLAYER_ERROR_DRM_NOT_PERMITTED,
+     PlayerError::kDrmNotPermitted},
+    {player_error_e::PLAYER_ERROR_RESOURCE_LIMIT, PlayerError::kResourceLimit},
+    {player_error_e::PLAYER_ERROR_PERMISSION_DENIED,
+     PlayerError::kPermissionDenied},
+    {player_error_e::PLAYER_ERROR_SERVICE_DISCONNECTED,
+     PlayerError::kServiceDisconnected},
+    {player_error_e::PLAYER_ERROR_BUFFER_SPACE, PlayerError::kBufferSpace},
+    {player_error_e::PLAYER_ERROR_NOT_SUPPORTED_AUDIO_CODEC,
+     PlayerError::kNotSupportedAudioCodec},
+    {player_error_e::PLAYER_ERROR_NOT_SUPPORTED_VIDEO_CODEC,
+     PlayerError::kNotSupportedVideoCodec},
+    {player_error_e::PLAYER_ERROR_NOT_SUPPORTED_SUBTITLE,
+     PlayerError::kNotSupportedSubtitle},
+    {player_error_e::PLAYER_ERROR_NOT_SUPPORTED_FORMAT,
+     PlayerError::kNotSupportedFormat},
+};
+
 static std::vector<std::string> split(const std::string &s, char delim) {
   std::stringstream ss(s);
   std::string item;
@@ -696,8 +737,12 @@ void MediaPlayer::OnError(int error_code, void *user_data) {
             get_error_message(error_code));
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
-  self->SendError("Media Player error",
-                  std::string("Error: ") + get_error_message(error_code));
+  std::map<player_error_e, PlayerError>::iterator iter =
+      kMediaPlayerErrorMap.find(static_cast<player_error_e>(error_code));
+  if (iter != kMediaPlayerErrorMap.end()) {
+    self->SendError(
+        kMediaPlayerErrorMap[static_cast<player_error_e>(error_code)]);
+  }
 }
 
 void MediaPlayer::OnSubtitleUpdated(unsigned long duration, char *text,
