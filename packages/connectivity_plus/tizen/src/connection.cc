@@ -17,8 +17,10 @@ static ConnectionType ToConnectionType(connection_type_e type) {
     case CONNECTION_TYPE_BT:
       return ConnectionType::kBluetooth;
     case CONNECTION_TYPE_DISCONNECTED:
-    default:
       return ConnectionType::kNone;
+    case CONNECTION_TYPE_NET_PROXY:
+    default:
+      return ConnectionType::kOther;
   }
 }
 
