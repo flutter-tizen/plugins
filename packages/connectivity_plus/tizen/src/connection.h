@@ -17,7 +17,8 @@ enum class ConnectionType {
   kWiFi,
   kMobile,
   kBluetooth,
-  kError
+  kError,
+  kOther,
 };
 
 typedef std::function<void(ConnectionType)> ConnectionTypeCallback;
