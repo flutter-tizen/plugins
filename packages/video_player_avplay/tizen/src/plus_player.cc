@@ -446,6 +446,11 @@ flutter::EncodableValue PlusPlayer::ParseVideoTrack(
   video_track_result.insert_or_assign(
       flutter::EncodableValue("bitrate"),
       flutter::EncodableValue(video_track.bitrate));
+  LOG_DEBUG(
+      "[PlusPlayer] video track info : trackId : %d, mimetype : %s, width : "
+      "%d, height : %d, birate : %d",
+      video_track.index, video_track.mimetype.c_str(), video_track.width,
+      video_track.height, video_track.bitrate);
   return flutter::EncodableValue(video_track_result);
 }
 
@@ -457,9 +462,9 @@ flutter::EncodableValue PlusPlayer::ParseAudioTrack(
   audio_track_result.insert_or_assign(
       flutter::EncodableValue("trackId"),
       flutter::EncodableValue(audio_track.index));
-  video_track_result.insert_or_assign(
+  audio_track_result.insert_or_assign(
       flutter::EncodableValue("mimetype"),
-      flutter::EncodableValue(video_track.mimetype));
+      flutter::EncodableValue(audio_track.mimetype));
   audio_track_result.insert_or_assign(
       flutter::EncodableValue("language"),
       flutter::EncodableValue(audio_track.language_code));
@@ -469,6 +474,13 @@ flutter::EncodableValue PlusPlayer::ParseAudioTrack(
   audio_track_result.insert_or_assign(
       flutter::EncodableValue("bitrate"),
       flutter::EncodableValue(audio_track.bitrate));
+  LOG_DEBUG(
+      "[PlusPlayer] audio track info : trackId : %d, mimetype : %s, "
+      "language_code : "
+      "%s, channel : %d, bitrate : %d",
+      audio_track.index, audio_track.mimetype.c_str(),
+      audio_track.language_code.c_str(), audio_track.channels,
+      audio_track.bitrate);
   return flutter::EncodableValue(audio_track_result);
 }
 
@@ -480,12 +492,17 @@ flutter::EncodableValue PlusPlayer::ParseSubtitleTrack(
   subtitle_track_result.insert_or_assign(
       flutter::EncodableValue("trackId"),
       flutter::EncodableValue(subtitle_track.index));
-  video_track_result.insert_or_assign(
+  subtitle_track_result.insert_or_assign(
       flutter::EncodableValue("mimetype"),
-      flutter::EncodableValue(video_track.mimetype));
+      flutter::EncodableValue(subtitle_track.mimetype));
   subtitle_track_result.insert_or_assign(
       flutter::EncodableValue("language"),
       flutter::EncodableValue(subtitle_track.language_code));
+  LOG_DEBUG(
+      "[PlusPlayer] subtitle track info : trackId : %d, mimetype : %s, "
+      "language_code : %s",
+      subtitle_track.index, subtitle_track.mimetype.c_str(),
+      subtitle_track.language_code.c_str());
   return flutter::EncodableValue(subtitle_track_result);
 }
 
