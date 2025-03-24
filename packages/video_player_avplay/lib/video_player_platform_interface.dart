@@ -170,6 +170,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('getData() has not been implemented.');
   }
 
+  /// Get activated(selected) track infomation of the associated media.
+  Future<List<Track>> getActiveTrackInfo(int playerId) {
+    throw UnimplementedError('getActiveTrackInfo() has not been implemented.');
+  }
+
   /// Set streamingengine property.
   Future<void> setStreamingProperty(
     int playerId,

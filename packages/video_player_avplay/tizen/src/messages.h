@@ -588,6 +588,8 @@ class VideoPlayerAvplayApi {
   virtual ErrorOr<bool> SetData(const DashPropertyMapMessage& msg) = 0;
   virtual ErrorOr<DashPropertyMapMessage> GetData(
       const DashPropertyTypeListMessage& msg) = 0;
+  virtual ErrorOr<TrackMessage> GetActiveTrackInfo(
+      const PlayerMessage& msg) = 0;
 
   // The codec used by VideoPlayerAvplayApi.
   static const flutter::StandardMessageCodec& GetCodec();

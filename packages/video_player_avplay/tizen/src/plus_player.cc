@@ -375,7 +375,7 @@ std::pair<int64_t, int64_t> PlusPlayer::GetDuration() {
 void PlusPlayer::GetVideoSize(int32_t *width, int32_t *height) {
   if (GetState(player_) >= plusplayer::State::kTrackSourceReady) {
     bool found = false;
-    std::vector<plusplayer::Track> tracks = GetActiveTrackInfo(player_);
+    std::vector<plusplayer::Track> tracks = ::GetActiveTrackInfo(player_);
     for (auto track : tracks) {
       if (track.type == plusplayer::TrackType::kTrackTypeVideo) {
         *width = track.width;
@@ -426,6 +426,54 @@ bool PlusPlayer::SetDisplay() {
   return true;
 }
 
+flutter::EncodableValue PlusPlayer::ParseVideoTrack(
+    plusplayer::Track video_track) {
+  flutter::EncodableMap video_track_result = {};
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("trackId"),
+      flutter::EncodableValue(video_track.index));
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("width"),
+      flutter::EncodableValue(video_track.width));
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("height"),
+      flutter::EncodableValue(video_track.height));
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("bitrate"),
+      flutter::EncodableValue(video_track.bitrate));
+  return flutter::EncodableValue(video_track_result);
+}
+
+flutter::EncodableValue PlusPlayer::ParseAudioTrack(
+    plusplayer::Track audio_track) {
+  flutter::EncodableMap audio_track_result = {};
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("trackId"),
+      flutter::EncodableValue(audio_track.index));
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("language"),
+      flutter::EncodableValue(audio_track.language_code));
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("channel"),
+      flutter::EncodableValue(audio_track.channels));
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("bitrate"),
+      flutter::EncodableValue(audio_track.bitrate));
+  return flutter::EncodableValue(audio_track_result);
+}
+
+flutter::EncodableValue PlusPlayer::ParseSubtitleTrack(
+    plusplayer::Track subtitle_track) {
+  flutter::EncodableMap subtitle_track_result = {};
+  subtitle_track_result.insert_or_assign(
+      flutter::EncodableValue("trackId"),
+      flutter::EncodableValue(subtitle_track.index));
+  subtitle_track_result.insert_or_assign(
+      flutter::EncodableValue("language"),
+      flutter::EncodableValue(subtitle_track.language_code));
+  return flutter::EncodableValue(subtitle_track_result);
+}
+
 flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
@@ -458,63 +506,59 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
     LOG_INFO("[PlusPlayer] Video track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeVideo) {
-        trackSelection.insert_or_assign(flutter::EncodableValue("trackId"),
-                                        flutter::EncodableValue(track.index));
-        trackSelection.insert_or_assign(flutter::EncodableValue("width"),
-                                        flutter::EncodableValue(track.width));
-        trackSelection.insert_or_assign(flutter::EncodableValue("height"),
-                                        flutter::EncodableValue(track.height));
-        trackSelection.insert_or_assign(flutter::EncodableValue("bitrate"),
-                                        flutter::EncodableValue(track.bitrate));
-        LOG_INFO(
-            "[PlusPlayer] video track info[%d]: width[%d], height[%d], "
-            "bitrate[%d]",
-            track.index, track.width, track.height, track.bitrate);
-
-        trackSelections.push_back(flutter::EncodableValue(trackSelection));
+        trackSelections.push_back(ParseVideoTrack(track));
       }
     }
   } else if (type == plusplayer::TrackType::kTrackTypeAudio) {
     LOG_INFO("[PlusPlayer] Audio track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeAudio) {
-        trackSelection.insert_or_assign(flutter::EncodableValue("trackId"),
-                                        flutter::EncodableValue(track.index));
-        trackSelection.insert_or_assign(
-            flutter::EncodableValue("language"),
-            flutter::EncodableValue(track.language_code));
-        trackSelection.insert_or_assign(
-            flutter::EncodableValue("channel"),
-            flutter::EncodableValue(track.channels));
-        trackSelection.insert_or_assign(flutter::EncodableValue("bitrate"),
-                                        flutter::EncodableValue(track.bitrate));
-        LOG_INFO(
-            "[PlusPlayer] Audio track info[%d]: language[%s], channel[%d], "
-            "sample_rate[%d], bitrate[%d]",
-            track.index, track.language_code.c_str(), track.channels,
-            track.sample_rate, track.bitrate);
-
-        trackSelections.push_back(flutter::EncodableValue(trackSelection));
+        trackSelections.push_back(ParseAudioTrack(track));
       }
     }
   } else if (type == plusplayer::TrackType::kTrackTypeSubtitle) {
     LOG_INFO("[PlusPlayer] Subtitle track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeSubtitle) {
-        trackSelection.insert_or_assign(flutter::EncodableValue("trackId"),
-                                        flutter::EncodableValue(track.index));
-        trackSelection.insert_or_assign(
-            flutter::EncodableValue("language"),
-            flutter::EncodableValue(track.language_code));
-        LOG_INFO("[PlusPlayer] Subtitle track info[%d]: language[%s]",
-                 track.index, track.language_code.c_str());
-
-        trackSelections.push_back(flutter::EncodableValue(trackSelection));
+        trackSelections.push_back(
+            flutter::EncodableValue(ParseSubtitleTrack(track)));
       }
     }
   }
 
   return trackSelections;
+}
+
+flutter::EncodableList PlusPlayer::GetActiveTrackInfo() {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return {};
+  }
+
+  plusplayer::State state = GetState(player_);
+  if (state < plusplayer::State::kTrackSourceReady) {
+    LOG_ERROR("[PlusPlayer] Player is in invalid state.");
+    return {};
+  }
+
+  const std::vector<plusplayer::Track> track_info =
+      ::GetActiveTrackInfo(player_);
+
+  if (track_info.empty()) {
+    return {};
+  }
+
+  flutter::EncodableList active_tracks = {};
+  for (const auto &track : track_info) {
+    if (track.type == plusplayer::kTrackTypeVideo) {
+      active_tracks.push_back(ParseVideoTrack(track));
+    } else if (track.type == plusplayer::kTrackTypeAudio) {
+      active_tracks.push_back(ParseAudioTrack(track));
+    } else if (track.type == plusplayer::kTrackTypeSubtitle) {
+      active_tracks.push_back(ParseSubtitleTrack(track));
+    }
+  }
+  return active_tracks;
 }
 
 bool PlusPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {

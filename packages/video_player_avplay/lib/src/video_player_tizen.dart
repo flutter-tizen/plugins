@@ -283,6 +283,47 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<List<Track>> getActiveTrackInfo(int playerId) async {
+    final TrackMessage msg = await _api.getActiveTrackInfo(
+      PlayerMessage(playerId: playerId),
+    );
+    final List<Track> tracks = <Track>[];
+    for (final Map<Object?, Object?>? trackMap in msg.tracks) {
+      final String trackType = trackMap!['trackType']! as String;
+      final int trackId = trackMap['trackId']! as int;
+      if (trackType == 'video') {
+        final int bitrate = trackMap['bitrate']! as int;
+        final int width = trackMap['width']! as int;
+        final int height = trackMap['height']! as int;
+        tracks.add(
+          VideoTrack(
+            trackId: trackId,
+            width: width,
+            height: height,
+            bitrate: bitrate,
+          ),
+        );
+      } else if (trackType == 'audio') {
+        final String language = trackMap['language']! as String;
+        final int channel = trackMap['channel']! as int;
+        final int bitrate = trackMap['bitrate']! as int;
+        tracks.add(
+          AudioTrack(
+            trackId: trackId,
+            language: language,
+            channel: channel,
+            bitrate: bitrate,
+          ),
+        );
+      } else if (trackType == 'text') {
+        final String language = trackMap['language']! as String;
+        tracks.add(TextTrack(trackId: trackId, language: language));
+      }
+    }
+    return tracks;
+  }
+
+  @override
   Future<void> setStreamingProperty(
     int playerId,
     StreamingPropertyType type,
