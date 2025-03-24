@@ -31,13 +31,20 @@ class Track {
   ///
   /// The [trackId] and [trackType] arguments are required.
   ///
-  const Track({required this.trackId, required this.trackType});
+  const Track({
+    required this.trackId,
+    required this.trackType,
+    required this.mimetype,
+  });
 
   /// The track id of track that uses to determine track.
   final int trackId;
 
   /// The type of the track.
   final TrackType trackType;
+
+  /// The strack mime type.
+  final String mimetype;
 }
 
 /// A representation of a video track.
@@ -50,6 +57,7 @@ class VideoTrack extends Track {
   VideoTrack({
     required super.trackId,
     super.trackType = TrackType.video,
+    required super.mimetype,
     required this.width,
     required this.height,
     required this.bitrate,
@@ -75,6 +83,7 @@ class AudioTrack extends Track {
   AudioTrack({
     required super.trackId,
     super.trackType = TrackType.audio,
+    required super.mimetype,
     required this.language,
     required this.channel,
     required this.bitrate,
@@ -100,6 +109,7 @@ class TextTrack extends Track {
   TextTrack({
     required super.trackId,
     super.trackType = TrackType.text,
+    required super.mimetype,
     required this.language,
   });
 

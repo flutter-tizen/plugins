@@ -114,6 +114,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     final List<VideoTrack> videoTracks = <VideoTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
+      final String mimetype = trackMap['mimetype']! as String;
       final int bitrate = trackMap['bitrate']! as int;
       final int width = trackMap['width']! as int;
       final int height = trackMap['height']! as int;
@@ -121,6 +122,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       videoTracks.add(
         VideoTrack(
           trackId: trackId,
+          mimetype: mimetype,
           width: width,
           height: height,
           bitrate: bitrate,
@@ -140,6 +142,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     final List<AudioTrack> audioTracks = <AudioTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
+      final String mimetype = trackMap['mimetype']! as String;
       final String language = trackMap['language']! as String;
       final int channel = trackMap['channel']! as int;
       final int bitrate = trackMap['bitrate']! as int;
@@ -147,6 +150,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       audioTracks.add(
         AudioTrack(
           trackId: trackId,
+          mimetype: mimetype,
           language: language,
           channel: channel,
           bitrate: bitrate,
@@ -166,9 +170,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     final List<TextTrack> textTracks = <TextTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
+      final String mimetype = trackMap['mimetype']! as String;
       final String language = trackMap['language']! as String;
 
-      textTracks.add(TextTrack(trackId: trackId, language: language));
+      textTracks.add(
+        TextTrack(trackId: trackId, mimetype: mimetype, language: language),
+      );
     }
 
     return textTracks;
@@ -291,6 +298,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     for (final Map<Object?, Object?>? trackMap in msg.tracks) {
       final String trackType = trackMap!['trackType']! as String;
       final int trackId = trackMap['trackId']! as int;
+      final String mimetype = trackMap['mimetype']! as String;
       if (trackType == 'video') {
         final int bitrate = trackMap['bitrate']! as int;
         final int width = trackMap['width']! as int;
@@ -298,6 +306,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         tracks.add(
           VideoTrack(
             trackId: trackId,
+            mimetype: mimetype,
             width: width,
             height: height,
             bitrate: bitrate,
@@ -310,6 +319,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         tracks.add(
           AudioTrack(
             trackId: trackId,
+            mimetype: mimetype,
             language: language,
             channel: channel,
             bitrate: bitrate,
@@ -317,7 +327,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         );
       } else if (trackType == 'text') {
         final String language = trackMap['language']! as String;
-        tracks.add(TextTrack(trackId: trackId, language: language));
+        tracks.add(
+          TextTrack(trackId: trackId, mimetype: mimetype, language: language),
+        );
       }
     }
     return tracks;
