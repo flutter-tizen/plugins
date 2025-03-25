@@ -44,6 +44,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/tizen-studio/tools/ide/bin
           dbus-run-session -- bash -c "
+          echo tizen | gnome-keyring-daemon --unlock &&
           tizen certificate -a tizen -p tizen -f tizen
           tizen security-profiles add \
             -n tizen \
