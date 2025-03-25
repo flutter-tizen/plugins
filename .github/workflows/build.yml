@@ -27,8 +27,8 @@ jobs:
           sudo add-apt-repository ppa:deadsnakes/ppa
           sudo apt update
           sudo apt install -y libncurses5 python2.7 libpython2.7 gettext \
-            libkf5itemmodels5 libkf5kiowidgets5 libkchart2
-          curl https://download.tizen.org/sdk/Installer/tizen-studio_5.6/web-cli_Tizen_Studio_5.6_ubuntu-64.bin -o install.bin
+            libkf5itemmodels5 libkf5kiowidgets5 libkchart2 dbus-x11 gnome-keyring
+          curl https://download.tizen.org/sdk/Installer/tizen-studio_6.0/web-cli_Tizen_Studio_6.0_ubuntu-64.bin -o install.bin
           chmod a+x install.bin
           ./install.bin --accept-license $HOME/tizen-studio
           rm install.bin
@@ -43,11 +43,13 @@ jobs:
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
           export PATH=$PATH:$HOME/tizen-studio/tools/ide/bin
+          dbus-run-session -- bash -c "
           tizen certificate -a tizen -p tizen -f tizen
           tizen security-profiles add \
             -n tizen \
             -a $HOME/tizen-studio-data/keystore/author/tizen.p12 \
             -p tizen
+          "
       - name: Install flutter-tizen
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         uses: actions/checkout@v3
@@ -58,7 +60,10 @@ jobs:
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
+          dbus-run-session -- bash -c "
+          echo tizen | gnome-keyring-daemon --unlock &&
           ./tools/tools_runner.sh build-examples \
             --exclude=wearable_rotary \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^)
+          "
