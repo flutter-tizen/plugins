@@ -531,9 +531,6 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
   }
 
   flutter::EncodableList trackSelections = {};
-  flutter::EncodableMap trackSelection = {};
-  trackSelection.insert(
-      {flutter::EncodableValue("trackType"), flutter::EncodableValue(type)});
   if (type == plusplayer::TrackType::kTrackTypeVideo) {
     LOG_INFO("[PlusPlayer] Video track count: %d", track_count);
     for (const auto &track : track_info) {

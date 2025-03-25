@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/foundation.dart';
+
 /// Type of the track.
 enum TrackType {
   /// The video track.
@@ -71,6 +73,17 @@ class VideoTrack extends Track {
 
   /// The bitrate of video track.
   final int bitrate;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'VideoTrack')}('
+        'trackId: $trackId, '
+        'trackType: $trackType, '
+        'mimetype: $mimetype, '
+        'width: $width, '
+        'height: $height, '
+        'bitrate: $bitrate),';
+  }
 }
 
 /// A representation of a audio track.
@@ -97,6 +110,17 @@ class AudioTrack extends Track {
 
   /// The bitrate of audio track.
   final int bitrate;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'AudioTrack')}('
+        'trackId: $trackId, '
+        'trackType: $trackType, '
+        'mimetype: $mimetype, '
+        'language: $language, '
+        'channel: $channel, '
+        'bitrate: $bitrate),';
+  }
 }
 
 /// A representation of a text track.
@@ -115,4 +139,13 @@ class TextTrack extends Track {
 
   /// The language of text track.
   final String language;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'TextTrack')}('
+        'trackId: $trackId, '
+        'trackType: $trackType, '
+        'mimetype: $mimetype, '
+        'language: $language),';
+  }
 }
