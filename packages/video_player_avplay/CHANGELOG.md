@@ -1,3 +1,7 @@
+## 0.5.18
+
+* Add player error event.
+
 ## 0.5.17
 
 * Update readme.

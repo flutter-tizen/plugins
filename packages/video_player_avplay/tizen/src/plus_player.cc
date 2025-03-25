@@ -14,6 +14,41 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+std::map<plusplayer::ErrorType, PlayerError> kPlusPlayerErrorMap = {
+    {plusplayer::ErrorType::kNone, PlayerError::kNone},
+    {plusplayer::ErrorType::kOutOfMemory, PlayerError::kOutOfMemory},
+    {plusplayer::ErrorType::kInvalidParameter, PlayerError::kInvalidParameter},
+    {plusplayer::ErrorType::kNoSuchFile, PlayerError::kNoSuchFile},
+    {plusplayer::ErrorType::kInvalidOperation, PlayerError::kInvalidOperation},
+    {plusplayer::ErrorType::kFileNoSpaceOnDevice,
+     PlayerError::kFileNoSpaceOnDevice},
+    {plusplayer::ErrorType::kFeatureNotSupportedOnDevice,
+     PlayerError::kFeatureNotSupportedOnDevice},
+    {plusplayer::ErrorType::kSeekFailed, PlayerError::kSeekFailed},
+    {plusplayer::ErrorType::kInvalidState, PlayerError::kInvalidState},
+    {plusplayer::ErrorType::kNotSupportedFile, PlayerError::kNotSupportedFile},
+    {plusplayer::ErrorType::kInvalidUri, PlayerError::kInvalidUri},
+    {plusplayer::ErrorType::kSoundPolicy, PlayerError::kSoundPolicy},
+    {plusplayer::ErrorType::kConnectionFailed, PlayerError::kConnectionFailed},
+    {plusplayer::ErrorType::kDrmExpired, PlayerError::kDrmExpired},
+    {plusplayer::ErrorType::kDrmNoLicense, PlayerError::kDrmNoLicense},
+    {plusplayer::ErrorType::kDrmFutureUse, PlayerError::kDrmFutureUse},
+    {plusplayer::ErrorType::kDrmNotPermitted, PlayerError::kDrmNotPermitted},
+    {plusplayer::ErrorType::kResourceLimit, PlayerError::kResourceLimit},
+    {plusplayer::ErrorType::kPermissionDenied, PlayerError::kPermissionDenied},
+    {plusplayer::ErrorType::kServiceDisconnected,
+     PlayerError::kServiceDisconnected},
+    {plusplayer::ErrorType::kBufferSpace, PlayerError::kBufferSpace},
+    {plusplayer::ErrorType::kNotSupportedAudioCodec,
+     PlayerError::kNotSupportedAudioCodec},
+    {plusplayer::ErrorType::kNotSupportedVideoCodec,
+     PlayerError::kNotSupportedVideoCodec},
+    {plusplayer::ErrorType::kNotSupportedSubtitle,
+     PlayerError::kNotSupportedSubtitle},
+    {plusplayer::ErrorType::kNotSupportedFormat,
+     PlayerError::kNotSupportedFormat},
+};
+
 static std::vector<std::string> split(const std::string &s, char delim) {
   std::stringstream ss(s);
   std::string item;
@@ -845,80 +880,26 @@ void PlusPlayer::OnResourceConflicted(void *user_data) {
   self->SendIsPlayingState(false);
 }
 
-std::string GetErrorMessage(plusplayer::ErrorType error_code) {
-  switch (error_code) {
-    case plusplayer::ErrorType::kNone:
-      return "Successful";
-    case plusplayer::ErrorType::kOutOfMemory:
-      return "Out of memory";
-    case plusplayer::ErrorType::kInvalidParameter:
-      return "Invalid parameter";
-    case plusplayer::ErrorType::kNoSuchFile:
-      return "No such file or directory";
-    case plusplayer::ErrorType::kInvalidOperation:
-      return "Invalid operation";
-    case plusplayer::ErrorType::kFileNoSpaceOnDevice:
-      return "No space left on the device";
-    case plusplayer::ErrorType::kFeatureNotSupportedOnDevice:
-      return "Not supported file on this device";
-    case plusplayer::ErrorType::kSeekFailed:
-      return "Seek operation failure";
-    case plusplayer::ErrorType::kInvalidState:
-      return "Invalid player state";
-    case plusplayer::ErrorType::kNotSupportedFile:
-      return "File format not supported";
-    case plusplayer::ErrorType::kNotSupportedFormat:
-      return "Not supported media format";
-    case plusplayer::ErrorType::kInvalidUri:
-      return "Invalid URI";
-    case plusplayer::ErrorType::kSoundPolicy:
-      return "Sound policy error";
-    case plusplayer::ErrorType::kConnectionFailed:
-      return "Streaming connection failed";
-    case plusplayer::ErrorType::kVideoCaptureFailed:
-      return "Video capture failed";
-    case plusplayer::ErrorType::kDrmExpired:
-      return "DRM license expired";
-    case plusplayer::ErrorType::kDrmNoLicense:
-      return "DRM no license";
-    case plusplayer::ErrorType::kDrmFutureUse:
-      return "License for future use";
-    case plusplayer::ErrorType::kDrmNotPermitted:
-      return "DRM format not permitted";
-    case plusplayer::ErrorType::kResourceLimit:
-      return "Resource limit";
-    case plusplayer::ErrorType::kPermissionDenied:
-      return "Permission denied";
-    case plusplayer::ErrorType::kServiceDisconnected:
-      return "Service disconnected";
-    case plusplayer::ErrorType::kBufferSpace:
-      return "No buffer space available";
-    case plusplayer::ErrorType::kNotSupportedAudioCodec:
-      return "Not supported audio codec but video can be played";
-    case plusplayer::ErrorType::kNotSupportedVideoCodec:
-      return "Not supported video codec but audio can be played";
-    case plusplayer::ErrorType::kNotSupportedSubtitle:
-      return "Not supported subtitle format";
-    default:
-      return "Not defined error";
-  }
-}
-
 void PlusPlayer::OnError(const plusplayer::ErrorType &error_code,
                          void *user_data) {
   LOG_ERROR("[PlusPlayer] Error code: %d", error_code);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
-
-  self->SendError("[PlusPlayer] error",
-                  std::string("Error: ") + GetErrorMessage(error_code));
+  std::map<plusplayer::ErrorType, PlayerError>::iterator iter =
+      kPlusPlayerErrorMap.find(error_code);
+  if (iter != kPlusPlayerErrorMap.end()) {
+    self->SendError(kPlusPlayerErrorMap[error_code]);
+  }
 }
 
 void PlusPlayer::OnErrorMsg(const plusplayer::ErrorType &error_code,
                             const char *error_msg, void *user_data) {
   LOG_ERROR("[PlusPlayer] Error code: %d, message: %s.", error_code, error_msg);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
-
-  self->SendError("PlusPlayer error", std::string("Error: ") + error_msg);
+  std::map<plusplayer::ErrorType, PlayerError>::iterator iter =
+      kPlusPlayerErrorMap.find(error_code);
+  if (iter != kPlusPlayerErrorMap.end()) {
+    self->SendError(kPlusPlayerErrorMap[error_code]);
+  }
 }
 
 void PlusPlayer::OnDrmInitData(int *drm_handle, unsigned int len,

@@ -19,6 +19,84 @@
 #include "ecore_wl2_window_proxy.h"
 #include "messages.h"
 
+enum class PlayerError {
+  // Operation has successfully completed; no error.
+  kNone,
+
+  // Out of memory.
+  kOutOfMemory,
+
+  // Unable to find the parameter.
+  kInvalidParameter,
+
+  // Unable to find the specified media content.
+  kNoSuchFile,
+
+  // Invalid API Call at the moment.
+  kInvalidOperation,
+
+  // No space left on the device.
+  kFileNoSpaceOnDevice,
+
+  // Not supported Feature.
+  kFeatureNotSupportedOnDevice,
+
+  // Failed to perform seek operation, or seek operation called during an
+  // invalid state
+  kSeekFailed,
+
+  // AVPlay API method was called during an invalid state.
+  kInvalidState,
+
+  // Multimedia file type not supported.
+  kNotSupportedFile,
+
+  // Input URI is in an invalid format.
+  kInvalidUri,
+
+  // Sound policy error.
+  kSoundPolicy,
+
+  // Failed multiple attempts to connect to the specified content server.
+  kConnectionFailed,
+
+  // Expired license.
+  kDrmExpired,
+
+  // License for future use.
+  kDrmFutureUse,
+
+  // No license.
+  kDrmNoLicense,
+
+  // Format not permitted.
+  kDrmNotPermitted,
+
+  // Resource limit.
+  kResourceLimit,
+
+  // Permission denied.
+  kPermissionDenied,
+
+  // Socket connection lost.
+  kServiceDisconnected,
+
+  // No buffer space available.
+  kBufferSpace,
+
+  // Not supported audio codec but video can be played.
+  kNotSupportedAudioCodec,
+
+  // Not supported video codec but audio can be played.
+  kNotSupportedVideoCodec,
+
+  // Not supported subtitle format.
+  kNotSupportedSubtitle,
+
+  // Multimedia file format not supported.
+  kNotSupportedFormat,
+};
+
 class VideoPlayer {
  public:
   using SeekCompletedCallback = std::function<void()>;
@@ -76,8 +154,7 @@ class VideoPlayer {
   void SendSubtitleUpdate(int32_t duration, const std::string &text);
   void SendPlayCompleted();
   void SendIsPlayingState(bool is_playing);
-  void SendError(const std::string &error_code,
-                 const std::string &error_message);
+  void SendError(const PlayerError &error_code);
 
   std::mutex queue_mutex_;
   std::unique_ptr<EcoreWl2WindowProxy> ecore_wl2_window_proxy_ = nullptr;
