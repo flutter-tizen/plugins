@@ -1,3 +1,11 @@
+## 3.1.1
+
+* Update audioplayers to 6.4.0.
+* Update audioplayers_platform_interface to 7.1.0.
+* Add 'xyz.luan/audioplayers.global' Method Channel.
+* Add 'xyz.luan/audioplayers.global/events' Event Channel.
+* Update example app
+
 ## 3.1.0
 
 * Update audioplayers to 6.1.0.

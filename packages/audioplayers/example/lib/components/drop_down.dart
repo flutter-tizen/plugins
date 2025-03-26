@@ -47,15 +47,14 @@ class CustomDropDown<T> extends StatelessWidget {
       isExpanded: isExpanded,
       value: selected,
       onChanged: onChange,
-      items:
-          options.entries
-              .map<DropdownMenuItem<T>>(
-                (entry) => DropdownMenuItem<T>(
-                  value: entry.key,
-                  child: Text(entry.value),
-                ),
-              )
-              .toList(),
+      items: options.entries
+          .map<DropdownMenuItem<T>>(
+            (entry) => DropdownMenuItem<T>(
+              value: entry.key,
+              child: Text(entry.value),
+            ),
+          )
+          .toList(),
     );
   }
 }
