@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 class Tabs extends StatelessWidget {
   final List<TabData> tabs;
 
-  const Tabs({required this.tabs, super.key});
+  const Tabs({
+    required this.tabs,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,15 +18,14 @@ class Tabs extends StatelessWidget {
           children: [
             TabBar(
               labelColor: Colors.black,
-              tabs:
-                  tabs
-                      .map(
-                        (tData) => Tab(
-                          key: tData.key != null ? Key(tData.key!) : null,
-                          text: tData.label,
-                        ),
-                      )
-                      .toList(),
+              tabs: tabs
+                  .map(
+                    (tData) => Tab(
+                      key: tData.key != null ? Key(tData.key!) : null,
+                      text: tData.label,
+                    ),
+                  )
+                  .toList(),
             ),
             Expanded(
               child: TabBarView(
@@ -42,5 +44,9 @@ class TabData {
   final String label;
   final Widget content;
 
-  TabData({required this.label, required this.content, this.key});
+  TabData({
+    required this.label,
+    required this.content,
+    this.key,
+  });
 }

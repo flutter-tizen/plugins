@@ -4,12 +4,16 @@ import 'package:audioplayers_tizen_example/components/drop_down.dart';
 import 'package:audioplayers_tizen_example/components/tab_content.dart';
 import 'package:audioplayers_tizen_example/components/tabs.dart';
 import 'package:audioplayers_tizen_example/utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AudioContextTab extends StatefulWidget {
   final AudioPlayer player;
 
-  const AudioContextTab({required this.player, super.key});
+  const AudioContextTab({
+    required this.player,
+    super.key,
+  });
 
   @override
   AudioContextTabState createState() => AudioContextTabState();
@@ -27,6 +31,9 @@ class AudioContextTabState extends State<AudioContextTab>
   /// Set config for each platform individually
   AudioContext audioContext = AudioContext();
 
+  bool isLocal = true;
+  bool isGlobal = false;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -36,20 +43,36 @@ class AudioContextTabState extends State<AudioContextTab>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
+            ToggleButtons(
+              isSelected: [isGlobal, isLocal],
+              onPressed: (index) {
+                if (index == 0) {
+                  setState(() {
+                    isGlobal = !isGlobal;
+                  });
+                } else if (index == 1) {
+                  setState(() {
+                    isLocal = !isLocal;
+                  });
+                }
+              },
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              selectedBorderColor: Theme.of(context).primaryColor,
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Text('Global'),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Text('Local'),
+                ),
+              ],
+            ),
             ElevatedButton.icon(
               icon: const Icon(Icons.undo),
               label: const Text('Reset'),
               onPressed: () => updateConfig(AudioContextConfig()),
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.public),
-              label: const Text('Global'),
-              onPressed: () => _global.setAudioContext(audioContext),
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.looks_one),
-              label: const Text('Local'),
-              onPressed: () => player.setAudioContext(audioContext),
             ),
           ],
         ),
@@ -62,12 +85,18 @@ class AudioContextTabState extends State<AudioContextTab>
                 label: 'Generic Flags',
                 content: _genericTab(),
               ),
-              TabData(
-                key: 'contextTab-android',
-                label: 'Android',
-                content: _androidTab(),
-              ),
-              TabData(key: 'contextTab-ios', label: 'iOS', content: _iosTab()),
+              if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+                TabData(
+                  key: 'contextTab-android',
+                  label: 'Android',
+                  content: _androidTab(),
+                ),
+              if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
+                TabData(
+                  key: 'contextTab-ios',
+                  label: 'iOS',
+                  content: _iosTab(),
+                ),
             ],
           ),
         ),
@@ -81,6 +110,7 @@ class AudioContextTabState extends State<AudioContextTab>
       setState(() {
         audioContextConfig = newConfig;
         audioContext = context;
+        _applyAudioContext(audioContext);
       });
     } on AssertionError catch (e) {
       toast(e.message.toString());
@@ -90,6 +120,7 @@ class AudioContextTabState extends State<AudioContextTab>
   void updateAudioContextAndroid(AudioContextAndroid contextAndroid) {
     setState(() {
       audioContext = audioContext.copy(android: contextAndroid);
+      _applyAudioContext(audioContext);
     });
   }
 
@@ -98,9 +129,19 @@ class AudioContextTabState extends State<AudioContextTab>
       final context = buildContextIOS();
       setState(() {
         audioContext = audioContext.copy(iOS: context);
+        _applyAudioContext(audioContext);
       });
     } on AssertionError catch (e) {
       toast(e.message.toString());
+    }
+  }
+
+  void _applyAudioContext(AudioContext context) {
+    if (isGlobal) {
+      _global.setAudioContext(context);
+    }
+    if (isLocal) {
+      player.setAudioContext(context);
     }
   }
 
@@ -112,14 +153,18 @@ class AudioContextTabState extends State<AudioContextTab>
           key: const Key('audioRoute'),
           options: {for (final e in AudioContextConfigRoute.values) e: e.name},
           selected: audioContextConfig.route,
-          onChange: (v) => updateConfig(audioContextConfig.copy(route: v)),
+          onChange: (v) => updateConfig(
+            audioContextConfig.copy(route: v),
+          ),
         ),
         LabeledDropDown<AudioContextConfigFocus>(
           label: 'Audio Focus',
           key: const Key('audioFocus'),
           options: {for (final e in AudioContextConfigFocus.values) e: e.name},
           selected: audioContextConfig.focus,
-          onChange: (v) => updateConfig(audioContextConfig.copy(focus: v)),
+          onChange: (v) => updateConfig(
+            audioContextConfig.copy(focus: v),
+          ),
         ),
         Cbx(
           'Respect Silence',
@@ -158,50 +203,49 @@ class AudioContextTabState extends State<AudioContextTab>
           key: const Key('contentType'),
           options: {for (final e in AndroidContentType.values) e: e.name},
           selected: audioContext.android.contentType,
-          onChange:
-              (v) => updateAudioContextAndroid(
-                audioContext.android.copy(contentType: v),
-              ),
+          onChange: (v) => updateAudioContextAndroid(
+            audioContext.android.copy(contentType: v),
+          ),
         ),
         LabeledDropDown<AndroidUsageType>(
           label: 'usageType',
           key: const Key('usageType'),
           options: {for (final e in AndroidUsageType.values) e: e.name},
           selected: audioContext.android.usageType,
-          onChange:
-              (v) => updateAudioContextAndroid(
-                audioContext.android.copy(usageType: v),
-              ),
+          onChange: (v) => updateAudioContextAndroid(
+            audioContext.android.copy(usageType: v),
+          ),
         ),
         LabeledDropDown<AndroidAudioFocus?>(
           key: const Key('audioFocus'),
           label: 'audioFocus',
           options: {for (final e in AndroidAudioFocus.values) e: e.name},
           selected: audioContext.android.audioFocus,
-          onChange:
-              (v) => updateAudioContextAndroid(
-                audioContext.android.copy(audioFocus: v),
-              ),
+          onChange: (v) => updateAudioContextAndroid(
+            audioContext.android.copy(audioFocus: v),
+          ),
         ),
         LabeledDropDown<AndroidAudioMode>(
           key: const Key('audioMode'),
           label: 'audioMode',
           options: {for (final e in AndroidAudioMode.values) e: e.name},
           selected: audioContext.android.audioMode,
-          onChange:
-              (v) => updateAudioContextAndroid(
-                audioContext.android.copy(audioMode: v),
-              ),
+          onChange: (v) => updateAudioContextAndroid(
+            audioContext.android.copy(audioMode: v),
+          ),
         ),
       ],
     );
   }
 
   Widget _iosTab() {
-    final iosOptions =
-        AVAudioSessionOptions.values.map((option) {
-          final options = {...audioContext.iOS.options};
-          return Cbx(option.name, value: options.contains(option), ({value}) {
+    final iosOptions = AVAudioSessionOptions.values.map(
+      (option) {
+        final options = {...audioContext.iOS.options};
+        return Cbx(
+          option.name,
+          value: options.contains(option),
+          ({value}) {
             updateAudioContextIOS(() {
               final iosContext = audioContext.iOS.copy(options: options);
               if (value ?? false) {
@@ -211,8 +255,10 @@ class AudioContextTabState extends State<AudioContextTab>
               }
               return iosContext;
             });
-          });
-        }).toList();
+          },
+        );
+      },
+    ).toList();
     return TabContent(
       children: <Widget>[
         LabeledDropDown<AVAudioSessionCategory>(
@@ -220,10 +266,9 @@ class AudioContextTabState extends State<AudioContextTab>
           label: 'category',
           options: {for (final e in AVAudioSessionCategory.values) e: e.name},
           selected: audioContext.iOS.category,
-          onChange:
-              (v) => updateAudioContextIOS(
-                () => audioContext.iOS.copy(category: v),
-              ),
+          onChange: (v) => updateAudioContextIOS(
+            () => audioContext.iOS.copy(category: v),
+          ),
         ),
         ...iosOptions,
       ],
