@@ -17,11 +17,6 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - name: Install GNOME Packages
-        run: |
-          sudo add-apt-repository ppa:deadsnakes/ppa
-          sudo apt update
-          sudo apt install -y dbus-x11 gnome-keyring
       - name: Install flutter-tizen
         uses: actions/checkout@v3
         with:
