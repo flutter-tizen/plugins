@@ -174,7 +174,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   }
 
   /// Restores the player when the application is resumed.
-  Future<void> restore(int playerId, {String? url, int resumeTime = 0}) {
+  Future<void> restore(
+    int playerId, {
+    DataSource? dataSource,
+    int resumeTime = -1,
+  }) {
     throw UnimplementedError('restore() has not been implemented.');
   }
 

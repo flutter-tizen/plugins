@@ -64,8 +64,10 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   ErrorOr<bool> SetDisplayRotate(const RotationMessage &msg) override;
   ErrorOr<bool> SetDisplayMode(const DisplayModeMessage &msg) override;
 
-  std::optional<FlutterError> Suspend(const PlayerMessage &msg) override;
-  std::optional<FlutterError> Restore(const RestoreMessage &msg) override;
+  std::optional<FlutterError> Suspend(int64_t player_id) override;
+  std::optional<FlutterError> Restore(int64_t palyer_id,
+                                      const CreateMessage *msg,
+                                      int64_t resume_time) override;
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -347,22 +349,26 @@ ErrorOr<bool> VideoPlayerTizenPlugin::SetDisplayMode(
   return player->SetDisplayMode(msg.display_mode());
 }
 
-std::optional<FlutterError> VideoPlayerTizenPlugin::Suspend(
-    const PlayerMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
+std::optional<FlutterError> VideoPlayerTizenPlugin::Suspend(int64_t player_id) {
+  VideoPlayer *player = FindPlayerById(player_id);
   if (!player) {
     return FlutterError("Invalid argument", "Player not found");
   }
-  player->Suspend();
+  if (player->Suspend() == false) {
+    return FlutterError("Operation failed", "Player suspend error");
+  }
   return std::nullopt;
 }
 std::optional<FlutterError> VideoPlayerTizenPlugin::Restore(
-    const RestoreMessage &msg) {
-  VideoPlayer *player = FindPlayerById(msg.player_id());
+    int64_t player_id, const CreateMessage *msg, int64_t resume_time) {
+  VideoPlayer *player = FindPlayerById(player_id);
   if (!player) {
     return FlutterError("Invalid argument", "Player not found");
   }
-  player->Restore(*msg.url(), *msg.resume_time());
+
+  if (player->Restore(msg, resume_time) == false) {
+    return FlutterError("Operation failed", "Player restore error");
+  }
   return std::nullopt;
 }
 

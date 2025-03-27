@@ -131,13 +131,6 @@ class DisplayModeMessage {
   int displayMode;
 }
 
-class RestoreMessage {
-  RestoreMessage(this.playerId);
-  int playerId;
-  String? url;
-  int? resumeTime;
-}
-
 @HostApi()
 abstract class VideoPlayerAvplayApi {
   void initialize();
@@ -163,6 +156,6 @@ abstract class VideoPlayerAvplayApi {
   void setStreamingProperty(StreamingPropertyMessage msg);
   bool setDisplayRotate(RotationMessage msg);
   bool setDisplayMode(DisplayModeMessage msg);
-  void suspend(PlayerMessage msg);
-  void restore(RestoreMessage msg);
+  void suspend(int playerId);
+  void restore(int playerId, CreateMessage? msg, int resumeTime);
 }

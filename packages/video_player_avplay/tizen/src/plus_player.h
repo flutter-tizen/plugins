@@ -13,6 +13,7 @@
 #include "drm_manager.h"
 #include "messages.h"
 #include "plusplayer/plusplayer_wrapper.h"
+#include "power_state_proxy.h"
 #include "video_player.h"
 
 class PlusPlayer : public VideoPlayer {
@@ -49,7 +50,8 @@ class PlusPlayer : public VideoPlayer {
   bool SetDisplayRotate(int64_t rotation) override;
   bool SetDisplayMode(int64_t display_mode) override;
   bool Suspend() override;
-  bool Restore(std::string url, int64_t resume_time) override;
+  bool Restore(const CreateMessage *restore_message,
+               int64_t resume_time) override;
 
  private:
   bool IsLive();
@@ -58,9 +60,11 @@ class PlusPlayer : public VideoPlayer {
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
   void RegisterListener();
+  bool StopAndClose();
+  bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);
+
   static bool OnLicenseAcquired(int *drm_handle, unsigned int length,
                                 unsigned char *pssh_data, void *user_data);
-
   static void OnPrepareDone(bool ret, void *user_data);
   static void OnBufferStatus(const int percent, void *user_data);
   static void OnSeekDone(void *user_data);
@@ -93,6 +97,11 @@ class PlusPlayer : public VideoPlayer {
   bool is_buffering_ = false;
   bool is_prebuffer_mode_ = false;
   SeekCompletedCallback on_seek_completed_;
+  bool is_suspended_ = false;
+  std::unique_ptr<plusplayer::PlayerMemento> memento_ = nullptr;
+  std::string url_;
+  std::unique_ptr<PowerStateProxy> power_state_proxy_ = nullptr;
+  CreateMessage create_message_;
 };
 
 #endif  // FLUTTER_PLUGIN_PLUS_PLAYER_H_

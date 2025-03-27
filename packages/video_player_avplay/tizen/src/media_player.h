@@ -13,6 +13,7 @@
 
 #include "drm_manager.h"
 #include "media_player_proxy.h"
+#include "power_state_proxy.h"
 #include "video_player.h"
 
 class MediaPlayer : public VideoPlayer {
@@ -42,7 +43,8 @@ class MediaPlayer : public VideoPlayer {
   bool SetDisplayRotate(int64_t rotation) override;
   bool SetDisplayMode(int64_t display_mode) override;
   bool Suspend() override;
-  bool Restore(std::string url, int64_t resume_time) override;
+  bool Restore(const CreateMessage *restore_message,
+               int64_t resume_time) override;
 
  private:
   bool IsLive();
@@ -50,6 +52,8 @@ class MediaPlayer : public VideoPlayer {
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
+  bool StopAndDestroy();
+  bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);
 
   static void OnPrepared(void *user_data);
   static void OnBuffering(int percent, void *user_data);
@@ -67,9 +71,18 @@ class MediaPlayer : public VideoPlayer {
 
   player_h player_ = nullptr;
   std::unique_ptr<MediaPlayerProxy> media_player_proxy_ = nullptr;
+  std::unique_ptr<PowerStateProxy> power_state_proxy_ = nullptr;
   std::unique_ptr<DrmManager> drm_manager_;
   bool is_buffering_ = false;
   SeekCompletedCallback on_seek_completed_;
+  bool is_suspended_ = false;
+  std::string url_;
+  player_state_e pre_state_;
+  int64_t pre_playing_time_;
+  int32_t pre_display_roi_x_ = 0;
+  int32_t pre_display_roi_y_ = 0;
+  int32_t pre_display_roi_width_ = 1;
+  int32_t pre_display_roi_height_ = 1;
 };
 
 #endif  // FLUTTER_PLUGIN_MEDIA_PLAYER_H_
