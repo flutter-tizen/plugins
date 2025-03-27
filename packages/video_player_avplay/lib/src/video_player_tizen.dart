@@ -254,6 +254,48 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<void> suspend(int playerId) {
+    return _api.suspend(playerId);
+  }
+
+  @override
+  Future<void> restore(
+    int playerId, {
+    DataSource? dataSource,
+    int resumeTime = -1,
+  }) {
+    final CreateMessage message = CreateMessage();
+
+    if (dataSource != null) {
+      switch (dataSource.sourceType) {
+        case DataSourceType.asset:
+          message.asset = dataSource.asset;
+          message.packageName = dataSource.package;
+        case DataSourceType.network:
+          message.uri = dataSource.uri;
+          message.formatHint = _videoFormatStringMap[dataSource.formatHint];
+          message.httpHeaders = dataSource.httpHeaders;
+          message.drmConfigs = dataSource.drmConfigs?.toMap();
+          message.playerOptions = dataSource.playerOptions;
+          message.streamingProperty =
+              dataSource.streamingProperty == null
+                  ? null
+                  : <String, String>{
+                    for (final MapEntry<StreamingPropertyType, String> entry
+                        in dataSource.streamingProperty!.entries)
+                      _streamingPropertyType[entry.key]!: entry.value,
+                  };
+        case DataSourceType.file:
+          message.uri = dataSource.uri;
+        case DataSourceType.contentUri:
+          message.uri = dataSource.uri;
+      }
+    }
+
+    return _api.restore(playerId, message, resumeTime);
+  }
+
+  @override
   Future<bool> setData(int playerId, Map<DashPlayerProperty, Object> data) {
     return _api.setData(
       DashPropertyMapMessage(

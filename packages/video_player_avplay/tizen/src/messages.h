@@ -586,6 +586,10 @@ class VideoPlayerAvplayApi {
       const StreamingPropertyMessage& msg) = 0;
   virtual ErrorOr<bool> SetDisplayRotate(const RotationMessage& msg) = 0;
   virtual ErrorOr<bool> SetDisplayMode(const DisplayModeMessage& msg) = 0;
+  virtual std::optional<FlutterError> Suspend(int64_t player_id) = 0;
+  virtual std::optional<FlutterError> Restore(int64_t player_id,
+                                              const CreateMessage* msg,
+                                              int64_t resume_time) = 0;
   virtual ErrorOr<bool> SetData(const DashPropertyMapMessage& msg) = 0;
   virtual ErrorOr<DashPropertyMapMessage> GetData(
       const DashPropertyTypeListMessage& msg) = 0;
