@@ -881,7 +881,6 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
                           int64_t resume_time) {
   LOG_INFO("[MediaPlayer] Restore is called.");
 
-  int res = PLAYER_ERROR_NONE;
   player_state_e state = PLAYER_STATE_NONE;
   bool ret = false;
 

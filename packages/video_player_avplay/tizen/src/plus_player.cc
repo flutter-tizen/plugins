@@ -968,6 +968,8 @@ bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
   }
 
   return true;
+}
+
 std::string BuildJsonString(const flutter::EncodableMap &data) {
   rapidjson::Document doc;
   doc.SetObject();
