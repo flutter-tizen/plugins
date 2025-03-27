@@ -50,6 +50,7 @@ class PlusPlayer : public VideoPlayer {
   bool SetDisplayMode(int64_t display_mode) override;
   bool SetData(const flutter::EncodableMap &data) override;
   flutter::EncodableMap GetData(const flutter::EncodableList &data) override;
+  flutter::EncodableList GetActiveTrackInfo() override;
 
  private:
   bool IsLive();
@@ -57,6 +58,9 @@ class PlusPlayer : public VideoPlayer {
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
+  flutter::EncodableValue ParseVideoTrack(plusplayer::Track video_track);
+  flutter::EncodableValue ParseAudioTrack(plusplayer::Track audio_track);
+  flutter::EncodableValue ParseSubtitleTrack(plusplayer::Track subtitle_track);
   void RegisterListener();
   static bool OnLicenseAcquired(int *drm_handle, unsigned int length,
                                 unsigned char *pssh_data, void *user_data);

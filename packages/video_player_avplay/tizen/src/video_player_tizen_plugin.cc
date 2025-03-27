@@ -66,6 +66,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   ErrorOr<bool> SetData(const DashPropertyMapMessage &msg) override;
   ErrorOr<DashPropertyMapMessage> GetData(
       const DashPropertyTypeListMessage &msg) override;
+  ErrorOr<TrackMessage> GetActiveTrackInfo(const PlayerMessage &msg) override;
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -375,6 +376,16 @@ ErrorOr<DashPropertyMapMessage> VideoPlayerTizenPlugin::GetData(
   }
   DashPropertyMapMessage result(msg.player_id(),
                                 player->GetData(msg.type_list()));
+  return result;
+}
+
+ErrorOr<TrackMessage> VideoPlayerTizenPlugin::GetActiveTrackInfo(
+    const PlayerMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  TrackMessage result(msg.player_id(), player->GetActiveTrackInfo());
   return result;
 }
 

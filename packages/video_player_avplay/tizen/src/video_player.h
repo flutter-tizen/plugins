@@ -63,6 +63,9 @@ class VideoPlayer {
   virtual flutter::EncodableMap GetData(const flutter::EncodableList &data) {
     return flutter::EncodableMap{};
   }
+  virtual flutter::EncodableList GetActiveTrackInfo() {
+    return flutter::EncodableList{};
+  }
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;

@@ -170,4 +170,5 @@ abstract class VideoPlayerAvplayApi {
   bool setDisplayMode(DisplayModeMessage msg);
   bool setData(DashPropertyMapMessage msg);
   DashPropertyMapMessage getData(DashPropertyTypeListMessage msg);
+  TrackMessage getActiveTrackInfo(PlayerMessage msg);
 }

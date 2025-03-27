@@ -885,6 +885,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.getData(playerId, keys);
   }
 
+  /// Get activated(selected) track infomation of the associated media.
+  Future<List<Track>> getActiveTrackInfo() async {
+    if (_isDisposedOrNotInitialized) {
+      return <Track>[];
+    }
+
+    return _videoPlayerPlatform.getActiveTrackInfo(playerId);
+  }
+
   /// Sets the playback speed of [this].
   ///
   /// [speed] indicates a speed value with different platforms accepting
