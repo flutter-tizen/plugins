@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_tizen/billing_manager_wrappers.dart';
 import 'package:in_app_purchase_tizen/in_app_purchase_tizen.dart';
 
 void main() {
@@ -148,10 +147,8 @@ class _MyAppState extends State<_MyApp> {
     }
     if (_purchasePending) {
       stack.add(
-        // TODO(goderbauer): Make this const when that's available on stable.
-        // ignore: prefer_const_constructors
-        Stack(
-          children: const <Widget>[
+        const Stack(
+          children: <Widget>[
             Opacity(
               opacity: 0.3,
               child: ModalBarrier(dismissible: false, color: Colors.grey),
@@ -237,7 +234,10 @@ class _MyAppState extends State<_MyApp> {
           title: Text(productDetails.title),
           subtitle: Text(productDetails.description),
           trailing: TextButton(
-            style: TextButton.styleFrom(backgroundColor: Colors.green[800]),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.green[800],
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               final PurchaseParam purchaseParam = PurchaseParam(
                 productDetails: productDetails,
@@ -282,6 +282,7 @@ class _MyAppState extends State<_MyApp> {
           TextButton(
             style: TextButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
             ),
             onPressed: () => _inAppPurchase.restorePurchases(),
             child: const Text('Restore purchases'),
@@ -297,7 +298,7 @@ class _MyAppState extends State<_MyApp> {
     });
   }
 
-  void deliverProduct(PurchaseDetails purchaseDetails) {
+  Future<void> deliverProduct(PurchaseDetails purchaseDetails) async {
     // IMPORTANT!! Always verify purchase details before delivering the product.
     setState(() {
       _purchases.add(purchaseDetails);
@@ -339,7 +340,7 @@ class _MyAppState extends State<_MyApp> {
             purchaseDetails.status == PurchaseStatus.restored) {
           final bool valid = await _verifyPurchase(purchaseDetails);
           if (valid) {
-            deliverProduct(purchaseDetails);
+            unawaited(deliverProduct(purchaseDetails));
           } else {
             _handleInvalidPurchase(purchaseDetails);
             return;

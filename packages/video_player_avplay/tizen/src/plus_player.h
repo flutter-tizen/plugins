@@ -52,6 +52,9 @@ class PlusPlayer : public VideoPlayer {
   bool Suspend() override;
   bool Restore(const CreateMessage *restore_message,
                int64_t resume_time) override;
+  bool SetData(const flutter::EncodableMap &data) override;
+  flutter::EncodableMap GetData(const flutter::EncodableList &data) override;
+  flutter::EncodableList GetActiveTrackInfo() override;
 
  private:
   bool IsLive();
@@ -59,6 +62,9 @@ class PlusPlayer : public VideoPlayer {
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
+  flutter::EncodableValue ParseVideoTrack(plusplayer::Track video_track);
+  flutter::EncodableValue ParseAudioTrack(plusplayer::Track audio_track);
+  flutter::EncodableValue ParseSubtitleTrack(plusplayer::Track subtitle_track);
   void RegisterListener();
   bool StopAndClose();
   bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);

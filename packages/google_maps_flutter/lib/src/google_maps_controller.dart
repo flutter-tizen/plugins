@@ -21,6 +21,7 @@ class GoogleMapsController {
     Set<Polygon> polygons = const <Polygon>{},
     Set<Polyline> polylines = const <Polyline>{},
     Set<Circle> circles = const <Circle>{},
+    Set<ClusterManager> clusterManagers = const <ClusterManager>{},
     Map<String, dynamic> mapOptions = const <String, dynamic>{},
   }) : _mapId = mapId,
        _streamController = streamController,
@@ -29,11 +30,18 @@ class GoogleMapsController {
        _polygons = polygons,
        _polylines = polylines,
        _circles = circles,
+       _clusterManagers = clusterManagers,
        _rawMapOptions = mapOptions {
     _circlesController = CirclesController(stream: _streamController);
     _polygonsController = PolygonsController(stream: _streamController);
     _polylinesController = PolylinesController(stream: _streamController);
-    _markersController = MarkersController(stream: _streamController);
+    _clusterManagersController = ClusterManagersController(
+      stream: _streamController,
+    );
+    _markersController = MarkersController(
+      stream: _streamController,
+      clusterManagersController: _clusterManagersController!,
+    );
   }
 
   // The internal ID of the map. Used to broadcast events, DOM IDs and everything where a unique ID is needed.
@@ -46,6 +54,7 @@ class GoogleMapsController {
   final Set<Polygon> _polygons;
   final Set<Polyline> _polylines;
   final Set<Circle> _circles;
+  final Set<ClusterManager> _clusterManagers;
   final Completer<bool> _pageFinishedCompleter = Completer<bool>();
   WebViewWidget? _webview;
   // The raw options passed by the user, before converting to maps.
@@ -141,6 +150,12 @@ class GoogleMapsController {
       ..addJavaScriptChannel('Click', onMessageReceived: _onClick)
       ..addJavaScriptChannel('LongPress', onMessageReceived: _onLongPress)
       ..addJavaScriptChannel('MarkerClick', onMessageReceived: _onMarkerClick)
+      ..addJavaScriptChannel('ClusterClick', onMessageReceived: _onClusterClick)
+      ..addJavaScriptChannel(
+        'MarkerDragStart',
+        onMessageReceived: _onMarkerDragStart,
+      )
+      ..addJavaScriptChannel('MarkerDrag', onMessageReceived: _onMarkerDrag)
       ..addJavaScriptChannel(
         'MarkerDragEnd',
         onMessageReceived: _onMarkerDragEnd,
@@ -173,6 +188,23 @@ class GoogleMapsController {
             });
       map.addListener('mouseup', () => { clearTimeout(longPressTimeout); });
       map.addListener('mouseout', () => { clearTimeout(longPressTimeout); });
+
+      const makeClusterEvent = function(clusterManagerId, event, cluster) {
+          var result = '{"id": "' + clusterManagerId +'"';
+          result += ', "cluster": {"count":' + cluster.count
+          result += ', "position":' + JSON.stringify(cluster.position)
+          result += ', "bounds":' + JSON.stringify(cluster.bounds);
+          result += ', "markers": [';
+          var i = 0;
+          for (; i < cluster.markers.length - 1; i++) {
+            result += cluster.markers[i].id;
+            result += ', ';
+          }
+          result += cluster.markers[i].id;
+          result += ']}}';
+
+          return result;
+        }
     ''';
     await controller.runJavaScript(command);
   }
@@ -194,6 +226,7 @@ class GoogleMapsController {
   PolygonsController? _polygonsController;
   PolylinesController? _polylinesController;
   MarkersController? _markersController;
+  ClusterManagersController? _clusterManagersController;
 
   // Keeps track if _attachGeometryControllers has been called or not.
   bool _controllersBoundToMap = false;
@@ -268,6 +301,29 @@ class GoogleMapsController {
     }
   }
 
+  void _onClusterClick(JavaScriptMessage message) {
+    try {
+      final dynamic result = json.decode(message.message);
+
+      final String id = result['id'] as String;
+      final ClusterManagerId? clusterManagerId =
+          _clusterManagersController?.idToClusterManagerId[id];
+      if (clusterManagerId == null) {
+        return;
+      }
+
+      final Map<String, dynamic> markerClustererCluster =
+          result['cluster'] as Map<String, dynamic>;
+
+      _clusterManagersController?.clusterClicked(
+        clusterManagerId,
+        markerClustererCluster,
+      );
+    } catch (e) {
+      debugPrint('JavaScript Error: $e');
+    }
+  }
+
   void _onMarkerClick(JavaScriptMessage message) {
     try {
       final dynamic id = json.decode(message.message);
@@ -277,6 +333,58 @@ class GoogleMapsController {
             _markersController!._markerIdToController[markerId];
         if (marker?.tapEvent != null) {
           marker?.tapEvent!();
+        }
+      }
+    } catch (e) {
+      debugPrint('JavaScript Error: $e');
+    }
+  }
+
+  void _onMarkerDragStart(JavaScriptMessage message) {
+    try {
+      final dynamic result = json.decode(message.message);
+      if (result is Map<String, dynamic>) {
+        assert(result['id'] != null && result['event'] != null);
+        if (_markersController != null && result['id'] is int) {
+          final MarkerId? markerId =
+              _markersController!._idToMarkerId[result['id']];
+          final MarkerController? marker =
+              _markersController!._markerIdToController[markerId];
+
+          final LatLng position = LatLng(
+            result['event']['latLng']['lat'] as double,
+            result['event']['latLng']['lng'] as double,
+          );
+
+          if (marker?.dragStartEvent != null) {
+            marker?.dragStartEvent!(position);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('JavaScript Error: $e');
+    }
+  }
+
+  void _onMarkerDrag(JavaScriptMessage message) {
+    try {
+      final dynamic result = json.decode(message.message);
+      if (result is Map<String, dynamic>) {
+        assert(result['id'] != null && result['event'] != null);
+        if (_markersController != null && result['id'] is int) {
+          final MarkerId? markerId =
+              _markersController!._idToMarkerId[result['id']];
+          final MarkerController? marker =
+              _markersController!._markerIdToController[markerId];
+
+          final LatLng position = LatLng(
+            result['event']['latLng']['lat'] as double,
+            result['event']['latLng']['lng'] as double,
+          );
+
+          if (marker?.dragEvent != null) {
+            marker?.dragEvent!(position);
+          }
         }
       }
     } catch (e) {
@@ -378,6 +486,9 @@ class GoogleMapsController {
       polygons: _polygons,
       polylines: _polylines,
     );
+
+    _initClustering(_clusterManagers);
+
     await _setTrafficLayer(_isTrafficLayerEnabled(_rawMapOptions));
   }
 
@@ -401,12 +512,23 @@ class GoogleMapsController {
       _markersController != null,
       'Cannot attach a map to a null MarkersController instance.',
     );
+    assert(
+      _clusterManagersController != null,
+      'Cannot attach a map to a null ClusterManagersController instance.',
+    );
+
     _circlesController!.bindToMap(_mapId, _webview!);
     _polygonsController!.bindToMap(_mapId, _webview!);
     _polylinesController!.bindToMap(_mapId, _webview!);
     _markersController!.bindToMap(_mapId, _webview!);
+    _clusterManagersController!.bindToMap(_mapId, _webview!);
+
     util.webController = controller;
     _controllersBoundToMap = true;
+  }
+
+  void _initClustering(Set<ClusterManager> clusterManagers) {
+    _clusterManagersController!.addClusterManagers(clusterManagers);
   }
 
   // Renders the initial sets of geometry.
@@ -690,6 +812,20 @@ class GoogleMapsController {
     _markersController?.removeMarkers(updates.markerIdsToRemove);
   }
 
+  /// Applies [ClusterManagerUpdates] to the currently managed cluster managers.
+  void updateClusterManagers(ClusterManagerUpdates updates) {
+    assert(
+      _clusterManagersController != null,
+      'Cannot update markers after dispose().',
+    );
+    _clusterManagersController?.addClusterManagers(
+      updates.clusterManagersToAdd,
+    );
+    _clusterManagersController?.removeClusterManagers(
+      updates.clusterManagerIdsToRemove,
+    );
+  }
+
   /// Shows the [InfoWindow] of the marker identified by its [MarkerId].
   void showInfoWindow(MarkerId markerId) {
     assert(
@@ -725,6 +861,7 @@ class GoogleMapsController {
     _polygonsController = null;
     _polylinesController = null;
     _markersController = null;
+    _clusterManagersController = null;
     _streamController.close();
   }
 }

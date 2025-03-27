@@ -10,6 +10,9 @@
 #include <sstream>
 
 #include "log.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 static std::vector<std::string> split(const std::string &s, char delim) {
   std::stringstream ss(s);
@@ -377,7 +380,7 @@ std::pair<int64_t, int64_t> PlusPlayer::GetDuration() {
 void PlusPlayer::GetVideoSize(int32_t *width, int32_t *height) {
   if (GetState(player_) >= plusplayer::State::kTrackSourceReady) {
     bool found = false;
-    std::vector<plusplayer::Track> tracks = GetActiveTrackInfo(player_);
+    std::vector<plusplayer::Track> tracks = ::GetActiveTrackInfo(player_);
     for (auto track : tracks) {
       if (track.type == plusplayer::TrackType::kTrackTypeVideo) {
         *width = track.width;
@@ -428,6 +431,86 @@ bool PlusPlayer::SetDisplay() {
   return true;
 }
 
+flutter::EncodableValue PlusPlayer::ParseVideoTrack(
+    plusplayer::Track video_track) {
+  flutter::EncodableMap video_track_result = {};
+  video_track_result.insert_or_assign(flutter::EncodableValue("trackType"),
+                                      flutter::EncodableValue("video"));
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("trackId"),
+      flutter::EncodableValue(video_track.index));
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("mimetype"),
+      flutter::EncodableValue(video_track.mimetype));
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("width"),
+      flutter::EncodableValue(video_track.width));
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("height"),
+      flutter::EncodableValue(video_track.height));
+  video_track_result.insert_or_assign(
+      flutter::EncodableValue("bitrate"),
+      flutter::EncodableValue(video_track.bitrate));
+  LOG_DEBUG(
+      "[PlusPlayer] video track info : trackId : %d, mimetype : %s, width : "
+      "%d, height : %d, birate : %d",
+      video_track.index, video_track.mimetype.c_str(), video_track.width,
+      video_track.height, video_track.bitrate);
+  return flutter::EncodableValue(video_track_result);
+}
+
+flutter::EncodableValue PlusPlayer::ParseAudioTrack(
+    plusplayer::Track audio_track) {
+  flutter::EncodableMap audio_track_result = {};
+  audio_track_result.insert_or_assign(flutter::EncodableValue("trackType"),
+                                      flutter::EncodableValue("audio"));
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("trackId"),
+      flutter::EncodableValue(audio_track.index));
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("mimetype"),
+      flutter::EncodableValue(audio_track.mimetype));
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("language"),
+      flutter::EncodableValue(audio_track.language_code));
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("channel"),
+      flutter::EncodableValue(audio_track.channels));
+  audio_track_result.insert_or_assign(
+      flutter::EncodableValue("bitrate"),
+      flutter::EncodableValue(audio_track.bitrate));
+  LOG_DEBUG(
+      "[PlusPlayer] audio track info : trackId : %d, mimetype : %s, "
+      "language_code : "
+      "%s, channel : %d, bitrate : %d",
+      audio_track.index, audio_track.mimetype.c_str(),
+      audio_track.language_code.c_str(), audio_track.channels,
+      audio_track.bitrate);
+  return flutter::EncodableValue(audio_track_result);
+}
+
+flutter::EncodableValue PlusPlayer::ParseSubtitleTrack(
+    plusplayer::Track subtitle_track) {
+  flutter::EncodableMap subtitle_track_result = {};
+  subtitle_track_result.insert_or_assign(flutter::EncodableValue("trackType"),
+                                         flutter::EncodableValue("text"));
+  subtitle_track_result.insert_or_assign(
+      flutter::EncodableValue("trackId"),
+      flutter::EncodableValue(subtitle_track.index));
+  subtitle_track_result.insert_or_assign(
+      flutter::EncodableValue("mimetype"),
+      flutter::EncodableValue(subtitle_track.mimetype));
+  subtitle_track_result.insert_or_assign(
+      flutter::EncodableValue("language"),
+      flutter::EncodableValue(subtitle_track.language_code));
+  LOG_DEBUG(
+      "[PlusPlayer] subtitle track info : trackId : %d, mimetype : %s, "
+      "language_code : %s",
+      subtitle_track.index, subtitle_track.mimetype.c_str(),
+      subtitle_track.language_code.c_str());
+  return flutter::EncodableValue(subtitle_track_result);
+}
+
 flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
@@ -453,70 +536,63 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
   }
 
   flutter::EncodableList trackSelections = {};
-  flutter::EncodableMap trackSelection = {};
-  trackSelection.insert(
-      {flutter::EncodableValue("trackType"), flutter::EncodableValue(type)});
   if (type == plusplayer::TrackType::kTrackTypeVideo) {
     LOG_INFO("[PlusPlayer] Video track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeVideo) {
-        trackSelection.insert_or_assign(flutter::EncodableValue("trackId"),
-                                        flutter::EncodableValue(track.index));
-        trackSelection.insert_or_assign(flutter::EncodableValue("width"),
-                                        flutter::EncodableValue(track.width));
-        trackSelection.insert_or_assign(flutter::EncodableValue("height"),
-                                        flutter::EncodableValue(track.height));
-        trackSelection.insert_or_assign(flutter::EncodableValue("bitrate"),
-                                        flutter::EncodableValue(track.bitrate));
-        LOG_INFO(
-            "[PlusPlayer] video track info[%d]: width[%d], height[%d], "
-            "bitrate[%d]",
-            track.index, track.width, track.height, track.bitrate);
-
-        trackSelections.push_back(flutter::EncodableValue(trackSelection));
+        trackSelections.push_back(ParseVideoTrack(track));
       }
     }
   } else if (type == plusplayer::TrackType::kTrackTypeAudio) {
     LOG_INFO("[PlusPlayer] Audio track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeAudio) {
-        trackSelection.insert_or_assign(flutter::EncodableValue("trackId"),
-                                        flutter::EncodableValue(track.index));
-        trackSelection.insert_or_assign(
-            flutter::EncodableValue("language"),
-            flutter::EncodableValue(track.language_code));
-        trackSelection.insert_or_assign(
-            flutter::EncodableValue("channel"),
-            flutter::EncodableValue(track.channels));
-        trackSelection.insert_or_assign(flutter::EncodableValue("bitrate"),
-                                        flutter::EncodableValue(track.bitrate));
-        LOG_INFO(
-            "[PlusPlayer] Audio track info[%d]: language[%s], channel[%d], "
-            "sample_rate[%d], bitrate[%d]",
-            track.index, track.language_code.c_str(), track.channels,
-            track.sample_rate, track.bitrate);
-
-        trackSelections.push_back(flutter::EncodableValue(trackSelection));
+        trackSelections.push_back(ParseAudioTrack(track));
       }
     }
   } else if (type == plusplayer::TrackType::kTrackTypeSubtitle) {
     LOG_INFO("[PlusPlayer] Subtitle track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeSubtitle) {
-        trackSelection.insert_or_assign(flutter::EncodableValue("trackId"),
-                                        flutter::EncodableValue(track.index));
-        trackSelection.insert_or_assign(
-            flutter::EncodableValue("language"),
-            flutter::EncodableValue(track.language_code));
-        LOG_INFO("[PlusPlayer] Subtitle track info[%d]: language[%s]",
-                 track.index, track.language_code.c_str());
-
-        trackSelections.push_back(flutter::EncodableValue(trackSelection));
+        trackSelections.push_back(
+            flutter::EncodableValue(ParseSubtitleTrack(track)));
       }
     }
   }
 
   return trackSelections;
+}
+
+flutter::EncodableList PlusPlayer::GetActiveTrackInfo() {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return {};
+  }
+
+  plusplayer::State state = GetState(player_);
+  if (state < plusplayer::State::kTrackSourceReady) {
+    LOG_ERROR("[PlusPlayer] Player is in invalid state.");
+    return {};
+  }
+
+  const std::vector<plusplayer::Track> track_info =
+      ::GetActiveTrackInfo(player_);
+
+  if (track_info.empty()) {
+    return {};
+  }
+
+  flutter::EncodableList active_tracks = {};
+  for (const auto &track : track_info) {
+    if (track.type == plusplayer::kTrackTypeVideo) {
+      active_tracks.push_back(ParseVideoTrack(track));
+    } else if (track.type == plusplayer::kTrackTypeAudio) {
+      active_tracks.push_back(ParseAudioTrack(track));
+    } else if (track.type == plusplayer::kTrackTypeSubtitle) {
+      active_tracks.push_back(ParseSubtitleTrack(track));
+    }
+  }
+  return active_tracks;
 }
 
 bool PlusPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {
@@ -892,6 +968,105 @@ bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
   }
 
   return true;
+std::string BuildJsonString(const flutter::EncodableMap &data) {
+  rapidjson::Document doc;
+  doc.SetObject();
+  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+
+  for (const auto &pair : data) {
+    std::string key_str = std::get<std::string>(pair.first);
+    rapidjson::Value key(key_str.c_str(), allocator);
+    if (key_str == "max-bandwidth") {
+      doc.AddMember(key, rapidjson::Value(std::get<int64_t>(pair.second)),
+                    allocator);
+    } else {
+      doc.AddMember(key,
+                    rapidjson::Value(std::get<std::string>(pair.second).c_str(),
+                                     allocator),
+                    allocator);
+    }
+  }
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  doc.Accept(writer);
+  return buffer.GetString();
+}
+
+std::string BuildJsonString(const flutter::EncodableList &encodable_keys) {
+  rapidjson::Document doc;
+  doc.SetObject();
+  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
+
+  for (const auto &encodable_key : encodable_keys) {
+    std::string key_str = std::get<std::string>(encodable_key);
+    rapidjson::Value key(key_str.c_str(), allocator);
+    if (key_str == "max-bandwidth") {
+      doc.AddMember(key, 0, allocator);
+    } else {
+      doc.AddMember(key, "", allocator);
+    }
+  }
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  doc.Accept(writer);
+  return buffer.GetString();
+}
+
+void ParseJsonString(std::string json_str,
+                     const flutter::EncodableList &encodable_keys,
+                     flutter::EncodableMap &output) {
+  rapidjson::Document doc;
+  doc.Parse(json_str.c_str());
+  if (doc.HasParseError()) {
+    LOG_ERROR("[PlusPlayer] Fail to parse json string.");
+    return;
+  }
+  for (const auto &encodable_key : encodable_keys) {
+    std::string key_str = std::get<std::string>(encodable_key);
+    if (doc.HasMember(key_str.c_str())) {
+      if (key_str == "max-bandwidth") {
+        output.insert_or_assign(
+            encodable_key,
+            flutter::EncodableValue(doc[key_str.c_str()].GetInt64()));
+      } else {
+        output.insert_or_assign(
+            encodable_key,
+            flutter::EncodableValue(doc[key_str.c_str()].GetString()));
+      }
+    }
+  }
+}
+
+bool PlusPlayer::SetData(const flutter::EncodableMap &data) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return false;
+  }
+  std::string json_data = BuildJsonString(data);
+  if (json_data.empty()) {
+    LOG_ERROR("[PlusPlayer] json_data is empty.");
+    return false;
+  }
+  return ::SetData(player_, json_data);
+}
+
+flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
+  flutter::EncodableMap result;
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return result;
+  }
+  std::string json_data = BuildJsonString(data);
+  if (json_data.empty()) {
+    LOG_ERROR("[PlusPlayer] json_data is empty.");
+    return result;
+  }
+  if (!::GetData(player_, json_data)) {
+    LOG_ERROR("[PlusPlayer] Fail to get data from player");
+    return result;
+  }
+  ParseJsonString(json_data, data, result);
+  return result;
 }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,

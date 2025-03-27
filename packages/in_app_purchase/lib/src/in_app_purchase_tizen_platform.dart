@@ -8,8 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 
-import '../billing_manager_wrappers.dart';
 import '../in_app_purchase_tizen.dart';
+import 'messages.g.dart';
 
 /// [IAPError.code] code for failed purchases.
 const String kPurchaseErrorCode = 'purchase_error';
@@ -43,7 +43,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       StreamController<List<PurchaseDetails>>.broadcast();
 
   @override
-  Stream<List<PurchaseDetails>> get purchaseStream =>
+  late final Stream<List<PurchaseDetails>> purchaseStream =
       _purchaseUpdatedController.stream;
 
   /// The [BillingManager] that's abstracted by Samsung Checkout.
@@ -57,6 +57,43 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return billingManager.isAvailable();
   }
 
+  /// Converts integer to [ItemType].
+  static ItemType _intToEnum(int number) => switch (number) {
+    1 => ItemType.consumable,
+    2 => ItemType.nonComsumabel,
+    3 => ItemType.limitedPeriod,
+    4 => ItemType.subscription,
+    _ => ItemType.none,
+  };
+
+  /// Converts Map<Object?, Object?>? to the list of [ItemDetails].
+  List<ItemDetails> _getItemDetails(ProductsListApiResult response) {
+    final List<ItemDetails> itemDetails = <ItemDetails>[];
+    for (final Map<Object?, Object?>? detail in response.itemDetails) {
+      final int seq = detail!['Seq']! as int;
+      final String itemId = detail['ItemID']! as String;
+      final String itemTitle = detail['ItemTitle']! as String;
+      final String itemDesc = detail['ItemDesc']! as String;
+      final int itemType = detail['ItemType']! as int;
+      final num price = detail['Price']! as num;
+      final String currencyId = detail['CurrencyID']! as String;
+
+      itemDetails.add(
+        ItemDetails(
+          seq: seq,
+          itemId: itemId,
+          itemTitle: itemTitle,
+          itemDesc: itemDesc,
+          itemType: _intToEnum(itemType),
+          price: price,
+          currencyId: currencyId,
+        ),
+      );
+    }
+    return itemDetails;
+  }
+
+  /// Performs a network query for the details of products available.
   @override
   Future<ProductDetailsResponse> queryProductDetails(
     Set<String> identifiers,
@@ -67,12 +104,12 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       response = await billingManager.requestProducts(identifiers.toList());
     } on PlatformException catch (e) {
       exception = e;
-      response = const ProductsListApiResult(
+      response = ProductsListApiResult(
         cpStatus: 'fail to receive response',
         cpResult: 'fail to receive response',
         checkValue: 'fail to receive response',
         totalCount: 0,
-        itemDetails: <ItemDetails>[],
+        itemDetails: <Map<Object?, Object?>?>[],
       );
     }
 
@@ -82,14 +119,14 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
 
     if (response.cpStatus == '100000') {
       productDetailsList =
-          response.itemDetails
+          _getItemDetails(response)
               .map(
                 (ItemDetails productWrapper) =>
                     SamsungCheckoutProductDetails.fromProduct(productWrapper),
               )
               .toList();
     } else {
-      invalidMessage.add(response.toJson().toString());
+      invalidMessage.add(response.encode().toString());
     }
 
     final ProductDetailsResponse productDetailsResponse =
@@ -109,6 +146,49 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return productDetailsResponse;
   }
 
+  /// Converts Map<Object?, Object?>? to the list of [InvoiceDetails].
+  List<InvoiceDetails> _getInvoiceDetails(
+    GetUserPurchaseListAPIResult response,
+  ) {
+    final List<InvoiceDetails> invoiceDetails = <InvoiceDetails>[];
+    for (final Map<Object?, Object?>? detail in response.invoiceDetails) {
+      final int seq = detail!['Seq']! as int;
+      final String invoiceId = detail['InvoiceID']! as String;
+      final String itemId = detail['ItemID']! as String;
+      final String itemTitle = detail['ItemTile']! as String;
+      final int itemType = detail['ItemType']! as int;
+      final String orderTime = detail['OrderTime']! as String;
+      final int? period = detail['Period'] as int?;
+      final num price = detail['Price']! as num;
+      final String orderCurrencyId = detail['OrderCurrencyID']! as String;
+      final bool cancelStatus = detail['CancelStatus']! as bool;
+      final bool appliedStatus = detail['AppliedStatus']! as bool;
+      final String? appliedTime = detail['AppliedTime'] as String?;
+      final String? limitEndTime = detail['LimitEndTime'] as String?;
+      final String? remainTime = detail['RemainTime'] as String?;
+
+      invoiceDetails.add(
+        InvoiceDetails(
+          seq: seq,
+          invoiceId: invoiceId,
+          itemId: itemId,
+          itemTitle: itemTitle,
+          itemType: _intToEnum(itemType),
+          orderTime: orderTime,
+          period: period,
+          price: price,
+          orderCurrencyId: orderCurrencyId,
+          cancelStatus: cancelStatus,
+          appliedStatus: appliedStatus,
+          appliedTime: appliedTime,
+          limitEndTime: limitEndTime,
+          remainTime: remainTime,
+        ),
+      );
+    }
+    return invoiceDetails;
+  }
+
   @override
   Future<void> restorePurchases({String? applicationUserName}) async {
     List<GetUserPurchaseListAPIResult> responses;
@@ -121,7 +201,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
         responses
             .expand((GetUserPurchaseListAPIResult response) {
               if (response.cpStatus == '100000') {
-                return response.invoiceDetails;
+                return _getInvoiceDetails(response);
               } else {
                 return <InvoiceDetails>[];
               }
@@ -155,22 +235,23 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
             .requestPurchases()
             .then((GetUserPurchaseListAPIResult responses) {
               for (int i = 0; i < responses.invoiceDetails.length; i++) {
-                if (responses.invoiceDetails[i].invoiceId == invoiceId) {
+                if (_getInvoiceDetails(responses)[i].invoiceId == invoiceId) {
                   final List<PurchaseDetails> purchases = <PurchaseDetails>[];
                   purchases.add(
                     PurchaseDetails(
-                      purchaseID: responses.invoiceDetails[i].invoiceId,
-                      productID: responses.invoiceDetails[i].itemId,
+                      purchaseID: _getInvoiceDetails(responses)[i].invoiceId,
+                      productID: _getInvoiceDetails(responses)[i].itemId,
                       verificationData: PurchaseVerificationData(
                         localVerificationData:
-                            responses.invoiceDetails[i].invoiceId,
+                            _getInvoiceDetails(responses)[i].invoiceId,
                         serverVerificationData:
-                            responses.invoiceDetails[i].invoiceId,
+                            _getInvoiceDetails(responses)[i].invoiceId,
                         source: kIAPSource,
                       ),
-                      transactionDate: responses.invoiceDetails[i].orderTime,
+                      transactionDate:
+                          _getInvoiceDetails(responses)[i].orderTime,
                       status: const PurchaseStateConverter().toPurchaseStatus(
-                        responses.invoiceDetails[i].cancelStatus,
+                        _getInvoiceDetails(responses)[i].cancelStatus,
                       ),
                     ),
                   );
@@ -198,4 +279,13 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     assert(autoConsume, 'On Tizen, we should always auto consume');
     return buyNonConsumable(purchaseParam: purchaseParam);
   }
+
+  @override
+  Future<String> countryCode() async {
+    return billingManager.getCountryCode();
+  }
+
+  /// Use countryCode instead.
+  @Deprecated('Use countryCode')
+  Future<String> getCountryCode() => countryCode();
 }

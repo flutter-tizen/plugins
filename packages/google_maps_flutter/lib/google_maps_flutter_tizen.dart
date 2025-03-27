@@ -28,6 +28,7 @@ part 'src/google_maps_controller.dart';
 part 'src/google_maps_flutter_tizen.dart';
 part 'src/marker.dart';
 part 'src/markers.dart';
+part 'src/marker_clustering.dart';
 part 'src/polygon.dart';
 part 'src/polygons.dart';
 part 'src/polyline.dart';

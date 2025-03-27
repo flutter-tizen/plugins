@@ -114,6 +114,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     final List<VideoTrack> videoTracks = <VideoTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
+      final String mimetype = trackMap['mimetype']! as String;
       final int bitrate = trackMap['bitrate']! as int;
       final int width = trackMap['width']! as int;
       final int height = trackMap['height']! as int;
@@ -121,6 +122,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       videoTracks.add(
         VideoTrack(
           trackId: trackId,
+          mimetype: mimetype,
           width: width,
           height: height,
           bitrate: bitrate,
@@ -140,6 +142,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     final List<AudioTrack> audioTracks = <AudioTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
+      final String mimetype = trackMap['mimetype']! as String;
       final String language = trackMap['language']! as String;
       final int channel = trackMap['channel']! as int;
       final int bitrate = trackMap['bitrate']! as int;
@@ -147,6 +150,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       audioTracks.add(
         AudioTrack(
           trackId: trackId,
+          mimetype: mimetype,
           language: language,
           channel: channel,
           bitrate: bitrate,
@@ -166,9 +170,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     final List<TextTrack> textTracks = <TextTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
       final int trackId = trackMap!['trackId']! as int;
+      final String mimetype = trackMap['mimetype']! as String;
       final String language = trackMap['language']! as String;
 
-      textTracks.add(TextTrack(trackId: trackId, language: language));
+      textTracks.add(
+        TextTrack(trackId: trackId, mimetype: mimetype, language: language),
+      );
     }
 
     return textTracks;
@@ -286,6 +293,88 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     }
 
     return _api.restore(playerId, message, resumeTime);
+  }
+
+  @override
+  Future<bool> setData(int playerId, Map<DashPlayerProperty, Object> data) {
+    return _api.setData(
+      DashPropertyMapMessage(
+        playerId: playerId,
+        mapData: <Object?, Object?>{
+          for (final MapEntry<DashPlayerProperty, Object> entry in data.entries)
+            _dashPlayerPropertyMap[entry.key]: entry.value,
+        },
+      ),
+    );
+  }
+
+  @override
+  Future<Map<DashPlayerProperty, Object>> getData(
+    int playerId,
+    Set<DashPlayerProperty> keys,
+  ) async {
+    final List<String?> keysList = <String?>[];
+    for (final DashPlayerProperty key in keys) {
+      keysList.add(_dashPlayerPropertyMap[key]);
+    }
+    final DashPropertyMapMessage msg = await _api.getData(
+      DashPropertyTypeListMessage(playerId: playerId, typeList: keysList),
+    );
+
+    return <DashPlayerProperty, Object>{
+      for (final MapEntry<Object?, Object?> entry in msg.mapData.entries)
+        _dashPlayerPropertyMap.keys.firstWhere(
+              (DashPlayerProperty key) =>
+                  _dashPlayerPropertyMap[key] == entry.key!,
+            ):
+            entry.value!,
+    };
+  }
+
+  @override
+  Future<List<Track>> getActiveTrackInfo(int playerId) async {
+    final TrackMessage msg = await _api.getActiveTrackInfo(
+      PlayerMessage(playerId: playerId),
+    );
+    final List<Track> tracks = <Track>[];
+    for (final Map<Object?, Object?>? trackMap in msg.tracks) {
+      final String trackType = trackMap!['trackType']! as String;
+      final int trackId = trackMap['trackId']! as int;
+      final String mimetype = trackMap['mimetype']! as String;
+      if (trackType == 'video') {
+        final int bitrate = trackMap['bitrate']! as int;
+        final int width = trackMap['width']! as int;
+        final int height = trackMap['height']! as int;
+        tracks.add(
+          VideoTrack(
+            trackId: trackId,
+            mimetype: mimetype,
+            width: width,
+            height: height,
+            bitrate: bitrate,
+          ),
+        );
+      } else if (trackType == 'audio') {
+        final String language = trackMap['language']! as String;
+        final int channel = trackMap['channel']! as int;
+        final int bitrate = trackMap['bitrate']! as int;
+        tracks.add(
+          AudioTrack(
+            trackId: trackId,
+            mimetype: mimetype,
+            language: language,
+            channel: channel,
+            bitrate: bitrate,
+          ),
+        );
+      } else if (trackType == 'text') {
+        final String language = trackMap['language']! as String;
+        tracks.add(
+          TextTrack(trackId: trackId, mimetype: mimetype, language: language),
+        );
+      }
+    }
+    return tracks;
   }
 
   @override
@@ -425,4 +514,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     BufferConfigType.bufferingTimeoutInSecForPlay:
         'buffering_timeout_in_sec_for_play',
   };
+
+  static const Map<DashPlayerProperty, String> _dashPlayerPropertyMap =
+      <DashPlayerProperty, String>{
+        DashPlayerProperty.maxBandWidth: 'max-bandwidth',
+        DashPlayerProperty.dashStreamInfo: 'dash-stream-info',
+      };
 }

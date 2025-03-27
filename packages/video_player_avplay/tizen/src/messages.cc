@@ -22,11 +22,17 @@ using flutter::EncodableValue;
 
 // PlayerMessage
 
-PlayerMessage::PlayerMessage(int64_t player_id) : player_id_(player_id) {}
+PlayerMessage::PlayerMessage(int64_t player_id)
+ : player_id_(player_id) {}
 
-int64_t PlayerMessage::player_id() const { return player_id_; }
+int64_t PlayerMessage::player_id() const {
+  return player_id_;
+}
 
-void PlayerMessage::set_player_id(int64_t value_arg) { player_id_ = value_arg; }
+void PlayerMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
+
 
 EncodableList PlayerMessage::ToEncodableList() const {
   EncodableList list;
@@ -36,24 +42,36 @@ EncodableList PlayerMessage::ToEncodableList() const {
 }
 
 PlayerMessage PlayerMessage::FromEncodableList(const EncodableList& list) {
-  PlayerMessage decoded(list[0].LongValue());
+  PlayerMessage decoded(
+    list[0].LongValue());
   return decoded;
 }
 
 // LoopingMessage
 
-LoopingMessage::LoopingMessage(int64_t player_id, bool is_looping)
-    : player_id_(player_id), is_looping_(is_looping) {}
+LoopingMessage::LoopingMessage(
+  int64_t player_id,
+  bool is_looping)
+ : player_id_(player_id),
+    is_looping_(is_looping) {}
 
-int64_t LoopingMessage::player_id() const { return player_id_; }
+int64_t LoopingMessage::player_id() const {
+  return player_id_;
+}
 
 void LoopingMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-bool LoopingMessage::is_looping() const { return is_looping_; }
 
-void LoopingMessage::set_is_looping(bool value_arg) { is_looping_ = value_arg; }
+bool LoopingMessage::is_looping() const {
+  return is_looping_;
+}
+
+void LoopingMessage::set_is_looping(bool value_arg) {
+  is_looping_ = value_arg;
+}
+
 
 EncodableList LoopingMessage::ToEncodableList() const {
   EncodableList list;
@@ -64,22 +82,37 @@ EncodableList LoopingMessage::ToEncodableList() const {
 }
 
 LoopingMessage LoopingMessage::FromEncodableList(const EncodableList& list) {
-  LoopingMessage decoded(list[0].LongValue(), std::get<bool>(list[1]));
+  LoopingMessage decoded(
+    list[0].LongValue(),
+    std::get<bool>(list[1]));
   return decoded;
 }
 
 // VolumeMessage
 
-VolumeMessage::VolumeMessage(int64_t player_id, double volume)
-    : player_id_(player_id), volume_(volume) {}
+VolumeMessage::VolumeMessage(
+  int64_t player_id,
+  double volume)
+ : player_id_(player_id),
+    volume_(volume) {}
 
-int64_t VolumeMessage::player_id() const { return player_id_; }
+int64_t VolumeMessage::player_id() const {
+  return player_id_;
+}
 
-void VolumeMessage::set_player_id(int64_t value_arg) { player_id_ = value_arg; }
+void VolumeMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
 
-double VolumeMessage::volume() const { return volume_; }
 
-void VolumeMessage::set_volume(double value_arg) { volume_ = value_arg; }
+double VolumeMessage::volume() const {
+  return volume_;
+}
+
+void VolumeMessage::set_volume(double value_arg) {
+  volume_ = value_arg;
+}
+
 
 EncodableList VolumeMessage::ToEncodableList() const {
   EncodableList list;
@@ -90,24 +123,37 @@ EncodableList VolumeMessage::ToEncodableList() const {
 }
 
 VolumeMessage VolumeMessage::FromEncodableList(const EncodableList& list) {
-  VolumeMessage decoded(list[0].LongValue(), std::get<double>(list[1]));
+  VolumeMessage decoded(
+    list[0].LongValue(),
+    std::get<double>(list[1]));
   return decoded;
 }
 
 // PlaybackSpeedMessage
 
-PlaybackSpeedMessage::PlaybackSpeedMessage(int64_t player_id, double speed)
-    : player_id_(player_id), speed_(speed) {}
+PlaybackSpeedMessage::PlaybackSpeedMessage(
+  int64_t player_id,
+  double speed)
+ : player_id_(player_id),
+    speed_(speed) {}
 
-int64_t PlaybackSpeedMessage::player_id() const { return player_id_; }
+int64_t PlaybackSpeedMessage::player_id() const {
+  return player_id_;
+}
 
 void PlaybackSpeedMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-double PlaybackSpeedMessage::speed() const { return speed_; }
 
-void PlaybackSpeedMessage::set_speed(double value_arg) { speed_ = value_arg; }
+double PlaybackSpeedMessage::speed() const {
+  return speed_;
+}
+
+void PlaybackSpeedMessage::set_speed(double value_arg) {
+  speed_ = value_arg;
+}
+
 
 EncodableList PlaybackSpeedMessage::ToEncodableList() const {
   EncodableList list;
@@ -117,26 +163,38 @@ EncodableList PlaybackSpeedMessage::ToEncodableList() const {
   return list;
 }
 
-PlaybackSpeedMessage PlaybackSpeedMessage::FromEncodableList(
-    const EncodableList& list) {
-  PlaybackSpeedMessage decoded(list[0].LongValue(), std::get<double>(list[1]));
+PlaybackSpeedMessage PlaybackSpeedMessage::FromEncodableList(const EncodableList& list) {
+  PlaybackSpeedMessage decoded(
+    list[0].LongValue(),
+    std::get<double>(list[1]));
   return decoded;
 }
 
 // TrackMessage
 
-TrackMessage::TrackMessage(int64_t player_id, const EncodableList& tracks)
-    : player_id_(player_id), tracks_(tracks) {}
+TrackMessage::TrackMessage(
+  int64_t player_id,
+  const EncodableList& tracks)
+ : player_id_(player_id),
+    tracks_(tracks) {}
 
-int64_t TrackMessage::player_id() const { return player_id_; }
+int64_t TrackMessage::player_id() const {
+  return player_id_;
+}
 
-void TrackMessage::set_player_id(int64_t value_arg) { player_id_ = value_arg; }
+void TrackMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
 
-const EncodableList& TrackMessage::tracks() const { return tracks_; }
+
+const EncodableList& TrackMessage::tracks() const {
+  return tracks_;
+}
 
 void TrackMessage::set_tracks(const EncodableList& value_arg) {
   tracks_ = value_arg;
 }
+
 
 EncodableList TrackMessage::ToEncodableList() const {
   EncodableList list;
@@ -147,27 +205,37 @@ EncodableList TrackMessage::ToEncodableList() const {
 }
 
 TrackMessage TrackMessage::FromEncodableList(const EncodableList& list) {
-  TrackMessage decoded(list[0].LongValue(), std::get<EncodableList>(list[1]));
+  TrackMessage decoded(
+    list[0].LongValue(),
+    std::get<EncodableList>(list[1]));
   return decoded;
 }
 
 // TrackTypeMessage
 
-TrackTypeMessage::TrackTypeMessage(int64_t player_id,
-                                   const std::string& track_type)
-    : player_id_(player_id), track_type_(track_type) {}
+TrackTypeMessage::TrackTypeMessage(
+  int64_t player_id,
+  const std::string& track_type)
+ : player_id_(player_id),
+    track_type_(track_type) {}
 
-int64_t TrackTypeMessage::player_id() const { return player_id_; }
+int64_t TrackTypeMessage::player_id() const {
+  return player_id_;
+}
 
 void TrackTypeMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-const std::string& TrackTypeMessage::track_type() const { return track_type_; }
+
+const std::string& TrackTypeMessage::track_type() const {
+  return track_type_;
+}
 
 void TrackTypeMessage::set_track_type(std::string_view value_arg) {
   track_type_ = value_arg;
 }
+
 
 EncodableList TrackTypeMessage::ToEncodableList() const {
   EncodableList list;
@@ -177,30 +245,40 @@ EncodableList TrackTypeMessage::ToEncodableList() const {
   return list;
 }
 
-TrackTypeMessage TrackTypeMessage::FromEncodableList(
-    const EncodableList& list) {
-  TrackTypeMessage decoded(list[0].LongValue(), std::get<std::string>(list[1]));
+TrackTypeMessage TrackTypeMessage::FromEncodableList(const EncodableList& list) {
+  TrackTypeMessage decoded(
+    list[0].LongValue(),
+    std::get<std::string>(list[1]));
   return decoded;
 }
 
 // SelectedTracksMessage
 
-SelectedTracksMessage::SelectedTracksMessage(int64_t player_id,
-                                             int64_t track_id,
-                                             const std::string& track_type)
-    : player_id_(player_id), track_id_(track_id), track_type_(track_type) {}
+SelectedTracksMessage::SelectedTracksMessage(
+  int64_t player_id,
+  int64_t track_id,
+  const std::string& track_type)
+ : player_id_(player_id),
+    track_id_(track_id),
+    track_type_(track_type) {}
 
-int64_t SelectedTracksMessage::player_id() const { return player_id_; }
+int64_t SelectedTracksMessage::player_id() const {
+  return player_id_;
+}
 
 void SelectedTracksMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-int64_t SelectedTracksMessage::track_id() const { return track_id_; }
+
+int64_t SelectedTracksMessage::track_id() const {
+  return track_id_;
+}
 
 void SelectedTracksMessage::set_track_id(int64_t value_arg) {
   track_id_ = value_arg;
 }
+
 
 const std::string& SelectedTracksMessage::track_type() const {
   return track_type_;
@@ -209,6 +287,7 @@ const std::string& SelectedTracksMessage::track_type() const {
 void SelectedTracksMessage::set_track_type(std::string_view value_arg) {
   track_type_ = value_arg;
 }
+
 
 EncodableList SelectedTracksMessage::ToEncodableList() const {
   EncodableList list;
@@ -219,27 +298,39 @@ EncodableList SelectedTracksMessage::ToEncodableList() const {
   return list;
 }
 
-SelectedTracksMessage SelectedTracksMessage::FromEncodableList(
-    const EncodableList& list) {
-  SelectedTracksMessage decoded(list[0].LongValue(), list[1].LongValue(),
-                                std::get<std::string>(list[2]));
+SelectedTracksMessage SelectedTracksMessage::FromEncodableList(const EncodableList& list) {
+  SelectedTracksMessage decoded(
+    list[0].LongValue(),
+    list[1].LongValue(),
+    std::get<std::string>(list[2]));
   return decoded;
 }
 
 // PositionMessage
 
-PositionMessage::PositionMessage(int64_t player_id, int64_t position)
-    : player_id_(player_id), position_(position) {}
+PositionMessage::PositionMessage(
+  int64_t player_id,
+  int64_t position)
+ : player_id_(player_id),
+    position_(position) {}
 
-int64_t PositionMessage::player_id() const { return player_id_; }
+int64_t PositionMessage::player_id() const {
+  return player_id_;
+}
 
 void PositionMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-int64_t PositionMessage::position() const { return position_; }
 
-void PositionMessage::set_position(int64_t value_arg) { position_ = value_arg; }
+int64_t PositionMessage::position() const {
+  return position_;
+}
+
+void PositionMessage::set_position(int64_t value_arg) {
+  position_ = value_arg;
+}
+
 
 EncodableList PositionMessage::ToEncodableList() const {
   EncodableList list;
@@ -250,7 +341,9 @@ EncodableList PositionMessage::ToEncodableList() const {
 }
 
 PositionMessage PositionMessage::FromEncodableList(const EncodableList& list) {
-  PositionMessage decoded(list[0].LongValue(), list[1].LongValue());
+  PositionMessage decoded(
+    list[0].LongValue(),
+    list[1].LongValue());
   return decoded;
 }
 
@@ -258,29 +351,23 @@ PositionMessage PositionMessage::FromEncodableList(const EncodableList& list) {
 
 CreateMessage::CreateMessage() {}
 
-CreateMessage::CreateMessage(const std::string* asset, const std::string* uri,
-                             const std::string* package_name,
-                             const std::string* format_hint,
-                             const EncodableMap* http_headers,
-                             const EncodableMap* drm_configs,
-                             const EncodableMap* player_options,
-                             const EncodableMap* streaming_property)
-    : asset_(asset ? std::optional<std::string>(*asset) : std::nullopt),
-      uri_(uri ? std::optional<std::string>(*uri) : std::nullopt),
-      package_name_(package_name ? std::optional<std::string>(*package_name)
-                                 : std::nullopt),
-      format_hint_(format_hint ? std::optional<std::string>(*format_hint)
-                               : std::nullopt),
-      http_headers_(http_headers ? std::optional<EncodableMap>(*http_headers)
-                                 : std::nullopt),
-      drm_configs_(drm_configs ? std::optional<EncodableMap>(*drm_configs)
-                               : std::nullopt),
-      player_options_(player_options
-                          ? std::optional<EncodableMap>(*player_options)
-                          : std::nullopt),
-      streaming_property_(streaming_property
-                              ? std::optional<EncodableMap>(*streaming_property)
-                              : std::nullopt) {}
+CreateMessage::CreateMessage(
+  const std::string* asset,
+  const std::string* uri,
+  const std::string* package_name,
+  const std::string* format_hint,
+  const EncodableMap* http_headers,
+  const EncodableMap* drm_configs,
+  const EncodableMap* player_options,
+  const EncodableMap* streaming_property)
+ : asset_(asset ? std::optional<std::string>(*asset) : std::nullopt),
+    uri_(uri ? std::optional<std::string>(*uri) : std::nullopt),
+    package_name_(package_name ? std::optional<std::string>(*package_name) : std::nullopt),
+    format_hint_(format_hint ? std::optional<std::string>(*format_hint) : std::nullopt),
+    http_headers_(http_headers ? std::optional<EncodableMap>(*http_headers) : std::nullopt),
+    drm_configs_(drm_configs ? std::optional<EncodableMap>(*drm_configs) : std::nullopt),
+    player_options_(player_options ? std::optional<EncodableMap>(*player_options) : std::nullopt),
+    streaming_property_(streaming_property ? std::optional<EncodableMap>(*streaming_property) : std::nullopt) {}
 
 const std::string* CreateMessage::asset() const {
   return asset_ ? &(*asset_) : nullptr;
@@ -294,6 +381,7 @@ void CreateMessage::set_asset(std::string_view value_arg) {
   asset_ = value_arg;
 }
 
+
 const std::string* CreateMessage::uri() const {
   return uri_ ? &(*uri_) : nullptr;
 }
@@ -302,103 +390,100 @@ void CreateMessage::set_uri(const std::string_view* value_arg) {
   uri_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
-void CreateMessage::set_uri(std::string_view value_arg) { uri_ = value_arg; }
+void CreateMessage::set_uri(std::string_view value_arg) {
+  uri_ = value_arg;
+}
+
 
 const std::string* CreateMessage::package_name() const {
   return package_name_ ? &(*package_name_) : nullptr;
 }
 
 void CreateMessage::set_package_name(const std::string_view* value_arg) {
-  package_name_ =
-      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+  package_name_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void CreateMessage::set_package_name(std::string_view value_arg) {
   package_name_ = value_arg;
 }
 
+
 const std::string* CreateMessage::format_hint() const {
   return format_hint_ ? &(*format_hint_) : nullptr;
 }
 
 void CreateMessage::set_format_hint(const std::string_view* value_arg) {
-  format_hint_ =
-      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+  format_hint_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void CreateMessage::set_format_hint(std::string_view value_arg) {
   format_hint_ = value_arg;
 }
 
+
 const EncodableMap* CreateMessage::http_headers() const {
   return http_headers_ ? &(*http_headers_) : nullptr;
 }
 
 void CreateMessage::set_http_headers(const EncodableMap* value_arg) {
-  http_headers_ =
-      value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
+  http_headers_ = value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
 }
 
 void CreateMessage::set_http_headers(const EncodableMap& value_arg) {
   http_headers_ = value_arg;
 }
 
+
 const EncodableMap* CreateMessage::drm_configs() const {
   return drm_configs_ ? &(*drm_configs_) : nullptr;
 }
 
 void CreateMessage::set_drm_configs(const EncodableMap* value_arg) {
-  drm_configs_ =
-      value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
+  drm_configs_ = value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
 }
 
 void CreateMessage::set_drm_configs(const EncodableMap& value_arg) {
   drm_configs_ = value_arg;
 }
 
+
 const EncodableMap* CreateMessage::player_options() const {
   return player_options_ ? &(*player_options_) : nullptr;
 }
 
 void CreateMessage::set_player_options(const EncodableMap* value_arg) {
-  player_options_ =
-      value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
+  player_options_ = value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
 }
 
 void CreateMessage::set_player_options(const EncodableMap& value_arg) {
   player_options_ = value_arg;
 }
 
+
 const EncodableMap* CreateMessage::streaming_property() const {
   return streaming_property_ ? &(*streaming_property_) : nullptr;
 }
 
 void CreateMessage::set_streaming_property(const EncodableMap* value_arg) {
-  streaming_property_ =
-      value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
+  streaming_property_ = value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
 }
 
 void CreateMessage::set_streaming_property(const EncodableMap& value_arg) {
   streaming_property_ = value_arg;
 }
 
+
 EncodableList CreateMessage::ToEncodableList() const {
   EncodableList list;
   list.reserve(8);
   list.push_back(asset_ ? EncodableValue(*asset_) : EncodableValue());
   list.push_back(uri_ ? EncodableValue(*uri_) : EncodableValue());
-  list.push_back(package_name_ ? EncodableValue(*package_name_)
-                               : EncodableValue());
-  list.push_back(format_hint_ ? EncodableValue(*format_hint_)
-                              : EncodableValue());
-  list.push_back(http_headers_ ? EncodableValue(*http_headers_)
-                               : EncodableValue());
-  list.push_back(drm_configs_ ? EncodableValue(*drm_configs_)
-                              : EncodableValue());
-  list.push_back(player_options_ ? EncodableValue(*player_options_)
-                                 : EncodableValue());
-  list.push_back(streaming_property_ ? EncodableValue(*streaming_property_)
-                                     : EncodableValue());
+  list.push_back(package_name_ ? EncodableValue(*package_name_) : EncodableValue());
+  list.push_back(format_hint_ ? EncodableValue(*format_hint_) : EncodableValue());
+  list.push_back(http_headers_ ? EncodableValue(*http_headers_) : EncodableValue());
+  list.push_back(drm_configs_ ? EncodableValue(*drm_configs_) : EncodableValue());
+  list.push_back(player_options_ ? EncodableValue(*player_options_) : EncodableValue());
+  list.push_back(streaming_property_ ? EncodableValue(*streaming_property_) : EncodableValue());
   return list;
 }
 
@@ -430,13 +515,11 @@ CreateMessage CreateMessage::FromEncodableList(const EncodableList& list) {
   }
   auto& encodable_player_options = list[6];
   if (!encodable_player_options.IsNull()) {
-    decoded.set_player_options(
-        std::get<EncodableMap>(encodable_player_options));
+    decoded.set_player_options(std::get<EncodableMap>(encodable_player_options));
   }
   auto& encodable_streaming_property = list[7];
   if (!encodable_streaming_property.IsNull()) {
-    decoded.set_streaming_property(
-        std::get<EncodableMap>(encodable_streaming_property));
+    decoded.set_streaming_property(std::get<EncodableMap>(encodable_streaming_property));
   }
   return decoded;
 }
@@ -444,13 +527,16 @@ CreateMessage CreateMessage::FromEncodableList(const EncodableList& list) {
 // MixWithOthersMessage
 
 MixWithOthersMessage::MixWithOthersMessage(bool mix_with_others)
-    : mix_with_others_(mix_with_others) {}
+ : mix_with_others_(mix_with_others) {}
 
-bool MixWithOthersMessage::mix_with_others() const { return mix_with_others_; }
+bool MixWithOthersMessage::mix_with_others() const {
+  return mix_with_others_;
+}
 
 void MixWithOthersMessage::set_mix_with_others(bool value_arg) {
   mix_with_others_ = value_arg;
 }
+
 
 EncodableList MixWithOthersMessage::ToEncodableList() const {
   EncodableList list;
@@ -459,39 +545,70 @@ EncodableList MixWithOthersMessage::ToEncodableList() const {
   return list;
 }
 
-MixWithOthersMessage MixWithOthersMessage::FromEncodableList(
-    const EncodableList& list) {
-  MixWithOthersMessage decoded(std::get<bool>(list[0]));
+MixWithOthersMessage MixWithOthersMessage::FromEncodableList(const EncodableList& list) {
+  MixWithOthersMessage decoded(
+    std::get<bool>(list[0]));
   return decoded;
 }
 
 // GeometryMessage
 
-GeometryMessage::GeometryMessage(int64_t player_id, int64_t x, int64_t y,
-                                 int64_t width, int64_t height)
-    : player_id_(player_id), x_(x), y_(y), width_(width), height_(height) {}
+GeometryMessage::GeometryMessage(
+  int64_t player_id,
+  int64_t x,
+  int64_t y,
+  int64_t width,
+  int64_t height)
+ : player_id_(player_id),
+    x_(x),
+    y_(y),
+    width_(width),
+    height_(height) {}
 
-int64_t GeometryMessage::player_id() const { return player_id_; }
+int64_t GeometryMessage::player_id() const {
+  return player_id_;
+}
 
 void GeometryMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-int64_t GeometryMessage::x() const { return x_; }
 
-void GeometryMessage::set_x(int64_t value_arg) { x_ = value_arg; }
+int64_t GeometryMessage::x() const {
+  return x_;
+}
 
-int64_t GeometryMessage::y() const { return y_; }
+void GeometryMessage::set_x(int64_t value_arg) {
+  x_ = value_arg;
+}
 
-void GeometryMessage::set_y(int64_t value_arg) { y_ = value_arg; }
 
-int64_t GeometryMessage::width() const { return width_; }
+int64_t GeometryMessage::y() const {
+  return y_;
+}
 
-void GeometryMessage::set_width(int64_t value_arg) { width_ = value_arg; }
+void GeometryMessage::set_y(int64_t value_arg) {
+  y_ = value_arg;
+}
 
-int64_t GeometryMessage::height() const { return height_; }
 
-void GeometryMessage::set_height(int64_t value_arg) { height_ = value_arg; }
+int64_t GeometryMessage::width() const {
+  return width_;
+}
+
+void GeometryMessage::set_width(int64_t value_arg) {
+  width_ = value_arg;
+}
+
+
+int64_t GeometryMessage::height() const {
+  return height_;
+}
+
+void GeometryMessage::set_height(int64_t value_arg) {
+  height_ = value_arg;
+}
+
 
 EncodableList GeometryMessage::ToEncodableList() const {
   EncodableList list;
@@ -505,57 +622,62 @@ EncodableList GeometryMessage::ToEncodableList() const {
 }
 
 GeometryMessage GeometryMessage::FromEncodableList(const EncodableList& list) {
-  GeometryMessage decoded(list[0].LongValue(), list[1].LongValue(),
-                          list[2].LongValue(), list[3].LongValue(),
-                          list[4].LongValue());
+  GeometryMessage decoded(
+    list[0].LongValue(),
+    list[1].LongValue(),
+    list[2].LongValue(),
+    list[3].LongValue(),
+    list[4].LongValue());
   return decoded;
 }
 
 // DurationMessage
 
-DurationMessage::DurationMessage(int64_t player_id) : player_id_(player_id) {}
+DurationMessage::DurationMessage(int64_t player_id)
+ : player_id_(player_id) {}
 
-DurationMessage::DurationMessage(int64_t player_id,
-                                 const EncodableList* duration_range)
-    : player_id_(player_id),
-      duration_range_(duration_range
-                          ? std::optional<EncodableList>(*duration_range)
-                          : std::nullopt) {}
+DurationMessage::DurationMessage(
+  int64_t player_id,
+  const EncodableList* duration_range)
+ : player_id_(player_id),
+    duration_range_(duration_range ? std::optional<EncodableList>(*duration_range) : std::nullopt) {}
 
-int64_t DurationMessage::player_id() const { return player_id_; }
+int64_t DurationMessage::player_id() const {
+  return player_id_;
+}
 
 void DurationMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
+
 
 const EncodableList* DurationMessage::duration_range() const {
   return duration_range_ ? &(*duration_range_) : nullptr;
 }
 
 void DurationMessage::set_duration_range(const EncodableList* value_arg) {
-  duration_range_ =
-      value_arg ? std::optional<EncodableList>(*value_arg) : std::nullopt;
+  duration_range_ = value_arg ? std::optional<EncodableList>(*value_arg) : std::nullopt;
 }
 
 void DurationMessage::set_duration_range(const EncodableList& value_arg) {
   duration_range_ = value_arg;
 }
 
+
 EncodableList DurationMessage::ToEncodableList() const {
   EncodableList list;
   list.reserve(2);
   list.push_back(EncodableValue(player_id_));
-  list.push_back(duration_range_ ? EncodableValue(*duration_range_)
-                                 : EncodableValue());
+  list.push_back(duration_range_ ? EncodableValue(*duration_range_) : EncodableValue());
   return list;
 }
 
 DurationMessage DurationMessage::FromEncodableList(const EncodableList& list) {
-  DurationMessage decoded(list[0].LongValue());
+  DurationMessage decoded(
+    list[0].LongValue());
   auto& encodable_duration_range = list[1];
   if (!encodable_duration_range.IsNull()) {
-    decoded.set_duration_range(
-        std::get<EncodableList>(encodable_duration_range));
+    decoded.set_duration_range(std::get<EncodableList>(encodable_duration_range));
   }
   return decoded;
 }
@@ -563,25 +685,28 @@ DurationMessage DurationMessage::FromEncodableList(const EncodableList& list) {
 // StreamingPropertyTypeMessage
 
 StreamingPropertyTypeMessage::StreamingPropertyTypeMessage(
-    int64_t player_id, const std::string& streaming_property_type)
-    : player_id_(player_id),
-      streaming_property_type_(streaming_property_type) {}
+  int64_t player_id,
+  const std::string& streaming_property_type)
+ : player_id_(player_id),
+    streaming_property_type_(streaming_property_type) {}
 
-int64_t StreamingPropertyTypeMessage::player_id() const { return player_id_; }
+int64_t StreamingPropertyTypeMessage::player_id() const {
+  return player_id_;
+}
 
 void StreamingPropertyTypeMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-const std::string& StreamingPropertyTypeMessage::streaming_property_type()
-    const {
+
+const std::string& StreamingPropertyTypeMessage::streaming_property_type() const {
   return streaming_property_type_;
 }
 
-void StreamingPropertyTypeMessage::set_streaming_property_type(
-    std::string_view value_arg) {
+void StreamingPropertyTypeMessage::set_streaming_property_type(std::string_view value_arg) {
   streaming_property_type_ = value_arg;
 }
+
 
 EncodableList StreamingPropertyTypeMessage::ToEncodableList() const {
   EncodableList list;
@@ -591,45 +716,49 @@ EncodableList StreamingPropertyTypeMessage::ToEncodableList() const {
   return list;
 }
 
-StreamingPropertyTypeMessage StreamingPropertyTypeMessage::FromEncodableList(
-    const EncodableList& list) {
-  StreamingPropertyTypeMessage decoded(list[0].LongValue(),
-                                       std::get<std::string>(list[1]));
+StreamingPropertyTypeMessage StreamingPropertyTypeMessage::FromEncodableList(const EncodableList& list) {
+  StreamingPropertyTypeMessage decoded(
+    list[0].LongValue(),
+    std::get<std::string>(list[1]));
   return decoded;
 }
 
 // StreamingPropertyMessage
 
 StreamingPropertyMessage::StreamingPropertyMessage(
-    int64_t player_id, const std::string& streaming_property_type,
-    const std::string& streaming_property_value)
-    : player_id_(player_id),
-      streaming_property_type_(streaming_property_type),
-      streaming_property_value_(streaming_property_value) {}
+  int64_t player_id,
+  const std::string& streaming_property_type,
+  const std::string& streaming_property_value)
+ : player_id_(player_id),
+    streaming_property_type_(streaming_property_type),
+    streaming_property_value_(streaming_property_value) {}
 
-int64_t StreamingPropertyMessage::player_id() const { return player_id_; }
+int64_t StreamingPropertyMessage::player_id() const {
+  return player_id_;
+}
 
 void StreamingPropertyMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
+
 const std::string& StreamingPropertyMessage::streaming_property_type() const {
   return streaming_property_type_;
 }
 
-void StreamingPropertyMessage::set_streaming_property_type(
-    std::string_view value_arg) {
+void StreamingPropertyMessage::set_streaming_property_type(std::string_view value_arg) {
   streaming_property_type_ = value_arg;
 }
+
 
 const std::string& StreamingPropertyMessage::streaming_property_value() const {
   return streaming_property_value_;
 }
 
-void StreamingPropertyMessage::set_streaming_property_value(
-    std::string_view value_arg) {
+void StreamingPropertyMessage::set_streaming_property_value(std::string_view value_arg) {
   streaming_property_value_ = value_arg;
 }
+
 
 EncodableList StreamingPropertyMessage::ToEncodableList() const {
   EncodableList list;
@@ -640,28 +769,32 @@ EncodableList StreamingPropertyMessage::ToEncodableList() const {
   return list;
 }
 
-StreamingPropertyMessage StreamingPropertyMessage::FromEncodableList(
-    const EncodableList& list) {
-  StreamingPropertyMessage decoded(list[0].LongValue(),
-                                   std::get<std::string>(list[1]),
-                                   std::get<std::string>(list[2]));
+StreamingPropertyMessage StreamingPropertyMessage::FromEncodableList(const EncodableList& list) {
+  StreamingPropertyMessage decoded(
+    list[0].LongValue(),
+    std::get<std::string>(list[1]),
+    std::get<std::string>(list[2]));
   return decoded;
 }
 
 // BufferConfigMessage
 
-BufferConfigMessage::BufferConfigMessage(int64_t player_id,
-                                         const std::string& buffer_config_type,
-                                         int64_t buffer_config_value)
-    : player_id_(player_id),
-      buffer_config_type_(buffer_config_type),
-      buffer_config_value_(buffer_config_value) {}
+BufferConfigMessage::BufferConfigMessage(
+  int64_t player_id,
+  const std::string& buffer_config_type,
+  int64_t buffer_config_value)
+ : player_id_(player_id),
+    buffer_config_type_(buffer_config_type),
+    buffer_config_value_(buffer_config_value) {}
 
-int64_t BufferConfigMessage::player_id() const { return player_id_; }
+int64_t BufferConfigMessage::player_id() const {
+  return player_id_;
+}
 
 void BufferConfigMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
+
 
 const std::string& BufferConfigMessage::buffer_config_type() const {
   return buffer_config_type_;
@@ -671,6 +804,7 @@ void BufferConfigMessage::set_buffer_config_type(std::string_view value_arg) {
   buffer_config_type_ = value_arg;
 }
 
+
 int64_t BufferConfigMessage::buffer_config_value() const {
   return buffer_config_value_;
 }
@@ -678,6 +812,7 @@ int64_t BufferConfigMessage::buffer_config_value() const {
 void BufferConfigMessage::set_buffer_config_value(int64_t value_arg) {
   buffer_config_value_ = value_arg;
 }
+
 
 EncodableList BufferConfigMessage::ToEncodableList() const {
   EncodableList list;
@@ -688,27 +823,39 @@ EncodableList BufferConfigMessage::ToEncodableList() const {
   return list;
 }
 
-BufferConfigMessage BufferConfigMessage::FromEncodableList(
-    const EncodableList& list) {
+BufferConfigMessage BufferConfigMessage::FromEncodableList(const EncodableList& list) {
   BufferConfigMessage decoded(
-      list[0].LongValue(), std::get<std::string>(list[1]), list[2].LongValue());
+    list[0].LongValue(),
+    std::get<std::string>(list[1]),
+    list[2].LongValue());
   return decoded;
 }
 
 // RotationMessage
 
-RotationMessage::RotationMessage(int64_t player_id, int64_t rotation)
-    : player_id_(player_id), rotation_(rotation) {}
+RotationMessage::RotationMessage(
+  int64_t player_id,
+  int64_t rotation)
+ : player_id_(player_id),
+    rotation_(rotation) {}
 
-int64_t RotationMessage::player_id() const { return player_id_; }
+int64_t RotationMessage::player_id() const {
+  return player_id_;
+}
 
 void RotationMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-int64_t RotationMessage::rotation() const { return rotation_; }
 
-void RotationMessage::set_rotation(int64_t value_arg) { rotation_ = value_arg; }
+int64_t RotationMessage::rotation() const {
+  return rotation_;
+}
+
+void RotationMessage::set_rotation(int64_t value_arg) {
+  rotation_ = value_arg;
+}
+
 
 EncodableList RotationMessage::ToEncodableList() const {
   EncodableList list;
@@ -719,26 +866,37 @@ EncodableList RotationMessage::ToEncodableList() const {
 }
 
 RotationMessage RotationMessage::FromEncodableList(const EncodableList& list) {
-  RotationMessage decoded(list[0].LongValue(), list[1].LongValue());
+  RotationMessage decoded(
+    list[0].LongValue(),
+    list[1].LongValue());
   return decoded;
 }
 
 // DisplayModeMessage
 
-DisplayModeMessage::DisplayModeMessage(int64_t player_id, int64_t display_mode)
-    : player_id_(player_id), display_mode_(display_mode) {}
+DisplayModeMessage::DisplayModeMessage(
+  int64_t player_id,
+  int64_t display_mode)
+ : player_id_(player_id),
+    display_mode_(display_mode) {}
 
-int64_t DisplayModeMessage::player_id() const { return player_id_; }
+int64_t DisplayModeMessage::player_id() const {
+  return player_id_;
+}
 
 void DisplayModeMessage::set_player_id(int64_t value_arg) {
   player_id_ = value_arg;
 }
 
-int64_t DisplayModeMessage::display_mode() const { return display_mode_; }
+
+int64_t DisplayModeMessage::display_mode() const {
+  return display_mode_;
+}
 
 void DisplayModeMessage::set_display_mode(int64_t value_arg) {
   display_mode_ = value_arg;
 }
+
 
 EncodableList DisplayModeMessage::ToEncodableList() const {
   EncodableList list;
@@ -748,222 +906,249 @@ EncodableList DisplayModeMessage::ToEncodableList() const {
   return list;
 }
 
-DisplayModeMessage DisplayModeMessage::FromEncodableList(
-    const EncodableList& list) {
-  DisplayModeMessage decoded(list[0].LongValue(), list[1].LongValue());
+DisplayModeMessage DisplayModeMessage::FromEncodableList(const EncodableList& list) {
+  DisplayModeMessage decoded(
+    list[0].LongValue(),
+    list[1].LongValue());
   return decoded;
 }
+
+// DashPropertyTypeListMessage
+
+DashPropertyTypeListMessage::DashPropertyTypeListMessage(
+  int64_t player_id,
+  const EncodableList& type_list)
+ : player_id_(player_id),
+    type_list_(type_list) {}
+
+int64_t DashPropertyTypeListMessage::player_id() const {
+  return player_id_;
+}
+
+void DashPropertyTypeListMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
+
+
+const EncodableList& DashPropertyTypeListMessage::type_list() const {
+  return type_list_;
+}
+
+void DashPropertyTypeListMessage::set_type_list(const EncodableList& value_arg) {
+  type_list_ = value_arg;
+}
+
+
+EncodableList DashPropertyTypeListMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(2);
+  list.push_back(EncodableValue(player_id_));
+  list.push_back(EncodableValue(type_list_));
+  return list;
+}
+
+DashPropertyTypeListMessage DashPropertyTypeListMessage::FromEncodableList(const EncodableList& list) {
+  DashPropertyTypeListMessage decoded(
+    list[0].LongValue(),
+    std::get<EncodableList>(list[1]));
+  return decoded;
+}
+
+// DashPropertyMapMessage
+
+DashPropertyMapMessage::DashPropertyMapMessage(
+  int64_t player_id,
+  const EncodableMap& map_data)
+ : player_id_(player_id),
+    map_data_(map_data) {}
+
+int64_t DashPropertyMapMessage::player_id() const {
+  return player_id_;
+}
+
+void DashPropertyMapMessage::set_player_id(int64_t value_arg) {
+  player_id_ = value_arg;
+}
+
+
+const EncodableMap& DashPropertyMapMessage::map_data() const {
+  return map_data_;
+}
+
+void DashPropertyMapMessage::set_map_data(const EncodableMap& value_arg) {
+  map_data_ = value_arg;
+}
+
+
+EncodableList DashPropertyMapMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(2);
+  list.push_back(EncodableValue(player_id_));
+  list.push_back(EncodableValue(map_data_));
+  return list;
+}
+
+DashPropertyMapMessage DashPropertyMapMessage::FromEncodableList(const EncodableList& list) {
+  DashPropertyMapMessage decoded(
+    list[0].LongValue(),
+    std::get<EncodableMap>(list[1]));
+  return decoded;
+}
+
 
 VideoPlayerAvplayApiCodecSerializer::VideoPlayerAvplayApiCodecSerializer() {}
 
 EncodableValue VideoPlayerAvplayApiCodecSerializer::ReadValueOfType(
-    uint8_t type, flutter::ByteStreamReader* stream) const {
+  uint8_t type,
+  flutter::ByteStreamReader* stream) const {
   switch (type) {
     case 128:
-      return CustomEncodableValue(BufferConfigMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(BufferConfigMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 129:
-      return CustomEncodableValue(CreateMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(CreateMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 130:
-      return CustomEncodableValue(CreateMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(CreateMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 131:
-      return CustomEncodableValue(DisplayModeMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(DashPropertyMapMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 132:
-      return CustomEncodableValue(DurationMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(DashPropertyTypeListMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 133:
-      return CustomEncodableValue(GeometryMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(DisplayModeMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 134:
-      return CustomEncodableValue(LoopingMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(DurationMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 135:
-      return CustomEncodableValue(MixWithOthersMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(GeometryMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 136:
-      return CustomEncodableValue(PlaybackSpeedMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(LoopingMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 137:
-      return CustomEncodableValue(PlayerMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(MixWithOthersMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 138:
-      return CustomEncodableValue(PositionMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(PlaybackSpeedMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 139:
-      return CustomEncodableValue(RotationMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(PlayerMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 140:
-      return CustomEncodableValue(SelectedTracksMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(PositionMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 141:
-      return CustomEncodableValue(StreamingPropertyMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(RotationMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 142:
-      return CustomEncodableValue(
-          StreamingPropertyTypeMessage::FromEncodableList(
-              std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(SelectedTracksMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 143:
-      return CustomEncodableValue(TrackMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(StreamingPropertyMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 144:
-      return CustomEncodableValue(TrackTypeMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(StreamingPropertyTypeMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     case 145:
-      return CustomEncodableValue(VolumeMessage::FromEncodableList(
-          std::get<EncodableList>(ReadValue(stream))));
+      return CustomEncodableValue(TrackMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
+    case 146:
+      return CustomEncodableValue(TrackTypeMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
+    case 147:
+      return CustomEncodableValue(VolumeMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
     default:
       return flutter::StandardCodecSerializer::ReadValueOfType(type, stream);
   }
 }
 
 void VideoPlayerAvplayApiCodecSerializer::WriteValue(
-    const EncodableValue& value, flutter::ByteStreamWriter* stream) const {
-  if (const CustomEncodableValue* custom_value =
-          std::get_if<CustomEncodableValue>(&value)) {
+  const EncodableValue& value,
+  flutter::ByteStreamWriter* stream) const {
+  if (const CustomEncodableValue* custom_value = std::get_if<CustomEncodableValue>(&value)) {
     if (custom_value->type() == typeid(BufferConfigMessage)) {
       stream->WriteByte(128);
-      WriteValue(
-          EncodableValue(std::any_cast<BufferConfigMessage>(*custom_value)
-                             .ToEncodableList()),
-          stream);
+      WriteValue(EncodableValue(std::any_cast<BufferConfigMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(CreateMessage)) {
       stream->WriteByte(129);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<CreateMessage>(*custom_value).ToEncodableList()),
-          stream);
+      WriteValue(EncodableValue(std::any_cast<CreateMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(CreateMessage)) {
       stream->WriteByte(130);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<CreateMessage>(*custom_value).ToEncodableList()),
-          stream);
+      WriteValue(EncodableValue(std::any_cast<CreateMessage>(*custom_value).ToEncodableList()), stream);
+      return;
+    }
+    if (custom_value->type() == typeid(DashPropertyMapMessage)) {
+      stream->WriteByte(131);
+      WriteValue(EncodableValue(std::any_cast<DashPropertyMapMessage>(*custom_value).ToEncodableList()), stream);
+      return;
+    }
+    if (custom_value->type() == typeid(DashPropertyTypeListMessage)) {
+      stream->WriteByte(132);
+      WriteValue(EncodableValue(std::any_cast<DashPropertyTypeListMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(DisplayModeMessage)) {
-      stream->WriteByte(131);
-      WriteValue(EncodableValue(std::any_cast<DisplayModeMessage>(*custom_value)
-                                    .ToEncodableList()),
-                 stream);
+      stream->WriteByte(133);
+      WriteValue(EncodableValue(std::any_cast<DisplayModeMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(DurationMessage)) {
-      stream->WriteByte(132);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<DurationMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(134);
+      WriteValue(EncodableValue(std::any_cast<DurationMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(GeometryMessage)) {
-      stream->WriteByte(133);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<GeometryMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(135);
+      WriteValue(EncodableValue(std::any_cast<GeometryMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(LoopingMessage)) {
-      stream->WriteByte(134);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<LoopingMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(136);
+      WriteValue(EncodableValue(std::any_cast<LoopingMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(MixWithOthersMessage)) {
-      stream->WriteByte(135);
-      WriteValue(
-          EncodableValue(std::any_cast<MixWithOthersMessage>(*custom_value)
-                             .ToEncodableList()),
-          stream);
+      stream->WriteByte(137);
+      WriteValue(EncodableValue(std::any_cast<MixWithOthersMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(PlaybackSpeedMessage)) {
-      stream->WriteByte(136);
-      WriteValue(
-          EncodableValue(std::any_cast<PlaybackSpeedMessage>(*custom_value)
-                             .ToEncodableList()),
-          stream);
+      stream->WriteByte(138);
+      WriteValue(EncodableValue(std::any_cast<PlaybackSpeedMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(PlayerMessage)) {
-      stream->WriteByte(137);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<PlayerMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(139);
+      WriteValue(EncodableValue(std::any_cast<PlayerMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(PositionMessage)) {
-      stream->WriteByte(138);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<PositionMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(140);
+      WriteValue(EncodableValue(std::any_cast<PositionMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(RotationMessage)) {
-      stream->WriteByte(139);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<RotationMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(141);
+      WriteValue(EncodableValue(std::any_cast<RotationMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(SelectedTracksMessage)) {
-      stream->WriteByte(140);
-      WriteValue(
-          EncodableValue(std::any_cast<SelectedTracksMessage>(*custom_value)
-                             .ToEncodableList()),
-          stream);
+      stream->WriteByte(142);
+      WriteValue(EncodableValue(std::any_cast<SelectedTracksMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(StreamingPropertyMessage)) {
-      stream->WriteByte(141);
-      WriteValue(
-          EncodableValue(std::any_cast<StreamingPropertyMessage>(*custom_value)
-                             .ToEncodableList()),
-          stream);
+      stream->WriteByte(143);
+      WriteValue(EncodableValue(std::any_cast<StreamingPropertyMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(StreamingPropertyTypeMessage)) {
-      stream->WriteByte(142);
-      WriteValue(EncodableValue(
-                     std::any_cast<StreamingPropertyTypeMessage>(*custom_value)
-                         .ToEncodableList()),
-                 stream);
+      stream->WriteByte(144);
+      WriteValue(EncodableValue(std::any_cast<StreamingPropertyTypeMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(TrackMessage)) {
-      stream->WriteByte(143);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<TrackMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(145);
+      WriteValue(EncodableValue(std::any_cast<TrackMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(TrackTypeMessage)) {
-      stream->WriteByte(144);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<TrackTypeMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(146);
+      WriteValue(EncodableValue(std::any_cast<TrackTypeMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
     if (custom_value->type() == typeid(VolumeMessage)) {
-      stream->WriteByte(145);
-      WriteValue(
-          EncodableValue(
-              std::any_cast<VolumeMessage>(*custom_value).ToEncodableList()),
-          stream);
+      stream->WriteByte(147);
+      WriteValue(EncodableValue(std::any_cast<VolumeMessage>(*custom_value).ToEncodableList()), stream);
       return;
     }
   }
@@ -972,852 +1157,767 @@ void VideoPlayerAvplayApiCodecSerializer::WriteValue(
 
 /// The codec used by VideoPlayerAvplayApi.
 const flutter::StandardMessageCodec& VideoPlayerAvplayApi::GetCodec() {
-  return flutter::StandardMessageCodec::GetInstance(
-      &VideoPlayerAvplayApiCodecSerializer::GetInstance());
+  return flutter::StandardMessageCodec::GetInstance(&VideoPlayerAvplayApiCodecSerializer::GetInstance());
 }
 
-// Sets up an instance of `VideoPlayerAvplayApi` to handle messages through the
-// `binary_messenger`.
-void VideoPlayerAvplayApi::SetUp(flutter::BinaryMessenger* binary_messenger,
-                                 VideoPlayerAvplayApi* api) {
+// Sets up an instance of `VideoPlayerAvplayApi` to handle messages through the `binary_messenger`.
+void VideoPlayerAvplayApi::SetUp(
+  flutter::BinaryMessenger* binary_messenger,
+  VideoPlayerAvplayApi* api) {
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "initialize",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.initialize", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              std::optional<FlutterError> output = api->Initialize();
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          std::optional<FlutterError> output = api->Initialize();
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.create",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.create", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const CreateMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<PlayerMessage> output = api->Create(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(
-                  CustomEncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const CreateMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<PlayerMessage> output = api->Create(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.dispose",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.dispose", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output = api->Dispose(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlayerMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->Dispose(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setLooping",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setLooping", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const LoopingMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output = api->SetLooping(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const LoopingMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->SetLooping(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setVolume",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setVolume", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const VolumeMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output = api->SetVolume(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const VolumeMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->SetVolume(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setPlaybackSpeed",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setPlaybackSpeed", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PlaybackSpeedMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output =
-                  api->SetPlaybackSpeed(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlaybackSpeedMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->SetPlaybackSpeed(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.play",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.play", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output = api->Play(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlayerMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->Play(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setDeactivate",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDeactivate", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<bool> output = api->SetDeactivate(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlayerMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<bool> output = api->SetDeactivate(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setActivate",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setActivate", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<bool> output = api->SetActivate(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlayerMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<bool> output = api->SetActivate(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.track",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.track", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const TrackTypeMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<TrackMessage> output = api->Track(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(
-                  CustomEncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const TrackTypeMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<TrackMessage> output = api->Track(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setTrackSelection",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setTrackSelection", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const SelectedTracksMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<bool> output = api->SetTrackSelection(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const SelectedTracksMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<bool> output = api->SetTrackSelection(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.position",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.position", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<PositionMessage> output = api->Position(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(
-                  CustomEncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlayerMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<PositionMessage> output = api->Position(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.duration",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.duration", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<DurationMessage> output = api->Duration(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(
-                  CustomEncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlayerMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<DurationMessage> output = api->Duration(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.seekTo",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.seekTo", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PositionMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              api->SeekTo(msg_arg,
-                          [reply](std::optional<FlutterError>&& output) {
-                            if (output.has_value()) {
-                              reply(WrapError(output.value()));
-                              return;
-                            }
-                            EncodableList wrapped;
-                            wrapped.push_back(EncodableValue());
-                            reply(EncodableValue(std::move(wrapped)));
-                          });
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PositionMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          api->SeekTo(msg_arg, [reply](std::optional<FlutterError>&& output) {
+            if (output.has_value()) {
+              reply(WrapError(output.value()));
+              return;
             }
+            EncodableList wrapped;
+            wrapped.push_back(EncodableValue());
+            reply(EncodableValue(std::move(wrapped)));
           });
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.pause",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.pause", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const PlayerMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output = api->Pause(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlayerMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->Pause(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setMixWithOthers",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setMixWithOthers", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const MixWithOthersMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output =
-                  api->SetMixWithOthers(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const MixWithOthersMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->SetMixWithOthers(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setDisplayGeometry",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayGeometry", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const GeometryMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output =
-                  api->SetDisplayGeometry(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const GeometryMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->SetDisplayGeometry(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "getStreamingProperty",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getStreamingProperty", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg =
-                  std::any_cast<const StreamingPropertyTypeMessage&>(
-                      std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<std::string> output = api->GetStreamingProperty(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const StreamingPropertyTypeMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<std::string> output = api->GetStreamingProperty(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setBufferConfig",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setBufferConfig", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const BufferConfigMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<bool> output = api->SetBufferConfig(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const BufferConfigMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<bool> output = api->SetBufferConfig(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setStreamingProperty",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setStreamingProperty", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg =
-                  std::any_cast<const StreamingPropertyMessage&>(
-                      std::get<CustomEncodableValue>(encodable_msg_arg));
-              std::optional<FlutterError> output =
-                  api->SetStreamingProperty(msg_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const StreamingPropertyMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          std::optional<FlutterError> output = api->SetStreamingProperty(msg_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setDisplayRotate",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayRotate", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const RotationMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<bool> output = api->SetDisplayRotate(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const RotationMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<bool> output = api->SetDisplayRotate(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi."
-        "setDisplayMode",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setDisplayMode", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_msg_arg = args.at(0);
-              if (encodable_msg_arg.IsNull()) {
-                reply(WrapError("msg_arg unexpectedly null."));
-                return;
-              }
-              const auto& msg_arg = std::any_cast<const DisplayModeMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg));
-              ErrorOr<bool> output = api->SetDisplayMode(msg_arg);
-              if (output.has_error()) {
-                reply(WrapError(output.error()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const DisplayModeMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<bool> output = api->SetDisplayMode(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.suspend",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.suspend", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_player_id_arg = args.at(0);
-              if (encodable_player_id_arg.IsNull()) {
-                reply(WrapError("player_id_arg unexpectedly null."));
-                return;
-              }
-              const int64_t player_id_arg = encodable_player_id_arg.LongValue();
-              std::optional<FlutterError> output = api->Suspend(player_id_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_player_id_arg = args.at(0);
+          if (encodable_player_id_arg.IsNull()) {
+            reply(WrapError("player_id_arg unexpectedly null."));
+            return;
+          }
+          const int64_t player_id_arg = encodable_player_id_arg.LongValue();
+          std::optional<FlutterError> output = api->Suspend(player_id_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
   }
   {
-    auto channel = std::make_unique<BasicMessageChannel<>>(
-        binary_messenger,
-        "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.restore",
-        &GetCodec());
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.restore", &GetCodec());
     if (api != nullptr) {
-      channel->SetMessageHandler(
-          [api](const EncodableValue& message,
-                const flutter::MessageReply<EncodableValue>& reply) {
-            try {
-              const auto& args = std::get<EncodableList>(message);
-              const auto& encodable_player_id_arg = args.at(0);
-              if (encodable_player_id_arg.IsNull()) {
-                reply(WrapError("player_id_arg unexpectedly null."));
-                return;
-              }
-              const int64_t player_id_arg = encodable_player_id_arg.LongValue();
-              const auto& encodable_msg_arg = args.at(1);
-              const auto* msg_arg = &(std::any_cast<const CreateMessage&>(
-                  std::get<CustomEncodableValue>(encodable_msg_arg)));
-              const auto& encodable_resume_time_arg = args.at(2);
-              if (encodable_resume_time_arg.IsNull()) {
-                reply(WrapError("resume_time_arg unexpectedly null."));
-                return;
-              }
-              const int64_t resume_time_arg =
-                  encodable_resume_time_arg.LongValue();
-              std::optional<FlutterError> output =
-                  api->Restore(player_id_arg, msg_arg, resume_time_arg);
-              if (output.has_value()) {
-                reply(WrapError(output.value()));
-                return;
-              }
-              EncodableList wrapped;
-              wrapped.push_back(EncodableValue());
-              reply(EncodableValue(std::move(wrapped)));
-            } catch (const std::exception& exception) {
-              reply(WrapError(exception.what()));
-            }
-          });
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_player_id_arg = args.at(0);
+          if (encodable_player_id_arg.IsNull()) {
+            reply(WrapError("player_id_arg unexpectedly null."));
+            return;
+          }
+          const int64_t player_id_arg = encodable_player_id_arg.LongValue();
+          const auto& encodable_msg_arg = args.at(1);
+          const auto* msg_arg = &(std::any_cast<const CreateMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg)));
+          const auto& encodable_resume_time_arg = args.at(2);
+          if (encodable_resume_time_arg.IsNull()) {
+            reply(WrapError("resume_time_arg unexpectedly null."));
+            return;
+          }
+          const int64_t resume_time_arg = encodable_resume_time_arg.LongValue();
+          std::optional<FlutterError> output = api->Restore(player_id_arg, msg_arg, resume_time_arg);
+          if (output.has_value()) {
+            reply(WrapError(output.value()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue());
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
+    } else {
+      channel->SetMessageHandler(nullptr);
+    }
+  }
+  {
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.setData", &GetCodec());
+    if (api != nullptr) {
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const DashPropertyMapMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<bool> output = api->SetData(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
+    } else {
+      channel->SetMessageHandler(nullptr);
+    }
+  }
+  {
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getData", &GetCodec());
+    if (api != nullptr) {
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const DashPropertyTypeListMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<DashPropertyMapMessage> output = api->GetData(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
+    } else {
+      channel->SetMessageHandler(nullptr);
+    }
+  }
+  {
+    auto channel = std::make_unique<BasicMessageChannel<>>(binary_messenger, "dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getActiveTrackInfo", &GetCodec());
+    if (api != nullptr) {
+      channel->SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_msg_arg = args.at(0);
+          if (encodable_msg_arg.IsNull()) {
+            reply(WrapError("msg_arg unexpectedly null."));
+            return;
+          }
+          const auto& msg_arg = std::any_cast<const PlayerMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
+          ErrorOr<TrackMessage> output = api->GetActiveTrackInfo(msg_arg);
+          if (output.has_error()) {
+            reply(WrapError(output.error()));
+            return;
+          }
+          EncodableList wrapped;
+          wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
+          reply(EncodableValue(std::move(wrapped)));
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel->SetMessageHandler(nullptr);
     }
@@ -1825,13 +1925,18 @@ void VideoPlayerAvplayApi::SetUp(flutter::BinaryMessenger* binary_messenger,
 }
 
 EncodableValue VideoPlayerAvplayApi::WrapError(std::string_view error_message) {
-  return EncodableValue(
-      EncodableList{EncodableValue(std::string(error_message)),
-                    EncodableValue("Error"), EncodableValue()});
+  return EncodableValue(EncodableList{
+    EncodableValue(std::string(error_message)),
+    EncodableValue("Error"),
+    EncodableValue()
+  });
 }
 
 EncodableValue VideoPlayerAvplayApi::WrapError(const FlutterError& error) {
-  return EncodableValue(EncodableList{EncodableValue(error.code()),
-                                      EncodableValue(error.message()),
-                                      error.details()});
+  return EncodableValue(EncodableList{
+    EncodableValue(error.code()),
+    EncodableValue(error.message()),
+    error.details()
+  });
 }
+

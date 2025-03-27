@@ -62,6 +62,13 @@ class VideoPlayer {
   virtual bool Suspend() = 0;
   virtual bool Restore(const CreateMessage *restore_message,
                        int64_t resume_time) = 0;
+  virtual bool SetData(const flutter::EncodableMap &data) { return false; }
+  virtual flutter::EncodableMap GetData(const flutter::EncodableList &data) {
+    return flutter::EncodableMap{};
+  }
+  virtual flutter::EncodableList GetActiveTrackInfo() {
+    return flutter::EncodableList{};
+  }
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;

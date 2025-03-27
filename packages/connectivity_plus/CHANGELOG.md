@@ -1,3 +1,8 @@
+## 1.2.1
+
+* Clarify ConnectivityResult.none type.
+* Update plugin requirements version in README.
+
 ## 1.2.0
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.

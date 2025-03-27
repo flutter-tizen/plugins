@@ -131,6 +131,18 @@ class DisplayModeMessage {
   int displayMode;
 }
 
+class DashPropertyTypeListMessage {
+  DashPropertyTypeListMessage(this.playerId, this.typeList);
+  int playerId;
+  List<String?> typeList;
+}
+
+class DashPropertyMapMessage {
+  DashPropertyMapMessage(this.playerId, this.mapData);
+  int playerId;
+  Map<Object?, Object?> mapData;
+}
+
 @HostApi()
 abstract class VideoPlayerAvplayApi {
   void initialize();
@@ -158,4 +170,7 @@ abstract class VideoPlayerAvplayApi {
   bool setDisplayMode(DisplayModeMessage msg);
   void suspend(int playerId);
   void restore(int playerId, CreateMessage? msg, int resumeTime);
+  bool setData(DashPropertyMapMessage msg);
+  DashPropertyMapMessage getData(DashPropertyTypeListMessage msg);
+  TrackMessage getActiveTrackInfo(PlayerMessage msg);
 }

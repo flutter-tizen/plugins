@@ -1014,6 +1014,35 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return initializingCompleter.future;
   }
 
+  /// Set dashplusplayer properties,can be called after initialized.
+  Future<bool> setData(Map<DashPlayerProperty, Object> data) async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+
+    return _videoPlayerPlatform.setData(playerId, data);
+  }
+
+  /// Get dashplusplayer properties,can be called after initialized.
+  Future<Map<DashPlayerProperty, Object>> getData(
+    Set<DashPlayerProperty> keys,
+  ) async {
+    if (_isDisposedOrNotInitialized) {
+      return <DashPlayerProperty, Object>{};
+    }
+
+    return _videoPlayerPlatform.getData(playerId, keys);
+  }
+
+  /// Get activated(selected) track infomation of the associated media.
+  Future<List<Track>> getActiveTrackInfo() async {
+    if (_isDisposedOrNotInitialized) {
+      return <Track>[];
+    }
+
+    return _videoPlayerPlatform.getActiveTrackInfo(playerId);
+  }
+
   /// Sets the playback speed of [this].
   ///
   /// [speed] indicates a speed value with different platforms accepting

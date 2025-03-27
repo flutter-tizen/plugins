@@ -63,6 +63,10 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
 
   ErrorOr<bool> SetDisplayRotate(const RotationMessage &msg) override;
   ErrorOr<bool> SetDisplayMode(const DisplayModeMessage &msg) override;
+  ErrorOr<bool> SetData(const DashPropertyMapMessage &msg) override;
+  ErrorOr<DashPropertyMapMessage> GetData(
+      const DashPropertyTypeListMessage &msg) override;
+  ErrorOr<TrackMessage> GetActiveTrackInfo(const PlayerMessage &msg) override;
 
   std::optional<FlutterError> Suspend(int64_t player_id) override;
   std::optional<FlutterError> Restore(int64_t palyer_id,
@@ -381,6 +385,36 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetStreamingProperty(
   player->SetStreamingProperty(msg.streaming_property_type(),
                                msg.streaming_property_value());
   return std::nullopt;
+}
+
+ErrorOr<bool> VideoPlayerTizenPlugin::SetData(
+    const DashPropertyMapMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  return player->SetData(msg.map_data());
+}
+
+ErrorOr<DashPropertyMapMessage> VideoPlayerTizenPlugin::GetData(
+    const DashPropertyTypeListMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  DashPropertyMapMessage result(msg.player_id(),
+                                player->GetData(msg.type_list()));
+  return result;
+}
+
+ErrorOr<TrackMessage> VideoPlayerTizenPlugin::GetActiveTrackInfo(
+    const PlayerMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  TrackMessage result(msg.player_id(), player->GetActiveTrackInfo());
+  return result;
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(

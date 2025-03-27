@@ -1,6 +1,11 @@
-## NEXT
+## 0.5.18
+
+* Add getActiveTrackInfo interface.
+
+## 0.5.17
 
 * Update readme.
+* Add setData and getData interface.
 
 ## 0.5.16
 
