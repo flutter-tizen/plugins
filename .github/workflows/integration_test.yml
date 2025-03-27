@@ -17,6 +17,11 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: Install GNOME Packages
+        run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa
+          sudo apt update
+          sudo apt install -y dbus-x11 gnome-keyring
       - name: Install flutter-tizen
         uses: actions/checkout@v3
         with:
@@ -26,15 +31,21 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
+          dbus-run-session -- bash -c "
+          echo tizen | gnome-keyring-daemon --unlock &&
           ./tools/tools_runner.sh integration-test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators \
             --run-on-changed-packages \
             --base-sha=$(git rev-parse HEAD^) 
+          "
       - name: Run tests for all packages
         if: ${{ github.event_name == 'push' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
+          dbus-run-session -- bash -c "
+          echo tizen | gnome-keyring-daemon --unlock &&
           ./tools/tools_runner.sh integration-test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators
+          "
