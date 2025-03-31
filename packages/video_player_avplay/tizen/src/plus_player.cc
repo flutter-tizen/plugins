@@ -775,6 +775,7 @@ bool PlusPlayer::StopAndClose() {
   if (drm_manager_) {
     drm_manager_->ReleaseDrmSession();
   }
+  drm_manager_.reset();
 
   return true;
 }
@@ -789,7 +790,6 @@ bool PlusPlayer::Suspend() {
     return false;
   }
 
-  is_suspended_ = true;
   if (is_prebuffer_mode_) {
     LOG_ERROR("[PlusPlayer] Player is in prebuffer mode, do nothing.");
     return true;
@@ -868,7 +868,6 @@ bool PlusPlayer::Restore(const CreateMessage *restore_message,
     return false;
   }
 
-  is_suspended_ = false;
   bool ret = false;
 
   if (is_prebuffer_mode_) {
@@ -951,7 +950,7 @@ bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
     }
   }
 
-  is_initialized_ = false;
+  is_restore_player_ = true;
   if (Create(url_, create_message_) < 0) {
     LOG_ERROR("[PlusPlayer] Fail to create player.");
     return false;
@@ -961,11 +960,6 @@ bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
   }
   SetDisplayRoi(memento_->display_area.x, memento_->display_area.y,
                 memento_->display_area.w, memento_->display_area.h);
-
-  if (memento_->state == plusplayer::State::kPlaying ||
-      restore_message->uri() || memento_->is_live) {
-    SendIsPlayingState(true);
-  }
 
   return true;
 }
@@ -1084,7 +1078,6 @@ bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
 }
 
 void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
-  LOG_INFO("[PlusPlayer] Prepare done, result: %d.", ret);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (!SetDisplayVisible(self->player_, true)) {
@@ -1093,6 +1086,10 @@ void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
 
   if (!self->is_initialized_ && ret) {
     self->SendInitialized();
+  }
+
+  if (self->is_restore_player_ && ret) {
+    self->SendIsRestorePlayer();
   }
 }
 

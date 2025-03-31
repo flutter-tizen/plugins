@@ -656,6 +656,10 @@ void MediaPlayer::OnPrepared(void *user_data) {
   if (!self->is_initialized_) {
     self->SendInitialized();
   }
+
+  if (self->is_restore_player_) {
+    self->SendIsRestorePlayer();
+  }
 }
 
 void MediaPlayer::OnBuffering(int percent, void *user_data) {
@@ -825,7 +829,6 @@ bool MediaPlayer::Suspend() {
     return false;
   }
 
-  is_suspended_ = true;
   if (is_buffering_) {
     LOG_ERROR("[MediaPlayer] Player is in prebuffer mode, do nothing.");
     return true;
@@ -892,7 +895,6 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
     }
   }
 
-  is_suspended_ = false;
   if (is_buffering_) {
     LOG_ERROR("[MediaPlayer] Player is in prebuffer mode, do nothing.");
     return true;
@@ -967,7 +969,7 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
     }
   }
 
-  is_initialized_ = false;
+  is_restore_player_ = true;
   if (Create(url_, *restore_message) < 0) {
     LOG_ERROR("[MediaPlayer] Fail to create player.");
     return false;
@@ -984,10 +986,6 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
     LOG_ERROR("[MediaPlayer] player_set_display_visible failed : %s.",
               get_error_message(ret));
     return false;
-  }
-
-  if (pre_state_ == PLAYER_STATE_PLAYING || restore_message->uri()) {
-    SendIsPlayingState(true);
   }
 
   return true;

@@ -22,10 +22,11 @@ export 'src/closed_caption_file.dart';
 export 'src/drm_configs.dart';
 export 'src/tracks.dart';
 
-// ignore: public_member_api_docs
-typedef IntCallback = int Function();
-// ignore: public_member_api_docs
-typedef DataSourceCallback = DataSource Function();
+/// This will be used to set the ResumeTime when player restore.
+typedef ResumeTimeCallback = int Function();
+
+/// This will be used to set the RecreateMessage when player restore.
+typedef RecreateMessageCallback = DataSource Function();
 
 VideoPlayerPlatform? _lastVideoPlayerPlatform;
 
@@ -62,6 +63,7 @@ class VideoPlayerValue {
     this.playbackSpeed = 1.0,
     this.errorDescription,
     this.isCompleted = false,
+    this.isLive = false,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -134,6 +136,9 @@ class VideoPlayerValue {
   /// Does not update if video is looping.
   final bool isCompleted;
 
+  /// True if video is live.
+  final bool isLive;
+
   /// The [size] of the currently loaded video.
   final Size size;
 
@@ -179,6 +184,7 @@ class VideoPlayerValue {
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
+    bool? isLive,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -199,6 +205,7 @@ class VideoPlayerValue {
               ? errorDescription
               : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
+      isLive: isLive ?? this.isLive,
     );
   }
 
@@ -219,6 +226,7 @@ class VideoPlayerValue {
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
+        'isLive: $isLive, '
         'isCompleted: $isCompleted),';
   }
 
@@ -241,6 +249,7 @@ class VideoPlayerValue {
           volume == other.volume &&
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
+          isLive == other.isLive &&
           isCompleted == other.isCompleted;
 
   @override
@@ -260,6 +269,7 @@ class VideoPlayerValue {
     playbackSpeed,
     errorDescription,
     isCompleted,
+    isLive,
   );
 }
 
@@ -420,8 +430,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Completer<void>? _creatingCompleter;
   StreamSubscription<dynamic>? _eventSubscription;
   _VideoAppLifeCycleObserver? _lifeCycleObserver;
-  DataSourceCallback? _onRestoreData;
-  IntCallback? _onRestoreTime;
+  RecreateMessageCallback? _onRestoreData;
+  ResumeTimeCallback? _onRestoreTime;
 
   /// The id of a player that hasn't been initialized.
   @visibleForTesting
@@ -516,24 +526,28 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
       switch (event.eventType) {
         case VideoEventType.initialized:
+        case VideoEventType.isRestorePlayer:
           value = value.copyWith(
             duration: event.duration,
             size: event.size,
             isInitialized: event.duration != null,
             errorDescription: null,
             isCompleted: false,
+            isLive: event.isLive,
           );
-          assert(
-            !initializingCompleter.isCompleted,
-            'VideoPlayerController already initialized. This is typically a '
-            'sign that an implementation of the VideoPlayerPlatform '
-            '(${_videoPlayerPlatform.runtimeType}) has a bug and is sending '
-            'more than one initialized event per instance.',
-          );
-          if (initializingCompleter.isCompleted) {
-            throw StateError('VideoPlayerController already initialized');
+          if (VideoEventType.initialized == event.eventType) {
+            assert(
+              !initializingCompleter.isCompleted,
+              'VideoPlayerController already initialized. This is typically a '
+              'sign that an implementation of the VideoPlayerPlatform '
+              '(${_videoPlayerPlatform.runtimeType}) has a bug and is sending '
+              'more than one initialized event per instance.',
+            );
+            if (initializingCompleter.isCompleted) {
+              throw StateError('VideoPlayerController already initialized');
+            }
+            initializingCompleter.complete(null);
           }
-          initializingCompleter.complete(null);
           _applyLooping();
           // NOTE(jsuya): The plusplayer's SetVolume() work when player is
           // paused or played, so it changes the order of _applyPlayPause()
@@ -541,7 +555,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           _applyPlayPause();
           _applyVolume();
           _durationTimer?.cancel();
-          _durationTimer = _createDurationTimer();
+          _durationTimer = _createTimer(1000, true);
         case VideoEventType.completed:
           // In this case we need to stop _timer, set isPlaying=false, and
           // position=value.duration. Instead of setting the values directly,
@@ -677,18 +691,24 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.getDuration(_playerId);
   }
 
-  Timer _createDurationTimer() {
-    return Timer.periodic(const Duration(milliseconds: 1000), (
+  Timer _createTimer(int periodTime, bool isDurationTimer) {
+    return Timer.periodic(Duration(milliseconds: periodTime), (
       Timer timer,
     ) async {
       if (_isDisposed) {
         return;
       }
-      final DurationRange? newDuration = await duration;
-      if (newDuration == null) {
-        return;
+      if (isDurationTimer) {
+        final DurationRange? newDuration = await duration;
+        if (newDuration != null) {
+          _updateDuration(newDuration);
+        }
+      } else {
+        final Duration? newPosition = await position;
+        if (newPosition != null) {
+          _updatePosition(newPosition);
+        }
       }
-      _updateDuration(newDuration);
     });
   }
 
@@ -722,18 +742,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
       // Cancel previous timer.
       _timer?.cancel();
-      _timer = Timer.periodic(const Duration(milliseconds: 500), (
-        Timer timer,
-      ) async {
-        if (_isDisposed) {
-          return;
-        }
-        final Duration? newPosition = await position;
-        if (newPosition == null) {
-          return;
-        }
-        _updatePosition(newPosition);
-      });
+      _timer = _createTimer(500, false);
     } else {
       _timer?.cancel();
       await _videoPlayerPlatform.pause(_playerId);
@@ -874,11 +883,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Set the restore_message and resume_time of video.
   Future<void> setRestoreData({
-    DataSourceCallback? callback1,
-    IntCallback? callback2,
+    RecreateMessageCallback? recreateMessage,
+    ResumeTimeCallback? resumeTime,
   }) async {
-    _onRestoreData = callback1;
-    _onRestoreTime = callback2;
+    _onRestoreData = recreateMessage;
+    _onRestoreTime = resumeTime;
   }
 
   ///Pauses the player  when the application is sent to the background.
@@ -890,7 +899,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     await _videoPlayerPlatform.suspend(_playerId);
     _durationTimer?.cancel();
-    await pause();
+    _timer?.cancel();
   }
 
   ///Restores the player state when the application is resumed.
@@ -906,19 +915,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         (_onRestoreData != null) ? _onRestoreData!() : null;
     final int resumeTime = (_onRestoreTime != null) ? _onRestoreTime!() : -1;
 
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(milliseconds: 500), (
-      Timer timer,
-    ) async {
-      if (_isDisposed) {
-        return;
-      }
-      final Duration? newPosition = await position;
-      if (newPosition == null) {
-        return;
-      }
-      _updatePosition(newPosition);
-    });
+    _timer = _createTimer(500, false);
 
     await _videoPlayerPlatform.restore(
       _playerId,
@@ -926,92 +923,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       resumeTime: resumeTime,
     );
 
-    final Completer<void> initializingCompleter = Completer<void>();
-
-    void eventListener(VideoEvent event) {
-      if (_isDisposed) {
-        return;
-      }
-
-      switch (event.eventType) {
-        case VideoEventType.initialized:
-          value = value.copyWith(
-            duration: event.duration,
-            size: event.size,
-            isInitialized: event.duration != null,
-            errorDescription: null,
-            isCompleted: false,
-          );
-          assert(
-            !initializingCompleter.isCompleted,
-            'VideoPlayerController already initialized. This is typically a '
-            'sign that an implementation of the VideoPlayerPlatform '
-            '(${_videoPlayerPlatform.runtimeType}) has a bug and is sending '
-            'more than one initialized event per instance.',
-          );
-          if (initializingCompleter.isCompleted) {
-            throw StateError('VideoPlayerController already initialized');
-          }
-          initializingCompleter.complete(null);
-          _applyLooping();
-          // NOTE(jsuya): The plusplayer's SetVolume() work when player is
-          // paused or played, so it changes the order of _applyPlayPause()
-          // and _applyVolume().
-          _applyPlayPause();
-          _applyVolume();
-          _durationTimer?.cancel();
-          _durationTimer = _createDurationTimer();
-        case VideoEventType.completed:
-          // In this case we need to stop _timer, set isPlaying=false, and
-          // position=value.duration. Instead of setting the values directly,
-          // we use pause() and seekTo() to ensure the platform stops playing
-          // and seeks to the last frame of the video.
-          pause().then((void pauseResult) => seekTo(value.duration.end));
-          value = value.copyWith(isCompleted: true);
-          _durationTimer?.cancel();
-        case VideoEventType.bufferingUpdate:
-          value = value.copyWith(buffered: event.buffered);
-        case VideoEventType.bufferingStart:
-          value = value.copyWith(isBuffering: true);
-        case VideoEventType.bufferingEnd:
-          value = value.copyWith(isBuffering: false);
-        case VideoEventType.subtitleUpdate:
-          final Caption caption = Caption(
-            number: 0,
-            start: value.position,
-            end: value.position + (event.duration?.end ?? Duration.zero),
-            text: event.text ?? '',
-          );
-          value = value.copyWith(caption: caption);
-
-        case VideoEventType.isPlayingStateUpdate:
-          if (event.isPlaying ?? false) {
-            value = value.copyWith(
-              isPlaying: event.isPlaying,
-              isCompleted: false,
-            );
-          } else {
-            value = value.copyWith(isPlaying: event.isPlaying);
-          }
-        case VideoEventType.unknown:
-          break;
-      }
+    if (value.isLive || dataSource != null) {
+      await play();
     }
-
-    void errorListener(Object obj) {
-      final PlatformException e = obj as PlatformException;
-      value = VideoPlayerValue.erroneous(e.message!);
-      _timer?.cancel();
-      _durationTimer?.cancel();
-      if (!initializingCompleter.isCompleted) {
-        initializingCompleter.completeError(obj);
-      }
-    }
-
-    _eventSubscription = _videoPlayerPlatform
-        .videoEventsFor(_playerId)
-        .listen(eventListener, onError: errorListener);
-    return initializingCompleter.future;
   }
 
   /// Set dashplusplayer properties,can be called after initialized.
@@ -1143,6 +1057,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {
   _VideoAppLifeCycleObserver(this._controller);
 
+  bool _wasPlayingBeforePause = false;
   final VideoPlayerController _controller;
 
   void initialize() {
@@ -1152,9 +1067,13 @@ class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
+      _wasPlayingBeforePause = _controller.value.isPlaying;
       _controller.suspend();
     } else if (state == AppLifecycleState.resumed) {
       _controller.restore();
+      if (_wasPlayingBeforePause) {
+        _controller.play();
+      }
     }
   }
 

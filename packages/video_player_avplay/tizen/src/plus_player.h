@@ -55,9 +55,9 @@ class PlusPlayer : public VideoPlayer {
   bool SetData(const flutter::EncodableMap &data) override;
   flutter::EncodableMap GetData(const flutter::EncodableList &data) override;
   flutter::EncodableList GetActiveTrackInfo() override;
+  bool IsLive() override;
 
  private:
-  bool IsLive();
   std::pair<int64_t, int64_t> GetLiveDuration();
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
@@ -103,7 +103,6 @@ class PlusPlayer : public VideoPlayer {
   bool is_buffering_ = false;
   bool is_prebuffer_mode_ = false;
   SeekCompletedCallback on_seek_completed_;
-  bool is_suspended_ = false;
   std::unique_ptr<plusplayer::PlayerMemento> memento_ = nullptr;
   std::string url_;
   std::unique_ptr<PowerStateProxy> power_state_proxy_ = nullptr;

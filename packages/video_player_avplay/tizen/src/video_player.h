@@ -69,6 +69,7 @@ class VideoPlayer {
   virtual flutter::EncodableList GetActiveTrackInfo() {
     return flutter::EncodableList{};
   }
+  virtual bool IsLive() = 0;
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
@@ -82,6 +83,7 @@ class VideoPlayer {
   void SendSubtitleUpdate(int32_t duration, const std::string &text);
   void SendPlayCompleted();
   void SendIsPlayingState(bool is_playing);
+  void SendIsRestorePlayer();
   void SendError(const std::string &error_code,
                  const std::string &error_message);
 
@@ -90,6 +92,7 @@ class VideoPlayer {
   flutter::BinaryMessenger *binary_messenger_;
   bool is_initialized_ = false;
   FlutterDesktopViewRef flutter_view_;
+  bool is_restore_player_ = false;
 
  private:
   void ExecuteSinkEvents();

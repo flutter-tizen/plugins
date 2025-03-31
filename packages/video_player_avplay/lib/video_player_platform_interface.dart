@@ -473,6 +473,7 @@ class VideoEvent {
     this.buffered,
     this.text,
     this.isPlaying,
+    this.isLive,
   });
 
   /// The type of the event.
@@ -502,6 +503,9 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
   final bool? isPlaying;
+
+  /// Whether the video is Live.
+  final bool? isLive;
 
   @override
   bool operator ==(Object other) {
@@ -552,6 +556,9 @@ enum VideoEventType {
   /// This event is fired when the video starts or pauses due to user actions or
   /// phone calls, or other app media such as music players.
   isPlayingStateUpdate,
+
+  /// The video need to restore player.
+  isRestorePlayer,
 
   /// An unknown event has been received.
   unknown,

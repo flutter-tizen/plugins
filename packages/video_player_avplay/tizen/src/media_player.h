@@ -45,9 +45,9 @@ class MediaPlayer : public VideoPlayer {
   bool Suspend() override;
   bool Restore(const CreateMessage *restore_message,
                int64_t resume_time) override;
+  bool IsLive() override;
 
  private:
-  bool IsLive();
   std::pair<int64_t, int64_t> GetLiveDuration();
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
@@ -75,7 +75,6 @@ class MediaPlayer : public VideoPlayer {
   std::unique_ptr<DrmManager> drm_manager_;
   bool is_buffering_ = false;
   SeekCompletedCallback on_seek_completed_;
-  bool is_suspended_ = false;
   std::string url_;
   player_state_e pre_state_;
   int64_t pre_playing_time_;

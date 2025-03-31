@@ -101,8 +101,10 @@ void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
 void VideoPlayer::SendInitialized() {
   if (!is_initialized_ && event_sink_) {
     int32_t width = 0, height = 0;
+    bool is_live = false;
     GetVideoSize(&width, &height);
     is_initialized_ = true;
+    is_live = IsLive();
     auto duration = GetDuration();
     flutter::EncodableList duration_range{
         flutter::EncodableValue(duration.first),
@@ -115,6 +117,7 @@ void VideoPlayer::SendInitialized() {
          flutter::EncodableValue(duration_range)},
         {flutter::EncodableValue("width"), flutter::EncodableValue(width)},
         {flutter::EncodableValue("height"), flutter::EncodableValue(height)},
+        {flutter::EncodableValue("isLive"), flutter::EncodableValue(is_live)},
     };
     PushEvent(flutter::EncodableValue(result));
   }
@@ -171,6 +174,30 @@ void VideoPlayer::SendIsPlayingState(bool is_playing) {
        flutter::EncodableValue(is_playing)},
   };
   PushEvent(flutter::EncodableValue(result));
+}
+
+void VideoPlayer::SendIsRestorePlayer() {
+  if (is_restore_player_ && event_sink_) {
+    is_restore_player_ = false;
+    bool is_live = IsLive();
+    int32_t width = 0, height = 0;
+    GetVideoSize(&width, &height);
+    auto duration = GetDuration();
+    flutter::EncodableList duration_range{
+        flutter::EncodableValue(duration.first),
+        flutter::EncodableValue(duration.second)};
+
+    flutter::EncodableMap result = {
+        {flutter::EncodableValue("event"),
+         flutter::EncodableValue("isRestorePlayer")},
+        {flutter::EncodableValue("duration"),
+         flutter::EncodableValue(duration_range)},
+        {flutter::EncodableValue("width"), flutter::EncodableValue(width)},
+        {flutter::EncodableValue("height"), flutter::EncodableValue(height)},
+        {flutter::EncodableValue("isLive"), flutter::EncodableValue(is_live)},
+    };
+    PushEvent(flutter::EncodableValue(result));
+  }
 }
 
 void VideoPlayer::SendError(const std::string &error_code,

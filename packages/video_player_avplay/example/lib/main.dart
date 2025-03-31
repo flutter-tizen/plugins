@@ -22,7 +22,7 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 7,
+      length: 9,
       child: Scaffold(
         key: const ValueKey<String>('home_page'),
         appBar: AppBar(
@@ -837,7 +837,10 @@ class _TestRomoteVideoState extends State<_TestRemoteVideo> {
     _controller.setLooping(true);
     _controller.initialize().then((_) => setState(() {}));
     _controller.play();
-    _controller.setRestoreData(callback1: restoreData, callback2: restoreTime);
+    _controller.setRestoreData(
+      recreateMessage: restoreData,
+      resumeTime: restoreTime,
+    );
   }
 
   @override
