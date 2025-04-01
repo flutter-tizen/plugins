@@ -649,6 +649,13 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
   return true;
 }
 
+void MediaPlayer::OnRestoreCompleted() {
+  if (pre_playing_time_ <= 0 ||
+      !SeekTo(pre_playing_time_, [this]() { SendRestoreCompleted(); })) {
+    SendRestoreCompleted();
+  }
+}
+
 void MediaPlayer::OnPrepared(void *user_data) {
   LOG_INFO("[MediaPlayer] Player prepared.");
 
@@ -658,7 +665,7 @@ void MediaPlayer::OnPrepared(void *user_data) {
   }
 
   if (self->restore_completed_) {
-    self->SendRestoreCompleted();
+    self->OnRestoreCompleted();
   }
 }
 
@@ -973,10 +980,6 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
   if (Create(url_, *restore_message) < 0) {
     LOG_ERROR("[MediaPlayer] Fail to create player.");
     return false;
-  }
-  SeekCompletedCallback callback;
-  if (pre_playing_time_ > 0 && !SeekTo(pre_playing_time_, callback)) {
-    LOG_INFO("[MediaPlayer] Fail to seek.");
   }
 
   SetDisplayRoi(pre_display_roi_x_, pre_display_roi_y_, pre_display_roi_width_,

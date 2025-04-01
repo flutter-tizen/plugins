@@ -54,6 +54,7 @@ class MediaPlayer : public VideoPlayer {
               const std::string &license_server_url);
   bool StopAndDestroy();
   bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);
+  void OnRestoreCompleted();
 
   static void OnPrepared(void *user_data);
   static void OnBuffering(int percent, void *user_data);
