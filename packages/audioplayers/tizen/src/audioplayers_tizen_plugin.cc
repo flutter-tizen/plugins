@@ -105,7 +105,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         registrar->messenger(), "xyz.luan/audioplayers",
         &flutter::StandardMethodCodec::GetInstance());
 
-    auto global_methods = std::make_unique<FlMethodChannel>(
+    auto global_method_channel = std::make_unique<FlMethodChannel>(
         registrar->messenger(), "xyz.luan/audioplayers.global",
         &flutter::StandardMethodCodec::GetInstance());
 
@@ -119,7 +119,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
           plugin_pointer->HandleMethodCall(call, std::move(result));
         });
-    global_methods->SetMethodCallHandler(
+    global_method_channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
           plugin_pointer->HandleGlobalMethodCall(call, std::move(result));
         });
@@ -268,18 +268,12 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
                                         flutter::EncodableValue(message)}};
           global_event_sinks_->Success(flutter::EncodableValue(map));
         }
-
       } else if (method_name == "emitError") {
         if (arguments) {
           auto code = GetRequiredArg<std::string>(arguments, "code");
           auto message = GetRequiredArg<std::string>(arguments, "message");
-          flutter::EncodableMap map = {{flutter::EncodableValue("event"),
-                                        flutter::EncodableValue("audio.onLog")},
-                                       {flutter::EncodableValue("value"),
-                                        flutter::EncodableValue(message)}};
           global_event_sinks_->Error(code, message, flutter::EncodableValue());
         }
-
       } else {
         result->NotImplemented();
         return;
