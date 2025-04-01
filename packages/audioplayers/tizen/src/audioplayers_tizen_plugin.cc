@@ -105,13 +105,31 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         registrar->messenger(), "xyz.luan/audioplayers",
         &flutter::StandardMethodCodec::GetInstance());
 
+    auto global_method_channel = std::make_unique<FlMethodChannel>(
+        registrar->messenger(), "xyz.luan/audioplayers.global",
+        &flutter::StandardMethodCodec::GetInstance());
+
+    auto global_event_channel = std::make_unique<FlEventChannel>(
+        registrar->messenger(), "xyz.luan/audioplayers.global/events",
+        &flutter::StandardMethodCodec::GetInstance());
+
     auto plugin = std::make_unique<AudioplayersTizenPlugin>(registrar);
 
     channel->SetMethodCallHandler(
         [plugin_pointer = plugin.get()](const auto &call, auto result) {
           plugin_pointer->HandleMethodCall(call, std::move(result));
         });
-    plugin->channel_ = std::move(channel);
+    global_method_channel->SetMethodCallHandler(
+        [plugin_pointer = plugin.get()](const auto &call, auto result) {
+          plugin_pointer->HandleGlobalMethodCall(call, std::move(result));
+        });
+
+    global_event_channel->SetStreamHandler(
+        std::make_unique<AudioPlayerStreamHandler>(
+            [plugin_pointer =
+                 plugin.get()](std::unique_ptr<FlEventSink> event_sink) {
+              plugin_pointer->global_event_sinks_ = std::move(event_sink);
+            }));
 
     registrar->AddPlugin(std::move(plugin));
   }
@@ -222,6 +240,52 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     }
   }
 
+  void HandleGlobalMethodCall(const FlMethodCall &method_call,
+                              std::unique_ptr<FlMethodResult> result) {
+    const auto *arguments =
+        std::get_if<flutter::EncodableMap>(method_call.arguments());
+    try {
+      const std::string &method_name = method_call.method_name();
+      if (method_name == "init") {
+        for (auto &pair : audio_players_) {
+          DisposeAudioPlayer(pair.first);
+        }
+        audio_players_.clear();
+      } else if (method_name == "setAudioContext") {
+        const std::string message =
+            "Setting AudioContext is not supported on Tizen";
+        flutter::EncodableMap map = {{flutter::EncodableValue("event"),
+                                      flutter::EncodableValue("audio.onLog")},
+                                     {flutter::EncodableValue("value"),
+                                      flutter::EncodableValue(message)}};
+        global_event_sinks_->Success(flutter::EncodableValue(map));
+      } else if (method_name == "emitLog") {
+        if (arguments) {
+          auto message = GetRequiredArg<std::string>(arguments, "message");
+          flutter::EncodableMap map = {{flutter::EncodableValue("event"),
+                                        flutter::EncodableValue("audio.onLog")},
+                                       {flutter::EncodableValue("value"),
+                                        flutter::EncodableValue(message)}};
+          global_event_sinks_->Success(flutter::EncodableValue(map));
+        }
+      } else if (method_name == "emitError") {
+        if (arguments) {
+          auto code = GetRequiredArg<std::string>(arguments, "code");
+          auto message = GetRequiredArg<std::string>(arguments, "message");
+          global_event_sinks_->Error(code, message, flutter::EncodableValue());
+        }
+      } else {
+        result->NotImplemented();
+        return;
+      }
+      result->Success();
+    } catch (const std::invalid_argument &error) {
+      result->Error(kInvalidArgument, error.what());
+    } catch (const AudioPlayerError &error) {
+      result->Error(error.code(), error.message());
+    }
+  }
+
   AudioPlayer *GetAudioPlayer(const std::string &player_id) {
     auto iter = audio_players_.find(player_id);
     if (iter != audio_players_.end()) {
@@ -295,10 +359,9 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     event_sinks_.erase(player_id);
   }
 
-  std::unique_ptr<FlMethodChannel> channel_;
-
   std::map<std::string, std::unique_ptr<AudioPlayer>> audio_players_;
   std::map<std::string, std::unique_ptr<FlEventSink>> event_sinks_;
+  std::unique_ptr<FlEventSink> global_event_sinks_;
 
   flutter::PluginRegistrar *registrar_;
 };
