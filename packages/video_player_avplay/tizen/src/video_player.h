@@ -83,7 +83,7 @@ class VideoPlayer {
   void SendSubtitleUpdate(int32_t duration, const std::string &text);
   void SendPlayCompleted();
   void SendIsPlayingState(bool is_playing);
-  void SendIsRestorePlayer();
+  void SendRestoreCompleted();
   void SendError(const std::string &error_code,
                  const std::string &error_message);
 
@@ -92,7 +92,7 @@ class VideoPlayer {
   flutter::BinaryMessenger *binary_messenger_;
   bool is_initialized_ = false;
   FlutterDesktopViewRef flutter_view_;
-  bool is_restore_player_ = false;
+  bool restore_completed_ = false;
 
  private:
   void ExecuteSinkEvents();

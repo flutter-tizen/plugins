@@ -774,8 +774,8 @@ bool PlusPlayer::StopAndClose() {
 
   if (drm_manager_) {
     drm_manager_->ReleaseDrmSession();
+    drm_manager_.reset();
   }
-  drm_manager_.reset();
 
   return true;
 }
@@ -842,6 +842,7 @@ bool PlusPlayer::Suspend() {
              "[PlusPlayer] Suspend error, palyer StopAndClose fail");
       return false;
     }
+    SendIsPlayingState(false);
   }
   return true;
 }
@@ -950,7 +951,7 @@ bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
     }
   }
 
-  is_restore_player_ = true;
+  restore_completed_ = true;
   if (Create(url_, create_message_) < 0) {
     LOG_ERROR("[PlusPlayer] Fail to create player.");
     return false;
@@ -1088,8 +1089,8 @@ void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
     self->SendInitialized();
   }
 
-  if (self->is_restore_player_ && ret) {
-    self->SendIsRestorePlayer();
+  if (self->restore_completed_ && ret) {
+    self->SendRestoreCompleted();
   }
 }
 

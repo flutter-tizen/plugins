@@ -176,9 +176,9 @@ void VideoPlayer::SendIsPlayingState(bool is_playing) {
   PushEvent(flutter::EncodableValue(result));
 }
 
-void VideoPlayer::SendIsRestorePlayer() {
-  if (is_restore_player_ && event_sink_) {
-    is_restore_player_ = false;
+void VideoPlayer::SendRestoreCompleted() {
+  if (restore_completed_ && event_sink_) {
+    restore_completed_ = false;
     bool is_live = IsLive();
     int32_t width = 0, height = 0;
     GetVideoSize(&width, &height);
@@ -189,7 +189,7 @@ void VideoPlayer::SendIsRestorePlayer() {
 
     flutter::EncodableMap result = {
         {flutter::EncodableValue("event"),
-         flutter::EncodableValue("isRestorePlayer")},
+         flutter::EncodableValue("restoreCompleted")},
         {flutter::EncodableValue("duration"),
          flutter::EncodableValue(duration_range)},
         {flutter::EncodableValue("width"), flutter::EncodableValue(width)},

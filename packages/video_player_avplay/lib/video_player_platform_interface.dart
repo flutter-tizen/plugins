@@ -558,7 +558,7 @@ enum VideoEventType {
   isPlayingStateUpdate,
 
   /// The video need to restore player.
-  isRestorePlayer,
+  restoreCompleted,
 
   /// An unknown event has been received.
   unknown,

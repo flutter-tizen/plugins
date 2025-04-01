@@ -657,8 +657,8 @@ void MediaPlayer::OnPrepared(void *user_data) {
     self->SendInitialized();
   }
 
-  if (self->is_restore_player_) {
-    self->SendIsRestorePlayer();
+  if (self->restore_completed_) {
+    self->SendRestoreCompleted();
   }
 }
 
@@ -969,7 +969,7 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
     }
   }
 
-  is_restore_player_ = true;
+  restore_completed_ = true;
   if (Create(url_, *restore_message) < 0) {
     LOG_ERROR("[MediaPlayer] Fail to create player.");
     return false;
