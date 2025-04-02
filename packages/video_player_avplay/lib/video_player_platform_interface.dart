@@ -473,7 +473,6 @@ class VideoEvent {
     this.buffered,
     this.text,
     this.isPlaying,
-    this.isLive,
   });
 
   /// The type of the event.
@@ -503,9 +502,6 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
   final bool? isPlaying;
-
-  /// Whether the video is Live.
-  final bool? isLive;
 
   @override
   bool operator ==(Object other) {

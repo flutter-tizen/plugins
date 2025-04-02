@@ -418,7 +418,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
               (map['width'] as num?)?.toDouble() ?? 0.0,
               (map['height'] as num?)?.toDouble() ?? 0.0,
             ),
-            isLive: map['isLive']! as bool,
           );
         case 'completed':
           return VideoEvent(eventType: VideoEventType.completed);

@@ -69,7 +69,6 @@ class VideoPlayer {
   virtual flutter::EncodableList GetActiveTrackInfo() {
     return flutter::EncodableList{};
   }
-  virtual bool IsLive() = 0;
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;

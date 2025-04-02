@@ -820,67 +820,57 @@ bool MediaPlayer::StopAndDestroy() {
 
 bool MediaPlayer::Suspend() {
   LOG_INFO("[MediaPlayer] Suspend is called.");
-
-  bool ret = 0;
-  int res = PLAYER_ERROR_NONE;
-  player_state_e state = PLAYER_STATE_NONE;
-
   if (!player_) {
     LOG_ERROR("[MediaPlayer] Player not created.");
     return false;
   }
 
-  player_get_state(player_, &state);
-  if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
-    LOG_ERROR("[MediaPlayer] Player is in invalid state [%d].", state);
+  player_state_e state = PLAYER_STATE_NONE;
+  int res = player_get_state(player_, &state);
+  if (res != 0 || state == PLAYER_STATE_NONE) {
+    LOG_ERROR("[MediaPlayer] Player get state failed or in invalid state [%d].",
+              state);
     return false;
   }
 
-  if (is_buffering_) {
-    LOG_ERROR("[MediaPlayer] Player is in prebuffer mode, do nothing.");
-    return true;
-  }
-
+  pre_state_ = state;
   pre_playing_time_ = GetPosition();
-  assert(pre_playing_time_ >= 0 && "[MediaPlayer] GetPosition failed.");
-  ret = player_get_state(player_, &pre_state_);
-  assert(ret == PLAYER_ERROR_NONE &&
-         "[MediaPlayer] player_get_state_ex failed.");
+  if (pre_playing_time_ < 0) {
+    LOG_ERROR("[MediaPlayer] Get position failed.");
+    return false;
+  }
   LOG_INFO("[MediaPlayer] Saved current state: %d, playing time: %" PRId64 "ms",
            pre_state_, pre_playing_time_);
 
   res = power_state_proxy_->device_power_get_state();
-  assert(res != POWER_STATE_ERROR && "[MediaPlayer] Get power state fail.");
   if (res == POWER_STATE_STANDBY) {
     LOG_INFO("[MediaPlayer] Power state is standby.");
-    ret = StopAndDestroy();
-    assert(ret == true && "[MediaPlayer] Player StopAndDestroy fail.");
+    if (!StopAndDestroy()) {
+      LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
+      return false;
+    }
     LOG_INFO("[MediaPlayer] Standby state: close done successfully.");
     return true;
   } else {
     LOG_INFO("[MediaPlayer] Player state is not standby: %d, do nothing.", res);
   }
 
-  res = player_get_state(player_, &state);
-  assert(res == PLAYER_ERROR_NONE && "[MediaPlayer] player_get_state failed.");
-  if (state == PLAYER_STATE_NONE) {
-    LOG_INFO("[MediaPlayer] Player is in none state, so no-operation.");
-    return true;
-  } else if (state == PLAYER_STATE_IDLE) {
-    ret = StopAndDestroy();
-    assert(ret == true && "[MediaPlayer] Player stop and unprepare fail");
+  if (state == PLAYER_STATE_IDLE) {
+    if (!StopAndDestroy()) {
+      LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
+      return false;
+    }
     LOG_INFO("[MediaPlayer] Player called in IDLE state, so stop the player.");
-    return true;
   } else if (state != PLAYER_STATE_PAUSED) {
     LOG_INFO("[MediaPlayer] Player calling pause from suspend.");
     if (!Pause()) {
       LOG_ERROR(
           "[MediaPlayer] Suspend fail, in restore player instance would be "
           "created newly.");
-      ret = StopAndDestroy();
-      assert(ret == true &&
-             "[MediaPlayer] Suspend error, palyer StopAndDestroy fail");
-      return false;
+      if (!StopAndDestroy()) {
+        LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
+        return false;
+      }
     }
   }
 
@@ -892,8 +882,6 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
   LOG_INFO("[MediaPlayer] Restore is called.");
 
   player_state_e state = PLAYER_STATE_NONE;
-  bool ret = false;
-
   if (player_) {
     player_get_state(player_, &state);
     if (state != PLAYER_STATE_PAUSED && state != PLAYER_STATE_PLAYING) {
@@ -902,25 +890,19 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
     }
   }
 
-  if (is_buffering_) {
-    LOG_ERROR("[MediaPlayer] Player is in prebuffer mode, do nothing.");
-    return true;
-  }
-
   if (restore_message->uri()) {
     LOG_ERROR(
         "[MediaPlayer] Restore URL is not emptpy, close the existing "
         "instance.");
-    ret = StopAndDestroy();
-    assert(ret == true &&
-           "[MediaPlayer] RestoreUrl is not empty, player StopAndDestroy fail");
+    if (!StopAndDestroy()) {
+      LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
+      return false;
+    }
   }
 
-  player_get_state(player_, &state);
   switch (state) {
     case PLAYER_STATE_NONE:
-      ret = RestorePlayer(restore_message, resume_time);
-      return ret;
+      return RestorePlayer(restore_message, resume_time);
       break;
     case PLAYER_STATE_IDLE:
       LOG_ERROR("[MediaPlayer] Player is in invalid state.");
@@ -931,8 +913,9 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
         return false;
       }
       if (pre_state_ == PLAYER_STATE_PLAYING) {
-        ret = Play();
-        assert(ret == true && "[MediaPlayer] player play failed.");
+        if (!Play()) {
+          LOG_ERROR("[MediaPlayer] Player play failed.");
+        }
       }
       return true;
       break;
@@ -979,15 +962,6 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
   restore_completed_ = true;
   if (Create(url_, *restore_message) < 0) {
     LOG_ERROR("[MediaPlayer] Fail to create player.");
-    return false;
-  }
-
-  SetDisplayRoi(pre_display_roi_x_, pre_display_roi_y_, pre_display_roi_width_,
-                pre_display_roi_height_);
-  int ret = player_set_display_visible(player_, true);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_display_visible failed : %s.",
-              get_error_message(ret));
     return false;
   }
 

@@ -55,9 +55,9 @@ class PlusPlayer : public VideoPlayer {
   bool SetData(const flutter::EncodableMap &data) override;
   flutter::EncodableMap GetData(const flutter::EncodableList &data) override;
   flutter::EncodableList GetActiveTrackInfo() override;
-  bool IsLive() override;
 
  private:
+  bool IsLive();
   std::pair<int64_t, int64_t> GetLiveDuration();
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,

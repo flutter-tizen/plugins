@@ -63,7 +63,6 @@ class VideoPlayerValue {
     this.playbackSpeed = 1.0,
     this.errorDescription,
     this.isCompleted = false,
-    this.isLive = false,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -136,9 +135,6 @@ class VideoPlayerValue {
   /// Does not update if video is looping.
   final bool isCompleted;
 
-  /// True if video is live.
-  final bool isLive;
-
   /// The [size] of the currently loaded video.
   final Size size;
 
@@ -184,7 +180,6 @@ class VideoPlayerValue {
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
-    bool? isLive,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -205,7 +200,6 @@ class VideoPlayerValue {
               ? errorDescription
               : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
-      isLive: isLive ?? this.isLive,
     );
   }
 
@@ -226,7 +220,6 @@ class VideoPlayerValue {
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
-        'isLive: $isLive, '
         'isCompleted: $isCompleted),';
   }
 
@@ -249,7 +242,6 @@ class VideoPlayerValue {
           volume == other.volume &&
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
-          isLive == other.isLive &&
           isCompleted == other.isCompleted;
 
   @override
@@ -269,7 +261,6 @@ class VideoPlayerValue {
     playbackSpeed,
     errorDescription,
     isCompleted,
-    isLive,
   );
 }
 
@@ -533,7 +524,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             isInitialized: event.duration != null,
             errorDescription: null,
             isCompleted: false,
-            isLive: event.isLive,
           );
           if (VideoEventType.initialized == event.eventType) {
             assert(
@@ -552,14 +542,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // NOTE(jsuya): The plusplayer's SetVolume() work when player is
           // paused or played, so it changes the order of _applyPlayPause()
           // and _applyVolume().
-          if (value.isLive || _onRestoreData != null) {
+          if (event.eventType == VideoEventType.restoreCompleted &&
+              _onRestoreData != null) {
             play();
           } else {
             _applyPlayPause();
           }
           _applyVolume();
           _durationTimer?.cancel();
-          _durationTimer = _createTimer(1000, true);
+          _durationTimer = _createDurationTimer();
         case VideoEventType.completed:
           // In this case we need to stop _timer, set isPlaying=false, and
           // position=value.duration. Instead of setting the values directly,
@@ -589,7 +580,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
               isPlaying: event.isPlaying,
               isCompleted: false,
             );
-            _timer ??= _createTimer(500, false);
+            _timer ??= _createTimer();
           } else {
             value = value.copyWith(isPlaying: event.isPlaying);
           }
@@ -696,24 +687,18 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.getDuration(_playerId);
   }
 
-  Timer _createTimer(int periodTime, bool isDurationTimer) {
-    return Timer.periodic(Duration(milliseconds: periodTime), (
+  Timer _createDurationTimer() {
+    return Timer.periodic(const Duration(milliseconds: 1000), (
       Timer timer,
     ) async {
       if (_isDisposed) {
         return;
       }
-      if (isDurationTimer) {
-        final DurationRange? newDuration = await duration;
-        if (newDuration != null) {
-          _updateDuration(newDuration);
-        }
-      } else {
-        final Duration? newPosition = await position;
-        if (newPosition != null) {
-          _updatePosition(newPosition);
-        }
+      final DurationRange? newDuration = await duration;
+      if (newDuration == null) {
+        return;
       }
+      _updateDuration(newDuration);
     });
   }
 
@@ -747,7 +732,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
       // Cancel previous timer.
       _timer?.cancel();
-      _timer = _createTimer(500, false);
+      _timer = _createTimer();
     } else {
       _timer?.cancel();
       await _videoPlayerPlatform.pause(_playerId);
@@ -775,6 +760,20 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return null;
     }
     return _videoPlayerPlatform.getPosition(_playerId);
+  }
+
+  Timer _createTimer() {
+    return Timer.periodic(const Duration(milliseconds: 500), (
+      Timer timer,
+    ) async {
+      if (_isDisposed) {
+        return;
+      }
+      final Duration? newPosition = await position;
+      if (newPosition != null) {
+        _updatePosition(newPosition);
+      }
+    });
   }
 
   /// Sets the video's current timestamp to be at [moment]. The next
