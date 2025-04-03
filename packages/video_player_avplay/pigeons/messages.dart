@@ -168,6 +168,8 @@ abstract class VideoPlayerAvplayApi {
   void setStreamingProperty(StreamingPropertyMessage msg);
   bool setDisplayRotate(RotationMessage msg);
   bool setDisplayMode(DisplayModeMessage msg);
+  void suspend(int playerId);
+  void restore(int playerId, CreateMessage? msg, int resumeTime);
   bool setData(DashPropertyMapMessage msg);
   DashPropertyMapMessage getData(DashPropertyTypeListMessage msg);
   TrackMessage getActiveTrackInfo(PlayerMessage msg);
