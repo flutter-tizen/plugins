@@ -1,3 +1,7 @@
+## 0.5.19
+
+* Add suspend and restore interface.
+
 ## 0.5.18
 
 * Add getActiveTrackInfo interface.
