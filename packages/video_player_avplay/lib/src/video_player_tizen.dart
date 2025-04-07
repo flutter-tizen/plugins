@@ -400,13 +400,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
-        case 'restoreCompleted':
+        case 'restored':
           final List<dynamic>? durationVal = map['duration'] as List<dynamic>?;
           VideoEventType videoEventType;
           if (map['event'] == 'initialized') {
             videoEventType = VideoEventType.initialized;
           } else {
-            videoEventType = VideoEventType.restoreCompleted;
+            videoEventType = VideoEventType.restored;
           }
           return VideoEvent(
             eventType: videoEventType,

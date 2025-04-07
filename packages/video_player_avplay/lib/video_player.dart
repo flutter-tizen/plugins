@@ -23,10 +23,10 @@ export 'src/drm_configs.dart';
 export 'src/tracks.dart';
 
 /// This will be used to set the ResumeTime when player restore.
-typedef ResumeTimeCallback = int Function();
+typedef RestoreTimeCallback = int Function();
 
 /// This will be used to set the RecreateMessage when player restore.
-typedef RecreateMessageCallback = DataSource Function();
+typedef RestoreDataSourceCallback = DataSource Function();
 
 VideoPlayerPlatform? _lastVideoPlayerPlatform;
 
@@ -421,8 +421,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Completer<void>? _creatingCompleter;
   StreamSubscription<dynamic>? _eventSubscription;
   _VideoAppLifeCycleObserver? _lifeCycleObserver;
-  RecreateMessageCallback? _onRestoreDataSource;
-  ResumeTimeCallback? _onRestoreTime;
+  RestoreDataSourceCallback? _onRestoreDataSource;
+  RestoreTimeCallback? _onRestoreTime;
 
   /// The id of a player that hasn't been initialized.
   @visibleForTesting
@@ -517,7 +517,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
       switch (event.eventType) {
         case VideoEventType.initialized:
-        case VideoEventType.restoreCompleted:
+        case VideoEventType.restored:
           value = value.copyWith(
             duration: event.duration,
             size: event.size,
@@ -542,7 +542,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // NOTE(jsuya): The plusplayer's SetVolume() work when player is
           // paused or played, so it changes the order of _applyPlayPause()
           // and _applyVolume().
-          if (event.eventType == VideoEventType.restoreCompleted &&
+          if (event.eventType == VideoEventType.restored &&
               _onRestoreDataSource != null) {
             play();
           } else {
@@ -887,8 +887,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Set the restore_message and resume_time of video.
   void setRestoreData({
-    RecreateMessageCallback? restoreDataSource,
-    ResumeTimeCallback? resumeTime,
+    RestoreDataSourceCallback? restoreDataSource,
+    RestoreTimeCallback? resumeTime,
   }) {
     _onRestoreDataSource = restoreDataSource;
     _onRestoreTime = resumeTime;

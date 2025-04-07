@@ -51,7 +51,7 @@ MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
                          FlutterDesktopViewRef flutter_view)
     : VideoPlayer(messenger, flutter_view) {
   media_player_proxy_ = std::make_unique<MediaPlayerProxy>();
-  power_state_proxy_ = std::make_unique<PowerStateProxy>();
+  device_proxy_ = std::make_unique<DeviceProxy>();
 }
 
 MediaPlayer::~MediaPlayer() {
@@ -651,8 +651,8 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
 
 void MediaPlayer::OnRestoreCompleted() {
   if (pre_playing_time_ <= 0 ||
-      !SeekTo(pre_playing_time_, [this]() { SendRestoreCompleted(); })) {
-    SendRestoreCompleted();
+      !SeekTo(pre_playing_time_, [this]() { SendRestored(); })) {
+    SendRestored();
   }
 }
 
@@ -664,7 +664,7 @@ void MediaPlayer::OnPrepared(void *user_data) {
     self->SendInitialized();
   }
 
-  if (self->restore_completed_) {
+  if (self->is_restored_) {
     self->OnRestoreCompleted();
   }
 }
@@ -840,11 +840,10 @@ bool MediaPlayer::Suspend() {
     return false;
   }
   LOG_INFO(
-      "[MediaPlayer] Saved current player state: %d, playing time: %" PRId64
-      "ms",
+      "[MediaPlayer] Saved current player state: %d, playing time: %llu ms",
       pre_state_, pre_playing_time_);
 
-  res = power_state_proxy_->device_power_get_state();
+  res = device_proxy_->device_power_get_state();
   if (res == POWER_STATE_STANDBY) {
     LOG_INFO("[MediaPlayer] Power state is standby.");
     if (!StopAndDestroy()) {
@@ -935,35 +934,26 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
 bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
                                 int64_t resume_time) {
   LOG_INFO("[MediaPlayer] RestorePlayer is called.");
-  player_state_e player_state = PLAYER_STATE_NONE;
 
   if (restore_message->uri()) {
-    LOG_INFO("previous url: %s", url_.c_str());
-    LOG_INFO("new url: %s", restore_message->uri()->c_str());
+    LOG_INFO("[MediaPlayer] Player previous url: %s", url_.c_str());
+    LOG_INFO("[MediaPlayer] Player new url: %s",
+             restore_message->uri()->c_str());
     url_ = *restore_message->uri();
   }
 
-  LOG_INFO("previous playing time: %llu ms", pre_playing_time_);
-  LOG_INFO("new resume time: %lld ms", resume_time);
+  LOG_INFO("[MediaPlayer] Player previous playing time: %llu ms",
+           pre_playing_time_);
+  LOG_INFO("[MediaPlayer] Player new resume time: %lld ms", resume_time);
   // resume_time < 0  ==> use previous playing time
   // resume_time == 0 ==> play from beginning
   // resume_time > 0  ==> play from resume_time(Third-party settings)
   if (resume_time >= 0) pre_playing_time_ = static_cast<uint64_t>(resume_time);
 
-  if (player_) {
-    int ret = player_get_state(player_, &player_state);
-    if (ret != PLAYER_ERROR_NONE || player_state >= PLAYER_STATE_READY) {
-      LOG_ERROR(
-          "[MediaPlayer] Player get state failed or in invalid state[%d].",
-          player_state);
-      return false;
-    }
-  }
-
-  restore_completed_ = true;
+  is_restored_ = true;
   if (Create(url_, *restore_message) < 0) {
     LOG_ERROR("[MediaPlayer] Fail to create player.");
-    restore_completed_ = false;
+    is_restored_ = false;
     return false;
   }
 

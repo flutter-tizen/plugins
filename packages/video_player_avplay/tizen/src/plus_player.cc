@@ -41,7 +41,7 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
                        FlutterDesktopViewRef flutter_view)
     : VideoPlayer(messenger, flutter_view) {
   memento_ = std::make_unique<plusplayer::PlayerMemento>();
-  power_state_proxy_ = std::make_unique<PowerStateProxy>();
+  device_proxy_ = std::make_unique<DeviceProxy>();
 }
 
 PlusPlayer::~PlusPlayer() {
@@ -799,8 +799,7 @@ bool PlusPlayer::Suspend() {
     return false;
   }
   LOG_INFO(
-      "[PlusPlayer] Memento saved current player state: %d, position: %" PRIu64
-      " ms, "
+      "[PlusPlayer] Memento saved current player state: %d, position: %llu ms, "
       "is_live: %d",
       (int)memento_->state, memento_->playing_time, memento_->is_live);
 
@@ -814,7 +813,7 @@ bool PlusPlayer::Suspend() {
     return true;
   }
 
-  int power_state = power_state_proxy_->device_power_get_state();
+  int power_state = device_proxy_->device_power_get_state();
   if (power_state == POWER_STATE_STANDBY) {
     LOG_INFO("[PlusPlayer] Power state is standby.");
     if (!StopAndClose()) {
@@ -830,7 +829,7 @@ bool PlusPlayer::Suspend() {
 
   plusplayer::State player_state = GetState(player_);
   if (player_state <= plusplayer::State::kTrackSourceReady) {
-    if (!Close(player_)) {
+    if (!::Close(player_)) {
       LOG_ERROR("[PlusPlayer] Player close fail.");
       return false;
     }
@@ -844,7 +843,7 @@ bool PlusPlayer::Suspend() {
           "[PlusPlayer] Suspend fail, in restore player instance would be "
           "created newly.");
       if (!StopAndClose())
-        LOG_ERROR("[PlusPlayer] Suspend error, palyer stop and close fail.");
+        LOG_ERROR("[PlusPlayer] Suspend error, player stop and close fail.");
       return false;
     }
     SendIsPlayingState(false);
@@ -860,15 +859,12 @@ bool PlusPlayer::Restore(const CreateMessage *restore_message,
     return false;
   }
 
-  plusplayer::State player_state;
-  if (player_) {
-    player_state = GetState(player_);
-    if (player_state != plusplayer::State::kNone &&
-        player_state != plusplayer::State::kPaused &&
-        player_state != plusplayer::State::kPlaying) {
-      LOG_ERROR("[PlusPlayer] Player is in invalid state[%d].", player_state);
-      return false;
-    }
+  plusplayer::State player_state = GetState(player_);
+  if (player_state != plusplayer::State::kNone &&
+      player_state != plusplayer::State::kPaused &&
+      player_state != plusplayer::State::kPlaying) {
+    LOG_ERROR("[PlusPlayer] Player is in invalid state[%d].", player_state);
+    return false;
   }
 
   if (!memento_) {
@@ -893,12 +889,10 @@ bool PlusPlayer::Restore(const CreateMessage *restore_message,
     return RestorePlayer(restore_message, resume_time);
   }
 
-  player_state = GetState(player_);
   switch (player_state) {
     case plusplayer::State::kNone:
       return RestorePlayer(restore_message, resume_time);
       break;
-    case plusplayer::State::kReady:
     case plusplayer::State::kPaused:
       if (!::Restore(player_, memento_->state)) {
         if (!StopAndClose()) {
@@ -927,32 +921,26 @@ bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
   LOG_INFO("[PlusPlayer] is_live: %d", memento_->is_live);
 
   if (restore_message->uri()) {
-    LOG_INFO("previous url: %s", url_.c_str());
-    LOG_INFO("new url: %s", restore_message->uri()->c_str());
+    LOG_INFO("[PlusPlayer] Player previous url: %s", url_.c_str());
+    LOG_INFO("[PlusPlayer] Player new url: %s",
+             restore_message->uri()->c_str());
     url_ = *restore_message->uri();
     create_message_ = *restore_message;
   }
 
-  LOG_INFO("previous playing time: %llu ms", memento_->playing_time);
-  LOG_INFO("new resume time: %lld ms", resume_time);
+  LOG_INFO("[PlusPlayer] Player previous playing time: %llu ms",
+           memento_->playing_time);
+  LOG_INFO("[PlusPlayer] Player new resume time: %lld ms", resume_time);
   // resume_time < 0  ==> use previous playing time
   // resume_time == 0 ==> play from beginning
   // resume_time > 0  ==> play from resume_time(Third-party settings)
   if (resume_time >= 0)
     memento_->playing_time = static_cast<uint64_t>(resume_time);
 
-  if (player_) {
-    plusplayer::State player_state = GetState(player_);
-    if (player_state >= plusplayer::State::kReady) {
-      LOG_ERROR("[PlusPlayer] Player is in invalid state[%d].", player_state);
-      return false;
-    }
-  }
-
-  restore_completed_ = true;
+  is_restored_ = true;
   if (Create(url_, create_message_) < 0) {
     LOG_ERROR("[PlusPlayer] Fail to create player.");
-    restore_completed_ = false;
+    is_restored_ = false;
     return false;
   }
   if (memento_->playing_time > 0 && !Seek(player_, memento_->playing_time)) {
@@ -1088,8 +1076,8 @@ void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
     self->SendInitialized();
   }
 
-  if (self->restore_completed_ && ret) {
-    self->SendRestoreCompleted();
+  if (self->is_restored_ && ret) {
+    self->SendRestored();
   }
 }
 

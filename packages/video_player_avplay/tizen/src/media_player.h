@@ -11,9 +11,9 @@
 #include <string>
 #include <utility>
 
+#include "device_proxy.h"
 #include "drm_manager.h"
 #include "media_player_proxy.h"
-#include "power_state_proxy.h"
 #include "video_player.h"
 
 class MediaPlayer : public VideoPlayer {
@@ -72,7 +72,7 @@ class MediaPlayer : public VideoPlayer {
 
   player_h player_ = nullptr;
   std::unique_ptr<MediaPlayerProxy> media_player_proxy_ = nullptr;
-  std::unique_ptr<PowerStateProxy> power_state_proxy_ = nullptr;
+  std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
   std::unique_ptr<DrmManager> drm_manager_;
   bool is_buffering_ = false;
   SeekCompletedCallback on_seek_completed_;

@@ -358,7 +358,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Suspend(int64_t player_id) {
   if (!player) {
     return FlutterError("Invalid argument", "Player not found");
   }
-  if (player->Suspend() == false) {
+  if (!player->Suspend()) {
     return FlutterError("Operation failed", "Player suspend error");
   }
   return std::nullopt;
@@ -370,7 +370,7 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Restore(
     return FlutterError("Invalid argument", "Player not found");
   }
 
-  if (player->Restore(msg, resume_time) == false) {
+  if (!player->Restore(msg, resume_time)) {
     return FlutterError("Operation failed", "Player restore error");
   }
   return std::nullopt;

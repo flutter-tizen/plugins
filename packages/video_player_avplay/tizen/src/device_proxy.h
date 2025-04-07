@@ -2,10 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_POWER_STATE_PROXY_H_
-#define FLUTTER_PLUGIN_POWER_STATE_PROXY_H_
-
-#include <player.h>
+#ifndef FLUTTER_PLUGIN_DEVICE_PROXY_H_
+#define FLUTTER_PLUGIN_DEVICE_PROXY_H_
 
 typedef enum {
   POWER_STATE_NORMAL,          /**< Normal state */
@@ -16,10 +14,10 @@ typedef enum {
   POWER_STATE_ERROR            /**< Error state */
 } power_state_e;
 
-class PowerStateProxy {
+class DeviceProxy {
  public:
-  PowerStateProxy();
-  ~PowerStateProxy();
+  DeviceProxy();
+  ~DeviceProxy();
   power_state_e device_power_get_state(void);
 
  private:

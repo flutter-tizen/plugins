@@ -10,10 +10,10 @@
 #include <memory>
 #include <string>
 
+#include "device_proxy.h"
 #include "drm_manager.h"
 #include "messages.h"
 #include "plusplayer/plusplayer_wrapper.h"
-#include "power_state_proxy.h"
 #include "video_player.h"
 
 class PlusPlayer : public VideoPlayer {
@@ -105,7 +105,7 @@ class PlusPlayer : public VideoPlayer {
   SeekCompletedCallback on_seek_completed_;
   std::unique_ptr<plusplayer::PlayerMemento> memento_ = nullptr;
   std::string url_;
-  std::unique_ptr<PowerStateProxy> power_state_proxy_ = nullptr;
+  std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
   CreateMessage create_message_;
 };
 
