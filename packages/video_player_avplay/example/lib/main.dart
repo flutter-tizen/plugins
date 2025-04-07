@@ -815,10 +815,10 @@ class _LiveRomoteVideoState extends State<_LiveRemoteVideo> {
 
 class _TestRemoteVideo extends StatefulWidget {
   @override
-  State<_TestRemoteVideo> createState() => _TestRomoteVideoState();
+  State<_TestRemoteVideo> createState() => _TestRemoteVideoState();
 }
 
-class _TestRomoteVideoState extends State<_TestRemoteVideo> {
+class _TestRemoteVideoState extends State<_TestRemoteVideo> {
   late VideoPlayerController _controller;
 
   @override
@@ -838,7 +838,7 @@ class _TestRomoteVideoState extends State<_TestRemoteVideo> {
     _controller.initialize().then((_) => setState(() {}));
     _controller.play();
     _controller.setRestoreData(
-      recreateMessage: restoreData,
+      restoreDataSource: restoreDataSource,
       resumeTime: restoreTime,
     );
   }
@@ -849,7 +849,7 @@ class _TestRomoteVideoState extends State<_TestRemoteVideo> {
     super.dispose();
   }
 
-  DataSource restoreData() {
+  DataSource restoreDataSource() {
     final DataSource dataSource = DataSource(
       sourceType: DataSourceType.network,
       uri: 'https://media.w3.org/2010/05/bunny/trailer.mp4',

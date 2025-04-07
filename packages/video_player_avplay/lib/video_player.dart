@@ -421,7 +421,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Completer<void>? _creatingCompleter;
   StreamSubscription<dynamic>? _eventSubscription;
   _VideoAppLifeCycleObserver? _lifeCycleObserver;
-  RecreateMessageCallback? _onRestoreData;
+  RecreateMessageCallback? _onRestoreDataSource;
   ResumeTimeCallback? _onRestoreTime;
 
   /// The id of a player that hasn't been initialized.
@@ -543,7 +543,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // paused or played, so it changes the order of _applyPlayPause()
           // and _applyVolume().
           if (event.eventType == VideoEventType.restoreCompleted &&
-              _onRestoreData != null) {
+              _onRestoreDataSource != null) {
             play();
           } else {
             _applyPlayPause();
@@ -887,15 +887,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Set the restore_message and resume_time of video.
   void setRestoreData({
-    RecreateMessageCallback? recreateMessage,
+    RecreateMessageCallback? restoreDataSource,
     ResumeTimeCallback? resumeTime,
   }) {
-    _onRestoreData = recreateMessage;
+    _onRestoreDataSource = restoreDataSource;
     _onRestoreTime = resumeTime;
   }
 
-  ///Pauses the player  when the application is sent to the background.
-  ///Saves the current statistics for the ongoing playback session.
+  /// Pauses the player when the application is sent to the background.
+  /// Saves the current statistics for the ongoing playback session.
   Future<void> suspend() async {
     if (_isDisposedOrNotInitialized) {
       return;
@@ -907,17 +907,17 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _timer = null;
   }
 
-  ///Restores the player state when the application is resumed.
-  ///For live streaming or DRM-encrypted content playback, you must check whether the
-  ///streaming URL has changed or the DRM session or license has expired, and specify
-  ///the new URL and DRM information as needed.
+  /// Restores the player state when the application is resumed.
+  /// For live streaming or DRM-encrypted content playback, you must check whether the
+  /// streaming URL has changed or the DRM session or license has expired, and specify
+  /// the new URL and DRM information as needed.
   Future<void> restore() async {
     if (_isDisposedOrNotInitialized) {
       return;
     }
 
     final DataSource? dataSource =
-        (_onRestoreData != null) ? _onRestoreData!() : null;
+        (_onRestoreDataSource != null) ? _onRestoreDataSource!() : null;
     final int resumeTime = (_onRestoreTime != null) ? _onRestoreTime!() : -1;
 
     await _videoPlayerPlatform.restore(
