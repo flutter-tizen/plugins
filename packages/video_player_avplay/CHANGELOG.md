@@ -13,6 +13,7 @@
   10.[HLS]Removed repetitive call for fetching segment.
   11.[DASH]Change dash timeline case live duration calculation scheme.
   12.[DASH]Dash low latency stability improvement.
+  13.[DASH]Fix no subtitle callback issue.
 
 ## 0.5.18
 
