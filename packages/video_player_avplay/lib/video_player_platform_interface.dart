@@ -191,7 +191,22 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('suspend() has not been implemented.');
   }
 
-  /// Restores the player when the application is resumed.
+  /// Restores the player state when the application is resumed.
+  /// For live streaming or DRM-encrypted content playback, you must check whether the
+  /// streaming URL has changed or the DRM session or license has expired, and specify
+  /// the new URL and DRM information as needed.
+  ///
+  /// * playerId: The player ID of the player to be restored.
+  /// * dataSource[optional][nullable]: Optional updated dataSource after suspend, includes
+  ///   elements such as the new URL and DRM information.
+  ///   If null, the dataSource stored at
+  ///   'initailize()' is used. For live streaming or DRM-encrypted content playback, in case
+  ///   the URL has changed or the DRM license or session has expired, checking for and passing
+  ///   the newest URL is recommended.
+  /// * resumeTime[optional][default=-1]: (milliseconds) Optional position from which to resume
+  ///   playback in three scenarios: the streaming type is live, power off/on within 5 seconds,
+  ///   or when using 'setRestoreData()'.
+  ///   If less than 0, the position stored at 'suspend()' is used.
   Future<void> restore(
     int playerId, {
     DataSource? dataSource,

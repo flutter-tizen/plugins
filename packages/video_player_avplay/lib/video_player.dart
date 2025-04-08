@@ -885,7 +885,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.setDisplayMode(_playerId, displayMode);
   }
 
-  /// Set the restore_message and resume_time of video.
+  /// Set the restoreDataSource and resumeTime of video.
   void setRestoreData({
     RestoreDataSourceCallback? restoreDataSource,
     RestoreTimeCallback? resumeTime,

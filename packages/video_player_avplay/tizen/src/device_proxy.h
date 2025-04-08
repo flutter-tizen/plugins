@@ -24,4 +24,4 @@ class DeviceProxy {
   void* power_state_handle_ = nullptr;
 };
 
-#endif  // FLUTTER_PLUGIN_POWER_STATE_PROXY_H_
+#endif  // FLUTTER_PLUGIN_DEVICE_PROXY_H_
