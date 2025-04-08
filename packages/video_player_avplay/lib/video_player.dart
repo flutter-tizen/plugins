@@ -896,7 +896,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Pauses the player when the application is sent to the background.
   /// Saves the current statistics for the ongoing playback session.
-  Future<void> suspend() async {
+  Future<void> _suspend() async {
     if (_isDisposedOrNotInitialized) {
       return;
     }
@@ -911,7 +911,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// For live streaming or DRM-encrypted content playback, you must check whether the
   /// streaming URL has changed or the DRM session or license has expired, and specify
   /// the new URL and DRM information as needed.
-  Future<void> restore() async {
+  Future<void> _restore() async {
     if (_isDisposedOrNotInitialized) {
       return;
     }
@@ -1065,9 +1065,9 @@ class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      _controller.suspend();
+      _controller._suspend();
     } else if (state == AppLifecycleState.resumed) {
-      _controller.restore();
+      _controller._restore();
     }
   }
 
