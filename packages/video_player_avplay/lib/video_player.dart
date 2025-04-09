@@ -885,7 +885,21 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return _videoPlayerPlatform.setDisplayMode(_playerId, displayMode);
   }
 
-  /// Set the restoreDataSource and resumeTime of video.
+  /// [optional]Set the restoreDataSource and resumeTime of video.
+  /// For live streaming or DRM-encrypted content playback, you must check whether the
+  /// streaming URL has changed or the DRM session or license has expired, and specify
+  /// the new URL and DRM information as needed.
+  ///
+  /// * restoreDataSource[optional][nullable]: Optional updated restoreDataSource after
+  ///   suspend, includes elements such as the new URL and DRM information.
+  ///   If null, the dataSource stored at 'initailize()' is used.
+  ///   For live streaming or DRM-encrypted content playback, in case the URL has changed
+  ///   or the DRM license or session has expired, checking for and passing the newest URL
+  ///   is recommended.
+  /// * resumeTime[optional][default=-1]: (milliseconds) Optional position from which to
+  ///   resume playback in three scenarios: the streaming type is live, power off/on
+  ///   within 5 seconds, or changing the URL(that is, restoreDataSource is non-null).
+  ///   If less than 0, the position stored at '_suspend()' is used.
   void setRestoreData({
     RestoreDataSourceCallback? restoreDataSource,
     RestoreTimeCallback? resumeTime,
@@ -908,9 +922,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   /// Restores the player state when the application is resumed.
-  /// For live streaming or DRM-encrypted content playback, you must check whether the
-  /// streaming URL has changed or the DRM session or license has expired, and specify
-  /// the new URL and DRM information as needed.
   Future<void> _restore() async {
     if (_isDisposedOrNotInitialized) {
       return;
@@ -1129,10 +1140,18 @@ class _VideoPlayerState extends State<VideoPlayer> {
       if (currentRect != Rect.zero && _playerRect != currentRect) {
         _videoPlayerPlatform.setDisplayGeometry(
           _playerId,
-          currentRect.left.toInt(),
-          currentRect.top.toInt(),
-          currentRect.width.toInt(),
-          currentRect.height.toInt(),
+          (currentRect.left.isInfinite || currentRect.left.isNaN)
+              ? 0
+              : currentRect.left.toInt(),
+          (currentRect.top.isInfinite || currentRect.top.isNaN)
+              ? 0
+              : currentRect.top.toInt(),
+          (currentRect.width.isInfinite || currentRect.width.isNaN)
+              ? 1
+              : currentRect.width.toInt(),
+          (currentRect.height.isInfinite || currentRect.height.isNaN)
+              ? 1
+              : currentRect.height.toInt(),
         );
         _playerRect = currentRect;
       }
