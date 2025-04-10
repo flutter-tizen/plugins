@@ -59,6 +59,9 @@ class VideoPlayer {
                                     const std::string &value){};
   virtual bool SetDisplayRotate(int64_t rotation) = 0;
   virtual bool SetDisplayMode(int64_t display_mode) = 0;
+  virtual bool Suspend() = 0;
+  virtual bool Restore(const CreateMessage *restore_message,
+                       int64_t resume_time) = 0;
   virtual bool SetData(const flutter::EncodableMap &data) { return false; }
   virtual flutter::EncodableMap GetData(const flutter::EncodableList &data) {
     return flutter::EncodableMap{};
@@ -79,6 +82,7 @@ class VideoPlayer {
   void SendSubtitleUpdate(int32_t duration, const std::string &text);
   void SendPlayCompleted();
   void SendIsPlayingState(bool is_playing);
+  void SendRestored();
   void SendError(const std::string &error_code,
                  const std::string &error_message);
 
@@ -87,6 +91,7 @@ class VideoPlayer {
   flutter::BinaryMessenger *binary_messenger_;
   bool is_initialized_ = false;
   FlutterDesktopViewRef flutter_view_;
+  bool is_restored_ = false;
 
  private:
   void ExecuteSinkEvents();

@@ -173,6 +173,27 @@ void VideoPlayer::SendIsPlayingState(bool is_playing) {
   PushEvent(flutter::EncodableValue(result));
 }
 
+void VideoPlayer::SendRestored() {
+  if (is_restored_ && event_sink_) {
+    is_restored_ = false;
+    int32_t width = 0, height = 0;
+    GetVideoSize(&width, &height);
+    auto duration = GetDuration();
+    flutter::EncodableList duration_range{
+        flutter::EncodableValue(duration.first),
+        flutter::EncodableValue(duration.second)};
+
+    flutter::EncodableMap result = {
+        {flutter::EncodableValue("event"), flutter::EncodableValue("restored")},
+        {flutter::EncodableValue("duration"),
+         flutter::EncodableValue(duration_range)},
+        {flutter::EncodableValue("width"), flutter::EncodableValue(width)},
+        {flutter::EncodableValue("height"), flutter::EncodableValue(height)},
+    };
+    PushEvent(flutter::EncodableValue(result));
+  }
+}
+
 void VideoPlayer::SendError(const std::string &error_code,
                             const std::string &error_message) {
   if (event_sink_) {

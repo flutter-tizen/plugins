@@ -22,7 +22,7 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 7,
+      length: 9,
       child: Scaffold(
         key: const ValueKey<String>('home_page'),
         appBar: AppBar(
@@ -37,6 +37,8 @@ class _App extends StatelessWidget {
               Tab(icon: Icon(Icons.cloud), text: 'DRM PlayReady'),
               Tab(icon: Icon(Icons.cloud), text: 'Track'),
               Tab(icon: Icon(Icons.cloud), text: 'Asset'),
+              Tab(icon: Icon(Icons.live_tv), text: 'Live'),
+              Tab(icon: Icon(Icons.local_florist), text: 'ChangeURLTest'),
             ],
           ),
         ),
@@ -49,6 +51,8 @@ class _App extends StatelessWidget {
             _DrmRemoteVideo2(),
             _TrackTest(),
             _AssetVideo(),
+            _LiveRemoteVideo(),
+            _TestRemoteVideo(),
           ],
         ),
       ),
@@ -744,6 +748,145 @@ class _GetTextTrackButton extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _LiveRemoteVideo extends StatefulWidget {
+  @override
+  State<_LiveRemoteVideo> createState() => _LiveRomoteVideoState();
+}
+
+class _LiveRomoteVideoState extends State<_LiveRemoteVideo> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(
+      'https://hlive.ktv.go.kr/live/klive_h.stream/playlist.m3u8',
+    );
+
+    _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
+      setState(() {});
+    });
+    _controller.setLooping(true);
+    _controller.initialize().then((_) => setState(() {}));
+    _controller.play();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          Container(padding: const EdgeInsets.only(top: 20.0)),
+          const Text('Playing Live TV'),
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: <Widget>[
+                  VideoPlayer(_controller),
+                  ClosedCaption(text: _controller.value.caption.text),
+                  _ControlsOverlay(controller: _controller),
+                  VideoProgressIndicator(_controller, allowScrubbing: true),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TestRemoteVideo extends StatefulWidget {
+  @override
+  State<_TestRemoteVideo> createState() => _TestRemoteVideoState();
+}
+
+class _TestRemoteVideoState extends State<_TestRemoteVideo> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(
+      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+    );
+
+    _controller.addListener(() {
+      if (_controller.value.hasError) {
+        print(_controller.value.errorDescription);
+      }
+      setState(() {});
+    });
+    _controller.setLooping(true);
+    _controller.initialize().then((_) => setState(() {}));
+    _controller.play();
+    _controller.setRestoreData(
+      restoreDataSource: restoreDataSource,
+      resumeTime: restoreTime,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  DataSource restoreDataSource() {
+    final DataSource dataSource = DataSource(
+      sourceType: DataSourceType.network,
+      uri: 'https://media.w3.org/2010/05/bunny/trailer.mp4',
+    );
+    return dataSource;
+  }
+
+  int restoreTime() {
+    /// if resumeTime >= 0 , it will restore from resumeTime
+    /// if resumeTime is not set or <0, it will restore from the time when suspend is called
+    const int resumeTime = 0;
+    return resumeTime;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          Container(padding: const EdgeInsets.only(top: 20.0)),
+          const Text('ChangeURLTest'),
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                children: <Widget>[
+                  VideoPlayer(_controller),
+                  ClosedCaption(text: _controller.value.caption.text),
+                  _ControlsOverlay(controller: _controller),
+                  VideoProgressIndicator(_controller, allowScrubbing: true),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,3 +1,7 @@
+## 0.5.20
+
+* Add suspend and restore interface.
+
 ## 0.5.19
 
 * Upgrade native player
