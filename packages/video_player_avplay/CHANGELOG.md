@@ -1,6 +1,23 @@
-## 0.5.19
+## 0.5.20
 
 * Add suspend and restore interface.
+
+## 0.5.19
+
+* Upgrade native player
+  1.[HLS]Fix crash issue when rotation from portrait to landscape or vice-versa.
+  2.[HSL]Multiview scenario stability improvement.
+  3.[PLAYER]Modified code for correct information update in status_monitor in case of tracksource prepare is failed.
+  4.[HLS]IAMF codec support in HLS.
+  5.[HLS]Time for curl perfrom increased so that perform should get complete and after that curl unit it resettting.
+  6.[HLS]Exposed new api to pre load ini file without player object.
+  7.[HLS]Trim Whitespaces from URL in ChangeSource.
+  8.[HLS]Removed a previous warning format ‘%s’ expects argument of type ‘char*’.
+  9.[HLS]Shrink log length to fit in vlog dump.
+  10.[HLS]Removed repetitive call for fetching segment.
+  11.[DASH]Change dash timeline case live duration calculation scheme.
+  12.[DASH]Dash low latency stability improvement.
+  13.[DASH]Fix no subtitle callback issue.
 
 ## 0.5.18
 
