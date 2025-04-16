@@ -466,48 +466,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
   }
 
-  /// Converts integer to [SubtitleAttrType].
-  static SubtitleAttrType _getAttrType(int number) => switch (number) {
-    0 => SubtitleAttrType.kSubAttrRegionXPos,
-    1 => SubtitleAttrType.kSubAttrRegionYPos,
-    2 => SubtitleAttrType.kSubAttrRegionWidth,
-    3 => SubtitleAttrType.kSubAttrRegionHeight,
-    4 => SubtitleAttrType.kSubAttrWindowXPadding,
-    5 => SubtitleAttrType.kSubAttrWindowYPadding,
-    6 => SubtitleAttrType.kSubAttrWindowLeftMargin,
-    7 => SubtitleAttrType.kSubAttrWindowRightMargin,
-    8 => SubtitleAttrType.kSubAttrWindowTopMargin,
-    9 => SubtitleAttrType.kSubAttrWindowBottomMargin,
-    10 => SubtitleAttrType.kSubAttrWindowBgColor,
-    11 => SubtitleAttrType.kSubAttrWindowOpacity,
-    12 => SubtitleAttrType.kSubAttrWindowShowBg,
-    13 => SubtitleAttrType.kSubAttrFontFamily,
-    14 => SubtitleAttrType.kSubAttrFontSize,
-    15 => SubtitleAttrType.kSubAttrFontWeight,
-    16 => SubtitleAttrType.kSubAttrFontStyle,
-    17 => SubtitleAttrType.kSubAttrFontColor,
-    18 => SubtitleAttrType.kSubAttrFontBgColor,
-    19 => SubtitleAttrType.kSubAttrFontOpacity,
-    20 => SubtitleAttrType.kSubAttrFontBgOpacity,
-    21 => SubtitleAttrType.kSubAttrFontTextOutlineColor,
-    22 => SubtitleAttrType.kSubAttrFontTextOutlineThickness,
-    23 => SubtitleAttrType.kSubAttrFontTextOutlineBlurRadius,
-    24 => SubtitleAttrType.kSubAttrFontVerticalAlign,
-    25 => SubtitleAttrType.kSubAttrFontHorizontalAlign,
-    26 => SubtitleAttrType.kSubAttrRawSubtitle,
-    27 => SubtitleAttrType.kSubAttrWebvttCueLine,
-    28 => SubtitleAttrType.kSubAttrWebvttCueLineNum,
-    29 => SubtitleAttrType.kSubAttrWebvttCueLineAlign,
-    30 => SubtitleAttrType.kSubAttrWebvttCueAlign,
-    31 => SubtitleAttrType.kSubAttrWebvttCueSize,
-    32 => SubtitleAttrType.kSubAttrWebvttCuePosition,
-    33 => SubtitleAttrType.kSubAttrWebvttCuePositionAlign,
-    34 => SubtitleAttrType.kSubAttrWebvttCueVertical,
-    35 => SubtitleAttrType.kSubAttrTimestamp,
-    36 => SubtitleAttrType.kSubAttrExtsubIndex,
-    _ => SubtitleAttrType.kSubAttrTypeNone,
-  };
-
   /// Determine the [SubtitleAttrValueType] based on the value of attrTypeNum.
   static SubtitleAttrValueType _getAttrValueType(int attrTypeNum) {
     final Set<int> doubleValues = <int>{
@@ -701,7 +659,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             }
             subtitleAttributes.add(
               SubtitleAttribute(
-                attrType: _getAttrType(attrTypeNum),
+                attrType: SubtitleAttrType.values[attrTypeNum],
                 startTime: startTime,
                 stopTime: stopTime,
                 attrValue: attrValue,

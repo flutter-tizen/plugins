@@ -8,118 +8,118 @@ import 'package:flutter/foundation.dart' show immutable, objectRuntimeType;
 /// The different types of subtitle attributes that can be set on the player.
 enum SubtitleAttrType {
   /// Subtitle attribute type region x position
-  kSubAttrRegionXPos,
+  subAttrRegionXPos,
 
   /// Subtitle attribute type region y position
-  kSubAttrRegionYPos,
+  subAttrRegionYPos,
 
   /// Subtitle attribute type region width
-  kSubAttrRegionWidth,
+  subAttrRegionWidth,
 
   /// Subtitle attribute type region height
-  kSubAttrRegionHeight,
+  subAttrRegionHeight,
 
   /// Subtitle attribute type window x padding
-  kSubAttrWindowXPadding,
+  subAttrWindowXPadding,
 
   /// Subtitle attribute type window y padding
-  kSubAttrWindowYPadding,
+  subAttrWindowYPadding,
 
   /// Subtitle attribute type window left margin
-  kSubAttrWindowLeftMargin,
+  subAttrWindowLeftMargin,
 
   /// Subtitle attribute type window right margin
-  kSubAttrWindowRightMargin,
+  subAttrWindowRightMargin,
 
   /// Subtitle attribute type window top margin
-  kSubAttrWindowTopMargin,
+  subAttrWindowTopMargin,
 
   /// Subtitle attribute type window bottom margin
-  kSubAttrWindowBottomMargin,
+  subAttrWindowBottomMargin,
 
   /// Subtitle attribute type window opacity
-  kSubAttrWindowBgColor,
+  subAttrWindowBgColor,
 
   /// Subtitle attribute type window opacity
-  kSubAttrWindowOpacity,
+  subAttrWindowOpacity,
 
   /// Subtitle attribute type window show background
-  kSubAttrWindowShowBg,
+  subAttrWindowShowBg,
 
   /// Subtitle attribute type font family
-  kSubAttrFontFamily,
+  subAttrFontFamily,
 
   /// Subtitle attribute type font size
-  kSubAttrFontSize,
+  subAttrFontSize,
 
   /// Subtitle attribute type font color
-  kSubAttrFontWeight,
+  subAttrFontWeight,
 
   /// Subtitle attribute type font style
-  kSubAttrFontStyle,
+  subAttrFontStyle,
 
   /// Subtitle attribute type font color
-  kSubAttrFontColor,
+  subAttrFontColor,
 
   /// Subtitle attribute type font bg color
-  kSubAttrFontBgColor,
+  subAttrFontBgColor,
 
   /// Subtitle attribute type font opacity
-  kSubAttrFontOpacity,
+  subAttrFontOpacity,
 
   /// Subtitle attribute type font bg opacity
-  kSubAttrFontBgOpacity,
+  subAttrFontBgOpacity,
 
   /// Subtitle attribute type font text outline color
-  kSubAttrFontTextOutlineColor,
+  subAttrFontTextOutlineColor,
 
   /// Subtitle attribute type font text outline thickness
-  kSubAttrFontTextOutlineThickness,
+  subAttrFontTextOutlineThickness,
 
   /// Subtitle attribute type font text outline blur radius
-  kSubAttrFontTextOutlineBlurRadius,
+  subAttrFontTextOutlineBlurRadius,
 
   /// Subtitle attribute type font vertical align
-  kSubAttrFontVerticalAlign,
+  subAttrFontVerticalAlign,
 
   /// Subtitle attribute type font horizontal align
-  kSubAttrFontHorizontalAlign,
+  subAttrFontHorizontalAlign,
 
   /// Subtitle attribute type raw subtitle
-  kSubAttrRawSubtitle,
+  subAttrRawSubtitle,
 
   /// Subtitle attribute type webvtt cue line num type
-  kSubAttrWebvttCueLine,
+  subAttrWebvttCueLine,
 
   /// Subtitle attribute type webvtt cue line align
-  kSubAttrWebvttCueLineNum,
+  subAttrWebvttCueLineNum,
 
   /// Subtitle attribute type webvtt cue line align
-  kSubAttrWebvttCueLineAlign,
+  subAttrWebvttCueLineAlign,
 
   /// Subtitle attribute type webvtt cue line align
-  kSubAttrWebvttCueAlign,
+  subAttrWebvttCueAlign,
 
   /// Subtitle attribute type webvtt cue size
-  kSubAttrWebvttCueSize,
+  subAttrWebvttCueSize,
 
   /// Subtitle attribute type webvtt cue position
-  kSubAttrWebvttCuePosition,
+  subAttrWebvttCuePosition,
 
   /// Subtitle attribute type webvtt cue position align
-  kSubAttrWebvttCuePositionAlign,
+  subAttrWebvttCuePositionAlign,
 
   /// Subtitle attribute type webvtt cue vertical
-  kSubAttrWebvttCueVertical,
+  subAttrWebvttCueVertical,
 
   /// Subtitle attribute type timestamp
-  kSubAttrTimestamp,
+  subAttrTimestamp,
 
   /// File index of external subtitle
-  kSubAttrExtsubIndex,
+  subAttrExtsubIndex,
 
   /// Default type
-  kSubAttrTypeNone,
+  subAttrTypeNone,
 }
 
 /// The different types of subtitle attribute values that can be set on the player.
@@ -172,7 +172,7 @@ class SubtitleAttribute {
 
   /// A no subtitle attribute object.
   static const SubtitleAttribute none = SubtitleAttribute(
-    attrType: SubtitleAttrType.kSubAttrTypeNone,
+    attrType: SubtitleAttrType.subAttrTypeNone,
     startTime: 0,
     stopTime: 0,
     attrValue: '',
