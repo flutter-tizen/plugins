@@ -459,6 +459,7 @@ class VideoEvent {
     this.buffered,
     this.text,
     this.isPlaying,
+    this.attributes,
   });
 
   /// The type of the event.
@@ -488,6 +489,9 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
   final bool? isPlaying;
+
+  /// Attributes of the video subtitle.
+  final List<dynamic>? attributes;
 
   @override
   bool operator ==(Object other) {
@@ -532,6 +536,9 @@ enum VideoEventType {
 
   /// Updated the video subtitle text.
   subtitleUpdate,
+
+  /// Updated the video subtitle attributes.
+  subtitleAttrUpdate,
 
   /// The playback state of the video has changed.
   ///

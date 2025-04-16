@@ -15,6 +15,7 @@ import 'package:flutter_tizen/flutter_tizen.dart';
 import 'src/closed_caption_file.dart';
 import 'src/drm_configs.dart';
 import 'src/hole.dart';
+import 'src/subtitle_attribute.dart';
 import 'src/tracks.dart';
 import 'video_player_platform_interface.dart';
 
@@ -57,6 +58,7 @@ class VideoPlayerValue {
     this.playbackSpeed = 1.0,
     this.errorDescription,
     this.isCompleted = false,
+    this.subtitleAttributes = const <SubtitleAttribute>[],
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -135,6 +137,9 @@ class VideoPlayerValue {
   /// Indicates whether or not the video has been loaded and is ready to play.
   final bool isInitialized;
 
+  /// The attributes of the subtitle.
+  final List<SubtitleAttribute> subtitleAttributes;
+
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
   bool get hasError => errorDescription != null;
@@ -174,6 +179,7 @@ class VideoPlayerValue {
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
+    List<SubtitleAttribute>? subtitleAttributes,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -194,6 +200,7 @@ class VideoPlayerValue {
               ? errorDescription
               : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
+      subtitleAttributes: subtitleAttributes ?? this.subtitleAttributes,
     );
   }
 
@@ -214,7 +221,8 @@ class VideoPlayerValue {
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
-        'isCompleted: $isCompleted),';
+        'isCompleted: $isCompleted), '
+        'subtitleAttributes: $subtitleAttributes,';
   }
 
   @override
@@ -236,7 +244,8 @@ class VideoPlayerValue {
           volume == other.volume &&
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
-          isCompleted == other.isCompleted;
+          isCompleted == other.isCompleted &&
+          subtitleAttributes == other.subtitleAttributes;
 
   @override
   int get hashCode => Object.hash(
@@ -255,6 +264,7 @@ class VideoPlayerValue {
     playbackSpeed,
     errorDescription,
     isCompleted,
+    subtitleAttributes,
   );
 }
 
@@ -448,6 +458,100 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
   }
 
+  /// Converts integer to [SubtitleAttrType].
+  static SubtitleAttrType _getAttrType(int number) => switch (number) {
+    0 => SubtitleAttrType.kSubAttrRegionXPos,
+    1 => SubtitleAttrType.kSubAttrRegionYPos,
+    2 => SubtitleAttrType.kSubAttrRegionWidth,
+    3 => SubtitleAttrType.kSubAttrRegionHeight,
+    4 => SubtitleAttrType.kSubAttrWindowXPadding,
+    5 => SubtitleAttrType.kSubAttrWindowYPadding,
+    6 => SubtitleAttrType.kSubAttrWindowLeftMargin,
+    7 => SubtitleAttrType.kSubAttrWindowRightMargin,
+    8 => SubtitleAttrType.kSubAttrWindowTopMargin,
+    9 => SubtitleAttrType.kSubAttrWindowBottomMargin,
+    10 => SubtitleAttrType.kSubAttrWindowBgColor,
+    11 => SubtitleAttrType.kSubAttrWindowOpacity,
+    12 => SubtitleAttrType.kSubAttrWindowShowBg,
+    13 => SubtitleAttrType.kSubAttrFontFamily,
+    14 => SubtitleAttrType.kSubAttrFontSize,
+    15 => SubtitleAttrType.kSubAttrFontWeight,
+    16 => SubtitleAttrType.kSubAttrFontStyle,
+    17 => SubtitleAttrType.kSubAttrFontColor,
+    18 => SubtitleAttrType.kSubAttrFontBgColor,
+    19 => SubtitleAttrType.kSubAttrFontOpacity,
+    20 => SubtitleAttrType.kSubAttrFontBgOpacity,
+    21 => SubtitleAttrType.kSubAttrFontTextOutlineColor,
+    22 => SubtitleAttrType.kSubAttrFontTextOutlineThickness,
+    23 => SubtitleAttrType.kSubAttrFontTextOutlineBlurRadius,
+    24 => SubtitleAttrType.kSubAttrFontVerticalAlign,
+    25 => SubtitleAttrType.kSubAttrFontHorizontalAlign,
+    26 => SubtitleAttrType.kSubAttrRawSubtitle,
+    27 => SubtitleAttrType.kSubAttrWebvttCueLine,
+    28 => SubtitleAttrType.kSubAttrWebvttCueLineNum,
+    29 => SubtitleAttrType.kSubAttrWebvttCueLineAlign,
+    30 => SubtitleAttrType.kSubAttrWebvttCueAlign,
+    31 => SubtitleAttrType.kSubAttrWebvttCueSize,
+    32 => SubtitleAttrType.kSubAttrWebvttCuePosition,
+    33 => SubtitleAttrType.kSubAttrWebvttCuePositionAlign,
+    34 => SubtitleAttrType.kSubAttrWebvttCueVertical,
+    35 => SubtitleAttrType.kSubAttrTimestamp,
+    36 => SubtitleAttrType.kSubAttrExtsubIndex,
+    _ => SubtitleAttrType.kSubAttrTypeNone,
+  };
+
+  /// Determine the [SubtitleAttrValueType] based on the value of attrTypeNum.
+  static SubtitleAttrValueType _getAttrValueType(int attrTypeNum) {
+    final Set<int> doubleValues = <int>{
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      11,
+      14,
+      19,
+      20,
+      27,
+      31,
+      32,
+    };
+    final Set<int> intValues = <int>{
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      15,
+      16,
+      17,
+      18,
+      21,
+      22,
+      23,
+      24,
+      25,
+      28,
+      29,
+      30,
+      33,
+      34,
+      35,
+    };
+    final Set<int> stringValues = <int>{13, 26};
+    if (doubleValues.contains(attrTypeNum)) {
+      return SubtitleAttrValueType.double;
+    } else if (intValues.contains(attrTypeNum)) {
+      return SubtitleAttrValueType.int;
+    } else if (stringValues.contains(attrTypeNum)) {
+      return SubtitleAttrValueType.String;
+    } else {
+      return SubtitleAttrValueType.none;
+    }
+  }
+
   /// Attempts to open the given [dataSource] and load metadata about the video.
   Future<void> initialize() async {
     await _checkPlatformAndApiVersion();
@@ -557,7 +661,38 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             text: event.text ?? '',
           );
           value = value.copyWith(caption: caption);
-
+        case VideoEventType.subtitleAttrUpdate:
+          final List<SubtitleAttribute> subtitleAttributes =
+              <SubtitleAttribute>[];
+          final List<Map<Object?, Object?>?> subtitleAttrList =
+              event.attributes!.cast<Map<Object?, Object?>?>();
+          for (final Map<Object?, Object?>? attr in subtitleAttrList) {
+            final int attrTypeNum = attr!['attrType']! as int;
+            final int startTime = attr['startTime']! as int;
+            final int stopTime = attr['stopTime']! as int;
+            Object attrValue;
+            if (_getAttrValueType(attrTypeNum) ==
+                SubtitleAttrValueType.double) {
+              attrValue = attr['attrValue']! as double;
+            } else if (_getAttrValueType(attrTypeNum) ==
+                SubtitleAttrValueType.int) {
+              attrValue = attr['attrValue']! as int;
+            } else if (_getAttrValueType(attrTypeNum) ==
+                SubtitleAttrValueType.String) {
+              attrValue = attr['attrValue']! as String;
+            } else {
+              attrValue = 'failed';
+            }
+            subtitleAttributes.add(
+              SubtitleAttribute(
+                attrType: _getAttrType(attrTypeNum),
+                startTime: startTime,
+                stopTime: stopTime,
+                attrValue: attrValue,
+              ),
+            );
+          }
+          value = value.copyWith(subtitleAttributes: subtitleAttributes);
         case VideoEventType.isPlayingStateUpdate:
           if (event.isPlaying ?? false) {
             value = value.copyWith(

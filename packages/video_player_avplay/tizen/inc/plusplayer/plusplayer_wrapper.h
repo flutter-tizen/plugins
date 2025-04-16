@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <tizen_error.h>
 
+#include <list>
 #include <map>
 #include <memory>
 #include <string>
@@ -20,6 +21,100 @@
 #define PLUSPLAYER_CUSTOM_ERROR_CLASS TIZEN_ERROR_PLAYER | 0x1000
 
 namespace plusplayer {
+
+/**
+ * @brief Enumeration for supported subtitle attributes
+ */
+enum SubtitleAttrType {
+  kSubAttrRegionXPos = 0,
+  kSubAttrRegionYPos,
+  kSubAttrRegionWidth,
+  kSubAttrRegionHeight,
+  kSubAttrWindowXPadding,
+  kSubAttrWindowYPadding,
+  kSubAttrWindowLeftMargin,
+  kSubAttrWindowRightMargin,
+  kSubAttrWindowTopMargin,
+  kSubAttrWindowBottomMargin,
+  kSubAttrWindowBgColor,
+  kSubAttrWindowOpacity,
+  kSubAttrWindowShowBg,
+  kSubAttrFontFamily,
+  kSubAttrFontSize,
+  kSubAttrFontWeight,
+  kSubAttrFontStyle,
+  kSubAttrFontColor,
+  kSubAttrFontBgColor,
+  kSubAttrFontOpacity,
+  kSubAttrFontBgOpacity,
+  kSubAttrFontTextOutlineColor,
+  kSubAttrFontTextOutlineThickness,
+  kSubAttrFontTextOutlineBlurRadius,
+  kSubAttrFontVerticalAlign,
+  kSubAttrFontHorizontalAlign,
+  kSubAttrRawSubtitle,
+  kSubAttrWebvttCueLine,
+  kSubAttrWebvttCueLineNum,
+  kSubAttrWebvttCueLineAlign,
+  kSubAttrWebvttCueAlign,
+  kSubAttrWebvttCueSize,
+  kSubAttrWebvttCuePosition,
+  kSubAttrWebvttCuePositionAlign,
+  kSubAttrWebvttCueVertical,
+  kSubAttrTimestamp,
+  kSubAttrExtsubIndex,
+  kSubAttrTypeNone
+};
+
+/**
+ * @brief Enumeration for  player supported subtitle types
+ */
+enum class SubtitleType {
+  kText,       /**< subtitle type text */
+  kPicture,    /**< subtitle type picture */
+  kTTMLRender, /**< subtitle type ttml */
+  kInvalid     /**< unsupported subtitle type */
+};
+
+/**
+ * @brief structure definition of subtitle attribute
+ */
+struct SubtitleAttribute {
+  /**
+   * @brief     parameterized constructor of SubtitleAttr
+   * @param     [in]  _type : type of subtitle attribute. Please see
+   * @SubtitleAttrType
+   * @param     [in]  _start_time : start time of subtitle visibility
+   * @param     [in]  _stop_time : end type of subtitle visibility
+   * @param     [in]  _value : subtitle attribute value
+   * @param     [in]  _extsub_index : subtitle index in case of external.
+   * @pre       None
+   * @post      None
+   * @exception None
+   * @return    N/A
+   */
+  explicit SubtitleAttribute(const SubtitleAttrType _type,
+                             const uint32_t _start_time,
+                             const uint32_t _stop_time, const void* _value,
+                             const int _extsub_index)
+      : type(_type),
+        start_time(_start_time),
+        stop_time(_stop_time),
+        value(_value),
+        extsub_index(_extsub_index) {}
+  const SubtitleAttrType type =
+      kSubAttrTypeNone; /**< Type of subtitle attribute. */
+  const uint32_t start_time =
+      std::numeric_limits<uint32_t>::max(); /**< start time of subtitle
+                                               visibility */
+  const uint32_t stop_time =
+      std::numeric_limits<uint32_t>::max(); /**< end time of subtitle visibility
+                                             */
+  const void* value;                        /**< subtitle value */
+  const int extsub_index = -1;              /**< subtitle index */
+};
+using SubtitleAttributeList = std::list<SubtitleAttribute>;
+using SubtitleAttributeListPtr = std::unique_ptr<SubtitleAttributeList>;
 
 enum class DisplayType { kNone, kOverlay, kEvas, kMixer, kOverlaySyncUI };
 
@@ -336,16 +431,6 @@ struct Property {
 };
 }  // namespace drm
 
-/**
- * @brief Enumeration for  player supported subtitle types
- */
-enum class SubtitleType {
-  kText,       /**< subtitle type text */
-  kPicture,    /**< subtitle type picture */
-  kTTMLRender, /**< subtitle type ttml */
-  kInvalid     /**< unsupported subtitle type */
-};
-
 }  // namespace plusplayer
 
 #if defined(__cplusplus)
@@ -380,9 +465,10 @@ typedef void (*OnPlayerCueOutContEvent)(const char* CueOutContData,
 typedef void (*OnPlayerChangeSourceDone)(bool ret, void* user_data);
 typedef void (*OnPlayerStateChangedToPlaying)(void* user_data);
 typedef void (*OnPlayerDrmType)(plusplayer::drm::Type drmtype, void* user_data);
-typedef void (*OnPlayerSubtitleData)(char* data, const int size,
-                                     const plusplayer::SubtitleType& type,
-                                     const uint64_t duration, void* user_data);
+typedef void (*OnPlayerSubtitleData)(
+    char* data, const int size, const plusplayer::SubtitleType& type,
+    const uint64_t duration, plusplayer::SubtitleAttributeListPtr attr_list,
+    void* user_data);
 
 struct PlusplayerListener {
   OnPlayerPrepared prepared_callback{nullptr};

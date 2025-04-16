@@ -156,6 +156,10 @@ void VideoPlayer::SendSubtitleUpdate(int32_t duration,
   PushEvent(flutter::EncodableValue(result));
 }
 
+void VideoPlayer::SendSubtitleAttrUpdate(flutter::EncodableMap result) {
+  PushEvent(flutter::EncodableValue(result));
+}
+
 void VideoPlayer::SendPlayCompleted() {
   flutter::EncodableMap result = {
       {flutter::EncodableValue("event"), flutter::EncodableValue("completed")},
