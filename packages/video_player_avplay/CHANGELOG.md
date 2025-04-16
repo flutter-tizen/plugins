@@ -1,3 +1,7 @@
+## NEXT
+
+* Add SubtitleAttributeListPtr to onSubtitleData callback.
+
 ## 0.5.20
 
 * Add suspend and restore interface.
