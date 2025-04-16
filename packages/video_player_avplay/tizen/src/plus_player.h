@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 
+#include "device_proxy.h"
 #include "drm_manager.h"
 #include "messages.h"
 #include "plusplayer/plusplayer_wrapper.h"
@@ -48,6 +49,9 @@ class PlusPlayer : public VideoPlayer {
                             const std::string &value) override;
   bool SetDisplayRotate(int64_t rotation) override;
   bool SetDisplayMode(int64_t display_mode) override;
+  bool Suspend() override;
+  bool Restore(const CreateMessage *restore_message,
+               int64_t resume_time) override;
   bool SetData(const flutter::EncodableMap &data) override;
   flutter::EncodableMap GetData(const flutter::EncodableList &data) override;
   flutter::EncodableList GetActiveTrackInfo() override;
@@ -62,9 +66,11 @@ class PlusPlayer : public VideoPlayer {
   flutter::EncodableValue ParseAudioTrack(plusplayer::Track audio_track);
   flutter::EncodableValue ParseSubtitleTrack(plusplayer::Track subtitle_track);
   void RegisterListener();
+  bool StopAndClose();
+  bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);
+
   static bool OnLicenseAcquired(int *drm_handle, unsigned int length,
                                 unsigned char *pssh_data, void *user_data);
-
   static void OnPrepareDone(bool ret, void *user_data);
   static void OnBufferStatus(const int percent, void *user_data);
   static void OnSeekDone(void *user_data);
@@ -99,6 +105,10 @@ class PlusPlayer : public VideoPlayer {
   bool is_buffering_ = false;
   bool is_prebuffer_mode_ = false;
   SeekCompletedCallback on_seek_completed_;
+  std::unique_ptr<plusplayer::PlayerMemento> memento_ = nullptr;
+  std::string url_;
+  std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
+  CreateMessage create_message_;
 };
 
 #endif  // FLUTTER_PLUGIN_PLUS_PLAYER_H_
