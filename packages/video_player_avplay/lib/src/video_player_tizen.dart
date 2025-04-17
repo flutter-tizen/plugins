@@ -436,11 +436,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           return VideoEvent(
             eventType: VideoEventType.subtitleUpdate,
             text: map['text']! as String,
-          );
-        case 'subtitleAttrUpdate':
-          return VideoEvent(
-            eventType: VideoEventType.subtitleAttrUpdate,
-            attributes: map['attributes']! as List<dynamic>,
+            subtitleAttributes: map['attributes']! as List<dynamic>,
           );
         case 'isPlayingStateUpdate':
           return VideoEvent(

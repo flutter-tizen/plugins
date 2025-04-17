@@ -43,6 +43,7 @@ class Caption {
     required this.start,
     required this.end,
     required this.text,
+    this.subtitleAttributes,
   });
 
   /// The number that this caption was assigned.
@@ -58,6 +59,9 @@ class Caption {
   /// and [end].
   final String text;
 
+  /// The subtitile attributes associated with this caption.
+  final List<SubtitleAttribute?>? subtitleAttributes;
+
   /// A no caption object. This is a caption with [start] and [end] durations of zero,
   /// and an empty [text] string.
   static const Caption none = Caption(
@@ -65,6 +69,7 @@ class Caption {
     start: Duration.zero,
     end: Duration.zero,
     text: '',
+    subtitleAttributes: <SubtitleAttribute?>[],
   );
 
   @override
@@ -73,7 +78,8 @@ class Caption {
         'number: $number, '
         'start: $start, '
         'end: $end, '
-        'text: $text)';
+        'text: $text, '
+        'subtitleAttributes: $subtitleAttributes)';
   }
 
   @override
@@ -84,8 +90,218 @@ class Caption {
           number == other.number &&
           start == other.start &&
           end == other.end &&
-          text == other.text;
+          text == other.text &&
+          subtitleAttributes == other.subtitleAttributes;
 
   @override
-  int get hashCode => Object.hash(number, start, end, text);
+  int get hashCode => Object.hash(number, start, end, text, subtitleAttributes);
+}
+
+/// The different types of subtitle attributes that can be set on the player.
+enum SubtitleAttrType {
+  /// Subtitle attribute type region x position
+  subAttrRegionXPos(0, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type region y position
+  subAttrRegionYPos(1, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type region width
+  subAttrRegionWidth(2, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type region height
+  subAttrRegionHeight(3, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type window x padding
+  subAttrWindowXPadding(4, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type window y padding
+  subAttrWindowYPadding(5, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type window left margin
+  subAttrWindowLeftMargin(6, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type window right margin
+  subAttrWindowRightMargin(7, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type window top margin
+  subAttrWindowTopMargin(8, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type window bottom margin
+  subAttrWindowBottomMargin(9, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type window opacity
+  subAttrWindowBgColor(10, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type window opacity
+  subAttrWindowOpacity(11, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type window show background
+  subAttrWindowShowBg(12, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font family
+  subAttrFontFamily(13, SubtitleAttrValueType.String),
+
+  /// Subtitle attribute type font size
+  subAttrFontSize(14, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type font color
+  subAttrFontWeight(15, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font style
+  subAttrFontStyle(16, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font color
+  subAttrFontColor(17, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font bg color
+  subAttrFontBgColor(18, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font opacity
+  subAttrFontOpacity(19, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type font bg opacity
+  subAttrFontBgOpacity(20, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type font text outline color
+  subAttrFontTextOutlineColor(21, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font text outline thickness
+  subAttrFontTextOutlineThickness(22, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font text outline blur radius
+  subAttrFontTextOutlineBlurRadius(23, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font vertical align
+  subAttrFontVerticalAlign(24, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type font horizontal align
+  subAttrFontHorizontalAlign(25, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type raw subtitle
+  subAttrRawSubtitle(26, SubtitleAttrValueType.String),
+
+  /// Subtitle attribute type webvtt cue line num type
+  subAttrWebvttCueLine(27, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type webvtt cue line align
+  subAttrWebvttCueLineNum(28, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type webvtt cue line align
+  subAttrWebvttCueLineAlign(29, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type webvtt cue line align
+  subAttrWebvttCueAlign(30, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type webvtt cue size
+  subAttrWebvttCueSize(31, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type webvtt cue position
+  subAttrWebvttCuePosition(32, SubtitleAttrValueType.double),
+
+  /// Subtitle attribute type webvtt cue position align
+  subAttrWebvttCuePositionAlign(33, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type webvtt cue vertical
+  subAttrWebvttCueVertical(34, SubtitleAttrValueType.int),
+
+  /// Subtitle attribute type timestamp
+  subAttrTimestamp(35, SubtitleAttrValueType.int),
+
+  /// File index of external subtitle
+  subAttrExtsubInde(36, SubtitleAttrValueType.none),
+
+  /// Default type
+  subAttrTypeNone(37, SubtitleAttrValueType.none);
+
+  const SubtitleAttrType(this.idx, this.valueType);
+
+  /// The index of the subtitle attribute type. Do not modify.
+  final int idx;
+
+  /// The type of the subtitle attribute value. Do not modify.
+  final SubtitleAttrValueType valueType;
+
+  /// Returns the subtitle attribute value type based on the index.
+  static SubtitleAttrValueType getValueType(int idx) {
+    return SubtitleAttrType.values[idx].valueType;
+  }
+}
+
+/// The different types of subtitle attribute values that can be set on the player.
+enum SubtitleAttrValueType {
+  /// Subtitle attribute value type integer or uint32_t
+  int,
+
+  /// Subtitle attribute value type float or double
+  double,
+
+  /// Subtitle attribute value type string or char*
+  String,
+
+  /// Subtitle attribute value type none
+  none,
+}
+
+/// A representation of a single attribute.
+///
+/// The subtitle attributes of the video.
+@immutable
+class SubtitleAttribute {
+  /// Creates a new instance of [SubtitleAttribute].
+  const SubtitleAttribute({
+    required this.attrType,
+    required this.startTime,
+    required this.stopTime,
+    required this.attrValue,
+  });
+
+  /// Subtitle attribute type of the video.
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleAttrUpdate].
+  final SubtitleAttrType attrType;
+
+  /// Subtitle start time of the video.
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleAttrUpdate].
+  final int startTime;
+
+  /// Subtitle stop time of the video.
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleAttrUpdate].
+  final int stopTime;
+
+  /// Subtitle attribute value of the video.
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleAttrUpdate].
+  final Object attrValue;
+
+  /// A no subtitle attribute object.
+  static const SubtitleAttribute none = SubtitleAttribute(
+    attrType: SubtitleAttrType.subAttrTypeNone,
+    startTime: 0,
+    stopTime: 0,
+    attrValue: '',
+  );
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'SubtitleAttribute')}('
+        'attrType: $attrType, '
+        'startTime: $startTime, '
+        'stopTime: $stopTime, '
+        'attrValue: $attrValue)';
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SubtitleAttribute &&
+          runtimeType == other.runtimeType &&
+          attrType == other.attrType &&
+          startTime == other.startTime &&
+          stopTime == other.stopTime &&
+          attrValue == other.attrValue;
+
+  @override
+  int get hashCode => Object.hash(attrType, startTime, stopTime, attrValue);
 }

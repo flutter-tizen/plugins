@@ -1121,14 +1121,12 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
   LOG_INFO("[PlusPlayer] Subtitle updated, duration: %llu, text: %s", duration,
            data);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
-  self->SendSubtitleUpdate(duration, data);
 
   plusplayer::SubtitleAttributeList *attrs = attr_list.get();
   flutter::EncodableList attributes_list;
   for (auto attr = attrs->begin(); attr != attrs->end(); attr++) {
-    LOG_INFO(
-        "[PlusPlayer] Subtitle attribute update: type: %d, start: %u, end: %u",
-        attr->type, attr->start_time, attr->stop_time);
+    LOG_INFO("[PlusPlayer] Subtitle update: type: %d, start: %u, end: %u",
+             attr->type, attr->start_time, attr->stop_time);
     flutter::EncodableMap attributes = {
         {flutter::EncodableValue("attrType"),
          flutter::EncodableValue(attr->type)},
@@ -1155,8 +1153,7 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
         intptr_t value_temp = reinterpret_cast<intptr_t>(attr->value);
         float value_float;
         std::memcpy(&value_float, &value_temp, sizeof(float));
-        LOG_INFO("[PlusPlayer] Subtitle attribute update: value<float>: %f",
-                 value_float);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<float>: %f", value_float);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((double)value_float);
       } break;
@@ -1181,16 +1178,14 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       case plusplayer::kSubAttrWebvttCueVertical:
       case plusplayer::kSubAttrTimestamp: {
         int value_int = reinterpret_cast<int>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle attribute update: value<int>: %d",
-                 value_int);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int>: %d", value_int);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_int);
       } break;
       case plusplayer::kSubAttrFontFamily:
       case plusplayer::kSubAttrRawSubtitle: {
-        char *value_chars =
-            const_cast<char *>(reinterpret_cast<const char *>(attr->value));
-        LOG_INFO("[PlusPlayer] Subtitle attribute update: value<char *>: %s",
+        const char *value_chars = reinterpret_cast<const char *>(attr->value);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<char *>: %s",
                  value_chars);
         std::string value_string(value_chars);
         attributes[flutter::EncodableValue("attrValue")] =
@@ -1198,27 +1193,18 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       } break;
       case plusplayer::kSubAttrWindowShowBg: {
         uint32_t value_uint32 = reinterpret_cast<uint32_t>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle attribute update: value<uint32_t>: %u",
+        LOG_INFO("[PlusPlayer] Subtitle update: value<uint32_t>: %u",
                  value_uint32);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((int64_t)value_uint32);
       } break;
       default:
-        LOG_ERROR("[PlusPlayer] Unknown Subtitle attribute type: %d",
-                  attr->type);
-        attributes[flutter::EncodableValue("attrValue")] =
-            flutter::EncodableValue("invalid");
+        LOG_ERROR("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
         break;
     }
     attributes_list.push_back(flutter::EncodableValue(attributes));
   }
-  flutter::EncodableMap result = {
-      {flutter::EncodableValue("event"),
-       flutter::EncodableValue("subtitleAttrUpdate")},
-      {flutter::EncodableValue("attributes"),
-       flutter::EncodableValue(attributes_list)},
-  };
-  self->SendSubtitleAttrUpdate(result);
+  self->SendSubtitleUpdate(duration, data, attributes_list);
 }
 
 void PlusPlayer::OnResourceConflicted(void *user_data) {
