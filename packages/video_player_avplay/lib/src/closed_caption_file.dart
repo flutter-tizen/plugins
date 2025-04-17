@@ -100,123 +100,120 @@ class Caption {
 /// The different types of subtitle attributes that can be set on the player.
 enum SubtitleAttrType {
   /// Subtitle attribute type region x position
-  subAttrRegionXPos(0, SubtitleAttrValueType.double),
+  subAttrRegionXPos(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type region y position
-  subAttrRegionYPos(1, SubtitleAttrValueType.double),
+  subAttrRegionYPos(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type region width
-  subAttrRegionWidth(2, SubtitleAttrValueType.double),
+  subAttrRegionWidth(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type region height
-  subAttrRegionHeight(3, SubtitleAttrValueType.double),
+  subAttrRegionHeight(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type window x padding
-  subAttrWindowXPadding(4, SubtitleAttrValueType.double),
+  subAttrWindowXPadding(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type window y padding
-  subAttrWindowYPadding(5, SubtitleAttrValueType.double),
+  subAttrWindowYPadding(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type window left margin
-  subAttrWindowLeftMargin(6, SubtitleAttrValueType.int),
+  subAttrWindowLeftMargin(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type window right margin
-  subAttrWindowRightMargin(7, SubtitleAttrValueType.int),
+  subAttrWindowRightMargin(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type window top margin
-  subAttrWindowTopMargin(8, SubtitleAttrValueType.int),
+  subAttrWindowTopMargin(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type window bottom margin
-  subAttrWindowBottomMargin(9, SubtitleAttrValueType.int),
+  subAttrWindowBottomMargin(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type window opacity
-  subAttrWindowBgColor(10, SubtitleAttrValueType.int),
+  subAttrWindowBgColor(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type window opacity
-  subAttrWindowOpacity(11, SubtitleAttrValueType.double),
+  subAttrWindowOpacity(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type window show background
-  subAttrWindowShowBg(12, SubtitleAttrValueType.int),
+  subAttrWindowShowBg(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font family
-  subAttrFontFamily(13, SubtitleAttrValueType.String),
+  subAttrFontFamily(SubtitleAttrValueType.string),
 
   /// Subtitle attribute type font size
-  subAttrFontSize(14, SubtitleAttrValueType.double),
+  subAttrFontSize(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type font color
-  subAttrFontWeight(15, SubtitleAttrValueType.int),
+  subAttrFontWeight(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font style
-  subAttrFontStyle(16, SubtitleAttrValueType.int),
+  subAttrFontStyle(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font color
-  subAttrFontColor(17, SubtitleAttrValueType.int),
+  subAttrFontColor(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font bg color
-  subAttrFontBgColor(18, SubtitleAttrValueType.int),
+  subAttrFontBgColor(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font opacity
-  subAttrFontOpacity(19, SubtitleAttrValueType.double),
+  subAttrFontOpacity(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type font bg opacity
-  subAttrFontBgOpacity(20, SubtitleAttrValueType.double),
+  subAttrFontBgOpacity(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type font text outline color
-  subAttrFontTextOutlineColor(21, SubtitleAttrValueType.int),
+  subAttrFontTextOutlineColor(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font text outline thickness
-  subAttrFontTextOutlineThickness(22, SubtitleAttrValueType.int),
+  subAttrFontTextOutlineThickness(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font text outline blur radius
-  subAttrFontTextOutlineBlurRadius(23, SubtitleAttrValueType.int),
+  subAttrFontTextOutlineBlurRadius(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font vertical align
-  subAttrFontVerticalAlign(24, SubtitleAttrValueType.int),
+  subAttrFontVerticalAlign(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type font horizontal align
-  subAttrFontHorizontalAlign(25, SubtitleAttrValueType.int),
+  subAttrFontHorizontalAlign(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type raw subtitle
-  subAttrRawSubtitle(26, SubtitleAttrValueType.String),
+  subAttrRawSubtitle(SubtitleAttrValueType.string),
 
   /// Subtitle attribute type webvtt cue line num type
-  subAttrWebvttCueLine(27, SubtitleAttrValueType.double),
+  subAttrWebvttCueLine(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type webvtt cue line align
-  subAttrWebvttCueLineNum(28, SubtitleAttrValueType.int),
+  subAttrWebvttCueLineNum(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type webvtt cue line align
-  subAttrWebvttCueLineAlign(29, SubtitleAttrValueType.int),
+  subAttrWebvttCueLineAlign(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type webvtt cue line align
-  subAttrWebvttCueAlign(30, SubtitleAttrValueType.int),
+  subAttrWebvttCueAlign(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type webvtt cue size
-  subAttrWebvttCueSize(31, SubtitleAttrValueType.double),
+  subAttrWebvttCueSize(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type webvtt cue position
-  subAttrWebvttCuePosition(32, SubtitleAttrValueType.double),
+  subAttrWebvttCuePosition(SubtitleAttrValueType.double),
 
   /// Subtitle attribute type webvtt cue position align
-  subAttrWebvttCuePositionAlign(33, SubtitleAttrValueType.int),
+  subAttrWebvttCuePositionAlign(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type webvtt cue vertical
-  subAttrWebvttCueVertical(34, SubtitleAttrValueType.int),
+  subAttrWebvttCueVertical(SubtitleAttrValueType.int),
 
   /// Subtitle attribute type timestamp
-  subAttrTimestamp(35, SubtitleAttrValueType.int),
+  subAttrTimestamp(SubtitleAttrValueType.int),
 
   /// File index of external subtitle
-  subAttrExtsubInde(36, SubtitleAttrValueType.none),
+  subAttrExtsubInde(SubtitleAttrValueType.none),
 
   /// Default type
-  subAttrTypeNone(37, SubtitleAttrValueType.none);
+  subAttrTypeNone(SubtitleAttrValueType.none);
 
-  const SubtitleAttrType(this.idx, this.valueType);
-
-  /// The index of the subtitle attribute type. Do not modify.
-  final int idx;
+  const SubtitleAttrType(this.valueType);
 
   /// The type of the subtitle attribute value. Do not modify.
   final SubtitleAttrValueType valueType;
@@ -236,7 +233,7 @@ enum SubtitleAttrValueType {
   double,
 
   /// Subtitle attribute value type string or char*
-  String,
+  string,
 
   /// Subtitle attribute value type none
   none,
@@ -282,6 +279,45 @@ class SubtitleAttribute {
     stopTime: 0,
     attrValue: '',
   );
+
+  /// Parse a subtitle attribute list from the subtitle attribute list which given by eventListener.
+  static List<SubtitleAttribute> fromEventSubtitleAttrList(
+    List<dynamic>? eventSubtitleAttrList,
+  ) {
+    final List<SubtitleAttribute> subtitleAttributes = <SubtitleAttribute>[];
+    final List<Map<Object?, Object?>?> subtitleAttrList =
+        eventSubtitleAttrList!.cast<Map<Object?, Object?>?>();
+
+    for (final Map<Object?, Object?>? attr in subtitleAttrList) {
+      final int attrTypeNum = attr!['attrType']! as int;
+      final int startTime = attr['startTime']! as int;
+      final int stopTime = attr['stopTime']! as int;
+
+      Object attrValue;
+      if (SubtitleAttrType.getValueType(attrTypeNum) ==
+          SubtitleAttrValueType.double) {
+        attrValue = attr['attrValue']! as double;
+      } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
+          SubtitleAttrValueType.int) {
+        attrValue = attr['attrValue']! as int;
+      } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
+          SubtitleAttrValueType.string) {
+        attrValue = attr['attrValue']! as String;
+      } else {
+        attrValue = 'failed';
+      }
+
+      subtitleAttributes.add(
+        SubtitleAttribute(
+          attrType: SubtitleAttrType.values[attrTypeNum],
+          startTime: startTime,
+          stopTime: stopTime,
+          attrValue: attrValue,
+        ),
+      );
+    }
+    return subtitleAttributes;
+  }
 
   @override
   String toString() {

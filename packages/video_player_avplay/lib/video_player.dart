@@ -567,35 +567,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isBuffering: false);
         case VideoEventType.subtitleUpdate:
           final List<SubtitleAttribute> subtitleAttributes =
-              <SubtitleAttribute>[];
-          final List<Map<Object?, Object?>?> subtitleAttrList =
-              event.subtitleAttributes!.cast<Map<Object?, Object?>?>();
-          for (final Map<Object?, Object?>? attr in subtitleAttrList) {
-            final int attrTypeNum = attr!['attrType']! as int;
-            final int startTime = attr['startTime']! as int;
-            final int stopTime = attr['stopTime']! as int;
-            Object attrValue;
-            if (SubtitleAttrType.getValueType(attrTypeNum) ==
-                SubtitleAttrValueType.double) {
-              attrValue = attr['attrValue']! as double;
-            } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
-                SubtitleAttrValueType.int) {
-              attrValue = attr['attrValue']! as int;
-            } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
-                SubtitleAttrValueType.String) {
-              attrValue = attr['attrValue']! as String;
-            } else {
-              attrValue = 'failed';
-            }
-            subtitleAttributes.add(
-              SubtitleAttribute(
-                attrType: SubtitleAttrType.values[attrTypeNum],
-                startTime: startTime,
-                stopTime: stopTime,
-                attrValue: attrValue,
-              ),
-            );
-          }
+              SubtitleAttribute.fromEventSubtitleAttrList(
+                event.subtitleAttributes,
+              );
           final Caption caption = Caption(
             number: 0,
             start: value.position,
