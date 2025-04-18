@@ -77,7 +77,9 @@ class PlusPlayer : public VideoPlayer {
   static void OnEos(void *user_data);
   static void OnSubtitleData(char *data, const int size,
                              const plusplayer::SubtitleType &type,
-                             const uint64_t duration, void *user_data);
+                             const uint64_t duration,
+                             plusplayer::SubtitleAttributeListPtr attr_list,
+                             void *user_data);
   static void OnResourceConflicted(void *user_data);
   static void OnError(const plusplayer::ErrorType &error_code, void *user_data);
   static void OnErrorMsg(const plusplayer::ErrorType &error_code,

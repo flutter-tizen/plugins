@@ -1,3 +1,11 @@
+## 0.5.21
+
+* Upgrade native player.
+  1.[PLAYER]Add definitions of the subtitle attributes.
+  2.[PLAYER]Receive and pass subtitle attributes of streaming to video player in subtitle callback.
+* Handle the subtitle attributes which include type, startTime, stopTime and value.
+* Pass subtitle attributes to VideoPlayerController.
+
 ## 0.5.20
 
 * Add suspend and restore interface.

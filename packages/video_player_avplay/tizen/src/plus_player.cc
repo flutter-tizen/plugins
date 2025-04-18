@@ -1115,12 +1115,96 @@ void PlusPlayer::OnEos(void *user_data) {
 
 void PlusPlayer::OnSubtitleData(char *data, const int size,
                                 const plusplayer::SubtitleType &type,
-                                const uint64_t duration, void *user_data) {
+                                const uint64_t duration,
+                                plusplayer::SubtitleAttributeListPtr attr_list,
+                                void *user_data) {
   LOG_INFO("[PlusPlayer] Subtitle updated, duration: %llu, text: %s", duration,
            data);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
-  self->SendSubtitleUpdate(duration, data);
+  plusplayer::SubtitleAttributeList *attrs = attr_list.get();
+  flutter::EncodableList attributes_list;
+  for (auto attr = attrs->begin(); attr != attrs->end(); attr++) {
+    LOG_INFO("[PlusPlayer] Subtitle update: type: %d, start: %u, end: %u",
+             attr->type, attr->start_time, attr->stop_time);
+    flutter::EncodableMap attributes = {
+        {flutter::EncodableValue("attrType"),
+         flutter::EncodableValue(attr->type)},
+        {flutter::EncodableValue("startTime"),
+         flutter::EncodableValue((int64_t)attr->start_time)},
+        {flutter::EncodableValue("stopTime"),
+         flutter::EncodableValue((int64_t)attr->stop_time)},
+    };
+
+    switch (attr->type) {
+      case plusplayer::kSubAttrRegionXPos:
+      case plusplayer::kSubAttrRegionYPos:
+      case plusplayer::kSubAttrRegionWidth:
+      case plusplayer::kSubAttrRegionHeight:
+      case plusplayer::kSubAttrWindowXPadding:
+      case plusplayer::kSubAttrWindowYPadding:
+      case plusplayer::kSubAttrWindowOpacity:
+      case plusplayer::kSubAttrFontSize:
+      case plusplayer::kSubAttrFontOpacity:
+      case plusplayer::kSubAttrFontBgOpacity:
+      case plusplayer::kSubAttrWebvttCueLine:
+      case plusplayer::kSubAttrWebvttCueSize:
+      case plusplayer::kSubAttrWebvttCuePosition: {
+        intptr_t value_temp = reinterpret_cast<intptr_t>(attr->value);
+        float value_float;
+        std::memcpy(&value_float, &value_temp, sizeof(float));
+        LOG_INFO("[PlusPlayer] Subtitle update: value<float>: %f", value_float);
+        attributes[flutter::EncodableValue("attrValue")] =
+            flutter::EncodableValue((double)value_float);
+      } break;
+      case plusplayer::kSubAttrWindowLeftMargin:
+      case plusplayer::kSubAttrWindowRightMargin:
+      case plusplayer::kSubAttrWindowTopMargin:
+      case plusplayer::kSubAttrWindowBottomMargin:
+      case plusplayer::kSubAttrWindowBgColor:
+      case plusplayer::kSubAttrFontWeight:
+      case plusplayer::kSubAttrFontStyle:
+      case plusplayer::kSubAttrFontColor:
+      case plusplayer::kSubAttrFontBgColor:
+      case plusplayer::kSubAttrFontTextOutlineColor:
+      case plusplayer::kSubAttrFontTextOutlineThickness:
+      case plusplayer::kSubAttrFontTextOutlineBlurRadius:
+      case plusplayer::kSubAttrFontVerticalAlign:
+      case plusplayer::kSubAttrFontHorizontalAlign:
+      case plusplayer::kSubAttrWebvttCueLineNum:
+      case plusplayer::kSubAttrWebvttCueLineAlign:
+      case plusplayer::kSubAttrWebvttCueAlign:
+      case plusplayer::kSubAttrWebvttCuePositionAlign:
+      case plusplayer::kSubAttrWebvttCueVertical:
+      case plusplayer::kSubAttrTimestamp: {
+        int value_int = reinterpret_cast<int>(attr->value);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int>: %d", value_int);
+        attributes[flutter::EncodableValue("attrValue")] =
+            flutter::EncodableValue(value_int);
+      } break;
+      case plusplayer::kSubAttrFontFamily:
+      case plusplayer::kSubAttrRawSubtitle: {
+        const char *value_chars = reinterpret_cast<const char *>(attr->value);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<char *>: %s",
+                 value_chars);
+        std::string value_string(value_chars);
+        attributes[flutter::EncodableValue("attrValue")] =
+            flutter::EncodableValue(value_string);
+      } break;
+      case plusplayer::kSubAttrWindowShowBg: {
+        uint32_t value_uint32 = reinterpret_cast<uint32_t>(attr->value);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<uint32_t>: %u",
+                 value_uint32);
+        attributes[flutter::EncodableValue("attrValue")] =
+            flutter::EncodableValue((int64_t)value_uint32);
+      } break;
+      default:
+        LOG_ERROR("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
+        break;
+    }
+    attributes_list.push_back(flutter::EncodableValue(attributes));
+  }
+  self->SendSubtitleUpdate(duration, data, attributes_list);
 }
 
 void PlusPlayer::OnResourceConflicted(void *user_data) {

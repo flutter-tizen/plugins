@@ -79,7 +79,9 @@ class VideoPlayer {
   void SendBufferingStart();
   void SendBufferingUpdate(int32_t value);
   void SendBufferingEnd();
-  void SendSubtitleUpdate(int32_t duration, const std::string &text);
+  void SendSubtitleUpdate(
+      int32_t duration, const std::string &text,
+      flutter::EncodableList attributes = flutter::EncodableList{});
   void SendPlayCompleted();
   void SendIsPlayingState(bool is_playing);
   void SendRestored();
