@@ -272,14 +272,6 @@ class SubtitleAttribute {
   /// Only used if [eventType] is [VideoEventType.subtitleAttrUpdate].
   final Object attrValue;
 
-  /// A no subtitle attribute object.
-  static const SubtitleAttribute none = SubtitleAttribute(
-    attrType: SubtitleAttrType.subAttrTypeNone,
-    startTime: 0,
-    stopTime: 0,
-    attrValue: '',
-  );
-
   /// Parse a subtitle attribute list from the subtitle attribute list which given by eventListener.
   static List<SubtitleAttribute> fromEventSubtitleAttrList(
     List<dynamic>? eventSubtitleAttrList,
