@@ -25,8 +25,8 @@ class Device {
     this.profile, {
     required TizenSdk tizenSdk,
     ProcessRunner processRunner = const ProcessRunner(),
-  })  : _tizenSdk = tizenSdk,
-        _processRunner = processRunner;
+  }) : _tizenSdk = tizenSdk,
+       _processRunner = processRunner;
 
   /// Creates a new physical Tizen device reference.
   ///
@@ -45,8 +45,10 @@ class Device {
     );
     device._serial = device._findSerial();
     if (device._serial == null) {
-      throw Exception("$name ($profile)'s serial is null. "
-          'Physical device references must be connected to host PC.');
+      throw Exception(
+        "$name ($profile)'s serial is null. "
+        'Physical device references must be connected to host PC.',
+      );
     }
     return device;
   }
@@ -124,7 +126,7 @@ class Device {
 
     final io.Process process = await _processRunner.start(
       'flutter-tizen',
-      <String>['-d', serial!, 'test', 'integration_test'],
+      <String>['-d', serial!, 'test', '--no-dds', 'integration_test'],
       workingDirectory: workingDir,
     );
 
@@ -143,20 +145,18 @@ class Device {
 
     String lastLine = '';
     final Completer<int> completer = Completer<int>();
-    streamLines.listen(
-      (String line) {
-        lastLine = line;
-        print(line);
-      },
-      onDone: () async => completer.complete(await timedExitCode),
-    );
+    streamLines.listen((String line) {
+      lastLine = line;
+      print(line);
+    }, onDone: () async => completer.complete(await timedExitCode));
     // Waits for the done event as finishing `Process.exitCode` future does not
     // guarantee that all buffered outputs of the process have returned.
     await completer.future;
 
     String? error;
     if (timedOut) {
-      error = 'Timeout expired. The test may need more time to finish. '
+      error =
+          'Timeout expired. The test may need more time to finish. '
           'If you expect the test to finish before timeout, check if the tests '
           'require device screen to be awake or if they require manually '
           'clicking the UI button for permissions.';
@@ -166,7 +166,8 @@ class Device {
     } else if (lastLine.contains('No devices found')) {
       error = 'Device was disconnected during test.';
     } else if (lastLine.contains('failed')) {
-      error = 'flutter-tizen test integration_test failed, see the output '
+      error =
+          'flutter-tizen test integration_test failed, see the output '
           'above for details.';
     } else if (!lastLine.contains('passed')) {
       error = 'Could not parse the log output.';
@@ -219,17 +220,19 @@ class EmulatorDevice extends Device {
   /// Checks whether the emulator with [name] and [profile] exists
   /// in the Emulator Manager.
   bool get exists {
-    final io.ProcessResult result =
-        _processRunner.runSync(_tizenSdk.emCli.path, <String>['list-vm']);
+    final io.ProcessResult result = _processRunner.runSync(
+      _tizenSdk.emCli.path,
+      <String>['list-vm'],
+    );
     if (result.exitCode != 0) {
       print('Error: Unable to list available emulators.');
       throw ToolExit(result.exitCode);
     }
 
     final List<String> emulatorNames =
-        LineSplitter.split(result.stdout as String)
-            .map((String name) => name.trim())
-            .toList();
+        LineSplitter.split(
+          result.stdout as String,
+        ).map((String name) => name.trim()).toList();
     return emulatorNames.contains(name);
   }
 
@@ -245,11 +248,13 @@ class EmulatorDevice extends Device {
         platform = '$profile-x86';
         break;
     }
-    await _processRunner.runAndStream(
-      _tizenSdk.emCli.path,
-      <String>['create', '-n', name, '-p', platform],
-      exitOnError: true,
-    );
+    await _processRunner.runAndStream(_tizenSdk.emCli.path, <String>[
+      'create',
+      '-n',
+      name,
+      '-p',
+      platform,
+    ], exitOnError: true);
   }
 
   /// Grants all privacy-related permissions to apps by default.
@@ -274,27 +279,35 @@ class EmulatorDevice extends Device {
       return false;
     }
 
-    result = _processRunner.runSync(
-      _tizenSdk.sdb.path,
-      <String>['-s', serial!, 'shell', 'touch', '/opt/share/askuser_disable'],
-    );
+    result = _processRunner.runSync(_tizenSdk.sdb.path, <String>[
+      '-s',
+      serial!,
+      'shell',
+      'touch',
+      '/opt/share/askuser_disable',
+    ]);
     final String stdout = result.stdout as String;
     if (result.exitCode != 0 || stdout.trim().isNotEmpty) {
       print('Error: running sdb shell command failed: $stdout');
       return false;
     }
 
-    _processRunner.runSync(
-      _tizenSdk.sdb.path,
-      <String>['-s', serial!, 'root', 'off'],
-    );
+    _processRunner.runSync(_tizenSdk.sdb.path, <String>[
+      '-s',
+      serial!,
+      'root',
+      'off',
+    ]);
     return true;
   }
 
   /// Deletes this emulator.
   Future<void> delete() async {
-    await _processRunner
-        .runAndStream(_tizenSdk.emCli.path, <String>['delete', '-n', name]);
+    await _processRunner.runAndStream(_tizenSdk.emCli.path, <String>[
+      'delete',
+      '-n',
+      name,
+    ]);
   }
 
   /// Launches this emualtor.
@@ -303,11 +316,11 @@ class EmulatorDevice extends Device {
       print('Device $name ($profile) is already launched.');
       return;
     }
-    await _processRunner.runAndStream(
-      _tizenSdk.emCli.path,
-      <String>['launch', '-n', name],
-      exitOnError: true,
-    );
+    await _processRunner.runAndStream(_tizenSdk.emCli.path, <String>[
+      'launch',
+      '-n',
+      name,
+    ], exitOnError: true);
 
     await _poll(() {
       final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
@@ -335,11 +348,7 @@ class EmulatorDevice extends Device {
       return;
     }
     // TODO(HakkyuKim): Support Windows.
-    await _processRunner.run(
-      'kill',
-      <String>['-9', _pid!],
-      exitOnError: true,
-    );
+    await _processRunner.run('kill', <String>['-9', _pid!], exitOnError: true);
 
     await _poll(() {
       final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
