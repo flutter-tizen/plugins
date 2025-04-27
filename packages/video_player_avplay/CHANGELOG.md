@@ -1,3 +1,7 @@
+## 0.5.22
+
+* Upgrade pigeon to 25.3.1.
+
 ## 0.5.21
 
 * Upgrade native player.
