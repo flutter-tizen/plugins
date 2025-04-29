@@ -1,3 +1,7 @@
+## 0.5.22
+
+* Fix issue that seek not working for dynamic manifests.
+
 ## 0.5.21
 
 * Upgrade native player.
