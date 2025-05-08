@@ -122,8 +122,8 @@ int64_t PlusPlayer::Create(const std::string &uri,
 
   RegisterListener();
 
-  int drm_type =
-      flutter_common::GetValue(create_message.drm_configs(), "drmType", 0);
+  int64_t drm_type = flutter_common::GetValue(create_message.drm_configs(),
+                                              "drmType", (int64_t)0);
   std::string license_server_url = flutter_common::GetValue(
       create_message.drm_configs(), "licenseServerUrl", std::string());
   if (drm_type != 0) {
@@ -149,14 +149,6 @@ int64_t PlusPlayer::Create(const std::string &uri,
 
   int64_t start_position = flutter_common::GetValue(
       create_message.player_options(), "startPosition", (int64_t)0);
-  if (start_position == 0) {
-    // if startPosition is in the range of int32_t, it will convert as int32_t.
-    // if startPosition >= INT32_MAX, it will convert as int64_t.
-    // TODO we will implement a new function for long type, no need call two
-    // times.
-    start_position = flutter_common::GetValue(create_message.player_options(),
-                                              "startPosition", (int32_t)0);
-  }
   if (start_position > 0) {
     LOG_INFO("[PlusPlayer] Start position: %lld", start_position);
     if (!Seek(player_, start_position)) {
