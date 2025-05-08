@@ -330,7 +330,7 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
       drmConfigs: const DrmConfigs(
         type: DrmType.playready,
         licenseServerUrl:
-            'http://test.playready.microsoft.com/service/rightsmanager.asmx',
+            'https://test.playready.microsoft.com/service/rightsmanager.asmx',
       ),
     );
 

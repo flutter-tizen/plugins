@@ -119,8 +119,8 @@ int64_t MediaPlayer::Create(const std::string &uri,
         PLAYER_ADAPTIVE_INFO_URL_CUSTOM);
   }
 
-  int drm_type =
-      flutter_common::GetValue(create_message.drm_configs(), "drmType", 0);
+  int64_t drm_type = flutter_common::GetValue(create_message.drm_configs(),
+                                              "drmType", (int64_t)0);
   std::string license_server_url = flutter_common::GetValue(
       create_message.drm_configs(), "licenseServerUrl", std::string());
   if (drm_type != 0) {

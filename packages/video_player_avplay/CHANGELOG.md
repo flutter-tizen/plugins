@@ -1,6 +1,10 @@
-## 0.5.22
+## 0.5.23
 
 * Fix issue that seek not working for dynamic manifests.
+
+## 0.5.22
+
+* Upgrade pigeon to 25.3.1.
 
 ## 0.5.21
 
