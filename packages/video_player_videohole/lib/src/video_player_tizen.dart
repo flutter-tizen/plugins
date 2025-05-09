@@ -236,6 +236,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             eventType: VideoEventType.subtitleUpdate,
             text: map['text']! as String,
           );
+        case 'isPlayingStateUpdate':
+          return VideoEvent(
+            eventType: VideoEventType.isPlayingStateUpdate,
+            isPlaying: map['isPlaying']! as bool,
+          );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
       }
