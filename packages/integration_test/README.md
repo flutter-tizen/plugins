@@ -12,7 +12,7 @@ This package is not an _endorsed_ implementation of `integration_test`. Therefor
 dev_dependencies:
   integration_test:
     sdk: flutter
-  integration_test_tizen: ^2.0.2
+  integration_test_tizen: ^2.0.3
 ```
 
 Then you can import `integration_test` in your Dart code:

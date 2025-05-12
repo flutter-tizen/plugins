@@ -1,3 +1,7 @@
+## 0.5.23
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
 ## 0.5.22
 
 * Upgrade pigeon to 25.3.1.

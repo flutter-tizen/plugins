@@ -1,7 +1,8 @@
-## NEXT
+## 0.3.5
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Fix new lint warnings.
+* Update the LICENSE file so that it is recognized by pub.dev.
 
 ## 0.3.4
 
