@@ -1,4 +1,9 @@
+## 0.1.13
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
 ## 0.1.12
+
 * Add support for marker clustering.
 
 ## 0.1.11

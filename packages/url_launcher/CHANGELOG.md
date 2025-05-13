@@ -1,3 +1,7 @@
+## 2.1.4
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
 ## 2.1.3
 
 * Update minimum Flutter and Dart version to 3.19 and 3.3.

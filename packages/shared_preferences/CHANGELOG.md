@@ -1,3 +1,7 @@
+## 2.3.1
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
 ## 2.3.0
 
 * Update shared_preferences to 2.3.2.
