@@ -1,3 +1,7 @@
+## 0.3.8
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
 ## 0.3.7
 
 * Update lightweight web engine(1.3.8).

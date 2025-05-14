@@ -1,3 +1,7 @@
+## 1.2.2
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
 ## 1.2.1
 
 * Clarify ConnectivityResult.none type.

@@ -1,3 +1,11 @@
+## 0.5.5
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
+## 0.5.4
+
+*  Synchronize isPlaying state.
+
 ## 0.5.3
 
 *  Add 'isCompleted' event to 'VideoPlayerEvent'.

@@ -1,6 +1,10 @@
-## 0.5.23
+## 0.5.24
 
 * Fix issue that seek not working for dynamic manifests.
+
+## 0.5.23
+
+* Update the LICENSE file so that it is recognized by pub.dev.
 
 ## 0.5.22
 
