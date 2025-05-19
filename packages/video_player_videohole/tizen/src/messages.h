@@ -405,6 +405,10 @@ class VideoPlayerVideoholeApi {
   virtual std::optional<FlutterError> SetDisplayGeometry(
       const GeometryMessage& msg) = 0;
   virtual ErrorOr<DurationMessage> Duration(const PlayerMessage& msg) = 0;
+  virtual std::optional<FlutterError> Suspend(int64_t player_id) = 0;
+  virtual std::optional<FlutterError> Restore(int64_t player_id,
+                                              const CreateMessage* msg,
+                                              int64_t resume_time) = 0;
 
   // The codec used by VideoPlayerVideoholeApi.
   static const flutter::StandardMessageCodec& GetCodec();

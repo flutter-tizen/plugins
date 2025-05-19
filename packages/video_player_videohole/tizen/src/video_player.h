@@ -17,6 +17,7 @@
 #include <utility>
 
 #include "ecore_wl2_window_proxy.h"
+#include "messages.h"
 
 class VideoPlayer {
  public:
@@ -28,10 +29,8 @@ class VideoPlayer {
   VideoPlayer &operator=(const VideoPlayer &) = delete;
   virtual ~VideoPlayer();
 
-  virtual int64_t Create(const std::string &uri, int drm_type,
-                         const std::string &license_server_url,
-                         bool is_prebuffer_mode,
-                         flutter::EncodableMap &http_headers) = 0;
+  virtual int64_t Create(const std::string &uri,
+                         const CreateMessage &create_message) = 0;
   virtual void Dispose() = 0;
 
   virtual void SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -49,6 +48,9 @@ class VideoPlayer {
   virtual bool IsReady() = 0;
   virtual flutter::EncodableList GetTrackInfo(std::string track_type) = 0;
   virtual bool SetTrackSelection(int32_t track_id, std::string track_type) = 0;
+  virtual bool Suspend() = 0;
+  virtual bool Restore(const CreateMessage *restore_message,
+                       int64_t resume_time) = 0;
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
@@ -61,6 +63,8 @@ class VideoPlayer {
   void SendBufferingEnd();
   void SendSubtitleUpdate(int32_t duration, const std::string &text);
   void SendPlayCompleted();
+  void SendIsPlayingState(bool is_playing);
+  void SendRestored();
   void SendError(const std::string &error_code,
                  const std::string &error_message);
 
@@ -69,6 +73,7 @@ class VideoPlayer {
   flutter::BinaryMessenger *binary_messenger_;
   bool is_initialized_ = false;
   FlutterDesktopViewRef flutter_view_;
+  bool is_restored_ = false;
 
  private:
   void ExecuteSinkEvents();
@@ -81,5 +86,23 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
   Ecore_Pipe *sink_event_pipe_ = nullptr;
 };
+
+namespace flutter_common {
+
+template <typename T>
+inline const T GetValue(const flutter::EncodableMap *map,
+                        const std::string &key, T &&default_value) {
+  if (map == nullptr || map->empty()) {
+    return std::move(default_value);
+  }
+
+  auto it = map->find(flutter::EncodableValue(key));
+  if (it != map->end() && std::holds_alternative<T>(it->second)) {
+    return std::get<T>(it->second);
+  }
+  return std::move(default_value);
+}
+
+}  // namespace flutter_common
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_

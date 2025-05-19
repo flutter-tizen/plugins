@@ -110,4 +110,6 @@ abstract class VideoPlayerVideoholeApi {
   void setMixWithOthers(MixWithOthersMessage msg);
   void setDisplayGeometry(GeometryMessage msg);
   DurationMessage duration(PlayerMessage msg);
+  void suspend(int playerId);
+  void restore(int playerId, CreateMessage? msg, int resumeTime);
 }

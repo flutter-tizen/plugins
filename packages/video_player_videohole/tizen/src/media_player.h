@@ -11,6 +11,7 @@
 #include <string>
 #include <utility>
 
+#include "device_proxy.h"
 #include "drm_manager.h"
 #include "media_player_proxy.h"
 #include "video_player.h"
@@ -21,9 +22,8 @@ class MediaPlayer : public VideoPlayer {
                        FlutterDesktopViewRef flutter_view);
   ~MediaPlayer();
 
-  int64_t Create(const std::string &uri, int drm_type,
-                 const std::string &license_server_url, bool is_prebuffer_mode,
-                 flutter::EncodableMap &http_headers) override;
+  int64_t Create(const std::string &uri,
+                 const CreateMessage &create_message) override;
   void Dispose() override;
 
   void SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -40,6 +40,9 @@ class MediaPlayer : public VideoPlayer {
   bool IsReady() override;
   flutter::EncodableList GetTrackInfo(std::string track_type) override;
   bool SetTrackSelection(int32_t track_id, std::string track_type) override;
+  bool Suspend() override;
+  bool Restore(const CreateMessage *restore_message,
+               int64_t resume_time) override;
 
  private:
   std::pair<int64_t, int64_t> GetLiveDuration();
@@ -47,6 +50,9 @@ class MediaPlayer : public VideoPlayer {
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
+  bool StopAndDestroy();
+  bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);
+  void OnRestoreCompleted();
 
   static void OnPrepared(void *user_data);
   static void OnBuffering(int percent, void *user_data);
@@ -67,6 +73,15 @@ class MediaPlayer : public VideoPlayer {
   std::unique_ptr<DrmManager> drm_manager_;
   bool is_buffering_ = false;
   SeekCompletedCallback on_seek_completed_;
+  std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
+  std::string url_;
+  CreateMessage create_message_;
+  player_state_e pre_state_;
+  int64_t pre_playing_time_;
+  int32_t pre_display_roi_x_ = 0;
+  int32_t pre_display_roi_y_ = 0;
+  int32_t pre_display_roi_width_ = 1;
+  int32_t pre_display_roi_height_ = 1;
 };
 
 #endif  // FLUTTER_PLUGIN_MEDIA_PLAYER_H_
