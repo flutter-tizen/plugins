@@ -710,6 +710,16 @@ bool MediaPlayer::Suspend() {
       "[MediaPlayer] Saved current player state: %d, playing time: %llu ms",
       pre_state_, pre_playing_time_);
 
+  if (IsLive()) {
+    pre_playing_time_ = 0;
+    if (!StopAndDestroy()) {
+      LOG_ERROR("[MediaPlayer] Player is live, StopAndDestroy fail.");
+      return false;
+    }
+    LOG_INFO("[MediaPlayer] Player is live: close done successfully.");
+    return true;
+  }
+
   res = device_proxy_->device_power_get_state();
   if (res == POWER_STATE_STANDBY) {
     LOG_INFO("[MediaPlayer] Power state is standby.");
@@ -765,7 +775,7 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
     LOG_INFO(
         "[MediaPlayer] Restore URL is not emptpy, close the existing "
         "instance.");
-    if (!StopAndDestroy()) {
+    if (player_ && !StopAndDestroy()) {
       LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
       return false;
     }
