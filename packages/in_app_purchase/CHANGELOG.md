@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
 ## 0.1.1
 
 * Fix new lint warnings.

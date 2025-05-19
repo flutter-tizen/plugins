@@ -10,7 +10,7 @@ Add `device_info_plus_tizen` as a dependency in your `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  device_info_plus_tizen: ^1.2.0
+  device_info_plus_tizen: ^1.2.1
 ```
 
 Then you can import `device_info_plus_tizen` in your Dart code.

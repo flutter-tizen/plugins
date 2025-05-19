@@ -1,3 +1,7 @@
+## 2.2.1
+
+* Update the LICENSE file so that it is recognized by pub.dev.
+
 ## 2.2.0
 
 * Update path_provider to 2.1.4.

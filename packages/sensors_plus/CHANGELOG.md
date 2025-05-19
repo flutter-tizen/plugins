@@ -1,7 +1,8 @@
-## NEXT
+## 1.1.5
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Fix analyze issue.
+* Update the LICENSE file so that it is recognized by pub.dev.
 
 ## 1.1.4
 
