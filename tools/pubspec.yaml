@@ -8,12 +8,16 @@ environment:
 
 dependencies:
   args: ^2.1.0
-  file: ^6.1.0
-  flutter_plugin_tools: ^0.13.0
-  http: ^0.13.3
-  path: ^1.8.0
-  platform: ^3.0.0
-  pub_semver: ^2.1.0
+  file: ^7.0.1
+  flutter_plugin_tools:
+    git:
+      url: https://github.com/flutter/packages.git
+      path: script/tool
+      ref: fdc1ec7c1c30e134aeeb5c50d9e0092ecd64165c #2025-04-18
+  http: ^1.0.0
+  path: ^1.8.3
+  platform: ^3.0.2
+  pub_semver: ^2.0.0
   yaml: ^3.1.0
 
 dev_dependencies:
