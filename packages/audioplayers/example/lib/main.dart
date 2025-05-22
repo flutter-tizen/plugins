@@ -144,47 +144,45 @@ class _ExampleAppState extends State<_ExampleApp> {
             ),
           ),
           Expanded(
-            child:
-                audioPlayers.isEmpty
-                    ? const Text('No AudioPlayer available!')
-                    : IndexedStack(
-                      index: selectedPlayerIdx,
-                      children:
-                          audioPlayers
-                              .map(
-                                (player) => Tabs(
-                                  key: GlobalObjectKey(player),
-                                  tabs: [
-                                    TabData(
-                                      key: 'sourcesTab',
-                                      label: 'Src',
-                                      content: SourcesTab(player: player),
-                                    ),
-                                    TabData(
-                                      key: 'controlsTab',
-                                      label: 'Ctrl',
-                                      content: ControlsTab(player: player),
-                                    ),
-                                    TabData(
-                                      key: 'streamsTab',
-                                      label: 'Stream',
-                                      content: StreamsTab(player: player),
-                                    ),
-                                    TabData(
-                                      key: 'audioContextTab',
-                                      label: 'Ctx',
-                                      content: AudioContextTab(player: player),
-                                    ),
-                                    TabData(
-                                      key: 'loggerTab',
-                                      label: 'Log',
-                                      content: LoggerTab(player: player),
-                                    ),
-                                  ],
-                                ),
-                              )
-                              .toList(),
-                    ),
+            child: audioPlayers.isEmpty
+                ? const Text('No AudioPlayer available!')
+                : IndexedStack(
+                    index: selectedPlayerIdx,
+                    children: audioPlayers
+                        .map(
+                          (player) => Tabs(
+                            key: GlobalObjectKey(player),
+                            tabs: [
+                              TabData(
+                                key: 'sourcesTab',
+                                label: 'Src',
+                                content: SourcesTab(player: player),
+                              ),
+                              TabData(
+                                key: 'controlsTab',
+                                label: 'Ctrl',
+                                content: ControlsTab(player: player),
+                              ),
+                              TabData(
+                                key: 'streamsTab',
+                                label: 'Stream',
+                                content: StreamsTab(player: player),
+                              ),
+                              TabData(
+                                key: 'audioContextTab',
+                                label: 'Ctx',
+                                content: AudioContextTab(player: player),
+                              ),
+                              TabData(
+                                key: 'loggerTab',
+                                label: 'Log',
+                                content: LoggerTab(player: player),
+                              ),
+                            ],
+                          ),
+                        )
+                        .toList(),
+                  ),
           ),
         ],
       ),

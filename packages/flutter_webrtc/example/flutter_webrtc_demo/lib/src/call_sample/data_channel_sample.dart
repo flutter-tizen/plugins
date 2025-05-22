@@ -233,25 +233,23 @@ class _DataChannelSampleState extends State<DataChannelSample> {
           ),
         ],
       ),
-      floatingActionButton:
-          _inCalling
-              ? FloatingActionButton(
-                onPressed: _hangUp,
-                tooltip: 'Hangup',
-                child: Icon(Icons.call_end),
-              )
-              : null,
-      body:
-          _inCalling
-              ? Center(child: Container(child: Text('Received => $_text')))
-              : ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(0.0),
-                itemCount: _peers.length,
-                itemBuilder: (context, i) {
-                  return _buildRow(context, _peers[i]);
-                },
-              ),
+      floatingActionButton: _inCalling
+          ? FloatingActionButton(
+              onPressed: _hangUp,
+              tooltip: 'Hangup',
+              child: Icon(Icons.call_end),
+            )
+          : null,
+      body: _inCalling
+          ? Center(child: Container(child: Text('Received => $_text')))
+          : ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(0.0),
+              itemCount: _peers.length,
+              itemBuilder: (context, i) {
+                return _buildRow(context, _peers[i]);
+              },
+            ),
     );
   }
 }

@@ -64,8 +64,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final Message _server = Message(
-    serviceBuilder:
-        (String sender, String instance) => EchoService(sender, instance),
+    serviceBuilder: (String sender, String instance) =>
+        EchoService(sender, instance),
   );
 
   @override

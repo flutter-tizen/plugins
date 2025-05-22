@@ -37,7 +37,9 @@ void showDeviceFlowWidget({
       final TextStyle bodyStyle = Theme.of(
         context,
       ).textTheme.bodyLarge!.copyWith(color: Colors.black);
-      final TextStyle titleStyle = Theme.of(context).textTheme.titleLarge!
+      final TextStyle titleStyle = Theme.of(context)
+          .textTheme
+          .titleLarge!
           .copyWith(color: Colors.black, fontWeight: FontWeight.bold);
 
       return AlertDialog(
@@ -136,10 +138,8 @@ class _CountdownTimerState extends State<_CountdownTimer> {
   @override
   Widget build(BuildContext context) {
     final String minutes = _remaining.inMinutes.toString().padLeft(2, '0');
-    final String seconds = _remaining.inSeconds
-        .remainder(60)
-        .toString()
-        .padLeft(2, '0');
+    final String seconds =
+        _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
     return FittedBox(child: Text('$minutes:$seconds', style: widget.style));
   }
 

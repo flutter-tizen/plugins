@@ -135,16 +135,15 @@ class _MyAppState extends State<LoopBackSampleWithGetStats> {
           return Center(
             child: Container(
               decoration: BoxDecoration(color: Colors.black54),
-              child:
-                  orientation == Orientation.portrait
-                      ? Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: widgets,
-                      )
-                      : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: widgets,
-                      ),
+              child: orientation == Orientation.portrait
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: widgets,
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: widgets,
+                    ),
             ),
           );
         },

@@ -48,8 +48,8 @@ class Bundle extends MapMixin<String, Object> {
   late final Pointer<bundle> _handle;
   static final Finalizer<Pointer<bundle>> _finalizer =
       Finalizer<Pointer<bundle>>(
-        (Pointer<bundle> bundle) => tizen.bundle_free(bundle),
-      );
+    (Pointer<bundle> bundle) => tizen.bundle_free(bundle),
+  );
 
   static final List<String> _keys = <String>[];
 
@@ -198,10 +198,9 @@ class Bundle extends MapMixin<String, Object> {
 
   void _addStrings(String key, List<String> values) {
     using((Arena arena) {
-      final List<Pointer<Char>> stringList =
-          values
-              .map((String str) => str.toNativeChar(allocator: arena))
-              .toList();
+      final List<Pointer<Char>> stringList = values
+          .map((String str) => str.toNativeChar(allocator: arena))
+          .toList();
       final Pointer<Pointer<Char>> stringArray = arena<Pointer<Char>>(
         stringList.length,
       );

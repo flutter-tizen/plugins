@@ -77,9 +77,8 @@ class _MyHomePageState extends State<MyHomePage> {
       if (snapshot.hasError) {
         text = Text('Error: ${snapshot.error}');
       } else if (snapshot.hasData) {
-        final String combined = snapshot.data!
-            .map((Directory d) => d.path)
-            .join(', ');
+        final String combined =
+            snapshot.data!.map((Directory d) => d.path).join(', ');
         text = Text('paths: $combined');
       } else {
         text = const Text('path unavailable');
@@ -228,10 +227,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
-                    onPressed:
-                        !Platform.isAndroid
-                            ? null
-                            : _requestExternalStorageDirectory,
+                    onPressed: !Platform.isAndroid
+                        ? null
+                        : _requestExternalStorageDirectory,
                     child: Text(
                       !Platform.isAndroid
                           ? 'External storage is unavailable'
@@ -250,14 +248,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
-                    onPressed:
-                        !Platform.isAndroid
-                            ? null
-                            : () {
-                              _requestExternalStorageDirectories(
-                                StorageDirectory.music,
-                              );
-                            },
+                    onPressed: !Platform.isAndroid
+                        ? null
+                        : () {
+                            _requestExternalStorageDirectories(
+                              StorageDirectory.music,
+                            );
+                          },
                     child: Text(
                       !Platform.isAndroid
                           ? 'External directories are unavailable'
@@ -276,10 +273,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
-                    onPressed:
-                        !Platform.isAndroid
-                            ? null
-                            : _requestExternalCacheDirectories,
+                    onPressed: !Platform.isAndroid
+                        ? null
+                        : _requestExternalCacheDirectories,
                     child: Text(
                       !Platform.isAndroid
                           ? 'External directories are unavailable'
@@ -298,10 +294,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
-                    onPressed:
-                        Platform.isAndroid || Platform.isIOS
-                            ? null
-                            : _requestDownloadsDirectory,
+                    onPressed: Platform.isAndroid || Platform.isIOS
+                        ? null
+                        : _requestDownloadsDirectory,
                     child: Text(
                       Platform.isAndroid || Platform.isIOS
                           ? 'Downloads directory is unavailable'

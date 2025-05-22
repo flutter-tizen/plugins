@@ -144,8 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     setState(() {
-      _connectionStatus =
-          'Wifi Name: $wifiName\n'
+      _connectionStatus = 'Wifi Name: $wifiName\n'
           'Wifi BSSID: $wifiBSSID\n'
           'Wifi IPv4: $wifiIPv4\n'
           'Wifi IPv6: $wifiIPv6\n'

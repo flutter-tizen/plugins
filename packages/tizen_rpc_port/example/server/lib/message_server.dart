@@ -73,7 +73,7 @@ abstract class ServiceBase {
 
 class NotifyCallback extends _Delegate {
   NotifyCallback(this._port, this.service, {bool once = false})
-    : super(_DelegateId.notifyCallback.id, once);
+      : super(_DelegateId.notifyCallback.id, once);
 
   final Port? _port;
 
@@ -110,8 +110,8 @@ typedef _MethodHandler = Future<void> Function(ServiceBase, Port, Parcel);
 
 class Message extends StubBase {
   Message({required ServiceBuilder serviceBuilder})
-    : _serviceBuilder = serviceBuilder,
-      super('Message') {
+      : _serviceBuilder = serviceBuilder,
+        super('Message') {
     _methodHandlers[_MethodId.register.id] = _onRegisterMethod;
     _methodHandlers[_MethodId.unregister.id] = _onUnregisterMethod;
     _methodHandlers[_MethodId.send.id] = _onSendMethod;

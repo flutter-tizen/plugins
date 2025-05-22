@@ -13,9 +13,9 @@ class PolylineController {
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
     WebViewController? controller,
-  }) : _polyline = polyline,
-       _consumeTapEvents = consumeTapEvents,
-       tapEvent = onTap {
+  })  : _polyline = polyline,
+        _consumeTapEvents = consumeTapEvents,
+        tapEvent = onTap {
     _addPolylineEvent(controller);
   }
 

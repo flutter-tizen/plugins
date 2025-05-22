@@ -170,11 +170,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   static const Map<VideoFormat, String> _videoFormatStringMap =
       <VideoFormat, String>{
-        VideoFormat.ss: 'ss',
-        VideoFormat.hls: 'hls',
-        VideoFormat.dash: 'dash',
-        VideoFormat.other: 'other',
-      };
+    VideoFormat.ss: 'ss',
+    VideoFormat.hls: 'hls',
+    VideoFormat.dash: 'dash',
+    VideoFormat.other: 'other',
+  };
 
   DurationRange _toDurationRange(dynamic value) {
     final List<dynamic> pair = value as List<dynamic>;

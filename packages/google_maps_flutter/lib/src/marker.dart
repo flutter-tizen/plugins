@@ -18,14 +18,14 @@ class MarkerController {
     ui.VoidCallback? onTap,
     ClusterManagerId? clusterManagerId,
     WebViewController? controller,
-  }) : _marker = marker,
-       _infoWindow = infoWindow,
-       _consumeTapEvents = consumeTapEvents,
-       _clusterManagerId = clusterManagerId,
-       tapEvent = onTap,
-       dragStartEvent = onDragStart,
-       dragEvent = onDrag,
-       dragEndEvent = onDragEnd {
+  })  : _marker = marker,
+        _infoWindow = infoWindow,
+        _consumeTapEvents = consumeTapEvents,
+        _clusterManagerId = clusterManagerId,
+        tapEvent = onTap,
+        dragStartEvent = onDragStart,
+        dragEvent = onDrag,
+        dragEndEvent = onDragEnd {
     if (controller != null) {
       _addMarkerEvent(controller);
     }

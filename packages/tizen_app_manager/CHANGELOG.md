@@ -1,3 +1,7 @@
+## NEXT
+
+* Update code format.
+
 ## 0.2.3
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.

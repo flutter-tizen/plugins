@@ -1,3 +1,7 @@
+## NEXT
+
+* Update code format.
+
 ## 0.1.2
 
 * Fixed an issue causing crashes when encrypting or decrypting empty strings by adding appropriate checks and handling in `Encrypt` and `Decrypt` methods.

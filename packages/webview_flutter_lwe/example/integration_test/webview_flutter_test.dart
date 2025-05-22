@@ -281,8 +281,7 @@ Future<void> main() async {
 
   group('NavigationDelegate', () {
     const String blankPage = '<!DOCTYPE html><head></head><body></body></html>';
-    final String blankPageEncoded =
-        'data:text/html;charset=utf-8;base64,'
+    final String blankPageEncoded = 'data:text/html;charset=utf-8;base64,'
         '${base64Encode(const Utf8Encoder().convert(blankPage))}';
 
     testWidgets('can allow requests', (WidgetTester tester) async {
@@ -465,23 +464,22 @@ class ResizableWebView extends StatefulWidget {
 }
 
 class ResizableWebViewState extends State<ResizableWebView> {
-  late final WebViewController controller =
-      WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(
-          NavigationDelegate(onPageFinished: (_) => widget.onPageFinished()),
-        )
-        ..addJavaScriptChannel(
-          'Resize',
-          onMessageReceived: (_) {
-            widget.onResize();
-          },
-        )
-        ..loadRequest(
-          Uri.parse(
-            'data:text/html;charset=utf-8;base64,${base64Encode(const Utf8Encoder().convert(resizePage))}',
-          ),
-        );
+  late final WebViewController controller = WebViewController()
+    ..setJavaScriptMode(JavaScriptMode.unrestricted)
+    ..setNavigationDelegate(
+      NavigationDelegate(onPageFinished: (_) => widget.onPageFinished()),
+    )
+    ..addJavaScriptChannel(
+      'Resize',
+      onMessageReceived: (_) {
+        widget.onResize();
+      },
+    )
+    ..loadRequest(
+      Uri.parse(
+        'data:text/html;charset=utf-8;base64,${base64Encode(const Utf8Encoder().convert(resizePage))}',
+      ),
+    );
 
   double webViewWidth = 200;
   double webViewHeight = 200;

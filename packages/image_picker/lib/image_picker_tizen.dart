@@ -145,11 +145,11 @@ class ImagePickerTizen extends CameraDelegatingImagePickerPlatform {
 
     return _channel
         .invokeMethod<List<dynamic>?>('pickMultiImage', <String, dynamic>{
-          'maxWidth': maxWidth,
-          'maxHeight': maxHeight,
-          'imageQuality': imageQuality,
-          'requestFullMetadata': requestFullMetadata,
-        });
+      'maxWidth': maxWidth,
+      'maxHeight': maxHeight,
+      'imageQuality': imageQuality,
+      'requestFullMetadata': requestFullMetadata,
+    });
   }
 
   @override
@@ -163,12 +163,11 @@ class ImagePickerTizen extends CameraDelegatingImagePickerPlatform {
       'allowMultiple': options.allowMultiple,
     };
 
-    final List<XFile>? paths = await _channel
-        .invokeMethod<List<dynamic>?>('pickMedia', args)
-        .then(
-          (List<dynamic>? paths) =>
-              paths?.map((dynamic path) => XFile(path as String)).toList(),
-        );
+    final List<XFile>? paths =
+        await _channel.invokeMethod<List<dynamic>?>('pickMedia', args).then(
+              (List<dynamic>? paths) =>
+                  paths?.map((dynamic path) => XFile(path as String)).toList(),
+            );
 
     return paths ?? <XFile>[];
   }

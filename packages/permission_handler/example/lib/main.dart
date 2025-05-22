@@ -16,8 +16,8 @@ void main() {
 ///Defines the main theme color
 final MaterialColor themeMaterialColor =
     BaseflowPluginExample.createMaterialColor(
-      const Color.fromRGBO(48, 49, 60, 1),
-    );
+  const Color.fromRGBO(48, 49, 60, 1),
+);
 
 /// A Flutter application demonstrating the functionality of this plugin
 class PermissionHandlerWidget extends StatefulWidget {
@@ -42,36 +42,35 @@ class _PermissionHandlerWidgetState extends State<PermissionHandlerWidget> {
   Widget build(BuildContext context) {
     return Center(
       child: ListView(
-        children:
-            Permission.values
-                .where((permission) {
-                  // Permissions not applicable for Tizen.
-                  return permission != Permission.unknown &&
-                      permission != Permission.photos &&
-                      permission != Permission.photosAddOnly &&
-                      permission != Permission.reminders &&
-                      permission != Permission.speech &&
-                      permission != Permission.ignoreBatteryOptimizations &&
-                      permission != Permission.notification &&
-                      permission != Permission.accessMediaLocation &&
-                      permission != Permission.activityRecognition &&
-                      permission != Permission.bluetooth &&
-                      permission != Permission.manageExternalStorage &&
-                      permission != Permission.systemAlertWindow &&
-                      permission != Permission.requestInstallPackages &&
-                      permission != Permission.appTrackingTransparency &&
-                      permission != Permission.criticalAlerts &&
-                      permission != Permission.accessNotificationPolicy &&
-                      permission != Permission.bluetoothScan &&
-                      permission != Permission.bluetoothAdvertise &&
-                      permission != Permission.bluetoothConnect &&
-                      permission != Permission.nearbyWifiDevices &&
-                      permission != Permission.videos &&
-                      permission != Permission.audio &&
-                      permission != Permission.scheduleExactAlarm;
-                })
-                .map((permission) => PermissionWidget(permission))
-                .toList(),
+        children: Permission.values
+            .where((permission) {
+              // Permissions not applicable for Tizen.
+              return permission != Permission.unknown &&
+                  permission != Permission.photos &&
+                  permission != Permission.photosAddOnly &&
+                  permission != Permission.reminders &&
+                  permission != Permission.speech &&
+                  permission != Permission.ignoreBatteryOptimizations &&
+                  permission != Permission.notification &&
+                  permission != Permission.accessMediaLocation &&
+                  permission != Permission.activityRecognition &&
+                  permission != Permission.bluetooth &&
+                  permission != Permission.manageExternalStorage &&
+                  permission != Permission.systemAlertWindow &&
+                  permission != Permission.requestInstallPackages &&
+                  permission != Permission.appTrackingTransparency &&
+                  permission != Permission.criticalAlerts &&
+                  permission != Permission.accessNotificationPolicy &&
+                  permission != Permission.bluetoothScan &&
+                  permission != Permission.bluetoothAdvertise &&
+                  permission != Permission.bluetoothConnect &&
+                  permission != Permission.nearbyWifiDevices &&
+                  permission != Permission.videos &&
+                  permission != Permission.audio &&
+                  permission != Permission.scheduleExactAlarm;
+            })
+            .map((permission) => PermissionWidget(permission))
+            .toList(),
       ),
     );
   }
@@ -131,18 +130,17 @@ class _PermissionState extends State<PermissionWidget> {
         _permissionStatus.toString(),
         style: TextStyle(color: getPermissionColor()),
       ),
-      trailing:
-          (_permission is PermissionWithService)
-              ? IconButton(
-                icon: const Icon(Icons.info, color: Colors.white),
-                onPressed: () {
-                  checkServiceStatus(
-                    context,
-                    _permission as PermissionWithService,
-                  );
-                },
-              )
-              : null,
+      trailing: (_permission is PermissionWithService)
+          ? IconButton(
+              icon: const Icon(Icons.info, color: Colors.white),
+              onPressed: () {
+                checkServiceStatus(
+                  context,
+                  _permission as PermissionWithService,
+                );
+              },
+            )
+          : null,
       onTap: () {
         requestPermission(_permission);
       },

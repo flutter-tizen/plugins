@@ -11,6 +11,7 @@ import 'package:pigeon/pigeon.dart';
     cppSourceOut: 'tizen/src/messages.cc',
   ),
 )
+
 /// Dart wrapper around [`ProductsListApiResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 ///
 /// Defines a dictionary for product list data returned by the getProductsList API.

@@ -138,10 +138,9 @@ class GInfoWindowOptions {
 
   @override
   String toString() {
-    final String pos =
-        position != null
-            ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
-            : 'null';
+    final String pos = position != null
+        ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
+        : 'null';
     return '{content:$content, pixelOffset:null , position:$pos, zIndex:$zIndex}';
   }
 }
@@ -205,7 +204,9 @@ class GInfoWindow {
 /// This class represents a geographical location on the map as a Marker.
 class GMarker {
   /// GMarker Constructor.
-  GMarker([GMarkerOptions? opts]) : id = _gid++, _options = opts {
+  GMarker([GMarkerOptions? opts])
+      : id = _gid++,
+        _options = opts {
     _createMarker(opts);
   }
 
@@ -619,11 +620,9 @@ class GMarkerClusterer {
 
   /// Removes a marker from the [GMarkerClusterer].
   Future<bool> removeMarker(GMarker marker, bool? noDraw) async {
-    final bool result =
-        await webController!.runJavaScriptReturningResult(
-              '${toString()}.removeMarker($marker, $noDraw);',
-            )
-            as bool;
+    final bool result = await webController!.runJavaScriptReturningResult(
+      '${toString()}.removeMarker($marker, $noDraw);',
+    ) as bool;
 
     return result;
   }

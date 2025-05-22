@@ -74,18 +74,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   if (!context.mounted) return;
                   showDialog<void>(
                     context: context,
-                    builder:
-                        (_) => AlertDialog(
-                          content: Text('Battery: $batteryLevel%'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text('OK'),
-                            ),
-                          ],
+                    builder: (_) => AlertDialog(
+                      content: Text('Battery: $batteryLevel%'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('OK'),
                         ),
+                      ],
+                    ),
                   );
                 });
               },
@@ -98,25 +97,24 @@ class _MyHomePageState extends State<MyHomePage> {
                   if (!context.mounted) return;
                   showDialog<void>(
                     context: context,
-                    builder:
-                        (_) => AlertDialog(
-                          title: const Text(
-                            'Is in Battery Save mode?',
-                            style: TextStyle(fontSize: 20),
-                          ),
-                          content: Text(
-                            "$isInPowerSaveMode",
-                            style: const TextStyle(fontSize: 18),
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text('Close'),
-                            ),
-                          ],
+                    builder: (_) => AlertDialog(
+                      title: const Text(
+                        'Is in Battery Save mode?',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      content: Text(
+                        "$isInPowerSaveMode",
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Close'),
                         ),
+                      ],
+                    ),
                   );
                 });
               },

@@ -112,8 +112,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     setState(() {});
 
     final videoTrack = _localStream!.getVideoTracks().firstWhere(
-      (track) => track.kind == 'video',
-    );
+          (track) => track.kind == 'video',
+        );
     await _mediaRecorder!.start(filePath, videoTrack: videoTrack);
   }
 
@@ -128,8 +128,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     if (_localStream == null) throw Exception('Stream is not initialized');
 
     final videoTrack = _localStream!.getVideoTracks().firstWhere(
-      (track) => track.kind == 'video',
-    );
+          (track) => track.kind == 'video',
+        );
     final has = await videoTrack.hasTorch();
     if (has) {
       print('[TORCH] Current camera supports torch mode');
@@ -147,8 +147,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
 
     // before the release, use can just call native method directly.
     final videoTrack = _localStream!.getVideoTracks().firstWhere(
-      (track) => track.kind == 'video',
-    );
+          (track) => track.kind == 'video',
+        );
     await WebRTC.invokeMethod('mediaStreamTrackSetZoom', <String, dynamic>{
       'trackId': videoTrack.id,
       'zoomLevel': zoomLevel,
@@ -159,8 +159,8 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     if (_localStream == null) throw Exception('Stream is not initialized');
 
     final videoTrack = _localStream!.getVideoTracks().firstWhere(
-      (track) => track.kind == 'video',
-    );
+          (track) => track.kind == 'video',
+        );
     await Helper.switchCamera(videoTrack);
   }
 
@@ -168,25 +168,24 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     if (_localStream == null) throw Exception('Stream is not initialized');
 
     final videoTrack = _localStream!.getVideoTracks().firstWhere(
-      (track) => track.kind == 'video',
-    );
+          (track) => track.kind == 'video',
+        );
     final frame = await videoTrack.captureFrame();
     await showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            content: Image.memory(
-              frame.asUint8List(),
-              height: 720,
-              width: 1280,
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: Navigator.of(context, rootNavigator: true).pop,
-                child: Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        content: Image.memory(
+          frame.asUint8List(),
+          height: 720,
+          width: 1280,
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: Navigator.of(context, rootNavigator: true).pop,
+            child: Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -195,44 +194,42 @@ class _GetUserMediaSampleState extends State<GetUserMediaSample> {
     return Scaffold(
       appBar: AppBar(
         title: Text('GetUserMedia API Test'),
-        actions:
-            _inCalling
-                ? <Widget>[
-                  IconButton(
-                    icon: Icon(_isTorchOn ? Icons.flash_off : Icons.flash_on),
-                    onPressed: _toggleTorch,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.switch_video),
-                    onPressed: _toggleCamera,
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.camera),
-                    onPressed: _captureFrame,
-                  ),
-                  IconButton(
-                    icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
-                    onPressed: _isRec ? _stopRecording : _startRecording,
-                  ),
-                  PopupMenuButton<String>(
-                    onSelected: _selectAudioOutput,
-                    itemBuilder: (BuildContext context) {
-                      if (_mediaDevicesList != null) {
-                        return _mediaDevicesList!
-                            .where((device) => device.kind == 'audiooutput')
-                            .map((device) {
-                              return PopupMenuItem<String>(
-                                value: device.deviceId,
-                                child: Text(device.label),
-                              );
-                            })
-                            .toList();
-                      }
-                      return [];
-                    },
-                  ),
-                ]
-                : null,
+        actions: _inCalling
+            ? <Widget>[
+                IconButton(
+                  icon: Icon(_isTorchOn ? Icons.flash_off : Icons.flash_on),
+                  onPressed: _toggleTorch,
+                ),
+                IconButton(
+                  icon: Icon(Icons.switch_video),
+                  onPressed: _toggleCamera,
+                ),
+                IconButton(
+                  icon: Icon(Icons.camera),
+                  onPressed: _captureFrame,
+                ),
+                IconButton(
+                  icon: Icon(_isRec ? Icons.stop : Icons.fiber_manual_record),
+                  onPressed: _isRec ? _stopRecording : _startRecording,
+                ),
+                PopupMenuButton<String>(
+                  onSelected: _selectAudioOutput,
+                  itemBuilder: (BuildContext context) {
+                    if (_mediaDevicesList != null) {
+                      return _mediaDevicesList!
+                          .where((device) => device.kind == 'audiooutput')
+                          .map((device) {
+                        return PopupMenuItem<String>(
+                          value: device.deviceId,
+                          child: Text(device.label),
+                        );
+                      }).toList();
+                    }
+                    return [];
+                  },
+                ),
+              ]
+            : null,
       ),
       body: OrientationBuilder(
         builder: (context, orientation) {

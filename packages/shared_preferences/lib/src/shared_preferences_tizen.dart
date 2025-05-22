@@ -140,9 +140,8 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
       _preferences,
     );
     withPrefix.removeWhere(
-      (String key, _) =>
-          !(key.startsWith(filter.prefix) &&
-              (filter.allowList?.contains(key) ?? true)),
+      (String key, _) => !(key.startsWith(filter.prefix) &&
+          (filter.allowList?.contains(key) ?? true)),
     );
     return withPrefix;
   }

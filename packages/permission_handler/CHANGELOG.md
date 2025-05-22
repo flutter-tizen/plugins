@@ -2,6 +2,7 @@
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Fix analyze issue.
+* Update code format.
 
 ## 1.3.0
 

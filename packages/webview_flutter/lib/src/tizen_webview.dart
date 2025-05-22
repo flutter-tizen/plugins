@@ -170,8 +170,9 @@ class TizenWebView {
   Future<Offset> getScrollPosition() async {
     final Map<String, Object?>? position =
         (await _invokeChannelMethod<Map<Object?, Object?>>(
-          'getScrollPosition',
-        ))?.cast<String, Object?>();
+      'getScrollPosition',
+    ))
+            ?.cast<String, Object?>();
     if (position == null) {
       return Offset.zero;
     }

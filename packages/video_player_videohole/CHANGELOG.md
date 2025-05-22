@@ -1,3 +1,7 @@
+## NEXT
+
+* Update code format.
+
 ## 0.5.6
 
 * Add suspend and restore for handing onPause and onResume lifecycle event.

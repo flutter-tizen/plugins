@@ -17,17 +17,17 @@ class ClusterManagersController extends GeometryController {
   /// emitting map events.
   ClusterManagersController({
     required StreamController<MapEvent<Object?>> stream,
-  }) : _streamController = stream,
-       _idToClusterManagerId = <String, ClusterManagerId>{},
-       _clusterManagerIdToMarkerClusterer =
-           <ClusterManagerId, util.GMarkerClusterer>{};
+  })  : _streamController = stream,
+        _idToClusterManagerId = <String, ClusterManagerId>{},
+        _clusterManagerIdToMarkerClusterer =
+            <ClusterManagerId, util.GMarkerClusterer>{};
 
   // The stream over which cluster managers broadcast their events
   final StreamController<MapEvent<Object?>> _streamController;
 
   // A cache of [MarkerClusterer]s indexed by their [ClusterManagerId].
   final Map<ClusterManagerId, util.GMarkerClusterer>
-  _clusterManagerIdToMarkerClusterer;
+      _clusterManagerIdToMarkerClusterer;
   final Map<String, ClusterManagerId> _idToClusterManagerId;
 
   /// A cache of [ClusterManagerId]s indexed by [GMarkerClusterer.id].

@@ -62,8 +62,8 @@ class AppManager {
 
     final Map<String, dynamic>? app = await _channel
         .invokeMapMethod<String, dynamic>('getAppInfo', <String, String>{
-          'appId': appId,
-        });
+      'appId': appId,
+    });
     return AppInfo.fromMap(app!);
   }
 
@@ -95,18 +95,18 @@ class AppManager {
   /// A stream of events occurring when any application is launched.
   static Stream<AppRunningContext> get onAppLaunched =>
       _launchEventChannel.receiveBroadcastStream().map(
-        (dynamic event) => AppRunningContext.fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-        ),
-      );
+            (dynamic event) => AppRunningContext.fromMap(
+              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+            ),
+          );
 
   /// A stream of events occurring when any application is terminated.
   static Stream<AppRunningContext> get onAppTerminated =>
       _terminateEventChannel.receiveBroadcastStream().map(
-        (dynamic event) => AppRunningContext.fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-        ),
-      );
+            (dynamic event) => AppRunningContext.fromMap(
+              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+            ),
+          );
 }
 
 /// Represents general information on an installed application.

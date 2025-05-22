@@ -382,7 +382,7 @@ class VideoPlayerVideoholeApi {
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   VideoPlayerVideoholeApi({BinaryMessenger? binaryMessenger})
-    : _binaryMessenger = binaryMessenger;
+      : _binaryMessenger = binaryMessenger;
   final BinaryMessenger? _binaryMessenger;
 
   static const MessageCodec<Object?> codec = _VideoPlayerVideoholeApiCodec();

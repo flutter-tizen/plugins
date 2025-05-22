@@ -35,8 +35,8 @@ extension TizenWebViewControllerExtension on WebViewController {
 class TizenWebViewController extends PlatformWebViewController {
   /// Constructs a [TizenWebViewController].
   TizenWebViewController(super.params)
-    : _webview = TizenWebView(),
-      super.implementation();
+      : _webview = TizenWebView(),
+        super.implementation();
 
   final TizenWebView _webview;
   late TizenNavigationDelegate _tizenNavigationDelegate;
@@ -44,11 +44,11 @@ class TizenWebViewController extends PlatformWebViewController {
   void Function(JavaScriptConsoleMessage consoleMessage)? _onConsoleLogCallback;
 
   Future<void> Function(JavaScriptAlertDialogRequest request)?
-  _onJavaScriptAlert;
+      _onJavaScriptAlert;
   Future<bool> Function(JavaScriptConfirmDialogRequest request)?
-  _onJavaScriptConfirm;
+      _onJavaScriptConfirm;
   Future<String> Function(JavaScriptTextInputDialogRequest request)?
-  _onJavaScriptPrompt;
+      _onJavaScriptPrompt;
 
   late final MethodChannel _webviewControllerChannel;
 
@@ -93,9 +93,9 @@ class TizenWebViewController extends PlatformWebViewController {
           if (callback != null) {
             final JavaScriptAlertDialogRequest request =
                 JavaScriptAlertDialogRequest(
-                  message: arguments['message']! as String,
-                  url: arguments['url']! as String,
-                );
+              message: arguments['message']! as String,
+              url: arguments['url']! as String,
+            );
 
             await callback.call(request);
             await _webview.javaScriptAlertReply();
@@ -103,27 +103,27 @@ class TizenWebViewController extends PlatformWebViewController {
           return null;
         case 'onJavaScriptConfirm':
           final Future<bool> Function(JavaScriptConfirmDialogRequest)?
-          callback = _onJavaScriptConfirm;
+              callback = _onJavaScriptConfirm;
           if (callback != null) {
             final JavaScriptConfirmDialogRequest request =
                 JavaScriptConfirmDialogRequest(
-                  message: arguments['message']! as String,
-                  url: arguments['url']! as String,
-                );
+              message: arguments['message']! as String,
+              url: arguments['url']! as String,
+            );
             final bool result = await callback.call(request);
             await _webview.javaScriptConfirmReply(result);
           }
           return null;
         case 'onJavaScriptPrompt':
           final Future<String> Function(JavaScriptTextInputDialogRequest)?
-          callback = _onJavaScriptPrompt;
+              callback = _onJavaScriptPrompt;
           if (callback != null) {
             final JavaScriptTextInputDialogRequest request =
                 JavaScriptTextInputDialogRequest(
-                  message: arguments['message']! as String,
-                  url: arguments['url']! as String,
-                  defaultText: arguments['defaultText']! as String,
-                );
+              message: arguments['message']! as String,
+              url: arguments['url']! as String,
+              defaultText: arguments['defaultText']! as String,
+            );
             final String result = await callback.call(request);
             await _webview.javaScriptPromptReply(result);
           }
@@ -248,7 +248,8 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> addJavaScriptChannel(
     JavaScriptChannelParams javaScriptChannelParams,
-  ) => _webview.addJavaScriptChannel(javaScriptChannelParams);
+  ) =>
+      _webview.addJavaScriptChannel(javaScriptChannelParams);
 
   @override
   Future<void> removeJavaScriptChannel(String javaScriptChannelName) async {
@@ -288,7 +289,7 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOnScrollPositionChange(
     void Function(ScrollPositionChange scrollPositionChange)?
-    onScrollPositionChange,
+        onScrollPositionChange,
   ) async {
     throw UnimplementedError(
       'This version of `TizenWebViewController` currently has no '
@@ -321,7 +322,7 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOnJavaScriptAlertDialog(
     Future<void> Function(JavaScriptAlertDialogRequest request)
-    onJavaScriptAlertDialog,
+        onJavaScriptAlertDialog,
   ) async {
     _onJavaScriptAlert = onJavaScriptAlertDialog;
   }
@@ -329,7 +330,7 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOnJavaScriptConfirmDialog(
     Future<bool> Function(JavaScriptConfirmDialogRequest request)
-    onJavaScriptConfirmDialog,
+        onJavaScriptConfirmDialog,
   ) async {
     _onJavaScriptConfirm = onJavaScriptConfirmDialog;
   }
@@ -337,7 +338,7 @@ class TizenWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOnJavaScriptTextInputDialog(
     Future<String> Function(JavaScriptTextInputDialogRequest request)
-    onJavaScriptTextInputDialog,
+        onJavaScriptTextInputDialog,
   ) async {
     _onJavaScriptPrompt = onJavaScriptTextInputDialog;
   }

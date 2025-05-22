@@ -1,3 +1,7 @@
+## NEXT
+
+* Update code format.
+
 ## 0.1.2
 
 * Update the LICENSE file so that it is recognized by pub.dev.

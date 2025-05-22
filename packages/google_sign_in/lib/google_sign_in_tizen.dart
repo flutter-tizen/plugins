@@ -102,8 +102,8 @@ class _CachedTokenStorage {
     final String? jsonString = await _storage.read(key: _kToken);
     return jsonString != null
         ? _GoogleSignInTokenDataTizen.fromJson(
-          jsonDecode(jsonString) as Map<String, Object?>,
-        )
+            jsonDecode(jsonString) as Map<String, Object?>,
+          )
         : null;
   }
 
@@ -166,8 +166,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (_credentials == null) {
       throw PlatformException(
         code: 'credentials-missing',
-        message:
-            'Cannot initialize GoogleSignInTizen: ClientID and '
+        message: 'Cannot initialize GoogleSignInTizen: ClientID and '
             'ClientSecret has not been set, first call `setCredentials` '
             "in google_sign_in_tizen.dart before calling GoogleSignIn's signIn API.",
       );
@@ -178,8 +177,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (device_flow_widget.navigatorKey.currentContext == null) {
       throw PlatformException(
         code: 'navigatorkey-unassigned',
-        message:
-            'Cannot initialize GoogleSignInTizen: a default or custom '
+        message: 'Cannot initialize GoogleSignInTizen: a default or custom '
             'navigator key must be assigned to `navigatorKey` parameter in '
             '`MaterialApp` or `CupertinoApp`.',
       );
@@ -234,8 +232,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     _ensureSetCredentials();
     _ensureNavigatorKeyAssigned();
 
-    final AuthorizationResponse authorizationResponse = await _authClient
-        .requestAuthorization(_credentials!.clientId, _scopes);
+    final AuthorizationResponse authorizationResponse =
+        await _authClient.requestAuthorization(_credentials!.clientId, _scopes);
 
     final Future<TokenResponse?> tokenResponseFuture = _authClient.pollToken(
       clientId: _credentials!.clientId,
@@ -357,8 +355,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (token.refreshToken == null) {
       throw PlatformException(
         code: 'refresh-token-missing',
-        message:
-            'Cannot refresh tokens as refresh tokens are missing. '
+        message: 'Cannot refresh tokens as refresh tokens are missing. '
             'Request new tokens by signing-in again.',
       );
     }

@@ -158,8 +158,7 @@ class _MyAppState extends State<MyApp> {
   final List<String> _logs = <String>[];
 
   void _log(String log) {
-    final String date =
-        '${DateTime.now().hour.toString().padLeft(2, '0')}:'
+    final String date = '${DateTime.now().hour.toString().padLeft(2, '0')}:'
         '${DateTime.now().minute.toString().padLeft(2, '0')}:'
         '${DateTime.now().second.toString().padLeft(2, '0')}.'
         '${DateTime.now().millisecond.toString().padLeft(3, '0')}';

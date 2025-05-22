@@ -90,30 +90,29 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(title: const Text('Tizen Device Info'), elevation: 4),
         body: ListView(
-          children:
-              _deviceData.keys.map((String property) {
-                return Row(
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      child: Text(
-                        property,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
+          children: _deviceData.keys.map((String property) {
+            return Row(
+              children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    property,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text(
+                      '${_deviceData[property]}',
+                      maxLines: 10,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Text(
-                          '${_deviceData[property]}',
-                          maxLines: 10,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
         ),
       ),
     );
