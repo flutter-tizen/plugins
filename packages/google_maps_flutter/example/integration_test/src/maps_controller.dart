@@ -106,11 +106,11 @@ void runTests() {
       // Wait for the visible region to be non-zero.
       final LatLngBounds firstVisibleRegion =
           await waitForValueMatchingPredicate<LatLngBounds>(
-            tester,
-            () => mapController.getVisibleRegion(),
-            (LatLngBounds bounds) => bounds != zeroLatLngBounds,
-          ) ??
-          zeroLatLngBounds;
+                tester,
+                () => mapController.getVisibleRegion(),
+                (LatLngBounds bounds) => bounds != zeroLatLngBounds,
+              ) ??
+              zeroLatLngBounds;
       expect(firstVisibleRegion, isNot(zeroLatLngBounds));
       expect(firstVisibleRegion.contains(kInitialMapCenter), isTrue);
 
@@ -422,8 +422,7 @@ void runTests() {
     await controller.showMarkerInfoWindow(marker.markerId);
     // The Maps SDK doesn't always return true for whether it is shown
     // immediately after showing it, so wait for it to report as shown.
-    iwVisibleStatus =
-        await waitForValueMatchingPredicate<bool>(
+    iwVisibleStatus = await waitForValueMatchingPredicate<bool>(
           tester,
           () => controller.isMarkerInfoWindowShown(marker.markerId),
           (bool visible) => visible,

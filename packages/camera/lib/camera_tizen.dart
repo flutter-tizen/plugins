@@ -97,13 +97,12 @@ class CameraTizen extends CameraPlatform {
     try {
       final Map<String, dynamic>? reply = await _channel
           .invokeMapMethod<String, dynamic>('create', <String, dynamic>{
-            'cameraName': cameraDescription.name,
-            'resolutionPreset':
-                resolutionPreset != null
-                    ? _serializeResolutionPreset(resolutionPreset)
-                    : null,
-            'enableAudio': enableAudio,
-          });
+        'cameraName': cameraDescription.name,
+        'resolutionPreset': resolutionPreset != null
+            ? _serializeResolutionPreset(resolutionPreset)
+            : null,
+        'enableAudio': enableAudio,
+      });
 
       return reply!['cameraId']! as int;
     } on PlatformException catch (e) {
@@ -132,27 +131,25 @@ class CameraTizen extends CameraPlatform {
       completer.complete();
     });
 
-    _channel
-        .invokeMapMethod<String, dynamic>('initialize', <String, dynamic>{
-          'cameraId': cameraId,
-          'imageFormatGroup': imageFormatGroup.name(),
-        })
-        .catchError(
-          // TODO(srawlins): This should return a value of the future's type. This
-          // will fail upcoming analysis checks with
-          // https://github.com/flutter/flutter/issues/105750.
-          // ignore: body_might_complete_normally_catch_error
-          (Object error, StackTrace stackTrace) {
-            if (error is! PlatformException) {
-              // ignore: only_throw_errors
-              throw error;
-            }
-            completer.completeError(
-              CameraException(error.code, error.message),
-              stackTrace,
-            );
-          },
+    _channel.invokeMapMethod<String, dynamic>('initialize', <String, dynamic>{
+      'cameraId': cameraId,
+      'imageFormatGroup': imageFormatGroup.name(),
+    }).catchError(
+      // TODO(srawlins): This should return a value of the future's type. This
+      // will fail upcoming analysis checks with
+      // https://github.com/flutter/flutter/issues/105750.
+      // ignore: body_might_complete_normally_catch_error
+      (Object error, StackTrace stackTrace) {
+        if (error is! PlatformException) {
+          // ignore: only_throw_errors
+          throw error;
+        }
+        completer.completeError(
+          CameraException(error.code, error.message),
+          stackTrace,
         );
+      },
+    );
 
     return completer.future;
   }
@@ -274,9 +271,9 @@ class CameraTizen extends CameraPlatform {
 
   @override
   Future<void> pauseVideoRecording(int cameraId) => _channel.invokeMethod<void>(
-    'pauseVideoRecording',
-    <String, dynamic>{'cameraId': cameraId},
-  );
+        'pauseVideoRecording',
+        <String, dynamic>{'cameraId': cameraId},
+      );
 
   @override
   Future<void> resumeVideoRecording(int cameraId) =>
@@ -307,13 +304,12 @@ class CameraTizen extends CameraPlatform {
     const EventChannel cameraEventChannel = EventChannel(
       'plugins.flutter.io/camera_tizen/imageStream',
     );
-    _platformImageStreamSubscription = cameraEventChannel
-        .receiveBroadcastStream()
-        .listen((dynamic imageData) {
-          _frameStreamController!.add(
-            cameraImageFromPlatformData(imageData as Map<dynamic, dynamic>),
-          );
-        });
+    _platformImageStreamSubscription =
+        cameraEventChannel.receiveBroadcastStream().listen((dynamic imageData) {
+      _frameStreamController!.add(
+        cameraImageFromPlatformData(imageData as Map<dynamic, dynamic>),
+      );
+    });
   }
 
   FutureOr<void> _onFrameStreamCancel() async {

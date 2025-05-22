@@ -11,8 +11,8 @@ MessagePortManager _manager = MessagePortManager();
 /// Called when a message is received on message port.
 ///
 /// This is used by [LocalPort.register].
-typedef OnMessageReceived =
-    void Function(dynamic message, [RemotePort? remotePort]);
+typedef OnMessageReceived = void Function(dynamic message,
+    [RemotePort? remotePort]);
 
 /// Local message port for receiving messages.
 class LocalPort {

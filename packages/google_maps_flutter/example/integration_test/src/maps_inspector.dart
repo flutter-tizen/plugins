@@ -127,8 +127,8 @@ void runTests() {
     final GoogleMapController controller = await controllerCompleter.future;
 
     if (isIOS) {
-      final MinMaxZoomPreference zoomLevel = await inspector
-          .getMinMaxZoomLevels(mapId: controller.mapId);
+      final MinMaxZoomPreference zoomLevel =
+          await inspector.getMinMaxZoomLevels(mapId: controller.mapId);
       expect(zoomLevel, equals(initialZoomLevel));
     } else if (isAndroid) {
       await controller.moveCamera(CameraUpdate.zoomTo(15));
@@ -155,8 +155,8 @@ void runTests() {
     );
 
     if (isIOS) {
-      final MinMaxZoomPreference zoomLevel = await inspector
-          .getMinMaxZoomLevels(mapId: controller.mapId);
+      final MinMaxZoomPreference zoomLevel =
+          await inspector.getMinMaxZoomLevels(mapId: controller.mapId);
       expect(zoomLevel, equals(finalZoomLevel));
     } else {
       await controller.moveCamera(CameraUpdate.zoomTo(15));
@@ -518,8 +518,8 @@ void runTests() {
       );
       final int mapId = await mapIdCompleter.future;
 
-      final bool myLocationButtonEnabled = await inspector
-          .isMyLocationButtonEnabled(mapId: mapId);
+      final bool myLocationButtonEnabled =
+          await inspector.isMyLocationButtonEnabled(mapId: mapId);
       expect(myLocationButtonEnabled, false);
     });
 
@@ -541,8 +541,8 @@ void runTests() {
       );
       final int mapId = await mapIdCompleter.future;
 
-      final bool myLocationButtonEnabled = await inspector
-          .isMyLocationButtonEnabled(mapId: mapId);
+      final bool myLocationButtonEnabled =
+          await inspector.isMyLocationButtonEnabled(mapId: mapId);
       expect(myLocationButtonEnabled, true);
     });
   }, skip: !isIOS);

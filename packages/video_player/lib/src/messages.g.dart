@@ -224,9 +224,9 @@ class TizenVideoPlayerApi {
   TizenVideoPlayerApi({
     BinaryMessenger? binaryMessenger,
     String messageChannelSuffix = '',
-  }) : pigeonVar_binaryMessenger = binaryMessenger,
-       pigeonVar_messageChannelSuffix =
-           messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  })  : pigeonVar_binaryMessenger = binaryMessenger,
+        pigeonVar_messageChannelSuffix =
+            messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -238,10 +238,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.initialize$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -262,10 +262,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.create$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -291,10 +291,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.dispose$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -315,10 +315,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setLooping$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -339,10 +339,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setVolume$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -363,10 +363,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setPlaybackSpeed$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -387,10 +387,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.play$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -411,10 +411,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.position$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -440,10 +440,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.seekTo$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -464,10 +464,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.pause$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -488,10 +488,10 @@ class TizenVideoPlayerApi {
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setMixWithOthers$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[msg]) as List<Object?>?;
     if (pigeonVar_replyList == null) {

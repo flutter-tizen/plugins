@@ -42,12 +42,11 @@ enum AppControlReplyResult {
 /// [request] represents the launch request that has been sent.
 /// [reply] represents the reply message sent by the callee application.
 /// [result] represents the result of launch.
-typedef AppControlReplyCallback =
-    FutureOr<void> Function(
-      AppControl request,
-      AppControl reply,
-      AppControlReplyResult result,
-    );
+typedef AppControlReplyCallback = FutureOr<void> Function(
+  AppControl request,
+  AppControl reply,
+  AppControlReplyResult result,
+);
 
 /// Represents a control message exchanged between applications.
 ///
@@ -76,15 +75,15 @@ class AppControl {
   }
 
   AppControl._fromMap(Map<String, dynamic> map)
-    : _id = map['id'] as int,
-      appId = map['appId'] as String?,
-      operation = map['operation'] as String?,
-      uri = map['uri'] as String?,
-      mime = map['mime'] as String?,
-      category = map['category'] as String?,
-      launchMode = LaunchMode.values.byName(map['launchMode'] as String),
-      extraData =
-          (map['extraData'] as Map<dynamic, dynamic>).cast<String, dynamic>() {
+      : _id = map['id'] as int,
+        appId = map['appId'] as String?,
+        operation = map['operation'] as String?,
+        uri = map['uri'] as String?,
+        mime = map['mime'] as String?,
+        category = map['category'] as String?,
+        launchMode = LaunchMode.values.byName(map['launchMode'] as String),
+        extraData = (map['extraData'] as Map<dynamic, dynamic>)
+            .cast<String, dynamic>() {
     if (!nativeAttachAppControl(_id, this)) {
       throw Exception('Could not find an instance of AppControl with ID $_id.');
     }
@@ -139,13 +138,12 @@ class AppControl {
   );
 
   /// A stream of incoming application controls.
-  static final Stream<ReceivedAppControl> onAppControl = _eventChannel
-      .receiveBroadcastStream()
-      .map(
-        (dynamic event) => ReceivedAppControl._fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-        ),
-      );
+  static final Stream<ReceivedAppControl> onAppControl =
+      _eventChannel.receiveBroadcastStream().map(
+            (dynamic event) => ReceivedAppControl._fromMap(
+              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+            ),
+          );
 
   /// Returns a list of installed applications that can handle this request.
   Future<List<String>> getMatchedAppIds() async {
@@ -271,9 +269,9 @@ class AppControl {
 /// Represents a received [AppControl] message.
 class ReceivedAppControl extends AppControl {
   ReceivedAppControl._fromMap(super.map)
-    : callerAppId = map['callerAppId'] as String?,
-      shouldReply = map['shouldReply'] as bool,
-      super._fromMap();
+      : callerAppId = map['callerAppId'] as String?,
+        shouldReply = map['shouldReply'] as bool,
+        super._fromMap();
 
   /// The caller application ID.
   final String? callerAppId;

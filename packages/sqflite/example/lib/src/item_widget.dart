@@ -5,7 +5,7 @@ import 'package:sqflite_tizen_example/model/item.dart';
 class ItemWidget extends StatefulWidget {
   /// Item widget.
   const ItemWidget(this.item, this.onTap, {this.summary, Key? key})
-    : super(key: key);
+      : super(key: key);
 
   /// item summary.
   final String? summary;

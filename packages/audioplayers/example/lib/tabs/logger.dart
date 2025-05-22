@@ -86,27 +86,25 @@ class LoggerTabState extends State<LoggerTab>
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children:
-                AudioLogLevel.values
-                    .map(
-                      (level) => Btn(
-                        txt: level.toString().replaceAll('AudioLogLevel.', ''),
-                        onPressed: () {
-                          setState(() => currentLogLevel = level);
-                        },
-                      ),
-                    )
-                    .toList(),
+            children: AudioLogLevel.values
+                .map(
+                  (level) => Btn(
+                    txt: level.toString().replaceAll('AudioLogLevel.', ''),
+                    onPressed: () {
+                      setState(() => currentLogLevel = level);
+                    },
+                  ),
+                )
+                .toList(),
           ),
           const Divider(color: Colors.black),
           Expanded(
             child: LogView(
               title: 'Player Logs:',
               logs: logs,
-              onDelete:
-                  () => setState(() {
-                    logs.clear();
-                  }),
+              onDelete: () => setState(() {
+                logs.clear();
+              }),
             ),
           ),
           const Divider(color: Colors.black),
@@ -114,10 +112,9 @@ class LoggerTabState extends State<LoggerTab>
             child: LogView(
               title: 'Global Logs:',
               logs: globalLogs,
-              onDelete:
-                  () => setState(() {
-                    globalLogs.clear();
-                  }),
+              onDelete: () => setState(() {
+                globalLogs.clear();
+              }),
             ),
           ),
         ],
@@ -154,24 +151,22 @@ class LogView extends StatelessWidget {
         ),
         Expanded(
           child: ListView(
-            children:
-                logs
-                    .map(
-                      (log) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SelectableText(
-                            '${log.level}: ${log.message}',
-                            style:
-                                log.level == AudioLogLevel.error
-                                    ? const TextStyle(color: Colors.red)
-                                    : null,
-                          ),
-                          Divider(color: Colors.grey.shade400),
-                        ],
+            children: logs
+                .map(
+                  (log) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SelectableText(
+                        '${log.level}: ${log.message}',
+                        style: log.level == AudioLogLevel.error
+                            ? const TextStyle(color: Colors.red)
+                            : null,
                       ),
-                    )
-                    .toList(),
+                      Divider(color: Colors.grey.shade400),
+                    ],
+                  ),
+                )
+                .toList(),
           ),
         ),
       ],

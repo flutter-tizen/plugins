@@ -101,13 +101,12 @@ class _GetDisplayMediaSampleState extends State<GetDisplayMediaSample> {
     try {
       var stream = await navigator.mediaDevices.getDisplayMedia(
         <String, dynamic>{
-          'video':
-              selected_source_ == null
-                  ? true
-                  : {
-                    'deviceId': {'exact': selected_source_!.id},
-                    'mandatory': {'frameRate': 30.0},
-                  },
+          'video': selected_source_ == null
+              ? true
+              : {
+                  'deviceId': {'exact': selected_source_!.id},
+                  'mandatory': {'frameRate': 30.0},
+                },
         },
       );
       stream.getVideoTracks()[0].onEnded = () {

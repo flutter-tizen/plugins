@@ -74,8 +74,7 @@ class _DataChannelLoopBackSampleState extends State<DataChannelLoopBackSample> {
         }
       };
 
-      _dc1!.onMessage =
-          (data) => setState(() {
+      _dc1!.onMessage = (data) => setState(() {
             _dc1Status += '\ndc1: Received message: ${data.text}';
           });
 

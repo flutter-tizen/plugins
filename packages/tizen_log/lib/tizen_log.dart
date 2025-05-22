@@ -6,10 +6,10 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-typedef _DlogPrintNative =
-    Void Function(Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
-typedef _DlogPrint =
-    void Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
+typedef _DlogPrintNative = Void Function(
+    Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
+typedef _DlogPrint = void Function(
+    int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
 
 /// Provides the ability to use Tizen's logging service, dlog.
 ///
@@ -24,10 +24,9 @@ class Log {
 
   static final DynamicLibrary _library = DynamicLibrary.open('libdlog.so.0');
 
-  static final _DlogPrint _dlogPrint =
-      _library
-          .lookup<NativeFunction<_DlogPrintNative>>('dlog_print')
-          .asFunction();
+  static final _DlogPrint _dlogPrint = _library
+      .lookup<NativeFunction<_DlogPrintNative>>('dlog_print')
+      .asFunction();
 
   static final RegExp _stackTraceRegExp = RegExp(
     r'^#(\d+)\s+(.+)\((.+\.dart):(\d+)(:\d+)?\)$',
@@ -190,8 +189,8 @@ class Log {
           if (frameIndex == index) {
             final List<String> funcParts = groups[1]!.trim().split('.');
             final List<String> pathParts = groups[2]!.trim().split(
-              RegExp(r'[:/]'),
-            );
+                  RegExp(r'[:/]'),
+                );
             return _StackFrame(
               frameIndex,
               funcParts.last,

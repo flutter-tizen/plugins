@@ -21,14 +21,13 @@ class TestFailure {
 /// The type used for functions that can be used to build up error reports
 /// upon failures in [expect].
 @Deprecated('Will be removed in 0.13.0.')
-typedef ErrorFormatter =
-    String Function(
-      dynamic actual,
-      Matcher matcher,
-      String? reason,
-      Map matchState,
-      bool verbose,
-    );
+typedef ErrorFormatter = String Function(
+  dynamic actual,
+  Matcher matcher,
+  String? reason,
+  Map matchState,
+  bool verbose,
+);
 
 /// Assert that [actual] matches [matcher].
 ///
@@ -74,7 +73,8 @@ Future expectLater(
   Object? matcher, {
   String? reason,
   Object? skip,
-}) => _expect(actual, matcher, reason: reason, skip: skip) as Future;
+}) =>
+    _expect(actual, matcher, reason: reason, skip: skip) as Future;
 
 String _formatFailure(
   Matcher expected,

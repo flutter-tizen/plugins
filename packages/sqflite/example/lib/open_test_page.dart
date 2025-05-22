@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/src/database_mixin.dart' // ignore: implementation_imports
-    show SqfliteDatabaseMixin;
+    show
+        SqfliteDatabaseMixin;
 import 'package:sqflite/src/factory_mixin.dart' // ignore: implementation_imports
-    show SqfliteDatabaseFactoryMixin;
+    show
+        SqfliteDatabaseFactoryMixin;
 import 'package:synchronized/synchronized.dart';
 
 import 'src/common_import.dart';
@@ -913,8 +915,8 @@ class OpenTestPage extends TestPage {
         await db.execute('BEGIN IMMEDIATE');
         // Trick to make sure we don't reuse the same instance during open
         (factory as SqfliteDatabaseFactoryMixin).databaseOpenHelpers.remove(
-          db.path,
-        );
+              db.path,
+            );
 
         final db2 = await factory.openDatabase(
           path,

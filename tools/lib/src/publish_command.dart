@@ -23,6 +23,8 @@ import 'package:path/path.dart' as p;
 import 'package:platform/platform.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import 'output_utils.dart';
+
 /// Wraps pub publish with a few niceties used by the flutter-tizen team.
 ///
 /// The code is a copy of [flutter_plugin_tools.PublishCommand] with parts
@@ -112,8 +114,12 @@ class PublishCommand extends PackageLoopingCommand {
       final String baseSha = await gitVersionFinder.getBaseSha();
       print(
           'Publishing all packages that have changed relative to "$baseSha"\n');
-      final List<String> changedPubspecs =
-          await gitVersionFinder.getChangedPubSpecs();
+      // final List<String> changedPubspecs =
+      //     await gitVersionFinder.getChangedPubSpecs();
+
+      final List<String> changedPubspecs = changedFiles
+          .where((String file) => file.trim().endsWith('pubspec.yaml'))
+          .toList();
 
       for (final String pubspecPath in changedPubspecs) {
         // git outputs a relative, Posix-style path.

@@ -50,25 +50,23 @@ class _ThumbnailWidgetState extends State<ThumbnailWidget> {
       children: [
         Expanded(
           child: Container(
-            decoration:
-                widget.selected
-                    ? BoxDecoration(
-                      border: Border.all(width: 2, color: Colors.blueAccent),
-                    )
-                    : null,
+            decoration: widget.selected
+                ? BoxDecoration(
+                    border: Border.all(width: 2, color: Colors.blueAccent),
+                  )
+                : null,
             child: InkWell(
               onTap: () {
                 print('Selected source id => ${widget.source.id}');
                 widget.onTap(widget.source);
               },
-              child:
-                  widget.source.thumbnail != null
-                      ? Image.memory(
-                        widget.source.thumbnail!,
-                        gaplessPlayback: true,
-                        alignment: Alignment.center,
-                      )
-                      : Container(),
+              child: widget.source.thumbnail != null
+                  ? Image.memory(
+                      widget.source.thumbnail!,
+                      gaplessPlayback: true,
+                      alignment: Alignment.center,
+                    )
+                  : Container(),
             ),
           ),
         ),
@@ -204,17 +202,15 @@ class ScreenSelectDialog extends Dialog {
                             Container(
                               constraints: BoxConstraints.expand(height: 24),
                               child: TabBar(
-                                onTap:
-                                    (value) => Future.delayed(
-                                      Duration(milliseconds: 300),
-                                      () {
-                                        _sourceType =
-                                            value == 0
-                                                ? SourceType.Screen
-                                                : SourceType.Window;
-                                        _getSources();
-                                      },
-                                    ),
+                                onTap: (value) => Future.delayed(
+                                  Duration(milliseconds: 300),
+                                  () {
+                                    _sourceType = value == 0
+                                        ? SourceType.Screen
+                                        : SourceType.Window;
+                                    _getSources();
+                                  },
+                                ),
                                 tabs: [
                                   Tab(
                                     child: Text(
@@ -242,28 +238,26 @@ class ScreenSelectDialog extends Dialog {
                                         child: GridView.count(
                                           crossAxisSpacing: 8,
                                           crossAxisCount: 2,
-                                          children:
-                                              _sources.entries
-                                                  .where(
-                                                    (element) =>
-                                                        element.value.type ==
-                                                        SourceType.Screen,
-                                                  )
-                                                  .map(
-                                                    (e) => ThumbnailWidget(
-                                                      onTap: (source) {
-                                                        setState(() {
-                                                          _selectedSource =
-                                                              source;
-                                                        });
-                                                      },
-                                                      source: e.value,
-                                                      selected:
-                                                          _selectedSource?.id ==
+                                          children: _sources.entries
+                                              .where(
+                                                (element) =>
+                                                    element.value.type ==
+                                                    SourceType.Screen,
+                                              )
+                                              .map(
+                                                (e) => ThumbnailWidget(
+                                                  onTap: (source) {
+                                                    setState(() {
+                                                      _selectedSource = source;
+                                                    });
+                                                  },
+                                                  source: e.value,
+                                                  selected:
+                                                      _selectedSource?.id ==
                                                           e.value.id,
-                                                    ),
-                                                  )
-                                                  .toList(),
+                                                ),
+                                              )
+                                              .toList(),
                                         ),
                                       ),
                                     ),
@@ -273,28 +267,26 @@ class ScreenSelectDialog extends Dialog {
                                         child: GridView.count(
                                           crossAxisSpacing: 8,
                                           crossAxisCount: 3,
-                                          children:
-                                              _sources.entries
-                                                  .where(
-                                                    (element) =>
-                                                        element.value.type ==
-                                                        SourceType.Window,
-                                                  )
-                                                  .map(
-                                                    (e) => ThumbnailWidget(
-                                                      onTap: (source) {
-                                                        setState(() {
-                                                          _selectedSource =
-                                                              source;
-                                                        });
-                                                      },
-                                                      source: e.value,
-                                                      selected:
-                                                          _selectedSource?.id ==
+                                          children: _sources.entries
+                                              .where(
+                                                (element) =>
+                                                    element.value.type ==
+                                                    SourceType.Window,
+                                              )
+                                              .map(
+                                                (e) => ThumbnailWidget(
+                                                  onTap: (source) {
+                                                    setState(() {
+                                                      _selectedSource = source;
+                                                    });
+                                                  },
+                                                  source: e.value,
+                                                  selected:
+                                                      _selectedSource?.id ==
                                                           e.value.id,
-                                                    ),
-                                                  )
-                                                  .toList(),
+                                                ),
+                                              )
+                                              .toList(),
                                         ),
                                       ),
                                     ),

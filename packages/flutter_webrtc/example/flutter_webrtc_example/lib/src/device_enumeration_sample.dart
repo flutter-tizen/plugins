@@ -54,9 +54,9 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
   String? _selectedAudioInputId;
 
   MediaDeviceInfo get selectedAudioInput => audioInputs.firstWhere(
-    (device) => device.deviceId == _selectedVideoInputId,
-    orElse: () => audioInputs.first,
-  );
+        (device) => device.deviceId == _selectedVideoInputId,
+        orElse: () => audioInputs.first,
+      );
 
   String? _selectedVideoFPS = '30';
 
@@ -330,12 +330,11 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
               return _devices
                   .where((device) => device.kind == 'audioinput')
                   .map((device) {
-                    return PopupMenuItem<String>(
-                      value: device.deviceId,
-                      child: Text(device.label),
-                    );
-                  })
-                  .toList();
+                return PopupMenuItem<String>(
+                  value: device.deviceId,
+                  child: Text(device.label),
+                );
+              }).toList();
             },
           ),
           if (!WebRTC.platformIsMobile)
@@ -346,12 +345,11 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
                 return _devices
                     .where((device) => device.kind == 'audiooutput')
                     .map((device) {
-                      return PopupMenuItem<String>(
-                        value: device.deviceId,
-                        child: Text(device.label),
-                      );
-                    })
-                    .toList();
+                  return PopupMenuItem<String>(
+                    value: device.deviceId,
+                    child: Text(device.label),
+                  );
+                }).toList();
               },
             ),
           if (!kIsWeb && WebRTC.platformIsMobile)
@@ -370,12 +368,11 @@ class _DeviceEnumerationSampleState extends State<DeviceEnumerationSample> {
               return _devices
                   .where((device) => device.kind == 'videoinput')
                   .map((device) {
-                    return PopupMenuItem<String>(
-                      value: device.deviceId,
-                      child: Text(device.label),
-                    );
-                  })
-                  .toList();
+                return PopupMenuItem<String>(
+                  value: device.deviceId,
+                  child: Text(device.label),
+                );
+              }).toList();
             },
           ),
           PopupMenuButton<String>(

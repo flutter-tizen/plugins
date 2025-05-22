@@ -25,4 +25,5 @@ jobs:
           sudo apt-get update
           sudo apt-get install clang-format-11
       - name: Check format
-        run: ./tools/tools_runner.sh format --fail-on-change --clang-format=clang-format-11
+        run: |
+          ./tools/tools_runner.sh format --fail-on-change --no-kotlin --no-java --no-swift --clang-format-path=clang-format-11

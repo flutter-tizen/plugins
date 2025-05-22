@@ -1,3 +1,7 @@
+## NEXT
+
+* Update code format.
+
 ## 0.5.24
 
 * Fix issue that seek not working for dynamic manifests.

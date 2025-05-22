@@ -20,8 +20,8 @@ const String kLweNavigationDelegateChannelName =
 class LweWebViewController extends PlatformWebViewController {
   /// Constructs a [LweWebViewController].
   LweWebViewController(super.params)
-    : _webview = LweWebView(),
-      super.implementation();
+      : _webview = LweWebView(),
+        super.implementation();
 
   final LweWebView _webview;
   late LweNavigationDelegate _lweNavigationDelegate;
@@ -147,7 +147,8 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> addJavaScriptChannel(
     JavaScriptChannelParams javaScriptChannelParams,
-  ) => _webview.addJavaScriptChannel(javaScriptChannelParams);
+  ) =>
+      _webview.addJavaScriptChannel(javaScriptChannelParams);
 
   @override
   Future<void> removeJavaScriptChannel(String javaScriptChannelName) =>
@@ -168,7 +169,7 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOnScrollPositionChange(
     void Function(ScrollPositionChange scrollPositionChange)?
-    onScrollPositionChange,
+        onScrollPositionChange,
   ) async {
     throw UnimplementedError(
       'This version of `LweWebViewController` currently has no '
@@ -204,7 +205,7 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOnJavaScriptAlertDialog(
     Future<void> Function(JavaScriptAlertDialogRequest request)
-    onJavaScriptAlertDialog,
+        onJavaScriptAlertDialog,
   ) async {
     throw UnimplementedError(
       'This version of `LweWebViewController` currently has no '
@@ -215,7 +216,7 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOnJavaScriptConfirmDialog(
     Future<bool> Function(JavaScriptConfirmDialogRequest request)
-    onJavaScriptConfirmDialog,
+        onJavaScriptConfirmDialog,
   ) async {
     throw UnimplementedError(
       'This version of `LweWebViewController` currently has no '
@@ -226,7 +227,7 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOnJavaScriptTextInputDialog(
     Future<String> Function(JavaScriptTextInputDialogRequest request)
-    onJavaScriptTextInputDialog,
+        onJavaScriptTextInputDialog,
   ) async {
     throw UnimplementedError(
       'This version of `LweWebViewController` currently has no '

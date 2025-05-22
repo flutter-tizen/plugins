@@ -8,8 +8,8 @@ import 'package:geolocator/geolocator.dart';
 /// Defines the main theme color.
 final MaterialColor themeMaterialColor =
     BaseflowPluginExample.createMaterialColor(
-      const Color.fromRGBO(48, 49, 60, 1),
-    );
+  const Color.fromRGBO(48, 49, 60, 1),
+);
 
 void main() {
   runApp(const GeolocatorWidget());
@@ -76,25 +76,24 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
             break;
         }
       },
-      itemBuilder:
-          (context) => [
-            if (Platform.isIOS)
-              const PopupMenuItem(
-                child: Text("Get Location Accuracy"),
-                value: 1,
-              ),
-            if (Platform.isIOS)
-              const PopupMenuItem(
-                child: Text("Request Temporary Full Accuracy"),
-                value: 2,
-              ),
-            const PopupMenuItem(child: Text("Open App Settings"), value: 3),
-            const PopupMenuItem(
-              child: Text("Open Location Settings"),
-              value: 4,
-            ),
-            const PopupMenuItem(child: Text("Clear"), value: 5),
-          ],
+      itemBuilder: (context) => [
+        if (Platform.isIOS)
+          const PopupMenuItem(
+            child: Text("Get Location Accuracy"),
+            value: 1,
+          ),
+        if (Platform.isIOS)
+          const PopupMenuItem(
+            child: Text("Request Temporary Full Accuracy"),
+            value: 2,
+          ),
+        const PopupMenuItem(child: Text("Open App Settings"), value: 3),
+        const PopupMenuItem(
+          child: Text("Open Location Settings"),
+          value: 4,
+        ),
+        const PopupMenuItem(child: Text("Clear"), value: 5),
+      ],
     );
   }
 
@@ -151,19 +150,17 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 FloatingActionButton(
-                  child:
-                      (_positionStreamSubscription == null ||
-                              _positionStreamSubscription!.isPaused)
-                          ? const Icon(Icons.play_arrow)
-                          : const Icon(Icons.pause),
+                  child: (_positionStreamSubscription == null ||
+                          _positionStreamSubscription!.isPaused)
+                      ? const Icon(Icons.play_arrow)
+                      : const Icon(Icons.pause),
                   onPressed: () {
                     positionStreamStarted = !positionStreamStarted;
                     _toggleListening();
                   },
-                  tooltip:
-                      (_positionStreamSubscription == null)
-                          ? 'Start position updates'
-                          : _positionStreamSubscription!.isPaused
+                  tooltip: (_positionStreamSubscription == null)
+                      ? 'Start position updates'
+                      : _positionStreamSubscription!.isPaused
                           ? 'Resume'
                           : 'Pause',
                   backgroundColor: _determineButtonColor(),
@@ -251,9 +248,8 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
     setState(() {});
   }
 
-  bool _isListening() =>
-      !(_positionStreamSubscription == null ||
-          _positionStreamSubscription!.isPaused);
+  bool _isListening() => !(_positionStreamSubscription == null ||
+      _positionStreamSubscription!.isPaused);
 
   Color _determineButtonColor() {
     return _isListening() ? Colors.green : Colors.red;
@@ -262,53 +258,50 @@ class _GeolocatorWidgetState extends State<GeolocatorWidget> {
   void _toggleServiceStatusStream() {
     if (_serviceStatusStreamSubscription == null) {
       final serviceStatusStream = _geolocatorPlatform.getServiceStatusStream();
-      _serviceStatusStreamSubscription = serviceStatusStream
-          .handleError((error) {
-            _serviceStatusStreamSubscription?.cancel();
-            _serviceStatusStreamSubscription = null;
-          })
-          .listen((serviceStatus) {
-            String serviceStatusValue;
-            if (serviceStatus == ServiceStatus.enabled) {
-              if (positionStreamStarted) {
-                _toggleListening();
-              }
-              serviceStatusValue = 'enabled';
-            } else {
-              if (_positionStreamSubscription != null) {
-                setState(() {
-                  _positionStreamSubscription?.cancel();
-                  _positionStreamSubscription = null;
-                  _updatePositionList(
-                    _PositionItemType.log,
-                    'Position Stream has been canceled',
-                  );
-                });
-              }
-              serviceStatusValue = 'disabled';
-            }
-            _updatePositionList(
-              _PositionItemType.log,
-              'Location service has been $serviceStatusValue',
-            );
-          });
+      _serviceStatusStreamSubscription =
+          serviceStatusStream.handleError((error) {
+        _serviceStatusStreamSubscription?.cancel();
+        _serviceStatusStreamSubscription = null;
+      }).listen((serviceStatus) {
+        String serviceStatusValue;
+        if (serviceStatus == ServiceStatus.enabled) {
+          if (positionStreamStarted) {
+            _toggleListening();
+          }
+          serviceStatusValue = 'enabled';
+        } else {
+          if (_positionStreamSubscription != null) {
+            setState(() {
+              _positionStreamSubscription?.cancel();
+              _positionStreamSubscription = null;
+              _updatePositionList(
+                _PositionItemType.log,
+                'Position Stream has been canceled',
+              );
+            });
+          }
+          serviceStatusValue = 'disabled';
+        }
+        _updatePositionList(
+          _PositionItemType.log,
+          'Location service has been $serviceStatusValue',
+        );
+      });
     }
   }
 
   void _toggleListening() {
     if (_positionStreamSubscription == null) {
       final positionStream = _geolocatorPlatform.getPositionStream();
-      _positionStreamSubscription = positionStream
-          .handleError((error) {
-            _positionStreamSubscription?.cancel();
-            _positionStreamSubscription = null;
-          })
-          .listen(
-            (position) => _updatePositionList(
-              _PositionItemType.position,
-              position.toString(),
-            ),
-          );
+      _positionStreamSubscription = positionStream.handleError((error) {
+        _positionStreamSubscription?.cancel();
+        _positionStreamSubscription = null;
+      }).listen(
+        (position) => _updatePositionList(
+          _PositionItemType.position,
+          position.toString(),
+        ),
+      );
       _positionStreamSubscription?.pause();
     }
 

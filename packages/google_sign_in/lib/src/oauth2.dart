@@ -27,10 +27,9 @@ class AuthorizationResponse {
       userCode: json['user_code']! as String,
       verificationUrl: Uri.parse(json['verification_url']! as String),
       expiresIn: Duration(seconds: json['expires_in']! as int),
-      interval:
-          json['interval'] is int
-              ? Duration(seconds: json['interval']! as int)
-              : null,
+      interval: json['interval'] is int
+          ? Duration(seconds: json['interval']! as int)
+          : null,
     );
   }
 
@@ -72,10 +71,9 @@ class TokenResponse {
       tokenType: json['token_type']! as String,
       expiresIn: Duration(seconds: json['expires_in']! as int),
       refreshToken: json['refresh_token'] as String?,
-      scope:
-          json['scope'] is String
-              ? (json['scope']! as String).split(' ').toList()
-              : null,
+      scope: json['scope'] is String
+          ? (json['scope']! as String).split(' ').toList()
+          : null,
       idToken: json['id_token']! as String,
     );
   }

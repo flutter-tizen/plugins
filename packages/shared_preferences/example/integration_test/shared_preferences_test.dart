@@ -410,13 +410,13 @@ void main() {
 
     group('withCache', () {
       Future<(SharedPreferencesWithCache, Map<String, Object?>)>
-      getPreferences() async {
+          getPreferences() async {
         final Map<String, Object?> cache = <String, Object?>{};
         final SharedPreferencesWithCache preferences =
             await SharedPreferencesWithCache.create(
-              cache: cache,
-              cacheOptions: const SharedPreferencesWithCacheOptions(),
-            );
+          cache: cache,
+          cacheOptions: const SharedPreferencesWithCacheOptions(),
+        );
         await preferences.clear();
         return (preferences, cache);
       }
@@ -530,21 +530,21 @@ void main() {
 
     group('withCache with filter', () {
       Future<(SharedPreferencesWithCache, Map<String, Object?>)>
-      getPreferences() async {
+          getPreferences() async {
         final Map<String, Object?> cache = <String, Object?>{};
         final SharedPreferencesWithCache preferences =
             await SharedPreferencesWithCache.create(
-              cache: cache,
-              cacheOptions: const SharedPreferencesWithCacheOptions(
-                allowList: <String>{
-                  stringKey,
-                  boolKey,
-                  intKey,
-                  doubleKey,
-                  listKey,
-                },
-              ),
-            );
+          cache: cache,
+          cacheOptions: const SharedPreferencesWithCacheOptions(
+            allowList: <String>{
+              stringKey,
+              boolKey,
+              intKey,
+              doubleKey,
+              listKey,
+            },
+          ),
+        );
         await preferences.clear();
         return (preferences, cache);
       }

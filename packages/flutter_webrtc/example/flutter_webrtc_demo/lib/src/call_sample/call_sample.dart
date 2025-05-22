@@ -298,78 +298,76 @@ class _CallSampleState extends State<CallSample> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton:
-          _inCalling
-              ? SizedBox(
-                width: 240.0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    FloatingActionButton(
-                      tooltip: 'Camera',
-                      onPressed: _switchCamera,
-                      child: const Icon(Icons.switch_camera),
-                    ),
-                    FloatingActionButton(
-                      tooltip: 'Screen Sharing',
-                      onPressed: () => selectScreenSourceDialog(context),
-                      child: const Icon(Icons.desktop_mac),
-                    ),
-                    FloatingActionButton(
-                      onPressed: _hangUp,
-                      tooltip: 'Hangup',
-                      backgroundColor: Colors.pink,
-                      child: Icon(Icons.call_end),
-                    ),
-                    FloatingActionButton(
-                      tooltip: 'Mute Mic',
-                      onPressed: _muteMic,
-                      child: const Icon(Icons.mic_off),
-                    ),
-                  ],
-                ),
-              )
-              : null,
-      body:
-          _inCalling
-              ? OrientationBuilder(
-                builder: (context, orientation) {
-                  return Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(color: Colors.black54),
-                            child: RTCVideoView(_localRenderer),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(color: Colors.black54),
-                            child: RTCVideoView(_remoteRenderer),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              )
-              : ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(0.0),
-                itemCount: _peers.length,
-                itemBuilder: (context, i) {
-                  return _buildRow(context, _peers[i]);
-                },
+      floatingActionButton: _inCalling
+          ? SizedBox(
+              width: 240.0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FloatingActionButton(
+                    tooltip: 'Camera',
+                    onPressed: _switchCamera,
+                    child: const Icon(Icons.switch_camera),
+                  ),
+                  FloatingActionButton(
+                    tooltip: 'Screen Sharing',
+                    onPressed: () => selectScreenSourceDialog(context),
+                    child: const Icon(Icons.desktop_mac),
+                  ),
+                  FloatingActionButton(
+                    onPressed: _hangUp,
+                    tooltip: 'Hangup',
+                    backgroundColor: Colors.pink,
+                    child: Icon(Icons.call_end),
+                  ),
+                  FloatingActionButton(
+                    tooltip: 'Mute Mic',
+                    onPressed: _muteMic,
+                    child: const Icon(Icons.mic_off),
+                  ),
+                ],
               ),
+            )
+          : null,
+      body: _inCalling
+          ? OrientationBuilder(
+              builder: (context, orientation) {
+                return Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(color: Colors.black54),
+                          child: RTCVideoView(_localRenderer),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(color: Colors.black54),
+                          child: RTCVideoView(_remoteRenderer),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            )
+          : ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(0.0),
+              itemCount: _peers.length,
+              itemBuilder: (context, i) {
+                return _buildRow(context, _peers[i]);
+              },
+            ),
     );
   }
 }

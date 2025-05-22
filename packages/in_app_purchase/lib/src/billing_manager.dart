@@ -20,7 +20,7 @@ import 'messages.g.dart';
 class BillingManager {
   /// Creates a billing manager.
   BillingManager({@visibleForTesting InAppPurchaseApi? hostApi})
-    : _hostApi = hostApi ?? InAppPurchaseApi();
+      : _hostApi = hostApi ?? InAppPurchaseApi();
 
   late RequestParameters _requestParameters;
 
@@ -391,19 +391,19 @@ class SamsungCheckoutPurchaseDetails extends PurchaseDetails {
   ) {
     final SamsungCheckoutPurchaseDetails purchaseDetails =
         SamsungCheckoutPurchaseDetails(
-          purchaseID: invoiceDetails.invoiceId,
-          productID: invoiceDetails.itemId,
-          verificationData: PurchaseVerificationData(
-            localVerificationData: invoiceDetails.invoiceId,
-            serverVerificationData: invoiceDetails.invoiceId,
-            source: kIAPSource,
-          ),
-          transactionDate: invoiceDetails.orderTime,
-          status: const PurchaseStateConverter().toPurchaseStatus(
-            invoiceDetails.cancelStatus,
-          ),
-          invoiceDetails: invoiceDetails,
-        );
+      purchaseID: invoiceDetails.invoiceId,
+      productID: invoiceDetails.itemId,
+      verificationData: PurchaseVerificationData(
+        localVerificationData: invoiceDetails.invoiceId,
+        serverVerificationData: invoiceDetails.invoiceId,
+        source: kIAPSource,
+      ),
+      transactionDate: invoiceDetails.orderTime,
+      status: const PurchaseStateConverter().toPurchaseStatus(
+        invoiceDetails.cancelStatus,
+      ),
+      invoiceDetails: invoiceDetails,
+    );
 
     if (purchaseDetails.status == PurchaseStatus.error) {
       purchaseDetails.error = IAPError(

@@ -23,15 +23,15 @@ class GoogleMapsController {
     Set<Circle> circles = const <Circle>{},
     Set<ClusterManager> clusterManagers = const <ClusterManager>{},
     Map<String, dynamic> mapOptions = const <String, dynamic>{},
-  }) : _mapId = mapId,
-       _streamController = streamController,
-       _initialCameraPosition = initialCameraPosition,
-       _markers = markers,
-       _polygons = polygons,
-       _polylines = polylines,
-       _circles = circles,
-       _clusterManagers = clusterManagers,
-       _rawMapOptions = mapOptions {
+  })  : _mapId = mapId,
+        _streamController = streamController,
+        _initialCameraPosition = initialCameraPosition,
+        _markers = markers,
+        _polygons = polygons,
+        _polylines = polylines,
+        _circles = circles,
+        _clusterManagers = clusterManagers,
+        _rawMapOptions = mapOptions {
     _circlesController = CirclesController(stream: _streamController);
     _polygonsController = PolygonsController(stream: _streamController);
     _polylinesController = PolylinesController(stream: _streamController);
@@ -70,25 +70,21 @@ class GoogleMapsController {
   /// Returns min-max zoom levels. Test only.
   @visibleForTesting
   Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
-    final String value =
-        await controller.runJavaScriptReturningResult(
-              'JSON.stringify([map.minZoom, map.maxZoom])',
-            )
-            as String;
+    final String value = await controller.runJavaScriptReturningResult(
+      'JSON.stringify([map.minZoom, map.maxZoom])',
+    ) as String;
     final dynamic bound = json.decode(value);
     double min = 0, max = 0;
     if (bound is List<dynamic>) {
       if (bound[0] is num) {
-        min =
-            (bound[0] is double)
-                ? (bound[0] as double)
-                : (bound[0] as int).toDouble();
+        min = (bound[0] is double)
+            ? (bound[0] as double)
+            : (bound[0] as int).toDouble();
       }
       if (bound[1] is num) {
-        max =
-            (bound[1] is double)
-                ? (bound[1] as double)
-                : (bound[1] as int).toDouble();
+        max = (bound[1] is double)
+            ? (bound[1] as double)
+            : (bound[1] as int).toDouble();
       }
       return MinMaxZoomPreference(min, max);
     }
@@ -98,27 +94,24 @@ class GoogleMapsController {
   /// Returns if zoomGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomGesturesEnabled() async {
-    final String value =
-        await controller.runJavaScriptReturningResult('map.gestureHandling')
-            as String;
+    final String value = await controller
+        .runJavaScriptReturningResult('map.gestureHandling') as String;
     return value != 'none';
   }
 
   /// Returns if zoomControls property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomControlsEnabled() async {
-    final String value =
-        await controller.runJavaScriptReturningResult('map.zoomControl')
-            as String;
+    final String value = await controller
+        .runJavaScriptReturningResult('map.zoomControl') as String;
     return value != 'false';
   }
 
   /// Returns if scrollGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isScrollGesturesEnabled() async {
-    final String value =
-        await controller.runJavaScriptReturningResult('map.gestureHandling')
-            as String;
+    final String value = await controller
+        .runJavaScriptReturningResult('map.gestureHandling') as String;
     return value != 'none';
   }
 

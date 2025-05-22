@@ -95,15 +95,15 @@ class PackageManager {
 
     final Map<String, dynamic>? package = await _channel
         .invokeMapMethod<String, dynamic>('getPackage', <String, String>{
-          'packageId': packageId,
-        });
+      'packageId': packageId,
+    });
     return PackageInfo.fromMap(package!);
   }
 
   /// Retrieves the package information of all installed packages.
   static Future<List<PackageInfo>> getPackagesInfo() async {
-    final List<Map<dynamic, dynamic>>? packages = await _channel
-        .invokeListMethod<Map<dynamic, dynamic>>('getPackages');
+    final List<Map<dynamic, dynamic>>? packages =
+        await _channel.invokeListMethod<Map<dynamic, dynamic>>('getPackages');
 
     final List<PackageInfo> list = <PackageInfo>[];
     for (final Map<dynamic, dynamic> package in packages!) {
@@ -142,28 +142,28 @@ class PackageManager {
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onInstallProgressChanged =>
       _installEventChannel.receiveBroadcastStream().map(
-        (dynamic event) => PackageEvent.fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-        ),
-      );
+            (dynamic event) => PackageEvent.fromMap(
+              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+            ),
+          );
 
   /// A stream of events occurring when a package is getting uninstalled
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onUninstallProgressChanged =>
       _uninstallEventChannel.receiveBroadcastStream().map(
-        (dynamic event) => PackageEvent.fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-        ),
-      );
+            (dynamic event) => PackageEvent.fromMap(
+              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+            ),
+          );
 
   /// A stream of events occurring when a package is getting updated
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onUpdateProgressChanged =>
       _updateEventChannel.receiveBroadcastStream().map(
-        (dynamic event) => PackageEvent.fromMap(
-          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-        ),
-      );
+            (dynamic event) => PackageEvent.fromMap(
+              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+            ),
+          );
 }
 
 /// Represents information of specific package.

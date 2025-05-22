@@ -57,7 +57,7 @@ class Signaling {
   Function(Session session, MediaStream stream)? onRemoveRemoteStream;
   Function(dynamic event)? onPeersUpdate;
   Function(Session session, RTCDataChannel dc, RTCDataChannelMessage data)?
-  onDataChannelMessage;
+      onDataChannelMessage;
   Function(Session session, RTCDataChannel dc)? onDataChannel;
 
   String get sdpSemantics => 'unified-plan';
@@ -342,19 +342,18 @@ class Signaling {
   }) async {
     final mediaConstraints = <String, dynamic>{
       'audio': userScreen ? false : true,
-      'video':
-          userScreen
-              ? true
-              : {
-                'mandatory': {
-                  'minWidth':
-                      '640', // Provide your own width, height and frame rate here
-                  'minHeight': '480',
-                  'minFrameRate': '30',
-                },
-                'facingMode': 'user',
-                'optional': [],
+      'video': userScreen
+          ? true
+          : {
+              'mandatory': {
+                'minWidth':
+                    '640', // Provide your own width, height and frame rate here
+                'minHeight': '480',
+                'minFrameRate': '30',
               },
+              'facingMode': 'user',
+              'optional': [],
+            },
     };
     late MediaStream stream;
     if (userScreen) {
@@ -364,13 +363,12 @@ class Signaling {
           builder: (context) => ScreenSelectDialog(),
         );
         stream = await navigator.mediaDevices.getDisplayMedia(<String, dynamic>{
-          'video':
-              source == null
-                  ? true
-                  : {
-                    'deviceId': {'exact': source.id},
-                    'mandatory': {'frameRate': 30.0},
-                  },
+          'video': source == null
+              ? true
+              : {
+                  'deviceId': {'exact': source.id},
+                  'mandatory': {'frameRate': 30.0},
+                },
         });
       } else {
         stream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);

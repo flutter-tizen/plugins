@@ -34,8 +34,8 @@ class PathProviderPlugin extends PathProviderPlatform {
 
   @override
   Future<List<String>> getExternalCachePaths() async => <String>[
-    appCommon.getExternalCachePath(),
-  ];
+        appCommon.getExternalCachePath(),
+      ];
 
   @override
   Future<List<String>> getExternalStoragePaths({StorageDirectory? type}) async {

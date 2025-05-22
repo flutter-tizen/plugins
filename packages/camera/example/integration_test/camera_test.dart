@@ -28,9 +28,9 @@ void main() {
 
   final Map<ResolutionPreset, Size> presetExpectedSizes =
       <ResolutionPreset, Size>{
-        ResolutionPreset.medium: const Size(480, 720),
-        // Don't bother checking for max here since it could be anything.
-      };
+    ResolutionPreset.medium: const Size(480, 720),
+    // Don't bother checking for max here since it could be anything.
+  };
 
   /// Verify that [actual] has dimensions that are at least as large as
   /// [expectedSize]. Allows for a mismatch in portrait vs landscape. Returns

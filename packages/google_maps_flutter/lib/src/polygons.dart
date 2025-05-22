@@ -9,9 +9,9 @@ part of '../google_maps_flutter_tizen.dart';
 class PolygonsController extends GeometryController {
   /// Initializes the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
   PolygonsController({required StreamController<MapEvent<Object?>> stream})
-    : _streamController = stream,
-      _polygonIdToController = <PolygonId, PolygonController>{},
-      _idToPolygonId = <int, PolygonId>{};
+      : _streamController = stream,
+        _polygonIdToController = <PolygonId, PolygonController>{},
+        _idToPolygonId = <int, PolygonId>{};
 
   // A cache of [PolygonController]s indexed by their [PolygonId].
   final Map<PolygonId, PolygonController> _polygonIdToController;

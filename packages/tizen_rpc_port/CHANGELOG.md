@@ -1,3 +1,7 @@
+## NEXT
+
+* Update code format.
+
 ## 0.1.4
 
 * Fix token in finalizer to be different from value.

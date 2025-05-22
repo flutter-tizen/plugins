@@ -63,16 +63,14 @@ void runTests() {
 
       final int mapId = await mapIdCompleter.future;
 
-      final TileOverlay tileOverlayInfo1 =
-          (await inspector.getTileOverlayInfo(
-            tileOverlay1.mapsId,
-            mapId: mapId,
-          ))!;
-      final TileOverlay tileOverlayInfo2 =
-          (await inspector.getTileOverlayInfo(
-            tileOverlay2.mapsId,
-            mapId: mapId,
-          ))!;
+      final TileOverlay tileOverlayInfo1 = (await inspector.getTileOverlayInfo(
+        tileOverlay1.mapsId,
+        mapId: mapId,
+      ))!;
+      final TileOverlay tileOverlayInfo2 = (await inspector.getTileOverlayInfo(
+        tileOverlay2.mapsId,
+        mapId: mapId,
+      ))!;
 
       expect(tileOverlayInfo1.visible, isTrue);
       expect(tileOverlayInfo1.fadeIn, isTrue);
@@ -148,11 +146,10 @@ void runTests() {
 
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      final TileOverlay tileOverlayInfo1 =
-          (await inspector.getTileOverlayInfo(
-            tileOverlay1.mapsId,
-            mapId: mapId,
-          ))!;
+      final TileOverlay tileOverlayInfo1 = (await inspector.getTileOverlayInfo(
+        tileOverlay1.mapsId,
+        mapId: mapId,
+      ))!;
       final TileOverlay? tileOverlayInfo2 = await inspector.getTileOverlayInfo(
         tileOverlay2.mapsId,
         mapId: mapId,

@@ -157,8 +157,8 @@ class Parcel {
 
   static final Finalizer<rpc_port_parcel_h> _finalizer =
       Finalizer<rpc_port_parcel_h>((rpc_port_parcel_h handle) {
-        tizen.rpc_port_parcel_destroy(handle);
-      });
+    tizen.rpc_port_parcel_destroy(handle);
+  });
 
   /// Gets a byte array backed by the raw data of this parcel.
   Uint8List asRaw() {

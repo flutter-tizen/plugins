@@ -35,11 +35,11 @@ class SharedPreferencesDemo extends StatefulWidget {
 class SharedPreferencesDemoState extends State<SharedPreferencesDemo> {
   final Future<SharedPreferencesWithCache> _prefs =
       SharedPreferencesWithCache.create(
-        cacheOptions: const SharedPreferencesWithCacheOptions(
-          // This cache will only accept the key 'counter'.
-          allowList: <String>{'counter'},
-        ),
-      );
+    cacheOptions: const SharedPreferencesWithCacheOptions(
+      // This cache will only accept the key 'counter'.
+      allowList: <String>{'counter'},
+    ),
+  );
   late Future<int> _counter;
   int _externalCounter = 0;
 

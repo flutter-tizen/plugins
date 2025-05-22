@@ -11,8 +11,8 @@ const EventChannel _channel = EventChannel(_channelName);
 /// A broadcast stream of events from the device rotary sensor.
 Stream<RotaryEvent> get rotaryEvents {
   return _rotaryEvents ??= _channel.receiveBroadcastStream().map(
-    (dynamic event) => _parseEvent(event),
-  );
+        (dynamic event) => _parseEvent(event),
+      );
 }
 
 Stream<RotaryEvent>? _rotaryEvents;

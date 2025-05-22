@@ -56,8 +56,8 @@ void main() {
     });
 
     testWidgets('live stream duration != 0', (WidgetTester tester) async {
-      final VideoPlayerController
-      networkController = VideoPlayerController.networkUrl(
+      final VideoPlayerController networkController =
+          VideoPlayerController.networkUrl(
         Uri.parse(
           'https://flutter.github.io/assets-for-api-docs/assets/videos/hls/bee.m3u8',
         ),

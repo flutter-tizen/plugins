@@ -12,8 +12,7 @@ void main() {
 
   final bool batteryLevelIsImplemented =
       Platform.isAndroid || Platform.isMacOS || Platform.isLinux;
-  final bool batteryStateIsImplemented =
-      Platform.isAndroid ||
+  final bool batteryStateIsImplemented = Platform.isAndroid ||
       Platform.isIOS ||
       Platform.isMacOS ||
       Platform.isWindows ||

@@ -49,3 +49,4 @@ build/
 
 # Downloaded by the plugin tools.
 google-java-format-1.3-all-deps.jar
+ktfmt-0.46-jar-with-dependencies.jar

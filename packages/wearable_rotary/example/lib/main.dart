@@ -35,10 +35,9 @@ class MyApp extends StatelessWidget {
                 Navigator.push<dynamic>(
                   context,
                   MaterialPageRoute<dynamic>(
-                    builder:
-                        (BuildContext context) => const RotaryScrollPage(
-                          scrollDirection: Axis.horizontal,
-                        ),
+                    builder: (BuildContext context) => const RotaryScrollPage(
+                      scrollDirection: Axis.horizontal,
+                    ),
                   ),
                 );
               },
@@ -50,10 +49,9 @@ class MyApp extends StatelessWidget {
                 Navigator.push<dynamic>(
                   context,
                   MaterialPageRoute<dynamic>(
-                    builder:
-                        (BuildContext context) => const RotaryScrollPage(
-                          scrollDirection: Axis.vertical,
-                        ),
+                    builder: (BuildContext context) => const RotaryScrollPage(
+                      scrollDirection: Axis.vertical,
+                    ),
                   ),
                 );
               },

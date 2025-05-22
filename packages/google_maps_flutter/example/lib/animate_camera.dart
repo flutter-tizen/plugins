@@ -11,7 +11,7 @@ import 'page.dart';
 
 class AnimateCameraPage extends GoogleMapExampleAppPage {
   const AnimateCameraPage({Key? key})
-    : super(const Icon(Icons.map), 'Camera control, animated', key: key);
+      : super(const Icon(Icons.map), 'Camera control, animated', key: key);
 
   @override
   Widget build(BuildContext context) {

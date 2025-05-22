@@ -156,9 +156,12 @@ class ExpTestPage extends TestPage {
       // inserted in a wrong order to check ASC/DESC
 
       await db.insert(table, {'group': 'group_value'});
-      await db.update(table, {
-        'group': 'group_new_value',
-      }, where: "\"group\" = 'group_value'");
+      await db.update(
+          table,
+          {
+            'group': 'group_new_value',
+          },
+          where: "\"group\" = 'group_value'");
 
       final expectedResult = [
         {'group': 'group_new_value'},
@@ -510,9 +513,12 @@ CREATE TABLE test (
         await db.execute('PRAGMA sqflite -- db_config_defensive_off');
         await db.execute('PRAGMA writable_schema = ON');
         expect(
-          await db.update('sqlite_master', {
-            'sql': 'CREATE TABLE Test(value BLOB)',
-          }, where: 'name = \'Test\' and type = \'table\''),
+          await db.update(
+              'sqlite_master',
+              {
+                'sql': 'CREATE TABLE Test(value BLOB)',
+              },
+              where: 'name = \'Test\' and type = \'table\''),
           1,
         );
       } finally {
@@ -527,9 +533,12 @@ CREATE TABLE test (
         await db.execute('CREATE TABLE Test(value TEXT)');
         await db.execute('PRAGMA writable_schema = ON');
         expect(
-          await db.update('sqlite_master', {
-            'sql': 'CREATE TABLE Test(value BLOB)',
-          }, where: 'name = \'Test\' and type = \'table\''),
+          await db.update(
+              'sqlite_master',
+              {
+                'sql': 'CREATE TABLE Test(value BLOB)',
+              },
+              where: 'name = \'Test\' and type = \'table\''),
           1,
         );
       } finally {

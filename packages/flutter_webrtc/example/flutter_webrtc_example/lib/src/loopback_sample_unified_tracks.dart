@@ -339,16 +339,15 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var trackId = element.track?.id;
       var id = kind + '_' + trackId! + '_sender';
       if (!_frameCyrptors.containsKey(id)) {
-        var frameCyrptor = await _frameCyrptorFactory
-            .createFrameCryptorForRtpSender(
-              participantId: id,
-              sender: element,
-              algorithm: Algorithm.kAesGcm,
-              keyProvider: _keySharedProvider!,
-            );
-        frameCyrptor.onFrameCryptorStateChanged =
-            (participantId, state) =>
-                print('EN onFrameCryptorStateChanged $participantId $state');
+        var frameCyrptor =
+            await _frameCyrptorFactory.createFrameCryptorForRtpSender(
+          participantId: id,
+          sender: element,
+          algorithm: Algorithm.kAesGcm,
+          keyProvider: _keySharedProvider!,
+        );
+        frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
+            print('EN onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
         await frameCyrptor.setKeyIndex(0);
       }
@@ -369,16 +368,15 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
       var trackId = element.track?.id;
       var id = kind + '_' + trackId! + '_receiver';
       if (!_frameCyrptors.containsKey(id)) {
-        var frameCyrptor = await _frameCyrptorFactory
-            .createFrameCryptorForRtpReceiver(
-              participantId: id,
-              receiver: element,
-              algorithm: Algorithm.kAesGcm,
-              keyProvider: _keySharedProvider!,
-            );
-        frameCyrptor.onFrameCryptorStateChanged =
-            (participantId, state) =>
-                print('DE onFrameCryptorStateChanged $participantId $state');
+        var frameCyrptor =
+            await _frameCyrptorFactory.createFrameCryptorForRtpReceiver(
+          participantId: id,
+          receiver: element,
+          algorithm: Algorithm.kAesGcm,
+          keyProvider: _keySharedProvider!,
+        );
+        frameCyrptor.onFrameCryptorStateChanged = (participantId, state) =>
+            print('DE onFrameCryptorStateChanged $participantId $state');
         _frameCyrptors[id] = frameCyrptor;
         await frameCyrptor.setKeyIndex(0);
       }
@@ -413,18 +411,17 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
   Map<String, dynamic> _getMediaConstraints({audio = true, video = true}) {
     return {
       'audio': audio ? true : false,
-      'video':
-          video
-              ? {
-                'mandatory': {
-                  'minWidth': '640',
-                  'minHeight': '480',
-                  'minFrameRate': '30',
-                },
-                'facingMode': 'user',
-                'optional': [],
-              }
-              : false,
+      'video': video
+          ? {
+              'mandatory': {
+                'minWidth': '640',
+                'minHeight': '480',
+                'minFrameRate': '30',
+              },
+              'facingMode': 'user',
+              'optional': [],
+            }
+          : false,
     };
   }
 
@@ -452,12 +449,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
       if (transceiver.sender.senderId != _videoSender?.senderId) return;
-      var codecs =
-          vcaps?.codecs
+      var codecs = vcaps?.codecs
               ?.where(
                 (element) => element.mimeType.toLowerCase().contains(
-                  videoDropdownValue.toLowerCase(),
-                ),
+                      videoDropdownValue.toLowerCase(),
+                    ),
               )
               .toList() ??
           [];
@@ -519,12 +515,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
     var transceivers = await _localPeerConnection?.getTransceivers();
     transceivers?.forEach((transceiver) {
       if (transceiver.sender.senderId != _audioSender?.senderId) return;
-      var codecs =
-          acaps?.codecs
+      var codecs = acaps?.codecs
               ?.where(
                 (element) => element.mimeType.toLowerCase().contains(
-                  audioDropdownValue.toLowerCase(),
-                ),
+                      audioDropdownValue.toLowerCase(),
+                    ),
               )
               .toList() ??
           [];
@@ -696,15 +691,14 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                         audioDropdownValue = value!;
                       });
                     },
-                    items:
-                        audioCodecList.map<DropdownMenuItem<String>>((
-                          String value,
-                        ) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
+                    items: audioCodecList.map<DropdownMenuItem<String>>((
+                      String value,
+                    ) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
                   ),
                   Text('video codec:'),
                   DropdownButton<String>(
@@ -719,15 +713,14 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                         videoDropdownValue = value!;
                       });
                     },
-                    items:
-                        videoCodecList.map<DropdownMenuItem<String>>((
-                          String value,
-                        ) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
+                    items: videoCodecList.map<DropdownMenuItem<String>>((
+                      String value,
+                    ) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
                   ),
                   TextButton(
                     onPressed: _ratchetKey,
@@ -812,12 +805,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 return _mediaDevicesList!
                     .where((device) => device.kind == 'audioinput')
                     .map((device) {
-                      return PopupMenuItem<String>(
-                        value: device.deviceId,
-                        child: Text(device.label),
-                      );
-                    })
-                    .toList();
+                  return PopupMenuItem<String>(
+                    value: device.deviceId,
+                    child: Text(device.label),
+                  );
+                }).toList();
               }
               return [];
             },
@@ -830,12 +822,11 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
                 return _mediaDevicesList!
                     .where((device) => device.kind == 'audiooutput')
                     .map((device) {
-                      return PopupMenuItem<String>(
-                        value: device.deviceId,
-                        child: Text(device.label),
-                      );
-                    })
-                    .toList();
+                  return PopupMenuItem<String>(
+                    value: device.deviceId,
+                    child: Text(device.label),
+                  );
+                }).toList();
               }
               return [];
             },
@@ -848,16 +839,15 @@ class _MyAppState extends State<LoopBackSampleUnifiedTracks> {
             children: [
               Container(
                 decoration: BoxDecoration(color: Colors.black54),
-                child:
-                    orientation == Orientation.portrait
-                        ? Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: widgets,
-                        )
-                        : Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: widgets,
-                        ),
+                child: orientation == Orientation.portrait
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: widgets,
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: widgets,
+                      ),
               ),
               Align(
                 alignment: Alignment.bottomCenter,
