@@ -152,6 +152,20 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   ) {
     throw UnimplementedError('setDisplayGeometry() has not been implemented.');
   }
+
+  /// Pauses the player when the application is sent to the background.
+  Future<void> suspend(int playerId) {
+    throw UnimplementedError('suspend() has not been implemented.');
+  }
+
+  /// Restores the player state when the application is resumed.
+  Future<void> restore(
+    int playerId, {
+    DataSource? dataSource,
+    int resumeTime = -1,
+  }) {
+    throw UnimplementedError('restore() has not been implemented.');
+  }
 }
 
 /// Description of the data source used to create an instance of
@@ -348,6 +362,9 @@ enum VideoEventType {
   /// This event is fired when the video starts or pauses due to user actions or
   /// phone calls, or other app media such as music players.
   isPlayingStateUpdate,
+
+  /// The video need to restore player.
+  restored,
 
   /// An unknown event has been received.
   unknown,

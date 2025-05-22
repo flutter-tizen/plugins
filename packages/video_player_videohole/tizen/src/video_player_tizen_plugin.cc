@@ -55,6 +55,10 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
       const MixWithOthersMessage &msg) override;
   std::optional<FlutterError> SetDisplayGeometry(
       const GeometryMessage &msg) override;
+  std::optional<FlutterError> Suspend(int64_t player_id) override;
+  std::optional<FlutterError> Restore(int64_t palyer_id,
+                                      const CreateMessage *msg,
+                                      int64_t resume_time) override;
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -66,6 +70,11 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
 
  private:
   void DisposeAllPlayers();
+  void ParseFromCreateMessage(const CreateMessage &msg, std::string &uri,
+                              int64_t &drm_type,
+                              std::string &license_server_url,
+                              bool &prebuffer_mode,
+                              flutter::EncodableMap &http_headers);
 
   FlutterDesktopPluginRegistrarRef registrar_ref_;
   flutter::PluginRegistrar *plugin_registrar_;
@@ -109,11 +118,6 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     return FlutterError("Operation failed", "Could not get a Flutter view.");
   }
   std::string uri;
-  int32_t drm_type = 0;  // DRM_TYPE_NONE
-  std::string license_server_url;
-  bool prebuffer_mode = false;
-  std::string format;
-  flutter::EncodableMap http_headers = {};
 
   if (msg.asset() && !msg.asset()->empty()) {
     char *res_path = app_get_resource_path();
@@ -125,42 +129,6 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
     }
   } else if (msg.uri() && !msg.uri()->empty()) {
     uri = *msg.uri();
-    if (msg.format_hint() && !msg.format_hint()->empty()) {
-      format = *msg.format_hint();
-    }
-
-    const flutter::EncodableMap *drm_configs = msg.drm_configs();
-    if (drm_configs) {
-      auto iter = drm_configs->find(flutter::EncodableValue("drmType"));
-      if (iter != drm_configs->end()) {
-        if (std::holds_alternative<int32_t>(iter->second)) {
-          drm_type = std::get<int32_t>(iter->second);
-        }
-      }
-      iter = drm_configs->find(flutter::EncodableValue("licenseServerUrl"));
-      if (iter != drm_configs->end()) {
-        if (std::holds_alternative<std::string>(iter->second)) {
-          license_server_url = std::get<std::string>(iter->second);
-        }
-      }
-    }
-
-    const flutter::EncodableMap *player_options = msg.player_options();
-    if (player_options) {
-      auto iter =
-          player_options->find(flutter::EncodableValue("prebufferMode"));
-      if (iter != player_options->end()) {
-        if (std::holds_alternative<bool>(iter->second)) {
-          prebuffer_mode = std::get<bool>(iter->second);
-        }
-      }
-    }
-
-    const flutter::EncodableMap *http_headers_map = msg.http_headers();
-    if (http_headers_map) {
-      http_headers = *http_headers_map;
-    }
-
   } else {
     return FlutterError("Invalid argument", "Either asset or uri must be set.");
   }
@@ -168,8 +136,7 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   auto player = std::make_unique<MediaPlayer>(
       plugin_registrar_->messenger(),
       FlutterDesktopPluginRegistrarGetView(registrar_ref_));
-  int64_t player_id = player->Create(uri, drm_type, license_server_url,
-                                     prebuffer_mode, http_headers);
+  int64_t player_id = player->Create(uri, msg);
   if (player_id == -1) {
     return FlutterError("Operation failed", "Failed to create a player.");
   }
@@ -337,6 +304,29 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &msg) {
   options_.SetMixWithOthers(msg.mix_with_others());
+  return std::nullopt;
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::Suspend(int64_t player_id) {
+  VideoPlayer *player = FindPlayerById(player_id);
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  if (!player->Suspend()) {
+    return FlutterError("Operation failed", "Player suspend error");
+  }
+  return std::nullopt;
+}
+std::optional<FlutterError> VideoPlayerTizenPlugin::Restore(
+    int64_t player_id, const CreateMessage *msg, int64_t resume_time) {
+  VideoPlayer *player = FindPlayerById(player_id);
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+
+  if (!player->Restore(msg, resume_time)) {
+    return FlutterError("Operation failed", "Player restore error");
+  }
   return std::nullopt;
 }
 
