@@ -10,7 +10,7 @@ dependencies:
   baseflow_plugin_template: ^2.1.2
   flutter:
     sdk: flutter
-  permission_handler: ^10.4.3
+  permission_handler: ^12.0.0
   permission_handler_tizen:
     path: ../
   url_launcher: ^6.1.0
