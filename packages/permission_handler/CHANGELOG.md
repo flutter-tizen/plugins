@@ -1,3 +1,8 @@
+## 1.4.1
+
+* Update README.
+* Update the example app.
+
 ## 1.4.0
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
