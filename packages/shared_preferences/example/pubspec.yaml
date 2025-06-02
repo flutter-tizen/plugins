@@ -3,13 +3,13 @@ description: Demonstrates how to use the shared_preferences_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ^3.4.0
-  flutter: ">=3.22.0"
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.3.2
+  shared_preferences: ^2.5.3
   shared_preferences_tizen:
     path: ../
 
