@@ -225,6 +225,18 @@ void WebView::Resize(double width, double height) {
 
 void WebView::Touch(int type, int button, double x, double y, double dx,
                     double dy) {
+#ifdef EWK_TOUCH_EVENTS_ENABLED
+  SendTouchEvent(type, x, y);
+#else
+  if (dx == 0 && dy == 0) {
+    SendMouseEvent(type, button, x, y, dx, dy);
+  } else {
+    SendMouseWheelEvent(true, dy, x, y);
+  }
+#endif
+}
+
+void WebView::SendTouchEvent(int type, double x, double y) {
   Ewk_Touch_Event_Type mouse_event_type = EWK_TOUCH_START;
   Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
   if (type == 0) {  // down event
@@ -251,6 +263,45 @@ void WebView::Touch(int type, int button, double x, double y, double dx,
   EwkInternalApiBinding::GetInstance().view.FeedTouchEvent(
       webview_instance_, mouse_event_type, points, 0);
   eina_list_free(points);
+}
+
+void WebView::SendMouseEvent(int type, int button, double x, double y,
+                             double dx, double dy) {
+  Ewk_Mouse_Button_Type button_type = (Ewk_Mouse_Button_Type)0;
+  switch (button) {
+    case 1:
+      button_type = EWK_Mouse_Button_Left;
+      break;
+    case 2:
+      button_type = EWK_Mouse_Button_Middle;
+      break;
+    case 3:
+      button_type = EWK_Mouse_Button_Right;
+      break;
+  }
+
+  int px = x + left_;
+  int py = y + top_;
+  if (type == 0) {  // down event
+    button_type_ |= button_type;
+    EwkInternalApiBinding::GetInstance().view.FeedMouseDown(
+        webview_instance_, (Ewk_Mouse_Button_Type)button_type_, px, py);
+  } else if (type == 1) {  // move event
+    EwkInternalApiBinding::GetInstance().view.FeedMouseMove(webview_instance_,
+                                                            px, py);
+  } else if (type == 2) {  // up event
+    button_type_ & ~button_type;
+    EwkInternalApiBinding::GetInstance().view.FeedMouseUp(
+        webview_instance_, (Ewk_Mouse_Button_Type)button_type_, px, py);
+  } else {
+    LOG_WARN("Unknown touch event type: %d", type);
+  }
+}
+
+void WebView::SendMouseWheelEvent(bool yDirection, int step, double x,
+                                  double y) {
+  EwkInternalApiBinding::GetInstance().view.FeedMouseWheel(
+      webview_instance_, yDirection, step >= 0 ? 1 : -1, x, y);
 }
 
 bool WebView::SendKey(const char* key, const char* string, const char* compose,
@@ -307,13 +358,13 @@ bool WebView::InitWebView() {
                                                          chromium_argv);
 
   // TODO(jsuya): ewk_init() and ewk_shutdown() are designed to be called only
-  // once in a process.(If ewk_init() is called after ewk_shutdown() is called,
-  // SIGTRAP is called internally.) ewk_init() initializes the efl modules and
-  // web engine's arguments data. The efl modules are initialized by default in
-  // OS, and arguments data is also initialized through SetArguments() API, so
-  // calling ewk_init() is not necessary. Therefore, temporarily comment out
-  // ewk_init() and ewk_shutdown(). It can be reverted depending on updates to
-  // chromium-efl.
+  // once in a process.(If ewk_init() is called after ewk_shutdown() is
+  // called, SIGTRAP is called internally.) ewk_init() initializes the efl
+  // modules and web engine's arguments data. The efl modules are initialized
+  // by default in OS, and arguments data is also initialized through
+  // SetArguments() API, so calling ewk_init() is not necessary. Therefore,
+  // temporarily comment out ewk_init() and ewk_shutdown(). It can be reverted
+  // depending on updates to chromium-efl.
   // ewk_init();
   Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
 
@@ -341,6 +392,10 @@ bool WebView::InitWebView() {
   EwkInternalApiBinding::GetInstance().view.ImeWindowSet(webview_instance_,
                                                          window_);
   EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(
+      webview_instance_, true);
+  EwkInternalApiBinding::GetInstance().view.TouchEventsEnabledSet(
+      webview_instance_, true);
+  EwkInternalApiBinding::GetInstance().view.MouseEventsEnabledSet(
       webview_instance_, true);
 
   EwkInternalApiBinding::GetInstance().view.OnJavaScriptAlert(
@@ -544,7 +599,8 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
   } else if (method_name == "getScrollPosition") {
     int32_t x = 0, y = 0;
     // TODO(jsuya) : ewk_view_scroll_pos_get() returns the position set in
-    // ewk_view_scroll_set(). Therefore, it currently does not work as intended.
+    // ewk_view_scroll_set(). Therefore, it currently does not work as
+    // intended.
     ewk_view_scroll_pos_get(webview_instance_, &x, &y);
     flutter::EncodableMap args = {
         {flutter::EncodableValue("x"),

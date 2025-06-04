@@ -92,6 +92,11 @@ class WebView : public PlatformView {
                                             const char* default_text,
                                             void* data);
 
+  void SendTouchEvent(int type, double x, double y);
+  void SendMouseEvent(int type, int button, double x, double y, double dx,
+                      double dy);
+  void SendMouseWheelEvent(bool yDirection, int step, double x, double y);
+
   Evas_Object* webview_instance_ = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
   bool engine_policy_ = false;
@@ -111,6 +116,7 @@ class WebView : public PlatformView {
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;
   bool disposed_ = false;
+  int button_type_ = 0;  // 0: none, 1: left, 2: right, 3: middle
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_H_

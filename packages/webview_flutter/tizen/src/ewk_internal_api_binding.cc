@@ -24,8 +24,22 @@ bool EwkInternalApiBinding::Initialize() {
   // ewk_view
   view.SetBackgroundColor = reinterpret_cast<EwkViewBgColorSetFnPtr>(
       dlsym(handle_, "ewk_view_bg_color_set"));
+  view.TouchEventsEnabledSet =
+      reinterpret_cast<EwkViewTouchEventsEnabledSetFnPtr>(
+          dlsym(handle_, "ewk_view_mouse_events_enabled_set"));
   view.FeedTouchEvent = reinterpret_cast<EwkViewFeedTouchEventFnPtr>(
       dlsym(handle_, "ewk_view_feed_touch_event"));
+  view.MouseEventsEnabledSet =
+      reinterpret_cast<EwkViewMouseEventsEnabledSetFnPtr>(
+          dlsym(handle_, "ewk_view_mouse_events_enabled_set"));
+  view.FeedMouseDown = reinterpret_cast<EwkViewFeedMouseDownFnPtr>(
+      dlsym(handle_, "ewk_view_feed_mouse_down"));
+  view.FeedMouseUp = reinterpret_cast<EwkViewFeedMouseUpFnPtr>(
+      dlsym(handle_, "ewk_view_feed_mouse_up"));
+  view.FeedMouseMove = reinterpret_cast<EwkViewFeedMouseMoveFnPtr>(
+      dlsym(handle_, "ewk_view_feed_mouse_move"));
+  view.FeedMouseWheel = reinterpret_cast<EwkViewFeedMouseWheelFnPtr>(
+      dlsym(handle_, "ewk_view_feed_mouse_wheel"));
   view.SendKeyEvent = reinterpret_cast<EwkViewSendKeyEventFnPtr>(
       dlsym(handle_, "ewk_view_send_key_event"));
   view.OffscreenRenderingEnabledSet =
@@ -82,7 +96,10 @@ bool EwkInternalApiBinding::Initialize() {
   console_message.SourceGet = reinterpret_cast<EwkConsoleMessageSourceGetFnPtr>(
       dlsym(handle_, "ewk_console_message_source_get"));
 
-  return view.SetBackgroundColor && view.FeedTouchEvent && view.SendKeyEvent &&
+  return view.SetBackgroundColor && view.TouchEventsEnabledSet &&
+         view.FeedTouchEvent && view.MouseEventsEnabledSet &&
+         view.FeedMouseDown && view.FeedMouseUp && view.FeedMouseMove &&
+         view.FeedMouseWheel && view.SendKeyEvent &&
          view.OffscreenRenderingEnabledSet && view.ImeWindowSet &&
          view.KeyEventsEnabledSet && view.SupportVideoHoleSet &&
          view.OnJavaScriptAlert && view.OnJavaScriptConfirm &&
