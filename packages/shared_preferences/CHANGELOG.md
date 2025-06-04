@@ -1,5 +1,9 @@
-## NEXT
+## 2.3.2
 
+* Update shared_preferences to 2.5.3.
+* Update shared_preferences_interface to 2.4.1. 
+* Update the example app and integration_test.
+* Updates minimum supported SDK version to Flutter 3.27/Dart 3.6.
 * Update code format.
 
 ## 2.3.1
