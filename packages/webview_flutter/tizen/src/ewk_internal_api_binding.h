@@ -17,9 +17,9 @@ typedef enum {
 typedef struct _Ewk_Touch_Point Ewk_Touch_Point;
 
 typedef enum {
-  EWK_Mouse_Button_Left = 1,
-  EWK_Mouse_Button_Middle = 2,
-  EWK_Mouse_Button_Right = 3
+  EWK_MOUSE_BUTTON_LEFT = 1,
+  EWK_MOUSE_BUTTON_MIDDLE = 2,
+  EWK_MOUSE_BUTTON_RIGHT = 3
 } Ewk_Mouse_Button_Type;
 
 struct _Ewk_Touch_Point {

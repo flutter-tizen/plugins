@@ -19,6 +19,8 @@
 #include <mutex>
 #include <string>
 
+#include "ewk_internal_api_binding.h"
+
 typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
@@ -95,7 +97,6 @@ class WebView : public PlatformView {
   void SendTouchEvent(int type, double x, double y);
   void SendMouseEvent(int type, int button, double x, double y, double dx,
                       double dy);
-  void SendMouseWheelEvent(bool yDirection, int step, double x, double y);
 
   Evas_Object* webview_instance_ = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
@@ -116,7 +117,7 @@ class WebView : public PlatformView {
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;
   bool disposed_ = false;
-  int button_type_ = 0;  // 0: none, 1: left, 2: right, 3: middle
+  Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_H_

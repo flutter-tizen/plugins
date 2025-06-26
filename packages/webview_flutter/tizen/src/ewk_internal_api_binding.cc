@@ -26,7 +26,7 @@ bool EwkInternalApiBinding::Initialize() {
       dlsym(handle_, "ewk_view_bg_color_set"));
   view.TouchEventsEnabledSet =
       reinterpret_cast<EwkViewTouchEventsEnabledSetFnPtr>(
-          dlsym(handle_, "ewk_view_mouse_events_enabled_set"));
+          dlsym(handle_, "ewk_view_touch_events_enabled_set"));
   view.FeedTouchEvent = reinterpret_cast<EwkViewFeedTouchEventFnPtr>(
       dlsym(handle_, "ewk_view_feed_touch_event"));
   view.MouseEventsEnabledSet =

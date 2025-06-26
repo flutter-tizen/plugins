@@ -11,7 +11,6 @@
 #include <tbm_surface.h>
 
 #include "buffer_pool.h"
-#include "ewk_internal_api_binding.h"
 #include "log.h"
 #include "webview_factory.h"
 
@@ -223,33 +222,29 @@ void WebView::Resize(double width, double height) {
   evas_object_resize(webview_instance_, width_, height_);
 }
 
-void WebView::Touch(int type, int button, double x, double y, double dx,
-                    double dy) {
-#ifdef EWK_TOUCH_EVENTS_ENABLED
-  SendTouchEvent(type, x, y);
+void WebView::Touch(int event_type, int button_type, double x, double y,
+                    double dx, double dy) {
+#ifdef WEBVIEW_TIZEN_TOUCH_EVENTS_ENABLED
+  SendTouchEvent(event_type, x, y);
 #else
-  if (dx == 0 && dy == 0) {
-    SendMouseEvent(type, button, x, y, dx, dy);
-  } else {
-    SendMouseWheelEvent(true, dy, x, y);
-  }
+  SendMouseEvent(event_type, button_type, x, y, dx, dy);
 #endif
 }
 
-void WebView::SendTouchEvent(int type, double x, double y) {
+void WebView::SendTouchEvent(int event_type, double x, double y) {
   Ewk_Touch_Event_Type mouse_event_type = EWK_TOUCH_START;
   Evas_Touch_Point_State state = EVAS_TOUCH_POINT_DOWN;
-  if (type == 0) {  // down event
+  if (event_type == 0) {  // down event
     mouse_event_type = EWK_TOUCH_START;
     state = EVAS_TOUCH_POINT_DOWN;
-  } else if (type == 1) {  // move event
+  } else if (event_type == 1) {  // move event
     mouse_event_type = EWK_TOUCH_MOVE;
     state = EVAS_TOUCH_POINT_MOVE;
-  } else if (type == 2) {  // up event
+  } else if (event_type == 2) {  // up event
     mouse_event_type = EWK_TOUCH_END;
     state = EVAS_TOUCH_POINT_UP;
   } else {
-    LOG_WARN("Unknown touch event type: %d", type);
+    LOG_WARN("Unknown touch event type: %d", event_type);
   }
 
   Eina_List* points = 0;
@@ -265,43 +260,40 @@ void WebView::SendTouchEvent(int type, double x, double y) {
   eina_list_free(points);
 }
 
-void WebView::SendMouseEvent(int type, int button, double x, double y,
-                             double dx, double dy) {
-  Ewk_Mouse_Button_Type button_type = (Ewk_Mouse_Button_Type)0;
-  switch (button) {
+void WebView::SendMouseEvent(int event_type, int button_type, double x,
+                             double y, double dx, double dy) {
+  Ewk_Mouse_Button_Type mouse_button_type = (Ewk_Mouse_Button_Type)0;
+  switch (button_type) {
     case 1:
-      button_type = EWK_Mouse_Button_Left;
+      mouse_button_type = EWK_MOUSE_BUTTON_LEFT;
       break;
     case 2:
-      button_type = EWK_Mouse_Button_Middle;
+      mouse_button_type = EWK_MOUSE_BUTTON_RIGHT;
       break;
-    case 3:
-      button_type = EWK_Mouse_Button_Right;
+    case 4:
+      mouse_button_type = EWK_MOUSE_BUTTON_MIDDLE;
       break;
   }
 
   int px = x + left_;
   int py = y + top_;
-  if (type == 0) {  // down event
-    button_type_ |= button_type;
-    EwkInternalApiBinding::GetInstance().view.FeedMouseDown(
-        webview_instance_, (Ewk_Mouse_Button_Type)button_type_, px, py);
-  } else if (type == 1) {  // move event
-    EwkInternalApiBinding::GetInstance().view.FeedMouseMove(webview_instance_,
-                                                            px, py);
-  } else if (type == 2) {  // up event
-    button_type_ & ~button_type;
-    EwkInternalApiBinding::GetInstance().view.FeedMouseUp(
-        webview_instance_, (Ewk_Mouse_Button_Type)button_type_, px, py);
-  } else {
-    LOG_WARN("Unknown touch event type: %d", type);
-  }
-}
 
-void WebView::SendMouseWheelEvent(bool yDirection, int step, double x,
-                                  double y) {
-  EwkInternalApiBinding::GetInstance().view.FeedMouseWheel(
-      webview_instance_, yDirection, step >= 0 ? 1 : -1, x, y);
+  if (event_type == 0) {  // down event
+    mouse_button_type_ = mouse_button_type;
+    EwkInternalApiBinding::GetInstance().view.FeedMouseDown(
+        webview_instance_, mouse_button_type_, px, py);
+  } else if (event_type == 1) {
+    if (dy != 0) {
+      EwkInternalApiBinding::GetInstance().view.FeedMouseWheel(
+          webview_instance_, true, dy > 0 ? 1 : -1, px, py);
+    }
+  } else if (event_type == 2) {  // up event
+    EwkInternalApiBinding::GetInstance().view.FeedMouseUp(
+        webview_instance_, mouse_button_type_, px, py);
+    mouse_button_type_ = mouse_button_type;
+  } else {
+    LOG_WARN("Unknown mouse event type: %d", event_type);
+  }
 }
 
 bool WebView::SendKey(const char* key, const char* string, const char* compose,
@@ -393,10 +385,17 @@ bool WebView::InitWebView() {
                                                          window_);
   EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(
       webview_instance_, true);
+#ifdef WEBVIEW_TIZEN_TOUCH_EVENTS_ENABLED
   EwkInternalApiBinding::GetInstance().view.TouchEventsEnabledSet(
       webview_instance_, true);
   EwkInternalApiBinding::GetInstance().view.MouseEventsEnabledSet(
+      webview_instance_, false);
+#else
+  EwkInternalApiBinding::GetInstance().view.TouchEventsEnabledSet(
+      webview_instance_, false);
+  EwkInternalApiBinding::GetInstance().view.MouseEventsEnabledSet(
       webview_instance_, true);
+#endif
 
   EwkInternalApiBinding::GetInstance().view.OnJavaScriptAlert(
       webview_instance_, &WebView::OnJavaScriptAlertDialog, this);
