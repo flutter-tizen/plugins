@@ -1,6 +1,8 @@
-## NEXT
+## 0.9.6
 
 * Update code format.
+* Add support for mouse events.
+* Fix crash issue by explicitly enabling touch events on TV.
 
 ## 0.9.5
 
