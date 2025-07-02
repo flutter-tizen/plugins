@@ -16,6 +16,12 @@ typedef enum {
 
 typedef struct _Ewk_Touch_Point Ewk_Touch_Point;
 
+typedef enum {
+  EWK_MOUSE_BUTTON_LEFT = 1,
+  EWK_MOUSE_BUTTON_MIDDLE = 2,
+  EWK_MOUSE_BUTTON_RIGHT = 3
+} Ewk_Mouse_Button_Type;
+
 struct _Ewk_Touch_Point {
   int id;
   int x;
@@ -35,10 +41,24 @@ typedef Eina_Bool (*Ewk_View_JavaScript_Prompt_Callback)(
 
 typedef Eina_Bool (*EwkViewBgColorSetFnPtr)(Evas_Object* obj, int r, int g,
                                             int b, int a);
+typedef Eina_Bool (*EwkViewTouchEventsEnabledSetFnPtr)(Evas_Object* view,
+                                                       Eina_Bool enabled);
 typedef Eina_Bool (*EwkViewFeedTouchEventFnPtr)(Evas_Object* obj,
                                                 Ewk_Touch_Event_Type type,
                                                 const Eina_List* points,
                                                 const Evas_Modifier* modifiers);
+typedef Eina_Bool (*EwkViewMouseEventsEnabledSetFnPtr)(Evas_Object* view,
+                                                       Eina_Bool enabled);
+typedef Eina_Bool (*EwkViewFeedMouseDownFnPtr)(Evas_Object* obj,
+                                               Ewk_Mouse_Button_Type button,
+                                               int x, int y);
+typedef Eina_Bool (*EwkViewFeedMouseUpFnPtr)(Evas_Object* obj,
+                                             Ewk_Mouse_Button_Type button,
+                                             int x, int y);
+typedef Eina_Bool (*EwkViewFeedMouseMoveFnPtr)(Evas_Object* obj, int x, int y);
+typedef Eina_Bool (*EwkViewFeedMouseWheelFnPtr)(Evas_Object* obj,
+                                                Eina_Bool y_direction, int step,
+                                                int x, int y);
 typedef Eina_Bool (*EwkViewSendKeyEventFnPtr)(Evas_Object* obj, void* key_event,
                                               Eina_Bool is_press);
 typedef void (*EwkViewOffscreenRenderingEnabledSetFnPtr)(Evas_Object* obj,
@@ -67,7 +87,13 @@ typedef void (*EwkViewJavaScriptPromptReplyFnPtr)(Evas_Object* o,
 
 typedef struct {
   EwkViewBgColorSetFnPtr SetBackgroundColor = nullptr;
+  EwkViewTouchEventsEnabledSetFnPtr TouchEventsEnabledSet = nullptr;
   EwkViewFeedTouchEventFnPtr FeedTouchEvent = nullptr;
+  EwkViewMouseEventsEnabledSetFnPtr MouseEventsEnabledSet = nullptr;
+  EwkViewFeedMouseDownFnPtr FeedMouseDown = nullptr;
+  EwkViewFeedMouseUpFnPtr FeedMouseUp = nullptr;
+  EwkViewFeedMouseMoveFnPtr FeedMouseMove = nullptr;
+  EwkViewFeedMouseWheelFnPtr FeedMouseWheel = nullptr;
   EwkViewSendKeyEventFnPtr SendKeyEvent = nullptr;
   EwkViewOffscreenRenderingEnabledSetFnPtr OffscreenRenderingEnabledSet =
       nullptr;
