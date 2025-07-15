@@ -96,7 +96,7 @@ class _ControlsTabState extends State<ControlsTab>
         ),
         WrappedListTile(
           leading: const Text('Rate'),
-          children: [0.0, 0.5, 1.0, 2.0].map((it) {
+          children: [0.5, 1.0, 2.0].map((it) {
             final formattedVal = it.toStringAsFixed(1);
             return Btn(
               key: Key('control-rate-$formattedVal'),
