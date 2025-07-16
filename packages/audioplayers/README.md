@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 ```yaml
 dependencies:
   audioplayers: ^6.4.0
-  audioplayers_tizen: ^3.1.1
+  audioplayers_tizen: ^3.1.2
 
 ```
 

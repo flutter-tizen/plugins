@@ -1,6 +1,12 @@
-## NEXT
+## 3.1.2
 
 * Update code format.
+* Handle player resource cleanup in destructor
+* Rename Release() to ReleaseMediaSource() for clearer responsibility
+* Handle sending null values when exceptions occur in GetDuration() and GetPosition()
+* Add logging for unsupported features
+* Fix range limitation of SetVolume() and SetPlaybackRate()
+
 
 ## 3.1.1
 
