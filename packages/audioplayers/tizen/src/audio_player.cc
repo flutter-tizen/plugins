@@ -84,8 +84,7 @@ void AudioPlayer::Play() {
 }
 
 void AudioPlayer::Pause() {
-  player_state_e state = GetPlayerState();
-  if (state == PLAYER_STATE_PLAYING) {
+  if (GetPlayerState() == PLAYER_STATE_PLAYING) {
     int ret = player_pause(player_);
     if (ret != PLAYER_ERROR_NONE) {
       throw AudioPlayerError("player_pause failed", get_error_message(ret));
@@ -183,8 +182,7 @@ void AudioPlayer::SetVolume(double volume) {
   }
   volume_ = volume;
 
-  player_state_e state = GetPlayerState();
-  if (state != PLAYER_STATE_NONE) {
+  if (GetPlayerState() != PLAYER_STATE_NONE) {
     int ret = player_set_volume(player_, volume_, volume_);
     if (ret != PLAYER_ERROR_NONE) {
       throw AudioPlayerError("player_set_volume failed",
@@ -216,9 +214,7 @@ void AudioPlayer::SetPlaybackRate(double playback_rate) {
 void AudioPlayer::SetReleaseMode(ReleaseMode mode) {
   if (release_mode_ != mode) {
     release_mode_ = mode;
-
-    player_state_e state = GetPlayerState();
-    if (state != PLAYER_STATE_NONE) {
+    if (GetPlayerState() != PLAYER_STATE_NONE) {
       int ret =
           player_set_looping(player_, (release_mode_ == ReleaseMode::kLoop));
       if (ret != PLAYER_ERROR_NONE) {
@@ -239,26 +235,21 @@ void AudioPlayer::SetLatencyMode(bool low_latency) {
 }
 
 int AudioPlayer::GetDuration() {
-  // TODO(seungsoo47): Get duration in milliseconds, returns -1 if no duration
-  // is available. The frontend package will handle these.
   int32_t duration;
   int ret = player_get_duration(player_, &duration);
   if (ret != PLAYER_ERROR_NONE) {
-    OnLog("player_get_duration failed, " + std::string(get_error_message(ret)));
-    return -1;
+    throw AudioPlayerError("player_get_duration failed",
+                           get_error_message(ret));
   }
   return duration;
 }
 
 int AudioPlayer::GetCurrentPosition() {
-  // TODO(seungsoo47): Get position in milliseconds, returns -1 if no position
-  // is available. The frontend package will handle these.
   int32_t position;
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
-    OnLog("player_get_play_position failed, " +
-          std::string(get_error_message(ret)));
-    return -1;
+    throw AudioPlayerError("player_get_play_position failed",
+                           get_error_message(ret));
   }
   return position;
 }
@@ -365,13 +356,13 @@ void AudioPlayer::OnPrepared(void *data) {
         auto *player = reinterpret_cast<AudioPlayer *>(data);
         player->preparing_ = false;
 
-        int32_t duration = player->GetDuration();
-        if (duration < 0) {
+        try {
+          player->duration_listener_(player->player_id_, player->GetDuration());
+          player->prepared_listener_(player->player_id_, true);
+        } catch (const AudioPlayerError &error) {
+          player->log_listener_(player->player_id_, error.code());
           return;
         }
-        player->duration_listener_(player->player_id_, duration);
-        player->prepared_listener_(player->player_id_, true);
-
         player_set_playback_rate(player->player_, player->playback_rate_);
 
         if (player->should_play_) {
@@ -460,17 +451,14 @@ void AudioPlayer::StartPositionUpdates() {
 
 Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
   auto *player = reinterpret_cast<AudioPlayer *>(data);
-  if (!player->IsPlaying()) {
-    player->timer_ = nullptr;
-    return ECORE_CALLBACK_CANCEL;
+  try {
+    if (player->IsPlaying()) {
+      player->duration_listener_(player->player_id_, player->GetDuration());
+      return ECORE_CALLBACK_RENEW;
+    }
+  } catch (const AudioPlayerError &error) {
+    player->log_listener_(player->player_id_, "Failed to update position.");
   }
-
-  int32_t duration = player->GetDuration();
-  if (duration < 0) {
-    player->timer_ = nullptr;
-    return ECORE_CALLBACK_CANCEL;
-  }
-
-  player->duration_listener_(player->player_id_, duration);
-  return ECORE_CALLBACK_RENEW;
+  player->timer_ = nullptr;
+  return ECORE_CALLBACK_CANCEL;
 }

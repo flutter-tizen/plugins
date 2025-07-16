@@ -19,7 +19,6 @@
 
 #include "audio_player.h"
 #include "audio_player_error.h"
-#include "log.h"
 
 namespace {
 
@@ -225,13 +224,22 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         player->SetReleaseMode(StringToReleaseMode(release_mode));
         result->Success();
       } else if (method_name == "getDuration") {
-        int32_t duration = player->GetDuration();
-        result->Success(duration < 0 ? flutter::EncodableValue(std::monostate())
-                                     : flutter::EncodableValue(duration));
+        // TODO(seungsoo47): If an exception occurs, null is sent.
+        try {
+          result->Success(flutter::EncodableValue(player->GetDuration()));
+        } catch (const AudioPlayerError &error) {
+          player->OnLog(error.code() + error.message());
+          result->Success(flutter::EncodableValue(std::monostate()));
+        }
       } else if (method_name == "getCurrentPosition") {
-        int32_t position = player->GetCurrentPosition();
-        result->Success(position < 0 ? flutter::EncodableValue(std::monostate())
-                                     : flutter::EncodableValue(position));
+        // TODO(seungsoo47): If an exception occurs, null is sent.
+        try {
+          result->Success(
+              flutter::EncodableValue(player->GetCurrentPosition()));
+        } catch (const AudioPlayerError &error) {
+          player->OnLog(error.code() + error.message());
+          result->Success(flutter::EncodableValue(std::monostate()));
+        }
       } else if (method_name == "setPlayerMode") {
         bool low_latency =
             GetRequiredArg<std::string>(arguments, "playerMode") ==
@@ -268,6 +276,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         audio_players_.clear();
       } else if (method_name == "setAudioContext") {
         OnGlobalLog("Setting AudioContext is not supported on Tizen");
+        result->NotImplemented();
+        return;
       } else if (method_name == "emitLog") {
         if (arguments) {
           auto message = GetRequiredArg<std::string>(arguments, "message");
