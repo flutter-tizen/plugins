@@ -90,6 +90,12 @@ class DurationMessage {
   List<int?>? durationRange;
 }
 
+class RotationMessage {
+  RotationMessage(this.playerId, this.rotation);
+  int playerId;
+  int rotation;
+}
+
 @HostApi()
 abstract class VideoPlayerVideoholeApi {
   void initialize();
@@ -112,4 +118,5 @@ abstract class VideoPlayerVideoholeApi {
   DurationMessage duration(PlayerMessage msg);
   void suspend(int playerId);
   void restore(int playerId, CreateMessage? msg, int resumeTime);
+  bool setDisplayRotate(RotationMessage msg);
 }

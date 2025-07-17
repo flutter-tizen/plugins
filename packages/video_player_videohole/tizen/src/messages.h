@@ -359,6 +359,27 @@ class DurationMessage {
   std::optional<flutter::EncodableList> duration_range_;
 };
 
+// Generated class from Pigeon that represents data sent in messages.
+class RotationMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit RotationMessage(int64_t player_id, int64_t rotation);
+
+  int64_t player_id() const;
+  void set_player_id(int64_t value_arg);
+
+  int64_t rotation() const;
+  void set_rotation(int64_t value_arg);
+
+ private:
+  static RotationMessage FromEncodableList(const flutter::EncodableList& list);
+  flutter::EncodableList ToEncodableList() const;
+  friend class VideoPlayerVideoholeApi;
+  friend class VideoPlayerVideoholeApiCodecSerializer;
+  int64_t player_id_;
+  int64_t rotation_;
+};
+
 class VideoPlayerVideoholeApiCodecSerializer
     : public flutter::StandardCodecSerializer {
  public:
@@ -409,6 +430,7 @@ class VideoPlayerVideoholeApi {
   virtual std::optional<FlutterError> Restore(int64_t player_id,
                                               const CreateMessage* msg,
                                               int64_t resume_time) = 0;
+  virtual ErrorOr<bool> SetDisplayRotate(const RotationMessage& msg) = 0;
 
   // The codec used by VideoPlayerVideoholeApi.
   static const flutter::StandardMessageCodec& GetCodec();

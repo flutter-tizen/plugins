@@ -51,6 +51,7 @@ class VideoPlayer {
   virtual bool Suspend() = 0;
   virtual bool Restore(const CreateMessage *restore_message,
                        int64_t resume_time) = 0;
+  virtual bool SetDisplayRotate(int64_t rotation) = 0;
 
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;

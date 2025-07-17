@@ -166,6 +166,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   }) {
     throw UnimplementedError('restore() has not been implemented.');
   }
+
+  /// Set the rotate angle of display.
+  Future<bool> setDisplayRotate(int playerId, DisplayRotation rotation) {
+    throw UnimplementedError('setDisplayRotate() has not been implemented.');
+  }
 }
 
 /// Description of the data source used to create an instance of
@@ -368,6 +373,21 @@ enum VideoEventType {
 
   /// An unknown event has been received.
   unknown,
+}
+
+/// The different types of display rotations that can be set on the player.
+enum DisplayRotation {
+  /// No rotation.
+  rotation0,
+
+  /// 90 degrees rotation.
+  rotation90,
+
+  /// 180 degrees rotation.
+  rotation180,
+
+  /// 270 degrees rotation.
+  rotation270,
 }
 
 /// Describes a discrete segment of time within a video using a [start] and

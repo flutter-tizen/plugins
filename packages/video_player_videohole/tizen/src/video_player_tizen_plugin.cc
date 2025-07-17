@@ -59,6 +59,7 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   std::optional<FlutterError> Restore(int64_t palyer_id,
                                       const CreateMessage *msg,
                                       int64_t resume_time) override;
+  ErrorOr<bool> SetDisplayRotate(const RotationMessage &msg) override;
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -328,6 +329,15 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::Restore(
     return FlutterError("Operation failed", "Player restore error");
   }
   return std::nullopt;
+}
+
+ErrorOr<bool> VideoPlayerTizenPlugin::SetDisplayRotate(
+    const RotationMessage &msg) {
+  VideoPlayer *player = FindPlayerById(msg.player_id());
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  return player->SetDisplayRotate(msg.rotation());
 }
 
 }  // namespace
