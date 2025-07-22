@@ -237,6 +237,7 @@ void VideoPlayerTizenPlugin::SeekTo(
                          [result]() -> void { result(std::nullopt); });
   } catch (const VideoPlayerError &error) {
     result(FlutterError(error.code(), error.message()));
+    return;
   }
 }
 
