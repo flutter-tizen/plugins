@@ -192,7 +192,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         player->Stop();
         result->Success();
       } else if (method_name == "release") {
-        player->Release();
+        player->ReleaseMediaSource();
         result->Success();
       } else if (method_name == "seek") {
         player->Seek(GetRequiredArg<int32_t>(arguments, "position"));
@@ -200,6 +200,9 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       } else if (method_name == "setVolume") {
         player->SetVolume(GetRequiredArg<double>(arguments, "volume"));
         result->Success();
+      } else if (method_name == "setBalance") {
+        player->OnLog("SetBalance() is not supported on Tizen");
+        result->NotImplemented();
       } else if (method_name == "setSourceUrl") {
         bool is_local = false;
         GetValueFromEncodableMap(arguments, "isLocal", is_local);
@@ -221,14 +224,34 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         player->SetReleaseMode(StringToReleaseMode(release_mode));
         result->Success();
       } else if (method_name == "getDuration") {
-        result->Success(flutter::EncodableValue(player->GetDuration()));
+        // TODO(seungsoo47): If an exception occurs, null is sent.
+        try {
+          result->Success(flutter::EncodableValue(player->GetDuration()));
+        } catch (const AudioPlayerError &error) {
+          player->OnLog(error.code() + error.message());
+          result->Success(flutter::EncodableValue(std::monostate()));
+        }
       } else if (method_name == "getCurrentPosition") {
-        result->Success(flutter::EncodableValue(player->GetCurrentPosition()));
+        // TODO(seungsoo47): If an exception occurs, null is sent.
+        try {
+          result->Success(
+              flutter::EncodableValue(player->GetCurrentPosition()));
+        } catch (const AudioPlayerError &error) {
+          player->OnLog(error.code() + error.message());
+          result->Success(flutter::EncodableValue(std::monostate()));
+        }
       } else if (method_name == "setPlayerMode") {
         bool low_latency =
             GetRequiredArg<std::string>(arguments, "playerMode") ==
             "PlayerMode.lowLatency";
         player->SetLatencyMode(low_latency);
+        result->Success();
+      } else if (method_name == "setAudioContext") {
+        player->OnLog("Setting AudioContext is not supported on Tizen");
+        result->NotImplemented();
+      } else if (method_name == "emitLog") {
+        auto message = GetRequiredArg<std::string>(arguments, "message");
+        player->OnLog(message);
         result->Success();
       } else {
         result->NotImplemented();
@@ -252,21 +275,13 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         }
         audio_players_.clear();
       } else if (method_name == "setAudioContext") {
-        const std::string message =
-            "Setting AudioContext is not supported on Tizen";
-        flutter::EncodableMap map = {{flutter::EncodableValue("event"),
-                                      flutter::EncodableValue("audio.onLog")},
-                                     {flutter::EncodableValue("value"),
-                                      flutter::EncodableValue(message)}};
-        global_event_sinks_->Success(flutter::EncodableValue(map));
+        OnGlobalLog("Setting AudioContext is not supported on Tizen");
+        result->NotImplemented();
+        return;
       } else if (method_name == "emitLog") {
         if (arguments) {
           auto message = GetRequiredArg<std::string>(arguments, "message");
-          flutter::EncodableMap map = {{flutter::EncodableValue("event"),
-                                        flutter::EncodableValue("audio.onLog")},
-                                       {flutter::EncodableValue("value"),
-                                        flutter::EncodableValue(message)}};
-          global_event_sinks_->Success(flutter::EncodableValue(map));
+          OnGlobalLog(message);
         }
       } else if (method_name == "emitError") {
         if (arguments) {
@@ -357,6 +372,14 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
   void DisposeAudioPlayer(const std::string &player_id) {
     audio_players_.erase(player_id);
     event_sinks_.erase(player_id);
+  }
+
+  void OnGlobalLog(const std::string &message) {
+    flutter::EncodableMap map = {
+        {flutter::EncodableValue("event"),
+         flutter::EncodableValue("audio.onLog")},
+        {flutter::EncodableValue("value"), flutter::EncodableValue(message)}};
+    global_event_sinks_->Success(flutter::EncodableValue(map));
   }
 
   std::map<std::string, std::unique_ptr<AudioPlayer>> audio_players_;

@@ -38,8 +38,9 @@ class AudioPlayer {
   void Play();
   void Pause();
   void Stop();
-  void Release();
+  void ReleaseMediaSource();
   void Seek(int32_t position);  // milliseconds
+  void OnLog(const std::string &message);
 
   // If you use HTTP or RTSP, URI must start with "http://" or "rtsp://".
   // The default protocol is "file://".
@@ -83,7 +84,6 @@ class AudioPlayer {
   bool preparing_ = false;
   bool seeking_ = false;
   bool should_play_ = false;
-  bool released_ = false;
   Ecore_Timer *timer_ = nullptr;
 
   PreparedListener prepared_listener_;
