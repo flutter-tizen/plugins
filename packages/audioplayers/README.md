@@ -70,3 +70,4 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 - `onPlayerComplete` event will not be fired when `ReleaseMode` is set to loop which differs from the behavior specified in the [documentation](https://pub.dev/documentation/audioplayers/latest/audioplayers/AudioPlayer/onPlayerComplete.html). And playback rate will reset to 1.0 when audio is replayed.
 - `setVolume` will have no effect on TV devices.
+- `setPlaybackRate` is limited to values between 0.5 and 2.0 on TV and is not supported on RPI.

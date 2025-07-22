@@ -194,11 +194,6 @@ void AudioPlayer::SetVolume(double volume) {
 void AudioPlayer::SetPlaybackRate(double playback_rate) {
   // TODO(seungsoo47): The player_set_playback_rate() API has a limitation of
   // 0.5-2x on TV and is not supported on RPI.
-  if (playback_rate < 0.5) {
-    playback_rate = 0.5;
-  } else if (playback_rate > 2.0) {
-    playback_rate = 2.0;
-  }
   playback_rate_ = playback_rate;
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
