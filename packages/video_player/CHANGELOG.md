@@ -1,6 +1,7 @@
-## NEXT
+## 2.5.6
 
 * Update code format.
+* Fix app crash issue when fail to seek.
 
 ## 2.5.5
 
