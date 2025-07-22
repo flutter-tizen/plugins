@@ -22,7 +22,19 @@ AudioPlayer::AudioPlayer(const std::string &player_id,
   CreatePlayer();
 }
 
-AudioPlayer::~AudioPlayer() { Release(); }
+AudioPlayer::~AudioPlayer() {
+  if (player_) {
+    player_unset_completed_cb(player_);
+    player_unset_interrupted_cb(player_);
+    player_unset_error_cb(player_);
+    player_destroy(player_);
+    player_ = nullptr;
+  }
+  if (timer_) {
+    ecore_timer_del(timer_);
+    timer_ = nullptr;
+  }
+}
 
 void AudioPlayer::Play() {
   player_state_e state = GetPlayerState();
@@ -42,15 +54,17 @@ void AudioPlayer::Play() {
           throw AudioPlayerError("player_set_memory_buffer failed",
                                  get_error_message(ret));
         }
-      } else {
+        should_play_ = true;
+        PreparePlayer();
+      } else if (url_.size() > 0) {
         int ret = player_set_uri(player_, url_.c_str());
         if (ret != PLAYER_ERROR_NONE) {
           throw AudioPlayerError("player_set_uri failed",
                                  get_error_message(ret));
         }
+        should_play_ = true;
+        PreparePlayer();
       }
-      should_play_ = true;
-      PreparePlayer();
       break;
     }
     case PLAYER_STATE_READY:
@@ -93,23 +107,14 @@ void AudioPlayer::Stop() {
   seeking_ = false;
 
   if (release_mode_ == ReleaseMode::kRelease) {
-    Release();
+    ReleaseMediaSource();
   }
 }
 
-void AudioPlayer::Release() {
-  if (player_) {
-    player_unset_completed_cb(player_);
-    player_unset_interrupted_cb(player_);
-    player_unset_error_cb(player_);
-    player_destroy(player_);
-    player_ = nullptr;
-  }
-  if (timer_) {
-    ecore_timer_del(timer_);
-    timer_ = nullptr;
-  }
-  released_ = true;
+void AudioPlayer::ReleaseMediaSource() {
+  url_.clear();
+  audio_data_.clear();
+  ResetPlayer();
 }
 
 void AudioPlayer::Seek(int32_t position) {
@@ -131,6 +136,12 @@ void AudioPlayer::Seek(int32_t position) {
   } else {
     // Player is unprepared, do seek in prepared callback.
     should_seek_to_ = position;
+  }
+}
+
+void AudioPlayer::OnLog(const std::string &message) {
+  if (log_listener_) {
+    log_listener_(player_id_, message);
   }
 }
 
@@ -164,7 +175,13 @@ void AudioPlayer::SetDataSource(std::vector<uint8_t> &data) {
 }
 
 void AudioPlayer::SetVolume(double volume) {
+  if (volume > 1) {
+    volume = 1;
+  } else if (volume < 0) {
+    volume = 0;
+  }
   volume_ = volume;
+
   if (GetPlayerState() != PLAYER_STATE_NONE) {
     int ret = player_set_volume(player_, volume_, volume_);
     if (ret != PLAYER_ERROR_NONE) {
@@ -175,6 +192,8 @@ void AudioPlayer::SetVolume(double volume) {
 }
 
 void AudioPlayer::SetPlaybackRate(double playback_rate) {
+  // TODO(seungsoo47): The player_set_playback_rate() API has a limitation of
+  // 0.5-2x on TV and is not supported on RPI.
   playback_rate_ = playback_rate;
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
@@ -221,16 +240,6 @@ int AudioPlayer::GetDuration() {
 }
 
 int AudioPlayer::GetCurrentPosition() {
-  // TODO(jsuya) : When stop() or pause() is called in AudioPlayer 6.1.0,
-  // PositionUpdater's stopAndUpdate() is called. At this time, getPosition() is
-  // called, but in ReleaseMode, the player is released after Stop(), so an
-  // exception is thrown. Since there are differences from the implementation in
-  // the frontend package, an exception is not thrown in this case.
-  if (!player_ && released_ && release_mode_ == ReleaseMode::kRelease) {
-    LOG_ERROR("The player has already been released.");
-    return 0;
-  }
-
   int32_t position;
   int ret = player_get_play_position(player_, &position);
   if (ret != PLAYER_ERROR_NONE) {
@@ -270,8 +279,6 @@ void AudioPlayer::CreatePlayer() {
     throw AudioPlayerError("player_set_error_cb failed",
                            get_error_message(ret));
   }
-
-  released_ = false;
 }
 
 void AudioPlayer::PreparePlayer() {
@@ -441,9 +448,7 @@ Eina_Bool AudioPlayer::OnPositionUpdate(void *data) {
   auto *player = reinterpret_cast<AudioPlayer *>(data);
   try {
     if (player->IsPlaying()) {
-      int32_t duration = player->GetDuration();
-      player->duration_listener_(player->player_id_, duration);
-
+      player->duration_listener_(player->player_id_, player->GetDuration());
       return ECORE_CALLBACK_RENEW;
     }
   } catch (const AudioPlayerError &error) {
