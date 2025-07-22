@@ -582,7 +582,12 @@ void VideoPlayer::OnPlayCompleted(void *data) {
   };
   player->PushEvent(flutter::EncodableValue(result));
 
-  player->Pause();
+  try {
+    player->Pause();
+  } catch (const VideoPlayerError &error) {
+    LOG_ERROR("[VideoPlayer] Error code: %s, Error message: %s",
+              error.code().c_str(), error.message().c_str());
+  }
 }
 
 void VideoPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
