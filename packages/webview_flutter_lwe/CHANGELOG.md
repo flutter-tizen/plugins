@@ -1,6 +1,7 @@
-## NEXT
+## 0.3.9
 
 * Update code format.
+* Fix bugs for Tizen 10.0 support
 
 ## 0.3.8
 
