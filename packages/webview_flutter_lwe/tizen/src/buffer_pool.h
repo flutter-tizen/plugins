@@ -8,6 +8,7 @@
 #include <flutter_texture_registrar.h>
 #include <tbm_surface.h>
 
+#include <cstdio>
 #include <memory>
 #include <mutex>
 #include <vector>
