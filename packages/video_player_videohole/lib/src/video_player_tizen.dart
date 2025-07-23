@@ -319,6 +319,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return _api.restore(playerId, message, resumeTime);
   }
 
+  @override
+  Future<bool> setDisplayRotate(int playerId, DisplayRotation rotation) {
+    return _api.setDisplayRotate(
+      RotationMessage(playerId: playerId, rotation: rotation.index),
+    );
+  }
+
   EventChannel _eventChannelFor(int playerId) {
     return EventChannel('tizen/video_player/video_events_$playerId');
   }

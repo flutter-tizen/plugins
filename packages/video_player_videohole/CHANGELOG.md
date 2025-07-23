@@ -1,6 +1,7 @@
-## NEXT
+## 0.5.7
 
 * Update code format.
+* Automatically rotates video player based on device orientation.
 
 ## 0.5.6
 

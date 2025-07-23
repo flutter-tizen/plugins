@@ -43,6 +43,7 @@ class MediaPlayer : public VideoPlayer {
   bool Suspend() override;
   bool Restore(const CreateMessage *restore_message,
                int64_t resume_time) override;
+  bool SetDisplayRotate(int64_t rotation) override;
 
  private:
   std::pair<int64_t, int64_t> GetLiveDuration();

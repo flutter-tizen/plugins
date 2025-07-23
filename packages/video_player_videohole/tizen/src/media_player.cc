@@ -838,6 +838,18 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
   return true;
 }
 
+bool MediaPlayer::SetDisplayRotate(int64_t rotation) {
+  LOG_INFO("[MediaPlayer] rotation: %lld", rotation);
+  int ret = player_set_display_rotation(
+      player_, static_cast<player_display_rotation_e>(rotation));
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[MediaPlayer] player_set_display_rotation failed: %s",
+              get_error_message(ret));
+    return false;
+  }
+  return true;
+}
+
 void MediaPlayer::OnRestoreCompleted() {
   if (pre_playing_time_ <= 0 ||
       !SeekTo(pre_playing_time_, [this]() { SendRestored(); })) {
