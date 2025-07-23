@@ -114,6 +114,7 @@ void SingleBufferPool::Release(BufferUnit* buffer) {}
 
 #ifndef NDEBUG
 #include <cairo.h>
+#include <cstdio>
 void BufferUnit::DumpToPng(int file_name) {
   char file_path[256];
   sprintf(file_path, "/tmp/dump%d.png", file_name);
