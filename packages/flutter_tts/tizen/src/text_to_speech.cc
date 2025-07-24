@@ -6,6 +6,8 @@
 
 #include <sound_manager.h>
 
+#include <algorithm>
+
 #include "log.h"
 
 namespace {
