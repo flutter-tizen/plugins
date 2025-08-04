@@ -1,4 +1,4 @@
-// Copyright 2022 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2022 - 2025 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,7 +6,7 @@
 
 import 'package:tizen_rpc_port/tizen_rpc_port.dart';
 
-const String _tidlVersion = '1.10.6';
+const String _tidlVersion = '2.6.9';
 
 enum _DelegateId {
   notifyCallback(1);
@@ -54,9 +54,11 @@ abstract class _Delegate extends Parcelable {
   }
 }
 
+/// Called when the NotifyCallback event is received.
 typedef NotifyCallback = void Function(String, String);
 
 class _NotifyCallback extends _Delegate {
+  /// Constructor for this class.
   _NotifyCallback(NotifyCallback callback, {bool once = false})
       : super(_DelegateId.notifyCallback.id, once, callback);
 
@@ -69,7 +71,9 @@ class _NotifyCallback extends _Delegate {
   }
 }
 
+/// [Message] class for RPC.
 class Message extends ProxyBase {
+  /// Constructor for this class.
   Message(String appid) : super(appid, 'Message');
 
   final List<_Delegate> _delegates = <_Delegate>[];
@@ -98,13 +102,15 @@ class Message extends ProxyBase {
     }
   }
 
+  /// Disposes of registered delegate interface.
   void disposeCallback(Function callback) {
-    _delegates.removeWhere(
-      (_Delegate delegate) => delegate.callback == callback,
-    );
+    _delegates
+    .removeWhere((_Delegate delegate) => delegate.callback == callback);
   }
 
+  /// This method is used to send 'Register' request to the stub app.
   int register(String name, NotifyCallback callback) {
+
     if (!isConnected) {
       throw StateError('Must be connected first');
     }
@@ -145,7 +151,9 @@ class Message extends ProxyBase {
     return ret;
   }
 
+  /// This method is used to send 'Unregister' request to the stub app.
   Future<void> unregister() async {
+
     if (!isConnected) {
       throw StateError('Must be connected first');
     }
@@ -159,7 +167,9 @@ class Message extends ProxyBase {
     parcel.send(port);
   }
 
+  /// This method is used to send 'Send' request to the stub app.
   int send(String message) {
+
     if (!isConnected) {
       throw StateError('Must be connected first');
     }
