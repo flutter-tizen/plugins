@@ -105,6 +105,14 @@ void main() {
     );
     expect(level, equals(max));
 
+    // TODO(seungsoo47): When setting the maximum volume (Volume: 15) for a
+    // media type in AudioFW, it should be changed to 15. However, the Volume
+    // app on the Tizen Platform resets the volume to 13 for hearing protection.
+    // Therefore, before setting it to 0, we will wait about 3 seconds for the
+    // Volume app to reset the volume to (13) before proceeding to the next
+    // step.
+    await Future<void>.delayed(const Duration(seconds: 3));
+
     await AudioManager.volumeController.setLevel(AudioVolumeType.media, 0);
     level = await AudioManager.volumeController.getLevel(AudioVolumeType.media);
     expect(level, equals(0));

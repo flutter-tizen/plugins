@@ -18,6 +18,9 @@ enum PackageType {
   /// Tizen web/hybrid application package.
   wgt,
 
+  /// Tizen resource package.
+  rpk,
+
   /// Unknown package.
   unknown,
 }
@@ -109,6 +112,7 @@ class PackageManager {
     for (final Map<dynamic, dynamic> package in packages!) {
       list.add(PackageInfo.fromMap(package.cast<String, dynamic>()));
     }
+
     return list;
   }
 
