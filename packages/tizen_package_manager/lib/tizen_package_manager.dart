@@ -112,7 +112,6 @@ class PackageManager {
     for (final Map<dynamic, dynamic> package in packages!) {
       list.add(PackageInfo.fromMap(package.cast<String, dynamic>()));
     }
-
     return list;
   }
 
