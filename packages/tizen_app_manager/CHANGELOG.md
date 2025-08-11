@@ -1,6 +1,8 @@
 ## NEXT
 
 * Update code format.
+* Remove a testcase for `AppRunningContext.appState` API because the tizen
+  test farm does not support the 'foreground' state.
 
 ## 0.2.3
 

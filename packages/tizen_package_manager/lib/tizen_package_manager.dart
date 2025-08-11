@@ -18,6 +18,9 @@ enum PackageType {
   /// Tizen web/hybrid application package.
   wgt,
 
+  /// Tizen resource package.
+  rpk,
+
   /// Unknown package.
   unknown,
 }
