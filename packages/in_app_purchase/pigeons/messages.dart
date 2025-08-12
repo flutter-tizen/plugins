@@ -7,6 +7,7 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(
   PigeonOptions(
     dartOut: 'lib/src/messages.g.dart',
+    cppOptions: CppOptions(namespace: 'in_app_purchase_tizen'),
     cppHeaderOut: 'tizen/src/messages.h',
     cppSourceOut: 'tizen/src/messages.cc',
   ),

@@ -17,7 +17,7 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-namespace {
+namespace in_app_purchase_tizen {
 
 class InAppPurchaseTizenPlugin : public flutter::Plugin,
                                  public InAppPurchaseApi {
@@ -175,11 +175,11 @@ ErrorOr<std::string> InAppPurchaseTizenPlugin::GetCountryCode() {
   return billing_->GetCountryCode();
 }
 
-}  // namespace
+}  // namespace in_app_purchase_tizen
 
 void InAppPurchaseTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  InAppPurchaseTizenPlugin::RegisterWithRegistrar(
+  in_app_purchase_tizen::InAppPurchaseTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

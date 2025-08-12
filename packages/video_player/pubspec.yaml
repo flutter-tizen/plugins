@@ -2,7 +2,7 @@ name: video_player_tizen
 description: Tizen implementation of the video_player plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/video_player
-version: 2.5.6
+version: 2.5.7
 
 environment:
   sdk: ">=3.3.0 <4.0.0"

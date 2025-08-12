@@ -19,6 +19,8 @@
 
 #define SSO_API_MAX_STRING_LEN 128
 
+namespace in_app_purchase_tizen {
+
 typedef struct sso_login_info {
   char login_id[SSO_API_MAX_STRING_LEN];
   char login_pwd[SSO_API_MAX_STRING_LEN];
@@ -222,5 +224,7 @@ class BillingManager {
   FunctionResult<VerifyInvoiceAPIResult> verify_invoice_callback_;
   std::mutex mutex_;
 };
+
+}  // namespace in_app_purchase_tizen
 
 #endif  // FLUTTER_PLUGIN_BILLING_MANAGER_H

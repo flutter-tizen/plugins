@@ -14,6 +14,8 @@
 #include "log.h"
 #include "video_player_error.h"
 
+namespace video_player_tizen {
+
 static std::string RotationToString(player_display_rotation_e rotation) {
   switch (rotation) {
     case PLAYER_DISPLAY_ROTATION_NONE:
@@ -712,3 +714,5 @@ bool VideoPlayer::IsLive() {
   is_live_ = is_live != 0;
   return is_live_;
 }
+
+}  // namespace video_player_tizen
