@@ -1,3 +1,7 @@
+# Copyright 2025 Samsung Electronics Co., Ltd. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 name: Release
 
 on:
@@ -29,7 +33,7 @@ jobs:
         uses: lewagon/wait-on-check-action@v1.3.3
         with:
           ref: ${{ github.sha }}
-          running-workflow-name: 'release'
+          running-workflow-name: "release"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 180 # seconds
           allowed-conclusions: success
