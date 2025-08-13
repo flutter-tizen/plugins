@@ -14,6 +14,7 @@
 #include <optional>
 #include <string>
 
+namespace video_player_videohole_tizen {
 using flutter::BasicMessageChannel;
 using flutter::CustomEncodableValue;
 using flutter::EncodableList;
@@ -1471,3 +1472,5 @@ EncodableValue VideoPlayerVideoholeApi::WrapError(const FlutterError& error) {
                                       EncodableValue(error.message()),
                                       error.details()});
 }
+
+}  // namespace video_player_videohole_tizen

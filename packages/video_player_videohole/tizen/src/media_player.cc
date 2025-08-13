@@ -10,6 +10,8 @@
 
 #include "log.h"
 
+namespace video_player_videohole_tizen {
+
 static std::string RotationToString(player_display_rotation_e rotation) {
   switch (rotation) {
     case PLAYER_DISPLAY_ROTATION_NONE:
@@ -951,3 +953,5 @@ int MediaPlayer::OnDrmUpdatePsshData(drm_init_data_type init_type, void *data,
   }
   return 0;
 }
+
+}  // namespace video_player_videohole_tizen

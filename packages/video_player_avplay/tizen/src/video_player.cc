@@ -9,6 +9,8 @@
 
 #include "log.h"
 
+namespace video_player_avplay_tizen {
+
 static int64_t player_index = 1;
 
 VideoPlayer::VideoPlayer(flutter::BinaryMessenger *messenger,
@@ -209,3 +211,5 @@ void VideoPlayer::SendError(const std::string &error_code,
 void *VideoPlayer::GetWindowHandle() {
   return FlutterDesktopViewGetNativeHandle(flutter_view_);
 }
+
+}  // namespace video_player_avplay_tizen

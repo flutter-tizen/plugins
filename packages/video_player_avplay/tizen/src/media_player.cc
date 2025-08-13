@@ -10,6 +10,8 @@
 
 #include "log.h"
 
+namespace video_player_avplay_tizen {
+
 static std::vector<std::string> split(const std::string &s, char delim) {
   std::stringstream ss(s);
   std::string item;
@@ -959,3 +961,5 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
 
   return true;
 }
+
+}  // namespace video_player_avplay_tizen

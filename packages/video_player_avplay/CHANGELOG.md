@@ -1,6 +1,7 @@
 ## NEXT
 
 * Update code format.
+* Add namespace to the C++ code to avoid name conflicts with other plugins.
 
 ## 0.5.24
 

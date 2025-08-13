@@ -14,6 +14,8 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+namespace video_player_avplay_tizen {
+
 static std::vector<std::string> split(const std::string &s, char delim) {
   std::stringstream ss(s);
   std::string item;
@@ -1334,3 +1336,5 @@ void PlusPlayer::OnStateChangedToPlaying(void *user_data) {
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
   self->SendIsPlayingState(true);
 }
+
+}  // namespace video_player_avplay_tizen

@@ -20,7 +20,7 @@
 #include "video_player.h"
 #include "video_player_options.h"
 
-namespace {
+namespace video_player_videohole_tizen {
 
 class VideoPlayerTizenPlugin : public flutter::Plugin,
                                public VideoPlayerVideoholeApi {
@@ -340,11 +340,11 @@ ErrorOr<bool> VideoPlayerTizenPlugin::SetDisplayRotate(
   return player->SetDisplayRotate(msg.rotation());
 }
 
-}  // namespace
+}  // namespace video_player_videohole_tizen
 
 void VideoPlayerTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  VideoPlayerTizenPlugin::RegisterWithRegistrar(
+  video_player_videohole_tizen::VideoPlayerTizenPlugin::RegisterWithRegistrar(
       registrar, flutter::PluginRegistrarManager::GetInstance()
                      ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }
