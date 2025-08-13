@@ -1,6 +1,18 @@
-## NEXT
+## 0.5.25
 
 * Update code format.
+* Add plusplayer library for Tizen10.0.
+* Update plusplayer
+  1. [HLS] Log level correction for Ad timing info.
+  2. [HLS] Defect propogation of robustneess issue & connection failure cases.  
+  3. [PLAYER] Upgrade log level in case of download retry case.
+  4. [PLAYER] Avoid making unnecessary copy of streamlist vector.
+  5. [PLAYER] Round off to avoid loss of precision due to floating point multiplication. 
+  6. [PLAYER] Build fix for 10.0 in plusplaye.
+  7. [PLAYER] Update plusplayer ini.
+  8. [PLAYER] Update plusplayer-wrapper API.
+  9. [DASH] CLear Key feature support.
+  10. [DASH] Low-latency support.
 
 ## 0.5.24
 
