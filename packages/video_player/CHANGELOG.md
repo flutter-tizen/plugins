@@ -1,3 +1,7 @@
+## 2.5.7
+
+* Fix multiple-definition error caused by applying multiple plugins at once. (Issue #883)
+
 ## 2.5.6
 
 * Update code format.
