@@ -16,6 +16,8 @@
 #include "media_player_proxy.h"
 #include "video_player.h"
 
+namespace video_player_videohole_tizen {
+
 class MediaPlayer : public VideoPlayer {
  public:
   explicit MediaPlayer(flutter::BinaryMessenger *messenger,
@@ -84,5 +86,7 @@ class MediaPlayer : public VideoPlayer {
   int32_t pre_display_roi_width_ = 1;
   int32_t pre_display_roi_height_ = 1;
 };
+
+}  // namespace video_player_videohole_tizen
 
 #endif  // FLUTTER_PLUGIN_MEDIA_PLAYER_H_

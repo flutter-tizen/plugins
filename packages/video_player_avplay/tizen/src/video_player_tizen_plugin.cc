@@ -20,7 +20,7 @@
 #include "plus_player.h"
 #include "video_player_options.h"
 
-namespace {
+namespace video_player_avplay_tizen {
 
 class VideoPlayerTizenPlugin : public flutter::Plugin,
                                public VideoPlayerAvplayApi {
@@ -423,11 +423,11 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
   return std::nullopt;
 }
 
-}  // namespace
+}  // namespace video_player_avplay_tizen
 
 void VideoPlayerTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  VideoPlayerTizenPlugin::RegisterWithRegistrar(
+  video_player_avplay_tizen::VideoPlayerTizenPlugin::RegisterWithRegistrar(
       registrar, flutter::PluginRegistrarManager::GetInstance()
                      ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

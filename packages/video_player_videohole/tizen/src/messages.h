@@ -12,6 +12,8 @@
 #include <optional>
 #include <string>
 
+namespace video_player_videohole_tizen {
+
 // Generated class from Pigeon.
 
 class FlutterError {
@@ -444,4 +446,5 @@ class VideoPlayerVideoholeApi {
  protected:
   VideoPlayerVideoholeApi() = default;
 };
+}  // namespace video_player_videohole_tizen
 #endif  // PIGEON_MESSAGES_H_
