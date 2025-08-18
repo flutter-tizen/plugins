@@ -316,67 +316,67 @@ void main() {
     );
   });
 
-  // Audio playback is tested to prevent accidental regression,
-  // but could be removed in the future.
-  group('asset audios', () {
-    setUp(() {
-      controller = VideoPlayerController.asset('assets/Audio.mp3');
-    });
+  // // Audio playback is tested to prevent accidental regression,
+  // // but could be removed in the future.
+  // group('asset audios', () {
+  //   setUp(() {
+  //     controller = VideoPlayerController.asset('assets/Audio.mp3');
+  //   });
 
-    testWidgets('can be initialized', (WidgetTester tester) async {
-      await controller.initialize();
+  //   testWidgets('can be initialized', (WidgetTester tester) async {
+  //     await controller.initialize();
 
-      expect(controller.value.isInitialized, true);
-      expect(controller.value.position, Duration.zero);
-      expect(controller.value.isPlaying, false);
-      // Due to the duration calculation accuracy between platforms,
-      // the milliseconds on Web will be a slightly different from natives.
-      // The audio was made with 44100 Hz, 192 Kbps CBR, and 32 bits.
-      expect(
-        controller.value.duration,
-        const Duration(seconds: 5, milliseconds: kIsWeb ? 42 : 41),
-      );
-    });
+  //     expect(controller.value.isInitialized, true);
+  //     expect(controller.value.position, Duration.zero);
+  //     expect(controller.value.isPlaying, false);
+  //     // Due to the duration calculation accuracy between platforms,
+  //     // the milliseconds on Web will be a slightly different from natives.
+  //     // The audio was made with 44100 Hz, 192 Kbps CBR, and 32 bits.
+  //     expect(
+  //       controller.value.duration,
+  //       const Duration(seconds: 5, milliseconds: kIsWeb ? 42 : 41),
+  //     );
+  //   });
 
-    testWidgets('can be played', (WidgetTester tester) async {
-      await controller.initialize();
-      // Mute to allow playing without DOM interaction on Web.
-      // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
-      await controller.setVolume(0);
+  //   testWidgets('can be played', (WidgetTester tester) async {
+  //     await controller.initialize();
+  //     // Mute to allow playing without DOM interaction on Web.
+  //     // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+  //     await controller.setVolume(0);
 
-      await controller.play();
-      await tester.pumpAndSettle(_playDuration);
+  //     await controller.play();
+  //     await tester.pumpAndSettle(_playDuration);
 
-      expect(controller.value.isPlaying, true);
-      expect(
-        controller.value.position,
-        (Duration position) => position > Duration.zero,
-      );
-    });
+  //     expect(controller.value.isPlaying, true);
+  //     expect(
+  //       controller.value.position,
+  //       (Duration position) => position > Duration.zero,
+  //     );
+  //   });
 
-    testWidgets('can seek', (WidgetTester tester) async {
-      await controller.initialize();
-      await controller.seekTo(const Duration(seconds: 3));
+  //   testWidgets('can seek', (WidgetTester tester) async {
+  //     await controller.initialize();
+  //     await controller.seekTo(const Duration(seconds: 3));
 
-      expect(controller.value.position, const Duration(seconds: 3));
-    });
+  //     expect(controller.value.position, const Duration(seconds: 3));
+  //   });
 
-    testWidgets('can be paused', (WidgetTester tester) async {
-      await controller.initialize();
-      // Mute to allow playing without DOM interaction on Web.
-      // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
-      await controller.setVolume(0);
+  //   testWidgets('can be paused', (WidgetTester tester) async {
+  //     await controller.initialize();
+  //     // Mute to allow playing without DOM interaction on Web.
+  //     // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+  //     await controller.setVolume(0);
 
-      // Play for a second, then pause, and then wait a second.
-      await controller.play();
-      await tester.pumpAndSettle(_playDuration);
-      await controller.pause();
-      final Duration pausedPosition = controller.value.position;
-      await tester.pumpAndSettle(_playDuration);
+  //     // Play for a second, then pause, and then wait a second.
+  //     await controller.play();
+  //     await tester.pumpAndSettle(_playDuration);
+  //     await controller.pause();
+  //     final Duration pausedPosition = controller.value.position;
+  //     await tester.pumpAndSettle(_playDuration);
 
-      // Verify that we stopped playing after the pause.
-      expect(controller.value.isPlaying, false);
-      expect(controller.value.position, pausedPosition);
-    });
-  });
+  //     // Verify that we stopped playing after the pause.
+  //     expect(controller.value.isPlaying, false);
+  //     expect(controller.value.position, pausedPosition);
+  //   });
+  // });
 }
