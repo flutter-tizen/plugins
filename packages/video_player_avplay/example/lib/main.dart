@@ -72,7 +72,7 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+      'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
     );
 
     _controller.addListener(() {
@@ -392,7 +392,7 @@ class _TrackTestState extends State<_TrackTest> {
     super.initState();
 
     _controller = VideoPlayerController.network(
-      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+      'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
     );
 
     _controller.addListener(() {
@@ -824,7 +824,7 @@ class _TestRemoteVideoState extends State<_TestRemoteVideo> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+      'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
     );
 
     _controller.addListener(() {
