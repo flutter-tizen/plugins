@@ -1,6 +1,7 @@
-## NEXT
+## 0.1.3
 
 * Update code format.
+* Fix multiple-definition error caused by applying multiple plugins at once. (Issue #883)
 
 ## 0.1.2
 

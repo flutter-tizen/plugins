@@ -21,6 +21,8 @@
 #include "media_player_proxy.h"
 #include "video_player_options.h"
 
+namespace video_player_tizen {
+
 typedef int (*ScreensaverResetTimeout)(void);
 typedef int (*ScreensaverOverrideReset)(bool onoff);
 
@@ -108,5 +110,7 @@ class VideoPlayer {
   std::queue<flutter::EncodableValue> encodable_event_queue_;
   std::queue<std::pair<std::string, std::string>> error_event_queue_;
 };
+
+}  // namespace video_player_tizen
 
 #endif  // FLUTTER_PLUGIN_VIDEO_PLAYER_H_

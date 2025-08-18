@@ -19,7 +19,7 @@
 #include "video_player_error.h"
 #include "video_player_options.h"
 
-namespace {
+namespace video_player_tizen {
 
 class VideoPlayerTizenPlugin : public flutter::Plugin,
                                public TizenVideoPlayerApi {
@@ -246,11 +246,11 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
   return std::nullopt;
 }
 
-}  // namespace
+}  // namespace video_player_tizen
 
 void VideoPlayerTizenPluginRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  VideoPlayerTizenPlugin::RegisterWithRegistrar(
+  video_player_tizen::VideoPlayerTizenPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar));
 }

@@ -16,6 +16,8 @@
 #include "plusplayer/plusplayer_wrapper.h"
 #include "video_player.h"
 
+namespace video_player_avplay_tizen {
+
 class PlusPlayer : public VideoPlayer {
  public:
   explicit PlusPlayer(flutter::BinaryMessenger *messenger,
@@ -110,5 +112,7 @@ class PlusPlayer : public VideoPlayer {
   std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
   CreateMessage create_message_;
 };
+
+}  // namespace video_player_avplay_tizen
 
 #endif  // FLUTTER_PLUGIN_PLUS_PLAYER_H_

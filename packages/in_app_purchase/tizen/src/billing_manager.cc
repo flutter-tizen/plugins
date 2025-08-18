@@ -17,6 +17,8 @@
 #include "messages.h"
 #include "rapidjson/document.h"
 
+namespace in_app_purchase_tizen {
+
 static std::string ServerTypeToString(billing_server_type server_type) {
   switch (server_type) {
     case SERVERTYPE_OPERATE:
@@ -506,3 +508,5 @@ void BillingManager::OnVerify(const char *detail_result, void *user_data) {
 void BillingManager::Dispose() {
   LOG_INFO("[BillingManager] Dispose billing.");
 }
+
+}  // namespace in_app_purchase_tizen

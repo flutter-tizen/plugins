@@ -19,6 +19,8 @@
 #include "ecore_wl2_window_proxy.h"
 #include "messages.h"
 
+namespace video_player_videohole_tizen {
+
 class VideoPlayer {
  public:
   using SeekCompletedCallback = std::function<void()>;
@@ -87,6 +89,8 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
   Ecore_Pipe *sink_event_pipe_ = nullptr;
 };
+
+}  // namespace video_player_videohole_tizen
 
 namespace flutter_common {
 
