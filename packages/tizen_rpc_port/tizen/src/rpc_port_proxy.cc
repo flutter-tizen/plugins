@@ -126,7 +126,7 @@ void RpcPortProxyManager::OnReceivedEvent(const char* receiver,
   int ret = rpc_port_proxy_get_port(handle, RPC_PORT_PORT_CALLBACK, &port);
   if (ret != RPC_PORT_ERROR_NONE) {
     event_sink->Error("rpc_port_proxy_get_port failed",
-                       std::string(get_error_message(ret)));
+                      std::string(get_error_message(ret)));
     return;
   }
 
@@ -134,7 +134,7 @@ void RpcPortProxyManager::OnReceivedEvent(const char* receiver,
   ret = rpc_port_parcel_create_from_port(&parcel, port);
   if (ret != RPC_PORT_ERROR_NONE) {
     event_sink->Error("rpc_port_parcel_create_from_port failed",
-                       std::string(get_error_message(ret)));
+                      std::string(get_error_message(ret)));
     return;
   }
 
@@ -144,7 +144,7 @@ void RpcPortProxyManager::OnReceivedEvent(const char* receiver,
   if (ret != RPC_PORT_ERROR_NONE) {
     rpc_port_parcel_destroy(parcel);
     event_sink->Error("rpc_port_parcel_get_raw failed",
-                       std::string(get_error_message(ret)));
+                      std::string(get_error_message(ret)));
     return;
   }
   std::vector<uint8_t> raw_data(raw, raw + size);

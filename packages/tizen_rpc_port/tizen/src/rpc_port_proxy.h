@@ -37,8 +37,7 @@ class RpcPortProxyManager {
   static void OnReceivedEvent(const char* receiver, const char* port_name,
                               void* data);
 
-  static std::map<rpc_port_proxy_h, std::unique_ptr<FlEventSink>>
-      event_sinks_;
+  static std::map<rpc_port_proxy_h, std::unique_ptr<FlEventSink>> event_sinks_;
 };
 
 }  // namespace tizen
