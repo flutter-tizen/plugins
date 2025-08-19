@@ -65,6 +65,7 @@ jobs:
         if: ${{ env.HAS_CHANGED_PACKAGES == 'true' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
+          export FLUTTER_ROOT=`pwd`/flutter-tizen/flutter
           dbus-run-session -- bash -c "
           echo tizen | gnome-keyring-daemon --unlock &&
           ./tools/tools_runner.sh build-examples \
