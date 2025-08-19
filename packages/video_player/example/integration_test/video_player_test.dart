@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_tizen/flutter_tizen.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
@@ -382,6 +383,6 @@ void main() {
       });
     },
     // NOTE(seungsoo47): Unknown errors sometimes occur in RPI.
-    skip: Platform.environment['ELM_PROFILE'] == 'common',
+    skip: isTizenProfile,
   );
 }
