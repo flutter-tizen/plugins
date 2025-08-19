@@ -30,6 +30,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
+          export FLUTTER_ROOT=`pwd`/flutter-tizen/flutter
           ./tools/tools_runner.sh integration-test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators \
@@ -39,6 +40,7 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           export PATH=`pwd`/flutter-tizen/bin:$PATH
+          export FLUTTER_ROOT=`pwd`/flutter-tizen/flutter
           ./tools/tools_runner.sh integration-test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators
