@@ -1,8 +1,12 @@
 {
     "debug": {
-        "curl_debug": false
+        "curl_debug": false,
+        "open_http_header": false
     },
     "streaming": {
+        "TargetTimeMs": 0,
+        "SegDownTimeUS": 0,
+        "TrunDownUnitTimeMS": 500,
         "multiQueueDuration": 0,
         "engineBufferDurationMs": 0,
         "maxConnectionTimeout": 15,
@@ -14,6 +18,7 @@
         "maxTransferVideoBufferByte": 10485760,
         "maxTransferAudioBufferByte": 5242880,
         "noSwitchForStartbitrateHighestUs": 10000000,
+        "playback_rate" : 1.0,
         "abr": {
             "rule_name": "abrDynamic",
             "bandwidthSafetyFactor": 0.9,
@@ -23,11 +28,10 @@
             "rule_name": "AVG"
         },
         "advertisement": {
-            "SCTE35": false
+            "SCTE35": true
         }
     },
     "accessibility": {
         "audio_description": false
     }
 }
-
