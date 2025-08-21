@@ -59,7 +59,9 @@ class VideoPlayer {
   void Initialize();
   void SendInitialized();
   void SendIsPlayingStateUpdate(bool is_playing);
+#ifdef TV_PROFILE
   void InitScreenSaverApi();
+#endif
 
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
@@ -69,7 +71,9 @@ class VideoPlayer {
   static void OnError(int error_code, void *data);
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
   static void ReleaseMediaPacket(void *packet);
+#ifdef TV_PROFILE
   static Eina_Bool ResetScreensaverTimeout(void *data);
+#endif
 
   void RequestRendering();
   void OnRenderingCompleted();
@@ -101,9 +105,11 @@ class VideoPlayer {
 
   SeekCompletedCallback on_seek_completed_;
 
-  void *screensaver_handle_;
+#ifdef TV_PROFILE
+  void *screensaver_handle_ = nullptr;
   ScreensaverResetTimeout screensaver_reset_timeout_;
-  Ecore_Timer *timer_;
+  Ecore_Timer *timer_ = nullptr;
+#endif
 
   Ecore_Pipe *sink_event_pipe_ = nullptr;
   std::mutex queue_mutex_;
