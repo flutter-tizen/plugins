@@ -82,7 +82,9 @@ FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuSurface(
   return gpu_surface_.get();
 }
 
+#ifdef TV_PROFILE
 void VideoPlayer::InitScreenSaverApi() {
+  LOG_INFO("[VideoPlayer] InitScreenSaverApi()");
   screensaver_handle_ = dlopen("libcapi-screensaver.so", RTLD_LAZY);
   if (!screensaver_handle_) {
     LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
@@ -110,6 +112,7 @@ void VideoPlayer::InitScreenSaverApi() {
     return;
   }
 }
+#endif
 
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          flutter::TextureRegistrar *texture_registrar,
@@ -326,11 +329,13 @@ void VideoPlayer::Pause() {
     throw VideoPlayerError("player_pause failed", get_error_message(ret));
   }
 
+#ifdef TV_PROFILE
   if (timer_) {
     LOG_DEBUG("[VideoPlayer] Delete ecore timer.");
     ecore_timer_del(timer_);
     timer_ = nullptr;
   }
+#endif
 
   SendIsPlayingStateUpdate(false);
 }
@@ -425,6 +430,7 @@ void VideoPlayer::Dispose() {
     texture_registrar_ = nullptr;
   }
 
+#ifdef TV_PROFILE
   if (screensaver_handle_) {
     dlclose(screensaver_handle_);
     screensaver_handle_ = nullptr;
@@ -434,6 +440,7 @@ void VideoPlayer::Dispose() {
     ecore_timer_del(timer_);
     timer_ = nullptr;
   }
+#endif
 }
 
 void VideoPlayer::SetUpEventChannel(flutter::BinaryMessenger *messenger) {
@@ -536,6 +543,7 @@ void VideoPlayer::SendIsPlayingStateUpdate(bool is_playing) {
   PushEvent(flutter::EncodableValue(result));
 }
 
+#ifdef TV_PROFILE
 Eina_Bool VideoPlayer::ResetScreensaverTimeout(void *data) {
   LOG_DEBUG("[VideoPlayer] Reset screen saver timeout.");
 
@@ -551,6 +559,7 @@ Eina_Bool VideoPlayer::ResetScreensaverTimeout(void *data) {
 
   return ECORE_CALLBACK_RENEW;
 }
+#endif
 
 void VideoPlayer::OnPrepared(void *data) {
   LOG_DEBUG("[VideoPlayer] Player prepared.");

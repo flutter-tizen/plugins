@@ -18,6 +18,7 @@ dev_dependencies:
     sdk: flutter
   flutter_test:
     sdk: flutter
+  flutter_tizen: 0.2.5
   integration_test:
     sdk: flutter
   integration_test_tizen:
