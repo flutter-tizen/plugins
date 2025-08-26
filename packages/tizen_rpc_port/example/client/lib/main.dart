@@ -167,32 +167,36 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
         persistentFooterButtons: <Widget>[
-         Column(
+          Column(
             children: <Widget>[
               TextButton(
                 style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size.fromHeight(100)),
+                  minimumSize:
+                      MaterialStateProperty.all(const Size.fromHeight(100)),
                 ),
                 onPressed: _connect,
                 child: const Text('Connect'),
               ),
               TextButton(
                 style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size.fromHeight(100)),
+                  minimumSize:
+                      MaterialStateProperty.all(const Size.fromHeight(100)),
                 ),
                 onPressed: _connect2,
                 child: const Text('Connect2'),
               ),
               TextButton(
                 style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size.fromHeight(100)),
+                  minimumSize:
+                      MaterialStateProperty.all(const Size.fromHeight(100)),
                 ),
                 onPressed: _isConnected ? _send : null,
                 child: const Text('Send'),
               ),
               TextButton(
                 style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size.fromHeight(100)),
+                  minimumSize:
+                      MaterialStateProperty.all(const Size.fromHeight(100)),
                 ),
                 onPressed: _isConnected2 ? _send2 : null,
                 child: const Text('Send2'),

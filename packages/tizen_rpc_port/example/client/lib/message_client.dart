@@ -105,12 +105,11 @@ class Message extends ProxyBase {
   /// Disposes of registered delegate interface.
   void disposeCallback(Function callback) {
     _delegates
-    .removeWhere((_Delegate delegate) => delegate.callback == callback);
+        .removeWhere((_Delegate delegate) => delegate.callback == callback);
   }
 
   /// This method is used to send 'Register' request to the stub app.
   int register(String name, NotifyCallback callback) {
-
     if (!isConnected) {
       throw StateError('Must be connected first');
     }
@@ -153,7 +152,6 @@ class Message extends ProxyBase {
 
   /// This method is used to send 'Unregister' request to the stub app.
   Future<void> unregister() async {
-
     if (!isConnected) {
       throw StateError('Must be connected first');
     }
@@ -169,7 +167,6 @@ class Message extends ProxyBase {
 
   /// This method is used to send 'Send' request to the stub app.
   int send(String message) {
-
     if (!isConnected) {
       throw StateError('Must be connected first');
     }
