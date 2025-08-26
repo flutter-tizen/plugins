@@ -100,7 +100,7 @@ abstract class ProxyBase {
         'portName': portName,
       },
     );
-    print(this);
+
     final EventChannel eventChannel = EventChannel(
       'tizen/rpc_port_proxy/$portName/${_handle.address}',
     );
@@ -124,11 +124,9 @@ abstract class ProxyBase {
       final String event = map['event'] as String;
       if (event == 'connected') {
         _isConnected = true;
-        print('connected ${_handle.address}');
         _onDisconnected = onDisconnected;
         await _onConnectedEvent();
       } else if (event == 'disconnected') {
-        print('disconnected ${_handle.address}');
         _isConnected = false;
         await _onDisconnectedEvent();
         await _streamSubscription?.cancel();
@@ -138,7 +136,6 @@ abstract class ProxyBase {
           _stream = null;
         }
       } else if (event == 'rejected') {
-        print('rejected ${_handle.address}');
         _isConnected = false;
         final String error = map['error'] as String;
         await _onRejectedEvent(error);
