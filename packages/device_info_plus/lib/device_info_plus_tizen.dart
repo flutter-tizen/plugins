@@ -139,7 +139,8 @@ class _MethodChannelDeviceInfo {
     return TizenDeviceInfo.fromMap(
       (await channel.invokeMethod(
         'getTizenDeviceInfo',
-      )).cast<String, dynamic>(),
+      ))
+          .cast<String, dynamic>(),
     );
   }
 }
