@@ -30,6 +30,8 @@ class TizenDeviceInfo {
     required this.platformName,
     required this.platformProcessor,
     required this.tizenId,
+    required this.screenWidth,
+    required this.screenHeight,
   });
 
   /// Device information data.
@@ -89,6 +91,12 @@ class TizenDeviceInfo {
   /// http://tizen.org/system/tizenid
   final String? tizenId;
 
+  /// http://tizen.org/feature/screen.width
+  final int screenWidth;
+
+  /// http://tizen.org/feature/screen.height
+  final int screenHeight;
+
   /// Creates a [TizenDeviceInfo] from the [map].
   static TizenDeviceInfo fromMap(Map<String, dynamic> map) {
     return TizenDeviceInfo._(
@@ -111,6 +119,8 @@ class TizenDeviceInfo {
       platformName: map['platformName'],
       platformProcessor: map['platformProcessor'],
       tizenId: map['tizenId'],
+      screenWidth: map['screenWidth'],
+      screenHeight: map['screenHeight'],
     );
   }
 
@@ -129,8 +139,7 @@ class _MethodChannelDeviceInfo {
     return TizenDeviceInfo.fromMap(
       (await channel.invokeMethod(
         'getTizenDeviceInfo',
-      ))
-          .cast<String, dynamic>(),
+      )).cast<String, dynamic>(),
     );
   }
 }

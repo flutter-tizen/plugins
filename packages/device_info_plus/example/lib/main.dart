@@ -77,6 +77,8 @@ class _MyAppState extends State<MyApp> {
       'platformName': data.platformName,
       'platformProcessor': data.platformProcessor,
       'tizenId': data.tizenId,
+      'screenWidth': data.screenWidth,
+      'screenHeight': data.screenHeight,
     };
   }
 
