@@ -10,7 +10,7 @@ import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_tizen/flutter_tizen.dart';
+import 'package:flutter_tizen/flutter_tizen.dart' as tizen;
 
 import 'src/closed_caption_file.dart';
 import 'src/drm_configs.dart';
@@ -443,15 +443,28 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     if ((deviceInfo.platformVersion != null &&
             deviceInfo.platformVersion!.isNotEmpty) &&
-        apiVersion != 'none' &&
-        (deviceInfo.platformVersion != apiVersion)) {
-      throw Exception(
-        'The current TizenOS version(${deviceInfo.platformVersion}) '
-        'and the app API version($apiVersion) are different. '
-        'The avplay plugin does not guarantee compatibility with '
-        'other versions. Therefore, please set the "api-version" '
-        'in tizen-manifest.xml to match the TizenOS version and rebuild.',
-      );
+        tizen.apiVersion != 'none') {
+      if (deviceInfo.platformVersion != tizen.apiVersion) {
+        final double? platformVersion =
+            double.tryParse(deviceInfo.platformVersion!);
+        final double? apiVersion = double.tryParse(tizen.apiVersion);
+        if (platformVersion != null && apiVersion != null) {
+          if (platformVersion == 6.0 || platformVersion == 10.0) {
+            throw Exception(
+              'The current TizenOS version is $platformVersion and the app API version($apiVersion). The app API version must also be $platformVersion. '
+              'The avplay plugin, with an apiVersion of $apiVersion does not guarantee compatibility with other TizenOS versions. Therefore '
+              'Please set the "api-version" in tizen-manifest.xml to $platformVersion and rebuild.',
+            );
+          } else if ((platformVersion >= 6.5 && platformVersion <= 9.0) &&
+              (apiVersion == 6.0 || apiVersion == 10.0)) {
+            throw Exception(
+              'The current TizenOS version is $platformVersion and the app API version($apiVersion). The app API version must be at least 6.5. '
+              'The avplay plugin, with an apiVersion of $apiVersion does not guarantee compatibility with other TizenOS versions. Therefore '
+              'Please set the "api-version" in tizen-manifest.xml to a minimum of 6.5 and rebuild.',
+            );
+          }
+        }
+      }
     }
   }
 
