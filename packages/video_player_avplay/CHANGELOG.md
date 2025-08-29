@@ -1,3 +1,6 @@
+## 0.6.0
+* Support multi TizenOS version.
+
 ## 0.5.26
 * Add plusplayer library for Tizen10.0.
 * Update plusplayer

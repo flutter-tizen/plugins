@@ -12,7 +12,7 @@ To use this package, add `video_player_avplay` as a dependency in your `pubspec.
 
 ```yaml
 dependencies:
-  video_player_avplay: ^0.5.26
+  video_player_avplay: ^0.6.0
 ```
 
 Then you can import `video_player_avplay` in your Dart code:
@@ -23,16 +23,36 @@ import 'package:video_player_avplay/video_player.dart';
 
 Note that `video_player_avplay` is not compatible with the original `video_player` plugin. If you're writing a cross-platform app for Tizen and other platforms, it is recommended to create two separate source files and import `video_player` and `video_player_avplay` in the files respectively.
 
-Note that `video_player_avplay` uses a compiled dynamic library, the api-version is your TV version, change it in tizen-manifest.xml:
+Change api-version in tizen-manifest.xml according to your TV version.
+
+Note that `video_player_avplay` uses a compiled dynamic library, change the api-version according to your TV version in tizen-manifest.xml :
 
 ```xml
 <manifest package="xxx" version="1.0.0" api-version="6.0">
 ```
 
 > [!NOTE]
-> This plugin does not provide OS version compatibility.
+> This plugin for a specific api-version does not provide OS version compatibility.
+> | `api-version` | TizenOS version |
+> |:-:|:-:|
+> |6.0|6.0|
+> |6.5|6.5 ~ 9.0|
+> |7.0|7.0 ~ 9.0|
+> |8.0|8.0 ~ 9.0|
+> |9.0|9.0|
+> |10.0|10.0|
+>
 > When you build an application with this plugin, version-specific [dynamic libraries](https://github.com/flutter-tizen/plugins/tree/master/packages/video_player_avplay/tizen/lib/armel) are packaged together based on the api-version information in tizen-manifest.xml. 
 > If you are planning to distribute an application that includes this plugin, you will need to build a TPK package for each TizenOS version (api-version in tizen-manifest.xml). Please refer to the [Samsung Developers](https://developer.samsung.com/smarttv/develop) for information on TizenOS versions by [TV model groups](https://developer.samsung.com/smarttv/develop/specifications/tv-model-groups.html).
+> 
+> If you plan to distribute from TizenOS version 6.0 to 10.0, it should be packaged as follows.
+> - `<.... api-version="6.0" version="1.0.0" ...> # for TizenOS 6.0.`
+> - `<.... api-version="6.5" version="1.0.1" ...> # for TizenOS 6.5 ~ 9.0.`
+> - `<.... api-version="10.0" version="1.0.2" ...> # for TizenOS 10.0.`
+>
+> If you plan to distribute from TizenOS version 7.0 to 10.0, it should be packaged as follows.
+> - `<.... api-version="7.0" version="1.0.0" ...> # for TizenOS 7.0 ~ 9.0.`
+> - `<.... api-version="10.0" version="1.0.1" ...> # for TizenOS 10.0.`
 
 Note that if you play dash streams, please add dash format when creating the player:
 ```dart
