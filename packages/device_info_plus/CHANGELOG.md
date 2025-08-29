@@ -1,6 +1,7 @@
-## NEXT
+## 1.3.0
 
 * Update code format.
+* Add support for `screenWidth` and `screenHeight`.
 
 ## 1.2.1
 

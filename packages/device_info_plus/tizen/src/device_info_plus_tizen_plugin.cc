@@ -50,12 +50,23 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
 
       for (const auto &[key, tizen_key] : tizen_keys_) {
         auto response = flutter::EncodableValue();
-        char *value = nullptr;
-        int ret = system_info_get_platform_string(tizen_key.c_str(), &value);
-        if (ret == SYSTEM_INFO_ERROR_NONE) {
-          response = std::string(value);
-          free(value);
+        int ret = SYSTEM_INFO_ERROR_NONE;
+        if (key.compare(0, 6, "screen") == 0) {
+          int value = 0;
+          ret = system_info_get_platform_int(tizen_key.c_str(), &value);
+          if (ret == SYSTEM_INFO_ERROR_NONE) {
+            response = value;
+          }
         } else {
+          char *value = nullptr;
+          ret = system_info_get_platform_string(tizen_key.c_str(), &value);
+          if (ret == SYSTEM_INFO_ERROR_NONE) {
+            response = std::string(value);
+            free(value);
+          }
+        }
+
+        if (ret != SYSTEM_INFO_ERROR_NONE) {
           LOG_ERROR("Failed to get %s from the system: %s", tizen_key.c_str(),
                     get_error_message(ret));
         }
@@ -88,6 +99,8 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
       {"platformName", "http://tizen.org/system/platform.name"},
       {"platformProcessor", "http://tizen.org/system/platform.processor"},
       {"tizenId", "http://tizen.org/system/tizenid"},
+      {"screenWidth", "http://tizen.org/feature/screen.width"},
+      {"screenHeight", "http://tizen.org/feature/screen.height"},
   };
 };
 
