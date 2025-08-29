@@ -1,14 +1,21 @@
 BUILD_ARCH=${1}
+LIB_API_VERSION=""
 
-SRC_DIR=""
 if [ "$API_VERSION" = "6.5" ] || [ "$API_VERSION" = "7.0" ] || [ "$API_VERSION" = "8.0" ] || [ "$API_VERSION" = "9.0" ]; then
-  SRC_DIR="lib/${BUILD_ARCH}/6.5"
+  LIB_API_VERSION="6.5"
 else
-  SRC_DIR="lib/${BUILD_ARCH}/${API_VERSION}"
+  LIB_API_VERSION=${API_VERSION}
 fi
-DST_DIR="lib/${BUILD_ARCH}/candidate"
 
-mkdir -p "$DST_DIR"
+SRC_DIR="lib/${BUILD_ARCH}/${LIB_API_VERSION}"
+DST_DIR="lib/${BUILD_ARCH}/target_plusplayer_libs"
+
+if [ ! -d "$DST_DIR" ]; then
+  mkdir -p "$DST_DIR"
+fi
 cp -f "$SRC_DIR"/*.so "$DST_DIR"/
 
-echo "Use ${BUILD_ARCH}/$API_VERSION libs."
+if [ ! -f ".gen/custom_def.prop" ]; then
+  mkdir -p .gen
+fi
+echo "USER_LIB_PATH=${LIB_API_VERSION}" > .gen/custom_def.prop
