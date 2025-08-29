@@ -20,7 +20,8 @@ typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 
 class RpcPortProxyManager {
  public:
-  static void Init(std::unique_ptr<FlEventSink> event_sink);
+  static void Init(rpc_port_proxy_h handle,
+                   std::unique_ptr<FlEventSink> event_sink);
 
   static RpcPortResult Connect(rpc_port_proxy_h handle,
                                const std::string& appid,
@@ -36,7 +37,7 @@ class RpcPortProxyManager {
   static void OnReceivedEvent(const char* receiver, const char* port_name,
                               void* data);
 
-  static std::unique_ptr<FlEventSink> event_sink_;
+  static std::map<rpc_port_proxy_h, std::unique_ptr<FlEventSink>> event_sinks_;
 };
 
 }  // namespace tizen
