@@ -17,7 +17,4 @@ if [ ! -d "$DST_DIR" ]; then
 fi
 cp -f "$SRC_DIR"/*.so "$DST_DIR"/
 
-if [ ! -f ".gen/custom_def.prop" ]; then
-  mkdir -p .gen
-fi
-echo "USER_LIB_PATH=${LIB_API_VERSION}" > .gen/custom_def.prop
+echo "USER_LIB_PATH=${SRC_DIR}" > custom_def.prop
