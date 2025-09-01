@@ -1,5 +1,0 @@
-# See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
-# for details.
-
-PREBUILD_COMMAND = ./prebuild.sh ${BUILD_ARCH}
-POSTBUILD_COMMAND = rm -rf lib/${BUILD_ARCH}/target_plusplayer_libs

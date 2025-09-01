@@ -24,6 +24,6 @@ USER_INC_FILES =
 USER_CPP_INC_FILES =
 
 # Linker options
-USER_LIB_DIRS = lib/${BUILD_ARCH}/target_plusplayer_libs
+USER_LIB_DIRS = lib/${BUILD_ARCH}/${API_VERSION}
 USER_LFLAGS = -Wl,-rpath='$$ORIGIN'
 USER_LIBS = stdc++ plusplayer-wrapper gstsubtitle_tvplus gstsubtitleparse_tvplus plusplayercore_tvplus tracksource_tvplus plusplayer_tvplus dashplusplayer_tvplus
