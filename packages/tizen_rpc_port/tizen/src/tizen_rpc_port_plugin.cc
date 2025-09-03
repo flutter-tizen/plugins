@@ -8,10 +8,12 @@
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
 #include <flutter/event_stream_handler_functions.h>
+#include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
 #include <memory>
+#include <sstream>
 #include <string>
 #include <variant>
 
@@ -25,6 +27,9 @@ using namespace tizen;
 
 typedef flutter::EventChannel<flutter::EncodableValue> FlEventChannel;
 typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
+typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
+typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
+typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 typedef flutter::StreamHandler<flutter::EncodableValue> FlStreamHandler;
 typedef flutter::StreamHandlerError<flutter::EncodableValue>
     FlStreamHandlerError;
@@ -47,8 +52,7 @@ class RpcProxyStreamHandler : public FlStreamHandler {
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
       const flutter::EncodableValue* arguments,
       std::unique_ptr<FlEventSink>&& events) override {
-    RpcPortProxyManager::Init(std::move(events));
-
+    LOG_DEBUG("Called OnListenInternal %p", this);
     const auto* args = std::get_if<flutter::EncodableMap>(arguments);
     if (!args) {
       return std::make_unique<FlStreamHandlerError>(
@@ -65,6 +69,8 @@ class RpcProxyStreamHandler : public FlStreamHandler {
           nullptr);
     }
 
+    LOG_DEBUG("Called OnListenInternal handle %p", handle);
+    RpcPortProxyManager::Init(handle, std::move(events));
     auto ret = RpcPortProxyManager::Connect(handle, appid, port_name);
     if (!ret) {
       return std::make_unique<FlStreamHandlerError>(
@@ -115,14 +121,15 @@ class RpcStubStreamHandler : public FlStreamHandler {
 class TizenRpcPortPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
-    auto plugin = std::make_unique<TizenRpcPortPlugin>();
+    auto plugin = std::make_unique<TizenRpcPortPlugin>(registrar);
 
-    plugin->proxy_channel_ = std::make_unique<FlEventChannel>(
+    auto method_channel = std::make_unique<FlMethodChannel>(
         registrar->messenger(), "tizen/rpc_port_proxy",
         &flutter::StandardMethodCodec::GetInstance());
-    plugin->proxy_channel_->SetStreamHandler(
-        std::make_unique<RpcProxyStreamHandler>());
-
+    method_channel->SetMethodCallHandler(
+        [plugin_pointer = plugin.get()](const auto& call, auto result) {
+          plugin_pointer->HandleMethodCall(call, std::move(result));
+        });
     plugin->stub_channel_ = std::make_unique<FlEventChannel>(
         registrar->messenger(), "tizen/rpc_port_stub",
         &flutter::StandardMethodCodec::GetInstance());
@@ -132,13 +139,57 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  TizenRpcPortPlugin() {}
+  TizenRpcPortPlugin(flutter::PluginRegistrar* plugin_registrar)
+      : plugin_registrar_(plugin_registrar) {}
 
   virtual ~TizenRpcPortPlugin() {}
 
  private:
-  std::unique_ptr<FlEventChannel> proxy_channel_;
+  std::set<std::unique_ptr<FlEventChannel>> proxy_channels_;
   std::unique_ptr<FlEventChannel> stub_channel_;
+  flutter::PluginRegistrar* plugin_registrar_ = nullptr;
+
+ private:
+  void HandleMethodCall(const FlMethodCall& method_call,
+                        std::unique_ptr<FlMethodResult> result) {
+    const auto& method_name = method_call.method_name();
+    const auto& arguments = *method_call.arguments();
+
+    if (method_name == "init") {
+      const auto* args = std::get_if<flutter::EncodableMap>(&arguments);
+      if (!args) {
+        result->Error("Invalid arguments", "The argument must be a map.");
+        return;
+      }
+      rpc_port_proxy_h handle = nullptr;
+      std::string appid, port_name;
+      if (!GetValueFromEncodableMap(args, "handle",
+                                    reinterpret_cast<int64_t&>(handle)) ||
+          !GetValueFromEncodableMap(args, "portName", port_name)) {
+        result->Error("Invalid arguments",
+                      "No handle, appid, or portName provided.");
+        return;
+      }
+
+      std::string event_channel_name =
+          "tizen/rpc_port_proxy/" + port_name + '/' +
+          std::to_string(reinterpret_cast<int64_t>(handle));
+
+      auto proxy_channel = std::make_unique<FlEventChannel>(
+          plugin_registrar_->messenger(), event_channel_name,
+          &flutter::StandardMethodCodec::GetInstance());
+      proxy_channel->SetStreamHandler(
+          std::make_unique<RpcProxyStreamHandler>());
+
+      proxy_channels_.insert(std::move(proxy_channel));
+
+      result->Success();
+    } else if (method_name == "dispose") {
+      result->Success();
+    } else {
+      result->NotImplemented();
+    }
+  }
 };
 
 }  // namespace
