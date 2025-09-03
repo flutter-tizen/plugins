@@ -165,7 +165,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       std::string appid, port_name;
       if (!GetValueFromEncodableMap(args, "handle",
                                     reinterpret_cast<int64_t&>(handle)) ||
-          !GetValueFromEncodableMap(args, "appid", appid) ||
           !GetValueFromEncodableMap(args, "portName", port_name)) {
         result->Error("Invalid arguments",
                       "No handle, appid, or portName provided.");

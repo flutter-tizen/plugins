@@ -96,7 +96,6 @@ abstract class ProxyBase {
       'init',
       <String, Object>{
         'handle': _handle.address,
-        'appid': appid,
         'portName': portName,
       },
     );
