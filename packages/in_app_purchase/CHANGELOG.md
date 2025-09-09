@@ -1,3 +1,7 @@
+## 0.1.4
+
+* Fix typo in parameter name.(`itemTile` -> `itemTitle`)
+
 ## 0.1.3
 
 * Update code format.
