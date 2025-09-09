@@ -153,7 +153,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
       final int seq = detail!['Seq']! as int;
       final String invoiceId = detail['InvoiceID']! as String;
       final String itemId = detail['ItemID']! as String;
-      final String itemTitle = detail['ItemTile']! as String;
+      final String itemTitle = detail['ItemTitle']! as String;
       final int itemType = detail['ItemType']! as int;
       final String orderTime = detail['OrderTime']! as String;
       final int? period = detail['Period'] as int?;
