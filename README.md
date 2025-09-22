@@ -57,45 +57,47 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 
 ## Device limitations
 
-| Package name | Watch | Watch<br>emulator | TV | TV<br>emulator | Remarks |
-|-|:-:|:-:|:-:|:-:|-|
-| [**audioplayers_tizen**](packages/audioplayers) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**battery_plus_tizen**](packages/battery_plus) | ✔️ | ✔️ | ❌ | ❌ | No battery |
-| [**camera_tizen**](packages/camera) | ❌ | ❌ | ❌ | ❌ | No camera |
-| [**connectivity_plus_tizen**](packages/connectivity_plus) | ✔️ | ⚠️ | ✔️ | ✔️ | Returns incorrect connection status |
-| [**device_info_plus_tizen**](packages/device_info_plus) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**firebase_core**](packages/firebase_core) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**flutter_app_badger_tizen**](packages/flutter_app_badger) | ✔️ | ✔️ | ❌ | ❌ | API not supported |
-| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**flutter_tts_tizen**](packages/flutter_tts) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**flutter_webrtc_tizen**](packages/flutter_webrtc) | ❌ | ❌ | ✔️ | ❌ | No camera |
-| [**geolocator_tizen**](packages/geolocator) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
-| [**google_maps_flutter_tizen**](packages/google_maps_flutter) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**google_sign_in_tizen**](packages/google_sign_in) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**image_picker_tizen**](packages/image_picker) | ⚠️ | ❌ | ❌ | ❌ | No camera,<br>No file manager app |
-| [**in_app_purchase_tizen**](packages/in_app_purchase) | ❌ | ❌ | ✔️ | ❌ | Only applicable for TV |
-| [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**messageport_tizen**](packages/messageport) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**network_info_plus_tizen**](packages/network_info_plus) | ✔️ | ❌ | ✔️ | ❌ | API not supported on emulator |
-| [**package_info_plus_tizen**](packages/package_info_plus) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**path_provider_tizen**](packages/path_provider) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**permission_handler_tizen**](packages/permission_handler) | ✔️ | ✔️ | ⚠️ | ⚠️ | Not applicable for TV |
-| [**sensors_plus_tizen**](packages/sensors_plus) | ✔️ | ✔️ | ❌ | ❌ | No sensor hardware |
-| [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**sqflite_tizen**](packages/sqflite) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_app_control**](packages/tizen_app_control) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_app_manager**](packages/tizen_app_manager) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_audio_manager**](packages/tizen_audio_manager) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_bundle**](packages/tizen_bundle) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_log**](packages/tizen_log) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
-| [**tizen_notification**](packages/tizen_notification) | ❌ | ✔️ | ✔️ | ✔️ | API not supported |
-| [**tizen_package_manager**](packages/tizen_package_manager) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**tizen_rpc_port**](packages/tizen_rpc_port) | ✔️ | ✔️ | ✔️ | ✔️ |
-| [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ✔️ | ❌ | No browser app |
-| [**video_player_avplay**](packages/video_player_avplay) | ❌ | ❌ | ✔️ | ❌ | See README for details |
-| [**video_player_tizen**](packages/video_player) | ✔️ | ✔️ | ✔️ | ❌ | TV emulator issue |
-| [**video_player_videohole**](packages/video_player_videohole) | ❌ | ❌ | ✔️ | ⚠️ | See README for details |
-| [**wakelock_plus_tizen**](packages/wakelock_plus) | ❌ | ❌ | ✔️ | ✔️ | Only applicable for TV |
-| [**wearable_rotary**](packages/wearable_rotary) | ✔️ | ✔️ | ❌ | ❌ | Not applicable for TV |
-| [**webview_flutter_lwe**](packages/webview_flutter_lwe) | ✔️ | ✔️ | ✔️ | ✔️ | Not for production use |
-| [**webview_flutter_tizen**](packages/webview_flutter) | ❌ | ❌ | ✔️ | ✔️ | API not supported |
+| Package name | TV | TV<br>emulator | RPI | Remarks |
+|-|:-:|:-:|:-:|-|
+| [**audioplayers_tizen**](packages/audioplayers) | ✔️ | ✔️ | ✔️ |
+| [**battery_plus_tizen**](packages/battery_plus) | ❌ | ❌ | ❌ | No battery |
+| [**camera_tizen**](packages/camera) | ❌ | ❌ | ❌ | No camera |
+| [**connectivity_plus_tizen**](packages/connectivity_plus) | ✔️ | ✔️ | ✔️ | Returns incorrect connection status |
+| [**device_info_plus_tizen**](packages/device_info_plus) | ✔️ | ✔️ | ✔️ |
+| [**firebase_core**](packages/firebase_core) | ✔️ | ✔️ | ✔️ |
+| [**flutter_app_badger_tizen**](packages/flutter_app_badger) | ❌ | ❌ | ❌ | API not supported |
+| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | ✔️ | ✔️ | ✔️ |
+| [**flutter_tts_tizen**](packages/flutter_tts) | ✔️ | ✔️ | ✔️ |
+| [**flutter_webrtc_tizen**](packages/flutter_webrtc) | ✔️ | ❌ | ❌ | No camera |
+| [**geolocator_tizen**](packages/geolocator) | ❌ | ❌ | ✔️ | Not applicable for TV |
+| [**google_maps_flutter_tizen**](packages/google_maps_flutter) | ✔️ | ✔️ | ✔️ |
+| [**google_sign_in_tizen**](packages/google_sign_in) | ✔️ | ✔️ | ✔️ |
+| [**image_picker_tizen**](packages/image_picker) | ❌ | ❌ | ❌ | No camera,<br>No file manager app |
+| [**in_app_purchase_tizen**](packages/in_app_purchase) | ✔️ | ❌ | ❌ | Only applicable for TV |
+| [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ |
+| [**messageport_tizen**](packages/messageport) | ✔️ | ✔️ | ✔️ |
+| [**network_info_plus_tizen**](packages/network_info_plus) | ✔️ | ❌ | ✔️ | API not supported on emulator. Need plugin-prebuilt to run wifi on RPI. |
+| [**package_info_plus_tizen**](packages/package_info_plus) | ✔️ | ✔️ | ✔️ |
+| [**path_provider_tizen**](packages/path_provider) | ✔️ | ✔️ | ✔️ |
+| [**permission_handler_tizen**](packages/permission_handler) | ⚠️ | ⚠️ | ✔️ | Not applicable for TV |
+| [**sensors_plus_tizen**](packages/sensors_plus) | ❌ | ❌ | ❌ | No sensor hardware |
+| [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ |
+| [**sqflite_tizen**](packages/sqflite) | ✔️ | ✔️ | ✔️ |
+| [**tizen_app_control**](packages/tizen_app_control) | ✔️ | ✔️ | ✔️ |
+| [**tizen_app_manager**](packages/tizen_app_manager) | ✔️ | ✔️ | ✔️ |
+| [**tizen_audio_manager**](packages/tizen_audio_manager) | ✔️ | ✔️ | ✔️ |
+| [**tizen_bundle**](packages/tizen_bundle) | ✔️ | ✔️ | ✔️ |
+| [**tizen_log**](packages/tizen_log) | ❌ | ❌ | ✔️ | Not applicable for TV |
+| [**tizen_notification**](packages/tizen_notification) | ✔️ | ✔️ | ❌ | API not supported |
+| [**tizen_package_manager**](packages/tizen_package_manager) | ✔️ | ✔️ | ✔️ |
+| [**tizen_rpc_port**](packages/tizen_rpc_port) | ✔️ | ✔️ | ✔️ |
+| [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ❌ | No browser app |
+| [**video_player_avplay**](packages/video_player_avplay) | ✔️ | ❌ | ❌ | See README for details |
+| [**video_player_tizen**](packages/video_player) | ✔️ | ❌ | ✔️ | TV emulator issue |
+| [**video_player_videohole**](packages/video_player_videohole) | ✔️ | ❌ | ⚠️ | See README for details |
+| [**wakelock_plus_tizen**](packages/wakelock_plus) | ✔️ | ✔️ | ❌ | Only applicable for TV |
+| [**wearable_rotary**](packages/wearable_rotary) | ❌ | ❌ | ❌ | Not applicable for TV |
+| [**webview_flutter_lwe**](packages/webview_flutter_lwe) | ✔️ | ✔️ | ✔️ | Not for production use |
+| [**webview_flutter_tizen**](packages/webview_flutter) | ✔️ | ✔️ | ✔️ | API not supported |
+
+Note that the plugins in the table above were tested on RPI4 (tizen 10.0) device. The behavior may vary depending on the device, Tizen version, and plugin version. If the plugins don't work properly on Tizen, please report the issue.
