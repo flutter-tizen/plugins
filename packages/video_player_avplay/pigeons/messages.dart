@@ -173,5 +173,6 @@ abstract class VideoPlayerAvplayApi {
   void restore(int playerId, CreateMessage? msg, int resumeTime);
   bool setData(DashPropertyMapMessage msg);
   DashPropertyMapMessage getData(DashPropertyTypeListMessage msg);
+  bool updateToken(int playerId, String token);
   TrackMessage getActiveTrackInfo(PlayerMessage msg);
 }

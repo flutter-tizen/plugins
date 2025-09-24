@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tizen/flutter_tizen.dart' as tizen;
 
+import 'src/ad_info_from_dash.dart';
 import 'src/closed_caption_file.dart';
 import 'src/drm_configs.dart';
 import 'src/hole.dart';
@@ -63,6 +64,7 @@ class VideoPlayerValue {
     this.playbackSpeed = 1.0,
     this.errorDescription,
     this.isCompleted = false,
+    this.adInfo,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -141,9 +143,15 @@ class VideoPlayerValue {
   /// Indicates whether or not the video has been loaded and is ready to play.
   final bool isInitialized;
 
+  /// It is used to show ad info from DASH video player.
+  final AdInfoFromDash? adInfo;
+
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
   bool get hasError => errorDescription != null;
+
+  /// Indicates whether or not the video has ADInfo.
+  bool get hasAdInfo => adInfo != null;
 
   /// Returns [size.width] / [size.height].
   ///
@@ -180,6 +188,7 @@ class VideoPlayerValue {
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
+    AdInfoFromDash? adInfo,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -199,6 +208,7 @@ class VideoPlayerValue {
           ? errorDescription
           : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
+      adInfo: adInfo,
     );
   }
 
@@ -219,6 +229,7 @@ class VideoPlayerValue {
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
+        'adInfo: $adInfo, '
         'isCompleted: $isCompleted),';
   }
 
@@ -241,6 +252,7 @@ class VideoPlayerValue {
           volume == other.volume &&
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
+          adInfo == other.adInfo &&
           isCompleted == other.isCompleted;
 
   @override
@@ -259,6 +271,7 @@ class VideoPlayerValue {
         volume,
         playbackSpeed,
         errorDescription,
+        adInfo,
         isCompleted,
       );
 }
@@ -445,8 +458,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             deviceInfo.platformVersion!.isNotEmpty) &&
         tizen.apiVersion != 'none') {
       if (deviceInfo.platformVersion != tizen.apiVersion) {
-        final double? platformVersion =
-            double.tryParse(deviceInfo.platformVersion!);
+        final double? platformVersion = double.tryParse(
+          deviceInfo.platformVersion!,
+        );
         final double? apiVersion = double.tryParse(tizen.apiVersion);
         if (platformVersion != null && apiVersion != null) {
           if (platformVersion == 6.0 || platformVersion == 10.0) {
@@ -599,7 +613,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           } else {
             value = value.copyWith(isPlaying: event.isPlaying);
           }
-
+        case VideoEventType.adFromDash:
+          final AdInfoFromDash? adInfo = AdInfoFromDash.fromAdInfoMap(
+            event.adInfo,
+          );
+          value = value.copyWith(adInfo: adInfo);
         case VideoEventType.unknown:
           break;
       }
@@ -855,6 +873,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposedOrNotInitialized) {
       return '';
     }
+
     return _videoPlayerPlatform.getStreamingProperty(_playerId, type);
   }
 
@@ -971,6 +990,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
 
     return _videoPlayerPlatform.getData(playerId, keys);
+  }
+
+  /// Update token of DASH at any time after initialization is complete.
+  Future<bool> updateToken(String token) async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+
+    return _videoPlayerPlatform.updateToken(playerId, token);
   }
 
   /// Get activated(selected) track infomation of the associated media.

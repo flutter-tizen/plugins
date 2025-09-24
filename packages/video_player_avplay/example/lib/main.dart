@@ -127,6 +127,17 @@ class _DashRomoteVideo extends StatefulWidget {
 
 class _DashRomoteVideoState extends State<_DashRomoteVideo> {
   late VideoPlayerController _controller;
+  // Optional
+  final Map<StreamingPropertyType, String> _streamingProperties =
+      <StreamingPropertyType, String>{
+    StreamingPropertyType.unwantedResolution: '3840X2160',
+    StreamingPropertyType.unwantedFramerate: '60',
+    StreamingPropertyType.updateSameLanguageCode: '1',
+
+    /// update token [before] dash-player prepare done.
+    StreamingPropertyType.token: 'YWJyVHlwZT1CUi1BVkMtREFTSC',
+    StreamingPropertyType.openHttpHeader: 'TRUE',
+  };
 
   @override
   void initState() {
@@ -134,16 +145,31 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
     _controller = VideoPlayerController.network(
       'https://dash.akamaized.net/dash264/TestCasesUHD/2b/11/MultiRate.mpd',
       formatHint: VideoFormat.dash,
+      streamingProperty: _streamingProperties,
     );
 
     _controller.addListener(() {
       if (_controller.value.hasError) {
         print(_controller.value.errorDescription);
       }
+      if (_controller.value.hasAdInfo) {
+        print(_controller.value.adInfo);
+      }
       setState(() {});
     });
     _controller.setLooping(true);
-    _controller.initialize().then((_) => setState(() {}));
+    _controller.initialize().then((_) {
+      setState(() {});
+      // update token [after] dash-player prepare done.
+      _controller.updateToken('YWJyVHlwZT1CUi1BVkMtREFTSC');
+      // New features: get the following properties.
+      _controller.getStreamingProperty(StreamingPropertyType.audioStreamInfo);
+      _controller.getStreamingProperty(
+        StreamingPropertyType.subtitleStreamInfo,
+      );
+      _controller.getStreamingProperty(StreamingPropertyType.videoStreamInfo);
+      _controller.getData(<DashPlayerProperty>{DashPlayerProperty.httpHeader});
+    });
     _controller.play();
   }
 

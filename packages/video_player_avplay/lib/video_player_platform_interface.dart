@@ -170,6 +170,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('getData() has not been implemented.');
   }
 
+  /// Update token.
+  Future<bool> updateToken(int playerId, String token) {
+    throw UnimplementedError('updateToken() has not been implemented.');
+  }
+
   /// Get activated(selected) track infomation of the associated media.
   Future<List<Track>> getActiveTrackInfo(int playerId) {
     throw UnimplementedError('getActiveTrackInfo() has not been implemented.');
@@ -376,6 +381,30 @@ enum StreamingPropertyType {
 
   /// Property to select the Scaler type, By Default MAIN Scaler selected.
   inAppMultiView,
+
+  /// Property to set the unwanted resolution, it must be in the format 'widthXheight', e.g. '1920X1080'.
+  unwantedResolution,
+
+  /// Property to set the unwanted framerate.
+  unwantedFramerate,
+
+  /// The audio track info of the dash stream.
+  audioStreamInfo,
+
+  /// The susbtitle track info of the dash stream.
+  subtitleStreamInfo,
+
+  /// The video track info of the dash stream.
+  videoStreamInfo,
+
+  /// If have same language code, will update the language code. '1' or '0'.
+  updateSameLanguageCode,
+
+  /// If you want to update token before dash-player prepare done, set this property.
+  token,
+
+  /// Whether to enable the function of obtaining http header. 'TRUE' or others.
+  openHttpHeader,
 }
 
 /// The different types of buffer configurations that can be set on the player.
@@ -451,6 +480,11 @@ enum DashPlayerProperty {
 
   /// Dash player stream info, the value is string type.
   dashStreamInfo,
+
+  /// Http header of dash player, the value is string type.
+  ///
+  /// If you need to use it, please set [StreamingPropertyType.openHttpHeader: 'TRUE'] first
+  httpHeader,
 }
 
 /// Event emitted from the platform implementation.
@@ -474,6 +508,7 @@ class VideoEvent {
     this.text,
     this.isPlaying,
     this.subtitleAttributes,
+    this.adInfo,
   });
 
   /// The type of the event.
@@ -507,6 +542,11 @@ class VideoEvent {
   /// Attributes of the video subtitle.
   final List<dynamic>? subtitleAttributes;
 
+  /// The ad info from dash.
+  ///
+  /// Only used if [eventType] is [VideoEventType.adFromDash].
+  final Map<Object?, Object?>? adInfo;
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -516,7 +556,10 @@ class VideoEvent {
             duration == other.duration &&
             size == other.size &&
             buffered == other.buffered &&
-            text == other.text;
+            text == other.text &&
+            isPlaying == other.isPlaying &&
+            subtitleAttributes == other.subtitleAttributes &&
+            adInfo == other.adInfo;
   }
 
   @override
@@ -525,7 +568,10 @@ class VideoEvent {
       duration.hashCode ^
       size.hashCode ^
       buffered.hashCode ^
-      text.hashCode;
+      text.hashCode ^
+      isPlaying.hashCode ^
+      subtitleAttributes.hashCode ^
+      adInfo.hashCode;
 }
 
 /// Type of the event.
@@ -559,6 +605,9 @@ enum VideoEventType {
 
   /// The video need to restore player.
   restored,
+
+  /// The ad event from dash.
+  adFromDash,
 
   /// An unknown event has been received.
   unknown,

@@ -328,6 +328,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
+  Future<bool> updateToken(int playerId, String token) {
+    return _api.updateToken(playerId, token);
+  }
+
+  @override
   Future<List<Track>> getActiveTrackInfo(int playerId) async {
     final TrackMessage msg = await _api.getActiveTrackInfo(
       PlayerMessage(playerId: playerId),
@@ -439,6 +444,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             eventType: VideoEventType.isPlayingStateUpdate,
             isPlaying: map['isPlaying']! as bool,
           );
+        case 'adFromDash':
+          return VideoEvent(
+            eventType: VideoEventType.adFromDash,
+            adInfo: map['adInfo'] as Map<Object?, Object?>?,
+          );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
       }
@@ -504,6 +514,14 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     StreamingPropertyType.setMode4K: 'SET_MODE_4K',
     StreamingPropertyType.userAgent: 'USER_AGENT',
     StreamingPropertyType.useVideoMixer: 'USE_VIDEOMIXER',
+    StreamingPropertyType.unwantedResolution: 'UNWANTED_RESOLUTION',
+    StreamingPropertyType.unwantedFramerate: 'UNWANTED_FRAMERATE',
+    StreamingPropertyType.audioStreamInfo: 'AUDIO_STREAM_INFO',
+    StreamingPropertyType.subtitleStreamInfo: 'SUBTITLE_STREAM_INFO',
+    StreamingPropertyType.videoStreamInfo: 'VIDEO_STREAM_INFO',
+    StreamingPropertyType.updateSameLanguageCode: 'UPDATE_SAME_LANGUAGE_CODE',
+    StreamingPropertyType.token: 'TOKEN',
+    StreamingPropertyType.openHttpHeader: 'OPEN_HTTP_HEADER',
   };
 
   static const Map<BufferConfigType, String> _bufferConfigTypeMap =
@@ -523,5 +541,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       <DashPlayerProperty, String>{
     DashPlayerProperty.maxBandWidth: 'max-bandwidth',
     DashPlayerProperty.dashStreamInfo: 'dash-stream-info',
+    DashPlayerProperty.httpHeader: 'http-header',
   };
 }
