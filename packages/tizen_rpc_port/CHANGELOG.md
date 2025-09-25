@@ -1,6 +1,7 @@
-## NEXT
+## 0.1.5
 
 * Update code format.
+* Resolved issue with failure to receive events in multiple proxies
 
 ## 0.1.4
 

@@ -61,12 +61,18 @@ class RpcProxyStreamHandler : public FlStreamHandler {
     rpc_port_proxy_h handle = nullptr;
     std::string appid, port_name;
     if (!GetValueFromEncodableMap(args, "handle",
-                                  reinterpret_cast<int64_t&>(handle)) ||
-        !GetValueFromEncodableMap(args, "appid", appid) ||
+                                  reinterpret_cast<int64_t&>(handle))) {
+      if (!GetValueFromEncodableMap(args, "handle",
+                                    reinterpret_cast<int32_t&>(handle))) {
+        return std::make_unique<FlStreamHandlerError>(
+            "Invalid arguments", "No handle provided.", nullptr);
+      }
+    }
+
+    if (!GetValueFromEncodableMap(args, "appid", appid) ||
         !GetValueFromEncodableMap(args, "portName", port_name)) {
       return std::make_unique<FlStreamHandlerError>(
-          "Invalid arguments", "No handle, appid, or portName provided.",
-          nullptr);
+          "Invalid arguments", "No appid, or portName provided.", nullptr);
     }
 
     LOG_DEBUG("Called OnListenInternal handle %p", handle);
@@ -100,8 +106,11 @@ class RpcStubStreamHandler : public FlStreamHandler {
     rpc_port_stub_h handle = nullptr;
     if (!GetValueFromEncodableMap(args, "handle",
                                   reinterpret_cast<int64_t&>(handle))) {
-      return std::make_unique<FlStreamHandlerError>(
-          "Invalid arguments", "No handle provided.", nullptr);
+      if (!GetValueFromEncodableMap(args, "handle",
+                                    reinterpret_cast<int32_t&>(handle))) {
+        return std::make_unique<FlStreamHandlerError>(
+            "Invalid arguments", "No handle provided.", nullptr);
+      }
     }
 
     auto ret = RpcPortStubManager::Listen(handle);
@@ -161,13 +170,20 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         result->Error("Invalid arguments", "The argument must be a map.");
         return;
       }
+
       rpc_port_proxy_h handle = nullptr;
-      std::string appid, port_name;
       if (!GetValueFromEncodableMap(args, "handle",
-                                    reinterpret_cast<int64_t&>(handle)) ||
-          !GetValueFromEncodableMap(args, "portName", port_name)) {
-        result->Error("Invalid arguments",
-                      "No handle, appid, or portName provided.");
+                                    reinterpret_cast<int64_t&>(handle))) {
+        if (!GetValueFromEncodableMap(args, "handle",
+                                      reinterpret_cast<int32_t&>(handle))) {
+          result->Error("Invalid arguments", "No handle provided.");
+          return;
+        }
+      }
+
+      std::string appid, port_name;
+      if (!GetValueFromEncodableMap(args, "portName", port_name)) {
+        result->Error("Invalid arguments", "No portName provided.");
         return;
       }
 
