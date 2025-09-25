@@ -106,7 +106,6 @@ int64_t PlusPlayer::Create(const std::string &uri,
   create_message_ = create_message;
   LOG_INFO("[PlusPlayer] Uri: %s", uri.c_str());
 
-  SetStreamingProperty("UPDATE_SAME_LANGUAGE_CODE", "1");
   if (create_message.streaming_property() != nullptr &&
       !create_message.streaming_property()->empty()) {
     for (const auto &[key, value] : *create_message.streaming_property()) {
