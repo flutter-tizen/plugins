@@ -594,8 +594,8 @@ class VideoPlayerAvplayApi {
   virtual ErrorOr<bool> SetData(const DashPropertyMapMessage& msg) = 0;
   virtual ErrorOr<DashPropertyMapMessage> GetData(
       const DashPropertyTypeListMessage& msg) = 0;
-  virtual ErrorOr<bool> UpdateToken(int64_t player_id,
-                                    const std::string& token) = 0;
+  virtual ErrorOr<bool> UpdateDashToken(int64_t player_id,
+                                        const std::string& dash_token) = 0;
   virtual ErrorOr<TrackMessage> GetActiveTrackInfo(
       const PlayerMessage& msg) = 0;
 

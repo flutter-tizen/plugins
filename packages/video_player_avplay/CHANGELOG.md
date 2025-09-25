@@ -1,4 +1,4 @@
-## 0.6.1
+## 0.7.0
 * Add new features for DASH video player
   1. Support update token before and after player prepare done.
   2. Support setting resolution, frame rate and whether to update same language code.

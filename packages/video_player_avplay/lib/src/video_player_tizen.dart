@@ -328,8 +328,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Future<bool> updateToken(int playerId, String token) {
-    return _api.updateToken(playerId, token);
+  Future<bool> updateDashToken(int playerId, String dashToken) {
+    return _api.updateDashToken(playerId, dashToken);
   }
 
   @override
@@ -520,7 +520,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     StreamingPropertyType.subtitleStreamInfo: 'SUBTITLE_STREAM_INFO',
     StreamingPropertyType.videoStreamInfo: 'VIDEO_STREAM_INFO',
     StreamingPropertyType.updateSameLanguageCode: 'UPDATE_SAME_LANGUAGE_CODE',
-    StreamingPropertyType.token: 'TOKEN',
+    StreamingPropertyType.dashToken: 'TOKEN',
     StreamingPropertyType.openHttpHeader: 'OPEN_HTTP_HEADER',
   };
 

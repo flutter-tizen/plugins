@@ -56,7 +56,7 @@ class PlusPlayer : public VideoPlayer {
                int64_t resume_time) override;
   bool SetData(const flutter::EncodableMap &data) override;
   flutter::EncodableMap GetData(const flutter::EncodableList &data) override;
-  bool UpdateToken(const std::string &token) override;
+  bool UpdateDashToken(const std::string &dashToken) override;
   flutter::EncodableList GetActiveTrackInfo() override;
 
  private:

@@ -171,8 +171,8 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   }
 
   /// Update token.
-  Future<bool> updateToken(int playerId, String token) {
-    throw UnimplementedError('updateToken() has not been implemented.');
+  Future<bool> updateDashToken(int playerId, String dashToken) {
+    throw UnimplementedError('updateDashToken() has not been implemented.');
   }
 
   /// Get activated(selected) track infomation of the associated media.
@@ -401,7 +401,7 @@ enum StreamingPropertyType {
   updateSameLanguageCode,
 
   /// If you want to update token before dash-player prepare done, set this property.
-  token,
+  dashToken,
 
   /// Whether to enable the function of obtaining http header. 'TRUE' or others.
   openHttpHeader,

@@ -1764,9 +1764,9 @@ class VideoPlayerAvplayApi {
     }
   }
 
-  Future<bool> updateToken(int playerId, String token) async {
+  Future<bool> updateDashToken(int playerId, String dashToken) async {
     final String pigeonVar_channelName =
-        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.updateToken$pigeonVar_messageChannelSuffix';
+        'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.updateDashToken$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
         BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -1774,7 +1774,7 @@ class VideoPlayerAvplayApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[playerId, token],
+      <Object?>[playerId, dashToken],
     );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;

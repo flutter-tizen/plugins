@@ -993,12 +993,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   /// Update token of DASH at any time after initialization is complete.
-  Future<bool> updateToken(String token) async {
+  Future<bool> updateDashToken(String dashToken) async {
     if (_isDisposedOrNotInitialized) {
       return false;
     }
 
-    return _videoPlayerPlatform.updateToken(playerId, token);
+    if (formatHint == null || formatHint != VideoFormat.dash) {
+      throw Exception('updateDashToken() only support for dash format!');
+    }
+
+    return _videoPlayerPlatform.updateDashToken(playerId, dashToken);
   }
 
   /// Get activated(selected) track infomation of the associated media.

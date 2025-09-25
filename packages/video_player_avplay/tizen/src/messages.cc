@@ -2041,7 +2041,7 @@ void VideoPlayerAvplayApi::SetUp(flutter::BinaryMessenger* binary_messenger,
   {
     BasicMessageChannel<> channel(binary_messenger,
                                   "dev.flutter.pigeon.video_player_avplay."
-                                  "VideoPlayerAvplayApi.updateToken" +
+                                  "VideoPlayerAvplayApi.updateDashToken" +
                                       prepended_suffix,
                                   &GetCodec());
     if (api != nullptr) {
@@ -2056,14 +2056,15 @@ void VideoPlayerAvplayApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                 return;
               }
               const int64_t player_id_arg = encodable_player_id_arg.LongValue();
-              const auto& encodable_token_arg = args.at(1);
-              if (encodable_token_arg.IsNull()) {
-                reply(WrapError("token_arg unexpectedly null."));
+              const auto& encodable_dash_token_arg = args.at(1);
+              if (encodable_dash_token_arg.IsNull()) {
+                reply(WrapError("dash_token_arg unexpectedly null."));
                 return;
               }
-              const auto& token_arg =
-                  std::get<std::string>(encodable_token_arg);
-              ErrorOr<bool> output = api->UpdateToken(player_id_arg, token_arg);
+              const auto& dash_token_arg =
+                  std::get<std::string>(encodable_dash_token_arg);
+              ErrorOr<bool> output =
+                  api->UpdateDashToken(player_id_arg, dash_token_arg);
               if (output.has_error()) {
                 reply(WrapError(output.error()));
                 return;

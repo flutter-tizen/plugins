@@ -1049,12 +1049,12 @@ flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
   return result;
 }
 
-bool PlusPlayer::UpdateToken(const std::string &token) {
+bool PlusPlayer::UpdateDashToken(const std::string &dashToken) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
   }
-  return ::UpdateDashToken(player_, token);
+  return ::UpdateDashToken(player_, dashToken);
 }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,

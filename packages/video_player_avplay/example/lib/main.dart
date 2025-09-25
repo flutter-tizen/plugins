@@ -135,7 +135,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
     StreamingPropertyType.updateSameLanguageCode: '1',
 
     /// update token [before] dash-player prepare done.
-    StreamingPropertyType.token: 'YWJyVHlwZT1CUi1BVkMtREFTSC',
+    StreamingPropertyType.dashToken: 'YWJyVHlwZT1CUi1BVkMtREFTSC',
     StreamingPropertyType.openHttpHeader: 'TRUE',
   };
 
@@ -161,7 +161,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
     _controller.initialize().then((_) {
       setState(() {});
       // update token [after] dash-player prepare done.
-      _controller.updateToken('YWJyVHlwZT1CUi1BVkMtREFTSC');
+      _controller.updateDashToken('YWJyVHlwZT1CUi1BVkMtREFTSC');
       // New features: get the following properties.
       _controller.getStreamingProperty(StreamingPropertyType.audioStreamInfo);
       _controller.getStreamingProperty(
