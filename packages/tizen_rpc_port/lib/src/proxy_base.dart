@@ -61,10 +61,12 @@ abstract class ProxyBase {
   Completer<void> _connectCompleter = Completer<void>();
   Completer<void> _disconnectCompleter = Completer<void>();
 
-  static const EventChannel _eventChannel = EventChannel(
+  static const MethodChannel _channel = MethodChannel(
     'tizen/rpc_port_proxy',
   );
 
+  Stream<dynamic>? _stream;
+  static final Set<int> _activeConnections = <int>{};
   StreamSubscription<dynamic>? _streamSubscription;
   OnDisconnected? _onDisconnected;
 
@@ -90,14 +92,28 @@ abstract class ProxyBase {
       throw StateError('Proxy $appid/$portName already connected');
     }
 
-    final Stream<dynamic> stream = _eventChannel.receiveBroadcastStream(
+    await _channel.invokeMethod(
+      'init',
+      <String, Object>{
+        'handle': _handle.address,
+        'portName': portName,
+      },
+    );
+
+    final EventChannel eventChannel = EventChannel(
+      'tizen/rpc_port_proxy/$portName/${_handle.address}',
+    );
+
+    _stream = eventChannel.receiveBroadcastStream(
       <String, Object>{
         'handle': _handle.address,
         'appid': appid,
         'portName': portName,
       },
     );
-    _streamSubscription = stream.listen((dynamic data) async {
+
+    _activeConnections.add(_handle.address);
+    _streamSubscription = _stream!.listen((dynamic data) async {
       final Map<String, dynamic> map =
           (data as Map<dynamic, dynamic>).cast<String, dynamic>();
       final int handle = map['handle'] as int;
@@ -114,12 +130,20 @@ abstract class ProxyBase {
         await _onDisconnectedEvent();
         await _streamSubscription?.cancel();
         _streamSubscription = null;
+        _activeConnections.remove(_handle.address);
+        if (_activeConnections.isEmpty) {
+          _stream = null;
+        }
       } else if (event == 'rejected') {
         _isConnected = false;
         final String error = map['error'] as String;
         await _onRejectedEvent(error);
         await _streamSubscription?.cancel();
         _streamSubscription = null;
+        _activeConnections.remove(_handle.address);
+        if (_activeConnections.isEmpty) {
+          _stream = null;
+        }
       } else if (event == 'received') {
         final Uint8List rawData = map['rawData'] as Uint8List;
         final Parcel parcel = Parcel.fromRaw(rawData);
@@ -181,9 +205,6 @@ abstract class ProxyBase {
   Future<void> _onDisconnectedEvent() async {
     await _onDisconnected?.call();
     _onDisconnected = null;
-
-    getPort(PortType.main).disconnect();
-    getPort(PortType.callback).disconnect();
 
     if (!_disconnectCompleter.isCompleted) {
       _disconnectCompleter.complete();
