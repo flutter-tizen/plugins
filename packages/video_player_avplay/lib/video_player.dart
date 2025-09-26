@@ -889,6 +889,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     final Future<String> streamingProperty =
         _videoPlayerPlatform.getStreamingProperty(_playerId, type);
     await streamingProperty.then((String result) {
+      // ignore: avoid_print
       print('[getStreamingProperty()] type: $type, result: $result');
     });
 
@@ -1019,6 +1020,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     final Future<Map<DashPlayerProperty, Object>> data =
         _videoPlayerPlatform.getData(playerId, keys);
     await data.then((Object result) {
+      // ignore: avoid_print
       print('[getData()] result: \n$result');
     });
 
