@@ -705,6 +705,17 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
     return;
   }
 
+  if ((!create_message_.format_hint() ||
+       create_message_.format_hint()->empty() ||
+       *create_message_.format_hint() != "dash") &&
+      (type == "OPEN_HTTP_HEADER" || type == "TOKEN" ||
+       type == "UNWANTED_FRAMERATE" || type == "UNWANTED_RESOLUTION" ||
+       type == "UPDATE_SAME_LANGUAGE_CODE")) {
+    LOG_ERROR("[PlusPlayer] Only support streaming property type: %s for DASH!",
+              type.c_str());
+    return;
+  }
+
   LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
            value.c_str());
   ::SetStreamingProperty(player_, type, value);
@@ -1349,6 +1360,10 @@ void PlusPlayer::OnStateChangedToPlaying(void *user_data) {
 void PlusPlayer::OnADEventFromDash(const char *ad_data, void *user_data) {
   const char *prefix = "AD_INFO: ";
   char *data = strstr(ad_data, prefix);
+  if (!data) {
+    LOG_ERROR("[PlusPlayer] Invalid ad_data.");
+    return;
+  }
   data += strlen(prefix);
   data[strlen(data) - 1] = '\0';
   LOG_INFO("[PlusPlayer] AD info: %s", data);

@@ -164,9 +164,8 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
       _controller.updateDashToken('YWJyVHlwZT1CUi1BVkMtREFTSC');
       // New features: get the following properties.
       _controller.getStreamingProperty(StreamingPropertyType.audioStreamInfo);
-      _controller.getStreamingProperty(
-        StreamingPropertyType.subtitleStreamInfo,
-      );
+      _controller
+          .getStreamingProperty(StreamingPropertyType.subtitleStreamInfo);
       _controller.getStreamingProperty(StreamingPropertyType.videoStreamInfo);
       _controller.getData(<DashPlayerProperty>{DashPlayerProperty.httpHeader});
     });

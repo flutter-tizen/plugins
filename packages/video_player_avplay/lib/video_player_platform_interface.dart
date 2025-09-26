@@ -410,15 +410,17 @@ enum StreamingPropertyType {
   /// framerate available in the stream's manifest.
   unwantedFramerate,
 
-  /// The audio track info of the dash stream.
+  /// The audio track info of the DASH stream.
   audioStreamInfo,
 
-  /// The susbtitle track info of the dash stream.
+  /// The susbtitle track info of the DASH stream.
   subtitleStreamInfo,
 
-  /// The video track info of the dash stream.
+  /// The video track info of the DASH stream.
   videoStreamInfo,
 
+  /// Only available for DASH stream.
+  ///
   /// Update the language code in manifest like lang="'en'+'i'", where "i" will be an integer
   /// when there are more than one adaptation set with same language code.
   ///
@@ -443,6 +445,8 @@ enum StreamingPropertyType {
   ///   initialized to dynamically update or change the token during playback.
   dashToken,
 
+  /// Only available for DASH stream.
+  ///
   /// Whether to enable the function of obtaining http header. 'TRUE' or others.
   openHttpHeader,
 }

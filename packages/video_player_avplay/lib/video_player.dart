@@ -886,7 +886,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return '';
     }
 
-    return _videoPlayerPlatform.getStreamingProperty(_playerId, type);
+    final Future<String> streamingProperty =
+        _videoPlayerPlatform.getStreamingProperty(_playerId, type);
+    await streamingProperty.then((String result) {
+      print('[getStreamingProperty()] type: $type, result: $result');
+    });
+
+    return streamingProperty;
   }
 
   /// Sets specific feature values for HTTP, MMS, or specific streaming engine (Smooth Streaming, HLS, DASH, DivX Plus Streaming, or Widevine).
@@ -898,6 +904,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   ) async {
     if (_isDisposedOrNotInitialized) {
       return;
+    }
+    if ((formatHint == null || formatHint != VideoFormat.dash) &&
+        (type == StreamingPropertyType.unwantedResolution ||
+            type == StreamingPropertyType.unwantedFramerate ||
+            type == StreamingPropertyType.updateSameLanguageCode ||
+            type == StreamingPropertyType.dashToken ||
+            type == StreamingPropertyType.openHttpHeader)) {
+      throw Exception(
+          'setStreamingProperty().$type only support for dash format!');
     }
     return _videoPlayerPlatform.setStreamingProperty(_playerId, type, value);
   }
@@ -1001,7 +1016,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return <DashPlayerProperty, Object>{};
     }
 
-    return _videoPlayerPlatform.getData(playerId, keys);
+    final Future<Map<DashPlayerProperty, Object>> data =
+        _videoPlayerPlatform.getData(playerId, keys);
+    await data.then((Object result) {
+      print('[getData()] result: \n$result');
+    });
+
+    return data;
   }
 
   /// Updates the authentication token for the current DASH video stream.
