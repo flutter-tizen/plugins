@@ -56,6 +56,7 @@ class PlusPlayer : public VideoPlayer {
                int64_t resume_time) override;
   bool SetData(const flutter::EncodableMap &data) override;
   flutter::EncodableMap GetData(const flutter::EncodableList &data) override;
+  bool UpdateDashToken(const std::string &dashToken) override;
   flutter::EncodableList GetActiveTrackInfo() override;
 
  private:
@@ -100,6 +101,7 @@ class PlusPlayer : public VideoPlayer {
   static void OnCueOutContEvent(const char *cue_out_cont_data, void *user_data);
   static void OnChangeSourceDone(bool ret, void *user_data);
   static void OnStateChangedToPlaying(void *user_data);
+  static void OnADEventFromDash(const char *ad_data, void *user_data);
 
   PlusplayerRef player_ = nullptr;
   PlusplayerListener listener_;

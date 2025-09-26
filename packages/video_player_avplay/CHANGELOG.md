@@ -1,3 +1,14 @@
+## 0.7.0
+* Add new features for DASH video player
+  1. Support update token before and after player prepare done.
+  2. Support setting resolution, frame rate and whether to update same language code.
+  3. Support obtaining streaming information such as audio, video, and subtitle.
+  4. Support getting the http response header of the requested url.
+  5. Support capturing ad information in the stream.
+* Update plusplayer
+  1. [DASH] Fix the issue of incorrect duration after the stream changes from live to static.
+  2. [Common] Add protect for smpted image subtitle decoder.
+
 ## 0.6.0
 * Support multi TizenOS version.
 

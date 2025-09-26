@@ -73,6 +73,7 @@ void PlusPlayer::RegisterListener() {
   listener_.subtitle_data_callback = OnSubtitleData;
   listener_.playing_callback = OnStateChangedToPlaying;
   listener_.resource_conflicted_callback = OnResourceConflicted;
+  listener_.ad_event_callback = OnADEventFromDash;
   ::RegisterListener(player_, &listener_, this);
 }
 
@@ -704,6 +705,17 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
     return;
   }
 
+  if ((!create_message_.format_hint() ||
+       create_message_.format_hint()->empty() ||
+       *create_message_.format_hint() != "dash") &&
+      (type == "OPEN_HTTP_HEADER" || type == "TOKEN" ||
+       type == "UNWANTED_FRAMERATE" || type == "UNWANTED_RESOLUTION" ||
+       type == "UPDATE_SAME_LANGUAGE_CODE")) {
+    LOG_ERROR("[PlusPlayer] Only support streaming property type: %s for DASH!",
+              type.c_str());
+    return;
+  }
+
   LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
            value.c_str());
   ::SetStreamingProperty(player_, type, value);
@@ -1047,6 +1059,14 @@ flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
   return result;
 }
 
+bool PlusPlayer::UpdateDashToken(const std::string &dashToken) {
+  if (!player_) {
+    LOG_ERROR("[PlusPlayer] Player not created.");
+    return false;
+  }
+  return ::UpdateDashToken(player_, dashToken);
+}
+
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
                                    unsigned char *pssh_data, void *user_data) {
   LOG_INFO("[PlusPlayer] License acquired.");
@@ -1335,6 +1355,76 @@ void PlusPlayer::OnChangeSourceDone(bool ret, void *user_data) {}
 void PlusPlayer::OnStateChangedToPlaying(void *user_data) {
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
   self->SendIsPlayingState(true);
+}
+
+void PlusPlayer::OnADEventFromDash(const char *ad_data, void *user_data) {
+  const char *prefix = "AD_INFO: ";
+  char *data = strstr(ad_data, prefix);
+  if (!data) {
+    LOG_ERROR("[PlusPlayer] Invalid ad_data.");
+    return;
+  }
+  data += strlen(prefix);
+  data[strlen(data) - 1] = '\0';
+  LOG_INFO("[PlusPlayer] AD info: %s", data);
+
+  rapidjson::Document doc;
+  doc.Parse(data);
+  if (doc.HasParseError()) {
+    LOG_ERROR("[PlusPlayer] Fail to parse ad_data: %d.", doc.GetParseError());
+    return;
+  }
+
+  flutter::EncodableMap ad_info = {};
+  if (doc.HasMember("event") && doc["event"].IsObject()) {
+    const rapidjson::Value &event = doc["event"];
+
+    if (event.HasMember("data") && event["data"].IsObject()) {
+      const rapidjson::Value &data = event["data"];
+
+      if (data.HasMember("id") && data["id"].IsInt64()) {
+        ad_info.insert_or_assign(
+            flutter::EncodableValue("id"),
+            flutter::EncodableValue(data["id"].GetInt64()));
+      }
+
+      if (data.HasMember("cancel_indicator") &&
+          data["cancel_indicator"].IsBool()) {
+        ad_info.insert_or_assign(
+            flutter::EncodableValue("cancel_indicator"),
+            flutter::EncodableValue(data["cancel_indicator"].GetBool()));
+      }
+
+      if (data.HasMember("start_ms") && data["start_ms"].IsInt64()) {
+        ad_info.insert_or_assign(
+            flutter::EncodableValue("start_ms"),
+            flutter::EncodableValue(data["start_ms"].GetInt64()));
+      }
+
+      if (data.HasMember("duration_ms") && data["duration_ms"].IsInt64()) {
+        ad_info.insert_or_assign(
+            flutter::EncodableValue("duration_ms"),
+            flutter::EncodableValue(data["duration_ms"].GetInt64()));
+      }
+
+      if (data.HasMember("end_ms") && data["end_ms"].IsInt64()) {
+        ad_info.insert_or_assign(
+            flutter::EncodableValue("end_ms"),
+            flutter::EncodableValue(data["end_ms"].GetInt64()));
+      }
+
+      if (data.HasMember("out_of_network_indicator") &&
+          data["out_of_network_indicator"].IsInt64()) {
+        ad_info.insert_or_assign(
+            flutter::EncodableValue("out_of_network_indicator"),
+            flutter::EncodableValue(
+                data["out_of_network_indicator"].GetInt64()));
+      }
+    }
+
+    PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
+    self->SendADFromDash(ad_info);
+  }
 }
 
 }  // namespace video_player_avplay_tizen

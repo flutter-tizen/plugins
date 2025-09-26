@@ -66,6 +66,8 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   ErrorOr<bool> SetData(const DashPropertyMapMessage &msg) override;
   ErrorOr<DashPropertyMapMessage> GetData(
       const DashPropertyTypeListMessage &msg) override;
+  ErrorOr<bool> UpdateDashToken(int64_t player_id,
+                                const std::string &dashToken) override;
   ErrorOr<TrackMessage> GetActiveTrackInfo(const PlayerMessage &msg) override;
 
   std::optional<FlutterError> Suspend(int64_t player_id) override;
@@ -405,6 +407,15 @@ ErrorOr<DashPropertyMapMessage> VideoPlayerTizenPlugin::GetData(
   DashPropertyMapMessage result(msg.player_id(),
                                 player->GetData(msg.type_list()));
   return result;
+}
+
+ErrorOr<bool> VideoPlayerTizenPlugin::UpdateDashToken(
+    int64_t player_id, const std::string &dashToken) {
+  VideoPlayer *player = FindPlayerById(player_id);
+  if (!player) {
+    return FlutterError("Invalid argument", "Player not found");
+  }
+  return player->UpdateDashToken(dashToken);
 }
 
 ErrorOr<TrackMessage> VideoPlayerTizenPlugin::GetActiveTrackInfo(
