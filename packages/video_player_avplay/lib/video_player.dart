@@ -906,7 +906,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposedOrNotInitialized) {
       return;
     }
-    if ((formatHint == null || formatHint != VideoFormat.dash) &&
+    if (formatHint != VideoFormat.dash &&
         (type == StreamingPropertyType.unwantedResolution ||
             type == StreamingPropertyType.unwantedFramerate ||
             type == StreamingPropertyType.updateSameLanguageCode ||

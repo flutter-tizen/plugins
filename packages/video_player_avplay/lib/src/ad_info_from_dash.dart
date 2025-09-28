@@ -38,7 +38,7 @@ class AdInfoFromDash {
 
   /// Parse the ad information from a map. Returns null if the map is null or empty. Otherwise, returns a new instance of [AdInfoFromDash].
   static AdInfoFromDash? fromAdInfoMap(Map<Object?, Object?>? adInfo) {
-    if (adInfo != null && adInfo.isNotEmpty) {
+    if (adInfo!.isNotEmpty) {
       final int adId = adInfo['id']! as int;
       final int startTime = adInfo['start_ms']! as int;
       final int endTime = adInfo['end_ms']! as int;
