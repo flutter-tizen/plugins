@@ -1,5 +1,5 @@
 ## 0.7.1
-* Fix an asserion issue when getting AD information.
+* Fix an assertion issue when getting AD information.
 
 ## 0.7.0
 * Add new features for DASH video player
