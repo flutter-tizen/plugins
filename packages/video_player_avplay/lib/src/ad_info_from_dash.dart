@@ -38,8 +38,8 @@ class AdInfoFromDash {
 
   /// Parse the ad information from a map. Returns null if the map is null or empty. Otherwise, returns a new instance of [AdInfoFromDash].
   static AdInfoFromDash? fromAdInfoMap(Map<Object?, Object?>? adInfo) {
-    if (adInfo!.isNotEmpty) {
-      final int adId = adInfo['id']! as int;
+    if (adInfo?.isNotEmpty ?? false) {
+      final int adId = adInfo!['id']! as int;
       final int startTime = adInfo['start_ms']! as int;
       final int endTime = adInfo['end_ms']! as int;
       final int durationTime = adInfo['duration_ms']! as int;
@@ -48,13 +48,12 @@ class AdInfoFromDash {
       final bool cancelIndicator = adInfo['cancel_indicator']! as bool;
 
       return AdInfoFromDash(
-        adId: adId,
-        cancelIndicator: cancelIndicator,
-        startTime: startTime,
-        endTime: endTime,
-        durationTime: durationTime,
-        outOfNetworkIndicator: outOfNetworkIndicator,
-      );
+          adId: adId,
+          cancelIndicator: cancelIndicator,
+          startTime: startTime,
+          endTime: endTime,
+          durationTime: durationTime,
+          outOfNetworkIndicator: outOfNetworkIndicator);
     }
 
     return null;
@@ -84,12 +83,6 @@ class AdInfoFromDash {
           outOfNetworkIndicator == other.outOfNetworkIndicator;
 
   @override
-  int get hashCode => Object.hash(
-        adId,
-        cancelIndicator,
-        startTime,
-        endTime,
-        durationTime,
-        outOfNetworkIndicator,
-      );
+  int get hashCode => Object.hash(adId, cancelIndicator, startTime, endTime,
+      durationTime, outOfNetworkIndicator);
 }
