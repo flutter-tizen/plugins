@@ -170,6 +170,11 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('getData() has not been implemented.');
   }
 
+  /// Update token.
+  Future<bool> updateDashToken(int playerId, String dashToken) {
+    throw UnimplementedError('updateDashToken() has not been implemented.');
+  }
+
   /// Get activated(selected) track infomation of the associated media.
   Future<List<Track>> getActiveTrackInfo(int playerId) {
     throw UnimplementedError('getActiveTrackInfo() has not been implemented.');
@@ -376,6 +381,74 @@ enum StreamingPropertyType {
 
   /// Property to select the Scaler type, By Default MAIN Scaler selected.
   inAppMultiView,
+
+  /// Specifies the maximum acceptable video resolution for DASH adaptive streaming.
+  ///
+  /// This property allows you to set an upper limit on the video resolution
+  /// (width x height) that the DASH player can select during playback.
+  /// The player will not choose any resolution higher than the specified maximum.
+  ///
+  /// The value for this property must be a string in the format 'widthXheight',
+  /// for example, '1920X1080' to set the maximum acceptable resolution to 1080p.
+  /// The player will then select from resolutions up to and including 1080p.
+  ///
+  /// **Important**: The set maximum resolution cannot be lower than the minimum
+  /// resolution available in the stream's manifest.
+  unwantedResolution,
+
+  /// Specifies the maximum acceptable video framerate for DASH adaptive streaming.
+  ///
+  /// This property allows you to set an upper limit on the video framerate (in frames
+  /// per second) that the DASH player can select during playback. The player
+  /// will not choose any framerate higher than the specified maximum.
+  ///
+  /// The value for this property should be a string representing the numerical framerate,
+  /// for example, '30' to set the maximum acceptable framerate to 30fps. The player
+  /// will then select from framerates up to and including 30fps.
+  ///
+  /// **Important**: The set maximum framerate cannot be lower than the minimum
+  /// framerate available in the stream's manifest.
+  unwantedFramerate,
+
+  /// The audio track info of the DASH stream.
+  audioStreamInfo,
+
+  /// The susbtitle track info of the DASH stream.
+  subtitleStreamInfo,
+
+  /// The video track info of the DASH stream.
+  videoStreamInfo,
+
+  /// Only available for DASH stream.
+  ///
+  /// Update the language code in manifest like lang="'en'+'i'", where "i" will be an integer
+  /// when there are more than one adaptation set with same language code.
+  ///
+  /// The value for this property is an integer string: '0','1' or others as defined in the manifest.
+  updateSameLanguageCode,
+
+  /// Sets the DASH authentication token to be used before the player is initialized.
+  ///
+  /// This property is used to provide an initial DASH authentication token for
+  /// video streams that require token-based authentication. It should be set
+  /// before the DASH player begins its preparation process (i.e., before the
+  /// player is fully initialized).
+  ///
+  /// For detailed information about the token's purpose and format, please refer to the
+  /// documentation for the [updateDashToken] API in 'video_player.dart'.
+  ///
+  /// The key difference between using this property and the [updateDashToken] method
+  /// is the timing of their use:
+  /// * `dashToken` (this property): Must be set *before* the player initialization
+  ///   is complete. It is for providing the token at the outset.
+  /// * `updateDashToken` (the method): Is called *after* the player has been
+  ///   initialized to dynamically update or change the token during playback.
+  dashToken,
+
+  /// Only available for DASH stream.
+  ///
+  /// Whether to enable the function of obtaining http header. 'TRUE' or others.
+  openHttpHeader,
 }
 
 /// The different types of buffer configurations that can be set on the player.
@@ -451,6 +524,16 @@ enum DashPlayerProperty {
 
   /// Dash player stream info, the value is string type.
   dashStreamInfo,
+
+  /// Retrieves the last HTTP response header from the DASH player's network requests.
+  ///
+  /// This property is used to get the HTTP headers received in response to the
+  /// requests made by the DASH player for fetching video manifest files or media segments.
+  ///
+  /// To use this property, you must first enable HTTP header retrieval by setting
+  /// [StreamingPropertyType.openHttpHeader] to `'TRUE'`. Once enabled, you can
+  /// retrieve the headers using the [getData] method with this `httpHeader` key.
+  httpHeader,
 }
 
 /// Event emitted from the platform implementation.
@@ -474,6 +557,7 @@ class VideoEvent {
     this.text,
     this.isPlaying,
     this.subtitleAttributes,
+    this.adInfo,
   });
 
   /// The type of the event.
@@ -507,6 +591,11 @@ class VideoEvent {
   /// Attributes of the video subtitle.
   final List<dynamic>? subtitleAttributes;
 
+  /// The ad info from dash.
+  ///
+  /// Only used if [eventType] is [VideoEventType.adFromDash].
+  final Map<Object?, Object?>? adInfo;
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -516,7 +605,10 @@ class VideoEvent {
             duration == other.duration &&
             size == other.size &&
             buffered == other.buffered &&
-            text == other.text;
+            text == other.text &&
+            isPlaying == other.isPlaying &&
+            subtitleAttributes == other.subtitleAttributes &&
+            adInfo == other.adInfo;
   }
 
   @override
@@ -525,7 +617,10 @@ class VideoEvent {
       duration.hashCode ^
       size.hashCode ^
       buffered.hashCode ^
-      text.hashCode;
+      text.hashCode ^
+      isPlaying.hashCode ^
+      subtitleAttributes.hashCode ^
+      adInfo.hashCode;
 }
 
 /// Type of the event.
@@ -559,6 +654,9 @@ enum VideoEventType {
 
   /// The video need to restore player.
   restored,
+
+  /// The ad event from dash.
+  adFromDash,
 
   /// An unknown event has been received.
   unknown,

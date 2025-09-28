@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tizen/flutter_tizen.dart' as tizen;
 
+import 'src/ad_info_from_dash.dart';
 import 'src/closed_caption_file.dart';
 import 'src/drm_configs.dart';
 import 'src/hole.dart';
@@ -63,6 +64,7 @@ class VideoPlayerValue {
     this.playbackSpeed = 1.0,
     this.errorDescription,
     this.isCompleted = false,
+    this.adInfo,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -141,9 +143,27 @@ class VideoPlayerValue {
   /// Indicates whether or not the video has been loaded and is ready to play.
   final bool isInitialized;
 
+  /// Provides information about advertisements embedded within a DASH video stream.
+  ///
+  /// This property holds an [AdInfoFromDash] object when an advertisement event
+  /// is detected during video playback. It is particularly relevant for DASH
+  /// (Dynamic Adaptive Streaming over HTTP) streams that contain ad breaks.
+  /// When the video player transitions to an ad segment, this property will be
+  /// populated with metadata about the current advertisement, allowing the
+  /// application to react to ad events (e.g., display an ad overlay, skip button,
+  /// or other ad-related UI).
+  ///
+  /// If no ad is currently playing or if the video stream does not support
+  /// ad information, this property will be `null`. You can check [hasAdInfo]
+  /// to determine if ad information is available.
+  final AdInfoFromDash? adInfo;
+
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
   bool get hasError => errorDescription != null;
+
+  /// Indicates whether or not the video has ADInfo.
+  bool get hasAdInfo => adInfo != null;
 
   /// Returns [size.width] / [size.height].
   ///
@@ -180,6 +200,7 @@ class VideoPlayerValue {
     double? playbackSpeed,
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
+    AdInfoFromDash? adInfo,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -199,6 +220,7 @@ class VideoPlayerValue {
           ? errorDescription
           : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
+      adInfo: adInfo,
     );
   }
 
@@ -219,6 +241,7 @@ class VideoPlayerValue {
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
+        'adInfo: $adInfo, '
         'isCompleted: $isCompleted),';
   }
 
@@ -241,6 +264,7 @@ class VideoPlayerValue {
           volume == other.volume &&
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
+          adInfo == other.adInfo &&
           isCompleted == other.isCompleted;
 
   @override
@@ -259,6 +283,7 @@ class VideoPlayerValue {
         volume,
         playbackSpeed,
         errorDescription,
+        adInfo,
         isCompleted,
       );
 }
@@ -445,8 +470,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             deviceInfo.platformVersion!.isNotEmpty) &&
         tizen.apiVersion != 'none') {
       if (deviceInfo.platformVersion != tizen.apiVersion) {
-        final double? platformVersion =
-            double.tryParse(deviceInfo.platformVersion!);
+        final double? platformVersion = double.tryParse(
+          deviceInfo.platformVersion!,
+        );
         final double? apiVersion = double.tryParse(tizen.apiVersion);
         if (platformVersion != null && apiVersion != null) {
           if (platformVersion == 6.0 || platformVersion == 10.0) {
@@ -599,7 +625,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           } else {
             value = value.copyWith(isPlaying: event.isPlaying);
           }
-
+        case VideoEventType.adFromDash:
+          final AdInfoFromDash? adInfo = AdInfoFromDash.fromAdInfoMap(
+            event.adInfo,
+          );
+          value = value.copyWith(adInfo: adInfo);
         case VideoEventType.unknown:
           break;
       }
@@ -855,7 +885,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (_isDisposedOrNotInitialized) {
       return '';
     }
-    return _videoPlayerPlatform.getStreamingProperty(_playerId, type);
+
+    final Future<String> streamingProperty =
+        _videoPlayerPlatform.getStreamingProperty(_playerId, type);
+    await streamingProperty.then((String result) {
+      // ignore: avoid_print
+      print('[getStreamingProperty()] type: $type, result: $result');
+    });
+
+    return streamingProperty;
   }
 
   /// Sets specific feature values for HTTP, MMS, or specific streaming engine (Smooth Streaming, HLS, DASH, DivX Plus Streaming, or Widevine).
@@ -867,6 +905,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   ) async {
     if (_isDisposedOrNotInitialized) {
       return;
+    }
+    if (formatHint != VideoFormat.dash &&
+        (type == StreamingPropertyType.unwantedResolution ||
+            type == StreamingPropertyType.unwantedFramerate ||
+            type == StreamingPropertyType.updateSameLanguageCode ||
+            type == StreamingPropertyType.dashToken ||
+            type == StreamingPropertyType.openHttpHeader)) {
+      throw Exception(
+          'setStreamingProperty().$type only support for dash format!');
     }
     return _videoPlayerPlatform.setStreamingProperty(_playerId, type, value);
   }
@@ -970,7 +1017,44 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return <DashPlayerProperty, Object>{};
     }
 
-    return _videoPlayerPlatform.getData(playerId, keys);
+    final Future<Map<DashPlayerProperty, Object>> data =
+        _videoPlayerPlatform.getData(playerId, keys);
+    await data.then((Object result) {
+      // ignore: avoid_print
+      print('[getData()] result: \n$result');
+    });
+
+    return data;
+  }
+
+  /// Updates the authentication token for the current DASH video stream.
+  ///
+  /// This method is used for DASH stream that requires token-based authentication.
+  /// The server hosting the DASH stream may have token validation enabled, requiring
+  /// a valid token to be included in the request URL to access the video segments.
+  ///
+  /// The [dashToken] parameter should contain the new authentication token string.
+  /// When this API is called, it will dynamically update the token used for
+  /// subsequent network requests. In the current implementation, the URL associated
+  /// with the video source must contain a placeholder segment in the format
+  /// "token=XXX". Calling this API will replace the "XXX" part of the placeholder
+  /// with the new [dashToken] value.
+  ///
+  /// This method can only be called after the video player has been initialized
+  /// and is currently playing a DASH format video. An exception will be thrown if
+  /// called under other video formats.
+  ///
+  /// Returns `true` if the token was successfully updated, `false` otherwise.
+  Future<bool> updateDashToken(String dashToken) async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+
+    if (formatHint == null || formatHint != VideoFormat.dash) {
+      throw Exception('updateDashToken() only support for dash format!');
+    }
+
+    return _videoPlayerPlatform.updateDashToken(playerId, dashToken);
   }
 
   /// Get activated(selected) track infomation of the associated media.
