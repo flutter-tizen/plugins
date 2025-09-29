@@ -1,3 +1,6 @@
+## 0.7.2
+* Fix type missmatch.
+
 ## 0.7.1
 * Fix an assertion issue when getting AD information.
 
