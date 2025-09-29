@@ -1617,7 +1617,9 @@ class ClosedCaption extends StatelessWidget {
       final Image subtitleImage = Image.memory(this.subtitleImage!,
           width: subtitleImageWidth, height: subtitleImageHeight, errorBuilder:
               (BuildContext context, Object error, StackTrace? stackTrace) {
+        // ignore: avoid_print
         print('[ClosedCaption] Image.memory error: $error');
+        // ignore: avoid_print
         print('[ClosedCaption] StackTrace: $stackTrace');
 
         return const Text('');
