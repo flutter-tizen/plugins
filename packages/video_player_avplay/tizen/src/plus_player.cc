@@ -1358,6 +1358,11 @@ void PlusPlayer::OnStateChangedToPlaying(void *user_data) {
 }
 
 void PlusPlayer::OnADEventFromDash(const char *ad_data, void *user_data) {
+  if (!ad_data) {
+    LOG_ERROR("[PlusPlayer] No ad_data.");
+    return;
+  }
+
   const char *prefix = "AD_INFO: ";
   const char *data = strstr(ad_data, prefix);
   if (!data) {
