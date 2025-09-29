@@ -14,6 +14,9 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 namespace video_player_avplay_tizen {
 
 static std::vector<std::string> split(const std::string &s, char delim) {
@@ -1132,15 +1135,26 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
                                 const uint64_t duration,
                                 plusplayer::SubtitleAttributeListPtr attr_list,
                                 void *user_data) {
-  LOG_INFO("[PlusPlayer] Subtitle updated, duration: %llu, text: %s", duration,
-           data);
+  LOG_INFO("[PlusPlayer] Subtitle updated, duration: %llu, type: %d", duration,
+           type);
+
+  if (!data || type == plusplayer::SubtitleType::kInvalid) {
+    LOG_ERROR("[PlusPlayer] Subtitle type is invalid or data is null.");
+    return;
+  }
+
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
+
+  // Pre-parse attributes to find width/height for picture subtitles.
+  double picture_width = 0.0;
+  double picture_height = 0.0;
 
   plusplayer::SubtitleAttributeList *attrs = attr_list.get();
   flutter::EncodableList attributes_list;
   for (auto attr = attrs->begin(); attr != attrs->end(); attr++) {
-    LOG_INFO("[PlusPlayer] Subtitle update: type: %d, start: %u, end: %u",
-             attr->type, attr->start_time, attr->stop_time);
+    LOG_DEBUG(
+        "[PlusPlayer] SubtitleAttr update: attrType: %d, start: %u, end: %u.",
+        attr->type, attr->start_time, attr->stop_time);
     flutter::EncodableMap attributes = {
         {flutter::EncodableValue("attrType"),
          flutter::EncodableValue(attr->type)},
@@ -1170,6 +1184,15 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
         LOG_INFO("[PlusPlayer] Subtitle update: value<float>: %f", value_float);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((double)value_float);
+
+        if (attr->type == plusplayer::kSubAttrRegionWidth &&
+            type == plusplayer::SubtitleType::kPicture) {
+          picture_width = (double)value_float;
+        }
+        if (attr->type == plusplayer::kSubAttrRegionHeight &&
+            type == plusplayer::SubtitleType::kPicture) {
+          picture_height = (double)value_float;
+        }
       } break;
       case plusplayer::kSubAttrWindowLeftMargin:
       case plusplayer::kSubAttrWindowRightMargin:
@@ -1192,33 +1215,61 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       case plusplayer::kSubAttrWebvttCueVertical:
       case plusplayer::kSubAttrTimestamp: {
         int value_int = reinterpret_cast<int>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle update: value<int>: %d", value_int);
+        LOG_DEBUG("[PlusPlayer] Subtitle update: value<int>: %d", value_int);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_int);
       } break;
       case plusplayer::kSubAttrFontFamily:
       case plusplayer::kSubAttrRawSubtitle: {
         const char *value_chars = reinterpret_cast<const char *>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle update: value<char *>: %s",
-                 value_chars);
+        LOG_DEBUG("[PlusPlayer] Subtitle update: value<char *>: %s",
+                  value_chars);
         std::string value_string(value_chars);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_string);
       } break;
       case plusplayer::kSubAttrWindowShowBg: {
         uint32_t value_uint32 = reinterpret_cast<uint32_t>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle update: value<uint32_t>: %u",
-                 value_uint32);
+        LOG_DEBUG("[PlusPlayer] Subtitle update: value<uint32_t>: %u",
+                  value_uint32);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((int64_t)value_uint32);
       } break;
       default:
-        LOG_ERROR("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
+        LOG_DEBUG("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
         break;
     }
     attributes_list.push_back(flutter::EncodableValue(attributes));
   }
-  self->SendSubtitleUpdate(duration, data, attributes_list);
+
+  if (type == plusplayer::SubtitleType::kPicture) {
+    LOG_INFO(
+        "[PlusPlayer] Subtitle is a picture: size: %d, width: %f, height: %f",
+        size, picture_width, picture_height);
+
+    int subtitle_mem_length = 0;
+    int channels = size / (picture_width * picture_height);
+    unsigned char *subtitle_png =
+        stbi_write_png_to_mem((const unsigned char *)data, 0, picture_width,
+                              picture_height, channels, &subtitle_mem_length);
+
+    if (subtitle_png && subtitle_mem_length > 0) {
+      std::vector<uint8_t> picture_data(subtitle_png,
+                                        subtitle_png + subtitle_mem_length);
+      self->SendSubtitleUpdate(duration, std::string(), attributes_list,
+                               picture_data, picture_width, picture_height);
+      STBIW_FREE(subtitle_png);
+    } else {
+      LOG_ERROR("[PlusPlayer] Picture subtitle data is null or size is 0.");
+      STBIW_FREE(subtitle_png);
+    }
+
+  } else {
+    LOG_INFO(
+        "[PlusPlayer] Subtitle is text: duration: %llu, text: %s, type: %d",
+        duration, data, type);
+    self->SendSubtitleUpdate(duration, data, attributes_list);
+  }
 }
 
 void PlusPlayer::OnResourceConflicted(void *user_data) {

@@ -52,7 +52,8 @@ class VideoPlayerValue {
     required this.duration,
     this.size = Size.zero,
     this.position = Duration.zero,
-    this.caption = Caption.none,
+    this.textCaption = TextCaption.none,
+    this.pictureCaption = PictureCaption.none,
     this.captionOffset = Duration.zero,
     this.tracks = const <Track>[],
     this.buffered = 0,
@@ -94,11 +95,17 @@ class VideoPlayerValue {
   /// The current playback position.
   final Duration position;
 
-  /// The [Caption] that should be displayed based on the current [position].
+  /// The [TextCaption] that should be displayed based on the current [position].
   ///
-  /// This field will never be null. If there is no caption for the current
-  /// [position], this will be a [Caption.none] object.
-  final Caption caption;
+  ///  If there is no text caption for the current
+  /// [position], this will be a [TextCaption.none] object.
+  final TextCaption textCaption;
+
+  /// The [PictureCaption] that should be displayed based on the current [position].
+  ///
+  ///  If there is no text caption for the current
+  /// [position], this will be a [PictureCaption.none] object.
+  final PictureCaption pictureCaption;
 
   /// The [Duration] that should be used to offset the current [position] to get the correct [Caption].
   ///
@@ -165,6 +172,9 @@ class VideoPlayerValue {
   /// Indicates whether or not the video has ADInfo.
   bool get hasAdInfo => adInfo != null;
 
+  /// Indicates whether or not the video has special subtitle text style.
+  bool get hasTextStyle => textCaption.textStyle != null;
+
   /// Returns [size.width] / [size.height].
   ///
   /// Will return `1.0` if:
@@ -188,7 +198,8 @@ class VideoPlayerValue {
     DurationRange? duration,
     Size? size,
     Duration? position,
-    Caption? caption,
+    TextCaption? textCaption,
+    PictureCaption? pictureCaption,
     Duration? captionOffset,
     List<Track>? tracks,
     int? buffered,
@@ -206,7 +217,8 @@ class VideoPlayerValue {
       duration: duration ?? this.duration,
       size: size ?? this.size,
       position: position ?? this.position,
-      caption: caption ?? this.caption,
+      textCaption: textCaption ?? this.textCaption,
+      pictureCaption: pictureCaption ?? this.pictureCaption,
       captionOffset: captionOffset ?? this.captionOffset,
       tracks: tracks ?? this.tracks,
       buffered: buffered ?? this.buffered,
@@ -230,7 +242,8 @@ class VideoPlayerValue {
         'duration: $duration, '
         'size: $size, '
         'position: $position, '
-        'caption: $caption, '
+        'textCaption: $textCaption, '
+        'pictureCapton: $pictureCaption, '
         'captionOffset: $captionOffset, '
         'tracks: $tracks, '
         'buffered: $buffered, '
@@ -253,7 +266,8 @@ class VideoPlayerValue {
           duration == other.duration &&
           size == other.size &&
           position == other.position &&
-          caption == other.caption &&
+          textCaption == other.textCaption &&
+          pictureCaption == other.pictureCaption &&
           captionOffset == other.captionOffset &&
           listEquals(tracks, other.tracks) &&
           buffered == other.buffered &&
@@ -272,7 +286,8 @@ class VideoPlayerValue {
         duration,
         size,
         position,
-        caption,
+        textCaption,
+        pictureCaption,
         captionOffset,
         tracks,
         buffered,
@@ -603,18 +618,34 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
         case VideoEventType.subtitleUpdate:
-          final List<SubtitleAttribute> subtitleAttributes =
-              SubtitleAttribute.fromEventSubtitleAttrList(
-            event.subtitleAttributes,
-          );
-          final Caption caption = Caption(
-            number: 0,
-            start: value.position,
-            end: value.position + (event.duration?.end ?? Duration.zero),
-            text: event.text ?? '',
-            subtitleAttributes: subtitleAttributes,
-          );
-          value = value.copyWith(caption: caption);
+          if (event.picture?.isNotEmpty ?? false) {
+            final PictureCaption pictureCaption = PictureCaption(
+              number: 0,
+              start: value.position,
+              end: value.position + (event.duration?.end ?? Duration.zero),
+              picture: event.picture,
+              pictureWidth: event.pictureWidth,
+              pictureHeight: event.pictureHeight,
+            );
+            value = value.copyWith(pictureCaption: pictureCaption);
+          } else {
+            final List<SubtitleAttribute> subtitleAttributes =
+                SubtitleAttribute.fromEventSubtitleAttrList(
+              event.subtitleAttributes,
+            );
+
+            final TextStyle? actualTextStyle =
+                TextCaption.specifyTextStyle(subtitleAttributes);
+            final TextCaption textCaption = TextCaption(
+              number: 0,
+              start: value.position,
+              end: value.position + (event.duration?.end ?? Duration.zero),
+              text: event.text ?? '',
+              subtitleAttributes: subtitleAttributes,
+              textStyle: actualTextStyle,
+            );
+            value = value.copyWith(textCaption: textCaption);
+          }
         case VideoEventType.isPlayingStateUpdate:
           if (event.isPlaying ?? false) {
             value = value.copyWith(
@@ -626,9 +657,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             value = value.copyWith(isPlaying: event.isPlaying);
           }
         case VideoEventType.adFromDash:
-          final AdInfoFromDash? adInfo = AdInfoFromDash.fromAdInfoMap(
-            event.adInfo,
-          );
+          final AdInfoFromDash? adInfo =
+              AdInfoFromDash.fromAdInfoMap(event.adInfo);
           value = value.copyWith(adInfo: adInfo);
         case VideoEventType.unknown:
           break;
@@ -637,7 +667,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     if (closedCaptionFile != null) {
       _closedCaptionFile ??= await closedCaptionFile;
-      value = value.copyWith(caption: _getCaptionAt(value.position));
+      value = value.copyWith(textCaption: _getCaptionAt(value.position));
     }
 
     if (drmConfigs?.licenseCallback != null) {
@@ -1050,7 +1080,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return false;
     }
 
-    if (formatHint == null || formatHint != VideoFormat.dash) {
+    if (formatHint != VideoFormat.dash) {
       throw Exception('updateDashToken() only support for dash format!');
     }
 
@@ -1112,7 +1142,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   void setCaptionOffset(Duration offset) {
     value = value.copyWith(
       captionOffset: offset,
-      caption: _getCaptionAt(value.position),
+      textCaption: _getCaptionAt(value.position),
     );
   }
 
@@ -1123,26 +1153,27 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   ///
   /// If no [closedCaptionFile] was specified, this will always return an empty
   /// [Caption].
-  Caption _getCaptionAt(Duration position) {
+  TextCaption _getCaptionAt(Duration position) {
     if (_closedCaptionFile == null) {
-      return value.caption;
+      return value.textCaption;
     }
 
     final Duration delayedPosition = position + value.captionOffset;
     // TODO(johnsonmh): This would be more efficient as a binary search.
-    for (final Caption caption in _closedCaptionFile!.captions) {
-      if (caption.start <= delayedPosition && caption.end >= delayedPosition) {
-        return caption;
+    for (final TextCaption textCaption in _closedCaptionFile!.textCaptions) {
+      if (textCaption.start <= delayedPosition &&
+          textCaption.end >= delayedPosition) {
+        return textCaption;
       }
     }
 
-    return Caption.none;
+    return TextCaption.none;
   }
 
   void _updatePosition(Duration position) {
     value = value.copyWith(
       position: position,
-      caption: _getCaptionAt(position),
+      textCaption: _getCaptionAt(position),
       isCompleted: position == value.duration.end,
     );
   }
@@ -1549,10 +1580,16 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
 /// ```
 class ClosedCaption extends StatelessWidget {
   /// Creates a a new closed caption, designed to be used with
-  /// [VideoPlayerValue.caption].
+  /// [VideoPlayerValue.textCaption].
   ///
   /// If [text] is null or empty, nothing will be displayed.
-  const ClosedCaption({super.key, this.text, this.textStyle});
+  const ClosedCaption(
+      {super.key,
+      this.text,
+      this.textStyle,
+      this.subtitleImage,
+      this.subtitleImageWidth,
+      this.subtitleImageHeight});
 
   /// The text that will be shown in the closed caption, or null if no caption
   /// should be shown.
@@ -1565,34 +1602,60 @@ class ClosedCaption extends StatelessWidget {
   /// font colored white.
   final TextStyle? textStyle;
 
+  /// The image that will be shown in the closed caption, or null.
+  final Uint8List? subtitleImage;
+
+  /// The image's width.
+  final double? subtitleImageWidth;
+
+  /// The image's height.
+  final double? subtitleImageHeight;
+
   @override
   Widget build(BuildContext context) {
-    final String? text = this.text;
-    if (text == null || text.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (subtitleImage?.isNotEmpty ?? false) {
+      final Image subtitleImage = Image.memory(this.subtitleImage!,
+          width: subtitleImageWidth, height: subtitleImageHeight, errorBuilder:
+              (BuildContext context, Object error, StackTrace? stackTrace) {
+        print('[ClosedCaption] Image.memory error: $error');
+        print('[ClosedCaption] StackTrace: $stackTrace');
 
-    final TextStyle effectiveTextStyle = textStyle ??
-        DefaultTextStyle.of(
-          context,
-        ).style.copyWith(fontSize: 36.0, color: Colors.white);
-
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 24.0),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0xB8000000),
-            borderRadius: BorderRadius.circular(2.0),
-          ),
+        return const Text('');
+      });
+      return Align(
+          alignment: Alignment.bottomCenter,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2.0),
-            child: Text(text, style: effectiveTextStyle),
+            padding: const EdgeInsets.only(bottom: 24.0),
+            child: subtitleImage,
+          ));
+    } else {
+      final String? text = this.text;
+      if (text == null || text.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final TextStyle effectiveTextStyle = textStyle ??
+          DefaultTextStyle.of(
+            context,
+          ).style.copyWith(fontSize: 36.0, color: Colors.white);
+
+      return Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 24.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xB8000000),
+              borderRadius: BorderRadius.circular(2.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2.0),
+              child: Text(text, style: effectiveTextStyle),
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 }
 
