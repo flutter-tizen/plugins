@@ -1409,14 +1409,19 @@ void PlusPlayer::OnStateChangedToPlaying(void *user_data) {
 }
 
 void PlusPlayer::OnADEventFromDash(const char *ad_data, void *user_data) {
+  if (!ad_data) {
+    LOG_ERROR("[PlusPlayer] No ad_data.");
+    return;
+  }
+
   const char *prefix = "AD_INFO: ";
-  char *data = strstr(ad_data, prefix);
+  const char *data = strstr(ad_data, prefix);
   if (!data) {
     LOG_ERROR("[PlusPlayer] Invalid ad_data.");
     return;
   }
   data += strlen(prefix);
-  data[strlen(data) - 1] = '\0';
+  const_cast<char *>(data)[strlen(data) - 1] = '\0';
   LOG_INFO("[PlusPlayer] AD info: %s", data);
 
   rapidjson::Document doc;

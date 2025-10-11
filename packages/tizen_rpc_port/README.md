@@ -21,7 +21,7 @@ The generated source files (`message_client.dart` and `message_server.dart`) dep
 
 ```yaml
 depenedencies:
-  tizen_rpc_port: ^0.1.4
+  tizen_rpc_port: ^0.1.5
 ```
 
 Assuming that the name of the interface defined in your interface file is `Message`, the client must first call its `connect` method to connect to the server before making any remote invocation.
