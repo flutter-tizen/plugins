@@ -1,3 +1,7 @@
+## 0.7.3
+* Support parsing SMPE-TT(sidecar) subtitle attributes.
+* Support image format subtitles.
+
 ## 0.7.2
 * Fix type missmatch.
 

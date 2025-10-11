@@ -19,13 +19,13 @@ class WebVTTCaptionFile extends ClosedCaptionFile {
       : _captions = _parseCaptionsFromWebVTTString(fileContents);
 
   @override
-  List<Caption> get captions => _captions;
+  List<TextCaption> get textCaptions => _captions;
 
-  final List<Caption> _captions;
+  final List<TextCaption> _captions;
 }
 
-List<Caption> _parseCaptionsFromWebVTTString(String file) {
-  final List<Caption> captions = <Caption>[];
+List<TextCaption> _parseCaptionsFromWebVTTString(String file) {
+  final List<TextCaption> captions = <TextCaption>[];
 
   // Ignore metadata
   final Set<String> metadata = <String>{'HEADER', 'NOTE', 'REGION', 'WEBVTT'};
@@ -72,7 +72,7 @@ List<Caption> _parseCaptionsFromWebVTTString(String file) {
     // https://github.com/flutter/flutter/issues/90007.
     final String textWithoutFormat = _extractTextFromHtml(text);
 
-    final Caption newCaption = Caption(
+    final TextCaption newCaption = TextCaption(
       number: captionNumber,
       start: captionRange.start,
       end: captionRange.end,
