@@ -1261,9 +1261,7 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       STBIW_FREE(subtitle_png);
     } else {
       LOG_ERROR("[PlusPlayer] Picture subtitle data is null or size is 0.");
-      STBIW_FREE(subtitle_png);
     }
-
   } else {
     LOG_INFO(
         "[PlusPlayer] Subtitle is text: duration: %llu, text: %s, type: %d",

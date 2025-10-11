@@ -73,7 +73,7 @@ class TextCaption extends Caption {
   /// and [end].
   final String text;
 
-  /// The subtitile attributes associated with this caption.
+  /// The subtitle attributes associated with this caption.
   final List<SubtitleAttribute?>? subtitleAttributes;
 
   /// Specifies how the text in the closed caption should look.
@@ -89,7 +89,7 @@ class TextCaption extends Caption {
     subtitleAttributes: <SubtitleAttribute?>[],
   );
 
-  static Color? _toColor(int colorValue) {
+  static Color? _intToColor(int colorValue) {
     String hexValue = colorValue.toRadixString(16);
     if (hexValue.length < 6) {
       hexValue = hexValue.padLeft(6, '0');
@@ -103,11 +103,11 @@ class TextCaption extends Caption {
     return null;
   }
 
-  static FontWeight _toWeight(int weightValue) {
+  static FontWeight _intToFontWeight(int weightValue) {
     return weightValue == 0 ? FontWeight.normal : FontWeight.bold;
   }
 
-  static FontStyle _toStyle(int styleValue) {
+  static FontStyle _intToFontStyle(int styleValue) {
     return styleValue == 0 ? FontStyle.normal : FontStyle.italic;
   }
 
@@ -131,19 +131,19 @@ class TextCaption extends Caption {
           }
         case SubtitleAttrType.subAttrFontWeight:
           actualTextStyle = actualTextStyle.copyWith(
-              fontWeight: _toWeight(attr.attrValue as int));
+              fontWeight: _intToFontWeight(attr.attrValue as int));
         case SubtitleAttrType.subAttrFontStyle:
           actualTextStyle = actualTextStyle.copyWith(
-              fontStyle: _toStyle(attr.attrValue as int));
+              fontStyle: _intToFontStyle(attr.attrValue as int));
         case SubtitleAttrType.subAttrFontColor:
           if (actualTextStyle.foreground == null) {
             actualTextStyle = actualTextStyle.copyWith(
-                color: _toColor(attr.attrValue as int));
+                color: _intToColor(attr.attrValue as int));
           }
         case SubtitleAttrType.subAttrFontBgColor:
           if (actualTextStyle.background == null) {
             actualTextStyle = actualTextStyle.copyWith(
-                backgroundColor: _toColor(attr.attrValue as int));
+                backgroundColor: _intToColor(attr.attrValue as int));
           }
         case SubtitleAttrType.subAttrFontOpacity:
           actualTextStyle = actualTextStyle.copyWith(
@@ -156,10 +156,6 @@ class TextCaption extends Caption {
         case SubtitleAttrType.subAttrFontTextOutlineColor:
         case SubtitleAttrType.subAttrFontTextOutlineThickness:
         case SubtitleAttrType.subAttrFontTextOutlineBlurRadius:
-          // actualTextStyle = actualTextStyle.copyWith(shadows: <Shadow>[
-          //   const Shadow(color: Colors.green, offset: Offset(1, 1))
-          // ]);
-          break;
         case SubtitleAttrType.subAttrRegionXPos:
         case SubtitleAttrType.subAttrRegionYPos:
         case SubtitleAttrType.subAttrRegionWidth:

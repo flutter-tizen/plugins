@@ -243,7 +243,7 @@ class VideoPlayerValue {
         'size: $size, '
         'position: $position, '
         'textCaption: $textCaption, '
-        'pictureCapton: $pictureCaption, '
+        'pictureCaption: $pictureCaption, '
         'captionOffset: $captionOffset, '
         'tracks: $tracks, '
         'buffered: $buffered, '
