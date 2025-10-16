@@ -6,11 +6,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:device_info_plus_tizen/device_info_plus_tizen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_tizen/flutter_tizen.dart' as tizen;
 
 import 'src/ad_info_from_dash.dart';
 import 'src/closed_caption_file.dart';
@@ -462,41 +460,41 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     'dev.flutter.videoplayer.drm',
   );
 
-  Future<void> _checkPlatformAndApiVersion() async {
-    final DeviceInfoPluginTizen deviceInfoPlugin = DeviceInfoPluginTizen();
-    final TizenDeviceInfo deviceInfo = await deviceInfoPlugin.tizenInfo;
+  // Future<void> _checkPlatformAndApiVersion() async {
+  //   final DeviceInfoPluginTizen deviceInfoPlugin = DeviceInfoPluginTizen();
+  //   final TizenDeviceInfo deviceInfo = await deviceInfoPlugin.tizenInfo;
 
-    if ((deviceInfo.platformVersion != null &&
-            deviceInfo.platformVersion!.isNotEmpty) &&
-        tizen.apiVersion != 'none') {
-      if (deviceInfo.platformVersion != tizen.apiVersion) {
-        final double? platformVersion = double.tryParse(
-          deviceInfo.platformVersion!,
-        );
-        final double? apiVersion = double.tryParse(tizen.apiVersion);
-        if (platformVersion != null && apiVersion != null) {
-          if (platformVersion == 6.0 || platformVersion == 10.0) {
-            throw Exception(
-              'The current TizenOS version is $platformVersion and the app API version($apiVersion). The app API version must also be $platformVersion. '
-              'The avplay plugin, with an apiVersion of $apiVersion does not guarantee compatibility with other TizenOS versions. Therefore '
-              'Please set the "api-version" in tizen-manifest.xml to $platformVersion and rebuild.',
-            );
-          } else if ((platformVersion >= 6.5 && platformVersion <= 9.0) &&
-              (apiVersion == 6.0 || apiVersion == 10.0)) {
-            throw Exception(
-              'The current TizenOS version is $platformVersion and the app API version($apiVersion). The app API version must be at least 6.5. '
-              'The avplay plugin, with an apiVersion of $apiVersion does not guarantee compatibility with other TizenOS versions. Therefore '
-              'Please set the "api-version" in tizen-manifest.xml to a minimum of 6.5 and rebuild.',
-            );
-          }
-        }
-      }
-    }
-  }
+  //   if ((deviceInfo.platformVersion != null &&
+  //           deviceInfo.platformVersion!.isNotEmpty) &&
+  //       tizen.apiVersion != 'none') {
+  //     if (deviceInfo.platformVersion != tizen.apiVersion) {
+  //       final double? platformVersion = double.tryParse(
+  //         deviceInfo.platformVersion!,
+  //       );
+  //       final double? apiVersion = double.tryParse(tizen.apiVersion);
+  //       if (platformVersion != null && apiVersion != null) {
+  //         if (platformVersion == 6.0 || platformVersion == 10.0) {
+  //           throw Exception(
+  //             'The current TizenOS version is $platformVersion and the app API version($apiVersion). The app API version must also be $platformVersion. '
+  //             'The avplay plugin, with an apiVersion of $apiVersion does not guarantee compatibility with other TizenOS versions. Therefore '
+  //             'Please set the "api-version" in tizen-manifest.xml to $platformVersion and rebuild.',
+  //           );
+  //         } else if ((platformVersion >= 6.5 && platformVersion <= 9.0) &&
+  //             (apiVersion == 6.0 || apiVersion == 10.0)) {
+  //           throw Exception(
+  //             'The current TizenOS version is $platformVersion and the app API version($apiVersion). The app API version must be at least 6.5. '
+  //             'The avplay plugin, with an apiVersion of $apiVersion does not guarantee compatibility with other TizenOS versions. Therefore '
+  //             'Please set the "api-version" in tizen-manifest.xml to a minimum of 6.5 and rebuild.',
+  //           );
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   /// Attempts to open the given [dataSource] and load metadata about the video.
   Future<void> initialize() async {
-    await _checkPlatformAndApiVersion();
+    // await _checkPlatformAndApiVersion();
 
     final bool allowBackgroundPlayback =
         videoPlayerOptions?.allowBackgroundPlayback ?? false;
@@ -913,7 +911,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             type == StreamingPropertyType.dashToken ||
             type == StreamingPropertyType.openHttpHeader)) {
       throw Exception(
-          'setStreamingProperty().$type only support for dash format!');
+        'setStreamingProperty().$type only support for dash format!',
+      );
     }
     return _videoPlayerPlatform.setStreamingProperty(_playerId, type, value);
   }

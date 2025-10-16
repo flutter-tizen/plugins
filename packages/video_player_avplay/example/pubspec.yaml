@@ -11,7 +11,10 @@ dependencies:
     sdk: flutter
   http: ^0.13.0
   video_player_avplay:
-    path: ../
+    git:
+      url: https://github.com/flutter-tizen/plugins.git
+      path: packages/video_player_avplay
+      ref: video_player_avplay_tizen10_publish
 
 dev_dependencies:
   flutter_driver:

@@ -16,10 +16,8 @@ flutter:
         fileName: video_player_tizen_plugin.h
 
 dependencies:
-  device_info_plus_tizen: ^1.2.0
   flutter:
     sdk: flutter
-  flutter_tizen: ^0.2.4
   html: ^0.15.0
   plugin_platform_interface: ^2.1.0
 
