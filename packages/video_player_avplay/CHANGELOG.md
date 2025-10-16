@@ -1,3 +1,7 @@
+## 0.7.3
+* Update plusplayer
+  1. [DASH] Update token value if baseURL not include token.
+
 ## 0.7.2
 * Fix type missmatch.
 
