@@ -80,7 +80,7 @@ class _CurrentPackageScreenState extends State<_CurrentPackageScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<dynamic>>(
-      future: Future.wait([
+      future: Future.wait(<Future<dynamic>>[
         PackageManager.getPackageInfo(currentPackageId),
         PackageManager.getPackageSizeInfo(currentPackageId),
       ]),
@@ -147,7 +147,8 @@ class _PackageListScreenState extends State<_PackageListScreen>
             await PackageManager.getPackageSizeInfo(package.packageId);
         sizeInfoMap[package.packageId] = sizeInfo;
       } catch (e) {
-        print('Failed to get size info for package ${package.packageId}: $e');
+        debugPrint(
+            'Failed to get size info for package ${package.packageId}: $e');
       }
     }
 
@@ -194,7 +195,7 @@ class _PackageListScreenState extends State<_PackageListScreen>
                           '${sizeInfo != null ? '\nApp Size: ${sizeInfo.appSize} bytes' : ''}',
                         ),
                       ),
-                      isThreeLine: sizeInfo != null ? true : false,
+                      isThreeLine: sizeInfo != null,
                     );
                   },
                 );

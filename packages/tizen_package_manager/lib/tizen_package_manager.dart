@@ -115,6 +115,7 @@ class PackageManager {
     return list;
   }
 
+  /// Gets the package size information for the given package ID.
   static Future<PackageSizeInfo> getPackageSizeInfo(String packageId) async {
     if (packageId.isEmpty) {
       throw ArgumentError('Must not be empty', 'packageId');
@@ -242,6 +243,7 @@ class PackageInfo {
   }
 }
 
+/// Represents size information of specific package.
 class PackageSizeInfo {
   /// Creates an instance of [PackageInfo] with the given parameters.
   PackageSizeInfo({
