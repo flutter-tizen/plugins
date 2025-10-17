@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -27,11 +28,22 @@ struct PackageInfo {
   bool is_removable = false;
 };
 
+struct PackageSizeInfo {
+  long long data_size = 0;
+  long long cache_size = 0;
+  long long app_size = 0;
+  long long external_data_size = 0;
+  long long external_cache_size = 0;
+  long long external_app_size = 0;
+};
+
 enum class PacakgeEventState { kStarted, kProcessing, kFailed, kCompleted };
 
 using OnPackageEvent =
     std::function<void(std::string package_id, std::string package_type,
                        PacakgeEventState state, int32_t progress)>;
+
+using OnPackageSizeEvent = std::function<void(PackageSizeInfo size_info)>;
 
 class TizenPackageManager {
  public:
@@ -48,6 +60,9 @@ class TizenPackageManager {
   TizenPackageManager& operator=(TizenPackageManager const&) = delete;
 
   std::optional<PackageInfo> GetPackageInfo(const std::string& package_id);
+
+  void GetPackageSizeInfo(const std::string& package_id,
+                          OnPackageSizeEvent on_package_size_result);
 
   std::optional<std::vector<PackageInfo>> GetAllPackagesInfo();
 
@@ -80,6 +95,8 @@ class TizenPackageManager {
   OnPackageEvent install_callback_;
   OnPackageEvent uninstall_callback_;
   OnPackageEvent update_callback_;
+  std::map<std::string, std::unique_ptr<OnPackageSizeEvent>>
+      package_size_callbacks_;
   std::vector<PackageInfo> packages_;
 
   int last_error_ = PACKAGE_MANAGER_ERROR_NONE;

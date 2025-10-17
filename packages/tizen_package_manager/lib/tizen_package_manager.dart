@@ -115,6 +115,20 @@ class PackageManager {
     return list;
   }
 
+  /// Gets the package size information for the given package ID.
+  static Future<PackageSizeInfo> getPackageSizeInfo(String packageId) async {
+    if (packageId.isEmpty) {
+      throw ArgumentError('Must not be empty', 'packageId');
+    }
+
+    final Map<String, dynamic>? sizeInfo =
+        await _channel.invokeMapMethod<String, dynamic>(
+      'getPackageSizeInfo',
+      <String, String>{'packageId': packageId},
+    );
+    return PackageSizeInfo.fromMap(sizeInfo!);
+  }
+
   /// Installs the package located at the given path.
   ///
   /// The `http://tizen.org/privilege/packagemanager.admin` platform privilege
@@ -225,6 +239,49 @@ class PackageInfo {
       isSystem: map['isSystem'] as bool,
       isPreloaded: map['isPreloaded'] as bool,
       isRemovable: map['isRemovable'] as bool,
+    );
+  }
+}
+
+/// Represents size information of specific package.
+class PackageSizeInfo {
+  /// Creates an instance of [PackageInfo] with the given parameters.
+  PackageSizeInfo({
+    required this.dataSize,
+    required this.cacheSize,
+    required this.appSize,
+    required this.externalDataSize,
+    required this.externalCacheSize,
+    required this.externalAppSize,
+  });
+
+  /// The size of data.
+  final int dataSize;
+
+  /// The size of cache.
+  final int cacheSize;
+
+  /// The size of app.
+  final int appSize;
+
+  /// The size of external data.
+  final int externalDataSize;
+
+  /// The size of external cache.
+  final int externalCacheSize;
+
+  /// The size of external app.
+  final int externalAppSize;
+
+  /// Creates an instance of [PackageSizeInfo] from the [map].
+  static PackageSizeInfo fromMap(Map<String, dynamic> map) {
+    return PackageSizeInfo(
+      dataSize: map['dataSize'] as int,
+      cacheSize: map['cacheSize'] as int,
+      appSize: map['appSize'] as int,
+      externalDataSize: map['externalDataSize'] as int,
+      externalCacheSize: map['externalCacheSize'] as int,
+      externalAppSize: map['externalAppSize'] as int,
     );
   }
 }
