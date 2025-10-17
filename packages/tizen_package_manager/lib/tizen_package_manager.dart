@@ -98,21 +98,34 @@ class PackageManager {
 
     final Map<String, dynamic>? package = await _channel
         .invokeMapMethod<String, dynamic>('getPackage', <String, String>{
-      'packageId': packageId,
-    });
+          'packageId': packageId,
+        });
     return PackageInfo.fromMap(package!);
   }
 
   /// Retrieves the package information of all installed packages.
   static Future<List<PackageInfo>> getPackagesInfo() async {
-    final List<Map<dynamic, dynamic>>? packages =
-        await _channel.invokeListMethod<Map<dynamic, dynamic>>('getPackages');
+    final List<Map<dynamic, dynamic>>? packages = await _channel
+        .invokeListMethod<Map<dynamic, dynamic>>('getPackages');
 
     final List<PackageInfo> list = <PackageInfo>[];
     for (final Map<dynamic, dynamic> package in packages!) {
       list.add(PackageInfo.fromMap(package.cast<String, dynamic>()));
     }
     return list;
+  }
+
+  static Future<PackageSizeInfo> getPackageSizeInfo(String packageId) async {
+    if (packageId.isEmpty) {
+      throw ArgumentError('Must not be empty', 'packageId');
+    }
+
+    final Map<String, dynamic>? sizeInfo = await _channel
+        .invokeMapMethod<String, dynamic>(
+          'getPackageSizeInfo',
+          <String, String>{'packageId': packageId},
+        );
+    return PackageSizeInfo.fromMap(sizeInfo!);
   }
 
   /// Installs the package located at the given path.
@@ -145,28 +158,28 @@ class PackageManager {
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onInstallProgressChanged =>
       _installEventChannel.receiveBroadcastStream().map(
-            (dynamic event) => PackageEvent.fromMap(
-              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-            ),
-          );
+        (dynamic event) => PackageEvent.fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+        ),
+      );
 
   /// A stream of events occurring when a package is getting uninstalled
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onUninstallProgressChanged =>
       _uninstallEventChannel.receiveBroadcastStream().map(
-            (dynamic event) => PackageEvent.fromMap(
-              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-            ),
-          );
+        (dynamic event) => PackageEvent.fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+        ),
+      );
 
   /// A stream of events occurring when a package is getting updated
   /// and the progress of the request to the package manager is changed.
   static Stream<PackageEvent> get onUpdateProgressChanged =>
       _updateEventChannel.receiveBroadcastStream().map(
-            (dynamic event) => PackageEvent.fromMap(
-              (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
-            ),
-          );
+        (dynamic event) => PackageEvent.fromMap(
+          (event as Map<dynamic, dynamic>).cast<String, dynamic>(),
+        ),
+      );
 }
 
 /// Represents information of specific package.
@@ -225,6 +238,48 @@ class PackageInfo {
       isSystem: map['isSystem'] as bool,
       isPreloaded: map['isPreloaded'] as bool,
       isRemovable: map['isRemovable'] as bool,
+    );
+  }
+}
+
+class PackageSizeInfo {
+  /// Creates an instance of [PackageInfo] with the given parameters.
+  PackageSizeInfo({
+    required this.dataSize,
+    required this.cacheSize,
+    required this.appSize,
+    required this.externalDataSize,
+    required this.externalCacheSize,
+    required this.externalAppSize,
+  });
+
+  /// The size of data.
+  final int dataSize;
+
+  /// The size of cache.
+  final int cacheSize;
+
+  /// The size of app.
+  final int appSize;
+
+  /// The size of external data.
+  final int externalDataSize;
+
+  /// The size of external cache.
+  final int externalCacheSize;
+
+  /// The size of external app.
+  final int externalAppSize;
+
+  /// Creates an instance of [PackageSizeInfo] from the [map].
+  static PackageSizeInfo fromMap(Map<String, dynamic> map) {
+    return PackageSizeInfo(
+      dataSize: map['dataSize'] as int,
+      cacheSize: map['cacheSize'] as int,
+      appSize: map['appSize'] as int,
+      externalDataSize: map['externalDataSize'] as int,
+      externalCacheSize: map['externalCacheSize'] as int,
+      externalAppSize: map['externalAppSize'] as int,
     );
   }
 }

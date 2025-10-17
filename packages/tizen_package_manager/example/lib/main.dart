@@ -79,11 +79,15 @@ class _CurrentPackageScreenState extends State<_CurrentPackageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<PackageInfo>(
-      future: PackageManager.getPackageInfo(currentPackageId),
-      builder: (BuildContext context, AsyncSnapshot<PackageInfo> snapshot) {
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        PackageManager.getPackageInfo(currentPackageId),
+        PackageManager.getPackageSizeInfo(currentPackageId),
+      ]),
+      builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.hasData) {
-          final PackageInfo packageInfo = snapshot.data!;
+          final PackageInfo packageInfo = snapshot.data![0] as PackageInfo;
+          final PackageSizeInfo sizeInfo = snapshot.data![1] as PackageSizeInfo;
           return ListView(
             children: <Widget>[
               _infoTile('Package ID', packageInfo.packageId),
@@ -94,6 +98,20 @@ class _CurrentPackageScreenState extends State<_CurrentPackageScreen> {
               _infoTile('System app', packageInfo.isSystem.toString()),
               _infoTile('Preloaded app', packageInfo.isPreloaded.toString()),
               _infoTile('Removable', packageInfo.isRemovable.toString()),
+              const Divider(),
+              const ListTile(
+                title: Text('Package Size Information',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              _infoTile('Data Size', '${sizeInfo.dataSize} bytes'),
+              _infoTile('Cache Size', '${sizeInfo.cacheSize} bytes'),
+              _infoTile('App Size', '${sizeInfo.appSize} bytes'),
+              _infoTile(
+                  'External Data Size', '${sizeInfo.externalDataSize} bytes'),
+              _infoTile(
+                  'External Cache Size', '${sizeInfo.externalCacheSize} bytes'),
+              _infoTile(
+                  'External App Size', '${sizeInfo.externalAppSize} bytes'),
             ],
           );
         } else if (snapshot.hasError) {
@@ -118,6 +136,24 @@ class _PackageListScreenState extends State<_PackageListScreen>
   @override
   bool get wantKeepAlive => true;
 
+  Future<Map<String, PackageSizeInfo>> _getAllPackagesSizeInfo(
+      List<PackageInfo> packages) async {
+    final Map<String, PackageSizeInfo> sizeInfoMap =
+        <String, PackageSizeInfo>{};
+
+    for (final PackageInfo package in packages) {
+      try {
+        final PackageSizeInfo sizeInfo =
+            await PackageManager.getPackageSizeInfo(package.packageId);
+        sizeInfoMap[package.packageId] = sizeInfo;
+      } catch (e) {
+        print('Failed to get size info for package ${package.packageId}: $e');
+      }
+    }
+
+    return sizeInfoMap;
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -130,23 +166,43 @@ class _PackageListScreenState extends State<_PackageListScreen>
       ) {
         if (snapshot.hasData) {
           final List<PackageInfo> packages = snapshot.data!;
-          return ListView.builder(
-            itemCount: packages.length,
-            itemBuilder: (BuildContext context, int index) {
-              final PackageInfo package = packages[index];
-              return ListTile(
-                title: Text(package.label),
-                subtitle: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Text(
-                    'Package ID: ${package.packageId}\n'
-                    'Version: ${package.version}\n'
-                    'Type: ${package.packageType.name}\n'
-                    'System: ${package.isSystem}',
-                  ),
-                ),
-                isThreeLine: true,
-              );
+          return FutureBuilder<Map<String, PackageSizeInfo>>(
+            future: _getAllPackagesSizeInfo(packages),
+            builder: (
+              BuildContext context,
+              AsyncSnapshot<Map<String, PackageSizeInfo>> sizeSnapshot,
+            ) {
+              if (sizeSnapshot.hasData) {
+                final Map<String, PackageSizeInfo> sizeInfoMap =
+                    sizeSnapshot.data!;
+                return ListView.builder(
+                  itemCount: packages.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final PackageInfo package = packages[index];
+                    final PackageSizeInfo? sizeInfo =
+                        sizeInfoMap[package.packageId];
+
+                    return ListTile(
+                      title: Text(package.label),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: Text(
+                          'Package ID: ${package.packageId}\n'
+                          'Version: ${package.version}\n'
+                          'Type: ${package.packageType.name}\n'
+                          'System: ${package.isSystem}'
+                          '${sizeInfo != null ? '\nApp Size: ${sizeInfo.appSize} bytes' : ''}',
+                        ),
+                      ),
+                      isThreeLine: sizeInfo != null ? true : false,
+                    );
+                  },
+                );
+              } else if (sizeSnapshot.hasError) {
+                return Center(child: Text(sizeSnapshot.error.toString()));
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
             },
           );
         } else if (snapshot.hasError) {

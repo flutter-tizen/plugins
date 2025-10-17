@@ -1,3 +1,7 @@
+## 0.4.0
+
+* Add retrieve package size information using `PackageManager.getPackageSizeInfo`.
+
 ## 0.3.0
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
