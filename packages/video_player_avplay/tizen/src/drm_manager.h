@@ -11,6 +11,8 @@
 #include <mutex>
 #include <queue>
 
+#include <plusplayer_capi/plusplayer_capi.h>
+
 class DrmManager {
  public:
   typedef enum {
@@ -28,7 +30,7 @@ class DrmManager {
   bool SetChallenge(const std::string &media_url,
                     flutter::BinaryMessenger *binary_messenger);
   bool GetDrmHandle(int *handle);
-  bool SecurityInitCompleteCB(int *drm_handle, unsigned int len,
+  bool SecurityInitCompleteCB(Plusplayer_DrmHandle *drm_handle, unsigned int len,
                               unsigned char *pssh_data, void *user_data);
   int UpdatePsshData(const void *data, int length);
   void ReleaseDrmSession();
