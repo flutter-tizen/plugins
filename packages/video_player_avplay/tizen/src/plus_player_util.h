@@ -13,11 +13,11 @@
 #include <vector>
 
 #include "plusplayer_capi/display.h"
+#include "plusplayer_capi/error.h"
 #include "plusplayer_capi/property.h"
 #include "plusplayer_capi/state.h"
 #include "plusplayer_capi/track.h"
 #include "plusplayer_capi/track_capi.h"
-#include "plusplayer_capi/error.h"
 namespace video_player_avplay_tizen {
 struct PlayerMemento {
   uint64_t playing_time;
