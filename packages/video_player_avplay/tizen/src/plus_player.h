@@ -13,9 +13,9 @@
 #include "device_proxy.h"
 #include "drm_manager.h"
 #include "messages.h"
+#include "plus_player_util.h"
 #include "plusplayer_capi/plusplayer_capi.h"
 #include "video_player.h"
-#include "plus_player_util.h"
 
 namespace video_player_avplay_tizen {
 

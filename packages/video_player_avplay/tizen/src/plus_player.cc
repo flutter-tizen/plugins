@@ -462,7 +462,7 @@ flutter::EncodableValue ParseVideoTrack(const plusplayer_track_h track) {
   LOG_DEBUG(
       "[PlusPlayer] video track info : trackId : %d, mimetype : %s, width : "
       "%d, height : %d, birate : %d",
-      index, mimetype, width, height, bitrate);
+      track_index, mimetype, width, height, bitrate);
   return flutter::EncodableValue(video_track_result);
 }
 
@@ -711,9 +711,13 @@ std::string PlusPlayer::GetStreamingProperty(
     return "";
   }
   char *value;
-  if (plusplayer_get_property(player_,
-                              ConvertPropertyType(streaming_property_type),
-                              &value) != PLUSPLAYER_ERROR_TYPE_NONE) {
+  plusplayer_property_e property = ConvertPropertyType(streaming_property_type);
+  if (property == static_cast<plusplayer_property_e>(-1)) {
+    LOG_ERROR("[PlusPlayer]:Player fail to convert property type");
+    return "";
+  }
+  if (plusplayer_get_property(player_, property, &value) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer]:Player fail to get streaming property");
     return "";
   }
@@ -768,7 +772,6 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
     LOG_INFO("[PlusPlayer] Streaming property value is true");
     // TODO: handle true case if needed
   }
-  // plusplayer_set_adaptive_streaming_control_event_cb is not applicable here
 }
 
 bool PlusPlayer::SetDisplayRotate(int64_t rotation) {

@@ -36,10 +36,10 @@ extern "C" {
  * @brief  Enumerations for plusplayer property.
  */
 typedef enum {
-  PLUSPLAYER_PROPERTY_ADAPTIVE_INFO, /**< String containing custom
-                                            attributes for adaptive streaming
-                                            playback. Effective only for
-                                        Adaptive Streaming Protocols.*/
+  PLUSPLAYER_PROPERTY_ADAPTIVE_INFO,        /**< String containing custom
+                                                   attributes for adaptive streaming
+                                                   playback. Effective only for
+                                               Adaptive Streaming Protocols.*/
   PLUSPLAYER_PROPERTY_LISTEN_SPARSE_TRACK,  /**< Sparse track is a
                                                    lightweight timeline-synced
                                                    stream used for captions,

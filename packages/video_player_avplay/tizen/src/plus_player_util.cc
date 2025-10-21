@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "plus_player_util.h"
+
 #include "log.h"
 namespace video_player_avplay_tizen {
 
@@ -15,20 +16,30 @@ static const std::unordered_map<std::string, plusplayer_track_type_e>
         {"audio", plusplayer_track_type_e::PLUSPLAYER_TRACK_TYPE_AUDIO},
         {"text", plusplayer_track_type_e::PLUSPLAYER_TRACK_TYPE_SUBTITLE}};
 
-static const std::unordered_map<std::string, plusplayer_property_e> kMap = {
-    {"ADAPTIVE_INFO", plusplayer_property_e::PLUSPLAYER_PROPERTY_ADAPTIVE_INFO},
-    {"LISTEN_SPARSE_TRACK",
-     plusplayer_property_e::PLUSPLAYER_PROPERTY_LISTEN_SPARSE_TRACK},
-    {"AVAILABLE_BITRATE",
-     plusplayer_property_e::PLUSPLAYER_PROPERTY_AVAILABLE_BITRATE},
-    {"CURRENT_BANDWIDTH",
-     plusplayer_property_e::PLUSPLAYER_PROPERTY_CURRENT_BANDWIDTH},
-    {"GET_LIVE_DURATION",
-     plusplayer_property_e::PLUSPLAYER_PROPERTY_LIVE_DURATION},
-    {"IS_LIVE", plusplayer_property_e::PLUSPLAYER_PROPERTY_IS_LIVE},
-    {"TOKEN", plusplayer_property_e::PLUSPLAYER_PROPERTY_TOKEN},
-    {"OPEN_HTTP_HEADER",
-     plusplayer_property_e::PLUSPLAYER_PROPERTY_OPEN_HTTP_HEADER}};
+static std::unordered_map<std::string, plusplayer_property_e>
+    kConvertPropertyMap = {
+        {"ADAPTIVE_INFO", PLUSPLAYER_PROPERTY_ADAPTIVE_INFO},
+        {"LISTEN_SPARSE_TRACK", PLUSPLAYER_PROPERTY_LISTEN_SPARSE_TRACK},
+        {"CONFIG_LOW_LATENCY", PLUSPLAYER_PROPERTY_CONFIG_LOW_LATENCY},
+        {"ATSC3_L1_SERVER_TIME", PLUSPLAYER_PROPERTY_ATSC3_L1_SERVER_TIME},
+        {"AUDIO_DESCRIPTION", PLUSPLAYER_PROPERTY_AUDIO_DESCRIPTION},
+        {"PRESELECTION_TAG", PLUSPLAYER_PROPERTY_PRESELECTION_TAG},
+        {"USE_MAIN_OUT_SHARE", PLUSPLAYER_PROPERTY_USE_MAIN_OUT_SHARE},
+        {"TOKEN", PLUSPLAYER_PROPERTY_TOKEN},
+        {"USER_LOW_LATENCY", PLUSPLAYER_PROPERTY_USER_LOW_LATENCY},
+        {"MAX_BANDWIDTH", PLUSPLAYER_PROPERTY_MAX_BANDWIDTH},
+        {"MPEGH_METADATA", PLUSPLAYER_PROPERTY_MPEGH_METADATA},
+        {"OPEN_HTTP_HEADER", PLUSPLAYER_PROPERTY_OPEN_HTTP_HEADER},
+        {"IS_LIVE", PLUSPLAYER_PROPERTY_IS_LIVE},
+        {"AVAILABLE_BITRATE", PLUSPLAYER_PROPERTY_AVAILABLE_BITRATE},
+        {"GET_LIVE_DURATION", PLUSPLAYER_PROPERTY_LIVE_DURATION},
+        {"CURRENT_BANDWIDTH", PLUSPLAYER_PROPERTY_CURRENT_BANDWIDTH},
+        {"CUR_LATENCY", PLUSPLAYER_PROPERTY_CUR_LATENCY},
+        {"IS_DVB_DASH", PLUSPLAYER_PROPERTY_IS_DVB_DASH},
+        {"LIVE_PLAYER_START", PLUSPLAYER_PROPERTY_LIVE_PLAYER_START},
+        {"START_DATE", PLUSPLAYER_PROPERTY_START_DATE},
+        {"DASH_STREAM_INFO", PLUSPLAYER_PROPERTY_DASH_STREAM_INFO},
+        {"HTTP_HEADER", PLUSPLAYER_PROPERTY_HTTP_HEADER}};
 
 plusplayer_track_type_e ConvertTrackType(const std::string &track_type) {
   auto it = kTrackMap.find(track_type);
@@ -40,11 +51,11 @@ plusplayer_track_type_e ConvertTrackType(const std::string &track_type) {
 }
 
 plusplayer_property_e ConvertPropertyType(const std::string &type_value) {
-  auto it = kMap.find(type_value);
-  if (it != kMap.end()) {
-    return it->second;
+  for (const auto &pair : kConvertPropertyMap) {
+    if (pair.first == type_value) {
+      return pair.second;
+    }
   }
-  // Return an invalid sentinel value if not found.
   return static_cast<plusplayer_property_e>(-1);
 }
 

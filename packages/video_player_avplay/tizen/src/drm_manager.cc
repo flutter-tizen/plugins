@@ -154,7 +154,8 @@ int DrmManager::UpdatePsshData(const void *data, int length) {
   return ret;
 }
 
-bool DrmManager::SecurityInitCompleteCB(Plusplayer_DrmHandle *drm_handle, unsigned int len,
+bool DrmManager::SecurityInitCompleteCB(Plusplayer_DrmHandle *drm_handle,
+                                        unsigned int len,
                                         unsigned char *pssh_data,
                                         void *user_data) {
   // IMPORTANT: SetDataParam_t cannot be stack allocated because
