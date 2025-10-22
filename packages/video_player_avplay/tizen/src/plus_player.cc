@@ -82,6 +82,7 @@ int64_t PlusPlayer::Create(const std::string &uri,
     LOG_ERROR("[PlusPlayer] Fail to open uri :  %s.", uri.c_str());
     return -1;
   }
+
   url_ = uri;
   create_message_ = create_message;
   LOG_INFO("[PlusPlayer] Uri: %s", uri.c_str());
@@ -199,15 +200,6 @@ bool PlusPlayer::Activate() {
     LOG_ERROR("[PlusPlayer] Fail to activate.");
     return false;
   }
-  /*
-    if (!::Activate(player_, plusplayer::kTrackTypeAudio)) {
-      LOG_ERROR("[PlusPlayer] Fail to activate audio.");
-      return false;
-    }
-    if (!::Activate(player_, plusplayer::kTrackTypeSubtitle)) {
-      LOG_ERROR("[PlusPlayer] Fail to activate subtitle.");
-    }
-  */
   return true;
 }
 
@@ -216,20 +208,10 @@ bool PlusPlayer::Deactivate() {
     plusplayer_stop(player_);
     return true;
   }
-
   if (plusplayer_deactivate_audio(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Fail to deactivate video.");
     return false;
   }
-  /*
-    if (!::Deactivate(player_, plusplayer::kTrackTypeAudio)) {
-      LOG_ERROR("[PlusPlayer] Fail to deactivate audio.");
-      return false;
-    }
-    if (!::Deactivate(player_, plusplayer::kTrackTypeSubtitle)) {
-      LOG_ERROR("[PlusPlayer] Fail to deactivate subtitle.");
-    }
-  */
   return true;
 }
 
@@ -745,17 +727,11 @@ bool PlusPlayer::SetBufferConfig(const std::string &key, int64_t value) {
 
 void PlusPlayer::SetStreamingProperty(const std::string &type,
                                       const std::string &value) {
-  if (!player_) {
-    LOG_ERROR("[PlusPlayer] Player not created.");
-    return;
-  }
   plusplayer_state_e state = plusplayer_get_state(player_);
-
   if (state == PLUSPLAYER_STATE_NONE) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
     return;
   }
-
   if ((!create_message_.format_hint() ||
        create_message_.format_hint()->empty() ||
        *create_message_.format_hint() != "dash") &&
@@ -766,7 +742,6 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
               type.c_str());
     return;
   }
-
   LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
            value.c_str());
   plusplayer_set_property(player_, ConvertPropertyType(type), value.c_str());
