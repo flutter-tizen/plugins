@@ -134,7 +134,8 @@ int64_t PlusPlayer::Create(const std::string &uri,
       create_message.player_options(), "startPosition", (int64_t)0);
   if (start_position > 0) {
     LOG_INFO("[PlusPlayer] Start position: %lld", start_position);
-    if (!plusplayer_seek(player_, start_position)) {
+    if (plusplayer_seek(player_, start_position) !=
+        PLUSPLAYER_ERROR_TYPE_NONE) {
       LOG_INFO("[PlusPlayer] Fail to seek, it's a non-seekable content");
     }
   }
@@ -768,10 +769,7 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
 
   LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
            value.c_str());
-  if (value == "true") {
-    LOG_INFO("[PlusPlayer] Streaming property value is true");
-    // TODO: handle true case if needed
-  }
+  plusplayer_set_property(player_, ConvertPropertyType(type), value.c_str());
 }
 
 bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
@@ -1019,87 +1017,27 @@ bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
   return true;
 }
 
-std::string BuildJsonString(const flutter::EncodableMap &data) {
-  rapidjson::Document doc;
-  doc.SetObject();
-  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
-
-  for (const auto &pair : data) {
-    std::string key_str = std::get<std::string>(pair.first);
-    rapidjson::Value key(key_str.c_str(), allocator);
-    if (key_str == "max-bandwidth") {
-      doc.AddMember(key, rapidjson::Value(std::get<int64_t>(pair.second)),
-                    allocator);
-    } else {
-      doc.AddMember(key,
-                    rapidjson::Value(std::get<std::string>(pair.second).c_str(),
-                                     allocator),
-                    allocator);
-    }
-  }
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetString();
-}
-
-std::string BuildJsonString(const flutter::EncodableList &encodable_keys) {
-  rapidjson::Document doc;
-  doc.SetObject();
-  rapidjson::Document::AllocatorType &allocator = doc.GetAllocator();
-
-  for (const auto &encodable_key : encodable_keys) {
-    std::string key_str = std::get<std::string>(encodable_key);
-    rapidjson::Value key(key_str.c_str(), allocator);
-    if (key_str == "max-bandwidth") {
-      doc.AddMember(key, 0, allocator);
-    } else {
-      doc.AddMember(key, "", allocator);
-    }
-  }
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  return buffer.GetString();
-}
-
-void ParseJsonString(std::string json_str,
-                     const flutter::EncodableList &encodable_keys,
-                     flutter::EncodableMap &output) {
-  rapidjson::Document doc;
-  doc.Parse(json_str.c_str());
-  if (doc.HasParseError()) {
-    LOG_ERROR("[PlusPlayer] Fail to parse json string.");
-    return;
-  }
-  for (const auto &encodable_key : encodable_keys) {
-    std::string key_str = std::get<std::string>(encodable_key);
-    if (doc.HasMember(key_str.c_str())) {
-      if (key_str == "max-bandwidth") {
-        output.insert_or_assign(
-            encodable_key,
-            flutter::EncodableValue(doc[key_str.c_str()].GetInt64()));
-      } else {
-        output.insert_or_assign(
-            encodable_key,
-            flutter::EncodableValue(doc[key_str.c_str()].GetString()));
-      }
-    }
-  }
-}
-
 bool PlusPlayer::SetData(const flutter::EncodableMap &data) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
   }
-  std::string json_data = BuildJsonString(data);
-  if (json_data.empty()) {
-    LOG_ERROR("[PlusPlayer] json_data is empty.");
-    return false;
+  bool result = true;
+  for (const auto &pair : data) {
+    std::string key = std::get<std::string>(pair.first);
+    std::string value;
+    if (key == "max-bandwidth") {
+      value = std::to_string(std::get<int64_t>(pair.second));
+    } else {
+      value = std::get<std::string>(pair.second);
+    }
+    if (plusplayer_set_property(player_, ConvertPropertyType(key),
+                                value.c_str()) != PLUSPLAYER_ERROR_TYPE_NONE) {
+      LOG_ERROR("[PlusPlayer] Fail to set property, key : %s", key.c_str());
+      result = false;
+    }
   }
-  return false;
-  // return ::SetData(player_, json_data);
+  return result;
 }
 
 flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
@@ -1108,19 +1046,24 @@ flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return result;
   }
-  std::string json_data = BuildJsonString(data);
-  if (json_data.empty()) {
-    LOG_ERROR("[PlusPlayer] json_data is empty.");
-    return result;
-  }
-  return {};
-  /*
-    if (!::GetData(player_, json_data)) {
-      LOG_ERROR("[PlusPlayer] Fail to get data from player");
-      return result;
+
+  for (const auto &encodable_key : data) {
+    std::string key = std::get<std::string>(encodable_key);
+    char *value;
+    if (plusplayer_get_property(player_, ConvertPropertyType(key), &value) !=
+        PLUSPLAYER_ERROR_TYPE_NONE) {
+      LOG_ERROR("[PlusPlayer] Fail to get property, key : %s", key.c_str());
+      continue;
     }
-  */
-  ParseJsonString(json_data, data, result);
+    if (key == "max-bandwidth") {
+      result.insert_or_assign(encodable_key,
+                              flutter::EncodableValue(std::stoll(value)));
+    } else {
+      result.insert_or_assign(encodable_key,
+                              flutter::EncodableValue(std::string(value)));
+    }
+    free(value);
+  }
   return result;
 }
 
