@@ -70,6 +70,7 @@ TizenPackageManager::TizenPackageManager() {
 
 TizenPackageManager::~TizenPackageManager() {
   if (package_manager_) {
+    package_size_callbacks_.clear();
     package_manager_unset_event_cb(package_manager_);
     package_manager_destroy(package_manager_);
   }
@@ -213,6 +214,58 @@ TizenPackageManager::GetAllPackagesInfo() {
     return std::nullopt;
   }
   return packages_;
+}
+
+void TizenPackageManager::GetPackageSizeInfo(
+    const std::string &package_id, OnPackageSizeEvent on_package_size_result) {
+  package_size_callbacks_[package_id] =
+      std::make_unique<OnPackageSizeEvent>(on_package_size_result);
+
+  int ret = package_manager_get_package_size_info(
+      package_id.c_str(),
+      [](const char *package_id, const package_size_info_h size_info,
+         void *user_data) {
+        auto *self = static_cast<TizenPackageManager *>(user_data);
+        PackageSizeInfo package_size_info;
+
+        if (size_info) {
+          long long data_size = 0;
+          long long cache_size = 0;
+          long long app_size = 0;
+          long long external_data_size = 0;
+          long long external_cache_size = 0;
+          long long external_app_size = 0;
+
+          package_size_info_get_data_size(size_info, &data_size);
+          package_size_info_get_cache_size(size_info, &cache_size);
+          package_size_info_get_app_size(size_info, &app_size);
+          package_size_info_get_external_data_size(size_info,
+                                                   &external_data_size);
+          package_size_info_get_external_cache_size(size_info,
+                                                    &external_cache_size);
+          package_size_info_get_external_app_size(size_info,
+                                                  &external_app_size);
+
+          package_size_info.data_size = data_size;
+          package_size_info.cache_size = cache_size;
+          package_size_info.app_size = app_size;
+          package_size_info.external_data_size = external_data_size;
+          package_size_info.external_cache_size = external_cache_size;
+          package_size_info.external_app_size = external_app_size;
+
+          (*self->package_size_callbacks_[package_id])(package_size_info);
+        }
+      },
+      this);
+
+  if (ret != PACKAGE_MANAGER_ERROR_NONE) {
+    LOG_ERROR("package_manager_get_package_size_info failed: %s",
+              get_error_message(ret));
+    last_error_ = ret;
+    PackageSizeInfo package_size_info;
+    package_size_info.app_size = 0;
+    (*package_size_callbacks_[package_id])(package_size_info);
+  }
 }
 
 bool TizenPackageManager::Install(const std::string &package_path) {

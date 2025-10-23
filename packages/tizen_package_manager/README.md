@@ -10,7 +10,7 @@ To use this package, add `tizen_package_manager` as a dependency in your `pubspe
 
 ```yaml
 dependencies:
-  tizen_package_manager: ^0.3.0
+  tizen_package_manager: ^0.4.0
 ```
 
 ### Retrieving specific package info
@@ -20,6 +20,15 @@ To retrieve information of a specific package, use `PackageManager.getPackageInf
 ```dart
 String packageId = 'org.tizen.settings';
 PackageInfo package = await PackageManager.getPackageInfo(packageId);
+```
+
+### Retrieving specific package size info
+
+To retrieve size information of a specific package, use `PackageManager.getPackageSizeInfo` which returns an instance of `PackageSizeInfo`.
+
+```dart
+String packageId = 'org.tizen.settings';
+PackageSizeInfo sizeInfo = await PackageManager.getPackageSizeInfo(packageId);
 ```
 
 ### Retrieving all packages' info
