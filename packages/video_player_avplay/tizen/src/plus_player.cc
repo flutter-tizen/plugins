@@ -95,15 +95,10 @@ int64_t PlusPlayer::Create(const std::string &uri,
     }
   }
 
-  char *appId = nullptr;
-  int ret = app_manager_get_app_id(getpid(), &appId);
-  if (ret != APP_MANAGER_ERROR_NONE) {
-    LOG_ERROR("[PlusPlayer] Fail to get app id: %s.", get_error_message(ret));
+  if (!SetAppId()) {
+    LOG_ERROR("[PlusPlayer] Fail to set app id");
     return -1;
   }
-  plusplayer_set_app_id(player_, appId);
-  free(appId);
-
   RegisterListener();
 
   int64_t drm_type = flutter_common::GetValue(create_message.drm_configs(),
@@ -170,6 +165,23 @@ void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
   memento_->display_area.height = height;
 }
 
+bool PlusPlayer::SetAppId() {
+  char *appId;
+  int ret = app_manager_get_app_id(getpid(), &appId);
+  if (ret != APP_MANAGER_ERROR_NONE) {
+    LOG_ERROR("[PlusPlayer] Fail to get app id: %s.", get_error_message(ret));
+    return false;
+  }
+
+  if (plusplayer_set_app_id(player_, appId) != PLUSPLAYER_ERROR_TYPE_NONE) {
+    LOG_ERROR("[PlusPlayer] Fail to set app id");
+    free(appId);
+    return false;
+  }
+  free(appId);
+  return true;
+}
+
 bool PlusPlayer::Play() {
   LOG_INFO("[PlusPlayer] Player starting.");
 
@@ -184,12 +196,14 @@ bool PlusPlayer::Play() {
       LOG_ERROR("[PlusPlayer] Player fail to start.");
       return false;
     }
+    SendIsPlayingState(true);
     return true;
   } else if (state == PLUSPLAYER_STATE_PAUSED) {
     if (plusplayer_resume(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
       LOG_ERROR("[PlusPlayer] Player fail to resume.");
       return false;
     }
+    SendIsPlayingState(true);
     return true;
   }
   return false;
@@ -233,7 +247,6 @@ bool PlusPlayer::Pause() {
     LOG_ERROR("[PlusPlayer] Player fail to pause.");
     return false;
   }
-
   SendIsPlayingState(false);
   return true;
 }
@@ -305,7 +318,7 @@ bool PlusPlayer::IsLive() {
   }
   std::string is_live(value);
   free(value);
-  return is_live == "TRUE";
+  return is_live == "1";
 }
 
 std::pair<int64_t, int64_t> PlusPlayer::GetLiveDuration() {
@@ -799,12 +812,12 @@ bool PlusPlayer::StopAndClose() {
     return true;
   }
 
-  if (!plusplayer_stop(player_)) {
+  if (plusplayer_stop(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Player fail to stop.");
     return false;
   }
 
-  if (!plusplayer_close(player_)) {
+  if (plusplayer_close(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Player fail to close.");
     return false;
   }
@@ -877,7 +890,7 @@ bool PlusPlayer::Suspend() {
     return true;
   } else if (player_state != PLUSPLAYER_STATE_PAUSED) {
     LOG_INFO("[PlusPlayer] Player calling pause from suspend.");
-    if (plusplayer_suspend(player_) == false) {
+    if (plusplayer_suspend(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
       LOG_ERROR(
           "[PlusPlayer] Suspend fail, in restore player instance would be "
           "created newly.");
@@ -932,15 +945,21 @@ bool PlusPlayer::Restore(const CreateMessage *restore_message,
     case PLUSPLAYER_STATE_NONE:
       return RestorePlayer(restore_message, resume_time);
       break;
-    case PLUSPLAYER_STATE_PAUSED:
-      if (!plusplayer_restore(player_, memento_->state)) {
+    case PLUSPLAYER_STATE_PAUSED: {
+      if (plusplayer_restore(player_, memento_->state) !=
+          PLUSPLAYER_ERROR_TYPE_NONE) {
         if (!StopAndClose()) {
           LOG_ERROR("[PlusPlayer] Player need to stop and close, but failed.");
           return false;
         }
         return RestorePlayer(restore_message, resume_time);
       }
-      break;
+
+      plusplayer_state_e state = plusplayer_get_state(player_);
+      if (state == plusplayer_state_e::PLUSPLAYER_STATE_PLAYING) {
+        SendIsPlayingState(true);
+      }
+    } break;
     case PLUSPLAYER_STATE_PLAYING:
       // might be the case that widget has called
       // restore more than once, just ignore.
@@ -983,7 +1002,8 @@ bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
     return false;
   }
   if (memento_->playing_time > 0 &&
-      !plusplayer_seek(player_, memento_->playing_time)) {
+      plusplayer_seek(player_, memento_->playing_time) !=
+          PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Fail to seek.");
   }
   SetDisplayRoi(memento_->display_area.x, memento_->display_area.y,
