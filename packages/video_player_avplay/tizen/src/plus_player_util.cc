@@ -40,6 +40,35 @@ static std::unordered_map<std::string, plusplayer_property_e>
         {"DASH_STREAM_INFO", PLUSPLAYER_PROPERTY_DASH_STREAM_INFO},
         {"HTTP_HEADER", PLUSPLAYER_PROPERTY_HTTP_HEADER}};
 
+static const std::vector<plusplayer_display_rotation_type_e>
+    kConvertDisplayRotationVec = {PLUSPLAYER_DISPLAY_ROTATION_TYPE_NONE,
+                                  PLUSPLAYER_DISPLAY_ROTATION_TYPE_90,
+                                  PLUSPLAYER_DISPLAY_ROTATION_TYPE_180,
+                                  PLUSPLAYER_DISPLAY_ROTATION_TYPE_270};
+
+static const std::vector<plusplayer_display_mode_e> kConvertDisplayModeMap = {
+    PLUSPLAYER_DISPLAY_MODE_LETTER_BOX,
+    PLUSPLAYER_DISPLAY_MODE_ORIGIN_SIZE,
+    PLUSPLAYER_DISPLAY_MODE_FULL_SCREEN,
+    PLUSPLAYER_DISPLAY_MODE_CROPPED_FULL,
+    PLUSPLAYER_DISPLAY_MODE_ORIGIN_OR_LETTER,
+    PLUSPLAYER_DISPLAY_MODE_DST_ROI,
+    PLUSPLAYER_DISPLAY_MODE_AUTO_ASPECT_RATIO,
+    PLUSPLAYER_DISPLAY_MODE_ROI_AUTO_ASPECT_RATIO};
+
+plusplayer_display_rotation_type_e ConvertDisplayRotationType(
+    const int64_t &rotation_type) {
+  int index = static_cast<int>(rotation_type);
+  return kConvertDisplayRotationVec[index];
+}
+
+plusplayer_display_mode_e ConvertDisplayMode(const int64_t &display_mode) {
+  int index = static_cast<int>(display_mode);
+  return (index >= 0 && index < kConvertDisplayModeMap.size())
+             ? kConvertDisplayModeMap[index]
+             : static_cast<plusplayer_display_mode_e>(-1);
+}
+
 plusplayer_track_type_e ConvertTrackType(const std::string &track_type) {
   auto it = kTrackMap.find(track_type);
   if (it != kTrackMap.end()) {

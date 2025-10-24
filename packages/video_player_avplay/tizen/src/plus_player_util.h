@@ -30,5 +30,8 @@ plusplayer_track_type_e ConvertTrackType(const std::string &track_type);
 plusplayer_property_e ConvertPropertyType(const std::string &type_value);
 std::vector<std::string> Split(const std::string &s, char delim);
 std::string GetErrorMessage(plusplayer_error_type_e error_code);
+plusplayer_display_mode_e ConvertDisplayMode(const int64_t &display_mode);
+plusplayer_display_rotation_type_e ConvertDisplayRotationType(
+    const int64_t &rotation_type);
 }  // namespace video_player_avplay_tizen
 #endif

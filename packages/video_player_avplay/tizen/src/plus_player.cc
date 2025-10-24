@@ -409,8 +409,8 @@ bool PlusPlayer::SetDisplay() {
   }
   plusplayer_geometry_s roi{x, y, width, height};
   if (plusplayer_set_display_subsurface(
-          player_, plusplayer_display_type_e::PLUSPLAYER_DISPLAY_TYPE_OVERLAY,
-          resource_id, roi) != PLUSPLAYER_ERROR_TYPE_NONE) {
+          player_, PLUSPLAYER_DISPLAY_TYPE_OVERLAY, resource_id, roi) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Player fail to set display.");
     return false;
   }
@@ -820,8 +820,8 @@ bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
 
   LOG_INFO("[PlusPlayer] rotation: %lld", rotation);
   return plusplayer_set_display_rotation(
-             player_, static_cast<plusplayer_display_rotation_type_e>(
-                          rotation)) != PLUSPLAYER_ERROR_TYPE_NONE;
+             player_, ConvertDisplayRotationType(rotation)) !=
+         PLUSPLAYER_ERROR_TYPE_NONE;
 }
 
 bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
@@ -836,8 +836,7 @@ bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
     return false;
   }
   LOG_INFO("[PlusPlayer] display_mode: %lld", display_mode);
-  if (plusplayer_set_display_mode(
-          player_, static_cast<plusplayer_display_mode_e>(display_mode)) !=
+  if (plusplayer_set_display_mode(player_, ConvertDisplayMode(display_mode)) !=
       PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Player fail to set display mode.");
     return false;
@@ -1186,14 +1185,12 @@ void PlusPlayer::OnSubtitleData(const plusplayer_subtitle_type_e type,
                                 int attr_size, void *userdata) {}
 
 void PlusPlayer::OnResourceConflicted(void *user_data) {
-  LOG_ERROR("[PlusPlayer] Resource conflicted.");
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   self->SendIsPlayingState(false);
 }
 
 void PlusPlayer::OnError(plusplayer_error_type_e error_type, void *user_data) {
-  LOG_ERROR("[PlusPlayer] Error code: %d", error_type);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   self->SendError("[PlusPlayer] error",
@@ -1202,7 +1199,6 @@ void PlusPlayer::OnError(plusplayer_error_type_e error_type, void *user_data) {
 
 void PlusPlayer::OnErrorMsg(plusplayer_error_type_e error_type,
                             const char *error_msg, void *user_data) {
-  LOG_ERROR("[PlusPlayer] Error code: %d, message: %s.", error_type, error_msg);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   self->SendError("PlusPlayer error", std::string("Error: ") + error_msg);
