@@ -64,6 +64,7 @@ class PlusPlayer : public VideoPlayer {
   bool GetMemento(PlayerMemento *memento);
   bool IsLive();
   std::pair<int64_t, int64_t> GetLiveDuration();
+  void PreSet(const CreateMessage &create_message);
   bool SetDisplay();
   bool SetAppId();
   bool SetDrm(const std::string &uri, int drm_type,

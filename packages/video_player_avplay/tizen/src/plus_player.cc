@@ -87,14 +87,6 @@ int64_t PlusPlayer::Create(const std::string &uri,
   create_message_ = create_message;
   LOG_INFO("[PlusPlayer] Uri: %s", uri.c_str());
 
-  if (create_message.streaming_property() != nullptr &&
-      !create_message.streaming_property()->empty()) {
-    for (const auto &[key, value] : *create_message.streaming_property()) {
-      SetStreamingProperty(std::get<std::string>(key),
-                           std::get<std::string>(value));
-    }
-  }
-
   if (!SetAppId()) {
     LOG_ERROR("[PlusPlayer] Fail to set app id");
     return -1;
@@ -119,22 +111,7 @@ int64_t PlusPlayer::Create(const std::string &uri,
 
   SetDisplayRoi(0, 0, 1, 1);
 
-  bool is_prebuffer_mode = flutter_common::GetValue(
-      create_message.player_options(), "prebufferMode", false);
-  if (is_prebuffer_mode) {
-    plusplayer_set_prebuffer_mode(player_, true);
-    is_prebuffer_mode_ = true;
-  }
-
-  int64_t start_position = flutter_common::GetValue(
-      create_message.player_options(), "startPosition", (int64_t)0);
-  if (start_position > 0) {
-    LOG_INFO("[PlusPlayer] Start position: %lld", start_position);
-    if (plusplayer_seek(player_, start_position) !=
-        PLUSPLAYER_ERROR_TYPE_NONE) {
-      LOG_INFO("[PlusPlayer] Fail to seek, it's a non-seekable content");
-    }
-  }
+  PreSet(create_message);
 
   if (plusplayer_prepare_async(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Player fail to prepare.");
@@ -146,6 +123,53 @@ int64_t PlusPlayer::Create(const std::string &uri,
 void PlusPlayer::Dispose() {
   LOG_INFO("[PlusPlayer] Player disposing.");
   ClearUpEventChannel();
+}
+
+void PlusPlayer::PreSet(const CreateMessage &create_message) {
+  if (create_message.streaming_property() != nullptr &&
+      !create_message.streaming_property()->empty()) {
+    for (const auto &[key, value] : *create_message.streaming_property()) {
+      SetStreamingProperty(std::get<std::string>(key),
+                           std::get<std::string>(value));
+    }
+
+    std::string user_agent = flutter_common::GetValue(
+        create_message.streaming_property(), "USER_AGENT", std::string());
+    if (!user_agent.empty()) {
+      int ret = plusplayer_set_user_agent(player_, user_agent.c_str());
+      if (ret != PLUSPLAYER_ERROR_TYPE_NONE) {
+        LOG_ERROR("[PlusPlayer] plusplayer_set_user_agent failed: %s.",
+                  user_agent.c_str());
+      }
+    }
+
+    std::string cookie = flutter_common::GetValue(
+        create_message.streaming_property(), "COOKIE", std::string());
+    if (!cookie.empty()) {
+      int ret = plusplayer_set_cookie(player_, cookie.c_str());
+      if (ret != PLUSPLAYER_ERROR_TYPE_NONE) {
+        LOG_ERROR("[PlusPlayer] plusplayer_set_cookie failed: %s.",
+                  cookie.c_str());
+      }
+    }
+
+    bool is_prebuffer_mode = flutter_common::GetValue(
+        create_message.player_options(), "prebufferMode", false);
+    if (is_prebuffer_mode) {
+      plusplayer_set_prebuffer_mode(player_, true);
+      is_prebuffer_mode_ = true;
+    }
+
+    int64_t start_position = flutter_common::GetValue(
+        create_message.player_options(), "startPosition", (int64_t)0);
+    if (start_position > 0) {
+      LOG_INFO("[PlusPlayer] Start position: %lld", start_position);
+      if (plusplayer_seek(player_, start_position) !=
+          PLUSPLAYER_ERROR_TYPE_NONE) {
+        LOG_INFO("[PlusPlayer] Fail to seek, it's a non-seekable content");
+      }
+    }
+  }
 }
 
 void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
