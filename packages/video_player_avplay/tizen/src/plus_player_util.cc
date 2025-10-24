@@ -11,10 +11,9 @@ static constexpr plusplayer_track_type_e kUnknownTrackType =
     static_cast<plusplayer_track_type_e>(-1);
 
 static const std::unordered_map<std::string, plusplayer_track_type_e>
-    kTrackMap = {
-        {"video", plusplayer_track_type_e::PLUSPLAYER_TRACK_TYPE_VIDEO},
-        {"audio", plusplayer_track_type_e::PLUSPLAYER_TRACK_TYPE_AUDIO},
-        {"text", plusplayer_track_type_e::PLUSPLAYER_TRACK_TYPE_SUBTITLE}};
+    kTrackMap = {{"video", PLUSPLAYER_TRACK_TYPE_VIDEO},
+                 {"audio", PLUSPLAYER_TRACK_TYPE_AUDIO},
+                 {"text", PLUSPLAYER_TRACK_TYPE_SUBTITLE}};
 
 static std::unordered_map<std::string, plusplayer_property_e>
     kConvertPropertyMap = {
