@@ -484,8 +484,7 @@ flutter::EncodableValue ParseVideoTrack(const plusplayer_track_h track) {
   return flutter::EncodableValue(video_track_result);
 }
 
-flutter::EncodableValue ParseAudioTrack(const plusplayer_track_h track,
-                                        plusplayer_h handle) {
+flutter::EncodableValue ParseAudioTrack(const plusplayer_track_h track) {
   flutter::EncodableMap audio_track_result = {};
   audio_track_result.insert_or_assign(flutter::EncodableValue("trackType"),
                                       flutter::EncodableValue("audio"));
@@ -505,16 +504,13 @@ flutter::EncodableValue ParseAudioTrack(const plusplayer_track_h track,
         flutter::EncodableValue(std::string(mimetype)));
   }
 
-  auto language_code = plusplayer_get_track_language_code(
-      handle, PLUSPLAYER_TRACK_TYPE_AUDIO, track_index);
-
-  std::string language;
-  if (language_code) {
-    language = std::string(language_code);
-    free((void *)language_code);
+  const char *language_code;
+  if (plusplayer_get_track_lang_code(track, &language_code) ==
+      PLUSPLAYER_ERROR_TYPE_NONE) {
+    audio_track_result.insert_or_assign(
+        flutter::EncodableValue("language"),
+        flutter::EncodableValue(std::string(language_code)));
   }
-  audio_track_result.insert_or_assign(flutter::EncodableValue("language"),
-                                      flutter::EncodableValue(language));
 
   int channel_count;
   if (plusplayer_get_track_channels(track, &channel_count) ==
@@ -533,13 +529,12 @@ flutter::EncodableValue ParseAudioTrack(const plusplayer_track_h track,
   LOG_DEBUG(
       "[PlusPlayer] audio track info : trackId : %d, mimetype : %s, "
       "language_code : %s, channel : %d, bitrate : %d",
-      track_index, mimetype, language.c_str(), channel_count, bitrate);
+      track_index, mimetype, language_code, channel_count, bitrate);
 
   return flutter::EncodableValue(audio_track_result);
 }
 
-flutter::EncodableValue ParseSubtitleTrack(const plusplayer_track_h track,
-                                           plusplayer_h handle) {
+flutter::EncodableValue ParseSubtitleTrack(const plusplayer_track_h track) {
   flutter::EncodableMap subtitle_track_result = {};
   subtitle_track_result.insert_or_assign(flutter::EncodableValue("trackType"),
                                          flutter::EncodableValue("text"));
@@ -560,20 +555,18 @@ flutter::EncodableValue ParseSubtitleTrack(const plusplayer_track_h track,
         flutter::EncodableValue(std::string(mimetype)));
   }
 
-  const char *language_code = plusplayer_get_track_language_code(
-      handle, PLUSPLAYER_TRACK_TYPE_SUBTITLE, track_index);
-  std::string language;
-  if (language_code) {
-    language = std::string(language_code);
-    free((void *)language_code);
-    subtitle_track_result.insert_or_assign(flutter::EncodableValue("language"),
-                                           flutter::EncodableValue(language));
+  const char *language_code;
+  if (plusplayer_get_track_lang_code(track, &language_code) ==
+      PLUSPLAYER_ERROR_TYPE_NONE) {
+    subtitle_track_result.insert_or_assign(
+        flutter::EncodableValue("language"),
+        flutter::EncodableValue(std::string(language_code)));
   }
 
   LOG_DEBUG(
       "[PlusPlayer] subtitle track info : trackId : %d, mimetype : %s, "
       "language_code : %s",
-      track_index, mimetype, language.c_str());
+      track_index, mimetype, language_code);
   return flutter::EncodableValue(subtitle_track_result);
 }
 
@@ -605,14 +598,12 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
   struct UserData {
     flutter::EncodableList *track_selections;
     plusplayer_track_type_e type;
-    plusplayer_h handle;
   };
 
   flutter::EncodableList trackSelections = {};
   UserData data = {};
   data.track_selections = &trackSelections;
   data.type = type;
-  data.handle = player_;
   if (plusplayer_get_foreach_track(
           player_,
           [](plusplayer_track_h track_h, void *user_data) -> bool {
@@ -623,11 +614,9 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
               if (type == PLUSPLAYER_TRACK_TYPE_VIDEO) {
                 data->track_selections->push_back(ParseVideoTrack(track_h));
               } else if (type == PLUSPLAYER_TRACK_TYPE_AUDIO) {
-                data->track_selections->push_back(
-                    ParseAudioTrack(track_h, data->handle));
+                data->track_selections->push_back(ParseAudioTrack(track_h));
               } else if (type == PLUSPLAYER_TRACK_TYPE_SUBTITLE) {
-                data->track_selections->push_back(
-                    ParseSubtitleTrack(track_h, data->handle));
+                data->track_selections->push_back(ParseSubtitleTrack(track_h));
               }
             }
             return true;
@@ -651,35 +640,26 @@ flutter::EncodableList PlusPlayer::GetActiveTrackInfo() {
     return {};
   }
 
-  struct UserData {
-    flutter::EncodableList *tracks;
-    plusplayer_h handle;
-  };
-
   // Use the C API to iterate over active tracks.
   flutter::EncodableList active_tracks;
-
-  UserData data = {};
-  data.tracks = &active_tracks;
-  data.handle = player_;
   // The callback receives each active track handle.
   if (plusplayer_get_foreach_active_track(
           player_,
           [](plusplayer_track_h track_h, void *user_data) -> bool {
             plusplayer_track_type_e type;
             plusplayer_get_track_type(track_h, &type);
-            UserData *data = static_cast<UserData *>(user_data);
+            flutter::EncodableList *tracks =
+                static_cast<flutter::EncodableList *>(user_data);
             if (type == PLUSPLAYER_TRACK_TYPE_AUDIO) {
-              data->tracks->push_back(ParseAudioTrack(track_h, data->handle));
+              tracks->push_back(ParseAudioTrack(track_h));
             } else if (type == PLUSPLAYER_TRACK_TYPE_VIDEO) {
-              data->tracks->push_back(ParseVideoTrack(track_h));
+              tracks->push_back(ParseVideoTrack(track_h));
             } else {
-              data->tracks->push_back(
-                  ParseSubtitleTrack(track_h, data->handle));
+              tracks->push_back(ParseSubtitleTrack(track_h));
             }
             return true;  // Continue iteration.
           },
-          &data) != PLUSPLAYER_ERROR_TYPE_NONE) {
+          &active_tracks) != PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Fail to get active track info");
     return {};
   }
