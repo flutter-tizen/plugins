@@ -18,22 +18,20 @@ dependencies:
 
 ## API Reference
 
-The `TizenWindowManagerPlugin` class provides methods to control window behavior on the Tizen platform.
+The `WindowManager` class provides methods to control window behavior on the Tizen platform.
 
 ### Controls windows
 
 Activates the window and brings it to the foreground.
 
 ```dart
-final windowManager = TizenWindowManagerPlugin();
-await windowManager.activate();
+await WindowManager.activate();
 ```
 
 Lowers the window and sends it to the background.
 
 ```dart
-final windowManager = TizenWindowManagerPlugin();
-await windowManager.lower();
+await WindowManager.lower();
 ```
 
 ### Retrieving window geometry
@@ -47,8 +45,7 @@ Returns a `Map<String, int>` containing:
 - `height`: The height of the window
 
 ```dart
-final windowManager = TizenWindowManagerPlugin();
-Map<String, int> geometry = await windowManager.getGeometry();
+Map<String, int> geometry = await WindowManager.getGeometry();
 print('Window position: (${geometry['x']}, ${geometry['y']})');
 print('Window size: ${geometry['width']}x${geometry['height']}');
 ```

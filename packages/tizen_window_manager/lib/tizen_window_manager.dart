@@ -8,14 +8,16 @@ import 'package:flutter/services.dart';
 ///
 /// This plugin provides methods to control window behavior such as
 /// activating, raising, lowering, showing, hiding, and getting window geometry.
-class TizenWindowManagerPlugin {
-  final MethodChannel _channel = const MethodChannel('tizen/window_manager');
+class WindowManager {
+  WindowManager._();
+
+  static const MethodChannel _channel = MethodChannel('tizen/window_manager');
 
   /// Activates the window.
-  Future<void> activate() => _channel.invokeMethod('activate');
+  static Future<void> activate() => _channel.invokeMethod('activate');
 
   /// Lowers the window.
-  Future<void> lower() => _channel.invokeMethod('lower');
+  static Future<void> lower() => _channel.invokeMethod('lower');
 
   /// Gets the geometry (position and size) of the window.
   ///
@@ -24,7 +26,7 @@ class TizenWindowManagerPlugin {
   /// - 'y': The y coordinate of the window
   /// - 'width': The width of the window
   /// - 'height': The height of the window
-  Future<Map<String, int>> getGeometry() async {
+  static Future<Map<String, int>> getGeometry() async {
     final dynamic result = await _channel.invokeMethod('getGeometry');
     if (result is Map) {
       return Map<String, int>.from(result);

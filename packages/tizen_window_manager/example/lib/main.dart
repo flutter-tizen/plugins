@@ -21,9 +21,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final TizenWindowManagerPlugin _tizenWindowManagerPlugin =
-      TizenWindowManagerPlugin();
-
   Map<String, dynamic>? _geometry;
   bool _isLoadingGeometry = false;
 
@@ -46,7 +43,7 @@ class _MyAppState extends State<MyApp> {
           debugPrint(
             'AppLifecycleState is still not resumed (current: $currentState), calling activate window again',
           );
-          _tizenWindowManagerPlugin.activate();
+          WindowManager.activate();
         }
       });
     } else {
@@ -56,12 +53,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _lowerWindow() {
-    _tizenWindowManagerPlugin.lower();
+    WindowManager.lower();
     debugPrint('Window lowered successfully');
   }
 
   void _lowerWindowAndActivateWindow() {
-    _tizenWindowManagerPlugin.lower();
+    WindowManager.lower();
     debugPrint('Window lowered successfully');
     Future<void>.delayed(const Duration(seconds: 3), () {
       debugPrint('3 seconds passed, showing window again');
@@ -75,8 +72,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     try {
-      final Map<String, int> geometry =
-          await _tizenWindowManagerPlugin.getGeometry();
+      final Map<String, int> geometry = await WindowManager.getGeometry();
       debugPrint('Window geometry: $geometry');
       debugPrint('Position: (${geometry['x']}, ${geometry['y']})');
       debugPrint('Size: ${geometry['width']} x ${geometry['height']}');
