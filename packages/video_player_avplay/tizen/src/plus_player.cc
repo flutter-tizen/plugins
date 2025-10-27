@@ -333,30 +333,24 @@ int64_t PlusPlayer::GetPosition() {
 }
 
 bool PlusPlayer::IsLive() {
-  char *value;
-  if (plusplayer_get_property(
-          player_, plusplayer_property_e::PLUSPLAYER_PROPERTY_IS_LIVE,
-          &value) != PLUSPLAYER_ERROR_TYPE_NONE) {
+  bool value = false;
+  if (plusplayer_is_live_streaming(player_, &value) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Player fail to get is live.");
     return false;
   }
-  std::string is_live(value);
-  free(value);
-  return is_live == "1";
+  return value;
 }
 
 std::pair<int64_t, int64_t> PlusPlayer::GetLiveDuration() {
-  char *value;
-  if (plusplayer_get_property(
-          player_, plusplayer_property_e::PLUSPLAYER_PROPERTY_LIVE_DURATION,
-          &value) != PLUSPLAYER_ERROR_TYPE_NONE) {
+  uint64_t start = 0;
+  uint64_t end = 0;
+  if (plusplayer_get_dvr_seekable_range(player_, &start, &end) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Player fail to get live duration.");
     return std::make_pair(0, 0);
   }
-  std::string live_duration_str(value);
-  free(value);
-  std::vector<std::string> time_vec = Split(live_duration_str, '|');
-  return std::make_pair(std::stoll(time_vec[0]), std::stoll(time_vec[1]));
+  return std::make_pair(start, end);
 }
 
 std::pair<int64_t, int64_t> PlusPlayer::GetDuration() {
@@ -1137,9 +1131,9 @@ bool PlusPlayer::UpdateDashToken(const std::string &dashToken) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
   }
-  return plusplayer_set_property(
-             player_, plusplayer_property_e::PLUSPLAYER_PROPERTY_TOKEN,
-             dashToken.c_str()) != PLUSPLAYER_ERROR_TYPE_NONE;
+  return plusplayer_set_property(player_, PLUSPLAYER_PROPERTY_URL_AUTH_TOKEN,
+                                 dashToken.c_str()) !=
+         PLUSPLAYER_ERROR_TYPE_NONE;
 }
 
 bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,

@@ -74,8 +74,10 @@ typedef enum {
                                                        */
   PLUSPLAYER_STREAMING_MESSAGE_TYPE_MEDIASYNCCSSCII,  /** < Media sync SS CII
                                                          data */
-  PLUSPLAYER_STREAMING_MESSAGE_TYPE_DASHLIVETOVOD     /** < DASH live to VOD
-                                                         transition */
+  PLUSPLAYER_STREAMING_MESSAGE_TYPE_DASHLIVETOVOD,    /** < DASH live to VOD
+                                                        transition */
+  PLUSPLAYER_STREAMING_MESSAGE_TYPE_MANIFESTUPDATE    /** DASH manifest content
+                                                         update*/
 } plusplayer_streaming_message_type_e;
 
 /**
@@ -85,7 +87,7 @@ typedef struct {
   /**
    * @brief  Message Data
    */
-  char *data;
+  char* data;
   /**
    * @brief  size/length of message data
    */

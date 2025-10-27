@@ -70,43 +70,31 @@ typedef enum {
                                                    advance audio HW resource
                                                    control. Effective only for
                                                    DASH streaming. */
-  PLUSPLAYER_PROPERTY_TOKEN, /**< String http token for streaming engine
-                                    download. Effective only for DASH
-                                    streaming.*/
-  PLUSPLAYER_PROPERTY_USER_LOW_LATENCY, /**< String ["ON","OFF"] to control
-                                               is force enable low latency live
-                                               logic. Effective only for DASH
-                                               streaming.*/
-  PLUSPLAYER_PROPERTY_MAX_BANDWIDTH,    /**< String value to limit ABR.
-                                               Effective only for DASH streaming.*/
-  PLUSPLAYER_PROPERTY_OPEN_HTTP_HEADER, /**< String value ["TRUE", "FALSE"]
-                                              to control is force enable if can
-                                              get libcurl headers with
-                                              "PLUSPLAYER_PROPERTY_HTTP_HEADER"
-                                              property. Effective only for DASH
-                                              streaming.
-                                            */
-  PLUSPLAYER_PROPERTY_IS_LIVE, /**< String value whether it stream is live.
-                                  Effective only for HLS, DASH, Smooth
-                                  Streaming. */
-  PLUSPLAYER_PROPERTY_AVAILABLE_BITRATE, /**< String listing the available
-                                                bit-rates for the
-                                                currently-playing stream.
-                                            Effective only for HLS, DASH, Smooth
-                                            Streaming. */
-  PLUSPLAYER_PROPERTY_LIVE_DURATION,     /**< Live streams do not have fixed
-     duration. But server generally maintains a finite buffer (called DVR) of live
-     encoded data, whose right edge (end) indicates live point and start indicates
-     oldest segment buffered by the server. DVR is sliding rightward with time to
-     keep with live point. Value contains String describing the duration of current
-     DVR window for live content. Effective only for HLS, DASH, Smooth Streaming.*/
-  PLUSPLAYER_PROPERTY_CURRENT_BANDWIDTH, /**< String describing the current
-                                            streaming bandwidth. Effective only
-                                            for HLS, DASH, Smooth Streaming.*/
-  PLUSPLAYER_PROPERTY_CUR_LATENCY,       /**< String value of uint64_t live
-                                                latency (only for lowlatency logic
-                                                on). Effective only for DASH
-                                                streaming. */
+  PLUSPLAYER_PROPERTY_URL_AUTH_TOKEN,       /**< String http token for streaming
+                                          engine download. Effective only for DASH
+                                          streaming.*/
+  PLUSPLAYER_PROPERTY_USER_LOW_LATENCY,     /**< String ["ON","OFF"] to control
+                                                   is force enable low latency live
+                                                   logic. Effective only for DASH
+                                                   streaming.*/
+  PLUSPLAYER_PROPERTY_MAX_BANDWIDTH,        /**< String value to limit ABR.
+                                                   Effective only for DASH streaming.*/
+  PLUSPLAYER_PROPERTY_OPEN_HTTP_HEADER,     /**< String value ["TRUE", "FALSE"]
+                                                  to control is force enable if can
+                                                  get libcurl headers with
+                                                  "PLUSPLAYER_PROPERTY_HTTP_HEADER"
+                                                  property. Effective only for DASH
+                                                  streaming.
+                                                */
+  PLUSPLAYER_PROPERTY_AVAILABLE_BITRATE,    /**< String listing the available
+                                                   bit-rates for the
+                                                   currently-playing stream.
+                                               Effective only for HLS, DASH, Smooth
+                                               Streaming. */
+  PLUSPLAYER_PROPERTY_CURRENT_LATENCY,      /**< String value of uint64_t live
+                                               latency (only for lowlatency logic
+                                               on). Effective only for DASH
+                                               streaming. */
   PLUSPLAYER_PROPERTY_IS_DVB_DASH,       /**< String ["1","0"] , to show is DASH
                                                 DVB profile  (for EU products).
                                                 Effective only for HBBTV DASH case. */
@@ -122,9 +110,13 @@ typedef enum {
                                             Effective only for DASH streaming.*/
   PLUSPLAYER_PROPERTY_DASH_STREAM_INFO, /**< String value of dash MPD. Effective
                                            only for DASH streaming.*/
-  PLUSPLAYER_PROPERTY_HTTP_HEADER /**< String value of Dash engine download
-                                     header. Effective only for DASH
-                                     streaming.*/
+  PLUSPLAYER_PROPERTY_HTTP_HEADER,  /**< String value of Dash engine download
+                                      header. Effective only for DASH
+                                      streaming.*/
+  PLUSPLAYER_PROPERTY_OPEN_MANIFEST /**<String value ["TRUE", "FALSE"] to
+                                       control is force enable if can get
+                                       manifest content callback . Effective
+                                       only for DASH streaming. */
 } plusplayer_property_e;
 
 #ifdef __cplusplus

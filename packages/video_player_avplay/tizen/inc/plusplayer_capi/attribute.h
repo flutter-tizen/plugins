@@ -39,45 +39,46 @@ extern "C" {
  * @brief Enumeration for supported subtitle attributes
  */
 typedef enum {
-  PLUSPLAYER_SUBTITLE_ATTR_REGION_XPOS,          /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_REGION_YPOS,          /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_REGION_WIDTH,         /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_REGION_HEIGHT,        /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_XPADDING,      /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_YPADDING,      /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_LEFT_MARGIN,   /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_RIGHT_MARGIN,  /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_TOP_MARGIN,    /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_BOTTOM_MARGIN, /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_BG_COLOR,      /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_OPACITY,       /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_WINDOW_SHOW_BG,  /**< how to show window background,
-                                               uint type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_FAMILY,     /**< char* type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_SIZE,       /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_WEIGHT,     /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_STYLE,      /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_COLOR,      /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_BG_COLOR,   /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_OPACITY,    /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_BG_OPACITY, /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_TEXT_OUTLINE_COLOR,       /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_TEXT_OUTLINE_THICKNESS,   /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_TEXT_OUTLINE_BLUR_RADIUS, /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_VERTICAL_ALIGN,           /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_FONT_HORIZONTAL_ALIGN,         /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_RAW_SUBTITLE,                  /**< char* type */
-  PLUSPLAYER_SUBTITLE_ATTR_WEBVTT_CUE_LINE,               /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_WEBVTT_CUE_LINE_NUM,           /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WEBVTT_CUE_LINE_ALIGN,         /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WEBVTT_CUE_ALIGN,              /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WEBVTT_CUE_SIZE,               /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_WEBVTT_CUE_POSITION,           /**< float type */
-  PLUSPLAYER_SUBTITLE_ATTR_WEBVTT_CUE_POSITION_ALIGN,     /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_WEBVTT_CUE_VERTICAL,           /**< int type */
-  PLUSPLAYER_SUBTITLE_ATTR_TIMESTAMP,
-  PLUSPLAYER_SUBTITLE_ATTR_EXTSUB_INDEX /**< File index of external subtitle */
-} plusplayer_subtitle_attr_e;
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_REGION_XPOS,             /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_REGION_YPOS,             /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_REGION_WIDTH,            /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_REGION_HEIGHT,           /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_XPADDING,         /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_YPADDING,         /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_LEFT_MARGIN,      /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_RIGHT_MARGIN,     /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_TOP_MARGIN,       /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_BOTTOM_MARGIN,    /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_BG_COLOR,         /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_OPACITY,          /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WINDOW_SHOW_BG,          /**< how to show window
+                                                       background,          uint type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_FAMILY,             /**< char* type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_SIZE,               /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_WEIGHT,             /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_STYLE,              /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_COLOR,              /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_BG_COLOR,           /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_OPACITY,            /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_BG_OPACITY,         /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_TEXT_OUTLINE_COLOR, /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_TEXT_OUTLINE_THICKNESS,   /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_TEXT_OUTLINE_BLUR_RADIUS, /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_VERTICAL_ALIGN,           /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FONT_HORIZONTAL_ALIGN,         /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_RAW_SUBTITLE,              /**< char* type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WEBVTT_CUE_LINE,           /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WEBVTT_CUE_LINE_NUM,       /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WEBVTT_CUE_LINE_ALIGN,     /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WEBVTT_CUE_ALIGN,          /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WEBVTT_CUE_SIZE,           /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WEBVTT_CUE_POSITION,       /**< float type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WEBVTT_CUE_POSITION_ALIGN, /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_WEBVTT_CUE_VERTICAL,       /**< int type */
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_TIMESTAMP,
+  PLUSPLAYER_SUBTITLE_ATTR_TYPE_EXTSUB_INDEX /**< File index of external
+                                                subtitle */
+} plusplayer_subtitle_attr_type_e;
 
 /**
  * @brief Enumeration for  player supported subtitle types
@@ -92,20 +93,28 @@ typedef enum {
  * @brief Enumeration for  player supported subtitle attribute data types
  */
 typedef enum {
-  PLUSPLAYER_SUBTITLE_ATTR_TYPE_BOOL,  /**< subtitle attribute data type bool */
-  PLUSPLAYER_SUBTITLE_ATTR_TYPE_FLOAT, /**< subtitle attribute data type float
-                                        */
-  PLUSPLAYER_SUBTITLE_ATTR_TYPE_DOUBLE, /**< subtitle attribute data type double
-                                         */
-  PLUSPLAYER_SUBTITLE_ATTR_TYPE_STRING, /**< subtitle attribute data type string
-                                         */
-  PLUSPLAYER_SUBTITLE_ATTR_TYPE_INT,    /**< subtitle attribute data type int */
-  PLUSPLAYER_SUBTITLE_ATTR_TYPE_UINT,  /**< subtitle attribute data type uint */
-  PLUSPLAYER_SUBTITLE_ATTR_TYPE_INT64, /**< subtitle attribute data type int64
-                                        */
-  PLUSPLAYER_SUBTITLE_ATTR_TYPE_UINT64 /**< subtitle attribute data type uint64
-                                        */
-} plusplayer_subtitle_attr_type_e;
+  PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_BOOL,   /**< subtitle attribute data type
+                                                bool */
+  PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_FLOAT,  /**< subtitle attribute data type
+                                              * float
+                                              */
+  PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_DOUBLE, /**< subtitle attribute data type
+                                              * double
+                                              */
+  PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_STRING, /**< subtitle attribute data type
+                                              * string
+                                              */
+  PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_INT,  /**< subtitle attribute data type int
+                                            */
+  PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_UINT, /**< subtitle attribute data type
+                                              uint */
+  PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_INT64, /**< subtitle attribute data type
+                                             * int64
+                                             */
+  PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_UINT64 /**< subtitle attribute data type
+                                             * uint64
+                                             */
+} plusplayer_subtitle_attr_data_type_e;
 
 /**
  * @brief structure definition of subtitle attribute
@@ -114,12 +123,12 @@ typedef struct {
   /**
    * @brief   Subtitle attribute.
    */
-  plusplayer_subtitle_attr_e attr;
+  plusplayer_subtitle_attr_type_e attr;
 
   /**
    * @brief   Subtitle attribute data type.
    */
-  plusplayer_subtitle_attr_type_e dtype;
+  plusplayer_subtitle_attr_data_type_e dtype;
 
   /**
    * @brief   Start time.

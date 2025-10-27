@@ -1234,9 +1234,10 @@ int plusplayer_activate_audio(plusplayer_h handle);
  * PLUSPLAYER_PROPERTY_CONFIG_LOW_LATENCY,
  * PLUSPLAYER_PROPERTY_ATSC3_L1_SERVER_TIME,
  * PLUSPLAYER_PROPERTY_AUDIO_DESCRIPTION, PLUSPLAYER_PROPERTY_PRESELECTION_TAG,
- * PLUSPLAYER_PROPERTY_USE_MAIN_OUT_SHARE, PLUSPLAYER_PROPERTY_TOKEN,
+ * PLUSPLAYER_PROPERTY_USE_MAIN_OUT_SHARE, PLUSPLAYER_PROPERTY_URL_AUTH_TOKEN,
  * PLUSPLAYER_PROPERTY_USER_LOW_LATENCY, PLUSPLAYER_PROPERTY_OPEN_HTTP_HEADER,
- * PLUSPLAYER_PROPERTY_MAX_BANDWIDTH, PLUSPLAYER_PROPERTY_MPEGH_METADATA]
+ * PLUSPLAYER_PROPERTY_MAX_BANDWIDTH, PLUSPLAYER_PROPERTY_MPEGH_METADATA,
+ * PLUSPLAYER_PROPERTY_OPEN_MANIFEST]
  * @exception None
  */
 int plusplayer_set_property(plusplayer_h handle, plusplayer_property_e property,
@@ -1271,10 +1272,9 @@ int plusplayer_set_property(plusplayer_h handle, plusplayer_property_e property,
  * @post      None
  * @remark    It is caller's responsibility to free @c value memory resources
  * ONLY on api return success.
- * @remark    Valid Properties to Get are [PLUSPLAYER_PROPERTY_IS_LIVE,
- * PLUSPLAYER_PROPERTY_AVAILABLE_BITRATE, PLUSPLAYER_PROPERTY_LIVE_DURATION,
- * PLUSPLAYER_PROPERTY_CURRENT_BANDWIDTH, PLUSPLAYER_PROPERTY_PRESELECTION_TAG,
- * PLUSPLAYER_PROPERTY_CUR_LATENCY, PLUSPLAYER_PROPERTY_IS_DVB_DASH,
+ * @remark    Valid Properties to Get are
+ * [PLUSPLAYER_PROPERTY_AVAILABLE_BITRATE, PLUSPLAYER_PROPERTY_PRESELECTION_TAG,
+ * PLUSPLAYER_PROPERTY_CURRENT_LATENCY, PLUSPLAYER_PROPERTY_IS_DVB_DASH,
  * PLUSPLAYER_PROPERTY_LIVE_PLAYER_START, PLUSPLAYER_PROPERTY_HTTP_HEADER,
  * PLUSPLAYER_PROPERTY_START_DATE,
  * PLUSPLAYER_PROPERTY_MPEGH_METADATA, PLUSPLAYER_PROPERTY_DASH_STREAM_INFO]
@@ -1731,11 +1731,103 @@ int plusplayer_set_user_agent(plusplayer_h handle, const char* user_agent);
  * @endcode
  * @pre       The player state must be at least #PLUSPLAYER_STATE_IDLE
  * @post      The player state will be same as @pre
- * @remark    For general (.mp4) content, this api will return error @c
- * PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION
+ * @remark    For general non-adaptive streaming content, this api will return
+ * error @c PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION
  * @exception None
  */
 int plusplayer_set_resume_time(plusplayer_h handle, uint64_t resume_time_ms);
+
+/**
+ * @brief     To check whether stream is live.
+ * @param     [in] handle : plusplayer handle.
+ * @param     [out] is_live : live streaming or not @c true = live streaming
+ * @c false = VOD
+ * @return    @c PLUSPLAYER_ERROR_TYPE_NONE on success,otherwise @c one of
+ *            plusplayer_error_type_e values will be returned.
+ * @retval    #PLUSPLAYER_ERROR_TYPE_NONE Successful
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_PARAMETER Invalid parameter
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION Internal operation failed
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_STATE Invalid state
+ * @code
+ *            plusplayer_h player = plusplayer_create();
+ *            plusplayer_open(player,uri);
+ *            plusplayer_prepare(player);
+ *            // ... your codes ...
+ *            plusplayer_is_live_streaming(player, &is_live);
+ *            // ... your codes ...
+ * @endcode
+ * @pre       The player state must be #PLUSPLAYER_STATE_READY or
+ *            #PLUSPLAYER_STATE_PLAYING or #PLUSPLAYER_STATE_PAUSED
+ * @post      The player state will be same as @pre
+ * @remark    For general non-adaptive streaming content, this api will return
+ * error @c PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION
+ * @exception None
+ */
+int plusplayer_is_live_streaming(plusplayer_h handle, bool* is_live);
+
+/**
+ * @brief     Get live stream duration of current DVR window.
+ * @param     [in] handle : plusplayer handle.
+ * @param     [out] start_time_ms : start time in milliseconds.
+ * @param     [out] end_time_ms : end time in milliseconds.
+ * @return    @c PLUSPLAYER_ERROR_TYPE_NONE on success,otherwise @c one of
+ *            plusplayer_error_type_e values will be returned.
+ * @retval    #PLUSPLAYER_ERROR_TYPE_NONE Successful
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_PARAMETER Invalid parameter
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION Internal operation failed
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_STATE Invalid state
+ * @code
+ *            plusplayer_h player = plusplayer_create();
+ *            plusplayer_open(player,uri);
+ *            plusplayer_prepare(player);
+ *            // ... your codes ...
+ *            plusplayer_get_dvr_seekable_range(player, &start_time_ms,
+ * &end_time_ms);
+ *            // ... your codes ...
+ * @endcode
+ * @pre       The player state must be #PLUSPLAYER_STATE_READY or
+ *            #PLUSPLAYER_STATE_PLAYING or #PLUSPLAYER_STATE_PAUSED
+ * @post      The player state will be same as @pre
+ * @remark    Live streams do not have fixed duration. But server generally
+ * maintains a finite buffer (called DVR) of live encoded data, whose right edge
+ * @c end_time_ms indicates live point and @c start_time_ms indicates oldest
+ * segment buffered by the server. DVR is sliding rightward with time to keep
+ * with live point.
+ * @remark    For general non-adaptive streaming content, this api will return
+ * error @c PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION
+ * @exception None
+ */
+int plusplayer_get_dvr_seekable_range(plusplayer_h handle,
+                                      uint64_t* start_time_ms,
+                                      uint64_t* end_time_ms);
+
+/**
+ * @brief     Get the current streaming bandwidth.
+ * @param     [in] handle : plusplayer handle.
+ * @param     [out] curr_bandwidth_bps : value of current bandwidth in bits/s
+ * @return    @c PLUSPLAYER_ERROR_TYPE_NONE on success,otherwise @c one of
+ *            plusplayer_error_type_e values will be returned.
+ * @retval    #PLUSPLAYER_ERROR_TYPE_NONE Successful
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_PARAMETER Invalid parameter
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION Internal operation failed
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_STATE Invalid state
+ * @code
+ *            plusplayer_h player = plusplayer_create();
+ *            plusplayer_open(player,uri);
+ *            plusplayer_prepare(player);
+ *            // ... your codes ...
+ *            plusplayer_get_current_bandwidth(player, &curr_bandwidth_bps);
+ *            // ... your codes ...
+ * @endcode
+ * @pre       The player state must be #PLUSPLAYER_STATE_READY or
+ *            #PLUSPLAYER_STATE_PLAYING or #PLUSPLAYER_STATE_PAUSED
+ * @post      The player state will be same as @pre
+ * @remark    For general non-adaptive streaming content, this api will return
+ * error @c PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION
+ * @exception None
+ */
+int plusplayer_get_current_bandwidth(plusplayer_h handle,
+                                     uint32_t* curr_bandwidth_bps);
 
 #ifdef __cplusplus
 }
