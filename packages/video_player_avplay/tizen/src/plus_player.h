@@ -62,6 +62,8 @@ class PlusPlayer : public VideoPlayer {
 
  private:
   bool GetMemento(PlayerMemento *memento);
+  std::string GetExtraStreamingProperty(
+      const std::string &streaming_property_type);
   bool IsLive();
   std::pair<int64_t, int64_t> GetLiveDuration();
   void PreSet(const CreateMessage &create_message);

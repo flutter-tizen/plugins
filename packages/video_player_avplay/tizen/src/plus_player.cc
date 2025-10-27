@@ -750,12 +750,13 @@ std::string PlusPlayer::GetStreamingProperty(
     LOG_ERROR("[PlusPlayer]:Player is in invalid state[%d]", state);
     return "";
   }
-  char *value;
+
   plusplayer_property_e property = ConvertPropertyType(streaming_property_type);
   if (property == static_cast<plusplayer_property_e>(-1)) {
-    LOG_ERROR("[PlusPlayer]:Player fail to convert property type");
-    return "";
+    return GetExtraStreamingProperty(streaming_property_type);
   }
+
+  char *value;
   if (plusplayer_get_property(player_, property, &value) !=
       PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer]:Player fail to get streaming property");
@@ -764,6 +765,27 @@ std::string PlusPlayer::GetStreamingProperty(
   std::string result(value);
   free(value);
   return result;
+}
+
+std::string PlusPlayer::GetExtraStreamingProperty(
+    const std::string &streaming_property_type) {
+  if (streaming_property_type == "IS_LIVE") {
+    return IsLive() ? "true" : "false";
+  }
+
+  if (streaming_property_type == "CURRENT_BANDWIDTH") {
+    uint32_t current_bandwidth = 0;
+    plusplayer_get_current_bandwidth(player_, &current_bandwidth);
+    return std::to_string(current_bandwidth);
+  }
+
+  if (streaming_property_type == "GET_LIVE_DURATION") {
+    uint64_t start = 0;
+    uint64_t end = 0;
+    plusplayer_get_dvr_seekable_range(player_, &start, &end);
+    return std::to_string(start) + "|" + std::to_string(end);
+  }
+  return "";
 }
 
 bool PlusPlayer::SetBufferConfig(const std::string &key, int64_t value) {
@@ -799,9 +821,17 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
               type.c_str());
     return;
   }
+
   LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
            value.c_str());
-  plusplayer_set_property(player_, ConvertPropertyType(type), value.c_str());
+  plusplayer_property_e property = ConvertPropertyType(type);
+  if (property != static_cast<plusplayer_property_e>(-1)) {
+    if (plusplayer_set_property(player_, property, value.c_str()) !=
+        PLUSPLAYER_ERROR_TYPE_NONE) {
+      LOG_ERROR("[PlusPlayer] Fail to set streaming property type: %s.",
+                type.c_str());
+    }
+  }
 }
 
 bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
