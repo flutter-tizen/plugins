@@ -5,6 +5,7 @@
 #include "video_player_tizen_plugin.h"
 
 #include <app_common.h>
+#include <dlfcn.h>
 #include <flutter/encodable_value.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen.h>
@@ -74,6 +75,9 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   std::optional<FlutterError> Restore(int64_t palyer_id,
                                       const CreateMessage *msg,
                                       int64_t resume_time) override;
+
+  // Method to check if libplusplayer.so is available on the platform
+  bool IsPlatformPlusPlayerAvailable();
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -432,6 +436,19 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &msg) {
   options_.SetMixWithOthers(msg.mix_with_others());
   return std::nullopt;
+}
+
+bool VideoPlayerTizenPlugin::IsPlatformPlusPlayerAvailable() {
+  // Try to load libplusplayer.so using dlopen
+  void *handle = dlopen("libplusplayer.so", RTLD_LAZY);
+  if (handle) {
+    // Library found and loaded successfully, close it
+    dlclose(handle);
+    return true;
+  }
+
+  // Library not found or failed to load
+  return false;
 }
 
 }  // namespace video_player_avplay_tizen
