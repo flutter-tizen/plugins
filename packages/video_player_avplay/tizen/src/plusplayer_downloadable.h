@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_PLUS_PLAYER_H_
-#define FLUTTER_PLUGIN_PLUS_PLAYER_H_
+#ifndef FLUTTER_PLUGIN_PLUSPLAYER_DOWNLOADABLE_H_
+#define FLUTTER_PLUGIN_PLUSPLAYER_DOWNLOADABLE_H_
 
 #include <flutter/plugin_registrar.h>
 
@@ -19,11 +19,11 @@
 
 namespace video_player_avplay_tizen {
 
-class PlusPlayer : public VideoPlayer {
+class PlusPlayerDownloadable : public VideoPlayer {
  public:
-  explicit PlusPlayer(flutter::BinaryMessenger *messenger,
-                      FlutterDesktopViewRef flutter_view);
-  ~PlusPlayer();
+  explicit PlusPlayerDownloadable(flutter::BinaryMessenger *messenger,
+                                  FlutterDesktopViewRef flutter_view);
+  ~PlusPlayerDownloadable();
 
   int64_t Create(const std::string &uri,
                  const CreateMessage &create_message) override;
@@ -76,6 +76,11 @@ class PlusPlayer : public VideoPlayer {
   bool StopAndClose();
   bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);
 
+  // Helper methods for SetStreamingProperty
+  bool IsDashFormat() const;
+  bool IsDashOnlyProperty(const std::string &type) const;
+  void SetPropertyInternal(const std::string &type, const std::string &value);
+
   static bool OnLicenseAcquired(int *drm_handle, unsigned int length,
                                 unsigned char *pssh_data, void *user_data);
   static void OnPrepareDone(bool ret, void *user_data);
@@ -115,4 +120,4 @@ class PlusPlayer : public VideoPlayer {
 
 }  // namespace video_player_avplay_tizen
 
-#endif  // FLUTTER_PLUGIN_PLUS_PLAYER_H_
+#endif  // FLUTTER_PLUGIN_PLUSPLAYER_DOWNLOADABLE_H_
