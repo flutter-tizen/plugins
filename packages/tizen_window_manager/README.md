@@ -13,9 +13,6 @@ dependencies:
   tizen_window_manager: ^0.1.0
 ```
 
-> [!NOTE]
-> This plugin only works when the [RendererType](https://github.com/flutter-tizen/flutter-tizen/blob/master/embedding/csharp/Tizen.Flutter.Embedding/FlutterApplication.cs#L110) is [EGL](https://github.com/flutter-tizen/flutter-tizen/blob/master/embedding/csharp/Tizen.Flutter.Embedding/FlutterApplication.cs#L24). Calling this plugin's API when the RendererType is [EvasGL](https://github.com/flutter-tizen/flutter-tizen/blob/master/embedding/csharp/Tizen.Flutter.Embedding/FlutterApplication.cs#L20) will cause the app to crash.
-
 ## API Reference
 
 The `WindowManager` class provides methods to control window behavior on the Tizen platform.
