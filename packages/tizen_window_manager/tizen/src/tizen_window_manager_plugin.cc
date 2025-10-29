@@ -36,10 +36,9 @@ class TizenWindowManagerPlugin : public flutter::Plugin {
     plugin_registrar->AddPlugin(std::move(plugin));
   }
 
-  TizenWindowManagerPlugin(FlutterDesktopPluginRegistrarRef registrar_ref)
-      : registrar_ref_(registrar_ref) {
+  TizenWindowManagerPlugin(FlutterDesktopPluginRegistrarRef registrar_ref) {
     FlutterDesktopViewRef flutter_view =
-        FlutterDesktopPluginRegistrarGetView(registrar_ref_);
+        FlutterDesktopPluginRegistrarGetView(registrar_ref);
     void *handle = FlutterDesktopViewGetNativeHandle(flutter_view);
     if (!handle) {
       LOG_ERROR("Fail to get native window handle.");
@@ -74,7 +73,6 @@ class TizenWindowManagerPlugin : public flutter::Plugin {
     }
   }
 
-  FlutterDesktopPluginRegistrarRef registrar_ref_;
   std::unique_ptr<TizenWindowManager> window_manager_ = nullptr;
 };
 
