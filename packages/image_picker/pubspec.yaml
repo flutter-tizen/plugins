@@ -2,7 +2,7 @@ name: image_picker_tizen
 description: Tizen implementation of the image_picker plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/image_picker
-version: 2.3.1
+version: 2.3.2
 
 environment:
   sdk: ">=3.1.0 <4.0.0"

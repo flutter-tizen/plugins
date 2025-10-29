@@ -1,6 +1,7 @@
-## NEXT
+## 0.3.6
 
 * Update code format.
+* Updates README to indicate that the package has been discontinued.
 
 ## 0.3.5
 
