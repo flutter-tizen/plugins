@@ -15,6 +15,7 @@ plugins:
   tizen_bundle: ["tv-9.0"]
   tizen_package_manager: ["tv-9.0"]
   tizen_rpc_port: ["tv-9.0"]
+  tizen_window_manager: ["tv-9.0"]
   url_launcher: ["tv-9.0"]
   wakelock_plus: ["tv-9.0"]
 
