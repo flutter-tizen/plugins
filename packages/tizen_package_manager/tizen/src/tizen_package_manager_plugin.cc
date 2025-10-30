@@ -285,9 +285,9 @@ class TizenPackageManagerPlugin : public flutter::Plugin {
     TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
     auto shared_result = std::shared_ptr<FlMethodResult>(std::move(result));
     package_manager.GetPackageSizeInfo(
-        package_id,
-        [shared_result, &package_manager](PackageSizeInfo size_info) {
-          if (size_info.app_size == 0) {
+        package_id, [shared_result, &package_manager](PackageSizeInfo size_info,
+                                                      bool success) {
+          if (!success) {
             shared_result->Error(std::to_string(package_manager.GetLastError()),
                                  package_manager.GetLastErrorString());
             return;
