@@ -15,7 +15,7 @@ static const std::unordered_map<std::string, plusplayer_track_type_e>
                  {"audio", PLUSPLAYER_TRACK_TYPE_AUDIO},
                  {"text", PLUSPLAYER_TRACK_TYPE_SUBTITLE}};
 
-static std::unordered_map<std::string, plusplayer_property_e>
+static const std::unordered_map<std::string, plusplayer_property_e>
     kConvertPropertyMap = {
         {"ADAPTIVE_INFO", PLUSPLAYER_PROPERTY_ADAPTIVE_INFO},
         {"LISTEN_SPARSE_TRACK", PLUSPLAYER_PROPERTY_LISTEN_SPARSE_TRACK},
@@ -114,7 +114,7 @@ std::string GetErrorMessage(plusplayer_error_type_e error_code) {
       return "Seek operation failure";
     case PLUSPLAYER_ERROR_TYPE_INVALID_STATE:
       return "Invalid player state";
-    case PLUSPLAYER_ERROR_TYPE_NOT_SUPPORTED_FORMAT:
+    case PLUSPLAYER_ERROR_TYPE_NOT_SUPPORTED_FILE:
       return "File format not supported";
     case PLUSPLAYER_ERROR_TYPE_INVALID_URI:
       return "Invalid URI";
@@ -130,6 +130,8 @@ std::string GetErrorMessage(plusplayer_error_type_e error_code) {
       return "DRM no license";
     case PLUSPLAYER_ERROR_TYPE_DRM_FUTURE_USE:
       return "License for future use";
+    case PLUSPLAYER_ERROR_TYPE_NOT_PERMITTED:
+      return "DRM format not permitted";
     case PLUSPLAYER_ERROR_TYPE_RESOURCE_LIMIT:
       return "Resource limit";
     case PLUSPLAYER_ERROR_TYPE_PERMISSION_DENIED:
@@ -144,6 +146,20 @@ std::string GetErrorMessage(plusplayer_error_type_e error_code) {
       return "Not supported video codec but audio can be played";
     case PLUSPLAYER_ERROR_TYPE_NOT_SUPPORTED_SUBTITLE:
       return "Not supported subtitle format";
+    case PLUSPLAYER_ERROR_TYPE_DRM_DECRYPTION_FAILED:
+      return "Drm decryption failed";
+    case PLUSPLAYER_ERROR_TYPE_NOT_SUPPORTED_FORMAT:
+      return "Not supported media format";
+    case PLUSPLAYER_ERROR_TYPE_STREAMING_PLAYER:
+      return "Streaming player error";
+    case PLUSPLAYER_ERROR_TYPE_DTCPFSK:
+      return "Type dtcpfsk";
+    case PLUSPLAYER_ERROR_TYPE_PRELOADING_TIMEOUT:
+      return "Can't finish preloading in time";
+    case PLUSPLAYER_ERROR_TYPE_NETWORK_ERROR:
+      return "Network error";
+    case PLUSPLAYER_ERROR_TYPE_NOT_CHANNEL_SURFING_ERROR:
+      return "Not channel surfing error";
     default:
       return "Not defined error";
   }

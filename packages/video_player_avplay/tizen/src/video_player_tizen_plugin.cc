@@ -18,7 +18,11 @@
 
 #include "media_player.h"
 #include "messages.h"
+#if PLUSPLAYER_CAPI
+#include "plusplayer_platform.h"
+#else
 #include "plusplayer_downloadable.h"
+#endif
 #include "video_player_options.h"
 
 namespace video_player_avplay_tizen {
@@ -75,9 +79,6 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   std::optional<FlutterError> Restore(int64_t palyer_id,
                                       const CreateMessage *msg,
                                       int64_t resume_time) override;
-
-  // Method to check if libplusplayer.so is available on the platform
-  bool IsPlatformPlusPlayerAvailable();
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -149,9 +150,16 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
 
   std::unique_ptr<VideoPlayer> player = nullptr;
   if (uri.substr(0, 4) == "http") {
+#if PLUSPLAYER_CAPI
+    player = std::make_unique<PlusPlayerPlatform>(
+        plugin_registrar_->messenger(),
+        FlutterDesktopPluginRegistrarGetView(registrar_ref_));
+#else
+
     player = std::make_unique<PlusPlayerDownloadable>(
         plugin_registrar_->messenger(),
         FlutterDesktopPluginRegistrarGetView(registrar_ref_));
+#endif
   } else {
     player = std::make_unique<MediaPlayer>(
         plugin_registrar_->messenger(),
@@ -436,19 +444,6 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &msg) {
   options_.SetMixWithOthers(msg.mix_with_others());
   return std::nullopt;
-}
-
-bool VideoPlayerTizenPlugin::IsPlatformPlusPlayerAvailable() {
-  // Try to load libplusplayer.so using dlopen
-  void *handle = dlopen("libplusplayer.so", RTLD_LAZY);
-  if (handle) {
-    // Library found and loaded successfully, close it
-    dlclose(handle);
-    return true;
-  }
-
-  // Library not found or failed to load
-  return false;
 }
 
 }  // namespace video_player_avplay_tizen
