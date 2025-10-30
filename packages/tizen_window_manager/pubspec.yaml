@@ -1,0 +1,20 @@
+name: tizen_window_manager
+description: Tizen window APIs.
+homepage: https://github.com/flutter-tizen/plugins
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_window_manager
+version: 0.1.0
+
+environment:
+  sdk: ">=3.1.0 <4.0.0"
+  flutter: ">=3.13.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: TizenWindowManagerPlugin
+        fileName: tizen_window_manager_plugin.h
