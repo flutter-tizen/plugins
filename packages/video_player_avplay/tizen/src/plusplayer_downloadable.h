@@ -116,6 +116,7 @@ class PlusPlayerDownloadable : public VideoPlayer {
   std::string url_;
   std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
   CreateMessage create_message_;
+  plusplayer_geometry_s current_display_roi_{0, 0, 1, 1};
 };
 
 }  // namespace video_player_avplay_tizen

@@ -124,6 +124,7 @@ class PlusPlayerPlatform : public VideoPlayer {
   std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
   std::unique_ptr<PlusPlayerCapiProxy> plusplayer_capi_proxy_ = nullptr;
   CreateMessage create_message_;
+  plusplayer_geometry_s current_display_roi_{0, 0, 1, 1};
 };
 
 }  // namespace video_player_avplay_tizen

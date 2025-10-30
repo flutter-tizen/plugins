@@ -177,6 +177,7 @@ bool PlusPlayerPlatform::GetMemento(PlayerMemento *memento) {
   memento->playing_time = playing_time;
   memento->is_live = IsLive();
   memento->state = plusplayer_capi_proxy_->plusplayer_capi_get_state(player_);
+  memento->display_area = current_display_roi_;
   return true;
 }
 
@@ -292,15 +293,12 @@ void PlusPlayerPlatform::PreSet(const CreateMessage &create_message) {
 void PlusPlayerPlatform::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
                                        int32_t height) {
   plusplayer_geometry_s roi{x, y, width, height};
-  if (int ret = plusplayer_capi_proxy_->plusplayer_capi_set_display_roi(
-                    player_, roi) != PLUSPLAYER_ERROR_TYPE_NONE) {
+  if (plusplayer_capi_proxy_->plusplayer_capi_set_display_roi(player_, roi) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayerPlatform] Player fail to set display roi.");
     return;
   }
-  memento_->display_area.x = x;
-  memento_->display_area.y = y;
-  memento_->display_area.width = width;
-  memento_->display_area.height = height;
+  current_display_roi_ = {x, y, width, height};
 }
 
 bool PlusPlayerPlatform::SetAppId() {
@@ -1052,7 +1050,7 @@ bool PlusPlayerPlatform::Suspend() {
     return true;
   }
 
-  memento_.reset(new PlayerMemento());
+  // memento_.reset(new PlayerMemento());
   if (!GetMemento(memento_.get())) {
     LOG_ERROR("[PlusPlayerPlatform] Player fail to get memento.");
     return false;
@@ -1062,6 +1060,12 @@ bool PlusPlayerPlatform::Suspend() {
       "%llu ms, "
       "is_live: %d",
       (int)memento_->state, memento_->playing_time, memento_->is_live);
+
+  LOG_INFO("*************************suspend*****************************");
+  LOG_INFO("x is %d, y is %d, width is %d, height is %d",
+           memento_->display_area.x, memento_->display_area.y,
+           memento_->display_area.width, memento_->display_area.height);
+  LOG_INFO("*************************suspend*****************************");
 
   if (memento_->is_live) {
     memento_->playing_time = 0;
