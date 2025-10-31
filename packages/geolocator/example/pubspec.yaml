@@ -7,7 +7,7 @@ environment:
   flutter: ">=3.13.0"
 
 dependencies:
-  baseflow_plugin_template: ^2.1.2
+  baseflow_plugin_template: 2.1.2
   cupertino_icons: ^1.0.1+1
   flutter:
     sdk: flutter

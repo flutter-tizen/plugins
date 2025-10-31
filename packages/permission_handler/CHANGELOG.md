@@ -1,3 +1,7 @@
+## 1.4.2
+
+* Fix build failure in example.
+
 ## 1.4.1
 
 * Update README.

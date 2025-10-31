@@ -1,7 +1,8 @@
-## NEXT
+## 1.0.7
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Update code format.
+* Fix build failure in example.
 
 ## 1.0.6
 
