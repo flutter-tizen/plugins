@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_PLUSPLAYER_DOWNLOADABLE_H_
-#define FLUTTER_PLUGIN_PLUSPLAYER_DOWNLOADABLE_H_
+#ifndef FLUTTER_PLUGIN_PLUS_PLAYER_H_
+#define FLUTTER_PLUGIN_PLUS_PLAYER_H_
 
 #include <flutter/plugin_registrar.h>
 
@@ -19,11 +19,11 @@
 
 namespace video_player_avplay_tizen {
 
-class PlusPlayerDownloadable : public VideoPlayer {
+class PlusPlayer : public VideoPlayer {
  public:
-  explicit PlusPlayerDownloadable(flutter::BinaryMessenger *messenger,
-                                  FlutterDesktopViewRef flutter_view);
-  ~PlusPlayerDownloadable();
+  explicit PlusPlayer(flutter::BinaryMessenger *messenger,
+                      FlutterDesktopViewRef flutter_view);
+  ~PlusPlayer();
 
   int64_t Create(const std::string &uri,
                  const CreateMessage &create_message) override;
@@ -120,4 +120,4 @@ class PlusPlayerDownloadable : public VideoPlayer {
 
 }  // namespace video_player_avplay_tizen
 
-#endif  // FLUTTER_PLUGIN_PLUSPLAYER_DOWNLOADABLE_H_
+#endif  // FLUTTER_PLUGIN_PLUS_PLAYER_H_

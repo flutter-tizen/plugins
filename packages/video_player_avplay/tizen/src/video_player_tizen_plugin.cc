@@ -18,11 +18,7 @@
 
 #include "media_player.h"
 #include "messages.h"
-#if PLUSPLAYER_CAPI
-#include "plusplayer_platform.h"
-#else
-#include "plusplayer_downloadable.h"
-#endif
+#include "plus_player.h"
 #include "video_player_options.h"
 
 namespace video_player_avplay_tizen {
@@ -150,16 +146,9 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
 
   std::unique_ptr<VideoPlayer> player = nullptr;
   if (uri.substr(0, 4) == "http") {
-#if PLUSPLAYER_CAPI
-    player = std::make_unique<PlusPlayerPlatform>(
+    player = std::make_unique<PlusPlayer>(
         plugin_registrar_->messenger(),
         FlutterDesktopPluginRegistrarGetView(registrar_ref_));
-#else
-
-    player = std::make_unique<PlusPlayerDownloadable>(
-        plugin_registrar_->messenger(),
-        FlutterDesktopPluginRegistrarGetView(registrar_ref_));
-#endif
   } else {
     player = std::make_unique<MediaPlayer>(
         plugin_registrar_->messenger(),

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "plusplayer_downloadable.h"
+#include "plus_player.h"
 
 #include <app_manager.h>
 #include <system_info.h>
@@ -19,14 +19,14 @@
 
 namespace video_player_avplay_tizen {
 
-PlusPlayerDownloadable::PlusPlayerDownloadable(
-    flutter::BinaryMessenger *messenger, FlutterDesktopViewRef flutter_view)
+PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
+                       FlutterDesktopViewRef flutter_view)
     : VideoPlayer(messenger, flutter_view) {
   memento_ = std::make_unique<PlayerMemento>();
   device_proxy_ = std::make_unique<DeviceProxy>();
 }
 
-PlusPlayerDownloadable::~PlusPlayerDownloadable() {
+PlusPlayer::~PlusPlayer() {
   if (player_) {
     plusplayer_stop(player_);
     plusplayer_close(player_);
@@ -40,7 +40,7 @@ PlusPlayerDownloadable::~PlusPlayerDownloadable() {
   }
 }
 
-void PlusPlayerDownloadable::UnregisterListener() {
+void PlusPlayer::UnregisterListener() {
   plusplayer_set_buffer_status_cb(player_, nullptr, this);
   plusplayer_set_adaptive_streaming_control_event_cb(player_, nullptr, this);
   plusplayer_set_eos_cb(player_, nullptr, this);
@@ -54,7 +54,7 @@ void PlusPlayerDownloadable::UnregisterListener() {
   plusplayer_set_ad_event_cb(player_, nullptr, this);
 }
 
-void PlusPlayerDownloadable::RegisterListener() {
+void PlusPlayer::RegisterListener() {
   plusplayer_set_buffer_status_cb(player_, OnBufferStatus, this);
   plusplayer_set_adaptive_streaming_control_event_cb(
       player_, OnAdaptiveStreamingControlEvent, this);
@@ -69,8 +69,8 @@ void PlusPlayerDownloadable::RegisterListener() {
   plusplayer_set_ad_event_cb(player_, OnADEventFromDash, this);
 }
 
-int64_t PlusPlayerDownloadable::Create(const std::string &uri,
-                                       const CreateMessage &create_message) {
+int64_t PlusPlayer::Create(const std::string &uri,
+                           const CreateMessage &create_message) {
   LOG_INFO("[PlusPlayer] Create player.");
   player_ = plusplayer_create();
 
@@ -121,12 +121,12 @@ int64_t PlusPlayerDownloadable::Create(const std::string &uri,
   return SetUpEventChannel();
 }
 
-void PlusPlayerDownloadable::Dispose() {
+void PlusPlayer::Dispose() {
   LOG_INFO("[PlusPlayer] Player disposing.");
   ClearUpEventChannel();
 }
 
-void PlusPlayerDownloadable::PreSet(const CreateMessage &create_message) {
+void PlusPlayer::PreSet(const CreateMessage &create_message) {
   if (create_message.streaming_property() != nullptr &&
       !create_message.streaming_property()->empty()) {
     for (const auto &[key, value] : *create_message.streaming_property()) {
@@ -173,8 +173,8 @@ void PlusPlayerDownloadable::PreSet(const CreateMessage &create_message) {
   }
 }
 
-void PlusPlayerDownloadable::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
-                                           int32_t height) {
+void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
+                               int32_t height) {
   plusplayer_geometry_s roi;
   roi.x = x;
   roi.y = y;
@@ -190,7 +190,7 @@ void PlusPlayerDownloadable::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
   memento_->display_area.height = height;
 }
 
-bool PlusPlayerDownloadable::SetAppId() {
+bool PlusPlayer::SetAppId() {
   char *appId;
   int ret = app_manager_get_app_id(getpid(), &appId);
   if (ret != APP_MANAGER_ERROR_NONE) {
@@ -207,7 +207,7 @@ bool PlusPlayerDownloadable::SetAppId() {
   return true;
 }
 
-bool PlusPlayerDownloadable::Play() {
+bool PlusPlayer::Play() {
   LOG_INFO("[PlusPlayer] Player starting.");
 
   plusplayer_state_e state = plusplayer_get_state(player_);
@@ -234,7 +234,7 @@ bool PlusPlayerDownloadable::Play() {
   return false;
 }
 
-bool PlusPlayerDownloadable::Activate() {
+bool PlusPlayer::Activate() {
   if (plusplayer_activate_audio(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Fail to activate.");
     return false;
@@ -242,7 +242,7 @@ bool PlusPlayerDownloadable::Activate() {
   return true;
 }
 
-bool PlusPlayerDownloadable::Deactivate() {
+bool PlusPlayer::Deactivate() {
   if (is_prebuffer_mode_) {
     plusplayer_stop(player_);
     return true;
@@ -254,7 +254,7 @@ bool PlusPlayerDownloadable::Deactivate() {
   return true;
 }
 
-bool PlusPlayerDownloadable::Pause() {
+bool PlusPlayer::Pause() {
   LOG_INFO("[PlusPlayer] Player pausing.");
 
   plusplayer_state_e state = plusplayer_get_state(player_);
@@ -276,14 +276,14 @@ bool PlusPlayerDownloadable::Pause() {
   return true;
 }
 
-bool PlusPlayerDownloadable::SetLooping(bool is_looping) {
+bool PlusPlayer::SetLooping(bool is_looping) {
   LOG_ERROR("[PlusPlayer] Not support to set looping.");
   return true;
 }
 
-bool PlusPlayerDownloadable::SetVolume(double volume) { return false; }
+bool PlusPlayer::SetVolume(double volume) { return false; }
 
-bool PlusPlayerDownloadable::SetPlaybackSpeed(double speed) {
+bool PlusPlayer::SetPlaybackSpeed(double speed) {
   LOG_INFO("[PlusPlayer] Speed: %f", speed);
 
   if (plusplayer_get_state(player_) <= PLUSPLAYER_STATE_IDLE) {
@@ -298,8 +298,7 @@ bool PlusPlayerDownloadable::SetPlaybackSpeed(double speed) {
   return true;
 }
 
-bool PlusPlayerDownloadable::SeekTo(int64_t position,
-                                    SeekCompletedCallback callback) {
+bool PlusPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   LOG_INFO("[PlusPlayer] Seek to position: %lld", position);
 
   if (plusplayer_get_state(player_) < PLUSPLAYER_STATE_READY) {
@@ -322,7 +321,7 @@ bool PlusPlayerDownloadable::SeekTo(int64_t position,
   return true;
 }
 
-int64_t PlusPlayerDownloadable::GetPosition() {
+int64_t PlusPlayer::GetPosition() {
   uint64_t position = 0;
   plusplayer_state_e state = plusplayer_get_state(player_);
   if (state == PLUSPLAYER_STATE_PLAYING || state == PLUSPLAYER_STATE_PAUSED) {
@@ -334,7 +333,7 @@ int64_t PlusPlayerDownloadable::GetPosition() {
   return static_cast<int64_t>(position);
 }
 
-bool PlusPlayerDownloadable::IsLive() {
+bool PlusPlayer::IsLive() {
   bool value = false;
   if (plusplayer_is_live_streaming(player_, &value) !=
       PLUSPLAYER_ERROR_TYPE_NONE) {
@@ -344,7 +343,7 @@ bool PlusPlayerDownloadable::IsLive() {
   return value;
 }
 
-std::pair<int64_t, int64_t> PlusPlayerDownloadable::GetLiveDuration() {
+std::pair<int64_t, int64_t> PlusPlayer::GetLiveDuration() {
   uint64_t start = 0;
   uint64_t end = 0;
   if (plusplayer_get_dvr_seekable_range(player_, &start, &end) !=
@@ -355,7 +354,7 @@ std::pair<int64_t, int64_t> PlusPlayerDownloadable::GetLiveDuration() {
   return std::make_pair(start, end);
 }
 
-std::pair<int64_t, int64_t> PlusPlayerDownloadable::GetDuration() {
+std::pair<int64_t, int64_t> PlusPlayer::GetDuration() {
   if (IsLive()) {
     return GetLiveDuration();
   } else {
@@ -369,7 +368,7 @@ std::pair<int64_t, int64_t> PlusPlayerDownloadable::GetDuration() {
   }
 }
 
-void PlusPlayerDownloadable::GetVideoSize(int32_t *width, int32_t *height) {
+void PlusPlayer::GetVideoSize(int32_t *width, int32_t *height) {
   if (plusplayer_get_state(player_) >= PLUSPLAYER_STATE_TRACK_SOURCE_READY) {
     struct UserData {
       int32_t *w;
@@ -409,11 +408,11 @@ void PlusPlayerDownloadable::GetVideoSize(int32_t *width, int32_t *height) {
   }
 }
 
-bool PlusPlayerDownloadable::IsReady() {
+bool PlusPlayer::IsReady() {
   return PLUSPLAYER_STATE_READY == plusplayer_get_state(player_);
 }
 
-bool PlusPlayerDownloadable::SetDisplay() {
+bool PlusPlayer::SetDisplay() {
   void *native_window = GetWindowHandle();
   if (!native_window) {
     LOG_ERROR("[PlusPlayer] Could not get a native window handle.");
@@ -572,8 +571,7 @@ flutter::EncodableValue ParseSubtitleTrack(const plusplayer_track_h track) {
   return flutter::EncodableValue(subtitle_track_result);
 }
 
-flutter::EncodableList PlusPlayerDownloadable::GetTrackInfo(
-    std::string track_type) {
+flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return {};
@@ -631,7 +629,7 @@ flutter::EncodableList PlusPlayerDownloadable::GetTrackInfo(
   return trackSelections;
 }
 
-flutter::EncodableList PlusPlayerDownloadable::GetActiveTrackInfo() {
+flutter::EncodableList PlusPlayer::GetActiveTrackInfo() {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return {};
@@ -669,8 +667,7 @@ flutter::EncodableList PlusPlayerDownloadable::GetActiveTrackInfo() {
   return active_tracks;
 }
 
-bool PlusPlayerDownloadable::SetTrackSelection(int32_t track_id,
-                                               std::string track_type) {
+bool PlusPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {
   LOG_INFO("[PlusPlayer] Track id is: %d,track type is: %s", track_id,
            track_type.c_str());
 
@@ -693,8 +690,8 @@ bool PlusPlayerDownloadable::SetTrackSelection(int32_t track_id,
   return true;
 }
 
-bool PlusPlayerDownloadable::SetDrm(const std::string &uri, int drm_type,
-                                    const std::string &license_server_url) {
+bool PlusPlayer::SetDrm(const std::string &uri, int drm_type,
+                        const std::string &license_server_url) {
   drm_manager_ = std::make_unique<DrmManager>();
   if (!drm_manager_->CreateDrmSession(drm_type, true)) {
     LOG_ERROR("[PlusPlayer] Fail to create drm session.");
@@ -743,7 +740,7 @@ bool PlusPlayerDownloadable::SetDrm(const std::string &uri, int drm_type,
   return true;
 }
 
-std::string PlusPlayerDownloadable::GetStreamingProperty(
+std::string PlusPlayer::GetStreamingProperty(
     const std::string &streaming_property_type) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
@@ -771,7 +768,7 @@ std::string PlusPlayerDownloadable::GetStreamingProperty(
   return result;
 }
 
-std::string PlusPlayerDownloadable::GetExtraStreamingProperty(
+std::string PlusPlayer::GetExtraStreamingProperty(
     const std::string &streaming_property_type) {
   if (streaming_property_type == "IS_LIVE") {
     return IsLive() ? "true" : "false";
@@ -792,8 +789,7 @@ std::string PlusPlayerDownloadable::GetExtraStreamingProperty(
   return "";
 }
 
-bool PlusPlayerDownloadable::SetBufferConfig(const std::string &key,
-                                             int64_t value) {
+bool PlusPlayer::SetBufferConfig(const std::string &key, int64_t value) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
@@ -809,8 +805,8 @@ bool PlusPlayerDownloadable::SetBufferConfig(const std::string &key,
          PLUSPLAYER_ERROR_TYPE_NONE;
 }
 
-void PlusPlayerDownloadable::SetStreamingProperty(const std::string &type,
-                                                  const std::string &value) {
+void PlusPlayer::SetStreamingProperty(const std::string &type,
+                                      const std::string &value) {
   plusplayer_state_e state = plusplayer_get_state(player_);
   if (state == PLUSPLAYER_STATE_NONE) {
     LOG_ERROR("[PlusPlayer] Player is in invalid state[%d]", state);
@@ -837,7 +833,7 @@ void PlusPlayerDownloadable::SetStreamingProperty(const std::string &type,
   SetPropertyInternal(type, value);
 }
 
-bool PlusPlayerDownloadable::SetDisplayRotate(int64_t rotation) {
+bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
@@ -855,7 +851,7 @@ bool PlusPlayerDownloadable::SetDisplayRotate(int64_t rotation) {
          PLUSPLAYER_ERROR_TYPE_NONE;
 }
 
-bool PlusPlayerDownloadable::SetDisplayMode(int64_t display_mode) {
+bool PlusPlayer::SetDisplayMode(int64_t display_mode) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
@@ -875,7 +871,7 @@ bool PlusPlayerDownloadable::SetDisplayMode(int64_t display_mode) {
   return true;
 }
 
-bool PlusPlayerDownloadable::StopAndClose() {
+bool PlusPlayer::StopAndClose() {
   LOG_INFO("[PlusPlayer] StopAndClose is called.");
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
@@ -907,7 +903,7 @@ bool PlusPlayerDownloadable::StopAndClose() {
   return true;
 }
 
-bool PlusPlayerDownloadable::Suspend() {
+bool PlusPlayer::Suspend() {
   LOG_INFO("[PlusPlayer] Suspend is called.");
 
   if (!player_) {
@@ -980,8 +976,8 @@ bool PlusPlayerDownloadable::Suspend() {
   return true;
 }
 
-bool PlusPlayerDownloadable::Restore(const CreateMessage *restore_message,
-                                     int64_t resume_time) {
+bool PlusPlayer::Restore(const CreateMessage *restore_message,
+                         int64_t resume_time) {
   LOG_INFO("[PlusPlayer] Restore is called.");
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player is not initialized.");
@@ -1050,8 +1046,8 @@ bool PlusPlayerDownloadable::Restore(const CreateMessage *restore_message,
   return true;
 }
 
-bool PlusPlayerDownloadable::RestorePlayer(const CreateMessage *restore_message,
-                                           int64_t resume_time) {
+bool PlusPlayer::RestorePlayer(const CreateMessage *restore_message,
+                               int64_t resume_time) {
   LOG_INFO("[PlusPlayer] RestorePlayer is called.");
   LOG_INFO("[PlusPlayer] is_live: %d", memento_->is_live);
 
@@ -1089,7 +1085,7 @@ bool PlusPlayerDownloadable::RestorePlayer(const CreateMessage *restore_message,
   return true;
 }
 
-bool PlusPlayerDownloadable::SetData(const flutter::EncodableMap &data) {
+bool PlusPlayer::SetData(const flutter::EncodableMap &data) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
@@ -1112,7 +1108,7 @@ bool PlusPlayerDownloadable::SetData(const flutter::EncodableMap &data) {
   return result;
 }
 
-flutter::EncodableMap PlusPlayerDownloadable::GetData(
+flutter::EncodableMap PlusPlayer::GetData(
     const flutter::EncodableList &data) {
   flutter::EncodableMap result;
   if (!player_) {
@@ -1140,7 +1136,7 @@ flutter::EncodableMap PlusPlayerDownloadable::GetData(
   return result;
 }
 
-bool PlusPlayerDownloadable::UpdateDashToken(const std::string &dashToken) {
+bool PlusPlayer::UpdateDashToken(const std::string &dashToken) {
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
     return false;
@@ -1150,13 +1146,10 @@ bool PlusPlayerDownloadable::UpdateDashToken(const std::string &dashToken) {
          PLUSPLAYER_ERROR_TYPE_NONE;
 }
 
-bool PlusPlayerDownloadable::OnLicenseAcquired(int *drm_handle,
-                                               unsigned int length,
-                                               unsigned char *pssh_data,
-                                               void *user_data) {
+bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
+                                   unsigned char *pssh_data, void *user_data) {
   LOG_INFO("[PlusPlayer] License acquired.");
-  PlusPlayerDownloadable *self =
-      static_cast<PlusPlayerDownloadable *>(user_data);
+  PlusPlayer *self = static_cast<PlusPlayer *>(user_data);
 
   if (self->drm_manager_) {
     return self->drm_manager_->SecurityInitCompleteCB(drm_handle, length,
@@ -1165,9 +1158,8 @@ bool PlusPlayerDownloadable::OnLicenseAcquired(int *drm_handle,
   return false;
 }
 
-void PlusPlayerDownloadable::OnPrepareDone(bool ret, void *user_data) {
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
   /*
   if (!SetDisplayVisible(self->player_, true)) {
     LOG_ERROR("[PlusPlayer] Fail to set display visible.");
@@ -1182,10 +1174,9 @@ void PlusPlayerDownloadable::OnPrepareDone(bool ret, void *user_data) {
   }
 }
 
-void PlusPlayerDownloadable::OnBufferStatus(int percent, void *user_data) {
+void PlusPlayer::OnBufferStatus(int percent, void *user_data) {
   LOG_INFO("[PlusPlayer] Buffering percent: %d.", percent);
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (percent == 100) {
     self->SendBufferingEnd();
@@ -1198,10 +1189,9 @@ void PlusPlayerDownloadable::OnBufferStatus(int percent, void *user_data) {
   }
 }
 
-void PlusPlayerDownloadable::OnSeekDone(void *user_data) {
+void PlusPlayer::OnSeekDone(void *user_data) {
   LOG_INFO("[PlusPlayer] Seek completed.");
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (self->on_seek_completed_) {
     self->on_seek_completed_();
@@ -1209,22 +1199,20 @@ void PlusPlayerDownloadable::OnSeekDone(void *user_data) {
   }
 }
 
-void PlusPlayerDownloadable::OnEos(void *user_data) {
+void PlusPlayer::OnEos(void *user_data) {
   LOG_INFO("[PlusPlayer] Play completed.");
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   self->SendPlayCompleted();
 }
 
-void PlusPlayerDownloadable::OnSubtitleData(
+void PlusPlayer::OnSubtitleData(
     const plusplayer_subtitle_type_e type, const uint64_t duration_in_ms,
     const char *data, const int size, plusplayer_subtitle_attr_s *attr_list,
     int attr_size, void *userdata) {
   LOG_INFO("[PlusPlayerPlatform] Subtitle updated, duration: %llu, text: %s",
            duration_in_ms, data);
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(userdata);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(userdata);
 
   flutter::EncodableList attributes_list;
   for (int i = 0; i < attr_size; i++) {
@@ -1301,39 +1289,31 @@ void PlusPlayerDownloadable::OnSubtitleData(
   self->SendSubtitleUpdate(duration_in_ms, data, attributes_list);
 }
 
-void PlusPlayerDownloadable::OnResourceConflicted(void *user_data) {
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+void PlusPlayer::OnResourceConflicted(void *user_data) {
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   self->SendIsPlayingState(false);
 }
 
-void PlusPlayerDownloadable::OnError(plusplayer_error_type_e error_type,
-                                     void *user_data) {
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+void PlusPlayer::OnError(plusplayer_error_type_e error_type, void *user_data) {
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   self->SendError("[PlusPlayer] error",
                   std::string("Error: ") + GetErrorMessage(error_type));
 }
 
-void PlusPlayerDownloadable::OnErrorMsg(plusplayer_error_type_e error_type,
-                                        const char *error_msg,
-                                        void *user_data) {
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+void PlusPlayer::OnErrorMsg(plusplayer_error_type_e error_type,
+                            const char *error_msg, void *user_data) {
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   self->SendError("PlusPlayer error", std::string("Error: ") + error_msg);
 }
 
-void PlusPlayerDownloadable::OnDrmInitData(Plusplayer_DrmHandle *drm_handle,
-                                           unsigned int len,
-                                           unsigned char *pssh_data,
-                                           plusplayer_track_type_e type,
-                                           void *user_data) {
+void PlusPlayer::OnDrmInitData(Plusplayer_DrmHandle *drm_handle,
+                               unsigned int len, unsigned char *pssh_data,
+                               plusplayer_track_type_e type, void *user_data) {
   LOG_INFO("[PlusPlayer] Drm init completed.");
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (self->drm_manager_) {
     if (self->drm_manager_->SecurityInitCompleteCB(drm_handle, len, pssh_data,
@@ -1343,13 +1323,12 @@ void PlusPlayerDownloadable::OnDrmInitData(Plusplayer_DrmHandle *drm_handle,
   }
 }
 
-void PlusPlayerDownloadable::OnAdaptiveStreamingControlEvent(
+void PlusPlayer::OnAdaptiveStreamingControlEvent(
     plusplayer_streaming_message_type_e message_type,
     plusplayer_message_param_s *param, void *user_data) {
   LOG_INFO("[PlusPlayer] Message type: %d, is DrmInitData (%d)", message_type,
            message_type == PLUSPLAYER_STREAMING_MESSAGE_TYPE_DRMINITDATA);
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (message_type == plusplayer_streaming_message_type_e::
                           PLUSPLAYER_STREAMING_MESSAGE_TYPE_DRMINITDATA) {
@@ -1364,14 +1343,12 @@ void PlusPlayerDownloadable::OnAdaptiveStreamingControlEvent(
   }
 }
 
-void PlusPlayerDownloadable::OnStateChangedToPlaying(void *user_data) {
-  PlusPlayerDownloadable *self =
-      reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+void PlusPlayer::OnStateChangedToPlaying(void *user_data) {
+  PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
   self->SendIsPlayingState(true);
 }
 
-void PlusPlayerDownloadable::OnADEventFromDash(const char *ad_data,
-                                               void *user_data) {
+void PlusPlayer::OnADEventFromDash(const char *ad_data, void *user_data) {
   if (!ad_data) {
     LOG_ERROR("[PlusPlayer] No ad_data.");
     return;
@@ -1441,13 +1418,12 @@ void PlusPlayerDownloadable::OnADEventFromDash(const char *ad_data,
       }
     }
 
-    PlusPlayerDownloadable *self =
-        reinterpret_cast<PlusPlayerDownloadable *>(user_data);
+    PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
     self->SendADFromDash(ad_info);
   }
 }
 
-bool PlusPlayerDownloadable::GetMemento(PlayerMemento *memento) {
+bool PlusPlayer::GetMemento(PlayerMemento *memento) {
   uint64_t playing_time;
   if (plusplayer_get_playing_time(player_, &playing_time) !=
       PLUSPLAYER_ERROR_TYPE_NONE) {
@@ -1459,21 +1435,21 @@ bool PlusPlayerDownloadable::GetMemento(PlayerMemento *memento) {
   return true;
 }
 
-bool PlusPlayerDownloadable::IsDashFormat() const {
+bool PlusPlayer::IsDashFormat() const {
   return create_message_.format_hint() &&
          !create_message_.format_hint()->empty() &&
          *create_message_.format_hint() == "dash";
 }
 
-bool PlusPlayerDownloadable::IsDashOnlyProperty(const std::string &type) const {
+bool PlusPlayer::IsDashOnlyProperty(const std::string &type) const {
   static const std::unordered_set<std::string> dash_only_properties = {
       "OPEN_HTTP_HEADER", "TOKEN", "UNWANTED_FRAMERATE", "UNWANTED_RESOLUTION",
       "UPDATE_SAME_LANGUAGE_CODE"};
   return dash_only_properties.find(type) != dash_only_properties.end();
 }
 
-void PlusPlayerDownloadable::SetPropertyInternal(const std::string &type,
-                                                 const std::string &value) {
+void PlusPlayer::SetPropertyInternal(const std::string &type,
+                                     const std::string &value) {
   plusplayer_property_e property = ConvertPropertyType(type);
   if (property != static_cast<plusplayer_property_e>(-1)) {
     if (plusplayer_set_property(player_, property, value.c_str()) !=
