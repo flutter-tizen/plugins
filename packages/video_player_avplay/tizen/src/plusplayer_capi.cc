@@ -46,9 +46,8 @@ typedef int (*fun_plusplayer_set_seek_done_cb)(
 typedef int (*fun_plusplayer_set_subtitle_updated_cb)(
     plusplayer_h handle, plusplayer_subtitle_updated_cb subtitle_updated_cb,
     void* userdata);
-typedef int (*fun_plusplayer_set_ad_event_cb)(plusplayer_h handle,
-                                              plusplayer_ad_event_cb ad_event_cb,
-                                              void* userdata);
+typedef int (*fun_plusplayer_set_ad_event_cb)(
+    plusplayer_h handle, plusplayer_ad_event_cb ad_event_cb, void* userdata);
 typedef int (*fun_plusplayer_prepare_async)(plusplayer_h handle);
 typedef int (*fun_plusplayer_pause)(plusplayer_h handle);
 typedef int (*fun_plusplayer_resume)(plusplayer_h handle);
@@ -97,14 +96,14 @@ typedef int (*fun_plusplayer_get_track_id)(plusplayer_track_h track,
                                            int* track_id);
 typedef int (*fun_plusplayer_get_track_mimetype)(plusplayer_track_h track,
                                                  const char** track_mimetype);
-typedef int (*fun_plusplayer_get_track_streamtype)(plusplayer_track_h track,
-                                                   const char** track_streamtype);
+typedef int (*fun_plusplayer_get_track_streamtype)(
+    plusplayer_track_h track, const char** track_streamtype);
 typedef int (*fun_plusplayer_get_track_container_type)(
     plusplayer_track_h track, const char** track_containertype);
-typedef int (*fun_plusplayer_get_track_type)(plusplayer_track_h track,
-                                             plusplayer_track_type_e* track_type);
-typedef int (*fun_plusplayer_get_track_codec_data)(plusplayer_track_h track,
-                                                   const char** track_codecdata);
+typedef int (*fun_plusplayer_get_track_type)(
+    plusplayer_track_h track, plusplayer_track_type_e* track_type);
+typedef int (*fun_plusplayer_get_track_codec_data)(
+    plusplayer_track_h track, const char** track_codecdata);
 typedef int (*fun_plusplayer_get_track_codec_tag)(plusplayer_track_h track,
                                                   unsigned int* track_codectag);
 typedef int (*fun_plusplayer_get_track_codec_data_len)(plusplayer_track_h track,
@@ -183,8 +182,8 @@ typedef int (*fun_plusplayer_is_live_streaming)(plusplayer_h handle,
 typedef int (*fun_plusplayer_get_dvr_seekable_range)(plusplayer_h handle,
                                                      uint64_t* start_time_ms,
                                                      uint64_t* end_time_ms);
-typedef int (*fun_plusplayer_get_current_bandwidth)(plusplayer_h handle,
-                                                    uint32_t* curr_bandwidth_bps);
+typedef int (*fun_plusplayer_get_current_bandwidth)(
+    plusplayer_h handle, uint32_t* curr_bandwidth_bps);
 
 // Structure to hold library handle and function pointers
 typedef struct {
@@ -328,7 +327,8 @@ static int initialize_plusplayer_capi(void) {
   g_plusplayer_capi.destroy =
       (fun_plusplayer_destroy)load_plusplayer_function("plusplayer_destroy");
   g_plusplayer_capi.get_state =
-      (fun_plusplayer_get_state)load_plusplayer_function("plusplayer_get_state");
+      (fun_plusplayer_get_state)load_plusplayer_function(
+          "plusplayer_get_state");
   g_plusplayer_capi.set_display =
       (fun_plusplayer_set_display)load_plusplayer_function(
           "plusplayer_set_display");
@@ -342,7 +342,8 @@ static int initialize_plusplayer_capi(void) {
       (fun_plusplayer_set_resource_conflicted_cb)load_plusplayer_function(
           "plusplayer_set_resource_conflicted_cb");
   g_plusplayer_capi.set_eos_cb =
-      (fun_plusplayer_set_eos_cb)load_plusplayer_function("plusplayer_set_eos_cb");
+      (fun_plusplayer_set_eos_cb)load_plusplayer_function(
+          "plusplayer_set_eos_cb");
   g_plusplayer_capi.set_buffer_status_cb =
       (fun_plusplayer_set_buffer_status_cb)load_plusplayer_function(
           "plusplayer_set_buffer_status_cb");
@@ -374,7 +375,8 @@ static int initialize_plusplayer_capi(void) {
       (fun_plusplayer_set_prebuffer_mode)load_plusplayer_function(
           "plusplayer_set_prebuffer_mode");
   g_plusplayer_capi.set_app_id =
-      (fun_plusplayer_set_app_id)load_plusplayer_function("plusplayer_set_app_id");
+      (fun_plusplayer_set_app_id)load_plusplayer_function(
+          "plusplayer_set_app_id");
   g_plusplayer_capi.suspend =
       (fun_plusplayer_suspend)load_plusplayer_function("plusplayer_suspend");
   g_plusplayer_capi.restore =
@@ -515,8 +517,9 @@ static int initialize_plusplayer_capi(void) {
       (fun_plusplayer_set_drm_init_data_cb)load_plusplayer_function(
           "plusplayer_set_drm_init_data_cb");
   g_plusplayer_capi.set_adaptive_streaming_control_event_cb =
-      (fun_plusplayer_set_adaptive_streaming_control_event_cb)load_plusplayer_function(
-          "plusplayer_set_adaptive_streaming_control_event_cb");
+      (fun_plusplayer_set_adaptive_streaming_control_event_cb)
+          load_plusplayer_function(
+              "plusplayer_set_adaptive_streaming_control_event_cb");
   g_plusplayer_capi.drm_license_acquired_done =
       (fun_plusplayer_drm_license_acquired_done)load_plusplayer_function(
           "plusplayer_drm_license_acquired_done");
@@ -536,7 +539,8 @@ static int initialize_plusplayer_capi(void) {
       (fun_plusplayer_get_foreach_active_track)load_plusplayer_function(
           "plusplayer_get_foreach_active_track");
   g_plusplayer_capi.set_cookie =
-      (fun_plusplayer_set_cookie)load_plusplayer_function("plusplayer_set_cookie");
+      (fun_plusplayer_set_cookie)load_plusplayer_function(
+          "plusplayer_set_cookie");
   g_plusplayer_capi.set_user_agent =
       (fun_plusplayer_set_user_agent)load_plusplayer_function(
           "plusplayer_set_user_agent");
