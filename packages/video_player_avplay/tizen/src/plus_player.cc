@@ -184,10 +184,7 @@ void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
     LOG_ERROR("[PlusPlayer] Player fail to set display roi.");
     return;
   }
-  memento_->display_area.x = x;
-  memento_->display_area.y = y;
-  memento_->display_area.width = width;
-  memento_->display_area.height = height;
+  current_display_roi_ = {x, y, width, height};
 }
 
 bool PlusPlayer::SetAppId() {
@@ -1432,6 +1429,7 @@ bool PlusPlayer::GetMemento(PlayerMemento *memento) {
   memento->playing_time = playing_time;
   memento->is_live = IsLive();
   memento->state = plusplayer_get_state(player_);
+  memento->display_area = current_display_roi_;
   return true;
 }
 
