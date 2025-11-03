@@ -235,16 +235,28 @@ void TizenPackageManager::GetPackageSizeInfo(
           long long external_data_size = 0;
           long long external_cache_size = 0;
           long long external_app_size = 0;
+          int ret = PACKAGE_MANAGER_ERROR_NONE;
 
-          package_size_info_get_data_size(size_info, &data_size);
-          package_size_info_get_cache_size(size_info, &cache_size);
-          package_size_info_get_app_size(size_info, &app_size);
-          package_size_info_get_external_data_size(size_info,
-                                                   &external_data_size);
-          package_size_info_get_external_cache_size(size_info,
-                                                    &external_cache_size);
-          package_size_info_get_external_app_size(size_info,
-                                                  &external_app_size);
+          if ((ret = package_size_info_get_data_size(size_info, &data_size)) !=
+                  PACKAGE_MANAGER_ERROR_NONE ||
+              (ret = package_size_info_get_cache_size(
+                   size_info, &cache_size)) != PACKAGE_MANAGER_ERROR_NONE ||
+              (ret = package_size_info_get_app_size(size_info, &app_size)) !=
+                  PACKAGE_MANAGER_ERROR_NONE ||
+              (ret = package_size_info_get_external_data_size(
+                   size_info, &external_data_size)) !=
+                  PACKAGE_MANAGER_ERROR_NONE ||
+              (ret = package_size_info_get_external_cache_size(
+                   size_info, &external_cache_size)) !=
+                  PACKAGE_MANAGER_ERROR_NONE ||
+              (ret = package_size_info_get_external_app_size(
+                   size_info, &external_app_size)) !=
+                  PACKAGE_MANAGER_ERROR_NONE) {
+            self->last_error_ = ret;
+            (*self->package_size_callbacks_[package_id])(package_size_info,
+                                                         false);
+            return;
+          }
 
           package_size_info.data_size = data_size;
           package_size_info.cache_size = cache_size;
@@ -253,7 +265,7 @@ void TizenPackageManager::GetPackageSizeInfo(
           package_size_info.external_cache_size = external_cache_size;
           package_size_info.external_app_size = external_app_size;
 
-          (*self->package_size_callbacks_[package_id])(package_size_info);
+          (*self->package_size_callbacks_[package_id])(package_size_info, true);
         }
       },
       this);
@@ -262,9 +274,7 @@ void TizenPackageManager::GetPackageSizeInfo(
     LOG_ERROR("package_manager_get_package_size_info failed: %s",
               get_error_message(ret));
     last_error_ = ret;
-    PackageSizeInfo package_size_info;
-    package_size_info.app_size = 0;
-    (*package_size_callbacks_[package_id])(package_size_info);
+    (*package_size_callbacks_[package_id])(PackageSizeInfo(), false);
   }
 }
 

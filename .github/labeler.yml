@@ -63,6 +63,8 @@
   - packages/tizen_package_manager/**/*
 "p: tizen_rpc_port":
   - packages/tizen_rpc_port/**/*
+"p: tizen_window_manager":
+  - packages/tizen_window_manager/**/*
 "p: url_launcher":
   - packages/url_launcher/**/*
 "p: video_player":
