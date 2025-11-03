@@ -1,3 +1,8 @@
+## 0.7.4
+* Update plusplayer
+  1. [DASH] Fix this issue of audio switching not working in the dash video stream.
+  2. [DASH] Fix the issue of excessive switching time between different audio tracks.
+
 ## 0.7.3
 * Update plusplayer
   1. [DASH] Update token value if baseURL not include token.
