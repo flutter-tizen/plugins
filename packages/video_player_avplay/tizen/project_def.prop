@@ -39,7 +39,6 @@ ifeq ($(API_VERSION), 10.0)
     USER_SRCS += \
         src/plusplayer_capi.cc
     USER_LIBS = stdc++
-    USER_CPP_DEFS += PLUSPLAYER_CAPI
 else
     # Linker options
     USER_LIB_DIRS = lib/${BUILD_ARCH}/${API_VERSION}

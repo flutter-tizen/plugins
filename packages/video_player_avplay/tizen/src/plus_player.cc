@@ -232,8 +232,19 @@ bool PlusPlayer::Play() {
 }
 
 bool PlusPlayer::Activate() {
-  if (plusplayer_activate_audio(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
-    LOG_ERROR("[PlusPlayer] Fail to activate.");
+  if (plusplayer_activate_track(player_, PLUSPLAYER_TRACK_TYPE_AUDIO) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
+    LOG_ERROR("[PlusPlayer] Fail to activate audio.");
+    return false;
+  }
+  if (plusplayer_activate_track(player_, PLUSPLAYER_TRACK_TYPE_VIDEO) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
+    LOG_ERROR("[PlusPlayer] Fail to activate video.");
+    return false;
+  }
+  if (plusplayer_activate_track(player_, PLUSPLAYER_TRACK_TYPE_SUBTITLE) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
+    LOG_ERROR("[PlusPlayer] Fail to activate subtitle.");
     return false;
   }
   return true;
@@ -244,8 +255,19 @@ bool PlusPlayer::Deactivate() {
     plusplayer_stop(player_);
     return true;
   }
-  if (plusplayer_deactivate_audio(player_) != PLUSPLAYER_ERROR_TYPE_NONE) {
+  if (plusplayer_deactivate_track(player_, PLUSPLAYER_TRACK_TYPE_AUDIO) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
+    LOG_ERROR("[PlusPlayer] Fail to deactivate audio.");
+    return false;
+  }
+  if (plusplayer_deactivate_track(player_, PLUSPLAYER_TRACK_TYPE_VIDEO) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Fail to deactivate video.");
+    return false;
+  }
+  if (plusplayer_deactivate_track(player_, PLUSPLAYER_TRACK_TYPE_SUBTITLE) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
+    LOG_ERROR("[PlusPlayer] Fail to deactivate subtitle.");
     return false;
   }
   return true;
@@ -278,7 +300,21 @@ bool PlusPlayer::SetLooping(bool is_looping) {
   return true;
 }
 
-bool PlusPlayer::SetVolume(double volume) { return false; }
+bool PlusPlayer::SetVolume(double volume) {
+  if (plusplayer_get_state(player_) < PLUSPLAYER_STATE_PLAYING) {
+    LOG_ERROR("[PlusPlayer] Player is in invalid state");
+    return false;
+  }
+  // dart api volume range[0,1], plusplaer volume range[0,100]
+  int new_volume = volume * 100;
+  LOG_INFO("[PlusPlayerPlatform] Volume: %d", new_volume);
+  if (plusplayer_set_volume(player_, new_volume) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
+    LOG_ERROR("[PlusPlayer] Fail to set volume.");
+    return false;
+  }
+  return true;
+}
 
 bool PlusPlayer::SetPlaybackSpeed(double speed) {
   LOG_INFO("[PlusPlayer] Speed: %f", speed);
@@ -1105,8 +1141,7 @@ bool PlusPlayer::SetData(const flutter::EncodableMap &data) {
   return result;
 }
 
-flutter::EncodableMap PlusPlayer::GetData(
-    const flutter::EncodableList &data) {
+flutter::EncodableMap PlusPlayer::GetData(const flutter::EncodableList &data) {
   flutter::EncodableMap result;
   if (!player_) {
     LOG_ERROR("[PlusPlayer] Player not created.");
@@ -1157,11 +1192,12 @@ bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
 
 void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
-  /*
-  if (!SetDisplayVisible(self->player_, true)) {
+
+  if (plusplayer_set_display_visible(self->player_, true) !=
+      PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Fail to set display visible.");
   }
-*/
+
   if (!self->is_initialized_ && ret) {
     self->SendInitialized();
   }
@@ -1203,19 +1239,21 @@ void PlusPlayer::OnEos(void *user_data) {
   self->SendPlayCompleted();
 }
 
-void PlusPlayer::OnSubtitleData(
-    const plusplayer_subtitle_type_e type, const uint64_t duration_in_ms,
-    const char *data, const int size, plusplayer_subtitle_attr_s *attr_list,
-    int attr_size, void *userdata) {
-  LOG_INFO("[PlusPlayerPlatform] Subtitle updated, duration: %llu, text: %s",
+void PlusPlayer::OnSubtitleData(const plusplayer_subtitle_type_e type,
+                                const uint64_t duration_in_ms, const char *data,
+                                const int size,
+                                plusplayer_subtitle_attr_s *attr_list,
+                                int attr_size, void *userdata) {
+  LOG_INFO("[PlusPlayer] Subtitle updated, duration: %llu, text: %s",
            duration_in_ms, data);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(userdata);
 
+  LOG_INFO("************attr_size is %d *********************", attr_size);
   flutter::EncodableList attributes_list;
   for (int i = 0; i < attr_size; i++) {
-    LOG_INFO(
-        "[PlusPlayerPlatform] Subtitle update: type: %d, start: %u, end: %u",
-        attr_list[i].attr, attr_list[i].start_time, attr_list[i].stop_time);
+    LOG_INFO("[PlusPlayer] Subtitle update: type: %d, start: %u, end: %u",
+             attr_list[i].attr, attr_list[i].start_time,
+             attr_list[i].stop_time);
     flutter::EncodableMap attributes = {
         {flutter::EncodableValue("attrType"),
          flutter::EncodableValue(attr_list[i].attr)},
@@ -1228,56 +1266,53 @@ void PlusPlayer::OnSubtitleData(
     switch (attr_list[i].dtype) {
       case PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_FLOAT: {
         float value_float = attr_list[i].value.float_value;
-        LOG_INFO("[PlusPlayerPlatform] Subtitle update: value<float>: %f",
-                 value_float);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<float>: %f", value_float);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((double)value_float);
       } break;
       case PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_DOUBLE: {
         double value_double = attr_list[i].value.double_value;
-        LOG_INFO("[PlusPlayerPlatform] Subtitle update: value<double>: %f",
+        LOG_INFO("[PlusPlayer] Subtitle update: value<double>: %f",
                  value_double);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_double);
       } break;
       case PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_STRING: {
         const char *value_chars = attr_list[i].value.str_value;
-        LOG_INFO("[PlusPlayerPlatform] Subtitle update: value<char*>: %s",
-                 value_chars);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<char*>: %s", value_chars);
         std::string value_str(value_chars);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_str);
       } break;
       case PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_INT: {
         int value_int = attr_list[i].value.int32_value;
-        LOG_INFO("[PlusPlayerPlatform] Subtitle update: value<int>: %d",
-                 value_int);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int>: %d", value_int);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_int);
       } break;
       case PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_UINT: {
         uint32_t value_uint32 = attr_list[i].value.uint32_value;
-        LOG_INFO("[PlusPlayerPlatform] Subtitle update: value<uint32_t>: %u",
+        LOG_INFO("[PlusPlayer] Subtitle update: value<uint32_t>: %u",
                  value_uint32);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((int64_t)value_uint32);
       } break;
       case PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_INT64: {
         int64_t value_int64 = attr_list[i].value.int64_value;
-        LOG_INFO("[PlusPlayerPlatform] Subtitle update: value<int64_t>: %lld",
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int64_t>: %lld",
                  value_int64);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_int64);
       } break;
       case PLUSPLAYER_SUBTITLE_ATTR_DATA_TYPE_UINT64: {
         uint64_t value_uint64 = attr_list[i].value.uint64_value;
-        LOG_INFO("[PlusPlayerPlatform] Subtitle update: value<uint64_t>: %lld",
+        LOG_INFO("[PlusPlayer] Subtitle update: value<uint64_t>: %lld",
                  value_uint64);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((int64_t)value_uint64);
       } break;
       default:
-        LOG_ERROR("[PlusPlayerPlatform] Unknown Subtitle value type: %d",
+        LOG_ERROR("[PlusPlayer] Unknown Subtitle value type: %d",
                   attr_list[i].dtype);
         break;
     }
