@@ -1126,32 +1126,36 @@ int plusplayer_set_playback_rate(plusplayer_h handle,
                                  const double playback_rate);
 
 /**
- * @brief     Deactivate Audio Stream.
+ * @brief     Deactivate Track.
  * @param     [in] handle : plusplayer handle.
+ * @param     [in] track_type : track type enum.
  * @return    @c PLUSPLAYER_ERROR_TYPE_NONE on success,otherwise @c one of
  *            plusplayer_error_type_e values will be returned.
  * @retval    #PLUSPLAYER_ERROR_TYPE_NONE Successful
  * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_PARAMETER Invalid parameter
  * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION Internal operation failed
  * @code
- *             refer to the sample code of plusplayer_activate_audio()
+ *             refer to the sample code of plusplayer_activate_track()
  * @endcode
  * @pre       The player state must be at least #PLUSPLAYER_STATE_IDLE
  * @post      The player state will be same as @pre.
  * @exception None
- * @see       plusplayer_activate_audio
+ * @see       plusplayer_activate_track
  */
-int plusplayer_deactivate_audio(plusplayer_h handle);
+int plusplayer_deactivate_track(plusplayer_h handle,
+                                plusplayer_track_type_e track_type);
 
 /**
- * @brief     Activate Audio Stream.
+ * @brief     Activate Track.
  * @param     [in] handle : plusplayer handle.
+ * @param     [in] track_type : track type enum.
  * @return    @c PLUSPLAYER_ERROR_TYPE_NONE on success,otherwise @c one of
  *            plusplayer_error_type_e values will be returned.
  * @retval    #PLUSPLAYER_ERROR_TYPE_NONE Successful
  * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_PARAMETER Invalid parameter
  * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION Internal operation failed
  * @code
+ *            // Sample example for activate/deactivate track type.
  *            // play one player in normal
  *            plusplayer_h player1 = plusplayer_create();
  *            plusplayer_open(player1,uri_1);
@@ -1162,14 +1166,14 @@ int plusplayer_deactivate_audio(plusplayer_h handle);
  *            plusplayer_h player2 = plusplayer_create();
  *            plusplayer_open(player2,uri_2);
  *            // ... your codes ...
- *            plusplayer_deactivate_audio(player2);
+ *            plusplayer_deactivate_track(player2, PLUSPLAYER_TRACK_TYPE_AUDIO);
  *            plusplayer_prepare(player2);
  *            plusplayer_start(player2);
  *
  *            // if you want to play player2, deactivate player1 first
  *            // and then activate player2
- *            plusplayer_deactivate_audio(player1);
- *            plusplayer_activate_audio(player2);
+ *            plusplayer_deactivate_track(player1, PLUSPLAYER_TRACK_TYPE_AUDIO);
+ *            plusplayer_activate_track(player2, PLUSPLAYER_TRACK_TYPE_AUDIO);
  *            // ... your codes ...
  *            plusplayer_close(player1);
  *            plusplayer_destroy(player1);
@@ -1178,11 +1182,12 @@ int plusplayer_deactivate_audio(plusplayer_h handle);
  * @endcode
  * @pre       The player state must be at least #PLUSPLAYER_STATE_IDLE.
  * @post      The player state will be same as @pre.
- *            plusplayer_activate_audio().
+ *            plusplayer_activate_track().
  * @exception None
- * @see       plusplayer_deactivate_audio
+ * @see       plusplayer_deactivate_track
  */
-int plusplayer_activate_audio(plusplayer_h handle);
+int plusplayer_activate_track(plusplayer_h handle,
+                              plusplayer_track_type_e track_type);
 
 /**
  * @brief     Set Property.
@@ -1237,7 +1242,9 @@ int plusplayer_activate_audio(plusplayer_h handle);
  * PLUSPLAYER_PROPERTY_USE_MAIN_OUT_SHARE, PLUSPLAYER_PROPERTY_URL_AUTH_TOKEN,
  * PLUSPLAYER_PROPERTY_USER_LOW_LATENCY, PLUSPLAYER_PROPERTY_OPEN_HTTP_HEADER,
  * PLUSPLAYER_PROPERTY_MAX_BANDWIDTH, PLUSPLAYER_PROPERTY_MPEGH_METADATA,
- * PLUSPLAYER_PROPERTY_OPEN_MANIFEST]
+ * PLUSPLAYER_PROPERTY_OPEN_MANIFEST, PLUSPLAYER_PROPERTY_UNWANTED_RESOLUTION,
+ * PLUSPLAYER_PROPERTY_UNWANTED_FRAMERATE,
+ * PLUSPLAYER_PROPERTY_UPDATE_SAME_LANGUAGE_CODE]
  * @exception None
  */
 int plusplayer_set_property(plusplayer_h handle, plusplayer_property_e property,
@@ -1277,7 +1284,10 @@ int plusplayer_set_property(plusplayer_h handle, plusplayer_property_e property,
  * PLUSPLAYER_PROPERTY_CURRENT_LATENCY, PLUSPLAYER_PROPERTY_IS_DVB_DASH,
  * PLUSPLAYER_PROPERTY_LIVE_PLAYER_START, PLUSPLAYER_PROPERTY_HTTP_HEADER,
  * PLUSPLAYER_PROPERTY_START_DATE,
- * PLUSPLAYER_PROPERTY_MPEGH_METADATA, PLUSPLAYER_PROPERTY_DASH_STREAM_INFO]
+ * PLUSPLAYER_PROPERTY_MPEGH_METADATA, PLUSPLAYER_PROPERTY_DASH_STREAM_INFO,
+ * PLUSPLAYER_PROPERTY_AUDIO_STREAM_INFO,
+ * PLUSPLAYER_PROPERTY_SUBTITLE_STREAM_INFO,
+ * PLUSPLAYER_PROPERTY_VIDEO_STREAM_INFO]
  * @exception None
  */
 int plusplayer_get_property(plusplayer_h handle, plusplayer_property_e property,
@@ -1828,6 +1838,52 @@ int plusplayer_get_dvr_seekable_range(plusplayer_h handle,
  */
 int plusplayer_get_current_bandwidth(plusplayer_h handle,
                                      uint32_t* curr_bandwidth_bps);
+
+/**
+ * @brief     Set the visibility of the video display.
+ * @param     [in] handle : plusplayer handle.
+ * @param     [in] is_visible : The visibility of the display
+ *            @c true = visible, @c false = non-visible.
+ * @return    @c PLUSPLAYER_ERROR_TYPE_NONE on success,otherwise @c one of
+ *            plusplayer_error_type_e values will be returned.
+ * @retval    #PLUSPLAYER_ERROR_TYPE_NONE Successful
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_PARAMETER Invalid parameter
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION Internal operation failed
+ * @code
+ *            plusplayer_h player = plusplayer_create();
+ *            plusplayer_open(player,uri);
+ *            // ... your codes ...
+ *            plusplayer_set_display_visible(player, true);
+ *            // ... your codes ...
+ * @endcode
+ * @pre       The player state must be atleast #PLUSPLAYER_STATE_IDLE
+ * @post      The player state will be same as @pre
+ * @exception None
+ */
+int plusplayer_set_display_visible(plusplayer_h handle, bool is_visible);
+
+/**
+ * @brief     Set audio volume level.
+ * @param     [in] handle : plusplayer handle.
+ * @param     [in] volume : volume level in Range [0-100].
+ * @return    @c PLUSPLAYER_ERROR_TYPE_NONE on success,otherwise @c one of
+ *            plusplayer_error_type_e values will be returned.
+ * @retval    #PLUSPLAYER_ERROR_TYPE_NONE Successful
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_PARAMETER Invalid parameter
+ * @retval    #PLUSPLAYER_ERROR_TYPE_INVALID_OPERATION Internal operation failed
+ * @code
+ *            plusplayer_h player = plusplayer_create();
+ *            plusplayer_open(player, uri);
+ *            plusplayer_prepare();
+ *            // ... your codes ...
+ *            plusplayer_set_volume(player, 50);
+ *            // ... your codes ...
+ * @endcode
+ * @pre       The player state must be atleast #PLUSPLAYER_STATE_NONE
+ * @post      The player state will be same as @pre
+ * @exception None
+ */
+int plusplayer_set_volume(plusplayer_h handle, int volume);
 
 #ifdef __cplusplus
 }

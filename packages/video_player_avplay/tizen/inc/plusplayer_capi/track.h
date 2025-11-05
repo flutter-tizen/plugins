@@ -43,6 +43,7 @@ typedef enum {
   PLUSPLAYER_TRACK_TYPE_SUBTITLE   /**< Track type Subtitle */
 } plusplayer_track_type_e;
 
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif

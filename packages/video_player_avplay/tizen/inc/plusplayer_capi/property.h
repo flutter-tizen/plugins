@@ -110,13 +110,42 @@ typedef enum {
                                             Effective only for DASH streaming.*/
   PLUSPLAYER_PROPERTY_DASH_STREAM_INFO, /**< String value of dash MPD. Effective
                                            only for DASH streaming.*/
-  PLUSPLAYER_PROPERTY_HTTP_HEADER,  /**< String value of Dash engine download
-                                      header. Effective only for DASH
-                                      streaming.*/
-  PLUSPLAYER_PROPERTY_OPEN_MANIFEST /**<String value ["TRUE", "FALSE"] to
+  PLUSPLAYER_PROPERTY_HTTP_HEADER,   /**< String value of Dash engine download
+                                       header. Effective only for DASH
+                                       streaming.*/
+  PLUSPLAYER_PROPERTY_OPEN_MANIFEST, /**<String value ["TRUE", "FALSE"] to
                                        control is force enable if can get
                                        manifest content callback . Effective
                                        only for DASH streaming. */
+  PLUSPLAYER_PROPERTY_UNWANTED_RESOLUTION, /**String value format: 1920X1080 To
+                                              set app supported max resolution ,
+                                              remove resolution larger than the
+                                              current set value from the mpd
+                                              track. Effective only for DASH
+                                              streaming.  */
+  PLUSPLAYER_PROPERTY_UNWANTED_FRAMERATE,  /** String value[0-120] To set app
+                                              supported max framerate, remove
+                                              framerate larger than the current
+                                              set value from the mpd track.
+                                              Effective only for DASH streaming.
+                                            */
+  PLUSPLAYER_PROPERTY_AUDIO_STREAM_INFO, /** Get manifest audio stream property
+                                            information. Effective only for DASH
+                                            streaming.*/
+  PLUSPLAYER_PROPERTY_SUBTITLE_STREAM_INFO, /** Get manifest subtitle stream
+                                               property information. Effective
+                                               only for DASH streaming. */
+  PLUSPLAYER_PROPERTY_VIDEO_STREAM_INFO, /** Get manifest video stream property
+                                            information. Effective only for DASH
+                                            streaming. */
+  PLUSPLAYER_PROPERTY_UPDATE_SAME_LANGUAGE_CODE /** String value[1, 0] update
+                                                   the language code in manifest
+                                                   like lang="dut+i", where "i"
+                                                   will be an integer when there
+                                                   are more than one adaptation
+                                                   set with same language code.
+                                                   Effective only for DASH
+                                                   streaming. */
 } plusplayer_property_e;
 
 #ifdef __cplusplus

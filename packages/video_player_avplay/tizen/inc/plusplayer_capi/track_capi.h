@@ -511,8 +511,7 @@ int plusplayer_get_track_layer(plusplayer_track_h track, int* track_layer);
  * @code
  *            plusplayer_track_h track = ...;
  *            int track_bits_per_sample;
- *            plusplayer_get_track_bits_per_sample(track,
- * &track_bits_per_sample);
+ *            plusplayer_get_track_bits_per_sample(track, &track_bits_per_sample);
  *            // ... your codes ...
  * @endcode
  * @pre       The track handle must be valid.
@@ -675,8 +674,7 @@ int plusplayer_get_track_lang_code(plusplayer_track_h track,
  * @code
  *            plusplayer_track_h track = ...;
  *            const char* track_subtitle_format;
- *            plusplayer_get_track_subtitle_format(track,
- * &track_subtitle_format);
+ *            plusplayer_get_track_subtitle_format(track, &track_subtitle_format);
  *            // ... your codes ...
  * @endcode
  * @pre       The track handle must be valid.
