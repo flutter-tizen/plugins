@@ -2,6 +2,12 @@
 
 [![pub package](https://img.shields.io/pub/v/sensors_plus_tizen.svg)](https://pub.dev/packages/sensors_plus_tizen)
 
+## Discontinued
+
+**This project has been discontinued**, and will not receive further updates. If you need any features related to this project, please request to [here](https://github.com/flutter-tizen/plugins/issues).
+
+---
+
 The Tizen implementation of [`sensors_plus`](https://pub.dev/packages/sensors_plus).
 
 ## Usage
@@ -11,7 +17,7 @@ This package is not an _endorsed_ implementation of 'sensors_plus'. Therefore, y
 ```yaml
 dependencies:
   sensors_plus: ^4.0.1
-  sensors_plus_tizen: ^1.1.5
+  sensors_plus_tizen: ^1.1.6
 ```
 
 Then you can import `sensors_plus` in your Dart code:
