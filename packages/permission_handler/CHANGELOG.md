@@ -1,3 +1,7 @@
+## 1.4.2
+
+* Fix example's type issue.
+
 ## 1.4.1
 
 * Update README.

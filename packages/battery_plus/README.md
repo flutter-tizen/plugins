@@ -2,6 +2,12 @@
 
 [![pub package](https://img.shields.io/pub/v/battery_plus_tizen.svg)](https://pub.dev/packages/battery_plus_tizen)
 
+## Discontinued
+
+**This project has been discontinued**, and will not receive further updates. If you need any features related to this project, please request to [here](https://github.com/flutter-tizen/plugins/issues).
+
+---
+
 The Tizen implementation of [`battery_plus`](https://pub.dev/packages/battery_plus).
 
 ## Usage
@@ -11,7 +17,7 @@ This package is not an _endorsed_ implementation of `battery_plus`. Therefore, y
 ```yaml
 dependencies:
   battery_plus: ^4.0.1
-  battery_plus_tizen: ^1.1.3
+  battery_plus_tizen: ^1.1.4
 ```
 
 Then you can import `battery_plus` in your Dart code:

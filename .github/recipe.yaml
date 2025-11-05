@@ -20,21 +20,15 @@ plugins:
   wakelock_plus: ["tv-9.0"]
 
   # Only testable with wearable profile.
-  battery_plus: []
-  flutter_app_badger: []
   permission_handler: []
-  sensors_plus: []
 
   # No tests.
   google_sign_in: []
-  image_picker: []
   firebase_core: []
   tizen_log: []
   tizen_notification: []
-  wearable_rotary: []
 
   # Functionality not available on emulator.
-  camera: []
   flutter_webrtc: []
   geolocator: []
   in_app_purchase: []

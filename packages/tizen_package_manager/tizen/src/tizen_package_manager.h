@@ -43,7 +43,8 @@ using OnPackageEvent =
     std::function<void(std::string package_id, std::string package_type,
                        PacakgeEventState state, int32_t progress)>;
 
-using OnPackageSizeEvent = std::function<void(PackageSizeInfo size_info)>;
+using OnPackageSizeEvent =
+    std::function<void(PackageSizeInfo size_info, bool success)>;
 
 class TizenPackageManager {
  public:

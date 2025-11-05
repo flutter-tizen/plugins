@@ -1,3 +1,7 @@
+## 0.4.1
+
+* Fix error handling in `getPackageSizeInfo`.
+
 ## 0.4.0
 
 * Add retrieve package size information using `PackageManager.getPackageSizeInfo`.

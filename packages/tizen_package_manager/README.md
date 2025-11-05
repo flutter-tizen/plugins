@@ -10,7 +10,7 @@ To use this package, add `tizen_package_manager` as a dependency in your `pubspe
 
 ```yaml
 dependencies:
-  tizen_package_manager: ^0.4.0
+  tizen_package_manager: ^0.4.1
 ```
 
 ### Retrieving specific package info
