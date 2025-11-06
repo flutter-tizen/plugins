@@ -188,19 +188,19 @@ void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
 }
 
 bool PlusPlayer::SetAppId() {
-  char *appId;
-  int ret = app_manager_get_app_id(getpid(), &appId);
+  char *app_id;
+  int ret = app_manager_get_app_id(getpid(), &app_id);
   if (ret != APP_MANAGER_ERROR_NONE) {
     LOG_ERROR("[PlusPlayer] Fail to get app id: %s.", get_error_message(ret));
     return false;
   }
 
-  if (plusplayer_set_app_id(player_, appId) != PLUSPLAYER_ERROR_TYPE_NONE) {
+  if (plusplayer_set_app_id(player_, app_id) != PLUSPLAYER_ERROR_TYPE_NONE) {
     LOG_ERROR("[PlusPlayer] Fail to set app id");
-    free(appId);
+    free(app_id);
     return false;
   }
-  free(appId);
+  free(app_id);
   return true;
 }
 
@@ -880,7 +880,7 @@ bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
 
   LOG_INFO("[PlusPlayer] rotation: %lld", rotation);
   return plusplayer_set_display_rotation(
-             player_, ConvertDisplayRotationType(rotation)) !=
+             player_, ConvertDisplayRotationType(rotation)) ==
          PLUSPLAYER_ERROR_TYPE_NONE;
 }
 
@@ -1039,7 +1039,7 @@ bool PlusPlayer::Restore(const CreateMessage *restore_message,
 
   if (restore_message->uri()) {
     LOG_INFO(
-        "[PlusPlayer] Restore URL is not emptpy, close the existing instance.");
+        "[PlusPlayer] Restore URL is not empty, close the existing instance.");
     if (!StopAndClose()) {
       LOG_ERROR("[PlusPlayer] Player need to stop and close, but failed.");
       return false;
