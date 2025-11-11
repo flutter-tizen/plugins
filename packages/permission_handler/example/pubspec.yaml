@@ -7,7 +7,10 @@ environment:
   flutter: ">=3.13.0"
 
 dependencies:
-  baseflow_plugin_template: ^2.1.2
+  baseflow_plugin_template:
+    git:
+      url: https://github.com/seungsoo47/baseflow_plugin_template
+      ref: temp_fix
   flutter:
     sdk: flutter
   permission_handler: ^12.0.0

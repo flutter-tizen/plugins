@@ -1,18 +1,12 @@
 # Packages
 "p: audioplayers":
   - packages/audioplayers/**/*
-"p: battery_plus":
-  - packages/battery_plus/**/*
-"p: camera":
-  - packages/camera/**/*
 "p: connectivity_plus":
   - packages/connectivity_plus/**/*
 "p: device_info_plus":
   - packages/device_info_plus/**/*
 "p: firebase_core":
   - packages/firebase_core/**/*
-"p: flutter_app_badger":
-  - packages/flutter_app_badger/**/*
 "p: flutter_secure_storage":
   - packages/flutter_secure_storage/**/*
 "p: flutter_tts":
@@ -25,8 +19,6 @@
   - packages/google_maps_flutter/**/*
 "p: google_sign_in":
   - packages/google_sign_in/**/*
-"p: image_picker":
-  - packages/image_picker/**/*
 "p: in_app_purchase":
   - packages/in_app_purchase/**/*
 "p: integration_test":
@@ -41,8 +33,6 @@
   - packages/path_provider/**/*
 "p: permission_handler":
   - packages/permission_handler/**/*
-"p: sensors_plus":
-  - packages/sensors_plus/**/*
 "p: shared_preferences":
   - packages/shared_preferences/**/*
 "p: sqflite":
@@ -63,6 +53,8 @@
   - packages/tizen_package_manager/**/*
 "p: tizen_rpc_port":
   - packages/tizen_rpc_port/**/*
+"p: tizen_window_manager":
+  - packages/tizen_window_manager/**/*
 "p: url_launcher":
   - packages/url_launcher/**/*
 "p: video_player":
@@ -73,8 +65,6 @@
   - packages/video_player_videohole/**/*
 "p: wakelock_plus":
   - packages/wakelock_plus/**/*
-"p: wearable_rotary":
-  - packages/wearable_rotary/**/*
 "p: webview_flutter":
   - packages/webview_flutter/**/*
 "p: webview_flutter_lwe":

@@ -7,6 +7,7 @@ void main() {
 
   testWidgets('Can speak', (WidgetTester tester) async {
     final flutterTts = FlutterTts();
+    await Future<void>.delayed(const Duration(seconds: 2));
     var result = await flutterTts.speak('Hello, world!');
     expect(result, 1);
   });

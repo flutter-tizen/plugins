@@ -65,6 +65,24 @@ flutter::EncodableMap PackageInfoToMap(PackageInfo package) {
       flutter::EncodableValue(package.is_preloaded);
   map[flutter::EncodableValue("isRemovable")] =
       flutter::EncodableValue(package.is_removable);
+
+  return map;
+}
+
+flutter::EncodableMap PackageSizeInfoToMap(PackageSizeInfo size_info) {
+  flutter::EncodableMap map;
+  map[flutter::EncodableValue("dataSize")] =
+      flutter::EncodableValue((int64_t)(size_info.data_size));
+  map[flutter::EncodableValue("cacheSize")] =
+      flutter::EncodableValue((int64_t)(size_info.cache_size));
+  map[flutter::EncodableValue("appSize")] =
+      flutter::EncodableValue((int64_t)(size_info.app_size));
+  map[flutter::EncodableValue("externalDataSize")] =
+      flutter::EncodableValue((int64_t)(size_info.external_data_size));
+  map[flutter::EncodableValue("externalCacheSize")] =
+      flutter::EncodableValue((int64_t)(size_info.external_cache_size));
+  map[flutter::EncodableValue("externalAppSize")] =
+      flutter::EncodableValue((int64_t)(size_info.external_app_size));
   return map;
 }
 
@@ -186,6 +204,10 @@ class TizenPackageManagerPlugin : public flutter::Plugin {
       GetPackageInfo(arguments, std::move(result));
     } else if (method_name == "getPackages") {
       GetAllPackagesInfo(std::move(result));
+    } else if (method_name == "getPackageSizeInfo") {
+      const auto *arguments =
+          std::get_if<flutter::EncodableMap>(method_call.arguments());
+      GetPackageSizeInfo(arguments, std::move(result));
     } else if (method_name == "install") {
       const auto *arguments =
           std::get_if<flutter::EncodableMap>(method_call.arguments());
@@ -250,6 +272,29 @@ class TizenPackageManagerPlugin : public flutter::Plugin {
           delete result;
         },
         result.release());
+  }
+
+  void GetPackageSizeInfo(const flutter::EncodableMap *arguments,
+                          std::unique_ptr<FlMethodResult> result) {
+    std::string package_id;
+    if (!GetValueFromEncodableMap(arguments, "packageId", package_id)) {
+      result->Error("Invalid arguments", "No packageId provided.");
+      return;
+    }
+
+    TizenPackageManager &package_manager = TizenPackageManager::GetInstance();
+    auto shared_result = std::shared_ptr<FlMethodResult>(std::move(result));
+    package_manager.GetPackageSizeInfo(
+        package_id, [shared_result, &package_manager](PackageSizeInfo size_info,
+                                                      bool success) {
+          if (!success) {
+            shared_result->Error(std::to_string(package_manager.GetLastError()),
+                                 package_manager.GetLastErrorString());
+            return;
+          }
+          shared_result->Success(
+              flutter::EncodableValue(PackageSizeInfoToMap(size_info)));
+        });
   }
 
   void Install(const flutter::EncodableMap *arguments,

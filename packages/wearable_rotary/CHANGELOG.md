@@ -1,8 +1,9 @@
-## NEXT
+## 2.0.3
 
 * Fix new lint warnings.
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Update code format.
+* Updates README to indicate that the package has been discontinued.
 
 ## 2.0.2
 

@@ -2,6 +2,12 @@
 
  [![pub package](https://img.shields.io/pub/v/wearable_rotary.svg)](https://pub.dev/packages/wearable_rotary)
 
+ ## Discontinued
+
+**This project has been discontinued**, and will not receive further updates. If you need any features related to this project, please request to [here](https://github.com/flutter-tizen/plugins/issues).
+
+---
+
 Flutter plugin that can listen to rotary events on Wear OS and Tizen Galaxy watch devices.
 
 ## Setup

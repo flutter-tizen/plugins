@@ -2,6 +2,12 @@
 
 [![pub package](https://img.shields.io/pub/v/camera_tizen.svg)](https://pub.dev/packages/camera_tizen)
 
+## Discontinued
+
+**This project has been discontinued**, and will not receive further updates. If you need any features related to this project, please request to [here](https://github.com/flutter-tizen/plugins/issues).
+
+---
+
 The Tizen implementation of [`camera`](https://pub.dev/packages/camera).
 
 ## Supported devices
@@ -26,7 +32,7 @@ This package is not an _endorsed_ implementation of `camera`. Therefore, you hav
 ```yaml
 dependencies:
   camera: ^0.9.4
-  camera_tizen: ^0.3.5
+  camera_tizen: ^0.3.6
 ```
 
 Then you can import `camera` in your Dart code:

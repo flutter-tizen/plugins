@@ -24,6 +24,13 @@ void main() {
     expect(info.isRemovable, true);
   });
 
+  testWidgets('Can get current package size info', (WidgetTester tester) async {
+    final PackageSizeInfo info = await PackageManager.getPackageSizeInfo(
+      currentPackageId,
+    );
+    expect(info.appSize, greaterThan(0)); // package size -> 160935936
+  });
+
   testWidgets('Can get all installed packages info', (
     WidgetTester tester,
   ) async {
