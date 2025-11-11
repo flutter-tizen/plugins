@@ -1,3 +1,7 @@
+## 0.7.5
+* Support parsing SMPE-TT(sidecar) subtitle attributes.
+* Support image format subtitles.
+
 ## 0.7.4
 * Update plusplayer
   1. [DASH] Fix this issue of audio switching not working in the dash video stream.
