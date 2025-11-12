@@ -620,6 +620,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           final Duration textDuration = event.textDuration == 0
               ? Duration.zero
               : Duration(milliseconds: event.textDuration!);
+          // ignore: avoid_print
           print('*****textDuration is $textDuration*******');
           final Caption caption = Caption(
             number: 0,
@@ -628,6 +629,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             text: event.text ?? '',
             subtitleAttributes: subtitleAttributes,
           );
+          // ignore: avoid_print
           print(
               '*****Caption start is ${caption.start}, end is ${caption.end}*******');
           value = value.copyWith(caption: caption);
