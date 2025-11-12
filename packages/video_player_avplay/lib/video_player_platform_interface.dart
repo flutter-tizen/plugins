@@ -555,6 +555,7 @@ class VideoEvent {
     this.size,
     this.buffered,
     this.text,
+    this.textDuration,
     this.isPlaying,
     this.subtitleAttributes,
     this.adInfo,
@@ -583,6 +584,11 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
   final String? text;
 
+  /// The duration of text
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
+  final int? textDuration;
+
   /// Whether the video is currently playing.
   ///
   /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
@@ -606,6 +612,7 @@ class VideoEvent {
             size == other.size &&
             buffered == other.buffered &&
             text == other.text &&
+            textDuration == other.textDuration &&
             isPlaying == other.isPlaying &&
             subtitleAttributes == other.subtitleAttributes &&
             adInfo == other.adInfo;
@@ -618,6 +625,7 @@ class VideoEvent {
       size.hashCode ^
       buffered.hashCode ^
       text.hashCode ^
+      textDuration.hashCode ^
       isPlaying.hashCode ^
       subtitleAttributes.hashCode ^
       adInfo.hashCode;

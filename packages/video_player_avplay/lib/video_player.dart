@@ -182,6 +182,16 @@ class VideoPlayerValue {
     return aspectRatio;
   }
 
+  /// Returns the [Caption] that should be displayed based on the current [position].
+  /// If the value of [caption.end] has greater than the current [position], this will be a [Caption.none] object.
+  /// Only used for [copyWith].
+  Caption get _currentCaption {
+    if (position > caption.end) {
+      return Caption.none;
+    }
+    return caption;
+  }
+
   /// Returns a new instance that has the same values as this current instance,
   /// except for any overrides passed in as arguments to [copyWidth].
   VideoPlayerValue copyWith({
@@ -206,7 +216,7 @@ class VideoPlayerValue {
       duration: duration ?? this.duration,
       size: size ?? this.size,
       position: position ?? this.position,
-      caption: caption ?? this.caption,
+      caption: caption ?? _currentCaption,
       captionOffset: captionOffset ?? this.captionOffset,
       tracks: tracks ?? this.tracks,
       buffered: buffered ?? this.buffered,
@@ -594,7 +604,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // we use pause() and seekTo() to ensure the platform stops playing
           // and seeks to the last frame of the video.
           pause().then((void pauseResult) => seekTo(value.duration.end));
-          value = value.copyWith(isCompleted: true);
+          value = value.copyWith(isCompleted: true, caption: Caption.none);
           _durationTimer?.cancel();
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
@@ -607,13 +617,19 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
               SubtitleAttribute.fromEventSubtitleAttrList(
             event.subtitleAttributes,
           );
+          final Duration textDuration = event.textDuration == 0
+              ? Duration.zero
+              : Duration(milliseconds: event.textDuration!);
+          print('*****textDuration is $textDuration*******');
           final Caption caption = Caption(
             number: 0,
             start: value.position,
-            end: value.position + (event.duration?.end ?? Duration.zero),
+            end: value.position + textDuration,
             text: event.text ?? '',
             subtitleAttributes: subtitleAttributes,
           );
+          print(
+              '*****Caption start is ${caption.start}, end is ${caption.end}*******');
           value = value.copyWith(caption: caption);
         case VideoEventType.isPlayingStateUpdate:
           if (event.isPlaying ?? false) {
