@@ -94,7 +94,7 @@ class _MyAppState extends State<MyApp> {
     final AppControl request = AppControl(
       appId: 'com.samsung.tv.cobalt-yt',
       operation: 'http://tizen.org/appcontrol/operation/default',
-      extraData: {
+      extraData: <String, dynamic>{
         'PAYLOAD': '#watch?v=$videoId&launch=launcher',
       },
     );
