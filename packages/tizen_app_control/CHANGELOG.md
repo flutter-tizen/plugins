@@ -2,6 +2,7 @@
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Update code format.
+* Add YouTube app launch to the example.
 
 ## 0.2.3
 
