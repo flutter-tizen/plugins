@@ -5,6 +5,7 @@
 #include "video_player_tizen_plugin.h"
 
 #include <app_common.h>
+#include <dlfcn.h>
 #include <flutter/encodable_value.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen.h>
