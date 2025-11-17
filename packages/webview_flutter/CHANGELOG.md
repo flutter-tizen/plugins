@@ -1,3 +1,7 @@
+## 0.9.7
+
+* Fix back key, exit key handling.
+
 ## 0.9.6
 
 * Update code format.

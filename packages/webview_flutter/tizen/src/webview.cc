@@ -302,10 +302,17 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
     return false;
   }
 
-  if (strcmp(key, "XF86Back") == 0 && !is_down &&
-      ewk_view_back_possible(webview_instance_)) {
-    ewk_view_back(webview_instance_);
-    return true;
+  if (strcmp(key, "XF86Exit") == 0 && !is_down) {
+    return false;
+  }
+
+  if (strcmp(key, "XF86Back") == 0 && !is_down) {
+    if (ewk_view_back_possible(webview_instance_)) {
+      ewk_view_back(webview_instance_);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   if (is_down) {
