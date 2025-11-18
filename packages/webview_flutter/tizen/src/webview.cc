@@ -310,9 +310,8 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
     if (ewk_view_back_possible(webview_instance_)) {
       ewk_view_back(webview_instance_);
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   if (is_down) {
