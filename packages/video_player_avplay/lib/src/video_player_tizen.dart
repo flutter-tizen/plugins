@@ -437,6 +437,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           return VideoEvent(
             eventType: VideoEventType.subtitleUpdate,
             text: map['text']! as String,
+            textDuration: map['duration'] as int?,
             picture: map['picture'] as Uint8List?,
             pictureWidth: map['pictureWidth'] as double?,
             pictureHeight: map['pictureHeight'] as double?,
@@ -451,6 +452,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           return VideoEvent(
             eventType: VideoEventType.adFromDash,
             adInfo: map['adInfo'] as Map<Object?, Object?>?,
+          );
+        case 'manifestUpdated':
+          return VideoEvent(
+            eventType: VideoEventType.manifestUpdated,
+            manifestUpdated: map['manifestUpdated'] as String?,
           );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
@@ -525,6 +531,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     StreamingPropertyType.updateSameLanguageCode: 'UPDATE_SAME_LANGUAGE_CODE',
     StreamingPropertyType.dashToken: 'TOKEN',
     StreamingPropertyType.openHttpHeader: 'OPEN_HTTP_HEADER',
+    StreamingPropertyType.openManifest: 'OPEN_MANIFEST',
   };
 
   static const Map<BufferConfigType, String> _bufferConfigTypeMap =

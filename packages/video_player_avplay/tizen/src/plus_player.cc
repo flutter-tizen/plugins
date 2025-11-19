@@ -1152,7 +1152,7 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
   plusplayer::SubtitleAttributeList *attrs = attr_list.get();
   flutter::EncodableList attributes_list;
   for (auto attr = attrs->begin(); attr != attrs->end(); attr++) {
-    LOG_DEBUG(
+    LOG_INFO(
         "[PlusPlayer] SubtitleAttr update: attrType: %d, start: %u, end: %u.",
         attr->type, attr->start_time, attr->stop_time);
     flutter::EncodableMap attributes = {
@@ -1383,6 +1383,9 @@ void PlusPlayer::OnAdaptiveStreamingControlEvent(
     if (self->drm_manager_) {
       self->drm_manager_->UpdatePsshData(msg.data.data(), msg.size);
     }
+  }
+  if (type == plusplayer::StreamingMessageType::kManifestUpdated) {
+    self->SendManifestUpdated(msg.data);
   }
 }
 

@@ -66,6 +66,7 @@ class VideoPlayerValue {
     this.errorDescription,
     this.isCompleted = false,
     this.adInfo,
+    this.manifestUpdated,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -165,6 +166,9 @@ class VideoPlayerValue {
   /// to determine if ad information is available.
   final AdInfoFromDash? adInfo;
 
+  ///
+  final String? manifestUpdated;
+
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
   bool get hasError => errorDescription != null;
@@ -174,6 +178,8 @@ class VideoPlayerValue {
 
   /// Indicates whether or not the video has special subtitle text style.
   bool get hasTextStyle => textCaption.textStyle != null;
+
+  bool get hasManifestUpdated => manifestUpdated != null;
 
   /// Returns [size.width] / [size.height].
   ///
@@ -190,6 +196,20 @@ class VideoPlayerValue {
       return 1.0;
     }
     return aspectRatio;
+  }
+
+  /// Returns the [TextCaption] that should be displayed based on the current [position].
+  /// If the value of [textCaption.end] has greater than the current [position], this will be a [TextCaption.none] object.
+  /// Only used for [copyWith].
+  TextCaption get _currentTextCaption {
+    return position > textCaption.end ? TextCaption.none : textCaption;
+  }
+
+  /// Returns the [PictureCaption] that should be displayed based on the current [position].
+  /// If the value of [PictureCaption.end] has greater than the current [position], this will be a [PictureCaption.none] object.
+  /// Only used for [copyWith].
+  PictureCaption get _currentPictureCaption {
+    return position > pictureCaption.end ? PictureCaption.none : pictureCaption;
   }
 
   /// Returns a new instance that has the same values as this current instance,
@@ -212,13 +232,14 @@ class VideoPlayerValue {
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
     AdInfoFromDash? adInfo,
+    String? manifestUpdated,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
       size: size ?? this.size,
+      textCaption: textCaption ?? _currentTextCaption,
+      pictureCaption: pictureCaption ?? _currentPictureCaption,
       position: position ?? this.position,
-      textCaption: textCaption ?? TextCaption.none,
-      pictureCaption: pictureCaption ?? PictureCaption.none,
       captionOffset: captionOffset ?? this.captionOffset,
       tracks: tracks ?? this.tracks,
       buffered: buffered ?? this.buffered,
@@ -233,6 +254,7 @@ class VideoPlayerValue {
           : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
       adInfo: adInfo,
+      manifestUpdated: manifestUpdated,
     );
   }
 
@@ -609,7 +631,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // we use pause() and seekTo() to ensure the platform stops playing
           // and seeks to the last frame of the video.
           pause().then((void pauseResult) => seekTo(value.duration.end));
-          value = value.copyWith(isCompleted: true);
+          value = value.copyWith(
+              isCompleted: true,
+              textCaption: TextCaption.none,
+              pictureCaption: PictureCaption.none);
           _durationTimer?.cancel();
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
@@ -618,15 +643,21 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
         case VideoEventType.subtitleUpdate:
+          final Duration textDuration = event.textDuration == 0
+              ? Duration.zero
+              : Duration(milliseconds: event.textDuration!);
+          print('*****textDuration is $textDuration*******');
           if (event.picture?.isNotEmpty ?? false) {
             final PictureCaption pictureCaption = PictureCaption(
               number: 0,
               start: value.position,
-              end: value.position + (event.duration?.end ?? Duration.zero),
+              end: value.position + textDuration,
               picture: event.picture,
               pictureWidth: event.pictureWidth,
               pictureHeight: event.pictureHeight,
             );
+            print(
+                '*****Caption start is ${pictureCaption.start}, end is ${pictureCaption.end}*******');
             value = value.copyWith(pictureCaption: pictureCaption);
           } else {
             final List<SubtitleAttribute> subtitleAttributes =
@@ -639,11 +670,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             final TextCaption textCaption = TextCaption(
               number: 0,
               start: value.position,
-              end: value.position + (event.duration?.end ?? Duration.zero),
+              end: value.position + textDuration,
               text: event.text ?? '',
               subtitleAttributes: subtitleAttributes,
               textStyle: actualTextStyle,
             );
+            print(
+                '*****Caption start is ${textCaption.start}, end is ${textCaption.end}*******');
             value = value.copyWith(textCaption: textCaption);
           }
         case VideoEventType.isPlayingStateUpdate:
@@ -660,6 +693,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           final AdInfoFromDash? adInfo =
               AdInfoFromDash.fromAdInfoMap(event.adInfo);
           value = value.copyWith(adInfo: adInfo);
+        case VideoEventType.manifestUpdated:
+          value = value.copyWith(manifestUpdated: event.manifestUpdated);
         case VideoEventType.unknown:
           break;
       }
@@ -1155,7 +1190,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [Caption].
   TextCaption _getCaptionAt(Duration position) {
     if (_closedCaptionFile == null) {
-      return value.textCaption;
+      return position > value.textCaption.end
+          ? TextCaption.none
+          : value.textCaption;
     }
 
     final Duration delayedPosition = position + value.captionOffset;
@@ -1170,10 +1207,17 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return TextCaption.none;
   }
 
+  PictureCaption _getPictureCaptionAt(Duration position) {
+    return position > value.pictureCaption.end
+        ? PictureCaption.none
+        : value.pictureCaption;
+  }
+
   void _updatePosition(Duration position) {
     value = value.copyWith(
       position: position,
       textCaption: _getCaptionAt(position),
+      pictureCaption: _getPictureCaptionAt(position),
       isCompleted: position == value.duration.end,
     );
   }
@@ -1580,42 +1624,25 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
 /// ```
 class ClosedCaption extends StatelessWidget {
   /// Creates a a new closed caption, designed to be used with
-  /// [VideoPlayerValue.textCaption].
+  /// [VideoPlayerValue.textCaption] and [VideoPlayerValue.pictureCaption].
   ///
   /// If [text] is null or empty, nothing will be displayed.
-  const ClosedCaption(
-      {super.key,
-      this.text,
-      this.textStyle,
-      this.subtitleImage,
-      this.subtitleImageWidth,
-      this.subtitleImageHeight});
+  const ClosedCaption({super.key, this.textCaption, this.pictureCaption});
 
   /// The text that will be shown in the closed caption, or null if no caption
   /// should be shown.
   /// If the text is empty the caption will not be shown.
-  final String? text;
+  final TextCaption? textCaption;
 
-  /// Specifies how the text in the closed caption should look.
-  ///
-  /// If null, defaults to [DefaultTextStyle.of(context).style] with size 36
-  /// font colored white.
-  final TextStyle? textStyle;
-
-  /// The image that will be shown in the closed caption, or null.
-  final Uint8List? subtitleImage;
-
-  /// The image's width.
-  final double? subtitleImageWidth;
-
-  /// The image's height.
-  final double? subtitleImageHeight;
+  /// The picture that will be shown in the closed caption, or null.
+  final PictureCaption? pictureCaption;
 
   @override
   Widget build(BuildContext context) {
-    if (subtitleImage?.isNotEmpty ?? false) {
-      final Image subtitleImage = Image.memory(this.subtitleImage!,
-          width: subtitleImageWidth, height: subtitleImageHeight, errorBuilder:
+    if (pictureCaption?.picture?.isNotEmpty ?? false) {
+      final Image subtitleImage = Image.memory(pictureCaption!.picture!,
+          width: pictureCaption!.pictureWidth,
+          height: pictureCaption!.pictureHeight, errorBuilder:
               (BuildContext context, Object error, StackTrace? stackTrace) {
         // ignore: avoid_print
         print('[ClosedCaption] Image.memory error: $error');
@@ -1631,12 +1658,12 @@ class ClosedCaption extends StatelessWidget {
             child: subtitleImage,
           ));
     } else {
-      final String? text = this.text;
+      final String? text = textCaption?.text;
       if (text == null || text.isEmpty) {
         return const SizedBox.shrink();
       }
 
-      final TextStyle effectiveTextStyle = textStyle ??
+      final TextStyle effectiveTextStyle = textCaption?.textStyle ??
           DefaultTextStyle.of(
             context,
           ).style.copyWith(fontSize: 36.0, color: Colors.white);
@@ -1644,7 +1671,7 @@ class ClosedCaption extends StatelessWidget {
       return Align(
         alignment: Alignment.bottomCenter,
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 24.0),
+          padding: const EdgeInsets.only(bottom: 5),
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: const Color(0xB8000000),

@@ -111,6 +111,70 @@ class TextCaption extends Caption {
     return styleValue == 0 ? FontStyle.normal : FontStyle.italic;
   }
 
+  /// Specifies the text alignment according to subtitle attributes.
+  static AlignmentGeometry specifyTextAlignment(
+      List<SubtitleAttribute> subtitleAttributes) {
+    AlignmentGeometry actualTextAlignment = Alignment.center;
+    double alignmentX = -777.0, alignmentY = -777.0;
+
+    for (final SubtitleAttribute attr in subtitleAttributes) {
+      switch (attr.attrType) {
+        case SubtitleAttrType.subAttrRegionXPos:
+          final double xPos = attr.attrValue as double;
+          if (xPos > 0) {
+            alignmentX = xPos * 2 - 1.0;
+          }
+        case SubtitleAttrType.subAttrRegionYPos:
+          final double yPos = attr.attrValue as double;
+          if (yPos > 0) {
+            alignmentY = yPos * 2 - 1.0;
+          }
+        case SubtitleAttrType.subAttrFontFamily:
+        case SubtitleAttrType.subAttrFontSize:
+        case SubtitleAttrType.subAttrFontWeight:
+        case SubtitleAttrType.subAttrFontStyle:
+        case SubtitleAttrType.subAttrFontColor:
+        case SubtitleAttrType.subAttrFontBgColor:
+        case SubtitleAttrType.subAttrFontOpacity:
+        case SubtitleAttrType.subAttrFontBgOpacity:
+        case SubtitleAttrType.subAttrFontTextOutlineColor:
+        case SubtitleAttrType.subAttrFontTextOutlineThickness:
+        case SubtitleAttrType.subAttrFontTextOutlineBlurRadius:
+        case SubtitleAttrType.subAttrRegionWidth:
+        case SubtitleAttrType.subAttrRegionHeight:
+        case SubtitleAttrType.subAttrWindowXPadding:
+        case SubtitleAttrType.subAttrWindowYPadding:
+        case SubtitleAttrType.subAttrWindowLeftMargin:
+        case SubtitleAttrType.subAttrWindowRightMargin:
+        case SubtitleAttrType.subAttrWindowTopMargin:
+        case SubtitleAttrType.subAttrWindowBottomMargin:
+        case SubtitleAttrType.subAttrWindowBgColor:
+        case SubtitleAttrType.subAttrWindowOpacity:
+        case SubtitleAttrType.subAttrWindowShowBg:
+        case SubtitleAttrType.subAttrFontVerticalAlign:
+        case SubtitleAttrType.subAttrFontHorizontalAlign:
+        case SubtitleAttrType.subAttrRawSubtitle:
+        case SubtitleAttrType.subAttrWebvttCueLine:
+        case SubtitleAttrType.subAttrWebvttCueLineNum:
+        case SubtitleAttrType.subAttrWebvttCueLineAlign:
+        case SubtitleAttrType.subAttrWebvttCueAlign:
+        case SubtitleAttrType.subAttrWebvttCueSize:
+        case SubtitleAttrType.subAttrWebvttCuePosition:
+        case SubtitleAttrType.subAttrWebvttCuePositionAlign:
+        case SubtitleAttrType.subAttrWebvttCueVertical:
+        case SubtitleAttrType.subAttrTimestamp:
+        case SubtitleAttrType.subAttrExtsubInde:
+        case SubtitleAttrType.subAttrTypeNone:
+          break;
+      }
+    }
+    if (alignmentX != -777.0 && alignmentY != -777.0) {
+      actualTextAlignment = Alignment(alignmentX, alignmentY);
+    }
+
+    return actualTextAlignment;
+  }
+
   /// Specifies the text style according to subtitle attributes.
   static TextStyle? specifyTextStyle(
       List<SubtitleAttribute> subtitleAttributes) {
@@ -122,8 +186,11 @@ class TextCaption extends Caption {
               actualTextStyle.copyWith(fontFamily: attr.attrValue as String);
         case SubtitleAttrType.subAttrFontSize:
           final double fontSize = attr.attrValue as double;
-          if (fontSize < 1.0) {
-            const double getSysDefaultFontSize = 36.0;
+          const double getSysDefaultFontSize = 36.0;
+          if (fontSize <= 0) {
+            actualTextStyle =
+                actualTextStyle.copyWith(fontSize: getSysDefaultFontSize);
+          } else if (fontSize < 1.0) {
             actualTextStyle = actualTextStyle.copyWith(
                 fontSize: getSysDefaultFontSize * fontSize);
           } else {
@@ -186,6 +253,7 @@ class TextCaption extends Caption {
           break;
       }
     }
+    print('****textStyle is $actualTextStyle****');
     return actualTextStyle == const TextStyle() ? null : actualTextStyle;
   }
 

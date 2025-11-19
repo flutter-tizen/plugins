@@ -449,6 +449,9 @@ enum StreamingPropertyType {
   ///
   /// Whether to enable the function of obtaining http header. 'TRUE' or others.
   openHttpHeader,
+
+  ///
+  openManifest,
 }
 
 /// The different types of buffer configurations that can be set on the player.
@@ -561,6 +564,8 @@ class VideoEvent {
     this.picture,
     this.pictureWidth,
     this.pictureHeight,
+    this.manifestUpdated,
+    this.textDuration,
   });
 
   /// The type of the event.
@@ -570,6 +575,11 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.initialized].
   final DurationRange? duration;
+
+  /// The duration of text
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
+  final int? textDuration;
 
   /// Size of the video.
   ///
@@ -614,6 +624,9 @@ class VideoEvent {
   /// Only used when picture is not null.
   final double? pictureHeight;
 
+  ///
+  final String? manifestUpdated;
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -624,6 +637,7 @@ class VideoEvent {
             size == other.size &&
             buffered == other.buffered &&
             text == other.text &&
+            textDuration == other.textDuration &&
             isPlaying == other.isPlaying &&
             listEquals(subtitleAttributes, other.subtitleAttributes) &&
             mapEquals(adInfo, other.adInfo) &&
@@ -639,6 +653,7 @@ class VideoEvent {
       size.hashCode ^
       buffered.hashCode ^
       text.hashCode ^
+      textDuration.hashCode ^
       isPlaying.hashCode ^
       subtitleAttributes.hashCode ^
       adInfo.hashCode ^
@@ -681,6 +696,9 @@ enum VideoEventType {
 
   /// The ad event from dash.
   adFromDash,
+
+  /// The manifest updated in dash.
+  manifestUpdated,
 
   /// An unknown event has been received.
   unknown,
