@@ -1,3 +1,6 @@
+## 0.7.5
+* Fix the issue of subtitles remaining longer than their end time.
+
 ## 0.7.4
 * Update plusplayer
   1. [DASH] Fix this issue of audio switching not working in the dash video stream.
