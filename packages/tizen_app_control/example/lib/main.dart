@@ -89,6 +89,19 @@ class _MyAppState extends State<MyApp> {
     _localPort?.unregister();
   }
 
+  Future<void> _launchYoutube() async {
+    const String videoId = 'N7J4hdrvsZA';
+    final AppControl request = AppControl(
+      appId: 'com.samsung.tv.cobalt-yt',
+      operation: 'http://tizen.org/appcontrol/operation/default',
+      extraData: <String, dynamic>{
+        'PAYLOAD': '#watch?v=$videoId&launch=launcher',
+      },
+    );
+
+    await request.sendLaunchRequest();
+  }
+
   Future<void> _sendSms() async {
     final AppControl request = AppControl(
       operation: 'http://tizen.org/appcontrol/operation/share_text',
@@ -183,6 +196,11 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
+              ElevatedButton(
+                onPressed: _launchYoutube,
+                child: const Text('Launch Youtube App (Only TV)'),
+              ),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _sendSms,
                 child: const Text('Send SMS (No TV)'),
