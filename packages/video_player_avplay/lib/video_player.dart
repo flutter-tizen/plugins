@@ -186,10 +186,7 @@ class VideoPlayerValue {
   /// If the value of [caption.end] has greater than the current [position], this will be a [Caption.none] object.
   /// Only used for [copyWith].
   Caption get _currentCaption {
-    if (position > caption.end) {
-      return Caption.none;
-    }
-    return caption;
+    return position > caption.end ? Caption.none : caption;
   }
 
   /// Returns a new instance that has the same values as this current instance,
@@ -620,8 +617,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           final Duration textDuration = event.textDuration == 0
               ? Duration.zero
               : Duration(milliseconds: event.textDuration!);
-          // ignore: avoid_print
-          print('*****textDuration is $textDuration*******');
           final Caption caption = Caption(
             number: 0,
             start: value.position,
@@ -629,9 +624,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             text: event.text ?? '',
             subtitleAttributes: subtitleAttributes,
           );
-          // ignore: avoid_print
-          print(
-              '*****Caption start is ${caption.start}, end is ${caption.end}*******');
           value = value.copyWith(caption: caption);
         case VideoEventType.isPlayingStateUpdate:
           if (event.isPlaying ?? false) {
@@ -1143,7 +1135,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [Caption].
   Caption _getCaptionAt(Duration position) {
     if (_closedCaptionFile == null) {
-      return value.caption;
+      return position > value.caption.end ? Caption.none : value.caption;
     }
 
     final Duration delayedPosition = position + value.captionOffset;
