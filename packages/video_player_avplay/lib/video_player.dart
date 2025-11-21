@@ -182,6 +182,13 @@ class VideoPlayerValue {
     return aspectRatio;
   }
 
+  /// Returns the [Caption] that should be displayed based on the current [position].
+  /// If the value of [caption.end] has greater than the current [position], this will be a [Caption.none] object.
+  /// Only used for [copyWith].
+  Caption get _currentCaption {
+    return position > caption.end ? Caption.none : caption;
+  }
+
   /// Returns a new instance that has the same values as this current instance,
   /// except for any overrides passed in as arguments to [copyWidth].
   VideoPlayerValue copyWith({
@@ -206,7 +213,7 @@ class VideoPlayerValue {
       duration: duration ?? this.duration,
       size: size ?? this.size,
       position: position ?? this.position,
-      caption: caption ?? this.caption,
+      caption: caption ?? _currentCaption,
       captionOffset: captionOffset ?? this.captionOffset,
       tracks: tracks ?? this.tracks,
       buffered: buffered ?? this.buffered,
@@ -594,7 +601,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // we use pause() and seekTo() to ensure the platform stops playing
           // and seeks to the last frame of the video.
           pause().then((void pauseResult) => seekTo(value.duration.end));
-          value = value.copyWith(isCompleted: true);
+          value = value.copyWith(isCompleted: true, caption: Caption.none);
           _durationTimer?.cancel();
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
@@ -607,10 +614,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
               SubtitleAttribute.fromEventSubtitleAttrList(
             event.subtitleAttributes,
           );
+          final Duration textDuration = event.textDuration == 0
+              ? Duration.zero
+              : Duration(milliseconds: event.textDuration!);
           final Caption caption = Caption(
             number: 0,
             start: value.position,
-            end: value.position + (event.duration?.end ?? Duration.zero),
+            end: value.position + textDuration,
             text: event.text ?? '',
             subtitleAttributes: subtitleAttributes,
           );
@@ -1125,7 +1135,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [Caption].
   Caption _getCaptionAt(Duration position) {
     if (_closedCaptionFile == null) {
-      return value.caption;
+      return position > value.caption.end ? Caption.none : value.caption;
     }
 
     final Duration delayedPosition = position + value.captionOffset;
