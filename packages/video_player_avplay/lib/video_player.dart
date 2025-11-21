@@ -665,16 +665,64 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
               event.subtitleAttributes,
             );
 
-            final TextStyle? actualTextStyle =
-                TextCaption.specifyTextStyle(subtitleAttributes);
+            final (
+              TextOriginAndExtent?,
+              TextStyle?,
+              AlignmentGeometry,
+              Color,
+              double
+            ) subtitleAttr =
+                TextCaption.processSubtitleAttributes(subtitleAttributes);
+            TextOriginAndExtent? actualTextOriginAndExtent = subtitleAttr.$1;
+            TextStyle? actualTextStyle = subtitleAttr.$2;
+            final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
+            final Color actualWindowBgColor = subtitleAttr.$4;
+            double actualFontSize = subtitleAttr.$5;
+            bool fontSizeChanged = false;
+
+            // if (actualTextOriginAndExtent != null) {
+            //   final double x =
+            //       actualTextOriginAndExtent.originX! * value.size.width;
+            //   final double y =
+            //       actualTextOriginAndExtent.originY! * value.size.height;
+            //   final double width =
+            //       actualTextOriginAndExtent.extentWidth! * value.size.width;
+            //   final double height =
+            //       actualTextOriginAndExtent.extentHeight! * value.size.height;
+            //   actualTextOriginAndExtent = actualTextOriginAndExtent.addValue(
+            //       originX: x,
+            //       originY: y,
+            //       extentWidth: width,
+            //       extentHeight: height);
+
+            //   if (actualFontSize > 0 && actualFontSize <= 1.0) {
+            //     actualFontSize = actualFontSize * height;
+            //     fontSizeChanged = true;
+            //   }
+            // }
+
+            if (!fontSizeChanged &&
+                actualFontSize > 0 &&
+                actualFontSize <= 1.0) {
+              actualFontSize = actualFontSize * 36.0;
+              fontSizeChanged = true;
+            }
+
+            if (fontSizeChanged && actualTextStyle != null) {
+              actualTextStyle =
+                  actualTextStyle.copyWith(fontSize: actualFontSize);
+            }
+
             final TextCaption textCaption = TextCaption(
-              number: 0,
-              start: value.position,
-              end: value.position + textDuration,
-              text: event.text ?? '',
-              subtitleAttributes: subtitleAttributes,
-              textStyle: actualTextStyle,
-            );
+                number: 0,
+                start: value.position,
+                end: value.position + textDuration,
+                text: event.text ?? '',
+                subtitleAttributes: subtitleAttributes,
+                textStyle: actualTextStyle,
+                textOriginAndExtent: actualTextOriginAndExtent,
+                textAlign: actualTextAlign,
+                windowBgColor: actualWindowBgColor);
             print(
                 '*****Caption start is ${textCaption.start}, end is ${textCaption.end}*******');
             value = value.copyWith(textCaption: textCaption);
@@ -972,10 +1020,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
     if (formatHint != VideoFormat.dash &&
-        (type == StreamingPropertyType.unwantedResolution ||
-            type == StreamingPropertyType.unwantedFramerate ||
-            type == StreamingPropertyType.updateSameLanguageCode ||
-            type == StreamingPropertyType.dashToken ||
+        (type == StreamingPropertyType.dashToken ||
             type == StreamingPropertyType.openHttpHeader)) {
       throw Exception(
           'setStreamingProperty().$type only support for dash format!');
@@ -1668,22 +1713,52 @@ class ClosedCaption extends StatelessWidget {
             context,
           ).style.copyWith(fontSize: 36.0, color: Colors.white);
 
-      return Align(
-        alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 5),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xB8000000),
-              borderRadius: BorderRadius.circular(2.0),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2.0),
-              child: Text(text, style: effectiveTextStyle),
+      if (textCaption?.textOriginAndExtent != null) {
+        print(
+            '///////////////////////textOriginAndExtent is ${textCaption?.textOriginAndExtent!.originX},${textCaption?.textOriginAndExtent!.originY}, ${textCaption?.textOriginAndExtent!.extentWidth}, ${textCaption?.textOriginAndExtent!.extentHeight}');
+        // return Positioned(
+        //     left: textCaption?.textOriginAndExtent!.originX,
+        //     top: textCaption?.textOriginAndExtent!.originY,
+        //     width: textCaption?.textOriginAndExtent!.extentWidth,
+        //     height: textCaption?.textOriginAndExtent!.extentHeight,
+        //     child: Container(
+        //         color: textCaption?.windowBgColor ?? const Color(0xB8000000),
+        //         child: Align(
+        //             alignment: textCaption?.textAlign ?? Alignment.center,
+        //             child: Text(text, style: effectiveTextStyle))));
+        return Positioned.fill(
+            child: Align(
+          alignment: Alignment(textCaption!.textOriginAndExtent!.originX,
+              textCaption!.textOriginAndExtent!.originY),
+          child: FractionallySizedBox(
+            widthFactor: textCaption?.textOriginAndExtent!.extentWidth,
+            heightFactor: textCaption?.textOriginAndExtent!.extentHeight,
+            child: Container(
+                color: textCaption?.windowBgColor ?? const Color(0xB8000000),
+                child: Align(
+                    alignment: textCaption?.textAlign ?? Alignment.center,
+                    child: Text(text, style: effectiveTextStyle))),
+          ),
+        ));
+      } else {
+        print('+++++++++++++++++++++yes origin+++++++++++++++++++++++++++++');
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: textCaption?.windowBgColor ?? const Color(0xB8000000),
+                borderRadius: BorderRadius.circular(2.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                child: Text(text, style: effectiveTextStyle),
+              ),
             ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 }

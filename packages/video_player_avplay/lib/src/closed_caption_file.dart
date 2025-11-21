@@ -60,14 +60,16 @@ sealed class Caption {
 @immutable
 class TextCaption extends Caption {
   /// Creates a new [TextCaption] object.
-  const TextCaption({
-    required super.number,
-    required super.start,
-    required super.end,
-    required this.text,
-    this.subtitleAttributes,
-    this.textStyle,
-  });
+  const TextCaption(
+      {required super.number,
+      required super.start,
+      required super.end,
+      required this.text,
+      this.subtitleAttributes,
+      this.textStyle,
+      this.textOriginAndExtent,
+      this.textAlign,
+      this.windowBgColor});
 
   /// The actual text that should appear on screen to be read between [start]
   /// and [end].
@@ -79,6 +81,15 @@ class TextCaption extends Caption {
   /// Specifies how the text in the closed caption should look.
   final TextStyle? textStyle;
 
+  ///
+  final TextOriginAndExtent? textOriginAndExtent;
+
+  ///
+  final AlignmentGeometry? textAlign;
+
+  ///
+  final Color? windowBgColor;
+
   /// A no text caption object. This is a caption with [start] and [end] durations of zero,
   /// and an empty [text] string.
   static const TextCaption none = TextCaption(
@@ -89,7 +100,10 @@ class TextCaption extends Caption {
     subtitleAttributes: <SubtitleAttribute?>[],
   );
 
-  static Color? _intToColor(int colorValue) {
+  static Color _intToColor(int colorValue) {
+    if (colorValue <= 0) {
+      return const Color(0x00000000);
+    }
     String hexValue = colorValue.toRadixString(16);
     if (hexValue.length < 6) {
       hexValue = hexValue.padLeft(6, '0');
@@ -100,7 +114,7 @@ class TextCaption extends Caption {
     if (hexValue.length == 8) {
       return Color(int.parse('0x$hexValue'));
     }
-    return null;
+    return const Color(0x00000000);
   }
 
   static FontWeight _intToFontWeight(int weightValue) {
@@ -111,90 +125,77 @@ class TextCaption extends Caption {
     return styleValue == 0 ? FontStyle.normal : FontStyle.italic;
   }
 
-  /// Specifies the text alignment according to subtitle attributes.
-  static AlignmentGeometry specifyTextAlignment(
-      List<SubtitleAttribute> subtitleAttributes) {
-    AlignmentGeometry actualTextAlignment = Alignment.center;
-    double alignmentX = -777.0, alignmentY = -777.0;
+  static AlignmentGeometry _intToTextVerticalAlign(int alignValue) {
+    return switch (alignValue) {
+      0 => Alignment.topCenter,
+      2 => Alignment.bottomCenter,
+      _ => Alignment.center,
+    };
+  }
+
+  static AlignmentGeometry _intToTextHorizontalAlign(int alignValue) {
+    return switch (alignValue) {
+      0 => Alignment.centerLeft,
+      2 => Alignment.centerRight,
+      _ => Alignment.center,
+    };
+  }
+
+  /// Process subtitle attributes and return the text alignment and text style.
+  static (TextOriginAndExtent?, TextStyle?, AlignmentGeometry, Color, double)
+      processSubtitleAttributes(List<SubtitleAttribute> subtitleAttributes) {
+    TextOriginAndExtent actualTextOriginAndExtent = TextOriginAndExtent.none;
+    TextStyle actualTextStyle = const TextStyle();
+    AlignmentGeometry actualTextAlign = Alignment.center;
+    Color actualWindowBgColor =
+        const Color(0x00000000); // default transparent color.
+    double actualFontSize = 1.0;
+
+    if (subtitleAttributes.isEmpty) {
+      return (
+        actualTextOriginAndExtent,
+        actualTextStyle,
+        actualTextAlign,
+        actualWindowBgColor,
+        actualFontSize
+      );
+    }
 
     for (final SubtitleAttribute attr in subtitleAttributes) {
       switch (attr.attrType) {
+        // For text origin and extent.
         case SubtitleAttrType.subAttrRegionXPos:
           final double xPos = attr.attrValue as double;
           if (xPos > 0) {
-            alignmentX = xPos * 2 - 1.0;
+            actualTextOriginAndExtent =
+                actualTextOriginAndExtent.addValue(originX: xPos);
           }
         case SubtitleAttrType.subAttrRegionYPos:
           final double yPos = attr.attrValue as double;
           if (yPos > 0) {
-            alignmentY = yPos * 2 - 1.0;
+            actualTextOriginAndExtent =
+                actualTextOriginAndExtent.addValue(originY: yPos);
           }
-        case SubtitleAttrType.subAttrFontFamily:
-        case SubtitleAttrType.subAttrFontSize:
-        case SubtitleAttrType.subAttrFontWeight:
-        case SubtitleAttrType.subAttrFontStyle:
-        case SubtitleAttrType.subAttrFontColor:
-        case SubtitleAttrType.subAttrFontBgColor:
-        case SubtitleAttrType.subAttrFontOpacity:
-        case SubtitleAttrType.subAttrFontBgOpacity:
-        case SubtitleAttrType.subAttrFontTextOutlineColor:
-        case SubtitleAttrType.subAttrFontTextOutlineThickness:
-        case SubtitleAttrType.subAttrFontTextOutlineBlurRadius:
         case SubtitleAttrType.subAttrRegionWidth:
+          final double width = attr.attrValue as double;
+          if (width > 0) {
+            actualTextOriginAndExtent =
+                actualTextOriginAndExtent.addValue(extentWidth: width);
+          }
         case SubtitleAttrType.subAttrRegionHeight:
-        case SubtitleAttrType.subAttrWindowXPadding:
-        case SubtitleAttrType.subAttrWindowYPadding:
-        case SubtitleAttrType.subAttrWindowLeftMargin:
-        case SubtitleAttrType.subAttrWindowRightMargin:
-        case SubtitleAttrType.subAttrWindowTopMargin:
-        case SubtitleAttrType.subAttrWindowBottomMargin:
-        case SubtitleAttrType.subAttrWindowBgColor:
-        case SubtitleAttrType.subAttrWindowOpacity:
-        case SubtitleAttrType.subAttrWindowShowBg:
-        case SubtitleAttrType.subAttrFontVerticalAlign:
-        case SubtitleAttrType.subAttrFontHorizontalAlign:
-        case SubtitleAttrType.subAttrRawSubtitle:
-        case SubtitleAttrType.subAttrWebvttCueLine:
-        case SubtitleAttrType.subAttrWebvttCueLineNum:
-        case SubtitleAttrType.subAttrWebvttCueLineAlign:
-        case SubtitleAttrType.subAttrWebvttCueAlign:
-        case SubtitleAttrType.subAttrWebvttCueSize:
-        case SubtitleAttrType.subAttrWebvttCuePosition:
-        case SubtitleAttrType.subAttrWebvttCuePositionAlign:
-        case SubtitleAttrType.subAttrWebvttCueVertical:
-        case SubtitleAttrType.subAttrTimestamp:
-        case SubtitleAttrType.subAttrExtsubInde:
-        case SubtitleAttrType.subAttrTypeNone:
-          break;
-      }
-    }
-    if (alignmentX != -777.0 && alignmentY != -777.0) {
-      actualTextAlignment = Alignment(alignmentX, alignmentY);
-    }
-
-    return actualTextAlignment;
-  }
-
-  /// Specifies the text style according to subtitle attributes.
-  static TextStyle? specifyTextStyle(
-      List<SubtitleAttribute> subtitleAttributes) {
-    TextStyle actualTextStyle = const TextStyle();
-    for (final SubtitleAttribute attr in subtitleAttributes) {
-      switch (attr.attrType) {
+          final double height = attr.attrValue as double;
+          if (height > 0) {
+            actualTextOriginAndExtent =
+                actualTextOriginAndExtent.addValue(extentHeight: height);
+          }
+        // For text style.
         case SubtitleAttrType.subAttrFontFamily:
           actualTextStyle =
               actualTextStyle.copyWith(fontFamily: attr.attrValue as String);
         case SubtitleAttrType.subAttrFontSize:
           final double fontSize = attr.attrValue as double;
-          const double getSysDefaultFontSize = 36.0;
-          if (fontSize <= 0) {
-            actualTextStyle =
-                actualTextStyle.copyWith(fontSize: getSysDefaultFontSize);
-          } else if (fontSize < 1.0) {
-            actualTextStyle = actualTextStyle.copyWith(
-                fontSize: getSysDefaultFontSize * fontSize);
-          } else {
-            actualTextStyle = actualTextStyle.copyWith(fontSize: fontSize);
+          if (fontSize > 0) {
+            actualFontSize = fontSize;
           }
         case SubtitleAttrType.subAttrFontWeight:
           actualTextStyle = actualTextStyle.copyWith(
@@ -208,36 +209,43 @@ class TextCaption extends Caption {
                 color: _intToColor(attr.attrValue as int));
           }
         case SubtitleAttrType.subAttrFontBgColor:
+          print('*******bgcolor**************');
           if (actualTextStyle.background == null) {
+            print('*****aaaa*******');
             actualTextStyle = actualTextStyle.copyWith(
                 backgroundColor: _intToColor(attr.attrValue as int));
           }
+          print('******${Color(0x00000000).toARGB32()}****');
+          print('****${actualTextStyle.backgroundColor!.toARGB32()}****');
         case SubtitleAttrType.subAttrFontOpacity:
           actualTextStyle = actualTextStyle.copyWith(
-              color:
-                  actualTextStyle.color!.withOpacity(attr.attrValue as double));
+              color: actualTextStyle.color!
+                  .withValues(alpha: attr.attrValue as double));
         case SubtitleAttrType.subAttrFontBgOpacity:
           actualTextStyle = actualTextStyle.copyWith(
               backgroundColor: actualTextStyle.backgroundColor!
-                  .withOpacity(attr.attrValue as double));
+                  .withValues(alpha: attr.attrValue as double));
+        case SubtitleAttrType.subAttrFontVerticalAlign:
+          actualTextAlign = actualTextAlign
+              .add(_intToTextVerticalAlign(attr.attrValue as int));
+        case SubtitleAttrType.subAttrFontHorizontalAlign:
+          actualTextAlign = actualTextAlign
+              .add(_intToTextHorizontalAlign(attr.attrValue as int));
+        case SubtitleAttrType.subAttrWindowBgColor:
+          actualWindowBgColor = _intToColor(attr.attrValue as int);
+        case SubtitleAttrType.subAttrWindowOpacity:
+          actualWindowBgColor =
+              actualWindowBgColor.withValues(alpha: attr.attrValue as double);
         case SubtitleAttrType.subAttrFontTextOutlineColor:
         case SubtitleAttrType.subAttrFontTextOutlineThickness:
         case SubtitleAttrType.subAttrFontTextOutlineBlurRadius:
-        case SubtitleAttrType.subAttrRegionXPos:
-        case SubtitleAttrType.subAttrRegionYPos:
-        case SubtitleAttrType.subAttrRegionWidth:
-        case SubtitleAttrType.subAttrRegionHeight:
         case SubtitleAttrType.subAttrWindowXPadding:
         case SubtitleAttrType.subAttrWindowYPadding:
         case SubtitleAttrType.subAttrWindowLeftMargin:
         case SubtitleAttrType.subAttrWindowRightMargin:
         case SubtitleAttrType.subAttrWindowTopMargin:
         case SubtitleAttrType.subAttrWindowBottomMargin:
-        case SubtitleAttrType.subAttrWindowBgColor:
-        case SubtitleAttrType.subAttrWindowOpacity:
         case SubtitleAttrType.subAttrWindowShowBg:
-        case SubtitleAttrType.subAttrFontVerticalAlign:
-        case SubtitleAttrType.subAttrFontHorizontalAlign:
         case SubtitleAttrType.subAttrRawSubtitle:
         case SubtitleAttrType.subAttrWebvttCueLine:
         case SubtitleAttrType.subAttrWebvttCueLineNum:
@@ -253,8 +261,25 @@ class TextCaption extends Caption {
           break;
       }
     }
-    print('****textStyle is $actualTextStyle****');
-    return actualTextStyle == const TextStyle() ? null : actualTextStyle;
+    // print('**** TextStyle Debug Info ****');
+    // print('color: ${actualTextStyle.color!.toARGB32()}');
+    // print('backgroundColor: ${actualTextStyle.backgroundColor!.toARGB32()}');
+    // print('fontSize: ${actualTextStyle.fontSize}');
+    // print('fontFamily: ${actualTextStyle.fontFamily}');
+    // print('fontWeight: ${actualTextStyle.fontWeight.toString()}');
+    // print('fontStyle: ${actualTextStyle.fontStyle}');
+    // print('foreground: ${actualTextStyle.foreground}');
+    // print('background: ${actualTextStyle.background}');
+    // print('*******************************');
+    return (
+      actualTextOriginAndExtent == TextOriginAndExtent.none
+          ? null
+          : actualTextOriginAndExtent,
+      actualTextStyle == const TextStyle() ? null : actualTextStyle,
+      actualTextAlign,
+      actualWindowBgColor,
+      actualFontSize
+    );
   }
 
   @override
@@ -343,6 +368,61 @@ class PictureCaption extends Caption {
   @override
   int get hashCode =>
       Object.hash(number, start, end, picture, pictureWidth, pictureHeight);
+}
+
+/// This attribute defines the upper-left corner of a rectangular region using [originX] and [originY] coordinate values
+/// and the width and height of the rectangular region using [extentWidth] and [extentHeight],
+/// which are typically specified as percentages of the video's width and height.
+@immutable
+class TextOriginAndExtent {
+  /// Creates a new [TextOriginAndExtent] object.
+  const TextOriginAndExtent(
+      {required this.originX,
+      required this.originY,
+      this.extentWidth,
+      this.extentHeight});
+
+  /// The x-coordinate of the upper-left corner of the rectangular region.
+  final double originX;
+
+  /// The y-coordinate of the upper-left corner of the rectangular region.
+  final double originY;
+
+  /// The width of the rectangular region.
+  final double? extentWidth;
+
+  /// The height of the rectangular region.
+  final double? extentHeight;
+
+  /// Adds values to the current [TextOriginAndExtent] object.
+  TextOriginAndExtent addValue(
+      {double? originX,
+      double? originY,
+      double? extentWidth,
+      double? extentHeight}) {
+    return TextOriginAndExtent(
+        originX: originX ?? this.originX,
+        originY: originY ?? this.originY,
+        extentWidth: extentWidth ?? this.extentWidth,
+        extentHeight: extentHeight ?? this.extentHeight);
+  }
+
+  /// A no text origin and extent object. This is a caption with [originX], [originY], [extentWidth], and [extentHeight] of zero.
+  static const TextOriginAndExtent none = TextOriginAndExtent(
+      originX: 0.0, originY: 0.0, extentWidth: 0.0, extentHeight: 0.0);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TextOriginAndExtent &&
+          runtimeType == other.runtimeType &&
+          originX == other.originX &&
+          originY == other.originY &&
+          extentWidth == other.extentWidth &&
+          extentHeight == other.extentHeight;
+
+  @override
+  int get hashCode => Object.hash(originX, originY, extentWidth, extentHeight);
 }
 
 /// The different types of subtitle attributes that can be set on the player.

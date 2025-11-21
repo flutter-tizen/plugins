@@ -184,6 +184,7 @@ void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
   if (!::SetDisplayRoi(player_, roi)) {
     LOG_ERROR("[PlusPlayer] Player fail to set display roi.");
   }
+  LOG_INFO("*****display roi is %d X %d**********", width, height);
 }
 
 bool PlusPlayer::Play() {
@@ -711,9 +712,7 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
   if ((!create_message_.format_hint() ||
        create_message_.format_hint()->empty() ||
        *create_message_.format_hint() != "dash") &&
-      (type == "OPEN_HTTP_HEADER" || type == "TOKEN" ||
-       type == "UNWANTED_FRAMERATE" || type == "UNWANTED_RESOLUTION" ||
-       type == "UPDATE_SAME_LANGUAGE_CODE")) {
+      (type == "OPEN_HTTP_HEADER" || type == "TOKEN")) {
     LOG_ERROR("[PlusPlayer] Only support streaming property type: %s for DASH!",
               type.c_str());
     return;
@@ -1088,11 +1087,9 @@ void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
   if (!SetDisplayVisible(self->player_, true)) {
     LOG_ERROR("[PlusPlayer] Fail to set display visible.");
   }
-
   if (!self->is_initialized_ && ret) {
     self->SendInitialized();
   }
-
   if (self->is_restored_ && ret) {
     self->SendRestored();
   }
