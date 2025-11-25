@@ -1,6 +1,5 @@
 ## 0.7.5
-* Support parsing SMPE-TT(sidecar) subtitle attributes.
-* Support image format subtitles.
+* Fix the issue of subtitles remaining longer than their end time.
 
 ## 0.7.4
 * Update plusplayer

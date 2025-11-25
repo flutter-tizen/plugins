@@ -527,6 +527,7 @@ class VideoEvent {
     this.size,
     this.buffered,
     this.text,
+    this.textDuration,
     this.isPlaying,
     this.subtitleAttributes,
     this.adInfo,
@@ -534,7 +535,6 @@ class VideoEvent {
     this.pictureWidth,
     this.pictureHeight,
     this.manifestUpdated,
-    this.textDuration,
   });
 
   /// The type of the event.
@@ -544,11 +544,6 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.initialized].
   final DurationRange? duration;
-
-  /// The duration of text
-  ///
-  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
-  final int? textDuration;
 
   /// Size of the video.
   ///
@@ -564,6 +559,11 @@ class VideoEvent {
   ///
   /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
   final String? text;
+
+  /// The duration of text
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
+  final int? textDuration;
 
   /// Whether the video is currently playing.
   ///
