@@ -1698,7 +1698,7 @@ class ClosedCaption extends StatelessWidget {
                 return FractionallySizedBox(
                   widthFactor: textCaption?.textOriginAndExtent?.extentWidth,
                   heightFactor: textCaption?.textOriginAndExtent?.extentHeight,
-                  child: Container(
+                  child: ColoredBox(
                     color:
                         textCaption?.windowBgColor ?? const Color(0xB8000000),
                     child: Align(
