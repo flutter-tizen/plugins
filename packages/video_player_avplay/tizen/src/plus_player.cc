@@ -184,7 +184,6 @@ void PlusPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
   if (!::SetDisplayRoi(player_, roi)) {
     LOG_ERROR("[PlusPlayer] Player fail to set display roi.");
   }
-  LOG_INFO("*****display roi is %d X %d**********", width, height);
 }
 
 bool PlusPlayer::Play() {
@@ -718,9 +717,18 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
     return;
   }
 
-  LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
-           value.c_str());
-  ::SetStreamingProperty(player_, type, value);
+  if (type == "ADAPTIVE_INFO") {
+    std::vector<std::string> properties = split(value, ';');
+    for (const auto &property : properties) {
+      LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]",
+               type.c_str(), property.c_str());
+      ::SetStreamingProperty(player_, type, property);
+    }
+  } else {
+    LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
+             value.c_str());
+    ::SetStreamingProperty(player_, type, value);
+  }
 }
 
 bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
@@ -1211,29 +1219,29 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       case plusplayer::kSubAttrWebvttCuePositionAlign:
       case plusplayer::kSubAttrWebvttCueVertical:
       case plusplayer::kSubAttrTimestamp: {
-        int value_int = reinterpret_cast<int>(attr->value);
-        LOG_DEBUG("[PlusPlayer] Subtitle update: value<int>: %d", value_int);
+        int64_t value_int = reinterpret_cast<int64_t>(attr->value);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int64_t>: %d", value_int);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_int);
       } break;
       case plusplayer::kSubAttrFontFamily:
       case plusplayer::kSubAttrRawSubtitle: {
         const char *value_chars = reinterpret_cast<const char *>(attr->value);
-        LOG_DEBUG("[PlusPlayer] Subtitle update: value<char *>: %s",
-                  value_chars);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<char *>: %s",
+                 value_chars);
         std::string value_string(value_chars);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_string);
       } break;
       case plusplayer::kSubAttrWindowShowBg: {
         uint32_t value_uint32 = reinterpret_cast<uint32_t>(attr->value);
-        LOG_DEBUG("[PlusPlayer] Subtitle update: value<uint32_t>: %u",
-                  value_uint32);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<uint32_t>: %u",
+                 value_uint32);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((int64_t)value_uint32);
       } break;
       default:
-        LOG_DEBUG("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
+        LOG_INFO("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
         break;
     }
     attributes_list.push_back(flutter::EncodableValue(attributes));

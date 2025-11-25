@@ -176,9 +176,7 @@ class VideoPlayerValue {
   /// Indicates whether or not the video has ADInfo.
   bool get hasAdInfo => adInfo != null;
 
-  /// Indicates whether or not the video has special subtitle text style.
-  bool get hasTextStyle => textCaption.textStyle != null;
-
+  ///
   bool get hasManifestUpdated => manifestUpdated != null;
 
   /// Returns [size.width] / [size.height].
@@ -277,6 +275,7 @@ class VideoPlayerValue {
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
         'adInfo: $adInfo, '
+        'manifestUpdated: $manifestUpdated, '
         'isCompleted: $isCompleted),';
   }
 
@@ -301,6 +300,7 @@ class VideoPlayerValue {
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
           adInfo == other.adInfo &&
+          manifestUpdated == other.manifestUpdated &&
           isCompleted == other.isCompleted;
 
   @override
@@ -321,6 +321,7 @@ class VideoPlayerValue {
         playbackSpeed,
         errorDescription,
         adInfo,
+        manifestUpdated,
         isCompleted,
       );
 }
@@ -646,7 +647,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           final Duration textDuration = event.textDuration == 0
               ? Duration.zero
               : Duration(milliseconds: event.textDuration!);
-          print('*****textDuration is $textDuration*******');
           if (event.picture?.isNotEmpty ?? false) {
             final PictureCaption pictureCaption = PictureCaption(
               number: 0,
@@ -656,8 +656,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
               pictureWidth: event.pictureWidth,
               pictureHeight: event.pictureHeight,
             );
-            print(
-                '*****Caption start is ${pictureCaption.start}, end is ${pictureCaption.end}*******');
             value = value.copyWith(pictureCaption: pictureCaption);
           } else {
             final List<SubtitleAttribute> subtitleAttributes =
@@ -673,45 +671,12 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
               double
             ) subtitleAttr =
                 TextCaption.processSubtitleAttributes(subtitleAttributes);
-            TextOriginAndExtent? actualTextOriginAndExtent = subtitleAttr.$1;
-            TextStyle? actualTextStyle = subtitleAttr.$2;
+            final TextOriginAndExtent? actualTextOriginAndExtent =
+                subtitleAttr.$1;
+            final TextStyle? actualTextStyle = subtitleAttr.$2;
             final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
             final Color actualWindowBgColor = subtitleAttr.$4;
-            double actualFontSize = subtitleAttr.$5;
-            bool fontSizeChanged = false;
-
-            // if (actualTextOriginAndExtent != null) {
-            //   final double x =
-            //       actualTextOriginAndExtent.originX! * value.size.width;
-            //   final double y =
-            //       actualTextOriginAndExtent.originY! * value.size.height;
-            //   final double width =
-            //       actualTextOriginAndExtent.extentWidth! * value.size.width;
-            //   final double height =
-            //       actualTextOriginAndExtent.extentHeight! * value.size.height;
-            //   actualTextOriginAndExtent = actualTextOriginAndExtent.addValue(
-            //       originX: x,
-            //       originY: y,
-            //       extentWidth: width,
-            //       extentHeight: height);
-
-            //   if (actualFontSize > 0 && actualFontSize <= 1.0) {
-            //     actualFontSize = actualFontSize * height;
-            //     fontSizeChanged = true;
-            //   }
-            // }
-
-            if (!fontSizeChanged &&
-                actualFontSize > 0 &&
-                actualFontSize <= 1.0) {
-              actualFontSize = actualFontSize * 36.0;
-              fontSizeChanged = true;
-            }
-
-            if (fontSizeChanged && actualTextStyle != null) {
-              actualTextStyle =
-                  actualTextStyle.copyWith(fontSize: actualFontSize);
-            }
+            final double actualFontSize = subtitleAttr.$5;
 
             final TextCaption textCaption = TextCaption(
                 number: 0,
@@ -722,9 +687,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
                 textStyle: actualTextStyle,
                 textOriginAndExtent: actualTextOriginAndExtent,
                 textAlign: actualTextAlign,
-                windowBgColor: actualWindowBgColor);
-            print(
-                '*****Caption start is ${textCaption.start}, end is ${textCaption.end}*******');
+                windowBgColor: actualWindowBgColor,
+                fontSize: actualFontSize);
             value = value.copyWith(textCaption: textCaption);
           }
         case VideoEventType.isPlayingStateUpdate:
@@ -1708,40 +1672,46 @@ class ClosedCaption extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
-      final TextStyle effectiveTextStyle = textCaption?.textStyle ??
+      TextStyle effectiveTextStyle = textCaption?.textStyle ??
           DefaultTextStyle.of(
             context,
           ).style.copyWith(fontSize: 36.0, color: Colors.white);
 
       if (textCaption?.textOriginAndExtent != null) {
-        print(
-            '///////////////////////textOriginAndExtent is ${textCaption?.textOriginAndExtent!.originX},${textCaption?.textOriginAndExtent!.originY}, ${textCaption?.textOriginAndExtent!.extentWidth}, ${textCaption?.textOriginAndExtent!.extentHeight}');
-        // return Positioned(
-        //     left: textCaption?.textOriginAndExtent!.originX,
-        //     top: textCaption?.textOriginAndExtent!.originY,
-        //     width: textCaption?.textOriginAndExtent!.extentWidth,
-        //     height: textCaption?.textOriginAndExtent!.extentHeight,
-        //     child: Container(
-        //         color: textCaption?.windowBgColor ?? const Color(0xB8000000),
-        //         child: Align(
-        //             alignment: textCaption?.textAlign ?? Alignment.center,
-        //             child: Text(text, style: effectiveTextStyle))));
         return Positioned.fill(
-            child: Align(
-          alignment: Alignment(textCaption!.textOriginAndExtent!.originX,
-              textCaption!.textOriginAndExtent!.originY),
-          child: FractionallySizedBox(
-            widthFactor: textCaption?.textOriginAndExtent!.extentWidth,
-            heightFactor: textCaption?.textOriginAndExtent!.extentHeight,
-            child: Container(
-                color: textCaption?.windowBgColor ?? const Color(0xB8000000),
-                child: Align(
-                    alignment: textCaption?.textAlign ?? Alignment.center,
-                    child: Text(text, style: effectiveTextStyle))),
+          child: Align(
+            alignment: Alignment(
+              textCaption!.textOriginAndExtent!.originX,
+              textCaption!.textOriginAndExtent!.originY,
+            ),
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final double actualHeight = constraints.maxHeight *
+                    (textCaption?.textOriginAndExtent?.extentHeight ?? 1.0);
+
+                final double dynamicFontSize =
+                    actualHeight * (textCaption?.fontSize ?? 1.0);
+
+                effectiveTextStyle =
+                    effectiveTextStyle.copyWith(fontSize: dynamicFontSize);
+
+                return FractionallySizedBox(
+                  widthFactor: textCaption?.textOriginAndExtent?.extentWidth,
+                  heightFactor: textCaption?.textOriginAndExtent?.extentHeight,
+                  child: Container(
+                    color:
+                        textCaption?.windowBgColor ?? const Color(0xB8000000),
+                    child: Align(
+                        alignment: textCaption?.textAlign ?? Alignment.center,
+                        child: Text(text, style: effectiveTextStyle)),
+                  ),
+                );
+              },
+            ),
           ),
-        ));
+        );
       } else {
-        print('+++++++++++++++++++++yes origin+++++++++++++++++++++++++++++');
+        effectiveTextStyle = effectiveTextStyle.copyWith(fontSize: 36.0);
         return Align(
           alignment: Alignment.bottomCenter,
           child: Padding(

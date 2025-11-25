@@ -349,6 +349,7 @@ enum StreamingPropertyType {
   /// "MAX_FRAMERATE=framerate". Only specifies the maximum acceptable video framerate for DASH adaptive streaming.
   /// "UPDATE_SAME_LANGUAGE_CODE=language_code". Only available for DASH stream. Update the language code in manifest like lang="'en'+'i'", where "i" will be an integer
   /// when there are more than one adaptation set with same language code. The value of language_code be like 0, 1 or others as defined in the manifest.
+  /// "OPEN_SUBTITLE_STYLE=TRUE". Only available for DASH stream. Enable subtitle style for DASH stream.
   adaptiveInfo,
 
   /// Forces the player to use the 4K UHD decoder. Its parameter can be the string "TRUE" or "FALSE".

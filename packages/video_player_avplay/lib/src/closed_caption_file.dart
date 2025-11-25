@@ -69,7 +69,8 @@ class TextCaption extends Caption {
       this.textStyle,
       this.textOriginAndExtent,
       this.textAlign,
-      this.windowBgColor});
+      this.windowBgColor,
+      this.fontSize});
 
   /// The actual text that should appear on screen to be read between [start]
   /// and [end].
@@ -89,6 +90,9 @@ class TextCaption extends Caption {
 
   ///
   final Color? windowBgColor;
+
+  ///
+  final double? fontSize;
 
   /// A no text caption object. This is a caption with [start] and [end] durations of zero,
   /// and an empty [text] string.
@@ -209,14 +213,10 @@ class TextCaption extends Caption {
                 color: _intToColor(attr.attrValue as int));
           }
         case SubtitleAttrType.subAttrFontBgColor:
-          print('*******bgcolor**************');
           if (actualTextStyle.background == null) {
-            print('*****aaaa*******');
             actualTextStyle = actualTextStyle.copyWith(
                 backgroundColor: _intToColor(attr.attrValue as int));
           }
-          print('******${Color(0x00000000).toARGB32()}****');
-          print('****${actualTextStyle.backgroundColor!.toARGB32()}****');
         case SubtitleAttrType.subAttrFontOpacity:
           actualTextStyle = actualTextStyle.copyWith(
               color: actualTextStyle.color!
@@ -261,16 +261,6 @@ class TextCaption extends Caption {
           break;
       }
     }
-    // print('**** TextStyle Debug Info ****');
-    // print('color: ${actualTextStyle.color!.toARGB32()}');
-    // print('backgroundColor: ${actualTextStyle.backgroundColor!.toARGB32()}');
-    // print('fontSize: ${actualTextStyle.fontSize}');
-    // print('fontFamily: ${actualTextStyle.fontFamily}');
-    // print('fontWeight: ${actualTextStyle.fontWeight.toString()}');
-    // print('fontStyle: ${actualTextStyle.fontStyle}');
-    // print('foreground: ${actualTextStyle.foreground}');
-    // print('background: ${actualTextStyle.background}');
-    // print('*******************************');
     return (
       actualTextOriginAndExtent == TextOriginAndExtent.none
           ? null
