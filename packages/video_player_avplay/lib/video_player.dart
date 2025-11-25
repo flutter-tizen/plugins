@@ -1199,11 +1199,14 @@ class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {
 /// Widget that displays the video controlled by [controller].
 class VideoPlayer extends StatefulWidget {
   /// Uses the given [controller] for all video rendered in this widget.
-  const VideoPlayer(this.controller, {super.key});
+  const VideoPlayer(this.controller, {super.key, this.scale = 1.0});
 
   /// The [VideoPlayerController] responsible for the video being rendered in
   /// this widget.
   final VideoPlayerController controller;
+
+  /// Scales the VideoPlayer widget size.
+  final double scale;
 
   @override
   State<VideoPlayer> createState() => _VideoPlayerState();
@@ -1278,7 +1281,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     final double pixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
     final RenderBox renderBox = renderObject as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero) * pixelRatio;
-    final Size size = renderBox.size * pixelRatio;
+    final Size size = renderBox.size * pixelRatio * widget.scale;
     return offset & size;
   }
 
