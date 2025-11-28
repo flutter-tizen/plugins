@@ -1,3 +1,6 @@
+## 0.7.6
+* Fix video doesn't scale issue.
+
 ## 0.7.5
 * Fix the issue of subtitles remaining longer than their end time.
 
