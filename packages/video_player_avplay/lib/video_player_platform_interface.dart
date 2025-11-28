@@ -419,7 +419,9 @@ enum StreamingPropertyType {
   /// Whether to enable the function of obtaining http header. 'TRUE' or others.
   openHttpHeader,
 
+  /// Only available for DASH stream.
   ///
+  /// To control is force enable if can get manifest content callback. 'TRUE' or others.
   openManifest,
 }
 
