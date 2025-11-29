@@ -1,3 +1,7 @@
+## 0.7.7
+
+* Fix black line issue when playing video.
+
 ## 0.7.6
 * Fix video doesn't scale issue.
 
