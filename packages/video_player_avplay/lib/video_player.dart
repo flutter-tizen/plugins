@@ -1246,26 +1246,29 @@ class _VideoPlayerState extends State<VideoPlayer> {
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
 
+  bool _isInvalid(double value) {
+    return value.isInfinite || value.isNaN;
+  }
+
   void _afterFrameLayout(_) {
     if (widget.controller.value.isInitialized) {
-      final Rect currentRect = _getCurrentRect();
-      if (currentRect != Rect.zero && _playerRect != currentRect) {
+      final Rect rect = _getCurrentRect();
+      if (rect != Rect.zero && _playerRect != rect) {
+        final double offsetLeft = rect.left - rect.left.floor();
+        final double offsetTop = rect.top - rect.top.floor();
+        final double offsetWidth = rect.width.ceil() - rect.width;
+        final double offsetHeight = rect.height.ceil() - rect.height;
+        final int left = _isInvalid(rect.left) ? 0 : rect.left.floor();
+        final int top = _isInvalid(rect.top) ? 0 : rect.top.floor();
+        final int width = _isInvalid(rect.width)
+            ? 1
+            : rect.width.ceil() + ((offsetLeft > offsetWidth) ? 1 : 0);
+        final int height = _isInvalid(rect.height)
+            ? 1
+            : rect.height.ceil() + ((offsetTop > offsetHeight) ? 1 : 0);
         _videoPlayerPlatform.setDisplayGeometry(
-          _playerId,
-          (currentRect.left.isInfinite || currentRect.left.isNaN)
-              ? 0
-              : currentRect.left.toInt(),
-          (currentRect.top.isInfinite || currentRect.top.isNaN)
-              ? 0
-              : currentRect.top.toInt(),
-          (currentRect.width.isInfinite || currentRect.width.isNaN)
-              ? 1
-              : currentRect.width.toInt(),
-          (currentRect.height.isInfinite || currentRect.height.isNaN)
-              ? 1
-              : currentRect.height.toInt(),
-        );
-        _playerRect = currentRect;
+            _playerId, left, top, width, height);
+        _playerRect = rect;
       }
     }
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
