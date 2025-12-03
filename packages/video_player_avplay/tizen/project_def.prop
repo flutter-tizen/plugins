@@ -6,7 +6,19 @@ type = sharedLib
 profile = common-5.5
 
 # Source files
-USER_SRCS += src/*.cc
+USER_SRCS += \
+    src/device_proxy.cc \
+    src/drm_license_helper.cc \
+    src/drm_manager_proxy.cc \
+    src/drm_manager.cc \
+    src/ecore_wl2_window_proxy.cc \
+    src/media_player_proxy.cc \
+    src/media_player.cc \
+    src/messages.cc \
+    src/plus_player_util.cc \
+    src/video_player_tizen_plugin.cc \
+    src/video_player.cc \
+    src/plus_player.cc
 
 # User defines
 USER_DEFS =
@@ -19,11 +31,24 @@ USER_CFLAGS_MISC =
 USER_CPPFLAGS_MISC =
 
 # User includes
-USER_INC_DIRS = inc src inc/plusplayer
+USER_INC_DIRS = inc src
 USER_INC_FILES =
 USER_CPP_INC_FILES =
 
-# Linker options
-USER_LIB_DIRS = lib/${BUILD_ARCH}/${API_VERSION}
-USER_LFLAGS = -Wl,-rpath='$$ORIGIN'
-USER_LIBS = stdc++ plusplayer-wrapper gstsubtitle_tvplus gstsubtitleparse_tvplus plusplayercore_tvplus tracksource_tvplus plusplayer_tvplus dashplusplayer_tvplus
+ifeq ($(API_VERSION), 10.0)
+    USER_SRCS += \
+        src/plusplayer_capi.cc
+    USER_LIBS = stdc++
+else
+    # Linker options
+    USER_LIB_DIRS = lib/${BUILD_ARCH}/${API_VERSION}
+    USER_LFLAGS = -Wl,-rpath='$$ORIGIN'
+    USER_LIBS = \
+        stdc++ \
+        gstsubtitle_tvplus \
+        gstsubtitleparse_tvplus \
+        plusplayercore_tvplus \
+        tracksource_tvplus \
+        plusplayer_tvplus \
+        dashplusplayer_tvplus
+endif
