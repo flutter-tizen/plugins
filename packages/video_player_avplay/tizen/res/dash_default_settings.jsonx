@@ -1,7 +1,8 @@
 {
     "debug": {
         "curl_debug": false,
-        "open_http_header": false
+        "open_http_header": false,
+        "open_manifest": false
     },
     "streaming": {
         "TargetTimeMs": 0,

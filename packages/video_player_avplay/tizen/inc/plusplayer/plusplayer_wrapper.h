@@ -275,7 +275,8 @@ enum class StreamingMessageType {
   kDashMPDAnchor,
   kDashRemoveStream,
   kMediaSyncCSSCII,
-  kDashLiveToVod
+  kDashLiveToVod,
+  kManifestUpdated
 };
 
 enum class SourceType {
