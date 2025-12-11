@@ -1,3 +1,12 @@
+## 0.7.8
+
+* unwantedResolution, unwantedFrameRate and updateSameLanguageCode changed to be a child type of adaptiveInfo in StreamingPropertyType.
+* unwantedResolution renamed to MAX_RESOLUTION, unwantedFrameRate renamed to MAX_FRAMERATE, updateSameLanguageCode renamed to UPDATE_SAME_LANGUAGE_CODE.
+* Add manifest callback for parsing advertisement-related information for DASH.
+* Update plusplayer
+  1. [DASH] Fix picture format crash issue.
+  2. [DASH] Support flutter subtitle style parser feature.
+
 ## 0.7.7
 
 * Fix black line issue when playing video.
