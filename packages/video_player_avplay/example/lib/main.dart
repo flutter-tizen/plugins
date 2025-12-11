@@ -130,13 +130,14 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
   // Optional
   final Map<StreamingPropertyType, String> _streamingProperties =
       <StreamingPropertyType, String>{
-    StreamingPropertyType.unwantedResolution: '3840X2160',
-    StreamingPropertyType.unwantedFramerate: '60',
-    StreamingPropertyType.updateSameLanguageCode: '1',
+    /// You can set multiple parameters at once, please separate them with ";".
+    StreamingPropertyType.adaptiveInfo:
+        'MAX_RESOLUTION=3840X2160;MAX_FRAMERATE=60;UPDATE_SAME_LANGUAGE_CODE=1',
 
     /// update token [before] dash-player prepare done.
     StreamingPropertyType.dashToken: 'YWJyVHlwZT1CUi1BVkMtREFTSC',
     StreamingPropertyType.openHttpHeader: 'TRUE',
+    StreamingPropertyType.openManifest: 'TRUE',
   };
 
   @override
@@ -154,6 +155,9 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
       }
       if (_controller.value.hasAdInfo) {
         print(_controller.value.adInfo);
+      }
+      if (_controller.value.hasManifestUpdated) {
+        print('---manifest updated: ${_controller.value.manifestUpdated}');
       }
       setState(() {});
     });

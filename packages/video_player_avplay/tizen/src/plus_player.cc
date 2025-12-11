@@ -708,17 +708,24 @@ void PlusPlayer::SetStreamingProperty(const std::string &type,
   if ((!create_message_.format_hint() ||
        create_message_.format_hint()->empty() ||
        *create_message_.format_hint() != "dash") &&
-      (type == "OPEN_HTTP_HEADER" || type == "TOKEN" ||
-       type == "UNWANTED_FRAMERATE" || type == "UNWANTED_RESOLUTION" ||
-       type == "UPDATE_SAME_LANGUAGE_CODE")) {
+      (type == "OPEN_HTTP_HEADER" || type == "TOKEN")) {
     LOG_ERROR("[PlusPlayer] Only support streaming property type: %s for DASH!",
               type.c_str());
     return;
   }
 
-  LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
-           value.c_str());
-  ::SetStreamingProperty(player_, type, value);
+  if (type == "ADAPTIVE_INFO") {
+    std::vector<std::string> properties = split(value, ';');
+    for (const auto &property : properties) {
+      LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]",
+               type.c_str(), property.c_str());
+      ::SetStreamingProperty(player_, type, property);
+    }
+  } else {
+    LOG_INFO("[PlusPlayer] SetStreamingProp: type[%s], value[%s]", type.c_str(),
+             value.c_str());
+    ::SetStreamingProperty(player_, type, value);
+  }
 }
 
 bool PlusPlayer::SetDisplayRotate(int64_t rotation) {
@@ -1132,15 +1139,22 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
                                 const uint64_t duration,
                                 plusplayer::SubtitleAttributeListPtr attr_list,
                                 void *user_data) {
-  LOG_INFO("[PlusPlayer] Subtitle updated, duration: %llu, text: %s", duration,
-           data);
+  LOG_INFO("[PlusPlayer] Subtitle updated, duration: %llu, type: %d", duration,
+           type);
+
+  if (!data || type == plusplayer::SubtitleType::kInvalid) {
+    LOG_ERROR("[PlusPlayer] Subtitle type is invalid or data is null.");
+    return;
+  }
+
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   plusplayer::SubtitleAttributeList *attrs = attr_list.get();
   flutter::EncodableList attributes_list;
   for (auto attr = attrs->begin(); attr != attrs->end(); attr++) {
-    LOG_INFO("[PlusPlayer] Subtitle update: type: %d, start: %u, end: %u",
-             attr->type, attr->start_time, attr->stop_time);
+    LOG_INFO(
+        "[PlusPlayer] SubtitleAttr update: attrType: %d, start: %u, end: %u.",
+        attr->type, attr->start_time, attr->stop_time);
     flutter::EncodableMap attributes = {
         {flutter::EncodableValue("attrType"),
          flutter::EncodableValue(attr->type)},
@@ -1191,8 +1205,8 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       case plusplayer::kSubAttrWebvttCuePositionAlign:
       case plusplayer::kSubAttrWebvttCueVertical:
       case plusplayer::kSubAttrTimestamp: {
-        int value_int = reinterpret_cast<int>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle update: value<int>: %d", value_int);
+        int64_t value_int = reinterpret_cast<int64_t>(attr->value);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int64_t>: %d", value_int);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_int);
       } break;
@@ -1334,6 +1348,9 @@ void PlusPlayer::OnAdaptiveStreamingControlEvent(
     if (self->drm_manager_) {
       self->drm_manager_->UpdatePsshData(msg.data.data(), msg.size);
     }
+  }
+  if (type == plusplayer::StreamingMessageType::kManifestUpdated) {
+    self->SendManifestUpdated(msg.data);
   }
 }
 

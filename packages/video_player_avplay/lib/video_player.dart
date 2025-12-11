@@ -65,6 +65,7 @@ class VideoPlayerValue {
     this.errorDescription,
     this.isCompleted = false,
     this.adInfo,
+    this.manifestUpdated,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -158,12 +159,18 @@ class VideoPlayerValue {
   /// to determine if ad information is available.
   final AdInfoFromDash? adInfo;
 
+  ///
+  final String? manifestUpdated;
+
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
   bool get hasError => errorDescription != null;
 
   /// Indicates whether or not the video has ADInfo.
   bool get hasAdInfo => adInfo != null;
+
+  ///
+  bool get hasManifestUpdated => manifestUpdated != null;
 
   /// Returns [size.width] / [size.height].
   ///
@@ -208,6 +215,7 @@ class VideoPlayerValue {
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
     AdInfoFromDash? adInfo,
+    String? manifestUpdated,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -228,6 +236,7 @@ class VideoPlayerValue {
           : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
       adInfo: adInfo,
+      manifestUpdated: manifestUpdated,
     );
   }
 
@@ -249,6 +258,7 @@ class VideoPlayerValue {
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
         'adInfo: $adInfo, '
+        'manifestUpdated: $manifestUpdated, '
         'isCompleted: $isCompleted),';
   }
 
@@ -272,6 +282,7 @@ class VideoPlayerValue {
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
           adInfo == other.adInfo &&
+          manifestUpdated == other.manifestUpdated &&
           isCompleted == other.isCompleted;
 
   @override
@@ -291,6 +302,7 @@ class VideoPlayerValue {
         playbackSpeed,
         errorDescription,
         adInfo,
+        manifestUpdated,
         isCompleted,
       );
 }
@@ -636,10 +648,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             value = value.copyWith(isPlaying: event.isPlaying);
           }
         case VideoEventType.adFromDash:
-          final AdInfoFromDash? adInfo = AdInfoFromDash.fromAdInfoMap(
-            event.adInfo,
-          );
+          final AdInfoFromDash? adInfo =
+              AdInfoFromDash.fromAdInfoMap(event.adInfo);
           value = value.copyWith(adInfo: adInfo);
+        case VideoEventType.manifestUpdated:
+          value = value.copyWith(manifestUpdated: event.manifestUpdated);
         case VideoEventType.unknown:
           break;
       }
@@ -917,10 +930,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
     if (formatHint != VideoFormat.dash &&
-        (type == StreamingPropertyType.unwantedResolution ||
-            type == StreamingPropertyType.unwantedFramerate ||
-            type == StreamingPropertyType.updateSameLanguageCode ||
-            type == StreamingPropertyType.dashToken ||
+        (type == StreamingPropertyType.dashToken ||
             type == StreamingPropertyType.openHttpHeader)) {
       throw Exception(
           'setStreamingProperty().$type only support for dash format!');
@@ -1060,7 +1070,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return false;
     }
 
-    if (formatHint == null || formatHint != VideoFormat.dash) {
+    if (formatHint != VideoFormat.dash) {
       throw Exception('updateDashToken() only support for dash format!');
     }
 
