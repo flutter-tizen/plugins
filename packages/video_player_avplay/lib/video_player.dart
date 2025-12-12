@@ -1718,6 +1718,7 @@ class ClosedCaption extends StatelessWidget {
       if (textCaption?.textOriginAndExtent != null) {
         final RegExp newLineRegex = RegExp(r'\r\n|\r|\n');
         final int textLine = newLineRegex.allMatches(text).length + 1;
+        // ignore: avoid_print
         print('****************textLine is $textLine************************');
 
         return Positioned.fill(
