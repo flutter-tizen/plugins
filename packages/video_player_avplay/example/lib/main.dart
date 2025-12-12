@@ -186,6 +186,8 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
 
   @override
   Widget build(BuildContext context) {
+    const TextStyle customTextStyle =
+        TextStyle(fontSize: 30, color: Colors.green);
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
@@ -199,7 +201,9 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaption: _controller.value.textCaption),
+                  ClosedCaption(
+                      textCaption: _controller.value.textCaption,
+                      customTextStyle: customTextStyle),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
