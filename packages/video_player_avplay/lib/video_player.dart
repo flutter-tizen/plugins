@@ -1273,11 +1273,14 @@ class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {
 /// Widget that displays the video controlled by [controller].
 class VideoPlayer extends StatefulWidget {
   /// Uses the given [controller] for all video rendered in this widget.
-  const VideoPlayer(this.controller, {super.key});
+  const VideoPlayer(this.controller, {super.key, this.scale = 1.0});
 
   /// The [VideoPlayerController] responsible for the video being rendered in
   /// this widget.
   final VideoPlayerController controller;
+
+  /// Scales the VideoPlayer widget size.
+  final double scale;
 
   @override
   State<VideoPlayer> createState() => _VideoPlayerState();
@@ -1317,26 +1320,29 @@ class _VideoPlayerState extends State<VideoPlayer> {
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
 
+  bool _isInvalid(double value) {
+    return value.isInfinite || value.isNaN;
+  }
+
   void _afterFrameLayout(_) {
     if (widget.controller.value.isInitialized) {
-      final Rect currentRect = _getCurrentRect();
-      if (currentRect != Rect.zero && _playerRect != currentRect) {
+      final Rect rect = _getCurrentRect();
+      if (rect != Rect.zero && _playerRect != rect) {
+        final double offsetLeft = rect.left - rect.left.floor();
+        final double offsetTop = rect.top - rect.top.floor();
+        final double offsetWidth = rect.width.ceil() - rect.width;
+        final double offsetHeight = rect.height.ceil() - rect.height;
+        final int left = _isInvalid(rect.left) ? 0 : rect.left.floor();
+        final int top = _isInvalid(rect.top) ? 0 : rect.top.floor();
+        final int width = _isInvalid(rect.width)
+            ? 1
+            : rect.width.ceil() + ((offsetLeft > offsetWidth) ? 1 : 0);
+        final int height = _isInvalid(rect.height)
+            ? 1
+            : rect.height.ceil() + ((offsetTop > offsetHeight) ? 1 : 0);
         _videoPlayerPlatform.setDisplayGeometry(
-          _playerId,
-          (currentRect.left.isInfinite || currentRect.left.isNaN)
-              ? 0
-              : currentRect.left.toInt(),
-          (currentRect.top.isInfinite || currentRect.top.isNaN)
-              ? 0
-              : currentRect.top.toInt(),
-          (currentRect.width.isInfinite || currentRect.width.isNaN)
-              ? 1
-              : currentRect.width.toInt(),
-          (currentRect.height.isInfinite || currentRect.height.isNaN)
-              ? 1
-              : currentRect.height.toInt(),
-        );
-        _playerRect = currentRect;
+            _playerId, left, top, width, height);
+        _playerRect = rect;
       }
     }
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
@@ -1352,7 +1358,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     final double pixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
     final RenderBox renderBox = renderObject as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero) * pixelRatio;
-    final Size size = renderBox.size * pixelRatio;
+    final Size size = renderBox.size * pixelRatio * widget.scale;
     return offset & size;
   }
 
