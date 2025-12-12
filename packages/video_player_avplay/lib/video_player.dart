@@ -1340,6 +1340,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
         final int height = _isInvalid(rect.height)
             ? 1
             : rect.height.ceil() + ((offsetTop > offsetHeight) ? 1 : 0);
+
         _videoPlayerPlatform.setDisplayGeometry(
             _playerId, left, top, width, height);
         _playerRect = rect;
@@ -1642,7 +1643,8 @@ class ClosedCaption extends StatelessWidget {
   /// [VideoPlayerValue.textCaption] and [VideoPlayerValue.pictureCaption].
   ///
   /// If [text] is null or empty, nothing will be displayed.
-  const ClosedCaption({super.key, this.textCaption, this.pictureCaption});
+  const ClosedCaption(
+      {super.key, this.textCaption, this.pictureCaption, this.customTextStyle});
 
   /// The text that will be shown in the closed caption, or null if no caption
   /// should be shown.
@@ -1651,6 +1653,32 @@ class ClosedCaption extends StatelessWidget {
 
   /// The picture that will be shown in the closed caption, or null.
   final PictureCaption? pictureCaption;
+
+  /// Users can use it to customize the subtitle style.
+  final TextStyle? customTextStyle;
+
+  Widget _buildTextSubtitle({
+    required String text,
+    required TextStyle textStyle,
+    Color? backgroundColor,
+  }) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 24.0),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: backgroundColor ?? const Color(0xB8000000),
+            borderRadius: BorderRadius.circular(2.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+            child: Text(text, style: textStyle),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1678,12 +1706,20 @@ class ClosedCaption extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
+      if (customTextStyle != null) {
+        return _buildTextSubtitle(text: text, textStyle: customTextStyle!);
+      }
+
       TextStyle effectiveTextStyle = textCaption?.textStyle ??
           DefaultTextStyle.of(
             context,
           ).style.copyWith(fontSize: 36.0, color: Colors.white);
 
       if (textCaption?.textOriginAndExtent != null) {
+        final RegExp newLineRegex = RegExp(r'\r\n|\r|\n');
+        final int textLine = newLineRegex.allMatches(text).length + 1;
+        print('****************textLine is $textLine************************');
+
         return Positioned.fill(
           child: Align(
             alignment: Alignment(
@@ -1696,7 +1732,7 @@ class ClosedCaption extends StatelessWidget {
                     (textCaption?.textOriginAndExtent?.extentHeight ?? 1.0);
 
                 final double dynamicFontSize =
-                    actualHeight * (textCaption?.fontSize ?? 1.0);
+                    actualHeight / textLine * (textCaption?.fontSize ?? 1.0);
 
                 effectiveTextStyle =
                     effectiveTextStyle.copyWith(fontSize: dynamicFontSize);
@@ -1718,22 +1754,10 @@ class ClosedCaption extends StatelessWidget {
         );
       } else {
         effectiveTextStyle = effectiveTextStyle.copyWith(fontSize: 36.0);
-        return Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: textCaption?.windowBgColor ?? const Color(0xB8000000),
-                borderRadius: BorderRadius.circular(2.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                child: Text(text, style: effectiveTextStyle),
-              ),
-            ),
-          ),
-        );
+        return _buildTextSubtitle(
+            text: text,
+            textStyle: effectiveTextStyle,
+            backgroundColor: textCaption?.windowBgColor);
       }
     }
   }
