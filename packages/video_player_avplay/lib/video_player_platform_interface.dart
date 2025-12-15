@@ -345,6 +345,11 @@ enum StreamingPropertyType {
   /// "STARTFRAGMENT=" For live content playback, defines the start fragment number.
   /// "FIXED_MAX_RESOLUTION=max_widthXmax_height". Only if the given media URI such as mpd in MPEG-DASH or m3u8 in HLS through open()
   ///  method doesn't describe entire required video resolutions,application should use this attribute to complete the resolution information for the player.
+  /// "MAX_RESOLUTION=widthXheight". Only specifies the maximum acceptable video resolution for DASH adaptive streaming.
+  /// "MAX_FRAMERATE=framerate". Only specifies the maximum acceptable video framerate for DASH adaptive streaming.
+  /// "UPDATE_SAME_LANGUAGE_CODE=language_code". Only available for DASH stream. Update the language code in manifest like lang="'en'+'i'", where "i" will be an integer
+  /// when there are more than one adaptation set with same language code. The value of language_code be like 0, 1 or others as defined in the manifest.
+  /// "OPEN_SUBTITLE_STYLE=TRUE". Only available for DASH stream. Enable subtitle style for DASH stream.
   adaptiveInfo,
 
   /// Forces the player to use the 4K UHD decoder. Its parameter can be the string "TRUE" or "FALSE".
@@ -382,34 +387,6 @@ enum StreamingPropertyType {
   /// Property to select the Scaler type, By Default MAIN Scaler selected.
   inAppMultiView,
 
-  /// Specifies the maximum acceptable video resolution for DASH adaptive streaming.
-  ///
-  /// This property allows you to set an upper limit on the video resolution
-  /// (width x height) that the DASH player can select during playback.
-  /// The player will not choose any resolution higher than the specified maximum.
-  ///
-  /// The value for this property must be a string in the format 'widthXheight',
-  /// for example, '1920X1080' to set the maximum acceptable resolution to 1080p.
-  /// The player will then select from resolutions up to and including 1080p.
-  ///
-  /// **Important**: The set maximum resolution cannot be lower than the minimum
-  /// resolution available in the stream's manifest.
-  unwantedResolution,
-
-  /// Specifies the maximum acceptable video framerate for DASH adaptive streaming.
-  ///
-  /// This property allows you to set an upper limit on the video framerate (in frames
-  /// per second) that the DASH player can select during playback. The player
-  /// will not choose any framerate higher than the specified maximum.
-  ///
-  /// The value for this property should be a string representing the numerical framerate,
-  /// for example, '30' to set the maximum acceptable framerate to 30fps. The player
-  /// will then select from framerates up to and including 30fps.
-  ///
-  /// **Important**: The set maximum framerate cannot be lower than the minimum
-  /// framerate available in the stream's manifest.
-  unwantedFramerate,
-
   /// The audio track info of the DASH stream.
   audioStreamInfo,
 
@@ -418,14 +395,6 @@ enum StreamingPropertyType {
 
   /// The video track info of the DASH stream.
   videoStreamInfo,
-
-  /// Only available for DASH stream.
-  ///
-  /// Update the language code in manifest like lang="'en'+'i'", where "i" will be an integer
-  /// when there are more than one adaptation set with same language code.
-  ///
-  /// The value for this property is an integer string: '0','1' or others as defined in the manifest.
-  updateSameLanguageCode,
 
   /// Sets the DASH authentication token to be used before the player is initialized.
   ///
@@ -449,6 +418,11 @@ enum StreamingPropertyType {
   ///
   /// Whether to enable the function of obtaining http header. 'TRUE' or others.
   openHttpHeader,
+
+  /// Only available for DASH stream.
+  ///
+  /// To control is force enable if can get manifest content callback. 'TRUE' or others.
+  openManifest,
 }
 
 /// The different types of buffer configurations that can be set on the player.
@@ -559,6 +533,7 @@ class VideoEvent {
     this.isPlaying,
     this.subtitleAttributes,
     this.adInfo,
+    this.manifestInfo,
   });
 
   /// The type of the event.
@@ -602,6 +577,11 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.adFromDash].
   final Map<Object?, Object?>? adInfo;
 
+  /// The manifest information in dash.
+  ///
+  /// Only used if [eventType] is [VideoEventType.manifestInfoUpdated].
+  final String? manifestInfo;
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -614,8 +594,9 @@ class VideoEvent {
             text == other.text &&
             textDuration == other.textDuration &&
             isPlaying == other.isPlaying &&
-            subtitleAttributes == other.subtitleAttributes &&
-            adInfo == other.adInfo;
+            listEquals(subtitleAttributes, other.subtitleAttributes) &&
+            mapEquals(adInfo, other.adInfo) &&
+            manifestInfo == other.manifestInfo;
   }
 
   @override
@@ -628,7 +609,8 @@ class VideoEvent {
       textDuration.hashCode ^
       isPlaying.hashCode ^
       subtitleAttributes.hashCode ^
-      adInfo.hashCode;
+      adInfo.hashCode ^
+      manifestInfo.hashCode;
 }
 
 /// Type of the event.
@@ -665,6 +647,9 @@ enum VideoEventType {
 
   /// The ad event from dash.
   adFromDash,
+
+  /// The manifest updated in dash.
+  manifestInfoUpdated,
 
   /// An unknown event has been received.
   unknown,
