@@ -1350,7 +1350,7 @@ void PlusPlayer::OnAdaptiveStreamingControlEvent(
     }
   }
   if (type == plusplayer::StreamingMessageType::kManifestUpdated) {
-    self->SendManifestUpdated(msg.data);
+    self->SendManifestInfo(msg.data);
   }
 }
 

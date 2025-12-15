@@ -533,7 +533,7 @@ class VideoEvent {
     this.isPlaying,
     this.subtitleAttributes,
     this.adInfo,
-    this.manifestUpdated,
+    this.manifestInfo,
   });
 
   /// The type of the event.
@@ -577,10 +577,10 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.adFromDash].
   final Map<Object?, Object?>? adInfo;
 
-  /// The manifest updated in dash.
+  /// The manifest information in dash.
   ///
-  /// Only used if [eventType] is [VideoEventType.manifestUpdated].
-  final String? manifestUpdated;
+  /// Only used if [eventType] is [VideoEventType.manifestInfoUpdated].
+  final String? manifestInfo;
 
   @override
   bool operator ==(Object other) {
@@ -596,7 +596,7 @@ class VideoEvent {
             isPlaying == other.isPlaying &&
             listEquals(subtitleAttributes, other.subtitleAttributes) &&
             mapEquals(adInfo, other.adInfo) &&
-            manifestUpdated == other.manifestUpdated;
+            manifestInfo == other.manifestInfo;
   }
 
   @override
@@ -610,7 +610,7 @@ class VideoEvent {
       isPlaying.hashCode ^
       subtitleAttributes.hashCode ^
       adInfo.hashCode ^
-      manifestUpdated.hashCode;
+      manifestInfo.hashCode;
 }
 
 /// Type of the event.
@@ -649,7 +649,7 @@ enum VideoEventType {
   adFromDash,
 
   /// The manifest updated in dash.
-  manifestUpdated,
+  manifestInfoUpdated,
 
   /// An unknown event has been received.
   unknown,

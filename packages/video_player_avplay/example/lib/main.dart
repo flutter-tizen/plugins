@@ -157,7 +157,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
         print(_controller.value.adInfo);
       }
       if (_controller.value.hasManifestUpdated) {
-        print('---manifest updated: ${_controller.value.manifestUpdated}');
+        print(_controller.value.manifestInfo);
       }
       setState(() {});
     });

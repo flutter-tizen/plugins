@@ -65,7 +65,7 @@ class VideoPlayerValue {
     this.errorDescription,
     this.isCompleted = false,
     this.adInfo,
-    this.manifestUpdated,
+    this.manifestInfo,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
@@ -159,8 +159,15 @@ class VideoPlayerValue {
   /// to determine if ad information is available.
   final AdInfoFromDash? adInfo;
 
+  /// Provides information about manifest when the DASH streaming manifest is
+  /// updated (e.g., when new video segments become available, bitrate changes
+  /// occur, or the stream configuration is modified), this property will be
+  /// populated with the updated manifest information.
   ///
-  final String? manifestUpdated;
+  /// If no manifest update has occurred or if the video format does not
+  /// support dynamic manifest updates, this property will be `null`. You can
+  /// check [hasManifestUpdated] to determine if manifest information is available.
+  final String? manifestInfo;
 
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
@@ -169,8 +176,8 @@ class VideoPlayerValue {
   /// Indicates whether or not the video has ADInfo.
   bool get hasAdInfo => adInfo != null;
 
-  ///
-  bool get hasManifestUpdated => manifestUpdated != null;
+  /// Indicates whether the video has updated its manifest.
+  bool get hasManifestUpdated => manifestInfo != null;
 
   /// Returns [size.width] / [size.height].
   ///
@@ -215,7 +222,7 @@ class VideoPlayerValue {
     String? errorDescription = _defaultErrorDescription,
     bool? isCompleted,
     AdInfoFromDash? adInfo,
-    String? manifestUpdated,
+    String? manifestInfo,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -236,7 +243,7 @@ class VideoPlayerValue {
           : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
       adInfo: adInfo,
-      manifestUpdated: manifestUpdated,
+      manifestInfo: manifestInfo,
     );
   }
 
@@ -258,7 +265,7 @@ class VideoPlayerValue {
         'playbackSpeed: $playbackSpeed, '
         'errorDescription: $errorDescription, '
         'adInfo: $adInfo, '
-        'manifestUpdated: $manifestUpdated, '
+        'manifestInfo: $manifestInfo, '
         'isCompleted: $isCompleted),';
   }
 
@@ -282,7 +289,7 @@ class VideoPlayerValue {
           playbackSpeed == other.playbackSpeed &&
           errorDescription == other.errorDescription &&
           adInfo == other.adInfo &&
-          manifestUpdated == other.manifestUpdated &&
+          manifestInfo == other.manifestInfo &&
           isCompleted == other.isCompleted;
 
   @override
@@ -302,7 +309,7 @@ class VideoPlayerValue {
         playbackSpeed,
         errorDescription,
         adInfo,
-        manifestUpdated,
+        manifestInfo,
         isCompleted,
       );
 }
@@ -651,8 +658,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           final AdInfoFromDash? adInfo =
               AdInfoFromDash.fromAdInfoMap(event.adInfo);
           value = value.copyWith(adInfo: adInfo);
-        case VideoEventType.manifestUpdated:
-          value = value.copyWith(manifestUpdated: event.manifestUpdated);
+        case VideoEventType.manifestInfoUpdated:
+          value = value.copyWith(manifestInfo: event.manifestInfo);
         case VideoEventType.unknown:
           break;
       }
