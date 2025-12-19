@@ -91,7 +91,7 @@ class VideoPlayer {
   void SendIsPlayingState(bool is_playing);
   void SendRestored();
   void SendADFromDash(flutter::EncodableMap ad_info);
-  void SendManifestUpdated(std::string manifest_info);
+  void SendManifestInfo(std::string manifest_info);
   void SendError(const std::string &error_code,
                  const std::string &error_message);
 

@@ -536,7 +536,7 @@ class VideoEvent {
     this.picture,
     this.pictureWidth,
     this.pictureHeight,
-    this.manifestUpdated,
+    this.manifestInfo,
   });
 
   /// The type of the event.
@@ -595,8 +595,10 @@ class VideoEvent {
   /// Only used when picture is not null.
   final double? pictureHeight;
 
+  /// The manifest information in dash.
   ///
-  final String? manifestUpdated;
+  /// Only used if [eventType] is [VideoEventType.manifestInfoUpdated].
+  final String? manifestInfo;
 
   @override
   bool operator ==(Object other) {
@@ -614,7 +616,8 @@ class VideoEvent {
             mapEquals(adInfo, other.adInfo) &&
             picture == other.picture &&
             pictureWidth == other.pictureWidth &&
-            pictureHeight == other.pictureHeight;
+            pictureHeight == other.pictureHeight &&
+            manifestInfo == other.manifestInfo;
   }
 
   @override
@@ -630,7 +633,8 @@ class VideoEvent {
       adInfo.hashCode ^
       picture.hashCode ^
       pictureWidth.hashCode ^
-      pictureHeight.hashCode;
+      pictureHeight.hashCode ^
+      manifestInfo.hashCode;
 }
 
 /// Type of the event.
@@ -669,7 +673,7 @@ enum VideoEventType {
   adFromDash,
 
   /// The manifest updated in dash.
-  manifestUpdated,
+  manifestInfoUpdated,
 
   /// An unknown event has been received.
   unknown,

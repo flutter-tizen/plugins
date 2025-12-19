@@ -214,11 +214,11 @@ void VideoPlayer::SendADFromDash(flutter::EncodableMap ad_info) {
   PushEvent(flutter::EncodableValue(result));
 }
 
-void VideoPlayer::SendManifestUpdated(std::string manifest_info) {
+void VideoPlayer::SendManifestInfo(std::string manifest_info) {
   flutter::EncodableMap result = {
       {flutter::EncodableValue("event"),
-       flutter::EncodableValue("manifestUpdated")},
-      {flutter::EncodableValue("manifestUpdated"),
+       flutter::EncodableValue("manifestInfoUpdated")},
+      {flutter::EncodableValue("manifestInfo"),
        flutter::EncodableValue(manifest_info)},
   };
   PushEvent(flutter::EncodableValue(result));

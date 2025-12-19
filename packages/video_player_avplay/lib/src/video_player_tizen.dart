@@ -453,10 +453,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             eventType: VideoEventType.adFromDash,
             adInfo: map['adInfo'] as Map<Object?, Object?>?,
           );
-        case 'manifestUpdated':
+        case 'manifestInfoUpdated':
           return VideoEvent(
-            eventType: VideoEventType.manifestUpdated,
-            manifestUpdated: map['manifestUpdated'] as String?,
+            eventType: VideoEventType.manifestInfoUpdated,
+            manifestInfo: map['manifestInfo'] as String?,
           );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
