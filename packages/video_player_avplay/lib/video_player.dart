@@ -1717,60 +1717,49 @@ class ClosedCaption extends StatelessWidget {
         return _buildTextSubtitle(text: text, textStyle: customTextStyle!);
       }
 
-      TextStyle effectiveTextStyle = textCaption?.textStyle ??
-          DefaultTextStyle.of(
-            context,
-          ).style.copyWith(fontSize: 36.0, color: Colors.white);
+      return Positioned.fill(child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+        print('***********maxHeight is ${constraints.maxHeight}**************');
+        final double dynamicFontSize =
+            constraints.maxHeight * (textCaption?.fontSize ?? 1 / 15.0);
+        print('***********font size is $dynamicFontSize**************');
 
-      if (textCaption?.textOriginAndExtent != null) {
-        return Positioned.fill(
-          child: Align(
+        TextStyle effectiveTextStyle = (textCaption?.textStyle == null)
+            ? DefaultTextStyle.of(
+                context,
+              ).style.copyWith(fontSize: 36.0, color: Colors.white)
+            : textCaption!.textStyle!.copyWith(fontSize: dynamicFontSize);
+
+        if (textCaption?.textOriginAndExtent != null) {
+          return Align(
             alignment: Alignment(
               textCaption!.textOriginAndExtent!.originX,
               textCaption!.textOriginAndExtent!.originY,
             ),
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final double actualHeight = constraints.maxHeight *
-                    (textCaption?.textOriginAndExtent?.extentHeight ?? 1.0);
-                print(
-                    '***********maxHeight is ${constraints.maxHeight}**************');
-
-                final double dynamicFontSize =
-                    actualHeight * (textCaption?.fontSize ?? 1.0);
-
-                print('***********font size is $dynamicFontSize**************');
-
-                effectiveTextStyle =
-                    effectiveTextStyle.copyWith(fontSize: dynamicFontSize);
-
-                return FractionallySizedBox(
-                  widthFactor: textCaption?.textOriginAndExtent?.extentWidth,
-                  heightFactor: textCaption?.textOriginAndExtent?.extentHeight,
-                  child: ColoredBox(
-                    color:
-                        //textCaption?.windowBgColor ?? const Color(0xB8000000),
-                        Colors.green,
-                    child: Align(
-                        alignment: textCaption?.textAlign ?? Alignment.center,
-                        child: Text(
-                          text,
-                          style: effectiveTextStyle,
-                          textAlign: TextAlign.center,
-                        )),
-                  ),
-                );
-              },
+            child: FractionallySizedBox(
+              widthFactor: textCaption?.textOriginAndExtent?.extentWidth,
+              heightFactor: textCaption?.textOriginAndExtent?.extentHeight,
+              child: ColoredBox(
+                color:
+                    //textCaption?.windowBgColor ?? const Color(0xB8000000),
+                    Colors.green,
+                child: Align(
+                    alignment: textCaption?.textAlign ?? Alignment.center,
+                    child: Text(
+                      text,
+                      style: effectiveTextStyle,
+                      textAlign: TextAlign.center,
+                    )),
+              ),
             ),
-          ),
-        );
-      } else {
-        effectiveTextStyle = effectiveTextStyle.copyWith(fontSize: 36.0);
-        return _buildTextSubtitle(
-            text: text,
-            textStyle: effectiveTextStyle,
-            backgroundColor: textCaption?.windowBgColor);
-      }
+          );
+        } else {
+          return _buildTextSubtitle(
+              text: text,
+              textStyle: effectiveTextStyle,
+              backgroundColor: textCaption?.windowBgColor);
+        }
+      }));
     }
   }
 }

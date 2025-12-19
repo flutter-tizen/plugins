@@ -149,11 +149,12 @@ class TextCaption extends Caption {
   static (TextOriginAndExtent?, TextStyle?, AlignmentGeometry, Color, double)
       processSubtitleAttributes(List<SubtitleAttribute> subtitleAttributes) {
     TextOriginAndExtent actualTextOriginAndExtent = TextOriginAndExtent.none;
-    TextStyle actualTextStyle = const TextStyle(height: 1.0);
+    TextStyle actualTextStyle =
+        const TextStyle(height: 1.0, fontSize: 1 / 15.0);
     AlignmentGeometry actualTextAlign = Alignment.center;
     Color actualWindowBgColor =
         const Color(0x00000000); // default transparent color.
-    double actualFontSize = 1.0;
+    double actualFontSize = 1 / 15.0;
 
     if (subtitleAttributes.isEmpty) {
       return (
@@ -265,7 +266,9 @@ class TextCaption extends Caption {
       actualTextOriginAndExtent == TextOriginAndExtent.none
           ? null
           : actualTextOriginAndExtent,
-      actualTextStyle == const TextStyle() ? null : actualTextStyle,
+      actualTextStyle == const TextStyle(height: 1.0, fontSize: 1 / 15.0)
+          ? null
+          : actualTextStyle,
       actualTextAlign,
       actualWindowBgColor,
       actualFontSize
