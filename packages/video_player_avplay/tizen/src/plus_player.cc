@@ -535,21 +535,21 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
 
   flutter::EncodableList trackSelections = {};
   if (type == plusplayer::TrackType::kTrackTypeVideo) {
-    LOG_INFO("[PlusPlayer] Video track count: %d", track_count);
+    LOG_DEBUG("[PlusPlayer] Video track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeVideo) {
         trackSelections.push_back(ParseVideoTrack(track));
       }
     }
   } else if (type == plusplayer::TrackType::kTrackTypeAudio) {
-    LOG_INFO("[PlusPlayer] Audio track count: %d", track_count);
+    LOG_DEBUG("[PlusPlayer] Audio track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeAudio) {
         trackSelections.push_back(ParseAudioTrack(track));
       }
     }
   } else if (type == plusplayer::TrackType::kTrackTypeSubtitle) {
-    LOG_INFO("[PlusPlayer] Subtitle track count: %d", track_count);
+    LOG_DEBUG("[PlusPlayer] Subtitle track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeSubtitle) {
         trackSelections.push_back(
@@ -1375,7 +1375,7 @@ void PlusPlayer::OnDrmInitData(int *drm_handle, unsigned int len,
 void PlusPlayer::OnAdaptiveStreamingControlEvent(
     const plusplayer::StreamingMessageType &type,
     const plusplayer::MessageParam &msg, void *user_data) {
-  LOG_INFO("[PlusPlayer] Message type: %d, is DrmInitData (%d)", type,
+  LOG_DEBUG("[PlusPlayer] Message type: %d, is DrmInitData (%d)", type,
            type == plusplayer::StreamingMessageType::kDrmInitData);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 

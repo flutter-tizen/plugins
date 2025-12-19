@@ -1723,11 +1723,6 @@ class ClosedCaption extends StatelessWidget {
           ).style.copyWith(fontSize: 36.0, color: Colors.white);
 
       if (textCaption?.textOriginAndExtent != null) {
-        final RegExp newLineRegex = RegExp(r'\r\n|\r|\n');
-        final int textLine = newLineRegex.allMatches(text).length + 1;
-        // ignore: avoid_print
-        print('****************textLine is $textLine************************');
-
         return Positioned.fill(
           child: Align(
             alignment: Alignment(
@@ -1738,9 +1733,13 @@ class ClosedCaption extends StatelessWidget {
               builder: (BuildContext context, BoxConstraints constraints) {
                 final double actualHeight = constraints.maxHeight *
                     (textCaption?.textOriginAndExtent?.extentHeight ?? 1.0);
+                print(
+                    '***********maxHeight is ${constraints.maxHeight}**************');
 
                 final double dynamicFontSize =
-                    actualHeight / textLine * (textCaption?.fontSize ?? 1.0);
+                    actualHeight * (textCaption?.fontSize ?? 1.0);
+
+                print('***********font size is $dynamicFontSize**************');
 
                 effectiveTextStyle =
                     effectiveTextStyle.copyWith(fontSize: dynamicFontSize);
@@ -1750,10 +1749,15 @@ class ClosedCaption extends StatelessWidget {
                   heightFactor: textCaption?.textOriginAndExtent?.extentHeight,
                   child: ColoredBox(
                     color:
-                        textCaption?.windowBgColor ?? const Color(0xB8000000),
+                        //textCaption?.windowBgColor ?? const Color(0xB8000000),
+                        Colors.green,
                     child: Align(
                         alignment: textCaption?.textAlign ?? Alignment.center,
-                        child: Text(text, style: effectiveTextStyle)),
+                        child: Text(
+                          text,
+                          style: effectiveTextStyle,
+                          textAlign: TextAlign.center,
+                        )),
                   ),
                 );
               },

@@ -149,7 +149,7 @@ class TextCaption extends Caption {
   static (TextOriginAndExtent?, TextStyle?, AlignmentGeometry, Color, double)
       processSubtitleAttributes(List<SubtitleAttribute> subtitleAttributes) {
     TextOriginAndExtent actualTextOriginAndExtent = TextOriginAndExtent.none;
-    TextStyle actualTextStyle = const TextStyle();
+    TextStyle actualTextStyle = const TextStyle(height: 1.0);
     AlignmentGeometry actualTextAlign = Alignment.center;
     Color actualWindowBgColor =
         const Color(0x00000000); // default transparent color.
@@ -199,7 +199,7 @@ class TextCaption extends Caption {
         case SubtitleAttrType.subAttrFontSize:
           final double fontSize = attr.attrValue as double;
           if (fontSize > 0) {
-            actualFontSize = fontSize;
+            actualFontSize = fontSize / 15; // 1c = 1/15 * player window height;
           }
         case SubtitleAttrType.subAttrFontWeight:
           actualTextStyle = actualTextStyle.copyWith(
