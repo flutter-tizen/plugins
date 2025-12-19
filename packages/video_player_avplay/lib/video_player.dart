@@ -1651,41 +1651,21 @@ class ClosedCaption extends StatelessWidget {
   ///
   /// If [text] is null or empty, nothing will be displayed.
   const ClosedCaption(
-      {super.key, this.textCaption, this.pictureCaption, this.customTextStyle});
+      {super.key,
+      this.textCaptions,
+      this.pictureCaption,
+      this.customTextStyle});
 
   /// The text that will be shown in the closed caption, or null if no caption
   /// should be shown.
   /// If the text is empty the caption will not be shown.
-  final TextCaption? textCaption;
+  final List<TextCaption?>? textCaptions;
 
   /// The picture that will be shown in the closed caption, or null.
   final PictureCaption? pictureCaption;
 
   /// Users can use it to customize the subtitle style.
   final TextStyle? customTextStyle;
-
-  Widget _buildTextSubtitle({
-    required String text,
-    required TextStyle textStyle,
-    Color? backgroundColor,
-  }) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 24.0),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: backgroundColor ?? const Color(0xB8000000),
-            borderRadius: BorderRadius.circular(2.0),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2.0),
-            child: Text(text, style: textStyle),
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1708,58 +1688,92 @@ class ClosedCaption extends StatelessWidget {
             child: subtitleImage,
           ));
     } else {
-      final String? text = textCaption?.text;
-      if (text == null || text.isEmpty) {
+      if (textCaptions == null || textCaptions![0] == null) {
         return const SizedBox.shrink();
       }
 
-      if (customTextStyle != null) {
-        return _buildTextSubtitle(text: text, textStyle: customTextStyle!);
-      }
+      return Stack(
+        alignment: AlignmentDirectional.bottomCenter,
+        children: textCaptions!
+            .asMap()
+            .entries
+            .map((MapEntry<int, TextCaption?> entry) {
+          final int index = entry.key;
+          final TextCaption? textCaption = entry.value;
+          final String? text = textCaption?.text;
+          if (text == null || text.isEmpty) {
+            return const SizedBox.shrink();
+          }
 
-      return Positioned.fill(child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-        print('***********maxHeight is ${constraints.maxHeight}**************');
-        final double dynamicFontSize =
-            constraints.maxHeight * (textCaption?.fontSize ?? 1 / 15.0);
-        print('***********font size is $dynamicFontSize**************');
+          return Positioned.fill(child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+            print(
+                '***********maxHeight is ${constraints.maxHeight}**************');
+            final double dynamicFontSize =
+                constraints.maxHeight * (textCaption?.fontSize ?? 1 / 15.0);
+            print('***********font size is $dynamicFontSize**************');
 
-        TextStyle effectiveTextStyle = (textCaption?.textStyle == null)
-            ? DefaultTextStyle.of(
-                context,
-              ).style.copyWith(fontSize: 36.0, color: Colors.white)
-            : textCaption!.textStyle!.copyWith(fontSize: dynamicFontSize);
+            final TextStyle effectiveTextStyle = customTextStyle ??
+                ((textCaption?.textStyle == null)
+                    ? DefaultTextStyle.of(
+                        context,
+                      ).style.copyWith(fontSize: 36.0, color: Colors.white)
+                    : textCaption!.textStyle!
+                        .copyWith(fontSize: dynamicFontSize));
 
-        if (textCaption?.textOriginAndExtent != null) {
-          return Align(
-            alignment: Alignment(
-              textCaption!.textOriginAndExtent!.originX,
-              textCaption!.textOriginAndExtent!.originY,
-            ),
-            child: FractionallySizedBox(
-              widthFactor: textCaption?.textOriginAndExtent?.extentWidth,
-              heightFactor: textCaption?.textOriginAndExtent?.extentHeight,
-              child: ColoredBox(
-                color:
-                    //textCaption?.windowBgColor ?? const Color(0xB8000000),
-                    Colors.green,
-                child: Align(
-                    alignment: textCaption?.textAlign ?? Alignment.center,
-                    child: Text(
-                      text,
-                      style: effectiveTextStyle,
-                      textAlign: TextAlign.center,
-                    )),
-              ),
-            ),
-          );
-        } else {
-          return _buildTextSubtitle(
-              text: text,
-              textStyle: effectiveTextStyle,
-              backgroundColor: textCaption?.windowBgColor);
-        }
-      }));
+            if (customTextStyle != null ||
+                textCaption?.textOriginAndExtent == null) {
+              const double bottomOffset = 24.0;
+              const double lineHeight = 43.5;
+              return Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      bottom: bottomOffset +
+                          (textCaptions!.length - 1 - index) * lineHeight),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                        color: textCaption?.windowBgColor ??
+                            const Color(0xB8000000),
+                        borderRadius: BorderRadius.circular(2.0)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: Text(
+                        text,
+                        style: effectiveTextStyle,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              return Align(
+                alignment: Alignment(
+                  textCaption!.textOriginAndExtent!.originX,
+                  textCaption.textOriginAndExtent!.originY,
+                ),
+                child: FractionallySizedBox(
+                  widthFactor: textCaption.textOriginAndExtent?.extentWidth,
+                  heightFactor: textCaption.textOriginAndExtent?.extentHeight,
+                  child: ColoredBox(
+                    color:
+                        //textCaption?.windowBgColor ?? const Color(0xB8000000),
+                        Colors.green,
+                    child: Align(
+                        alignment: textCaption.textAlign ?? Alignment.center,
+                        child: Text(
+                          text,
+                          style: effectiveTextStyle,
+                          textAlign: TextAlign.center,
+                        )),
+                  ),
+                ),
+              );
+            }
+          }));
+        }).toList(),
+      );
     }
   }
 }
