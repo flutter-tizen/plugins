@@ -726,7 +726,9 @@ void MediaPlayer::OnSubtitleUpdated(unsigned long duration, char *text,
            text);
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
-  self->SendSubtitleUpdate(duration, std::string(text));
+  flutter::EncodableList texts = {};
+  texts.push_back(flutter::EncodableValue(std::string(text)));
+  self->SendSubtitleUpdate(duration, texts);
 }
 
 bool MediaPlayer::OnDrmSecurityInitComplete(int *drm_handle,

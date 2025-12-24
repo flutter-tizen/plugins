@@ -52,7 +52,7 @@ class VideoPlayerValue {
     required this.duration,
     this.size = Size.zero,
     this.position = Duration.zero,
-    this.textCaption = TextCaption.none,
+    this.textCaptions = const <TextCaption>[TextCaption.none],
     this.pictureCaption = PictureCaption.none,
     this.captionOffset = Duration.zero,
     this.tracks = const <Track>[],
@@ -100,7 +100,7 @@ class VideoPlayerValue {
   ///
   ///  If there is no text caption for the current
   /// [position], this will be a [TextCaption.none] object.
-  final TextCaption textCaption;
+  final List<TextCaption> textCaptions;
 
   /// The [PictureCaption] that should be displayed based on the current [position].
   ///
@@ -206,8 +206,10 @@ class VideoPlayerValue {
   /// Returns the [TextCaption] that should be displayed based on the current [position].
   /// If the value of [textCaption.end] has greater than the current [position], this will be a [TextCaption.none] object.
   /// Only used for [copyWith].
-  TextCaption get _currentTextCaption {
-    return position > textCaption.end ? TextCaption.none : textCaption;
+  List<TextCaption> get _currentTextCaption {
+    return position > textCaptions[0].end
+        ? <TextCaption>[TextCaption.none]
+        : textCaptions;
   }
 
   /// Returns the [PictureCaption] that should be displayed based on the current [position].
@@ -223,7 +225,7 @@ class VideoPlayerValue {
     DurationRange? duration,
     Size? size,
     Duration? position,
-    TextCaption? textCaption,
+    List<TextCaption>? textCaptions,
     PictureCaption? pictureCaption,
     Duration? captionOffset,
     List<Track>? tracks,
@@ -242,7 +244,7 @@ class VideoPlayerValue {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
       size: size ?? this.size,
-      textCaption: textCaption ?? _currentTextCaption,
+      textCaptions: textCaptions ?? _currentTextCaption,
       pictureCaption: pictureCaption ?? _currentPictureCaption,
       position: position ?? this.position,
       captionOffset: captionOffset ?? this.captionOffset,
@@ -269,7 +271,7 @@ class VideoPlayerValue {
         'duration: $duration, '
         'size: $size, '
         'position: $position, '
-        'textCaption: $textCaption, '
+        'textCaptions: $textCaptions, '
         'pictureCaption: $pictureCaption, '
         'captionOffset: $captionOffset, '
         'tracks: $tracks, '
@@ -294,7 +296,7 @@ class VideoPlayerValue {
           duration == other.duration &&
           size == other.size &&
           position == other.position &&
-          textCaption == other.textCaption &&
+          listEquals(textCaptions, other.textCaptions) &&
           pictureCaption == other.pictureCaption &&
           captionOffset == other.captionOffset &&
           listEquals(tracks, other.tracks) &&
@@ -315,7 +317,7 @@ class VideoPlayerValue {
         duration,
         size,
         position,
-        textCaption,
+        textCaptions,
         pictureCaption,
         captionOffset,
         tracks,
@@ -641,7 +643,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           pause().then((void pauseResult) => seekTo(value.duration.end));
           value = value.copyWith(
               isCompleted: true,
-              textCaption: TextCaption.none,
+              textCaptions: <TextCaption>[TextCaption.none],
               pictureCaption: PictureCaption.none);
           _durationTimer?.cancel();
         case VideoEventType.bufferingUpdate:
@@ -665,38 +667,53 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             );
             value = value.copyWith(pictureCaption: pictureCaption);
           } else {
-            final List<SubtitleAttribute> subtitleAttributes =
-                SubtitleAttribute.fromEventSubtitleAttrList(
-              event.subtitleAttributes,
-            );
+            final int textLines =
+                (event.texts == null || event.texts![0] == null)
+                    ? 0
+                    : event.texts!.length;
 
-            final (
-              TextOriginAndExtent?,
-              TextStyle?,
-              AlignmentGeometry,
-              Color,
-              double
-            ) subtitleAttr =
-                TextCaption.processSubtitleAttributes(subtitleAttributes);
-            final TextOriginAndExtent? actualTextOriginAndExtent =
-                subtitleAttr.$1;
-            final TextStyle? actualTextStyle = subtitleAttr.$2;
-            final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
-            final Color actualWindowBgColor = subtitleAttr.$4;
-            final double actualFontSize = subtitleAttr.$5;
+            if (textLines > 0) {
+              final List<TextCaption> textCaptions = <TextCaption>[];
+              for (int i = 0; i < textLines; i++) {
+                final String? text = event.texts![i] as String?;
+                final List<dynamic>? subtitleAttrList =
+                    event.subtitleAttributes![i] as List<dynamic>?;
 
-            final TextCaption textCaption = TextCaption(
-                number: 0,
-                start: value.position,
-                end: value.position + textDuration,
-                text: event.text ?? '',
-                subtitleAttributes: subtitleAttributes,
-                textStyle: actualTextStyle,
-                textOriginAndExtent: actualTextOriginAndExtent,
-                textAlign: actualTextAlign,
-                windowBgColor: actualWindowBgColor,
-                fontSize: actualFontSize);
-            value = value.copyWith(textCaption: textCaption);
+                final List<SubtitleAttribute> subtitleAttributes =
+                    SubtitleAttribute.fromEventSubtitleAttrList(
+                        subtitleAttrList);
+
+                final (
+                  TextOriginAndExtent?,
+                  TextStyle?,
+                  AlignmentGeometry,
+                  Color,
+                  double
+                ) subtitleAttr =
+                    TextCaption.processSubtitleAttributes(subtitleAttributes);
+                final TextOriginAndExtent? actualTextOriginAndExtent =
+                    subtitleAttr.$1;
+                final TextStyle? actualTextStyle = subtitleAttr.$2;
+                final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
+                final Color actualWindowBgColor = subtitleAttr.$4;
+                final double actualFontSize = subtitleAttr.$5;
+
+                final TextCaption textCaption = TextCaption(
+                    number: 0,
+                    start: value.position,
+                    end: value.position + textDuration,
+                    text: text ?? '',
+                    subtitleAttributes: subtitleAttributes,
+                    textStyle: actualTextStyle,
+                    textOriginAndExtent: actualTextOriginAndExtent,
+                    textAlign: actualTextAlign,
+                    windowBgColor: actualWindowBgColor,
+                    fontSize: actualFontSize);
+
+                textCaptions.add(textCaption);
+              }
+              value = value.copyWith(textCaptions: textCaptions);
+            }
           }
         case VideoEventType.isPlayingStateUpdate:
           if (event.isPlaying ?? false) {
@@ -721,7 +738,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     if (closedCaptionFile != null) {
       _closedCaptionFile ??= await closedCaptionFile;
-      value = value.copyWith(textCaption: _getCaptionAt(value.position));
+      value = value.copyWith(textCaptions: _getCaptionAt(value.position));
     }
 
     if (drmConfigs?.licenseCallback != null) {
@@ -1193,7 +1210,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   void setCaptionOffset(Duration offset) {
     value = value.copyWith(
       captionOffset: offset,
-      textCaption: _getCaptionAt(value.position),
+      textCaptions: _getCaptionAt(value.position),
     );
   }
 
@@ -1204,11 +1221,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   ///
   /// If no [closedCaptionFile] was specified, this will always return an empty
   /// [Caption].
-  TextCaption _getCaptionAt(Duration position) {
+  List<TextCaption> _getCaptionAt(Duration position) {
     if (_closedCaptionFile == null) {
-      return position > value.textCaption.end
-          ? TextCaption.none
-          : value.textCaption;
+      return position > value.textCaptions[0].end
+          ? <TextCaption>[TextCaption.none]
+          : value.textCaptions;
     }
 
     final Duration delayedPosition = position + value.captionOffset;
@@ -1216,11 +1233,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     for (final TextCaption textCaption in _closedCaptionFile!.textCaptions) {
       if (textCaption.start <= delayedPosition &&
           textCaption.end >= delayedPosition) {
-        return textCaption;
+        return <TextCaption>[textCaption];
       }
     }
 
-    return TextCaption.none;
+    return <TextCaption>[TextCaption.none];
   }
 
   PictureCaption _getPictureCaptionAt(Duration position) {
@@ -1232,7 +1249,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   void _updatePosition(Duration position) {
     value = value.copyWith(
       position: position,
-      textCaption: _getCaptionAt(position),
+      textCaptions: _getCaptionAt(position),
       pictureCaption: _getPictureCaptionAt(position),
       isCompleted: position == value.duration.end,
     );
@@ -1707,10 +1724,9 @@ class ClosedCaption extends StatelessWidget {
 
           return Positioned.fill(child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
-            print(
-                '***********maxHeight is ${constraints.maxHeight}**************');
             final double dynamicFontSize =
                 constraints.maxHeight * (textCaption?.fontSize ?? 1 / 15.0);
+            // ignore: avoid_print
             print('***********font size is $dynamicFontSize**************');
 
             final TextStyle effectiveTextStyle = customTextStyle ??
@@ -1750,16 +1766,14 @@ class ClosedCaption extends StatelessWidget {
             } else {
               return Align(
                 alignment: Alignment(
-                  textCaption!.textOriginAndExtent!.originX,
-                  textCaption.textOriginAndExtent!.originY,
+                  -1 + 2 * textCaption!.textOriginAndExtent!.originX,
+                  -1 + 2 * textCaption.textOriginAndExtent!.originY,
                 ),
                 child: FractionallySizedBox(
                   widthFactor: textCaption.textOriginAndExtent?.extentWidth,
                   heightFactor: textCaption.textOriginAndExtent?.extentHeight,
                   child: ColoredBox(
-                    color:
-                        //textCaption?.windowBgColor ?? const Color(0xB8000000),
-                        Colors.green,
+                    color: textCaption.windowBgColor ?? const Color(0xB8000000),
                     child: Align(
                         alignment: textCaption.textAlign ?? Alignment.center,
                         child: Text(

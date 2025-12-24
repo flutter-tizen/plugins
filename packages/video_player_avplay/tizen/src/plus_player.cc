@@ -29,6 +29,23 @@ static std::vector<std::string> split(const std::string &s, char delim) {
   return tokens;
 }
 
+static std::vector<std::string> split_by_string(const std::string &s,
+                                                const std::string &delimiter) {
+  std::vector<std::string> tokens;
+  const size_t delim_len = delimiter.length();
+  size_t start = 0;
+  size_t pos = s.find(delimiter, start);
+
+  while (pos != std::string::npos) {
+    tokens.push_back(s.substr(start, pos - start));
+    start = pos + delim_len;
+    pos = s.find(delimiter, start);
+  }
+
+  tokens.push_back(s.substr(start));
+  return tokens;
+}
+
 static plusplayer::TrackType ConvertTrackType(std::string track_type) {
   if (track_type == "video") {
     return plusplayer::TrackType::kTrackTypeVideo;
@@ -1150,12 +1167,25 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
 
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
+  int text_lines_count = 1;
+  std::vector<std::string> text_lines;
+  if (type != plusplayer::SubtitleType::kPicture) {
+    std::string text_data(data);
+    text_lines = split_by_string(text_data, "+++");
+    text_lines_count = text_lines.size();
+  }
+
+  std::vector<int> line_attr_index(37, text_lines_count - 1);
+
   // Pre-parse attributes to find width/height for picture subtitles.
   double picture_width = 0.0;
   double picture_height = 0.0;
 
   plusplayer::SubtitleAttributeList *attrs = attr_list.get();
-  flutter::EncodableList attributes_list;
+
+  std::vector<flutter::EncodableList> attributes_lines(
+      text_lines_count, flutter::EncodableList());
+
   for (auto attr = attrs->begin(); attr != attrs->end(); attr++) {
     LOG_INFO(
         "[PlusPlayer] SubtitleAttr update: attrType: %d, start: %u, end: %u.",
@@ -1220,7 +1250,8 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       case plusplayer::kSubAttrWebvttCueVertical:
       case plusplayer::kSubAttrTimestamp: {
         int64_t value_int = reinterpret_cast<int64_t>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle update: value<int64_t>: %d", value_int);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int64_t>: %lld",
+                 value_int);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_int);
       } break;
@@ -1244,7 +1275,21 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
         LOG_INFO("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
         break;
     }
-    attributes_list.push_back(flutter::EncodableValue(attributes));
+
+    // TODO
+    if (attr->type != plusplayer::kSubAttrFontFamily) {
+      int index = line_attr_index[attr->type]--;
+      if (index >= 0) {
+        attributes_lines[index].push_back(flutter::EncodableValue(attributes));
+      }
+    } else {
+      if (line_attr_index[attr->type] == 0) {
+        for (int i = 0; i < text_lines_count; i++) {
+          attributes_lines[i].push_back(flutter::EncodableValue(attributes));
+        }
+      }
+      line_attr_index[attr->type]--;
+    }
   }
 
   if (type == plusplayer::SubtitleType::kPicture) {
@@ -1261,8 +1306,9 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
     if (subtitle_png && subtitle_mem_length > 0) {
       std::vector<uint8_t> picture_data(subtitle_png,
                                         subtitle_png + subtitle_mem_length);
-      self->SendSubtitleUpdate(duration, std::string(), attributes_list,
-                               picture_data, picture_width, picture_height);
+      self->SendSubtitleUpdate(duration, flutter::EncodableList(),
+                               flutter::EncodableList(), picture_data,
+                               picture_width, picture_height);
       STBIW_FREE(subtitle_png);
     } else {
       LOG_ERROR("[PlusPlayer] Picture subtitle data is null or size is 0.");
@@ -1271,7 +1317,15 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
     LOG_INFO(
         "[PlusPlayer] Subtitle is text: duration: %llu, text: %s, type: %d",
         duration, data, type);
-    self->SendSubtitleUpdate(duration, data, attributes_list);
+    flutter::EncodableList text_lists = {};
+    flutter::EncodableList attributes_lists = {};
+    for (int i = 0; i < text_lines_count; i++) {
+      text_lists.emplace_back(flutter::EncodableValue(text_lines[i]));
+      attributes_lists.emplace_back(
+          flutter::EncodableValue(attributes_lines[i]));
+    }
+
+    self->SendSubtitleUpdate(duration, text_lists, attributes_lists);
   }
 }
 
@@ -1376,7 +1430,7 @@ void PlusPlayer::OnAdaptiveStreamingControlEvent(
     const plusplayer::StreamingMessageType &type,
     const plusplayer::MessageParam &msg, void *user_data) {
   LOG_DEBUG("[PlusPlayer] Message type: %d, is DrmInitData (%d)", type,
-           type == plusplayer::StreamingMessageType::kDrmInitData);
+            type == plusplayer::StreamingMessageType::kDrmInitData);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (type == plusplayer::StreamingMessageType::kDrmInitData) {

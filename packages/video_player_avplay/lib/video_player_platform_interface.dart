@@ -528,7 +528,7 @@ class VideoEvent {
     this.duration,
     this.size,
     this.buffered,
-    this.text,
+    this.texts,
     this.textDuration,
     this.isPlaying,
     this.subtitleAttributes,
@@ -560,7 +560,7 @@ class VideoEvent {
   /// Subtitle text of the video.
   ///
   /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
-  final String? text;
+  final List<dynamic>? texts;
 
   /// The duration of text
   ///
@@ -609,7 +609,7 @@ class VideoEvent {
             duration == other.duration &&
             size == other.size &&
             buffered == other.buffered &&
-            text == other.text &&
+            texts == other.texts &&
             textDuration == other.textDuration &&
             isPlaying == other.isPlaying &&
             listEquals(subtitleAttributes, other.subtitleAttributes) &&
@@ -626,7 +626,7 @@ class VideoEvent {
       duration.hashCode ^
       size.hashCode ^
       buffered.hashCode ^
-      text.hashCode ^
+      texts.hashCode ^
       textDuration.hashCode ^
       isPlaying.hashCode ^
       subtitleAttributes.hashCode ^
