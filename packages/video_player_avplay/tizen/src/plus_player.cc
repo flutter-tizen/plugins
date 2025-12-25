@@ -17,6 +17,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#define SUBTITLE_ATTR_TYPE_COUNT 37
+
 namespace video_player_avplay_tizen {
 
 static std::vector<std::string> split(const std::string &s, char delim) {
@@ -1175,7 +1177,8 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
     text_lines_count = text_lines.size();
   }
 
-  std::vector<int> line_attr_index(37, text_lines_count - 1);
+  std::vector<int> line_attr_index(SUBTITLE_ATTR_TYPE_COUNT,
+                                   text_lines_count - 1);
 
   // Pre-parse attributes to find width/height for picture subtitles.
   double picture_width = 0.0;
@@ -1276,19 +1279,9 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
         break;
     }
 
-    // TODO
-    if (attr->type != plusplayer::kSubAttrFontFamily) {
-      int index = line_attr_index[attr->type]--;
-      if (index >= 0) {
-        attributes_lines[index].push_back(flutter::EncodableValue(attributes));
-      }
-    } else {
-      if (line_attr_index[attr->type] == 0) {
-        for (int i = 0; i < text_lines_count; i++) {
-          attributes_lines[i].push_back(flutter::EncodableValue(attributes));
-        }
-      }
-      line_attr_index[attr->type]--;
+    int index = line_attr_index[attr->type]--;
+    if (index >= 0) {
+      attributes_lines[index].push_back(flutter::EncodableValue(attributes));
     }
   }
 
