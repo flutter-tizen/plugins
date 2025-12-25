@@ -654,7 +654,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isBuffering: false);
         case VideoEventType.subtitleUpdate:
           final (PictureCaption?, List<TextCaption>?) subtitles =
-              parseSubtitle(value.position, event);
+              parseSubtitle(value.position, event.subtitlesInfo!);
           value = value.copyWith(
               pictureCaption: subtitles.$1, textCaptions: subtitles.$2);
         case VideoEventType.isPlayingStateUpdate:

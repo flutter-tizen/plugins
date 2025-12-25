@@ -528,12 +528,10 @@ class VideoEvent {
     this.duration,
     this.size,
     this.buffered,
-    this.textsInfo,
-    this.textDuration,
     this.isPlaying,
     this.adInfo,
-    this.pictureInfo,
     this.manifestInfo,
+    this.subtitlesInfo,
   });
 
   /// The type of the event.
@@ -554,16 +552,6 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.bufferingUpdate].
   final int? buffered;
 
-  /// Text and attributes of the video subtitle.
-  ///
-  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
-  final List<dynamic>? textsInfo;
-
-  /// The duration of text
-  ///
-  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
-  final int? textDuration;
-
   /// Whether the video is currently playing.
   ///
   /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
@@ -574,15 +562,15 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.adFromDash].
   final Map<Object?, Object?>? adInfo;
 
-  /// Subtitle picture info of the video. Includes the picture and its width and height.
-  ///
-  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
-  final Map<Object?, Object?>? pictureInfo;
-
   /// The manifest information in dash.
   ///
   /// Only used if [eventType] is [VideoEventType.manifestInfoUpdated].
   final String? manifestInfo;
+
+  /// The subtitle information of the video.
+  ///
+  /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
+  final SubtitlesInfo? subtitlesInfo;
 
   @override
   bool operator ==(Object other) {
@@ -593,12 +581,10 @@ class VideoEvent {
             duration == other.duration &&
             size == other.size &&
             buffered == other.buffered &&
-            listEquals(textsInfo, other.textsInfo) &&
-            textDuration == other.textDuration &&
             isPlaying == other.isPlaying &&
             mapEquals(adInfo, other.adInfo) &&
-            mapEquals(pictureInfo, other.pictureInfo) &&
-            manifestInfo == other.manifestInfo;
+            manifestInfo == other.manifestInfo &&
+            subtitlesInfo == other.subtitlesInfo;
   }
 
   @override
@@ -607,12 +593,10 @@ class VideoEvent {
       duration.hashCode ^
       size.hashCode ^
       buffered.hashCode ^
-      textsInfo.hashCode ^
-      textDuration.hashCode ^
       isPlaying.hashCode ^
       adInfo.hashCode ^
-      pictureInfo.hashCode ^
-      manifestInfo.hashCode;
+      manifestInfo.hashCode ^
+      subtitlesInfo.hashCode;
 }
 
 /// Type of the event.
@@ -720,6 +704,35 @@ class DurationRange {
 
   @override
   int get hashCode => start.hashCode ^ end.hashCode;
+}
+
+/// The subtitle information of the video. Contains the text duration, text and attributes, and picture info.
+@immutable
+class SubtitlesInfo {
+  /// Creates an instance of [SubtitlesInfo].
+  const SubtitlesInfo(this.textDuration, this.textsInfo, this.pictureInfo);
+
+  /// The duration of text.
+  final int? textDuration;
+
+  /// Text and attributes of the video subtitle.
+  final List<dynamic>? textsInfo;
+
+  /// Subtitle picture info of the video. Includes the picture and its width and height.
+  final Map<Object?, Object?>? pictureInfo;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is SubtitlesInfo &&
+            listEquals(textsInfo, other.textsInfo) &&
+            textDuration == other.textDuration &&
+            mapEquals(pictureInfo, other.pictureInfo);
+  }
+
+  @override
+  int get hashCode =>
+      textDuration.hashCode ^ textsInfo.hashCode ^ pictureInfo.hashCode;
 }
 
 /// [VideoPlayerOptions] can be optionally used to set additional player settings

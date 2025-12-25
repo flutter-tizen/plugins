@@ -658,31 +658,31 @@ class SubtitleAttribute {
 
 /// Parses a subtitle from a [VideoEvent] into a [PictureCaption] or a list of [TextCaption]s.
 (PictureCaption?, List<TextCaption>?) parseSubtitle(
-    Duration position, VideoEvent event) {
-  final Duration textDuration = event.textDuration == 0
+    Duration position, SubtitlesInfo subtitlesInfo) {
+  final Duration textDuration = subtitlesInfo.textDuration == 0
       ? Duration.zero
-      : Duration(milliseconds: event.textDuration!);
-  if (event.pictureInfo?.isNotEmpty ?? false) {
+      : Duration(milliseconds: subtitlesInfo.textDuration!);
+  if (subtitlesInfo.pictureInfo?.isNotEmpty ?? false) {
     final PictureCaption pictureCaption = PictureCaption(
       number: 0,
       start: position,
       end: position + textDuration,
-      picture: event.pictureInfo!['picture'] as Uint8List?,
-      pictureWidth: event.pictureInfo!['pictureWidth'] as double?,
-      pictureHeight: event.pictureInfo!['pictureHeight'] as double?,
+      picture: subtitlesInfo.pictureInfo!['picture'] as Uint8List?,
+      pictureWidth: subtitlesInfo.pictureInfo!['pictureWidth'] as double?,
+      pictureHeight: subtitlesInfo.pictureInfo!['pictureHeight'] as double?,
     );
     return (pictureCaption, null);
   } else {
     final int textLines =
-        (event.textsInfo == null || event.textsInfo![0] == null)
+        (subtitlesInfo.textsInfo == null || subtitlesInfo.textsInfo![0] == null)
             ? 0
-            : event.textsInfo!.length;
+            : subtitlesInfo.textsInfo!.length;
 
     if (textLines > 0) {
       final List<TextCaption> textCaptions = <TextCaption>[];
       for (int i = 0; i < textLines; i++) {
         final Map<Object?, Object?> textInfo =
-            event.textsInfo![i] as Map<Object?, Object?>;
+            subtitlesInfo.textsInfo![i] as Map<Object?, Object?>;
         final String? text = textInfo['text'] as String?;
         final List<dynamic>? subtitleAttrList =
             textInfo['attributes'] as List<dynamic>?;
