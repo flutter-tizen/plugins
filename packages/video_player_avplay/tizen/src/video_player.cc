@@ -148,23 +148,16 @@ void VideoPlayer::SendBufferingEnd() {
 }
 
 void VideoPlayer::SendSubtitleUpdate(int32_t duration,
-                                     flutter::EncodableList texts,
-                                     flutter::EncodableList attributes,
-                                     const std::vector<uint8_t> &picture,
-                                     const double &picture_width,
-                                     const double &picture_height) {
+                                     flutter::EncodableList texts_info,
+                                     flutter::EncodableMap picture_info) {
   flutter::EncodableMap result = {
       {flutter::EncodableValue("event"),
        flutter::EncodableValue("subtitleUpdate")},
       {flutter::EncodableValue("duration"), flutter::EncodableValue(duration)},
-      {flutter::EncodableValue("text"), flutter::EncodableValue(texts)},
-      {flutter::EncodableValue("picture"), flutter::EncodableValue(picture)},
-      {flutter::EncodableValue("pictureWidth"),
-       flutter::EncodableValue(picture_width)},
-      {flutter::EncodableValue("pictureHeight"),
-       flutter::EncodableValue(picture_height)},
-      {flutter::EncodableValue("attributes"),
-       flutter::EncodableValue(attributes)},
+      {flutter::EncodableValue("textsInfo"),
+       flutter::EncodableValue(texts_info)},
+      {flutter::EncodableValue("pictureInfo"),
+       flutter::EncodableValue(picture_info)},
   };
 
   PushEvent(flutter::EncodableValue(result));

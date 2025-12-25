@@ -653,68 +653,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
         case VideoEventType.subtitleUpdate:
-          final Duration textDuration = event.textDuration == 0
-              ? Duration.zero
-              : Duration(milliseconds: event.textDuration!);
-          if (event.picture?.isNotEmpty ?? false) {
-            final PictureCaption pictureCaption = PictureCaption(
-              number: 0,
-              start: value.position,
-              end: value.position + textDuration,
-              picture: event.picture,
-              pictureWidth: event.pictureWidth,
-              pictureHeight: event.pictureHeight,
-            );
-            value = value.copyWith(pictureCaption: pictureCaption);
-          } else {
-            final int textLines =
-                (event.texts == null || event.texts![0] == null)
-                    ? 0
-                    : event.texts!.length;
-
-            if (textLines > 0) {
-              final List<TextCaption> textCaptions = <TextCaption>[];
-              for (int i = 0; i < textLines; i++) {
-                final String? text = event.texts![i] as String?;
-                final List<dynamic>? subtitleAttrList =
-                    event.subtitleAttributes![i] as List<dynamic>?;
-
-                final List<SubtitleAttribute> subtitleAttributes =
-                    SubtitleAttribute.fromEventSubtitleAttrList(
-                        subtitleAttrList);
-
-                final (
-                  TextOriginAndExtent?,
-                  TextStyle?,
-                  AlignmentGeometry,
-                  Color,
-                  double
-                ) subtitleAttr =
-                    TextCaption.processSubtitleAttributes(subtitleAttributes);
-                final TextOriginAndExtent? actualTextOriginAndExtent =
-                    subtitleAttr.$1;
-                final TextStyle? actualTextStyle = subtitleAttr.$2;
-                final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
-                final Color actualWindowBgColor = subtitleAttr.$4;
-                final double actualFontSize = subtitleAttr.$5;
-
-                final TextCaption textCaption = TextCaption(
-                    number: 0,
-                    start: value.position,
-                    end: value.position + textDuration,
-                    text: text ?? '',
-                    subtitleAttributes: subtitleAttributes,
-                    textStyle: actualTextStyle,
-                    textOriginAndExtent: actualTextOriginAndExtent,
-                    textAlign: actualTextAlign,
-                    windowBgColor: actualWindowBgColor,
-                    fontSize: actualFontSize);
-
-                textCaptions.add(textCaption);
-              }
-              value = value.copyWith(textCaptions: textCaptions);
-            }
-          }
+          final (PictureCaption?, List<TextCaption>?) subtitles =
+              parseSubtitle(value.position, event);
+          value = value.copyWith(
+              pictureCaption: subtitles.$1, textCaptions: subtitles.$2);
         case VideoEventType.isPlayingStateUpdate:
           if (event.isPlaying ?? false) {
             value = value.copyWith(

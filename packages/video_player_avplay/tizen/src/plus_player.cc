@@ -1304,11 +1304,18 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
                               picture_height, channels, &subtitle_mem_length);
 
     if (subtitle_png && subtitle_mem_length > 0) {
-      std::vector<uint8_t> picture_data(subtitle_png,
-                                        subtitle_png + subtitle_mem_length);
+      std::vector<uint8_t> picture(subtitle_png,
+                                   subtitle_png + subtitle_mem_length);
+      flutter::EncodableMap picture_info = {
+          {flutter::EncodableValue("picture"),
+           flutter::EncodableValue(picture)},
+          {flutter::EncodableValue("pictureWidth"),
+           flutter::EncodableValue(picture_width)},
+          {flutter::EncodableValue("pictureHeight"),
+           flutter::EncodableValue(picture_height)},
+      };
       self->SendSubtitleUpdate(duration, flutter::EncodableList(),
-                               flutter::EncodableList(), picture_data,
-                               picture_width, picture_height);
+                               picture_info);
       STBIW_FREE(subtitle_png);
     } else {
       LOG_ERROR("[PlusPlayer] Picture subtitle data is null or size is 0.");
@@ -1317,15 +1324,18 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
     LOG_INFO(
         "[PlusPlayer] Subtitle is text: duration: %llu, text: %s, type: %d",
         duration, data, type);
-    flutter::EncodableList text_lists = {};
-    flutter::EncodableList attributes_lists = {};
+    flutter::EncodableList texts_info = {};
     for (int i = 0; i < text_lines_count; i++) {
-      text_lists.emplace_back(flutter::EncodableValue(text_lines[i]));
-      attributes_lists.emplace_back(
-          flutter::EncodableValue(attributes_lines[i]));
+      flutter::EncodableMap text_line = {
+          {flutter::EncodableValue("text"),
+           flutter::EncodableValue(text_lines[i])},
+          {flutter::EncodableValue("attributes"),
+           flutter::EncodableValue(attributes_lines[i])},
+      };
+      texts_info.emplace_back(flutter::EncodableValue(text_line));
     }
 
-    self->SendSubtitleUpdate(duration, text_lists, attributes_lists);
+    self->SendSubtitleUpdate(duration, texts_info);
   }
 }
 

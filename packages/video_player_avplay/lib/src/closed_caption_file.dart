@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart'
     show immutable, listEquals, objectRuntimeType;
 import 'package:flutter/material.dart';
 
+import '../video_player_platform_interface.dart';
 import 'sub_rip.dart';
 import 'web_vtt.dart';
 
@@ -653,4 +654,72 @@ class SubtitleAttribute {
 
   @override
   int get hashCode => Object.hash(attrType, startTime, stopTime, attrValue);
+}
+
+/// Parses a subtitle from a [VideoEvent] into a [PictureCaption] or a list of [TextCaption]s.
+(PictureCaption?, List<TextCaption>?) parseSubtitle(
+    Duration position, VideoEvent event) {
+  final Duration textDuration = event.textDuration == 0
+      ? Duration.zero
+      : Duration(milliseconds: event.textDuration!);
+  if (event.pictureInfo?.isNotEmpty ?? false) {
+    final PictureCaption pictureCaption = PictureCaption(
+      number: 0,
+      start: position,
+      end: position + textDuration,
+      picture: event.pictureInfo!['picture'] as Uint8List?,
+      pictureWidth: event.pictureInfo!['pictureWidth'] as double?,
+      pictureHeight: event.pictureInfo!['pictureHeight'] as double?,
+    );
+    return (pictureCaption, null);
+  } else {
+    final int textLines =
+        (event.textsInfo == null || event.textsInfo![0] == null)
+            ? 0
+            : event.textsInfo!.length;
+
+    if (textLines > 0) {
+      final List<TextCaption> textCaptions = <TextCaption>[];
+      for (int i = 0; i < textLines; i++) {
+        final Map<Object?, Object?> textInfo =
+            event.textsInfo![i] as Map<Object?, Object?>;
+        final String? text = textInfo['text'] as String?;
+        final List<dynamic>? subtitleAttrList =
+            textInfo['attributes'] as List<dynamic>?;
+
+        final List<SubtitleAttribute> subtitleAttributes =
+            SubtitleAttribute.fromEventSubtitleAttrList(subtitleAttrList);
+
+        final (
+          TextOriginAndExtent?,
+          TextStyle?,
+          AlignmentGeometry,
+          Color,
+          double
+        ) subtitleAttr =
+            TextCaption.processSubtitleAttributes(subtitleAttributes);
+        final TextOriginAndExtent? actualTextOriginAndExtent = subtitleAttr.$1;
+        final TextStyle? actualTextStyle = subtitleAttr.$2;
+        final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
+        final Color actualWindowBgColor = subtitleAttr.$4;
+        final double actualFontSize = subtitleAttr.$5;
+
+        final TextCaption textCaption = TextCaption(
+            number: 0,
+            start: position,
+            end: position + textDuration,
+            text: text ?? '',
+            subtitleAttributes: subtitleAttributes,
+            textStyle: actualTextStyle,
+            textOriginAndExtent: actualTextOriginAndExtent,
+            textAlign: actualTextAlign,
+            windowBgColor: actualWindowBgColor,
+            fontSize: actualFontSize);
+
+        textCaptions.add(textCaption);
+      }
+      return (null, textCaptions);
+    }
+  }
+  return (null, null);
 }

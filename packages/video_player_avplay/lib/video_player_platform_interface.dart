@@ -528,14 +528,11 @@ class VideoEvent {
     this.duration,
     this.size,
     this.buffered,
-    this.texts,
+    this.textsInfo,
     this.textDuration,
     this.isPlaying,
-    this.subtitleAttributes,
     this.adInfo,
-    this.picture,
-    this.pictureWidth,
-    this.pictureHeight,
+    this.pictureInfo,
     this.manifestInfo,
   });
 
@@ -557,10 +554,10 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.bufferingUpdate].
   final int? buffered;
 
-  /// Subtitle text of the video.
+  /// Text and attributes of the video subtitle.
   ///
   /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
-  final List<dynamic>? texts;
+  final List<dynamic>? textsInfo;
 
   /// The duration of text
   ///
@@ -572,28 +569,15 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
   final bool? isPlaying;
 
-  /// Attributes of the video subtitle.
-  final List<dynamic>? subtitleAttributes;
-
   /// The ad info from dash.
   ///
   /// Only used if [eventType] is [VideoEventType.adFromDash].
   final Map<Object?, Object?>? adInfo;
 
-  /// Subtitle picture data of the video.
+  /// Subtitle picture info of the video. Includes the picture and its width and height.
   ///
   /// Only used if [eventType] is [VideoEventType.subtitleUpdate].
-  final Uint8List? picture;
-
-  /// Subtitle picture width.
-  ///
-  /// Only used when picture is not null.
-  final double? pictureWidth;
-
-  /// Subtitle picture height.
-  ///
-  /// Only used when picture is not null.
-  final double? pictureHeight;
+  final Map<Object?, Object?>? pictureInfo;
 
   /// The manifest information in dash.
   ///
@@ -609,14 +593,11 @@ class VideoEvent {
             duration == other.duration &&
             size == other.size &&
             buffered == other.buffered &&
-            texts == other.texts &&
+            listEquals(textsInfo, other.textsInfo) &&
             textDuration == other.textDuration &&
             isPlaying == other.isPlaying &&
-            listEquals(subtitleAttributes, other.subtitleAttributes) &&
             mapEquals(adInfo, other.adInfo) &&
-            picture == other.picture &&
-            pictureWidth == other.pictureWidth &&
-            pictureHeight == other.pictureHeight &&
+            mapEquals(pictureInfo, other.pictureInfo) &&
             manifestInfo == other.manifestInfo;
   }
 
@@ -626,14 +607,11 @@ class VideoEvent {
       duration.hashCode ^
       size.hashCode ^
       buffered.hashCode ^
-      texts.hashCode ^
+      textsInfo.hashCode ^
       textDuration.hashCode ^
       isPlaying.hashCode ^
-      subtitleAttributes.hashCode ^
       adInfo.hashCode ^
-      picture.hashCode ^
-      pictureWidth.hashCode ^
-      pictureHeight.hashCode ^
+      pictureInfo.hashCode ^
       manifestInfo.hashCode;
 }
 
