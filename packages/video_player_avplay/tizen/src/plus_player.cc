@@ -14,6 +14,11 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+#define SUBTITLE_ATTR_TYPE_COUNT 37
+
 namespace video_player_avplay_tizen {
 
 static std::vector<std::string> split(const std::string &s, char delim) {
@@ -23,6 +28,23 @@ static std::vector<std::string> split(const std::string &s, char delim) {
   while (getline(ss, item, delim)) {
     tokens.push_back(item);
   }
+  return tokens;
+}
+
+static std::vector<std::string> split_by_string(const std::string &s,
+                                                const std::string &delimiter) {
+  std::vector<std::string> tokens;
+  const size_t delim_len = delimiter.length();
+  size_t start = 0;
+  size_t pos = s.find(delimiter, start);
+
+  while (pos != std::string::npos) {
+    tokens.push_back(s.substr(start, pos - start));
+    start = pos + delim_len;
+    pos = s.find(delimiter, start);
+  }
+
+  tokens.push_back(s.substr(start));
   return tokens;
 }
 
@@ -532,21 +554,21 @@ flutter::EncodableList PlusPlayer::GetTrackInfo(std::string track_type) {
 
   flutter::EncodableList trackSelections = {};
   if (type == plusplayer::TrackType::kTrackTypeVideo) {
-    LOG_INFO("[PlusPlayer] Video track count: %d", track_count);
+    LOG_DEBUG("[PlusPlayer] Video track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeVideo) {
         trackSelections.push_back(ParseVideoTrack(track));
       }
     }
   } else if (type == plusplayer::TrackType::kTrackTypeAudio) {
-    LOG_INFO("[PlusPlayer] Audio track count: %d", track_count);
+    LOG_DEBUG("[PlusPlayer] Audio track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeAudio) {
         trackSelections.push_back(ParseAudioTrack(track));
       }
     }
   } else if (type == plusplayer::TrackType::kTrackTypeSubtitle) {
-    LOG_INFO("[PlusPlayer] Subtitle track count: %d", track_count);
+    LOG_DEBUG("[PlusPlayer] Subtitle track count: %d", track_count);
     for (const auto &track : track_info) {
       if (track.type == plusplayer::kTrackTypeSubtitle) {
         trackSelections.push_back(
@@ -1092,11 +1114,9 @@ void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
   if (!SetDisplayVisible(self->player_, true)) {
     LOG_ERROR("[PlusPlayer] Fail to set display visible.");
   }
-
   if (!self->is_initialized_ && ret) {
     self->SendInitialized();
   }
-
   if (self->is_restored_ && ret) {
     self->SendRestored();
   }
@@ -1149,8 +1169,26 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
 
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
+  int text_lines_count = 1;
+  std::vector<std::string> text_lines;
+  if (type != plusplayer::SubtitleType::kPicture) {
+    std::string text_data(data);
+    text_lines = split_by_string(text_data, "+++");
+    text_lines_count = text_lines.size();
+  }
+
+  std::vector<int> line_attr_index(SUBTITLE_ATTR_TYPE_COUNT,
+                                   text_lines_count - 1);
+
+  // Pre-parse attributes to find width/height for picture subtitles.
+  double picture_width = 0.0;
+  double picture_height = 0.0;
+
   plusplayer::SubtitleAttributeList *attrs = attr_list.get();
-  flutter::EncodableList attributes_list;
+
+  std::vector<flutter::EncodableList> attributes_lines(
+      text_lines_count, flutter::EncodableList());
+
   for (auto attr = attrs->begin(); attr != attrs->end(); attr++) {
     LOG_INFO(
         "[PlusPlayer] SubtitleAttr update: attrType: %d, start: %u, end: %u.",
@@ -1184,6 +1222,15 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
         LOG_INFO("[PlusPlayer] Subtitle update: value<float>: %f", value_float);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue((double)value_float);
+
+        if (attr->type == plusplayer::kSubAttrRegionWidth &&
+            type == plusplayer::SubtitleType::kPicture) {
+          picture_width = (double)value_float;
+        }
+        if (attr->type == plusplayer::kSubAttrRegionHeight &&
+            type == plusplayer::SubtitleType::kPicture) {
+          picture_height = (double)value_float;
+        }
       } break;
       case plusplayer::kSubAttrWindowLeftMargin:
       case plusplayer::kSubAttrWindowRightMargin:
@@ -1206,7 +1253,8 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       case plusplayer::kSubAttrWebvttCueVertical:
       case plusplayer::kSubAttrTimestamp: {
         int64_t value_int = reinterpret_cast<int64_t>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle update: value<int64_t>: %d", value_int);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int64_t>: %lld",
+                 value_int);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_int);
       } break;
@@ -1227,12 +1275,61 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
             flutter::EncodableValue((int64_t)value_uint32);
       } break;
       default:
-        LOG_ERROR("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
+        LOG_INFO("[PlusPlayer] Unknown Subtitle type: %d", attr->type);
         break;
     }
-    attributes_list.push_back(flutter::EncodableValue(attributes));
+
+    int index = line_attr_index[attr->type]--;
+    if (index >= 0) {
+      attributes_lines[index].push_back(flutter::EncodableValue(attributes));
+    }
   }
-  self->SendSubtitleUpdate(duration, data, attributes_list);
+
+  if (type == plusplayer::SubtitleType::kPicture) {
+    LOG_INFO(
+        "[PlusPlayer] Subtitle is a picture: size: %d, width: %f, height: %f",
+        size, picture_width, picture_height);
+
+    int subtitle_mem_length = 0;
+    int channels = size / (picture_width * picture_height);
+    unsigned char *subtitle_png =
+        stbi_write_png_to_mem((const unsigned char *)data, 0, picture_width,
+                              picture_height, channels, &subtitle_mem_length);
+
+    if (subtitle_png && subtitle_mem_length > 0) {
+      std::vector<uint8_t> picture(subtitle_png,
+                                   subtitle_png + subtitle_mem_length);
+      flutter::EncodableMap picture_info = {
+          {flutter::EncodableValue("picture"),
+           flutter::EncodableValue(picture)},
+          {flutter::EncodableValue("pictureWidth"),
+           flutter::EncodableValue(picture_width)},
+          {flutter::EncodableValue("pictureHeight"),
+           flutter::EncodableValue(picture_height)},
+      };
+      self->SendSubtitleUpdate(duration, flutter::EncodableList(),
+                               picture_info);
+      STBIW_FREE(subtitle_png);
+    } else {
+      LOG_ERROR("[PlusPlayer] Picture subtitle data is null or size is 0.");
+    }
+  } else {
+    LOG_INFO(
+        "[PlusPlayer] Subtitle is text: duration: %llu, text: %s, type: %d",
+        duration, data, type);
+    flutter::EncodableList texts_info = {};
+    for (int i = 0; i < text_lines_count; i++) {
+      flutter::EncodableMap text_line = {
+          {flutter::EncodableValue("text"),
+           flutter::EncodableValue(text_lines[i])},
+          {flutter::EncodableValue("attributes"),
+           flutter::EncodableValue(attributes_lines[i])},
+      };
+      texts_info.emplace_back(flutter::EncodableValue(text_line));
+    }
+
+    self->SendSubtitleUpdate(duration, texts_info);
+  }
 }
 
 void PlusPlayer::OnResourceConflicted(void *user_data) {
@@ -1335,8 +1432,8 @@ void PlusPlayer::OnDrmInitData(int *drm_handle, unsigned int len,
 void PlusPlayer::OnAdaptiveStreamingControlEvent(
     const plusplayer::StreamingMessageType &type,
     const plusplayer::MessageParam &msg, void *user_data) {
-  LOG_INFO("[PlusPlayer] Message type: %d, is DrmInitData (%d)", type,
-           type == plusplayer::StreamingMessageType::kDrmInitData);
+  LOG_DEBUG("[PlusPlayer] Message type: %d, is DrmInitData (%d)", type,
+            type == plusplayer::StreamingMessageType::kDrmInitData);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (type == plusplayer::StreamingMessageType::kDrmInitData) {
