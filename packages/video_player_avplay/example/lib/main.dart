@@ -109,7 +109,7 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaptions: _controller.value.textCaptions),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -202,7 +202,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
                 children: <Widget>[
                   VideoPlayer(_controller),
                   ClosedCaption(
-                      textCaptions: _controller.value.textCaptions,
+                      captions: _controller.value.captions,
                       customTextStyle: customTextStyle),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
@@ -263,7 +263,7 @@ class _Mp4RemoteVideoState extends State<_Mp4RemoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaptions: _controller.value.textCaptions),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -335,7 +335,7 @@ class _DrmRemoteVideoState extends State<_DrmRemoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaptions: _controller.value.textCaptions),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -401,7 +401,7 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaptions: _controller.value.textCaptions),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -462,7 +462,7 @@ class _TrackTestState extends State<_TrackTest> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaptions: _controller.value.textCaptions),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -524,7 +524,7 @@ class _AssetVideoState extends State<_AssetVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaptions: _controller.value.textCaptions),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -834,7 +834,7 @@ class _LiveRomoteVideoState extends State<_LiveRemoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaptions: _controller.value.textCaptions),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -913,7 +913,7 @@ class _TestRemoteVideoState extends State<_TestRemoteVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(textCaptions: _controller.value.textCaptions),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -974,10 +974,7 @@ class _PictureCaptionVideoState extends State<_PictureCaptionVideo> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  ClosedCaption(
-                    textCaptions: _controller.value.textCaptions,
-                    pictureCaption: _controller.value.pictureCaption,
-                  ),
+                  ClosedCaption(captions: _controller.value.captions),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],

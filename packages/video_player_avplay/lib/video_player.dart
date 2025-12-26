@@ -52,8 +52,7 @@ class VideoPlayerValue {
     required this.duration,
     this.size = Size.zero,
     this.position = Duration.zero,
-    this.textCaptions = const <TextCaption>[TextCaption.none],
-    this.pictureCaption = PictureCaption.none,
+    this.captions = Captions.none,
     this.captionOffset = Duration.zero,
     this.tracks = const <Track>[],
     this.buffered = 0,
@@ -96,17 +95,10 @@ class VideoPlayerValue {
   /// The current playback position.
   final Duration position;
 
-  /// The [TextCaption] that should be displayed based on the current [position].
+  /// The [Captions] that should be displayed based on the current [position].
   ///
-  ///  If there is no text caption for the current
-  /// [position], this will be a [TextCaption.none] object.
-  final List<TextCaption> textCaptions;
-
-  /// The [PictureCaption] that should be displayed based on the current [position].
   ///
-  ///  If there is no text caption for the current
-  /// [position], this will be a [PictureCaption.none] object.
-  final PictureCaption pictureCaption;
+  final Captions captions;
 
   /// The [Duration] that should be used to offset the current [position] to get the correct [Caption].
   ///
@@ -203,20 +195,22 @@ class VideoPlayerValue {
     return aspectRatio;
   }
 
-  /// Returns the [TextCaption] that should be displayed based on the current [position].
-  /// If the value of [textCaption.end] has greater than the current [position], this will be a [TextCaption.none] object.
+  /// Returns the [Captions] that should be displayed based on the current [position].
+  /// If the end postion of the captions has greater than the current [position], this will be a [Caption.none] object.
   /// Only used for [copyWith].
-  List<TextCaption> get _currentTextCaption {
-    return position > textCaptions[0].end
-        ? <TextCaption>[TextCaption.none]
-        : textCaptions;
-  }
+  Captions get _currentCaptions {
+    final List<TextCaption> textCaptions =
+        (captions.textCaptions == <TextCaption>[TextCaption.none] ||
+                position > captions.textCaptions![0].end)
+            ? <TextCaption>[TextCaption.none]
+            : captions.textCaptions!;
+    final PictureCaption pictureCaption =
+        (captions.pictureCaption == PictureCaption.none ||
+                position > captions.pictureCaption!.end)
+            ? PictureCaption.none
+            : captions.pictureCaption!;
 
-  /// Returns the [PictureCaption] that should be displayed based on the current [position].
-  /// If the value of [PictureCaption.end] has greater than the current [position], this will be a [PictureCaption.none] object.
-  /// Only used for [copyWith].
-  PictureCaption get _currentPictureCaption {
-    return position > pictureCaption.end ? PictureCaption.none : pictureCaption;
+    return Captions(textCaptions: textCaptions, pictureCaption: pictureCaption);
   }
 
   /// Returns a new instance that has the same values as this current instance,
@@ -225,8 +219,7 @@ class VideoPlayerValue {
     DurationRange? duration,
     Size? size,
     Duration? position,
-    List<TextCaption>? textCaptions,
-    PictureCaption? pictureCaption,
+    Captions? captions,
     Duration? captionOffset,
     List<Track>? tracks,
     int? buffered,
@@ -244,9 +237,8 @@ class VideoPlayerValue {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
       size: size ?? this.size,
-      textCaptions: textCaptions ?? _currentTextCaption,
-      pictureCaption: pictureCaption ?? _currentPictureCaption,
       position: position ?? this.position,
+      captions: captions ?? _currentCaptions,
       captionOffset: captionOffset ?? this.captionOffset,
       tracks: tracks ?? this.tracks,
       buffered: buffered ?? this.buffered,
@@ -271,8 +263,7 @@ class VideoPlayerValue {
         'duration: $duration, '
         'size: $size, '
         'position: $position, '
-        'textCaptions: $textCaptions, '
-        'pictureCaption: $pictureCaption, '
+        'captions: $captions, '
         'captionOffset: $captionOffset, '
         'tracks: $tracks, '
         'buffered: $buffered, '
@@ -296,8 +287,7 @@ class VideoPlayerValue {
           duration == other.duration &&
           size == other.size &&
           position == other.position &&
-          listEquals(textCaptions, other.textCaptions) &&
-          pictureCaption == other.pictureCaption &&
+          captions == other.captions &&
           captionOffset == other.captionOffset &&
           listEquals(tracks, other.tracks) &&
           buffered == other.buffered &&
@@ -317,8 +307,7 @@ class VideoPlayerValue {
         duration,
         size,
         position,
-        textCaptions,
-        pictureCaption,
+        captions,
         captionOffset,
         tracks,
         buffered,
@@ -641,10 +630,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // we use pause() and seekTo() to ensure the platform stops playing
           // and seeks to the last frame of the video.
           pause().then((void pauseResult) => seekTo(value.duration.end));
-          value = value.copyWith(
-              isCompleted: true,
-              textCaptions: <TextCaption>[TextCaption.none],
-              pictureCaption: PictureCaption.none);
+          value = value.copyWith(isCompleted: true, captions: Captions.none);
           _durationTimer?.cancel();
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
@@ -653,10 +639,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
         case VideoEventType.subtitleUpdate:
-          final (PictureCaption?, List<TextCaption>?) subtitles =
-              parseSubtitle(value.position, event.subtitlesInfo!);
-          value = value.copyWith(
-              pictureCaption: subtitles.$1, textCaptions: subtitles.$2);
+          final Captions? captions =
+              Captions.parseSubtitle(value.position, event.subtitlesInfo!);
+          value = value.copyWith(captions: captions);
         case VideoEventType.isPlayingStateUpdate:
           if (event.isPlaying ?? false) {
             value = value.copyWith(
@@ -680,7 +665,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     if (closedCaptionFile != null) {
       _closedCaptionFile ??= await closedCaptionFile;
-      value = value.copyWith(textCaptions: _getCaptionAt(value.position));
+      value = value.copyWith(
+          captions: Captions(
+              textCaptions: _getCaptionAt(value.position),
+              pictureCaption: _getPictureCaptionAt(value.position)));
     }
 
     if (drmConfigs?.licenseCallback != null) {
@@ -1152,7 +1140,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   void setCaptionOffset(Duration offset) {
     value = value.copyWith(
       captionOffset: offset,
-      textCaptions: _getCaptionAt(value.position),
+      captions: Captions(
+          textCaptions: _getCaptionAt(value.position),
+          pictureCaption: _getPictureCaptionAt(value.position)),
     );
   }
 
@@ -1165,9 +1155,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [Caption].
   List<TextCaption> _getCaptionAt(Duration position) {
     if (_closedCaptionFile == null) {
-      return position > value.textCaptions[0].end
+      return (value.captions.textCaptions == <TextCaption>[TextCaption.none] ||
+              position > value.captions.textCaptions![0].end)
           ? <TextCaption>[TextCaption.none]
-          : value.textCaptions;
+          : value.captions.textCaptions!;
     }
 
     final Duration delayedPosition = position + value.captionOffset;
@@ -1183,16 +1174,18 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   PictureCaption _getPictureCaptionAt(Duration position) {
-    return position > value.pictureCaption.end
+    return (value.captions.pictureCaption == PictureCaption.none ||
+            position > value.captions.pictureCaption!.end)
         ? PictureCaption.none
-        : value.pictureCaption;
+        : value.captions.pictureCaption!;
   }
 
   void _updatePosition(Duration position) {
     value = value.copyWith(
       position: position,
-      textCaptions: _getCaptionAt(position),
-      pictureCaption: _getPictureCaptionAt(position),
+      captions: Captions(
+          textCaptions: _getCaptionAt(position),
+          pictureCaption: _getPictureCaptionAt(position)),
       isCompleted: position == value.duration.end,
     );
   }
@@ -1609,29 +1602,21 @@ class ClosedCaption extends StatelessWidget {
   /// [VideoPlayerValue.textCaption] and [VideoPlayerValue.pictureCaption].
   ///
   /// If [text] is null or empty, nothing will be displayed.
-  const ClosedCaption(
-      {super.key,
-      this.textCaptions,
-      this.pictureCaption,
-      this.customTextStyle});
+  const ClosedCaption({super.key, this.captions, this.customTextStyle});
 
-  /// The text that will be shown in the closed caption, or null if no caption
-  /// should be shown.
-  /// If the text is empty the caption will not be shown.
-  final List<TextCaption?>? textCaptions;
-
-  /// The picture that will be shown in the closed caption, or null.
-  final PictureCaption? pictureCaption;
+  /// The captions that will be shown in the closed caption, or null.
+  final Captions? captions;
 
   /// Users can use it to customize the subtitle style.
   final TextStyle? customTextStyle;
 
   @override
   Widget build(BuildContext context) {
-    if (pictureCaption?.picture?.isNotEmpty ?? false) {
-      final Image subtitleImage = Image.memory(pictureCaption!.picture!,
-          width: pictureCaption!.pictureWidth,
-          height: pictureCaption!.pictureHeight, errorBuilder:
+    if (captions?.pictureCaption?.picture?.isNotEmpty ?? false) {
+      final PictureCaption pictureCaption = captions!.pictureCaption!;
+      final Image subtitleImage = Image.memory(pictureCaption.picture!,
+          width: pictureCaption.pictureWidth,
+          height: pictureCaption.pictureHeight, errorBuilder:
               (BuildContext context, Object error, StackTrace? stackTrace) {
         // ignore: avoid_print
         print('[ClosedCaption] Image.memory error: $error');
@@ -1647,13 +1632,16 @@ class ClosedCaption extends StatelessWidget {
             child: subtitleImage,
           ));
     } else {
-      if (textCaptions == null || textCaptions![0] == null) {
+      if (captions?.textCaptions == null ||
+          captions?.textCaptions![0] == null) {
         return const SizedBox.shrink();
       }
 
+      final List<TextCaption> textCaptions = captions!.textCaptions!;
+
       return Stack(
         alignment: AlignmentDirectional.bottomCenter,
-        children: textCaptions!
+        children: textCaptions
             .asMap()
             .entries
             .map((MapEntry<int, TextCaption?> entry) {

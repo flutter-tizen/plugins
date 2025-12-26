@@ -656,70 +656,115 @@ class SubtitleAttribute {
   int get hashCode => Object.hash(attrType, startTime, stopTime, attrValue);
 }
 
-/// Parses a subtitle from a [VideoEvent] into a [PictureCaption] or a list of [TextCaption]s.
-(PictureCaption?, List<TextCaption>?) parseSubtitle(
-    Duration position, SubtitlesInfo subtitlesInfo) {
-  final Duration textDuration = subtitlesInfo.textDuration == 0
-      ? Duration.zero
-      : Duration(milliseconds: subtitlesInfo.textDuration!);
-  if (subtitlesInfo.pictureInfo?.isNotEmpty ?? false) {
-    final PictureCaption pictureCaption = PictureCaption(
-      number: 0,
-      start: position,
-      end: position + textDuration,
-      picture: subtitlesInfo.pictureInfo!['picture'] as Uint8List?,
-      pictureWidth: subtitlesInfo.pictureInfo!['pictureWidth'] as double?,
-      pictureHeight: subtitlesInfo.pictureInfo!['pictureHeight'] as double?,
-    );
-    return (pictureCaption, null);
-  } else {
-    final int textLines =
-        (subtitlesInfo.textsInfo == null || subtitlesInfo.textsInfo![0] == null)
-            ? 0
-            : subtitlesInfo.textsInfo!.length;
+/// A representation of the caption which includes text or picture.
+@immutable
+class Captions {
+  /// Creates a new [Captions] object.
+  const Captions({this.textCaptions, this.pictureCaption});
 
-    if (textLines > 0) {
-      final List<TextCaption> textCaptions = <TextCaption>[];
-      for (int i = 0; i < textLines; i++) {
-        final Map<Object?, Object?> textInfo =
-            subtitlesInfo.textsInfo![i] as Map<Object?, Object?>;
-        final String? text = textInfo['text'] as String?;
-        final List<dynamic>? subtitleAttrList =
-            textInfo['attributes'] as List<dynamic>?;
+  /// The [TextCaption] that should be displayed based on the current [position].
+  ///
+  ///  If there is no text caption for the current
+  /// [position], this will be a [TextCaption.none] object.
+  final List<TextCaption>? textCaptions;
 
-        final List<SubtitleAttribute> subtitleAttributes =
-            SubtitleAttribute.fromEventSubtitleAttrList(subtitleAttrList);
+  /// The [PictureCaption] that should be displayed based on the current [position].
+  ///
+  ///  If there is no text caption for the current
+  /// [position], this will be a [PictureCaption.none] object.
+  final PictureCaption? pictureCaption;
 
-        final (
-          TextOriginAndExtent?,
-          TextStyle?,
-          AlignmentGeometry,
-          Color,
-          double
-        ) subtitleAttr =
-            TextCaption.processSubtitleAttributes(subtitleAttributes);
-        final TextOriginAndExtent? actualTextOriginAndExtent = subtitleAttr.$1;
-        final TextStyle? actualTextStyle = subtitleAttr.$2;
-        final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
-        final Color actualWindowBgColor = subtitleAttr.$4;
-        final double actualFontSize = subtitleAttr.$5;
+  /// Parses a subtitle from a [VideoEvent.subtitlesInfo] into a [Captions] object.
+  static Captions? parseSubtitle(
+      Duration position, SubtitlesInfo subtitlesInfo) {
+    final Duration textDuration = subtitlesInfo.textDuration == 0
+        ? Duration.zero
+        : Duration(milliseconds: subtitlesInfo.textDuration!);
+    if (subtitlesInfo.pictureInfo?.isNotEmpty ?? false) {
+      final PictureCaption pictureCaption = PictureCaption(
+        number: 0,
+        start: position,
+        end: position + textDuration,
+        picture: subtitlesInfo.pictureInfo!['picture'] as Uint8List?,
+        pictureWidth: subtitlesInfo.pictureInfo!['pictureWidth'] as double?,
+        pictureHeight: subtitlesInfo.pictureInfo!['pictureHeight'] as double?,
+      );
+      return Captions(
+          textCaptions: const <TextCaption>[TextCaption.none],
+          pictureCaption: pictureCaption);
+    } else {
+      final int textLines = (subtitlesInfo.textsInfo == null ||
+              subtitlesInfo.textsInfo![0] == null)
+          ? 0
+          : subtitlesInfo.textsInfo!.length;
 
-        final TextCaption textCaption = TextCaption(
-            number: 0,
-            start: position,
-            end: position + textDuration,
-            text: text ?? '',
-            subtitleAttributes: subtitleAttributes,
-            textStyle: actualTextStyle,
-            textOriginAndExtent: actualTextOriginAndExtent,
-            textAlign: actualTextAlign,
-            windowBgColor: actualWindowBgColor,
-            fontSize: actualFontSize);
+      if (textLines > 0) {
+        final List<TextCaption> textCaptions = <TextCaption>[];
+        for (int i = 0; i < textLines; i++) {
+          final Map<Object?, Object?> textInfo =
+              subtitlesInfo.textsInfo![i] as Map<Object?, Object?>;
+          final String? text = textInfo['text'] as String?;
+          final List<dynamic>? subtitleAttrList =
+              textInfo['attributes'] as List<dynamic>?;
 
-        textCaptions.add(textCaption);
+          final List<SubtitleAttribute> subtitleAttributes =
+              SubtitleAttribute.fromEventSubtitleAttrList(subtitleAttrList);
+
+          final (
+            TextOriginAndExtent?,
+            TextStyle?,
+            AlignmentGeometry,
+            Color,
+            double
+          ) subtitleAttr =
+              TextCaption.processSubtitleAttributes(subtitleAttributes);
+          final TextOriginAndExtent? actualTextOriginAndExtent =
+              subtitleAttr.$1;
+          final TextStyle? actualTextStyle = subtitleAttr.$2;
+          final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
+          final Color actualWindowBgColor = subtitleAttr.$4;
+          final double actualFontSize = subtitleAttr.$5;
+
+          final TextCaption textCaption = TextCaption(
+              number: 0,
+              start: position,
+              end: position + textDuration,
+              text: text ?? '',
+              subtitleAttributes: subtitleAttributes,
+              textStyle: actualTextStyle,
+              textOriginAndExtent: actualTextOriginAndExtent,
+              textAlign: actualTextAlign,
+              windowBgColor: actualWindowBgColor,
+              fontSize: actualFontSize);
+
+          textCaptions.add(textCaption);
+        }
+        return Captions(
+            textCaptions: textCaptions, pictureCaption: PictureCaption.none);
       }
-      return (null, textCaptions);
     }
+    return null;
   }
-  return (null, null);
+
+  /// A no captions object. This is a caption with a list of [TextCaption.none] and a [PictureCaption.none].
+  static const Captions none = Captions(
+      textCaptions: <TextCaption>[TextCaption.none],
+      pictureCaption: PictureCaption.none);
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'Captions')}('
+        'textCaptions: $textCaptions, '
+        'pictureCaption: $pictureCaption)';
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Captions &&
+          listEquals(textCaptions, other.textCaptions) &&
+          pictureCaption == other.pictureCaption;
+
+  @override
+  int get hashCode => Object.hash(textCaptions, pictureCaption);
 }
