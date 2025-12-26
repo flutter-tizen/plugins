@@ -1676,7 +1676,7 @@ class ClosedCaption extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.only(
                       bottom: bottomOffset +
-                          (textCaptions!.length - 1 - index) * lineHeight),
+                          (textCaptions.length - 1 - index) * lineHeight),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                         color: textCaption?.windowBgColor ??
