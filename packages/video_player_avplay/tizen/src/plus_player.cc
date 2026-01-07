@@ -1216,32 +1216,27 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       case plusplayer::kSubAttrWebvttCueLine:
       case plusplayer::kSubAttrWebvttCueSize:
       case plusplayer::kSubAttrWebvttCuePosition: {
-        intptr_t value_temp = reinterpret_cast<intptr_t>(attr->value);
-        float value_float;
-        std::memcpy(&value_float, &value_temp, sizeof(float));
-        LOG_INFO("[PlusPlayer] Subtitle update: value<float>: %f", value_float);
+        const float *value_float = static_cast<const float *>(attr->value);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<float>: %f",
+                 *value_float);
         attributes[flutter::EncodableValue("attrValue")] =
-            flutter::EncodableValue((double)value_float);
+            flutter::EncodableValue((double)*value_float);
 
         if (attr->type == plusplayer::kSubAttrRegionWidth &&
             type == plusplayer::SubtitleType::kPicture) {
-          picture_width = (double)value_float;
+          picture_width = (double)*value_float;
         }
         if (attr->type == plusplayer::kSubAttrRegionHeight &&
             type == plusplayer::SubtitleType::kPicture) {
-          picture_height = (double)value_float;
+          picture_height = (double)*value_float;
         }
       } break;
       case plusplayer::kSubAttrWindowLeftMargin:
       case plusplayer::kSubAttrWindowRightMargin:
       case plusplayer::kSubAttrWindowTopMargin:
       case plusplayer::kSubAttrWindowBottomMargin:
-      case plusplayer::kSubAttrWindowBgColor:
       case plusplayer::kSubAttrFontWeight:
       case plusplayer::kSubAttrFontStyle:
-      case plusplayer::kSubAttrFontColor:
-      case plusplayer::kSubAttrFontBgColor:
-      case plusplayer::kSubAttrFontTextOutlineColor:
       case plusplayer::kSubAttrFontTextOutlineThickness:
       case plusplayer::kSubAttrFontTextOutlineBlurRadius:
       case plusplayer::kSubAttrFontVerticalAlign:
@@ -1251,28 +1246,32 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
       case plusplayer::kSubAttrWebvttCueAlign:
       case plusplayer::kSubAttrWebvttCuePositionAlign:
       case plusplayer::kSubAttrWebvttCueVertical:
+      case plusplayer::kSubAttrWindowShowBg:
       case plusplayer::kSubAttrTimestamp: {
-        int64_t value_int = reinterpret_cast<int64_t>(attr->value);
-        LOG_INFO("[PlusPlayer] Subtitle update: value<int64_t>: %lld",
-                 value_int);
+        const int *value_int = static_cast<const int *>(attr->value);
+        LOG_INFO("[PlusPlayer] Subtitle update: value<int>: %d", *value_int);
         attributes[flutter::EncodableValue("attrValue")] =
-            flutter::EncodableValue(value_int);
+            flutter::EncodableValue(*value_int);
       } break;
       case plusplayer::kSubAttrFontFamily:
       case plusplayer::kSubAttrRawSubtitle: {
-        const char *value_chars = reinterpret_cast<const char *>(attr->value);
+        const char *value_chars = static_cast<const char *>(attr->value);
         LOG_INFO("[PlusPlayer] Subtitle update: value<char *>: %s",
                  value_chars);
         std::string value_string(value_chars);
         attributes[flutter::EncodableValue("attrValue")] =
             flutter::EncodableValue(value_string);
       } break;
-      case plusplayer::kSubAttrWindowShowBg: {
-        uint32_t value_uint32 = reinterpret_cast<uint32_t>(attr->value);
+      case plusplayer::kSubAttrFontColor:
+      case plusplayer::kSubAttrFontBgColor:
+      case plusplayer::kSubAttrWindowBgColor:
+      case plusplayer::kSubAttrFontTextOutlineColor: {
+        const uint32_t *value_uint32 =
+            static_cast<const uint32_t *>(attr->value);
         LOG_INFO("[PlusPlayer] Subtitle update: value<uint32_t>: %u",
-                 value_uint32);
+                 *value_uint32);
         attributes[flutter::EncodableValue("attrValue")] =
-            flutter::EncodableValue((int64_t)value_uint32);
+            flutter::EncodableValue((int64_t)*value_uint32);
       } break;
       default:
         LOG_INFO("[PlusPlayer] Unknown Subtitle type: %d", attr->type);

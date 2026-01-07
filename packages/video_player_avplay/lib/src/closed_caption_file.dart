@@ -71,7 +71,8 @@ class TextCaption extends Caption {
       this.textOriginAndExtent,
       this.textAlign,
       this.windowBgColor,
-      this.fontSize});
+      this.fontSize,
+      this.fontForeground});
 
   /// The actual text that should appear on screen to be read between [start]
   /// and [end].
@@ -83,17 +84,20 @@ class TextCaption extends Caption {
   /// Specifies how the text in the closed caption should look.
   final TextStyle? textStyle;
 
-  ///
+  /// The origin and extent of the text in the closed caption.
   final TextOriginAndExtent? textOriginAndExtent;
 
-  ///
+  /// The alignment of the text in the closed caption.
   final AlignmentGeometry? textAlign;
 
-  ///
+  /// The background color of the window where the text appears.
   final Color? windowBgColor;
 
-  ///
+  /// The font size of the text in the closed caption.
   final double? fontSize;
+
+  /// The outline of the text in the closed caption.
+  final Paint? fontForeground;
 
   /// A no text caption object. This is a caption with [start] and [end] durations of zero,
   /// and an empty [text] string.
@@ -147,8 +151,14 @@ class TextCaption extends Caption {
   }
 
   /// Process subtitle attributes and return the text alignment and text style.
-  static (TextOriginAndExtent?, TextStyle?, AlignmentGeometry, Color, double)
-      processSubtitleAttributes(List<SubtitleAttribute> subtitleAttributes) {
+  static (
+    TextOriginAndExtent?,
+    TextStyle?,
+    AlignmentGeometry,
+    Color,
+    double,
+    Paint
+  ) processSubtitleAttributes(List<SubtitleAttribute> subtitleAttributes) {
     TextOriginAndExtent actualTextOriginAndExtent = TextOriginAndExtent.none;
     TextStyle actualTextStyle =
         const TextStyle(height: 1.0, fontSize: 1 / 15.0);
@@ -156,6 +166,7 @@ class TextCaption extends Caption {
     Color actualWindowBgColor =
         const Color(0x00000000); // default transparent color.
     double actualFontSize = 1 / 15.0;
+    Paint foreground = Paint()..style = PaintingStyle.stroke;
 
     if (subtitleAttributes.isEmpty) {
       return (
@@ -163,7 +174,8 @@ class TextCaption extends Caption {
         actualTextStyle,
         actualTextAlign,
         actualWindowBgColor,
-        actualFontSize
+        actualFontSize,
+        foreground
       );
     }
 
@@ -201,7 +213,7 @@ class TextCaption extends Caption {
         case SubtitleAttrType.subAttrFontSize:
           final double fontSize = attr.attrValue as double;
           if (fontSize > 0) {
-            actualFontSize = fontSize / 15; // 1c = 1/15 * player window height;
+            actualFontSize = fontSize;
           }
         case SubtitleAttrType.subAttrFontWeight:
           actualTextStyle = actualTextStyle.copyWith(
@@ -220,26 +232,36 @@ class TextCaption extends Caption {
                 backgroundColor: _intToColor(attr.attrValue as int));
           }
         case SubtitleAttrType.subAttrFontOpacity:
+          if (actualTextStyle.color == null) {
+            actualTextStyle = actualTextStyle.copyWith(color: Colors.white);
+          }
           actualTextStyle = actualTextStyle.copyWith(
               color: actualTextStyle.color!
                   .withValues(alpha: attr.attrValue as double));
         case SubtitleAttrType.subAttrFontBgOpacity:
-          actualTextStyle = actualTextStyle.copyWith(
-              backgroundColor: actualTextStyle.backgroundColor!
-                  .withValues(alpha: attr.attrValue as double));
+          if (actualTextStyle.backgroundColor != null) {
+            actualTextStyle = actualTextStyle.copyWith(
+                backgroundColor: actualTextStyle.backgroundColor!
+                    .withValues(alpha: attr.attrValue as double));
+          }
+        // For text vertical and horizontal align.
         case SubtitleAttrType.subAttrFontVerticalAlign:
           actualTextAlign = actualTextAlign
               .add(_intToTextVerticalAlign(attr.attrValue as int));
         case SubtitleAttrType.subAttrFontHorizontalAlign:
           actualTextAlign = actualTextAlign
               .add(_intToTextHorizontalAlign(attr.attrValue as int));
+        // For text background window.
         case SubtitleAttrType.subAttrWindowBgColor:
           actualWindowBgColor = _intToColor(attr.attrValue as int);
         case SubtitleAttrType.subAttrWindowOpacity:
           actualWindowBgColor =
               actualWindowBgColor.withValues(alpha: attr.attrValue as double);
+        // For text outline.
         case SubtitleAttrType.subAttrFontTextOutlineColor:
+          foreground = foreground..color = _intToColor(attr.attrValue as int);
         case SubtitleAttrType.subAttrFontTextOutlineThickness:
+          foreground = foreground..strokeWidth = (attr.attrValue as int) / 1.0;
         case SubtitleAttrType.subAttrFontTextOutlineBlurRadius:
         case SubtitleAttrType.subAttrWindowXPadding:
         case SubtitleAttrType.subAttrWindowYPadding:
@@ -272,7 +294,8 @@ class TextCaption extends Caption {
           : actualTextStyle,
       actualTextAlign,
       actualWindowBgColor,
-      actualFontSize
+      actualFontSize,
+      foreground
     );
   }
 
@@ -715,7 +738,8 @@ class Captions {
             TextStyle?,
             AlignmentGeometry,
             Color,
-            double
+            double,
+            Paint
           ) subtitleAttr =
               TextCaption.processSubtitleAttributes(subtitleAttributes);
           final TextOriginAndExtent? actualTextOriginAndExtent =
@@ -724,6 +748,7 @@ class Captions {
           final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
           final Color actualWindowBgColor = subtitleAttr.$4;
           final double actualFontSize = subtitleAttr.$5;
+          final Paint actualForeground = subtitleAttr.$6;
 
           final TextCaption textCaption = TextCaption(
               number: 0,
@@ -735,7 +760,8 @@ class Captions {
               textOriginAndExtent: actualTextOriginAndExtent,
               textAlign: actualTextAlign,
               windowBgColor: actualWindowBgColor,
-              fontSize: actualFontSize);
+              fontSize: actualFontSize,
+              fontForeground: actualForeground);
 
           textCaptions.add(textCaption);
         }

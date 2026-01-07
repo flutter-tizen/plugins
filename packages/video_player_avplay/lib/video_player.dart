@@ -1702,15 +1702,34 @@ class ClosedCaption extends StatelessWidget {
                 child: FractionallySizedBox(
                   widthFactor: textCaption.textOriginAndExtent?.extentWidth,
                   heightFactor: textCaption.textOriginAndExtent?.extentHeight,
-                  child: ColoredBox(
-                    color: textCaption.windowBgColor ?? const Color(0xB8000000),
-                    child: Align(
-                        alignment: textCaption.textAlign ?? Alignment.center,
-                        child: Text(
-                          text,
-                          style: effectiveTextStyle,
-                          textAlign: TextAlign.center,
-                        )),
+                  child: Stack(
+                    children: <Widget>[
+                      ColoredBox(
+                        color: textCaption.windowBgColor ??
+                            const Color(0xB8000000),
+                        child: Align(
+                            alignment:
+                                textCaption.textAlign ?? Alignment.center,
+                            child: Text(
+                              text,
+                              style: effectiveTextStyle,
+                              textAlign: TextAlign.center,
+                            )),
+                      ),
+                      ColoredBox(
+                        color: Colors.transparent,
+                        child: Align(
+                            alignment:
+                                textCaption.textAlign ?? Alignment.center,
+                            child: Text(
+                              text,
+                              style: effectiveTextStyle.copyWith(
+                                  backgroundColor: Colors.transparent,
+                                  foreground: textCaption.fontForeground),
+                              textAlign: TextAlign.center,
+                            )),
+                      ),
+                    ],
                   ),
                 ),
               );
