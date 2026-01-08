@@ -18,6 +18,7 @@
 #include "stb_image_write.h"
 
 #define SUBTITLE_ATTR_TYPE_COUNT 37
+#define SUBTITLE_DEFAULT_TEXT_LINE 1
 
 namespace video_player_avplay_tizen {
 
@@ -1169,7 +1170,7 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
 
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
-  int text_lines_count = 1;
+  int text_lines_count = SUBTITLE_DEFAULT_TEXT_LINE;
   std::vector<std::string> text_lines;
   if (type != plusplayer::SubtitleType::kPicture) {
     std::string text_data(data);
@@ -1201,6 +1202,11 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
         {flutter::EncodableValue("stopTime"),
          flutter::EncodableValue((int64_t)attr->stop_time)},
     };
+
+    if (attr->value == nullptr) {
+      LOG_ERROR("[PlusPlayer] SubtitleAttr value is null");
+      return;
+    }
 
     switch (attr->type) {
       case plusplayer::kSubAttrRegionXPos:
@@ -1285,12 +1291,27 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
   }
 
   if (type == plusplayer::SubtitleType::kPicture) {
+    if (picture_width <= 0 || picture_height <= 0 || size <= 0) {
+      LOG_ERROR(
+          "[PlusPlayer] Invalid picture dimensions or size: size: %d, width: "
+          "%f, height: %f",
+          size, picture_width, picture_height);
+      return;
+    }
+
+    const double area = picture_width * picture_height;
+    if (area > static_cast<double>(std::numeric_limits<int>::max()) ||
+        area > size) {
+      LOG_ERROR("[PlusPlayer] Picture area too large: %f", area);
+      return;
+    }
+
     LOG_INFO(
         "[PlusPlayer] Subtitle is a picture: size: %d, width: %f, height: %f",
         size, picture_width, picture_height);
 
     int subtitle_mem_length = 0;
-    int channels = size / (picture_width * picture_height);
+    int channels = size / area;
     unsigned char *subtitle_png =
         stbi_write_png_to_mem((const unsigned char *)data, 0, picture_width,
                               picture_height, channels, &subtitle_mem_length);

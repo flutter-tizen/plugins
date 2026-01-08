@@ -99,6 +99,12 @@ class TextCaption extends Caption {
   /// The outline of the text in the closed caption.
   final Paint? fontForeground;
 
+  /// The length of the hexadecimal string representing an RGB color.
+  static const int lengthRGB = 6;
+
+  /// The length of the hexadecimal string representing an ARGB color.
+  static const int lengthARGB = 8;
+
   /// A no text caption object. This is a caption with [start] and [end] durations of zero,
   /// and an empty [text] string.
   static const TextCaption none = TextCaption(
@@ -114,13 +120,13 @@ class TextCaption extends Caption {
       return const Color(0x00000000);
     }
     String hexValue = colorValue.toRadixString(16);
-    if (hexValue.length < 6) {
-      hexValue = hexValue.padLeft(6, '0');
+    if (hexValue.length < lengthRGB) {
+      hexValue = hexValue.padLeft(lengthRGB, '0');
     }
-    if (hexValue.length == 6) {
+    if (hexValue.length == lengthRGB) {
       hexValue = 'FF$hexValue';
     }
-    if (hexValue.length == 8) {
+    if (hexValue.length == lengthARGB) {
       return Color(int.parse('0x$hexValue'));
     }
     return const Color(0x00000000);
@@ -232,17 +238,22 @@ class TextCaption extends Caption {
                 backgroundColor: _intToColor(attr.attrValue as int));
           }
         case SubtitleAttrType.subAttrFontOpacity:
-          if (actualTextStyle.color == null) {
-            actualTextStyle = actualTextStyle.copyWith(color: Colors.white);
+          final double fontOpacity = attr.attrValue as double;
+          if (fontOpacity >= 0.0 && fontOpacity <= 1.0) {
+            if (actualTextStyle.color == null) {
+              actualTextStyle = actualTextStyle.copyWith(color: Colors.white);
+            }
+            actualTextStyle = actualTextStyle.copyWith(
+                color: actualTextStyle.color!.withValues(alpha: fontOpacity));
           }
-          actualTextStyle = actualTextStyle.copyWith(
-              color: actualTextStyle.color!
-                  .withValues(alpha: attr.attrValue as double));
         case SubtitleAttrType.subAttrFontBgOpacity:
-          if (actualTextStyle.backgroundColor != null) {
+          final double fontBgOpacity = attr.attrValue as double;
+          if (fontBgOpacity >= 0.0 &&
+              fontBgOpacity <= 1.0 &&
+              actualTextStyle.backgroundColor != null) {
             actualTextStyle = actualTextStyle.copyWith(
                 backgroundColor: actualTextStyle.backgroundColor!
-                    .withValues(alpha: attr.attrValue as double));
+                    .withValues(alpha: fontBgOpacity));
           }
         // For text vertical and horizontal align.
         case SubtitleAttrType.subAttrFontVerticalAlign:
@@ -255,8 +266,11 @@ class TextCaption extends Caption {
         case SubtitleAttrType.subAttrWindowBgColor:
           actualWindowBgColor = _intToColor(attr.attrValue as int);
         case SubtitleAttrType.subAttrWindowOpacity:
-          actualWindowBgColor =
-              actualWindowBgColor.withValues(alpha: attr.attrValue as double);
+          final double windowOpacity = attr.attrValue as double;
+          if (windowOpacity >= 0.0 && windowOpacity <= 1.0) {
+            actualWindowBgColor =
+                actualWindowBgColor.withValues(alpha: windowOpacity);
+          }
         // For text outline.
         case SubtitleAttrType.subAttrFontTextOutlineColor:
           foreground = foreground..color = _intToColor(attr.attrValue as int);
@@ -280,7 +294,7 @@ class TextCaption extends Caption {
         case SubtitleAttrType.subAttrWebvttCuePositionAlign:
         case SubtitleAttrType.subAttrWebvttCueVertical:
         case SubtitleAttrType.subAttrTimestamp:
-        case SubtitleAttrType.subAttrExtsubInde:
+        case SubtitleAttrType.subAttrExtsubIndex:
         case SubtitleAttrType.subAttrTypeNone:
           break;
       }
@@ -553,7 +567,7 @@ enum SubtitleAttrType {
   subAttrTimestamp(SubtitleAttrValueType.int),
 
   /// File index of external subtitle
-  subAttrExtsubInde(SubtitleAttrValueType.none),
+  subAttrExtsubIndex(SubtitleAttrValueType.none),
 
   /// Default type
   subAttrTypeNone(SubtitleAttrValueType.none);
@@ -626,32 +640,34 @@ class SubtitleAttribute {
         eventSubtitleAttrList!.cast<Map<Object?, Object?>?>();
 
     for (final Map<Object?, Object?>? attr in subtitleAttrList) {
-      final int attrTypeNum = attr!['attrType']! as int;
-      final int startTime = attr['startTime']! as int;
-      final int stopTime = attr['stopTime']! as int;
+      if (attr != null && attr['attrType'] != null) {
+        final int attrTypeNum = attr['attrType']! as int;
+        final int startTime = attr['startTime']! as int;
+        final int stopTime = attr['stopTime']! as int;
 
-      Object attrValue;
-      if (SubtitleAttrType.getValueType(attrTypeNum) ==
-          SubtitleAttrValueType.double) {
-        attrValue = attr['attrValue']! as double;
-      } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
-          SubtitleAttrValueType.int) {
-        attrValue = attr['attrValue']! as int;
-      } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
-          SubtitleAttrValueType.string) {
-        attrValue = attr['attrValue']! as String;
-      } else {
-        attrValue = 'failed';
+        Object attrValue;
+        if (SubtitleAttrType.getValueType(attrTypeNum) ==
+            SubtitleAttrValueType.double) {
+          attrValue = attr['attrValue']! as double;
+        } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
+            SubtitleAttrValueType.int) {
+          attrValue = attr['attrValue']! as int;
+        } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
+            SubtitleAttrValueType.string) {
+          attrValue = attr['attrValue']! as String;
+        } else {
+          attrValue = 'failed';
+        }
+
+        subtitleAttributes.add(
+          SubtitleAttribute(
+            attrType: SubtitleAttrType.values[attrTypeNum],
+            startTime: startTime,
+            stopTime: stopTime,
+            attrValue: attrValue,
+          ),
+        );
       }
-
-      subtitleAttributes.add(
-        SubtitleAttribute(
-          attrType: SubtitleAttrType.values[attrTypeNum],
-          startTime: startTime,
-          stopTime: stopTime,
-          attrValue: attrValue,
-        ),
-      );
     }
     return subtitleAttributes;
   }
