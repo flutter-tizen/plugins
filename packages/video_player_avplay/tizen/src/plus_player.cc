@@ -615,6 +615,12 @@ bool PlusPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {
 bool PlusPlayer::SetDrm(const std::string &uri, int drm_type,
                         const std::string &license_server_url) {
   drm_manager_ = std::make_unique<DrmManager>();
+  DrmManager::ErrorCallback drm_error_callback =
+      [this](const std::string &error_code, const std::string &error_message) {
+        this->SendError(error_code, error_message);
+      };
+  drm_manager_->SetErrorCallback(drm_error_callback);
+
   if (!drm_manager_->CreateDrmSession(drm_type, true)) {
     LOG_ERROR("[PlusPlayer] Fail to create drm session.");
     return false;

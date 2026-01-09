@@ -19,6 +19,9 @@ class DrmManager {
     DRM_TYPE_WIDEVINECDM,
   } DrmType;
 
+  using ErrorCallback =
+      std::function<void(const std::string &, const std::string &)>;
+
   explicit DrmManager();
   ~DrmManager();
 
@@ -32,6 +35,8 @@ class DrmManager {
                               unsigned char *pssh_data, void *user_data);
   int UpdatePsshData(const void *data, int length);
   void ReleaseDrmSession();
+  void SetErrorCallback(ErrorCallback callback);
+  void UpdateHasError();
 
  private:
   struct DataForLicenseProcess {
@@ -43,7 +48,7 @@ class DrmManager {
   };
 
   void RequestLicense(std::string &session_id, std::string &message);
-  void InstallKey(void *session_id, void *response_data, void *response_len);
+  bool InstallKey(void *session_id, void *response_data, void *response_len);
   int SetChallenge(const std::string &media_url);
 
   static int OnChallengeData(void *session_id, int message_type, void *message,
@@ -64,6 +69,7 @@ class DrmManager {
   std::mutex queue_mutex_;
   Ecore_Pipe *license_request_pipe_ = nullptr;
   std::queue<DataForLicenseProcess> license_request_queue_;
+  ErrorCallback error_callback_;
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_
