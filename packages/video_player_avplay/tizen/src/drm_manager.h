@@ -36,7 +36,7 @@ class DrmManager {
   int UpdatePsshData(const void *data, int length);
   void ReleaseDrmSession();
   void SetErrorCallback(ErrorCallback callback);
-  void UpdateHasError();
+  void SendInstallKeyError();
 
  private:
   struct DataForLicenseProcess {

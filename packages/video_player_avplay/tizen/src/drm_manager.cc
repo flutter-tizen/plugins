@@ -241,7 +241,7 @@ bool DrmManager::ProcessLicense(DataForLicenseProcess &data) {
         static_cast<DrmLicenseHelper::DrmType>(drm_type_), nullptr, nullptr);
     if (DRM_SUCCESS != ret || nullptr == response_data || 0 == response_len) {
       LOG_ERROR("[DrmManager] Fail to get respone by license server url.");
-      UpdateHasError();
+      SendInstallKeyError();
       return false;
     }
     LOG_INFO("[DrmManager] Response length : %lu", response_len);
@@ -249,7 +249,7 @@ bool DrmManager::ProcessLicense(DataForLicenseProcess &data) {
                         data.session_id.c_str())),
                     static_cast<void *>(response_data),
                     reinterpret_cast<void *>(response_len))) {
-      UpdateHasError();
+      SendInstallKeyError();
     }
     free(response_data);
   } else if (request_license_channel_) {
@@ -283,7 +283,7 @@ void DrmManager::SetErrorCallback(ErrorCallback callback) {
   error_callback_ = callback;
 }
 
-void DrmManager::UpdateHasError() {
+void DrmManager::SendInstallKeyError() {
   if (error_callback_) {
     std::string error_code = "[DrmManager] error";
     std::string error_message =
@@ -315,7 +315,7 @@ void DrmManager::RequestLicense(std::string &session_id, std::string &message) {
               response = std::get<std::vector<uint8_t>>(*success_value);
             } else {
               LOG_ERROR("[DrmManager] Fail to get response.");
-              UpdateHasError();
+              SendInstallKeyError();
               return;
             }
             LOG_INFO("[DrmManager] Response length : %d", response.size());
@@ -323,7 +323,7 @@ void DrmManager::RequestLicense(std::string &session_id, std::string &message) {
                                 session_id.c_str())),
                             reinterpret_cast<void *>(response.data()),
                             reinterpret_cast<void *>(response.size()))) {
-              UpdateHasError();
+              SendInstallKeyError();
             }
           },
           nullptr, nullptr);
