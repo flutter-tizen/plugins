@@ -97,7 +97,8 @@ class VideoPlayerValue {
 
   /// The [Captions] that should be displayed based on the current [position].
   ///
-  ///
+  /// This field will never be null. If there is no caption for the current
+  /// [position], this will be a [Captions.none] object.
   final Captions captions;
 
   /// The [Duration] that should be used to offset the current [position] to get the correct [Caption].
@@ -1656,8 +1657,6 @@ class ClosedCaption extends StatelessWidget {
               builder: (BuildContext context, BoxConstraints constraints) {
             final double dynamicFontSize =
                 constraints.maxHeight * (textCaption?.fontSize ?? 1 / 15.0);
-            // ignore: avoid_print
-            print('***********font size is $dynamicFontSize**************');
 
             final TextStyle effectiveTextStyle = customTextStyle ??
                 ((textCaption?.textStyle == null)
