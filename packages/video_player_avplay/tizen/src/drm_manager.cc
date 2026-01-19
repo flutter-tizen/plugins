@@ -323,6 +323,7 @@ void DrmManager::RequestLicense(std::string &session_id, std::string &message) {
                                 session_id.c_str())),
                             reinterpret_cast<void *>(response.data()),
                             reinterpret_cast<void *>(response.size()))) {
+              LOG_INFO("*****************installKey error******************");
               SendInstallKeyError();
             }
           },

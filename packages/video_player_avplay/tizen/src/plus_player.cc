@@ -47,6 +47,7 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
 }
 
 PlusPlayer::~PlusPlayer() {
+  LOG_INFO("**************~plusplayer start*******************");
   if (player_) {
     Stop(player_);
     Close(player_);
@@ -58,6 +59,7 @@ PlusPlayer::~PlusPlayer() {
   if (drm_manager_) {
     drm_manager_->ReleaseDrmSession();
   }
+  LOG_INFO("**************~plusplayer end*******************");
 }
 
 void PlusPlayer::RegisterListener() {
@@ -1093,6 +1095,7 @@ bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
 }
 
 void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
+  LOG_INFO("**************prepare done*****************");
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (!SetDisplayVisible(self->player_, true)) {
