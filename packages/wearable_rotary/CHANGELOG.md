@@ -1,3 +1,7 @@
+## 2.0.4
+
+- Upgrades `compileSdkVersion` to 35
+
 ## 2.0.3
 
 * Fix new lint warnings.
