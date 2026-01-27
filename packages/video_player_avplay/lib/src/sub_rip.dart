@@ -21,13 +21,13 @@ class SubRipCaptionFile extends ClosedCaptionFile {
   final String fileContents;
 
   @override
-  List<Caption> get captions => _captions;
+  List<TextCaption> get textCaptions => _captions;
 
-  final List<Caption> _captions;
+  final List<TextCaption> _captions;
 }
 
-List<Caption> _parseCaptionsFromSubRipString(String file) {
-  final List<Caption> captions = <Caption>[];
+List<TextCaption> _parseCaptionsFromSubRipString(String file) {
+  final List<TextCaption> captions = <TextCaption>[];
   for (final List<String> captionLines in _readSubRipFile(file)) {
     if (captionLines.length < 3) {
       break;
@@ -40,7 +40,7 @@ List<Caption> _parseCaptionsFromSubRipString(String file) {
 
     final String text = captionLines.sublist(2).join('\n');
 
-    final Caption newCaption = Caption(
+    final TextCaption newCaption = TextCaption(
       number: captionNumber,
       start: captionRange.start,
       end: captionRange.end,

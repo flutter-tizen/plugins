@@ -1,3 +1,9 @@
+## 0.8.0
+
+* Support parsing SMPE-TT subtitle attributes for DASH.
+* Support displaying multi-line text subtitles for DASH.
+* Support image format subtitles for DASH.
+
 ## 0.7.8
 
 * unwantedResolution, unwantedFrameRate and updateSameLanguageCode changed to be a child type of adaptiveInfo in StreamingPropertyType.
