@@ -34,6 +34,7 @@ class DrmManager {
   bool SecurityInitCompleteCB(int *drm_handle, unsigned int len,
                               unsigned char *pssh_data, void *user_data);
   int UpdatePsshData(const void *data, int length);
+  void StopDrmSession();
   void ReleaseDrmSession();
   void SetErrorCallback(ErrorCallback callback);
   void SendInstallKeyError();

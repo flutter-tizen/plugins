@@ -72,15 +72,26 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
 PlusPlayer::~PlusPlayer() {
   LOG_INFO("**************~plusplayer start*******************");
   if (player_) {
+    LOG_INFO("*****************0*******************");
+    if (drm_manager_) {
+      drm_manager_->StopDrmSession();
+    }
+    LOG_INFO("*****************1*******************");
     Stop(player_);
+    LOG_INFO("*****************2*******************");
     Close(player_);
+    LOG_INFO("*****************3*******************");
     UnregisterListener(player_);
+    LOG_INFO("*****************4*******************");
     DestroyPlayer(player_);
+    LOG_INFO("*****************5*******************");
     player_ = nullptr;
   }
 
   if (drm_manager_) {
+    LOG_INFO("*****************6*******************");
     drm_manager_->ReleaseDrmSession();
+    LOG_INFO("*****************7*******************");
   }
   LOG_INFO("**************~plusplayer end*******************");
 }

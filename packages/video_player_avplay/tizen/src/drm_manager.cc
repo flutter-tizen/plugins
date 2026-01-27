@@ -86,7 +86,7 @@ bool DrmManager::SetChallenge(const std::string &media_url,
   return DM_ERROR_NONE == SetChallenge(media_url);
 }
 
-void DrmManager::ReleaseDrmSession() {
+void DrmManager::StopDrmSession() {
   if (drm_session_ == nullptr) {
     LOG_ERROR("[DrmManager] Already released.");
     return;
@@ -109,8 +109,33 @@ void DrmManager::ReleaseDrmSession() {
     LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
               get_error_message(ret));
   }
+}
 
-  ret = DrmManagerProxy::GetInstance().DMGRReleaseDRMSession(drm_session_);
+void DrmManager::ReleaseDrmSession() {
+  if (drm_session_ == nullptr) {
+    LOG_ERROR("[DrmManager] Already released.");
+    return;
+  }
+
+  // SetDataParam_t challenge_data_param = {};
+  // challenge_data_param.param1 = nullptr;
+  // challenge_data_param.param2 = nullptr;
+  // int ret = DrmManagerProxy::GetInstance().DMGRSetData(
+  //     drm_session_, "eme_request_key_callback", &challenge_data_param);
+  // if (ret != DM_ERROR_NONE) {
+  //   LOG_ERROR("[DrmManager] Fail to unset eme_request_key_callback: %s",
+  //             get_error_message(ret));
+  // }
+
+  // ret = DrmManagerProxy::GetInstance().DMGRSetData(drm_session_, "Finalize",
+  //                                                  nullptr);
+
+  // if (ret != DM_ERROR_NONE) {
+  //   LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
+  //             get_error_message(ret));
+  // }
+
+  int ret = DrmManagerProxy::GetInstance().DMGRReleaseDRMSession(drm_session_);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to release drm session: %s",
               get_error_message(ret));
