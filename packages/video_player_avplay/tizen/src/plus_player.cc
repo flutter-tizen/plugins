@@ -70,30 +70,20 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
 }
 
 PlusPlayer::~PlusPlayer() {
-  LOG_INFO("**************~plusplayer start*******************");
   if (player_) {
-    LOG_INFO("*****************0*******************");
     if (drm_manager_) {
       drm_manager_->StopDrmSession();
     }
-    LOG_INFO("*****************1*******************");
     Stop(player_);
-    LOG_INFO("*****************2*******************");
     Close(player_);
-    LOG_INFO("*****************3*******************");
     UnregisterListener(player_);
-    LOG_INFO("*****************4*******************");
     DestroyPlayer(player_);
-    LOG_INFO("*****************5*******************");
     player_ = nullptr;
   }
 
   if (drm_manager_) {
-    LOG_INFO("*****************6*******************");
     drm_manager_->ReleaseDrmSession();
-    LOG_INFO("*****************7*******************");
   }
-  LOG_INFO("**************~plusplayer end*******************");
 }
 
 void PlusPlayer::RegisterListener() {
@@ -262,6 +252,9 @@ bool PlusPlayer::Activate() {
 
 bool PlusPlayer::Deactivate() {
   if (is_prebuffer_mode_) {
+    if (drm_manager_) {
+      drm_manager_->StopDrmSession();
+    }
     Stop(player_);
     return true;
   }
@@ -817,6 +810,10 @@ bool PlusPlayer::StopAndClose() {
     return true;
   }
 
+  if (drm_manager_) {
+    drm_manager_->StopDrmSession();
+  }
+
   if (!::Stop(player_)) {
     LOG_ERROR("[PlusPlayer] Player fail to stop.");
     return false;
@@ -1129,7 +1126,6 @@ bool PlusPlayer::OnLicenseAcquired(int *drm_handle, unsigned int length,
 }
 
 void PlusPlayer::OnPrepareDone(bool ret, void *user_data) {
-  LOG_INFO("**************prepare done*****************");
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
   if (!SetDisplayVisible(self->player_, true)) {

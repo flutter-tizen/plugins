@@ -117,24 +117,6 @@ void DrmManager::ReleaseDrmSession() {
     return;
   }
 
-  // SetDataParam_t challenge_data_param = {};
-  // challenge_data_param.param1 = nullptr;
-  // challenge_data_param.param2 = nullptr;
-  // int ret = DrmManagerProxy::GetInstance().DMGRSetData(
-  //     drm_session_, "eme_request_key_callback", &challenge_data_param);
-  // if (ret != DM_ERROR_NONE) {
-  //   LOG_ERROR("[DrmManager] Fail to unset eme_request_key_callback: %s",
-  //             get_error_message(ret));
-  // }
-
-  // ret = DrmManagerProxy::GetInstance().DMGRSetData(drm_session_, "Finalize",
-  //                                                  nullptr);
-
-  // if (ret != DM_ERROR_NONE) {
-  //   LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
-  //             get_error_message(ret));
-  // }
-
   int ret = DrmManagerProxy::GetInstance().DMGRReleaseDRMSession(drm_session_);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to release drm session: %s",
@@ -348,7 +330,6 @@ void DrmManager::RequestLicense(std::string &session_id, std::string &message) {
                                 session_id.c_str())),
                             reinterpret_cast<void *>(response.data()),
                             reinterpret_cast<void *>(response.size()))) {
-              LOG_INFO("*****************installKey error******************");
               SendInstallKeyError();
             }
           },

@@ -34,13 +34,11 @@ VideoPlayer::~VideoPlayer() {
 }
 
 void VideoPlayer::ClearUpEventChannel() {
-  LOG_INFO("************clearupeventchannel start*****************");
   is_initialized_ = false;
   event_sink_ = nullptr;
   if (event_channel_) {
     event_channel_->SetStreamHandler(nullptr);
   }
-  LOG_INFO("************clearupeventchannel end*****************");
 }
 
 int64_t VideoPlayer::SetUpEventChannel() {
