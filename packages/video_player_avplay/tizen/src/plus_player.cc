@@ -71,6 +71,9 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
 
 PlusPlayer::~PlusPlayer() {
   if (player_) {
+    if (drm_manager_) {
+      drm_manager_->StopDrmSession();
+    }
     Stop(player_);
     Close(player_);
     UnregisterListener(player_);
@@ -249,6 +252,9 @@ bool PlusPlayer::Activate() {
 
 bool PlusPlayer::Deactivate() {
   if (is_prebuffer_mode_) {
+    if (drm_manager_) {
+      drm_manager_->StopDrmSession();
+    }
     Stop(player_);
     return true;
   }
@@ -638,6 +644,12 @@ bool PlusPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {
 bool PlusPlayer::SetDrm(const std::string &uri, int drm_type,
                         const std::string &license_server_url) {
   drm_manager_ = std::make_unique<DrmManager>();
+  DrmManager::ErrorCallback drm_error_callback =
+      [this](const std::string &error_code, const std::string &error_message) {
+        this->SendError(error_code, error_message);
+      };
+  drm_manager_->SetErrorCallback(drm_error_callback);
+
   if (!drm_manager_->CreateDrmSession(drm_type, true)) {
     LOG_ERROR("[PlusPlayer] Fail to create drm session.");
     return false;
@@ -796,6 +808,10 @@ bool PlusPlayer::StopAndClose() {
   if (player_state < plusplayer::State::kReady) {
     LOG_INFO("[PlusPlayer] Player already stop, nothing to do.");
     return true;
+  }
+
+  if (drm_manager_) {
+    drm_manager_->StopDrmSession();
   }
 
   if (!::Stop(player_)) {

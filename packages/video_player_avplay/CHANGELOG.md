@@ -1,3 +1,7 @@
+## 0.8.1
+
+* Update the error callback when DRM license acquisition fails.
+
 ## 0.8.0
 
 * Support parsing SMPE-TT subtitle attributes for DASH.

@@ -86,7 +86,7 @@ bool DrmManager::SetChallenge(const std::string &media_url,
   return DM_ERROR_NONE == SetChallenge(media_url);
 }
 
-void DrmManager::ReleaseDrmSession() {
+void DrmManager::StopDrmSession() {
   if (drm_session_ == nullptr) {
     LOG_ERROR("[DrmManager] Already released.");
     return;
@@ -109,8 +109,15 @@ void DrmManager::ReleaseDrmSession() {
     LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
               get_error_message(ret));
   }
+}
 
-  ret = DrmManagerProxy::GetInstance().DMGRReleaseDRMSession(drm_session_);
+void DrmManager::ReleaseDrmSession() {
+  if (drm_session_ == nullptr) {
+    LOG_ERROR("[DrmManager] Already released.");
+    return;
+  }
+
+  int ret = DrmManagerProxy::GetInstance().DMGRReleaseDRMSession(drm_session_);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to release drm session: %s",
               get_error_message(ret));
@@ -241,13 +248,16 @@ bool DrmManager::ProcessLicense(DataForLicenseProcess &data) {
         static_cast<DrmLicenseHelper::DrmType>(drm_type_), nullptr, nullptr);
     if (DRM_SUCCESS != ret || nullptr == response_data || 0 == response_len) {
       LOG_ERROR("[DrmManager] Fail to get respone by license server url.");
+      SendInstallKeyError();
       return false;
     }
     LOG_INFO("[DrmManager] Response length : %lu", response_len);
-    InstallKey(const_cast<void *>(
-                   reinterpret_cast<const void *>(data.session_id.c_str())),
-               static_cast<void *>(response_data),
-               reinterpret_cast<void *>(response_len));
+    if (!InstallKey(const_cast<void *>(reinterpret_cast<const void *>(
+                        data.session_id.c_str())),
+                    static_cast<void *>(response_data),
+                    reinterpret_cast<void *>(response_len))) {
+      SendInstallKeyError();
+    }
     free(response_data);
   } else if (request_license_channel_) {
     // Get license via the Dart callback.
@@ -258,7 +268,7 @@ bool DrmManager::ProcessLicense(DataForLicenseProcess &data) {
   return false;
 }
 
-void DrmManager::InstallKey(void *session_id, void *response_data,
+bool DrmManager::InstallKey(void *session_id, void *response_data,
                             void *response_len) {
   LOG_INFO("[DrmManager] Start install license.");
 
@@ -271,6 +281,22 @@ void DrmManager::InstallKey(void *session_id, void *response_data,
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to install eme key: %s",
               get_error_message(ret));
+    return false;
+  }
+  return true;
+}
+
+void DrmManager::SetErrorCallback(ErrorCallback callback) {
+  error_callback_ = callback;
+}
+
+void DrmManager::SendInstallKeyError() {
+  if (error_callback_) {
+    std::string error_code = "[DrmManager] error";
+    std::string error_message =
+        "Error: install drm key failed, please check licenseURL or network "
+        "connection.";
+    error_callback_(error_code, error_message);
   }
 }
 
@@ -296,13 +322,16 @@ void DrmManager::RequestLicense(std::string &session_id, std::string &message) {
               response = std::get<std::vector<uint8_t>>(*success_value);
             } else {
               LOG_ERROR("[DrmManager] Fail to get response.");
+              SendInstallKeyError();
               return;
             }
             LOG_INFO("[DrmManager] Response length : %d", response.size());
-            InstallKey(const_cast<void *>(
-                           reinterpret_cast<const void *>(session_id.c_str())),
-                       reinterpret_cast<void *>(response.data()),
-                       reinterpret_cast<void *>(response.size()));
+            if (!InstallKey(const_cast<void *>(reinterpret_cast<const void *>(
+                                session_id.c_str())),
+                            reinterpret_cast<void *>(response.data()),
+                            reinterpret_cast<void *>(response.size()))) {
+              SendInstallKeyError();
+            }
           },
           nullptr, nullptr);
   request_license_channel_->InvokeMethod(

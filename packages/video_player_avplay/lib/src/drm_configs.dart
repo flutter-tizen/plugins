@@ -26,7 +26,14 @@ class DrmConfigs {
     this.type = DrmType.none,
     this.licenseServerUrl,
     this.licenseCallback,
-  });
+  })  : assert(
+          (licenseServerUrl != null) ^ (licenseCallback != null),
+          'Either licenseServerUrl or licenseCallback should be specified, but not both.',
+        ),
+        assert(
+          licenseServerUrl == null || licenseServerUrl != '',
+          'License server URL cannot be empty.',
+        );
 
   /// The DRM type.
   final DrmType type;
