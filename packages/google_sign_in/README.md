@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `google_sign_in`. Therefore,
 ```yaml
 dependencies:
   google_sign_in: ^5.4.1
-  google_sign_in_tizen: ^0.1.4
+  google_sign_in_tizen: ^0.1.5
 ```
 
 For detailed usage on how to use `google_sign_in`, see https://pub.dev/packages/google_sign_in#usage.
