@@ -1,3 +1,7 @@
+## NEXT
+
+* Adds compatibility with `http` 1.0 in example.
+
 ## 0.8.1
 
 * Update the error callback when DRM license acquisition fails.

@@ -1,3 +1,7 @@
+## NEXT
+
+* Adds compatibility with `http` 1.0 in example.
+
 ## 0.5.8
 
 * Add namespace to the C++ code to avoid name conflicts with other plugins.

@@ -3,6 +3,7 @@
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Fix analyze issue.
 * Update code format.
+* Adds compatibility with `http` 1.0 in example.
 
 ## 0.1.3
 
