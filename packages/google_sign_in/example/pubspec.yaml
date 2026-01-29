@@ -12,7 +12,7 @@ dependencies:
   google_sign_in: ^5.4.1
   google_sign_in_tizen:
     path: ../
-  http: ^0.13.0
+  http: ">=0.13.0 <2.0.0"
 
 dev_dependencies:
   flutter_driver:

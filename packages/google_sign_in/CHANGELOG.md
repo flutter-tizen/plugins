@@ -1,6 +1,7 @@
-## NEXT
+## 0.1.5
 
 * Update code format.
+* Adds compatibility with `http` 1.0.
 
 ## 0.1.4
 
