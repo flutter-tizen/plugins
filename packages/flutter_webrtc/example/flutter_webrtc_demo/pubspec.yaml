@@ -13,7 +13,7 @@ dependencies:
   flutter_webrtc: 0.9.46 # Use a fixed version due to build errors.
   flutter_webrtc_tizen:
     path: ../../
-  http: ^0.13.3
+  http: ">=0.13.0 <2.0.0"
   path_provider: ^2.0.7
   path_provider_tizen: ^2.1.0
   shared_preferences: ^2.2.0

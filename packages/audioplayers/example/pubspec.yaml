@@ -14,7 +14,7 @@ dependencies:
   file_picker: ^8.0.3
   flutter:
     sdk: flutter
-  http: ^1.0.0
+  http: ">=0.13.0 <2.0.0"
   path_provider: ^2.0.12
   path_provider_tizen:
     path: ../../path_provider/
