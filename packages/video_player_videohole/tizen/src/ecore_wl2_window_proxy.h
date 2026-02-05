@@ -11,7 +11,6 @@ class EcoreWl2WindowProxy {
   ~EcoreWl2WindowProxy();
   void ecore_wl2_window_geometry_get(void *window, int *x, int *y, int *width,
                                      int *height);
-  int ecore_wl2_window_surface_id_get(void *window);
 
  private:
   void *ecore_wl2_window_handle_ = nullptr;

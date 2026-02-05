@@ -1,6 +1,7 @@
 ## NEXT
 
 * Adds compatibility with `http` 1.0 in example.
+* Remove unused proxy apis.
 
 ## 0.8.1
 
