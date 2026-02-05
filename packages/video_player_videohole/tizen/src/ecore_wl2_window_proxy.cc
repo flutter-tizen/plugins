@@ -10,7 +10,6 @@
 
 typedef void (*FuncEcoreWl2WindowGeometryGet)(void *window, int *x, int *y,
                                               int *width, int *height);
-typedef int (*FuncEcoreWl2WindowSurfaceIdGet)(void *window);
 
 EcoreWl2WindowProxy::EcoreWl2WindowProxy() {
   ecore_wl2_window_handle_ = dlopen("libecore_wl2.so.1", RTLD_LAZY);
