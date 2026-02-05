@@ -10,7 +10,6 @@
 
 typedef void (*FuncEcoreWl2WindowGeometryGet)(void *window, int *x, int *y,
                                               int *width, int *height);
-typedef int (*FuncEcoreWl2WindowSurfaceIdGet)(void *window);
 
 EcoreWl2WindowProxy::EcoreWl2WindowProxy() {
   ecore_wl2_window_handle_ = dlopen("libecore_wl2.so.1", RTLD_LAZY);
@@ -35,21 +34,6 @@ void EcoreWl2WindowProxy::ecore_wl2_window_geometry_get(void *window, int *x,
     return;
   }
   ecore_wl2_window_geometry_get(window, x, y, width, height);
-}
-
-int EcoreWl2WindowProxy::ecore_wl2_window_surface_id_get(void *window) {
-  if (!ecore_wl2_window_handle_) {
-    LOG_ERROR("ecore_wl2_window_handle_ not valid");
-    return -1;
-  }
-  FuncEcoreWl2WindowSurfaceIdGet ecore_wl2_window_surface_id_get =
-      reinterpret_cast<FuncEcoreWl2WindowSurfaceIdGet>(
-          dlsym(ecore_wl2_window_handle_, "ecore_wl2_window_surface_id_get"));
-  if (!ecore_wl2_window_surface_id_get) {
-    LOG_ERROR("Fail to find ecore_wl2_window_surface_id_get.");
-    return -1;
-  }
-  return ecore_wl2_window_surface_id_get(window);
 }
 
 EcoreWl2WindowProxy::~EcoreWl2WindowProxy() {
