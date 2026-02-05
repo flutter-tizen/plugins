@@ -1,3 +1,8 @@
+## 2.5.9
+
+* Update video_player to 2.10.1.
+* Update video_player_platform_interface to 6.3.0.
+
 ## 2.5.8
 
 * Fix integration_test crash issue (Issue #890)
