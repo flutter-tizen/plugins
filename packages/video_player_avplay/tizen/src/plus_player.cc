@@ -1309,7 +1309,8 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
   if (type == plusplayer::SubtitleType::kPicture) {
     // if (picture_width <= 0 || picture_height <= 0 || size <= 0) {
     //   LOG_ERROR(
-    //       "[PlusPlayer] Invalid picture dimensions or size: size: %d, width: "
+    //       "[PlusPlayer] Invalid picture dimensions or size: size: %d, width:
+    //       "
     //       "%f, height: %f",
     //       size, picture_width, picture_height);
     //   return;
@@ -1323,8 +1324,8 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
     // }
 
     // LOG_INFO(
-    //     "[PlusPlayer] Subtitle is a picture: size: %d, width: %f, height: %f",
-    //     size, picture_width, picture_height);
+    //     "[PlusPlayer] Subtitle is a picture: size: %d, width: %f, height:
+    //     %f", size, picture_width, picture_height);
 
     // int subtitle_mem_length = 0;
     // int channels = size / area;
@@ -1342,13 +1343,13 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
     // LOG_INFO("***********0**************");
 
     // LOG_INFO("*****data is %s******", data);
-    // if (data[0] == 0x89 && data[1] == 0x50 &&data[2] == 0x4E && data[3] == 0x47) {
+    // if (data[0] == 0x89 && data[1] == 0x50 &&data[2] == 0x4E && data[3] ==
+    // 0x47) {
     //   LOG_INFO("********************yes, picture******************");
     // } else {
-    //   LOG_INFO("********************no, not a picture: %02X, %02X, %02X, %02X,******************", data[0], 
-    //   data[1], data[2], data[3]);
-    //   int64_t len = strlen(data) + 1;
-    //   for (int i = 0; i < len; i++) {
+    //   LOG_INFO("********************no, not a picture: %02X, %02X, %02X,
+    //   %02X,******************", data[0], data[1], data[2], data[3]); int64_t
+    //   len = strlen(data) + 1; for (int i = 0; i < len; i++) {
     //     printf("%02X ", data[i]);
     //   }
     //   printf("\n");
@@ -1368,18 +1369,22 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
     // //     printf("%02X ", white_data[i]);
     // //   }
     // //   printf("***********\n");
-    
+
     // // unsigned char *subtitle_png =
     // //     stbi_write_png_to_mem((const unsigned char *)white_data, aaa,
-    // //                           cchang, kkuan, cchannels, &subtitle_mem_length);
-    // // LOG_INFO("*****subtitle_mem_length is %d**************", subtitle_mem_length);
+    // //                           cchang, kkuan, cchannels,
+    // &subtitle_mem_length);
+    // // LOG_INFO("*****subtitle_mem_length is %d**************",
+    // subtitle_mem_length);
 
     // const int stride_in_bytes = static_cast<int>(picture_width) * channels;
-    
+
     // unsigned char *subtitle_png =
     //     stbi_write_png_to_mem((const unsigned char *)data, stride_in_bytes,
-    //                           picture_width, picture_height, channels, &subtitle_mem_length);
-    // LOG_INFO("*****subtitle_mem_length is %d**************", subtitle_mem_length);
+    //                           picture_width, picture_height, channels,
+    //                           &subtitle_mem_length);
+    // LOG_INFO("*****subtitle_mem_length is %d**************",
+    // subtitle_mem_length);
 
     // LOG_INFO("***********1**************");
 
