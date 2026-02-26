@@ -1307,106 +1307,52 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
   }
 
   if (type == plusplayer::SubtitleType::kPicture) {
-    // if (picture_width <= 0 || picture_height <= 0 || size <= 0) {
-    //   LOG_ERROR(
-    //       "[PlusPlayer] Invalid picture dimensions or size: size: %d, width:
-    //       "
-    //       "%f, height: %f",
-    //       size, picture_width, picture_height);
-    //   return;
-    // }
+#ifdef PICTURE_SUBTITLE_SUPPORT
+    if (picture_width <= 0 || picture_height <= 0 || size <= 0) {
+      LOG_ERROR(
+          "[PlusPlayer] Invalid picture dimensions or size: size: %d, width: "
+          "%f, height: %f",
+          size, picture_width, picture_height);
+      return;
+    }
 
-    // const double area = picture_width * picture_height;
-    // if (area > static_cast<double>(std::numeric_limits<int>::max()) ||
-    //     area > size) {
-    //   LOG_ERROR("[PlusPlayer] Picture area too large: %f", area);
-    //   return;
-    // }
+    const double area = picture_width * picture_height;
+    if (area > static_cast<double>(std::numeric_limits<int>::max()) ||
+        area > size) {
+      LOG_ERROR("[PlusPlayer] Picture area too large: %f", area);
+      return;
+    }
 
-    // LOG_INFO(
-    //     "[PlusPlayer] Subtitle is a picture: size: %d, width: %f, height:
-    //     %f", size, picture_width, picture_height);
+    LOG_INFO(
+        "[PlusPlayer] Subtitle is a picture: size: %d, width: %f, height: %f",
+        size, picture_width, picture_height);
 
-    // int subtitle_mem_length = 0;
-    // int channels = size / area;
-    // LOG_INFO(
-    //     "**********************size is %d**********************************",
-    //     size);
-    // LOG_INFO(
-    //     "**********************area is %f**********************************",
-    //     area);
-    // LOG_INFO(
-    //     "**********************channels is "
-    //     "%d**********************************",
-    //     channels);
+    int subtitle_mem_length = 0;
+    int channels = size / area;
+    int stride_in_bytes = static_cast<int>(picture_width) * channels;
 
-    // LOG_INFO("***********0**************");
+    unsigned char *subtitle_png = stbi_write_png_to_mem(
+        (const unsigned char *)data, stride_in_bytes, picture_width,
+        picture_height, channels, &subtitle_mem_length);
 
-    // LOG_INFO("*****data is %s******", data);
-    // if (data[0] == 0x89 && data[1] == 0x50 &&data[2] == 0x4E && data[3] ==
-    // 0x47) {
-    //   LOG_INFO("********************yes, picture******************");
-    // } else {
-    //   LOG_INFO("********************no, not a picture: %02X, %02X, %02X,
-    //   %02X,******************", data[0], data[1], data[2], data[3]); int64_t
-    //   len = strlen(data) + 1; for (int i = 0; i < len; i++) {
-    //     printf("%02X ", data[i]);
-    //   }
-    //   printf("\n");
-    // }
-
-    // // const int cchang = 350;
-    // // const int kkuan = 350;
-    // // const int cchannels = 4;
-    // // const int aaa = cchang * cchannels;
-    // // size_t data_size = cchang * kkuan * cchannels;
-
-    // // char* white_data = (char*)malloc(data_size);
-    // // memset(white_data, 0x00, data_size);
-
-    // // printf("*********white_data is *********************\n");
-    // // for (int i = 0; i < data_size; i++) {
-    // //     printf("%02X ", white_data[i]);
-    // //   }
-    // //   printf("***********\n");
-
-    // // unsigned char *subtitle_png =
-    // //     stbi_write_png_to_mem((const unsigned char *)white_data, aaa,
-    // //                           cchang, kkuan, cchannels,
-    // &subtitle_mem_length);
-    // // LOG_INFO("*****subtitle_mem_length is %d**************",
-    // subtitle_mem_length);
-
-    // const int stride_in_bytes = static_cast<int>(picture_width) * channels;
-
-    // unsigned char *subtitle_png =
-    //     stbi_write_png_to_mem((const unsigned char *)data, stride_in_bytes,
-    //                           picture_width, picture_height, channels,
-    //                           &subtitle_mem_length);
-    // LOG_INFO("*****subtitle_mem_length is %d**************",
-    // subtitle_mem_length);
-
-    // LOG_INFO("***********1**************");
-
-    // if (subtitle_png && subtitle_mem_length > 0) {
-    //   LOG_INFO("***********2**************");
-    //   std::vector<uint8_t> picture(subtitle_png,
-    //                                subtitle_png + subtitle_mem_length);
-    //   LOG_INFO("***********3**************");
-    //   flutter::EncodableMap picture_info = {
-    //       {flutter::EncodableValue("picture"),
-    //        flutter::EncodableValue(picture)},
-    //       {flutter::EncodableValue("pictureWidth"),
-    //        flutter::EncodableValue(picture_width)},
-    //       {flutter::EncodableValue("pictureHeight"),
-    //        flutter::EncodableValue(picture_height)},
-    //   };
-    //   self->SendSubtitleUpdate(duration, flutter::EncodableList(),
-    //                            picture_info);
-    //   //STBIW_FREE(subtitle_png);
-    // } else {
-    //   LOG_ERROR("[PlusPlayer] Picture subtitle data is null or size is 0.");
-    // }
+    if (subtitle_png && subtitle_mem_length > 0) {
+      std::vector<uint8_t> picture(subtitle_png,
+                                   subtitle_png + subtitle_mem_length);
+      flutter::EncodableMap picture_info = {
+          {flutter::EncodableValue("picture"),
+           flutter::EncodableValue(picture)},
+          {flutter::EncodableValue("pictureWidth"),
+           flutter::EncodableValue(picture_width)},
+          {flutter::EncodableValue("pictureHeight"),
+           flutter::EncodableValue(picture_height)},
+      };
+      self->SendSubtitleUpdate(duration, flutter::EncodableList(),
+                               picture_info);
+      STBIW_FREE(subtitle_png);
+    } else {
+      LOG_ERROR("[PlusPlayer] Picture subtitle data is null or size is 0.");
+    }
+#endif
   } else {
     LOG_INFO(
         "[PlusPlayer] Subtitle is text: duration: %llu, text: %s, type: %d",
