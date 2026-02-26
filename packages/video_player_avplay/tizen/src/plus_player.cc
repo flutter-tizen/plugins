@@ -1329,11 +1329,16 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
 
     int subtitle_mem_length = 0;
     int channels = size / area;
+    if (channels < 1 || channels > 4) {
+      LOG_ERROR("[PlusPlayer] Invalid number of channels: %d", channels);
+      return;
+    }
     int stride_in_bytes = static_cast<int>(picture_width) * channels;
 
     unsigned char *subtitle_png = stbi_write_png_to_mem(
-        (const unsigned char *)data, stride_in_bytes, picture_width,
-        picture_height, channels, &subtitle_mem_length);
+        (const unsigned char *)data, stride_in_bytes,
+        static_cast<int>(picture_width), static_cast<int>(picture_height),
+        channels, &subtitle_mem_length);
 
     if (subtitle_png && subtitle_mem_length > 0) {
       std::vector<uint8_t> picture(subtitle_png,
