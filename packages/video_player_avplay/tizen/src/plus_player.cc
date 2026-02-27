@@ -1307,6 +1307,7 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
   }
 
   if (type == plusplayer::SubtitleType::kPicture) {
+#ifdef PICTURE_SUBTITLE_SUPPORT
     if (picture_width <= 0 || picture_height <= 0 || size <= 0) {
       LOG_ERROR(
           "[PlusPlayer] Invalid picture dimensions or size: size: %d, width: "
@@ -1328,9 +1329,16 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
 
     int subtitle_mem_length = 0;
     int channels = size / area;
-    unsigned char *subtitle_png =
-        stbi_write_png_to_mem((const unsigned char *)data, 0, picture_width,
-                              picture_height, channels, &subtitle_mem_length);
+    if (channels < 1 || channels > 4) {
+      LOG_ERROR("[PlusPlayer] Invalid number of channels: %d", channels);
+      return;
+    }
+    int stride_in_bytes = static_cast<int>(picture_width) * channels;
+
+    unsigned char *subtitle_png = stbi_write_png_to_mem(
+        (const unsigned char *)data, stride_in_bytes,
+        static_cast<int>(picture_width), static_cast<int>(picture_height),
+        channels, &subtitle_mem_length);
 
     if (subtitle_png && subtitle_mem_length > 0) {
       std::vector<uint8_t> picture(subtitle_png,
@@ -1349,6 +1357,7 @@ void PlusPlayer::OnSubtitleData(char *data, const int size,
     } else {
       LOG_ERROR("[PlusPlayer] Picture subtitle data is null or size is 0.");
     }
+#endif
   } else {
     LOG_INFO(
         "[PlusPlayer] Subtitle is text: duration: %llu, text: %s, type: %d",

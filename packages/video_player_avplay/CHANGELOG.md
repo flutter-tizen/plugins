@@ -1,7 +1,9 @@
-## NEXT
+## 0.8.2
 
 * Adds compatibility with `http` 1.0 in example.
 * Removed unused proxy APIs.
+* Update plusplayer
+  1. [DASH] Fix subtitle crash issue.
 
 ## 0.8.1
 
