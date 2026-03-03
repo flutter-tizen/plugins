@@ -1,3 +1,8 @@
+## 0.8.3
+
+* Update plusplayer
+  1. [DASH] Fix picture subtitle display issue.
+
 ## 0.8.2
 
 * Adds compatibility with `http` 1.0 in example.
