@@ -1,3 +1,11 @@
+## 0.8.4
+
+* Update plusplayer
+  1. [HLS] Fix for sigsegv when external track in content.
+  2. [HLS] Fix for Memory increase after discontinuity due to wrong content format received for cmaf content.
+  3. [HLS] MA Handling for Invalid Cmaf Segment.
+  4. [HLS] Added log for checking ad drift, printing manifest start time and json start time of the ad.
+
 ## 0.8.3
 
 * Update plusplayer
