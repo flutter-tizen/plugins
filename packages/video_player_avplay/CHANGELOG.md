@@ -1,3 +1,8 @@
+## 0.8.5
+
+* Update plusplayer
+  1. [DASH] Fix the issue of picture subtitle decoding failure.
+
 ## 0.8.4
 
 * Update plusplayer
