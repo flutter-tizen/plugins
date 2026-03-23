@@ -1,3 +1,8 @@
+## 0.8.6
+
+* Update plusplayer
+  1. [DASH] Fix the issue where seeking the beginning of the live DASH manifest fails.
+
 ## 0.8.5
 
 * Update plusplayer
