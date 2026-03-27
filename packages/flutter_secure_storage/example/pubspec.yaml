@@ -18,12 +18,12 @@ dev_dependencies:
     sdk: flutter
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
   integration_test:
     sdk: flutter
   integration_test_tizen:
     path: ../../integration_test/
   test: any
+  very_good_analysis: ^7.0.0
 
 flutter:
   uses-material-design: true
