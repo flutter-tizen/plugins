@@ -25,6 +25,7 @@ plugins:
   # No tests.
   google_sign_in: []
   firebase_core: []
+  flutter_keyboard_visibility: []
   tizen_log: []
   tizen_notification: []
 
