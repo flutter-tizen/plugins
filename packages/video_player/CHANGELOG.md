@@ -1,3 +1,9 @@
+## 2.5.10
+
+* Update video_player to 2.11.1.
+* Update video_player_platform_interface to 6.6.0.
+* Updates minimum supported SDK version to Flutter 3.38/Dart 3.10.
+
 ## 2.5.9
 
 * Update video_player to 2.10.1.
