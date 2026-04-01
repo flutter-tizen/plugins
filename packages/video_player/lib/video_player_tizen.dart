@@ -137,9 +137,10 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
           final List<dynamic> values = map['values'] as List<dynamic>;
 
           return platform_interface.VideoEvent(
-            buffered: values
-                .map<platform_interface.DurationRange>(_toDurationRange)
-                .toList(),
+            buffered:
+                values
+                    .map<platform_interface.DurationRange>(_toDurationRange)
+                    .toList(),
             eventType: platform_interface.VideoEventType.bufferingUpdate,
           );
         case 'bufferingStart':
