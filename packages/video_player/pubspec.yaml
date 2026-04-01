@@ -5,8 +5,8 @@ repository: https://github.com/flutter-tizen/plugins/tree/master/packages/video_
 version: 2.5.10
 
 environment:
-  sdk: ^3.10.0
-  flutter: ">=3.38.0"
+  sdk: ^3.7.0
+  flutter: ">=3.29.0"
 
 flutter:
   plugin:
