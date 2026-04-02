@@ -6,7 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+import 'package:video_player_platform_interface/video_player_platform_interface.dart'
+    as platform_interface;
 
 import 'src/messages.g.dart';
 
@@ -15,12 +16,12 @@ import 'src/messages.g.dart';
 
 /// A Tizen implementation of [VideoPlayerPlatform] that uses the
 /// Pigeon-generated [TizenVideoPlayerApi].
-class VideoPlayerTizen extends VideoPlayerPlatform {
+class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
   final TizenVideoPlayerApi _api = TizenVideoPlayerApi();
 
   /// Registers this class as the default platform instance.
   static void register() {
-    VideoPlayerPlatform.instance = VideoPlayerTizen();
+    platform_interface.VideoPlayerPlatform.instance = VideoPlayerTizen();
   }
 
   @override
@@ -34,23 +35,23 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Future<int?> create(DataSource dataSource) async {
+  Future<int?> create(platform_interface.DataSource dataSource) async {
     String? asset;
     String? packageName;
     String? uri;
     String? formatHint;
     Map<String, String> httpHeaders = <String, String>{};
     switch (dataSource.sourceType) {
-      case DataSourceType.asset:
+      case platform_interface.DataSourceType.asset:
         asset = dataSource.asset;
         packageName = dataSource.package;
-      case DataSourceType.network:
+      case platform_interface.DataSourceType.network:
         uri = dataSource.uri;
         formatHint = _videoFormatStringMap[dataSource.formatHint];
         httpHeaders = dataSource.httpHeaders;
-      case DataSourceType.file:
+      case platform_interface.DataSourceType.file:
         uri = dataSource.uri;
-      case DataSourceType.contentUri:
+      case platform_interface.DataSourceType.contentUri:
         uri = dataSource.uri;
     }
     final CreateMessage message = CreateMessage(
@@ -112,15 +113,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Stream<VideoEvent> videoEventsFor(int textureId) {
+  Stream<platform_interface.VideoEvent> videoEventsFor(int textureId) {
     return _eventChannelFor(textureId).receiveBroadcastStream().map((
       dynamic event,
     ) {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
-          return VideoEvent(
-            eventType: VideoEventType.initialized,
+          return platform_interface.VideoEvent(
+            eventType: platform_interface.VideoEventType.initialized,
             duration: Duration(milliseconds: map['duration'] as int),
             size: Size(
               (map['width'] as num?)?.toDouble() ?? 0.0,
@@ -129,25 +130,36 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             rotationCorrection: map['rotationCorrection'] as int? ?? 0,
           );
         case 'completed':
-          return VideoEvent(eventType: VideoEventType.completed);
+          return platform_interface.VideoEvent(
+            eventType: platform_interface.VideoEventType.completed,
+          );
         case 'bufferingUpdate':
           final List<dynamic> values = map['values'] as List<dynamic>;
 
-          return VideoEvent(
-            buffered: values.map<DurationRange>(_toDurationRange).toList(),
-            eventType: VideoEventType.bufferingUpdate,
+          return platform_interface.VideoEvent(
+            buffered:
+                values
+                    .map<platform_interface.DurationRange>(_toDurationRange)
+                    .toList(),
+            eventType: platform_interface.VideoEventType.bufferingUpdate,
           );
         case 'bufferingStart':
-          return VideoEvent(eventType: VideoEventType.bufferingStart);
+          return platform_interface.VideoEvent(
+            eventType: platform_interface.VideoEventType.bufferingStart,
+          );
         case 'bufferingEnd':
-          return VideoEvent(eventType: VideoEventType.bufferingEnd);
+          return platform_interface.VideoEvent(
+            eventType: platform_interface.VideoEventType.bufferingEnd,
+          );
         case 'isPlayingStateUpdate':
-          return VideoEvent(
-            eventType: VideoEventType.isPlayingStateUpdate,
+          return platform_interface.VideoEvent(
+            eventType: platform_interface.VideoEventType.isPlayingStateUpdate,
             isPlaying: map['isPlaying'] as bool,
           );
         default:
-          return VideoEvent(eventType: VideoEventType.unknown);
+          return platform_interface.VideoEvent(
+            eventType: platform_interface.VideoEventType.unknown,
+          );
       }
     });
   }
@@ -168,17 +180,17 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
   }
 
-  static const Map<VideoFormat, String> _videoFormatStringMap =
-      <VideoFormat, String>{
-    VideoFormat.ss: 'ss',
-    VideoFormat.hls: 'hls',
-    VideoFormat.dash: 'dash',
-    VideoFormat.other: 'other',
+  static const Map<platform_interface.VideoFormat, String>
+  _videoFormatStringMap = <platform_interface.VideoFormat, String>{
+    platform_interface.VideoFormat.ss: 'ss',
+    platform_interface.VideoFormat.hls: 'hls',
+    platform_interface.VideoFormat.dash: 'dash',
+    platform_interface.VideoFormat.other: 'other',
   };
 
-  DurationRange _toDurationRange(dynamic value) {
+  platform_interface.DurationRange _toDurationRange(dynamic value) {
     final List<dynamic> pair = value as List<dynamic>;
-    return DurationRange(
+    return platform_interface.DurationRange(
       Duration(milliseconds: pair[0] as int),
       Duration(milliseconds: pair[1] as int),
     );
