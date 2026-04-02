@@ -1,3 +1,9 @@
+## 0.1.3
+
+* Update flutter_secure_storage_platform_interface to 2.0.0.
+* Update flutter_secure_storage to 10.0.0.
+* Updates minimum supported SDK version to Flutter 3.27/Dart 3.6.
+
 ## NEXT
 
 * Update code format.
