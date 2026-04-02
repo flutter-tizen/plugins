@@ -1,3 +1,8 @@
+## 0.1.5
+
+* Update in_app_purchase to 3.2.3
+* Updates minimum supported SDK version to Flutter 3.24/Dart 3.5.
+
 ## 0.1.4
 
 * Fix typo in parameter name.(`itemTile` -> `itemTitle`)
