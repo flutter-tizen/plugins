@@ -29,22 +29,22 @@ void main() {
   });
 
   testWidgets('read non-existing key', (WidgetTester tester) async {
-    final String? result = await storage.read(key: 'foobar');
+    final result = await storage.read(key: 'foobar');
     expect(result, isNull);
   });
 
   testWidgets('readAll', (WidgetTester tester) async {
-    final Map<String, String> input = {
+    final input = <String, String>{
       'foo': 'bar',
       'baz': 'qux',
       'waldo': 'fred',
     };
 
-    for (final MapEntry<String, String> enrty in input.entries) {
+    for (final enrty in input.entries) {
       await storage.write(key: enrty.key, value: enrty.value);
     }
 
-    final Map<String, String> result = await storage.readAll();
+    final result = await storage.readAll();
     expect(mapEquals(input, result), isTrue);
   });
 
@@ -67,13 +67,13 @@ void main() {
   });
 
   testWidgets('deleteAll', (WidgetTester tester) async {
-    final Map<String, String> input = {
+    final input = <String, String>{
       'foo': 'bar',
       'baz': 'qux',
       'waldo': 'fred',
     };
 
-    for (final MapEntry<String, String> enrty in input.entries) {
+    for (final enrty in input.entries) {
       await storage.write(key: enrty.key, value: enrty.value);
     }
     expect(await storage.readAll(), isNotEmpty);

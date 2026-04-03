@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `flutter_secure_storage`. Th
 
 ```yaml
 dependencies:
-  flutter_secure_storage: ^9.0.0
-  flutter_secure_storage_tizen: ^0.1.2
+  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage_tizen: ^0.1.3
 ```
 
 Then you can import `flutter_secure_storage` in your Dart code:

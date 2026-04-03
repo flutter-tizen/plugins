@@ -1,3 +1,13 @@
+## 2.5.11
+
+* Updates pigeon to ^25.5.0.
+
+## 2.5.10
+
+* Update video_player to 2.11.1.
+* Update video_player_platform_interface to 6.6.0.
+* Updates minimum supported SDK version to Flutter 3.29/Dart 3.7.
+
 ## 2.5.9
 
 * Update video_player to 2.10.1.
