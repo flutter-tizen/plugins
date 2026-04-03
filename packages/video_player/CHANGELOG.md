@@ -1,3 +1,7 @@
+## 2.5.11
+
+* Updates pigeon to ^25.5.0.
+
 ## 2.5.10
 
 * Update video_player to 2.11.1.
