@@ -53,6 +53,13 @@ The following options are not currently supported.
 - `VideoPlayerOptions.allowBackgroundPlayback`
 - `VideoPlayerOptions.mixWithOthers`
 
+The following methods are not currently supported.
+
+- `VideoPlayerPlatform.setAllowBackgroundPlayback()`
+- `VideoPlayerPlatform.getAudioTracks()`
+- `VideoPlayerPlatform.selectAudioTrack()`
+- `VideoPlayerPlatform.isAudioTrackSupportAvailable()`
+
 This plugin has the following limitations.
 
 - The `httpHeaders` option of `VideoPlayerController.networkUrl` only support `Cookie` and `User-Agent`.
