@@ -15,7 +15,7 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 ```yaml
 dependencies:
   video_player: ^2.11.1
-  video_player_tizen: ^2.5.10
+  video_player_tizen: ^2.5.11
 ```
 
 Then you can import `video_player` in your Dart code:
@@ -52,6 +52,13 @@ The following options are not currently supported.
 
 - `VideoPlayerOptions.allowBackgroundPlayback`
 - `VideoPlayerOptions.mixWithOthers`
+
+The following methods are not currently supported.
+
+- `VideoPlayerPlatform.setAllowBackgroundPlayback()`
+- `VideoPlayerPlatform.getAudioTracks()`
+- `VideoPlayerPlatform.selectAudioTrack()`
+- `VideoPlayerPlatform.isAudioTrackSupportAvailable()`
 
 This plugin has the following limitations.
 
