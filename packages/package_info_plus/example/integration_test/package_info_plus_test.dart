@@ -16,7 +16,9 @@ void main() {
     expect(info.appName, 'package_info_plus_tizen_example');
     expect(info.buildNumber, isEmpty);
     expect(info.buildSignature, isEmpty);
+    expect(info.installTime, isNotNull);
     expect(info.packageName, 'org.tizen.package_info_plus_tizen_example');
+    expect(info.updateTime, isNull);
     expect(info.version, '1.2.3');
     expect(info.installerStore, null);
   });
@@ -30,5 +32,6 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('1.2.3'), findsOneWidget);
+    expect(find.textContaining('Install time'), findsOneWidget);
   });
 }

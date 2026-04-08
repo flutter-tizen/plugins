@@ -104,6 +104,19 @@ class PackageInfoPlusTizenPlugin : public flutter::Plugin {
     map[flutter::EncodableValue("version")] =
         flutter::EncodableValue(std::string(version));
     free(version);
+
+    int installed_time = 0;
+    ret = package_info_get_installed_time(package_info, &installed_time);
+    if (ret != PACKAGE_MANAGER_ERROR_NONE) {
+      result->Error(std::to_string(ret),
+                    "Failed to get the package install time.",
+                    flutter::EncodableValue(get_error_message(ret)));
+      package_info_destroy(package_info);
+      return;
+    }
+    map[flutter::EncodableValue("installTime")] = flutter::EncodableValue(
+        std::to_string(static_cast<long long>(installed_time) * 1000));
+
     package_info_destroy(package_info);
 
     result->Success(flutter::EncodableValue(map));
