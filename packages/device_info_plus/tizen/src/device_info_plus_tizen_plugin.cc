@@ -75,6 +75,8 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
         ret = system_info_get_platform_int(tizen_key.c_str(), &value);
         if (ret == SYSTEM_INFO_ERROR_NONE) {
           response = value;
+        } else {
+          response = static_cast<int>(kUnknownMetric);
         }
       } else {
         char *value = nullptr;
@@ -102,7 +104,7 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
     if (ret == STORAGE_ERROR_NONE) {
       total_disk_size = static_cast<int64_t>(storage_stat.f_frsize) *
                         static_cast<int64_t>(storage_stat.f_blocks);
-      free_disk_size = static_cast<int64_t>(storage_stat.f_bsize) *
+      free_disk_size = static_cast<int64_t>(storage_stat.f_frsize) *
                        static_cast<int64_t>(storage_stat.f_bavail);
     } else {
       LOG_ERROR("Failed to get internal storage size: %s",
