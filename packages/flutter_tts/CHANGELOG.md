@@ -1,3 +1,9 @@
+## 1.6.0
+
+* Update flutter_tts 4.2.0 to 4.2.5.
+* Invoke `speak.onError` when the Tizen TTS engine reports an error.
+* Update the example app and integration_test.
+
 ## 1.5.1
 
 * Update code format.
