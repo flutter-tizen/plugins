@@ -1,3 +1,8 @@
+## 0.8.7
+
+* Update plusplayer
+  1. [DASH] Fix the issue of low resolution when playing DASH streams with pre-roll ads.
+
 ## 0.8.6
 
 * Update plusplayer
