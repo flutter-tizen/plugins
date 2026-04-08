@@ -77,9 +77,27 @@ class _MyAppState extends State<MyApp> {
       'platformName': data.platformName,
       'platformProcessor': data.platformProcessor,
       'tizenId': data.tizenId,
+      'freeDiskSize': _formatBytesAsMb(data.freeDiskSize),
+      'totalDiskSize': _formatBytesAsMb(data.totalDiskSize),
+      'physicalRamSize': _formatMb(data.physicalRamSize),
+      'availableRamSize': _formatMb(data.availableRamSize),
       'screenWidth': data.screenWidth,
       'screenHeight': data.screenHeight,
     };
+  }
+
+  String _formatBytesAsMb(int bytes) {
+    if (bytes < 0) {
+      return 'Unavailable';
+    }
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  String _formatMb(int megabytes) {
+    if (megabytes < 0) {
+      return 'Unavailable';
+    }
+    return '$megabytes MB';
   }
 
   @override
@@ -92,29 +110,30 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(title: const Text('Tizen Device Info'), elevation: 4),
         body: ListView(
-          children: _deviceData.keys.map((String property) {
-            return Row(
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  child: Text(
-                    property,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Text(
-                      '${_deviceData[property]}',
-                      maxLines: 10,
-                      overflow: TextOverflow.ellipsis,
+          children:
+              _deviceData.keys.map((String property) {
+                return Row(
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      child: Text(
+                        property,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text(
+                          '${_deviceData[property]}',
+                          maxLines: 10,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
         ),
       ),
     );

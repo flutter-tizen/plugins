@@ -1,3 +1,10 @@
+## 1.4.0
+
+* Add `freeDiskSize` and `totalDiskSize` using the Tizen Storage API.
+* Add `physicalRamSize` and `availableRamSize` using the Tizen Runtime Information API.
+* Add a deprecated `toMap()` helper for API compatibility with `device_info_plus`.
+* Update the minimum Flutter version to 3.29 and the minimum Dart version to 3.7.
+
 ## 1.3.0
 
 * Update code format.
