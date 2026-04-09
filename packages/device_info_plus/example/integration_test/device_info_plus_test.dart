@@ -43,5 +43,16 @@ void main() {
     expect(tizenInfo.platformName, isNotNull);
     expect(tizenInfo.platformProcessor, isNotNull);
     expect(tizenInfo.tizenId, isNotNull);
+    expect(tizenInfo.freeDiskSize, greaterThan(0));
+    expect(tizenInfo.totalDiskSize, greaterThan(0));
+    expect(tizenInfo.physicalRamSize, greaterThan(0));
+    expect(tizenInfo.availableRamSize, greaterThan(0));
+    expect(tizenInfo.screenWidth, greaterThan(0));
+    expect(tizenInfo.screenHeight, greaterThan(0));
+    expect(tizenInfo.freeDiskSize, lessThanOrEqualTo(tizenInfo.totalDiskSize));
+    expect(
+      tizenInfo.availableRamSize,
+      lessThanOrEqualTo(tizenInfo.physicalRamSize),
+    );
   }, skip: !Platform.isLinux);
 }

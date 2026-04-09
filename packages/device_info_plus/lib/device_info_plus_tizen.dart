@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-/// Information derived from `system_info`.
+/// Information derived from the Tizen system, storage, and runtime APIs.
 ///
 /// See: https://docs.tizen.org/application/native/guides/device/system
 class TizenDeviceInfo {
@@ -30,6 +30,10 @@ class TizenDeviceInfo {
     required this.platformName,
     required this.platformProcessor,
     required this.tizenId,
+    required this.freeDiskSize,
+    required this.totalDiskSize,
+    required this.physicalRamSize,
+    required this.availableRamSize,
     required this.screenWidth,
     required this.screenHeight,
   });
@@ -91,6 +95,18 @@ class TizenDeviceInfo {
   /// http://tizen.org/system/tizenid
   final String? tizenId;
 
+  /// Free internal storage size in bytes.
+  final int freeDiskSize;
+
+  /// Total internal storage size in bytes.
+  final int totalDiskSize;
+
+  /// Total physical RAM size in MiB.
+  final int physicalRamSize;
+
+  /// Currently available RAM size in MiB.
+  final int availableRamSize;
+
   /// http://tizen.org/feature/screen.width
   final int screenWidth;
 
@@ -119,10 +135,17 @@ class TizenDeviceInfo {
       platformName: map['platformName'],
       platformProcessor: map['platformProcessor'],
       tizenId: map['tizenId'],
+      freeDiskSize: map['freeDiskSize'],
+      totalDiskSize: map['totalDiskSize'],
+      physicalRamSize: map['physicalRamSize'],
+      availableRamSize: map['availableRamSize'],
       screenWidth: map['screenWidth'],
       screenHeight: map['screenHeight'],
     );
   }
+
+  @Deprecated('Use [data] getter instead')
+  Map<String, dynamic> toMap() => data;
 
   @override
   String toString() {
@@ -139,8 +162,7 @@ class _MethodChannelDeviceInfo {
     return TizenDeviceInfo.fromMap(
       (await channel.invokeMethod(
         'getTizenDeviceInfo',
-      ))
-          .cast<String, dynamic>(),
+      )).cast<String, dynamic>(),
     );
   }
 }
