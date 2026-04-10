@@ -14,7 +14,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -44,6 +44,8 @@ class _MyHomePageState extends State<MyHomePage> {
     buildNumber: 'Unknown',
     buildSignature: 'Unknown',
     installerStore: 'Unknown',
+    installTime: null,
+    updateTime: null,
   );
 
   @override
@@ -83,6 +85,16 @@ class _MyHomePageState extends State<MyHomePage> {
           _infoTile(
             'Installer store',
             _packageInfo.installerStore ?? 'not available',
+          ),
+          _infoTile(
+            'Install time',
+            _packageInfo.installTime?.toIso8601String() ??
+                'Install time not available',
+          ),
+          _infoTile(
+            'Update time',
+            _packageInfo.updateTime?.toIso8601String() ??
+                'Update time not available',
           ),
         ],
       ),
