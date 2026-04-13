@@ -250,7 +250,7 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> setOverScrollMode(WebViewOverScrollMode mode) async {
     throw UnimplementedError(
-      'This version of `TizenWebViewController` currently has no '
+      'This version of `LweWebViewController` currently has no '
       'implementation of `setOverScrollMode`.',
     );
   }
@@ -525,7 +525,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   @override
   Future<void> setOnSSlAuthError(SslAuthErrorCallback onSslAuthError) {
     throw UnimplementedError(
-      'This version of `TizenNavigationDelegate` currently has no '
+      'This version of `LweNavigationDelegate` currently has no '
       'implementation for `setOnSSlAuthError`',
     );
   }
