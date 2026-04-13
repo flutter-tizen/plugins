@@ -766,6 +766,15 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     result->Success(flutter::EncodableValue(settings.GetUserAgentString()));
   } else if (method_name == "setCookie") {
     result->NotImplemented();
+  } else if (method_name == "setVerticalScrollBarEnabled" ||
+             method_name == "setHorizontalScrollBarEnabled") {
+    const auto* value = std::get_if<bool>(arguments);
+    if (value) {
+      LWE::Settings settings = webview_instance_->GetSettings();
+      settings.SetScrollbarVisible(*value);
+      webview_instance_->SetSettings(settings);
+    }
+    result->Success();
   } else {
     result->NotImplemented();
   }
