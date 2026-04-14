@@ -330,10 +330,11 @@ void FlutterMediaStream::GetSources(std::unique_ptr<MethodResultProxy> result) {
 
   for (uint16_t i = 0; i < nb_audio_devices; i++) {
     base_->audio_device_->RecordingDeviceName(i, strNameUTF8, strGuidUTF8);
+    std::string device_id = strlen(strGuidUTF8) > 0 ? std::string(strGuidUTF8)
+                                                    : std::string(strNameUTF8);
     EncodableMap audio;
     audio[EncodableValue("label")] = EncodableValue(std::string(strNameUTF8));
-    audio[EncodableValue("deviceId")] =
-        EncodableValue(std::string(strGuidUTF8));
+    audio[EncodableValue("deviceId")] = EncodableValue(device_id);
     audio[EncodableValue("facing")] = "";
     audio[EncodableValue("kind")] = "audioinput";
     sources.push_back(EncodableValue(audio));
@@ -342,10 +343,11 @@ void FlutterMediaStream::GetSources(std::unique_ptr<MethodResultProxy> result) {
   nb_audio_devices = base_->audio_device_->PlayoutDevices();
   for (uint16_t i = 0; i < nb_audio_devices; i++) {
     base_->audio_device_->PlayoutDeviceName(i, strNameUTF8, strGuidUTF8);
+    std::string device_id = strlen(strGuidUTF8) > 0 ? std::string(strGuidUTF8)
+                                                    : std::string(strNameUTF8);
     EncodableMap audio;
     audio[EncodableValue("label")] = EncodableValue(std::string(strNameUTF8));
-    audio[EncodableValue("deviceId")] =
-        EncodableValue(std::string(strGuidUTF8));
+    audio[EncodableValue("deviceId")] = EncodableValue(device_id);
     audio[EncodableValue("facing")] = "";
     audio[EncodableValue("kind")] = "audiooutput";
     sources.push_back(EncodableValue(audio));
@@ -369,13 +371,16 @@ void FlutterMediaStream::GetSources(std::unique_ptr<MethodResultProxy> result) {
 
 void FlutterMediaStream::SelectAudioOutput(
     const std::string& device_id, std::unique_ptr<MethodResultProxy> result) {
-  char strPlayoutName[256];
-  char strPlayoutGuid[256];
+  char deviceName[256];
+  char deviceGuid[256];
   int playout_devices = base_->audio_device_->PlayoutDevices();
   bool found = false;
   for (uint16_t i = 0; i < playout_devices; i++) {
-    base_->audio_device_->PlayoutDeviceName(i, strPlayoutName, strPlayoutGuid);
-    if (device_id != "" && device_id == strPlayoutGuid) {
+    base_->audio_device_->PlayoutDeviceName(i, deviceName, deviceGuid);
+    std::string cur_device_id = strlen(deviceGuid) > 0
+                                    ? std::string(deviceGuid)
+                                    : std::string(deviceName);
+    if (device_id != "" && device_id == cur_device_id) {
       base_->audio_device_->SetPlayoutDevice(i);
       found = true;
       break;
@@ -390,14 +395,16 @@ void FlutterMediaStream::SelectAudioOutput(
 
 void FlutterMediaStream::SelectAudioInput(
     const std::string& device_id, std::unique_ptr<MethodResultProxy> result) {
-  char strPlayoutName[256];
-  char strPlayoutGuid[256];
+  char deviceName[256];
+  char deviceGuid[256];
   int playout_devices = base_->audio_device_->RecordingDevices();
   bool found = false;
   for (uint16_t i = 0; i < playout_devices; i++) {
-    base_->audio_device_->RecordingDeviceName(i, strPlayoutName,
-                                              strPlayoutGuid);
-    if (device_id != "" && device_id == strPlayoutGuid) {
+    base_->audio_device_->RecordingDeviceName(i, deviceName, deviceGuid);
+    std::string cur_device_id = strlen(deviceGuid) > 0
+                                    ? std::string(deviceGuid)
+                                    : std::string(deviceName);
+    if (device_id != "" && device_id == cur_device_id) {
       base_->audio_device_->SetRecordingDevice(i);
       found = true;
       break;

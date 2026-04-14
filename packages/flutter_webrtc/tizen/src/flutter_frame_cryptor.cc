@@ -48,7 +48,8 @@ void FlutterFrameCryptorObserver::OnFrameCryptionStateChanged(
 
 bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
     const MethodCallProxy& method_call,
-    std::unique_ptr<MethodResultProxy> result) {
+    std::unique_ptr<MethodResultProxy> result,
+    std::unique_ptr<MethodResultProxy>* outResult) {
   const std::string& method_name = method_call.method_name();
   if (!method_call.arguments()) {
     result->Error("Bad Arguments", "Null arguments received");
@@ -103,6 +104,7 @@ bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
     return true;
   }
 
+  *outResult = std::move(result);
   return false;
 }
 
@@ -165,8 +167,8 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     std::string event_channel = "FlutterWebRTC/frameCryptorEvent" + uuid;
 
     scoped_refptr<FlutterFrameCryptorObserver> observer(
-        new RefCountedObject<FlutterFrameCryptorObserver>(base_->messenger_,
-                                                          event_channel));
+        new RefCountedObject<FlutterFrameCryptorObserver>(
+            base_->messenger_, base_->task_runner_, event_channel));
 
     frameCryptor->RegisterRTCFrameCryptorObserver(observer);
 
@@ -193,8 +195,8 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     std::string event_channel = "FlutterWebRTC/frameCryptorEvent" + uuid;
 
     scoped_refptr<FlutterFrameCryptorObserver> observer(
-        new RefCountedObject<FlutterFrameCryptorObserver>(base_->messenger_,
-                                                          event_channel));
+        new RefCountedObject<FlutterFrameCryptorObserver>(
+            base_->messenger_, base_->task_runner_, event_channel));
 
     frameCryptor->RegisterRTCFrameCryptorObserver(observer.get());
 
@@ -348,6 +350,14 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
 
   auto failureTolerance = findInt(keyProviderOptions, "failureTolerance");
   options.failure_tolerance = failureTolerance;
+
+  auto keyRingSize = findInt(keyProviderOptions, "keyRingSize");
+  options.key_ring_size = keyRingSize;
+
+  auto discardFrameWhenCryptorNotReady =
+      findBoolean(keyProviderOptions, "discardFrameWhenCryptorNotReady");
+  options.discard_frame_when_cryptor_not_ready =
+      discardFrameWhenCryptorNotReady;
 
   auto keyProvider = libwebrtc::KeyProvider::Create(&options);
   if (nullptr == keyProvider.get()) {

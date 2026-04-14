@@ -2,6 +2,7 @@
 
 #include "base/scoped_ref_ptr.h"
 #include "flutter_data_channel.h"
+#include "flutter_frame_capturer.h"
 #include "rtc_dtmf_sender.h"
 #include "rtc_rtp_parameters.h"
 
@@ -107,6 +108,43 @@ const char* iceGatheringStateString(RTCIceGatheringState state) {
   return "";
 }
 
+double stringToBitratePriority(const std::string& priority) {
+  if (priority == "very-low") return 0.5;
+  if (priority == "low") return 1.0;
+  if (priority == "medium") return 2.0;
+  if (priority == "high") return 4.0;
+  return 1.0;
+}
+
+std::string bitratePriorityToString(double bitratePriority) {
+  if (bitratePriority <= 0.5) return "very-low";
+  if (bitratePriority <= 1.0) return "low";
+  if (bitratePriority <= 2.0) return "medium";
+  return "high";
+}
+
+libwebrtc::RTCPriority stringToRTCPriority(const std::string& priority) {
+  if (priority == "very-low") return libwebrtc::RTCPriority::kVeryLow;
+  if (priority == "low") return libwebrtc::RTCPriority::kLow;
+  if (priority == "medium") return libwebrtc::RTCPriority::kMedium;
+  if (priority == "high") return libwebrtc::RTCPriority::kHigh;
+  return libwebrtc::RTCPriority::kLow;
+}
+
+std::string rtcPriorityToString(libwebrtc::RTCPriority priority) {
+  switch (priority) {
+    case libwebrtc::RTCPriority::kVeryLow:
+      return "very-low";
+    case libwebrtc::RTCPriority::kLow:
+      return "low";
+    case libwebrtc::RTCPriority::kMedium:
+      return "medium";
+    case libwebrtc::RTCPriority::kHigh:
+      return "high";
+  }
+  return "low";
+}
+
 EncodableMap rtpParametersToMap(
     libwebrtc::scoped_refptr<libwebrtc::RTCRtpParameters> rtpParameters) {
   EncodableMap info;
@@ -151,6 +189,10 @@ EncodableMap rtpParametersToMap(
         EncodableValue(encoding->scalability_mode().std_string());
     map[EncodableValue("ssrc")] =
         EncodableValue(static_cast<int>(encoding->ssrc()));
+    map[EncodableValue("priority")] =
+        EncodableValue(bitratePriorityToString(encoding->bitrate_priority()));
+    map[EncodableValue("networkPriority")] =
+        EncodableValue(rtcPriorityToString(encoding->network_priority()));
     encodings_info.push_back(EncodableValue(map));
   }
   info[EncodableValue("encodings")] = EncodableValue(encodings_info);
@@ -336,7 +378,8 @@ void FlutterPeerConnection::CreateRTCPeerConnection(
 
   std::unique_ptr<FlutterPeerConnectionObserver> observer(
       new FlutterPeerConnectionObserver(base_, pc, base_->messenger_,
-                                        event_channel, uuid));
+                                        base_->task_runner_, event_channel,
+                                        uuid));
 
   base_->peerconnection_observers_[uuid] = std::move(observer);
 
@@ -348,15 +391,15 @@ void FlutterPeerConnection::CreateRTCPeerConnection(
 void FlutterPeerConnection::RTCPeerConnectionClose(
     RTCPeerConnection* pc, const std::string& uuid,
     std::unique_ptr<MethodResultProxy> result) {
-  auto it = base_->peerconnections_.find(uuid);
-  if (it != base_->peerconnections_.end()) {
-    it->second->Close();
-    base_->peerconnections_.erase(it);
+  auto it2 = base_->peerconnections_.find(uuid);
+  if (it2 != base_->peerconnections_.end()) {
+    it2->second->Close();
+    base_->peerconnections_.erase(it2);
   }
 
-  auto it2 = base_->peerconnection_observers_.find(uuid);
-  if (it2 != base_->peerconnection_observers_.end())
-    base_->peerconnection_observers_.erase(it2);
+  auto it = base_->peerconnection_observers_.find(uuid);
+  if (it != base_->peerconnection_observers_.end())
+    base_->peerconnection_observers_.erase(it);
 
   result->Success();
 }
@@ -504,6 +547,8 @@ FlutterPeerConnection::mapToEncoding(const EncodableMap& params) {
 
   encoding->set_active(true);
   encoding->set_scale_resolution_down_by(1.0);
+  encoding->set_bitrate_priority(1.0);
+  encoding->set_network_priority(libwebrtc::RTCPriority::kLow);
 
   EncodableValue value = findEncodableValue(params, "active");
   if (!value.IsNull()) {
@@ -549,6 +594,18 @@ FlutterPeerConnection::mapToEncoding(const EncodableMap& params) {
   value = findEncodableValue(params, "scalabilityMode");
   if (!value.IsNull()) {
     encoding->set_scalability_mode(GetValue<std::string>(value));
+  }
+
+  value = findEncodableValue(params, "priority");
+  if (!value.IsNull()) {
+    encoding->set_bitrate_priority(
+        stringToBitratePriority(GetValue<std::string>(value)));
+  }
+
+  value = findEncodableValue(params, "networkPriority");
+  if (!value.IsNull()) {
+    encoding->set_network_priority(
+        stringToRTCPriority(GetValue<std::string>(value)));
   }
 
   return encoding;
@@ -712,6 +769,16 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
       if (!value.IsNull()) {
         param->set_scalability_mode(GetValue<std::string>(value));
       }
+      value = findEncodableValue(map, "priority");
+      if (!value.IsNull()) {
+        param->set_bitrate_priority(
+            stringToBitratePriority(GetValue<std::string>(value)));
+      }
+      value = findEncodableValue(map, "networkPriority");
+      if (!value.IsNull()) {
+        param->set_network_priority(
+            stringToRTCPriority(GetValue<std::string>(value)));
+      }
       encoding++;
     }
   }
@@ -802,10 +869,8 @@ void FlutterPeerConnection::SetConfiguration(
 void FlutterPeerConnection::CaptureFrame(
     RTCVideoTrack* track, std::string path,
     std::unique_ptr<MethodResultProxy> result) {
-  // FlutterFrameCapturer capturer(track, path);
-  // capturer.CaptureFrame(std::move(result));
-  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
-  result_ptr->Success();
+  FlutterFrameCapturer capturer(track, path);
+  capturer.CaptureFrame(std::move(result));
 }
 
 scoped_refptr<RTCRtpTransceiver> FlutterPeerConnection::getRtpTransceiverById(
@@ -903,9 +968,6 @@ EncodableMap statsToMap(const scoped_refptr<MediaRTCStats>& stats) {
   auto members = stats->Members();
   for (int i = 0; i < members.size(); i++) {
     auto member = members[i];
-    if (!member->IsDefined()) {
-      continue;
-    }
     switch (member->GetType()) {
       case RTCStatsMember::Type::kBool:
         values[EncodableValue(member->GetName().std_string())] =
@@ -1081,9 +1143,10 @@ void FlutterPeerConnection::RemoveTrack(
 
 FlutterPeerConnectionObserver::FlutterPeerConnectionObserver(
     FlutterWebRTCBase* base, scoped_refptr<RTCPeerConnection> peerconnection,
-    BinaryMessenger* messenger, const std::string& channel_name,
-    std::string& peerConnectionId)
-    : event_channel_(EventChannelProxy::Create(messenger, channel_name)),
+    BinaryMessenger* messenger, TaskRunner* task_runner,
+    const std::string& channel_name, std::string& peerConnectionId)
+    : event_channel_(
+          EventChannelProxy::Create(messenger, task_runner, channel_name)),
       peerconnection_(peerconnection),
       base_(base),
       id_(peerConnectionId) {
@@ -1287,7 +1350,7 @@ void FlutterPeerConnectionObserver::OnDataChannel(
 
   std::unique_ptr<FlutterRTCDataChannelObserver> observer(
       new FlutterRTCDataChannelObserver(data_channel, base_->messenger_,
-                                        event_channel));
+                                        base_->task_runner_, event_channel));
 
   base_->lock();
   base_->data_channel_observers_[channel_uuid] = std::move(observer);

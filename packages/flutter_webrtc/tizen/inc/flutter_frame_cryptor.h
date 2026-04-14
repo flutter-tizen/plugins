@@ -10,8 +10,10 @@ namespace flutter_webrtc_plugin {
 class FlutterFrameCryptorObserver : public libwebrtc::RTCFrameCryptorObserver {
  public:
   FlutterFrameCryptorObserver(BinaryMessenger* messenger,
+                              TaskRunner* task_runner,
                               const std::string& channelName)
-      : event_channel_(EventChannelProxy::Create(messenger, channelName)) {}
+      : event_channel_(
+            EventChannelProxy::Create(messenger, task_runner, channelName)) {}
   void OnFrameCryptionStateChanged(const string participant_id,
                                    libwebrtc::RTCFrameCryptionState state);
 
@@ -23,8 +25,12 @@ class FlutterFrameCryptor {
  public:
   FlutterFrameCryptor(FlutterWebRTCBase* base) : base_(base) {}
 
-  bool HandleFrameCryptorMethodCall(const MethodCallProxy& method_call,
-                                    std::unique_ptr<MethodResultProxy> result);
+  // Since this takes ownership of result, ownership will be passed back to
+  // 'outResult' if this function fails
+  bool HandleFrameCryptorMethodCall(
+      const MethodCallProxy& method_call,
+      std::unique_ptr<MethodResultProxy> result,
+      std::unique_ptr<MethodResultProxy>* outResult);
 
   void FrameCryptorFactoryCreateFrameCryptor(
       const EncodableMap& constraints,
@@ -57,6 +63,7 @@ class FlutterFrameCryptor {
 
   void KeyProviderExportSharedKey(const EncodableMap& constraints,
                                   std::unique_ptr<MethodResultProxy> result);
+
   void KeyProviderSetKey(const EncodableMap& constraints,
                          std::unique_ptr<MethodResultProxy> result);
 
