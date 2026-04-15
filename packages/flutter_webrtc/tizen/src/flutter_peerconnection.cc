@@ -2,7 +2,6 @@
 
 #include "base/scoped_ref_ptr.h"
 #include "flutter_data_channel.h"
-#include "flutter_frame_capturer.h"
 #include "rtc_dtmf_sender.h"
 #include "rtc_rtp_parameters.h"
 
@@ -869,8 +868,8 @@ void FlutterPeerConnection::SetConfiguration(
 void FlutterPeerConnection::CaptureFrame(
     RTCVideoTrack* track, std::string path,
     std::unique_ptr<MethodResultProxy> result) {
-  FlutterFrameCapturer capturer(track, path);
-  capturer.CaptureFrame(std::move(result));
+  std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+  result_ptr->Success();
 }
 
 scoped_refptr<RTCRtpTransceiver> FlutterPeerConnection::getRtpTransceiverById(
