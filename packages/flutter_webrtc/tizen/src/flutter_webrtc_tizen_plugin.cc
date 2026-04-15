@@ -4,6 +4,7 @@
 #include "flutter_webrtc.h"
 #include "log.h"
 #include "task_runner.h"
+#include "task_runner_tizen.h"
 
 const char* kChannelName = "FlutterWebRTC.Method";
 
@@ -45,7 +46,8 @@ class FlutterWebRtcTizenPlugin : public FlutterWebRTCPlugin {
                            std::unique_ptr<MethodChannel> channel)
       : channel_(std::move(channel)),
         messenger_(registrar->messenger()),
-        textures_(registrar->texture_registrar()) {
+        textures_(registrar->texture_registrar()),
+        task_runner_(std::make_unique<TaskRunnerTizen>()) {
     webrtc_ = std::make_unique<FlutterWebRTC>(this);
   }
 
