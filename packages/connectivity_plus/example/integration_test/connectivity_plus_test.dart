@@ -19,6 +19,19 @@ void main() {
     testWidgets('test connectivity result', (WidgetTester tester) async {
       final result = await connectivity.checkConnectivity();
       expect(result, isNotNull);
+      expect(result, isNotEmpty);
+      expect(result, hasLength(1));
+      expect(
+        result.single,
+        isIn(<ConnectivityResult>[
+          ConnectivityResult.bluetooth,
+          ConnectivityResult.wifi,
+          ConnectivityResult.ethernet,
+          ConnectivityResult.mobile,
+          ConnectivityResult.none,
+          ConnectivityResult.other,
+        ]),
+      );
     });
   });
 }
