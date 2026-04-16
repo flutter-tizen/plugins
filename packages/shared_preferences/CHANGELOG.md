@@ -1,3 +1,8 @@
+## 2.3.3
+
+* Update shared_preferences to 2.5.5.
+* Update code format.
+
 ## 2.3.2
 
 * Update shared_preferences to 2.5.3.
