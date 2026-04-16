@@ -20,6 +20,8 @@ class TaskRunnerTizen : public TaskRunner {
 
  private:
   static void RunTask(void* data);
+  std::mutex tasks_mutex_;
+  std::queue<TaskClosure> tasks_;
 };
 
 #endif  // PACKAGES_FLUTTER_WEBRTC_TASK_RUNNER_TIZEN_H_

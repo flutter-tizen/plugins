@@ -9,14 +9,17 @@ TaskRunnerTizen::TaskRunnerTizen() = default;
 TaskRunnerTizen::~TaskRunnerTizen() = default;
 
 void TaskRunnerTizen::EnqueueTask(TaskClosure task) {
-  TaskClosure* task_ptr = new TaskClosure(std::move(task));
-  ecore_main_loop_thread_safe_call_async(RunTask, task_ptr);
+  std::lock_guard<std::mutex> lock(tasks_mutex_);
+  tasks_.push(std::move(task));
+  ecore_main_loop_thread_safe_call_async(RunTask, this);
 }
 
 void TaskRunnerTizen::RunTask(void* data) {
-  TaskClosure* task_ptr = static_cast<TaskClosure*>(data);
-  if (task_ptr) {
-    (*task_ptr)();
-    delete task_ptr;
+  TaskRunnerTizen* runner = static_cast<TaskRunnerTizen*>(data);
+  std::lock_guard<std::mutex> lock(runner->tasks_mutex_);
+  while (!runner->tasks_.empty()) {
+    TaskClosure task = std::move(runner->tasks_.front());
+    runner->tasks_.pop();
+    task();
   }
 }
