@@ -268,10 +268,10 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       } else if (method_name == "emitError") {
         auto code = GetRequiredArg<std::string>(arguments, "code");
         auto message = GetRequiredArg<std::string>(arguments, "message");
-        event_sinks_[player_id]->Error(code, message, flutter::EncodableValue());
+        event_sinks_[player_id]->Error(code, message,
+                                       flutter::EncodableValue());
         result->Success();
-      }
-      else {
+      } else {
         result->NotImplemented();
       }
     } catch (const std::invalid_argument &error) {
