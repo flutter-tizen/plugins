@@ -38,6 +38,10 @@ class PathProviderPlugin extends PathProviderPlatform {
       ];
 
   @override
+  Future<String> getDownloadsPath() async =>
+      storage.getDirectory(storage_directory_e.STORAGE_DIRECTORY_DOWNLOADS);
+
+  @override
   Future<List<String>> getExternalStoragePaths({StorageDirectory? type}) async {
     int dirType;
     switch (type) {
