@@ -180,6 +180,12 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       if (method_name == "setSourceBytes") {
         std::vector<uint8_t> bytes =
             GetRequiredArg<std::vector<uint8_t>>(arguments, "bytes");
+
+        std::string mime_type;
+        if (GetValueFromEncodableMap(arguments, "mimeType", mime_type)) {
+          player->OnLog("mimeType parameter is not supported on Tizen.");
+        }
+
         player->SetDataSource(bytes);
         result->Success();
       } else if (method_name == "resume") {
@@ -212,6 +218,12 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         if (is_local && url.find(file_protocol_prefix) == 0) {
           url = url.substr(file_protocol_prefix.length());
         }
+
+        std::string mime_type;
+        if (GetValueFromEncodableMap(arguments, "mimeType", mime_type)) {
+          player->OnLog("mimeType parameter is not supported on Tizen.");
+        }
+
         player->SetUrl(url);
         result->Success();
       } else if (method_name == "setPlaybackRate") {
@@ -253,7 +265,13 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         auto message = GetRequiredArg<std::string>(arguments, "message");
         player->OnLog(message);
         result->Success();
-      } else {
+      } else if (method_name == "emitError") {
+        auto code = GetRequiredArg<std::string>(arguments, "code");
+        auto message = GetRequiredArg<std::string>(arguments, "message");
+        event_sinks_[player_id]->Error(code, message, flutter::EncodableValue());
+        result->Success();
+      }
+      else {
         result->NotImplemented();
       }
     } catch (const std::invalid_argument &error) {
