@@ -1,5 +1,7 @@
-## NEXT
+## 2.1.5
 
+* Update url_launcher to 6.3.2.
+* Update minimum supported SDK version to Flutter 3.27/Dart 3.6.
 * Update code format.
 
 ## 2.1.4
