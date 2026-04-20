@@ -52,10 +52,6 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     });
 
     tts_ = std::make_unique<TextToSpeech>();
-    if (!tts_->Initialize()) {
-      tts_ = nullptr;
-      return;
-    }
     tts_->SetStateChanagedCallback([this](TtsState previous, TtsState current) {
       std::unique_ptr<flutter::EncodableValue> value =
           std::make_unique<flutter::EncodableValue>(true);
@@ -83,6 +79,16 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       channel_->InvokeMethod("speak.onComplete", std::move(args));
       HandleAwaitSpeakCompletion(flutter::EncodableValue(1));
     });
+    tts_->SetErrorCallback([this](const std::string &message) {
+      std::unique_ptr<flutter::EncodableValue> args =
+          std::make_unique<flutter::EncodableValue>(message);
+      channel_->InvokeMethod("speak.onError", std::move(args));
+      HandleAwaitSpeakCompletion(flutter::EncodableValue(0));
+    });
+    if (!tts_->Initialize()) {
+      tts_ = nullptr;
+      return;
+    }
   }
 
   virtual ~FlutterTtsTizenPlugin() {}
@@ -196,7 +202,10 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       rate = std::min(rate, 1.0);
       // Scale the value to be between the supported range.
       int32_t min = 0, normal = 0, max = 0;
-      tts_->GetSpeedRange(&min, &normal, &max);
+      if (!tts_->GetSpeedRange(&min, &normal, &max) || max < min) {
+        SendResult(flutter::EncodableValue(0));
+        return;
+      }
       int32_t speed = min + (max - min) * rate;
       tts_->SetTtsSpeed(speed);
       SendResult(flutter::EncodableValue(1));
@@ -304,7 +313,7 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
   }
 
   void HandleAwaitSpeakCompletion(const flutter::EncodableValue &result) {
-    if (await_speak_completion_) {
+    if (await_speak_completion_ && result_for_await_speak_completion_) {
       result_for_await_speak_completion_->Success(result);
       result_for_await_speak_completion_ = nullptr;
     }

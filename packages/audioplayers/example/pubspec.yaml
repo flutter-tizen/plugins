@@ -7,7 +7,7 @@ environment:
   flutter: ">=3.13.0"
 
 dependencies:
-  audioplayers: ^6.4.0
+  audioplayers: ^6.6.0
   audioplayers_tizen:
     path: ../
   collection: ^1.16.0
@@ -21,7 +21,7 @@ dependencies:
   provider: ^6.0.5
 
 dev_dependencies:
-  flame_lint: ^1.0.0
+  flame_lint: ^1.4.1
   flutter_driver:
     sdk: flutter
   flutter_test:

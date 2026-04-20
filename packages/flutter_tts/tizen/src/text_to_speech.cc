@@ -128,7 +128,19 @@ void TextToSpeech::RegisterCallbacks() {
   tts_set_error_cb(
       tts_,
       [](tts_h tts, int32_t utt_id, tts_error_e reason, void *user_data) {
+        TextToSpeech *self = static_cast<TextToSpeech *>(user_data);
         LOG_ERROR("TTS error: utt_id(%d), reason(%d)", utt_id, reason);
+        self->ClearUttId();
+        if (self->error_callback_) {
+          char *error_message = nullptr;
+          int ret = tts_get_error_message(tts, &error_message);
+          if (ret == TTS_ERROR_NONE && error_message) {
+            self->error_callback_(error_message);
+            free(error_message);
+          } else {
+            self->error_callback_(get_error_message(reason));
+          }
+        }
       },
       this);
 }

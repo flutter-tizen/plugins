@@ -1,3 +1,11 @@
+## 1.1.0
+
+* Update package_info_plus to 9.0.1.
+* Update package_info_plus_platform_interface to 3.2.1.
+* Add support for `PackageInfo.installTime`.
+* Update minimum Flutter and Dart version to 3.19 and 3.3.
+* Update the example app and integration_test.
+
 ## 1.0.5
 
 * Update the LICENSE file so that it is recognized by pub.dev.

@@ -4,32 +4,19 @@
 
 // ignore_for_file: public_member_api_docs
 
-import 'dart:async';
 import 'dart:developer' as developer;
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-// Sets a platform override for desktop to avoid exceptions. See
-// https://flutter.dev/desktop#target-platform-override for more info.
-void _enablePlatformOverrideForDesktop() {
-  if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
-    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
-  }
-}
-
 void main() {
-  _enablePlatformOverrideForDesktop();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -70,18 +57,20 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 4,
       ),
       body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Network info',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Network info',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 16),
-            Text(_connectionStatus),
-          ],
-        ),
-      ),
+          ),
+          const SizedBox(height: 16),
+          Text(_connectionStatus),
+        ],
+      )),
     );
   }
 
