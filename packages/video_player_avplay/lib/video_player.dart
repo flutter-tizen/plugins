@@ -202,12 +202,14 @@ class VideoPlayerValue {
   Captions get _currentCaptions {
     final List<TextCaption> textCaptions =
         (captions.textCaptions == <TextCaption>[TextCaption.none] ||
-                position > captions.textCaptions![0].end)
+                position > captions.textCaptions![0].end ||
+                position < captions.textCaptions![0].start)
             ? <TextCaption>[TextCaption.none]
             : captions.textCaptions!;
     final PictureCaption pictureCaption =
         (captions.pictureCaption == PictureCaption.none ||
-                position > captions.pictureCaption!.end)
+                position > captions.pictureCaption!.end ||
+                position > captions.pictureCaption!.start)
             ? PictureCaption.none
             : captions.pictureCaption!;
 
