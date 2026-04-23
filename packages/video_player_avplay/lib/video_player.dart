@@ -209,7 +209,7 @@ class VideoPlayerValue {
     final PictureCaption pictureCaption =
         (captions.pictureCaption == PictureCaption.none ||
                 position > captions.pictureCaption!.end ||
-                position > captions.pictureCaption!.start)
+                position < captions.pictureCaption!.start)
             ? PictureCaption.none
             : captions.pictureCaption!;
 
