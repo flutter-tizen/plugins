@@ -20,7 +20,8 @@ class PathProviderPlugin extends PathProviderPlatform {
   Future<String?> getTemporaryPath() async => appCommon.getCachePath();
 
   @override
-  Future<String?> getApplicationDocumentsPath() async => appCommon.getDataPath();
+  Future<String?> getApplicationDocumentsPath() async =>
+      appCommon.getDataPath();
 
   @override
   Future<String?> getApplicationCachePath() async => appCommon.getCachePath();
@@ -33,9 +34,10 @@ class PathProviderPlugin extends PathProviderPlatform {
       appCommon.getExternalDataPath();
 
   @override
-  Future<List<String>?> getExternalCachePaths() async => <String>[
-        appCommon.getExternalCachePath(),
-      ];
+  Future<List<String>?> getExternalCachePaths() async {
+    final String? path = appCommon.getExternalCachePath();
+    return path == null ? null : <String>[path];
+  }
 
   @override
   Future<String?> getDownloadsPath() async {

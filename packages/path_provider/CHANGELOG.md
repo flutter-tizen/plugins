@@ -2,7 +2,7 @@
 
 * Update path_provider to 2.1.5.
 * Add `getDownloadsPath()` support.
-* Align nullable return types with `path_provider_platform_interface`.
+* Align nullable return types and nullable path handling with the platform interface.
 * Update code format.
 
 ## 2.2.1
