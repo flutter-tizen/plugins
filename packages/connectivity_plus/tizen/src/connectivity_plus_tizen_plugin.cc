@@ -37,6 +37,8 @@ std::string ConnectionTypeToString(ConnectionType type) {
       return "mobile";
     case ConnectionType::kBluetooth:
       return "bluetooth";
+    case ConnectionType::kOther:
+      return "other";
     case ConnectionType::kNone:
     default:
       return "none";
