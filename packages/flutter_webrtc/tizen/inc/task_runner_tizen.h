@@ -4,10 +4,10 @@
 #ifndef PACKAGES_FLUTTER_WEBRTC_TASK_RUNNER_TIZEN_H_
 #define PACKAGES_FLUTTER_WEBRTC_TASK_RUNNER_TIZEN_H_
 
+#include <Ecore.h>
+
 #include <mutex>
 #include <queue>
-
-#include <Ecore.h>
 
 #include "task_runner.h"
 

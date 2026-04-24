@@ -358,4 +358,13 @@ FlutterWebRTCBase::GetRtpReceiverById(RTCPeerConnection* pc, std::string id) {
   return result;
 }
 
+libwebrtc::scoped_refptr<libwebrtc::KeyProvider>
+FlutterWebRTCBase::GetKeyProviderForId(const std::string& keyProviderId) {
+  auto it = key_providers_.find(keyProviderId);
+  if (it != key_providers_.end()) {
+    return it->second;
+  }
+  return nullptr;
+}
+
 }  // namespace flutter_webrtc_plugin

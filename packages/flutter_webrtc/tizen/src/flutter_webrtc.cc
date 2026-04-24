@@ -14,7 +14,8 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
       FlutterMediaStream::FlutterMediaStream(this),
       FlutterPeerConnection::FlutterPeerConnection(this),
       FlutterDataChannel::FlutterDataChannel(this),
-      FlutterFrameCryptor::FlutterFrameCryptor(this) {}
+      FlutterFrameCryptor::FlutterFrameCryptor(this),
+      FlutterDataPacketCryptor::FlutterDataPacketCryptor(this) {}
 
 FlutterWebRTC::~FlutterWebRTC() {}
 

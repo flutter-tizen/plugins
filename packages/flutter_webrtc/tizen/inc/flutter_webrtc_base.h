@@ -13,6 +13,7 @@
 #include "rtc_audio_device.h"
 #include "rtc_audio_processing.h"
 #include "rtc_dtmf_sender.h"
+#include "rtc_frame_cryptor.h"
 #include "rtc_media_stream.h"
 #include "rtc_media_track.h"
 #include "rtc_mediaconstraints.h"
@@ -36,6 +37,7 @@ class FlutterWebRTCBase {
   friend class FlutterDataChannel;
   friend class FlutterPeerConnectionObserver;
   friend class FlutterFrameCryptor;
+  friend class FlutterDataPacketCryptor;
   enum ParseConstraintType { kMandatory, kOptional };
 
  public:
@@ -88,6 +90,9 @@ class FlutterWebRTCBase {
   libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> GetRtpReceiverById(
       RTCPeerConnection* pc, std::string id);
 
+  libwebrtc::scoped_refptr<libwebrtc::KeyProvider> GetKeyProviderForId(
+      const std::string& keyProviderId);
+
  private:
   void ParseConstraints(const EncodableMap& src,
                         scoped_refptr<RTCMediaConstraints> mediaConstraints,
@@ -103,6 +108,7 @@ class FlutterWebRTCBase {
   scoped_refptr<RTCAudioProcessing> audio_processing_;
   RTCConfiguration configuration_;
 
+  std::map<std::string, scoped_refptr<libwebrtc::KeyProvider>> key_providers_;
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
