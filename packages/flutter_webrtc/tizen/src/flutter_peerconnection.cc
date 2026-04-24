@@ -628,15 +628,16 @@ void FlutterPeerConnection::AddTransceiver(
     std::unique_ptr<MethodResultProxy> result) {
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
 
-  RTCMediaTrack* track = base_->MediaTrackForId(trackId);
+  scoped_refptr<RTCMediaTrack> track = base_->MediaTrackForId(trackId);
   RTCMediaType type = stringToMediaType(mediaType);
 
   if (0 < transceiverInit.size()) {
     auto transceiver =
-        track != nullptr ? pc->AddTransceiver(
-                               track, mapToRtpTransceiverInit(transceiverInit))
-                         : pc->AddTransceiver(
-                               type, mapToRtpTransceiverInit(transceiverInit));
+        track != nullptr
+            ? pc->AddTransceiver(track.get(),
+                                 mapToRtpTransceiverInit(transceiverInit))
+            : pc->AddTransceiver(type,
+                                 mapToRtpTransceiverInit(transceiverInit));
     if (nullptr != transceiver.get()) {
       result_ptr->Success(EncodableValue(transceiverToMap(transceiver)));
       return;
@@ -644,8 +645,8 @@ void FlutterPeerConnection::AddTransceiver(
     result_ptr->Error("AddTransceiver(track | mediaType, init)",
                       "AddTransceiver error");
   } else {
-    auto transceiver =
-        track != nullptr ? pc->AddTransceiver(track) : pc->AddTransceiver(type);
+    auto transceiver = track != nullptr ? pc->AddTransceiver(track.get())
+                                        : pc->AddTransceiver(type);
     if (nullptr != transceiver.get()) {
       result_ptr->Success(EncodableValue(transceiverToMap(transceiver)));
       return;

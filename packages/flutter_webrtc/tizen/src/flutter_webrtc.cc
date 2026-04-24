@@ -423,7 +423,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string track_id = findString(params, "trackId");
     const EncodableValue enable = findEncodableValue(params, "enabled");
-    RTCMediaTrack* track = MediaTrackForId(track_id);
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(track_id);
     if (track != nullptr) {
       track->set_enabled(GetValue<bool>(enable));
     }
@@ -543,8 +543,8 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    RTCMediaTrack* track = MediaTrackForId(trackId);
-    if (nullptr == track) {
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(trackId);
+    if (track == nullptr) {
       result->Error("setVolume", "setVolume() Unable to find provided track");
       return;
     }
@@ -556,7 +556,7 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
 
-    auto audioTrack = static_cast<RTCAudioTrack*>(track);
+    auto audioTrack = static_cast<RTCAudioTrack*>(track.get());
     audioTrack->SetVolume(volume.value());
 
     result->Success();
@@ -795,7 +795,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string trackId = findString(params, "trackId");
-    RTCMediaTrack* track = MediaTrackForId(trackId);
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(trackId);
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
     if (rtpSenderId.empty()) {
@@ -803,7 +803,7 @@ void FlutterWebRTC::HandleMethodCall(
                     "rtpSenderSetTrack() rtpSenderId is null or empty");
       return;
     }
-    RtpSenderSetTrack(pc, track, rtpSenderId, std::move(result));
+    RtpSenderSetTrack(pc, track.get(), rtpSenderId, std::move(result));
   } else if (method_call.method_name().compare("rtpSenderSetStreams") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -855,7 +855,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string trackId = findString(params, "trackId");
-    RTCMediaTrack* track = MediaTrackForId(trackId);
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(trackId);
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
     if (rtpSenderId.empty()) {
@@ -863,7 +863,7 @@ void FlutterWebRTC::HandleMethodCall(
                     "rtpSenderReplaceTrack() rtpSenderId is null or empty");
       return;
     }
-    RtpSenderReplaceTrack(pc, track, rtpSenderId, std::move(result));
+    RtpSenderReplaceTrack(pc, track.get(), rtpSenderId, std::move(result));
   } else if (method_call.method_name().compare("rtpSenderSetParameters") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -1017,8 +1017,8 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string trackId = findString(params, "trackId");
-    RTCMediaTrack* track = MediaTrackForId(trackId);
-    if (nullptr == track) {
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(trackId);
+    if (track == nullptr) {
       result->Error("captureFrame", "captureFrame() track is null");
       return;
     }
@@ -1027,7 +1027,7 @@ void FlutterWebRTC::HandleMethodCall(
       result->Error("captureFrame", "captureFrame() track not is video track");
       return;
     }
-    CaptureFrame(reinterpret_cast<RTCVideoTrack*>(track), path,
+    CaptureFrame(reinterpret_cast<RTCVideoTrack*>(track.get()), path,
                  std::move(result));
 
   } else if (method_call.method_name().compare("createLocalMediaStream") == 0) {
