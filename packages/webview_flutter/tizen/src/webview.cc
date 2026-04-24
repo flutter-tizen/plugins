@@ -706,6 +706,8 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     const auto* value = std::get_if<bool>(arguments);
     if (value) {
       scrollbar_enabled_ = *value;
+      EwkInternalApiBinding::GetInstance().view.MainFrameScrollbarVisibleSet(
+          webview_instance_, scrollbar_enabled_);
       result->Success();
     } else {
       result->Error("Invalid argument", "The argument must be a bool.");
