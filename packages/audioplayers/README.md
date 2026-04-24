@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `audioplayers`. Therefore, y
 
 ```yaml
 dependencies:
-  audioplayers: ^6.4.0
-  audioplayers_tizen: ^3.1.2
+  audioplayers: ^6.6.0
+  audioplayers_tizen: ^3.1.3
 
 ```
 
@@ -56,10 +56,10 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 - [x] `AudioPlayer.setReleaseMode`
 - [x] `AudioPlayer.setPlaybackRate`
 - [x] `AudioPlayer.setSource`
-- [x] `AudioPlayer.setSourceUrl`
+- [x] `AudioPlayer.setSourceUrl`(`String? mimeType` not supported)
 - [x] `AudioPlayer.setSourceDeviceFile`
 - [x] `AudioPlayer.setSourceAsset`
-- [x] `AudioPlayer.setSourceBytes`
+- [x] `AudioPlayer.setSourceBytes`(`String? mimeType` not supported)
 - [x] `AudioPlayer.getDuration`
 - [x] `AudioPlayer.getCurrentPosition`
 - [x] `AudioPlayer.dispose`

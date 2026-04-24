@@ -151,9 +151,8 @@ class LweWebView {
   Future<Offset> getScrollPosition() async {
     final Map<String, Object?>? position =
         (await _invokeChannelMethod<Map<Object?, Object?>>(
-      'getScrollPosition',
-    ))
-            ?.cast<String, Object?>();
+          'getScrollPosition',
+        ))?.cast<String, Object?>();
     if (position == null) {
       return Offset.zero;
     }
@@ -232,4 +231,12 @@ class LweWebView {
     final String? result = await _invokeChannelMethod<String?>('getUserAgent');
     return result;
   }
+
+  /// Whether the vertical scrollbar should be drawn or not.
+  Future<void> setVerticalScrollBarEnabled(bool enabled) =>
+      _invokeChannelMethod<void>('setVerticalScrollBarEnabled', enabled);
+
+  /// Whether the horizontal scrollbar should be drawn or not.
+  Future<void> setHorizontalScrollBarEnabled(bool enabled) =>
+      _invokeChannelMethod<void>('setHorizontalScrollBarEnabled', enabled);
 }

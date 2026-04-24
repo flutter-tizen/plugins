@@ -71,6 +71,13 @@ void main() {
     }
   });
 
+  testWidgets('getDownloadsDirectory', (WidgetTester tester) async {
+    final Directory? result = await getDownloadsDirectory();
+    if (result != null) {
+      _verifySampleFile(result, 'downloads');
+    }
+  });
+
   final List<StorageDirectory?> allDirs = <StorageDirectory?>[
     null,
     StorageDirectory.music,

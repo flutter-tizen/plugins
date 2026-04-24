@@ -2,11 +2,11 @@ name: url_launcher_tizen
 description: Tizen implementation of the url_launcher plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/master/packages/url_launcher
-version: 2.1.4
+version: 2.1.5
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
-  flutter: ">=3.19.0"
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 flutter:
   plugin:
