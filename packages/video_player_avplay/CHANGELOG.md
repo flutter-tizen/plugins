@@ -2,7 +2,7 @@
 
 * Update the conditional statement for the `_currentCaptions`.
 * Update plusplayer
-  1. [DASH] Fix the issue where subtitles for content with pre-roll/insesrted ads in DASH could not be rendered.
+  1. [DASH] Fix the issue where subtitles for content with pre-roll/inserted ads in DASH could not be rendered.
 
 ## 0.8.7
 
