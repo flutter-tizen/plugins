@@ -9,10 +9,18 @@
 
 namespace libwebrtc {
 
-enum class Algorithm {
+enum class FrameCryptorAlgorithm {
   kAesGcm = 0,
   kAesCbc,
 };
+
+enum class KeyDerivationAlgorithm {
+  kPBKDF2 = 0,
+  kHKDF,
+};
+
+#define DEFAULT_KEYRING_SIZE 16
+#define MAX_KEYRING_SIZE 255
 
 struct KeyProviderOptions {
   bool shared_key;
@@ -20,16 +28,27 @@ struct KeyProviderOptions {
   vector<uint8_t> uncrypted_magic_bytes;
   int ratchet_window_size;
   int failure_tolerance;
+  // The size of the key ring. between 1 and 255.
+  int key_ring_size;
+  bool discard_frame_when_cryptor_not_ready;
+  KeyDerivationAlgorithm key_derivation_algorithm;
   KeyProviderOptions()
       : shared_key(false),
         ratchet_salt(vector<uint8_t>()),
         ratchet_window_size(0),
-        failure_tolerance(-1) {}
+        failure_tolerance(-1),
+        key_ring_size(DEFAULT_KEYRING_SIZE),
+        discard_frame_when_cryptor_not_ready(false),
+        key_derivation_algorithm(KeyDerivationAlgorithm::kPBKDF2) {}
   KeyProviderOptions(KeyProviderOptions& copy)
       : shared_key(copy.shared_key),
         ratchet_salt(copy.ratchet_salt),
         ratchet_window_size(copy.ratchet_window_size),
-        failure_tolerance(copy.failure_tolerance) {}
+        failure_tolerance(copy.failure_tolerance),
+        key_ring_size(copy.key_ring_size),
+        discard_frame_when_cryptor_not_ready(
+            copy.discard_frame_when_cryptor_not_ready),
+        key_derivation_algorithm(copy.key_derivation_algorithm) {}
 };
 
 /// Shared secret key for frame encryption.
@@ -113,7 +132,7 @@ class FrameCryptorFactory {
   frameCryptorFromRtpSender(scoped_refptr<RTCPeerConnectionFactory> factory,
                             const string participant_id,
                             scoped_refptr<RTCRtpSender> sender,
-                            Algorithm algorithm,
+                            FrameCryptorAlgorithm algorithm,
                             scoped_refptr<KeyProvider> key_provider);
 
   /// Create a frame cyrptor for [RTCRtpReceiver].
@@ -121,7 +140,7 @@ class FrameCryptorFactory {
   frameCryptorFromRtpReceiver(scoped_refptr<RTCPeerConnectionFactory> factory,
                               const string participant_id,
                               scoped_refptr<RTCRtpReceiver> receiver,
-                              Algorithm algorithm,
+                              FrameCryptorAlgorithm algorithm,
                               scoped_refptr<KeyProvider> key_provider);
 };
 

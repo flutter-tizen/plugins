@@ -11,14 +11,15 @@
 #include "flutter_common.h"
 #include "libwebrtc.h"
 #include "rtc_audio_device.h"
+#include "rtc_audio_processing.h"
 #include "rtc_dtmf_sender.h"
+#include "rtc_frame_cryptor.h"
 #include "rtc_media_stream.h"
 #include "rtc_media_track.h"
 #include "rtc_mediaconstraints.h"
 #include "rtc_peerconnection.h"
 #include "rtc_peerconnection_factory.h"
 #include "rtc_video_device.h"
-#include "uuidxx.h"
 
 namespace flutter_webrtc_plugin {
 
@@ -36,19 +37,25 @@ class FlutterWebRTCBase {
   friend class FlutterDataChannel;
   friend class FlutterPeerConnectionObserver;
   friend class FlutterFrameCryptor;
+  friend class FlutterDataPacketCryptor;
   enum ParseConstraintType { kMandatory, kOptional };
 
  public:
-  FlutterWebRTCBase(BinaryMessenger* messenger, TextureRegistrar* textures);
+  FlutterWebRTCBase(BinaryMessenger* messenger, TextureRegistrar* textures,
+                    TaskRunner* task_runner);
   ~FlutterWebRTCBase();
+
+  virtual scoped_refptr<RTCAudioProcessing> audio_processing() {
+    return audio_processing_;
+  }
+
+  virtual scoped_refptr<RTCMediaTrack> MediaTrackForId(const std::string& id);
 
   std::string GenerateUUID();
 
   RTCPeerConnection* PeerConnectionForId(const std::string& id);
 
   void RemovePeerConnectionForId(const std::string& id);
-
-  RTCMediaTrack* MediaTrackForId(const std::string& id);
 
   void RemoveMediaTrackForId(const std::string& id);
 
@@ -83,6 +90,9 @@ class FlutterWebRTCBase {
   libwebrtc::scoped_refptr<libwebrtc::RTCRtpReceiver> GetRtpReceiverById(
       RTCPeerConnection* pc, std::string id);
 
+  libwebrtc::scoped_refptr<libwebrtc::KeyProvider> GetKeyProviderForId(
+      const std::string& keyProviderId);
+
  private:
   void ParseConstraints(const EncodableMap& src,
                         scoped_refptr<RTCMediaConstraints> mediaConstraints,
@@ -95,8 +105,10 @@ class FlutterWebRTCBase {
   scoped_refptr<RTCPeerConnectionFactory> factory_;
   scoped_refptr<RTCAudioDevice> audio_device_;
   scoped_refptr<RTCVideoDevice> video_device_;
+  scoped_refptr<RTCAudioProcessing> audio_processing_;
   RTCConfiguration configuration_;
 
+  std::map<std::string, scoped_refptr<libwebrtc::KeyProvider>> key_providers_;
   std::map<std::string, scoped_refptr<RTCPeerConnection>> peerconnections_;
   std::map<std::string, scoped_refptr<RTCMediaStream>> local_streams_;
   std::map<std::string, scoped_refptr<RTCMediaTrack>> local_tracks_;
@@ -113,6 +125,7 @@ class FlutterWebRTCBase {
 
  protected:
   BinaryMessenger* messenger_;
+  TaskRunner* task_runner_;
   TextureRegistrar* textures_;
   std::unique_ptr<EventChannelProxy> event_channel_;
 };

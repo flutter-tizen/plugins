@@ -1,9 +1,12 @@
 ## NEXT
 
+## 0.2.0
+
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Fix analyze issue.
 * Update code format.
 * Adds compatibility with `http` 1.0 in example.
+* Update flutter_webrtc to 1.3.1.
 
 ## 0.1.3
 

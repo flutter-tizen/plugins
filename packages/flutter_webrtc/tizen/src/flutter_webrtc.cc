@@ -1,17 +1,21 @@
 #include "flutter_webrtc.h"
 
+#include "flutter_data_channel.h"
 #include "log.h"
 
 namespace flutter_webrtc_plugin {
 
+static EventChannelProxy* eventChannelProxy = nullptr;
+
 FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
-    : FlutterWebRTCBase::FlutterWebRTCBase(plugin->messenger(),
-                                           plugin->textures()),
+    : FlutterWebRTCBase::FlutterWebRTCBase(
+          plugin->messenger(), plugin->textures(), plugin->task_runner()),
       FlutterVideoRendererManager::FlutterVideoRendererManager(this),
       FlutterMediaStream::FlutterMediaStream(this),
       FlutterPeerConnection::FlutterPeerConnection(this),
       FlutterDataChannel::FlutterDataChannel(this),
-      FlutterFrameCryptor::FlutterFrameCryptor(this) {}
+      FlutterFrameCryptor::FlutterFrameCryptor(this),
+      FlutterDataPacketCryptor::FlutterDataPacketCryptor(this) {}
 
 FlutterWebRTC::~FlutterWebRTC() {}
 
@@ -22,6 +26,11 @@ void FlutterWebRTC::HandleMethodCall(
     const EncodableMap params =
         GetValue<EncodableMap>(*method_call.arguments());
     const EncodableMap options = findMap(params, "options");
+    std::string severityStr = findString(options, "logSeverity");
+    if (severityStr.empty() == false) {
+      RTCLoggingSeverity severity = str2LogSeverity(severityStr);
+      initLoggerCallback(severity);
+    }
     result->Success();
   } else if (method_call.method_name().compare("createPeerConnection") == 0) {
     if (!method_call.arguments()) {
@@ -273,11 +282,10 @@ void FlutterWebRTC::HandleMethodCall(
     SdpParseError error;
     std::string candidate = findString(constraints, "candidate");
     if (candidate.empty()) {
-      LOG_DEBUG("addCandidate, add end-of-candidates");
+      // received the end-of-candidates
       result->Success();
       return;
     }
-
     int sdpMLineIndex = findInt(constraints, "sdpMLineIndex");
     scoped_refptr<RTCIceCandidate> rtc_candidate = RTCIceCandidate::Create(
         candidate.c_str(), findString(constraints, "sdpMid").c_str(),
@@ -349,6 +357,30 @@ void FlutterWebRTC::HandleMethodCall(
       return;
     }
     DataChannelSend(data_channel, type, data, std::move(result));
+  } else if (method_call.method_name().compare(
+                 "dataChannelGetBufferedAmount") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null constraints arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    const std::string peerConnectionId = findString(params, "peerConnectionId");
+    RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
+    if (pc == nullptr) {
+      result->Error("dataChannelGetBufferedAmountFailed",
+                    "dataChannelGetBufferedAmount() peerConnection is null");
+      return;
+    }
+
+    const std::string dataChannelId = findString(params, "dataChannelId");
+    RTCDataChannel* data_channel = DataChannelForId(dataChannelId);
+    if (data_channel == nullptr) {
+      result->Error("dataChannelGetBufferedAmountFailed",
+                    "dataChannelGetBufferedAmount() data_channel is null");
+      return;
+    }
+    DataChannelGetBufferedAmount(data_channel, std::move(result));
   } else if (method_call.method_name().compare("dataChannelClose") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -391,7 +423,7 @@ void FlutterWebRTC::HandleMethodCall(
         GetValue<EncodableMap>(*method_call.arguments());
     const std::string track_id = findString(params, "trackId");
     const EncodableValue enable = findEncodableValue(params, "enabled");
-    RTCMediaTrack* track = MediaTrackForId(track_id);
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(track_id);
     if (track != nullptr) {
       track->set_enabled(GetValue<bool>(enable));
     }
@@ -486,6 +518,48 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string track_id = findString(params, "trackId");
     MediaStreamTrackSwitchCamera(track_id, std::move(result));
   } else if (method_call.method_name().compare("setVolume") == 0) {
+    auto args = method_call.arguments();
+    if (!args) {
+      result->Error("Bad Arguments", "setVolume() Null arguments received");
+      return;
+    }
+
+    const EncodableMap params = GetValue<EncodableMap>(*args);
+    const std::string trackId = findString(params, "trackId");
+    const std::optional<double> volume = maybeFindDouble(params, "volume");
+
+    if (trackId.empty()) {
+      result->Error("Bad Arguments", "setVolume() Empty track provided");
+      return;
+    }
+
+    if (!volume.has_value()) {
+      result->Error("Bad Arguments", "setVolume() No volume provided");
+      return;
+    }
+
+    if (volume.value() < 0) {
+      result->Error("Bad Arguments", "setVolume() Volume must be positive");
+      return;
+    }
+
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(trackId);
+    if (track == nullptr) {
+      result->Error("setVolume", "setVolume() Unable to find provided track");
+      return;
+    }
+
+    std::string kind = track->kind().std_string();
+    if (0 != kind.compare("audio")) {
+      result->Error("setVolume",
+                    "setVolume() Only audio tracks can have volume set");
+      return;
+    }
+
+    auto audioTrack = static_cast<RTCAudioTrack*>(track.get());
+    audioTrack->SetVolume(volume.value());
+
+    result->Success();
   } else if (method_call.method_name().compare("getLocalDescription") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -721,7 +795,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string trackId = findString(params, "trackId");
-    RTCMediaTrack* track = MediaTrackForId(trackId);
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(trackId);
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
     if (rtpSenderId.empty()) {
@@ -729,7 +803,7 @@ void FlutterWebRTC::HandleMethodCall(
                     "rtpSenderSetTrack() rtpSenderId is null or empty");
       return;
     }
-    RtpSenderSetTrack(pc, track, rtpSenderId, std::move(result));
+    RtpSenderSetTrack(pc, track.get(), rtpSenderId, std::move(result));
   } else if (method_call.method_name().compare("rtpSenderSetStreams") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -781,7 +855,7 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string trackId = findString(params, "trackId");
-    RTCMediaTrack* track = MediaTrackForId(trackId);
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(trackId);
 
     const std::string rtpSenderId = findString(params, "rtpSenderId");
     if (rtpSenderId.empty()) {
@@ -789,7 +863,7 @@ void FlutterWebRTC::HandleMethodCall(
                     "rtpSenderReplaceTrack() rtpSenderId is null or empty");
       return;
     }
-    RtpSenderReplaceTrack(pc, track, rtpSenderId, std::move(result));
+    RtpSenderReplaceTrack(pc, track.get(), rtpSenderId, std::move(result));
   } else if (method_call.method_name().compare("rtpSenderSetParameters") == 0) {
     if (!method_call.arguments()) {
       result->Error("Bad Arguments", "Null constraints arguments received");
@@ -943,8 +1017,8 @@ void FlutterWebRTC::HandleMethodCall(
     }
 
     const std::string trackId = findString(params, "trackId");
-    RTCMediaTrack* track = MediaTrackForId(trackId);
-    if (nullptr == track) {
+    scoped_refptr<RTCMediaTrack> track = MediaTrackForId(trackId);
+    if (track == nullptr) {
       result->Error("captureFrame", "captureFrame() track is null");
       return;
     }
@@ -953,7 +1027,7 @@ void FlutterWebRTC::HandleMethodCall(
       result->Error("captureFrame", "captureFrame() track not is video track");
       return;
     }
-    CaptureFrame(reinterpret_cast<RTCVideoTrack*>(track), path,
+    CaptureFrame(reinterpret_cast<RTCVideoTrack*>(track.get()), path,
                  std::move(result));
 
   } else if (method_call.method_name().compare("createLocalMediaStream") == 0) {
@@ -1197,11 +1271,53 @@ void FlutterWebRTC::HandleMethodCall(
     state[EncodableValue("state")] =
         peerConnectionStateString(pc->peer_connection_state());
     result->Success(EncodableValue(state));
-  } else if (HandleFrameCryptorMethodCall(method_call, std::move(result))) {
-    // Do nothing
+  } else if (method_call.method_name().compare("setLogSeverity") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Bad arguments received");
+      return;
+    }
+    const EncodableMap params =
+        GetValue<EncodableMap>(*method_call.arguments());
+    std::string severityStr = findString(params, "severity");
+    if (severityStr.empty() == false) {
+      RTCLoggingSeverity severity = str2LogSeverity(severityStr);
+      initLoggerCallback(severity);
+    }
   } else {
-    result->NotImplemented();
+    if (HandleFrameCryptorMethodCall(method_call, std::move(result), &result)) {
+      return;
+    } else {
+      result->NotImplemented();
+    }
   }
+}
+
+void FlutterWebRTC::initLoggerCallback(RTCLoggingSeverity severity) {
+  if (eventChannelProxy == nullptr) {
+    eventChannelProxy = event_channel();
+  }
+
+  libwebrtc::LibWebRTCLogging::setLogSink(severity, [](const string& message) {
+    EncodableMap info;
+    info[EncodableValue("event")] = "onLogData";
+    info[EncodableValue("data")] = message.c_string();
+    eventChannelProxy->Success(EncodableValue(info), false);
+  });
+}
+
+RTCLoggingSeverity FlutterWebRTC::str2LogSeverity(std::string str) {
+  if (str == "verbose")
+    return Verbose;
+  else if (str == "info")
+    return Info;
+  else if (str == "warning")
+    return Warning;
+  else if (str == "error")
+    return Error;
+  else if (str == "none")
+    return None;
+
+  return None;
 }
 
 }  // namespace flutter_webrtc_plugin

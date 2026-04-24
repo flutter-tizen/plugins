@@ -3,21 +3,24 @@ description: Demonstrates how to use the webrtc plugin.
 publish_to: "none"
 
 environment:
-  sdk: ">=3.1.0 <4.0.0"
+  sdk: ">=3.3.0 <4.0.0"
   flutter: ">=3.13.0"
 
 dependencies:
+  cupertino_icons: ^1.0.2
   flutter:
     sdk: flutter
   flutter_background: ^1.0.0
-  flutter_webrtc: 0.9.46 # Use a fixed version due to build errors.
+  flutter_webrtc: ^1.4.1
   flutter_webrtc_tizen:
     path: ../../
+  gallery_saver_plus: 3.2.4
   path_provider: ^2.0.7
   path_provider_tizen: ^2.0.2
   permission_handler: ^10.4.3
   permission_handler_tizen: ^1.3.0
-  web: ^0.3.0
+  sdp_transform: ^0.3.2
+  web: ^1.0.0
 
 dev_dependencies:
   flutter_test:

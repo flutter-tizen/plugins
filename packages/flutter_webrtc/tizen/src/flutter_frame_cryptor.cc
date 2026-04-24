@@ -4,14 +4,14 @@
 
 namespace flutter_webrtc_plugin {
 
-libwebrtc::Algorithm AlgorithmFromInt(int algorithm) {
+libwebrtc::FrameCryptorAlgorithm AlgorithmFromInt(int algorithm) {
   switch (algorithm) {
     case 0:
-      return libwebrtc::Algorithm::kAesGcm;
+      return libwebrtc::FrameCryptorAlgorithm::kAesGcm;
     case 1:
-      return libwebrtc::Algorithm::kAesCbc;
+      return libwebrtc::FrameCryptorAlgorithm::kAesCbc;
     default:
-      return libwebrtc::Algorithm::kAesGcm;
+      return libwebrtc::FrameCryptorAlgorithm::kAesGcm;
   }
 }
 
@@ -48,7 +48,8 @@ void FlutterFrameCryptorObserver::OnFrameCryptionStateChanged(
 
 bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
     const MethodCallProxy& method_call,
-    std::unique_ptr<MethodResultProxy> result) {
+    std::unique_ptr<MethodResultProxy> result,
+    std::unique_ptr<MethodResultProxy>* outResult) {
   const std::string& method_name = method_call.method_name();
   if (!method_call.arguments()) {
     result->Error("Bad Arguments", "Null arguments received");
@@ -103,6 +104,7 @@ bool FlutterFrameCryptor::HandleFrameCryptorMethodCall(
     return true;
   }
 
+  *outResult = std::move(result);
   return false;
 }
 
@@ -152,7 +154,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
       return;
     }
     std::string uuid = base_->GenerateUUID();
-    auto keyProvider = key_providers_[keyProviderId];
+    auto keyProvider = base_->key_providers_[keyProviderId];
     if (keyProvider == nullptr) {
       result->Error("FrameCryptorFactoryCreateFrameCryptorFailed",
                     "keyProvider is null");
@@ -165,8 +167,8 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     std::string event_channel = "FlutterWebRTC/frameCryptorEvent" + uuid;
 
     scoped_refptr<FlutterFrameCryptorObserver> observer(
-        new RefCountedObject<FlutterFrameCryptorObserver>(base_->messenger_,
-                                                          event_channel));
+        new RefCountedObject<FlutterFrameCryptorObserver>(
+            base_->messenger_, base_->task_runner_, event_channel));
 
     frameCryptor->RegisterRTCFrameCryptorObserver(observer);
 
@@ -184,7 +186,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
       return;
     }
     std::string uuid = base_->GenerateUUID();
-    auto keyProvider = key_providers_[keyProviderId];
+    auto keyProvider = base_->key_providers_[keyProviderId];
     auto frameCryptor =
         libwebrtc::FrameCryptorFactory::frameCryptorFromRtpReceiver(
             base_->factory_, string(participantId), receiver,
@@ -193,8 +195,8 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateFrameCryptor(
     std::string event_channel = "FlutterWebRTC/frameCryptorEvent" + uuid;
 
     scoped_refptr<FlutterFrameCryptorObserver> observer(
-        new RefCountedObject<FlutterFrameCryptorObserver>(base_->messenger_,
-                                                          event_channel));
+        new RefCountedObject<FlutterFrameCryptorObserver>(
+            base_->messenger_, base_->task_runner_, event_channel));
 
     frameCryptor->RegisterRTCFrameCryptorObserver(observer.get());
 
@@ -349,6 +351,14 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
   auto failureTolerance = findInt(keyProviderOptions, "failureTolerance");
   options.failure_tolerance = failureTolerance;
 
+  auto keyRingSize = findInt(keyProviderOptions, "keyRingSize");
+  options.key_ring_size = keyRingSize;
+
+  auto discardFrameWhenCryptorNotReady =
+      findBoolean(keyProviderOptions, "discardFrameWhenCryptorNotReady");
+  options.discard_frame_when_cryptor_not_ready =
+      discardFrameWhenCryptorNotReady;
+
   auto keyProvider = libwebrtc::KeyProvider::Create(&options);
   if (nullptr == keyProvider.get()) {
     result->Error("FrameCryptorFactoryCreateKeyProviderFailed",
@@ -356,7 +366,7 @@ void FlutterFrameCryptor::FrameCryptorFactoryCreateKeyProvider(
     return;
   }
   auto uuid = base_->GenerateUUID();
-  key_providers_[uuid] = keyProvider;
+  base_->key_providers_[uuid] = keyProvider;
   EncodableMap params;
   params[EncodableValue("keyProviderId")] = uuid;
   result->Success(EncodableValue(params));
@@ -371,7 +381,7 @@ void FlutterFrameCryptor::KeyProviderSetSharedKey(
     return;
   }
 
-  auto keyProvider = key_providers_[keyProviderId];
+  auto keyProvider = base_->key_providers_[keyProviderId];
   if (nullptr == keyProvider.get()) {
     result->Error("KeyProviderSetSharedKeyFailed", "keyProvider is null");
     return;
@@ -404,7 +414,7 @@ void FlutterFrameCryptor::KeyProviderRatchetSharedKey(
     return;
   }
 
-  auto keyProvider = key_providers_[keyProviderId];
+  auto keyProvider = base_->key_providers_[keyProviderId];
   if (nullptr == keyProvider.get()) {
     result->Error("KeyProviderRatchetSharedKeyFailed", "keyProvider is null");
     return;
@@ -432,7 +442,7 @@ void FlutterFrameCryptor::KeyProviderExportSharedKey(
     return;
   }
 
-  auto keyProvider = key_providers_[keyProviderId];
+  auto keyProvider = base_->key_providers_[keyProviderId];
   if (nullptr == keyProvider.get()) {
     result->Error("KeyProviderExportSharedKeyFailed", "keyProvider is null");
     return;
@@ -460,7 +470,7 @@ void FlutterFrameCryptor::KeyProviderExportKey(
     return;
   }
 
-  auto keyProvider = key_providers_[keyProviderId];
+  auto keyProvider = base_->key_providers_[keyProviderId];
   if (nullptr == keyProvider.get()) {
     result->Error("KeyProviderExportKeyFailed", "keyProvider is null");
     return;
@@ -494,7 +504,7 @@ void FlutterFrameCryptor::KeyProviderSetSifTrailer(
     return;
   }
 
-  auto keyProvider = key_providers_[keyProviderId];
+  auto keyProvider = base_->key_providers_[keyProviderId];
   if (nullptr == keyProvider.get()) {
     result->Error("KeyProviderSetSifTrailerFailed", "keyProvider is null");
     return;
@@ -521,7 +531,7 @@ void FlutterFrameCryptor::KeyProviderSetKey(
     return;
   }
 
-  auto keyProvider = key_providers_[keyProviderId];
+  auto keyProvider = base_->key_providers_[keyProviderId];
   if (nullptr == keyProvider.get()) {
     result->Error("KeyProviderSetKeyFailed", "keyProvider is null");
     return;
@@ -559,7 +569,7 @@ void FlutterFrameCryptor::KeyProviderRatchetKey(
     return;
   }
 
-  auto keyProvider = key_providers_[keyProviderId];
+  auto keyProvider = base_->key_providers_[keyProviderId];
   if (nullptr == keyProvider.get()) {
     result->Error("KeyProviderSetKeysFailed", "keyProvider is null");
     return;
@@ -593,12 +603,12 @@ void FlutterFrameCryptor::KeyProviderDispose(
     return;
   }
 
-  auto keyProvider = key_providers_[keyProviderId];
+  auto keyProvider = base_->key_providers_[keyProviderId];
   if (nullptr == keyProvider.get()) {
     result->Error("KeyProviderDisposeFailed", "keyProvider is null");
     return;
   }
-  key_providers_.erase(keyProviderId);
+  base_->key_providers_.erase(keyProviderId);
   EncodableMap params;
   params[EncodableValue("result")] = "success";
   result->Success(EncodableValue(params));
