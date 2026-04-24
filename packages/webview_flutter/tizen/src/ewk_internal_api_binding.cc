@@ -72,6 +72,10 @@ bool EwkInternalApiBinding::Initialize() {
       reinterpret_cast<EwkViewJavaScriptPromptReplyFnPtr>(
           dlsym(handle_, "ewk_view_javascript_prompt_reply"));
 
+  view.MainFrameScrollbarVisibleSet =
+      reinterpret_cast<EwkViewMainFrameScrollbarVisibleSetFnPtr>(
+          dlsym(handle_, "ewk_view_main_frame_scrollbar_visible_set"));
+
   // ewk_main
   main.SetArguments = reinterpret_cast<EwkSetArgumentsFnPtr>(
       dlsym(handle_, "ewk_set_arguments"));
@@ -105,8 +109,9 @@ bool EwkInternalApiBinding::Initialize() {
          view.OnJavaScriptAlert && view.OnJavaScriptConfirm &&
          view.OnJavaScriptPrompt && view.JavaScriptAlertReply &&
          view.JavaScriptConfirmReply && view.JavaScriptPromptReply &&
-         main.SetArguments && main.SetVersionPolicy &&
-         settings.ImePanelEnabledSet && settings.ForceZoomSet &&
-         console_message.LevelGet && console_message.TextGet &&
-         console_message.LineGet && console_message.SourceGet;
+         view.MainFrameScrollbarVisibleSet && main.SetArguments &&
+         main.SetVersionPolicy && settings.ImePanelEnabledSet &&
+         settings.ForceZoomSet && console_message.LevelGet &&
+         console_message.TextGet && console_message.LineGet &&
+         console_message.SourceGet;
 }

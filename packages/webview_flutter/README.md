@@ -22,8 +22,8 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 
 ```yaml
 dependencies:
-  webview_flutter: ^4.10.0
-  webview_flutter_tizen: ^0.9.7
+  webview_flutter: ^4.13.1
+  webview_flutter_tizen: ^0.10.0
 ```
 
 ## Example
@@ -84,4 +84,15 @@ import 'package:webview_flutter_tizen/webview_flutter_tizen.dart';
 
 WebViewController _controller;
 _controller.tizenEnginePolicy = true;
+```
+
+- The `setVerticalScrollBarEnabled` and `setHorizontalScrollBarEnabled` methods are not independently controllable. Calling either method will affect both vertical and horizontal scrollbars simultaneously.
+If you need to hide scrollbars, call only one of these methods with `false`. Setting different values for each scrollbar (e.g., vertical enabled but horizontal disabled) is not supported. Note that these methods are currently not supported on TV devices. We are working on adding support in the near future.
+
+```dart
+// This will hide both vertical and horizontal scrollbars
+await controller.setVerticalScrollBarEnabled(false);
+
+// This will show both vertical and horizontal scrollbars
+await controller.setHorizontalScrollBarEnabled(true);
 ```

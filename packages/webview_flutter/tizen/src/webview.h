@@ -118,6 +118,7 @@ class WebView : public PlatformView {
   std::unique_ptr<BufferPool> tbm_pool_;
   bool disposed_ = false;
   Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
+  bool scrollbar_enabled_ = true;
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_H_

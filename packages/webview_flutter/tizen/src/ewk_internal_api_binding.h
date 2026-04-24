@@ -38,6 +38,8 @@ typedef Eina_Bool (*Ewk_View_JavaScript_Confirm_Callback)(Evas_Object* o,
 typedef Eina_Bool (*Ewk_View_JavaScript_Prompt_Callback)(
     Evas_Object* o, const char* message, const char* default_value,
     void* user_data);
+typedef void (*Ewk_View_Main_Frame_Scrollbar_Visible_Get_Callback)(
+    Evas_Object* o, Eina_Bool visible, void* user_data);
 
 typedef Eina_Bool (*EwkViewBgColorSetFnPtr)(Evas_Object* obj, int r, int g,
                                             int b, int a);
@@ -84,6 +86,8 @@ typedef void (*EwkViewJavaScriptConfirmReplyFnPtr)(Evas_Object* o,
                                                    Eina_Bool result);
 typedef void (*EwkViewJavaScriptPromptReplyFnPtr)(Evas_Object* o,
                                                   const char* result);
+typedef Eina_Bool (*EwkViewMainFrameScrollbarVisibleSetFnPtr)(
+    Evas_Object* obj, Eina_Bool enabled);
 
 typedef struct {
   EwkViewBgColorSetFnPtr SetBackgroundColor = nullptr;
@@ -106,7 +110,8 @@ typedef struct {
   EwkViewJavaScriptAlertReplyFnPtr JavaScriptAlertReply = nullptr;
   EwkViewJavaScriptConfirmReplyFnPtr JavaScriptConfirmReply = nullptr;
   EwkViewJavaScriptPromptReplyFnPtr JavaScriptPromptReply = nullptr;
-
+  EwkViewMainFrameScrollbarVisibleSetFnPtr MainFrameScrollbarVisibleSet =
+      nullptr;
 } EwkViewProcTable;
 
 typedef void (*EwkSetArgumentsFnPtr)(int argc, char** argv);
