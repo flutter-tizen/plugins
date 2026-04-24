@@ -86,7 +86,7 @@ void FlutterDataChannel::DataChannelGetBufferedAmount(
     RTCDataChannel* data_channel, std::unique_ptr<MethodResultProxy> result) {
   EncodableMap params;
   params[EncodableValue("bufferedAmount")] =
-      EncodableValue((int64_t)data_channel->buffered_amount());
+      EncodableValue(static_cast<int64_t>(data_channel->buffered_amount()));
   result->Success(EncodableValue(params));
 }
 
