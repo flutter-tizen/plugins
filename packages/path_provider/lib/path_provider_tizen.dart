@@ -17,28 +17,43 @@ class PathProviderPlugin extends PathProviderPlatform {
   }
 
   @override
-  Future<String> getTemporaryPath() async => appCommon.getCachePath();
+  Future<String?> getTemporaryPath() async => appCommon.getCachePath();
 
   @override
-  Future<String> getApplicationDocumentsPath() async => appCommon.getDataPath();
+  Future<String?> getApplicationDocumentsPath() async =>
+      appCommon.getDataPath();
 
   @override
-  Future<String> getApplicationCachePath() async => appCommon.getCachePath();
+  Future<String?> getApplicationCachePath() async => appCommon.getCachePath();
 
   @override
-  Future<String> getApplicationSupportPath() async => appCommon.getDataPath();
+  Future<String?> getApplicationSupportPath() async => appCommon.getDataPath();
 
   @override
-  Future<String> getExternalStoragePath() async =>
+  Future<String?> getExternalStoragePath() async =>
       appCommon.getExternalDataPath();
 
   @override
-  Future<List<String>> getExternalCachePaths() async => <String>[
-        appCommon.getExternalCachePath(),
-      ];
+  Future<List<String>?> getExternalCachePaths() async {
+    final String? path = appCommon.getExternalCachePath();
+    return path == null ? null : <String>[path];
+  }
 
   @override
-  Future<List<String>> getExternalStoragePaths({StorageDirectory? type}) async {
+  Future<String?> getDownloadsPath() async {
+    try {
+      return await storage.getDirectory(
+        storage_directory_e.STORAGE_DIRECTORY_DOWNLOADS,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<List<String>?> getExternalStoragePaths({
+    StorageDirectory? type,
+  }) async {
     int dirType;
     switch (type) {
       case StorageDirectory.music:
@@ -61,6 +76,10 @@ class PathProviderPlugin extends PathProviderPlatform {
       case null:
         dirType = storage_directory_e.STORAGE_DIRECTORY_OTHERS;
     }
-    return <String>[await storage.getDirectory(dirType)];
+    try {
+      return <String>[await storage.getDirectory(dirType)];
+    } catch (_) {
+      return null;
+    }
   }
 }

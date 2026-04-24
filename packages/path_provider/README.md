@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `path_provider`. Therefore, 
 
 ```yaml
 dependencies:
-  path_provider: ^2.1.4
-  path_provider_tizen: ^2.2.1
+  path_provider: ^2.1.5
+  path_provider_tizen: ^2.3.0
 ```
 
 Then you can import `path_provider` in your Dart code:
@@ -32,7 +32,7 @@ For detailed usage, see https://pub.dev/packages/path_provider#usage.
 - [x] `getExternalStorageDirectory` (requires an SD card)
 - [x] `getExternalCacheDirectories` (requires an SD card)
 - [x] `getExternalStorageDirectories` (returns shared media library paths such as `/home/owner/media/Music`)
-- [ ] `getDownloadsDirectory` (desktop-only)
+- [x] `getDownloadsDirectory` (returns the shared downloads directory path)
 
 ## Required privileges
 
