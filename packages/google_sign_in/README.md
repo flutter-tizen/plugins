@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `google_sign_in`. Therefore,
 
 ```yaml
 dependencies:
-  google_sign_in: ^5.4.1
-  google_sign_in_tizen: ^0.1.5
+  google_sign_in: ^7.2.0
+  google_sign_in_tizen: ^0.2.0
 ```
 
 For detailed usage on how to use `google_sign_in`, see https://pub.dev/packages/google_sign_in#usage.
@@ -28,20 +28,42 @@ You also need to add some additional code to your app to fully integrate `google
 
 ### Adding OAuth credentials
 
-Unlike "Authorization Code Grant with PKCE", "Device Flow" requires a [client secret](https://developers.google.com/identity/protocols/oauth2/limited-input-device#step-4:-poll-googles-authorization-server) parameter during Google Sign-In. You must call `GoogleSignInTizen.setCredentials` function with your client's OAuth credentials before calling `google_sign_in`'s API.
+Unlike "Authorization Code Grant with PKCE", "Device Flow" requires a [client secret](https://developers.google.com/identity/protocols/oauth2/limited-input-device#step-4:-poll-googles-authorization-server) parameter during Google Sign-In. You must call `GoogleSignInTizen.setCredentials` with your client's OAuth credentials before calling `GoogleSignIn.instance.initialize`.
 
 ```dart
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_tizen/google_sign_in_tizen.dart';
 
-GoogleSignInTizen.setCredentials(
-  clientId: 'YOUR_CLIENT_ID',
-  clientSecret: 'YOUR_CLIENT_SECRET',
-);
+Future<void> initializeGoogleSignIn() async {
+  GoogleSignInTizen.setCredentials(
+    clientId: 'YOUR_CLIENT_ID',
+    clientSecret: 'YOUR_CLIENT_SECRET',
+  );
+  await GoogleSignIn.instance.initialize(clientId: 'YOUR_CLIENT_ID');
+}
 ```
+
+If you pass `clientId` to `GoogleSignIn.instance.initialize`, it must match the `clientId` passed to `GoogleSignInTizen.setCredentials`.
+
+### Authorizing additional scopes
+
+`GoogleSignInAccount.authorizationClient` can be used to request client authorization tokens on Tizen for scopes allowed by Google OAuth Device Flow. See [Allowed scopes](https://developers.google.com/identity/protocols/oauth2/limited-input-device#allowedscopes) before requesting additional scopes.
+
+Device Flow cannot preselect or force the Google account on the secondary device. If a request is tied to an existing `GoogleSignInAccount` and the user completes the flow with a different account, the request fails with `GoogleSignInExceptionCode.userMismatch`.
+
+```dart
+final GoogleSignInClientAuthorization authorization = await user
+    .authorizationClient
+    .authorizeScopes(<String>[
+  'https://www.googleapis.com/auth/contacts.readonly',
+]);
+```
+
+Server authorization tokens are not supported by `google_sign_in_tizen` because Device Flow does not return a server auth code.
 
 :warning: Security concerns
 
-Storing a client secret in code is considered a bad practice as it exposes [security vulnerabilites](https://datatracker.ietf.org/doc/html/rfc8628#section-5.6), you should perform extra steps to protect your client credentials.
+Storing a client secret in code is considered a bad practice as it exposes [security vulnerabilities](https://datatracker.ietf.org/doc/html/rfc8628#section-5.6), you should perform extra steps to protect your client credentials.
 
 1. Do not upload credentials to public repositories.
 

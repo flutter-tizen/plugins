@@ -3,15 +3,16 @@ description: Demonstrates how to use the google_sign_in_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ">=3.1.0 <4.0.0"
-  flutter: ">=3.13.0"
+  sdk: ">=3.7.0 <4.0.0"
+  flutter: ">=3.29.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  google_sign_in: ^5.4.1
+  google_sign_in: ^7.2.0
   google_sign_in_tizen:
     path: ../
+  google_sign_in_web: ^1.1.0
   http: ">=0.13.0 <2.0.0"
 
 dev_dependencies:
