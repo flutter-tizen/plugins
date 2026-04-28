@@ -1,5 +1,6 @@
 #include "flutter_common.h"
 
+#include <atomic>
 #include <memory>
 
 #include "task_runner.h"
@@ -129,7 +130,7 @@ class EventChannelProxyImpl : public EventChannelProxy {
   std::unique_ptr<EventChannel> channel_;
   std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink_;
   std::list<EncodableValue> event_queue_;
-  bool on_listen_called_ = false;
+  std::atomic<bool> on_listen_called_ = false;
   TaskRunner* task_runner_;
 };
 
