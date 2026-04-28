@@ -1283,6 +1283,7 @@ void FlutterWebRTC::HandleMethodCall(
       RTCLoggingSeverity severity = str2LogSeverity(severityStr);
       initLoggerCallback(severity);
     }
+    result->Success();
   } else {
     if (HandleFrameCryptorMethodCall(method_call, std::move(result), &result)) {
       return;
