@@ -52,7 +52,7 @@ abstract class PlatformHandler {
 // Compat, to keep the example page as is
 // ---
 
-/// delete the db, create the folder and returnes its path
+/// delete the db, create the folder and returns its path
 Future<String> initDeleteDb(String dbName) =>
     platformHandler.initDeleteDb(dbName);
 
@@ -61,8 +61,7 @@ Future<void> writeFileAsBytes(
   String path,
   List<int> bytes, {
   bool flush = false,
-}) =>
-    platformHandler.writeFileAsBytes(path, bytes, flush: flush);
+}) => platformHandler.writeFileAsBytes(path, bytes, flush: flush);
 
 /// Read a file as bytes
 Future<Uint8List> readFileAsBytes(String path) =>
@@ -73,8 +72,7 @@ Future<void> writeFileAsString(
   String path,
   String text, {
   bool flush = false,
-}) =>
-    platformHandler.writeFileAsString(path, text, flush: flush);
+}) => platformHandler.writeFileAsString(path, text, flush: flush);
 
 /// Read a file as a string
 Future<String> readFileAsString(String path) =>

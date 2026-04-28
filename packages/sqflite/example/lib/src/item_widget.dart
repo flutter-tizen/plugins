@@ -4,8 +4,7 @@ import 'package:sqflite_tizen_example/model/item.dart';
 /// Item widget.
 class ItemWidget extends StatefulWidget {
   /// Item widget.
-  const ItemWidget(this.item, this.onTap, {this.summary, Key? key})
-      : super(key: key);
+  const ItemWidget(this.item, this.onTap, {this.summary, super.key});
 
   /// item summary.
   final String? summary;
@@ -42,8 +41,13 @@ class _ItemWidgetState extends State<ItemWidget> {
         icon = Icons.close;
         color = Colors.red;
         break;
+      case ItemState.warning:
+        icon = Icons.warning;
+        color = Colors.orange;
+        break;
     }
     return ListTile(
+      dense: true,
       // isThreeLine: widget.summary != null,
       leading: SizedBox(
         child: IconButton(

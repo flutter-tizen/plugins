@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' hide context;
 import 'package:sqflite/sqflite.dart';
 // ignore: implementation_imports
 import 'package:sqflite/src/factory_mixin.dart' as impl;
 import 'package:sqflite/utils/utils.dart';
+import 'package:sqflite_common/sqflite_dev.dart';
 import 'package:sqflite_tizen_example/src/item_widget.dart';
 import 'package:sqflite_tizen_example/utils.dart';
 
@@ -16,7 +18,7 @@ import 'src/common_import.dart';
 /// Manual test page.
 class ManualTestPage extends StatefulWidget {
   /// Test page.
-  const ManualTestPage({Key? key}) : super(key: key);
+  const ManualTestPage({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -38,8 +40,19 @@ class _ManualTestPageState extends State<ManualTestPage> {
       );
   }
 
-  Future<Database> _openDatabase() async {
-    return database ??= await databaseFactory.openDatabase(dbName);
+  Future<Database> _openDatabase({bool wal = false}) async {
+    var path = await getDatabasesPath();
+    print('path ${join(path, dbName)}');
+    return database ??= await databaseFactory.openDatabase(
+      dbName,
+      options: OpenDatabaseOptions(
+        onConfigure: (db) async {
+          if (wal) {
+            await db.execute('PRAGMA journal_mode = WAL');
+          }
+        },
+      ),
+    );
   }
 
   Future _closeDatabase() async {
@@ -52,9 +65,9 @@ class _ManualTestPageState extends State<ManualTestPage> {
   }
 
   Future _incrementVersion() async {
-    final version = await database?.getVersion() ?? 0;
+    final version = await database!.getVersion();
     print('version $version');
-    await database?.setVersion(version + 1);
+    await database!.setVersion(version + 1);
   }
 
   late List<SqfMenuItem> items;
@@ -109,6 +122,12 @@ class _ManualTestPageState extends State<ManualTestPage> {
       SqfMenuItem('openDatabase', () async {
         await _openDatabase();
       }, summary: 'Open the database'),
+      SqfMenuItem('openDatabase WAL', () async {
+        await _openDatabase(wal: true);
+      }, summary: 'Open the database on set WAL mode'),
+      SqfMenuItem('transaction add and query', () async {
+        await _addAndQuery();
+      }, summary: 'open/create table/add/query'),
       SqfMenuItem(
         'transaction add and query and pause',
         () async {
@@ -150,21 +169,21 @@ class _ManualTestPageState extends State<ManualTestPage> {
       ),
       SqfMenuItem('log level: none', () async {
         // ignore: deprecated_member_use
-        await Sqflite.devSetOptions(
+        await databaseFactory.setOptions(
           // ignore: deprecated_member_use
           SqfliteOptions(logLevel: sqfliteLogLevelNone),
         );
       }, summary: 'No logs'),
       SqfMenuItem('log level: sql', () async {
         // ignore: deprecated_member_use
-        await Sqflite.devSetOptions(
+        await databaseFactory.setOptions(
           // ignore: deprecated_member_use
           SqfliteOptions(logLevel: sqfliteLogLevelSql),
         );
       }, summary: 'Log sql command and basic database operation'),
       SqfMenuItem('log level: verbose', () async {
         // ignore: deprecated_member_use
-        await Sqflite.devSetOptions(
+        await databaseFactory.setOptions(
           // ignore: deprecated_member_use
           SqfliteOptions(logLevel: sqfliteLogLevelVerbose),
         );
@@ -256,12 +275,13 @@ class _ManualTestPageState extends State<ManualTestPage> {
 /// Multiple db test page.
 class MultipleDbTestPage extends StatelessWidget {
   /// Test page.
-  const MultipleDbTestPage({Key? key}) : super(key: key);
+  const MultipleDbTestPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     Widget dbTile(String name) {
       return ListTile(
+        dense: true,
         title: Text(name),
         onTap: () {
           Navigator.of(context).push<void>(
@@ -291,7 +311,7 @@ class MultipleDbTestPage extends StatelessWidget {
 /// Simple db test page.
 class SimpleDbTestPage extends StatefulWidget {
   /// Simple db test page.
-  const SimpleDbTestPage({Key? key, required this.dbName}) : super(key: key);
+  const SimpleDbTestPage({super.key, required this.dbName});
 
   /// db name.
   final String dbName;
@@ -305,7 +325,7 @@ class _SimpleDbTestPageState extends State<SimpleDbTestPage> {
   Database? database;
 
   Future<Database> _openDatabase() async {
-    // await Sqflite.devSetOptions(SqfliteOptions(logLevel: sqfliteLogLevelVerbose));
+    // await databaseFactory.setOptions(SqfliteOptions(logLevel: sqfliteLogLevelVerbose));
     return database ??= await databaseFactory.openDatabase(
       widget.dbName,
       options: OpenDatabaseOptions(
@@ -339,6 +359,7 @@ class _SimpleDbTestPageState extends State<SimpleDbTestPage> {
             String? summary,
           }) {
             return ListTile(
+              dense: true,
               title: Text(title),
               subtitle: summary == null ? null : Text(summary),
               onTap: onTap,
@@ -350,7 +371,7 @@ class _SimpleDbTestPageState extends State<SimpleDbTestPage> {
             final result = firstIntValue(
               await db.query('test', columns: ['COUNT(*)']),
             );
-            // Temp for nnbd successfull lint
+            // Temp for nnbd successful lint
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

@@ -4,7 +4,7 @@ import 'package:sqflite_tizen_example/model/main_item.dart';
 /// Main item widget.
 class MainItemWidget extends StatefulWidget {
   /// Main item widget.
-  const MainItemWidget(this.item, this.onTap, {Key? key}) : super(key: key);
+  const MainItemWidget(this.item, this.onTap, {super.key});
 
   /// item data.
   final MainItem item;
@@ -21,6 +21,7 @@ class _MainItemWidgetState extends State<MainItemWidget> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      dense: true,
       title: Text(widget.item.title),
       subtitle: Text(widget.item.description),
       onTap: _onTap,

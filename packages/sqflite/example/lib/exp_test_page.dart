@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite/utils/utils.dart';
 import 'package:sqflite_common/sqflite_dev.dart';
 import 'package:sqflite_tizen_example/src/common_import.dart';
 import 'package:sqflite_tizen_example/utils.dart';
@@ -156,12 +157,9 @@ class ExpTestPage extends TestPage {
       // inserted in a wrong order to check ASC/DESC
 
       await db.insert(table, {'group': 'group_value'});
-      await db.update(
-          table,
-          {
-            'group': 'group_new_value',
-          },
-          where: "\"group\" = 'group_value'");
+      await db.update(table, {
+        'group': 'group_new_value',
+      }, where: "\"group\" = 'group_value'");
 
       final expectedResult = [
         {'group': 'group_new_value'},
@@ -513,12 +511,9 @@ CREATE TABLE test (
         await db.execute('PRAGMA sqflite -- db_config_defensive_off');
         await db.execute('PRAGMA writable_schema = ON');
         expect(
-          await db.update(
-              'sqlite_master',
-              {
-                'sql': 'CREATE TABLE Test(value BLOB)',
-              },
-              where: 'name = \'Test\' and type = \'table\''),
+          await db.update('sqlite_master', {
+            'sql': 'CREATE TABLE Test(value BLOB)',
+          }, where: 'name = \'Test\' and type = \'table\''),
           1,
         );
       } finally {
@@ -533,12 +528,9 @@ CREATE TABLE test (
         await db.execute('CREATE TABLE Test(value TEXT)');
         await db.execute('PRAGMA writable_schema = ON');
         expect(
-          await db.update(
-              'sqlite_master',
-              {
-                'sql': 'CREATE TABLE Test(value BLOB)',
-              },
-              where: 'name = \'Test\' and type = \'table\''),
+          await db.update('sqlite_master', {
+            'sql': 'CREATE TABLE Test(value BLOB)',
+          }, where: 'name = \'Test\' and type = \'table\''),
           1,
         );
       } finally {
@@ -546,6 +538,21 @@ CREATE TABLE test (
       }
     });
 
+    test('PRAGMA quick check', () async {
+      //await databaseFactory.debugSetLogLevel(sqfliteLogLevelVerbose);
+      final db = await openDatabase(inMemoryDatabasePath);
+      try {
+        await db.rawQuery('PRAGMA quick_check');
+
+        try {
+          await db.execute('PRAGMA quick_check');
+        } catch (e) {
+          print('execute PRAGMA quick_check failed: $e');
+        }
+      } finally {
+        await db.close();
+      }
+    });
     test('ATTACH database', () async {
       final db1Path = await initDeleteDb('attach1.db');
       final db2Path = await initDeleteDb('attach2.db');
@@ -641,10 +648,7 @@ CREATE TABLE test (
           map,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        expect(
-          Sqflite.firstIntValue(await db.query(table, columns: ['COUNT(*)'])),
-          1,
-        );
+        expect(firstIntValue(await db.query(table, columns: ['COUNT(*)'])), 1);
       } finally {
         // ignore: deprecated_member_use
         await databaseFactory.setLogLevel(sqfliteLogLevelNone);
@@ -799,17 +803,33 @@ CREATE TABLE test (
       }
       await db.close();
     });
-    // Issue https://github.com/tekartik/sqflite/issues/929
+
+    Future<String> getJournalMode(Database db) async {
+      var result = await db.rawQuery('PRAGMA journal_mode');
+      var journalMode = result.first.values.first!.toString();
+      return journalMode;
+    }
+
+    Future<int?> getAutoVacuum(Database db) async {
+      var result = await db.rawQuery('PRAGMA auto_vacuum');
+      var autoVacuum = firstIntValue(result);
+      return autoVacuum;
+    }
+
+    // Issue https://github.com/tekartik/sqflite_common/issues/929
     // Pragma has to use rawQuery...why, on sqflite Android
     test('wal', () async {
-      // await Sqflite.devSetDebugModeOn(true);
-      var db = await openDatabase(inMemoryDatabasePath);
+      final path = await initDeleteDb('exp_wal.db');
+      var db = await openDatabase(path);
       try {
         await db.execute('PRAGMA journal_mode=WAL');
       } catch (e) {
-        print(e);
         await db.rawQuery('PRAGMA journal_mode=WAL');
       }
+      expect((await getJournalMode(db)).toLowerCase(), 'wal');
+      await db.setJournalMode('DELETE');
+      expect((await getJournalMode(db)).toLowerCase(), 'delete');
+      await db.setJournalMode('WAL');
       await db.execute('CREATE TABLE test (id INTEGER)');
       await db.insert('test', <String, Object?>{'id': 1});
       try {
@@ -820,6 +840,189 @@ CREATE TABLE test (
       } finally {
         await db.close();
       }
+    });
+
+    test('auto_vacuum and wal', () async {
+      final path = await initDeleteDb('exp_auto_vacuum_and wal.db');
+      var options = OpenDatabaseOptions(
+        version: 1,
+        onConfigure: (db) async {
+          // Check the version to know if the database exists
+          // auto_vacuum mode must be set before tables are created
+          var version = await db.getVersion();
+          if (version == 0) {
+            await db.execute('PRAGMA auto_vacuum = 2');
+          }
+          var journalMode = (await getJournalMode(db)).toLowerCase();
+          if (journalMode != 'wal') {
+            await db.setJournalMode('WAL');
+          }
+        },
+        onCreate: (db, version) async {
+          await db.execute('CREATE TABLE test (id INTEGER)');
+        },
+      );
+      var db = await databaseFactory.openDatabase(path, options: options);
+      try {
+        await db.insert('test', <String, Object?>{'id': 1});
+
+        Future<void> checkData() async {
+          expect((await getJournalMode(db)).toLowerCase(), 'wal');
+          expect(await getAutoVacuum(db), 2);
+          var resultSet = await db.rawQuery('SELECT id FROM test');
+          expect(resultSet, [
+            {'id': 1},
+          ]);
+        }
+
+        await checkData();
+
+        /// Close and re-open and check the data
+        await db.close();
+        db = await databaseFactory.openDatabase(path, options: options);
+        await checkData();
+      } finally {
+        await db.close();
+      }
+    });
+
+    Future<bool> supports(String exec) async {
+      final db = await databaseFactory.openDatabase(inMemoryDatabasePath);
+      print('supports: $exec');
+      try {
+        await db.execute(exec);
+        return true;
+      } catch (e) {
+        print('does not support $exec: $e');
+        return false;
+      } finally {
+        await db.close();
+      }
+    }
+
+    late final supportsFts3 = supports(
+      'CREATE VIRTUAL TABLE foo USING fts3(title, content)',
+    );
+    late final supportsFts4 = supports(
+      'CREATE VIRTUAL TABLE foo USING fts4(title, content)',
+    );
+    late final supportsFts5 = supports(
+      'CREATE VIRTUAL TABLE foo USING fts5(title, content)',
+    );
+
+    test('fts3', () async {
+      if (!await supportsFts3) {
+        print('fts3 not supported');
+        return false;
+      }
+
+      var path = await initDeleteDb('exp_fts3.db');
+
+      /// Simple fts3 test
+      var db = await databaseFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: (Database db, int version) async {
+            await db.execute(
+              'CREATE VIRTUAL TABLE test USING fts3(title, body)',
+            );
+
+            await db.insert('test', <String, Object?>{
+              'title': 'Test1',
+              'body': 'without quote',
+            });
+            await db.insert('test', <String, Object?>{
+              'title': 'Test2',
+              'body': "with ' quote",
+            });
+          },
+        ),
+      );
+
+      var resultSet = await db.query(
+        'test',
+        where: 'body MATCH ?',
+        whereArgs: ['quote'],
+      );
+      expect(resultSet.length, 2);
+      await db.close();
+    });
+    test('fts4', () async {
+      if (!await supportsFts4) {
+        print('fts4 not supported');
+        return false;
+      }
+
+      var path = await initDeleteDb('exp_fts4.db');
+
+      /// Simple fts4 test
+      var db = await databaseFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: (Database db, int version) async {
+            await db.execute(
+              'CREATE VIRTUAL TABLE test USING fts4(title, body)',
+            );
+
+            await db.insert('test', <String, Object?>{
+              'title': 'Test1',
+              'body': 'without quote',
+            });
+            await db.insert('test', <String, Object?>{
+              'title': 'Test2',
+              'body': "with ' quote",
+            });
+          },
+        ),
+      );
+
+      var resultSet = await db.query(
+        'test',
+        where: 'body MATCH ?',
+        whereArgs: ['quote'],
+      );
+      expect(resultSet.length, 2);
+      await db.close();
+    });
+    test('fts5', () async {
+      if (!await supportsFts5) {
+        print('fts5 not supported');
+        return false;
+      }
+
+      var path = await initDeleteDb('exp_fts5.db');
+
+      /// Simple fts5 test
+      var db = await databaseFactory.openDatabase(
+        path,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: (Database db, int version) async {
+            await db.execute(
+              'CREATE VIRTUAL TABLE test USING fts5(title, body)',
+            );
+
+            await db.insert('test', <String, Object?>{
+              'title': 'Test1',
+              'body': 'without quote',
+            });
+            await db.insert('test', <String, Object?>{
+              'title': 'Test2',
+              'body': "with ' quote",
+            });
+          },
+        ),
+      );
+
+      var resultSet = await db.query(
+        'test',
+        where: 'body MATCH ?',
+        whereArgs: ['quote'],
+      );
+      expect(resultSet.length, 2);
+      await db.close();
     });
   }
 }
