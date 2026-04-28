@@ -102,9 +102,11 @@ Future<void> main() async {
 
     await pageLoads.stream.firstWhere((String url) => url == headersUrl);
 
-    final String content = await controller.runJavaScriptReturningResult(
-      'document.documentElement.innerText',
-    ) as String;
+    final String content =
+        await controller.runJavaScriptReturningResult(
+              'document.documentElement.innerText',
+            )
+            as String;
     expect(content.contains('flutter_test_header'), isTrue);
   });
 
@@ -309,7 +311,8 @@ Future<void> main() async {
 
   group('NavigationDelegate', () {
     const String blankPage = '<!DOCTYPE html><head></head><body></body></html>';
-    final String blankPageEncoded = 'data:text/html;charset=utf-8;base64,'
+    final String blankPageEncoded =
+        'data:text/html;charset=utf-8;base64,'
         '${base64Encode(const Utf8Encoder().convert(blankPage))}';
 
     testWidgets('can allow requests', (WidgetTester tester) async {

@@ -170,9 +170,8 @@ class TizenWebView {
   Future<Offset> getScrollPosition() async {
     final Map<String, Object?>? position =
         (await _invokeChannelMethod<Map<Object?, Object?>>(
-      'getScrollPosition',
-    ))
-            ?.cast<String, Object?>();
+          'getScrollPosition',
+        ))?.cast<String, Object?>();
     if (position == null) {
       return Offset.zero;
     }
@@ -242,4 +241,12 @@ class TizenWebView {
   /// Sets the value selected by the user input
   Future<void> javaScriptPromptReply(String result) =>
       _invokeChannelMethod<void>('javaScriptPromptReply', result);
+
+  /// Whether the vertical scrollbar should be drawn or not.
+  Future<void> setVerticalScrollBarEnabled(bool enabled) =>
+      _invokeChannelMethod<void>('setVerticalScrollBarEnabled', enabled);
+
+  /// Whether the horizontal scrollbar should be drawn or not.
+  Future<void> setHorizontalScrollBarEnabled(bool enabled) =>
+      _invokeChannelMethod<void>('setHorizontalScrollBarEnabled', enabled);
 }
