@@ -1,6 +1,7 @@
 #ifndef FLUTTER_WEBRTC_RTC_FRAME_CAPTURER_HXX
 #define FLUTTER_WEBRTC_RTC_FRAME_CAPTURER_HXX
 
+#include <atomic>
 #include <mutex>
 
 #include "flutter_common.h"
@@ -26,7 +27,7 @@ class FlutterFrameCapturer
   std::string path_;
   std::mutex mutex_;
   scoped_refptr<RTCVideoFrame> frame_;
-  volatile bool catch_frame_;
+  std::atomic<bool> catch_frame_;
 
   bool SaveFrame();
 };
