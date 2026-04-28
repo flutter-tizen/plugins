@@ -59,12 +59,13 @@ void FlutterDataPacketCryptor::CreateDataPacketCryptor(
     return;
   }
 
-  auto keyProvider = base_->key_providers_[keyProviderId];
-  if (keyProvider == nullptr) {
+  auto it = base_->key_providers_.find(keyProviderId);
+  if (it == base_->key_providers_.end()) {
     result->Error("createDataPacketCryptor",
                   "createDataPacketCryptor() keyProvider is null");
     return;
   }
+  auto keyProvider = it->second;
   std::string uuid = base_->GenerateUUID();
   data_packet_cryptors_[uuid] = libwebrtc::RTCDataPacketCryptor::Create(
       keyProvider, KeyDerivationAlgorithmFromInt(algorithm));
@@ -81,12 +82,13 @@ void FlutterDataPacketCryptor::DataPacketCryptorDispose(
                   "dataPacketCryptorDispose() dataCryptorId is null or empty");
     return;
   }
-  auto dataCryptor = data_packet_cryptors_[dataCryptorId];
-  if (dataCryptor == nullptr) {
+  auto it = data_packet_cryptors_.find(dataCryptorId);
+  if (it == data_packet_cryptors_.end()) {
     result->Error("dataPacketCryptorDispose",
                   "dataPacketCryptorDispose() dataCryptor is null");
     return;
   }
+  auto dataCryptor = it->second;
   data_packet_cryptors_.erase(dataCryptorId);
 
   result->Success();
@@ -102,12 +104,13 @@ void FlutterDataPacketCryptor::DataPacketCryptorEncrypt(
     return;
   }
 
-  auto dataCryptor = data_packet_cryptors_[dataCryptorId];
-  if (dataCryptor == nullptr) {
+  auto it = data_packet_cryptors_.find(dataCryptorId);
+  if (it == data_packet_cryptors_.end()) {
     result->Error("dataPacketCryptorEncrypt",
                   "dataPacketCryptorEncrypt() dataCryptor is null");
     return;
   }
+  auto dataCryptor = it->second;
 
   std::string participantId = findString(constraints, "participantId");
   if (participantId.empty()) {
@@ -155,12 +158,13 @@ void FlutterDataPacketCryptor::DataPacketCryptorDecrypt(
                   "dataPacketCryptorDecrypt() dataCryptorId is null or empty");
     return;
   }
-  auto dataCryptor = data_packet_cryptors_[dataCryptorId];
-  if (dataCryptor == nullptr) {
+  auto it = data_packet_cryptors_.find(dataCryptorId);
+  if (it == data_packet_cryptors_.end()) {
     result->Error("dataPacketCryptorDecrypt",
                   "dataPacketCryptorDecrypt() dataCryptor is null");
     return;
   }
+  auto dataCryptor = it->second;
   std::string participantId = findString(constraints, "participantId");
   if (participantId.empty()) {
     result->Error("dataPacketCryptorDecrypt",

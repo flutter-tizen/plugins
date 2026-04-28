@@ -516,13 +516,13 @@ void FlutterMediaStream::MediaStreamDispose(
   for (auto track : video_tracks.std_vector()) {
     stream->RemoveTrack(track);
     base_->local_tracks_.erase(track->id().std_string());
-    if (base_->video_capturers_.find(track->id().std_string()) !=
-        base_->video_capturers_.end()) {
-      auto video_capture = base_->video_capturers_[track->id().std_string()];
+    auto capturer_it = base_->video_capturers_.find(track->id().std_string());
+    if (capturer_it != base_->video_capturers_.end()) {
+      auto video_capture = capturer_it->second;
       if (video_capture->CaptureStarted()) {
         video_capture->StopCapture();
       }
-      base_->video_capturers_.erase(track->id().std_string());
+      base_->video_capturers_.erase(capturer_it);
     }
   }
 
@@ -568,13 +568,13 @@ void FlutterMediaStream::MediaStreamTrackDispose(
       if (track->id().std_string() == track_id) {
         stream->RemoveTrack(track);
 
-        if (base_->video_capturers_.find(track_id) !=
-            base_->video_capturers_.end()) {
-          auto video_capture = base_->video_capturers_[track_id];
+        auto capturer_it = base_->video_capturers_.find(track_id);
+        if (capturer_it != base_->video_capturers_.end()) {
+          auto video_capture = capturer_it->second;
           if (video_capture->CaptureStarted()) {
             video_capture->StopCapture();
           }
-          base_->video_capturers_.erase(track_id);
+          base_->video_capturers_.erase(capturer_it);
         }
       }
     }
