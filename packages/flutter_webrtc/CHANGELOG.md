@@ -6,7 +6,7 @@
 * Fix analyze issue.
 * Update code format.
 * Adds compatibility with `http` 1.0 in example.
-* Update flutter_webrtc to 1.3.1.
+* Update flutter_webrtc to 1.4.1.
 
 ## 0.1.3
 
