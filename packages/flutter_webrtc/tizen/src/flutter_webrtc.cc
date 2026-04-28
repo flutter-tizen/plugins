@@ -1286,6 +1286,9 @@ void FlutterWebRTC::HandleMethodCall(
   } else {
     if (HandleFrameCryptorMethodCall(method_call, std::move(result), &result)) {
       return;
+    } else if (HandleDataPacketCryptorMethodCall(method_call, std::move(result),
+                                                 &result)) {
+      return;
     } else {
       result->NotImplemented();
     }
