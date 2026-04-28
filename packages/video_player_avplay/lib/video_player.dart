@@ -200,16 +200,19 @@ class VideoPlayerValue {
   /// If the end postion of the captions has greater than the current [position], this will be a [Caption.none] object.
   /// Only used for [copyWith].
   Captions get _currentCaptions {
-    final List<TextCaption> textCaptions =
-        (captions.textCaptions == <TextCaption>[TextCaption.none] ||
-                position > captions.textCaptions![0].end)
-            ? <TextCaption>[TextCaption.none]
-            : captions.textCaptions!;
-    final PictureCaption pictureCaption =
-        (captions.pictureCaption == PictureCaption.none ||
-                position > captions.pictureCaption!.end)
-            ? PictureCaption.none
-            : captions.pictureCaption!;
+    final List<TextCaption> textCaptions = (captions.textCaptions == null ||
+            captions.textCaptions!.isEmpty ||
+            captions.textCaptions![0] == TextCaption.none ||
+            position > captions.textCaptions![0].end ||
+            position < captions.textCaptions![0].start)
+        ? <TextCaption>[TextCaption.none]
+        : captions.textCaptions!;
+    final PictureCaption pictureCaption = (captions.pictureCaption == null ||
+            captions.pictureCaption == PictureCaption.none ||
+            position > captions.pictureCaption!.end ||
+            position < captions.pictureCaption!.start)
+        ? PictureCaption.none
+        : captions.pictureCaption!;
 
     return Captions(textCaptions: textCaptions, pictureCaption: pictureCaption);
   }
@@ -1156,8 +1159,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [Caption].
   List<TextCaption> _getCaptionAt(Duration position) {
     if (_closedCaptionFile == null) {
-      return (value.captions.textCaptions == <TextCaption>[TextCaption.none] ||
-              position > value.captions.textCaptions![0].end)
+      return (value.captions.textCaptions == null ||
+              value.captions.textCaptions!.isEmpty ||
+              value.captions.textCaptions![0] == TextCaption.none ||
+              position > value.captions.textCaptions![0].end ||
+              position < value.captions.textCaptions![0].start)
           ? <TextCaption>[TextCaption.none]
           : value.captions.textCaptions!;
     }
@@ -1175,8 +1181,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   PictureCaption _getPictureCaptionAt(Duration position) {
-    return (value.captions.pictureCaption == PictureCaption.none ||
-            position > value.captions.pictureCaption!.end)
+    return (value.captions.pictureCaption == null ||
+            value.captions.pictureCaption == PictureCaption.none ||
+            position > value.captions.pictureCaption!.end ||
+            position < value.captions.pictureCaption!.start)
         ? PictureCaption.none
         : value.captions.pictureCaption!;
   }

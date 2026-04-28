@@ -1,6 +1,10 @@
-## NEXT
+## 3.1.3
 
 * Adds compatibility with `http` 1.0 in example.
+* Update audioplayers to 6.6.0.
+* Update audioplayers_platform_interface to 7.1.1.
+* Update minimum Flutter and Dart version to 3.27 and 3.6.
+* Update limitations in README.
 
 ## 3.1.2
 

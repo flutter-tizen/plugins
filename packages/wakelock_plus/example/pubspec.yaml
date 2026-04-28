@@ -3,13 +3,13 @@ description: Demonstrates how to use the wakelock_plus_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ">=3.1.0 <4.0.0"
-  flutter: ">=3.13.0"
+  sdk: ">=3.11.0 <4.0.0"
+  flutter: ">=3.41.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  wakelock_plus: ^1.2.8
+  wakelock_plus: ^1.6.0
   wakelock_plus_tizen:
     path: ../
 

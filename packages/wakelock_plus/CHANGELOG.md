@@ -1,3 +1,9 @@
+## 2.1.0
+
+* Update wakelock_plus to 1.6.0.
+* Update wakelock_plus_platform_interface to 1.5.0.
+* Update minimum Flutter and Dart version to 3.41 and 3.11.
+
 ## 2.0.0
 
 * Replace frontend package to wakelock_plus.

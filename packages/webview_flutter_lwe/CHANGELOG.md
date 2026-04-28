@@ -1,3 +1,11 @@
+## 0.4.0
+
+* Update minimum supported SDK version to Flutter 3.32/Dart 3.8.
+* Update webview_flutter to 4.13.1.
+* Update webview_flutter_platform_interface to 2.13.0.
+* Add support for setVerticalScrollBarEnabled, setHorizontalScrollBarEnabled, supportsSetScrollBarsEnabled APIs
+* Update lightweight web engine(1.3.36).
+
 ## 0.3.9
 
 * Update code format.
