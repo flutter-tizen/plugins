@@ -17,7 +17,10 @@ FlutterWebRTC::FlutterWebRTC(FlutterWebRTCPlugin* plugin)
       FlutterFrameCryptor::FlutterFrameCryptor(this),
       FlutterDataPacketCryptor::FlutterDataPacketCryptor(this) {}
 
-FlutterWebRTC::~FlutterWebRTC() {}
+FlutterWebRTC::~FlutterWebRTC() {
+  libwebrtc::LibWebRTCLogging::removeLogSink();
+  eventChannelProxy = nullptr;
+}
 
 void FlutterWebRTC::HandleMethodCall(
     const MethodCallProxy& method_call,
