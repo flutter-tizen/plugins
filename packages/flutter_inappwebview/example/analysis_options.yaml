@@ -1,0 +1,19 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# Mirrors the upstream `flutter_inappwebview/example` configuration so the
+# Tizen example can stay close to its upstream counterpart.
+
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    constant_identifier_names: ignore
+    deprecated_member_use_from_same_package: ignore
+
+analyzer:
+  errors:
+    deprecated_member_use: ignore
+    deprecated_member_use_from_same_package: ignore
+    unnecessary_cast: ignore
+    unnecessary_import: ignore

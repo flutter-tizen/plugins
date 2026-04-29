@@ -3,6 +3,7 @@ plugins:
   connectivity_plus: ["tv-9.0"]
   device_info_plus: ["tv-9.0"]
   flutter_secure_storage: ["tv-9.0"]
+  flutter_inappwebview: ["tv-9.0"]
   flutter_tts: ["tv-9.0"]
   integration_test: ["tv-9.0"]
   messageport: ["tv-9.0"]
