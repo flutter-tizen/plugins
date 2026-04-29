@@ -74,8 +74,6 @@ try {
 }
 ```
 
-If your app needs offline access to user data on a backend, consider obtaining the access/refresh tokens on the device via the regular client authorization flow and forwarding them to your server through your own secure channel.
-
 :warning: Security concerns
 
 Storing a client secret in code is considered a bad practice as it exposes [security vulnerabilities](https://datatracker.ietf.org/doc/html/rfc8628#section-5.6), you should perform extra steps to protect your client credentials.
