@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <vector>
+
 #include "svpng.hpp"
 
 namespace flutter_webrtc_plugin {
@@ -61,9 +63,9 @@ bool FlutterFrameCapturer::SaveFrame() {
   int width = frame_.get()->width();
   int height = frame_.get()->height();
   int bytes_per_pixel = 4;
-  uint8_t* pixels = new uint8_t[width * height * bytes_per_pixel];
+  std::vector<uint8_t> pixels(width * height * bytes_per_pixel);
 
-  frame_.get()->ConvertToARGB(RTCVideoFrame::Type::kABGR, pixels,
+  frame_.get()->ConvertToARGB(RTCVideoFrame::Type::kABGR, pixels.data(),
                               /* unused */ -1, width, height);
 
   FILE* file = fopen(path_.c_str(), "wb");
@@ -71,7 +73,7 @@ bool FlutterFrameCapturer::SaveFrame() {
     return false;
   }
 
-  svpng(file, width, height, pixels, 1);
+  svpng(file, width, height, pixels.data(), 1);
   fclose(file);
   return true;
 }
