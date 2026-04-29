@@ -55,11 +55,26 @@ Device Flow cannot preselect or force the Google account on the secondary device
 final GoogleSignInClientAuthorization authorization = await user
     .authorizationClient
     .authorizeScopes(<String>[
-  'https://www.googleapis.com/auth/contacts.readonly',
+  'https://www.googleapis.com/auth/youtube.readonly',
 ]);
 ```
 
-Server authorization tokens are not supported by `google_sign_in_tizen` because Device Flow does not return a server auth code.
+### Server authorization tokens are not supported
+
+`authorizationClient.authorizeServer(...)` is not supported on Tizen because OAuth 2.0 Device Authorization Grant ([RFC 8628](https://datatracker.ietf.org/doc/html/rfc8628#section-3.5)) does not include a server auth code in its token response — the protocol simply has no such field. Calling it throws `GoogleSignInException` with `GoogleSignInExceptionCode.providerConfigurationError`:
+
+```dart
+try {
+  final GoogleSignInServerAuthorization? serverAuth = await user
+      .authorizationClient
+      .authorizeServer(scopes);
+} on GoogleSignInException catch (e) {
+  // e.code == GoogleSignInExceptionCode.providerConfigurationError
+  // e.description explains why server auth code is unavailable on Tizen.
+}
+```
+
+If your app needs offline access to user data on a backend, consider obtaining the access/refresh tokens on the device via the regular client authorization flow and forwarding them to your server through your own secure channel.
 
 :warning: Security concerns
 

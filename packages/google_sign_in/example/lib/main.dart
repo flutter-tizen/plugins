@@ -230,7 +230,9 @@ class _SignInDemoState extends State<SignInDemo> {
       });
       unawaited(_handleGetContact(_currentUser!));
     } on GoogleSignInException catch (e) {
-      _errorMessage = _errorMessageFromSignInException(e);
+      setState(() {
+        _errorMessage = _errorMessageFromSignInException(e);
+      });
     }
   }
 
@@ -251,7 +253,9 @@ class _SignInDemoState extends State<SignInDemo> {
         _serverAuthCode = serverAuth == null ? '' : serverAuth.serverAuthCode;
       });
     } on GoogleSignInException catch (e) {
-      _errorMessage = _errorMessageFromSignInException(e);
+      setState(() {
+        _errorMessage = _errorMessageFromSignInException(e);
+      });
     }
   }
 

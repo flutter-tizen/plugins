@@ -317,12 +317,19 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   }
 
   /// Device Flow does not return a server auth code, so this is unsupported on
-  /// Tizen.
+  /// Tizen. Throws [GoogleSignInException] so callers can distinguish "not
+  /// supported on this platform" from "user has not authorized yet".
   @override
   Future<ServerAuthorizationTokenData?> serverAuthorizationTokensForScopes(
     ServerAuthorizationTokensForScopesParameters params,
   ) async {
-    return null;
+    throw const GoogleSignInException(
+      code: GoogleSignInExceptionCode.providerConfigurationError,
+      description:
+          'Server authorization tokens are not supported by '
+          'google_sign_in_tizen because the plugin uses OAuth 2.0 Device '
+          'Authorization Grant, which does not return a server auth code.',
+    );
   }
 
   @override
