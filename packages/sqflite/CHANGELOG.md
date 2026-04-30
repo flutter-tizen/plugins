@@ -1,6 +1,8 @@
-## NEXT
+## 0.1.4
 
-* Update minimum Flutter and Dart version to 3.13 and 3.1.
+* Update sqflite to 2.4.2.
+* Update minimum Flutter and Dart version to 3.13 and 3.7.
+* Update the example app and integration_test.
 * Update code format.
 
 ## 0.1.3

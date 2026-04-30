@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common/sqflite_dev.dart';
 
 import 'src/common_import.dart';
 import 'test_page.dart';
@@ -83,7 +84,7 @@ class SlowTestPage extends TestPage {
     if (platform.isAndroid) {
       test('Perf android NORMAL_PRIORITY', () async {
         // ignore_for_file: deprecated_member_use, deprecated_member_use_from_same_package
-        await Sqflite.devSetOptions(
+        await databaseFactory.setOptions(
           SqfliteOptions()..androidThreadPriority = 0,
         );
         try {
@@ -91,7 +92,7 @@ class SlowTestPage extends TestPage {
           await perfDo(count);
         } finally {
           // Background priority
-          await Sqflite.devSetOptions(
+          await databaseFactory.setOptions(
             SqfliteOptions()..androidThreadPriority = 10,
           );
         }

@@ -15,7 +15,7 @@ class RawTestPage extends TestPage {
   /// Raw test page.
   RawTestPage({Key? key}) : super('Raw tests', key: key) {
     test('Simple', () async {
-      // await Sqflite.devSetDebugModeOn(true);
+      // await databaseFactory.setLogLevel(sqfliteLogLevelVerbose);
 
       final path = await initDeleteDb('raw_simple.db');
       final db = await openDatabase(path);
@@ -104,15 +104,14 @@ class RawTestPage extends TestPage {
 
         Future testItem(int i) async {
           await db.transaction((txn) async {
-            final count = Sqflite.firstIntValue(
-              await txn.rawQuery('SELECT COUNT(*) FROM Test'),
-            )!;
+            final count =
+                firstIntValue(await txn.rawQuery('SELECT COUNT(*) FROM Test'))!;
             await Future<void>.delayed(const Duration(milliseconds: 40));
             await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', [
               'item $i',
             ]);
             //print(await db.query('SELECT COUNT(*) FROM Test'));
-            final afterCount = Sqflite.firstIntValue(
+            final afterCount = firstIntValue(
               await txn.rawQuery('SELECT COUNT(*) FROM Test'),
             );
             expect(count + 1, afterCount);
@@ -168,7 +167,7 @@ class RawTestPage extends TestPage {
 
             await step3.future;
 
-            final count = Sqflite.firstIntValue(
+            final count = firstIntValue(
               await txn.rawQuery('SELECT COUNT(*) FROM Test'),
             );
             expect(count, 1);
@@ -180,7 +179,7 @@ class RawTestPage extends TestPage {
 
         await Future.wait([future1, future2]);
 
-        final count = Sqflite.firstIntValue(
+        final count = firstIntValue(
           await db.rawQuery('SELECT COUNT(*) FROM Test'),
         );
         expect(count, 1);
@@ -231,7 +230,7 @@ class RawTestPage extends TestPage {
 
             await step3.future;
 
-            final count = Sqflite.firstIntValue(
+            final count = firstIntValue(
               await txn.rawQuery('SELECT COUNT(*) FROM Test'),
             );
             expect(count, 1);
@@ -243,7 +242,7 @@ class RawTestPage extends TestPage {
 
         await Future.wait([future1, future2]);
 
-        final count = Sqflite.firstIntValue(
+        final count = firstIntValue(
           await db.rawQuery('SELECT COUNT(*) FROM Test'),
         );
         expect(count, 1);
@@ -266,7 +265,7 @@ class RawTestPage extends TestPage {
 
           await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', ['item 2']);
         });
-        final afterCount = Sqflite.firstIntValue(
+        final afterCount = firstIntValue(
           await db.rawQuery('SELECT COUNT(*) FROM Test'),
         );
         expect(afterCount, 2);
@@ -289,7 +288,7 @@ class RawTestPage extends TestPage {
 
         await db.transaction((txn) async {
           await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', ['item']);
-          final afterCount = Sqflite.firstIntValue(
+          final afterCount = firstIntValue(
             await txn.rawQuery('SELECT COUNT(*) FROM Test'),
           );
           expect(afterCount, 1);
@@ -297,16 +296,16 @@ class RawTestPage extends TestPage {
           /*
         // this is not working on Android
         int db2AfterCount =
-        Sqflite.firstIntValue(await db2.rawQuery('SELECT COUNT(*) FROM Test'));
+        firstIntValue(await db2.rawQuery('SELECT COUNT(*) FROM Test'));
         assert(db2AfterCount == 0);
         */
         });
-        final db2AfterCount = Sqflite.firstIntValue(
+        final db2AfterCount = firstIntValue(
           await db2.rawQuery('SELECT COUNT(*) FROM Test'),
         );
         expect(db2AfterCount, 1);
 
-        final afterCount = Sqflite.firstIntValue(
+        final afterCount = firstIntValue(
           await db.rawQuery('SELECT COUNT(*) FROM Test'),
         );
         expect(afterCount, 1);
@@ -386,9 +385,11 @@ class RawTestPage extends TestPage {
 
       // Make sure the directory exists
       try {
-        // ignore: avoid_slow_async_io
-        if (!await io.Directory(databasesPath).exists()) {
-          await io.Directory(databasesPath).create(recursive: true);
+        if (!kIsWeb) {
+          // ignore: avoid_slow_async_io
+          if (!await io.Directory(databasesPath).exists()) {
+            await io.Directory(databasesPath).create(recursive: true);
+          }
         }
       } catch (_) {}
 
@@ -443,9 +444,10 @@ class RawTestPage extends TestPage {
       expect(list, expectedList);
 
       // Count the records
-      count = (Sqflite.firstIntValue(
-        await database.rawQuery('SELECT COUNT(*) FROM Test'),
-      ))!;
+      count =
+          (firstIntValue(
+            await database.rawQuery('SELECT COUNT(*) FROM Test'),
+          ))!;
       expect(count, 2);
 
       // Delete a record
@@ -469,7 +471,7 @@ class RawTestPage extends TestPage {
         );
         db2 = await openReadOnlyDatabase(path);
 
-        final count = Sqflite.firstIntValue(
+        final count = firstIntValue(
           await db2.rawQuery('SELECT COUNT(*) FROM Test'),
         );
         expect(count, 0);
@@ -520,8 +522,8 @@ class RawTestPage extends TestPage {
           'CREATE TABLE Test (name TEXT PRIMARY KEY) WITHOUT ROWID',
         );
         var id = await db.insert('Test', {'name': 'test'});
-        expect(id, 0);
 
+        expect(id, 0);
         id = await db.insert('Test', {'name': 'other'});
         expect(id, 0);
 
@@ -671,21 +673,15 @@ class RawTestPage extends TestPage {
         } on StateError catch (_) {}
 
         // No data
-        cursor = await db.rawQueryCursor(
-            'SELECT * FROM test WHERE id > ?',
-            [
-              3,
-            ],
-            bufferSize: 2);
+        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [
+          3,
+        ], bufferSize: 2);
         expect(await cursor.moveNext(), isFalse);
 
         // Matching page size
-        cursor = await db.rawQueryCursor(
-            'SELECT * FROM test WHERE id > ?',
-            [
-              1,
-            ],
-            bufferSize: 2);
+        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [
+          1,
+        ], bufferSize: 2);
         expect(await cursor.moveNext(), isTrue);
         expect(await cursor.moveNext(), isTrue);
         expect(await cursor.moveNext(), isFalse);

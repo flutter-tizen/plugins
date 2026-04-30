@@ -4,11 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/src/database_mixin.dart' // ignore: implementation_imports
-    show
-        SqfliteDatabaseMixin;
+    show SqfliteDatabaseMixin;
 import 'package:sqflite/src/factory_mixin.dart' // ignore: implementation_imports
-    show
-        SqfliteDatabaseFactoryMixin;
+    show SqfliteDatabaseFactoryMixin;
+import 'package:sqflite/utils/utils.dart';
 import 'package:synchronized/synchronized.dart';
 
 import 'src/common_import.dart';
@@ -160,7 +159,7 @@ class OpenTestPage extends TestPage {
       expect(await databaseExists(path), false);
       final db = await openDatabase(path);
       await db.close();
-      expect((await pathExists(path)), true);
+      expect(await pathExists(path), true);
       expect(await databaseExists(path), true);
       print('Deleting database $path');
       await deleteDatabase(path);
@@ -581,10 +580,7 @@ class OpenTestPage extends TestPage {
         onCreate: onCreate,
         onOpen: onOpen,
       );
-      expect(
-        Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM Test')),
-        2,
-      );
+      expect(firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM Test')), 2);
 
       await db.close();
     });
@@ -602,18 +598,12 @@ class OpenTestPage extends TestPage {
       }
 
       var db = await openDatabase(path, version: 1, onCreate: onCreate);
-      expect(
-        Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM Test')),
-        1,
-      );
+      expect(firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM Test')), 1);
 
       await db.close();
 
       db = await openReadOnlyDatabase(path);
-      expect(
-        Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM Test')),
-        1,
-      );
+      expect(firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM Test')), 1);
 
       try {
         await db.rawInsert('INSERT INTO Test(value) VALUES(?)', ['value1']);
@@ -915,8 +905,8 @@ class OpenTestPage extends TestPage {
         await db.execute('BEGIN IMMEDIATE');
         // Trick to make sure we don't reuse the same instance during open
         (factory as SqfliteDatabaseFactoryMixin).databaseOpenHelpers.remove(
-              db.path,
-            );
+          db.path,
+        );
 
         final db2 = await factory.openDatabase(
           path,

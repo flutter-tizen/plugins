@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_tizen_example/batch_test_page.dart';
 import 'package:sqflite_tizen_example/deprecated_test_page.dart';
@@ -8,6 +9,7 @@ import 'package:sqflite_tizen_example/exp_test_page.dart';
 import 'package:sqflite_tizen_example/manual_test_page.dart';
 import 'package:sqflite_tizen_example/src/dev_utils.dart';
 
+import 'io_test_page.dart';
 import 'model/main_item.dart';
 import 'open_test_page.dart';
 import 'raw_test_page.dart';
@@ -15,6 +17,7 @@ import 'slow_test_page.dart';
 import 'src/main_item_widget.dart';
 import 'todo_test_page.dart';
 import 'type_test_page.dart';
+export 'utils.dart' show supportsCompatMode;
 
 void main() {
   mainExampleApp();
@@ -32,7 +35,7 @@ void mainExampleApp() {
 /// Sqflite test app
 class SqfliteExampleApp extends StatefulWidget {
   /// test app.
-  const SqfliteExampleApp({Key? key}) : super(key: key);
+  const SqfliteExampleApp({super.key});
   // This widget is the root of your application.
 
   @override
@@ -67,8 +70,14 @@ const String testManualRoute = '/test/manual';
 /// Experiment test page.
 const String testExpRoute = '/test/exp';
 
+/// IO only test page.
+const String testIoRoute = '/test/io';
+
 /// Deprecated test page.
 const String testDeprecatedRoute = '/test/deprecated';
+
+/// Extra routes added by the application.
+Map<String, WidgetBuilder>? extraRoutes;
 
 class _SqfliteExampleAppState extends State<SqfliteExampleApp> {
   var routes = <String, WidgetBuilder>{
@@ -82,8 +91,9 @@ class _SqfliteExampleAppState extends State<SqfliteExampleApp> {
     testBatchRoute: (BuildContext context) => BatchTestPage(),
     testExceptionRoute: (BuildContext context) => ExceptionTestPage(),
     testExpRoute: (BuildContext context) => ExpTestPage(),
+    if (!kIsWeb) testIoRoute: (BuildContext context) => IoTestPage(),
     testDeprecatedRoute: (BuildContext context) => DeprecatedTestPage(),
-  };
+  }..addAll(extraRoutes ?? {});
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +120,7 @@ class _SqfliteExampleAppState extends State<SqfliteExampleApp> {
 /// App home menu page.
 class MyHomePage extends StatefulWidget {
   /// App home menu page.
-  MyHomePage({Key? key, this.title}) : super(key: key) {
+  MyHomePage({super.key, this.title}) {
     _items.add(
       MainItem('Raw tests', 'Raw SQLite operations', route: testRawRoute),
     );
@@ -151,6 +161,9 @@ class MyHomePage extends StatefulWidget {
         route: testExceptionRoute,
       ),
     );
+    if (!kIsWeb) {
+      _items.add(MainItem('IO tests', 'IO tests', route: testIoRoute));
+    }
     _items.add(
       MainItem(
         'Manual tests',
@@ -158,6 +171,7 @@ class MyHomePage extends StatefulWidget {
         route: testManualRoute,
       ),
     );
+
     _items.add(
       MainItem(
         'Deprecated test',
@@ -165,7 +179,11 @@ class MyHomePage extends StatefulWidget {
         route: testDeprecatedRoute,
       ),
     );
-
+    if (extraRoutes != null) {
+      for (var entry in extraRoutes!.entries) {
+        _items.add(MainItem(entry.key, 'Extra test', route: entry.key));
+      }
+    }
     // Uncomment to view all logs
     //Sqflite.devSetDebugModeOn(true);
   }

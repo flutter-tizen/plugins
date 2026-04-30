@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/sql.dart';
+import 'package:sqflite/utils/utils.dart';
+import 'package:sqflite_common/sql.dart';
 
 import 'src/common_import.dart';
 import 'test_page.dart';
@@ -24,7 +25,7 @@ class ExceptionTestPage extends TestPage {
           await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', <Object>[
             'item',
           ]);
-          final afterCount = Sqflite.firstIntValue(
+          final afterCount = firstIntValue(
             await txn.rawQuery('SELECT COUNT(*) FROM Test'),
           );
           expect(afterCount, 1);
@@ -40,7 +41,7 @@ class ExceptionTestPage extends TestPage {
       }
       verify(hasFailed);
 
-      final afterCount = Sqflite.firstIntValue(
+      final afterCount = firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM Test'),
       );
       expect(afterCount, 0);
@@ -69,7 +70,7 @@ class ExceptionTestPage extends TestPage {
 
       verify(hasFailed);
 
-      final afterCount = Sqflite.firstIntValue(
+      final afterCount = firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM Test'),
       );
       expect(afterCount, 0);
@@ -384,8 +385,8 @@ class ExceptionTestPage extends TestPage {
       await db.close();
     });
 
-    test('Bind no argument (no iOS)', () async {
-      if (!platform.isIOS) {
+    test('Bind no argument (no iOS/MacOS)', () async {
+      if (!platform.isIOS && !platform.isMacOS) {
         // await Sqflite.devSetDebugModeOn(true);
         final path = await initDeleteDb('bind_no_arg_failed.db');
         final db = await openDatabase(path);
@@ -499,7 +500,7 @@ class ExceptionTestPage extends TestPage {
       try {
         var hasTimedOut = false;
         var callbackCount = 0;
-        Sqflite.setLockWarningInfo(
+        setLockWarningInfo(
           duration: const Duration(milliseconds: 200),
           callback: () {
             callbackCount++;

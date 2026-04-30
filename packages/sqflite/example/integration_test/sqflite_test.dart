@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:sqflite/sqflite.dart';
 
 // ignore_for_file: avoid_print
@@ -184,10 +183,9 @@ void main() {
       for (var i = 0; i < count; i++) {
         final db = dbs[i]!;
         try {
-          final name = (await db.query('Test', columns: ['name']))
-              .first
-              .values
-              .first as String?;
+          final name =
+              (await db.query('Test', columns: ['name'])).first.values.first
+                  as String?;
           expect(name, 'test_$i');
         } finally {
           await db.close();
@@ -256,10 +254,21 @@ void main() {
 
     test('deleteDatabase', () async {
       // await devVerbose();
+      const path = 'test_delete_database.db';
+      await deleteDatabase(path);
+      expect(await databaseExists(path), isFalse);
+
       late Database db;
       try {
-        const path = 'test_delete_database.db';
+        db = await openDatabase(path);
+        expect(await db.getVersion(), 0);
+        await db.setVersion(1);
+        await db.close();
+        expect(await databaseExists(path), isTrue);
+
         await deleteDatabase(path);
+        expect(await databaseExists(path), isFalse);
+
         db = await openDatabase(path);
         expect(await db.getVersion(), 0);
         await db.setVersion(1);

@@ -1,3 +1,8 @@
+## 1.4.3
+
+* Update permission_handler to 12.0.1.
+* Update minimum Flutter and Dart version to 3.24 and 3.5.
+
 ## 1.4.2
 
 * Fix example's type issue.
