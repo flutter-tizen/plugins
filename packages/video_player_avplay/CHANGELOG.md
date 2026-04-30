@@ -1,3 +1,7 @@
+## 0.8.9
+
+* [DASH] Fix seek freeze issue
+
 ## 0.8.8
 
 * Update the conditional statement for the `_currentCaptions`.
