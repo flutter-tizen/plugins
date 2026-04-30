@@ -142,11 +142,13 @@ std::string GetViewUrl(Evas_Object* webview_instance) {
 }
 
 flutter::EncodableMap CreateErrorMap(
-    const std::string& description, int error_type = kWebResourceErrorUnknown) {
+    const std::string& description, int error_code = kWebResourceErrorUnknown) {
   flutter::EncodableMap map;
   map[flutter::EncodableValue("description")] =
       flutter::EncodableValue(description);
-  map[flutter::EncodableValue("type")] = flutter::EncodableValue(error_type);
+  map[flutter::EncodableValue("errorCode")] =
+      flutter::EncodableValue(error_code);
+  map[flutter::EncodableValue("type")] = flutter::EncodableValue(error_code);
   return map;
 }
 
@@ -975,7 +977,8 @@ void WebView::OnLoadError(void* data, Evas_Object* obj, void* event_info) {
       {flutter::EncodableValue("request"),
        flutter::EncodableValue(CreateRequestMap(url))},
       {flutter::EncodableValue("error"),
-       flutter::EncodableValue(CreateErrorMap(description))},
+       flutter::EncodableValue(
+           CreateErrorMap(description, ewk_error_code_get(error)))},
   };
   webview->webview_channel_->InvokeMethod(
       "onReceivedError", std::make_unique<flutter::EncodableValue>(args));

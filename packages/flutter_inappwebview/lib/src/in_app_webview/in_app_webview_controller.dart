@@ -39,6 +39,79 @@ class TizenInAppWebViewControllerCreationParams
   }
 }
 
+/// Error returned in `InAppWebView.onReceivedError` when a Tizen web resource
+/// loading error occurs.
+class TizenWebResourceError extends WebResourceError {
+  /// Creates a new [TizenWebResourceError].
+  TizenWebResourceError._({required this.errorCode, required super.description})
+    : super(type: _errorCodeToErrorType(errorCode));
+
+  /// Unknown error.
+  static const int unknown = 0;
+
+  /// Failed to file I/O.
+  static const int failedFileIO = 3;
+
+  /// Cannot connect to Network.
+  static const int cantConnect = 4;
+
+  /// Fail to look up host from DNS.
+  static const int cantHostLookup = 5;
+
+  /// Fail to SSL/TLS handshake.
+  static const int failedSslHandshake = 6;
+
+  /// Connection timeout.
+  static const int requestTimeout = 8;
+
+  /// Too many redirects.
+  static const int tooManyRedirect = 9;
+
+  /// Too many requests during this load.
+  static const int tooManyRequests = 10;
+
+  /// Malformed url.
+  static const int badUrl = 11;
+
+  /// Unsupported scheme.
+  static const int unsupportedScheme = 12;
+
+  /// User authentication failed on server.
+  static const int authenticationFailed = 13;
+
+  /// Raw EWK error code.
+  final int errorCode;
+
+  static WebResourceErrorType _errorCodeToErrorType(int errorCode) {
+    switch (errorCode) {
+      case unknown:
+        return WebResourceErrorType.UNKNOWN;
+      case failedFileIO:
+        return WebResourceErrorType.GENERIC_FILE_ERROR;
+      case cantConnect:
+        return WebResourceErrorType.CANNOT_CONNECT_TO_HOST;
+      case cantHostLookup:
+        return WebResourceErrorType.HOST_LOOKUP;
+      case failedSslHandshake:
+        return WebResourceErrorType.FAILED_SSL_HANDSHAKE;
+      case requestTimeout:
+        return WebResourceErrorType.TIMEOUT;
+      case tooManyRedirect:
+        return WebResourceErrorType.TOO_MANY_REDIRECTS;
+      case tooManyRequests:
+        return WebResourceErrorType.TOO_MANY_REQUESTS;
+      case badUrl:
+        return WebResourceErrorType.BAD_URL;
+      case unsupportedScheme:
+        return WebResourceErrorType.UNSUPPORTED_SCHEME;
+      case authenticationFailed:
+        return WebResourceErrorType.USER_AUTHENTICATION_FAILED;
+    }
+
+    return WebResourceErrorType.UNKNOWN;
+  }
+}
+
 ///Controls an [InAppWebView] widget instance.
 ///
 ///If you are using the [InAppWebView] widget, an [InAppWebViewController] instance can be obtained by setting the [InAppWebView.onWebViewCreated]
@@ -105,6 +178,15 @@ class TizenInAppWebViewController extends PlatformInAppWebViewController
     final String description =
         errorMap['description']?.toString() ?? 'Unknown error';
     final dynamic nativeType = errorMap['type'];
+    final dynamic nativeErrorCode = errorMap['errorCode'] ?? nativeType;
+    final int? errorCode = nativeErrorCode is int ? nativeErrorCode : null;
+    if (errorCode != null) {
+      return TizenWebResourceError._(
+        errorCode: errorCode,
+        description: description,
+      );
+    }
+
     final WebResourceErrorType type =
         WebResourceErrorType.fromNativeValue(
           nativeType is int ? nativeType : null,
@@ -162,11 +244,14 @@ class TizenInAppWebViewController extends PlatformInAppWebViewController
               error,
             );
           } else if (isForMainFrame) {
+            final int errorCode = error is TizenWebResourceError
+                ? error.errorCode
+                : error.type.toNativeValue() ?? -1;
             // ignore: deprecated_member_use_from_same_package
             webviewParams!.onLoadError!(
               _controllerFromPlatform,
               request.url,
-              error.type.toNativeValue() ?? -1,
+              errorCode,
               error.description,
             );
           }
