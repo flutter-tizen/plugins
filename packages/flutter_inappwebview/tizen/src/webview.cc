@@ -10,15 +10,19 @@
 #include <flutter_texture_registrar.h>
 #include <tbm_surface.h>
 
+#include <atomic>
 #include <utility>
 
 #include "buffer_pool.h"
 #include "log.h"
 #include "webview_factory.h"
 
+struct WebViewLifetimeState {
+  std::atomic_bool disposed = false;
+};
+
 namespace {
 
-constexpr size_t kBufferPoolSize = 5;
 constexpr char kInAppWebViewChannelName[] =
     "com.pichillilorenzo/flutter_inappwebview_";
 constexpr int kConsoleMessageLog = 1;
@@ -48,9 +52,14 @@ int ConvertLogLevel(Ewk_Console_Message_Level level) {
 
 class NavigationRequestResult : public FlMethodResult {
  public:
-  explicit NavigationRequestResult(WebView* webview) : webview_(webview) {}
+  NavigationRequestResult(WebView* webview,
+                          std::weak_ptr<WebViewLifetimeState> lifetime)
+      : webview_(webview), lifetime_(std::move(lifetime)) {}
 
   void SuccessInternal(const flutter::EncodableValue* should_load) override {
+    if (!IsWebViewAlive()) {
+      return;
+    }
     // The Dart side returns NavigationActionPolicy.toNativeValue():
     // 0 = CANCEL, 1 = ALLOW. Treat anything else as a cancel.
     if (should_load && std::holds_alternative<int32_t>(*should_load) &&
@@ -66,16 +75,28 @@ class NavigationRequestResult : public FlMethodResult {
                      const flutter::EncodableValue* error_details) override {
     LOG_ERROR("The shouldOverrideUrlLoading reply errored: %s",
               error_message.c_str());
+    if (!IsWebViewAlive()) {
+      return;
+    }
     webview_->StopNavigation();
   }
 
   void NotImplementedInternal() override {
     LOG_ERROR("The shouldOverrideUrlLoading reply was unimplemented.");
+    if (!IsWebViewAlive()) {
+      return;
+    }
     webview_->StopNavigation();
   }
 
  private:
+  bool IsWebViewAlive() {
+    auto lifetime = lifetime_.lock();
+    return lifetime && !lifetime->disposed.load();
+  }
+
   WebView* webview_;
+  std::weak_ptr<WebViewLifetimeState> lifetime_;
 };
 
 template <typename T>
@@ -216,7 +237,8 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
       texture_registrar_(texture_registrar),
       width_(width),
       height_(height),
-      window_(window) {
+      window_(window),
+      lifetime_(std::make_shared<WebViewLifetimeState>()) {
   if (!EwkInternalApiBinding::GetInstance().Initialize()) {
     LOG_ERROR("Failed to initialize EWK internal APIs.");
     return;
@@ -231,7 +253,14 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
                  size_t height) -> const FlutterDesktopGpuSurfaceDescriptor* {
             return ObtainGpuSurface(width, height);
           }));
-  SetTextureId(texture_registrar_->RegisterTexture(texture_variant_.get()));
+  int64_t texture_id =
+      texture_registrar_->RegisterTexture(texture_variant_.get());
+  if (texture_id < 0) {
+    LOG_ERROR("Failed to register the WebView texture.");
+    return;
+  }
+  SetTextureId(static_cast<int>(texture_id));
+  texture_registered_ = true;
 
   webview_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetWebViewChannelName(),
@@ -257,6 +286,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
     instances_.insert(this);
   }
 
+  initialized_ = true;
   ApplyInitialParams(params);
 }
 
@@ -285,13 +315,21 @@ void WebView::Dispose() {
     return;
   }
   disposed_ = true;
+  lifetime_->disposed.store(true);
 
   {
     std::lock_guard<std::mutex> lock(instances_mutex_);
     instances_.erase(this);
   }
 
-  texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
+  if (webview_channel_) {
+    webview_channel_->SetMethodCallHandler(nullptr);
+  }
+
+  if (texture_registered_) {
+    texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
+    texture_registered_ = false;
+  }
 
   if (webview_instance_) {
     // The view may still be suspended while waiting on a Dart navigation
@@ -316,8 +354,22 @@ void WebView::Dispose() {
                                    &WebView::OnNavigationPolicy);
     evas_object_smart_callback_del(webview_instance_, "url,changed",
                                    &WebView::OnUrlChange);
+    auto& ewk_view = EwkInternalApiBinding::GetInstance().view;
+    if (ewk_view.OnJavaScriptAlert) {
+      ewk_view.OnJavaScriptAlert(webview_instance_, nullptr, nullptr);
+    }
+    if (ewk_view.OnJavaScriptConfirm) {
+      ewk_view.OnJavaScriptConfirm(webview_instance_, nullptr, nullptr);
+    }
+    if (ewk_view.OnJavaScriptPrompt) {
+      ewk_view.OnJavaScriptPrompt(webview_instance_, nullptr, nullptr);
+    }
     evas_object_del(webview_instance_);
     webview_instance_ = nullptr;
+  }
+  if (ecore_evas_) {
+    ecore_evas_free(ecore_evas_);
+    ecore_evas_ = nullptr;
   }
 
   // ewk_shutdown();
@@ -332,14 +384,23 @@ void WebView::Offset(double left, double top) {
 }
 
 void WebView::Resize(double width, double height) {
-  width_ = width;
-  height_ = height;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    width_ = width;
+    height_ = height;
 
-  if (candidate_surface_) {
-    candidate_surface_ = nullptr;
+    if (working_surface_) {
+      tbm_pool_->Release(working_surface_);
+      working_surface_ = nullptr;
+    }
+    if (candidate_surface_) {
+      tbm_pool_->Release(candidate_surface_);
+      candidate_surface_ = nullptr;
+    }
+    rendered_surface_ = nullptr;
+    tbm_pool_->Prepare(width_, height_);
   }
 
-  tbm_pool_->Prepare(width_, height_);
   evas_object_resize(webview_instance_, width_, height_);
 }
 
@@ -458,15 +519,18 @@ void WebView::SetDirection(int direction) {
 }
 
 bool WebView::InitWebView() {
-  char* chromium_argv[] = {
-      const_cast<char*>("--disable-pinch"),
-      const_cast<char*>("--js-flags=--expose-gc"),
-      const_cast<char*>("--single-process"),
-      const_cast<char*>("--no-zygote"),
-  };
-  int chromium_argc = sizeof(chromium_argv) / sizeof(chromium_argv[0]);
-  EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
-                                                         chromium_argv);
+  static std::once_flag ewk_args_once;
+  std::call_once(ewk_args_once, []() {
+    char* chromium_argv[] = {
+        const_cast<char*>("--disable-pinch"),
+        const_cast<char*>("--js-flags=--expose-gc"),
+        const_cast<char*>("--single-process"),
+        const_cast<char*>("--no-zygote"),
+    };
+    int chromium_argc = sizeof(chromium_argv) / sizeof(chromium_argv[0]);
+    EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
+                                                           chromium_argv);
+  });
 
   // TODO(jsuya): ewk_init() and ewk_shutdown() are designed to be called only
   // once in a process.(If ewk_init() is called after ewk_shutdown() is
@@ -477,18 +541,19 @@ bool WebView::InitWebView() {
   // temporarily comment out ewk_init() and ewk_shutdown(). It can be reverted
   // depending on updates to chromium-efl.
   // ewk_init();
-  Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
-  if (!evas) {
+  ecore_evas_ = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+  if (!ecore_evas_) {
     LOG_ERROR("Failed to create Ecore_Evas for the WebView.");
     return false;
   }
 
-  webview_instance_ = ewk_view_add(ecore_evas_get(evas));
+  webview_instance_ = ewk_view_add(ecore_evas_get(ecore_evas_));
   if (!webview_instance_) {
-    ecore_evas_free(evas);
+    ecore_evas_free(ecore_evas_);
+    ecore_evas_ = nullptr;
     return false;
   }
-  ecore_evas_focus_set(evas, true);
+  ecore_evas_focus_set(ecore_evas_, true);
   ewk_view_focus_set(webview_instance_, true);
   EwkInternalApiBinding::GetInstance().view.OffscreenRenderingEnabledSet(
       webview_instance_, true);
@@ -893,12 +958,12 @@ FlutterDesktopGpuSurfaceDescriptor* WebView::ObtainGpuSurface(size_t width,
   std::lock_guard<std::mutex> lock(mutex_);
   if (!candidate_surface_) {
     if (rendered_surface_) {
+      if (!rendered_surface_->MarkInUse()) {
+        return nullptr;
+      }
       return rendered_surface_->GpuSurface();
     }
     return nullptr;
-  }
-  if (rendered_surface_ && rendered_surface_->IsUsed()) {
-    tbm_pool_->Release(rendered_surface_);
   }
   rendered_surface_ = candidate_surface_;
   candidate_surface_ = nullptr;
@@ -911,7 +976,14 @@ void WebView::OnFrameRendered(void* data, Evas_Object* obj, void* event_info) {
 
     std::lock_guard<std::mutex> lock(webview->mutex_);
     if (!webview->working_surface_) {
+      if (webview->candidate_surface_) {
+        webview->tbm_pool_->Release(webview->candidate_surface_);
+        webview->candidate_surface_ = nullptr;
+      }
       webview->working_surface_ = webview->tbm_pool_->GetAvailableBuffer();
+      if (!webview->working_surface_) {
+        return;
+      }
       webview->working_surface_->UseExternalBuffer();
     }
     webview->working_surface_->SetExternalBuffer(
@@ -1021,7 +1093,8 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   ewk_view_suspend(webview->webview_instance_);
 
   flutter::EncodableMap args = CreateNavigationActionMap(url);
-  auto result = std::make_unique<NavigationRequestResult>(webview);
+  auto result =
+      std::make_unique<NavigationRequestResult>(webview, webview->lifetime_);
   webview->webview_channel_->InvokeMethod(
       "shouldOverrideUrlLoading",
       std::make_unique<flutter::EncodableValue>(args), std::move(result));

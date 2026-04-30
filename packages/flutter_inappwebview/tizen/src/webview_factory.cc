@@ -8,6 +8,7 @@
 #include <flutter/encodable_value.h>
 #include <flutter/message_codec.h>
 
+#include <memory>
 #include <string>
 #include <variant>
 
@@ -22,8 +23,18 @@ WebViewFactory::WebViewFactory(flutter::PluginRegistrar* registrar,
 
 PlatformView* WebViewFactory::Create(int view_id, double width, double height,
                                      const ByteMessage& params) {
-  return new WebView(GetPluginRegistrar(), view_id, texture_registrar_, width,
-                     height, *GetCodec().DecodeMessage(params), window_);
+  auto decoded_params = GetCodec().DecodeMessage(params);
+  if (!decoded_params) {
+    LOG_ERROR("Failed to decode WebView creation params.");
+    return nullptr;
+  }
+  auto webview = std::make_unique<WebView>(GetPluginRegistrar(), view_id,
+                                           texture_registrar_, width, height,
+                                           *decoded_params, window_);
+  if (!webview->IsInitialized()) {
+    return nullptr;
+  }
+  return webview.release();
 }
 
 void WebViewFactory::Dispose() {}

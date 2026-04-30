@@ -8,10 +8,11 @@
 #include <flutter_texture_registrar.h>
 #include <tbm_surface.h>
 
-#include <atomic>
 #include <memory>
 #include <mutex>
 #include <vector>
+
+struct BufferReleaseState;
 
 class BufferUnit {
  public:
@@ -23,14 +24,14 @@ class BufferUnit {
   bool MarkInUse();
   void UnmarkInUse();
 
-  bool IsUsed() { return is_used_ && tbm_surface_; }
+  bool IsUsed();
 
   void UseExternalBuffer();
   void SetExternalBuffer(tbm_surface_h tbm_surface);
 
   tbm_surface_h Surface();
 
-  FlutterDesktopGpuSurfaceDescriptor* GpuSurface() { return gpu_surface_; }
+  FlutterDesktopGpuSurfaceDescriptor* GpuSurface();
 
 #ifndef NDEBUG
   // TODO: Unused code.
@@ -38,12 +39,11 @@ class BufferUnit {
 #endif
 
  private:
-  std::atomic_bool is_used_ = false;
+  std::shared_ptr<BufferReleaseState> release_state_;
   bool use_external_buffer_ = false;
   int32_t width_ = 0;
   int32_t height_ = 0;
   tbm_surface_h tbm_surface_ = nullptr;
-  FlutterDesktopGpuSurfaceDescriptor* gpu_surface_ = nullptr;
 };
 
 class BufferPool {

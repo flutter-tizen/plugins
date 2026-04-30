@@ -4,18 +4,37 @@
 
 #include "buffer_pool.h"
 
-#include "log.h"
+#include <atomic>
 
-BufferUnit::BufferUnit(int32_t width, int32_t height) { Reset(width, height); }
+struct BufferReleaseState {
+  std::atomic_bool is_used = false;
+};
+
+namespace {
+
+struct GpuSurfaceDescriptorContext {
+  std::shared_ptr<BufferReleaseState> release_state;
+  FlutterDesktopGpuSurfaceDescriptor descriptor = {};
+};
+
+void ReleaseGpuSurfaceDescriptor(void* release_context) {
+  auto context =
+      reinterpret_cast<GpuSurfaceDescriptorContext*>(release_context);
+  context->release_state->is_used.store(false);
+  delete context;
+}
+
+}  // namespace
+
+BufferUnit::BufferUnit(int32_t width, int32_t height)
+    : release_state_(std::make_shared<BufferReleaseState>()) {
+  Reset(width, height);
+}
 
 BufferUnit::~BufferUnit() {
   if (tbm_surface_ && !use_external_buffer_) {
     tbm_surface_destroy(tbm_surface_);
     tbm_surface_ = nullptr;
-  }
-  if (gpu_surface_) {
-    delete gpu_surface_;
-    gpu_surface_ = nullptr;
   }
 }
 
@@ -32,20 +51,19 @@ void BufferUnit::UseExternalBuffer() {
 void BufferUnit::SetExternalBuffer(tbm_surface_h tbm_surface) {
   if (use_external_buffer_) {
     tbm_surface_ = tbm_surface;
-    if (!gpu_surface_) {
-      LOG_ERROR("External buffer was set before the GPU surface was ready.");
-      return;
-    }
-    gpu_surface_->handle = tbm_surface_;
   }
 }
 
 bool BufferUnit::MarkInUse() {
   bool expected = false;
-  return is_used_.compare_exchange_strong(expected, true);
+  return release_state_->is_used.compare_exchange_strong(expected, true);
 }
 
-void BufferUnit::UnmarkInUse() { is_used_.store(false); }
+void BufferUnit::UnmarkInUse() { release_state_->is_used.store(false); }
+
+bool BufferUnit::IsUsed() {
+  return release_state_->is_used.load() && tbm_surface_;
+}
 
 tbm_surface_h BufferUnit::Surface() {
   if (IsUsed()) {
@@ -61,25 +79,30 @@ void BufferUnit::Reset(int32_t width, int32_t height) {
   width_ = width;
   height_ = height;
 
-  if (tbm_surface_) {
+  if (tbm_surface_ && !use_external_buffer_) {
     tbm_surface_destroy(tbm_surface_);
-    tbm_surface_ = nullptr;
   }
-  if (gpu_surface_) {
-    delete gpu_surface_;
-    gpu_surface_ = nullptr;
+  tbm_surface_ = nullptr;
+
+  if (!use_external_buffer_) {
+    tbm_surface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
+  }
+}
+
+FlutterDesktopGpuSurfaceDescriptor* BufferUnit::GpuSurface() {
+  if (!tbm_surface_) {
+    UnmarkInUse();
+    return nullptr;
   }
 
-  tbm_surface_ = tbm_surface_create(width_, height_, TBM_FORMAT_ARGB8888);
-  gpu_surface_ = new FlutterDesktopGpuSurfaceDescriptor();
-  gpu_surface_->width = width_;
-  gpu_surface_->height = height_;
-  gpu_surface_->handle = tbm_surface_;
-  gpu_surface_->release_callback = [](void* release_context) {
-    BufferUnit* buffer = reinterpret_cast<BufferUnit*>(release_context);
-    buffer->UnmarkInUse();
-  };
-  gpu_surface_->release_context = this;
+  auto context = new GpuSurfaceDescriptorContext();
+  context->release_state = release_state_;
+  context->descriptor.width = width_;
+  context->descriptor.height = height_;
+  context->descriptor.handle = tbm_surface_;
+  context->descriptor.release_callback = ReleaseGpuSurfaceDescriptor;
+  context->descriptor.release_context = context;
+  return &context->descriptor;
 }
 
 BufferPool::BufferPool(int32_t width, int32_t height, size_t pool_size) {
@@ -125,11 +148,15 @@ SingleBufferPool::~SingleBufferPool() {}
 BufferUnit* SingleBufferPool::GetAvailableBuffer() {
   std::lock_guard<std::mutex> lock(mutex_);
   BufferUnit* buffer = pool_[0].get();
-  buffer->MarkInUse();
-  return buffer;
+  if (buffer->MarkInUse()) {
+    return buffer;
+  }
+  return nullptr;
 }
 
-void SingleBufferPool::Release(BufferUnit* buffer) {}
+void SingleBufferPool::Release(BufferUnit* buffer) {
+  BufferPool::Release(buffer);
+}
 
 #ifndef NDEBUG
 #include <cairo.h>

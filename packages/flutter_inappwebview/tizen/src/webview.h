@@ -25,9 +25,11 @@
 typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
+typedef struct _Ecore_Evas Ecore_Evas;
 
 class BufferPool;
 class BufferUnit;
+struct WebViewLifetimeState;
 
 class WebView : public PlatformView {
  public:
@@ -37,6 +39,7 @@ class WebView : public PlatformView {
   ~WebView();
 
   virtual void Dispose() override;
+  bool IsInitialized() const { return initialized_; }
 
   virtual void Offset(double left, double top) override;
   virtual void Resize(double width, double height) override;
@@ -104,6 +107,7 @@ class WebView : public PlatformView {
                       double dy);
 
   Evas_Object* webview_instance_ = nullptr;
+  Ecore_Evas* ecore_evas_ = nullptr;
   flutter::TextureRegistrar* texture_registrar_;
   double width_ = 0.0;
   double height_ = 0.0;
@@ -118,6 +122,9 @@ class WebView : public PlatformView {
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;
+  std::shared_ptr<WebViewLifetimeState> lifetime_;
+  bool initialized_ = false;
+  bool texture_registered_ = false;
   bool disposed_ = false;
   Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
 
