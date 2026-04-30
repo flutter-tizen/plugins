@@ -377,6 +377,7 @@ void WebView::SendTouchEvent(int event_type, double x, double y) {
   EwkInternalApiBinding::GetInstance().view.FeedTouchEvent(
       webview_instance_, mouse_event_type, points, 0);
   eina_list_free(points);
+  delete point;
 }
 
 void WebView::SendMouseEvent(int event_type, int button_type, double x,
