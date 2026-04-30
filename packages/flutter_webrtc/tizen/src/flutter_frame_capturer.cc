@@ -26,26 +26,31 @@ void FlutterFrameCapturer::OnFrame(scoped_refptr<RTCVideoFrame> frame) {
 
   frame_ = frame.get()->Copy();
   catch_frame_ = true;
+  cv_.notify_one();
 }
 
 void FlutterFrameCapturer::CaptureFrame(
     std::unique_ptr<MethodResultProxy> result) {
-  mutex_.lock();
+  std::unique_lock<std::mutex> lock(mutex_);
   // Here init catch_frame_ flag
   catch_frame_ = false;
+  frame_ = nullptr;
 
   track_->AddRenderer(this);
-  // Here waiting for catch_frame_ is set to true
-  while (!catch_frame_) {
-  }
-  // Here unlock the mutex
-  mutex_.unlock();
 
-  mutex_.lock();
+  // Wait for frame with timeout (5 seconds)
+  bool timeout = !cv_.wait_for(lock, std::chrono::seconds(5),
+                               [this] { return catch_frame_.load(); });
+
   track_->RemoveRenderer(this);
 
+  if (timeout) {
+    std::shared_ptr<MethodResultProxy> result_ptr(result.release());
+    result_ptr->Error("2", "Frame capture timed out");
+    return;
+  }
+
   bool success = SaveFrame();
-  mutex_.unlock();
 
   std::shared_ptr<MethodResultProxy> result_ptr(result.release());
   if (success) {

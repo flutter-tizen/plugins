@@ -2,6 +2,7 @@
 #define FLUTTER_WEBRTC_RTC_FRAME_CAPTURER_HXX
 
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
 
 #include "flutter_common.h"
@@ -26,6 +27,7 @@ class FlutterFrameCapturer
   RTCVideoTrack* track_;
   std::string path_;
   std::mutex mutex_;
+  std::condition_variable cv_;
   scoped_refptr<RTCVideoFrame> frame_;
   std::atomic<bool> catch_frame_;
 
