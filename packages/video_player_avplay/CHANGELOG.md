@@ -1,6 +1,6 @@
 ## 0.8.9
 
-* [DASH] Fix seek freeze issue
+* [DASH] Fix seek freeze issue.
 
 ## 0.8.8
 
