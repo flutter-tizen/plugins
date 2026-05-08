@@ -1,3 +1,7 @@
+## 0.8.10
+
+* Update the way to call the `SetDisplay` API.
+
 ## 0.8.9
 
 * [DASH] Fix seek freeze issue.
