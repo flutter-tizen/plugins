@@ -120,6 +120,14 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
   }
 
   @override
+  Future<void> updateGroundOverlays(
+    GroundOverlayUpdates groundOverlayUpdates, {
+    required int mapId,
+  }) async {
+    _map(mapId).updateGroundOverlays(groundOverlayUpdates);
+  }
+
+  @override
   Future<void> clearTileCache(
     TileOverlayId tileOverlayId, {
     required int mapId,
@@ -300,11 +308,38 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     return _events(mapId).whereType<ClusterTapEvent>();
   }
 
+  @override
+  Stream<GroundOverlayTapEvent> onGroundOverlayTap({required int mapId}) {
+    return _events(mapId).whereType<GroundOverlayTapEvent>();
+  }
+
   /// Disposes of the current map. It can't be used afterwards!
   @override
   void dispose({required int mapId}) {
     _map(mapId).dispose();
     _mapById.remove(mapId);
+  }
+
+  @override
+  Widget buildViewWithConfiguration(
+    int creationId,
+    PlatformViewCreatedCallback onPlatformViewCreated, {
+    required MapWidgetConfiguration widgetConfiguration,
+    MapConfiguration mapConfiguration = const MapConfiguration(),
+    MapObjects mapObjects = const MapObjects(),
+  }) {
+    return _buildView(
+      creationId,
+      onPlatformViewCreated,
+      initialCameraPosition: widgetConfiguration.initialCameraPosition,
+      markers: mapObjects.markers,
+      polygons: mapObjects.polygons,
+      polylines: mapObjects.polylines,
+      circles: mapObjects.circles,
+      groundOverlays: mapObjects.groundOverlays,
+      gestureRecognizers: widgetConfiguration.gestureRecognizers,
+      mapOptions: _mapOptionsFromConfiguration(mapConfiguration),
+    );
   }
 
   @override
@@ -317,6 +352,32 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     Set<Polyline> polylines = const <Polyline>{},
     Set<Circle> circles = const <Circle>{},
     Set<TileOverlay> tileOverlays = const <TileOverlay>{},
+    Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers =
+        const <Factory<OneSequenceGestureRecognizer>>{},
+    Map<String, dynamic> mapOptions = const <String, dynamic>{},
+  }) {
+    return _buildView(
+      creationId,
+      onPlatformViewCreated,
+      initialCameraPosition: initialCameraPosition,
+      markers: markers,
+      polygons: polygons,
+      polylines: polylines,
+      circles: circles,
+      gestureRecognizers: gestureRecognizers,
+      mapOptions: mapOptions,
+    );
+  }
+
+  Widget _buildView(
+    int creationId,
+    PlatformViewCreatedCallback onPlatformViewCreated, {
+    required CameraPosition initialCameraPosition,
+    Set<Marker> markers = const <Marker>{},
+    Set<Polygon> polygons = const <Polygon>{},
+    Set<Polyline> polylines = const <Polyline>{},
+    Set<Circle> circles = const <Circle>{},
+    Set<GroundOverlay> groundOverlays = const <GroundOverlay>{},
     Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers =
         const <Factory<OneSequenceGestureRecognizer>>{},
     Map<String, dynamic> mapOptions = const <String, dynamic>{},
@@ -337,6 +398,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
       polygons: polygons,
       polylines: polylines,
       circles: circles,
+      groundOverlays: groundOverlays,
       mapOptions: mapOptions,
     )..init(); // Initialize the controller
 

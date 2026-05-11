@@ -709,6 +709,100 @@ class GMarkerClustererOptions {
   }
 }
 
+/// This class represents an image overlay drawn on the map and oriented
+/// against the Earth's surface.
+class GGroundOverlay {
+  /// GGroundOverlay Constructor.
+  GGroundOverlay([GGroundOverlayOptions? opts])
+      : id = _gid++,
+        _options = opts {
+    _createGroundOverlay(opts);
+  }
+
+  Future<void> _createGroundOverlay(GGroundOverlayOptions? opts) async {
+    final String url = opts?.url ?? "''";
+    final String bounds = opts?.bounds ?? '{}';
+    final String command =
+        'var ${toString()} = new google.maps.GroundOverlay($url, $bounds, $opts);'
+        ' ${toString()}.id = $id;';
+    await webController!.runJavaScript(command);
+  }
+
+  /// GGroundOverlay id.
+  final int id;
+  static int _gid = 0;
+  GGroundOverlayOptions? _options;
+
+  /// Caches GGroundOverlay's options.
+  GGroundOverlayOptions? get options => _options;
+
+  @override
+  String toString() {
+    return 'groundOverlay$id';
+  }
+
+  /// Sets map.
+  set map(Object? /*GMap?*/ map) => _setMap(map);
+
+  /// Sets ground overlay options.
+  ///
+  /// The JavaScript Maps GroundOverlay only exposes `setMap` and `setOpacity`,
+  /// so only [GGroundOverlayOptions.opacity] and [GGroundOverlayOptions.visible]
+  /// are reflected here. Changes to `url`, `bounds`, or `clickable` require a
+  /// new [GGroundOverlay] instance.
+  set options(GGroundOverlayOptions? options) {
+    if (_options == null || options == null) {
+      _options = options;
+      return;
+    }
+    if (_options!.opacity != options.opacity) {
+      _options!.opacity = options.opacity;
+      _setOpacity(options.opacity);
+    }
+    if (_options!.visible != options.visible) {
+      _options!.visible = options.visible;
+      _setMap(options.visible == false ? null : 'map');
+    }
+  }
+
+  Future<void> _setMap(Object? map) async {
+    await callMethod(this, 'setMap', <Object?>[map]);
+  }
+
+  Future<void> _setOpacity(num? opacity) async {
+    await callMethod(this, 'setOpacity', <num?>[opacity]);
+  }
+}
+
+/// This class defines GroundOverlay's options.
+class GGroundOverlayOptions {
+  /// GGroundOverlayOptions Constructor.
+  GGroundOverlayOptions();
+
+  /// The image URL passed to the JS GroundOverlay constructor, already quoted
+  /// as a JS string literal (e.g. `'data:image/png;base64,...'`).
+  String? url;
+
+  /// The bounds passed to the JS GroundOverlay constructor as a JS object
+  /// literal: `{south:.., west:.., north:.., east:..}`.
+  String? bounds;
+
+  /// Whether click events are handled.
+  bool? clickable;
+
+  /// Opacity (0.0 transparent through 1.0 opaque).
+  num? opacity;
+
+  /// Whether this ground overlay is visible on the map.
+  bool? visible;
+
+  @override
+  String toString() {
+    return '{clickable:$clickable, opacity:$opacity,'
+        ' map: ${visible == false ? 'null' : 'map'}}';
+  }
+}
+
 /// Returns webview controller instance
 WebViewController? webController;
 

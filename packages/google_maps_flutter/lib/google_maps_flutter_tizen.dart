@@ -26,6 +26,8 @@ part 'src/circles.dart';
 part 'src/convert.dart';
 part 'src/google_maps_controller.dart';
 part 'src/google_maps_flutter_tizen.dart';
+part 'src/ground_overlay.dart';
+part 'src/ground_overlays.dart';
 part 'src/marker.dart';
 part 'src/markers.dart';
 part 'src/marker_clustering.dart';
