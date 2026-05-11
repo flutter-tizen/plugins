@@ -68,10 +68,24 @@ class GroundOverlaysController extends GeometryController {
         _groundOverlayIdToController[groundOverlay.groundOverlayId];
     final util.GGroundOverlayOptions? options =
         _groundOverlayOptionsFromGroundOverlay(groundOverlay);
-    if (options == null) {
+    if (groundOverlayController == null || options == null) {
       return;
     }
-    groundOverlayController?.update(options);
+    // The JS Maps GroundOverlay only exposes setMap and setOpacity, so
+    // url, bounds, and clickable cannot be mutated in place. Recreate the
+    // overlay when any of these change so updates from updateGroundOverlays
+    // are not silently dropped.
+    final util.GGroundOverlayOptions? current =
+        groundOverlayController._groundOverlay?.options;
+    if (current == null ||
+        current.url != options.url ||
+        current.bounds != options.bounds ||
+        current.clickable != options.clickable) {
+      _removeGroundOverlay(groundOverlay.groundOverlayId);
+      _addGroundOverlay(groundOverlay);
+      return;
+    }
+    groundOverlayController.update(options);
   }
 
   /// Removes a set of [GroundOverlayId]s from the cache.
@@ -82,7 +96,10 @@ class GroundOverlaysController extends GeometryController {
   void _removeGroundOverlay(GroundOverlayId groundOverlayId) {
     final GroundOverlayController? groundOverlayController =
         _groundOverlayIdToController[groundOverlayId];
-    groundOverlayController?.remove();
+    if (groundOverlayController != null) {
+      _idToGroundOverlayId.remove(groundOverlayController._groundOverlay?.id);
+      groundOverlayController.remove();
+    }
     _groundOverlayIdToController.remove(groundOverlayId);
   }
 
