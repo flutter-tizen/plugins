@@ -1,3 +1,10 @@
+## 0.2.0
+
+* Update `google_sign_in_platform_interface` to 3.1.0.
+* Update the Tizen Device Flow implementation for the `google_sign_in` 7.2.0 API.
+* Add support for client authorization requests such as `authorizationForScopes`, `authorizeScopes`, and `authorizationHeaders` for Device Flow allowed scopes.
+* Update minimum Flutter and Dart versions to 3.29 and 3.7.
+
 ## 0.1.5
 
 * Update code format.

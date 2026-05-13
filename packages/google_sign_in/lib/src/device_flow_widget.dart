@@ -19,7 +19,10 @@ GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 /// Closes the widget that was shown from [showDeviceFlowWidget].
 void closeDeviceFlowWidget() {
-  navigatorKey.currentState!.pop();
+  final NavigatorState? navigator = navigatorKey.currentState;
+  if (navigator != null && navigator.canPop()) {
+    navigator.pop();
+  }
 }
 
 /// Displays a widget that shows [code] and [verificationUrl].
@@ -37,9 +40,7 @@ void showDeviceFlowWidget({
       final TextStyle bodyStyle = Theme.of(
         context,
       ).textTheme.bodyLarge!.copyWith(color: Colors.black);
-      final TextStyle titleStyle = Theme.of(context)
-          .textTheme
-          .titleLarge!
+      final TextStyle titleStyle = Theme.of(context).textTheme.titleLarge!
           .copyWith(color: Colors.black, fontWeight: FontWeight.bold);
 
       return AlertDialog(
@@ -77,7 +78,7 @@ void showDeviceFlowWidget({
             FittedBox(child: Text('Code will expire in:', style: bodyStyle)),
             const SizedBox(height: 5),
             _CountdownTimer(
-              const Duration(minutes: 30),
+              expiresIn,
               style: bodyStyle,
               onFinished: () {
                 onExpired?.call();
@@ -138,8 +139,10 @@ class _CountdownTimerState extends State<_CountdownTimer> {
   @override
   Widget build(BuildContext context) {
     final String minutes = _remaining.inMinutes.toString().padLeft(2, '0');
-    final String seconds =
-        _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final String seconds = _remaining.inSeconds
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
     return FittedBox(child: Text('$minutes:$seconds', style: widget.style));
   }
 

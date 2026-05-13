@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
 
@@ -22,14 +23,18 @@ class AuthorizationResponse {
 
   /// Creates a [AuthorizationResponse] from a json object.
   static AuthorizationResponse fromJson(Map<String, Object?> json) {
+    final String? verificationUrl =
+        json['verification_url'] as String? ??
+        json['verification_uri'] as String?;
     return AuthorizationResponse._(
       deviceCode: json['device_code']! as String,
       userCode: json['user_code']! as String,
-      verificationUrl: Uri.parse(json['verification_url']! as String),
+      verificationUrl: Uri.parse(verificationUrl!),
       expiresIn: Duration(seconds: json['expires_in']! as int),
-      interval: json['interval'] is int
-          ? Duration(seconds: json['interval']! as int)
-          : null,
+      interval:
+          json['interval'] is int
+              ? Duration(seconds: json['interval']! as int)
+              : null,
     );
   }
 
@@ -61,7 +66,7 @@ class TokenResponse {
     required this.expiresIn,
     this.refreshToken,
     List<String>? scope,
-    required this.idToken,
+    this.idToken,
   }) : scope = scope ?? <String>[];
 
   /// Creates a [TokenResponse] from a json object.
@@ -71,10 +76,11 @@ class TokenResponse {
       tokenType: json['token_type']! as String,
       expiresIn: Duration(seconds: json['expires_in']! as int),
       refreshToken: json['refresh_token'] as String?,
-      scope: json['scope'] is String
-          ? (json['scope']! as String).split(' ').toList()
-          : null,
-      idToken: json['id_token']! as String,
+      scope:
+          json['scope'] is String
+              ? (json['scope']! as String).split(' ').toList()
+              : null,
+      idToken: json['id_token'] as String?,
     );
   }
 
@@ -97,7 +103,7 @@ class TokenResponse {
 
   /// The token issued by the Google authorization server that holds Google
   /// account information.
-  final String idToken;
+  final String? idToken;
 }
 
 /// OAuth 2.0 client that handles Device Authorization Grant.
@@ -127,12 +133,19 @@ class DeviceAuthClient {
   final http.Client _httpClient;
 
   bool _isPolling = false;
+  Completer<void>? _pollCancellationCompleter;
 
   /// Checks whether polling started by by [pollToken] is in progress.
   bool get isPolling => _isPolling;
 
   /// Stops poll request started by [pollToken].
-  void cancelPollToken() => _isPolling = false;
+  void cancelPollToken() {
+    _isPolling = false;
+    final Completer<void>? cancellationCompleter = _pollCancellationCompleter;
+    if (cancellationCompleter != null && !cancellationCompleter.isCompleted) {
+      cancellationCompleter.complete();
+    }
+  }
 
   /// Requests authroization grant from [authorizationEndPoint].
   Future<AuthorizationResponse> requestAuthorization(
@@ -199,29 +212,59 @@ class DeviceAuthClient {
       );
     }
     _isPolling = true;
-    while (isPolling) {
-      try {
-        final TokenResponse tokenResponse = await Future<TokenResponse>.delayed(
-          interval,
-          () => requestToken(clientId, clientSecret, deviceCode),
-        );
-        _isPolling = false;
-        return tokenResponse;
-      } on AuthorizationException catch (e) {
-        // Subsequent requests MUST be increased by 5 seconds.
-        // See: https://datatracker.ietf.org/doc/html/rfc8628#section-3.5.
-        if (e.error == 'slow_down') {
-          interval = interval + const Duration(seconds: 5);
-        }
-        // The authorization request is still pending as the end user hasn't
-        // yet completed the user-interaction steps.
-        else if (e.error != 'authorization_pending') {
+    _pollCancellationCompleter = Completer<void>();
+    try {
+      while (isPolling) {
+        try {
+          await _waitForNextPoll(interval);
+          if (!isPolling) {
+            return null;
+          }
+
+          final TokenResponse tokenResponse = await _raceCancellation(
+            requestToken(clientId, clientSecret, deviceCode),
+          );
+          if (!isPolling) {
+            return null;
+          }
           _isPolling = false;
-          rethrow;
+          return tokenResponse;
+        } on _PollingCanceled {
+          return null;
+        } on AuthorizationException catch (e) {
+          // Subsequent requests MUST be increased by 5 seconds.
+          // See: https://datatracker.ietf.org/doc/html/rfc8628#section-3.5.
+          if (e.error == 'slow_down') {
+            interval = interval + const Duration(seconds: 5);
+          }
+          // The authorization request is still pending as the end user hasn't
+          // yet completed the user-interaction steps.
+          else if (e.error != 'authorization_pending') {
+            _isPolling = false;
+            rethrow;
+          }
         }
       }
+      return null;
+    } finally {
+      _isPolling = false;
+      _pollCancellationCompleter = null;
     }
-    return null;
+  }
+
+  Future<void> _waitForNextPoll(Duration interval) {
+    return _raceCancellation(Future<void>.delayed(interval));
+  }
+
+  Future<T> _raceCancellation<T>(Future<T> future) {
+    final Future<void>? cancellationFuture = _pollCancellationCompleter?.future;
+    if (cancellationFuture == null) {
+      return future;
+    }
+    return Future.any(<Future<T>>[
+      future,
+      cancellationFuture.then<T>((_) => throw const _PollingCanceled()),
+    ]);
   }
 
   /// Requests a revoke token request to [revokeEndPoint].
@@ -284,4 +327,8 @@ class DeviceAuthClient {
       );
     }
   }
+}
+
+class _PollingCanceled implements Exception {
+  const _PollingCanceled();
 }
