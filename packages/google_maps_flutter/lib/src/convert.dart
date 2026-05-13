@@ -16,6 +16,62 @@ Map<int, String> _mapTypeToMapTypeId = <int, String>{
   4: 'hybrid',
 };
 
+// Builds the raw map options map from a [MapConfiguration].
+//
+// This mirrors the platform interface's `jsonForMapConfiguration` helper
+// (which is not exported), plus [MapConfiguration.colorScheme].
+//
+// Intentionally omitted:
+// * `cloudMapId` — deprecated alias for `mapId`, which is already serialized.
+// * `markerType` — only relevant to advanced markers, which are not supported
+//   on Tizen.
+Map<String, dynamic> _mapOptionsFromConfiguration(MapConfiguration config) {
+  final EdgeInsets? padding = config.padding;
+  return <String, dynamic>{
+    if (config.compassEnabled != null) 'compassEnabled': config.compassEnabled,
+    if (config.mapToolbarEnabled != null)
+      'mapToolbarEnabled': config.mapToolbarEnabled,
+    if (config.cameraTargetBounds != null)
+      'cameraTargetBounds': config.cameraTargetBounds!.toJson(),
+    if (config.mapType != null) 'mapType': config.mapType!.index,
+    if (config.minMaxZoomPreference != null)
+      'minMaxZoomPreference': config.minMaxZoomPreference!.toJson(),
+    if (config.rotateGesturesEnabled != null)
+      'rotateGesturesEnabled': config.rotateGesturesEnabled,
+    if (config.scrollGesturesEnabled != null)
+      'scrollGesturesEnabled': config.scrollGesturesEnabled,
+    if (config.tiltGesturesEnabled != null)
+      'tiltGesturesEnabled': config.tiltGesturesEnabled,
+    if (config.zoomControlsEnabled != null)
+      'zoomControlsEnabled': config.zoomControlsEnabled,
+    if (config.zoomGesturesEnabled != null)
+      'zoomGesturesEnabled': config.zoomGesturesEnabled,
+    if (config.liteModeEnabled != null)
+      'liteModeEnabled': config.liteModeEnabled,
+    if (config.trackCameraPosition != null)
+      'trackCameraPosition': config.trackCameraPosition,
+    if (config.myLocationEnabled != null)
+      'myLocationEnabled': config.myLocationEnabled,
+    if (config.myLocationButtonEnabled != null)
+      'myLocationButtonEnabled': config.myLocationButtonEnabled,
+    if (padding != null)
+      'padding': <double>[
+        padding.top,
+        padding.left,
+        padding.bottom,
+        padding.right,
+      ],
+    if (config.indoorViewEnabled != null)
+      'indoorEnabled': config.indoorViewEnabled,
+    if (config.trafficEnabled != null) 'trafficEnabled': config.trafficEnabled,
+    if (config.buildingsEnabled != null)
+      'buildingsEnabled': config.buildingsEnabled,
+    if (config.mapId != null) 'mapId': config.mapId,
+    if (config.style != null) 'style': config.style,
+    if (config.colorScheme != null) 'colorScheme': config.colorScheme!.index,
+  };
+}
+
 String? _getCameraBounds(dynamic option) {
   if (option is! List<Object?> || option.first == null) {
     return null;
@@ -90,7 +146,31 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
     options += ", gestureHandling: 'auto'";
   }
 
+  final String? colorScheme = _colorSchemeToJs(rawOptions['colorScheme']);
+  if (colorScheme != null) {
+    options += ', colorScheme: $colorScheme';
+  }
+
   return options;
+}
+
+// Maps a serialized MapColorScheme value from the platform interface to the
+// JavaScript google.maps.ColorScheme enum.
+String? _colorSchemeToJs(Object? value) {
+  if (value is! int) {
+    return null;
+  }
+  // The platform interface serializes MapColorScheme as its enum index:
+  // 0 = light, 1 = dark, 2 = followSystem.
+  switch (value) {
+    case 0:
+      return 'google.maps.ColorScheme.LIGHT';
+    case 1:
+      return 'google.maps.ColorScheme.DARK';
+    case 2:
+      return 'google.maps.ColorScheme.FOLLOW_SYSTEM';
+  }
+  return null;
 }
 
 String _applyInitialPosition(CameraPosition initialPosition, String options) {
@@ -399,4 +479,57 @@ util.GCircleOptions _circleOptionsFromCircle(Circle circle) {
     ..radius = circle.radius
     ..visible = circle.visible
     ..zIndex = circle.zIndex;
+}
+
+util.GGroundOverlayOptions? _groundOverlayOptionsFromGroundOverlay(
+  GroundOverlay groundOverlay,
+) {
+  // The JS Maps GroundOverlay only supports bounds-based positioning. Skip
+  // position-only overlays — the platform interface allows the field but the
+  // JS API has no equivalent.
+  final LatLngBounds? bounds = groundOverlay.bounds;
+  if (bounds == null) {
+    debugPrint(
+      'GroundOverlay ${groundOverlay.groundOverlayId.value} skipped: '
+      'the Google Maps JavaScript API only supports bounds-based '
+      'ground overlays.',
+    );
+    return null;
+  }
+  final String? imageUrl = _imageUrlFromMapBitmap(groundOverlay.image);
+  if (imageUrl == null) {
+    debugPrint(
+      'GroundOverlay ${groundOverlay.groundOverlayId.value} skipped: '
+      'unsupported image source.',
+    );
+    return null;
+  }
+  return util.GGroundOverlayOptions()
+    ..url = "'$imageUrl'"
+    ..bounds = '{south:${bounds.southwest.latitude},'
+        ' west:${bounds.southwest.longitude},'
+        ' north:${bounds.northeast.latitude},'
+        ' east:${bounds.northeast.longitude}}'
+    ..clickable = groundOverlay.clickable
+    ..opacity = 1.0 - groundOverlay.transparency
+    ..visible = groundOverlay.visible;
+}
+
+String? _imageUrlFromMapBitmap(MapBitmap bitmap) {
+  final List<Object?> iconConfig = bitmap.toJson() as List<Object?>;
+  if (iconConfig.isEmpty) {
+    return null;
+  }
+  if (iconConfig[0] == 'asset' && iconConfig.length >= 2) {
+    final Map<String, Object?> assetConfig =
+        iconConfig[1]! as Map<String, Object?>;
+    return '../${assetConfig['assetName']}';
+  }
+  if (iconConfig[0] == 'bytes' && iconConfig.length >= 2) {
+    final Map<String, Object?> assetConfig =
+        iconConfig[1]! as Map<String, Object?>;
+    final List<int> bytes = assetConfig['byteData']! as List<int>;
+    return 'data:image/png;base64,${base64Encode(bytes)}';
+  }
+  return null;
 }

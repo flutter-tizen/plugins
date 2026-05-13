@@ -1,6 +1,11 @@
-## NEXT
+## 0.1.14
 
-* Update code format.
+* Update google_maps_flutter to 2.16.0.
+* Update google_maps_flutter_platform_interface to 2.15.0.
+* Add support for ground overlays (bounds-based) using
+  `google.maps.GroundOverlay`.
+* Forward the `colorScheme` map option to `google.maps.ColorScheme`.
+* * Update code format.
 
 ## 0.1.13
 
