@@ -10,6 +10,7 @@ class FlutterRTCDataChannelObserver : public RTCDataChannelObserver {
  public:
   FlutterRTCDataChannelObserver(scoped_refptr<RTCDataChannel> data_channel,
                                 BinaryMessenger* messenger,
+                                TaskRunner* task_runner,
                                 const std::string& channel_name);
   virtual ~FlutterRTCDataChannelObserver();
 
@@ -37,6 +38,9 @@ class FlutterDataChannel {
   void DataChannelSend(RTCDataChannel* data_channel, const std::string& type,
                        const EncodableValue& data,
                        std::unique_ptr<MethodResultProxy>);
+
+  void DataChannelGetBufferedAmount(RTCDataChannel* data_channel,
+                                    std::unique_ptr<MethodResultProxy> result);
 
   void DataChannelClose(RTCDataChannel* data_channel,
                         const std::string& data_channel_uuid,

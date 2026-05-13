@@ -1,6 +1,9 @@
 #ifndef LIB_WEBRTC_RTC_DESKTOP_DEVICE_HXX
 #define LIB_WEBRTC_RTC_DESKTOP_DEVICE_HXX
 
+#include <map>
+#include <string>
+
 #include "rtc_types.h"
 
 namespace libwebrtc {
@@ -12,7 +15,7 @@ class RTCDesktopMediaList;
 class RTCDesktopDevice : public RefCountInterface {
  public:
   virtual scoped_refptr<RTCDesktopCapturer> CreateDesktopCapturer(
-      scoped_refptr<MediaSource> source) = 0;
+      scoped_refptr<MediaSource> source, bool showCursor = true) = 0;
   virtual scoped_refptr<RTCDesktopMediaList> GetDesktopMediaList(
       DesktopType type) = 0;
 

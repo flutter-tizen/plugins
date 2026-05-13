@@ -20,6 +20,7 @@ class FlutterVideoRenderer
   ~FlutterVideoRenderer();
 
   void initialize(TextureRegistrar* registrar, BinaryMessenger* messenger,
+                  TaskRunner* task_runner,
                   std::unique_ptr<flutter::TextureVariant> texture,
                   int64_t texture_id);
 

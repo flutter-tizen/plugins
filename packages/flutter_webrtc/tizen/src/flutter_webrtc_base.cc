@@ -2,19 +2,24 @@
 
 #include "flutter_data_channel.h"
 #include "flutter_peerconnection.h"
+#include "helper.h"
 
 namespace flutter_webrtc_plugin {
 
 const char* kEventChannelName = "FlutterWebRTC.Event";
 
 FlutterWebRTCBase::FlutterWebRTCBase(BinaryMessenger* messenger,
-                                     TextureRegistrar* textures)
-    : messenger_(messenger), textures_(textures) {
+                                     TextureRegistrar* textures,
+                                     TaskRunner* task_runner)
+    : messenger_(messenger), task_runner_(task_runner), textures_(textures) {
   LibWebRTC::Initialize();
   factory_ = LibWebRTC::CreateRTCPeerConnectionFactory();
+  factory_->Initialize();
   audio_device_ = factory_->GetAudioDevice();
   video_device_ = factory_->GetVideoDevice();
-  event_channel_ = EventChannelProxy::Create(messenger_, kEventChannelName);
+  audio_processing_ = factory_->GetAudioProcessing();
+  event_channel_ =
+      EventChannelProxy::Create(messenger_, task_runner_, kEventChannelName);
 }
 
 FlutterWebRTCBase::~FlutterWebRTCBase() { LibWebRTC::Terminate(); }
@@ -24,7 +29,7 @@ EventChannelProxy* FlutterWebRTCBase::event_channel() {
 }
 
 std::string FlutterWebRTCBase::GenerateUUID() {
-  return uuidxx::uuid::Generate().ToString(false);
+  return libwebrtc::Helper::CreateRandomUuid().std_string();
 }
 
 RTCPeerConnection* FlutterWebRTCBase::PeerConnectionForId(
@@ -41,10 +46,11 @@ void FlutterWebRTCBase::RemovePeerConnectionForId(const std::string& id) {
   if (it != peerconnections_.end()) peerconnections_.erase(it);
 }
 
-RTCMediaTrack* FlutterWebRTCBase ::MediaTrackForId(const std::string& id) {
+scoped_refptr<RTCMediaTrack> FlutterWebRTCBase ::MediaTrackForId(
+    const std::string& id) {
   auto it = local_tracks_.find(id);
 
-  if (it != local_tracks_.end()) return (*it).second.get();
+  if (it != local_tracks_.end()) return (*it).second;
 
   for (auto kv : peerconnection_observers_) {
     auto pco = kv.second.get();
@@ -290,6 +296,11 @@ bool FlutterWebRTCBase::ParseRTCConfiguration(const EncodableMap& map,
     conf.sdp_semantics = SdpSemantics::kUnifiedPlan;
   }
 
+  it = map.find(EncodableValue("enableDscp"));
+  if (it != map.end() && TypeIs<bool>(it->second)) {
+    conf.enable_dscp = GetValue<bool>(it->second);
+  }
+
   // maxIPv6Networks
   it = map.find(EncodableValue("maxIPv6Networks"));
   if (it != map.end()) {
@@ -345,6 +356,15 @@ FlutterWebRTCBase::GetRtpReceiverById(RTCPeerConnection* pc, std::string id) {
     }
   }
   return result;
+}
+
+libwebrtc::scoped_refptr<libwebrtc::KeyProvider>
+FlutterWebRTCBase::GetKeyProviderForId(const std::string& keyProviderId) {
+  auto it = key_providers_.find(keyProviderId);
+  if (it != key_providers_.end()) {
+    return it->second;
+  }
+  return nullptr;
 }
 
 }  // namespace flutter_webrtc_plugin
