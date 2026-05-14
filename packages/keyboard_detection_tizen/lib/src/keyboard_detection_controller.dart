@@ -31,8 +31,8 @@ enum KeyboardState {
 /// A callback invoked when the keyboard state changes.
 ///
 /// Return `true` to keep receiving events, `false` to unregister automatically.
-typedef KeyboardDetectionCallback =
-    FutureOr<bool> Function(KeyboardState state);
+typedef KeyboardDetectionCallback = FutureOr<bool> Function(
+    KeyboardState state);
 
 /// Detects software keyboard visibility on Tizen by listening to the
 /// `tizen/internal/inputpanel` event channel exposed by the flutter-tizen
@@ -158,6 +158,11 @@ class KeyboardDetectionController {
       if (!_sizeLoaded.isCompleted) {
         _sizeLoaded.complete(true);
       }
+    } else if (state == 'hide') {
+      _width = 0;
+      _size = 0;
+      _x = 0;
+      _y = 0;
     }
 
     final KeyboardState next = switch (state) {
