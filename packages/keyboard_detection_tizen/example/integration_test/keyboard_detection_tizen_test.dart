@@ -86,10 +86,10 @@ void main() {
     await tester.pump();
     expect(controller.state, KeyboardState.hidden);
     expect(controller.stateAsBool(), isFalse);
-    // Geometry keeps the last visible value after hide.
-    expect(controller.size, 320);
-    expect(controller.width, 1280);
-    expect(controller.position.dy, 600);
+    // Geometry resets to zero once the keyboard is hidden.
+    expect(controller.size, 0);
+    expect(controller.width, 0);
+    expect(controller.position, Offset.zero);
 
     expect(seen, <KeyboardState>[
       KeyboardState.visibling,

@@ -70,7 +70,6 @@ class KeyboardDetectionController {
   final Completer<bool> _sizeLoaded = Completer<bool>();
 
   KeyboardState _state = KeyboardState.unknown;
-  bool? _stateAsBool;
   double _x = 0;
   double _y = 0;
   double _width = 0;
@@ -103,29 +102,17 @@ class KeyboardDetectionController {
   /// Returns the current visibility as a boolean.
   ///
   /// - `null` while the state is [KeyboardState.unknown].
-  /// - When [includeTransitionalState] is `false` (default), only
-  ///   [KeyboardState.visible] / [KeyboardState.hidden] update the result.
-  /// - When `true`, the transitional [KeyboardState.visibling] /
-  ///   [KeyboardState.hiding] states also update the result.
+  /// - When [includeTransitionalState] is `false` (default), the transitional
+  ///   [KeyboardState.visibling] / [KeyboardState.hiding] states are mapped to
+  ///   their stable counterpart so the value does not depend on prior calls.
   bool? stateAsBool([bool includeTransitionalState = false]) {
-    if (_state == KeyboardState.unknown) {
-      _stateAsBool = null;
-    }
-    if (includeTransitionalState) {
-      if (_state == KeyboardState.visibling) {
-        _stateAsBool = true;
-      }
-      if (_state == KeyboardState.hiding) {
-        _stateAsBool = false;
-      }
-    }
-    if (_state == KeyboardState.visible) {
-      _stateAsBool = true;
-    }
-    if (_state == KeyboardState.hidden) {
-      _stateAsBool = false;
-    }
-    return _stateAsBool;
+    return switch (_state) {
+      KeyboardState.unknown => null,
+      KeyboardState.visibling => includeTransitionalState,
+      KeyboardState.visible => true,
+      KeyboardState.hiding => !includeTransitionalState,
+      KeyboardState.hidden => false,
+    };
   }
 
   /// Registers a callback to be invoked on every keyboard state change.
@@ -160,27 +147,26 @@ class KeyboardDetectionController {
     if (state is! String) {
       return;
     }
-    _width = _readNumber(event['width']) ?? 0;
-    _size = _readNumber(event['height']) ?? 0;
-    _x = _readNumber(event['x']) ?? 0;
-    _y = _readNumber(event['y']) ?? 0;
-    if (!_sizeLoaded.isCompleted) {
-      _sizeLoaded.complete(true);
+
+    final double? width = _readNumber(event['width']);
+    final double? height = _readNumber(event['height']);
+    if (width != null && height != null && width > 0 && height > 0) {
+      _width = width;
+      _size = height;
+      _x = _readNumber(event['x']) ?? 0;
+      _y = _readNumber(event['y']) ?? 0;
+      if (!_sizeLoaded.isCompleted) {
+        _sizeLoaded.complete(true);
+      }
     }
 
-    KeyboardState next;
-    switch (state) {
-      case 'will_show':
-        next = KeyboardState.visibling;
-      case 'show':
-        next = KeyboardState.visible;
-      case 'will_hide':
-        next = KeyboardState.hiding;
-      case 'hide':
-        next = KeyboardState.hidden;
-      default:
-        next = KeyboardState.unknown;
-    }
+    final KeyboardState next = switch (state) {
+      'will_show' => KeyboardState.visibling,
+      'show' => KeyboardState.visible,
+      'will_hide' => KeyboardState.hiding,
+      'hide' => KeyboardState.hidden,
+      _ => KeyboardState.unknown,
+    };
     _setState(next);
   }
 
@@ -201,17 +187,18 @@ class KeyboardDetectionController {
   }
 
   Future<void> _executeCallbacks(KeyboardState state) async {
-    final List<MapEntry<KeyboardDetectionCallback, bool>> entries = _callbacks
-        .entries
-        .where((MapEntry<KeyboardDetectionCallback, bool> e) {
-          return e.value;
-        })
-        .toList();
-    await Future.wait<void>(
-      entries.map((MapEntry<KeyboardDetectionCallback, bool> e) async {
-        _callbacks[e.key] = await e.key(state);
-      }),
-    );
-    _callbacks.removeWhere((KeyboardDetectionCallback _, bool keep) => !keep);
+    final List<KeyboardDetectionCallback> targets = _callbacks.keys.toList();
+    for (final KeyboardDetectionCallback callback in targets) {
+      if (!_callbacks.containsKey(callback)) {
+        continue;
+      }
+      final bool keep = await callback(state);
+      if (!_callbacks.containsKey(callback)) {
+        continue;
+      }
+      if (!keep) {
+        _callbacks.remove(callback);
+      }
+    }
   }
 }
