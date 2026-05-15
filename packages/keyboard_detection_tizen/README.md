@@ -10,8 +10,11 @@ listens to the `tizen/internal/inputpanel` event channel exposed by the
 flutter-tizen embedder instead, and reads the keyboard geometry (height,
 width, position) from the same channel.
 
-Requires a flutter-tizen embedder that publishes geometry alongside the
-state on the `tizen/internal/inputpanel` channel.
+> **Warning**
+> Requires flutter-tizen `3.41.9-tizen.1.0.0` or later. Earlier versions
+> of the embedder do not publish geometry on the
+> `tizen/internal/inputpanel` channel, so the controller will stay in
+> `KeyboardState.unknown`.
 
 ## Usage
 
