@@ -12,86 +12,86 @@ Every plugin in this repo is written in either C++, C#, or Dart. For how to writ
 
 The _"non-endorsed"_ status means that the plugin is not endorsed by the original author. In such case, you must set both `foobar` and `foobar_tizen` package dependencies in `pubspec.yaml` file to achieve full functionality.
 
-| Tizen package | Frontend package | Pub | Endorsed |
-|-|-|:-:|:-:|
-| [**audioplayers_tizen**](packages/audioplayers) | [audioplayers](https://pub.dev/packages/audioplayers) (3rd-party) | [![pub package](https://img.shields.io/pub/v/audioplayers_tizen.svg)](https://pub.dev/packages/audioplayers_tizen) | No |
-| [**connectivity_plus_tizen**](packages/connectivity_plus) | [connectivity_plus](https://pub.dev/packages/connectivity_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/connectivity_plus_tizen.svg)](https://pub.dev/packages/connectivity_plus_tizen) | No |
-| [**device_info_plus_tizen**](packages/device_info_plus) | [device_info_plus](https://pub.dev/packages/device_info_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/device_info_plus_tizen.svg)](https://pub.dev/packages/device_info_plus_tizen) | No |
-| [**firebase_core_tizen**](packages/firebase_core) | [firebase_core](https://pub.dev/packages/firebase_core) | [![pub package](https://img.shields.io/pub/v/firebase_core_tizen.svg)](https://pub.dev/packages/firebase_core_tizen) | No |
-| [**flutter_inappwebview_tizen**](packages/flutter_inappwebview_tizen) | [flutter_inappwebview](https://pub.dev/packages/flutter_inappwebview) | [![pub package](https://img.shields.io/pub/v/flutter_inappwebview_tizen.svg)](https://pub.dev/packages/flutter_inappwebview_tizen) | No |
-| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_secure_storage_tizen.svg)](https://pub.dev/packages/flutter_secure_storage_tizen) | No |
-| [**flutter_tts_tizen**](packages/flutter_tts) | [flutter_tts](https://pub.dev/packages/flutter_tts) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen) | No |
-| [**flutter_webrtc_tizen**](packages/flutter_webrtc) | [flutter_webrtc](https://pub.dev/packages/flutter_webrtc) (3rd-party) | [![pub package](https://img.shields.io/pub/v/flutter_webrtc_tizen.svg)](https://pub.dev/packages/flutter_webrtc_tizen) | No |
-| [**geolocator_tizen**](packages/geolocator) | [geolocator](https://pub.dev/packages/geolocator) (3rd-party) | [![pub package](https://img.shields.io/pub/v/geolocator_tizen.svg)](https://pub.dev/packages/geolocator_tizen) | No |
-| [**google_maps_flutter_tizen**](packages/google_maps_flutter) | [google_maps_flutter](https://pub.dev/packages/google_maps_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/google_maps_flutter_tizen.svg)](https://pub.dev/packages/google_maps_flutter_tizen) | No |
-| [**google_sign_in_tizen**](packages/google_sign_in) | [google_sign_in](https://pub.dev/packages/google_sign_in) (1st-party) | [![pub package](https://img.shields.io/pub/v/google_sign_in_tizen.svg)](https://pub.dev/packages/google_sign_in_tizen) | No |
-| [**in_app_purchase_tizen**](packages/in_app_purchase) | [in_app_purchase](https://pub.dev/packages/in_app_purchase) (1st-party) | [![pub package](https://img.shields.io/pub/v/in_app_purchase_tizen.svg)](https://pub.dev/packages/in_app_purchase_tizen) | No |
-| [**integration_test_tizen**](packages/integration_test) | [integration_test](https://github.com/flutter/flutter/tree/main/packages/integration_test) (1st-party) | [![pub package](https://img.shields.io/pub/v/integration_test_tizen.svg)](https://pub.dev/packages/integration_test_tizen) | No |
-| [**keyboard_detection_tizen**](packages/keyboard_detection_tizen) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/keyboard_detection_tizen.svg)](https://pub.dev/packages/keyboard_detection_tizen) | N/A |
-| [**messageport_tizen**](packages/messageport) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/messageport_tizen.svg)](https://pub.dev/packages/messageport_tizen) | N/A |
-| [**network_info_plus_tizen**](packages/network_info_plus) | [network_info_plus](https://pub.dev/packages/network_info_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/network_info_plus_tizen.svg)](https://pub.dev/packages/network_info_plus_tizen) | No |
-| [**package_info_plus_tizen**](packages/package_info_plus) | [package_info_plus](https://pub.dev/packages/package_info_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/package_info_plus_tizen.svg)](https://pub.dev/packages/package_info_plus_tizen) | No |
-| [**path_provider_tizen**](packages/path_provider) | [path_provider](https://pub.dev/packages/path_provider) (1st-party) | [![pub package](https://img.shields.io/pub/v/path_provider_tizen.svg)](https://pub.dev/packages/path_provider_tizen) | No |
-| [**permission_handler_tizen**](packages/permission_handler) | [permission_handler](https://pub.dev/packages/permission_handler) (3rd-party) | [![pub package](https://img.shields.io/pub/v/permission_handler_tizen.svg)](https://pub.dev/packages/permission_handler_tizen) | No |
-| [**shared_preferences_tizen**](packages/shared_preferences) | [shared_preferences](https://pub.dev/packages/shared_preferences) (1st-party) | [![pub package](https://img.shields.io/pub/v/shared_preferences_tizen.svg)](https://pub.dev/packages/shared_preferences_tizen) | No |
-| [**sqflite_tizen**](packages/sqflite) | [sqflite](https://pub.dev/packages/sqflite) (3rd-party) | [![pub package](https://img.shields.io/pub/v/sqflite_tizen.svg)](https://pub.dev/packages/sqflite_tizen) | No |
-| [**tizen_app_control**](packages/tizen_app_control) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_app_control.svg)](https://pub.dev/packages/tizen_app_control) | N/A |
-| [**tizen_app_manager**](packages/tizen_app_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_app_manager.svg)](https://pub.dev/packages/tizen_app_manager) | N/A |
-| [**tizen_audio_manager**](packages/tizen_audio_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_audio_manager.svg)](https://pub.dev/packages/tizen_audio_manager) | N/A |
-| [**tizen_bundle**](packages/tizen_bundle) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_bundle.svg)](https://pub.dev/packages/tizen_bundle) | N/A |
-| [**tizen_log**](packages/tizen_log) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_log.svg)](https://pub.dev/packages/tizen_log) | N/A |
-| [**tizen_notification**](packages/tizen_notification) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_notification.svg)](https://pub.dev/packages/tizen_notification) | N/A |
-| [**tizen_package_manager**](packages/tizen_package_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_package_manager.svg)](https://pub.dev/packages/tizen_package_manager) | N/A |
-| [**tizen_rpc_port**](packages/tizen_rpc_port) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_rpc_port.svg)](https://pub.dev/packages/tizen_rpc_port) | N/A |
-| [**tizen_window_manager**](packages/tizen_window_manager) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/tizen_window_manager.svg)](https://pub.dev/packages/tizen_window_manager) | N/A |
-| [**url_launcher_tizen**](packages/url_launcher) | [url_launcher](https://pub.dev/packages/url_launcher) (1st-party) | [![pub package](https://img.shields.io/pub/v/url_launcher_tizen.svg)](https://pub.dev/packages/url_launcher_tizen) | No |
-| [**video_player_avplay**](packages/video_player_avplay) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/video_player_avplay.svg)](https://pub.dev/packages/video_player_avplay) | N/A |
-| [**video_player_tizen**](packages/video_player) | [video_player](https://pub.dev/packages/video_player) (1st-party) | [![pub package](https://img.shields.io/pub/v/video_player_tizen.svg)](https://pub.dev/packages/video_player_tizen) | No |
-| [**video_player_videohole**](packages/video_player_videohole) | (Tizen-only) | [![pub package](https://img.shields.io/pub/v/video_player_videohole.svg)](https://pub.dev/packages/video_player_videohole) | N/A |
-| [**wakelock_plus_tizen**](packages/wakelock_plus) | [wakelock_plus](https://pub.dev/packages/wakelock_plus) (1st-party) | [![pub package](https://img.shields.io/pub/v/wakelock_plus_tizen.svg)](https://pub.dev/packages/wakelock_plus_tizen) | No |
-| [**webview_flutter_lwe**](packages/webview_flutter_lwe) | [webview_flutter](https://pub.dev/packages/webview_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/webview_flutter_lwe.svg)](https://pub.dev/packages/webview_flutter_lwe) | No |
-| [**webview_flutter_tizen**](packages/webview_flutter) | [webview_flutter](https://pub.dev/packages/webview_flutter) (1st-party) | [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen) | No |
+| Tizen package                                                       | Frontend package                                                                                       |                                                                  Pub                                                                   | Endorsed |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------: | :------: |
+| [**audioplayers_tizen**](packages/audioplayers)                     | [audioplayers](https://pub.dev/packages/audioplayers) (3rd-party)                                      |           [![pub package](https://img.shields.io/pub/v/audioplayers_tizen.svg)](https://pub.dev/packages/audioplayers_tizen)           |    No    |
+| [**connectivity_plus_tizen**](packages/connectivity_plus)           | [connectivity_plus](https://pub.dev/packages/connectivity_plus) (1st-party)                            |      [![pub package](https://img.shields.io/pub/v/connectivity_plus_tizen.svg)](https://pub.dev/packages/connectivity_plus_tizen)      |    No    |
+| [**device_info_plus_tizen**](packages/device_info_plus)             | [device_info_plus](https://pub.dev/packages/device_info_plus) (1st-party)                              |       [![pub package](https://img.shields.io/pub/v/device_info_plus_tizen.svg)](https://pub.dev/packages/device_info_plus_tizen)       |    No    |
+| [**firebase_core_tizen**](packages/firebase_core)                   | [firebase_core](https://pub.dev/packages/firebase_core)                                                |          [![pub package](https://img.shields.io/pub/v/firebase_core_tizen.svg)](https://pub.dev/packages/firebase_core_tizen)          |    No    |
+| [**flutter_inappwebview_tizen**](packages/flutter_inappwebview)     | [flutter_inappwebview](https://pub.dev/packages/flutter_inappwebview)                                  |   [![pub package](https://img.shields.io/pub/v/flutter_inappwebview_tizen.svg)](https://pub.dev/packages/flutter_inappwebview_tizen)   |    No    |
+| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | [flutter_secure_storage](https://pub.dev/packages/flutter_secure_storage) (3rd-party)                  | [![pub package](https://img.shields.io/pub/v/flutter_secure_storage_tizen.svg)](https://pub.dev/packages/flutter_secure_storage_tizen) |    No    |
+| [**flutter_tts_tizen**](packages/flutter_tts)                       | [flutter_tts](https://pub.dev/packages/flutter_tts) (3rd-party)                                        |            [![pub package](https://img.shields.io/pub/v/flutter_tts_tizen.svg)](https://pub.dev/packages/flutter_tts_tizen)            |    No    |
+| [**flutter_webrtc_tizen**](packages/flutter_webrtc)                 | [flutter_webrtc](https://pub.dev/packages/flutter_webrtc) (3rd-party)                                  |         [![pub package](https://img.shields.io/pub/v/flutter_webrtc_tizen.svg)](https://pub.dev/packages/flutter_webrtc_tizen)         |    No    |
+| [**geolocator_tizen**](packages/geolocator)                         | [geolocator](https://pub.dev/packages/geolocator) (3rd-party)                                          |             [![pub package](https://img.shields.io/pub/v/geolocator_tizen.svg)](https://pub.dev/packages/geolocator_tizen)             |    No    |
+| [**google_maps_flutter_tizen**](packages/google_maps_flutter)       | [google_maps_flutter](https://pub.dev/packages/google_maps_flutter) (1st-party)                        |    [![pub package](https://img.shields.io/pub/v/google_maps_flutter_tizen.svg)](https://pub.dev/packages/google_maps_flutter_tizen)    |    No    |
+| [**google_sign_in_tizen**](packages/google_sign_in)                 | [google_sign_in](https://pub.dev/packages/google_sign_in) (1st-party)                                  |         [![pub package](https://img.shields.io/pub/v/google_sign_in_tizen.svg)](https://pub.dev/packages/google_sign_in_tizen)         |    No    |
+| [**in_app_purchase_tizen**](packages/in_app_purchase)               | [in_app_purchase](https://pub.dev/packages/in_app_purchase) (1st-party)                                |        [![pub package](https://img.shields.io/pub/v/in_app_purchase_tizen.svg)](https://pub.dev/packages/in_app_purchase_tizen)        |    No    |
+| [**integration_test_tizen**](packages/integration_test)             | [integration_test](https://github.com/flutter/flutter/tree/main/packages/integration_test) (1st-party) |       [![pub package](https://img.shields.io/pub/v/integration_test_tizen.svg)](https://pub.dev/packages/integration_test_tizen)       |    No    |
+| [**keyboard_detection_tizen**](packages/keyboard_detection_tizen)   | (Tizen-only)                                                                                           |     [![pub package](https://img.shields.io/pub/v/keyboard_detection_tizen.svg)](https://pub.dev/packages/keyboard_detection_tizen)     |   N/A    |
+| [**messageport_tizen**](packages/messageport)                       | (Tizen-only)                                                                                           |            [![pub package](https://img.shields.io/pub/v/messageport_tizen.svg)](https://pub.dev/packages/messageport_tizen)            |   N/A    |
+| [**network_info_plus_tizen**](packages/network_info_plus)           | [network_info_plus](https://pub.dev/packages/network_info_plus) (1st-party)                            |      [![pub package](https://img.shields.io/pub/v/network_info_plus_tizen.svg)](https://pub.dev/packages/network_info_plus_tizen)      |    No    |
+| [**package_info_plus_tizen**](packages/package_info_plus)           | [package_info_plus](https://pub.dev/packages/package_info_plus) (1st-party)                            |      [![pub package](https://img.shields.io/pub/v/package_info_plus_tizen.svg)](https://pub.dev/packages/package_info_plus_tizen)      |    No    |
+| [**path_provider_tizen**](packages/path_provider)                   | [path_provider](https://pub.dev/packages/path_provider) (1st-party)                                    |          [![pub package](https://img.shields.io/pub/v/path_provider_tizen.svg)](https://pub.dev/packages/path_provider_tizen)          |    No    |
+| [**permission_handler_tizen**](packages/permission_handler)         | [permission_handler](https://pub.dev/packages/permission_handler) (3rd-party)                          |     [![pub package](https://img.shields.io/pub/v/permission_handler_tizen.svg)](https://pub.dev/packages/permission_handler_tizen)     |    No    |
+| [**shared_preferences_tizen**](packages/shared_preferences)         | [shared_preferences](https://pub.dev/packages/shared_preferences) (1st-party)                          |     [![pub package](https://img.shields.io/pub/v/shared_preferences_tizen.svg)](https://pub.dev/packages/shared_preferences_tizen)     |    No    |
+| [**sqflite_tizen**](packages/sqflite)                               | [sqflite](https://pub.dev/packages/sqflite) (3rd-party)                                                |                [![pub package](https://img.shields.io/pub/v/sqflite_tizen.svg)](https://pub.dev/packages/sqflite_tizen)                |    No    |
+| [**tizen_app_control**](packages/tizen_app_control)                 | (Tizen-only)                                                                                           |            [![pub package](https://img.shields.io/pub/v/tizen_app_control.svg)](https://pub.dev/packages/tizen_app_control)            |   N/A    |
+| [**tizen_app_manager**](packages/tizen_app_manager)                 | (Tizen-only)                                                                                           |            [![pub package](https://img.shields.io/pub/v/tizen_app_manager.svg)](https://pub.dev/packages/tizen_app_manager)            |   N/A    |
+| [**tizen_audio_manager**](packages/tizen_audio_manager)             | (Tizen-only)                                                                                           |          [![pub package](https://img.shields.io/pub/v/tizen_audio_manager.svg)](https://pub.dev/packages/tizen_audio_manager)          |   N/A    |
+| [**tizen_bundle**](packages/tizen_bundle)                           | (Tizen-only)                                                                                           |                 [![pub package](https://img.shields.io/pub/v/tizen_bundle.svg)](https://pub.dev/packages/tizen_bundle)                 |   N/A    |
+| [**tizen_log**](packages/tizen_log)                                 | (Tizen-only)                                                                                           |                    [![pub package](https://img.shields.io/pub/v/tizen_log.svg)](https://pub.dev/packages/tizen_log)                    |   N/A    |
+| [**tizen_notification**](packages/tizen_notification)               | (Tizen-only)                                                                                           |           [![pub package](https://img.shields.io/pub/v/tizen_notification.svg)](https://pub.dev/packages/tizen_notification)           |   N/A    |
+| [**tizen_package_manager**](packages/tizen_package_manager)         | (Tizen-only)                                                                                           |        [![pub package](https://img.shields.io/pub/v/tizen_package_manager.svg)](https://pub.dev/packages/tizen_package_manager)        |   N/A    |
+| [**tizen_rpc_port**](packages/tizen_rpc_port)                       | (Tizen-only)                                                                                           |               [![pub package](https://img.shields.io/pub/v/tizen_rpc_port.svg)](https://pub.dev/packages/tizen_rpc_port)               |   N/A    |
+| [**tizen_window_manager**](packages/tizen_window_manager)           | (Tizen-only)                                                                                           |         [![pub package](https://img.shields.io/pub/v/tizen_window_manager.svg)](https://pub.dev/packages/tizen_window_manager)         |   N/A    |
+| [**url_launcher_tizen**](packages/url_launcher)                     | [url_launcher](https://pub.dev/packages/url_launcher) (1st-party)                                      |           [![pub package](https://img.shields.io/pub/v/url_launcher_tizen.svg)](https://pub.dev/packages/url_launcher_tizen)           |    No    |
+| [**video_player_avplay**](packages/video_player_avplay)             | (Tizen-only)                                                                                           |          [![pub package](https://img.shields.io/pub/v/video_player_avplay.svg)](https://pub.dev/packages/video_player_avplay)          |   N/A    |
+| [**video_player_tizen**](packages/video_player)                     | [video_player](https://pub.dev/packages/video_player) (1st-party)                                      |           [![pub package](https://img.shields.io/pub/v/video_player_tizen.svg)](https://pub.dev/packages/video_player_tizen)           |    No    |
+| [**video_player_videohole**](packages/video_player_videohole)       | (Tizen-only)                                                                                           |       [![pub package](https://img.shields.io/pub/v/video_player_videohole.svg)](https://pub.dev/packages/video_player_videohole)       |   N/A    |
+| [**wakelock_plus_tizen**](packages/wakelock_plus)                   | [wakelock_plus](https://pub.dev/packages/wakelock_plus) (1st-party)                                    |          [![pub package](https://img.shields.io/pub/v/wakelock_plus_tizen.svg)](https://pub.dev/packages/wakelock_plus_tizen)          |    No    |
+| [**webview_flutter_lwe**](packages/webview_flutter_lwe)             | [webview_flutter](https://pub.dev/packages/webview_flutter) (1st-party)                                |          [![pub package](https://img.shields.io/pub/v/webview_flutter_lwe.svg)](https://pub.dev/packages/webview_flutter_lwe)          |    No    |
+| [**webview_flutter_tizen**](packages/webview_flutter)               | [webview_flutter](https://pub.dev/packages/webview_flutter) (1st-party)                                |        [![pub package](https://img.shields.io/pub/v/webview_flutter_tizen.svg)](https://pub.dev/packages/webview_flutter_tizen)        |    No    |
 
 ## Device limitations
 
-| Package name | TV | TV<br>emulator | RPI | Remarks |
-|-|:-:|:-:|:-:|-|
-| [**audioplayers_tizen**](packages/audioplayers) | ✔️ | ✔️ | ✔️ |
-| [**connectivity_plus_tizen**](packages/connectivity_plus) | ✔️ | ✔️ | ✔️ | Returns incorrect connection status |
-| [**device_info_plus_tizen**](packages/device_info_plus) | ✔️ | ✔️ | ✔️ |
-| [**firebase_core**](packages/firebase_core) | ✔️ | ✔️ | ✔️ |
-| [**flutter_inappwebview_tizen**](packages/flutter_inappwebview_tizen) | ✔️ | ✔️ | ✔️ |
-| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) | ✔️ | ✔️ | ✔️ |
-| [**flutter_tts_tizen**](packages/flutter_tts) | ✔️ | ✔️ | ✔️ |
-| [**flutter_webrtc_tizen**](packages/flutter_webrtc) | ✔️ | ❌ | ❌ | No camera |
-| [**geolocator_tizen**](packages/geolocator) | ❌ | ❌ | ✔️ | Not applicable for TV |
-| [**google_maps_flutter_tizen**](packages/google_maps_flutter) | ✔️ | ✔️ | ✔️ |
-| [**google_sign_in_tizen**](packages/google_sign_in) | ✔️ | ✔️ | ✔️ |
-| [**in_app_purchase_tizen**](packages/in_app_purchase) | ✔️ | ❌ | ❌ | Only applicable for TV |
-| [**integration_test_tizen**](packages/integration_test) | ✔️ | ✔️ | ✔️ |
-| [**keyboard_detection_tizen**](packages/keyboard_detection_tizen) | ✔️ | ✔️ | ✔️ |
-| [**messageport_tizen**](packages/messageport) | ✔️ | ✔️ | ✔️ |
-| [**network_info_plus_tizen**](packages/network_info_plus) | ✔️ | ❌ | ✔️ | API not supported on emulator. Need plugin-prebuilt to run wifi on RPI. |
-| [**package_info_plus_tizen**](packages/package_info_plus) | ✔️ | ✔️ | ✔️ |
-| [**path_provider_tizen**](packages/path_provider) | ✔️ | ✔️ | ✔️ |
-| [**permission_handler_tizen**](packages/permission_handler) | ⚠️ | ⚠️ | ✔️ | Not applicable for TV |
-| [**shared_preferences_tizen**](packages/shared_preferences) | ✔️ | ✔️ | ✔️ |
-| [**sqflite_tizen**](packages/sqflite) | ✔️ | ✔️ | ✔️ |
-| [**tizen_app_control**](packages/tizen_app_control) | ✔️ | ✔️ | ✔️ |
-| [**tizen_app_manager**](packages/tizen_app_manager) | ✔️ | ✔️ | ✔️ |
-| [**tizen_audio_manager**](packages/tizen_audio_manager) | ✔️ | ✔️ | ✔️ |
-| [**tizen_bundle**](packages/tizen_bundle) | ✔️ | ✔️ | ✔️ |
-| [**tizen_log**](packages/tizen_log) | ❌ | ❌ | ✔️ | Not applicable for TV |
-| [**tizen_notification**](packages/tizen_notification) | ✔️ | ✔️ | ❌ | API not supported |
-| [**tizen_package_manager**](packages/tizen_package_manager) | ✔️ | ✔️ | ✔️ |
-| [**tizen_rpc_port**](packages/tizen_rpc_port) | ✔️ | ✔️ | ✔️ |
-| [**tizen_window_manager**](packages/tizen_window_manager) | ✔️ | ✔️ | ✔️ |
-| [**url_launcher_tizen**](packages/url_launcher) | ✔️ | ❌ | ❌ | No browser app |
-| [**video_player_avplay**](packages/video_player_avplay) | ✔️ | ❌ | ❌ | See README for details |
-| [**video_player_tizen**](packages/video_player) | ✔️ | ❌ | ✔️ | TV emulator issue |
-| [**video_player_videohole**](packages/video_player_videohole) | ✔️ | ❌ | ⚠️ | See README for details |
-| [**wakelock_plus_tizen**](packages/wakelock_plus) | ✔️ | ✔️ | ❌ | Only applicable for TV |
-| [**webview_flutter_lwe**](packages/webview_flutter_lwe) | ✔️ | ✔️ | ✔️ | Not for production use |
-| [**webview_flutter_tizen**](packages/webview_flutter) | ✔️ | ✔️ | ✔️ | API not supported |
+| Package name                                                        |  TV   | TV<br>emulator |  RPI  | Remarks                                                                 |
+| ------------------------------------------------------------------- | :---: | :------------: | :---: | ----------------------------------------------------------------------- |
+| [**audioplayers_tizen**](packages/audioplayers)                     |   ✔️   |       ✔️        |   ✔️   |
+| [**connectivity_plus_tizen**](packages/connectivity_plus)           |   ✔️   |       ✔️        |   ✔️   | Returns incorrect connection status                                     |
+| [**device_info_plus_tizen**](packages/device_info_plus)             |   ✔️   |       ✔️        |   ✔️   |
+| [**firebase_core**](packages/firebase_core)                         |   ✔️   |       ✔️        |   ✔️   |
+| [**flutter_inappwebview_tizen**](packages/flutter_inappwebview)     |   ✔️   |       ✔️        |   ✔️   |
+| [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) |   ✔️   |       ✔️        |   ✔️   |
+| [**flutter_tts_tizen**](packages/flutter_tts)                       |   ✔️   |       ✔️        |   ✔️   |
+| [**flutter_webrtc_tizen**](packages/flutter_webrtc)                 |   ✔️   |       ❌        |   ❌   | No camera                                                               |
+| [**geolocator_tizen**](packages/geolocator)                         |   ❌   |       ❌        |   ✔️   | Not applicable for TV                                                   |
+| [**google_maps_flutter_tizen**](packages/google_maps_flutter)       |   ✔️   |       ✔️        |   ✔️   |
+| [**google_sign_in_tizen**](packages/google_sign_in)                 |   ✔️   |       ✔️        |   ✔️   |
+| [**in_app_purchase_tizen**](packages/in_app_purchase)               |   ✔️   |       ❌        |   ❌   | Only applicable for TV                                                  |
+| [**integration_test_tizen**](packages/integration_test)             |   ✔️   |       ✔️        |   ✔️   |
+| [**keyboard_detection_tizen**](packages/keyboard_detection_tizen)   |   ✔️   |       ✔️        |   ✔️   |
+| [**messageport_tizen**](packages/messageport)                       |   ✔️   |       ✔️        |   ✔️   |
+| [**network_info_plus_tizen**](packages/network_info_plus)           |   ✔️   |       ❌        |   ✔️   | API not supported on emulator. Need plugin-prebuilt to run wifi on RPI. |
+| [**package_info_plus_tizen**](packages/package_info_plus)           |   ✔️   |       ✔️        |   ✔️   |
+| [**path_provider_tizen**](packages/path_provider)                   |   ✔️   |       ✔️        |   ✔️   |
+| [**permission_handler_tizen**](packages/permission_handler)         |   ⚠️   |       ⚠️        |   ✔️   | Not applicable for TV                                                   |
+| [**shared_preferences_tizen**](packages/shared_preferences)         |   ✔️   |       ✔️        |   ✔️   |
+| [**sqflite_tizen**](packages/sqflite)                               |   ✔️   |       ✔️        |   ✔️   |
+| [**tizen_app_control**](packages/tizen_app_control)                 |   ✔️   |       ✔️        |   ✔️   |
+| [**tizen_app_manager**](packages/tizen_app_manager)                 |   ✔️   |       ✔️        |   ✔️   |
+| [**tizen_audio_manager**](packages/tizen_audio_manager)             |   ✔️   |       ✔️        |   ✔️   |
+| [**tizen_bundle**](packages/tizen_bundle)                           |   ✔️   |       ✔️        |   ✔️   |
+| [**tizen_log**](packages/tizen_log)                                 |   ❌   |       ❌        |   ✔️   | Not applicable for TV                                                   |
+| [**tizen_notification**](packages/tizen_notification)               |   ✔️   |       ✔️        |   ❌   | API not supported                                                       |
+| [**tizen_package_manager**](packages/tizen_package_manager)         |   ✔️   |       ✔️        |   ✔️   |
+| [**tizen_rpc_port**](packages/tizen_rpc_port)                       |   ✔️   |       ✔️        |   ✔️   |
+| [**tizen_window_manager**](packages/tizen_window_manager)           |   ✔️   |       ✔️        |   ✔️   |
+| [**url_launcher_tizen**](packages/url_launcher)                     |   ✔️   |       ❌        |   ❌   | No browser app                                                          |
+| [**video_player_avplay**](packages/video_player_avplay)             |   ✔️   |       ❌        |   ❌   | See README for details                                                  |
+| [**video_player_tizen**](packages/video_player)                     |   ✔️   |       ❌        |   ✔️   | TV emulator issue                                                       |
+| [**video_player_videohole**](packages/video_player_videohole)       |   ✔️   |       ❌        |   ⚠️   | See README for details                                                  |
+| [**wakelock_plus_tizen**](packages/wakelock_plus)                   |   ✔️   |       ✔️        |   ❌   | Only applicable for TV                                                  |
+| [**webview_flutter_lwe**](packages/webview_flutter_lwe)             |   ✔️   |       ✔️        |   ✔️   | Not for production use                                                  |
+| [**webview_flutter_tizen**](packages/webview_flutter)               |   ✔️   |       ✔️        |   ✔️   | API not supported                                                       |
 
 Note that the plugins in the table above were tested on RPI4 (tizen 10.0) device. The behavior may vary depending on the device, Tizen version, and plugin version. If the plugins don't work properly on Tizen, please report the issue.
