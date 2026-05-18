@@ -6,7 +6,7 @@ plugins:
   flutter_inappwebview: ["tv-9.0"]
   flutter_tts: ["tv-9.0"]
   integration_test: ["tv-9.0"]
-  keyboard_detection_tizen: ["tv-9.0"]
+  keyboard_detection: ["tv-9.0"]
   messageport: ["tv-9.0"]
   package_info_plus: ["tv-9.0"]
   path_provider: ["tv-9.0"]
