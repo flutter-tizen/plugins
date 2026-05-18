@@ -59,7 +59,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**audioplayers_tizen**](packages/audioplayers)                     |   ✔️   |       ✔️        |   ✔️   |
 | [**connectivity_plus_tizen**](packages/connectivity_plus)           |   ✔️   |       ✔️        |   ✔️   | Returns incorrect connection status                                     |
 | [**device_info_plus_tizen**](packages/device_info_plus)             |   ✔️   |       ✔️        |   ✔️   |
-| [**firebase_core**](packages/firebase_core)                         |   ✔️   |       ✔️        |   ✔️   |
+| [**firebase_core_tizen**](packages/firebase_core)                   |   ✔️   |       ✔️        |   ✔️   |
 | [**flutter_inappwebview_tizen**](packages/flutter_inappwebview)     |   ✔️   |       ✔️        |   ✔️   |
 | [**flutter_secure_storage_tizen**](packages/flutter_secure_storage) |   ✔️   |       ✔️        |   ✔️   |
 | [**flutter_tts_tizen**](packages/flutter_tts)                       |   ✔️   |       ✔️        |   ✔️   |
