@@ -1,7 +1,7 @@
 name: keyboard_detection_tizen
 description: A Tizen-specific Flutter plugin that detects software keyboard (input panel) visibility and state changes.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/keyboard_detection_tizen
+repository: https://github.com/flutter-tizen/plugins/tree/master/packages/keyboard_detection
 version: 0.1.0
 
 environment:
