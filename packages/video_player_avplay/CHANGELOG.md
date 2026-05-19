@@ -1,3 +1,8 @@
+## 0.8.10
+
+* Update plusplayer
+  1. [DASH] Fixed alternate audio tracks not being exposed for DASH streams with pre-roll ads.
+
 ## 0.8.9
 
 * [DASH] Fix seek freeze issue.
