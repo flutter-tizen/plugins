@@ -1,7 +1,11 @@
-## 0.8.10
+## 0.8.11
 
 * Update plusplayer
   1. [DASH] Fixed alternate audio tracks not being exposed for DASH streams with pre-roll ads.
+
+## 0.8.10
+
+* Update the way to call the `SetDisplay` API.
 
 ## 0.8.9
 

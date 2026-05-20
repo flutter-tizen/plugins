@@ -440,7 +440,7 @@ bool PlusPlayer::SetDisplay() {
     return false;
   }
   bool ret = ::SetDisplay(player_, plusplayer::DisplayType::kOverlay,
-                          resource_id, x, y, width, height);
+                          resource_id, 0, 0, width, height);
   if (!ret) {
     LOG_ERROR("[PlusPlayer] Player fail to set display.");
     return false;
