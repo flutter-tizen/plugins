@@ -1,3 +1,8 @@
+## 0.8.12
+
+* Update plusplayer
+  1. [DASH] Fixed the screen loading out-of-sync issue.
+
 ## 0.8.11
 
 * Update plusplayer
