@@ -367,10 +367,8 @@ void WebView::Dispose() {
     evas_object_del(webview_instance_);
     webview_instance_ = nullptr;
   }
-  if (ecore_evas_) {
-    ecore_evas_free(ecore_evas_);
-    ecore_evas_ = nullptr;
-  }
+
+  ecore_evas_ = nullptr;
 
   // ewk_shutdown();
 }
@@ -541,7 +539,11 @@ bool WebView::InitWebView() {
   // temporarily comment out ewk_init() and ewk_shutdown(). It can be reverted
   // depending on updates to chromium-efl.
   // ewk_init();
-  ecore_evas_ = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+  static Ecore_Evas* shared_ecore_evas = nullptr;
+  if (!shared_ecore_evas) {
+    shared_ecore_evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+  }
+  ecore_evas_ = shared_ecore_evas;
   if (!ecore_evas_) {
     LOG_ERROR("Failed to create Ecore_Evas for the WebView.");
     return false;
@@ -549,7 +551,6 @@ bool WebView::InitWebView() {
 
   webview_instance_ = ewk_view_add(ecore_evas_get(ecore_evas_));
   if (!webview_instance_) {
-    ecore_evas_free(ecore_evas_);
     ecore_evas_ = nullptr;
     return false;
   }
