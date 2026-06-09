@@ -1,3 +1,8 @@
+## 0.8.13
+
+* Update plusplayer
+  1. Fix SVACE issue.
+
 ## 0.8.12
 
 * Update plusplayer
