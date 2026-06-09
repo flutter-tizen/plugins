@@ -5,7 +5,7 @@
 #include "permission_manager.h"
 
 #ifndef TV_PROFILE
-#include <Ecore.h>
+#include <glib.h>
 #include <privacy_privilege_manager.h>
 #include <tizen.h>
 #endif
@@ -65,7 +65,7 @@ PermissionStatus PermissionManager::RequestPermission(
 
   // Wait until ppm_request_permission() completes with a response.
   while (!response.received) {
-    ecore_main_loop_iterate();
+    g_main_context_iteration(nullptr, FALSE);
   }
 
   if (response.cause == PRIVACY_PRIVILEGE_MANAGER_CALL_CAUSE_ERROR) {
