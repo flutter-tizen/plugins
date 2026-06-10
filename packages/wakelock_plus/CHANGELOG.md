@@ -1,3 +1,7 @@
+## 2.1.1
+
+* Remove Ecore API.
+
 ## 2.1.0
 
 * Update wakelock_plus to 1.6.0.
