@@ -1,3 +1,7 @@
+## 1.4.4
+
+* Remove Ecore API.
+
 ## 1.4.3
 
 * Update permission_handler to 12.0.1.
