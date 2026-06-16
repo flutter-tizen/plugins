@@ -119,8 +119,9 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          const std::string &uri, VideoPlayerOptions &options,
                          flutter::EncodableMap &http_headers) {
   // Initialize GMainContext and event dispatch state
-  main_context_ = std::unique_ptr<GMainContext, VideoPlayer::GMainContextDeleter>(
-      g_main_context_ref_thread_default());
+  main_context_ =
+      std::unique_ptr<GMainContext, VideoPlayer::GMainContextDeleter>(
+          g_main_context_ref_thread_default());
   event_dispatch_state_ = std::make_shared<VideoPlayer::EventDispatchState>();
   event_dispatch_state_->player = this;
 
@@ -345,12 +346,12 @@ void VideoPlayer::Play() {
     throw VideoPlayerError("player_start failed", get_error_message(ret));
   }
 #ifdef TV_PROFILE
-  timer_id_ = g_timeout_add_full(
-      G_PRIORITY_DEFAULT, 30000, ResetScreensaverTimeout, this,
-      [](gpointer data) {
-        auto *player = static_cast<VideoPlayer *>(data);
-        player->timer_id_ = 0;
-      });
+  timer_id_ =
+      g_timeout_add_full(G_PRIORITY_DEFAULT, 30000, ResetScreensaverTimeout,
+                         this, [](gpointer data) {
+                           auto *player = static_cast<VideoPlayer *>(data);
+                           player->timer_id_ = 0;
+                         });
 #endif
 
   SendIsPlayingStateUpdate(true);
