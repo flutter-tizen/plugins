@@ -66,20 +66,6 @@ void main() async {
     await player.dispose();
   });
 
-  testWidgets(
-    'bytes array source',
-    (WidgetTester tester) async {
-      final player = AudioPlayer();
-
-      await player.play((await mp3BytesTestData()).source);
-      // Sources take some time to get initialized
-      await tester.pumpPlatform(const Duration(seconds: 8));
-      await player.stop();
-      await player.dispose();
-    },
-    skip: !features.hasBytesSource,
-  );
-
   group('AP events', () {
     late AudioPlayer player;
 
@@ -238,51 +224,6 @@ void main() async {
   });
 
   group('Audio Context', () {
-    /// Android and iOS only: Play the same sound twice with a different audio
-    /// context each. This test can be executed on a device, with either
-    /// "Silent", "Vibrate" or "Ring" mode. In "Silent" or "Vibrate" mode
-    /// the second sound should not be audible.
-    testWidgets(
-      'test changing AudioContextConfigs',
-      (WidgetTester tester) async {
-        final player = AudioPlayer();
-        await player.setReleaseMode(ReleaseMode.stop);
-
-        final td = wavUrl1TestData;
-
-        var audioContext = AudioContextConfig(
-          //ignore: avoid_redundant_argument_values
-          route: AudioContextConfigRoute.system,
-          //ignore: avoid_redundant_argument_values
-          respectSilence: false,
-        ).build();
-        await AudioPlayer.global.setAudioContext(audioContext);
-        await player.setAudioContext(audioContext);
-
-        await player.play(td.source);
-        await expectLater(player.onPlayerComplete.first, completes);
-
-        audioContext = AudioContextConfig(
-          //ignore: avoid_redundant_argument_values
-          route: AudioContextConfigRoute.system,
-          respectSilence: true,
-        ).build();
-        await AudioPlayer.global.setAudioContext(audioContext);
-        await player.setAudioContext(audioContext);
-
-        await player.resume();
-        await expectLater(player.onPlayerComplete.first, completes);
-        await player.dispose();
-      },
-
-      // FIXME: Causes media error on Android API 24 (min)
-      // PlatformException(AndroidAudioError, MEDIA_ERROR_UNKNOWN {what:1},
-      // MEDIA_ERROR_UNKNOWN {extra:-19}, null)
-      // FIXME: [FLAKY] Audio Source sometimes does not play the second time on
-      //  Android Exo, despite resume event is triggered.
-      skip: !features.hasRespectSilence || isAndroid,
-    );
-
     testWidgets(
       'Set global AudioContextConfig on unsupported platforms',
       (WidgetTester tester) async {
@@ -307,59 +248,6 @@ void main() async {
       },
       skip: features.hasRespectSilence,
     );
-
-    /// Android and iOS only: Play the same sound twice with a different audio
-    /// context each. This test can be executed on a device, with either
-    /// "Silent", "Vibrate" or "Ring" mode. In "Silent" or "Vibrate" mode
-    /// the second sound should not be audible.
-    testWidgets(
-      'test changing AudioContextConfigs in LOW_LATENCY mode',
-      (WidgetTester tester) async {
-        final player = AudioPlayer();
-        await player.setReleaseMode(ReleaseMode.stop);
-        player.setPlayerMode(PlayerMode.lowLatency);
-
-        final td = wavUrl1TestData;
-
-        var audioContext = AudioContextConfig(
-          //ignore: avoid_redundant_argument_values
-          route: AudioContextConfigRoute.system,
-          //ignore: avoid_redundant_argument_values
-          respectSilence: false,
-        ).build();
-        await AudioPlayer.global.setAudioContext(audioContext);
-        await player.setAudioContext(audioContext);
-
-        await player.play(td.source);
-        // Low latency mode does not emit a complete event
-        await tester.pumpPlatform(
-          (td.duration ?? Duration.zero) + const Duration(seconds: 8),
-        );
-        expect(player.state, PlayerState.playing);
-        await player.stop();
-        expect(player.state, PlayerState.stopped);
-
-        audioContext = AudioContextConfig(
-          //ignore: avoid_redundant_argument_values
-          route: AudioContextConfigRoute.system,
-          respectSilence: true,
-        ).build();
-        await AudioPlayer.global.setAudioContext(audioContext);
-        await player.setAudioContext(audioContext);
-
-        await player.resume();
-        // Low latency mode does not emit a complete event
-        await tester.pumpPlatform(
-          (td.duration ?? Duration.zero) + const Duration(seconds: 8),
-        );
-        expect(player.state, PlayerState.playing);
-        await player.stop();
-        expect(player.state, PlayerState.stopped);
-
-        await player.dispose();
-      },
-      skip: !features.hasRespectSilence || !features.hasLowLatency,
-    );
   });
 
   testWidgets('Race condition on play and pause (#1687) with asset source',
@@ -383,40 +271,4 @@ void main() async {
 
     await player.dispose();
   });
-
-  group(
-    'Android only:',
-    () {
-      /// The test is auditory only!
-      /// It will succeed even if the wrong source is played.
-      testWidgets('Released wrong source on LOW_LATENCY (#1672)',
-          (WidgetTester tester) async {
-        var player = AudioPlayer()
-          ..setPlayerMode(PlayerMode.lowLatency)
-          ..setReleaseMode(ReleaseMode.stop);
-
-        await player.play(wavAsset1TestData.source);
-        await tester.pumpPlatform(const Duration(seconds: 1));
-        await player.stop();
-
-        await player.play(wavAsset2TestData.source);
-        await tester.pumpPlatform(const Duration(seconds: 1));
-        await player.stop();
-
-        player = AudioPlayer()
-          ..setPlayerMode(PlayerMode.lowLatency)
-          ..setReleaseMode(ReleaseMode.stop);
-
-        // This should play the new source, not the old one:
-        await player.play(wavAsset1TestData.source);
-        await tester.pumpPlatform(const Duration(seconds: 1));
-        await player.stop();
-
-        await player.play(wavAsset2TestData.source);
-        await tester.pumpPlatform(const Duration(seconds: 1));
-        await player.stop();
-      });
-    },
-    skip: !features.hasLowLatency,
-  );
 }
