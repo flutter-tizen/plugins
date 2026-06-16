@@ -55,6 +55,10 @@ class AudioPlayer {
   int32_t GetCurrentPosition();
   std::string GetPlayerId() const { return player_id_; }
   bool IsPlaying();
+  // Whether a source is prepared, i.e. duration and position are meaningful.
+  // After release (or before a source is prepared) this is false, so the
+  // plugin returns null for duration/position to match other platforms.
+  bool IsSourcePrepared();
 
  private:
   // The player state should be none before calling this function.

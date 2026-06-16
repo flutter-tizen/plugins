@@ -238,7 +238,13 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       } else if (method_name == "getDuration") {
         // TODO(seungsoo47): If an exception occurs, null is sent.
         try {
-          result->Success(flutter::EncodableValue(player->GetDuration()));
+          // Without a prepared source (e.g. after release), duration is null,
+          // matching the behavior of other platforms.
+          if (player->IsSourcePrepared()) {
+            result->Success(flutter::EncodableValue(player->GetDuration()));
+          } else {
+            result->Success(flutter::EncodableValue(std::monostate()));
+          }
         } catch (const AudioPlayerError &error) {
           player->OnLog(error.code() + error.message());
           result->Success(flutter::EncodableValue(std::monostate()));
@@ -246,8 +252,14 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       } else if (method_name == "getCurrentPosition") {
         // TODO(seungsoo47): If an exception occurs, null is sent.
         try {
-          result->Success(
-              flutter::EncodableValue(player->GetCurrentPosition()));
+          // Without a prepared source (e.g. after release), position is null,
+          // matching the behavior of other platforms.
+          if (player->IsSourcePrepared()) {
+            result->Success(
+                flutter::EncodableValue(player->GetCurrentPosition()));
+          } else {
+            result->Success(flutter::EncodableValue(std::monostate()));
+          }
         } catch (const AudioPlayerError &error) {
           player->OnLog(error.code() + error.message());
           result->Success(flutter::EncodableValue(std::monostate()));

@@ -260,6 +260,12 @@ int AudioPlayer::GetCurrentPosition() {
   return position;
 }
 
+bool AudioPlayer::IsSourcePrepared() {
+  player_state_e state = GetPlayerState();
+  return state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
+         state == PLAYER_STATE_PAUSED;
+}
+
 bool AudioPlayer::IsPlaying() {
   return (GetPlayerState() == PLAYER_STATE_PLAYING);
 }
