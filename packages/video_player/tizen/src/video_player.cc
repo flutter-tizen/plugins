@@ -119,7 +119,8 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          const std::string &uri, VideoPlayerOptions &options,
                          flutter::EncodableMap &http_headers) {
   // Initialize GMainContext and event dispatch state
-  main_context_ = g_main_context_ref_thread_default();
+  main_context_ = std::unique_ptr<GMainContext, VideoPlayer::GMainContextDeleter>(
+      g_main_context_ref_thread_default());
   event_dispatch_state_ = std::make_shared<VideoPlayer::EventDispatchState>();
   event_dispatch_state_->player = this;
 
@@ -298,7 +299,7 @@ void VideoPlayer::ScheduleSendPendingEvents() {
       });
 
   event_dispatch_state_->pending_source_id =
-      g_source_attach(source, main_context_);
+      g_source_attach(source, main_context_.get());
   g_source_unref(source);
 }
 
@@ -307,9 +308,10 @@ void VideoPlayer::PushEvent(const flutter::EncodableValue &encodable_value) {
     LOG_ERROR("[VideoPlayer] event sink is nullptr.");
     return;
   }
-  std::lock_guard<std::mutex> lock(queue_mutex_);
-  encodable_event_queue_.push(encodable_value);
-
+  {
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    encodable_event_queue_.push(encodable_value);
+  }
   ScheduleSendPendingEvents();
 }
 
@@ -319,9 +321,10 @@ void VideoPlayer::SendError(const std::string &error_code,
     LOG_ERROR("[VideoPlayer] event sink is nullptr.");
     return;
   }
-  std::lock_guard<std::mutex> lock(queue_mutex_);
-  error_event_queue_.push(std::make_pair(error_code, error_message));
-
+  {
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    error_event_queue_.push(std::make_pair(error_code, error_message));
+  }
   ScheduleSendPendingEvents();
 }
 
@@ -342,7 +345,12 @@ void VideoPlayer::Play() {
     throw VideoPlayerError("player_start failed", get_error_message(ret));
   }
 #ifdef TV_PROFILE
-  timer_id_ = g_timeout_add(30000, ResetScreensaverTimeout, this);
+  timer_id_ = g_timeout_add_full(
+      G_PRIORITY_DEFAULT, 30000, ResetScreensaverTimeout, this,
+      [](gpointer data) {
+        auto *player = static_cast<VideoPlayer *>(data);
+        player->timer_id_ = 0;
+      });
 #endif
 
   SendIsPlayingStateUpdate(true);
@@ -452,10 +460,7 @@ void VideoPlayer::Dispose() {
     }
   }
 
-  if (main_context_) {
-    g_main_context_unref(main_context_);
-    main_context_ = nullptr;
-  }
+  main_context_.reset();
 
   event_sink_ = nullptr;
   event_channel_->SetStreamHandler(nullptr);

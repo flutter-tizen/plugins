@@ -112,8 +112,6 @@ class VideoPlayer {
   guint timer_id_ = 0;
 #endif
 
-  GMainContext *main_context_ = nullptr;
-
   // Event dispatch state structure for lifecycle management
   struct EventDispatchState {
     std::mutex mutex;
@@ -122,6 +120,13 @@ class VideoPlayer {
     guint pending_source_id = 0;
   };
   std::shared_ptr<EventDispatchState> event_dispatch_state_;
+
+  struct GMainContextDeleter {
+    void operator()(GMainContext *context) const {
+      g_main_context_unref(context);
+    }
+  };
+  std::unique_ptr<GMainContext, GMainContextDeleter> main_context_;
 
   std::mutex queue_mutex_;
   std::queue<flutter::EncodableValue> encodable_event_queue_;
