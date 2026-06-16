@@ -4,6 +4,9 @@
 
 #include "audio_player.h"
 
+#include <string>
+#include <utility>
+
 #include "audio_player_error.h"
 #include "log.h"
 
@@ -111,7 +114,15 @@ void AudioPlayer::Stop() {
     if (ret != PLAYER_ERROR_NONE) {
       throw AudioPlayerError("player_stop failed", get_error_message(ret));
     }
-    Seek(0);
+    // Reset the play position to 0 to match other platforms. This is
+    // best-effort: on some devices (e.g. TV with network sources)
+    // player_set_play_position right after stop can fail with an invalid
+    // state, which must not crash the app.
+    try {
+      Seek(0);
+    } catch (const AudioPlayerError &error) {
+      OnLog("Failed to reset position on stop: " + error.message());
+    }
   }
 
   should_play_ = false;
@@ -460,17 +471,31 @@ void AudioPlayer::OnPlayCompleted(void *data) {
 }
 
 void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
-  // On TV devices, callbacks are not executed on the main loop.
-  // However, race condition will not occur as player_id_ is read-only.
-  const auto *player = reinterpret_cast<AudioPlayer *>(data);
-  player->log_listener_(player->player_id_, "Player interrupted.");
+  // On TV devices, callbacks are not executed on the main loop. Transfer to
+  // the main loop so the log event is sent on the platform thread.
+  ecore_main_loop_thread_safe_call_async(
+      [](void *data) {
+        auto *player = reinterpret_cast<AudioPlayer *>(data);
+        player->log_listener_(player->player_id_, "Player interrupted.");
+      },
+      data);
 }
 
 void AudioPlayer::OnError(int code, void *data) {
-  // On TV devices, callbacks are not executed on the main loop.
-  // However, race condition will not occur as player_id_ is read-only.
-  const auto *player = reinterpret_cast<AudioPlayer *>(data);
-  player->log_listener_(player->player_id_, get_error_message(code));
+  // On TV devices, callbacks are not executed on the main loop. Transfer to
+  // the main loop so the log event is sent on the platform thread. The error
+  // message is resolved here and carried via a heap-allocated context.
+  auto *context = new std::pair<AudioPlayer *, std::string>(
+      reinterpret_cast<AudioPlayer *>(data), get_error_message(code));
+  ecore_main_loop_thread_safe_call_async(
+      [](void *data) {
+        auto *context =
+            reinterpret_cast<std::pair<AudioPlayer *, std::string> *>(data);
+        AudioPlayer *player = context->first;
+        player->log_listener_(player->player_id_, context->second);
+        delete context;
+      },
+      context);
 }
 
 void AudioPlayer::StartPositionUpdates() {
