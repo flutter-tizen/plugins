@@ -238,6 +238,31 @@ void main() async {
   });
 
   group('Audio Context', () {
+    testWidgets(
+      'Set global AudioContextConfig on unsupported platforms',
+      (WidgetTester tester) async {
+        final audioContext = AudioContextConfig().build();
+        final globalLogFuture = AudioPlayer.global.onLog.first;
+        await AudioPlayer.global.setAudioContext(audioContext);
+
+        expect(
+          await globalLogFuture,
+          contains('Setting AudioContext is not supported'),
+        );
+
+        final player = AudioPlayer();
+        final logFuture = player.onLog.first;
+        await player.setAudioContext(audioContext);
+        expect(
+          await logFuture,
+          contains('Setting AudioContext is not supported'),
+        );
+
+        await player.dispose();
+      },
+      skip: features.hasRespectSilence,
+    );
+
     /// Android and iOS only: Play the same sound twice with a different audio
     /// context each. This test can be executed on a device, with either
     /// "Silent", "Vibrate" or "Ring" mode. In "Silent" or "Vibrate" mode
@@ -372,4 +397,26 @@ void main() async {
     },
     skip: !features.hasLowLatency,
   );
+
+  testWidgets('Race condition on play and pause (#1687) with asset source',
+      (WidgetTester tester) async {
+    final player = AudioPlayer();
+
+    final futurePlay = player.play(wavAsset2TestData.source);
+
+    // Player is still in `stopped` state as it isn't playing yet.
+    expect(player.state, PlayerState.stopped);
+    expect(player.desiredState, PlayerState.playing);
+
+    // Execute `pause` before `play` has finished.
+    final futurePause = player.pause();
+    expect(player.desiredState, PlayerState.paused);
+
+    await futurePlay;
+    await futurePause;
+
+    expect(player.state, PlayerState.paused);
+
+    await player.dispose();
+  });
 }

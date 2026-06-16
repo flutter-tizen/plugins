@@ -111,6 +111,7 @@ void AudioPlayer::Stop() {
     if (ret != PLAYER_ERROR_NONE) {
       throw AudioPlayerError("player_stop failed", get_error_message(ret));
     }
+    Seek(0);
   }
 
   should_play_ = false;

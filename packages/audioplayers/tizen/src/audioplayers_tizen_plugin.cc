@@ -260,7 +260,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         result->Success();
       } else if (method_name == "setAudioContext") {
         player->OnLog("Setting AudioContext is not supported on Tizen");
-        result->NotImplemented();
+        result->Success();
       } else if (method_name == "emitLog") {
         auto message = GetRequiredArg<std::string>(arguments, "message");
         player->OnLog(message);
@@ -294,7 +294,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         audio_players_.clear();
       } else if (method_name == "setAudioContext") {
         OnGlobalLog("Setting AudioContext is not supported on Tizen");
-        result->NotImplemented();
+        result->Success();
         return;
       } else if (method_name == "emitLog") {
         if (arguments) {
