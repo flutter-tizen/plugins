@@ -378,7 +378,6 @@ void VideoPlayer::Pause() {
   if (timer_id_ != 0) {
     LOG_DEBUG("[VideoPlayer] Delete GLib timer.");
     g_source_remove(timer_id_);
-    timer_id_ = 0;
   }
 #endif
 
@@ -493,7 +492,6 @@ void VideoPlayer::Dispose() {
 
   if (timer_id_ != 0) {
     g_source_remove(timer_id_);
-    timer_id_ = 0;
   }
 #endif
 }
