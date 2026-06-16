@@ -1,3 +1,7 @@
+## 2.5.12
+
+* Remove Ecore API.
+
 ## 2.5.11
 
 * Updates pigeon to ^25.5.0.

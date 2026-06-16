@@ -118,12 +118,10 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          flutter::TextureRegistrar *texture_registrar,
                          const std::string &uri, VideoPlayerOptions &options,
                          flutter::EncodableMap &http_headers) {
-  sink_event_pipe_ = ecore_pipe_add(
-      [](void *data, void *buffer, unsigned int nbyte) -> void {
-        auto *self = static_cast<VideoPlayer *>(data);
-        self->SendPendingEvents();
-      },
-      this);
+  // Initialize GMainContext and event dispatch state
+  main_context_ = g_main_context_ref_thread_default();
+  event_dispatch_state_ = std::make_shared<VideoPlayer::EventDispatchState>();
+  event_dispatch_state_->player = this;
 
   texture_registrar_ = texture_registrar;
 
@@ -268,6 +266,42 @@ void VideoPlayer::SendPendingEvents() {
   }
 }
 
+void VideoPlayer::ScheduleSendPendingEvents() {
+  std::lock_guard<std::mutex> lock(event_dispatch_state_->mutex);
+
+  // Check conditions and deduplicate
+  if (!main_context_ || !event_dispatch_state_ ||
+      event_dispatch_state_->disposed ||
+      event_dispatch_state_->pending_source_id != 0) {
+    return;
+  }
+
+  auto *state = new std::shared_ptr<EventDispatchState>(event_dispatch_state_);
+
+  GSource *source = g_idle_source_new();
+  g_source_set_callback(
+      source,
+      [](gpointer data) -> gboolean {
+        auto state = static_cast<std::shared_ptr<EventDispatchState> *>(data);
+
+        // Lock the mutex before checking and accessing player
+        std::lock_guard<std::mutex> lock((*state)->mutex);
+        if (!(*state)->disposed && (*state)->player) {
+          (*state)->pending_source_id = 0;
+          (*state)->player->SendPendingEvents();
+        }
+        return G_SOURCE_REMOVE;
+      },
+      state,
+      [](gpointer data) {
+        delete static_cast<std::shared_ptr<EventDispatchState> *>(data);
+      });
+
+  event_dispatch_state_->pending_source_id =
+      g_source_attach(source, main_context_);
+  g_source_unref(source);
+}
+
 void VideoPlayer::PushEvent(const flutter::EncodableValue &encodable_value) {
   if (!event_sink_) {
     LOG_ERROR("[VideoPlayer] event sink is nullptr.");
@@ -275,7 +309,8 @@ void VideoPlayer::PushEvent(const flutter::EncodableValue &encodable_value) {
   }
   std::lock_guard<std::mutex> lock(queue_mutex_);
   encodable_event_queue_.push(encodable_value);
-  ecore_pipe_write(sink_event_pipe_, nullptr, 0);
+
+  ScheduleSendPendingEvents();
 }
 
 void VideoPlayer::SendError(const std::string &error_code,
@@ -286,7 +321,8 @@ void VideoPlayer::SendError(const std::string &error_code,
   }
   std::lock_guard<std::mutex> lock(queue_mutex_);
   error_event_queue_.push(std::make_pair(error_code, error_message));
-  ecore_pipe_write(sink_event_pipe_, nullptr, 0);
+
+  ScheduleSendPendingEvents();
 }
 
 void VideoPlayer::Play() {
@@ -306,7 +342,7 @@ void VideoPlayer::Play() {
     throw VideoPlayerError("player_start failed", get_error_message(ret));
   }
 #ifdef TV_PROFILE
-  timer_ = ecore_timer_add(30, ResetScreensaverTimeout, this);
+  timer_id_ = g_timeout_add(30000, ResetScreensaverTimeout, this);
 #endif
 
   SendIsPlayingStateUpdate(true);
@@ -330,10 +366,10 @@ void VideoPlayer::Pause() {
   }
 
 #ifdef TV_PROFILE
-  if (timer_) {
-    LOG_DEBUG("[VideoPlayer] Delete ecore timer.");
-    ecore_timer_del(timer_);
-    timer_ = nullptr;
+  if (timer_id_ != 0) {
+    LOG_DEBUG("[VideoPlayer] Delete GLib timer.");
+    g_source_remove(timer_id_);
+    timer_id_ = 0;
   }
 #endif
 
@@ -404,8 +440,21 @@ void VideoPlayer::Dispose() {
   std::lock_guard<std::mutex> lock(mutex_);
   is_initialized_ = false;
 
-  if (sink_event_pipe_) {
-    ecore_pipe_del(sink_event_pipe_);
+  // Mark event dispatch state as disposed and cancel pending event source
+  if (event_dispatch_state_) {
+    std::lock_guard<std::mutex> lock(event_dispatch_state_->mutex);
+    event_dispatch_state_->disposed = true;
+    event_dispatch_state_->player = nullptr;
+
+    if (event_dispatch_state_->pending_source_id != 0) {
+      g_source_remove(event_dispatch_state_->pending_source_id);
+      event_dispatch_state_->pending_source_id = 0;
+    }
+  }
+
+  if (main_context_) {
+    g_main_context_unref(main_context_);
+    main_context_ = nullptr;
   }
 
   event_sink_ = nullptr;
@@ -436,9 +485,9 @@ void VideoPlayer::Dispose() {
     screensaver_handle_ = nullptr;
   }
 
-  if (timer_) {
-    ecore_timer_del(timer_);
-    timer_ = nullptr;
+  if (timer_id_ != 0) {
+    g_source_remove(timer_id_);
+    timer_id_ = 0;
   }
 #endif
 }
@@ -544,20 +593,20 @@ void VideoPlayer::SendIsPlayingStateUpdate(bool is_playing) {
 }
 
 #ifdef TV_PROFILE
-Eina_Bool VideoPlayer::ResetScreensaverTimeout(void *data) {
+gboolean VideoPlayer::ResetScreensaverTimeout(gpointer data) {
   LOG_DEBUG("[VideoPlayer] Reset screen saver timeout.");
 
   auto *player = static_cast<VideoPlayer *>(data);
   if (!player->screensaver_reset_timeout_) {
-    return ECORE_CALLBACK_CANCEL;
+    return G_SOURCE_REMOVE;
   }
   int ret = player->screensaver_reset_timeout_();
   if (ret != 0) {
     LOG_ERROR("screensaver_reset_timeout failed: %s", get_error_message(ret));
-    return ECORE_CALLBACK_CANCEL;
+    return G_SOURCE_REMOVE;
   }
 
-  return ECORE_CALLBACK_RENEW;
+  return G_SOURCE_CONTINUE;
 }
 #endif
 
