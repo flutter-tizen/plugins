@@ -1,8 +1,9 @@
-## NEXT
+## 0.2.4
 
 * Update code format.
 * Remove a testcase for `AppRunningContext.appState` API because the tizen
   test farm does not support the 'foreground' state.
+* Remove Ecore API.
 
 ## 0.2.3
 
