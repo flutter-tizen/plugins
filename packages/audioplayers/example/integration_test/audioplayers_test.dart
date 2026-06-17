@@ -19,16 +19,16 @@ import 'test_utils.dart';
 
 const _defaultTimeout = Duration(seconds: 30);
 
-void main() async {
+void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   final features = PlatformFeatures.instance();
   final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-  final audioTestDataList = await getAudioTestDataList();
-  // Tizen: remote URL/stream playback does not emit reliable complete/position
-  // events on the device, so data-driven tests are restricted to local asset
-  // sources. Network-based test cases were removed after on-device validation.
-  final assetTestDataList =
-      audioTestDataList.where((td) => td.source is AssetSource).toList();
+  // Only local asset sources are used; remote URL/stream/bytes playback does
+  // not emit reliable events on Tizen. This list is built synchronously (no
+  // await) so all tests are declared before the test runner starts. Awaiting
+  // getAudioTestDataList() here races the runner on the TV emulator and fails
+  // with "Can't call test() once tests have begun running".
+  final assetTestDataList = <LibSourceTestData>[wavAsset2TestData];
 
   testWidgets('test asset source with special char',
       (WidgetTester tester) async {
