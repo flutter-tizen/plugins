@@ -1,3 +1,7 @@
+## 0.4.2
+
+* Remove Ecore API.
+
 ## 0.4.1
 
 * Fix error handling in `getPackageSizeInfo`.
