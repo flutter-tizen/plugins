@@ -5,11 +5,11 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
-#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/texture_registrar.h>
+#include <glib.h>
 #include <player.h>
 
 #include <functional>
@@ -49,6 +49,7 @@ class VideoPlayer {
 
  private:
   void SendPendingEvents();
+  void ScheduleSendPendingEvents();
   void PushEvent(const flutter::EncodableValue &encodable_value);
   void SendError(const std::string &error_code,
                  const std::string &error_message);
@@ -72,7 +73,7 @@ class VideoPlayer {
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
   static void ReleaseMediaPacket(void *packet);
 #ifdef TV_PROFILE
-  static Eina_Bool ResetScreensaverTimeout(void *data);
+  static gboolean ResetScreensaverTimeout(gpointer data);
 #endif
 
   void RequestRendering();
@@ -108,10 +109,25 @@ class VideoPlayer {
 #ifdef TV_PROFILE
   void *screensaver_handle_ = nullptr;
   ScreensaverResetTimeout screensaver_reset_timeout_;
-  Ecore_Timer *timer_ = nullptr;
+  guint timer_id_ = 0;
 #endif
 
-  Ecore_Pipe *sink_event_pipe_ = nullptr;
+  // Event dispatch state structure for lifecycle management
+  struct EventDispatchState {
+    std::mutex mutex;
+    VideoPlayer *player = nullptr;
+    bool disposed = false;
+    guint pending_source_id = 0;
+  };
+  std::shared_ptr<EventDispatchState> event_dispatch_state_;
+
+  struct GMainContextDeleter {
+    void operator()(GMainContext *context) const {
+      g_main_context_unref(context);
+    }
+  };
+  std::unique_ptr<GMainContext, GMainContextDeleter> main_context_;
+
   std::mutex queue_mutex_;
   std::queue<flutter::EncodableValue> encodable_event_queue_;
   std::queue<std::pair<std::string, std::string>> error_event_queue_;
