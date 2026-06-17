@@ -298,11 +298,11 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
     if (std::holds_alternative<std::string>(arguments)) {
       std::string language = std::move(std::get<std::string>(arguments));
       if (!language.empty() && tts_->IsLanguageAvailable(language)) {
-        SendResult(flutter::EncodableValue(1));
+        SendResult(flutter::EncodableValue(true));
         return;
       }
     }
-    SendResult(flutter::EncodableValue(0));
+    SendResult(flutter::EncodableValue(false));
   }
 
   void SendResult(const flutter::EncodableValue &result) {

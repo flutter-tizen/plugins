@@ -1,3 +1,7 @@
+## 1.6.1
+
+* Return a boolean from `isLanguageAvailable` to match the behavior of other platforms.
+
 ## 1.6.0
 
 * Update flutter_tts 4.2.0 to 4.2.5.
