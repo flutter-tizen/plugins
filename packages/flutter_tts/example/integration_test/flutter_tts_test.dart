@@ -7,10 +7,14 @@ void main() {
 
   late FlutterTts flutterTts;
 
-  setUp(() async {
+  setUpAll(() async {
     flutterTts = FlutterTts();
     // Give the native TTS engine time to initialize.
     await Future<void>.delayed(const Duration(seconds: 2));
+  });
+
+  tearDown(() async {
+    await flutterTts.stop();
   });
 
   testWidgets('speak returns 1', (WidgetTester tester) async {
@@ -39,6 +43,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final languages = (await flutterTts.getLanguages as List).cast<String>();
+    expect(languages, isNotEmpty);
     expect(await flutterTts.isLanguageAvailable(languages.first), isTrue);
   });
 
@@ -46,6 +51,7 @@ void main() {
     WidgetTester tester,
   ) async {
     final languages = (await flutterTts.getLanguages as List).cast<String>();
+    expect(languages, isNotEmpty);
     expect(await flutterTts.setLanguage(languages.first), 1);
   });
 
@@ -63,6 +69,7 @@ void main() {
 
   testWidgets('setVoice returns 1', (WidgetTester tester) async {
     final voices = (await flutterTts.getVoices as List).cast<Map>();
+    expect(voices, isNotEmpty);
     final voice = voices.first;
     expect(
       await flutterTts.setVoice(<String, String>{
