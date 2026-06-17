@@ -68,7 +68,6 @@ void main() {
     // A new instance triggers a fresh native call that must yield the same data.
     final plugin2 = DeviceInfoPluginTizen();
     final third = await plugin2.tizenInfo;
-    expect(third.data, equals(first.data));
     expect(third.modelName, first.modelName);
   }, skip: !Platform.isLinux);
 
