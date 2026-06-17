@@ -55,4 +55,33 @@ void main() {
       lessThanOrEqualTo(tizenInfo.physicalRamSize),
     );
   }, skip: !Platform.isLinux);
+
+  testWidgets('tizenInfo is consistent across repeated calls', (
+    WidgetTester tester,
+  ) async {
+    // Repeated calls on the same instance return the cached instance.
+    final plugin1 = DeviceInfoPluginTizen();
+    final first = await plugin1.tizenInfo;
+    final second = await plugin1.tizenInfo;
+    expect(second, same(first));
+
+    // A new instance triggers a fresh native call that must yield the same data.
+    final plugin2 = DeviceInfoPluginTizen();
+    final third = await plugin2.tizenInfo;
+    expect(third.data, equals(first.data));
+    expect(third.modelName, first.modelName);
+  }, skip: !Platform.isLinux);
+
+  testWidgets('TizenDeviceInfo.fromMap round-trips through data', (
+    WidgetTester tester,
+  ) async {
+    final data = tizenInfo.data;
+    expect(data, isNotEmpty);
+
+    final rebuilt = TizenDeviceInfo.fromMap(data);
+    expect(rebuilt.modelName, tizenInfo.modelName);
+    expect(rebuilt.platformVersion, tizenInfo.platformVersion);
+    expect(rebuilt.screenWidth, tizenInfo.screenWidth);
+    expect(rebuilt.totalDiskSize, tizenInfo.totalDiskSize);
+  }, skip: !Platform.isLinux);
 }
