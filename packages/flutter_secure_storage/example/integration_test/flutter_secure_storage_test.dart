@@ -2,83 +2,101 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+const _storage = FlutterSecureStorage();
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  late FlutterSecureStorage storage;
-
-  setUpAll(() {
-    storage = const FlutterSecureStorage();
+  setUp(() async {
+    await _storage.deleteAll();
   });
 
   tearDown(() async {
-    await storage.deleteAll();
+    await _storage.deleteAll();
   });
 
-  testWidgets('read and write', (WidgetTester tester) async {
-    await storage.write(key: 'key1', value: 'value1');
-    await storage.write(key: 'key2', value: 'value2');
+  group('Basic CRUD', () {
+    testWidgets('write and read round trip', (_) async {
+      await _storage.write(key: 'key1', value: 'value1');
+      expect(await _storage.read(key: 'key1'), 'value1');
+    });
 
-    expect(await storage.read(key: 'key1'), 'value1');
-    expect(await storage.read(key: 'key2'), 'value2');
+    testWidgets('read missing key returns null', (_) async {
+      expect(await _storage.read(key: 'nonexistent'), isNull);
+    });
+
+    testWidgets('overwrite returns new value', (_) async {
+      await _storage.write(key: 'k', value: 'first');
+      await _storage.write(key: 'k', value: 'second');
+      expect(await _storage.read(key: 'k'), 'second');
+    });
+
+    testWidgets('containsKey true after write', (_) async {
+      await _storage.write(key: 'k', value: 'v');
+      expect(await _storage.containsKey(key: 'k'), isTrue);
+    });
+
+    testWidgets('containsKey false for missing key', (_) async {
+      expect(await _storage.containsKey(key: 'nonexistent'), isFalse);
+    });
+
+    testWidgets('delete removes key', (_) async {
+      await _storage.write(key: 'k', value: 'v');
+      await _storage.delete(key: 'k');
+      expect(await _storage.containsKey(key: 'k'), isFalse);
+      expect(await _storage.read(key: 'k'), isNull);
+    });
+
+    testWidgets('delete nonexistent key is no-op', (_) async {
+      await _storage.delete(key: 'never_written');
+      expect(await _storage.containsKey(key: 'never_written'), isFalse);
+    });
+
+    testWidgets('readAll returns all written entries', (_) async {
+      await _storage.write(key: 'k1', value: 'v1');
+      await _storage.write(key: 'k2', value: 'v2');
+      final all = await _storage.readAll();
+      expect(all, containsPair('k1', 'v1'));
+      expect(all, containsPair('k2', 'v2'));
+    });
+
+    testWidgets('deleteAll clears every key', (_) async {
+      await _storage.write(key: 'a', value: '1');
+      await _storage.write(key: 'b', value: '2');
+      await _storage.deleteAll();
+      expect(await _storage.readAll(), isEmpty);
+    });
   });
 
-  testWidgets('read non-existing key', (WidgetTester tester) async {
-    final result = await storage.read(key: 'foobar');
-    expect(result, isNull);
-  });
+  group('Special-character keys', () {
+    testWidgets('URL key', (_) async {
+      const key = 'http://example.com';
+      await _storage.write(key: key, value: 'url-value');
+      expect(await _storage.read(key: key), 'url-value');
+      expect(await _storage.containsKey(key: key), isTrue);
+      await _storage.delete(key: key);
+      expect(await _storage.containsKey(key: key), isFalse);
+    });
 
-  testWidgets('readAll', (WidgetTester tester) async {
-    final input = <String, String>{
-      'foo': 'bar',
-      'baz': 'qux',
-      'waldo': 'fred',
-    };
+    testWidgets('Non-ASCII key (Latin-1)', (_) async {
+      const key = 'clé';
+      await _storage.write(key: key, value: key);
+      expect(await _storage.read(key: key), key);
+      await _storage.delete(key: key);
+      expect(await _storage.containsKey(key: key), isFalse);
+    });
 
-    for (final enrty in input.entries) {
-      await storage.write(key: enrty.key, value: enrty.value);
-    }
-
-    final result = await storage.readAll();
-    expect(mapEquals(input, result), isTrue);
-  });
-
-  testWidgets('containsKey', (WidgetTester tester) async {
-    await storage.write(key: 'dgx', value: 'dfs');
-    await storage.write(key: 'corge', value: 'grault');
-
-    expect(await storage.containsKey(key: 'dgx'), isTrue);
-    expect(await storage.containsKey(key: 'corge'), isTrue);
-
-    expect(await storage.containsKey(key: 'foo'), isFalse);
-  });
-
-  testWidgets('delete', (WidgetTester tester) async {
-    await storage.write(key: 'wibble', value: 'flob');
-    expect(await storage.containsKey(key: 'wibble'), isTrue);
-
-    await storage.delete(key: 'wibble');
-    expect(await storage.containsKey(key: 'wibble'), isFalse);
-  });
-
-  testWidgets('deleteAll', (WidgetTester tester) async {
-    final input = <String, String>{
-      'foo': 'bar',
-      'baz': 'qux',
-      'waldo': 'fred',
-    };
-
-    for (final enrty in input.entries) {
-      await storage.write(key: enrty.key, value: enrty.value);
-    }
-    expect(await storage.readAll(), isNotEmpty);
-
-    await storage.deleteAll();
-    expect(await storage.readAll(), isEmpty);
+    testWidgets('Case-sensitive keys', (_) async {
+      await _storage.write(key: 'key', value: 'lower');
+      await _storage.write(key: 'KEY', value: 'upper');
+      expect(await _storage.read(key: 'key'), 'lower');
+      expect(await _storage.read(key: 'KEY'), 'upper');
+      final all = await _storage.readAll();
+      expect(all.length, 2);
+    });
   });
 }

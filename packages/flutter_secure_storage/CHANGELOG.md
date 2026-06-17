@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests based on upstream flutter_secure_storage v10.2.0 (12 test cases).
+
 ## 0.1.3
 
 * Update flutter_secure_storage_platform_interface to 2.0.0.
