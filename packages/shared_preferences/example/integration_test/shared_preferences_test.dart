@@ -5,15 +5,23 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/util/legacy_to_async_migration_util.dart';
+
+const String testString = 'hello world';
+const bool testBool = true;
+const int testInt = 42;
+const double testDouble = 3.14159;
+const List<String> testList = <String>['foo', 'bar'];
+
+const String stringKey = 'testString';
+const String boolKey = 'testBool';
+const String intKey = 'testInt';
+const String doubleKey = 'testDouble';
+const String listKey = 'testList';
+const String migrationCompletedKey = 'migrationCompleted';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  const String testString = 'hello world';
-  const bool testBool = true;
-  const int testInt = 42;
-  const double testDouble = 3.14159;
-  const List<String> testList = <String>['foo', 'bar'];
 
   const String testString2 = 'goodbye world';
   const bool testBool2 = false;
@@ -686,4 +694,136 @@ void main() {
       });
     });
   });
+
+  // Migration util tests (ported from shared_preferences_migration_util_test.dart v2.5.5).
+  // The upstream platform-specific async option variants (Android/iOS/Linux/Windows) all
+  // collapse to the default SharedPreferencesOptions() on Tizen, so only the
+  // default-options group is kept.
+  group('SharedPreferences without setting prefix', () {
+    runAllGroups(() {});
+  });
+
+  group('SharedPreferences with setPrefix', () {
+    runAllGroups(() {
+      SharedPreferences.setPrefix('prefix.');
+    });
+  });
+
+  group('SharedPreferences with setPrefix and allowList', () {
+    runAllGroups(() {
+      final Set<String> allowList = <String>{
+        'prefix.$boolKey',
+        'prefix.$intKey',
+        'prefix.$doubleKey',
+        'prefix.$listKey',
+      };
+      SharedPreferences.setPrefix('prefix.', allowList: allowList);
+    }, stringValue: null);
+  });
+
+  group('SharedPreferences with prefix set to empty string', () {
+    runAllGroups(() {
+      SharedPreferences.setPrefix('');
+    }, keysCollide: true);
+  });
+}
+
+void runAllGroups(
+  void Function() legacySharedPrefsConfig, {
+  String? stringValue = testString,
+  bool keysCollide = false,
+}) {
+  group('default sharedPreferencesAsyncOptions', () {
+    runTests(
+      legacySharedPrefsConfig,
+      stringValue: stringValue,
+      keysAndNamesCollide: keysCollide,
+    );
+  });
+}
+
+void runTests(
+  void Function() legacySharedPrefsConfig, {
+  String? stringValue = testString,
+  bool keysAndNamesCollide = false,
+}) {
+  const SharedPreferencesOptions sharedPreferencesAsyncOptions =
+      SharedPreferencesOptions();
+
+  setUp(() async {
+    // Configure and populate the source legacy shared preferences.
+    SharedPreferences.resetStatic();
+    legacySharedPrefsConfig();
+
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.clear();
+    await preferences.setBool(boolKey, testBool);
+    await preferences.setInt(intKey, testInt);
+    await preferences.setDouble(doubleKey, testDouble);
+    await preferences.setString(stringKey, testString);
+    await preferences.setStringList(listKey, testList);
+  });
+
+  tearDown(() async {
+    await SharedPreferencesAsync().clear();
+  });
+
+  testWidgets('data is successfully transferred to new system', (
+    WidgetTester _,
+  ) async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    await migrateLegacySharedPreferencesToSharedPreferencesAsyncIfNecessary(
+      legacySharedPreferencesInstance: preferences,
+      sharedPreferencesAsyncOptions: sharedPreferencesAsyncOptions,
+      migrationCompletedKey: migrationCompletedKey,
+    );
+
+    final SharedPreferencesAsync asyncPreferences = SharedPreferencesAsync();
+
+    expect(await asyncPreferences.getBool(boolKey), testBool);
+    expect(await asyncPreferences.getInt(intKey), testInt);
+    expect(await asyncPreferences.getDouble(doubleKey), testDouble);
+    expect(await asyncPreferences.getString(stringKey), stringValue);
+    expect(await asyncPreferences.getStringList(listKey), testList);
+  });
+
+  testWidgets('migrationCompleted key is set', (WidgetTester _) async {
+    final SharedPreferences preferences = await SharedPreferences.getInstance();
+    await migrateLegacySharedPreferencesToSharedPreferencesAsyncIfNecessary(
+      legacySharedPreferencesInstance: preferences,
+      sharedPreferencesAsyncOptions: sharedPreferencesAsyncOptions,
+      migrationCompletedKey: migrationCompletedKey,
+    );
+
+    final SharedPreferencesAsync asyncPreferences = SharedPreferencesAsync();
+
+    expect(await asyncPreferences.getBool(migrationCompletedKey), true);
+  });
+
+  testWidgets(
+    're-running migration tool does not overwrite data',
+    (WidgetTester _) async {
+      final SharedPreferences preferences =
+          await SharedPreferences.getInstance();
+      await migrateLegacySharedPreferencesToSharedPreferencesAsyncIfNecessary(
+        legacySharedPreferencesInstance: preferences,
+        sharedPreferencesAsyncOptions: sharedPreferencesAsyncOptions,
+        migrationCompletedKey: migrationCompletedKey,
+      );
+
+      final SharedPreferencesAsync asyncPreferences = SharedPreferencesAsync();
+      await preferences.setInt(intKey, -0);
+      await migrateLegacySharedPreferencesToSharedPreferencesAsyncIfNecessary(
+        legacySharedPreferencesInstance: preferences,
+        sharedPreferencesAsyncOptions: sharedPreferencesAsyncOptions,
+        migrationCompletedKey: migrationCompletedKey,
+      );
+      expect(await asyncPreferences.getInt(intKey), testInt);
+    },
+    // On Tizen the legacy and async stores share a single preference
+    // namespace, so with an empty prefix their keys collide and this
+    // scenario cannot be distinguished (matches how upstream skips it on
+    // other shared-namespace platforms).
+    skip: keysAndNamesCollide,
+  );
 }

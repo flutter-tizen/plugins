@@ -1,3 +1,7 @@
+## NEXT
+
+* Add 12 integration test cases for the legacy-to-async migration utility.
+
 ## 2.3.3
 
 * Update shared_preferences to 2.5.5.
