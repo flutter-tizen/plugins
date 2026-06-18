@@ -1,4 +1,6 @@
-## NEXT
+## 0.2.1
+
+* Remove Ecore api
 
 ## 0.2.0
 

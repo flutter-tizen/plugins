@@ -40,8 +40,8 @@ For other Tizen devices :
 
  ```yaml
 dependencies:
-  flutter_webrtc: ^1.3.1
-  flutter_webrtc_tizen: ^0.2.0
+  flutter_webrtc: ^1.4.1
+  flutter_webrtc_tizen: ^0.2.1
 ```
 
 ## Functionality
