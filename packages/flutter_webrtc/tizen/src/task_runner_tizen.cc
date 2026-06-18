@@ -11,10 +11,10 @@ TaskRunnerTizen::~TaskRunnerTizen() = default;
 void TaskRunnerTizen::EnqueueTask(TaskClosure task) {
   std::lock_guard<std::mutex> lock(tasks_mutex_);
   tasks_.push(std::move(task));
-  ecore_main_loop_thread_safe_call_async(RunTask, this);
+  g_idle_add_full(G_PRIORITY_DEFAULT, RunTask, this, nullptr);
 }
 
-void TaskRunnerTizen::RunTask(void* data) {
+gboolean TaskRunnerTizen::RunTask(gpointer data) {
   TaskRunnerTizen* runner = static_cast<TaskRunnerTizen*>(data);
   std::lock_guard<std::mutex> lock(runner->tasks_mutex_);
   while (!runner->tasks_.empty()) {
@@ -22,4 +22,5 @@ void TaskRunnerTizen::RunTask(void* data) {
     runner->tasks_.pop();
     task();
   }
+  return G_SOURCE_REMOVE;
 }
