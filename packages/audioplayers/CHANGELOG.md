@@ -1,3 +1,7 @@
+## 3.1.4
+
+* Remove Ecore API.
+
 ## 3.1.3
 
 * Adds compatibility with `http` 1.0 in example.
