@@ -110,6 +110,53 @@ void main() {
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
 
+  group('LocalPort lifecycle', () {
+    testWidgets('registered reflects the register/unregister lifecycle', (
+      WidgetTester tester,
+    ) async {
+      final LocalPort localPort = await LocalPort.create(kTestPort);
+      expect(localPort.portName, equals(kTestPort));
+      expect(localPort.registered, isFalse);
+
+      localPort.register((dynamic message, [RemotePort? remotePort]) {});
+      expect(localPort.registered, isTrue);
+
+      await localPort.unregister();
+      expect(localPort.registered, isFalse);
+    }, timeout: const Timeout(Duration(seconds: 5)));
+
+    testWidgets('register throws when the port is already registered', (
+      WidgetTester tester,
+    ) async {
+      final LocalPort localPort = await LocalPort.create(kTestPort);
+      localPort.register((dynamic message, [RemotePort? remotePort]) {});
+
+      expect(
+        () =>
+            localPort.register((dynamic message, [RemotePort? remotePort]) {}),
+        throwsException,
+      );
+
+      await localPort.unregister();
+    }, timeout: const Timeout(Duration(seconds: 5)));
+
+    testWidgets('unregister is safe when not registered and when repeated', (
+      WidgetTester tester,
+    ) async {
+      final LocalPort localPort = await LocalPort.create(kTestPort);
+
+      // Unregistering before any registration must not throw.
+      await localPort.unregister();
+      expect(localPort.registered, isFalse);
+
+      // Unregister is safe to call repeatedly after a registration.
+      localPort.register((dynamic message, [RemotePort? remotePort]) {});
+      await localPort.unregister();
+      await localPort.unregister();
+      expect(localPort.registered, isFalse);
+    }, timeout: const Timeout(Duration(seconds: 5)));
+  });
+
   group('Types test', () {
     late LocalPort localPort;
     late RemotePort remotePort;
@@ -170,6 +217,19 @@ void main() {
 
     testWidgets('map', (WidgetTester tester) async {
       final Map<String, int> value = <String, int>{'a': 5, 'b': 12};
+      await checkForMessage<Map<dynamic, dynamic>>(value);
+    }, timeout: const Timeout(Duration(seconds: 5)));
+
+    testWidgets('empty string', (WidgetTester tester) async {
+      const String value = '';
+      await checkForMessage<String>(value);
+    }, timeout: const Timeout(Duration(seconds: 5)));
+
+    testWidgets('nested collection', (WidgetTester tester) async {
+      final Map<String, dynamic> value = <String, dynamic>{
+        'numbers': <int>[1, 2, 3],
+        'nested': <String, String>{'key': 'value'},
+      };
       await checkForMessage<Map<dynamic, dynamic>>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
   });
