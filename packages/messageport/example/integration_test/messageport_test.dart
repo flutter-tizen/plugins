@@ -115,6 +115,8 @@ void main() {
       WidgetTester tester,
     ) async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
+      // Ensure the port is unregistered even if an assertion below fails.
+      addTearDown(localPort.unregister);
       expect(localPort.portName, equals(kTestPort));
       expect(localPort.registered, isFalse);
 
@@ -129,6 +131,7 @@ void main() {
       WidgetTester tester,
     ) async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
+      addTearDown(localPort.unregister);
       localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
       expect(
@@ -136,14 +139,13 @@ void main() {
             localPort.register((dynamic message, [RemotePort? remotePort]) {}),
         throwsException,
       );
-
-      await localPort.unregister();
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     testWidgets('unregister is safe when not registered and when repeated', (
       WidgetTester tester,
     ) async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
+      addTearDown(localPort.unregister);
 
       // Unregistering before any registration must not throw.
       await localPort.unregister();
