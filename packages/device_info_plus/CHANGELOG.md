@@ -1,3 +1,7 @@
+## NEXT
+
+* Add 2 integration test cases.
+
 ## 1.4.0
 
 * Add `freeDiskSize` and `totalDiskSize` using the Tizen Storage API.
