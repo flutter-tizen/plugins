@@ -4,7 +4,6 @@
 #ifndef PACKAGES_FLUTTER_WEBRTC_TASK_RUNNER_TIZEN_H_
 #define PACKAGES_FLUTTER_WEBRTC_TASK_RUNNER_TIZEN_H_
 
-#include <Ecore.h>
 #include <glib.h>
 
 #include <mutex>
