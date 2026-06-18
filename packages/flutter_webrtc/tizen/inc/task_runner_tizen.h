@@ -4,7 +4,7 @@
 #ifndef PACKAGES_FLUTTER_WEBRTC_TASK_RUNNER_TIZEN_H_
 #define PACKAGES_FLUTTER_WEBRTC_TASK_RUNNER_TIZEN_H_
 
-#include <Ecore.h>
+#include <glib.h>
 
 #include <mutex>
 #include <queue>
@@ -19,7 +19,7 @@ class TaskRunnerTizen : public TaskRunner {
   void EnqueueTask(TaskClosure task) override;
 
  private:
-  static void RunTask(void* data);
+  static gboolean RunTask(gpointer data);
   std::mutex tasks_mutex_;
   std::queue<TaskClosure> tasks_;
 };
