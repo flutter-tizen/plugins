@@ -471,31 +471,47 @@ void AudioPlayer::OnPlayCompleted(void *data) {
 }
 
 void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
+  auto *self = reinterpret_cast<AudioPlayer *>(data);
   // On TV devices, callbacks are not executed on the main loop. Transfer to
   // the main loop so the log event is sent on the platform thread.
-  ecore_main_loop_thread_safe_call_async(
-      [](void *data) {
-        auto *player = reinterpret_cast<AudioPlayer *>(data);
-        player->log_listener_(player->player_id_, "Player interrupted.");
+  g_idle_add_full(
+      G_PRIORITY_DEFAULT_IDLE,
+      [](gpointer data) -> gboolean {
+        auto *idle = static_cast<IdleData *>(data);
+        if (!*idle->is_alive) {
+          return G_SOURCE_REMOVE;
+        }
+        idle->player->log_listener_(idle->player->player_id_,
+                                    "Player interrupted.");
+        return G_SOURCE_REMOVE;
       },
-      data);
+      new IdleData{self, self->is_alive_},
+      [](gpointer data) { delete static_cast<IdleData *>(data); });
 }
 
 void AudioPlayer::OnError(int code, void *data) {
+  auto *self = reinterpret_cast<AudioPlayer *>(data);
   // On TV devices, callbacks are not executed on the main loop. Transfer to
   // the main loop so the log event is sent on the platform thread. The error
   // message is resolved here and carried via a heap-allocated context.
-  auto *context = new std::pair<AudioPlayer *, std::string>(
-      reinterpret_cast<AudioPlayer *>(data), get_error_message(code));
-  ecore_main_loop_thread_safe_call_async(
-      [](void *data) {
-        auto *context =
-            reinterpret_cast<std::pair<AudioPlayer *, std::string> *>(data);
-        AudioPlayer *player = context->first;
-        player->log_listener_(player->player_id_, context->second);
-        delete context;
+  struct ErrorData {
+    AudioPlayer *player;
+    std::shared_ptr<bool> is_alive;
+    std::string message;
+  };
+  g_idle_add_full(
+      G_PRIORITY_DEFAULT_IDLE,
+      [](gpointer data) -> gboolean {
+        auto *error_data = static_cast<ErrorData *>(data);
+        if (!*error_data->is_alive) {
+          return G_SOURCE_REMOVE;
+        }
+        error_data->player->log_listener_(error_data->player->player_id_,
+                                          error_data->message);
+        return G_SOURCE_REMOVE;
       },
-      context);
+      new ErrorData{self, self->is_alive_, get_error_message(code)},
+      [](gpointer data) { delete static_cast<ErrorData *>(data); });
 }
 
 void AudioPlayer::StartPositionUpdates() {
