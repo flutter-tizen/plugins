@@ -5,10 +5,11 @@
 #ifndef FLUTTER_PLUGIN_AUDIO_PLAYER_H_
 #define FLUTTER_PLUGIN_AUDIO_PLAYER_H_
 
-#include <Ecore.h>
+#include <glib.h>
 #include <player.h>
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -71,7 +72,7 @@ class AudioPlayer {
   static void OnPlayCompleted(void *data);
   static void OnInterrupted(player_interrupted_code_e code, void *data);
   static void OnError(int code, void *data);
-  static Eina_Bool OnPositionUpdate(void *data);
+  static gboolean OnPositionUpdate(gpointer data);
 
   player_h player_ = nullptr;
   const std::string player_id_;
@@ -84,7 +85,8 @@ class AudioPlayer {
   bool preparing_ = false;
   bool seeking_ = false;
   bool should_play_ = false;
-  Ecore_Timer *timer_ = nullptr;
+  guint timer_id_ = 0;
+  std::shared_ptr<bool> is_alive_ = std::make_shared<bool>(true);
 
   PreparedListener prepared_listener_;
   DurationListener duration_listener_;

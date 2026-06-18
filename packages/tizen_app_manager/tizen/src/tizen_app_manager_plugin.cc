@@ -4,7 +4,6 @@
 
 #include "tizen_app_manager_plugin.h"
 
-#include <Ecore.h>
 #include <app.h>
 #include <flutter/event_channel.h>
 #include <flutter/event_sink.h>
@@ -12,6 +11,7 @@
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
+#include <glib.h>
 
 #include <memory>
 #include <optional>
@@ -256,8 +256,10 @@ class TizenAppManagerPlugin : public flutter::Plugin {
   void GetInstalledApps(std::unique_ptr<FlMethodResult> result) {
     // TizenAppManager::GetAllAppsInfo() is an expensive operation and might
     // cause unresponsiveness on low-end devices if run on the platform thread.
-    ecore_thread_run(
-        [](void *data, Ecore_Thread *thread) {
+    GError *error = nullptr;
+    GThread *thread = g_thread_try_new(
+        "flutter_tizen_plugins_tizen_app_manager_installed_appss",
+        [](gpointer data) -> gpointer {
           auto *result = static_cast<FlMethodResult *>(data);
 
           flutter::EncodableList list;
@@ -278,14 +280,22 @@ class TizenAppManagerPlugin : public flutter::Plugin {
           }
           result->Success(flutter::EncodableValue(list));
           delete result;
+          return nullptr;
         },
-        nullptr,
-        [](void *data, Ecore_Thread *thread) {
-          auto *result = static_cast<FlMethodResult *>(data);
-          result->Error("Operation failed", "Failed to start a thread.");
-          delete result;
-        },
-        result.release());
+        result.get(), &error);
+
+    if (thread == nullptr) {
+      LOG_ERROR("Failed to create a thread: %s",
+                error ? error->message : "unknown error");
+      if (error) {
+        g_error_free(error);
+      }
+      result->Error("Operation failed", "Failed to start a thread.");
+      return;
+    }
+
+    result.release();
+    g_thread_unref(thread);
   }
 
   void IsAppRunning(const flutter::EncodableMap *arguments,
