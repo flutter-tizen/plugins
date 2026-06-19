@@ -4,10 +4,10 @@
 
 #include "message_dispatcher.h"
 
-#include <Ecore.h>
+#include <glib.h>
 
-MessageDispatcher::MessageDispatcher() { ecore_init(); }
-MessageDispatcher::~MessageDispatcher() { ecore_shutdown(); }
+MessageDispatcher::MessageDispatcher() {}
+MessageDispatcher::~MessageDispatcher() {}
 
 void MessageDispatcher::dispatchTaskOnMainThread(std::function<void()>&& fn) {
   struct Param {
@@ -15,17 +15,12 @@ void MessageDispatcher::dispatchTaskOnMainThread(std::function<void()>&& fn) {
   };
   Param* p = new Param({std::move(fn)});
 
-  ecore_main_loop_thread_safe_call_async(
-      [](void* data) -> void {
-        ecore_timer_add(
-            0.0,
-            [](void* data) -> Eina_Bool {
-              auto* p = static_cast<Param*>(data);
-              p->fn();
-              delete p;
-              return ECORE_CALLBACK_CANCEL;
-            },
-            data);
+  g_idle_add_full(
+      G_PRIORITY_DEFAULT,
+      [](gpointer data) -> gboolean {
+        auto* p = static_cast<Param*>(data);
+        p->fn();
+        return G_SOURCE_REMOVE;
       },
-      p);
+      p, [](gpointer data) { delete static_cast<Param*>(data); });
 }
