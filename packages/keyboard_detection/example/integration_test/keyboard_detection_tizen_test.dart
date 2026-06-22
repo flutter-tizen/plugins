@@ -42,6 +42,8 @@ void main() {
       await emit(tester, <String, Object?>{'state': 'will_show'});
       await tester.pump();
       expect(controller.state, KeyboardState.visibling);
+      expect(controller.stateAsBool(), isFalse);
+      expect(controller.stateAsBool(true), isTrue);
       await controller.dispose();
     });
 
@@ -64,6 +66,8 @@ void main() {
       await emit(tester, <String, Object?>{'state': 'will_hide'});
       await tester.pump();
       expect(controller.state, KeyboardState.hiding);
+      expect(controller.stateAsBool(), isTrue);
+      expect(controller.stateAsBool(true), isFalse);
       await controller.dispose();
     });
 
@@ -107,30 +111,6 @@ void main() {
       await emit(tester, <String, Object?>{'state': 123});
       await tester.pump();
       expect(controller.state, KeyboardState.visible);
-      await controller.dispose();
-    });
-  });
-
-  group('stateAsBool', () {
-    testWidgets('maps the transitional visibling state',
-        (WidgetTester tester) async {
-      final KeyboardDetectionController controller =
-          KeyboardDetectionController();
-      await emit(tester, <String, Object?>{'state': 'will_show'});
-      await tester.pump();
-      expect(controller.stateAsBool(), isFalse);
-      expect(controller.stateAsBool(true), isTrue);
-      await controller.dispose();
-    });
-
-    testWidgets('maps the transitional hiding state',
-        (WidgetTester tester) async {
-      final KeyboardDetectionController controller =
-          KeyboardDetectionController();
-      await emit(tester, <String, Object?>{'state': 'will_hide'});
-      await tester.pump();
-      expect(controller.stateAsBool(), isTrue);
-      expect(controller.stateAsBool(true), isFalse);
       await controller.dispose();
     });
   });
