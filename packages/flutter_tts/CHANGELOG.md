@@ -1,4 +1,4 @@
-## 1.6.1
+## 1.7.0
 
 * Return a boolean from `isLanguageAvailable` to match the behavior of other platforms.
 * Add integration tests for the supported TTS APIs.

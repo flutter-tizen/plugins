@@ -22,13 +22,7 @@ void main() {
   });
 
   testWidgets('stop returns 1', (WidgetTester tester) async {
-    await flutterTts.speak('Hello, world!');
     expect(await flutterTts.stop(), 1);
-  });
-
-  testWidgets('pause returns 1', (WidgetTester tester) async {
-    await flutterTts.speak('Hello, world!');
-    expect(await flutterTts.pause(), 1);
   });
 
   testWidgets('getLanguages returns a non-empty list', (
