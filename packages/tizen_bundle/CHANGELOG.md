@@ -1,6 +1,7 @@
 ## NEXT
 
 * Update code format.
+* Add 35 integration test cases.
 
 ## 0.1.2
 
