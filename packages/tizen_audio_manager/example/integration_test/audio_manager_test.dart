@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:tizen_audio_manager/tizen_audio_manager.dart';
@@ -203,5 +205,43 @@ void main() {
     await AudioManager.volumeController.setLevel(AudioVolumeType.voip, 0);
     level = await AudioManager.volumeController.getLevel(AudioVolumeType.voip);
     expect(level, equals(0));
+  });
+
+  testWidgets('currentPlaybackType returns a valid AudioVolumeType',
+      (WidgetTester tester) async {
+    final AudioVolumeType type =
+        await AudioManager.volumeController.currentPlaybackType;
+    expect(AudioVolumeType.values, contains(type));
+  });
+
+  testWidgets('onChanged emits VolumeChangedEvent when volume is changed',
+      (WidgetTester tester) async {
+    final int originalLevel =
+        await AudioManager.volumeController.getLevel(AudioVolumeType.system);
+    final int maxLevel =
+        await AudioManager.volumeController.getMaxLevel(AudioVolumeType.system);
+    final int targetLevel = originalLevel == maxLevel ? 0 : maxLevel;
+
+    final Completer<VolumeChangedEvent> completer =
+        Completer<VolumeChangedEvent>();
+    final StreamSubscription<VolumeChangedEvent> subscription =
+        AudioManager.volumeController.onChanged
+            .listen((VolumeChangedEvent event) {
+      if (event.type == AudioVolumeType.system && !completer.isCompleted) {
+        completer.complete(event);
+      }
+    });
+
+    await AudioManager.volumeController.setLevel(
+        AudioVolumeType.system, targetLevel);
+    final VolumeChangedEvent event =
+        await completer.future.timeout(const Duration(seconds: 5));
+
+    expect(event.type, equals(AudioVolumeType.system));
+    expect(event.level, equals(targetLevel));
+
+    await AudioManager.volumeController.setLevel(
+        AudioVolumeType.system, originalLevel);
+    await subscription.cancel();
   });
 }
