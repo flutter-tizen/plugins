@@ -1,3 +1,7 @@
+## NEXT
+
+* Add 9 integration test cases.
+
 ## 0.2.4
 
 * Update code format.
