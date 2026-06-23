@@ -112,8 +112,10 @@ std::optional<PackageInfo> TizenPackageManager::GetPackageData(
 
   char *icon_path = nullptr;
   ret = package_info_get_icon(handle, &icon_path);
-  if (icon_path) {
+  if (icon_path && icon_path[0] != '\0') {
     result.icon_path = icon_path;
+    free(icon_path);
+  } else if (icon_path) {
     free(icon_path);
   }
 
