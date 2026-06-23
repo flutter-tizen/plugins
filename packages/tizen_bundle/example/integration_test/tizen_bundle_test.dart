@@ -54,6 +54,20 @@ void main() {
       expect(bundle.length, 0);
       expect(bundle.isEmpty, true);
     });
+
+    testWidgets('creates a bundle with String, List<String>, and Uint8List entries', (
+      WidgetTester _,
+    ) async {
+      final Bundle bundle = Bundle.fromMap(<String, Object>{
+        'stringKey': 'stringValue',
+        'stringsKey': <String>['value1', 'value2'],
+        'bytesKey': Uint8List.fromList(<int>[0x03]),
+      });
+      expect(bundle.length, 3);
+      expect(bundle['stringKey'], 'stringValue');
+      expect(bundle['stringsKey'], <String>['value1', 'value2']);
+      expect(bundle['bytesKey'], Uint8List.fromList(<int>[0x03]));
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -321,6 +335,21 @@ void main() {
     ) async {
       final Bundle bundle = Bundle();
       expect(bundle.containsKey('missing'), false);
+    });
+
+    testWidgets('keys and values return all stored entries', (
+      WidgetTester _,
+    ) async {
+      final Bundle bundle = Bundle.fromMap(<String, String>{
+        'key1': 'value1',
+        'key2': 'value2',
+        'key3': 'value3',
+      });
+      expect(bundle.keys, unorderedEquals(<String>['key1', 'key2', 'key3']));
+      expect(
+        bundle.values,
+        unorderedEquals(<String>['value1', 'value2', 'value3']),
+      );
     });
 
     testWidgets('containsValue returns true for existing string value', (
