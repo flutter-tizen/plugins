@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:tizen_bundle/tizen_bundle.dart';
@@ -37,25 +36,6 @@ class _TestProxy extends ProxyBase {
 
   @override
   Future<void> onReceivedEvent(Parcel parcel) async {}
-}
-
-// A minimal StubBase subclass used only to test single-app observable
-// behaviour (construction, setTrusted, addPrivilege, double listen).
-class _TestStub extends StubBase {
-  _TestStub() : super('TestStubPort');
-
-  @override
-  Future<void> onConnectedEvent(String sender, String instance) async {}
-
-  @override
-  Future<void> onDisconnectedEvent(String sender, String instance) async {}
-
-  @override
-  Future<void> onReceivedEvent(
-    String sender,
-    String instance,
-    Parcel parcel,
-  ) async {}
 }
 
 void main() {
@@ -281,34 +261,5 @@ void main() {
       expect(proxy.appid, 'org.tizen.nonexistent_app_for_rpc_test');
       expect(proxy.portName, 'TestPort');
     });
-  });
-
-  // ---------------------------------------------------------------------------
-  // StubBase — single-app observable behaviour
-  // ---------------------------------------------------------------------------
-
-  group('StubBase', () {
-    testWidgets('portName is set from constructor', (WidgetTester _) async {
-      final _TestStub stub = _TestStub();
-      expect(stub.portName, 'TestStubPort');
-    });
-
-    testWidgets('setTrusted can be called without listen', (
-      WidgetTester _,
-    ) async {
-      final _TestStub stub = _TestStub();
-      // Should not throw.
-      stub.setTrusted(true);
-      stub.setTrusted(false);
-    });
-
-    testWidgets('addPrivilege can be called without listen', (
-      WidgetTester _,
-    ) async {
-      final _TestStub stub = _TestStub();
-      // Should not throw.
-      stub.addPrivilege('http://tizen.org/privilege/datasharing');
-    });
-
   });
 }

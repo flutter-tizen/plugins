@@ -1,7 +1,7 @@
 ## NEXT
 
-* Add 24 integration test cases to the client example.
-* Add 23 integration test cases to the server example.
+* Add 21 integration test cases to the client example.
+* Add 24 integration test cases to the server example.
 
 ## 0.1.5
 

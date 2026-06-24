@@ -28,6 +28,26 @@ class _TestStub extends StubBase {
   ) async {}
 }
 
+// A minimal Parcelable implementation used only in tests.
+class _Point implements Parcelable {
+  _Point({this.x = 0, this.y = 0});
+
+  int x;
+  int y;
+
+  @override
+  void serialize(Parcel parcel) {
+    parcel.writeInt32(x);
+    parcel.writeInt32(y);
+  }
+
+  @override
+  void deserialize(Parcel parcel) {
+    x = parcel.readInt32();
+    y = parcel.readInt32();
+  }
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -195,6 +215,21 @@ void main() {
       testWidgets('tag defaults to empty string', (WidgetTester _) async {
         final Parcel parcel = Parcel();
         expect(parcel.header.tag, isEmpty);
+      });
+    });
+
+    group('Parcelable', () {
+      testWidgets('custom Parcelable serializes and deserializes correctly', (
+        WidgetTester _,
+      ) async {
+        final Parcel parcel = Parcel();
+        final _Point original = _Point(x: 10, y: 20);
+        original.serialize(parcel);
+
+        final _Point restored = _Point();
+        restored.deserialize(parcel);
+        expect(restored.x, 10);
+        expect(restored.y, 20);
       });
     });
   });
