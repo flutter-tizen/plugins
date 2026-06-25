@@ -30,7 +30,7 @@ class TizenNotificationPlugin {
 
     // Set disableAppLaunch automatically if appControl is unset.
     if (notificationDetails?.appControl == null) {
-      final int properties = details['properties']! as int;
+      final int properties = (details['properties'] as int?) ?? 0;
       details['properties'] =
           properties | NotificationProperty.disableAppLaunch;
     }

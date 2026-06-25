@@ -1,5 +1,6 @@
-## NEXT
+## 0.2.1
 
+* Fix null check error when calling show() without TizenNotificationDetails.
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Update code format.
 
