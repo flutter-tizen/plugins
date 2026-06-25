@@ -43,7 +43,10 @@ VideoPlayer::~VideoPlayer() {
 
 void VideoPlayer::ClearUpEventChannel() {
   is_initialized_ = false;
-  event_sink_ = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    event_sink_ = nullptr;
+  }
   if (event_channel_) {
     event_channel_->SetStreamHandler(nullptr);
   }
@@ -115,12 +118,16 @@ void VideoPlayer::ScheduleSendPendingEvents() {
       source,
       [](gpointer data) -> gboolean {
         auto state = static_cast<std::shared_ptr<EventDispatchState> *>(data);
-
-        // Lock the mutex before checking and accessing player
-        std::lock_guard<std::mutex> lock((*state)->mutex);
-        if (!(*state)->disposed && (*state)->player) {
-          (*state)->pending_source_id = 0;
-          (*state)->player->ExecuteSinkEvents();
+        VideoPlayer *player = nullptr;
+        {
+          std::lock_guard<std::mutex> lock((*state)->mutex);
+          if (!(*state)->disposed && (*state)->player) {
+            (*state)->pending_source_id = 0;
+            player = (*state)->player;
+          }
+        }
+        if (player) {
+          player->ExecuteSinkEvents();
         }
         return G_SOURCE_REMOVE;
       },
@@ -135,12 +142,12 @@ void VideoPlayer::ScheduleSendPendingEvents() {
 }
 
 void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
-  if (!event_sink_) {
-    LOG_ERROR("[VideoPlayer] event sink is nullptr.");
-    return;
-  }
   {
     std::lock_guard<std::mutex> lock(queue_mutex_);
+    if (!event_sink_) {
+      LOG_ERROR("[VideoPlayer] event sink is nullptr.");
+      return;
+    }
     encodable_event_queue_.push(encodable_value);
   }
   ScheduleSendPendingEvents();
@@ -243,12 +250,12 @@ void VideoPlayer::SendRestored() {
 
 void VideoPlayer::SendError(const std::string &error_code,
                             const std::string &error_message) {
-  if (!event_sink_) {
-    LOG_ERROR("[VideoPlayer] event sink is nullptr.");
-    return;
-  }
   {
     std::lock_guard<std::mutex> lock(queue_mutex_);
+    if (!event_sink_) {
+      LOG_ERROR("[VideoPlayer] event sink is nullptr.");
+      return;
+    }
     error_event_queue_.push(std::make_pair(error_code, error_message));
   }
   ScheduleSendPendingEvents();

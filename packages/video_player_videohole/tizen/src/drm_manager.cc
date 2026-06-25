@@ -355,12 +355,16 @@ void DrmManager::ScheduleProcessLicenseRequest() {
       source,
       [](gpointer data) -> gboolean {
         auto state = static_cast<std::shared_ptr<LicenseRequestState> *>(data);
-
-        // Lock the mutex before checking and accessing manager
-        std::lock_guard<std::mutex> lock((*state)->mutex);
-        if (!(*state)->disposed && (*state)->manager) {
-          (*state)->pending_source_id = 0;
-          (*state)->manager->ExecuteRequest();
+        DrmManager *manager = nullptr;
+        {
+          std::lock_guard<std::mutex> lock((*state)->mutex);
+          if (!(*state)->disposed && (*state)->manager) {
+            (*state)->pending_source_id = 0;
+            manager = (*state)->manager;
+          }
+        }
+        if (manager) {
+          manager->ExecuteRequest();
         }
         return G_SOURCE_REMOVE;
       },
