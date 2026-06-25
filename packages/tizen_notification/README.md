@@ -10,7 +10,7 @@ To use this plugin, add `tizen_notification` as a dependency in your `pubspec.ya
 
 ```yaml
 dependencies:
-  tizen_notification: ^0.2.0
+  tizen_notification: ^0.2.1
 ```
 
 Then you can import `tizen_notification` in your Dart code:
