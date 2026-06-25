@@ -5,10 +5,10 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
-#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter_tizen.h>
+#include <glib.h>
 
 #include <memory>
 #include <mutex>
@@ -79,7 +79,25 @@ class VideoPlayer {
   bool is_restored_ = false;
 
  private:
+  struct GMainContextDeleter {
+    void operator()(GMainContext *context) const {
+      g_main_context_unref(context);
+    }
+  };
+
+  // Event dispatch state structure for lifecycle management
+  struct EventDispatchState {
+    std::mutex mutex;
+    VideoPlayer *player = nullptr;
+    bool disposed = false;
+    guint pending_source_id = 0;
+  };
+
+  std::shared_ptr<EventDispatchState> event_dispatch_state_;
+  std::unique_ptr<GMainContext, GMainContextDeleter> main_context_;
+
   void ExecuteSinkEvents();
+  void ScheduleSendPendingEvents();
   void PushEvent(flutter::EncodableValue encodable_value);
 
   std::queue<flutter::EncodableValue> encodable_event_queue_;
@@ -87,7 +105,6 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
-  Ecore_Pipe *sink_event_pipe_ = nullptr;
 };
 
 }  // namespace video_player_videohole_tizen

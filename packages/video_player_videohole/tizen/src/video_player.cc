@@ -18,19 +18,27 @@ VideoPlayer::VideoPlayer(flutter::BinaryMessenger *messenger,
     : ecore_wl2_window_proxy_(std::make_unique<EcoreWl2WindowProxy>()),
       binary_messenger_(messenger),
       flutter_view_(flutter_view) {
-  sink_event_pipe_ = ecore_pipe_add(
-      [](void *data, void *buffer, unsigned int nbyte) -> void {
-        auto *self = static_cast<VideoPlayer *>(data);
-        self->ExecuteSinkEvents();
-      },
-      this);
+  // Initialize GMainContext and event dispatch state
+  main_context_ = std::unique_ptr<GMainContext, GMainContextDeleter>(
+      g_main_context_ref_thread_default());
+  event_dispatch_state_ = std::make_shared<VideoPlayer::EventDispatchState>();
+  event_dispatch_state_->player = this;
 }
 
 VideoPlayer::~VideoPlayer() {
-  if (sink_event_pipe_) {
-    ecore_pipe_del(sink_event_pipe_);
-    sink_event_pipe_ = nullptr;
+  // Mark event dispatch state as disposed and cancel pending event source
+  if (event_dispatch_state_) {
+    std::lock_guard<std::mutex> lock(event_dispatch_state_->mutex);
+    event_dispatch_state_->disposed = true;
+    event_dispatch_state_->player = nullptr;
+
+    if (event_dispatch_state_->pending_source_id != 0) {
+      g_source_remove(event_dispatch_state_->pending_source_id);
+      event_dispatch_state_->pending_source_id = 0;
+    }
   }
+
+  main_context_.reset();
 }
 
 void VideoPlayer::ClearUpEventChannel() {
@@ -90,14 +98,52 @@ void VideoPlayer::ExecuteSinkEvents() {
   }
 }
 
+void VideoPlayer::ScheduleSendPendingEvents() {
+  std::lock_guard<std::mutex> lock(event_dispatch_state_->mutex);
+
+  // Check conditions and deduplicate
+  if (!main_context_ || !event_dispatch_state_ ||
+      event_dispatch_state_->disposed ||
+      event_dispatch_state_->pending_source_id != 0) {
+    return;
+  }
+
+  auto *state = new std::shared_ptr<EventDispatchState>(event_dispatch_state_);
+
+  GSource *source = g_idle_source_new();
+  g_source_set_callback(
+      source,
+      [](gpointer data) -> gboolean {
+        auto state = static_cast<std::shared_ptr<EventDispatchState> *>(data);
+
+        // Lock the mutex before checking and accessing player
+        std::lock_guard<std::mutex> lock((*state)->mutex);
+        if (!(*state)->disposed && (*state)->player) {
+          (*state)->pending_source_id = 0;
+          (*state)->player->ExecuteSinkEvents();
+        }
+        return G_SOURCE_REMOVE;
+      },
+      state,
+      [](gpointer data) {
+        delete static_cast<std::shared_ptr<EventDispatchState> *>(data);
+      });
+
+  event_dispatch_state_->pending_source_id =
+      g_source_attach(source, main_context_.get());
+  g_source_unref(source);
+}
+
 void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
-  std::lock_guard<std::mutex> lock(queue_mutex_);
-  if (event_sink_ == nullptr) {
+  if (!event_sink_) {
     LOG_ERROR("[VideoPlayer] event sink is nullptr.");
     return;
   }
-  encodable_event_queue_.push(encodable_value);
-  ecore_pipe_write(sink_event_pipe_, nullptr, 0);
+  {
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    encodable_event_queue_.push(encodable_value);
+  }
+  ScheduleSendPendingEvents();
 }
 
 void VideoPlayer::SendInitialized() {
@@ -197,11 +243,15 @@ void VideoPlayer::SendRestored() {
 
 void VideoPlayer::SendError(const std::string &error_code,
                             const std::string &error_message) {
-  if (event_sink_) {
+  if (!event_sink_) {
+    LOG_ERROR("[VideoPlayer] event sink is nullptr.");
+    return;
+  }
+  {
     std::lock_guard<std::mutex> lock(queue_mutex_);
     error_event_queue_.push(std::make_pair(error_code, error_message));
-    ecore_pipe_write(sink_event_pipe_, nullptr, 0);
   }
+  ScheduleSendPendingEvents();
 }
 
 void *VideoPlayer::GetWindowHandle() {
