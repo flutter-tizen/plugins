@@ -17,7 +17,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('firebase_core', () {
-    final String testAppName = '[DEFAULT]';
+    const String testAppName = '[DEFAULT]';
 
     setUpAll(() async {
       await Firebase.initializeApp(
@@ -33,7 +33,7 @@ void main() {
     });
 
     test('Firebase.app()', () async {
-      final FirebaseApp app = Firebase.app(testAppName);
+      final FirebaseApp app = Firebase.app();
       expect(app.name, testAppName);
       expect(app.options, DefaultFirebaseOptions.currentPlatform);
     });
@@ -66,7 +66,7 @@ void main() {
     );
 
     test('FirebaseApp.setAutomaticDataCollectionEnabled()', () async {
-      final FirebaseApp app = Firebase.app(testAppName);
+      final FirebaseApp app = Firebase.app();
       await app.setAutomaticDataCollectionEnabled(false);
 
       expect(app.isAutomaticDataCollectionEnabled, false);
@@ -77,7 +77,7 @@ void main() {
     });
 
     test('FirebaseApp.setAutomaticResourceManagementEnabled()', () async {
-      final FirebaseApp app = Firebase.app(testAppName);
+      final FirebaseApp app = Firebase.app();
 
       await app.setAutomaticResourceManagementEnabled(true);
     });
