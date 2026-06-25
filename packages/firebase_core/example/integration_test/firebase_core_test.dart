@@ -1,0 +1,85 @@
+// Copyright 2024 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// Integration tests ported from upstream firebase_core
+// (github.com/firebase/flutterfire), originally authored by the
+// Chromium project authors under a BSD-style license.
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
+import 'package:firebase_core_tizen_example/firebase_options.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  group('firebase_core', () {
+    final String testAppName = '[DEFAULT]';
+
+    setUpAll(() async {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    });
+
+    test('Firebase.apps', () async {
+      final List<FirebaseApp> apps = Firebase.apps;
+      expect(apps.length, 1);
+      expect(apps[0].name, testAppName);
+      expect(apps[0].options, DefaultFirebaseOptions.currentPlatform);
+    });
+
+    test('Firebase.app()', () async {
+      final FirebaseApp app = Firebase.app(testAppName);
+      expect(app.name, testAppName);
+      expect(app.options, DefaultFirebaseOptions.currentPlatform);
+    });
+
+    test('Firebase.app() Exception', () async {
+      expect(
+        () => Firebase.app('NoApp'),
+        throwsA(noAppExists('NoApp')),
+      );
+    });
+
+    test(
+      'FirebaseApp.delete()',
+      () async {
+        await Firebase.initializeApp(
+          name: 'SecondaryApp',
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+
+        expect(Firebase.apps.length, 2);
+
+        final FirebaseApp app = Firebase.app('SecondaryApp');
+
+        await app.delete();
+
+        expect(Firebase.apps.length, 1);
+        // TODO(russellwheatley): test randomly causes an auth sign-in failure due to duplicate accounts.
+      },
+      skip: TargetPlatform.android == defaultTargetPlatform,
+    );
+
+    test('FirebaseApp.setAutomaticDataCollectionEnabled()', () async {
+      final FirebaseApp app = Firebase.app(testAppName);
+      await app.setAutomaticDataCollectionEnabled(false);
+
+      expect(app.isAutomaticDataCollectionEnabled, false);
+
+      await app.setAutomaticDataCollectionEnabled(true);
+
+      expect(app.isAutomaticDataCollectionEnabled, true);
+    });
+
+    test('FirebaseApp.setAutomaticResourceManagementEnabled()', () async {
+      final FirebaseApp app = Firebase.app(testAppName);
+
+      await app.setAutomaticResourceManagementEnabled(true);
+    });
+  });
+}

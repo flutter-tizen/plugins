@@ -22,3 +22,4 @@ flutter:
 
 false_secrets:
   - /example/lib/main.dart
+  - /example/lib/firebase_options.dart
