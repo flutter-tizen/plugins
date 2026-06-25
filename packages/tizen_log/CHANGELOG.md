@@ -1,5 +1,6 @@
 ## NEXT
 
+* Add regression integration tests.
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Fix new lint warnings.
 * Update code format.
