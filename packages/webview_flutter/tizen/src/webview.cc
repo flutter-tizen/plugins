@@ -429,6 +429,8 @@ bool WebView::InitWebView() {
                                  &WebView::OnConsoleMessage, this);
   evas_object_smart_callback_add(webview_instance_, "policy,navigation,decide",
                                  &WebView::OnNavigationPolicy, this);
+  evas_object_smart_callback_add(webview_instance_, "policy,response,decide",
+                                 &WebView::OnResponsePolicy, this);
   evas_object_smart_callback_add(webview_instance_, "url,changed",
                                  &WebView::OnUrlChange, this);
 
@@ -579,6 +581,10 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
   } else if (method_name == "clearCache") {
     Ewk_Context* context = ewk_view_context_get(webview_instance_);
     ewk_context_resource_cache_clear(context);
+    result->Success();
+  } else if (method_name == "clearLocalStorage") {
+    Ewk_Context* context = ewk_view_context_get(webview_instance_);
+    ewk_context_web_storage_delete_all(context);
     result->Success();
   } else if (method_name == "getTitle") {
     result->Success(flutter::EncodableValue(
@@ -869,6 +875,30 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   webview->navigation_delegate_channel_->InvokeMethod(
       "navigationRequest", std::make_unique<flutter::EncodableValue>(args),
       std::move(result));
+}
+
+void WebView::OnResponsePolicy(void* data, Evas_Object* obj,
+                               void* event_info) {
+  WebView* webview = static_cast<WebView*>(data);
+  Ewk_Policy_Decision* policy_decision =
+      static_cast<Ewk_Policy_Decision*>(event_info);
+  int status_code =
+      ewk_policy_decision_response_status_code_get(policy_decision);
+  const char* url = ewk_policy_decision_url_get(policy_decision);
+  ewk_policy_decision_use(policy_decision);
+
+  // HTTP error status codes (4xx, 5xx) are reported to the navigation delegate.
+  if (!webview->has_navigation_delegate_ || status_code < 400) {
+    return;
+  }
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("url"),
+       flutter::EncodableValue(url ? url : "")},
+      {flutter::EncodableValue("statusCode"),
+       flutter::EncodableValue(status_code)},
+  };
+  webview->navigation_delegate_channel_->InvokeMethod(
+      "onHttpError", std::make_unique<flutter::EncodableValue>(args));
 }
 
 void WebView::OnUrlChange(void* data, Evas_Object* obj, void* event_info) {
