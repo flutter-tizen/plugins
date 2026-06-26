@@ -1,3 +1,8 @@
+## 0.10.1
+
+* Implement `clearLocalStorage`.
+* Implement `onHttpError` for the navigation delegate.
+
 ## 0.10.0
 
 * Update minimum supported SDK version to Flutter 3.32/Dart 3.8.
