@@ -443,6 +443,68 @@ Future<void> main() async {
       expect(currentUrl, isNot(contains('youtube.com')));
     });
 
+    testWidgets('onHttpError', (WidgetTester tester) async {
+      final Completer<HttpResponseError> errorCompleter =
+          Completer<HttpResponseError>();
+
+      final WebViewController controller = WebViewController();
+      unawaited(controller.setJavaScriptMode(JavaScriptMode.unrestricted));
+      unawaited(
+        controller.setNavigationDelegate(
+          NavigationDelegate(
+            onHttpError: (HttpResponseError error) {
+              errorCompleter.complete(error);
+            },
+          ),
+        ),
+      );
+
+      unawaited(controller.loadRequest(Uri.parse('$prefixUrl/favicon.ico')));
+
+      await tester.pumpWidget(WebViewWidget(controller: controller));
+
+      final HttpResponseError error = await errorCompleter.future;
+
+      expect(error, isNotNull);
+      expect(error.response?.statusCode, 404);
+    });
+
+    testWidgets('onHttpError is not called when no HTTP error is received', (
+      WidgetTester tester,
+    ) async {
+      const String testPage = '''
+        <!DOCTYPE html><html>
+        </head>
+        <body>
+        </body>
+        </html>
+      ''';
+
+      final Completer<HttpResponseError> errorCompleter =
+          Completer<HttpResponseError>();
+      final Completer<void> pageFinishCompleter = Completer<void>();
+
+      final WebViewController controller = WebViewController();
+      unawaited(controller.setJavaScriptMode(JavaScriptMode.unrestricted));
+      unawaited(
+        controller.setNavigationDelegate(
+          NavigationDelegate(
+            onPageFinished: (_) => pageFinishCompleter.complete(),
+            onHttpError: (HttpResponseError error) {
+              errorCompleter.complete(error);
+            },
+          ),
+        ),
+      );
+
+      unawaited(controller.loadHtmlString(testPage));
+
+      await tester.pumpWidget(WebViewWidget(controller: controller));
+
+      expect(errorCompleter.future, doesNotComplete);
+      await pageFinishCompleter.future;
+    });
+
     testWidgets('supports asynchronous decisions', (WidgetTester tester) async {
       Completer<void> pageLoaded = Completer<void>();
 
@@ -540,6 +602,41 @@ Future<void> main() async {
 
       await expectLater(urlChangeCompleter.future, completion(secondaryUrl));
     });
+  });
+
+  testWidgets('clearLocalStorage', (WidgetTester tester) async {
+    Completer<void> pageLoadCompleter = Completer<void>();
+
+    final WebViewController controller = WebViewController();
+    await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
+    await controller.setNavigationDelegate(
+      NavigationDelegate(onPageFinished: (_) => pageLoadCompleter.complete()),
+    );
+    await controller.loadRequest(Uri.parse(primaryUrl));
+
+    await tester.pumpWidget(WebViewWidget(controller: controller));
+
+    await pageLoadCompleter.future;
+    pageLoadCompleter = Completer<void>();
+
+    await controller.runJavaScript('localStorage.setItem("myCat", "Tom");');
+    final String myCatItem =
+        await controller.runJavaScriptReturningResult(
+              'localStorage.getItem("myCat");',
+            )
+            as String;
+    expect(myCatItem, 'Tom');
+
+    await controller.clearLocalStorage();
+
+    // Reload page to have changes take effect.
+    await controller.reload();
+    await pageLoadCompleter.future;
+
+    final Object nullItem = await controller.runJavaScriptReturningResult(
+      'localStorage.getItem("myCat");',
+    );
+    expect(nullItem, '');
   });
 }
 
