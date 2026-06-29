@@ -276,14 +276,30 @@ Future<void> main() async {
       expect(scrollPos.dx, isNot(X_SCROLL));
       expect(scrollPos.dy, isNot(Y_SCROLL));
 
+      // The scroll position settles asynchronously, so poll until it reaches
+      // the expected value (with a timeout) instead of reading it once. This
+      // keeps the test stable on slower software-GL rendering (e.g. emulators).
+      Future<Offset> pollScrollPosition(int expectedX, int expectedY) async {
+        Offset pos = await controller.getScrollPosition();
+        for (
+          int i = 0;
+          i < 20 && (pos.dx != expectedX || pos.dy != expectedY);
+          i++
+        ) {
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          pos = await controller.getScrollPosition();
+        }
+        return pos;
+      }
+
       await controller.scrollTo(X_SCROLL, Y_SCROLL);
-      scrollPos = await controller.getScrollPosition();
+      scrollPos = await pollScrollPosition(X_SCROLL, Y_SCROLL);
       expect(scrollPos.dx, X_SCROLL);
       expect(scrollPos.dy, Y_SCROLL);
 
       // Check scrollBy() (on top of scrollTo())
       await controller.scrollBy(X_SCROLL, Y_SCROLL);
-      scrollPos = await controller.getScrollPosition();
+      scrollPos = await pollScrollPosition(X_SCROLL * 2, Y_SCROLL * 2);
       expect(scrollPos.dx, X_SCROLL * 2);
       expect(scrollPos.dy, Y_SCROLL * 2);
     });
