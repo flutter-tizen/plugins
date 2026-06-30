@@ -55,7 +55,8 @@ void main() {
       expect(bundle.isEmpty, true);
     });
 
-    testWidgets('creates a bundle with String, List<String>, and Uint8List entries', (
+    testWidgets(
+        'creates a bundle with String, List<String>, and Uint8List entries', (
       WidgetTester _,
     ) async {
       final Bundle bundle = Bundle.fromMap(<String, Object>{
@@ -88,7 +89,9 @@ void main() {
       },
     );
 
-    testWidgets('copy has independent entries — adding to copy does not affect original', (
+    testWidgets(
+        'copy has independent entries — adding to copy does not affect original',
+        (
       WidgetTester _,
     ) async {
       final Bundle original = Bundle();
@@ -166,7 +169,8 @@ void main() {
       expect(bundle['key'], 'second');
     });
 
-    testWidgets('same read-only call twice returns identical results (idempotency)', (
+    testWidgets(
+        'same read-only call twice returns identical results (idempotency)', (
       WidgetTester _,
     ) async {
       final Bundle bundle = Bundle();
