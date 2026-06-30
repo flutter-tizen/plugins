@@ -5,8 +5,8 @@
 #ifndef FLUTTER_PLUGIN_DRM_MANAGER_H_
 #define FLUTTER_PLUGIN_DRM_MANAGER_H_
 
-#include <Ecore.h>
 #include <flutter/method_channel.h>
+#include <glib.h>
 
 #include <mutex>
 #include <queue>
@@ -66,8 +66,26 @@ class DrmManager {
   std::string license_server_url_;
   bool initialized_ = false;
   std::mutex queue_mutex_;
-  Ecore_Pipe *license_request_pipe_ = nullptr;
   std::queue<DataForLicenseProcess> license_request_queue_;
+
+  struct GMainContextDeleter {
+    void operator()(GMainContext *context) const {
+      g_main_context_unref(context);
+    }
+  };
+
+  // GLib license request dispatch state
+  struct LicenseRequestState {
+    std::mutex mutex;
+    DrmManager *manager = nullptr;
+    bool disposed = false;
+    guint pending_source_id = 0;
+  };
+
+  std::shared_ptr<LicenseRequestState> license_request_state_;
+  std::unique_ptr<GMainContext, GMainContextDeleter> main_context_;
+
+  void ScheduleProcessLicenseRequest();
 };
 
 #endif  // FLUTTER_PLUGIN_DRM_MANAGER_H_

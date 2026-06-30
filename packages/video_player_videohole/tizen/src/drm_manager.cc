@@ -34,19 +34,31 @@ DrmManager::DrmManager() : drm_type_(DM_TYPE_NONE) {
   } else {
     LOG_ERROR("[DrmManager] Fail to dlopen libdrmmanager.");
   }
-  license_request_pipe_ = ecore_pipe_add(
-      [](void *data, void *buffer, unsigned int nbyte) -> void {
-        auto *self = static_cast<DrmManager *>(data);
-        self->ExecuteRequest();
-      },
-      this);
+
+  // Initialize GMainContext and license request state
+  main_context_ = std::unique_ptr<GMainContext, GMainContextDeleter>(
+      g_main_context_ref_thread_default());
+  license_request_state_ = std::make_shared<DrmManager::LicenseRequestState>();
+  license_request_state_->manager = this;
 }
 
 DrmManager::~DrmManager() {
   ReleaseDrmSession();
-  if (license_request_pipe_) {
-    ecore_pipe_del(license_request_pipe_);
+
+  // Mark license request state as disposed and cancel pending event source
+  if (license_request_state_) {
+    std::lock_guard<std::mutex> lock(license_request_state_->mutex);
+    license_request_state_->disposed = true;
+    license_request_state_->manager = nullptr;
+
+    if (license_request_state_->pending_source_id != 0) {
+      g_source_remove(license_request_state_->pending_source_id);
+      license_request_state_->pending_source_id = 0;
+    }
   }
+
+  main_context_.reset();
+
   if (drm_manager_proxy_) {
     CloseDrmManagerProxy(drm_manager_proxy_);
     drm_manager_proxy_ = nullptr;
@@ -325,10 +337,53 @@ void DrmManager::RequestLicense(std::string &session_id, std::string &message) {
       std::move(result_handler));
 }
 
+void DrmManager::ScheduleProcessLicenseRequest() {
+  std::lock_guard<std::mutex> lock(license_request_state_->mutex);
+
+  // Check conditions and deduplicate
+  if (!main_context_ || !license_request_state_ ||
+      license_request_state_->disposed ||
+      license_request_state_->pending_source_id != 0) {
+    return;
+  }
+
+  auto *state =
+      new std::shared_ptr<LicenseRequestState>(license_request_state_);
+
+  GSource *source = g_idle_source_new();
+  g_source_set_callback(
+      source,
+      [](gpointer data) -> gboolean {
+        auto state = static_cast<std::shared_ptr<LicenseRequestState> *>(data);
+        DrmManager *manager = nullptr;
+        {
+          std::lock_guard<std::mutex> lock((*state)->mutex);
+          if (!(*state)->disposed && (*state)->manager) {
+            (*state)->pending_source_id = 0;
+            manager = (*state)->manager;
+          }
+        }
+        if (manager) {
+          manager->ExecuteRequest();
+        }
+        return G_SOURCE_REMOVE;
+      },
+      state,
+      [](gpointer data) {
+        delete static_cast<std::shared_ptr<LicenseRequestState> *>(data);
+      });
+
+  license_request_state_->pending_source_id =
+      g_source_attach(source, main_context_.get());
+  g_source_unref(source);
+}
+
 void DrmManager::PushLicenseRequestData(DataForLicenseProcess &data) {
-  std::lock_guard<std::mutex> lock(queue_mutex_);
-  license_request_queue_.push(data);
-  ecore_pipe_write(license_request_pipe_, nullptr, 0);
+  {
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    license_request_queue_.push(data);
+  }
+  ScheduleProcessLicenseRequest();
 }
 
 void DrmManager::ExecuteRequest() {
