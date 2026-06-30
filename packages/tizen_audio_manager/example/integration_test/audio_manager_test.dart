@@ -224,24 +224,26 @@ void main() {
 
     final Completer<VolumeChangedEvent> completer =
         Completer<VolumeChangedEvent>();
-    final StreamSubscription<VolumeChangedEvent> subscription =
-        AudioManager.volumeController.onChanged
-            .listen((VolumeChangedEvent event) {
+    final StreamSubscription<VolumeChangedEvent> subscription = AudioManager
+        .volumeController.onChanged
+        .listen((VolumeChangedEvent event) {
       if (event.type == AudioVolumeType.system && !completer.isCompleted) {
         completer.complete(event);
       }
     });
 
-    await AudioManager.volumeController.setLevel(
-        AudioVolumeType.system, targetLevel);
-    final VolumeChangedEvent event =
-        await completer.future.timeout(const Duration(seconds: 5));
+    try {
+      await AudioManager.volumeController
+          .setLevel(AudioVolumeType.system, targetLevel);
+      final VolumeChangedEvent event =
+          await completer.future.timeout(const Duration(seconds: 5));
 
-    expect(event.type, equals(AudioVolumeType.system));
-    expect(event.level, equals(targetLevel));
-
-    await AudioManager.volumeController.setLevel(
-        AudioVolumeType.system, originalLevel);
-    await subscription.cancel();
+      expect(event.type, equals(AudioVolumeType.system));
+      expect(event.level, equals(targetLevel));
+    } finally {
+      await AudioManager.volumeController
+          .setLevel(AudioVolumeType.system, originalLevel);
+      await subscription.cancel();
+    }
   });
 }
