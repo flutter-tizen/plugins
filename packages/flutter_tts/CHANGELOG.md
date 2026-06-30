@@ -1,3 +1,8 @@
+## 1.7.0
+
+* Return a boolean from `isLanguageAvailable` to match the behavior of other platforms.
+* Add integration tests for the supported TTS APIs.
+
 ## 1.6.0
 
 * Update flutter_tts 4.2.0 to 4.2.5.

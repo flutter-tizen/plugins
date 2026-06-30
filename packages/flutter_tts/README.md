@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `flutter_tts`. Therefore, yo
 ```yaml
 dependencies:
   flutter_tts: ^4.2.5
-  flutter_tts_tizen: ^1.6.0
+  flutter_tts_tizen: ^1.7.0
 ```
 
 Then you can import `flutter_tts` in your Dart code:
