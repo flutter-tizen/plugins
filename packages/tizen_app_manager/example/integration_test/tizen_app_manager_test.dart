@@ -64,7 +64,8 @@ void main() {
         );
       });
 
-      testWidgets('throws ArgumentError for empty appId', (WidgetTester _) async {
+      testWidgets('throws ArgumentError for empty appId',
+          (WidgetTester _) async {
         await expectLater(AppManager.isRunning(''), throwsArgumentError);
       });
     });
@@ -78,7 +79,8 @@ void main() {
         expect(appInfo.sharedResourcePath, isNotEmpty);
       });
 
-      testWidgets('throws ArgumentError for empty appId', (WidgetTester _) async {
+      testWidgets('throws ArgumentError for empty appId',
+          (WidgetTester _) async {
         await expectLater(AppManager.getAppInfo(''), throwsArgumentError);
       });
     });
