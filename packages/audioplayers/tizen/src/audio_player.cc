@@ -114,8 +114,10 @@ void AudioPlayer::Stop() {
     if (ret != PLAYER_ERROR_NONE) {
       throw AudioPlayerError("player_stop failed", get_error_message(ret));
     }
-    // Reset the play position to 0 to match other platforms. This is
-    // best-effort: on some devices (e.g. TV with network sources)
+    // Reset the play position to 0 to match other platforms, per the
+    // AudioPlayer.stop() contract:
+    // https://pub.dev/documentation/audioplayers/latest/audioplayers/AudioPlayer/stop.html
+    // This is best-effort: on some devices (e.g. TV with network sources)
     // player_set_play_position right after stop can fail with an invalid
     // state, which must not crash the app.
     try {
