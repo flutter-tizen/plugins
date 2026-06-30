@@ -51,7 +51,7 @@ class Bundle extends MapMixin<String, Object> {
     (Pointer<bundle> bundle) => tizen.bundle_free(bundle),
   );
 
-  static final List<String> _keys = <String>[];
+  static List<String>? _currentKeys;
 
   static void _bundleIteratorCallback(
     Pointer<Char> key,
@@ -59,19 +59,21 @@ class Bundle extends MapMixin<String, Object> {
     Pointer<keyval_t> keyval,
     Pointer<Void> userData,
   ) {
-    _keys.add(key.toDartString());
+    _currentKeys!.add(key.toDartString());
   }
 
   /// The keys of this.
   @override
   Iterable<String> get keys {
-    _keys.clear();
+    final List<String> keys = <String>[];
+    _currentKeys = keys;
     tizen.bundle_foreach(
       _handle,
       Pointer.fromFunction(_bundleIteratorCallback),
       nullptr,
     );
-    return _keys;
+    _currentKeys = null;
+    return keys;
   }
 
   @override
@@ -137,7 +139,8 @@ class Bundle extends MapMixin<String, Object> {
       final String keyName = key as String;
       return tizen.bundle_del(_handle, keyName.toNativeChar(allocator: arena));
     });
-    if (ret != bundle_error_e.BUNDLE_ERROR_NONE) {
+    if (ret != bundle_error_e.BUNDLE_ERROR_NONE &&
+        ret != bundle_error_e.BUNDLE_ERROR_KEY_NOT_AVAILABLE) {
       _throwException(ret);
     }
   }
