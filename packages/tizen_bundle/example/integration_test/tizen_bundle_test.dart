@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:tizen_bundle/tizen_bundle.dart';
@@ -237,14 +236,11 @@ void main() {
       expect(bundle.length, 1);
     });
 
-    testWidgets('removing a non-existent key throws PlatformException', (
+    testWidgets('removing a non-existent key is a no-op', (
       WidgetTester _,
     ) async {
       final Bundle bundle = Bundle();
-      expect(
-        () => bundle.remove('doesNotExist'),
-        throwsA(isA<PlatformException>()),
-      );
+      expect(() => bundle.remove('doesNotExist'), returnsNormally);
     });
 
     testWidgets('add then remove then verify gone (state transition)', (
@@ -339,6 +335,20 @@ void main() {
     ) async {
       final Bundle bundle = Bundle();
       expect(bundle.containsKey('missing'), false);
+    });
+
+    testWidgets('keys of different bundles are independent', (
+      WidgetTester _,
+    ) async {
+      final Bundle bundle1 = Bundle();
+      bundle1['a'] = 'v1';
+      final Iterable<String> keys1 = bundle1.keys;
+
+      final Bundle bundle2 = Bundle();
+      bundle2['b'] = 'v2';
+      bundle2.keys;
+
+      expect(keys1, equals(<String>['a']));
     });
 
     testWidgets('keys and values return all stored entries', (

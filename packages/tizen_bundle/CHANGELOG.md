@@ -1,7 +1,7 @@
 ## 0.1.3
 
 * Update code format.
-* Update integration test suite to 37 test cases.
+* Update integration test suite to 38 test cases.
 * Fix `remove()` to be a no-op when the key does not exist.
 * Fix `keys` getter to return an independent list per call.
 
