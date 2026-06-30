@@ -1,3 +1,7 @@
+## 0.4.1
+
+* Remove Ecore API.
+
 ## 0.4.0
 
 * Update minimum supported SDK version to Flutter 3.32/Dart 3.8.
