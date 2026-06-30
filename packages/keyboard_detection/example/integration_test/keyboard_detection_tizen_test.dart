@@ -15,9 +15,7 @@ void main() {
   const String channelName = 'tizen/internal/inputpanel';
   const StandardMethodCodec codec = StandardMethodCodec();
 
-  // Injects an event into the input-panel [EventChannel] the controller
-  // listens to, simulating a message coming from the flutter-tizen embedder.
-  Future<void> emit(WidgetTester tester, Object? payload) async {
+  Future<void> emit(WidgetTester tester, Map<String, Object?> payload) async {
     final ByteData data = codec.encodeSuccessEnvelope(payload);
     await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
       channelName,
