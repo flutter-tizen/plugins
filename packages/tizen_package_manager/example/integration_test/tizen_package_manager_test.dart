@@ -118,7 +118,8 @@ void main() {
 
     test('throws PlatformException for invalid packageId', () async {
       expect(
-        () => PackageManager.getPackageInfo('invalid.package.id.that.does.not.exist'),
+        () => PackageManager.getPackageInfo(
+            'invalid.package.id.that.does.not.exist'),
         throwsA(isA<PlatformException>()),
       );
     });
