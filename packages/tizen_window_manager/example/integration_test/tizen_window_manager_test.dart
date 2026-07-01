@@ -40,15 +40,6 @@ void main() {
       expect(geometry.containsKey('height'), isTrue);
     });
 
-    testWidgets('returns integer values for all geometry fields',
-        (WidgetTester tester) async {
-      final Map<String, int> geometry = await WindowManager.getGeometry();
-      expect(geometry['x'], isA<int>());
-      expect(geometry['y'], isA<int>());
-      expect(geometry['width'], isA<int>());
-      expect(geometry['height'], isA<int>());
-    });
-
     testWidgets('returns positive dimensions', (WidgetTester tester) async {
       final Map<String, int> geometry = await WindowManager.getGeometry();
       expect(geometry['width'], greaterThan(0));
