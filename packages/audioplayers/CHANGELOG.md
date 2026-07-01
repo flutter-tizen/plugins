@@ -1,3 +1,11 @@
+## 3.1.5
+
+* Reset the play position to 0 after `stop` (best-effort) to match other platforms.
+* Handle `setAudioContext` gracefully instead of throwing on the global channel.
+* Return `null` for current position and duration after `release`, matching other platforms.
+* Fix a crash when stopping a network source.
+* Emit player error and interrupt events on the platform thread.
+
 ## 3.1.4
 
 * Remove Ecore API.

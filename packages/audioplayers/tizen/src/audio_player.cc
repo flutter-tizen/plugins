@@ -4,6 +4,9 @@
 
 #include "audio_player.h"
 
+#include <string>
+#include <utility>
+
 #include "audio_player_error.h"
 #include "log.h"
 
@@ -110,6 +113,17 @@ void AudioPlayer::Stop() {
     int ret = player_stop(player_);
     if (ret != PLAYER_ERROR_NONE) {
       throw AudioPlayerError("player_stop failed", get_error_message(ret));
+    }
+    // Reset the play position to 0 to match other platforms, per the
+    // AudioPlayer.stop() contract:
+    // https://pub.dev/documentation/audioplayers/latest/audioplayers/AudioPlayer/stop.html
+    // This is best-effort: on some devices (e.g. TV with network sources)
+    // player_set_play_position right after stop can fail with an invalid
+    // state, which must not crash the app.
+    try {
+      Seek(0);
+    } catch (const AudioPlayerError &error) {
+      OnLog("Failed to reset position on stop: " + error.message());
     }
   }
 
@@ -257,6 +271,12 @@ int AudioPlayer::GetCurrentPosition() {
                            get_error_message(ret));
   }
   return position;
+}
+
+bool AudioPlayer::IsSourcePrepared() {
+  player_state_e state = GetPlayerState();
+  return state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
+         state == PLAYER_STATE_PAUSED;
 }
 
 bool AudioPlayer::IsPlaying() {
@@ -453,17 +473,47 @@ void AudioPlayer::OnPlayCompleted(void *data) {
 }
 
 void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
-  // On TV devices, callbacks are not executed on the main loop.
-  // However, race condition will not occur as player_id_ is read-only.
-  const auto *player = reinterpret_cast<AudioPlayer *>(data);
-  player->log_listener_(player->player_id_, "Player interrupted.");
+  auto *self = reinterpret_cast<AudioPlayer *>(data);
+  // On TV devices, callbacks are not executed on the main loop. Transfer to
+  // the main loop so the log event is sent on the platform thread.
+  g_idle_add_full(
+      G_PRIORITY_DEFAULT_IDLE,
+      [](gpointer data) -> gboolean {
+        auto *idle = static_cast<IdleData *>(data);
+        if (!*idle->is_alive) {
+          return G_SOURCE_REMOVE;
+        }
+        idle->player->log_listener_(idle->player->player_id_,
+                                    "Player interrupted.");
+        return G_SOURCE_REMOVE;
+      },
+      new IdleData{self, self->is_alive_},
+      [](gpointer data) { delete static_cast<IdleData *>(data); });
 }
 
 void AudioPlayer::OnError(int code, void *data) {
-  // On TV devices, callbacks are not executed on the main loop.
-  // However, race condition will not occur as player_id_ is read-only.
-  const auto *player = reinterpret_cast<AudioPlayer *>(data);
-  player->log_listener_(player->player_id_, get_error_message(code));
+  auto *self = reinterpret_cast<AudioPlayer *>(data);
+  // On TV devices, callbacks are not executed on the main loop. Transfer to
+  // the main loop so the log event is sent on the platform thread. The error
+  // message is resolved here and carried via a heap-allocated context.
+  struct ErrorData {
+    AudioPlayer *player;
+    std::shared_ptr<bool> is_alive;
+    std::string message;
+  };
+  g_idle_add_full(
+      G_PRIORITY_DEFAULT_IDLE,
+      [](gpointer data) -> gboolean {
+        auto *error_data = static_cast<ErrorData *>(data);
+        if (!*error_data->is_alive) {
+          return G_SOURCE_REMOVE;
+        }
+        error_data->player->log_listener_(error_data->player->player_id_,
+                                          error_data->message);
+        return G_SOURCE_REMOVE;
+      },
+      new ErrorData{self, self->is_alive_, get_error_message(code)},
+      [](gpointer data) { delete static_cast<ErrorData *>(data); });
 }
 
 void AudioPlayer::StartPositionUpdates() {

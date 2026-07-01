@@ -238,7 +238,13 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       } else if (method_name == "getDuration") {
         // TODO(seungsoo47): If an exception occurs, null is sent.
         try {
-          result->Success(flutter::EncodableValue(player->GetDuration()));
+          // Without a prepared source (e.g. after release), duration is null,
+          // matching the behavior of other platforms.
+          if (player->IsSourcePrepared()) {
+            result->Success(flutter::EncodableValue(player->GetDuration()));
+          } else {
+            result->Success(flutter::EncodableValue(std::monostate()));
+          }
         } catch (const AudioPlayerError &error) {
           player->OnLog(error.code() + error.message());
           result->Success(flutter::EncodableValue(std::monostate()));
@@ -246,8 +252,14 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       } else if (method_name == "getCurrentPosition") {
         // TODO(seungsoo47): If an exception occurs, null is sent.
         try {
-          result->Success(
-              flutter::EncodableValue(player->GetCurrentPosition()));
+          // Without a prepared source (e.g. after release), position is null,
+          // matching the behavior of other platforms.
+          if (player->IsSourcePrepared()) {
+            result->Success(
+                flutter::EncodableValue(player->GetCurrentPosition()));
+          } else {
+            result->Success(flutter::EncodableValue(std::monostate()));
+          }
         } catch (const AudioPlayerError &error) {
           player->OnLog(error.code() + error.message());
           result->Success(flutter::EncodableValue(std::monostate()));
@@ -260,7 +272,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         result->Success();
       } else if (method_name == "setAudioContext") {
         player->OnLog("Setting AudioContext is not supported on Tizen");
-        result->NotImplemented();
+        result->Success();
       } else if (method_name == "emitLog") {
         auto message = GetRequiredArg<std::string>(arguments, "message");
         player->OnLog(message);
@@ -294,7 +306,7 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
         audio_players_.clear();
       } else if (method_name == "setAudioContext") {
         OnGlobalLog("Setting AudioContext is not supported on Tizen");
-        result->NotImplemented();
+        result->Success();
         return;
       } else if (method_name == "emitLog") {
         if (arguments) {

@@ -55,6 +55,7 @@ class AudioPlayer {
   int32_t GetCurrentPosition();
   std::string GetPlayerId() const { return player_id_; }
   bool IsPlaying();
+  bool IsSourcePrepared();
 
  private:
   // The player state should be none before calling this function.
