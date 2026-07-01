@@ -1,3 +1,12 @@
+## 0.8.14
+
+* Update plusplayer
+  1. [HLS] Reduce load memory by ~3KB.
+  2. [HLS] Handling of no INF tag present in content.
+  3. [HLS] Optimising ReloadLatencyCall when bitrate change happens.
+  4. [DASH] Fix bitrate switching bug.
+
+
 ## 0.8.13
 
 * Update plusplayer
