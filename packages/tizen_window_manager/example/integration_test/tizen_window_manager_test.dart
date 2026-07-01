@@ -51,8 +51,8 @@ void main() {
 
     testWidgets('returns positive dimensions', (WidgetTester tester) async {
       final Map<String, int> geometry = await WindowManager.getGeometry();
-      expect(geometry['width']!, greaterThan(0));
-      expect(geometry['height']!, greaterThan(0));
+      expect(geometry['width'], greaterThan(0));
+      expect(geometry['height'], greaterThan(0));
     });
   });
 
