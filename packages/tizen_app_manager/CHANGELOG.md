@@ -1,4 +1,4 @@
-## NEXT
+## 0.2.5
 
 * Fix memory leak in `AppRunningContext.packageId` by freeing the native string
   returned by `app_context_get_package_id`.
