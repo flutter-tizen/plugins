@@ -110,12 +110,15 @@ std::optional<PackageInfo> TizenPackageManager::GetPackageData(
   result.type = type;
   free(type);
 
+  // The icon path is optional: a package may have no icon, so a failure here is
+  // not treated as fatal. Only use the value when the call succeeds and the
+  // path is non-empty.
   char *icon_path = nullptr;
   ret = package_info_get_icon(handle, &icon_path);
-  if (icon_path && icon_path[0] != '\0') {
+  if (ret == PACKAGE_MANAGER_ERROR_NONE && icon_path && icon_path[0] != '\0') {
     result.icon_path = icon_path;
-    free(icon_path);
-  } else if (icon_path) {
+  }
+  if (icon_path) {
     free(icon_path);
   }
 
