@@ -2,8 +2,8 @@
 
 * Read byte values as unsigned (0-255) so `Parcel.readByte` is consistent
   across ABIs (C `char` is signed on x86 but unsigned on ARM).
-* Add 21 integration test cases to the client example.
-* Add 24 integration test cases to the server example.
+* Add 30 integration test cases to the client example.
+* Add 33 integration test cases to the server example.
 
 ## 0.1.5
 

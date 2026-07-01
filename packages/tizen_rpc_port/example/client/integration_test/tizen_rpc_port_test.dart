@@ -76,6 +76,18 @@ void main() {
         expect(parcel.readInt16(), 0);
       });
 
+      testWidgets('round-trips negative value', (WidgetTester _) async {
+        final Parcel parcel = Parcel();
+        parcel.writeInt16(-1);
+        expect(parcel.readInt16(), -1);
+      });
+
+      testWidgets('round-trips minimum value', (WidgetTester _) async {
+        final Parcel parcel = Parcel();
+        parcel.writeInt16(-32768);
+        expect(parcel.readInt16(), -32768);
+      });
+
       testWidgets('masks value to 16 bits', (WidgetTester _) async {
         final Parcel parcel = Parcel();
         // 0x10042 & 0xffff == 0x0042 == 66
@@ -92,10 +104,60 @@ void main() {
         expect(parcel.readInt64(), value);
       });
 
+      testWidgets('round-trips maximum value', (WidgetTester _) async {
+        final Parcel parcel = Parcel();
+        const int value = 9223372036854775807; // int64 max
+        parcel.writeInt64(value);
+        expect(parcel.readInt64(), value);
+      });
+
+      testWidgets('round-trips minimum value', (WidgetTester _) async {
+        final Parcel parcel = Parcel();
+        const int value = -9223372036854775808; // int64 min
+        parcel.writeInt64(value);
+        expect(parcel.readInt64(), value);
+      });
+
       testWidgets('round-trips zero', (WidgetTester _) async {
         final Parcel parcel = Parcel();
         parcel.writeInt64(0);
         expect(parcel.readInt64(), 0);
+      });
+    });
+
+    group('writeByte / readByte', () {
+      testWidgets('round-trips a value', (WidgetTester _) async {
+        final Parcel parcel = Parcel();
+        parcel.writeByte(0xab);
+        expect(parcel.readByte(), 0xab);
+      });
+
+      testWidgets('round-trips zero', (WidgetTester _) async {
+        final Parcel parcel = Parcel();
+        parcel.writeByte(0);
+        expect(parcel.readByte(), 0);
+      });
+
+      testWidgets('round-trips maximum unsigned value', (WidgetTester _) async {
+        final Parcel parcel = Parcel();
+        parcel.writeByte(255);
+        expect(parcel.readByte(), 255);
+      });
+
+      testWidgets('reads a negative input back as an unsigned byte', (
+        WidgetTester _,
+      ) async {
+        final Parcel parcel = Parcel();
+        // -1 is written as 0xff and must read back as the unsigned byte 255.
+        parcel.writeByte(-1);
+        expect(parcel.readByte(), 255);
+      });
+
+      testWidgets('masks value to 8 bits', (WidgetTester _) async {
+        final Parcel parcel = Parcel();
+        // 0x142 & 0xff == 0x42 == 66
+        parcel.writeByte(0x142);
+        expect(parcel.readByte(), 66);
       });
     });
 
