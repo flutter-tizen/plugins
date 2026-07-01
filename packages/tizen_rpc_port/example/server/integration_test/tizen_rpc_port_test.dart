@@ -145,7 +145,8 @@ void main() {
     });
 
     group('asRaw', () {
-      testWidgets('returns non-empty bytes after write', (WidgetTester _) async {
+      testWidgets('returns non-empty bytes after write',
+          (WidgetTester _) async {
         final Parcel parcel = Parcel();
         parcel.writeInt32(1);
         final Uint8List raw = parcel.asRaw();

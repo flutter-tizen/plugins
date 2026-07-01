@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:typed_data';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:tizen_bundle/tizen_bundle.dart';
@@ -135,7 +133,8 @@ void main() {
     });
 
     group('asRaw', () {
-      testWidgets('returns non-empty bytes after write', (WidgetTester _) async {
+      testWidgets('returns non-empty bytes after write',
+          (WidgetTester _) async {
         final Parcel parcel = Parcel();
         parcel.writeInt32(1);
         final Uint8List raw = parcel.asRaw();
@@ -238,7 +237,8 @@ void main() {
     testWidgets('PortType.values contains both entries', (
       WidgetTester _,
     ) async {
-      expect(PortType.values, containsAll(<PortType>[PortType.main, PortType.callback]));
+      expect(PortType.values,
+          containsAll(<PortType>[PortType.main, PortType.callback]));
     });
   });
 
