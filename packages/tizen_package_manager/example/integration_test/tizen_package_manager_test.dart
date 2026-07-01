@@ -109,27 +109,32 @@ void main() {
   });
 
   group('getPackageInfo error paths', () {
-    test('throws ArgumentError for empty packageId', () async {
-      expect(
-        () => PackageManager.getPackageInfo(''),
-        throwsA(isA<ArgumentError>()),
+    testWidgets('throws ArgumentError for empty packageId', (
+      WidgetTester tester,
+    ) async {
+      await expectLater(
+        PackageManager.getPackageInfo(''),
+        throwsArgumentError,
       );
     });
 
-    test('throws PlatformException for invalid packageId', () async {
-      expect(
-        () => PackageManager.getPackageInfo(
-            'invalid.package.id.that.does.not.exist'),
+    testWidgets('throws PlatformException for invalid packageId', (
+      WidgetTester tester,
+    ) async {
+      await expectLater(
+        PackageManager.getPackageInfo('invalid.package.id.that.does.not.exist'),
         throwsA(isA<PlatformException>()),
       );
     });
   });
 
   group('getPackageSizeInfo error paths', () {
-    test('throws ArgumentError for empty packageId', () async {
-      expect(
-        () => PackageManager.getPackageSizeInfo(''),
-        throwsA(isA<ArgumentError>()),
+    testWidgets('throws ArgumentError for empty packageId', (
+      WidgetTester tester,
+    ) async {
+      await expectLater(
+        PackageManager.getPackageSizeInfo(''),
+        throwsArgumentError,
       );
     });
 
@@ -140,38 +145,41 @@ void main() {
   });
 
   group('install error paths', () {
-    test('throws ArgumentError for empty packagePath', () async {
-      expect(
-        () => PackageManager.install(''),
-        throwsA(isA<ArgumentError>()),
-      );
+    testWidgets('throws ArgumentError for empty packagePath', (
+      WidgetTester tester,
+    ) async {
+      await expectLater(PackageManager.install(''), throwsArgumentError);
     });
   });
 
   group('uninstall error paths', () {
-    test('throws ArgumentError for empty packageId', () async {
-      expect(
-        () => PackageManager.uninstall(''),
-        throwsA(isA<ArgumentError>()),
-      );
+    testWidgets('throws ArgumentError for empty packageId', (
+      WidgetTester tester,
+    ) async {
+      await expectLater(PackageManager.uninstall(''), throwsArgumentError);
     });
   });
 
   group('event streams', () {
-    test('onInstallProgressChanged can be listened to without error', () async {
+    testWidgets('onInstallProgressChanged can be listened to without error', (
+      WidgetTester tester,
+    ) async {
       final StreamSubscription<PackageEvent> subscription =
           PackageManager.onInstallProgressChanged.listen(null);
       await subscription.cancel();
     });
 
-    test('onUninstallProgressChanged can be listened to without error',
-        () async {
+    testWidgets('onUninstallProgressChanged can be listened to without error', (
+      WidgetTester tester,
+    ) async {
       final StreamSubscription<PackageEvent> subscription =
           PackageManager.onUninstallProgressChanged.listen(null);
       await subscription.cancel();
     });
 
-    test('onUpdateProgressChanged can be listened to without error', () async {
+    testWidgets('onUpdateProgressChanged can be listened to without error', (
+      WidgetTester tester,
+    ) async {
       final StreamSubscription<PackageEvent> subscription =
           PackageManager.onUpdateProgressChanged.listen(null);
       await subscription.cancel();
