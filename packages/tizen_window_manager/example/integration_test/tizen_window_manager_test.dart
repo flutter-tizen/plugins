@@ -29,4 +29,35 @@ void main() {
 
     expect(WidgetsBinding.instance.lifecycleState, AppLifecycleState.resumed);
   });
+
+  group('WindowManager.getGeometry', () {
+    testWidgets('returns a map with all required keys',
+        (WidgetTester tester) async {
+      final Map<String, int> geometry = await WindowManager.getGeometry();
+      expect(geometry.containsKey('x'), isTrue);
+      expect(geometry.containsKey('y'), isTrue);
+      expect(geometry.containsKey('width'), isTrue);
+      expect(geometry.containsKey('height'), isTrue);
+    });
+
+    testWidgets('returns positive dimensions', (WidgetTester tester) async {
+      final Map<String, int> geometry = await WindowManager.getGeometry();
+      expect(geometry['width'], greaterThan(0));
+      expect(geometry['height'], greaterThan(0));
+    });
+  });
+
+  group('WindowManager.lower', () {
+    testWidgets('completes without error and window can be reactivated',
+        (WidgetTester tester) async {
+      await expectLater(WindowManager.lower(), completes);
+      await Future<void>.delayed(const Duration(seconds: 1));
+
+      // Restore the window so subsequent tests run in a normal state.
+      await WindowManager.activate();
+      await Future<void>.delayed(const Duration(seconds: 2));
+
+      expect(WidgetsBinding.instance.lifecycleState, AppLifecycleState.resumed);
+    });
+  });
 }
