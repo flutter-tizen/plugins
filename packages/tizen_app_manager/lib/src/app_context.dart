@@ -73,7 +73,10 @@ class AppContext {
       if (ret != 0) {
         _throwPlatformException(ret);
       }
-      return packageId.value.toDartString();
+      final Pointer<Char> pkgId = packageId.value;
+      final String result = pkgId.toDartString();
+      malloc.free(pkgId);
+      return result;
     });
   }
 
