@@ -125,7 +125,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   InitWebView();
 
-  dispatcher_ = std::make_unique<MessageDispatcher>();
+  dispatcher_ = std::make_shared<MessageDispatcher>();
 
   webview_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetWebViewChannelName(),
@@ -261,12 +261,46 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
-  texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
-
+  // Stop the web engine first so its renderer thread stops writing into the
+  // shared TBM surfaces before anything is torn down.
   if (webview_instance_) {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
   }
+
+  // Flag the view as disposing and detach the buffers under the render lock so
+  // the raster thread's ObtainGpuSurface() immediately stops handing out (and
+  // stops touching) buffers that are about to be released.
+  std::shared_ptr<BufferPool> pool;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    is_disposing_ = true;
+    working_surface_ = nullptr;
+    candidate_surface_ = nullptr;
+    rendered_surface_ = nullptr;
+    pool = std::move(tbm_pool_);
+  }
+
+  // Unregister the texture with a completion callback. The embedder tears
+  // down the external texture on the render (raster) thread — after any
+  // in-flight frame callback for it has finished — and only then invokes this
+  // callback, so by the time it runs the raster thread is guaranteed done
+  // with the TBM surfaces. The callback fires on the render thread, so it
+  // hops to the main thread to actually free the pool. dispatcher_ itself
+  // (not a raw pointer to it) is captured so that if this callback fires
+  // after the WebView has been destroyed, the (stateless) dispatcher is kept
+  // alive by the callback's own shared_ptr copy instead of dangling.
+  texture_registrar_->UnregisterTexture(
+      GetTextureId(),
+      [pool, dispatcher = dispatcher_]() {
+        // Invoked on the render thread once the texture is fully unregistered.
+        // Hand the pool to a main-thread task for destruction; by this point
+        // the raster thread has released all GPU resources and the LWE engine
+        // has unmapped all TBM surfaces, so no in-flight frames remain.
+        dispatcher->dispatchTaskOnMainThread([pool]() {
+          // Pool destructor calls tbm_surface_destroy on all buffers.
+        });
+      });
 }
 
 void WebView::Resize(double width, double height) {
@@ -806,6 +840,9 @@ void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
 FlutterDesktopGpuSurfaceDescriptor* WebView::ObtainGpuSurface(size_t width,
                                                               size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
+  if (is_disposing_ || !tbm_pool_) {
+    return nullptr;
+  }
   if (!candidate_surface_) {
     if (rendered_surface_) {
       return rendered_surface_->GpuSurface();

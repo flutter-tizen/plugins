@@ -3,6 +3,8 @@
 * Implement `onUrlChange` for the navigation delegate.
 * Fix navigation delegate callbacks being dropped when the navigation delegate
   is replaced after the WebView is created.
+* Fix a crash on the raster thread when a WebView is disposed while a frame is
+  still being composited.
 * Add 1 integration test case.
 
 ## 0.4.1
