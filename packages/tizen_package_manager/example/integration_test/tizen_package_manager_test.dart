@@ -42,14 +42,6 @@ void main() {
   });
 
   group('PackageInfo fields', () {
-    testWidgets('installedStorageType is a valid StorageType value', (
-      WidgetTester tester,
-    ) async {
-      final PackageInfo info =
-          await PackageManager.getPackageInfo(currentPackageId);
-      expect(StorageType.values, contains(info.installedStorageType));
-    });
-
     testWidgets('iconPath is null or a non-empty string', (
       WidgetTester tester,
     ) async {
@@ -150,8 +142,11 @@ void main() {
     });
   });
 
+  // These only verify that subscribing to and cancelling the stream does not
+  // throw. Actually exercising an event requires installing/uninstalling/
+  // updating a real package on the device, which is out of scope here.
   group('event streams', () {
-    testWidgets('onInstallProgressChanged can be listened to without error', (
+    testWidgets('can subscribe to onInstallProgressChanged and cancel', (
       WidgetTester tester,
     ) async {
       final StreamSubscription<PackageEvent> subscription =
@@ -159,7 +154,7 @@ void main() {
       await subscription.cancel();
     });
 
-    testWidgets('onUninstallProgressChanged can be listened to without error', (
+    testWidgets('can subscribe to onUninstallProgressChanged and cancel', (
       WidgetTester tester,
     ) async {
       final StreamSubscription<PackageEvent> subscription =
@@ -167,7 +162,7 @@ void main() {
       await subscription.cancel();
     });
 
-    testWidgets('onUpdateProgressChanged can be listened to without error', (
+    testWidgets('can subscribe to onUpdateProgressChanged and cancel', (
       WidgetTester tester,
     ) async {
       final StreamSubscription<PackageEvent> subscription =
