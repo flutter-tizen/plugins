@@ -1,6 +1,7 @@
 ## 0.4.2
 
 * Implement `onUrlChange` for the navigation delegate.
+* Add 1 integration test case.
 
 ## 0.4.1
 
