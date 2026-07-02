@@ -55,9 +55,7 @@ void main() {
     ) async {
       final PackageInfo info =
           await PackageManager.getPackageInfo(currentPackageId);
-      if (info.iconPath != null) {
-        expect(info.iconPath, isNotEmpty);
-      }
+      expect(info.iconPath, anyOf(isNull, isNotEmpty));
     });
   });
 
@@ -77,25 +75,17 @@ void main() {
   });
 
   group('getPackagesInfo list items', () {
-    testWidgets('each PackageInfo item has valid field types', (
+    testWidgets('each PackageInfo item has valid field values', (
       WidgetTester tester,
     ) async {
       final List<PackageInfo> infos = await PackageManager.getPackagesInfo();
       expect(infos, isNotEmpty);
       for (final PackageInfo info in infos) {
-        expect(info.packageId, isA<String>());
+        // Field types are already guaranteed by PackageInfo.fromMap (it casts
+        // each field), so only the value-level expectations are asserted here.
         expect(info.packageId, isNotEmpty);
-        expect(info.label, isA<String>());
-        expect(info.version, isA<String>());
         expect(info.version, isNotEmpty);
-        expect(PackageType.values, contains(info.packageType));
-        expect(StorageType.values, contains(info.installedStorageType));
-        expect(info.isSystem, isA<bool>());
-        expect(info.isPreloaded, isA<bool>());
-        expect(info.isRemovable, isA<bool>());
-        if (info.iconPath != null) {
-          expect(info.iconPath, isNotEmpty);
-        }
+        expect(info.iconPath, anyOf(isNull, isNotEmpty));
       }
     });
 
