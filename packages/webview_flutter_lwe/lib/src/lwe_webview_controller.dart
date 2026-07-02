@@ -388,6 +388,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   ProgressCallback? _onProgress;
   WebResourceErrorCallback? _onWebResourceError;
   NavigationRequestCallback? _onNavigationRequest;
+  UrlChangeCallback? _onUrlChange;
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
@@ -429,6 +430,11 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
                 isForMainFrame: true,
               ),
             );
+          }
+          return null;
+        case 'onUrlChange':
+          if (_onUrlChange != null) {
+            _onUrlChange!(UrlChange(url: arguments['url']! as String));
           }
           return null;
       }
@@ -506,10 +512,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
 
   @override
   Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {
-    throw UnimplementedError(
-      'This version of `LweNavigationDelegate` currently has no '
-      'implementation for `setOnUrlChange`',
-    );
+    _onUrlChange = onUrlChange;
   }
 
   @override

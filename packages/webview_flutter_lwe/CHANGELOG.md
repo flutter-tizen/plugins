@@ -1,3 +1,7 @@
+## 0.4.2
+
+* Implement `onUrlChange` for the navigation delegate.
+
 ## 0.4.1
 
 * Remove Ecore API.

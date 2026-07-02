@@ -156,6 +156,10 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         dispatcher_->dispatchTaskOnMainThread([this, args]() {
           navigation_delegate_channel_->InvokeMethod(
               "onPageStarted", std::make_unique<flutter::EncodableValue>(args));
+          // The lightweight web engine has no dedicated URL-change callback, so
+          // report a URL change whenever a navigation starts.
+          navigation_delegate_channel_->InvokeMethod(
+              "onUrlChange", std::make_unique<flutter::EncodableValue>(args));
         });
       });
   webview_instance_->RegisterOnPageLoadedHandler(
