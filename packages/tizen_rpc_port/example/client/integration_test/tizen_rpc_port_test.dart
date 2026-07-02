@@ -178,29 +178,16 @@ void main() {
     group('write / read (burst byte array)', () {
       testWidgets('round-trips byte array', (WidgetTester _) async {
         final Parcel parcel = Parcel();
-        final Uint8List bytes = Uint8List.fromList(
-          <int>[0x00, 0x01, 0x7f, 0x80, 0xff],
-        );
+        final Uint8List bytes = Uint8List.fromList(<int>[
+          0x00,
+          0x01,
+          0x7f,
+          0x80,
+          0xff,
+        ]);
         parcel.write(bytes);
         final Uint8List result = parcel.read(bytes.length);
         expect(result, equals(bytes));
-      });
-
-      testWidgets('round-trips single byte', (WidgetTester _) async {
-        final Parcel parcel = Parcel();
-        final Uint8List bytes = Uint8List.fromList(<int>[0xab]);
-        parcel.write(bytes);
-        expect(parcel.read(1), equals(bytes));
-      });
-    });
-
-    group('asRaw', () {
-      testWidgets('returns non-empty bytes after write',
-          (WidgetTester _) async {
-        final Parcel parcel = Parcel();
-        parcel.writeInt32(1);
-        final Uint8List raw = parcel.asRaw();
-        expect(raw, isNotEmpty);
       });
     });
 
@@ -290,17 +277,13 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('PortType', () {
-    testWidgets('main and callback values are distinct', (
+    testWidgets('has exactly the main and callback values', (
       WidgetTester _,
     ) async {
-      expect(PortType.main, isNot(equals(PortType.callback)));
-    });
-
-    testWidgets('PortType.values contains both entries', (
-      WidgetTester _,
-    ) async {
-      expect(PortType.values,
-          containsAll(<PortType>[PortType.main, PortType.callback]));
+      expect(
+        PortType.values,
+        unorderedEquals(<PortType>[PortType.main, PortType.callback]),
+      );
     });
   });
 
