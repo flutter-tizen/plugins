@@ -1,3 +1,9 @@
+## 0.4.3
+
+* Return a null icon path (instead of an empty string) when a package has no
+  icon, and ignore `package_info_get_icon` failures since the icon is optional.
+* Add 13 integration test cases.
+
 ## 0.4.2
 
 * Remove Ecore API.
