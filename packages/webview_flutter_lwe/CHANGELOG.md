@@ -1,6 +1,8 @@
 ## 0.4.2
 
 * Implement `onUrlChange` for the navigation delegate.
+* Fix navigation delegate callbacks being dropped when the navigation delegate
+  is replaced after the WebView is created.
 * Add 1 integration test case.
 
 ## 0.4.1

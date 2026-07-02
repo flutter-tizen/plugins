@@ -25,9 +25,11 @@ class LweWebViewController extends PlatformWebViewController {
 
   final LweWebView _webview;
   late LweNavigationDelegate _lweNavigationDelegate;
+  int? _viewId;
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
+    _viewId = viewId;
     if (_webview.hasNavigationDelegate) {
       _lweNavigationDelegate.onCreate(viewId);
     }
@@ -142,6 +144,15 @@ class LweWebViewController extends PlatformWebViewController {
   ) async {
     _lweNavigationDelegate = handler;
     _webview.hasNavigationDelegate = true;
+    // If the view has already been created, the previous delegate's method
+    // call handler is the one currently bound to the platform channel. Bind
+    // the new delegate now so its callbacks (e.g. onUrlChange, onPageFinished)
+    // are the ones invoked; otherwise events would keep going to the old
+    // delegate and be dropped.
+    final int? viewId = _viewId;
+    if (viewId != null) {
+      handler.onCreate(viewId);
+    }
   }
 
   @override
@@ -383,6 +394,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   LweNavigationDelegate(super.params) : super.implementation();
 
   late final MethodChannel _navigationDelegateChannel;
+  bool _isChannelCreated = false;
   PageEventCallback? _onPageFinished;
   PageEventCallback? _onPageStarted;
   ProgressCallback? _onProgress;
@@ -392,6 +404,13 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
+    // Guard against being bound twice for the same delegate instance; the
+    // channel handler below always reads the latest callbacks, so re-binding
+    // is unnecessary.
+    if (_isChannelCreated) {
+      return;
+    }
+    _isChannelCreated = true;
     _navigationDelegateChannel = MethodChannel(
       kLweNavigationDelegateChannelName + viewId.toString(),
     );
