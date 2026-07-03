@@ -2,15 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef FLUTTER_PLUGIN_ECORE_WL2_WINDOW_PROXY_H_
-#define FLUTTER_PLUGIN_ECORE_WL2_WINDOW_PROXY_H_
+#ifndef FLUTTER_PLUGIN_WINDOW_PROXY_H_
+#define FLUTTER_PLUGIN_WINDOW_PROXY_H_
+
+#include <memory>
 
 #include "window_proxy_interface.h"
 
-class EcoreWl2WindowProxy : public WindowProxyInterface {
+class WindowProxy : public WindowProxyInterface {
  public:
-  EcoreWl2WindowProxy();
-  ~EcoreWl2WindowProxy() override;
+  WindowProxy();
+  ~WindowProxy() override = default;
 
   void GetGeometry(void *window, int *x, int *y, int *width,
                    int *height) override;
@@ -18,7 +20,7 @@ class EcoreWl2WindowProxy : public WindowProxyInterface {
   void Lower(void *window) override;
 
  private:
-  void *ecore_wl2_window_handle_ = nullptr;
+  std::unique_ptr<WindowProxyInterface> impl_;
 };
 
-#endif  // FLUTTER_PLUGIN_ECORE_WL2_WINDOW_PROXY_H_
+#endif  // FLUTTER_PLUGIN_WINDOW_PROXY_H_
