@@ -164,19 +164,17 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
 
-        dispatcher_->dispatchTaskOnMainThread(
-            [this, args, alive = is_alive_]() {
-              if (!*alive) return;
-              navigation_delegate_channel_->InvokeMethod(
-                  "onPageStarted",
-                  std::make_unique<flutter::EncodableValue>(args));
-              // The lightweight web engine has no dedicated URL-change
-              // callback, so report a URL change whenever a navigation
-              // starts.
-              navigation_delegate_channel_->InvokeMethod(
-                  "onUrlChange",
-                  std::make_unique<flutter::EncodableValue>(args));
-            });
+        dispatcher_->dispatchTaskOnMainThread([this, args,
+                                               alive = is_alive_]() {
+          if (!*alive) return;
+          navigation_delegate_channel_->InvokeMethod(
+              "onPageStarted", std::make_unique<flutter::EncodableValue>(args));
+          // The lightweight web engine has no dedicated URL-change
+          // callback, so report a URL change whenever a navigation
+          // starts.
+          navigation_delegate_channel_->InvokeMethod(
+              "onUrlChange", std::make_unique<flutter::EncodableValue>(args));
+        });
       });
   webview_instance_->RegisterOnPageLoadedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
@@ -196,13 +194,12 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         flutter::EncodableMap args = {{flutter::EncodableValue("progress"),
                                        flutter::EncodableValue(progress)}};
 
-        dispatcher_->dispatchTaskOnMainThread(
-            [this, args, alive = is_alive_]() {
-              if (!*alive) return;
-              navigation_delegate_channel_->InvokeMethod(
-                  "onProgress",
-                  std::make_unique<flutter::EncodableValue>(args));
-            });
+        dispatcher_->dispatchTaskOnMainThread([this, args,
+                                               alive = is_alive_]() {
+          if (!*alive) return;
+          navigation_delegate_channel_->InvokeMethod(
+              "onProgress", std::make_unique<flutter::EncodableValue>(args));
+        });
       });
   webview_instance_->RegisterOnReceivedErrorHandler(
       [this](LWE::WebContainer* container, LWE::ResourceError error) {
@@ -236,8 +233,8 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         dispatcher_->dispatchTaskOnMainThread(
             [this, args, url, alive = is_alive_]() {
               if (!*alive) return;
-              auto result = std::make_unique<NavigationRequestResult>(
-                  url, this, alive);
+              auto result =
+                  std::make_unique<NavigationRequestResult>(url, this, alive);
               navigation_delegate_channel_->InvokeMethod(
                   "navigationRequest",
                   std::make_unique<flutter::EncodableValue>(args),
@@ -261,13 +258,12 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
         {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
     };
 
-    dispatcher_->dispatchTaskOnMainThread(
-        [this, args, alive = is_alive_]() {
-          if (!*alive) return;
-          webview_channel_->InvokeMethod(
-              "javaScriptChannelMessage",
-              std::make_unique<flutter::EncodableValue>(args));
-        });
+    dispatcher_->dispatchTaskOnMainThread([this, args, alive = is_alive_]() {
+      if (!*alive) return;
+      webview_channel_->InvokeMethod(
+          "javaScriptChannelMessage",
+          std::make_unique<flutter::EncodableValue>(args));
+    });
     return "success";
   };
   webview_instance_->AddJavaScriptInterface(name, "postMessage", on_message);
@@ -325,8 +321,7 @@ void WebView::Dispose() {
   // after the WebView has been destroyed, the (stateless) dispatcher is kept
   // alive by the callback's own shared_ptr copy instead of dangling.
   texture_registrar_->UnregisterTexture(
-      GetTextureId(),
-      [pool, dispatcher = dispatcher_]() {
+      GetTextureId(), [pool, dispatcher = dispatcher_]() {
         // Invoked on the render thread once the texture is fully unregistered.
         // Hand the pool to a main-thread task for destruction; by this point
         // the raster thread has released all GPU resources and the LWE engine
