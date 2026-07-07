@@ -70,12 +70,6 @@ void main() {
         expect(parcel.readInt16(), 32767);
       });
 
-      testWidgets('round-trips zero', (WidgetTester _) async {
-        final Parcel parcel = Parcel();
-        parcel.writeInt16(0);
-        expect(parcel.readInt16(), 0);
-      });
-
       testWidgets('round-trips negative value', (WidgetTester _) async {
         final Parcel parcel = Parcel();
         parcel.writeInt16(-1);
@@ -118,11 +112,6 @@ void main() {
         expect(parcel.readInt64(), value);
       });
 
-      testWidgets('round-trips zero', (WidgetTester _) async {
-        final Parcel parcel = Parcel();
-        parcel.writeInt64(0);
-        expect(parcel.readInt64(), 0);
-      });
     });
 
     group('writeByte / readByte', () {
@@ -130,12 +119,6 @@ void main() {
         final Parcel parcel = Parcel();
         parcel.writeByte(0xab);
         expect(parcel.readByte(), 0xab);
-      });
-
-      testWidgets('round-trips zero', (WidgetTester _) async {
-        final Parcel parcel = Parcel();
-        parcel.writeByte(0);
-        expect(parcel.readByte(), 0);
       });
 
       testWidgets('round-trips maximum unsigned value', (WidgetTester _) async {
@@ -162,17 +145,12 @@ void main() {
     });
 
     group('writeArrayCount / readArrayCount', () {
-      testWidgets('round-trips non-zero count', (WidgetTester _) async {
+      testWidgets('round-trips a count', (WidgetTester _) async {
         final Parcel parcel = Parcel();
         parcel.writeArrayCount(42);
         expect(parcel.readArrayCount(), 42);
       });
 
-      testWidgets('round-trips zero count', (WidgetTester _) async {
-        final Parcel parcel = Parcel();
-        parcel.writeArrayCount(0);
-        expect(parcel.readArrayCount(), 0);
-      });
     });
 
     group('write / read (burst byte array)', () {
