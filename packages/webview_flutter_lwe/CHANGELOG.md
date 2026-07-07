@@ -5,6 +5,8 @@
   is replaced after the WebView is created.
 * Fix a crash on the raster thread when a WebView is disposed while a frame is
   still being composited.
+* Fix a use-after-free when navigation-delegate or JavaScript-channel callbacks
+  run after the WebView has been disposed.
 * Add 1 integration test case.
 
 ## 0.4.1

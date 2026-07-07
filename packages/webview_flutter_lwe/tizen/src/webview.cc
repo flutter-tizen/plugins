@@ -37,8 +37,15 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
 
 class NavigationRequestResult : public FlMethodResult {
  public:
-  NavigationRequestResult(std::string url, WebView* webview)
-      : url_(url), webview_(webview) {}
+  // |alive| is the WebView's is_alive_ flag. Dart resolves the
+  // "navigationRequest" method call asynchronously (it round-trips through
+  // the Dart navigation delegate), so this result's completion can run well
+  // after the WebView that created it has been disposed; |webview_| would
+  // then be a dangling pointer. Checking |alive| before dereferencing it
+  // avoids a use-after-free in that case.
+  NavigationRequestResult(std::string url, WebView* webview,
+                          std::shared_ptr<bool> alive)
+      : url_(url), webview_(webview), alive_(std::move(alive)) {}
 
   void SuccessInternal(const flutter::EncodableValue* should_load) override {
     if (std::holds_alternative<bool>(*should_load)) {
@@ -60,6 +67,9 @@ class NavigationRequestResult : public FlMethodResult {
 
  private:
   void LoadUrl() {
+    if (!*alive_) {
+      return;
+    }
     if (webview_ && webview_->GetWebViewInstance()) {
       webview_->GetWebViewInstance()->LoadURL(url_);
     }
@@ -67,6 +77,7 @@ class NavigationRequestResult : public FlMethodResult {
 
   std::string url_;
   WebView* webview_;
+  std::shared_ptr<bool> alive_;
 };
 
 template <typename T>
@@ -153,35 +164,45 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, args]() {
-          navigation_delegate_channel_->InvokeMethod(
-              "onPageStarted", std::make_unique<flutter::EncodableValue>(args));
-          // The lightweight web engine has no dedicated URL-change callback, so
-          // report a URL change whenever a navigation starts.
-          navigation_delegate_channel_->InvokeMethod(
-              "onUrlChange", std::make_unique<flutter::EncodableValue>(args));
-        });
+        dispatcher_->dispatchTaskOnMainThread(
+            [this, args, alive = is_alive_]() {
+              if (!*alive) return;
+              navigation_delegate_channel_->InvokeMethod(
+                  "onPageStarted",
+                  std::make_unique<flutter::EncodableValue>(args));
+              // The lightweight web engine has no dedicated URL-change
+              // callback, so report a URL change whenever a navigation
+              // starts.
+              navigation_delegate_channel_->InvokeMethod(
+                  "onUrlChange",
+                  std::make_unique<flutter::EncodableValue>(args));
+            });
       });
   webview_instance_->RegisterOnPageLoadedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, args]() {
-          navigation_delegate_channel_->InvokeMethod(
-              "onPageFinished",
-              std::make_unique<flutter::EncodableValue>(args));
-        });
+        dispatcher_->dispatchTaskOnMainThread(
+            [this, args, alive = is_alive_]() {
+              if (!*alive) return;
+              navigation_delegate_channel_->InvokeMethod(
+                  "onPageFinished",
+                  std::make_unique<flutter::EncodableValue>(args));
+            });
       });
   webview_instance_->RegisterOnProgressChangedHandler(
       [this](LWE::WebContainer* container, int progress) {
         flutter::EncodableMap args = {{flutter::EncodableValue("progress"),
                                        flutter::EncodableValue(progress)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, args]() {
-          navigation_delegate_channel_->InvokeMethod(
-              "onProgress", std::make_unique<flutter::EncodableValue>(args));
-        });
+        dispatcher_->dispatchTaskOnMainThread(
+            [this, args, alive = is_alive_]() {
+              if (!*alive) return;
+              navigation_delegate_channel_->InvokeMethod(
+                  "onProgress",
+                  std::make_unique<flutter::EncodableValue>(args));
+            });
       });
   webview_instance_->RegisterOnReceivedErrorHandler(
       [this](LWE::WebContainer* container, LWE::ResourceError error) {
@@ -193,11 +214,13 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
             {flutter::EncodableValue("failingUrl"),
              flutter::EncodableValue(error.GetUrl())},
         };
-        dispatcher_->dispatchTaskOnMainThread([this, args]() {
-          navigation_delegate_channel_->InvokeMethod(
-              "onWebResourceError",
-              std::make_unique<flutter::EncodableValue>(args));
-        });
+        dispatcher_->dispatchTaskOnMainThread(
+            [this, args, alive = is_alive_]() {
+              if (!*alive) return;
+              navigation_delegate_channel_->InvokeMethod(
+                  "onWebResourceError",
+                  std::make_unique<flutter::EncodableValue>(args));
+            });
       });
   webview_instance_->RegisterShouldOverrideUrlLoadingHandler(
       [this](LWE::WebContainer* view, const std::string& url) -> bool {
@@ -210,13 +233,16 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
              flutter::EncodableValue(true)},
         };
 
-        dispatcher_->dispatchTaskOnMainThread([this, args, url]() {
-          auto result = std::make_unique<NavigationRequestResult>(url, this);
-          navigation_delegate_channel_->InvokeMethod(
-              "navigationRequest",
-              std::make_unique<flutter::EncodableValue>(args),
-              std::move(result));
-        });
+        dispatcher_->dispatchTaskOnMainThread(
+            [this, args, url, alive = is_alive_]() {
+              if (!*alive) return;
+              auto result = std::make_unique<NavigationRequestResult>(
+                  url, this, alive);
+              navigation_delegate_channel_->InvokeMethod(
+                  "navigationRequest",
+                  std::make_unique<flutter::EncodableValue>(args),
+                  std::move(result));
+            });
         return true;
       });
 }
@@ -235,11 +261,13 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
         {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
     };
 
-    dispatcher_->dispatchTaskOnMainThread([this, args]() {
-      webview_channel_->InvokeMethod(
-          "javaScriptChannelMessage",
-          std::make_unique<flutter::EncodableValue>(args));
-    });
+    dispatcher_->dispatchTaskOnMainThread(
+        [this, args, alive = is_alive_]() {
+          if (!*alive) return;
+          webview_channel_->InvokeMethod(
+              "javaScriptChannelMessage",
+              std::make_unique<flutter::EncodableValue>(args));
+        });
     return "success";
   };
   webview_instance_->AddJavaScriptInterface(name, "postMessage", on_message);
@@ -261,6 +289,12 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
+  // Flip this before anything else: any dispatcher_ callback already queued
+  // on the main loop (e.g. a navigation event that fired just before this
+  // WebView was disposed) checks it and bails out instead of touching a
+  // WebView that may be fully destroyed by the time it runs.
+  *is_alive_ = false;
+
   // Stop the web engine first so its renderer thread stops writing into the
   // shared TBM surfaces before anything is torn down.
   if (webview_instance_) {
