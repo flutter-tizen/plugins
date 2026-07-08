@@ -8,6 +8,7 @@
 * Fix a use-after-free when navigation-delegate or JavaScript-channel callbacks
   run after the WebView has been disposed.
 * Add 1 integration test case.
+* Update lightweight web engine (1.3.40).
 
 ## 0.4.1
 
