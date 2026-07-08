@@ -111,7 +111,6 @@ void main() {
         parcel.writeInt64(value);
         expect(parcel.readInt64(), value);
       });
-
     });
 
     group('writeByte / readByte', () {
@@ -150,7 +149,6 @@ void main() {
         parcel.writeArrayCount(42);
         expect(parcel.readArrayCount(), 42);
       });
-
     });
 
     group('write / read (burst byte array)', () {

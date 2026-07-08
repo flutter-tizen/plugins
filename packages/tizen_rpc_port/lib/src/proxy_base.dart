@@ -61,9 +61,7 @@ abstract class ProxyBase {
   Completer<void> _connectCompleter = Completer<void>();
   Completer<void> _disconnectCompleter = Completer<void>();
 
-  static const MethodChannel _channel = MethodChannel(
-    'tizen/rpc_port_proxy',
-  );
+  static const MethodChannel _channel = MethodChannel('tizen/rpc_port_proxy');
 
   Stream<dynamic>? _stream;
   static final Set<int> _activeConnections = <int>{};
@@ -92,25 +90,20 @@ abstract class ProxyBase {
       throw StateError('Proxy $appid/$portName already connected');
     }
 
-    await _channel.invokeMethod(
-      'init',
-      <String, Object>{
-        'handle': _handle.address,
-        'portName': portName,
-      },
-    );
+    await _channel.invokeMethod('init', <String, Object>{
+      'handle': _handle.address,
+      'portName': portName,
+    });
 
     final EventChannel eventChannel = EventChannel(
       'tizen/rpc_port_proxy/$portName/${_handle.address}',
     );
 
-    _stream = eventChannel.receiveBroadcastStream(
-      <String, Object>{
-        'handle': _handle.address,
-        'appid': appid,
-        'portName': portName,
-      },
-    );
+    _stream = eventChannel.receiveBroadcastStream(<String, Object>{
+      'handle': _handle.address,
+      'appid': appid,
+      'portName': portName,
+    });
 
     _activeConnections.add(_handle.address);
     _streamSubscription = _stream!.listen((dynamic data) async {
