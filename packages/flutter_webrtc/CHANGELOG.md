@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Support x86_64
+
 ## 0.2.1
 
 * Remove Ecore api
