@@ -2,6 +2,8 @@
 
 * Implement `clearLocalStorage`.
 * Implement `onHttpError` for the navigation delegate.
+* Fix races and use-after-frees on WebView disposal, and avoid a web engine
+  teardown crash on the Tizen 10.0 TV emulator.
 
 ## 0.10.0
 
