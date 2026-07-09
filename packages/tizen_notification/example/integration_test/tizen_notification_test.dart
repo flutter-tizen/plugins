@@ -16,7 +16,8 @@ void main() {
   });
 
   group('TizenNotificationPlugin', () {
-    testWidgets('show notification does not throw', (WidgetTester tester) async {
+    testWidgets('show notification does not throw',
+        (WidgetTester tester) async {
       await plugin.show(1, title: 'Test Title', body: 'Test Body');
     });
 
@@ -25,7 +26,8 @@ void main() {
       await plugin.show(2);
     });
 
-    testWidgets('cancel notification does not throw', (WidgetTester tester) async {
+    testWidgets('cancel notification does not throw',
+        (WidgetTester tester) async {
       await plugin.show(3, title: 'To Cancel');
       await plugin.cancel(3);
     });
@@ -36,7 +38,8 @@ void main() {
       await plugin.cancelAll();
     });
 
-    testWidgets('show notification with TizenNotificationDetails does not throw',
+    testWidgets(
+        'show notification with TizenNotificationDetails does not throw',
         (WidgetTester tester) async {
       final TizenNotificationDetails details = TizenNotificationDetails(
         properties: NotificationProperty.disableAutoDelete,
