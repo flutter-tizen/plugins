@@ -36,7 +36,8 @@ void main() {
       expect(() => Log.fatal(tag, 'fatal message'), returnsNormally);
     });
 
-    testWidgets('isDebugEnabled is false by default', (WidgetTester tester) async {
+    testWidgets('isDebugEnabled is false by default',
+        (WidgetTester tester) async {
       expect(Log.isDebugEnabled, isFalse);
     });
 
