@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Integration tests ported from upstream firebase_core
-// (github.com/firebase/flutterfire), originally authored by the
-// Chromium project authors under a BSD-style license.
+// Integration tests ported from upstream firebase_core v2.17.0:
+// https://github.com/firebase/flutterfire/blob/firebase_core-v2.17.0/tests/integration_test/firebase_core/firebase_core_e2e_test.dart
+// Originally authored by the Chromium project authors under a BSD-style
+// license.
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
