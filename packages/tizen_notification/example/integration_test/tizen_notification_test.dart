@@ -15,6 +15,10 @@ void main() {
     plugin = TizenNotificationPlugin();
   });
 
+  tearDown(() async {
+    await plugin.cancelAll();
+  });
+
   group('TizenNotificationPlugin', () {
     testWidgets('show notification does not throw',
         (WidgetTester tester) async {
