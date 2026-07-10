@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  tizen_bundle: ^0.1.2
   tizen_rpc_port:
     path: ../../
 
