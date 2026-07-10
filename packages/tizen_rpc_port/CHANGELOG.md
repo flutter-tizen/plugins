@@ -1,3 +1,11 @@
+## 0.1.6
+
+* Read byte values as unsigned (0-255) so `Parcel.readByte` is consistent
+  across ABIs (C `char` is signed on x86 but unsigned on ARM).
+* Add 27 integration test cases to the client example.
+* Add server-specific integration test cases to the server example (the shared
+  Parcel and PortType tests are exercised only in the client example).
+
 ## 0.1.5
 
 * Update code format.

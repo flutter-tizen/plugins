@@ -293,6 +293,11 @@ class Parcel {
   }
 
   /// Reads a byte value from this parcel.
+  ///
+  /// The value is returned as an unsigned byte in the range 0-255, matching the
+  /// unsigned semantics of [writeByte] and [read]. The native value is read
+  /// into a C `char`, whose signedness is ABI-dependent (signed on x86, unsigned
+  /// on ARM), so it is masked to 8 bits to keep the result consistent.
   int readByte() {
     return using((Arena arena) {
       final Pointer<Char> pValue = arena();
@@ -303,7 +308,7 @@ class Parcel {
           message: tizen.get_error_message(ret).toDartString(),
         );
       }
-      return pValue.value;
+      return pValue.value & _byteMax;
     });
   }
 
