@@ -393,8 +393,8 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   /// Creates a new [LweNavigationDelegate].
   LweNavigationDelegate(super.params) : super.implementation();
 
-  late final MethodChannel _navigationDelegateChannel;
-  bool _isChannelCreated = false;
+  late MethodChannel _navigationDelegateChannel;
+  int? _viewId;
   PageEventCallback? _onPageFinished;
   PageEventCallback? _onPageStarted;
   ProgressCallback? _onProgress;
@@ -404,13 +404,10 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
-    // Guard against being bound twice for the same delegate instance; the
-    // channel handler below always reads the latest callbacks, so re-binding
-    // is unnecessary.
-    if (_isChannelCreated) {
+    if (_viewId == viewId) {
       return;
     }
-    _isChannelCreated = true;
+    _viewId = viewId;
     _navigationDelegateChannel = MethodChannel(
       kLweNavigationDelegateChannelName + viewId.toString(),
     );
