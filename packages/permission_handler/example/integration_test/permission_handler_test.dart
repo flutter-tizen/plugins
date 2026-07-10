@@ -11,27 +11,27 @@ void main() {
 
   group('Permission.status', () {
     testWidgets('camera permission is granted', (tester) async {
-      expect(await Permission.camera.status.isGranted, true);
+      expect(await Permission.camera.status, PermissionStatus.granted);
     });
 
     testWidgets('microphone permission is granted', (tester) async {
-      expect(await Permission.microphone.status.isGranted, true);
+      expect(await Permission.microphone.status, PermissionStatus.granted);
     });
 
     testWidgets('location permission is granted', (tester) async {
-      expect(await Permission.location.status.isGranted, true);
+      expect(await Permission.location.status, PermissionStatus.granted);
     });
 
     testWidgets('mediaLibrary permission is granted', (tester) async {
-      expect(await Permission.mediaLibrary.status.isGranted, true);
+      expect(await Permission.mediaLibrary.status, PermissionStatus.granted);
     });
 
     testWidgets('storage permission is granted', (tester) async {
-      expect(await Permission.storage.status.isGranted, true);
+      expect(await Permission.storage.status, PermissionStatus.granted);
     });
 
     testWidgets('contacts permission is granted', (tester) async {
-      expect(await Permission.contacts.status.isGranted, true);
+      expect(await Permission.contacts.status, PermissionStatus.granted);
     });
   });
 
@@ -45,7 +45,7 @@ void main() {
   group('Permission.request', () {
     testWidgets('requesting camera permission returns granted', (tester) async {
       final status = await Permission.camera.request();
-      expect(status.isGranted, true);
+      expect(status, PermissionStatus.granted);
     });
 
     testWidgets('requesting multiple permissions returns granted',
@@ -55,9 +55,9 @@ void main() {
         Permission.microphone,
         Permission.location,
       ].request();
-      expect(statuses[Permission.camera]!.isGranted, true);
-      expect(statuses[Permission.microphone]!.isGranted, true);
-      expect(statuses[Permission.location]!.isGranted, true);
+      expect(statuses[Permission.camera], PermissionStatus.granted);
+      expect(statuses[Permission.microphone], PermissionStatus.granted);
+      expect(statuses[Permission.location], PermissionStatus.granted);
     });
   });
 
