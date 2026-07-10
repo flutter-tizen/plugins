@@ -37,12 +37,9 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
 
 class NavigationRequestResult : public FlMethodResult {
  public:
-  // |alive| is the WebView's is_alive_ flag. Dart resolves the
-  // "navigationRequest" method call asynchronously (it round-trips through
-  // the Dart navigation delegate), so this result's completion can run well
-  // after the WebView that created it has been disposed; |webview_| would
-  // then be a dangling pointer. Checking |alive| before dereferencing it
-  // avoids a use-after-free in that case.
+  // Dart resolves "navigationRequest" asynchronously, so this result may
+  // complete after the WebView has been disposed. |alive| (the WebView's
+  // is_alive_ flag) is checked before dereferencing |webview_|.
   NavigationRequestResult(std::string url, WebView* webview,
                           std::shared_ptr<bool> alive)
       : url_(url), webview_(webview), alive_(std::move(alive)) {}
@@ -285,10 +282,8 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
-  // Flip this before anything else: any dispatcher_ callback already queued
-  // on the main loop (e.g. a navigation event that fired just before this
-  // WebView was disposed) checks it and bails out instead of touching a
-  // WebView that may be fully destroyed by the time it runs.
+  // Set this first so that dispatcher_ callbacks already queued on the main
+  // loop bail out instead of touching a destroyed WebView.
   *is_alive_ = false;
 
   // Stop the web engine first so its renderer thread stops writing into the
@@ -298,9 +293,8 @@ void WebView::Dispose() {
     webview_instance_ = nullptr;
   }
 
-  // Flag the view as disposing and detach the buffers under the render lock so
-  // the raster thread's ObtainGpuSurface() immediately stops handing out (and
-  // stops touching) buffers that are about to be released.
+  // Detach the buffers under the lock so that the raster thread stops handing
+  // out buffers that are about to be released.
   std::shared_ptr<BufferPool> pool;
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -311,23 +305,14 @@ void WebView::Dispose() {
     pool = std::move(tbm_pool_);
   }
 
-  // Unregister the texture with a completion callback. The embedder tears
-  // down the external texture on the render (raster) thread — after any
-  // in-flight frame callback for it has finished — and only then invokes this
-  // callback, so by the time it runs the raster thread is guaranteed done
-  // with the TBM surfaces. The callback fires on the render thread, so it
-  // hops to the main thread to actually free the pool. dispatcher_ itself
-  // (not a raw pointer to it) is captured so that if this callback fires
-  // after the WebView has been destroyed, the (stateless) dispatcher is kept
-  // alive by the callback's own shared_ptr copy instead of dangling.
+  // The callback runs on the render thread only after the raster thread is
+  // done with the TBM surfaces, so the pool is destroyed in a main-thread
+  // task. dispatcher_ is captured as a shared_ptr copy because the WebView
+  // may already be destroyed by the time the callback fires.
   texture_registrar_->UnregisterTexture(
       GetTextureId(), [pool, dispatcher = dispatcher_]() {
-        // Invoked on the render thread once the texture is fully unregistered.
-        // Hand the pool to a main-thread task for destruction; by this point
-        // the raster thread has released all GPU resources and the LWE engine
-        // has unmapped all TBM surfaces, so no in-flight frames remain.
         dispatcher->dispatchTaskOnMainThread([pool]() {
-          // Pool destructor calls tbm_surface_destroy on all buffers.
+          // The pool destructor frees all TBM surfaces.
         });
       });
 }
