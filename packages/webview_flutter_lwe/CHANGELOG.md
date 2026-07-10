@@ -1,4 +1,4 @@
-## 0.4.2
+## 0.5.0
 
 * Implement `onUrlChange` for the navigation delegate.
 * Fix navigation delegate callbacks being dropped when the navigation delegate
